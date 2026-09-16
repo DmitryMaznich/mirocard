@@ -115,9 +115,9 @@ export default function ModePickerScreen() {
     })
     : rawModes;
 
-  // Short stories deliberately have one visible mode. Keep its picker instead
-  // of auto-opening settings: the parent needs to see and select «Читаем
-  // рассказы» just like a mode in every other topic.
+  // Short stories deliberately keep their picker instead of auto-opening
+  // settings: the parent chooses between reading together and comprehension
+  // practice just like modes in every other topic.
   const hasSingleMode = !!topicRecord && modes.length === 1 && !isShortStories;
 
   useEffect(() => {

@@ -1895,6 +1895,11 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
     contact:   manifest.contact   ?? undefined,
     scripts:   manifest.scripts   ?? undefined,
     sentences: manifest.sentences?.length ? manifest.sentences : undefined,
+    // Some reading modes carry their editable source alongside the texts,
+    // rather than inside an individual card. Keep that data in the installed
+    // record as well: otherwise the configuration UI can open an empty editor
+    // even though the source deck supplied a default text.
+    storyQuiz: manifest.storyQuiz ?? undefined,
     scenes:    (manifest.scenes ?? []).map((scene) => ({
       ...scene,
       image: sceneAssetUrls[scene.image] ?? scene.image,

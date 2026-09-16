@@ -29,6 +29,7 @@ import ShareWithStudentPanel from "@/features/session/ShareWithStudentPanel";
 import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
 import { shouldRequestSessionStartPin } from "@/features/session/sessionStartGate";
 import { getFigureDifficultyRecommendation } from "@/features/session/figureDifficultyProgress";
+import { validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -675,6 +676,81 @@ function StorySelectionParam({ options, labels, value, onChange, info, onShowInf
         })}
       </div>
     </div>
+  );
+}
+
+function StoryQuizEditorParam({ value, defaultText, stories, selectedStoryIds, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+  const effectiveText = value?.trim() ? value : defaultText;
+  const validation = validateStoryQuizText(effectiveText, stories, selectedStoryIds);
+  const edited = Boolean(value?.trim());
+
+  function openEditor() {
+    setDraft(effectiveText);
+    setOpen(true);
+  }
+
+  const draftValidation = validateStoryQuizText(draft, stories, selectedStoryIds);
+
+  function save() {
+    if (!draftValidation.valid) return;
+    // An untouched base text needn't be copied into this child's settings.
+    // That keeps a later deck update available until an adult deliberately
+    // personalises the questions for this particular child.
+    onChange(draft === defaultText ? "" : draft);
+    setOpen(false);
+  }
+
+  return (
+    <>
+      <div className="param-row param-row--block story-quiz-param">
+        <div className="param-label">Вопросы и ответы</div>
+        <div className="param-concept-col">
+          <div className={`param-hint${validation.valid ? "" : " story-quiz-param__invalid"}`}>
+            {validation.valid
+              ? (edited ? "Свой вариант для ребёнка" : "Базовый вариант темы")
+              : "Вопросы нужно исправить"}
+          </div>
+          <button type="button" className="link-btn" onClick={openEditor}>Изменить</button>
+        </div>
+      </div>
+
+      {open && (
+        <Modal
+          title="Вопросы и ответы"
+          onClose={() => setOpen(false)}
+          actions={(
+            <>
+              <Button variant="secondary" onClick={() => setDraft(defaultText)}>Вернуть по умолчанию</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>Отмена</Button>
+              <Button onClick={save} disabled={!draftValidation.valid}>Сохранить</Button>
+            </>
+          )}
+        >
+          <div className="story-quiz-editor__intro">
+            <p>Один блок начинается с <code># Название рассказа</code>. Вопрос начинается с <code>?</code>, правильный ответ – с <code>+</code>, три остальных – с <code>-</code>.</p>
+            <p>Для каждого выбранного рассказа нужно не меньше пяти вопросов, по четыре ответа в каждом.</p>
+          </div>
+          <textarea
+            className="story-quiz-editor__textarea"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            spellCheck="true"
+            aria-label="Текст вопросов и ответов"
+          />
+          {!draftValidation.valid && (
+            <div className="story-quiz-editor__errors" role="alert">
+              {draftValidation.errors.map((error, index) => (
+                <div key={`${error.line ?? "general"}_${index}`}>
+                  {error.line ? `Строка ${error.line}: ` : ""}{error.message}
+                </div>
+              ))}
+            </div>
+          )}
+        </Modal>
+      )}
+    </>
   );
 }
 
@@ -1434,6 +1510,9 @@ export default function ParamsScreen() {
   const modeHasCategoryParam  = !!mode?.params?.category;
 
   const [showShare, setShowShare] = useState(false);
+  const storyQuizStories = (topicRecord?.texts ?? [])
+    .filter((text) => text.kind === "story")
+    .map((text) => ({ id: text.id, title: getTopicTitle(text.title) }));
 
   if (isReadingInstruction) {
     const earlyModeTitle = getTopicTitle(mode?.ui?.title) || mode?.id;
@@ -1567,6 +1646,12 @@ export default function ParamsScreen() {
         continue;
       }
       if (def.type === "text_upload") {
+        out[key] = saved[key] ?? "";
+        continue;
+      }
+      if (def.type === "story_quiz") {
+        // Empty keeps the shared base text. A non-empty value is a personal
+        // override in this student's topic settings.
         out[key] = saved[key] ?? "";
         continue;
       }
@@ -1724,6 +1809,18 @@ export default function ParamsScreen() {
         />
       )}
       {Object.entries(mode.params ?? {}).map(([key, def]) => {
+        if (def.type === "story_quiz") {
+          return (
+            <StoryQuizEditorParam
+              key={key}
+              value={params[key] ?? ""}
+              defaultText={topicRecord?.storyQuiz?.defaultText ?? ""}
+              stories={storyQuizStories}
+              selectedStoryIds={params.selectedStories ?? []}
+              onChange={(value) => setParams((current) => ({ ...current, [key]: value }))}
+            />
+          );
+        }
         if (def.type === "enum_multi") {
           if (isShortStories && key === "selectedStories") {
             return (
@@ -2054,7 +2151,14 @@ export default function ParamsScreen() {
   const hasLineListParam = Object.values(mode?.params ?? {}).some((d) => d.type === "line_list");
   const lineListEmpty = hasLineListParam && !(params.lines ?? []).some((l) => l.trim());
   const poolEmpty = isReading && activeText?.kind === "sentence_pool" && Array.isArray(params.selectedLineIds) && params.selectedLineIds.length === 0;
-  const isStartDisabled = sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady;
+  const storyQuizValidation = mode?.type === "story_quiz"
+    ? validateStoryQuizText(
+        params.storyQuizText?.trim() ? params.storyQuizText : (topicRecord?.storyQuiz?.defaultText ?? ""),
+        storyQuizStories,
+        params.selectedStories ?? [],
+      )
+    : null;
+  const isStartDisabled = sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid);
 
   return (
     <div className="screen">

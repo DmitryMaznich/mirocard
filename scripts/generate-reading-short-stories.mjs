@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import sharp from "sharp";
 import { fileURLToPath } from "node:url";
 
@@ -15,6 +15,8 @@ const tidyToysPath = fileURLToPath(new URL("./assets/reading_short_stories/gener
 const redPencilPath = fileURLToPath(new URL("./assets/reading_short_stories/generated/red_pencil_v2.png", import.meta.url));
 const zebraCrossingPath = fileURLToPath(new URL("./assets/reading_short_stories/generated/zebra_crossing_v2.png", import.meta.url));
 const cookiesPath = fileURLToPath(new URL("./assets/reading_short_stories/generated/cookies_v2.png", import.meta.url));
+const storyQuizPath = fileURLToPath(new URL("../content/reading_short_stories/questions.txt", import.meta.url));
+const storyQuizDefaultText = readFileSync(storyQuizPath, "utf8");
 
 async function buildIllustration(path) {
   return sharp(path)
@@ -65,29 +67,30 @@ function makeLines(pairs) {
 const manifest = {
   meta: {
     id: "reading_short_stories",
-    version: "1.5.4",
-    minAppVersion: "1.0.2",
+    version: "1.6.1",
+    minAppVersion: "1.0.2160",
     language: "ru",
     renderer: "reading",
     avatar: "media/whose_ball.webp",
     title: { ru: "Чтение: Короткие рассказы", en: "Reading: Short Stories" },
     description: {
-      ru: "Двенадцать коротких рассказов с иллюстрациями для совместного чтения (обычный текст или по слогам). После чтения родитель или логопед сам задаёт ребёнку вопросы по смыслу.",
-      en: "Twelve short illustrated stories for shared reading (normal text or syllable-split). After reading, the parent or therapist asks the child their own comprehension questions.",
+      ru: "Двенадцать коротких рассказов с иллюстрациями для совместного чтения и самостоятельной проверки понимания.",
+      en: "Twelve short illustrated stories for shared reading and independent comprehension practice.",
     },
     about: {
       ru: [
         "Тема предназначена для активной работы логопеда с ребёнком.",
         "Режим «Читаем рассказы» читает все двенадцать рассказов подряд одной сессией – «Готово» на одном сразу открывает следующий.",
         "В настройках режима можно выбрать, какие именно рассказы читать (по умолчанию – все), и показ текста: обычный или по слогам.",
-        "После чтения задавайте ребёнку вопросы по содержанию сами – тема не включает встроенную проверку понимания.",
+        "В режиме «Проверяем рассказ» ребёнок читает рассказ и выбирает ответы на вопросы. За пять верных ответов подряд можно получить видео-бонус.",
+        "Вопросы и варианты ответов можно изменить отдельно для каждого ребёнка. Базовый вариант всегда можно вернуть.",
       ],
       en: ["Designed for therapist-led reading sessions."],
     },
     conceptCount: 12,
     sessionConfig: { maxSize: 12 },
-    // This deck wants exactly one custom mode, "Читаем рассказы" – not the
-    // shared DEFAULT_MODES.reading "read_text" entry (comprehension quiz,
+    // This deck wants custom modes, not the shared DEFAULT_MODES.reading
+    // entries (comprehension quiz,
     // word-scramble, instructions, safe-code, a poem book, letter sorting,
     // math-operation narratives all excluded too, same as before).
     //
@@ -150,8 +153,52 @@ const manifest = {
         },
       },
     },
+    {
+      id: "story_quiz",
+      type: "story_quiz",
+      requirePin: false,
+      evaluation: "auto",
+      ui: {
+        title: { ru: "Проверяем рассказ" },
+        instruction: { ru: "Прочитай рассказ и выбери верный ответ" },
+        icon: "media/icons/reading_read.svg",
+      },
+      params: {
+        selectedStories: {
+          type: "enum_multi",
+          label: { ru: "Рассказы" },
+          values: [
+            "whose_ball", "help_mommy", "whose_horse", "lost_mitten",
+            "bird_feeder", "rainy_walk", "planting_flower", "hedgehog",
+            "tidy_toys", "red_pencil", "zebra_crossing", "cookies",
+          ],
+          labels: {
+            ru: {
+              whose_ball: "Мяч по очереди", help_mommy: "Помощь маме", whose_horse: "Можно покататься?",
+              lost_mitten: "Где шапка?", bird_feeder: "Кормушка за окном", rainy_walk: "Прогулка в дождь",
+              planting_flower: "Цветок для бабушки!", hedgehog: "Ёжик в саду", tidy_toys: "Убираем игрушки",
+              red_pencil: "Карандаш Пети", zebra_crossing: "Переход", cookies: "Печенье для папы",
+            },
+          },
+          default: [],
+        },
+        textStyle: {
+          type: "enum",
+          label: { ru: "Вид текста" },
+          values: ["normal", "syllables"],
+          labels: { ru: { normal: "Обычный", syllables: "По слогам" } },
+          default: "normal",
+        },
+        storyQuizText: {
+          type: "story_quiz",
+        },
+      },
+    },
   ],
   cards: [],
+  storyQuiz: {
+    defaultText: storyQuizDefaultText,
+  },
   texts: [
     {
       id: "whose_ball",
@@ -414,9 +461,10 @@ for (const text of manifest.texts) {
 
 const zip = new JSZip();
 zip.file("topic.json", JSON.stringify(manifest, null, 2));
+zip.file("questions.txt", storyQuizDefaultText);
 for (const [id, image] of Object.entries(illustrations)) {
   zip.file(`media/${id}.webp`, image);
 }
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_short_stories_v1.5.4.zip", buffer);
-console.log("\nZIP written to public/decks/reading_short_stories_v1.5.4.zip");
+writeFileSync("public/decks/reading_short_stories_v1.6.1.zip", buffer);
+console.log("\nZIP written to public/decks/reading_short_stories_v1.6.1.zip");
