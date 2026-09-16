@@ -446,6 +446,64 @@ function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
   );
 }
 
+function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect }) {
+  const textStyle = sessionParams?.textStyle ?? "normal";
+  const [chosenAnswerId, setChosenAnswerId] = useState(null);
+  const answers = useMemo(
+    () => shuffle(task.question?.answers ?? []),
+    [task.textId, task.question?.id, task.question?.answers],
+  );
+
+  function chooseAnswer(answer) {
+    if (chosenAnswerId) return;
+    setChosenAnswerId(answer.id);
+    if (answer.isCorrect) onCorrect(task.textId, task.question.id);
+    else onIncorrect(task.textId, task.question.id);
+  }
+
+  return (
+    <div className="session-body reading-body story-quiz">
+      <div className="story-quiz__reading">
+        <div className="story-quiz__story-copy">
+          <div className="story-quiz__story-count">Рассказ {task.storyIndex + 1} из {task.storyCount}</div>
+          <div className="reading-title story-quiz__title">{getTopicTitle(task.text?.title)}</div>
+          <ReadingTextBlock
+            lines={task.text?.lines ?? []}
+            textStyle={textStyle}
+            flow
+          />
+        </div>
+        <div className="story-quiz__illustration">
+          <ReadingIllustration topicId={topicId} text={task.text} />
+        </div>
+      </div>
+
+      <section className="story-quiz__question" aria-labelledby="story-quiz-question">
+        <div className="story-quiz__question-count">Вопрос {task.questionIndex + 1} из {task.questionCount}</div>
+        <h2 id="story-quiz-question" className="story-quiz__prompt">{task.question?.prompt}</h2>
+        <div className="story-quiz__answers">
+          {answers.map((answer) => {
+            const state = chosenAnswerId === answer.id
+              ? (answer.isCorrect ? "correct" : "wrong")
+              : "";
+            return (
+              <button
+                key={answer.id}
+                type="button"
+                className={`story-quiz__answer${state ? ` story-quiz__answer--${state}` : ""}`}
+                onClick={() => chooseAnswer(answer)}
+                disabled={Boolean(chosenAnswerId)}
+              >
+                {answer.text}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 function ReadTextTask({ task, topicId, sessionParams, onAdvance, onPrevious }) {
   const textStyle = sessionParams?.textStyle ?? "normal";
   if (task.text?.kind === "story") {
@@ -1634,6 +1692,7 @@ function SafeCodeTask({ topicId, onAdvance }) {
 
 const TASK_RENDERERS = {
   read_text:           ReadTextTask,
+  story_quiz:          StoryQuizTask,
   understand_text:     UnderstandTextTask,
   assemble_line:       AssembleLineTask,
   follow_instruction:  InstructionTask,

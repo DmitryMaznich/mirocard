@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { generateTasks, tokenizeReadingLine } from "./engine";
 
+const FIVE_QUESTIONS = Array.from({ length: 5 }, (_, index) => `? Вопрос ${index + 1}?
++ Верный ответ
+- Ответ два
+- Ответ три
+- Ответ четыре`).join("\n\n");
+
 const TOPIC = {
   meta: { id: "reading_test", renderer: "reading" },
   texts: [
@@ -32,14 +38,15 @@ describe("reading engine", () => {
     expect(questions[0].supportLines[0].text).toBe("Папа наш!");
 
     const assemble = generateTasks({ type: "assemble_text" }, TOPIC, "dad_best");
-    expect(assemble).toHaveLength(1);
-    expect(assemble[0].text.lines[0].expectedTokens.map((token) => token.text)).toEqual([
+    expect(assemble).toHaveLength(2);
+    expect(tokenizeReadingLine(assemble[0].line).map((token) => token.text)).toEqual([
       "Кто",
       "на",
       "свете",
       "лучше",
       "всех?",
     ]);
+    expect(assemble[0].tokenCount).toBe(5);
   });
 });
 
@@ -66,6 +73,28 @@ describe("short stories selection", () => {
   it("uses every story when none are selected explicitly", () => {
     const tasks = generateTasks({ type: "read_text" }, SHORT_STORIES_TOPIC, "first", { selectedStories: [] });
     expect(tasks.map((task) => task.textId)).toEqual(["first", "second", "third"]);
+  });
+
+  it("builds graded quiz tasks in story order from the editable text", () => {
+    const topic = {
+      ...SHORT_STORIES_TOPIC,
+      storyQuiz: {
+        defaultText: `# Первый\n\n${FIVE_QUESTIONS}\n\n# Второй\n\n${FIVE_QUESTIONS}\n\n# Третий\n\n${FIVE_QUESTIONS}`,
+      },
+      texts: [
+        { id: "first", kind: "story", title: { ru: "Первый" }, lines: [] },
+        { id: "second", kind: "story", title: { ru: "Второй" }, lines: [] },
+        { id: "third", kind: "story", title: { ru: "Третий" }, lines: [] },
+      ],
+    };
+
+    const tasks = generateTasks({ type: "story_quiz" }, topic, "first", { selectedStories: ["third", "first"] });
+    expect(tasks).toHaveLength(10);
+    expect(tasks.map((task) => task.textId)).toEqual([
+      "first", "first", "first", "first", "first",
+      "third", "third", "third", "third", "third",
+    ]);
+    expect(tasks[0]).toMatchObject({ type: "story_quiz", storyIndex: 0, storyCount: 2, questionIndex: 0, questionCount: 5 });
   });
 });
 

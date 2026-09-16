@@ -1,4 +1,6 @@
 
+import { parseStoryQuizText, quizGroupsByStoryId } from "./storyQuiz";
+
 export function getReadingText(topicRecord, textId, textOverride = null) {
   if (textOverride?.id === textId) return textOverride;
   const texts = topicRecord?.texts ?? [];
@@ -39,6 +41,47 @@ function buildAllStoriesTasks(topicRecord, selectedStoryIds) {
     ? stories.filter((t) => selectedStoryIds.includes(t.id))
     : stories;
   return selected.map((t) => buildReadTextTask(t));
+}
+
+function getStoryTitle(story) {
+  return typeof story?.title === "string"
+    ? story.title
+    : story?.title?.ru ?? story?.title?.en ?? story?.id ?? "";
+}
+
+// The trainer keeps one story visible while its five comprehension questions
+// follow below. Tasks are still individual questions so the existing graded
+// session and video-reward machinery counts every answer normally.
+function buildStoryQuizTasks(topicRecord, sessionParams) {
+  const rawText = sessionParams?.storyQuizText?.trim()
+    ? sessionParams.storyQuizText
+    : topicRecord?.storyQuiz?.defaultText;
+  const parsed = parseStoryQuizText(rawText);
+  if (!parsed.valid) return [];
+
+  const stories = (topicRecord.texts ?? [])
+    .filter((text) => text.kind === "story")
+    .map((text) => ({ ...text, title: getStoryTitle(text) }));
+  const questionsByStoryId = quizGroupsByStoryId(parsed, stories);
+  const selectedStoryIds = sessionParams?.selectedStories;
+  const selectedStories = selectedStoryIds?.length
+    ? stories.filter((story) => selectedStoryIds.includes(story.id))
+    : stories;
+  const readyStories = selectedStories.filter((story) => (questionsByStoryId[story.id] ?? []).length >= 5);
+
+  return readyStories.flatMap((story, storyIndex) => {
+    const questions = questionsByStoryId[story.id] ?? [];
+    return questions.map((question, questionIndex) => ({
+      type: "story_quiz",
+      textId: story.id,
+      text: story,
+      question,
+      storyIndex,
+      storyCount: readyStories.length,
+      questionIndex,
+      questionCount: questions.length,
+    }));
+  });
 }
 
 function buildUnderstandTasks(text) {
@@ -141,6 +184,10 @@ export function generateTasks(mode, topicRecord, textId, sessionParams = null, t
       return topicRecord?.meta?.id === "reading_short_stories"
         ? buildAllStoriesTasks(topicRecord, sessionParams?.selectedStories)
         : [buildReadTextTask(text)];
+    case "story_quiz":
+      return topicRecord?.meta?.id === "reading_short_stories"
+        ? buildStoryQuizTasks(topicRecord, sessionParams)
+        : [];
     case "understand_text":
       return buildUnderstandTasks(text);
     case "assemble_text":

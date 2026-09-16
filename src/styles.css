@@ -19582,6 +19582,61 @@ body { background: #eef0ef; }
   font-size: 13px;
 }
 
+/* Short-story trainer authoring lives in an ordinary text area rather than a
+   form with sixty miniature controls. It is easier to review, paste and
+   personalise per child while validation catches structural mistakes. */
+.story-quiz-param__invalid {
+  color: #aa4b42;
+  font-weight: 800;
+}
+
+.story-quiz-editor__intro {
+  color: #516a66;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.story-quiz-editor__intro p {
+  margin: 0 0 8px;
+}
+
+.story-quiz-editor__intro code {
+  color: #28665a;
+  font-size: 0.9em;
+  font-weight: 800;
+}
+
+.story-quiz-editor__textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: min(56vh, 620px);
+  margin-top: 14px;
+  padding: 14px;
+  resize: vertical;
+  border: 1px solid #b9d3cc;
+  border-radius: 12px;
+  background: #fcfffd;
+  color: #243c37;
+  font: 600 0.92rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.story-quiz-editor__textarea:focus {
+  outline: 3px solid rgba(74, 155, 143, 0.2);
+  border-color: #4a9b8f;
+}
+
+.story-quiz-editor__errors {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff0ee;
+  color: #9b4239;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .param-text-upload__link:disabled { opacity: .4; cursor: default; }
 
 /* ── TextListParam (modal picker + custom texts) ── */

@@ -209,6 +209,193 @@
   white-space: nowrap;
 }
 
+/* Story comprehension trainer: the upper reading panel preserves the story
+   and illustration in miniature, while the lower third contains one simple
+   four-choice question. Keeping it inside the same screen avoids a memory
+   tax from making a child switch back and forth between a story page and a
+   separate quiz page. */
+.session-body.reading-body.story-quiz {
+  padding: 0;
+  gap: 0;
+  align-items: stretch;
+  justify-content: stretch;
+  min-height: 0;
+  overflow: hidden;
+  background: #fdfcf9;
+}
+
+.story-quiz__reading {
+  min-height: 0;
+  flex: 1 1 66%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: 18px;
+  padding: 16px 20px 12px;
+}
+
+.story-quiz__story-copy {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.story-quiz__story-count,
+.story-quiz__question-count {
+  color: #5d7d78;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.story-quiz__title {
+  margin: 4px 0 8px;
+  color: #274d46;
+  font-size: clamp(1.15rem, 2.2vw, 1.65rem);
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.story-quiz .reading-flow-text {
+  font-size: clamp(0.78rem, 1.45vw, 1.05rem);
+  line-height: 1.35;
+}
+
+.story-quiz .reading-flow-para {
+  margin-bottom: 0.45em;
+}
+
+.story-quiz .reading-flow-text .reading-flow-para:first-child::first-letter {
+  float: none;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  color: inherit;
+  padding: 0;
+}
+
+.story-quiz__illustration {
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: 0 8px 22px rgba(40, 30, 20, 0.14);
+  background: #e9f0e5;
+}
+
+.story-quiz__illustration .reading-illustration,
+.story-quiz__illustration .reading-illustration img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+}
+
+.story-quiz__illustration .reading-illustration img {
+  object-fit: cover;
+}
+
+.story-quiz__question {
+  flex: 0 0 34%;
+  min-height: 216px;
+  box-sizing: border-box;
+  padding: 14px 20px 16px;
+  border-top: 1px solid rgba(74, 155, 143, 0.2);
+  background: #eef7f3;
+  box-shadow: 0 -8px 22px rgba(26, 70, 59, 0.06);
+}
+
+.story-quiz__prompt {
+  margin: 3px 0 10px;
+  color: #183f37;
+  font-size: clamp(1rem, 2.1vw, 1.45rem);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.story-quiz__answers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.story-quiz__answer {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid rgba(43, 94, 83, 0.19);
+  border-radius: 12px;
+  background: #fff;
+  color: #24423d;
+  font: inherit;
+  font-size: clamp(0.82rem, 1.65vw, 1.08rem);
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: left;
+  box-shadow: 0 2px 0 rgba(43, 94, 83, 0.1);
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.story-quiz__answer:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.story-quiz__answer--correct {
+  border-color: #3c9470;
+  background: #d9f3e5;
+  color: #1e694b;
+}
+
+.story-quiz__answer--wrong {
+  border-color: #d47a70;
+  background: #ffe5e1;
+  color: #9a3f36;
+}
+
+@media (orientation: portrait) {
+  .story-quiz__reading {
+    grid-template-columns: minmax(0, 1.15fr) minmax(104px, 0.85fr);
+    gap: 12px;
+    padding: 12px 14px 10px;
+  }
+
+  .story-quiz .reading-flow-text {
+    font-size: clamp(0.72rem, 2.9vw, 0.98rem);
+    line-height: 1.28;
+  }
+
+  .story-quiz__question {
+    flex-basis: 38%;
+    min-height: 260px;
+    padding: 12px 14px 14px;
+  }
+
+  .story-quiz__answers {
+    gap: 7px;
+  }
+}
+
+@media (max-height: 620px) and (orientation: landscape) {
+  .story-quiz__reading {
+    padding-top: 10px;
+    padding-bottom: 8px;
+  }
+
+  .story-quiz__question {
+    min-height: 182px;
+    padding-top: 9px;
+    padding-bottom: 10px;
+  }
+
+  .story-quiz__prompt {
+    margin-bottom: 6px;
+  }
+
+  .story-quiz__answer {
+    min-height: 34px;
+    padding: 6px 10px;
+  }
+}
+
 /* Small accent rule under the title, evoking a book's chapter head. */
 .reading-page .reading-title::after {
   content: "";
