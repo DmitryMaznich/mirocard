@@ -67,8 +67,8 @@ function makeLines(pairs) {
 const manifest = {
   meta: {
     id: "reading_short_stories",
-    version: "1.6.0",
-    minAppVersion: "1.0.2159",
+    version: "1.6.1",
+    minAppVersion: "1.0.2160",
     language: "ru",
     renderer: "reading",
     avatar: "media/whose_ball.webp",
@@ -466,5 +466,5 @@ for (const [id, image] of Object.entries(illustrations)) {
   zip.file(`media/${id}.webp`, image);
 }
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_short_stories_v1.6.0.zip", buffer);
-console.log("\nZIP written to public/decks/reading_short_stories_v1.6.0.zip");
+writeFileSync("public/decks/reading_short_stories_v1.6.1.zip", buffer);
+console.log("\nZIP written to public/decks/reading_short_stories_v1.6.1.zip");

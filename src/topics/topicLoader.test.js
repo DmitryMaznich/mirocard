@@ -93,7 +93,7 @@ async function makeOperationTopicZip({ id = "addition_subtraction", version = "1
   return zip.generateAsync({ type: "arraybuffer" });
 }
 
-async function makeReadingTopicZip({ id = "reading_test", version = "1.0.0" } = {}) {
+async function makeReadingTopicZip({ id = "reading_test", version = "1.0.0", storyQuiz } = {}) {
   const zip = new JSZip();
   const manifest = {
     meta: { id, version, language: "ru", renderer: "reading", title: "Reading" },
@@ -115,6 +115,7 @@ async function makeReadingTopicZip({ id = "reading_test", version = "1.0.0" } = 
       },
     ],
   };
+  if (storyQuiz) manifest.storyQuiz = storyQuiz;
   zip.file("topic.json", JSON.stringify(manifest));
   return zip.generateAsync({ type: "arraybuffer" });
 }
@@ -209,6 +210,15 @@ describe("importTopic — valid cases", () => {
     expect(record.cards).toEqual([]);
     expect(record.texts).toHaveLength(1);
     expect(record.modes.map((m) => m.id)).toEqual(["read_text", "understand_text", "assemble_text", "follow_instruction", "safe_code", "read_poem_book"]);
+  });
+
+  it("keeps a reading trainer's editable default text in the installed record", async () => {
+    const db = await freshDb();
+    const storyQuiz = { defaultText: "# Рассказ\n? Вопрос\n+ Верно\n- Нет\n- Нет\n- Нет" };
+    const record = await importTopic(db, await makeReadingTopicZip({ storyQuiz }), "2.0.0");
+
+    expect(record.storyQuiz).toEqual(storyQuiz);
+    expect((await getTopicRecord(db, "reading_test")).storyQuiz).toEqual(storyQuiz);
   });
 
   it("accepts deck.json as fallback for v1 compatibility", async () => {
