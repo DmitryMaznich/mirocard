@@ -43,6 +43,32 @@ describe("reading engine", () => {
   });
 });
 
+describe("short stories selection", () => {
+  const SHORT_STORIES_TOPIC = {
+    meta: { id: "reading_short_stories", renderer: "reading" },
+    texts: [
+      { id: "first", kind: "story", lines: [{ id: "l1", text: "Первый." }] },
+      { id: "second", kind: "story", lines: [{ id: "l1", text: "Второй." }] },
+      { id: "third", kind: "story", lines: [{ id: "l1", text: "Третий." }] },
+    ],
+  };
+
+  it("uses only the chosen stories and keeps their authored order", () => {
+    const tasks = generateTasks(
+      { type: "read_text" },
+      SHORT_STORIES_TOPIC,
+      "first",
+      { selectedStories: ["third", "first"] },
+    );
+    expect(tasks.map((task) => task.textId)).toEqual(["first", "third"]);
+  });
+
+  it("uses every story when none are selected explicitly", () => {
+    const tasks = generateTasks({ type: "read_text" }, SHORT_STORIES_TOPIC, "first", { selectedStories: [] });
+    expect(tasks.map((task) => task.textId)).toEqual(["first", "second", "third"]);
+  });
+});
+
 describe("shopping_list mode", () => {
   const SHOPPING_TOPIC = {
     meta: { id: "reading_test", renderer: "reading" },

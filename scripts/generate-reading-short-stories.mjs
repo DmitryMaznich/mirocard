@@ -65,7 +65,7 @@ function makeLines(pairs) {
 const manifest = {
   meta: {
     id: "reading_short_stories",
-    version: "1.5.3",
+    version: "1.5.4",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -143,7 +143,7 @@ const manifest = {
         },
         textStyle: {
           type: "enum",
-          label: { ru: "Текст" },
+          label: { ru: "Вид текста" },
           values: ["normal", "syllables"],
           labels: { ru: { normal: "Обычный", syllables: "По слогам" } },
           default: "normal",
@@ -418,5 +418,5 @@ for (const [id, image] of Object.entries(illustrations)) {
   zip.file(`media/${id}.webp`, image);
 }
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_short_stories_v1.5.3.zip", buffer);
-console.log("\nZIP written to public/decks/reading_short_stories_v1.5.3.zip");
+writeFileSync("public/decks/reading_short_stories_v1.5.4.zip", buffer);
+console.log("\nZIP written to public/decks/reading_short_stories_v1.5.4.zip");
