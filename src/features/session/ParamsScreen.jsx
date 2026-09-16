@@ -1600,7 +1600,13 @@ export default function ParamsScreen() {
   const isPropis = topicRecord?.meta.renderer === "propis";
 
   const allModes = topicRecord?.modes ?? [];
-  const modeBackScreen = allModes.length <= 1 ? (isReading ? "texts" : "home") : "modes";
+  // This deck chooses its stories on this screen. Sending the user back to the
+  // generic text picker creates a loop, because that picker deliberately skips
+  // itself for this combined-stories mode. Go home instead so another topic can
+  // be chosen.
+  const modeBackScreen = isShortStories
+    ? "home"
+    : allModes.length <= 1 ? (isReading ? "texts" : "home") : "modes";
 
   if (!topicRecord || !mode) {
     return (
