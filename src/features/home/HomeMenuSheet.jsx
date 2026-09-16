@@ -1,4 +1,4 @@
-export default function HomeMenuSheet({ onClose, onOpenProfile, onOpenStudents, onOpenSettings }) {
+export default function HomeMenuSheet({ onClose, onOpenProfile, onOpenStudents, onOpenSettings, onOpenHelp }) {
   function handleOverlay(e) {
     if (e.target === e.currentTarget) onClose();
   }
@@ -29,6 +29,12 @@ export default function HomeMenuSheet({ onClose, onOpenProfile, onOpenStudents, 
           onClick={() => { onOpenSettings(); onClose(); }}
         >
           Настройки
+        </button>
+        <button
+          className="action-sheet__item"
+          onClick={() => { onOpenHelp(); onClose(); }}
+        >
+          Помощь и поддержка
         </button>
 
         <button className="action-sheet__item action-sheet__item--cancel" onClick={onClose}>
