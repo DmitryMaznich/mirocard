@@ -342,10 +342,6 @@ export function consumeEmailVerificationToken(db, tokenHash) {
   return row.account_id;
 }
 
-export function deleteEmailVerificationTokensForAccount(db, accountId) {
-  db.prepare("DELETE FROM email_verification_tokens WHERE account_id = ?").run(accountId);
-}
-
 // Materials leads — free PDF library on the landing page. Unlike password
 // reset / email verification, the link is meant to keep working if someone
 // re-opens the email later, so lookup does not consume/delete the token —
