@@ -191,11 +191,19 @@ describe("generateTasks – column_arithmetic, digits: \"round10\" (Круглы
     }
   });
 
-  it("add/carry: tens sum overflows into hundreds (e.g. 60+70=130)", () => {
+  it("add/carry: reaches exactly 100 (e.g. 40+60=100), never more", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "add", carryMode: "carry", digits: "round10" });
     for (const t of tasks) {
       expect(t.columns.some((c) => c.carryOut > 0)).toBe(true);
-      expect(t.result).toBeGreaterThan(90);
+      expect(t.result).toBe(100);
+    }
+  });
+
+  it("add: sum never exceeds 100, regardless of carryMode (60+70=130 must never appear)", () => {
+    for (const carryMode of ["none", "carry", "mixed"]) {
+      const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "add", carryMode, digits: "round10" });
+      expect(tasks.length).toBeGreaterThan(0);
+      for (const t of tasks) expect(t.result).toBeLessThanOrEqual(100);
     }
   });
 
@@ -225,6 +233,14 @@ describe("generateExamples – digits: \"round10\" (column_copy print mode)", ()
     for (const ex of examples) {
       expect(ex.top % 10).toBe(0);
       expect(ex.bottom % 10).toBe(0);
+    }
+  });
+
+  it("add sum never exceeds 100, regardless of carryMode", () => {
+    for (const carryMode of ["none", "carry", "mixed"]) {
+      const examples = generateExamples(15, { operation: "add", carryMode, digits: "round10" });
+      expect(examples.length).toBeGreaterThan(0);
+      for (const ex of examples) expect(ex.top + ex.bottom).toBeLessThanOrEqual(100);
     }
   });
 

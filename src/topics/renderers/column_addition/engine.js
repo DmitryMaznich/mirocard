@@ -95,9 +95,10 @@ function generateAddTask(carryMode, digits, card, usedPairs, bottomDigits = digi
     let top, bottom;
     if (roundTens) {
       // "Круглые дес.": both operands are plain multiples of 10 (units digit
-      // genuinely 0 for both, not a phantom column) — carryMode still means
-      // something here (e.g. 60+70=130 carries into hundreds), so it's left
-      // to the generic hasCarry retry-check below, same as every other branch.
+      // genuinely 0 for both, not a phantom column). The sum must never
+      // exceed 100 — see the `top + bottom > 100` reject below — so "с
+      // переносом" here means exactly "reaching 100" (e.g. 40+60=100), not
+      // climbing arbitrarily into the hundreds (60+70=130 is NOT allowed).
       top = randomInt(1, 9) * 10;
       bottom = randomInt(1, 9) * 10;
     } else if (bottomDigits < digits) {
@@ -130,6 +131,11 @@ function generateAddTask(carryMode, digits, card, usedPairs, bottomDigits = digi
     const hasCarry = columns.some(c => c.carryOut > 0);
     if (carryMode === "none" && hasCarry) continue;
     if (carryMode === "carry" && !hasCarry) continue;
+    // "Круглые дес." never produces a result over 100 — 60+70=130 is too far
+    // past the round-hundred boundary for this introductory category. The
+    // only way carryMode:"carry" can be satisfied here is tens summing to
+    // exactly 10 (40+60=100 etc.), which the retry above already narrows to.
+    if (roundTens && top + bottom > 100) continue;
     // Avoid handing back the exact same pair twice within one generated batch —
     // pure independent random draws otherwise repeat far more often than a
     // parent/child expects, especially once carryMode narrows the digit space.
