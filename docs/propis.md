@@ -274,6 +274,23 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     filtering, correct bbox-shift normalization (checked the numbers by hand),
     correct idempotent re-run behavior, correct warn-and-skip on the typo case.
     No real capture data exists yet — 0/21 captured as of this entry.
+  - **Fixed-list picker for the "Элемент" type added to `handwriting_capture.html`
+    itself, same day** — the 21 REGISTRY slugs from the ingestion script are long
+    to type by hand every capture, and a typo there is a silent skip at ingestion
+    time, not a caught error at capture time. `#labelInput` (free text) now hides
+    and a new `#elementSelect` (the 21 slugs as options, `value` = exact
+    ingestion-script id, visible text = "NN · Russian name") shows whenever
+    `typeSelect.value === "element"` — toggled in `applyTypeUI()`, read in the
+    `addToSetBtn` handler. After each add, the select auto-advances to the next
+    option (captures happen in book order, so this saves a reselect on all 21).
+    **The 21 `<option>`s and the script's `REGISTRY` are two independent copies,
+    kept in sync by hand** — this is a static HTML file with no build step to
+    share a single source of truth from; a comment in both places says so.
+    Verified with a real headless-browser pointer-drag through the actual canvas
+    (not just DOM state): switching type hides the input/shows the select with
+    all 21 options, drawing enables "Добавить в набор", and after clicking it the
+    collection holds `{type:"element", label:"01_pryamaya_liniya", ...}` and the
+    select has already moved to `02_naklonnaya_vertikalnaya`.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires

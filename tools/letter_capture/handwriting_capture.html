@@ -359,7 +359,7 @@
     <h1>Мастерская траекторий</h1>
     <p class="subtitle">
       Строка на 1–3 буквы или знак — как первая модель в строке рабочей тетради.
-      Впишите буквы (например «Аба») или назовите элемент (например «крючок»),
+      Впишите буквы (например «Аба») или выберите элемент из списка,
       нарисуйте и добавьте в набор. Технические детали — в подвале страницы.
     </p>
   </div>
@@ -482,6 +482,33 @@
           <div class="field label-field" id="labelFieldWrap">
             <label for="labelInput" id="labelFieldLabel">Буквы</label>
             <input type="text" id="labelInput" maxlength="3" placeholder="Аба" autocomplete="off" />
+            <!-- Fixed list for "Элемент" — the slugs (scripts/propis_ingest_elements.mjs's
+                 REGISTRY keys) are long to type by hand and a typo there gets silently
+                 skipped by the ingestion script. Keep these 21 options in sync with that
+                 REGISTRY by hand — this static HTML file has no build step to share it from. -->
+            <select id="elementSelect" style="display:none;">
+              <option value="01_pryamaya_liniya">01 · Прямая линия</option>
+              <option value="02_naklonnaya_vertikalnaya">02 · Наклонная/вертикальная</option>
+              <option value="03_zaborchik_ploskie">03 · Заборчик плоские</option>
+              <option value="04_zaborchik_ostrye">04 · Заборчик острые</option>
+              <option value="05_kryuchok_vlevo">05 · Крючок влево</option>
+              <option value="06_kryuchok_vpravo">06 · Крючок вправо</option>
+              <option value="07a_soedinenie_kryuchkov_1">07a · Соединение крючков (1)</option>
+              <option value="07b_soedinenie_kryuchkov_2">07b · Соединение крючков (2)</option>
+              <option value="08_chervyachok">08 · Червячок</option>
+              <option value="09_zmeyka">09 · Змейка</option>
+              <option value="10_oval_s_hvostikom">10 · Овал с хвостиком</option>
+              <option value="11_tsepochka_ovalov">11 · Цепочка овалов</option>
+              <option value="12_petelka_vnizu">12 · Петелька внизу</option>
+              <option value="13_petelka_vverhu">13 · Петелька вверху</option>
+              <option value="14_petelka_s_kruzhochkom">14 · Петелька с кружочком</option>
+              <option value="15_kryuchok_vverh">15 · Крючок вверх</option>
+              <option value="16_poluoval_vpravo">16 · Полуовал вправо</option>
+              <option value="17_poluoval_vlevo">17 · Полуовал влево</option>
+              <option value="18_poluovaly_spinkami">18 · Полуовалы спинками</option>
+              <option value="19_petelka_s_nosikom">19 · Петелька с носиком</option>
+              <option value="20_kryuchok_s_petelkoy">20 · Крючок с петелькой</option>
+            </select>
           </div>
         </div>
         <div class="field-row" id="connectorFieldWrap" style="display:none;">
@@ -592,6 +619,7 @@
   const typeSelect = document.getElementById("typeSelect");
   const addToSetBtn = document.getElementById("addToSetBtn");
   const labelInput = document.getElementById("labelInput");
+  const elementSelect = document.getElementById("elementSelect");
   const labelFieldLabel = document.getElementById("labelFieldLabel");
   const labelFieldWrap = document.getElementById("labelFieldWrap");
   const connectorFieldWrap = document.getElementById("connectorFieldWrap");
@@ -1190,9 +1218,10 @@
     letter: { placeholder: "Аба", maxlength: 3, fieldLabel: "Буквы", hint:
       "Впишите до 3 букв (например «Аба») — они же станут подложкой-образцом. " +
       "Нарисуйте штрих(и) выше и добавьте в набор — холст очистится для следующей записи." },
-    element: { placeholder: "крючок", maxlength: 20, fieldLabel: "Название", hint:
-      "Название элемента (например «крючок» или «палочка») — не буква алфавита, поэтому " +
-      "подложки для него нет. Нарисуйте штрих(и) выше и добавьте в набор." }
+    element: { fieldLabel: "Элемент", hint:
+      "Выберите элемент из списка — подложки для него нет (не буква алфавита), сверяйтесь " +
+      "с референс-листом. Нарисуйте штрих(и) выше и добавьте в набор — список сам " +
+      "переключится на следующий элемент." }
   };
 
   function applyTypeUI() {
@@ -1206,9 +1235,15 @@
         "Нарисуйте штрих(и) выше и добавьте в набор.";
       return;
     }
+    const isElement = typeSelect.value === "element";
+    labelInput.style.display = isElement ? "none" : "";
+    elementSelect.style.display = isElement ? "" : "none";
+    labelFieldLabel.setAttribute("for", isElement ? "elementSelect" : "labelInput");
     const t = TYPE_COPY[typeSelect.value];
-    labelInput.placeholder = t.placeholder;
-    labelInput.maxLength = t.maxlength;
+    if (!isElement) {
+      labelInput.placeholder = t.placeholder;
+      labelInput.maxLength = t.maxlength;
+    }
     labelFieldLabel.textContent = t.fieldLabel;
     formHint.textContent = t.hint;
   }
@@ -1361,7 +1396,8 @@
         meta: { capturedAt: new Date().toISOString(), strokeCount: strokes.length }
       });
     } else {
-      const label = labelInput.value.trim();
+      const isElement = typeSelect.value === "element";
+      const label = isElement ? elementSelect.value : labelInput.value.trim();
       if (!label) return;
       collection.push({
         type: typeSelect.value,
@@ -1378,7 +1414,13 @@
     undoBtn.disabled = true;
     clearBtn.disabled = true;
     redrawAll();
-    if (!isConnector) {
+    if (typeSelect.value === "element") {
+      // Advance to the next element in the fixed list — captures happen in order,
+      // so this saves a reselect for every single one of the 21 items.
+      if (elementSelect.selectedIndex < elementSelect.options.length - 1) {
+        elementSelect.selectedIndex += 1;
+      }
+    } else if (!isConnector) {
       labelInput.value = "";
       labelInput.focus();
     }
