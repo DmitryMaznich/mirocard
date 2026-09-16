@@ -515,7 +515,12 @@ function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect })
   function chooseTarget() {
     if (answered) return;
     setAnswered(true);
-    onCorrect(task.textId, task.question.id);
+    // Finding the phrase is the answer itself. Keep the highlight visible briefly,
+    // then move to the next question without requiring an extra tap on the card.
+    onCorrect(task.textId, task.question.id, {
+      autoAdvance: true,
+      autoAdvanceDelayMs: 700,
+    });
   }
 
   function markMiss() {
@@ -1748,7 +1753,7 @@ const TASK_RENDERERS = {
   read_poem_book:      ReadPoemBookTask,
 };
 
-export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, playFeedback, onMistake, onAdvance, onPrevious, onQualityAnswer, onClose }) {
+export default function ReadingRenderer({ task, topicId, sessionParams, soundEnabled, playFeedback, onMistake, onCorrect, onIncorrect, onAdvance, onPrevious, onQualityAnswer, onClose }) {
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (
@@ -1759,6 +1764,8 @@ export default function ReadingRenderer({ task, topicId, sessionParams, soundEna
       soundEnabled={soundEnabled}
       playFeedback={playFeedback}
       onMistake={onMistake}
+      onCorrect={onCorrect}
+      onIncorrect={onIncorrect}
       onAdvance={onAdvance}
       onPrevious={onPrevious}
       onQualityAnswer={onQualityAnswer}

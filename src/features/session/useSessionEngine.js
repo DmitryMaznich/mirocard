@@ -486,7 +486,11 @@ export function useSessionEngine() {
       return next;
     });
 
-    if (!tapToAdvance && !adultConfirmAdvance) {
+    const shouldAutoAdvance = options.autoAdvance === true || !tapToAdvance;
+    if (shouldAutoAdvance && !adultConfirmAdvance) {
+      const delayMs = options.autoAdvance === true
+        ? Math.max(0, Number(options.autoAdvanceDelayMs) || 0)
+        : autoAdvanceDelay * 1000;
       setTimeout(() => {
         setSessionState((s) => {
           if (s.status !== "answer_correct") return s;
@@ -498,7 +502,7 @@ export function useSessionEngine() {
           if (advanced.status === "completed") finishSession(advanced);
           return advanced;
         });
-      }, autoAdvanceDelay * 1000);
+      }, delayMs);
     }
   }, [adultConfirmAdvance, tapToAdvance, autoAdvanceDelay, advanceTask]);
 
