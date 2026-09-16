@@ -627,6 +627,57 @@ function EnumMultiParam({ label, options, labels, value, onChange, info, onShowI
   );
 }
 
+function StorySelectionParam({ options, labels, value, onChange, info, onShowInfo }) {
+  const selected = Array.isArray(value) ? value.filter((id) => options.includes(id)) : [];
+  const allSelected = selected.length === 0;
+  const selectedCount = allSelected ? options.length : selected.length;
+
+  function toggleStory(id) {
+    if (allSelected) {
+      onChange([id]);
+      return;
+    }
+    const next = selected.includes(id)
+      ? selected.filter((selectedId) => selectedId !== id)
+      : [...selected, id];
+    // An empty selection means «Все рассказы»: a session must always contain
+    // something, and this preserves the deck's existing stored-param contract.
+    onChange(next.length === 0 || next.length === options.length ? [] : next);
+  }
+
+  return (
+    <div className="param-row param-row--block story-selection-param">
+      <ParamLabel label="Рассказы" info={info} onShowInfo={onShowInfo} />
+      <div className="story-selection-summary" aria-live="polite">
+        {allSelected ? `Все ${options.length} рассказов` : `Выбрано: ${selectedCount} из ${options.length}`}
+      </div>
+      <div className="story-selection-options" role="group" aria-label="Выбор рассказов">
+        <label className={`story-selection-option story-selection-option--all${allSelected ? " story-selection-option--selected" : ""}`}>
+          <input
+            type="checkbox"
+            checked={allSelected}
+            onChange={() => onChange([])}
+          />
+          <span>Все рассказы</span>
+        </label>
+        {options.map((id) => {
+          const checked = !allSelected && selected.includes(id);
+          return (
+            <label className={`story-selection-option${checked ? " story-selection-option--selected" : ""}`} key={id}>
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={() => toggleStory(id)}
+              />
+              <span>{labels?.[id] ?? id}</span>
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function BooleanParam({ label, hint, value, onChange, disabled, info, onShowInfo }) {
   return (
     <>
@@ -1360,6 +1411,7 @@ export default function ParamsScreen() {
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const mode        = topicRecord?.modes.find((m) => m.id === activeModeId);
   const isReading   = topicRecord?.meta.renderer === "reading";
+  const isShortStories = activeTopicId === "reading_short_stories";
   const activeText  = isReading
     ? (topicRecord?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
     : null;
@@ -1548,7 +1600,13 @@ export default function ParamsScreen() {
   const isPropis = topicRecord?.meta.renderer === "propis";
 
   const allModes = topicRecord?.modes ?? [];
-  const modeBackScreen = allModes.length <= 1 ? (isReading ? "texts" : "home") : "modes";
+  // This deck chooses its stories on this screen. Sending the user back to the
+  // generic text picker creates a loop, because that picker deliberately skips
+  // itself for this combined-stories mode. Go home instead so another topic can
+  // be chosen.
+  const modeBackScreen = isShortStories
+    ? "home"
+    : allModes.length <= 1 ? (isReading ? "texts" : "home") : "modes";
 
   if (!topicRecord || !mode) {
     return (
@@ -1649,7 +1707,7 @@ export default function ParamsScreen() {
 
   const paramsContent = isReading ? (
     <>
-      {activeText?.kind !== "sentence_pool" && (
+      {activeText?.kind !== "sentence_pool" && !isShortStories && (
         <div className="param-row param-row--block">
           <div className="param-label">Текст</div>
           <div className="param-concept-col">
@@ -1666,6 +1724,33 @@ export default function ParamsScreen() {
         />
       )}
       {Object.entries(mode.params ?? {}).map(([key, def]) => {
+        if (def.type === "enum_multi") {
+          if (isShortStories && key === "selectedStories") {
+            return (
+              <StorySelectionParam
+                key={key}
+                options={def.values}
+                labels={def.labels?.ru}
+                value={params[key] ?? def.default ?? []}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                info={def.info?.ru}
+                onShowInfo={setActiveInfo}
+              />
+            );
+          }
+          return (
+            <EnumMultiParam
+              key={key}
+              label={def.label?.ru ?? key}
+              options={def.values}
+              labels={def.labels?.ru}
+              value={params[key] ?? def.default ?? []}
+              onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              info={def.info?.ru}
+              onShowInfo={setActiveInfo}
+            />
+          );
+        }
         if (def.type === "enum") {
           return (
             <EnumParam

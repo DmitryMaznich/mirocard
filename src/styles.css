@@ -13923,6 +13923,34 @@ kbd {
   color: #7a9e9a;
   line-height: 1.4;
 }
+.story-selection-param { width: 100%; }
+.story-selection-summary { font-size: 0.82rem; color: #537b75; font-weight: 700; }
+.story-selection-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: min(100%, 650px);
+}
+.story-selection-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1.5px solid #c8d4d2;
+  border-radius: 10px;
+  background: #fff;
+  color: #3a5c58;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.story-selection-option:hover { background: #eaf1ef; }
+.story-selection-option--all { grid-column: 1 / -1; }
+.story-selection-option--selected { border-color: #1c7a6e; background: #e5f2ef; }
+.story-selection-option input { width: 18px; height: 18px; margin: 0; accent-color: #1c7a6e; flex: 0 0 auto; }
+@media (max-width: 520px) {
+  .story-selection-options { grid-template-columns: 1fr; }
+}
 .figure-difficulty-options { justify-content: flex-start; }
 .figure-difficulty-option {
   display: inline-flex;
