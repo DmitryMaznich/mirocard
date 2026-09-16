@@ -7978,6 +7978,25 @@ button {
   background: rgba(74, 155, 143, 0.04);
 }
 
+/* System-picked default the student hasn't confirmed by opening the picker
+   yet — must NOT read as "done" (that implies a finished, considered
+   choice). Dashed teal border + italic value = "this is our suggestion,
+   tap to change it". */
+.journey-step--prompt {
+  border-color: #4a9b8f;
+  border-style: dashed;
+  background: white;
+}
+
+.journey-step--prompt .journey-step__label {
+  color: #4a9b8f;
+}
+
+.journey-step--prompt .journey-step__value {
+  color: #6b7a77;
+  font-style: italic;
+}
+
 .journey-step--disabled {
   border-color: #ede5d8;
   background: rgba(255, 255, 255, 0.4);
@@ -8082,12 +8101,18 @@ button {
 .journey-step__arrow {
   color: #4a9b8f;
   font-size: 16px;
-  opacity: 0;
+  opacity: 0.55;
   flex-shrink: 0;
 }
 
-.journey-step--active .journey-step__arrow {
+.journey-step--active .journey-step__arrow,
+.journey-step--done .journey-step__arrow,
+.journey-step--prompt .journey-step__arrow {
   opacity: 1;
+}
+
+.journey-step--disabled .journey-step__arrow {
+  opacity: 0;
 }
 
 /* ═══════════════════════════════════════════
@@ -14355,6 +14380,13 @@ kbd {
   color: #9aaba7;
 }
 
+.home-section-hint {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #7a8b87;
+}
+
 /* ── Journey steps ───────────────────────────────────────────────── */
 .journey-steps {
   display: flex;
@@ -14386,6 +14418,25 @@ kbd {
 .journey-step--done {
   border-color: rgba(74, 155, 143, 0.28);
   background: rgba(74, 155, 143, 0.04);
+}
+
+/* System-picked default the student hasn't confirmed by opening the picker
+   yet — must NOT read as "done" (that implies a finished, considered
+   choice). Dashed teal border + italic value = "this is our suggestion,
+   tap to change it". */
+.journey-step--prompt {
+  border-color: #4a9b8f;
+  border-style: dashed;
+  background: white;
+}
+
+.journey-step--prompt .journey-step__label {
+  color: #4a9b8f;
+}
+
+.journey-step--prompt .journey-step__value {
+  color: #6b7a77;
+  font-style: italic;
 }
 
 .journey-step--disabled {
@@ -14470,12 +14521,18 @@ kbd {
 .journey-step__arrow {
   color: #4a9b8f;
   font-size: 16px;
-  opacity: 0;
+  opacity: 0.55;
   flex-shrink: 0;
 }
 
-.journey-step--active .journey-step__arrow {
+.journey-step--active .journey-step__arrow,
+.journey-step--done .journey-step__arrow,
+.journey-step--prompt .journey-step__arrow {
   opacity: 1;
+}
+
+.journey-step--disabled .journey-step__arrow {
+  opacity: 0;
 }
 
 .journey-step-wrap {

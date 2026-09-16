@@ -188,7 +188,7 @@ function stepState(condition, prevCondition) {
 }
 
 function JourneyStep({ state, number, label, value, onClick, avatar, spotlight }) {
-  const showAvatar = !!avatar && state !== "disabled";
+  const showAvatar = !!avatar && state !== "disabled" && state !== "prompt";
   return (
     <button
       className={`journey-step journey-step--${state}${spotlight ? " journey-step--spotlight" : ""}`}
@@ -230,6 +230,11 @@ function SessionTab({
       <div className="home-section-header">
         <span className="home-section-label">Собери занятие</span>
       </div>
+      {(s2 === "prompt" || s3 === "prompt") && (
+        <p className="home-section-hint">
+          Тема и режим подобраны автоматически — нажми на карточку, чтобы выбрать свою.
+        </p>
+      )}
       <div className="journey-steps">
         <JourneyStep
           state={s2}
@@ -251,7 +256,7 @@ function SessionTab({
           state={s3}
           number="2"
           label={isReading ? "Текст и режим" : "Режим"}
-          value={isReading ? readingStepValue : modeTitle || "Не выбран"}
+          value={isReading ? readingStepValue : (s3 === "prompt" ? "Выбери режим" : (modeTitle || "Не выбран"))}
           onClick={onModeStepClick}
           spotlight={spotlight === "mode"}
           avatar={
@@ -653,6 +658,30 @@ function HubCard({ state, icon, title, value, onClick, disabled, children }) {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// Which of {topic, mode} a given student has actually opened the picker for
+// at least once — persisted so a defaulted-but-never-touched selection keeps
+// reading as "not yours yet" across reloads, not just within one mount.
+const PICKER_CONFIRMED_KEY_PREFIX = "mirocard_home_picker_confirmed_";
+
+function loadPickerConfirmed(studentId) {
+  if (!studentId) return { topic: false, mode: false };
+  try {
+    const raw = localStorage.getItem(PICKER_CONFIRMED_KEY_PREFIX + studentId);
+    return raw ? JSON.parse(raw) : { topic: false, mode: false };
+  } catch {
+    return { topic: false, mode: false };
+  }
+}
+
+function savePickerConfirmed(studentId, flags) {
+  if (!studentId) return;
+  try {
+    localStorage.setItem(PICKER_CONFIRMED_KEY_PREFIX + studentId, JSON.stringify(flags));
+  } catch {
+    // Best-effort only — worst case the prompt state reappears next visit.
+  }
+}
+
 function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
   if (!topicRecord) return { total: 0, mastered: 0 };
   if (topicRecord.meta?.renderer === "chat_practice") {
@@ -703,12 +732,12 @@ export default function HomeScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
 
-  // Onboarding spotlight: topic/mode already come pre-filled with defaults,
-  // so a first-time user sees both journey steps looking "done" without ever
-  // having consciously picked anything. Walk them through it once — until
-  // their first session ever, then never again.
-  const [visitedTopicStep, setVisitedTopicStep] = useState(false);
-  const [visitedModeStep, setVisitedModeStep] = useState(false);
+  // Topic/mode come pre-filled with defaults, so a first-time user sees both
+  // journey steps looking "done" without ever having consciously picked
+  // anything. Track, per student and persisted, whether they've actually
+  // opened each picker — drives both the onboarding spotlight and the
+  // "prompt" (unconfirmed-default) visual state until they have.
+  const [pickerConfirmed, setPickerConfirmed] = useState(() => loadPickerConfirmed(activeStudentId));
 
   useEffect(() => {
     if (!topicRecords.length) return;
@@ -768,8 +797,7 @@ export default function HomeScreen() {
   }, [mode?.id]);
 
   useEffect(() => {
-    setVisitedTopicStep(false);
-    setVisitedModeStep(false);
+    setPickerConfirmed(loadPickerConfirmed(student?.id));
   }, [student?.id]);
 
   const { hasUpdate, applyUpdate } = useAppUpdate();
@@ -777,7 +805,26 @@ export default function HomeScreen() {
   const hasInstructionsAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("instructions");
   const hasLessonPlanAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("lesson_plan");
   const progress = conceptProgressSummary(sessions, student?.id, topic?.meta.id, topic);
-  const canStart = !!student && !!topic && (
+
+  const hasEverStarted = !!student && sessions.some((s) => s.studentId === student.id);
+  // A returning student (has ever started a session) implicitly "confirmed"
+  // both pickers long ago — only a genuinely new student sees the
+  // unconfirmed-default prompt state and the gate on "Начать занятие" below.
+  const isNewStudent = !!student && !hasEverStarted;
+  const topicConfirmed = !isNewStudent || pickerConfirmed.topic;
+  const modeConfirmed = !isNewStudent || isChatPractice || pickerConfirmed.mode;
+
+  const s2Raw = stepState(!!topic, !!student);
+  const s3Raw = isChatPractice
+    ? "completed"
+    : stepState(isReading ? !!activeText : !!mode, !!student && !!topic);
+  // A system-picked default reads as "done" (green checkmark) even though
+  // the student never chose it — relabel it "prompt" until they actually
+  // open that picker once, so it looks like an invitation, not a finished step.
+  const s2 = s2Raw === "done" && !topicConfirmed ? "prompt" : s2Raw;
+  const s3 = s3Raw === "done" && !modeConfirmed ? "prompt" : s3Raw;
+
+  const canStart = !!student && !!topic && topicConfirmed && modeConfirmed && (
     isChatPractice ? true :
     !isReading     ? !!mode :
     !activeText    ? false :
@@ -785,38 +832,40 @@ export default function HomeScreen() {
     !!mode
   );
 
-  const s2 = stepState(!!topic, !!student);
-  const s3 = isChatPractice
-    ? "completed"
-    : stepState(isReading ? !!activeText : !!mode, !!student && !!topic);
-
-  const topicLabel = topic
-    ? `${getTopicTitle(topic.meta.title)} · ${progress.mastered}/${progress.total}`
-    : "Не выбрана";
+  const topicLabel = s2 === "prompt"
+    ? "Выбери тему"
+    : topic
+      ? `${getTopicTitle(topic.meta.title)} · ${progress.mastered}/${progress.total}`
+      : "Не выбрана";
   const modeTitle = mode ? (getTopicTitle(mode.ui?.title) || mode.id) : "";
 
-  const readingStepValue = activeText
-    ? `${getTopicTitle(activeText.title)}${mode ? ` · ${modeTitle}` : ""}`
-    : "Не выбран";
+  const readingStepValue = s3 === "prompt"
+    ? "Выбери текст и режим"
+    : activeText
+      ? `${getTopicTitle(activeText.title)}${mode ? ` · ${modeTitle}` : ""}`
+      : "Не выбран";
 
-  const hasEverStarted = !!student && sessions.some((s) => s.studentId === student.id);
   const onboardingSpotlight = !student || hasEverStarted
     ? null
-    : !visitedTopicStep
+    : !topicConfirmed
       ? "topic"
-      : !isChatPractice && !visitedModeStep
+      : !modeConfirmed
         ? "mode"
         : canStart
           ? "start"
           : "mode";
 
   function handleTopicStepClick() {
-    setVisitedTopicStep(true);
+    const next = { ...pickerConfirmed, topic: true };
+    setPickerConfirmed(next);
+    savePickerConfirmed(student?.id, next);
     setScreen("topics");
   }
 
   function handleModeStepClick() {
-    setVisitedModeStep(true);
+    const next = { ...pickerConfirmed, mode: true };
+    setPickerConfirmed(next);
+    savePickerConfirmed(student?.id, next);
     setScreen(
       isReading && activeText?.kind !== "instruction" && activeText
         ? "modes"
