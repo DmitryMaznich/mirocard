@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useAppStore } from "@/core/store";
+import { getDb, kv } from "@/core/db";
 import Button from "@/shared/components/Button";
 import TopicCover from "@/shared/components/TopicCover";
 import ModeIcon from "@/shared/components/ModeIcon";
@@ -807,6 +808,28 @@ export default function HomeScreen() {
   useEffect(() => {
     if (mode && mode.id !== activeModeId) setActiveModeId(mode.id);
   }, [mode?.id]);
+
+  // Bootstrap only ever restores activeTopicId/activeModeId from the
+  // "lastContext" IndexedDB key (see core/bootstrap.js), which used to be
+  // written solely when a session finished. Picking a topic on Home and then
+  // reloading — e.g. because a service-worker update swapped in a new build —
+  // before ever starting a session lost that choice and fell back to
+  // whichever topic happens to sort first. Keep it current on every change.
+  useEffect(() => {
+    if (!student || !topic) return;
+    let cancelled = false;
+    (async () => {
+      const db = await getDb();
+      if (cancelled) return;
+      await kv.set(db, "lastContext", {
+        studentId: student.id,
+        topicId: topic.meta.id,
+        textId: activeText?.id ?? null,
+        modeId: mode?.id ?? null,
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [student?.id, topic?.meta.id, activeText?.id, mode?.id]);
 
   useEffect(() => {
     setPickerConfirmed(loadPickerConfirmed(student?.id));
