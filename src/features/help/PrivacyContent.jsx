@@ -10,9 +10,9 @@ export default function PrivacyContent() {
 
       <div className="settings-section-title">Кто отвечает за ваши данные</div>
       <p>
-        [Заполнить перед публикацией: юридическое наименование/ИП и адрес организации,
-        которая управляет Mironium]. По вопросам о данных — {" "}
-        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
+        Smart Washing d.o.o. (Словения), VAT SI98748092 — компания, которая управляет
+        Mironium. [Заполнить перед публикацией: зарегистрированный юридический адрес].
+        По вопросам о данных — <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
       </p>
 
       <div className="settings-section-title">Какие данные мы храним</div>
