@@ -226,11 +226,13 @@
 
 .story-quiz__reading {
   min-height: 0;
-  flex: 1 1 66%;
+  flex: 1 1 auto;
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
-  gap: 18px;
-  padding: 16px 20px 12px;
+  /* Once the answer strip became compact, an even spread gives both the
+     readable story and its illustration enough room to breathe. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  padding: 16px 20px 10px;
 }
 
 .story-quiz__story-copy {
@@ -296,19 +298,22 @@
 }
 
 .story-quiz__question {
-  flex: 0 0 34%;
-  min-height: 216px;
+  /* A question with four short choices needs a clear, touchable strip, not
+     the lower third of the screen. Clamp it to roughly half its former
+     height and leave the visual emphasis on the story itself. */
+  flex: 0 0 clamp(132px, 18%, 168px);
+  min-height: 0;
   box-sizing: border-box;
-  padding: 14px 20px 16px;
+  padding: 8px 20px 10px;
   border-top: 1px solid rgba(74, 155, 143, 0.2);
   background: #eef7f3;
   box-shadow: 0 -8px 22px rgba(26, 70, 59, 0.06);
 }
 
 .story-quiz__prompt {
-  margin: 3px 0 10px;
+  margin: 1px 0 6px;
   color: #183f37;
-  font-size: clamp(1rem, 2.1vw, 1.45rem);
+  font-size: clamp(0.92rem, 1.55vw, 1.16rem);
   font-weight: 900;
   line-height: 1.2;
 }
@@ -316,18 +321,18 @@
 .story-quiz__answers {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .story-quiz__answer {
-  min-height: 44px;
-  padding: 8px 12px;
+  min-height: 34px;
+  padding: 6px 10px;
   border: 1px solid rgba(43, 94, 83, 0.19);
   border-radius: 12px;
   background: #fff;
   color: #24423d;
   font: inherit;
-  font-size: clamp(0.82rem, 1.65vw, 1.08rem);
+  font-size: clamp(0.78rem, 1.25vw, 0.98rem);
   font-weight: 800;
   line-height: 1.15;
   text-align: left;
@@ -353,7 +358,7 @@
 
 @media (orientation: portrait) {
   .story-quiz__reading {
-    grid-template-columns: minmax(0, 1.15fr) minmax(104px, 0.85fr);
+    grid-template-columns: minmax(0, 1fr) minmax(104px, 0.8fr);
     gap: 12px;
     padding: 12px 14px 10px;
   }
@@ -364,8 +369,8 @@
   }
 
   .story-quiz__question {
-    flex-basis: 38%;
-    min-height: 260px;
+    flex-basis: clamp(184px, 29%, 212px);
+    min-height: 0;
     padding: 12px 14px 14px;
   }
 
@@ -381,7 +386,8 @@
   }
 
   .story-quiz__question {
-    min-height: 182px;
+    flex-basis: 120px;
+    min-height: 0;
     padding-top: 9px;
     padding-bottom: 10px;
   }
