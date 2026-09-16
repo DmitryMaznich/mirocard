@@ -5,8 +5,7 @@ import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons"
 const SUPPORT_EMAIL = "hello@mironium.com";
 
 // Grounded in what the app actually does today — no answer here describes a
-// feature that isn't shipped (e.g. no "Забыли пароль?" link exists yet, so
-// that's not promised as a self-serve flow).
+// feature that isn't shipped.
 const FAQ_ITEMS = [
   {
     q: "Что такое «ученик» и зачем его добавлять?",
@@ -28,7 +27,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Я забыл(а) пароль — как его восстановить?",
-    a: `Самостоятельного восстановления пароля в приложении пока нет — напишите нам на ${SUPPORT_EMAIL} с адресом аккаунта, и мы поможем сбросить пароль.`,
+    a: "На экране входа нажмите «Забыли пароль?» и укажите email аккаунта — придёт ссылка для сброса пароля.",
   },
   {
     q: "Можно ли вести несколько учеников на одном аккаунте?",
