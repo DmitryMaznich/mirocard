@@ -65,7 +65,7 @@ function makeLines(pairs) {
 const manifest = {
   meta: {
     id: "reading_short_stories",
-    version: "1.5.2",
+    version: "1.5.3",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -134,7 +134,7 @@ const manifest = {
             ru: {
               whose_ball: "Мяч по очереди", help_mommy: "Помощь маме", whose_horse: "Можно покататься?",
               lost_mitten: "Где шапка?", bird_feeder: "Кормушка за окном", rainy_walk: "Прогулка в дождь",
-              planting_flower: "Новый лист", hedgehog: "Ёжик в саду", tidy_toys: "Убираем игрушки",
+              planting_flower: "Цветок для бабушки!", hedgehog: "Ёжик в саду", tidy_toys: "Убираем игрушки",
               red_pencil: "Карандаш Пети", zebra_crossing: "Переход", cookies: "Печенье для папы",
             },
           },
@@ -269,7 +269,7 @@ const manifest = {
     {
       id: "planting_flower",
       kind: "story",
-      title: { ru: "Новый лист", en: "A New Leaf" },
+      title: { ru: "Цветок для бабушки!", en: "A Flower for Grandma!" },
       image: "media/planting_flower.webp",
       level: 1,
       lines: makeLines([
@@ -281,7 +281,7 @@ const manifest = {
         ["l6", "По-том он по-лил зем-лю."],
         ["l7", "Ба-буш-ка по-ста-ви-ла гор-шок на ок-но."],
         ["l8", "Каж-дое ут-ро Де-нис по-ли-вал цве-ток."],
-        ["l9", "Че-рез не-де-лю на цве-тке по-я-ви-лись но-вые ли-стья."],
+        ["l9", "Че-рез не-де-лю на рост-ке по-я-ви-лись но-вые ли-стья."],
         ["l10", "Что-бы рас-те-ние рос-ло, о нём на-до за-бо-тить-ся!"],
       ]),
     },
@@ -418,5 +418,5 @@ for (const [id, image] of Object.entries(illustrations)) {
   zip.file(`media/${id}.webp`, image);
 }
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_short_stories_v1.5.2.zip", buffer);
-console.log("\nZIP written to public/decks/reading_short_stories_v1.5.2.zip");
+writeFileSync("public/decks/reading_short_stories_v1.5.3.zip", buffer);
+console.log("\nZIP written to public/decks/reading_short_stories_v1.5.3.zip");
