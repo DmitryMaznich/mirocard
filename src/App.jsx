@@ -16,6 +16,8 @@ import LoginScreen from "@/features/account/LoginScreen";
 import RegisterScreen from "@/features/account/RegisterScreen";
 import VerifyEmailSentScreen from "@/features/account/VerifyEmailSentScreen";
 import VerifyEmailScreen from "@/features/account/VerifyEmailScreen";
+import ForgotPasswordScreen from "@/features/account/ForgotPasswordScreen";
+import ResetPasswordScreen from "@/features/account/ResetPasswordScreen";
 import HomeScreen from "@/features/home/HomeScreen";
 import StudentsScreen from "@/features/students/StudentsScreen";
 import StudentEditScreen from "@/features/students/StudentEditScreen";
@@ -75,6 +77,8 @@ const SCREENS = {
   register: RegisterScreen,
   verify_email_sent: VerifyEmailSentScreen,
   verify_email: VerifyEmailScreen,
+  forgot_password: ForgotPasswordScreen,
+  reset_password: ResetPasswordScreen,
   home: HomeScreen,
   students: StudentsScreen,
   student_edit: StudentEditScreen,
@@ -141,6 +145,7 @@ export default function App() {
   const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
   const setVerifyEmailToken = useAppStore((s) => s.setVerifyEmailToken);
+  const setPasswordResetToken = useAppStore((s) => s.setPasswordResetToken);
   const pendingCheckoutPlan = useAppStore((s) => s.pendingCheckoutPlan);
   const closeTimer = useCallback(() => setIsOpen(false), [setIsOpen]);
 
@@ -184,6 +189,15 @@ export default function App() {
       setVerifyEmailToken(verifyToken);
       window.history.replaceState({}, "", "/");
       setScreen("verify_email");
+      return;
+    }
+
+    // Handle /reset?token= deep links — same shape as /verify-email above.
+    const resetToken = urlParams.get("token");
+    if (window.location.pathname === "/reset" && resetToken) {
+      setPasswordResetToken(resetToken);
+      window.history.replaceState({}, "", "/");
+      setScreen("reset_password");
       return;
     }
 
@@ -254,7 +268,7 @@ export default function App() {
         setScreen("login");
       }
     })();
-  }, [setScreen, setVerifyEmailToken]);
+  }, [setScreen, setVerifyEmailToken, setPasswordResetToken]);
 
   useEffect(() => {
     if (screen === "home" && pendingCheckoutPlan) {

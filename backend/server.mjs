@@ -19,7 +19,6 @@ import {
   getRevision,
   createPasswordResetToken, consumePasswordResetToken,
   createEmailVerificationToken, consumeEmailVerificationToken,
-  deleteEmailVerificationTokensForAccount,
   upsertStudent, getStudents, softDeleteStudent,
   appendSession, getSessions,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
@@ -390,7 +389,10 @@ async function handleResendVerification(req, res) {
 
   const account = findAccountByEmailAny(db, email);
   if (account?.status === "pending") {
-    deleteEmailVerificationTokensForAccount(db, account.id);
+    // Deliberately does not invalidate tokens from earlier sends: a user
+    // who resent out of impatience and then opens an older email should
+    // still be able to use that link, not hit "invalid or expired" on a
+    // token that's only a few minutes old.
     const rawToken = randomUUID();
     createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
     sendEmailVerificationEmail(account.email, rawToken).catch(console.error);

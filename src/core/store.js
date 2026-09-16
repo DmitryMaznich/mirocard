@@ -60,6 +60,15 @@ export const useAppStore = create((set) => ({
   setPendingVerificationEmail: (email) => set({ pendingVerificationEmail: email }),
   verifyEmailToken: null,
   setVerifyEmailToken: (token) => set({ verifyEmailToken: token }),
+  // Timestamp (ms) before which "Отправить повторно" stays disabled. Lives
+  // in the store rather than component state so bouncing away from this
+  // screen and back (e.g. via the login screen's email_not_verified path)
+  // doesn't reset it — that reset is what let panicked users re-trigger
+  // resend fast enough to invalidate a link they hadn't opened yet.
+  verificationResendAvailableAt: 0,
+  setVerificationResendAvailableAt: (verificationResendAvailableAt) => set({ verificationResendAvailableAt }),
+  passwordResetToken: null,
+  setPasswordResetToken: (token) => set({ passwordResetToken: token }),
 
   // ─── Auth ──────────────────────────────────────────────────────────────────
   account: null,
