@@ -26,7 +26,7 @@ Do not open backup archives, restored backup folders, Synology backup folders, `
 
 Do not deploy the backend to Synology. Synology/SmartNAS is backup storage only.
 
-Известное ограничение: SMTP (`mail.kaplieva.help`) недоступен из сети Railway (connection timeout) — email-подтверждение и восстановление пароля на `app.mironium.com` сейчас не работают. См. `DEPLOYMENT.md`.
+Email-подтверждение и восстановление пароля шлются через Resend API (`RESEND_API_KEY`, `backend/lib/mailer.mjs`), не через SMTP — старое ограничение с недоступным `mail.kaplieva.help` больше не актуально. См. `DEPLOYMENT.md`.
 
 ### Старый хост (retired 2026-08-23)
 
