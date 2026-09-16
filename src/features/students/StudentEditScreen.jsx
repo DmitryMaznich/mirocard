@@ -136,6 +136,12 @@ export default function StudentEditScreen() {
   const [nameError,    setNameError]    = useState("");
   const [confirmDel,   setConfirmDel]   = useState(false);
   const [saving,       setSaving]       = useState(false);
+  // GDPR Art. 9: "Заметки" is free text and routinely ends up holding
+  // health/development notes (speech-therapy diagnoses, delays) — that's a
+  // special data category needing its own explicit consent, separate from
+  // the generic account-level checkbox at registration.
+  const [healthDataConsent, setHealthDataConsent] = useState(initial?.healthDataConsent ?? false);
+  const [healthConsentError, setHealthConsentError] = useState("");
 
   // Portal management
   const [portals,         setPortals]         = useState(null);
@@ -218,14 +224,24 @@ export default function StudentEditScreen() {
 
   async function handleSave() {
     if (!name.trim()) { setNameError("Введите имя ученика"); return; }
+    if (comment.trim() && !healthDataConsent) {
+      setHealthConsentError("Отметьте согласие ниже, если в заметках есть сведения о здоровье или особенностях развития");
+      return;
+    }
+    setHealthConsentError("");
     setSaving(true);
     const ts = new Date().toISOString();
     const photoChanged = photo !== (initial?.photo ?? null);
+    const healthConsentChanged = healthDataConsent !== (initial?.healthDataConsent ?? false);
+    const healthDataConsentAt = healthDataConsent
+      ? (healthConsentChanged ? ts : (initial?.healthDataConsentAt ?? ts))
+      : null;
     const data = {
       name: name.trim(), comment: comment.trim(),
       primaryLanguage: lang || null,
       sex: sex || null,
       rewardVideos: videos, closeAdults: adults,
+      healthDataConsent, healthDataConsentAt,
     };
     const db = await getDb();
     if (isEdit) {
@@ -348,10 +364,22 @@ export default function StudentEditScreen() {
           <textarea
             className="se-comment-input"
             value={comment}
-            onChange={(e) => setComment(e.target.value)}
+            onChange={(e) => { setComment(e.target.value); setHealthConsentError(""); }}
             placeholder="Заметки, особенности, цели…"
             rows={3}
           />
+          <label className="se-health-consent">
+            <input
+              type="checkbox"
+              checked={healthDataConsent}
+              onChange={(e) => { setHealthDataConsent(e.target.checked); setHealthConsentError(""); }}
+            />
+            <span>
+              В заметках есть сведения о здоровье или особенностях развития ребёнка — даю согласие
+              на их обработку
+            </span>
+          </label>
+          {healthConsentError && <div className="se-name-error">{healthConsentError}</div>}
         </div>
 
         {/* ── Пол ── */}

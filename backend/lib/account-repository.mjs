@@ -420,6 +420,8 @@ export function upsertStudent(db, accountId, {
   photo = null,
   rewardVideos = [],
   closeAdults = [],
+  healthDataConsent = false,
+  healthDataConsentAt = null,
   createdAt = null,
   updatedAt = null,
 }) {
@@ -436,13 +438,15 @@ export function upsertStudent(db, accountId, {
   const processedAdults = processCloseAdultPhotos(db, Array.isArray(closeAdults) ? closeAdults : []);
 
   db.prepare(`
-    INSERT INTO students (id, account_id, name, comment, primary_language, sex, photo, photo_updated_at, reward_videos, reward_videos_updated_at, close_adults, close_adults_updated_at, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO students (id, account_id, name, comment, primary_language, sex, photo, photo_updated_at, reward_videos, reward_videos_updated_at, close_adults, close_adults_updated_at, health_data_consent, health_data_consent_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       comment = excluded.comment,
       primary_language = excluded.primary_language,
       sex = excluded.sex,
+      health_data_consent = excluded.health_data_consent,
+      health_data_consent_at = excluded.health_data_consent_at,
       updated_at = excluded.updated_at
   `).run(
     id,
@@ -457,6 +461,8 @@ export function upsertStudent(db, accountId, {
     normalizedVideos.length ? updated : null,
     JSON.stringify(processedAdults),
     processedAdults.length ? updated : null,
+    healthDataConsent ? 1 : 0,
+    healthDataConsent ? (healthDataConsentAt || updated) : null,
     created,
     updated,
   );

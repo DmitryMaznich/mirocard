@@ -224,6 +224,16 @@ export function initDb(dbPath = DB_PATH) {
   if (!studentColumns.some((column) => column.name === "my_people_updated_at")) {
     db.exec("ALTER TABLE students ADD COLUMN my_people_updated_at TEXT");
   }
+  // GDPR Art. 9: the free-text "comment" field can carry health/development
+  // data (speech-therapy notes, diagnoses) — that's a special category and
+  // needs its own explicit consent, separate from the account-level consent
+  // checkbox at registration.
+  if (!studentColumns.some((column) => column.name === "health_data_consent")) {
+    db.exec("ALTER TABLE students ADD COLUMN health_data_consent INTEGER DEFAULT 0");
+  }
+  if (!studentColumns.some((column) => column.name === "health_data_consent_at")) {
+    db.exec("ALTER TABLE students ADD COLUMN health_data_consent_at TEXT");
+  }
 
   const linkColumns = db.prepare("PRAGMA table_info(student_topic_links)").all();
   if (!linkColumns.some((c) => c.name === "params")) {

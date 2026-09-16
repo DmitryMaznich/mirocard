@@ -17833,6 +17833,24 @@ select.account-card__input {
 }
 .se-comment-input::placeholder { color: #c0b8b0; }
 
+.se-health-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0 16px 12px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #7c8c89;
+  cursor: pointer;
+}
+.se-health-consent input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 /* Language rows */
 .se-lang-row {
   display: flex;
