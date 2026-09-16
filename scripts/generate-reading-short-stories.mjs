@@ -65,7 +65,7 @@ function makeLines(pairs) {
 const manifest = {
   meta: {
     id: "reading_short_stories",
-    version: "1.5.1",
+    version: "1.5.2",
     minAppVersion: "1.0.2",
     language: "ru",
     renderer: "reading",
@@ -378,6 +378,32 @@ const manifest = {
   ],
 };
 
+// Paragraphs mark a change of scene, action, speaker, or final idea. Keeping
+// this editorial structure here makes story text easy to scan without changing
+// the child-facing wording or the authored syllable breakdown.
+const paragraphStartsByStory = {
+  whose_ball: ["l4", "l7", "l8", "l9"],
+  help_mommy: ["l3", "l4", "l7", "l8"],
+  whose_horse: ["l4", "l5", "l6", "l7", "l8"],
+  lost_mitten: ["l5", "l6", "l7", "l8", "l9", "l12"],
+  bird_feeder: ["l2", "l3", "l4", "l5", "l6", "l10"],
+  rainy_walk: ["l4", "l5", "l6", "l9", "l10"],
+  planting_flower: ["l3", "l4", "l8", "l10"],
+  hedgehog: ["l3", "l4", "l5", "l6", "l7", "l9"],
+  tidy_toys: ["l4", "l5", "l6", "l8"],
+  red_pencil: ["l4", "l5", "l6", "l8", "l9", "l10"],
+  zebra_crossing: ["l3", "l4", "l6", "l7", "l8"],
+  cookies: ["l6", "l7", "l8", "l9"],
+};
+
+for (const story of manifest.texts) {
+  const starts = new Set(paragraphStartsByStory[story.id] ?? []);
+  for (const line of story.lines) {
+    if (starts.has(line.id)) line.newParagraph = true;
+    else delete line.newParagraph;
+  }
+}
+
 console.log("=== Проверка: syllableText -> вычисленный text ===");
 for (const text of manifest.texts) {
   console.log(`\n--- ${text.id} ---`);
@@ -392,5 +418,5 @@ for (const [id, image] of Object.entries(illustrations)) {
   zip.file(`media/${id}.webp`, image);
 }
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_short_stories_v1.5.1.zip", buffer);
-console.log("\nZIP written to public/decks/reading_short_stories_v1.5.1.zip");
+writeFileSync("public/decks/reading_short_stories_v1.5.2.zip", buffer);
+console.log("\nZIP written to public/decks/reading_short_stories_v1.5.2.zip");
