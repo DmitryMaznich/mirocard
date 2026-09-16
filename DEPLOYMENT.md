@@ -44,9 +44,9 @@ curl -s https://app.mironium.com/api/version
 curl -s -o /dev/null -w "%{http_code}\n" https://app.mironium.com/
 ```
 
-### Known limitation: SMTP
+### Email delivery
 
-`SMTP_HOST=mail.kaplieva.help` is not reachable from Railway's network (connection timeout on port 465). Email verification and password-reset emails currently do not send on `app.mironium.com`. This is a known gap, not yet fixed — `mail.kaplieva.help` is itself being retired, so a proper fix means pointing SMTP at whatever mail infrastructure replaces it, not re-opening a firewall for a domain that's going away.
+Email verification and password-reset emails send via the Resend HTTP API (`RESEND_API_KEY`, `backend/lib/mailer.mjs`), not SMTP — the old `mail.kaplieva.help` SMTP relay (unreachable from Railway's network) is no longer used for this. The `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS` variables may still linger on the Railway service from before the switch; they're dead config, not read by `mailer.mjs`.
 
 ### Railway dashboard reference
 
