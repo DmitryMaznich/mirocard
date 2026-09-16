@@ -220,6 +220,8 @@ function serializeStudent(row) {
     rewardVideosUpdatedAt: row.reward_videos_updated_at ?? null,
     closeAdults:  safeJson(row.close_adults, []),
     closeAdultsUpdatedAt: row.close_adults_updated_at ?? null,
+    healthDataConsent: !!row.health_data_consent,
+    healthDataConsentAt: row.health_data_consent_at ?? null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at ?? null,
@@ -521,6 +523,8 @@ async function handleUpsertStudent(req, res) {
     closeAdults: Array.isArray(body.closeAdults)
       ? body.closeAdults.filter((a) => a && typeof a === "object" && a.id && a.name)
       : [],
+    healthDataConsent: body.healthDataConsent === true,
+    healthDataConsentAt: body.healthDataConsent === true ? (body.healthDataConsentAt || null) : null,
   });
 
   writeJson(res, 200, serializeStudent(getStudents(db, account.id).find((s) => s.id === id)));

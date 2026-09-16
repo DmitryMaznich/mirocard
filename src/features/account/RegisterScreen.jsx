@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
+import Modal from "@/shared/components/Modal";
+import PrivacyContent from "@/features/help/PrivacyContent";
 
 export default function RegisterScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
@@ -15,6 +17,7 @@ export default function RegisterScreen() {
   const [password,      setPassword]      = useState("");
   const [showPass,      setShowPass]      = useState(false);
   const [consent,       setConsent]       = useState(false);
+  const [showPrivacy,   setShowPrivacy]   = useState(false);
   const [error,         setError]         = useState("");
   const [loading,       setLoading]       = useState(false);
 
@@ -132,7 +135,12 @@ export default function RegisterScreen() {
             onChange={(e) => setConsent(e.target.checked)}
             required
           />
-          <span>Согласен(а) на обработку персональных данных</span>
+          <span>
+            Согласен(а) на{" "}
+            <button type="button" className="auth-consent__link" onClick={() => setShowPrivacy(true)}>
+              обработку персональных данных
+            </button>
+          </span>
         </label>
         {error && <div className="form-error">{error}</div>}
         <Button type="submit" disabled={loading} fullWidth>
@@ -142,6 +150,12 @@ export default function RegisterScreen() {
       <button className="auth-link" onClick={() => setScreen("login")}>
         Уже есть аккаунт? Войти
       </button>
+
+      {showPrivacy && (
+        <Modal title="Политика конфиденциальности" onClose={() => setShowPrivacy(false)}>
+          <PrivacyContent />
+        </Modal>
+      )}
     </div>
   );
 }

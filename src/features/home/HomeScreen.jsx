@@ -1014,6 +1014,7 @@ export default function HomeScreen() {
           onOpenProfile={() => setScreen("account")}
           onOpenStudents={() => setScreen("students")}
           onOpenSettings={() => setScreen("settings")}
+          onOpenHelp={() => setScreen("help")}
         />
       )}
     </div>
