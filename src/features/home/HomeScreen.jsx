@@ -187,11 +187,11 @@ function stepState(condition, prevCondition) {
   return "active";
 }
 
-function JourneyStep({ state, number, label, value, onClick, avatar }) {
+function JourneyStep({ state, number, label, value, onClick, avatar, spotlight }) {
   const showAvatar = !!avatar && state !== "disabled";
   return (
     <button
-      className={`journey-step journey-step--${state}`}
+      className={`journey-step journey-step--${state}${spotlight ? " journey-step--spotlight" : ""}`}
       onClick={onClick}
       disabled={state === "disabled"}
     >
@@ -214,6 +214,7 @@ function SessionTab({
   isReading, isChatPractice,
   s2, s3, topicLabel, readingStepValue, modeTitle,
   canStart, startOrContinue, setScreen,
+  spotlight, onTopicStepClick, onModeStepClick,
 }) {
   if (!student) {
     return (
@@ -235,7 +236,8 @@ function SessionTab({
           number="1"
           label="Тема"
           value={topicLabel}
-          onClick={() => setScreen("topics")}
+          onClick={onTopicStepClick}
+          spotlight={spotlight === "topic"}
           avatar={topic ? (
             <TopicCover
               topicId={topic.meta.id}
@@ -250,11 +252,8 @@ function SessionTab({
           number="2"
           label={isReading ? "Текст и режим" : "Режим"}
           value={isReading ? readingStepValue : modeTitle || "Не выбран"}
-          onClick={() => setScreen(
-            isReading && activeText?.kind !== "instruction" && activeText
-              ? "modes"
-              : isReading ? "texts" : "modes"
-          )}
+          onClick={onModeStepClick}
+          spotlight={spotlight === "mode"}
           avatar={
             isReading && activeText?.kind === "instruction" && activeText?.image
               ? <RecipeAvatar topicId={topic?.meta.id} imagePath={activeText.image} />
@@ -264,7 +263,7 @@ function SessionTab({
           }
         />
       </div>
-      <div className="home-actions home-actions--footer">
+      <div className={`home-actions home-actions--footer${spotlight === "start" ? " home-actions--spotlight" : ""}`}>
         <Button fullWidth disabled={!canStart} onClick={startOrContinue}>
           ▶ Начать занятие
         </Button>
@@ -704,6 +703,13 @@ export default function HomeScreen() {
   const [menuOpen, setMenuOpen] = useState(false);
   const didAutoUpdateRef = useRef(null); // stores app version at which update last ran
 
+  // Onboarding spotlight: topic/mode already come pre-filled with defaults,
+  // so a first-time user sees both journey steps looking "done" without ever
+  // having consciously picked anything. Walk them through it once — until
+  // their first session ever, then never again.
+  const [visitedTopicStep, setVisitedTopicStep] = useState(false);
+  const [visitedModeStep, setVisitedModeStep] = useState(false);
+
   useEffect(() => {
     if (!topicRecords.length) return;
     if (didAutoUpdateRef.current === buildInfo.version) return;
@@ -761,6 +767,11 @@ export default function HomeScreen() {
     if (mode && mode.id !== activeModeId) setActiveModeId(mode.id);
   }, [mode?.id]);
 
+  useEffect(() => {
+    setVisitedTopicStep(false);
+    setVisitedModeStep(false);
+  }, [student?.id]);
+
   const { hasUpdate, applyUpdate } = useAppUpdate();
   const hasPlannerAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("planner");
   const hasInstructionsAccess = Array.isArray(account?.featureFlags) && account.featureFlags.includes("instructions");
@@ -787,6 +798,31 @@ export default function HomeScreen() {
   const readingStepValue = activeText
     ? `${getTopicTitle(activeText.title)}${mode ? ` · ${modeTitle}` : ""}`
     : "Не выбран";
+
+  const hasEverStarted = !!student && sessions.some((s) => s.studentId === student.id);
+  const onboardingSpotlight = !student || hasEverStarted
+    ? null
+    : !visitedTopicStep
+      ? "topic"
+      : !isChatPractice && !visitedModeStep
+        ? "mode"
+        : canStart
+          ? "start"
+          : "mode";
+
+  function handleTopicStepClick() {
+    setVisitedTopicStep(true);
+    setScreen("topics");
+  }
+
+  function handleModeStepClick() {
+    setVisitedModeStep(true);
+    setScreen(
+      isReading && activeText?.kind !== "instruction" && activeText
+        ? "modes"
+        : isReading ? "texts" : "modes"
+    );
+  }
 
   function changeTab(tab) {
     setActiveTab(tab);
@@ -866,6 +902,9 @@ export default function HomeScreen() {
               canStart={canStart}
               startOrContinue={startOrContinue}
               setScreen={setScreen}
+              spotlight={onboardingSpotlight}
+              onTopicStepClick={handleTopicStepClick}
+              onModeStepClick={handleModeStepClick}
             />
           )}
         </div>

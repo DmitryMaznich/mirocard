@@ -14497,6 +14497,24 @@ kbd {
   border-top: 1px solid #eadfd2;
 }
 
+/* ── Onboarding spotlight — first-time guidance on Home ─────────────
+   Breathing glow on whichever journey step (or the start button) the
+   first-time user hasn't engaged with yet. Reuses the existing teal
+   accent (#4a9b8f) already used for --active, just animated. */
+@keyframes home-spotlight-pulse {
+  0%, 100% { box-shadow: 0 6px 20px rgba(74, 155, 143, 0.16), 0 0 0 0 rgba(74, 155, 143, 0.35); }
+  50%      { box-shadow: 0 6px 20px rgba(74, 155, 143, 0.16), 0 0 0 8px rgba(74, 155, 143, 0); }
+}
+
+.journey-step--spotlight {
+  border-color: #4a9b8f;
+  animation: home-spotlight-pulse 1.6s ease-in-out infinite;
+}
+
+.home-actions--spotlight .btn-primary {
+  animation: home-spotlight-pulse 1.6s ease-in-out infinite;
+}
+
 .home-quick-actions {
   display: flex;
   gap: 10px;
