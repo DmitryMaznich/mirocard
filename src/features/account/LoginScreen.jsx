@@ -166,6 +166,13 @@ export default function LoginScreen() {
           </button>
         </div>
         {error && <div className="form-error">{error}</div>}
+        <button
+          type="button"
+          className="auth-link auth-link--forgot"
+          onClick={() => setScreen("forgot_password")}
+        >
+          Забыли пароль?
+        </button>
         {showResendHint && (
           <button
             type="button"
