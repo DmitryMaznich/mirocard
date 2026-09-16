@@ -746,6 +746,17 @@ async function handleAdminGrant(req, res) {
   writeJson(res, 200, { ok: true, email: account.email, topicId: body.topicId });
 }
 
+async function handleAdminVerifyAccount(req, res) {
+  requireAdmin(req);
+  const body = await readJsonBody(req);
+  if (!body?.email) return writeJson(res, 400, { error: "email required" });
+  const account = findAccountByEmailAny(db, body.email);
+  if (!account) return writeJson(res, 404, { error: "Account not found" });
+  if (account.status === "deleted") return writeJson(res, 409, { error: "Account is deleted" });
+  if (account.status !== "active") activateAccount(db, account.id);
+  writeJson(res, 200, { ok: true, email: account.email, status: "active" });
+}
+
 async function handleAdminListAccounts(req, res) {
   requireAdmin(req);
   writeJson(res, 200, listAllAccounts(db));
@@ -1335,6 +1346,7 @@ async function router(req, res) {
     if (method === "POST"   && p === "/admin/account/flags")                       return await handleAdminSetFlags(req, res);
     if (method === "POST"   && p === "/admin/grant")                               return await handleAdminGrant(req, res);
     if (method === "POST"   && p === "/admin/revoke")                              return await handleAdminRevoke(req, res);
+    if (method === "POST"   && p === "/admin/verify-account")                      return await handleAdminVerifyAccount(req, res);
     if (method === "GET"  && p === "/admin/promo-codes") return await handleAdminListPromoCodes(req, res);
     if (method === "POST" && p === "/admin/promo-codes") return await handleAdminCreatePromoCode(req, res);
 
