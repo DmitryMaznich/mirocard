@@ -67,6 +67,8 @@ export const useAppStore = create((set) => ({
   // resend fast enough to invalidate a link they hadn't opened yet.
   verificationResendAvailableAt: 0,
   setVerificationResendAvailableAt: (verificationResendAvailableAt) => set({ verificationResendAvailableAt }),
+  passwordResetToken: null,
+  setPasswordResetToken: (token) => set({ passwordResetToken: token }),
 
   // ─── Auth ──────────────────────────────────────────────────────────────────
   account: null,
