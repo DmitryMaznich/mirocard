@@ -16,13 +16,9 @@
   justify-content: center;
 }
 
-/* Story screen (StoryReadTask): text pinned to the top with a small margin,
-   capped at roughly half the screen's height by the --reading-fit-scale JS
-   (useStoryFit) — the illustration below is a plain flex:1 box that fills
-   whatever height is left over, so it never fights the text for space and
-   never needs its own reserved percentage. One rule set, no portrait/
-   landscape special-casing — it's already correct at any aspect ratio,
-   which a side-by-side "spread" row for landscape was not. */
+/* Story screen (StoryReadTask): portrait keeps the compact text-over-picture
+   layout. A tablet in landscape switches to an open spread below: text on
+   the left, illustration on the right, and navigation underneath both. */
 .reading-body.reading-page.story-screen {
   justify-content: flex-start;
   gap: 12px;
@@ -50,10 +46,7 @@
 }
 
 /* Beats the portrait-only `.reading-page .reading-illustration:not(...)`
-   rule above (and the landscape spread rules) on specificity alone, rather
-   than depending on source order — this box is meant to look and behave
-   identically in every orientation, so it must win unconditionally rather
-   than in just one @media branch. */
+   rule above on specificity alone, rather than depending on source order. */
 .reading-body.reading-page.story-screen .story-illustration .reading-illustration {
   flex: 1 1 auto;
   width: 100%;
@@ -73,6 +66,46 @@
   object-fit: cover;
   display: block;
   mix-blend-mode: normal;
+}
+
+/* Tablet landscape: restore the readable open-book layout for stories.
+   Grid keeps the swipe control below both pages instead of treating it as a
+   third column. Phones in landscape stay in the compact vertical layout. */
+@media (min-width: 768px) and (orientation: landscape) {
+  .reading-body.reading-page.story-screen.story-screen--with-image {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "text illustration"
+      "navigation navigation";
+    align-items: stretch;
+    gap: 16px 32px;
+  }
+
+  .reading-body.reading-page.story-screen .story-text-wrap {
+    grid-area: text;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    align-items: stretch;
+    overflow-y: auto;
+  }
+
+  .reading-body.reading-page.story-screen .story-illustration {
+    grid-area: illustration;
+    width: auto;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .reading-body.reading-page.story-screen .story-swipe-nav {
+    grid-area: navigation;
+    align-self: end;
+  }
 }
 
 /* Swipe strip (StorySwipeNav) — replaces a Назад/Дальше button pair.

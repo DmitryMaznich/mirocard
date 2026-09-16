@@ -244,10 +244,10 @@ function useFitReadingText(active, deps, { spreadCapable = false } = {}) {
 // illustration a sliver, a short one left it oddly small too since both
 // competed for the same fixed-percentage slot). The illustration below is a
 // plain CSS flex:1 box instead (see .story-illustration in reading.css) and
-// simply fills whatever height the text doesn't use — no measuring, no
-// negotiation, so it can't be starved by anything, on any screen or
-// orientation, portrait or landscape.
-function useStoryFit(active, deps) {
+// simply fills whatever height the text doesn't use in the portrait layout.
+// Tablet landscape uses a side-by-side grid, where the text receives the full
+// height of the left page.
+function useStoryFit(active, deps, { spreadCapable = false } = {}) {
   const bodyRef = useRef(null);
   const textWrapRef = useRef(null);
   const navNodeRef = useRef(null);
@@ -264,6 +264,8 @@ function useStoryFit(active, deps) {
     // short story that doesn't need the full share simply leaves more room
     // below, which is the point: no fixed illustration percentage to fight.
     const MAX_SHARE = 0.52;
+    const isLandscapeSpread = spreadCapable
+      && window.matchMedia("(min-width: 768px) and (orientation: landscape)").matches;
 
     textWrap.style.setProperty("--reading-fit-scale", "1");
 
@@ -281,7 +283,9 @@ function useStoryFit(active, deps) {
     const navHeight = navNodeRef.current?.getBoundingClientRect().height ?? 0;
     const navGap = navHeight > 0 ? bodyGap : 0;
     const contentHeight = Math.max(0, bodyHeight - paddingV - navHeight - navGap);
-    const budget = Math.max(100, contentHeight * MAX_SHARE);
+    // In the tablet spread the text owns the full left page, rather than
+    // sharing vertical space with the illustration underneath it.
+    const budget = Math.max(100, contentHeight * (isLandscapeSpread ? 1 : MAX_SHARE));
 
     let current = 1;
     let required = requiredHeight();
@@ -292,7 +296,7 @@ function useStoryFit(active, deps) {
       required = requiredHeight();
       iterations += 1;
     }
-  }, [active]);
+  }, [active, spreadCapable]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(measure, [measure, ...deps]);
@@ -421,11 +425,11 @@ function StorySwipeNav({ onAdvance, onPrevious, navRef }) {
 
 function StoryReadTask({ task, topicId, textStyle, onAdvance, onPrevious }) {
   const lines = task.text?.lines ?? [];
-  const fit = useStoryFit(true, [task.text?.id, textStyle, lines.length]);
   const hasImage = !!task.text?.image && !task.text?.cornerPhotos;
+  const fit = useStoryFit(true, [task.text?.id, textStyle, lines.length], { spreadCapable: hasImage });
 
   return (
-    <div className="session-body reading-body reading-page story-screen" ref={fit.bodyRef}>
+    <div className={`session-body reading-body reading-page story-screen${hasImage ? " story-screen--with-image" : ""}`} ref={fit.bodyRef}>
       <div className="story-text-wrap" ref={fit.textWrapRef}>
         <div className="reading-title">{getTopicTitle(task.text.title)}</div>
         <ReadingTextBlock lines={lines} textStyle={textStyle} bookStyle flow />
