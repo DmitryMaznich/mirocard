@@ -407,6 +407,7 @@ summary::-webkit-details-marker{display:none}
 /* Keep the desktop Hero aligned with the image so its wave meets the photo edge. */
 @media(min-width:781px){
   .hero h1{font-size:clamp(38px,3vw,46px);letter-spacing:-.024em}
+}
 
 .about{position:relative;background:var(--paper);padding:112px 0;overflow:hidden}
 .about:before{content:"";position:absolute;left:-160px;top:-120px;width:420px;height:420px;border-radius:50%;background:rgba(243,201,105,.28);filter:blur(6px)}
