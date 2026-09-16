@@ -211,7 +211,7 @@ function JourneyStep({ state, number, label, value, onClick, avatar, spotlight }
 
 function SessionTab({
   student, topic, activeText, mode,
-  isReading, isChatPractice,
+  isReading, isShortStories, isChatPractice,
   s2, s3, topicLabel, readingStepValue, modeTitle,
   canStart, startOrContinue, setScreen,
   spotlight, onTopicStepClick, onModeStepClick,
@@ -255,7 +255,7 @@ function SessionTab({
         <JourneyStep
           state={s3}
           number="2"
-          label={isReading ? "Текст и режим" : "Режим"}
+          label={isReading && !isShortStories ? "Текст и режим" : "Режим"}
           value={isReading ? readingStepValue : (s3 === "prompt" ? "Выбери режим" : (modeTitle || "Не выбран"))}
           onClick={onModeStepClick}
           spotlight={spotlight === "mode"}
@@ -775,6 +775,7 @@ export default function HomeScreen() {
   const visibleTopicRecords = topicRecords.filter((r) => !r.meta.hidden);
   const topic = visibleTopicRecords.find((r) => r.meta.id === activeTopicId) ?? visibleTopicRecords[0];
   const isReading      = topic?.meta?.renderer === "reading";
+  const isShortStories = topic?.meta?.id === "reading_short_stories";
   const isChatPractice = topic?.meta?.renderer === "chat_practice";
   const activeText = isReading
     ? (topic?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
@@ -839,9 +840,11 @@ export default function HomeScreen() {
       : "Не выбрана";
   const modeTitle = mode ? (getTopicTitle(mode.ui?.title) || mode.id) : "";
 
-  const readingStepValue = s3 === "prompt"
-    ? "Выбери текст и режим"
-    : activeText
+  const readingStepValue = isShortStories
+    ? (s3 === "prompt" ? "Выбери режим" : (modeTitle || "Не выбран"))
+    : s3 === "prompt"
+      ? "Выбери текст и режим"
+      : activeText
       ? `${getTopicTitle(activeText.title)}${mode ? ` · ${modeTitle}` : ""}`
       : "Не выбран";
 
@@ -942,6 +945,7 @@ export default function HomeScreen() {
               activeText={activeText}
               mode={mode}
               isReading={isReading}
+              isShortStories={isShortStories}
               isChatPractice={isChatPractice}
               s2={s2}
               s3={s3}

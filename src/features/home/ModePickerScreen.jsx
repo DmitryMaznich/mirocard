@@ -72,6 +72,7 @@ export default function ModePickerScreen() {
 
   const topicRecord = topicRecords.find((r) => r.meta.id === activeTopicId);
   const isReading = topicRecord?.meta.renderer === "reading";
+  const isShortStories = activeTopicId === "reading_short_stories";
   const activeText = isReading
     ? (topicRecord?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
     : null;
@@ -114,7 +115,10 @@ export default function ModePickerScreen() {
     })
     : rawModes;
 
-  const hasSingleMode = !!topicRecord && modes.length === 1;
+  // Short stories deliberately have one visible mode. Keep its picker instead
+  // of auto-opening settings: the parent needs to see and select «Читаем
+  // рассказы» just like a mode in every other topic.
+  const hasSingleMode = !!topicRecord && modes.length === 1 && !isShortStories;
 
   useEffect(() => {
     if (hasSingleMode) {
@@ -172,8 +176,8 @@ export default function ModePickerScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen(isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home")}><BackArrowIcon /></button>
-        <h1 className="screen-title">{isReading ? getTextTitle(activeText) : getTopicTitle(topicRecord.meta.title)}</h1>
+        <button className="back-btn" onClick={() => setScreen(isShortStories ? "home" : isReading && activeText?.kind !== "sentence_pool" ? "texts" : "home")}><BackArrowIcon /></button>
+        <h1 className="screen-title">{isShortStories ? getTopicTitle(topicRecord.meta.title) : isReading ? getTextTitle(activeText) : getTopicTitle(topicRecord.meta.title)}</h1>
         <button
           className="header-info-btn"
           onClick={() => setTopicAbout(true)}
