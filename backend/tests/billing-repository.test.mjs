@@ -15,6 +15,7 @@ import {
   validatePromoCode,
   redeemFreeGrantCode,
   finalizeDiscountRedemption,
+  grantTrialSubscription,
 } from "../lib/billing-repository.mjs";
 
 function makeAccount(db) {
@@ -192,4 +193,76 @@ test("finalizeDiscountRedemption is a no-op when code is null", () => {
   const db = makeDb();
   const acc = makeAccount(db);
   finalizeDiscountRedemption(db, null, acc.id); // must not throw
+});
+
+test("grantTrialSubscription activates entitlement for 7 days by default", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  grantTrialSubscription(db, acc.id);
+
+  assert.ok(hasActiveEntitlement(db, acc.id));
+  const sub = getActiveSubscriptionForAccount(db, acc.id);
+  assert.equal(sub.plan, "trial");
+  const daysLeft = (new Date(sub.currentPeriodEnd) - Date.now()) / 86400000;
+  assert.ok(daysLeft > 6.9 && daysLeft <= 7, `expected ~7 days left, got ${daysLeft}`);
+});
+
+test("grantTrialSubscription accepts a custom trial length", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  grantTrialSubscription(db, acc.id, { trialDays: 14 });
+
+  const sub = getActiveSubscriptionForAccount(db, acc.id);
+  const daysLeft = (new Date(sub.currentPeriodEnd) - Date.now()) / 86400000;
+  assert.ok(daysLeft > 13.9 && daysLeft <= 14, `expected ~14 days left, got ${daysLeft}`);
+});
+
+test("createPendingSubscription does not interrupt an active, non-expired entitlement while checkout is pending", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  grantTrialSubscription(db, acc.id); // active trial, ~7 days left
+
+  createPendingSubscription(db, acc.id, {
+    provider: "stripe", plan: "annual", orderId: "order-new",
+    currency: "EUR", amountMinor: 8990, periodDays: 366, appliedCode: null,
+  });
+
+  // Still entitled — the pending checkout must not have knocked out the trial.
+  assert.ok(hasActiveEntitlement(db, acc.id));
+  const sub = getActiveSubscriptionForAccount(db, acc.id);
+  assert.equal(sub.status, "active");
+
+  // Confirming the payment now correctly upgrades to the paid period.
+  activateSubscriptionByOrderId(db, "order-new");
+  const paid = getActiveSubscriptionForAccount(db, acc.id);
+  assert.equal(paid.plan, "annual");
+  const daysLeft = (new Date(paid.currentPeriodEnd) - Date.now()) / 86400000;
+  assert.ok(daysLeft > 360, `expected ~366 days left after confirming the annual plan, got ${daysLeft}`);
+});
+
+test("createPendingSubscription still resets to pending for an account with no prior active entitlement", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+
+  createPendingSubscription(db, acc.id, {
+    provider: "stripe", plan: "monthly", orderId: "order-fresh",
+    currency: "EUR", amountMinor: 990, periodDays: 31, appliedCode: null,
+  });
+
+  assert.equal(hasActiveEntitlement(db, acc.id), false); // still pending, not yet paid
+  assert.equal(getSubscriptionByOrderId(db, "order-fresh").status, "pending");
+});
+
+test("activateSubscriptionByOrderId recomputes current_period_end fresh from the plan, not the value set at checkout time", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  createPendingSubscription(db, acc.id, {
+    provider: "stripe", plan: "monthly", orderId: "order-3",
+    currency: "EUR", amountMinor: 990, periodDays: 31, appliedCode: null,
+  });
+
+  activateSubscriptionByOrderId(db, "order-3");
+  const sub = getActiveSubscriptionForAccount(db, acc.id);
+  const daysLeft = (new Date(sub.currentPeriodEnd) - Date.now()) / 86400000;
+  assert.ok(daysLeft > 30 && daysLeft <= 31, `expected ~31 days left, got ${daysLeft}`);
 });

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { PLAN_CATALOG } from "./billing-plans.mjs";
 
 function now() { return new Date().toISOString(); }
 
@@ -7,6 +8,14 @@ function safeJson(value, fallback) {
   catch { return fallback; }
 }
 
+// A pending checkout must never interrupt an entitlement the account already
+// has (trial or a prior paid period still running) — a browser back-button or
+// an abandoned payment would otherwise leave them locked out despite never
+// having actually paid. So while status is still 'active' and not yet
+// expired, the conflict branch only updates the correlation fields (who's
+// buying what, via which provider/orderId) and leaves status/current_period_end
+// alone; the real period is (re)computed fresh in activateSubscriptionByOrderId
+// once the provider actually confirms payment.
 export function createPendingSubscription(db, accountId, {
   provider, plan, orderId, currency, amountMinor, periodDays, appliedCode = null,
 }) {
@@ -19,14 +28,14 @@ export function createPendingSubscription(db, accountId, {
     ON CONFLICT(account_id) DO UPDATE SET
       provider = excluded.provider,
       plan = excluded.plan,
-      status = 'pending',
+      status = CASE WHEN status = 'active' AND current_period_end > ? THEN status ELSE 'pending' END,
       currency = excluded.currency,
       amount_minor = excluded.amount_minor,
       external_contract_id = excluded.external_contract_id,
       applied_code = excluded.applied_code,
-      current_period_end = excluded.current_period_end,
+      current_period_end = CASE WHEN status = 'active' AND current_period_end > ? THEN current_period_end ELSE excluded.current_period_end END,
       updated_at = excluded.updated_at
-  `).run(randomUUID(), accountId, provider, plan, currency, amountMinor, orderId, appliedCode, currentPeriodEnd, ts, ts);
+  `).run(randomUUID(), accountId, provider, plan, currency, amountMinor, orderId, appliedCode, currentPeriodEnd, ts, ts, ts, ts);
 }
 
 export function getSubscriptionByOrderId(db, orderId) {
@@ -36,7 +45,15 @@ export function getSubscriptionByOrderId(db, orderId) {
 export function activateSubscriptionByOrderId(db, orderId) {
   const row = getSubscriptionByOrderId(db, orderId);
   if (!row) return null;
-  db.prepare("UPDATE subscriptions SET status = 'active', updated_at = ? WHERE id = ?").run(now(), row.id);
+  // Computed fresh here (not reused from the optimistic value createPendingSubscription
+  // wrote at checkout time) so the paid period always starts from the moment the
+  // provider actually confirms payment, not from whenever the invoice was created.
+  const periodDays = PLAN_CATALOG[row.plan]?.periodDays;
+  const currentPeriodEnd = periodDays
+    ? new Date(Date.now() + periodDays * 86400000).toISOString()
+    : row.current_period_end;
+  db.prepare("UPDATE subscriptions SET status = 'active', current_period_end = ?, updated_at = ? WHERE id = ?")
+    .run(currentPeriodEnd, now(), row.id);
   return row.account_id;
 }
 
@@ -71,6 +88,21 @@ export function recordPaymentEvent(db, { accountId, provider, eventType, externa
     if (/UNIQUE constraint failed/.test(err.message)) return false;
     throw err;
   }
+}
+
+// Called once at registration — gives every new account a no-promo-code-needed
+// trial. ON CONFLICT DO NOTHING is defensive only: this should never actually
+// run twice for the same account, but must never clobber a real subscription
+// if it somehow did.
+export function grantTrialSubscription(db, accountId, { trialDays = 7 } = {}) {
+  const ts = now();
+  const currentPeriodEnd = new Date(Date.now() + trialDays * 86400000).toISOString();
+  db.prepare(`
+    INSERT INTO subscriptions
+      (id, account_id, provider, plan, status, currency, amount_minor, external_contract_id, applied_code, current_period_end, cancel_at_period_end, created_at, updated_at)
+    VALUES (?, ?, 'trial', 'trial', 'active', 'EUR', 0, NULL, NULL, ?, 0, ?, ?)
+    ON CONFLICT(account_id) DO NOTHING
+  `).run(randomUUID(), accountId, currentPeriodEnd, ts, ts);
 }
 
 export function hasActiveEntitlement(db, accountId) {
