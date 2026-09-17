@@ -673,6 +673,35 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     `scripts/lib/gemini-key.mjs`. `--only=letters|words|texts` is supported
     for running one bank at a time if that's more convenient than the full
     442-item pass.
+- **Real bug caught by the user running it, fixed 2026-09-17: letters were
+  sending bare `card.label` to Gemini TTS, not "заглавная А"/"строчная а".**
+  User ran a real letters batch and reported "в промпте на генерацию полная
+  фигня, по крайней мере на буквы" — the spoken text for a letter entry was
+  literally just the character itself (e.g. `"а"` or `"А"`), no case word.
+  A single Cyrillic character with nothing else around it isn't something
+  Gemini TTS reads cleanly as a letter name — it produces garbage, exactly
+  what got reported. This directly contradicted the design this script's own
+  header comment already claimed ("заглавная А"/"строчная а" get their own
+  clips) — the comment was right about the intent, the code just never
+  actually built that phrase; `buildEntries()`'s letters branch pushed
+  `text: card.label` instead of the case-prefixed phrase. Fixed by importing
+  `isUpperCaseLetterCard` from `dictationAudio.js` and building
+  `` `${caseWord} ${card.label}` `` (`caseWord` = "заглавная"/"строчная")
+  as the actual spoken text — words and texts were unaffected, they were
+  already spoken as-is. Also reworded both this script's header comment and
+  `dictationAudio.js`'s own comment above `letterDictationKey` — the
+  original phrasing ("not one clip with a spoken case prefix") read as
+  ambiguous enough to plausibly cause exactly this mistake; reworded to say
+  outright that the SPOKEN TEXT must include the case word, never the bare
+  character.
+  - **Verified the fix without spending TTS quota** (same constraint as the
+    entry above — no `GEMINI_API_KEY` in this environment): re-derived
+    `buildEntries()`'s letters branch inline against the real
+    `tools/propis/topic.json` data and printed the first 6 resulting
+    `{key, text}` pairs — `up_б → "заглавная Б"`, `lo_б → "строчная б"`,
+    `up_а → "заглавная А"`, `lo_а → "строчная а"`, etc. — confirming the
+    actual phrase Gemini will receive now, not just that the code compiles.
+    Full propis test suite (100 tests) and `npm run build` still clean.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires

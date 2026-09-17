@@ -14,9 +14,11 @@
 // dictationAudio.js's key functions and engine.js's dictation branch use, so
 // there's no separate content list to keep in sync:
 //   - letters: every `cards[]` entry with type "letter" and captured strokes
-//     (73 total -- uppercase/lowercase are separate cards/recordings, per the
-//     user's explicit call: "заглавная А" and "строчная а" get their own clips,
-//     not one clip with a spoken case prefix).
+//     (73 total -- uppercase/lowercase are separate cards, each with its own
+//     clip). The SPOKEN TEXT is "заглавная <letter>" / "строчная <letter>",
+//     not the bare character -- a lone Cyrillic letter with nothing else
+//     around it makes Gemini TTS read garbage, not a clean letter name
+//     (reported 2026-09-17, this script originally sent card.label alone).
 //   - words: every `words[]` entry (249), spoken as-is.
 //   - texts: every `texts[]` entry (24), split into sentences the same way
 //     engine.js does (dictationAudio.js's splitIntoSentences) -- one clip per
@@ -31,6 +33,7 @@ import { Mp3Encoder } from "@breezystack/lamejs";
 import { getGeminiApiKey } from "./lib/gemini-key.mjs";
 import {
   letterDictationKey,
+  isUpperCaseLetterCard,
   wordDictationKey,
   textSentenceDictationKey,
   splitIntoSentences,
@@ -137,7 +140,14 @@ function buildEntries() {
   if (!ONLY || ONLY === "letters") {
     const letters = topic.cards.filter((c) => c.type === "letter" && Array.isArray(c.strokes) && c.strokes.length > 0);
     for (const card of letters) {
-      entries.push({ id: letterDictationKey(card), text: card.label });
+      // Bare `card.label` (a single character like "а") was the actual bug reported
+      // 2026-09-17: Gemini TTS handed a lone Cyrillic letter with no other words around
+      // it produces garbage, not a clean letter-name reading. The spoken text needs the
+      // case word said out loud -- "заглавная А" / "строчная а" -- matching the user's
+      // original design call (dictationAudio.js's own header comment already said this;
+      // this script just wasn't actually building that phrase before).
+      const caseWord = isUpperCaseLetterCard(card) ? "заглавная" : "строчная";
+      entries.push({ id: letterDictationKey(card), text: `${caseWord} ${card.label}` });
     }
   }
   if (!ONLY || ONLY === "words") {

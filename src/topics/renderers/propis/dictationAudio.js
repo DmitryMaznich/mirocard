@@ -7,9 +7,11 @@ export function dictationAudioUrl(key) {
   return `/audio/propis-dictation/${key}.mp3`;
 }
 
-// Letters: uppercase and lowercase are separate dictation items with separate recordings
-// ("заглавная А" / "строчная а", not one clip with a spoken case prefix -- user's explicit
-// call). Keying on an upper/lower PREFIX plus the letter's own lowercase form, rather than on
+// Letters: uppercase and lowercase are separate dictation items, each with its own recording
+// whose SPOKEN TEXT is the case word plus the letter -- "заглавная А" / "строчная а", never the
+// bare character alone (a lone Cyrillic letter with nothing else around it makes Gemini TTS read
+// garbage, not a clean letter name -- reported 2026-09-17, see generate-propis-dictation-audio.mjs).
+// Keying on an upper/lower PREFIX plus the letter's own lowercase form, rather than on
 // the letter's actual case, is deliberate: Windows/macOS filesystems case-fold Cyrillic same as
 // Latin, so bare "А.mp3"/"а.mp3" would collide on the build machine (CLAUDE.md: build runs on
 // Windows). "up_а.mp3" and "lo_а.mp3" differ in their ASCII prefix regardless of what
