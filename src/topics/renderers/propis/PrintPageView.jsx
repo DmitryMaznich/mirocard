@@ -29,6 +29,10 @@ const GUIDE_THIN_W = 0.4;
 const GUIDE_BOLD_W = 0.9;
 const MARGIN_LINE_W = 1.4;
 const FALLBACK_FONT_SIZE = 34;
+// ~1mm radius (native units are 6/mm, propisRuling.js's UNIT_H=150 per LINE_MM=25) -- visible
+// as a clear "start here" landmark next to a 2-unit-wide stroke without dominating a small
+// element like 02b_naklonnaya_korotkaya.
+const ELEMENT_START_DOT_R = 6;
 
 // Which physical A4-sheet half this page is (even index = left slot, odd = right slot) and
 // where its own margin line / content start sit as a result — mirrors
@@ -124,9 +128,11 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                   ))}
                 </g>
               ) : seg.type === "element" ? (
-                // "Элементы букв" repeat -- same tap-to-animate as a cursive letter (the whole
-                // point of this mode is showing the drawing motion), AnimatedStrokes just needs
-                // {strokes}, which a raw element object already is, no trajectory-wrapping needed.
+                // "Элементы букв" -- same tap-to-animate as a cursive letter (the whole point of
+                // this mode is showing the drawing motion), AnimatedStrokes just needs {strokes},
+                // which a raw element object already is, no trajectory-wrapping needed. The start
+                // dot stays visible even while animating (it's a print-page landmark for where to
+                // put the pen, not part of the animation) -- drawn last so it sits on top.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive ? (
                     <AnimatedStrokes trajectory={{ strokes: seg.strokes }} tipSize="large" />
@@ -134,6 +140,9 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                     seg.strokes.map((s, ssi) => (
                       <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                     ))
+                  )}
+                  {seg.startPoint && (
+                    <circle cx={seg.startPoint[0]} cy={seg.startPoint[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} />
                   )}
                 </g>
               ) : (
@@ -194,7 +203,7 @@ export default function PrintPageView({ task, onClose }) {
 
   const layout = useMemo(
     () => useElements
-      ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
+      ? layoutElementLinesIntoRows(lines, elementsByLabel)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
     [useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );

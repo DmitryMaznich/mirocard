@@ -1844,6 +1844,36 @@ anyone who'd already installed `1.30.0` (with the bug) stuck on that
 broken cached IndexedDB record forever, with no re-fetch ever triggered
 by the version check.
 
+**Revised to a single start-of-row element with a start dot (2026-09-17,
+same day, right after the picker-empty fix).** The first shipped version
+matched the user's original "Один элемент повторяется на всю строку, как
+в книге" instruction literally: `layoutElementLinesIntoRows` repeated the
+element left-to-right until the next copy would overflow
+`CONTENT_W_UNITS`. Once actually looking at the printed result, the user
+asked for the opposite of "fill the row" — just the single drill
+instance at the row's start, with a dot marking where the trajectory
+begins (a physical worksheet landmark: this mode's whole point is
+printing a page to trace by hand, so "where do I put my pen" matters as
+much as "what shape do I draw"). Changed
+`layoutElementLinesIntoRows(lines, elementsByLabel)` (dropped the now-
+unused `rowWidthUnits` param and the `ELEMENT_REPEAT_GAP_UNITS` constant)
+to emit exactly one `{type: "element", xOffset: 0, ...}` segment per row,
+plus a new `startPoint` field: `getPathEndpoints(element.strokes[0].d)
+.start` — the same `pathGeometry.js` helper `wordEngine.js` already uses
+for connector-chaining, so no new geometry code, just a new call site.
+`PrintPageView.jsx`'s `"element"` render branch draws a small `<circle>`
+(`ELEMENT_START_DOT_R = 6` native units ≈ 1mm radius) at that point,
+inside the same `<g transform="translate(xOffset 0)">` the strokes
+themselves render in — no separate coordinate transform needed, since
+`startPoint` is already in the element's own native path-coordinate
+space (the exact space the earlier `NATIVE_L1..L4` vs. this file's own
+`L1-L4` mixup bit us in, so this was checked by rendering a real
+dev-preview page rather than trusting the math by eye — the dot landed
+exactly on each stroke's own starting pixel for all 3 test elements).
+Kept visible during the tap-to-animate state too (drawn last, on top) —
+it's a static print/reference landmark, not part of the pen-tracing
+animation itself.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
