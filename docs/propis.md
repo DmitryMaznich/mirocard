@@ -479,9 +479,8 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     another with a 2.5s pause between each (`SENTENCE_PAUSE_MS`), as one "Повторить"/one
     "Дальше →" unit — repeating a text replays all its sentences from the start, not just
     the current one; picking a per-sentence repeat granularity instead wasn't asked for.
-  - **Past the last item**: a plain "Диктант окончен!" placeholder, not the real
-    comparison screen yet — explicitly marked as such in the UI copy itself
-    ("Экран сверки появится здесь позже"), not silently left blank.
+  - **Past the last item**: originally a plain "Диктант окончен!" placeholder — replaced
+    the same day by the real comparison screen, see the entry directly below.
   - **Verified visually, not just from source** — the mandatory step per
     designing-mirocard-screens: real React dev-preview harness (createRoot, both
     `styles.css` and `propis.css` imported — first attempt without `styles.css` rendered
@@ -490,11 +489,48 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     harness matches the real app), headless-Chromium screenshots of: initial state (1 из 3,
     both buttons, ripple/bar markup present), after 2 repeats (button correctly disabled at
     the `repeatLimit=2` boundary), after advancing to item 2 (repeat count resets), the
-    "Диктант окончен!" screen after the last item, and the iOS safe-area check from
+    end state after the last item, and the iOS safe-area check from
     CLAUDE.md (`app-ios-standalone` + 59px/34px insets) — close button clears the
     simulated Dynamic Island, bottom buttons clear the simulated home indicator. All via
     real click events driving the actual component state (`page.click`), not just
     reading the DOM once.
+- **"Диктант" comparison ("сверки") screen — `DictationReviewScreen.jsx`, same day.**
+  Replaces the "Диктант окончен!" placeholder from the entry above. Shown once every item
+  has been dictated; this is the FIRST point the answer appears on screen at all — there's
+  no automatic checking possible (child writes on paper, app never sees it), so an adult
+  compares this list against the notebook by eye.
+  - **Layout differs from the session view's `.propis-dictation-frame`** on purpose — that
+    one is sized for exactly one diktor circle + two buttons; this one holds an arbitrary
+    list (up to `itemCount`'s max of 40) and needs to scroll. Standard shape: fixed header
+    (title + hint) → `flex:1; overflow-y:auto` list → fixed footer button, all inside
+    `.propis-dictation-review` (own class, not a `.propis-dictation-frame` modifier).
+  - **Two list layouts, picked by `task.level`**: letters/words render as a wrapping row of
+    chips (`.propis-dictation-review-chip`, large bold text — legible at a glance while
+    comparing against handwriting); texts render as numbered full-paragraph blocks
+    (`.propis-dictation-review-text`, index badge + the item's whole `display` text, not
+    split back into its dictated sentences — the notebook page reads as continuous prose,
+    the sentence split was only ever a playback-pacing detail, not a display one).
+  - **Item order is exactly dictation order, not re-sorted** — `items.map` over the same
+    array the session view stepped through, since that's the order the child actually
+    wrote them in.
+  - **"Всё верно" vs "Готово"**: only shown when `task.videoRewardEnabled` — otherwise a
+    plain "Готово" that just calls `onClose`, no reward UI at all for a session that never
+    asked for one. Clicking "Всё верно" does **not** fake the PIN flow — it swaps in a
+    visible stub note ("PIN-подтверждение видео-награды будет добавлено отдельным шагом")
+    so the incompleteness is honest and visible rather than a silently-dead button or a
+    faked success state. The real PIN-gated `RewardVideoModal` unlock is still its own
+    separate step (see the plan).
+  - **Verified visually** for all three levels with the same dev-preview-harness approach
+    (not just letters): letters (3 chips, dictation order "А б В" preserved, "Всё верно"
+    shown), words (3 chips, plain "Готово" since that task's `videoRewardEnabled: false`),
+    texts (one numbered full-text block, "Всё верно" shown) — plus the reward-stub note
+    after clicking "Всё верно", and the safe-area check again on this screen specifically
+    (close button and footer button both clear simulated Dynamic Island/home-indicator
+    insets). One real snag hit and fixed during this: the first texts-level screenshot
+    attempt landed mid-playback (still on item 1 of 1, "Дальше" a no-op because
+    `isPlaying` was still true) — not a component bug, the test script's own wait time was
+    shorter than 2 sentences × the 2.5s inter-sentence pause; fixed by waiting long enough
+    before clicking, re-verified reaching the review screen correctly.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import ReviewScreen from "./DictationReviewScreen";
 import { dictationAudioUrl } from "./dictationAudio";
 import { useDictationPlayer } from "./useDictationPlayer";
 
@@ -67,17 +68,7 @@ export default function DictationView({ task, onClose }) {
   }
 
   if (done) {
-    return (
-      <div className="propis-dictation-stage">
-        <button type="button" className="propis-ctrl-btn propis-dictation-close" onClick={onClose} aria-label="Закрыть">✕</button>
-        <div className="propis-dictation-done">
-          <div className="propis-dictation-done-title">Диктант окончен!</div>
-          {/* Comparison screen (what should be in the notebook) + PIN-gated video reward are
-              their own follow-up step, not built yet -- see docs/propis.md. */}
-          <p className="propis-dictation-done-hint">Экран сверки появится здесь позже.</p>
-        </div>
-      </div>
-    );
+    return <ReviewScreen task={task} onClose={onClose} />;
   }
 
   return (
