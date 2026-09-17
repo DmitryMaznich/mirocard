@@ -73,6 +73,12 @@
   .range-row { display: grid; grid-template-columns: 1fr 42px; align-items: center; gap: 8px; }
   .range-row input { min-height: 0; padding: 0; accent-color: var(--accent); }
   .range-value { color: var(--ink); font-size: 12px; font-weight: 900; text-align: right; }
+  .nudge-controls { display: grid; grid-template-columns: repeat(3, 38px); grid-template-rows: repeat(2, 34px); justify-content: center; gap: 5px; margin-top: 9px; }
+  .nudge-controls button { min-height: 34px; padding: 0; font-size: 16px; }
+  .nudge-controls button[data-nudge-up] { grid-column: 2; grid-row: 1; }
+  .nudge-controls button[data-nudge-left] { grid-column: 1; grid-row: 2; }
+  .nudge-controls button[data-nudge-down] { grid-column: 2; grid-row: 2; }
+  .nudge-controls button[data-nudge-right] { grid-column: 3; grid-row: 2; }
 
   .work-panel { min-width: 0; padding: 12px; }
   .work-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 3px 10px; }
@@ -162,7 +168,6 @@
     </div>
     <div class="head-actions">
       <a class="button" href="figures_gallery.html">Галерея JSON</a>
-      <button class="button" type="button" id="demoBtn">Открыть пример сетки</button>
       <button class="button button--danger" type="button" id="resetBtn">Новый черновик</button>
     </div>
   </header>
@@ -170,33 +175,43 @@
   <div class="workspace">
     <aside class="panel side-panel left-column" aria-label="Настройка фигуры">
       <section class="panel-section">
-        <h2 class="section-title">1. Прототип и сетка</h2>
+        <h2 class="section-title">1. Растровая подложка</h2>
         <label class="file-button">Загрузить растр или скан
           <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
         </label>
-        <div class="calibration" id="calibrationStatus">Загрузите прототип, затем отметьте три пересечения сетки.</div>
+        <label class="field">Масштаб растра
+          <span class="range-row"><input id="rasterScale" type="range" min="25" max="250" step="1" value="100"><output class="range-value" id="rasterScaleValue">100%</output></span>
+        </label>
         <div class="action-grid">
-          <button class="button button--small" type="button" id="calibrateBtn">Настроить сетку</button>
-          <button class="button button--small" type="button" id="clearCalibrationBtn">Сбросить сетку</button>
+          <button class="button button--small" type="button" id="fitRasterBtn">Растр по полю</button>
+          <button class="button button--small" type="button" id="resetRasterScaleBtn">Масштаб 100%</button>
         </div>
-        <p class="hint">Щёлкните: начало координат, соседний узел справа, соседний узел снизу. Для точности выбирайте узлы далеко друг от друга и укажите расстояние в клетках.</p>
-        <div class="field field--inline">
-          <label>До X, клеток<input id="calibrationXCells" type="number" min="1" value="1"></label>
-          <label>До Y, клеток<input id="calibrationYCells" type="number" min="1" value="1"></label>
+        <p class="hint">Точное положение растра — по 2 пикселя за нажатие.</p>
+        <div class="nudge-controls" aria-label="Сдвиг растра">
+          <button class="button button--small" type="button" data-nudge-raster="up" data-nudge-up aria-label="Сдвинуть растр вверх">↑</button>
+          <button class="button button--small" type="button" data-nudge-raster="left" data-nudge-left aria-label="Сдвинуть растр влево">←</button>
+          <button class="button button--small" type="button" data-nudge-raster="down" data-nudge-down aria-label="Сдвинуть растр вниз">↓</button>
+          <button class="button button--small" type="button" data-nudge-raster="right" data-nudge-right aria-label="Сдвинуть растр вправо">→</button>
         </div>
       </section>
 
       <section class="panel-section">
-        <h2 class="section-title">2. Совмещение слоёв</h2>
-        <div class="tool-row" role="group" aria-label="Настройка растра и сетки">
-          <button class="button tool-button" type="button" id="alignRasterBtn" aria-pressed="false">Подогнать растр</button>
-          <button class="button tool-button" type="button" id="alignGridBtn" aria-pressed="false">Подогнать сетку</button>
-        </div>
+        <h2 class="section-title">2. Сетка</h2>
+        <label class="field">Шаг сетки
+          <span class="range-row"><input id="gridScale" type="range" min="20" max="120" step="1" value="48"><output class="range-value" id="gridScaleValue">48 px</output></span>
+        </label>
         <div class="action-grid">
-          <button class="button button--small" type="button" id="fitRasterBtn">Растр по полю</button>
-          <button class="button button--small" type="button" id="fitGridBtn">Сетку по полю</button>
+          <button class="button button--small" type="button" id="resetGridBtn">Сетка по умолчанию</button>
         </div>
-        <p class="hint" id="alignmentHint">Выберите слой, который нужно подогнать. Количество клеток меняется в параметрах карточки ниже.</p>
+        <p class="hint">Меньше шаг — клеток на полотне больше; больше шаг — клеток меньше. Сетка видна всегда.</p>
+        <div class="calibration" id="calibrationStatus">Сетка готова.</div>
+        <p class="hint">Точное положение сетки — по 2 пикселя за нажатие.</p>
+        <div class="nudge-controls" aria-label="Сдвиг сетки">
+          <button class="button button--small" type="button" data-nudge-grid="up" data-nudge-up aria-label="Сдвинуть сетку вверх">↑</button>
+          <button class="button button--small" type="button" data-nudge-grid="left" data-nudge-left aria-label="Сдвинуть сетку влево">←</button>
+          <button class="button button--small" type="button" data-nudge-grid="down" data-nudge-down aria-label="Сдвинуть сетку вниз">↓</button>
+          <button class="button button--small" type="button" data-nudge-grid="right" data-nudge-right aria-label="Сдвинуть сетку вправо">→</button>
+        </div>
       </section>
 
       <section class="panel-section">
@@ -244,7 +259,6 @@
         <label class="field">Прозрачность прототипа
           <span class="range-row"><input id="sourceOpacity" type="range" min="0" max="100" value="44"><output class="range-value" id="sourceOpacityValue">44%</output></span>
         </label>
-        <label class="toggle"><input id="showGrid" type="checkbox" checked> Сетка и координаты</label>
         <label class="toggle"><input id="showVector" type="checkbox" checked> Векторная траектория</label>
       </section>
     </aside>
@@ -265,7 +279,7 @@
           <g id="vectorLayer"></g>
           <g id="nodeLayer"></g>
         </svg>
-        <div class="canvas-empty" id="canvasEmpty">Загрузите прототип<br>или откройте пример сетки.</div>
+        <div class="canvas-empty" id="canvasEmpty" hidden></div>
       </div>
       <div class="legend" aria-hidden="true"><span class="legend-item"><span class="swatch swatch--raw"></span>ручной жест до выпрямления</span><span class="legend-item"><span class="swatch swatch--vector"></span>итоговая ломаная по сетке</span></div>
       <div class="notice" id="notice" aria-live="polite"></div>
@@ -325,9 +339,10 @@
     imageHref: null,
     imageName: null,
     rasterTransform: null,
+    rasterBase: null,
     width: 960,
     height: 620,
-    calibration: null,
+    calibration: { origin: { x: 0, y: 0 }, ux: { x: 48, y: 0 }, uy: { x: 0, y: 48 } },
     calibrationPoints: [],
     calibrationMode: false,
     alignMode: null,
@@ -596,18 +611,24 @@
 
   function renderGrid() {
     clearChildren(gridLayer);
-    if (!calibrationReady() || !$("showGrid").checked) return;
-    const columns = sourceCols();
-    const height = rows();
-    for (let col = 0; col <= columns; col += 1) {
-      const top = gridToPixel({ col, row: 0 });
-      const bottom = gridToPixel({ col, row: height });
+    if (!calibrationReady()) return;
+    const corners = [
+      pixelToGrid({ x: 0, y: 0 }), pixelToGrid({ x: state.width, y: 0 }),
+      pixelToGrid({ x: 0, y: state.height }), pixelToGrid({ x: state.width, y: state.height }),
+    ];
+    const columnStart = Math.min(0, Math.floor(Math.min(...corners.map((point) => point.col))));
+    const columnEnd = Math.max(sourceCols(), Math.ceil(Math.max(...corners.map((point) => point.col))));
+    const rowStart = Math.min(0, Math.floor(Math.min(...corners.map((point) => point.row))));
+    const rowEnd = Math.max(rows(), Math.ceil(Math.max(...corners.map((point) => point.row))));
+    for (let col = columnStart; col <= columnEnd; col += 1) {
+      const top = gridToPixel({ col, row: rowStart });
+      const bottom = gridToPixel({ col, row: rowEnd });
       gridLayer.append(make("line", { class: "grid-line", x1: top.x, y1: top.y, x2: bottom.x, y2: bottom.y }));
       addText(gridLayer, { class: "grid-label", x: top.x, y: top.y - 8, "text-anchor": "middle" }, String(col));
     }
-    for (let row = 0; row <= height; row += 1) {
-      const left = gridToPixel({ col: 0, row });
-      const right = gridToPixel({ col: columns, row });
+    for (let row = rowStart; row <= rowEnd; row += 1) {
+      const left = gridToPixel({ col: columnStart, row });
+      const right = gridToPixel({ col: columnEnd, row });
       gridLayer.append(make("line", { class: "grid-line", x1: left.x, y1: left.y, x2: right.x, y2: right.y }));
       addText(gridLayer, { class: "grid-label", x: left.x - 8, y: left.y + 4, "text-anchor": "end" }, String(row));
     }
@@ -615,53 +636,19 @@
 
   function renderCalibration() {
     clearChildren(calibrationLayer);
-    if (state.alignMode === "grid" && calibrationReady()) {
-      const handles = [
-        { key: "origin", label: "Начало", point: state.calibration.origin },
-        { key: "x", label: "Масштаб X", point: gridToPixel({ col: 1, row: 0 }) },
-        { key: "y", label: "Масштаб Y", point: gridToPixel({ col: 0, row: 1 }) },
-      ];
-      handles.forEach((handle) => {
-        const node = make("circle", { class: `grid-handle grid-handle--${handle.key}`, cx: handle.point.x, cy: handle.point.y, r: 9 });
-        node.addEventListener("pointerdown", (event) => beginGridDrag(event, handle.key));
-        calibrationLayer.append(node);
-        addText(calibrationLayer, { class: "cal-text", x: handle.point.x + 13, y: handle.point.y - 10 }, handle.label);
-      });
-      return;
-    }
-    const labels = ["Начало", "Вправо", "Вниз"];
-    const classes = ["origin", "x", "y"];
-    state.calibrationPoints.forEach((point, index) => {
-      calibrationLayer.append(make("circle", { class: `cal-point cal-point--${classes[index]}`, cx: point.x, cy: point.y, r: 8 }));
-      addText(calibrationLayer, { class: "cal-text", x: point.x + 12, y: point.y - 10 }, labels[index]);
-    });
   }
 
   function renderTransformControls() {
     clearChildren(transformLayer);
-    if (state.alignMode !== "raster" || !state.imageHref || !state.rasterTransform) return;
-    const { x, y, width, height } = state.rasterTransform;
-    const frame = make("rect", { class: "transform-frame", x, y, width, height });
-    frame.addEventListener("pointerdown", (event) => beginRasterDrag(event, "move"));
-    transformLayer.append(frame);
-    [
-      ["nw", x, y], ["ne", x + width, y], ["se", x + width, y + height], ["sw", x, y + height],
-    ].forEach(([handle, cx, cy]) => {
-      const node = make("circle", { class: `transform-handle transform-handle--${handle}`, cx, cy, r: 8 });
-      node.addEventListener("pointerdown", (event) => beginRasterDrag(event, handle));
-      transformLayer.append(node);
-    });
   }
 
   function syncCalibrationPoints() {
     if (!calibrationReady()) return;
     const { origin, ux, uy } = state.calibration;
-    const xCells = Math.max(1, number($("calibrationXCells").value, 1));
-    const yCells = Math.max(1, number($("calibrationYCells").value, 1));
     state.calibrationPoints = [
       { x: origin.x, y: origin.y },
-      { x: origin.x + ux.x * xCells, y: origin.y + ux.y * xCells },
-      { x: origin.x + uy.x * yCells, y: origin.y + uy.y * yCells },
+      { x: origin.x + ux.x, y: origin.y + ux.y },
+      { x: origin.x + uy.x, y: origin.y + uy.y },
     ];
   }
 
@@ -797,22 +784,9 @@
 
   function renderCalibrationStatus() {
     const el = $("calibrationStatus");
-    const xCells = Math.max(1, number($("calibrationXCells").value, 1));
-    const yCells = Math.max(1, number($("calibrationYCells").value, 1));
-    if (state.calibrationMode) {
-      const step = state.calibrationPoints.length;
-      const messages = ["Щёлкните начало координат — верхний левый узел рабочей сетки.", `Щёлкните узел на ${xCells} клеток правее начала.`, `Щёлкните узел на ${yCells} клеток ниже начала.`];
-      el.textContent = messages[step] || "Проверяю сетку…";
-      el.className = "calibration is-active";
-      return;
-    }
-    if (calibrationReady()) {
-      el.textContent = `Сетка настроена: 1 клетка = ${fmt(Math.hypot(state.calibration.ux.x, state.calibration.ux.y))} × ${fmt(Math.hypot(state.calibration.uy.x, state.calibration.uy.y))} px.`;
-      el.className = "calibration is-ready";
-      return;
-    }
-    el.textContent = state.imageHref ? "Нажмите «Настроить сетку» и отметьте три пересечения." : "Загрузите прототип или откройте пример сетки.";
-    el.className = "calibration";
+    const step = Math.round(Math.hypot(state.calibration.ux.x, state.calibration.ux.y));
+    el.textContent = `Сетка включена: шаг ${step} px.`;
+    el.className = "calibration is-ready";
   }
 
   function validate() {
@@ -1009,6 +983,8 @@
     $("pointsTool").setAttribute("aria-pressed", String(state.tool === "points"));
     $("simplifyValue").textContent = fmt(epsilon());
     $("sourceOpacityValue").textContent = `${Math.round(number($("sourceOpacity").value, 44))}%`;
+    $("gridScaleValue").textContent = `${Math.round(number($("gridScale").value, 48))} px`;
+    $("rasterScaleValue").textContent = `${Math.round(number($("rasterScale").value, 100))}%`;
   }
 
   function renderAlignmentTools() {
@@ -1034,8 +1010,7 @@
     renderSet();
     renderWorkStatus();
     renderTools();
-    renderAlignmentTools();
-    $("canvasEmpty").hidden = Boolean(state.imageHref || calibrationReady());
+    $("canvasEmpty").hidden = true;
     persistDraft();
   }
 
@@ -1072,42 +1047,72 @@
     render();
   }
 
-  function setAlignMode(mode) {
-    if (mode === "raster" && !state.imageHref) {
-      setNotice("Сначала загрузите растровый прототип.", "error");
-      return;
-    }
-    if (mode === "grid" && !calibrationReady()) {
-      setNotice("Сначала настройте сетку по растру или откройте пример сетки.", "error");
-      return;
-    }
-    state.alignMode = state.alignMode === mode ? null : mode;
+  function updateDraftDimensionsForGrid() {
+    if (state.importedCard) return;
+    const step = Math.max(1, Math.hypot(state.calibration.ux.x, state.calibration.ux.y));
+    $("sourceCols").value = String(Math.max(2, Math.min(50, Math.round(state.width / step))));
+    $("rows").value = String(Math.max(2, Math.min(50, Math.round(state.height / step))));
+  }
+
+  function resetGrid() {
+    const step = 48;
+    state.calibration = { origin: { x: 0, y: 0 }, ux: { x: step, y: 0 }, uy: { x: 0, y: step } };
     state.calibrationMode = false;
-    state.rasterDrag = null;
-    state.gridDrag = null;
-    render();
-  }
-
-  function fitRasterToBoard() {
-    if (!state.imageHref) { setNotice("Сначала загрузите растровый прототип.", "error"); return; }
-    state.rasterTransform = { x: 0, y: 0, width: state.width, height: state.height };
-    state.alignMode = "raster";
-    setNotice("Растр растянут по рабочему полю. Теперь его можно точно подогнать маркерами.", "good");
-    render();
-  }
-
-  function fitGridToBoard() {
-    const columns = sourceCols();
-    const height = rows();
-    const paddingX = Math.max(48, state.width * .08);
-    const paddingY = Math.max(48, state.height * .1);
-    const cell = Math.max(12, Math.min((state.width - paddingX * 2) / columns, (state.height - paddingY * 2) / height));
-    const origin = { x: paddingX, y: paddingY };
-    state.calibration = { origin, ux: { x: cell, y: 0 }, uy: { x: 0, y: cell } };
+    state.alignMode = null;
+    $("gridScale").value = String(step);
     syncCalibrationPoints();
-    state.calibrationMode = false;
-    state.alignMode = "grid";
-    setNotice("Сетка вписана в поле. Тяните её цветные маркеры, чтобы совместить с растром.", "good");
+    updateDraftDimensionsForGrid();
+    setNotice("Сетка возвращена к исходному положению и шагу 48 px.", "good");
+    render();
+  }
+
+  function setGridScale() {
+    const step = Math.max(1, number($("gridScale").value, 48));
+    const { ux, uy } = state.calibration;
+    const xLength = Math.hypot(ux.x, ux.y) || 1;
+    const yLength = Math.hypot(uy.x, uy.y) || 1;
+    state.calibration.ux = { x: ux.x * step / xLength, y: ux.y * step / xLength };
+    state.calibration.uy = { x: uy.x * step / yLength, y: uy.y * step / yLength };
+    syncCalibrationPoints();
+    updateDraftDimensionsForGrid();
+    render();
+  }
+
+  function nudgeGrid(direction) {
+    const vector = { up: [0, -2], down: [0, 2], left: [-2, 0], right: [2, 0] }[direction];
+    if (!vector) return;
+    state.calibration.origin.x += vector[0];
+    state.calibration.origin.y += vector[1];
+    syncCalibrationPoints();
+    render();
+  }
+
+  function fitRasterToBoard(announce = true) {
+    if (!state.imageHref) { if (announce) setNotice("Сначала загрузите растровый прототип.", "error"); return; }
+    state.rasterBase = { width: state.width, height: state.height };
+    state.rasterTransform = { x: 0, y: 0, width: state.width, height: state.height };
+    $("rasterScale").value = "100";
+    if (announce) setNotice("Растр подогнан по рабочему полю.", "good");
+    render();
+  }
+
+  function setRasterScale() {
+    if (!state.imageHref || !state.rasterBase) return;
+    const scale = Math.max(1, number($("rasterScale").value, 100)) / 100;
+    const current = state.rasterTransform ?? { x: 0, y: 0, width: state.rasterBase.width, height: state.rasterBase.height };
+    const center = { x: current.x + current.width / 2, y: current.y + current.height / 2 };
+    const width = state.rasterBase.width * scale;
+    const height = state.rasterBase.height * scale;
+    state.rasterTransform = { x: center.x - width / 2, y: center.y - height / 2, width, height };
+    render();
+  }
+
+  function nudgeRaster(direction) {
+    if (!state.rasterTransform) { setNotice("Сначала загрузите растровый прототип.", "error"); return; }
+    const vector = { up: [0, -2], down: [0, 2], left: [-2, 0], right: [2, 0] }[direction];
+    if (!vector) return;
+    state.rasterTransform.x += vector[0];
+    state.rasterTransform.y += vector[1];
     render();
   }
 
@@ -1228,7 +1233,8 @@
     state.imageHref = null;
     state.imageName = null;
     state.rasterTransform = null;
-    state.calibration = null;
+    state.rasterBase = null;
+    state.calibration = { origin: { x: 0, y: 0 }, ux: { x: 48, y: 0 }, uy: { x: 0, y: 48 } };
     state.calibrationPoints = [];
     state.calibrationMode = false;
     state.alignMode = null;
@@ -1246,8 +1252,10 @@
     $("idInput").readOnly = false;
     $("taskKind").disabled = false;
     $("taskKind").value = "repeat";
-    $("sourceCols").value = 10;
-    $("rows").value = 10;
+    $("gridScale").value = "48";
+    $("rasterScale").value = "100";
+    syncCalibrationPoints();
+    updateDraftDimensionsForGrid();
     setNotice("Новый черновик готов.", "good");
     render();
   }
@@ -1321,30 +1329,22 @@
       image.onload = () => {
         state.imageHref = String(reader.result);
         state.imageName = file.name;
-        setBoardSize(image.naturalWidth, image.naturalHeight);
+        setBoardSize(960, 620);
+        state.rasterBase = { width: state.width, height: state.height };
         state.rasterTransform = { x: 0, y: 0, width: state.width, height: state.height };
+        $("rasterScale").value = "100";
         const keepsImportedVector = Boolean(state.importedCard && finalPaths().length);
-        if (keepsImportedVector) {
-          const columns = sourceCols();
-          const height = rows();
-          const paddingX = Math.max(48, state.width * .08);
-          const paddingY = Math.max(48, state.height * .1);
-          const cell = Math.max(12, Math.min((state.width - paddingX * 2) / columns, (state.height - paddingY * 2) / height));
-          state.calibration = { origin: { x: paddingX, y: paddingY }, ux: { x: cell, y: 0 }, uy: { x: 0, y: cell } };
-          syncCalibrationPoints();
-        } else {
-          state.calibration = null;
-          state.calibrationPoints = [];
-        }
         state.calibrationMode = false;
         if (!keepsImportedVector) {
           state.paths = [[]];
           state.activePath = 0;
+          state.importedCard = null;
+          updateDraftDimensionsForGrid();
         }
         state.selectedNode = null;
         state.selectedSegment = null;
-        state.alignMode = "raster";
-        setNotice(keepsImportedVector ? `«${file.name}» загружен. Вектор и сетка сохранены; теперь подгоните растр или сетку.` : `«${file.name}» загружен. Растр можно сразу подогнать; затем настройте сетку.`, "good");
+        state.alignMode = null;
+        setNotice(keepsImportedVector ? `«${file.name}» загружен. Вектор сохранён; подгоните растр ползунком и кнопками.` : `«${file.name}» загружен. Сетка уже видна — подгоните растр и начинайте обводку.`, "good");
         render();
       };
       image.src = String(reader.result);
@@ -1362,15 +1362,13 @@
       { x: origin.x + cell, y: origin.y },
       { x: origin.x, y: origin.y + cell },
     ];
+    $("gridScale").value = String(Math.round(cell));
     state.calibrationMode = false;
   }
 
-  function loadFigureJson(file) {
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const card = JSON.parse(String(reader.result));
-        if (!card || typeof card !== "object" || !["mirror", "repeat", "dictation"].includes(card.taskKind)) throw new Error("Нужна карточка mirror, repeat или dictation.");
+  function openFigureCard(card, sourceName) {
+    try {
+      if (!card || typeof card !== "object" || !["mirror", "repeat", "dictation"].includes(card.taskKind)) throw new Error("Нужна карточка mirror, repeat или dictation.");
         const width = card.taskKind === "dictation" ? number(card.columns) : number(card.axisCol);
         const height = number(card.rows);
         if (!Number.isInteger(width) || width < 2 || !Number.isInteger(height) || height < 2) throw new Error("В JSON не заданы корректные размеры сетки.");
@@ -1381,8 +1379,9 @@
 
         state.importedCard = clone(card);
         state.imageHref = null;
-        state.imageName = file.name;
+        state.imageName = sourceName;
         state.rasterTransform = null;
+        state.rasterBase = null;
         state.alignMode = null;
         state.paths = paths;
         state.activePath = Math.max(0, paths.length - 1);
@@ -1398,13 +1397,32 @@
         $("rows").value = String(height);
         $("snapStep").value = card.taskKind === "dictation" ? "1" : "0";
         setEditorGrid(width, height);
-        setNotice(`«${file.name}» открыт. Исправляйте узлы; режим и идентификатор сохранены.`, "good");
-        render();
-      } catch (error) {
-        setNotice(`Не удалось открыть JSON: ${error.message}`, "error");
-      }
+      setNotice(`«${sourceName}» открыт. Исправляйте узлы; режим и идентификатор сохранены.`, "good");
+      render();
+    } catch (error) {
+      setNotice(`Не удалось открыть JSON: ${error.message}`, "error");
+    }
+  }
+
+  function loadFigureJson(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try { openFigureCard(JSON.parse(String(reader.result)), file.name); }
+      catch (error) { setNotice(`Не удалось открыть JSON: ${error.message}`, "error"); }
     };
     reader.readAsText(file, "utf-8");
+  }
+
+  async function loadFigureFromLink() {
+    const figureUrl = new URLSearchParams(location.search).get("figure");
+    if (!figureUrl) return;
+    try {
+      const response = await fetch(new URL(figureUrl, location.href));
+      if (!response.ok) throw new Error(`сервер вернул ${response.status}`);
+      openFigureCard(await response.json(), figureUrl.split("/").at(-1) || "фигура.json");
+    } catch (error) {
+      setNotice(`Не удалось открыть фигуру из галереи: ${error.message}`, "error");
+    }
   }
 
   board.addEventListener("pointerdown", (event) => {
@@ -1487,35 +1505,28 @@
     if (file) loadFigureJson(file);
     event.target.value = "";
   });
-  $("calibrateBtn").addEventListener("click", startCalibration);
-  $("clearCalibrationBtn").addEventListener("click", () => {
-    state.calibration = null;
-    state.calibrationPoints = [];
-    state.calibrationMode = false;
-    state.alignMode = null;
-    setNotice("Настройка сетки сброшена. Линии сохранены, но их нельзя редактировать до новой калибровки.");
-    render();
-  });
   $("traceTool").addEventListener("click", () => { state.tool = "trace"; state.alignMode = null; setNotice("Режим обводки: после жеста линия будет выпрямлена по узлам."); render(); });
   $("pointsTool").addEventListener("click", () => { state.tool = "points"; state.alignMode = null; setNotice("Режим точек: щёлкайте по узлам, чтобы строить прямые сегменты."); render(); });
-  $("alignRasterBtn").addEventListener("click", () => setAlignMode("raster"));
-  $("alignGridBtn").addEventListener("click", () => setAlignMode("grid"));
   $("fitRasterBtn").addEventListener("click", fitRasterToBoard);
-  $("fitGridBtn").addEventListener("click", fitGridToBoard);
+  $("resetRasterScaleBtn").addEventListener("click", () => { $("rasterScale").value = "100"; setRasterScale(); });
+  $("resetGridBtn").addEventListener("click", resetGrid);
+  $("rasterScale").addEventListener("input", setRasterScale);
+  $("gridScale").addEventListener("input", setGridScale);
+  document.querySelectorAll("[data-nudge-raster]").forEach((button) => button.addEventListener("click", () => nudgeRaster(button.dataset.nudgeRaster)));
+  document.querySelectorAll("[data-nudge-grid]").forEach((button) => button.addEventListener("click", () => nudgeGrid(button.dataset.nudgeGrid)));
   $("newPathBtn").addEventListener("click", newPath);
   $("undoBtn").addEventListener("click", undoLast);
   $("deleteNodeBtn").addEventListener("click", deleteSelected);
   $("deleteSegmentBtn").addEventListener("click", deleteSelectedSegment);
   $("deletePathBtn").addEventListener("click", deleteSelectedPath);
   $("clearPathsBtn").addEventListener("click", clearPaths);
-  $("demoBtn").addEventListener("click", useDemo);
   $("resetBtn").addEventListener("click", resetDraft);
   $("copyBtn").addEventListener("click", copyCard);
   $("downloadCardBtn").addEventListener("click", () => download(`${$("idInput").value.trim() || "grid-figure"}.json`, $("cardOutput").value));
   $("addToSetBtn").addEventListener("click", addToSet);
   $("downloadSetBtn").addEventListener("click", () => download("mirocard-grid-figures.json", JSON.stringify(state.collection, null, 2)));
 
-  ["labelInput", "idInput", "taskKind", "sourceCols", "rows", "snapStep", "simplifyRange", "sourceOpacity", "showSource", "showGrid", "showVector", "calibrationXCells", "calibrationYCells"].forEach((id) => {
+  ["labelInput", "idInput", "taskKind", "sourceCols", "rows", "snapStep", "simplifyRange", "sourceOpacity", "showSource", "showVector"].forEach((id) => {
     $(id).addEventListener("input", render);
     $(id).addEventListener("change", render);
   });
@@ -1541,6 +1552,9 @@
     if (event.key === "Escape" && state.alignMode) { state.alignMode = null; render(); }
   });
 
+  syncCalibrationPoints();
+  updateDraftDimensionsForGrid();
   render();
+  loadFigureFromLink();
 })();
 </script>

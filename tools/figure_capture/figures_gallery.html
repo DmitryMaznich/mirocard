@@ -43,8 +43,11 @@
     .decoration-dot { fill: #1e3faa; }
     .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 11px 10px; border-top: 1px solid #ecf2f8; color: #63809d; font-size: 11px; font-weight: 800; }
     .card-id { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .card-json { flex: 0 0 auto; color: #2563eb; font-weight: 900; text-decoration: none; }
+    .card-actions { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+    .card-json { color: #2563eb; font-weight: 900; text-decoration: none; }
     .card-json:hover { text-decoration: underline; }
+    .card-edit { padding: 5px 7px; border-radius: 7px; color: #fff; background: #2563eb; font-weight: 900; text-decoration: none; }
+    .card-edit:hover { background: #173d91; }
     .empty { grid-column: 1 / -1; padding: 30px; border: 1px dashed #a9c3dc; border-radius: 14px; color: #58779c; background: rgba(255,255,255,.75); font-size: 14px; font-weight: 800; text-align: center; }
     @media (max-width: 720px) { .page { padding: 14px; } .heading { grid-template-columns: 1fr; } .summary { max-width: 390px; } .controls { align-items: stretch; } .search { width: 100%; } .gallery { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 9px; } .card-head { padding: 9px 9px 6px; } .card-title { font-size: 14px; } }
   </style>
@@ -135,7 +138,15 @@
       download.download = `${figure.id}.json`;
       download.textContent = "JSON";
       download.title = "Скачать JSON для мастерской";
-      foot.append(id, detail, download);
+      const edit = document.createElement("a");
+      edit.className = "card-edit";
+      edit.href = `figure_capture.html?figure=${encodeURIComponent(`../symmetry_draw/figures/${figure.id}.json`)}`;
+      edit.textContent = "В мастерскую";
+      edit.title = "Открыть эту фигуру для редактирования";
+      const actions = document.createElement("span");
+      actions.className = "card-actions";
+      actions.append(download, edit);
+      foot.append(id, detail, actions);
       card.append(head, wrap, foot);
       return card;
     }
