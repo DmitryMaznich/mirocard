@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "source": "Н.С. Жукова, «Пропись 1» (комплект из 3 частей), стр. 5–11",
+    "updatedAt": "2026-09-17T16:55:25.386Z"
+  },
+  "elements": [
+    {
+      "id": "02a_naklonnaya_dlinnaya",
+      "labelRu": "Наклонная длинная",
+      "category": "base_stroke",
+      "sourcePage": 5,
+      "viewBox": "0 0 32 150",
+      "strokes": [
+        {
+          "d": "M 27.590 10.590 4.000 61.030"
+        }
+      ],
+      "meta": {
+        "capturedAt": "2026-09-17T16:19:38.564Z",
+        "strokeCount": 1
+      }
+    },
+    {
+      "id": "02b_naklonnaya_korotkaya",
+      "labelRu": "Наклонная короткая",
+      "category": "base_stroke",
+      "sourcePage": 5,
+      "viewBox": "0 0 19 150",
+      "strokes": [
+        {
+          "d": "M 14.780 63.120 4.000 86.190"
+        }
+      ],
+      "meta": {
+        "capturedAt": "2026-09-17T16:20:08.864Z",
+        "strokeCount": 1
+      }
+    },
+    {
+      "id": "03_zaborchik_ploskie",
+      "labelRu": "Заборчик плоские",
+      "category": "base_stroke",
+      "sourcePage": 5,
+      "viewBox": "0 0 79 150",
+      "strokes": [
+        {
+          "d": "M 26.370 11.440 4.170 59.480"
+        },
+        {
+          "d": "M 4.000 61.230 27.240 60.810"
+        },
+        {
+          "d": "M 27.540 59.940 C 33.330 47.190 41.160 29.770 44.900 21.700 C 48.650 13.640 48.310 14.940 50.010 11.550"
+        },
+        {
+          "d": "M 49.650 10.800 74.900 9.710"
+        }
+      ],
+      "meta": {
+        "capturedAt": "2026-09-17T16:51:15.855Z",
+        "strokeCount": 4
+      }
+    }
+  ]
+}
