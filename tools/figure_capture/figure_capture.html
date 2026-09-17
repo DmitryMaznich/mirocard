@@ -196,7 +196,7 @@
       <section class="panel-section">
         <h2 class="section-title">1. Растровая подложка</h2>
         <label class="field">Масштаб растра (пропорционально)
-          <span class="range-row"><input id="rasterScale" type="range" min="25" max="250" step="1" value="100"><output class="range-value" id="rasterScaleValue">100%</output></span>
+          <span class="range-row"><input id="rasterScale" type="range" min="1" max="250" step="1" value="100"><output class="range-value" id="rasterScaleValue">100%</output></span>
         </label>
         <label class="field">Коррекция по горизонтали
           <span class="range-row"><input id="rasterScaleX" type="range" min="25" max="250" step="1" value="100"><output class="range-value" id="rasterScaleXValue">100%</output></span>
@@ -452,21 +452,7 @@
     const nextWidth = DEFAULT_BOARD_WIDTH;
     const nextHeight = portrait ? Math.round(nextWidth * rect.height / rect.width) : DEFAULT_BOARD_HEIGHT;
     if (state.width === nextWidth && Math.abs(state.height - nextHeight) < 2) return;
-    const scaleX = nextWidth / state.width;
-    const scaleY = nextHeight / state.height;
-    if (state.rasterTransform) {
-      state.rasterTransform = {
-        x: state.rasterTransform.x * scaleX,
-        y: state.rasterTransform.y * scaleY,
-        width: state.rasterTransform.width * scaleX,
-        height: state.rasterTransform.height * scaleY,
-      };
-    }
-    if (state.rasterBase) {
-      state.rasterBase = { width: state.rasterBase.width * scaleX, height: state.rasterBase.height * scaleY };
-    }
     setBoardSize(nextWidth, nextHeight);
-    updateDraftDimensionsForGrid();
     render();
   }
 
@@ -1209,13 +1195,14 @@
 
   function fitRasterToBoard(announce = true) {
     if (!state.imageHref) { if (announce) setNotice("Сначала загрузите растровый прототип.", "error"); return; }
-    state.rasterBase = { width: state.width, height: state.height };
-    state.rasterTransform = { x: 0, y: 0, width: state.width, height: state.height };
-    $("rasterScale").value = "100";
+    const base = state.rasterBase ?? { width: state.width, height: state.height };
+    const factor = Math.min(state.width / base.width, state.height / base.height);
+    const percentage = Math.max(1, Math.min(250, Math.round(factor * 100)));
+    $("rasterScale").value = String(percentage);
     $("rasterScaleX").value = "100";
     $("rasterScaleY").value = "100";
-    if (announce) setNotice("Растр подогнан по рабочему полю.", "good");
-    render();
+    setRasterScale();
+    if (announce) setNotice("Растр пропорционально подогнан по рабочему полю.", "good");
   }
 
   function setRasterScale() {
@@ -1506,8 +1493,10 @@
       image.onload = () => {
         state.imageHref = String(reader.result);
         state.imageName = file.name;
-        state.rasterBase = { width: state.width, height: state.height };
-        state.rasterTransform = { x: 0, y: 0, width: state.width, height: state.height };
+        const rasterWidth = Math.max(1, Number(image.naturalWidth) || Number(image.width) || state.width);
+        const rasterHeight = Math.max(1, Number(image.naturalHeight) || Number(image.height) || state.height);
+        state.rasterBase = { width: rasterWidth, height: rasterHeight };
+        state.rasterTransform = { x: 0, y: 0, width: rasterWidth, height: rasterHeight };
         $("rasterScale").value = "100";
         $("rasterScaleX").value = "100";
         $("rasterScaleY").value = "100";
@@ -1522,7 +1511,7 @@
         state.selectedDot = null;
         state.selectedSegment = null;
         state.alignMode = null;
-        setNotice(keepsImportedVector ? `«${file.name}» загружен. Сетка и вектор сохранены; подгоните только растр.` : `«${file.name}» загружен. Сетка сохранена без изменений — подгоните только растр и начинайте обводку.`, "good");
+        setNotice(keepsImportedVector ? `«${file.name}» загружен в исходных пропорциях. Сетка и вектор сохранены; подгоните только растр.` : `«${file.name}» загружен в исходных пропорциях. Сетка сохранена без изменений — подгоните только растр и начинайте обводку.`, "good");
         render();
       };
       image.src = String(reader.result);
