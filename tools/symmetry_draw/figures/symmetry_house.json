@@ -1,0 +1,31 @@
+{
+  "id": "symmetry_house",
+  "conceptId": "symmetry_house",
+  "primary": true,
+  "label": "Дом",
+  "columns": 10,
+  "rows": 8,
+  "axisCol": 5,
+  "sourcePaths": [
+    [
+      {
+        "col": 5,
+        "row": 1
+      },
+      {
+        "col": 3,
+        "row": 3
+      },
+      {
+        "col": 3,
+        "row": 7
+      },
+      {
+        "col": 5,
+        "row": 7
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "starter"
+}

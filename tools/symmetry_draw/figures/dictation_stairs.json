@@ -1,0 +1,46 @@
+{
+  "id": "dictation_stairs",
+  "conceptId": "dictation_stairs",
+  "primary": true,
+  "label": "Лестница",
+  "taskKind": "dictation",
+  "columns": 10,
+  "rows": 10,
+  "start": {
+    "col": 1,
+    "row": 8
+  },
+  "commands": [
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 2
+    }
+  ],
+  "difficulty": "starter"
+}

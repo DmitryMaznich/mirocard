@@ -1,0 +1,61 @@
+{
+  "id": "dictation_fence",
+  "conceptId": "dictation_fence",
+  "primary": true,
+  "label": "Забор",
+  "taskKind": "dictation",
+  "difficulty": "starter",
+  "columns": 11,
+  "rows": 9,
+  "start": {
+    "col": 1,
+    "row": 8
+  },
+  "commands": [
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 5
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 5
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 5
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 5
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 5
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 5
+    }
+  ]
+}

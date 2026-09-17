@@ -1,0 +1,72 @@
+{
+  "id": "symmetry_eye",
+  "conceptId": "symmetry_eye",
+  "label": "Глаз",
+  "columns": 12,
+  "rows": 12,
+  "axisCol": 6,
+  "sourcePaths": [
+    [
+      {
+        "col": 6,
+        "row": 1
+      },
+      {
+        "col": 4.5,
+        "row": 1.2
+      },
+      {
+        "col": 3.1,
+        "row": 2
+      },
+      {
+        "col": 2,
+        "row": 3.1
+      },
+      {
+        "col": 1.2,
+        "row": 4.5
+      },
+      {
+        "col": 1,
+        "row": 6
+      },
+      {
+        "col": 1.2,
+        "row": 7.5
+      },
+      {
+        "col": 2,
+        "row": 8.9
+      },
+      {
+        "col": 3.1,
+        "row": 10
+      },
+      {
+        "col": 4.5,
+        "row": 10.8
+      },
+      {
+        "col": 6,
+        "row": 11
+      }
+    ],
+    [
+      {
+        "col": 6,
+        "row": 1
+      },
+      {
+        "col": 1,
+        "row": 6
+      },
+      {
+        "col": 6,
+        "row": 11
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "challenge"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "symmetry_bracket",
+  "conceptId": "symmetry_bracket",
+  "label": "Скобка",
+  "columns": 12,
+  "rows": 12,
+  "axisCol": 6,
+  "sourcePaths": [
+    [
+      {
+        "col": 6,
+        "row": 1
+      },
+      {
+        "col": 4,
+        "row": 1
+      },
+      {
+        "col": 4,
+        "row": 11
+      },
+      {
+        "col": 6,
+        "row": 11
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "starter"
+}

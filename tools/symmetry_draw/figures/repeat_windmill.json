@@ -1,0 +1,77 @@
+{
+  "id": "repeat_windmill",
+  "conceptId": "repeat_windmill",
+  "primary": true,
+  "label": "Мельница",
+  "taskKind": "repeat",
+  "difficulty": "challenge",
+  "columns": 16,
+  "rows": 8,
+  "axisCol": 8,
+  "sourcePaths": [
+    [
+      {
+        "col": 4,
+        "row": 1
+      },
+      {
+        "col": 4,
+        "row": 7
+      }
+    ],
+    [
+      {
+        "col": 1,
+        "row": 4
+      },
+      {
+        "col": 7,
+        "row": 4
+      }
+    ],
+    [
+      {
+        "col": 4,
+        "row": 1
+      },
+      {
+        "col": 6,
+        "row": 3
+      },
+      {
+        "col": 4,
+        "row": 4
+      },
+      {
+        "col": 2,
+        "row": 3
+      },
+      {
+        "col": 4,
+        "row": 1
+      }
+    ],
+    [
+      {
+        "col": 4,
+        "row": 4
+      },
+      {
+        "col": 6,
+        "row": 5
+      },
+      {
+        "col": 4,
+        "row": 7
+      },
+      {
+        "col": 2,
+        "row": 5
+      },
+      {
+        "col": 4,
+        "row": 4
+      }
+    ]
+  ]
+}

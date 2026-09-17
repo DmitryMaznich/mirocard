@@ -1,0 +1,35 @@
+{
+  "id": "repeat_square_basic",
+  "conceptId": "repeat_square_basic",
+  "primary": true,
+  "label": "Квадрат",
+  "taskKind": "repeat",
+  "difficulty": "starter",
+  "columns": 16,
+  "rows": 8,
+  "axisCol": 8,
+  "sourcePaths": [
+    [
+      {
+        "col": 2,
+        "row": 2
+      },
+      {
+        "col": 6,
+        "row": 2
+      },
+      {
+        "col": 6,
+        "row": 6
+      },
+      {
+        "col": 2,
+        "row": 6
+      },
+      {
+        "col": 2,
+        "row": 2
+      }
+    ]
+  ]
+}

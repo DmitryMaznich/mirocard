@@ -1,0 +1,61 @@
+{
+  "id": "dictation_boat_small",
+  "conceptId": "dictation_boat_small",
+  "primary": true,
+  "label": "Кораблик",
+  "taskKind": "dictation",
+  "difficulty": "reinforce",
+  "columns": 11,
+  "rows": 9,
+  "start": {
+    "col": 1,
+    "row": 7
+  },
+  "commands": [
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 9
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up_left",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 9
+    }
+  ]
+}

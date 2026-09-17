@@ -1,0 +1,30 @@
+{
+  "id": "symmetry_slingshot",
+  "conceptId": "symmetry_slingshot",
+  "label": "Рогатка",
+  "columns": 12,
+  "rows": 9,
+  "axisCol": 6,
+  "sourcePaths": [
+    [
+      {
+        "col": 3,
+        "row": 1
+      },
+      {
+        "col": 5,
+        "row": 3
+      },
+      {
+        "col": 5,
+        "row": 8
+      },
+      {
+        "col": 6,
+        "row": 9
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "reinforce"
+}

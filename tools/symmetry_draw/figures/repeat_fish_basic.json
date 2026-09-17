@@ -1,0 +1,53 @@
+{
+  "id": "repeat_fish_basic",
+  "conceptId": "repeat_fish_basic",
+  "primary": true,
+  "label": "Рыбка",
+  "taskKind": "repeat",
+  "difficulty": "reinforce",
+  "columns": 16,
+  "rows": 8,
+  "axisCol": 8,
+  "sourcePaths": [
+    [
+      {
+        "col": 2,
+        "row": 4
+      },
+      {
+        "col": 4,
+        "row": 2
+      },
+      {
+        "col": 6,
+        "row": 4
+      },
+      {
+        "col": 4,
+        "row": 6
+      },
+      {
+        "col": 2,
+        "row": 4
+      }
+    ],
+    [
+      {
+        "col": 6,
+        "row": 4
+      },
+      {
+        "col": 8,
+        "row": 2
+      },
+      {
+        "col": 8,
+        "row": 6
+      },
+      {
+        "col": 6,
+        "row": 4
+      }
+    ]
+  ]
+}

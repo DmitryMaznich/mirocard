@@ -1,0 +1,30 @@
+{
+  "id": "symmetry_crown",
+  "conceptId": "symmetry_crown",
+  "label": "Зигзаг-корона",
+  "columns": 12,
+  "rows": 6,
+  "axisCol": 6,
+  "sourcePaths": [
+    [
+      {
+        "col": 0,
+        "row": 6
+      },
+      {
+        "col": 2,
+        "row": 4
+      },
+      {
+        "col": 4,
+        "row": 6
+      },
+      {
+        "col": 6,
+        "row": 4
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "reinforce"
+}

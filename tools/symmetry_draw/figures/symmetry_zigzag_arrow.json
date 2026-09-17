@@ -1,0 +1,34 @@
+{
+  "id": "symmetry_zigzag_arrow",
+  "conceptId": "symmetry_zigzag_arrow",
+  "label": "Зигзаг-стрелка",
+  "columns": 12,
+  "rows": 12,
+  "axisCol": 6,
+  "sourcePaths": [
+    [
+      {
+        "col": 6,
+        "row": 1
+      },
+      {
+        "col": 4,
+        "row": 4.5
+      },
+      {
+        "col": 1,
+        "row": 6
+      },
+      {
+        "col": 4,
+        "row": 7.5
+      },
+      {
+        "col": 6,
+        "row": 11
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "reinforce"
+}

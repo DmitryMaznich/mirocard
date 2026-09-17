@@ -1,0 +1,52 @@
+{
+  "id": "symmetry_house_window",
+  "conceptId": "symmetry_house_window",
+  "label": "Дом с окном",
+  "columns": 16,
+  "rows": 9,
+  "axisCol": 8,
+  "sourcePaths": [
+    [
+      {
+        "col": 8,
+        "row": 0
+      },
+      {
+        "col": 3,
+        "row": 5
+      },
+      {
+        "col": 3,
+        "row": 9
+      },
+      {
+        "col": 8,
+        "row": 9
+      }
+    ],
+    [
+      {
+        "col": 5,
+        "row": 6
+      },
+      {
+        "col": 7,
+        "row": 6
+      },
+      {
+        "col": 7,
+        "row": 8
+      },
+      {
+        "col": 5,
+        "row": 8
+      },
+      {
+        "col": 5,
+        "row": 6
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "reinforce"
+}

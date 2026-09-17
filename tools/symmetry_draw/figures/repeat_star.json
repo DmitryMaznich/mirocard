@@ -1,0 +1,59 @@
+{
+  "id": "repeat_star",
+  "conceptId": "repeat_star",
+  "primary": true,
+  "label": "Звезда",
+  "taskKind": "repeat",
+  "columns": 18,
+  "rows": 9,
+  "axisCol": 9,
+  "sourcePaths": [
+    [
+      {
+        "col": 4,
+        "row": 0
+      },
+      {
+        "col": 5,
+        "row": 3
+      },
+      {
+        "col": 8,
+        "row": 3
+      },
+      {
+        "col": 6,
+        "row": 5
+      },
+      {
+        "col": 7,
+        "row": 8
+      },
+      {
+        "col": 4,
+        "row": 6
+      },
+      {
+        "col": 1,
+        "row": 8
+      },
+      {
+        "col": 2,
+        "row": 5
+      },
+      {
+        "col": 0,
+        "row": 3
+      },
+      {
+        "col": 3,
+        "row": 3
+      },
+      {
+        "col": 4,
+        "row": 0
+      }
+    ]
+  ],
+  "difficulty": "reinforce"
+}

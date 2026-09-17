@@ -1,0 +1,36 @@
+{
+  "id": "dictation_kite",
+  "conceptId": "dictation_kite",
+  "primary": true,
+  "label": "Воздушный змей",
+  "taskKind": "dictation",
+  "columns": 10,
+  "rows": 10,
+  "start": {
+    "col": 5,
+    "row": 2
+  },
+  "commands": [
+    {
+      "type": "move",
+      "direction": "down_right",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "down_left",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "up_left",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "up_right",
+      "cells": 3
+    }
+  ],
+  "difficulty": "reinforce"
+}

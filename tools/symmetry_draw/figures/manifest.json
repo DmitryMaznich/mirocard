@@ -1,0 +1,475 @@
+{
+  "schema": "mirocard-figure-manifest/v1",
+  "topicId": "symmetry_draw",
+  "topicVersion": "1.11.3",
+  "figures": [
+    {
+      "id": "symmetry_house",
+      "label": "Дом",
+      "taskKind": "mirror",
+      "file": "symmetry_house.json"
+    },
+    {
+      "id": "symmetry_zigzag_arrow",
+      "label": "Зигзаг-стрелка",
+      "taskKind": "mirror",
+      "file": "symmetry_zigzag_arrow.json"
+    },
+    {
+      "id": "symmetry_heart",
+      "label": "Сердечко",
+      "taskKind": "mirror",
+      "file": "symmetry_heart.json"
+    },
+    {
+      "id": "symmetry_square",
+      "label": "Квадрат",
+      "taskKind": "mirror",
+      "file": "symmetry_square.json"
+    },
+    {
+      "id": "symmetry_triangle",
+      "label": "Треугольник",
+      "taskKind": "mirror",
+      "file": "symmetry_triangle.json"
+    },
+    {
+      "id": "symmetry_rhombus",
+      "label": "Ромб",
+      "taskKind": "mirror",
+      "file": "symmetry_rhombus.json"
+    },
+    {
+      "id": "symmetry_hexagon",
+      "label": "Шестиугольник",
+      "taskKind": "mirror",
+      "file": "symmetry_hexagon.json"
+    },
+    {
+      "id": "symmetry_arrow",
+      "label": "Стрелка",
+      "taskKind": "mirror",
+      "file": "symmetry_arrow.json"
+    },
+    {
+      "id": "symmetry_house_window",
+      "label": "Дом с окном",
+      "taskKind": "mirror",
+      "file": "symmetry_house_window.json"
+    },
+    {
+      "id": "symmetry_boat",
+      "label": "Кораблик",
+      "taskKind": "mirror",
+      "file": "symmetry_boat.json"
+    },
+    {
+      "id": "symmetry_car",
+      "label": "Машина",
+      "taskKind": "mirror",
+      "file": "symmetry_car.json"
+    },
+    {
+      "id": "symmetry_lightning",
+      "label": "Молния",
+      "taskKind": "mirror",
+      "file": "symmetry_lightning.json"
+    },
+    {
+      "id": "symmetry_bracket",
+      "label": "Скобка",
+      "taskKind": "mirror",
+      "file": "symmetry_bracket.json"
+    },
+    {
+      "id": "symmetry_stairs",
+      "label": "Лесенка",
+      "taskKind": "mirror",
+      "file": "symmetry_stairs.json"
+    },
+    {
+      "id": "symmetry_little_car",
+      "label": "Машинка",
+      "taskKind": "mirror",
+      "file": "symmetry_little_car.json"
+    },
+    {
+      "id": "symmetry_crown",
+      "label": "Зигзаг-корона",
+      "taskKind": "mirror",
+      "file": "symmetry_crown.json"
+    },
+    {
+      "id": "symmetry_slingshot",
+      "label": "Рогатка",
+      "taskKind": "mirror",
+      "file": "symmetry_slingshot.json"
+    },
+    {
+      "id": "symmetry_sigma",
+      "label": "Сигма",
+      "taskKind": "mirror",
+      "file": "symmetry_sigma.json"
+    },
+    {
+      "id": "symmetry_fig8",
+      "label": "Восьмёрка",
+      "taskKind": "mirror",
+      "file": "symmetry_fig8.json"
+    },
+    {
+      "id": "symmetry_eye",
+      "label": "Глаз",
+      "taskKind": "mirror",
+      "file": "symmetry_eye.json"
+    },
+    {
+      "id": "symmetry_circles",
+      "label": "Касающиеся круги",
+      "taskKind": "mirror",
+      "file": "symmetry_circles.json"
+    },
+    {
+      "id": "repeat_rocket",
+      "label": "Ракета",
+      "taskKind": "repeat",
+      "file": "repeat_rocket.json"
+    },
+    {
+      "id": "repeat_robot",
+      "label": "Робот",
+      "taskKind": "repeat",
+      "file": "repeat_robot.json"
+    },
+    {
+      "id": "repeat_train",
+      "label": "Поезд",
+      "taskKind": "repeat",
+      "file": "repeat_train.json"
+    },
+    {
+      "id": "repeat_crane",
+      "label": "Кран",
+      "taskKind": "repeat",
+      "file": "repeat_crane.json"
+    },
+    {
+      "id": "repeat_gear",
+      "label": "Шестерёнка",
+      "taskKind": "repeat",
+      "file": "repeat_gear.json"
+    },
+    {
+      "id": "repeat_bridge",
+      "label": "Мост",
+      "taskKind": "repeat",
+      "file": "repeat_bridge.json"
+    },
+    {
+      "id": "repeat_skyscraper",
+      "label": "Небоскрёб",
+      "taskKind": "repeat",
+      "file": "repeat_skyscraper.json"
+    },
+    {
+      "id": "repeat_star",
+      "label": "Звезда",
+      "taskKind": "repeat",
+      "file": "repeat_star.json"
+    },
+    {
+      "id": "dictation_house",
+      "label": "Дом",
+      "taskKind": "dictation",
+      "file": "dictation_house.json"
+    },
+    {
+      "id": "dictation_kite",
+      "label": "Воздушный змей",
+      "taskKind": "dictation",
+      "file": "dictation_kite.json"
+    },
+    {
+      "id": "dictation_stairs",
+      "label": "Лестница",
+      "taskKind": "dictation",
+      "file": "dictation_stairs.json"
+    },
+    {
+      "id": "dictation_lightning",
+      "label": "Молния",
+      "taskKind": "dictation",
+      "file": "dictation_lightning.json"
+    },
+    {
+      "id": "dictation_crown",
+      "label": "Корона",
+      "taskKind": "dictation",
+      "file": "dictation_crown.json"
+    },
+    {
+      "id": "dictation_spiral",
+      "label": "Спираль",
+      "taskKind": "dictation",
+      "file": "dictation_spiral.json"
+    },
+    {
+      "id": "dictation_hexagon",
+      "label": "Шестиугольник",
+      "taskKind": "dictation",
+      "file": "dictation_hexagon.json"
+    },
+    {
+      "id": "dictation_flag",
+      "label": "Флажок",
+      "taskKind": "dictation",
+      "file": "dictation_flag.json"
+    },
+    {
+      "id": "dictation_wave",
+      "label": "Волна",
+      "taskKind": "dictation",
+      "file": "dictation_wave.json"
+    },
+    {
+      "id": "dictation_maze",
+      "label": "Лабиринт",
+      "taskKind": "dictation",
+      "file": "dictation_maze.json"
+    },
+    {
+      "id": "dictation_dog",
+      "label": "Собака",
+      "taskKind": "dictation",
+      "file": "dictation_dog.json"
+    },
+    {
+      "id": "dictation_mouse",
+      "label": "Мышь",
+      "taskKind": "dictation",
+      "file": "dictation_mouse.json"
+    },
+    {
+      "id": "dictation_parrot",
+      "label": "Попугай",
+      "taskKind": "dictation",
+      "file": "dictation_parrot.json"
+    },
+    {
+      "id": "dictation_fish",
+      "label": "Рыбка",
+      "taskKind": "dictation",
+      "file": "dictation_fish.json"
+    },
+    {
+      "id": "dictation_fox",
+      "label": "Лиса",
+      "taskKind": "dictation",
+      "file": "dictation_fox.json"
+    },
+    {
+      "id": "dictation_crab",
+      "label": "Краб",
+      "taskKind": "dictation",
+      "file": "dictation_crab.json"
+    },
+    {
+      "id": "dictation_pig",
+      "label": "Свинья",
+      "taskKind": "dictation",
+      "file": "dictation_pig.json"
+    },
+    {
+      "id": "dictation_trex",
+      "label": "Динозавр",
+      "taskKind": "dictation",
+      "file": "dictation_trex.json"
+    },
+    {
+      "id": "dictation_airplane",
+      "label": "Самолёт",
+      "taskKind": "dictation",
+      "file": "dictation_airplane.json"
+    },
+    {
+      "id": "dictation_helicopter",
+      "label": "Вертолёт",
+      "taskKind": "dictation",
+      "file": "dictation_helicopter.json"
+    },
+    {
+      "id": "dictation_car",
+      "label": "Машина",
+      "taskKind": "dictation",
+      "file": "dictation_car.json"
+    },
+    {
+      "id": "dictation_horned_dino",
+      "label": "Рогатый динозавр",
+      "taskKind": "dictation",
+      "file": "dictation_horned_dino.json"
+    },
+    {
+      "id": "dictation_stegosaurus",
+      "label": "Стегозавр",
+      "taskKind": "dictation",
+      "file": "dictation_stegosaurus.json"
+    },
+    {
+      "id": "repeat_corner",
+      "label": "Уголок",
+      "taskKind": "repeat",
+      "file": "repeat_corner.json"
+    },
+    {
+      "id": "repeat_square_basic",
+      "label": "Квадрат",
+      "taskKind": "repeat",
+      "file": "repeat_square_basic.json"
+    },
+    {
+      "id": "repeat_roof",
+      "label": "Крыша",
+      "taskKind": "repeat",
+      "file": "repeat_roof.json"
+    },
+    {
+      "id": "repeat_flag_basic",
+      "label": "Флажок",
+      "taskKind": "repeat",
+      "file": "repeat_flag_basic.json"
+    },
+    {
+      "id": "repeat_steps_basic",
+      "label": "Ступеньки",
+      "taskKind": "repeat",
+      "file": "repeat_steps_basic.json"
+    },
+    {
+      "id": "repeat_boat_basic",
+      "label": "Лодочка",
+      "taskKind": "repeat",
+      "file": "repeat_boat_basic.json"
+    },
+    {
+      "id": "repeat_house_basic",
+      "label": "Домик",
+      "taskKind": "repeat",
+      "file": "repeat_house_basic.json"
+    },
+    {
+      "id": "repeat_fish_basic",
+      "label": "Рыбка",
+      "taskKind": "repeat",
+      "file": "repeat_fish_basic.json"
+    },
+    {
+      "id": "repeat_windmill",
+      "label": "Мельница",
+      "taskKind": "repeat",
+      "file": "repeat_windmill.json"
+    },
+    {
+      "id": "repeat_castle",
+      "label": "Замок",
+      "taskKind": "repeat",
+      "file": "repeat_castle.json"
+    },
+    {
+      "id": "repeat_duck_worksheet",
+      "label": "Утка",
+      "taskKind": "repeat",
+      "file": "repeat_duck_worksheet.json"
+    },
+    {
+      "id": "repeat_seahorse_worksheet",
+      "label": "Утка с хвостом",
+      "taskKind": "repeat",
+      "file": "repeat_seahorse_worksheet.json"
+    },
+    {
+      "id": "repeat_crocodile_worksheet",
+      "label": "Крокодил",
+      "taskKind": "repeat",
+      "file": "repeat_crocodile_worksheet.json"
+    },
+    {
+      "id": "repeat_cactus_worksheet",
+      "label": "Зонтик",
+      "taskKind": "repeat",
+      "file": "repeat_cactus_worksheet.json"
+    },
+    {
+      "id": "repeat_person_worksheet",
+      "label": "Паук",
+      "taskKind": "repeat",
+      "file": "repeat_person_worksheet.json"
+    },
+    {
+      "id": "repeat_squirrel_worksheet",
+      "label": "Белка",
+      "taskKind": "repeat",
+      "file": "repeat_squirrel_worksheet.json"
+    },
+    {
+      "id": "repeat_elephant_worksheet",
+      "label": "Слон",
+      "taskKind": "repeat",
+      "file": "repeat_elephant_worksheet.json"
+    },
+    {
+      "id": "repeat_bull_worksheet",
+      "label": "Бык",
+      "taskKind": "repeat",
+      "file": "repeat_bull_worksheet.json"
+    },
+    {
+      "id": "dictation_rectangle",
+      "label": "Прямоугольник",
+      "taskKind": "dictation",
+      "file": "dictation_rectangle.json"
+    },
+    {
+      "id": "dictation_chair",
+      "label": "Стул",
+      "taskKind": "dictation",
+      "file": "dictation_chair.json"
+    },
+    {
+      "id": "dictation_fence",
+      "label": "Забор",
+      "taskKind": "dictation",
+      "file": "dictation_fence.json"
+    },
+    {
+      "id": "dictation_boat_small",
+      "label": "Кораблик",
+      "taskKind": "dictation",
+      "file": "dictation_boat_small.json"
+    },
+    {
+      "id": "dictation_key",
+      "label": "Ключ",
+      "taskKind": "dictation",
+      "file": "dictation_key.json"
+    },
+    {
+      "id": "dictation_flower",
+      "label": "Цветок",
+      "taskKind": "dictation",
+      "file": "dictation_flower.json"
+    },
+    {
+      "id": "dictation_small_plane",
+      "label": "Самолётик",
+      "taskKind": "dictation",
+      "file": "dictation_small_plane.json"
+    },
+    {
+      "id": "dictation_small_fish",
+      "label": "Рыбка",
+      "taskKind": "dictation",
+      "file": "dictation_small_fish.json"
+    }
+  ]
+}

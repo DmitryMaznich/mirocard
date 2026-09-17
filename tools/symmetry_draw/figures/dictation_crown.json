@@ -1,0 +1,51 @@
+{
+  "id": "dictation_crown",
+  "conceptId": "dictation_crown",
+  "primary": true,
+  "label": "Корона",
+  "taskKind": "dictation",
+  "columns": 11,
+  "rows": 10,
+  "start": {
+    "col": 1,
+    "row": 8
+  },
+  "commands": [
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 4
+    },
+    {
+      "type": "move",
+      "direction": "down_right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up_right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down_right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up_right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 4
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 8
+    }
+  ],
+  "difficulty": "reinforce"
+}

@@ -1,0 +1,112 @@
+{
+  "id": "symmetry_circles",
+  "conceptId": "symmetry_circles",
+  "label": "Касающиеся круги",
+  "columns": 12,
+  "rows": 12,
+  "axisCol": 6,
+  "sourcePaths": [
+    [
+      {
+        "col": 6,
+        "row": 6
+      },
+      {
+        "col": 5.7,
+        "row": 7
+      },
+      {
+        "col": 5,
+        "row": 7.7
+      },
+      {
+        "col": 4,
+        "row": 8
+      },
+      {
+        "col": 3,
+        "row": 7.7
+      },
+      {
+        "col": 2.3,
+        "row": 7
+      },
+      {
+        "col": 2,
+        "row": 6
+      },
+      {
+        "col": 2.3,
+        "row": 5
+      },
+      {
+        "col": 3,
+        "row": 4.3
+      },
+      {
+        "col": 4,
+        "row": 4
+      },
+      {
+        "col": 5,
+        "row": 4.3
+      },
+      {
+        "col": 5.7,
+        "row": 5
+      },
+      {
+        "col": 6,
+        "row": 6
+      }
+    ],
+    [
+      {
+        "col": 6,
+        "row": 6
+      },
+      {
+        "col": 5.8,
+        "row": 6.7
+      },
+      {
+        "col": 5.2,
+        "row": 7.1
+      },
+      {
+        "col": 4.4,
+        "row": 7.1
+      },
+      {
+        "col": 3.8,
+        "row": 6.7
+      },
+      {
+        "col": 3.6,
+        "row": 6
+      },
+      {
+        "col": 3.8,
+        "row": 5.3
+      },
+      {
+        "col": 4.4,
+        "row": 4.9
+      },
+      {
+        "col": 5.2,
+        "row": 4.9
+      },
+      {
+        "col": 5.8,
+        "row": 5.3
+      },
+      {
+        "col": 6,
+        "row": 6
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "challenge"
+}

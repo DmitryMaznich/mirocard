@@ -114,6 +114,10 @@ feedback/
 
 # Grid-figure tracing scratch files (never committed)
 tools/symmetry_draw/.trace-scratch/
+tools/figure_capture/.qa/
+public/figure_capture.html
+public/figures_gallery.html
+public/symmetry_draw/figures/
 
 # Raw per-card audio staging area (generate-*-audio.mjs output) — the
 # built deck .zip already bundles the final audio; this is just scratch

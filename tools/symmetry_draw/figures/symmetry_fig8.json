@@ -1,0 +1,96 @@
+{
+  "id": "symmetry_fig8",
+  "conceptId": "symmetry_fig8",
+  "label": "Восьмёрка",
+  "columns": 12,
+  "rows": 12,
+  "axisCol": 6,
+  "sourcePaths": [
+    [
+      {
+        "col": 6,
+        "row": 1
+      },
+      {
+        "col": 5.12,
+        "row": 1.15
+      },
+      {
+        "col": 4.37,
+        "row": 1.59
+      },
+      {
+        "col": 3.88,
+        "row": 2.23
+      },
+      {
+        "col": 3.7,
+        "row": 3
+      },
+      {
+        "col": 3.88,
+        "row": 3.77
+      },
+      {
+        "col": 4.37,
+        "row": 4.41
+      },
+      {
+        "col": 5.12,
+        "row": 4.85
+      },
+      {
+        "col": 6,
+        "row": 5
+      }
+    ],
+    [
+      {
+        "col": 6,
+        "row": 5
+      },
+      {
+        "col": 4.61,
+        "row": 5.15
+      },
+      {
+        "col": 3.35,
+        "row": 5.57
+      },
+      {
+        "col": 2.36,
+        "row": 6.24
+      },
+      {
+        "col": 1.72,
+        "row": 7.07
+      },
+      {
+        "col": 1.5,
+        "row": 8
+      },
+      {
+        "col": 1.72,
+        "row": 8.93
+      },
+      {
+        "col": 2.36,
+        "row": 9.76
+      },
+      {
+        "col": 3.35,
+        "row": 10.43
+      },
+      {
+        "col": 4.61,
+        "row": 10.85
+      },
+      {
+        "col": 6,
+        "row": 11
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "challenge"
+}

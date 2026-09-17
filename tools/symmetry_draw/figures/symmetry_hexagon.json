@@ -1,0 +1,30 @@
+{
+  "id": "symmetry_hexagon",
+  "conceptId": "symmetry_hexagon",
+  "label": "Шестиугольник",
+  "columns": 12,
+  "rows": 14,
+  "axisCol": 6,
+  "sourcePaths": [
+    [
+      {
+        "col": 6,
+        "row": 0
+      },
+      {
+        "col": 0,
+        "row": 6
+      },
+      {
+        "col": 0,
+        "row": 8
+      },
+      {
+        "col": 6,
+        "row": 14
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "reinforce"
+}

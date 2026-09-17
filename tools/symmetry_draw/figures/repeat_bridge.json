@@ -1,0 +1,85 @@
+{
+  "id": "repeat_bridge",
+  "conceptId": "repeat_bridge",
+  "primary": true,
+  "label": "Мост",
+  "taskKind": "repeat",
+  "columns": 20,
+  "rows": 9,
+  "axisCol": 10,
+  "sourcePaths": [
+    [
+      {
+        "col": 0,
+        "row": 5
+      },
+      {
+        "col": 9,
+        "row": 5
+      }
+    ],
+    [
+      {
+        "col": 1,
+        "row": 5
+      },
+      {
+        "col": 2,
+        "row": 7
+      },
+      {
+        "col": 5,
+        "row": 8
+      },
+      {
+        "col": 8,
+        "row": 7
+      },
+      {
+        "col": 9,
+        "row": 5
+      }
+    ],
+    [
+      {
+        "col": 2,
+        "row": 5
+      },
+      {
+        "col": 2,
+        "row": 4
+      }
+    ],
+    [
+      {
+        "col": 4,
+        "row": 5
+      },
+      {
+        "col": 4,
+        "row": 4
+      }
+    ],
+    [
+      {
+        "col": 6,
+        "row": 5
+      },
+      {
+        "col": 6,
+        "row": 4
+      }
+    ],
+    [
+      {
+        "col": 8,
+        "row": 5
+      },
+      {
+        "col": 8,
+        "row": 4
+      }
+    ]
+  ],
+  "difficulty": "reinforce"
+}

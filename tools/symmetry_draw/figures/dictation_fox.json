@@ -1,0 +1,216 @@
+{
+  "id": "dictation_fox",
+  "conceptId": "dictation_fox",
+  "primary": true,
+  "label": "Лиса",
+  "taskKind": "dictation",
+  "columns": 22,
+  "rows": 20,
+  "start": {
+    "col": 11,
+    "row": 10
+  },
+  "commands": [
+    {
+      "type": "move",
+      "direction": "down_right",
+      "cells": 5
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "up_right",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "up_left",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "up_right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up_right",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down_left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down_right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down_left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down_left",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "up_left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down_left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 4
+    },
+    {
+      "type": "move",
+      "direction": "up_left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down_left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up_right",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "up_left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "up_right",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up_left",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "up_right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down_right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down_right",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 4
+    },
+    {
+      "type": "move",
+      "direction": "down_left",
+      "cells": 2
+    }
+  ],
+  "difficulty": "challenge"
+}

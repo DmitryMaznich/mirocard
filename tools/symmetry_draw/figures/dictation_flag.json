@@ -1,0 +1,36 @@
+{
+  "id": "dictation_flag",
+  "conceptId": "dictation_flag",
+  "primary": true,
+  "label": "Флажок",
+  "taskKind": "dictation",
+  "columns": 10,
+  "rows": 10,
+  "start": {
+    "col": 2,
+    "row": 9
+  },
+  "commands": [
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 7
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 5
+    },
+    {
+      "type": "move",
+      "direction": "down_left",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 3
+    }
+  ],
+  "difficulty": "reinforce"
+}

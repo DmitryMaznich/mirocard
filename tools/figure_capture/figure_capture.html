@@ -1,0 +1,1546 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Мастерская фигур · Рисуем по клеткам</title>
+<style>
+  :root {
+    color-scheme: light;
+    font-family: "Nunito", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --ink: #1e3a6e;
+    --muted: #5f7896;
+    --paper: #fffdf6;
+    --canvas: #f3f8fd;
+    --line: #c9ddf1;
+    --node: #8fb6dc;
+    --accent: #2563eb;
+    --accent-deep: #173d91;
+    --teal: #0d9488;
+    --red: #e84f5f;
+    --purple: #7959c9;
+    --good: #16834f;
+    --good-bg: #e7f8ec;
+    --warn: #9a6700;
+    --warn-bg: #fff7db;
+    --bad: #d83c49;
+    --bad-bg: #fff0f1;
+    --border: #d9e6f3;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; min-width: 320px; background: linear-gradient(145deg, #eef5fc, #f9fbfd 45%, #eef7f3); color: var(--ink); }
+  button, input, select, textarea { font: inherit; }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; opacity: .52; }
+
+  .app { width: min(1540px, 100%); margin: 0 auto; padding: clamp(12px, 2vw, 28px); }
+  .app-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  h1 { margin: 0; color: var(--ink); font-size: clamp(24px, 3vw, 36px); line-height: 1.06; letter-spacing: -.03em; }
+  .lede { max-width: 66ch; margin: 7px 0 0; color: var(--muted); font-size: 14px; font-weight: 650; line-height: 1.45; }
+  .head-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+  .button { min-height: 40px; padding: 9px 13px; border: 1px solid #bed4ea; border-radius: 10px; color: #275389; background: #fff; font-weight: 800; line-height: 1; box-shadow: 0 2px 0 rgba(42, 87, 143, .12); text-decoration: none; }
+  .button:hover:not(:disabled) { background: #f5f9ff; }
+  .button:active:not(:disabled) { transform: translateY(2px); box-shadow: none; }
+  .button--primary { border-color: var(--accent); color: #fff; background: var(--accent); box-shadow: 0 3px 0 var(--accent-deep); }
+  .button--primary:hover:not(:disabled) { background: #1d56ca; }
+  .button--teal { border-color: var(--teal); color: #fff; background: var(--teal); box-shadow: 0 3px 0 #087067; }
+  .button--danger { border-color: #f2bdc3; color: var(--bad); background: #fff; }
+  .button--small { min-height: 32px; padding: 6px 9px; border-radius: 8px; font-size: 12px; }
+
+  .workspace { display: grid; grid-template-columns: minmax(220px, 270px) minmax(0, 1fr) minmax(220px, 280px); gap: 14px; align-items: start; }
+  .panel { border: 1px solid var(--border); border-radius: 16px; background: rgba(255,255,255,.94); box-shadow: 0 10px 28px rgba(35, 77, 125, .08); }
+  .side-panel { overflow: hidden; }
+  .panel-section { padding: 15px; border-top: 1px solid #e5edf6; }
+  .panel-section:first-child { border-top: 0; }
+  .section-title { margin: 0 0 9px; color: var(--ink); font-size: 14px; font-weight: 900; letter-spacing: .01em; }
+  .hint { margin: 7px 0 0; color: var(--muted); font-size: 12px; font-weight: 650; line-height: 1.38; }
+  .field { display: grid; gap: 5px; margin-top: 9px; color: #486a91; font-size: 12px; font-weight: 800; }
+  .field:first-child { margin-top: 0; }
+  .field input, .field select, textarea { width: 100%; border: 1px solid #c8dced; border-radius: 8px; color: var(--ink); background: #fff; min-height: 36px; padding: 7px 8px; outline: none; }
+  .field input:focus, .field select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.13); }
+  .field--inline { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .field--inline > label { display: grid; gap: 5px; }
+  .file-button { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 42px; padding: 9px; border: 1.5px dashed #9cbbdb; border-radius: 10px; color: #2a5d9d; background: #f8fbff; font-size: 13px; font-weight: 900; text-align: center; cursor: pointer; }
+  .file-button:hover { border-color: var(--accent); background: #f1f6ff; }
+  .file-button input { display: none; }
+  .calibration { margin-top: 10px; padding: 9px; border-radius: 10px; background: #f2f8ff; color: #365b86; font-size: 12px; font-weight: 750; line-height: 1.36; }
+  .calibration.is-ready { background: var(--good-bg); color: #206841; }
+  .calibration.is-active { background: var(--warn-bg); color: var(--warn); }
+  .stack { display: grid; gap: 8px; }
+  .tool-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .tool-button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: #edf4ff; box-shadow: inset 0 0 0 1px rgba(37,99,235,.12); }
+  .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 9px; }
+  .toggle { display: flex; align-items: center; gap: 8px; min-height: 28px; color: #486a91; font-size: 12px; font-weight: 800; cursor: pointer; }
+  .toggle input { width: 16px; height: 16px; accent-color: var(--accent); }
+  .range-row { display: grid; grid-template-columns: 1fr 42px; align-items: center; gap: 8px; }
+  .range-row input { min-height: 0; padding: 0; accent-color: var(--accent); }
+  .range-value { color: var(--ink); font-size: 12px; font-weight: 900; text-align: right; }
+
+  .work-panel { min-width: 0; padding: 12px; }
+  .work-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 3px 10px; }
+  .work-title { margin: 0; color: var(--ink); font-size: 15px; font-weight: 900; }
+  .work-status { min-width: 0; color: var(--muted); font-size: 12px; font-weight: 800; text-align: right; }
+  .work-status strong { color: var(--accent); }
+  .canvas-wrap { position: relative; overflow: hidden; min-height: min(58vh, 720px); border: 1px solid #cfe0ef; border-radius: 12px; background: #e8f2fb; }
+  #board { display: block; width: 100%; height: auto; min-height: min(58vh, 720px); max-height: 72vh; touch-action: none; user-select: none; cursor: crosshair; }
+  #board.is-calibrating { cursor: cell; }
+  #board.is-points { cursor: copy; }
+  #board.is-aligning { cursor: move; }
+  .board-paper { fill: #f6fbff; }
+  .source-image { pointer-events: none; }
+  .transform-frame { fill: rgba(37,99,235,.035); stroke: #2563eb; stroke-width: 2.5; stroke-dasharray: 8 5; vector-effect: non-scaling-stroke; cursor: move; }
+  .transform-handle { fill: #fff; stroke: #2563eb; stroke-width: 2.5; vector-effect: non-scaling-stroke; cursor: nwse-resize; }
+  .transform-handle--ne, .transform-handle--sw { cursor: nesw-resize; }
+  .grid-handle { stroke: #fff; stroke-width: 2.5; vector-effect: non-scaling-stroke; cursor: grab; }
+  .grid-handle--origin { fill: #2563eb; }
+  .grid-handle--x { fill: #0d9488; }
+  .grid-handle--y { fill: #f59e0b; }
+  .grid-handle:active { cursor: grabbing; }
+  .grid-line { stroke: var(--line); stroke-width: 1.2; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .grid-label { fill: #6d91b5; font: 800 13px/1 Nunito, sans-serif; pointer-events: none; }
+  .cal-point { stroke: #fff; stroke-width: 2.5; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .cal-point--origin { fill: var(--accent); }
+  .cal-point--x { fill: var(--teal); }
+  .cal-point--y { fill: #f59e0b; }
+  .cal-text { fill: #244a7c; font: 900 15px/1 Nunito, sans-serif; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+  .raw-path { fill: none; stroke: rgba(121,89,201,.58); stroke-width: 3; stroke-dasharray: 6 5; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  .vector-shadow { fill: none; stroke: rgba(232,79,95,.20); stroke-width: 10; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  .vector-path { fill: none; stroke: var(--red); stroke-width: 3.25; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  .vector-segment-hit { stroke: transparent; stroke-width: 17; vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: stroke; }
+  .vector-segment-selected { stroke: #ff9da8; stroke-width: 8; vector-effect: non-scaling-stroke; stroke-linecap: round; pointer-events: none; }
+  .vector-node { fill: #fff; stroke: var(--red); stroke-width: 2.3; vector-effect: non-scaling-stroke; cursor: grab; }
+  .vector-node:hover, .vector-node.is-selected { fill: #fff0f1; stroke-width: 3.5; }
+  .vector-node:active { cursor: grabbing; }
+  .canvas-empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 22px; color: #4d759e; font-size: 14px; font-weight: 850; text-align: center; pointer-events: none; }
+  .canvas-empty[hidden] { display: none; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; padding: 9px 3px 1px; color: var(--muted); font-size: 11px; font-weight: 800; }
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+  .swatch { width: 20px; height: 3px; border-radius: 3px; }
+  .swatch--raw { background: repeating-linear-gradient(90deg, #7959c9 0 6px, transparent 6px 10px); }
+  .swatch--vector { background: var(--red); }
+
+  .validation { display: grid; gap: 7px; }
+  .check { display: flex; gap: 7px; align-items: flex-start; padding: 8px; border-radius: 9px; font-size: 12px; font-weight: 750; line-height: 1.3; }
+  .check--good { color: #226a43; background: var(--good-bg); }
+  .check--warn { color: #8d6500; background: var(--warn-bg); }
+  .check--bad { color: var(--bad); background: var(--bad-bg); }
+  .preview-wrap { overflow: hidden; border: 1px solid #d6e5f2; border-radius: 10px; background: #f9fcff; }
+  #preview { display: block; width: 100%; height: auto; }
+  .preview-grid { stroke: #c5dbef; stroke-width: .04; vector-effect: non-scaling-stroke; }
+  .preview-source { fill: none; stroke: #1e3faa; stroke-width: .16; stroke-linecap: round; stroke-linejoin: round; }
+  .preview-target { fill: none; stroke: #7959c9; stroke-width: .13; stroke-dasharray: .22 .14; stroke-linecap: round; stroke-linejoin: round; }
+  .preview-axis { stroke: #e8664f; stroke-width: .08; stroke-dasharray: .18 .14; }
+  .preview-gap { fill: #eef7f5; }
+  .preview-label { fill: #5c7897; font: 800 .42px/1 Nunito, sans-serif; }
+  textarea { min-height: 150px; resize: vertical; color: #173c69; background: #f9fbfd; font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace; }
+  .set-list { display: grid; gap: 6px; max-height: 250px; overflow: auto; }
+  .set-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 8px; border-radius: 8px; background: #f5f9fd; color: #365b86; font-size: 12px; font-weight: 800; }
+  .set-row button { flex: 0 0 auto; border: 0; color: #ae3d4a; background: transparent; font-weight: 900; }
+  .set-empty { color: var(--muted); font-size: 12px; font-weight: 700; line-height: 1.4; }
+  .notice { margin: 12px 0 0; min-height: 20px; color: var(--muted); font-size: 12px; font-weight: 800; }
+  .notice.is-error { color: var(--bad); }
+  .notice.is-good { color: var(--good); }
+
+  @media (max-width: 1120px) {
+    .workspace { grid-template-columns: minmax(220px, 270px) minmax(0, 1fr); }
+    .right-column { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr); gap: 14px; align-items: start; }
+  }
+  @media (max-width: 720px) {
+    .app { padding: 10px; }
+    .app-head { display: grid; }
+    .head-actions { justify-content: flex-start; }
+    .workspace, .right-column { grid-template-columns: 1fr; }
+    .right-column { display: grid; }
+    .work-panel { grid-row: 1; }
+    #board { min-height: 52vh; }
+  }
+</style>
+
+<main class="app">
+  <header class="app-head">
+    <div>
+      <h1>Мастерская фигур</h1>
+      <p class="lede">Обведите прототип жестом или точками. После отпускания каждый жест превращается в прямые сегменты между узлами сетки — кривизна руки в результат не попадает.</p>
+    </div>
+    <div class="head-actions">
+      <a class="button" href="figures_gallery.html">Галерея JSON</a>
+      <button class="button" type="button" id="demoBtn">Открыть пример сетки</button>
+      <button class="button button--danger" type="button" id="resetBtn">Новый черновик</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="panel side-panel left-column" aria-label="Настройка фигуры">
+      <section class="panel-section">
+        <h2 class="section-title">1. Прототип и сетка</h2>
+        <label class="file-button">Загрузить растр или скан
+          <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+        </label>
+        <div class="calibration" id="calibrationStatus">Загрузите прототип, затем отметьте три пересечения сетки.</div>
+        <div class="action-grid">
+          <button class="button button--small" type="button" id="calibrateBtn">Настроить сетку</button>
+          <button class="button button--small" type="button" id="clearCalibrationBtn">Сбросить сетку</button>
+        </div>
+        <p class="hint">Щёлкните: начало координат, соседний узел справа, соседний узел снизу. Для точности выбирайте узлы далеко друг от друга и укажите расстояние в клетках.</p>
+        <div class="field field--inline">
+          <label>До X, клеток<input id="calibrationXCells" type="number" min="1" value="1"></label>
+          <label>До Y, клеток<input id="calibrationYCells" type="number" min="1" value="1"></label>
+        </div>
+      </section>
+
+      <section class="panel-section">
+        <h2 class="section-title">2. Совмещение слоёв</h2>
+        <div class="tool-row" role="group" aria-label="Настройка растра и сетки">
+          <button class="button tool-button" type="button" id="alignRasterBtn" aria-pressed="false">Подогнать растр</button>
+          <button class="button tool-button" type="button" id="alignGridBtn" aria-pressed="false">Подогнать сетку</button>
+        </div>
+        <div class="action-grid">
+          <button class="button button--small" type="button" id="fitRasterBtn">Растр по полю</button>
+          <button class="button button--small" type="button" id="fitGridBtn">Сетку по полю</button>
+        </div>
+        <p class="hint" id="alignmentHint">Выберите слой, который нужно подогнать. Количество клеток меняется в параметрах карточки ниже.</p>
+      </section>
+
+      <section class="panel-section">
+        <h2 class="section-title">3. Карточка</h2>
+        <label class="file-button">Открыть JSON фигуры
+          <input id="figureJsonInput" type="file" accept="application/json,.json">
+        </label>
+        <p class="hint">Выберите один файл из <code>tools/symmetry_draw/figures</code>. Идентификатор и режим сохраняются, меняется только вектор фигуры.</p>
+        <label class="field">Название<input id="labelInput" type="text" value="Новая фигура" maxlength="80"></label>
+        <label class="field">Идентификатор<input id="idInput" type="text" value="repeat_new_figure" maxlength="80" spellcheck="false"></label>
+        <label class="field">Режим<select id="taskKind"><option value="repeat">Повтори рисунок</option><option value="mirror">Симметричный рисунок</option><option value="dictation">Графический диктант</option></select></label>
+        <div class="field field--inline">
+          <label id="sourceColsLabel">Ширина образца<input id="sourceCols" type="number" min="2" max="50" value="10"></label>
+          <label>Высота<input id="rows" type="number" min="2" max="50" value="10"></label>
+        </div>
+        <p class="hint" id="cardGeometryHint">Итоговая карточка: 20 × 10 клеток; граница после 10-й клетки.</p>
+      </section>
+
+      <section class="panel-section">
+        <h2 class="section-title">4. Обводка</h2>
+        <div class="tool-row" role="group" aria-label="Инструмент обводки">
+          <button class="button tool-button" type="button" id="traceTool" aria-pressed="true">Обвести жестом</button>
+          <button class="button tool-button" type="button" id="pointsTool" aria-pressed="false">Ставить узлы</button>
+        </div>
+        <div class="stack" style="margin-top:10px">
+          <label class="field">Привязка<select id="snapStep"><option value="1">Только узлы</option><option value="0.5">Узлы и полклетки</option><option value="0">Точные точки из JSON</option></select></label>
+          <label class="field">Чувствительность к углам
+            <span class="range-row"><input id="simplifyRange" type="range" min="0.08" max="0.7" step="0.01" value="0.26"><output class="range-value" id="simplifyValue">0,26</output></span>
+          </label>
+        </div>
+        <div class="action-grid">
+          <button class="button button--small" type="button" id="newPathBtn">Новый штрих</button>
+          <button class="button button--small" type="button" id="undoBtn">Убрать последний</button>
+          <button class="button button--small" type="button" id="deleteNodeBtn">Удалить узел</button>
+          <button class="button button--small" type="button" id="deleteSegmentBtn">Вырезать участок</button>
+          <button class="button button--small" type="button" id="deletePathBtn">Удалить штрих</button>
+          <button class="button button--small button--danger" type="button" id="clearPathsBtn">Очистить линии</button>
+        </div>
+        <p class="hint">Нажмите красный узел, чтобы удалить его или перетащить. Нажмите на красный отрезок, затем «Вырезать участок» — линия разорвётся по этому месту. «Удалить штрих» убирает весь выделенный контур.</p>
+      </section>
+
+      <section class="panel-section">
+        <h2 class="section-title">Слои</h2>
+        <label class="toggle"><input id="showSource" type="checkbox" checked> Растровый прототип</label>
+        <label class="field">Прозрачность прототипа
+          <span class="range-row"><input id="sourceOpacity" type="range" min="0" max="100" value="44"><output class="range-value" id="sourceOpacityValue">44%</output></span>
+        </label>
+        <label class="toggle"><input id="showGrid" type="checkbox" checked> Сетка и координаты</label>
+        <label class="toggle"><input id="showVector" type="checkbox" checked> Векторная траектория</label>
+      </section>
+    </aside>
+
+    <section class="panel work-panel" aria-label="Поле обводки">
+      <div class="work-head">
+        <h2 class="work-title">Рабочее поле</h2>
+        <div class="work-status" id="workStatus">Сетка ещё не настроена</div>
+      </div>
+      <div class="canvas-wrap">
+        <svg id="board" viewBox="0 0 960 620" role="img" aria-label="Поле обводки растрового прототипа">
+          <rect class="board-paper" id="paper" x="0" y="0" width="960" height="620"></rect>
+          <g id="sourceLayer"></g>
+          <g id="gridLayer"></g>
+          <g id="calibrationLayer"></g>
+          <g id="transformLayer"></g>
+          <g id="rawLayer"></g>
+          <g id="vectorLayer"></g>
+          <g id="nodeLayer"></g>
+        </svg>
+        <div class="canvas-empty" id="canvasEmpty">Загрузите прототип<br>или откройте пример сетки.</div>
+      </div>
+      <div class="legend" aria-hidden="true"><span class="legend-item"><span class="swatch swatch--raw"></span>ручной жест до выпрямления</span><span class="legend-item"><span class="swatch swatch--vector"></span>итоговая ломаная по сетке</span></div>
+      <div class="notice" id="notice" aria-live="polite"></div>
+    </section>
+
+    <aside class="right-column" aria-label="Проверка и экспорт">
+      <section class="panel side-panel">
+        <div class="panel-section">
+          <h2 class="section-title">Проверка</h2>
+          <div class="validation" id="validation"></div>
+        </div>
+        <div class="panel-section">
+          <h2 class="section-title">Предпросмотр задания</h2>
+          <div class="preview-wrap"><svg id="preview" viewBox="0 0 22 11" role="img" aria-label="Чистый векторный предпросмотр"></svg></div>
+          <p class="hint">Здесь используется именно тот же набор точек, который попадёт в карточку; растра здесь нет.</p>
+        </div>
+      </section>
+
+      <section class="panel side-panel" style="margin-top:14px">
+        <div class="panel-section">
+          <h2 class="section-title">Экспорт</h2>
+          <textarea id="cardOutput" readonly aria-label="JSON карточки"></textarea>
+          <div class="action-grid">
+            <button class="button button--small" type="button" id="copyBtn">Скопировать JSON</button>
+            <button class="button button--small button--primary" type="button" id="downloadCardBtn">Скачать карточку</button>
+          </div>
+          <button class="button button--teal" style="width:100%; margin-top:9px" type="button" id="addToSetBtn">Добавить в набор</button>
+        </div>
+        <div class="panel-section">
+          <h2 class="section-title">Набор <span id="setCount">0</span></h2>
+          <div class="set-list" id="setList"></div>
+          <button class="button button--primary" style="width:100%; margin-top:9px" type="button" id="downloadSetBtn">Скачать набор карточек</button>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<script>
+(() => {
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const STORAGE_KEY = "mirocard_grid_figure_collection_v1";
+  const DRAFT_KEY = "mirocard_grid_figure_draft_v1";
+
+  const $ = (id) => document.getElementById(id);
+  const board = $("board");
+  const paper = $("paper");
+  const sourceLayer = $("sourceLayer");
+  const gridLayer = $("gridLayer");
+  const calibrationLayer = $("calibrationLayer");
+  const transformLayer = $("transformLayer");
+  const rawLayer = $("rawLayer");
+  const vectorLayer = $("vectorLayer");
+  const nodeLayer = $("nodeLayer");
+
+  const state = {
+    imageHref: null,
+    imageName: null,
+    rasterTransform: null,
+    width: 960,
+    height: 620,
+    calibration: null,
+    calibrationPoints: [],
+    calibrationMode: false,
+    alignMode: null,
+    rasterDrag: null,
+    gridDrag: null,
+    tool: "trace",
+    paths: [[]],
+    activePath: 0,
+    selectedNode: null,
+    selectedSegment: null,
+    draggingNode: null,
+    tracing: null,
+    collection: [],
+    importedCard: null,
+  };
+
+  const DIRECTION_BY_DELTA = {
+    "0,-1": "up",
+    "1,-1": "up_right",
+    "1,0": "right",
+    "1,1": "down_right",
+    "0,1": "down",
+    "-1,1": "down_left",
+    "-1,0": "left",
+    "-1,-1": "up_left",
+  };
+
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    state.collection = Array.isArray(saved) ? saved : [];
+  } catch (_) {}
+
+  function make(tag, attrs = {}) {
+    const el = document.createElementNS(SVG_NS, tag);
+    Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, String(value)));
+    return el;
+  }
+
+  function number(value, fallback = 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function tidy(value) {
+    const rounded = Math.round(value * 100) / 100;
+    return Object.is(rounded, -0) ? 0 : rounded;
+  }
+
+  function fmt(value) {
+    return String(tidy(value)).replace(".", ",");
+  }
+
+  function sourceCols() { return Math.max(2, Math.round(number($("sourceCols").value, 10))); }
+  function rows() { return Math.max(2, Math.round(number($("rows").value, 10))); }
+  function snapStep() { return number($("snapStep").value, 1); }
+  function epsilon() { return number($("simplifyRange").value, .26); }
+  function taskKind() { return $("taskKind").value; }
+
+  function setNotice(text = "", kind = "") {
+    const el = $("notice");
+    el.textContent = text;
+    el.className = `notice${kind ? ` is-${kind}` : ""}`;
+  }
+
+  function setBoardSize(width, height) {
+    state.width = Math.max(1, Math.round(width));
+    state.height = Math.max(1, Math.round(height));
+    board.setAttribute("viewBox", `0 0 ${state.width} ${state.height}`);
+    paper.setAttribute("width", state.width);
+    paper.setAttribute("height", state.height);
+  }
+
+  function svgPoint(event) {
+    const point = board.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const ctm = board.getScreenCTM();
+    if (!ctm) return { x: 0, y: 0 };
+    return point.matrixTransform(ctm.inverse());
+  }
+
+  function calibrationReady() {
+    return Boolean(state.calibration && Math.abs(state.calibration.ux.x * state.calibration.uy.y - state.calibration.ux.y * state.calibration.uy.x) > .0001);
+  }
+
+  function gridToPixel(point) {
+    const { origin, ux, uy } = state.calibration;
+    return {
+      x: origin.x + point.col * ux.x + point.row * uy.x,
+      y: origin.y + point.col * ux.y + point.row * uy.y,
+    };
+  }
+
+  function pixelToGrid(point) {
+    const { origin, ux, uy } = state.calibration;
+    const dx = point.x - origin.x;
+    const dy = point.y - origin.y;
+    const det = ux.x * uy.y - ux.y * uy.x;
+    return {
+      col: (dx * uy.y - dy * uy.x) / det,
+      row: (ux.x * dy - ux.y * dx) / det,
+    };
+  }
+
+  function snap(point) {
+    const step = snapStep();
+    if (step <= 0) return { col: tidy(point.col), row: tidy(point.row) };
+    return {
+      col: tidy(Math.round(point.col / step) * step),
+      row: tidy(Math.round(point.row / step) * step),
+    };
+  }
+
+  function same(a, b) {
+    return Math.abs(a.col - b.col) < .0001 && Math.abs(a.row - b.row) < .0001;
+  }
+
+  function clone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function commandsToPath(start, commands) {
+    const vectors = {
+      up: { col: 0, row: -1 }, up_right: { col: 1, row: -1 }, right: { col: 1, row: 0 }, down_right: { col: 1, row: 1 },
+      down: { col: 0, row: 1 }, down_left: { col: -1, row: 1 }, left: { col: -1, row: 0 }, up_left: { col: -1, row: -1 },
+    };
+    const points = [{ col: number(start?.col), row: number(start?.row) }];
+    for (const command of commands ?? []) {
+      const vector = vectors[command.direction];
+      const cells = number(command.cells);
+      if (!vector || !Number.isInteger(cells) || cells < 1) throw new Error("В JSON диктанта есть некорректная команда.");
+      const previous = points.at(-1);
+      points.push({ col: previous.col + vector.col * cells, row: previous.row + vector.row * cells });
+    }
+    return points;
+  }
+
+  function dictationCommandsFromPath(path) {
+    const commands = [];
+    const problems = [];
+    if (path.length < 2) problems.push("Для диктанта нужен один штрих минимум из двух узлов.");
+    path.forEach((point, index) => {
+      if (!Number.isInteger(point.col) || !Number.isInteger(point.row)) problems.push(`Узел ${index + 1} диктанта должен быть целым пересечением сетки.`);
+    });
+    for (let index = 1; index < path.length; index += 1) {
+      const previous = path[index - 1];
+      const point = path[index];
+      const dx = point.col - previous.col;
+      const dy = point.row - previous.row;
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+      if (!absX && !absY) { problems.push(`Сегмент ${index} имеет нулевую длину.`); continue; }
+      if (absX && absY && absX !== absY) { problems.push(`Сегмент ${index} диктанта должен быть горизонтальным, вертикальным или диагональю 45°.`); continue; }
+      const direction = DIRECTION_BY_DELTA[`${Math.sign(dx)},${Math.sign(dy)}`];
+      if (!direction) { problems.push(`Сегмент ${index} не удалось перевести в команду.`); continue; }
+      commands.push({ type: "move", direction, cells: Math.max(absX, absY) });
+    }
+    return { commands, problems: [...new Set(problems)] };
+  }
+
+  function rdp(points, threshold) {
+    if (points.length < 3) return points.slice();
+    const distanceToSegment = (point, a, b) => {
+      const dx = b.col - a.col;
+      const dy = b.row - a.row;
+      if (!dx && !dy) return Math.hypot(point.col - a.col, point.row - a.row);
+      const t = Math.max(0, Math.min(1, ((point.col - a.col) * dx + (point.row - a.row) * dy) / (dx * dx + dy * dy)));
+      return Math.hypot(point.col - (a.col + dx * t), point.row - (a.row + dy * t));
+    };
+    let largest = 0;
+    let pivot = 0;
+    for (let index = 1; index < points.length - 1; index += 1) {
+      const distance = distanceToSegment(points[index], points[0], points.at(-1));
+      if (distance > largest) { largest = distance; pivot = index; }
+    }
+    if (largest <= threshold) return [points[0], points.at(-1)];
+    return [...rdp(points.slice(0, pivot + 1), threshold).slice(0, -1), ...rdp(points.slice(pivot), threshold)];
+  }
+
+  function uniquePath(points) {
+    return points.reduce((result, point) => {
+      if (!result.length || !same(result.at(-1), point)) result.push(point);
+      return result;
+    }, []);
+  }
+
+  // RDP works on the hand gesture before snapping. Two nearby raw corner hints can
+  // therefore land on the same final straight line after snapping. Remove only a
+  // middle point that lies *between* its neighbours; a deliberate retrace (A→B→A)
+  // stays intact because its direction reverses.
+  function removeCollinear(points) {
+    let result = points.slice();
+    let changed = true;
+    while (changed && result.length > 2) {
+      changed = false;
+      const next = [result[0]];
+      for (let index = 1; index < result.length - 1; index += 1) {
+        const a = next.at(-1);
+        const b = result[index];
+        const c = result[index + 1];
+        const abCol = b.col - a.col;
+        const abRow = b.row - a.row;
+        const bcCol = c.col - b.col;
+        const bcRow = c.row - b.row;
+        const cross = abCol * bcRow - abRow * bcCol;
+        const forward = abCol * bcCol + abRow * bcRow;
+        if (Math.abs(cross) < .0001 && forward >= 0) {
+          changed = true;
+          continue;
+        }
+        next.push(b);
+      }
+      next.push(result.at(-1));
+      result = next;
+    }
+    return result;
+  }
+
+  function activePath() {
+    if (!state.paths[state.activePath]) state.paths[state.activePath] = [];
+    return state.paths[state.activePath];
+  }
+
+  function finalPaths() {
+    return state.paths.filter((path) => path.length >= 2);
+  }
+
+  function clearChildren(layer) { layer.replaceChildren(); }
+
+  function pathD(points) {
+    return points.map((point, index) => {
+      const pixel = gridToPixel(point);
+      return `${index ? "L" : "M"} ${pixel.x.toFixed(2)} ${pixel.y.toFixed(2)}`;
+    }).join(" ");
+  }
+
+  function rawD(points) {
+    return points.map((point, index) => {
+      const pixel = gridToPixel(point);
+      return `${index ? "L" : "M"} ${pixel.x.toFixed(2)} ${pixel.y.toFixed(2)}`;
+    }).join(" ");
+  }
+
+  function addText(layer, attrs, value) {
+    const text = make("text", attrs);
+    text.textContent = value;
+    layer.append(text);
+  }
+
+  function renderSource() {
+    clearChildren(sourceLayer);
+    if (!state.imageHref || !$("showSource").checked) return;
+    const transform = state.rasterTransform ?? { x: 0, y: 0, width: state.width, height: state.height };
+    const image = make("image", {
+      class: "source-image",
+      href: state.imageHref,
+      x: transform.x,
+      y: transform.y,
+      width: transform.width,
+      height: transform.height,
+      opacity: number($("sourceOpacity").value, 44) / 100,
+      preserveAspectRatio: "none",
+    });
+    sourceLayer.append(image);
+  }
+
+  function renderGrid() {
+    clearChildren(gridLayer);
+    if (!calibrationReady() || !$("showGrid").checked) return;
+    const columns = sourceCols();
+    const height = rows();
+    for (let col = 0; col <= columns; col += 1) {
+      const top = gridToPixel({ col, row: 0 });
+      const bottom = gridToPixel({ col, row: height });
+      gridLayer.append(make("line", { class: "grid-line", x1: top.x, y1: top.y, x2: bottom.x, y2: bottom.y }));
+      addText(gridLayer, { class: "grid-label", x: top.x, y: top.y - 8, "text-anchor": "middle" }, String(col));
+    }
+    for (let row = 0; row <= height; row += 1) {
+      const left = gridToPixel({ col: 0, row });
+      const right = gridToPixel({ col: columns, row });
+      gridLayer.append(make("line", { class: "grid-line", x1: left.x, y1: left.y, x2: right.x, y2: right.y }));
+      addText(gridLayer, { class: "grid-label", x: left.x - 8, y: left.y + 4, "text-anchor": "end" }, String(row));
+    }
+  }
+
+  function renderCalibration() {
+    clearChildren(calibrationLayer);
+    if (state.alignMode === "grid" && calibrationReady()) {
+      const handles = [
+        { key: "origin", label: "Начало", point: state.calibration.origin },
+        { key: "x", label: "Масштаб X", point: gridToPixel({ col: 1, row: 0 }) },
+        { key: "y", label: "Масштаб Y", point: gridToPixel({ col: 0, row: 1 }) },
+      ];
+      handles.forEach((handle) => {
+        const node = make("circle", { class: `grid-handle grid-handle--${handle.key}`, cx: handle.point.x, cy: handle.point.y, r: 9 });
+        node.addEventListener("pointerdown", (event) => beginGridDrag(event, handle.key));
+        calibrationLayer.append(node);
+        addText(calibrationLayer, { class: "cal-text", x: handle.point.x + 13, y: handle.point.y - 10 }, handle.label);
+      });
+      return;
+    }
+    const labels = ["Начало", "Вправо", "Вниз"];
+    const classes = ["origin", "x", "y"];
+    state.calibrationPoints.forEach((point, index) => {
+      calibrationLayer.append(make("circle", { class: `cal-point cal-point--${classes[index]}`, cx: point.x, cy: point.y, r: 8 }));
+      addText(calibrationLayer, { class: "cal-text", x: point.x + 12, y: point.y - 10 }, labels[index]);
+    });
+  }
+
+  function renderTransformControls() {
+    clearChildren(transformLayer);
+    if (state.alignMode !== "raster" || !state.imageHref || !state.rasterTransform) return;
+    const { x, y, width, height } = state.rasterTransform;
+    const frame = make("rect", { class: "transform-frame", x, y, width, height });
+    frame.addEventListener("pointerdown", (event) => beginRasterDrag(event, "move"));
+    transformLayer.append(frame);
+    [
+      ["nw", x, y], ["ne", x + width, y], ["se", x + width, y + height], ["sw", x, y + height],
+    ].forEach(([handle, cx, cy]) => {
+      const node = make("circle", { class: `transform-handle transform-handle--${handle}`, cx, cy, r: 8 });
+      node.addEventListener("pointerdown", (event) => beginRasterDrag(event, handle));
+      transformLayer.append(node);
+    });
+  }
+
+  function syncCalibrationPoints() {
+    if (!calibrationReady()) return;
+    const { origin, ux, uy } = state.calibration;
+    const xCells = Math.max(1, number($("calibrationXCells").value, 1));
+    const yCells = Math.max(1, number($("calibrationYCells").value, 1));
+    state.calibrationPoints = [
+      { x: origin.x, y: origin.y },
+      { x: origin.x + ux.x * xCells, y: origin.y + ux.y * xCells },
+      { x: origin.x + uy.x * yCells, y: origin.y + uy.y * yCells },
+    ];
+  }
+
+  function beginRasterDrag(event, kind) {
+    if (!state.rasterTransform) return;
+    event.preventDefault();
+    event.stopPropagation();
+    state.rasterDrag = { pointerId: event.pointerId, kind, start: svgPoint(event), initial: { ...state.rasterTransform } };
+    board.setPointerCapture?.(event.pointerId);
+  }
+
+  function beginGridDrag(event, handle) {
+    if (!calibrationReady()) return;
+    event.preventDefault();
+    event.stopPropagation();
+    state.gridDrag = {
+      pointerId: event.pointerId,
+      handle,
+      start: svgPoint(event),
+      initial: {
+        origin: { ...state.calibration.origin },
+        ux: { ...state.calibration.ux },
+        uy: { ...state.calibration.uy },
+      },
+    };
+    board.setPointerCapture?.(event.pointerId);
+  }
+
+  function moveRaster(event) {
+    const drag = state.rasterDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return false;
+    const point = svgPoint(event);
+    const dx = point.x - drag.start.x;
+    const dy = point.y - drag.start.y;
+    const next = { ...drag.initial };
+    if (drag.kind === "move") {
+      next.x += dx;
+      next.y += dy;
+    } else {
+      const right = drag.initial.x + drag.initial.width;
+      const bottom = drag.initial.y + drag.initial.height;
+      if (drag.kind.includes("n")) { next.y = Math.min(point.y, bottom - 20); next.height = bottom - next.y; }
+      if (drag.kind.includes("s")) next.height = Math.max(20, point.y - drag.initial.y);
+      if (drag.kind.includes("w")) { next.x = Math.min(point.x, right - 20); next.width = right - next.x; }
+      if (drag.kind.includes("e")) next.width = Math.max(20, point.x - drag.initial.x);
+    }
+    state.rasterTransform = next;
+    render();
+    return true;
+  }
+
+  function moveGrid(event) {
+    const drag = state.gridDrag;
+    if (!drag || drag.pointerId !== event.pointerId) return false;
+    const point = svgPoint(event);
+    const candidate = {
+      origin: { ...drag.initial.origin },
+      ux: { ...drag.initial.ux },
+      uy: { ...drag.initial.uy },
+    };
+    if (drag.handle === "origin") {
+      candidate.origin.x += point.x - drag.start.x;
+      candidate.origin.y += point.y - drag.start.y;
+    } else if (drag.handle === "x") {
+      candidate.ux = { x: point.x - candidate.origin.x, y: point.y - candidate.origin.y };
+    } else {
+      candidate.uy = { x: point.x - candidate.origin.x, y: point.y - candidate.origin.y };
+    }
+    const determinant = candidate.ux.x * candidate.uy.y - candidate.ux.y * candidate.uy.x;
+    if (Math.abs(determinant) < 50) return true;
+    state.calibration = candidate;
+    syncCalibrationPoints();
+    render();
+    return true;
+  }
+
+  function renderPaths() {
+    clearChildren(rawLayer);
+    clearChildren(vectorLayer);
+    clearChildren(nodeLayer);
+    if (!calibrationReady()) return;
+    if (state.tracing?.length > 1) rawLayer.append(make("path", { class: "raw-path", d: rawD(state.tracing) }));
+    if (!$("showVector").checked) return;
+
+    state.paths.forEach((path, pathIndex) => {
+      if (path.length >= 2) {
+        vectorLayer.append(make("path", { class: "vector-shadow", d: pathD(path) }));
+        vectorLayer.append(make("path", { class: "vector-path", d: pathD(path) }));
+        path.slice(1).forEach((point, segmentIndex) => {
+          const start = gridToPixel(path[segmentIndex]);
+          const end = gridToPixel(point);
+          const isSelected = state.selectedSegment && state.selectedSegment.pathIndex === pathIndex && state.selectedSegment.segmentIndex === segmentIndex;
+          if (isSelected) vectorLayer.append(make("line", { class: "vector-segment-selected", x1: start.x, y1: start.y, x2: end.x, y2: end.y }));
+          const hit = make("line", { class: "vector-segment-hit", x1: start.x, y1: start.y, x2: end.x, y2: end.y, "data-path": pathIndex, "data-segment": segmentIndex });
+          hit.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            state.selectedNode = null;
+            state.selectedSegment = { pathIndex, segmentIndex };
+            state.draggingNode = null;
+            render();
+          });
+          vectorLayer.append(hit);
+        });
+      }
+      path.forEach((point, pointIndex) => {
+        const pixel = gridToPixel(point);
+        const isSelected = state.selectedNode && state.selectedNode.pathIndex === pathIndex && state.selectedNode.pointIndex === pointIndex;
+        const node = make("circle", { class: `vector-node${isSelected ? " is-selected" : ""}`, cx: pixel.x, cy: pixel.y, r: 5.8, "data-path": pathIndex, "data-point": pointIndex });
+        node.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          state.selectedNode = { pathIndex, pointIndex };
+          state.selectedSegment = null;
+          state.draggingNode = { pathIndex, pointIndex, pointerId: event.pointerId };
+          board.setPointerCapture?.(event.pointerId);
+          render();
+        });
+        nodeLayer.append(node);
+      });
+    });
+  }
+
+  function renderGeometryHint() {
+    const width = sourceCols();
+    $("sourceColsLabel").firstChild.textContent = taskKind() === "dictation" ? "Ширина сетки" : "Ширина образца";
+    if (taskKind() === "dictation") {
+      $("cardGeometryHint").textContent = `Итоговая карточка: ${width} × ${rows()} клеток; один ломаный штрих будет преобразован в команды диктанта.`;
+      return;
+    }
+    $("cardGeometryHint").textContent = `Итоговая карточка: ${width * 2} × ${rows()} клеток; ${taskKind() === "repeat" ? "образец и поле ребёнка" : "ось симметрии"} после ${width}-й клетки.`;
+  }
+
+  function renderCalibrationStatus() {
+    const el = $("calibrationStatus");
+    const xCells = Math.max(1, number($("calibrationXCells").value, 1));
+    const yCells = Math.max(1, number($("calibrationYCells").value, 1));
+    if (state.calibrationMode) {
+      const step = state.calibrationPoints.length;
+      const messages = ["Щёлкните начало координат — верхний левый узел рабочей сетки.", `Щёлкните узел на ${xCells} клеток правее начала.`, `Щёлкните узел на ${yCells} клеток ниже начала.`];
+      el.textContent = messages[step] || "Проверяю сетку…";
+      el.className = "calibration is-active";
+      return;
+    }
+    if (calibrationReady()) {
+      el.textContent = `Сетка настроена: 1 клетка = ${fmt(Math.hypot(state.calibration.ux.x, state.calibration.ux.y))} × ${fmt(Math.hypot(state.calibration.uy.x, state.calibration.uy.y))} px.`;
+      el.className = "calibration is-ready";
+      return;
+    }
+    el.textContent = state.imageHref ? "Нажмите «Настроить сетку» и отметьте три пересечения." : "Загрузите прототип или откройте пример сетки.";
+    el.className = "calibration";
+  }
+
+  function validate() {
+    const problems = [];
+    const warnings = [];
+    const paths = finalPaths();
+    if (!paths.length) problems.push("Нужен хотя бы один штрих с двумя узлами.");
+    paths.forEach((path, pathIndex) => {
+      path.forEach((point, pointIndex) => {
+        if (point.col < 0 || point.col > sourceCols() || point.row < 0 || point.row > rows()) warnings.push(`Штрих ${pathIndex + 1}, узел ${pointIndex + 1} выходит за рабочую сетку.`);
+        const unit = snapStep();
+        if (unit > 0 && (Math.abs(point.col / unit - Math.round(point.col / unit)) > .0001 || Math.abs(point.row / unit - Math.round(point.row / unit)) > .0001)) problems.push(`Узел ${pathIndex + 1}.${pointIndex + 1} не привязан к выбранному шагу.`);
+        if (pointIndex && same(point, path[pointIndex - 1])) problems.push(`В штрихе ${pathIndex + 1} есть нулевой сегмент.`);
+      });
+    });
+    if (taskKind() === "dictation") {
+      if (paths.length !== 1) problems.push("Графический диктант поддерживает ровно один непрерывный штрих.");
+      const dictation = dictationCommandsFromPath(paths[0] ?? []);
+      problems.push(...dictation.problems);
+    }
+    if (!$("labelInput").value.trim()) problems.push("Укажите название карточки.");
+    if (!safeId($("idInput").value)) problems.push("Идентификатор: строчные латинские буквы, цифры, _ или -.");
+    return { problems: [...new Set(problems)], warnings: [...new Set(warnings)], paths };
+  }
+
+  function safeId(value) { return /^[a-z0-9][a-z0-9_-]*$/.test(value.trim()); }
+
+  function buildCard() {
+    const id = $("idInput").value.trim();
+    const base = state.importedCard ? clone(state.importedCard) : {
+      id,
+      conceptId: id,
+      primary: true,
+      difficulty: "challenge",
+    };
+    const card = {
+      ...base,
+      id,
+      conceptId: id,
+      label: $("labelInput").value.trim(),
+      taskKind: taskKind(),
+      columns: taskKind() === "dictation" ? sourceCols() : sourceCols() * 2,
+      rows: rows(),
+    };
+    if (taskKind() === "dictation") {
+      const path = finalPaths()[0] ?? [];
+      const result = dictationCommandsFromPath(path);
+      card.start = path[0] ? { col: path[0].col, row: path[0].row } : { col: 0, row: 0 };
+      card.commands = result.commands;
+      delete card.axisCol;
+      delete card.sourcePaths;
+    } else {
+      card.axisCol = sourceCols();
+      card.sourcePaths = finalPaths();
+      delete card.start;
+      delete card.commands;
+    }
+    return card;
+  }
+
+  function renderValidation() {
+    const result = validate();
+    const host = $("validation");
+    host.replaceChildren();
+    const add = (kind, icon, text) => {
+      const el = document.createElement("div");
+      el.className = `check check--${kind}`;
+      const glyph = document.createElement("span");
+      glyph.textContent = icon;
+      const copy = document.createElement("span");
+      copy.textContent = text;
+      el.append(glyph, copy);
+      host.append(el);
+    };
+    if (!result.problems.length && !result.warnings.length && result.paths.length) add("good", "✓", `${result.paths.length} штр. и ${result.paths.flat().length} узл.: можно экспортировать.`);
+    result.problems.forEach((message) => add("bad", "!", message));
+    result.warnings.forEach((message) => add("warn", "!", message));
+    if (!calibrationReady()) add("warn", "i", "Сетка нужна для обводки растра; экспорт возможен после создания точек.");
+  }
+
+  function previewPath(points, transform) {
+    return points.map((point, index) => `${index ? "L" : "M"} ${transform(point).col} ${transform(point).row}`).join(" ");
+  }
+
+  function renderPreview() {
+    const preview = $("preview");
+    const width = sourceCols();
+    const height = rows();
+    const repeat = taskKind() === "repeat";
+    const dictation = taskKind() === "dictation";
+    // Matches GridTask's repeatGap exactly, so the clean preview is laid out
+    // in the same coordinate system as the shipped renderer.
+    const gap = repeat ? 1.5 : 0;
+    const overallWidth = dictation ? width : width * 2 + gap;
+    preview.setAttribute("viewBox", `-.5 -.65 ${overallWidth + 1} ${height + 1.3}`);
+    preview.replaceChildren();
+    const addGrid = (origin, count, prefix) => {
+      for (let col = 0; col <= count; col += 1) preview.append(make("line", { class: "preview-grid", x1: origin + col, y1: 0, x2: origin + col, y2: height }));
+      for (let row = 0; row <= height; row += 1) preview.append(make("line", { class: "preview-grid", x1: origin, y1: row, x2: origin + count, y2: row }));
+      const label = make("text", { class: "preview-label", x: origin + count / 2, y: -.22, "text-anchor": "middle" });
+      label.textContent = prefix;
+      preview.append(label);
+    };
+    if (dictation) {
+      addGrid(0, width, "Диктант");
+    } else if (repeat) {
+      preview.append(make("rect", { class: "preview-gap", x: width + .05, y: -.05, width: gap - .1, height: height + .1 }));
+      addGrid(0, width, "Смотри");
+      addGrid(width + gap, width, "Нарисуй так же");
+    } else {
+      addGrid(0, width * 2, "Зеркало");
+      preview.append(make("line", { class: "preview-axis", x1: width, y1: 0, x2: width, y2: height }));
+    }
+    finalPaths().forEach((path) => {
+      preview.append(make("path", { class: "preview-source", d: previewPath(path, (point) => point) }));
+      if (dictation) return;
+      const target = repeat
+        ? (point) => ({ col: point.col + width + gap, row: point.row })
+        : (point) => ({ col: width * 2 - point.col, row: point.row });
+      preview.append(make("path", { class: "preview-target", d: previewPath(path, target) }));
+    });
+  }
+
+  function renderCardOutput() {
+    const card = buildCard();
+    $("cardOutput").value = JSON.stringify(card, null, 2);
+  }
+
+  function persistDraft() {
+    const draft = {
+      imageName: state.imageName,
+      width: state.width,
+      height: state.height,
+      calibration: state.calibration,
+      paths: state.paths,
+      activePath: state.activePath,
+      label: $("labelInput").value,
+      id: $("idInput").value,
+      taskKind: taskKind(),
+      sourceCols: sourceCols(),
+      rows: rows(),
+      snapStep: snapStep(),
+      epsilon: epsilon(),
+    };
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch (_) {}
+  }
+
+  function renderSet() {
+    const host = $("setList");
+    host.replaceChildren();
+    $("setCount").textContent = String(state.collection.length);
+    $("downloadSetBtn").disabled = !state.collection.length;
+    if (!state.collection.length) {
+      const empty = document.createElement("div");
+      empty.className = "set-empty";
+      empty.textContent = "Пока пусто. Добавляйте только проверенные фигуры.";
+      host.append(empty);
+      return;
+    }
+    state.collection.forEach((entry, index) => {
+      const row = document.createElement("div");
+      row.className = "set-row";
+      const name = document.createElement("span");
+      name.textContent = `${entry.label} · ${entry.taskKind === "repeat" ? "повтор" : "зеркало"}`;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Удалить";
+      remove.addEventListener("click", () => {
+        state.collection.splice(index, 1);
+        saveCollection();
+        renderSet();
+      });
+      row.append(name, remove);
+      host.append(row);
+    });
+  }
+
+  function renderWorkStatus() {
+    const paths = finalPaths();
+    const count = paths.flat().length;
+    const host = $("workStatus");
+    if (state.calibrationMode) host.innerHTML = "<strong>Режим калибровки</strong> · отметьте следующий узел";
+    else if (state.alignMode === "raster") host.innerHTML = "<strong>Подгонка растра</strong> · тяните картинку или её углы";
+    else if (state.alignMode === "grid") host.innerHTML = "<strong>Подгонка сетки</strong> · тяните начало, X или Y";
+    else if (calibrationReady()) host.innerHTML = `<strong>${paths.length}</strong> штр. · <strong>${count}</strong> узл. · ${state.tool === "trace" ? "жест выпрямляется" : "добавление точек"}`;
+    else host.textContent = "Сетка ещё не настроена";
+    board.classList.toggle("is-calibrating", state.calibrationMode);
+    board.classList.toggle("is-points", !state.calibrationMode && state.tool === "points");
+    board.classList.toggle("is-aligning", Boolean(state.alignMode));
+  }
+
+  function renderTools() {
+    $("traceTool").setAttribute("aria-pressed", String(state.tool === "trace"));
+    $("pointsTool").setAttribute("aria-pressed", String(state.tool === "points"));
+    $("simplifyValue").textContent = fmt(epsilon());
+    $("sourceOpacityValue").textContent = `${Math.round(number($("sourceOpacity").value, 44))}%`;
+  }
+
+  function renderAlignmentTools() {
+    $("alignRasterBtn").setAttribute("aria-pressed", String(state.alignMode === "raster"));
+    $("alignGridBtn").setAttribute("aria-pressed", String(state.alignMode === "grid"));
+    const hint = $("alignmentHint");
+    if (state.alignMode === "raster") hint.textContent = "Тяните картинку за середину, а маркеры в углах — чтобы растянуть её по X и Y.";
+    else if (state.alignMode === "grid") hint.textContent = "Синий маркер двигает сетку. Зелёный меняет шаг по X, жёлтый — по Y. Число столбцов и строк задаётся ниже.";
+    else hint.textContent = "Выберите слой, который нужно подогнать. Количество клеток меняется в параметрах карточки ниже.";
+  }
+
+  function render() {
+    renderSource();
+    renderGrid();
+    renderCalibration();
+    renderTransformControls();
+    renderPaths();
+    renderGeometryHint();
+    renderCalibrationStatus();
+    renderValidation();
+    renderPreview();
+    renderCardOutput();
+    renderSet();
+    renderWorkStatus();
+    renderTools();
+    renderAlignmentTools();
+    $("canvasEmpty").hidden = Boolean(state.imageHref || calibrationReady());
+    persistDraft();
+  }
+
+  function startCalibration() {
+    if (!state.imageHref && !calibrationReady()) {
+      setNotice("Сначала загрузите изображение или откройте пример сетки.", "error");
+      return;
+    }
+    state.calibration = null;
+    state.calibrationPoints = [];
+    state.calibrationMode = true;
+    state.alignMode = null;
+    state.tracing = null;
+    setNotice("Калибровка началась: щёлкните начало координат.", "good");
+    render();
+  }
+
+  function finishCalibration() {
+    const [origin, xPoint, yPoint] = state.calibrationPoints;
+    const xCells = Math.max(1, number($("calibrationXCells").value, 1));
+    const yCells = Math.max(1, number($("calibrationYCells").value, 1));
+    const ux = { x: (xPoint.x - origin.x) / xCells, y: (xPoint.y - origin.y) / xCells };
+    const uy = { x: (yPoint.x - origin.x) / yCells, y: (yPoint.y - origin.y) / yCells };
+    const determinant = ux.x * uy.y - ux.y * uy.x;
+    if (Math.abs(determinant) < .0001) {
+      setNotice("Эти три точки почти лежат на одной линии. Выберите узлы сетки ещё раз.", "error");
+      state.calibrationPoints = [];
+      render();
+      return;
+    }
+    state.calibration = { origin, ux, uy };
+    state.calibrationMode = false;
+    setNotice("Сетка настроена. Теперь можно обводить фигуру.", "good");
+    render();
+  }
+
+  function setAlignMode(mode) {
+    if (mode === "raster" && !state.imageHref) {
+      setNotice("Сначала загрузите растровый прототип.", "error");
+      return;
+    }
+    if (mode === "grid" && !calibrationReady()) {
+      setNotice("Сначала настройте сетку по растру или откройте пример сетки.", "error");
+      return;
+    }
+    state.alignMode = state.alignMode === mode ? null : mode;
+    state.calibrationMode = false;
+    state.rasterDrag = null;
+    state.gridDrag = null;
+    render();
+  }
+
+  function fitRasterToBoard() {
+    if (!state.imageHref) { setNotice("Сначала загрузите растровый прототип.", "error"); return; }
+    state.rasterTransform = { x: 0, y: 0, width: state.width, height: state.height };
+    state.alignMode = "raster";
+    setNotice("Растр растянут по рабочему полю. Теперь его можно точно подогнать маркерами.", "good");
+    render();
+  }
+
+  function fitGridToBoard() {
+    const columns = sourceCols();
+    const height = rows();
+    const paddingX = Math.max(48, state.width * .08);
+    const paddingY = Math.max(48, state.height * .1);
+    const cell = Math.max(12, Math.min((state.width - paddingX * 2) / columns, (state.height - paddingY * 2) / height));
+    const origin = { x: paddingX, y: paddingY };
+    state.calibration = { origin, ux: { x: cell, y: 0 }, uy: { x: 0, y: cell } };
+    syncCalibrationPoints();
+    state.calibrationMode = false;
+    state.alignMode = "grid";
+    setNotice("Сетка вписана в поле. Тяните её цветные маркеры, чтобы совместить с растром.", "good");
+    render();
+  }
+
+  function addNode(point) {
+    const path = activePath();
+    const snapped = snap(point);
+    if (path.length && same(path.at(-1), snapped)) return;
+    path.push(snapped);
+    state.selectedNode = { pathIndex: state.activePath, pointIndex: path.length - 1 };
+    state.selectedSegment = null;
+    render();
+  }
+
+  function appendTrace(points) {
+    const simplified = removeCollinear(uniquePath(rdp(points, epsilon()).map(snap)));
+    if (simplified.length < 2) {
+      setNotice("В жесте не получилось двух разных узлов. Нарисуйте сегмент чуть длиннее или используйте режим точек.", "error");
+      render();
+      return;
+    }
+    if (!activePath().length) state.paths[state.activePath] = simplified;
+    else {
+      state.paths.push(simplified);
+      state.activePath = state.paths.length - 1;
+    }
+    state.paths.push([]);
+    state.activePath = state.paths.length - 1;
+    state.selectedNode = null;
+    state.selectedSegment = null;
+    setNotice(`Жест выпрямлен: ${simplified.length} узл., ${simplified.length - 1} прямых сегм.`, "good");
+    render();
+  }
+
+  function newPath() {
+    if (activePath().length) {
+      state.paths.push([]);
+      state.activePath = state.paths.length - 1;
+    }
+    state.selectedNode = null;
+    state.selectedSegment = null;
+    setNotice("Начат новый штрих: следующий жест или узел не соединится с предыдущим.", "good");
+    render();
+  }
+
+  function undoLast() {
+    const active = activePath();
+    if (active.length) {
+      active.pop();
+      state.selectedNode = null;
+      state.selectedSegment = null;
+    } else {
+      state.paths.pop();
+      state.activePath = Math.max(0, state.paths.length - 1);
+      if (!state.paths.length) state.paths = [[]];
+      state.selectedNode = null;
+      state.selectedSegment = null;
+    }
+    setNotice("Последний узел убран.");
+    render();
+  }
+
+  function deleteSelected() {
+    const selected = state.selectedNode;
+    if (!selected) { setNotice("Сначала выберите красный узел.", "error"); return; }
+    const path = state.paths[selected.pathIndex];
+    path.splice(selected.pointIndex, 1);
+    state.selectedNode = null;
+    state.selectedSegment = null;
+    setNotice("Узел удалён.");
+    render();
+  }
+
+  function deleteSelectedSegment() {
+    const selected = state.selectedSegment;
+    if (!selected) { setNotice("Нажмите на красный отрезок, который нужно вырезать.", "error"); return; }
+    const path = state.paths[selected.pathIndex];
+    if (!path || selected.segmentIndex < 0 || selected.segmentIndex >= path.length - 1) {
+      state.selectedSegment = null;
+      setNotice("Этот отрезок уже изменён. Выберите его ещё раз.", "error");
+      render();
+      return;
+    }
+    const left = path.slice(0, selected.segmentIndex + 1);
+    const right = path.slice(selected.segmentIndex + 1);
+    const replacements = [left, right].filter((part) => part.length >= 2);
+    state.paths.splice(selected.pathIndex, 1, ...replacements);
+    if (!state.paths.length) state.paths = [[]];
+    state.activePath = Math.max(0, Math.min(state.activePath, state.paths.length - 1));
+    state.selectedNode = null;
+    state.selectedSegment = null;
+    setNotice("Участок вырезан: оставшиеся части стали отдельными штрихами.", "good");
+    render();
+  }
+
+  function deleteSelectedPath() {
+    const pathIndex = state.selectedNode?.pathIndex ?? state.selectedSegment?.pathIndex;
+    if (pathIndex === undefined) { setNotice("Выберите узел или отрезок штриха, который нужно удалить.", "error"); return; }
+    state.paths.splice(pathIndex, 1);
+    if (!state.paths.length) state.paths = [[]];
+    state.activePath = Math.max(0, Math.min(state.activePath, state.paths.length - 1));
+    state.selectedNode = null;
+    state.selectedSegment = null;
+    setNotice("Штрих удалён.", "good");
+    render();
+  }
+
+  function clearPaths() {
+    if (!finalPaths().length && !activePath().length) return;
+    state.paths = [[]];
+    state.activePath = 0;
+    state.selectedNode = null;
+    state.selectedSegment = null;
+    setNotice("Линии очищены. Растр и сетка сохранены.");
+    render();
+  }
+
+  function resetDraft() {
+    state.imageHref = null;
+    state.imageName = null;
+    state.rasterTransform = null;
+    state.calibration = null;
+    state.calibrationPoints = [];
+    state.calibrationMode = false;
+    state.alignMode = null;
+    state.rasterDrag = null;
+    state.gridDrag = null;
+    state.paths = [[]];
+    state.activePath = 0;
+    state.selectedNode = null;
+    state.selectedSegment = null;
+    state.tracing = null;
+    state.importedCard = null;
+    setBoardSize(960, 620);
+    $("labelInput").value = "Новая фигура";
+    $("idInput").value = "repeat_new_figure";
+    $("idInput").readOnly = false;
+    $("taskKind").disabled = false;
+    $("taskKind").value = "repeat";
+    $("sourceCols").value = 10;
+    $("rows").value = 10;
+    setNotice("Новый черновик готов.", "good");
+    render();
+  }
+
+  function useDemo() {
+    state.imageHref = null;
+    state.imageName = "пример сетки";
+    state.rasterTransform = null;
+    state.alignMode = null;
+    state.importedCard = null;
+    $("idInput").readOnly = false;
+    $("taskKind").disabled = false;
+    setBoardSize(960, 620);
+    state.calibration = { origin: { x: 122, y: 86 }, ux: { x: 66, y: 0 }, uy: { x: 0, y: 47 } };
+    state.calibrationPoints = [
+      { x: 122, y: 86 },
+      { x: 188, y: 86 },
+      { x: 122, y: 133 },
+    ];
+    state.calibrationMode = false;
+    state.paths = [[]];
+    state.activePath = 0;
+    state.selectedNode = null;
+    state.selectedSegment = null;
+    setNotice("Пример готов. Попробуйте обвести рукой букву или контур — жест станет ломаной.", "good");
+    render();
+  }
+
+  function saveCollection() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.collection)); } catch (_) {}
+  }
+
+  function addToSet() {
+    const { problems } = validate();
+    if (problems.length) {
+      setNotice("Сначала исправьте ошибки проверки — в набор попадают только корректные траектории.", "error");
+      return;
+    }
+    const card = buildCard();
+    const existing = state.collection.findIndex((item) => item.id === card.id);
+    if (existing >= 0) state.collection[existing] = card;
+    else state.collection.push(card);
+    saveCollection();
+    setNotice(existing >= 0 ? "Карточка в наборе обновлена." : "Карточка добавлена в набор.", "good");
+    render();
+  }
+
+  function download(filename, data) {
+    const blob = new Blob([data], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function copyCard() {
+    const text = $("cardOutput").value;
+    try { await navigator.clipboard.writeText(text); }
+    catch (_) { $("cardOutput").focus(); $("cardOutput").select(); document.execCommand("copy"); }
+    setNotice("JSON карточки скопирован.", "good");
+  }
+
+  function loadImage(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        state.imageHref = String(reader.result);
+        state.imageName = file.name;
+        setBoardSize(image.naturalWidth, image.naturalHeight);
+        state.rasterTransform = { x: 0, y: 0, width: state.width, height: state.height };
+        const keepsImportedVector = Boolean(state.importedCard && finalPaths().length);
+        if (keepsImportedVector) {
+          const columns = sourceCols();
+          const height = rows();
+          const paddingX = Math.max(48, state.width * .08);
+          const paddingY = Math.max(48, state.height * .1);
+          const cell = Math.max(12, Math.min((state.width - paddingX * 2) / columns, (state.height - paddingY * 2) / height));
+          state.calibration = { origin: { x: paddingX, y: paddingY }, ux: { x: cell, y: 0 }, uy: { x: 0, y: cell } };
+          syncCalibrationPoints();
+        } else {
+          state.calibration = null;
+          state.calibrationPoints = [];
+        }
+        state.calibrationMode = false;
+        if (!keepsImportedVector) {
+          state.paths = [[]];
+          state.activePath = 0;
+        }
+        state.selectedNode = null;
+        state.selectedSegment = null;
+        state.alignMode = "raster";
+        setNotice(keepsImportedVector ? `«${file.name}» загружен. Вектор и сетка сохранены; теперь подгоните растр или сетку.` : `«${file.name}» загружен. Растр можно сразу подогнать; затем настройте сетку.`, "good");
+        render();
+      };
+      image.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function setEditorGrid(columns, height) {
+    setBoardSize(960, 620);
+    const cell = Math.max(18, Math.min(72, (state.width - 160) / columns, (state.height - 150) / height));
+    const origin = { x: 80, y: 76 };
+    state.calibration = { origin, ux: { x: cell, y: 0 }, uy: { x: 0, y: cell } };
+    state.calibrationPoints = [
+      origin,
+      { x: origin.x + cell, y: origin.y },
+      { x: origin.x, y: origin.y + cell },
+    ];
+    state.calibrationMode = false;
+  }
+
+  function loadFigureJson(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const card = JSON.parse(String(reader.result));
+        if (!card || typeof card !== "object" || !["mirror", "repeat", "dictation"].includes(card.taskKind)) throw new Error("Нужна карточка mirror, repeat или dictation.");
+        const width = card.taskKind === "dictation" ? number(card.columns) : number(card.axisCol);
+        const height = number(card.rows);
+        if (!Number.isInteger(width) || width < 2 || !Number.isInteger(height) || height < 2) throw new Error("В JSON не заданы корректные размеры сетки.");
+        const paths = card.taskKind === "dictation"
+          ? [commandsToPath(card.start, card.commands)]
+          : clone(card.sourcePaths ?? []);
+        if (!paths.length || paths.some((path) => !Array.isArray(path) || path.length < 2)) throw new Error("В JSON нет готовой траектории фигуры.");
+
+        state.importedCard = clone(card);
+        state.imageHref = null;
+        state.imageName = file.name;
+        state.rasterTransform = null;
+        state.alignMode = null;
+        state.paths = paths;
+        state.activePath = Math.max(0, paths.length - 1);
+        state.selectedNode = null;
+        state.selectedSegment = null;
+        state.tracing = null;
+        $("labelInput").value = String(card.label ?? "Фигура");
+        $("idInput").value = String(card.id ?? "");
+        $("idInput").readOnly = true;
+        $("taskKind").value = card.taskKind;
+        $("taskKind").disabled = true;
+        $("sourceCols").value = String(width);
+        $("rows").value = String(height);
+        $("snapStep").value = card.taskKind === "dictation" ? "1" : "0";
+        setEditorGrid(width, height);
+        setNotice(`«${file.name}» открыт. Исправляйте узлы; режим и идентификатор сохранены.`, "good");
+        render();
+      } catch (error) {
+        setNotice(`Не удалось открыть JSON: ${error.message}`, "error");
+      }
+    };
+    reader.readAsText(file, "utf-8");
+  }
+
+  board.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    const point = svgPoint(event);
+    if (state.calibrationMode) {
+      state.calibrationPoints.push(point);
+      if (state.calibrationPoints.length === 3) finishCalibration();
+      else render();
+      return;
+    }
+    if (state.alignMode) return;
+    if (!calibrationReady()) { setNotice("Сначала настройте сетку.", "error"); return; }
+    if (state.tool === "points") { addNode(pixelToGrid(point)); return; }
+    state.tracing = [pixelToGrid(point)];
+    state.tracePointerId = event.pointerId;
+    board.setPointerCapture?.(event.pointerId);
+    render();
+  });
+
+  board.addEventListener("pointermove", (event) => {
+    if (moveRaster(event) || moveGrid(event)) return;
+    if (state.draggingNode && state.draggingNode.pointerId === event.pointerId) {
+      const { pathIndex, pointIndex } = state.draggingNode;
+      state.paths[pathIndex][pointIndex] = snap(pixelToGrid(svgPoint(event)));
+      render();
+      return;
+    }
+    if (!state.tracing || state.tracePointerId !== event.pointerId || !calibrationReady()) return;
+    const point = pixelToGrid(svgPoint(event));
+    const last = state.tracing.at(-1);
+    if (Math.hypot(point.col - last.col, point.row - last.row) >= .035) {
+      state.tracing.push(point);
+      renderPaths();
+    }
+  });
+
+  function finishPointer(event) {
+    if (state.rasterDrag && state.rasterDrag.pointerId === event.pointerId) {
+      state.rasterDrag = null;
+      render();
+      return;
+    }
+    if (state.gridDrag && state.gridDrag.pointerId === event.pointerId) {
+      state.gridDrag = null;
+      render();
+      return;
+    }
+    if (state.draggingNode && state.draggingNode.pointerId === event.pointerId) {
+      state.draggingNode = null;
+      render();
+      return;
+    }
+    if (!state.tracing || state.tracePointerId !== event.pointerId) return;
+    // The browser is allowed to deliver pointerup without a final pointermove.
+    // Preserve that end point before simplifying, otherwise a short final segment
+    // can disappear from the straightened polyline.
+    if (calibrationReady()) {
+      const endpoint = pixelToGrid(svgPoint(event));
+      const last = state.tracing.at(-1);
+      if (!last || Math.hypot(endpoint.col - last.col, endpoint.row - last.row) >= .035) state.tracing.push(endpoint);
+    }
+    const points = state.tracing;
+    state.tracing = null;
+    state.tracePointerId = null;
+    appendTrace(points);
+  }
+
+  board.addEventListener("pointerup", finishPointer);
+  board.addEventListener("pointercancel", finishPointer);
+
+  $("imageInput").addEventListener("change", (event) => {
+    const file = event.target.files?.[0];
+    if (file) loadImage(file);
+    event.target.value = "";
+  });
+  $("figureJsonInput").addEventListener("change", (event) => {
+    const file = event.target.files?.[0];
+    if (file) loadFigureJson(file);
+    event.target.value = "";
+  });
+  $("calibrateBtn").addEventListener("click", startCalibration);
+  $("clearCalibrationBtn").addEventListener("click", () => {
+    state.calibration = null;
+    state.calibrationPoints = [];
+    state.calibrationMode = false;
+    state.alignMode = null;
+    setNotice("Настройка сетки сброшена. Линии сохранены, но их нельзя редактировать до новой калибровки.");
+    render();
+  });
+  $("traceTool").addEventListener("click", () => { state.tool = "trace"; state.alignMode = null; setNotice("Режим обводки: после жеста линия будет выпрямлена по узлам."); render(); });
+  $("pointsTool").addEventListener("click", () => { state.tool = "points"; state.alignMode = null; setNotice("Режим точек: щёлкайте по узлам, чтобы строить прямые сегменты."); render(); });
+  $("alignRasterBtn").addEventListener("click", () => setAlignMode("raster"));
+  $("alignGridBtn").addEventListener("click", () => setAlignMode("grid"));
+  $("fitRasterBtn").addEventListener("click", fitRasterToBoard);
+  $("fitGridBtn").addEventListener("click", fitGridToBoard);
+  $("newPathBtn").addEventListener("click", newPath);
+  $("undoBtn").addEventListener("click", undoLast);
+  $("deleteNodeBtn").addEventListener("click", deleteSelected);
+  $("deleteSegmentBtn").addEventListener("click", deleteSelectedSegment);
+  $("deletePathBtn").addEventListener("click", deleteSelectedPath);
+  $("clearPathsBtn").addEventListener("click", clearPaths);
+  $("demoBtn").addEventListener("click", useDemo);
+  $("resetBtn").addEventListener("click", resetDraft);
+  $("copyBtn").addEventListener("click", copyCard);
+  $("downloadCardBtn").addEventListener("click", () => download(`${$("idInput").value.trim() || "grid-figure"}.json`, $("cardOutput").value));
+  $("addToSetBtn").addEventListener("click", addToSet);
+  $("downloadSetBtn").addEventListener("click", () => download("mirocard-grid-figures.json", JSON.stringify(state.collection, null, 2)));
+
+  ["labelInput", "idInput", "taskKind", "sourceCols", "rows", "snapStep", "simplifyRange", "sourceOpacity", "showSource", "showGrid", "showVector", "calibrationXCells", "calibrationYCells"].forEach((id) => {
+    $(id).addEventListener("input", render);
+    $(id).addEventListener("change", render);
+  });
+
+  $("labelInput").addEventListener("input", () => {
+    const currentId = $("idInput").value;
+    if (!currentId || currentId === "repeat_new_figure") {
+      const slug = $("labelInput").value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+      if (slug) $("idInput").value = `${taskKind()}_${slug}`;
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const tag = document.activeElement?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+    if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); deleteSelected(); }
+    if (event.key.toLowerCase() === "x") { event.preventDefault(); deleteSelectedSegment(); }
+    if (event.key.toLowerCase() === "d") { event.preventDefault(); deleteSelectedPath(); }
+    if (event.key.toLowerCase() === "n") { event.preventDefault(); newPath(); }
+    if (event.key.toLowerCase() === "z" && !event.ctrlKey && !event.metaKey) { event.preventDefault(); undoLast(); }
+    if (event.key.toLowerCase() === "t") { state.tool = "trace"; state.alignMode = null; render(); }
+    if (event.key.toLowerCase() === "p") { state.tool = "points"; state.alignMode = null; render(); }
+    if (event.key === "Escape" && state.alignMode) { state.alignMode = null; render(); }
+  });
+
+  render();
+})();
+</script>

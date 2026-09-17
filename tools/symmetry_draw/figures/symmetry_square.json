@@ -1,0 +1,30 @@
+{
+  "id": "symmetry_square",
+  "conceptId": "symmetry_square",
+  "label": "Квадрат",
+  "columns": 8,
+  "rows": 8,
+  "axisCol": 4,
+  "sourcePaths": [
+    [
+      {
+        "col": 4,
+        "row": 1
+      },
+      {
+        "col": 1,
+        "row": 1
+      },
+      {
+        "col": 1,
+        "row": 7
+      },
+      {
+        "col": 4,
+        "row": 7
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "starter"
+}

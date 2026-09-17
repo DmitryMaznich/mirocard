@@ -1,0 +1,82 @@
+{
+  "id": "symmetry_car",
+  "conceptId": "symmetry_car",
+  "label": "Машина",
+  "columns": 20,
+  "rows": 10,
+  "axisCol": 10,
+  "sourcePaths": [
+    [
+      {
+        "col": 10,
+        "row": 0
+      },
+      {
+        "col": 8,
+        "row": 0
+      },
+      {
+        "col": 5,
+        "row": 3
+      },
+      {
+        "col": 5,
+        "row": 6
+      },
+      {
+        "col": 3,
+        "row": 8
+      },
+      {
+        "col": 10,
+        "row": 8
+      }
+    ],
+    [
+      {
+        "col": 6,
+        "row": 3
+      },
+      {
+        "col": 8,
+        "row": 3
+      },
+      {
+        "col": 8,
+        "row": 5
+      },
+      {
+        "col": 6,
+        "row": 5
+      },
+      {
+        "col": 6,
+        "row": 3
+      }
+    ],
+    [
+      {
+        "col": 2,
+        "row": 8
+      },
+      {
+        "col": 4,
+        "row": 8
+      },
+      {
+        "col": 4,
+        "row": 10
+      },
+      {
+        "col": 2,
+        "row": 10
+      },
+      {
+        "col": 2,
+        "row": 8
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "challenge"
+}

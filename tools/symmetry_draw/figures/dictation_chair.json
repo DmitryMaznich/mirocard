@@ -1,0 +1,56 @@
+{
+  "id": "dictation_chair",
+  "conceptId": "dictation_chair",
+  "primary": true,
+  "label": "Стул",
+  "taskKind": "dictation",
+  "difficulty": "starter",
+  "columns": 11,
+  "rows": 9,
+  "start": {
+    "col": 2,
+    "row": 7
+  },
+  "commands": [
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 5
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 4
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 4
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 2
+    }
+  ]
+}

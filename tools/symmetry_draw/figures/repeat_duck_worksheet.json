@@ -1,0 +1,257 @@
+{
+  "id": "repeat_duck_worksheet",
+  "conceptId": "repeat_duck_worksheet",
+  "primary": true,
+  "label": "Утка",
+  "taskKind": "repeat",
+  "difficulty": "challenge",
+  "columns": 20,
+  "rows": 11,
+  "axisCol": 10,
+  "sourcePaths": [
+    [
+      {
+        "col": 5,
+        "row": 1
+      },
+      {
+        "col": 4,
+        "row": 1
+      },
+      {
+        "col": 3,
+        "row": 1
+      },
+      {
+        "col": 2,
+        "row": 2
+      },
+      {
+        "col": 2,
+        "row": 3
+      }
+    ],
+    [
+      {
+        "col": 5,
+        "row": 1
+      },
+      {
+        "col": 6,
+        "row": 3
+      },
+      {
+        "col": 5,
+        "row": 4
+      }
+    ],
+    [
+      {
+        "col": 2,
+        "row": 3
+      },
+      {
+        "col": 3,
+        "row": 4
+      }
+    ],
+    [
+      {
+        "col": 2,
+        "row": 3
+      },
+      {
+        "col": 1,
+        "row": 4
+      },
+      {
+        "col": 2,
+        "row": 4
+      },
+      {
+        "col": 3,
+        "row": 4
+      }
+    ],
+    [
+      {
+        "col": 3,
+        "row": 2
+      },
+      {
+        "col": 4,
+        "row": 3
+      }
+    ],
+    [
+      {
+        "col": 3,
+        "row": 4
+      },
+      {
+        "col": 2,
+        "row": 5
+      },
+      {
+        "col": 2,
+        "row": 6
+      },
+      {
+        "col": 2,
+        "row": 7
+      },
+      {
+        "col": 3,
+        "row": 8
+      },
+      {
+        "col": 4,
+        "row": 8
+      }
+    ],
+    [
+      {
+        "col": 3,
+        "row": 3
+      },
+      {
+        "col": 4,
+        "row": 2
+      }
+    ],
+    [
+      {
+        "col": 6,
+        "row": 3
+      },
+      {
+        "col": 5,
+        "row": 4
+      },
+      {
+        "col": 6,
+        "row": 4
+      },
+      {
+        "col": 7,
+        "row": 4
+      },
+      {
+        "col": 8,
+        "row": 5
+      },
+      {
+        "col": 9,
+        "row": 4
+      },
+      {
+        "col": 9,
+        "row": 5
+      },
+      {
+        "col": 9,
+        "row": 6
+      },
+      {
+        "col": 9,
+        "row": 7
+      },
+      {
+        "col": 8,
+        "row": 8
+      },
+      {
+        "col": 7,
+        "row": 8
+      },
+      {
+        "col": 6,
+        "row": 8
+      }
+    ],
+    [
+      {
+        "col": 4,
+        "row": 5
+      },
+      {
+        "col": 4,
+        "row": 6
+      },
+      {
+        "col": 5,
+        "row": 7
+      },
+      {
+        "col": 6,
+        "row": 7
+      },
+      {
+        "col": 7,
+        "row": 7
+      },
+      {
+        "col": 8,
+        "row": 6
+      },
+      {
+        "col": 7,
+        "row": 5
+      },
+      {
+        "col": 6,
+        "row": 5
+      }
+    ],
+    [
+      {
+        "col": 4,
+        "row": 8
+      },
+      {
+        "col": 5,
+        "row": 8
+      },
+      {
+        "col": 6,
+        "row": 8
+      }
+    ],
+    [
+      {
+        "col": 4,
+        "row": 8
+      },
+      {
+        "col": 4,
+        "row": 9
+      },
+      {
+        "col": 4,
+        "row": 10
+      },
+      {
+        "col": 3,
+        "row": 10
+      }
+    ],
+    [
+      {
+        "col": 6,
+        "row": 8
+      },
+      {
+        "col": 6,
+        "row": 9
+      },
+      {
+        "col": 6,
+        "row": 10
+      },
+      {
+        "col": 7,
+        "row": 10
+      }
+    ]
+  ]
+}

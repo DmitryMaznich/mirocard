@@ -1,0 +1,90 @@
+{
+  "id": "symmetry_sigma",
+  "conceptId": "symmetry_sigma",
+  "label": "Сигма",
+  "columns": 12,
+  "rows": 12,
+  "axisCol": 6,
+  "sourcePaths": [
+    [
+      {
+        "col": 6,
+        "row": 1
+      },
+      {
+        "col": 2,
+        "row": 1
+      },
+      {
+        "col": 2.68,
+        "row": 1.1
+      },
+      {
+        "col": 3.34,
+        "row": 1.38
+      },
+      {
+        "col": 3.94,
+        "row": 1.84
+      },
+      {
+        "col": 4.47,
+        "row": 2.46
+      },
+      {
+        "col": 4.91,
+        "row": 3.22
+      },
+      {
+        "col": 5.23,
+        "row": 4.09
+      },
+      {
+        "col": 5.43,
+        "row": 5.02
+      },
+      {
+        "col": 5.5,
+        "row": 6
+      },
+      {
+        "col": 5.43,
+        "row": 6.98
+      },
+      {
+        "col": 5.23,
+        "row": 7.91
+      },
+      {
+        "col": 4.91,
+        "row": 8.78
+      },
+      {
+        "col": 4.47,
+        "row": 9.54
+      },
+      {
+        "col": 3.94,
+        "row": 10.16
+      },
+      {
+        "col": 3.34,
+        "row": 10.62
+      },
+      {
+        "col": 2.68,
+        "row": 10.9
+      },
+      {
+        "col": 2,
+        "row": 11
+      },
+      {
+        "col": 6,
+        "row": 11
+      }
+    ]
+  ],
+  "taskKind": "mirror",
+  "difficulty": "challenge"
+}
