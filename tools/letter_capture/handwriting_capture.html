@@ -484,11 +484,13 @@
             <input type="text" id="labelInput" maxlength="3" placeholder="Аба" autocomplete="off" />
             <!-- Fixed list for "Элемент" — the slugs (scripts/propis_ingest_elements.mjs's
                  REGISTRY keys) are long to type by hand and a typo there gets silently
-                 skipped by the ingestion script. Keep these 21 options in sync with that
+                 skipped by the ingestion script. Keep these 23 options in sync with that
                  REGISTRY by hand — this static HTML file has no build step to share it from. -->
             <select id="elementSelect" style="display:none;">
               <option value="01_pryamaya_liniya">01 · Прямая линия</option>
-              <option value="02_naklonnaya_vertikalnaya">02 · Наклонная/вертикальная</option>
+              <option value="02a_naklonnaya_dlinnaya">02a · Наклонная длинная</option>
+              <option value="02b_naklonnaya_korotkaya">02b · Наклонная короткая</option>
+              <option value="02c_vertikalnaya">02c · Вертикальная</option>
               <option value="03_zaborchik_ploskie">03 · Заборчик плоские</option>
               <option value="04_zaborchik_ostrye">04 · Заборчик острые</option>
               <option value="05_kryuchok_vlevo">05 · Крючок влево</option>

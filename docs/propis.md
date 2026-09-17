@@ -291,6 +291,388 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     all 21 options, drawing enables "Добавить в набор", and after clicking it the
     collection holds `{type:"element", label:"01_pryamaya_liniya", ...}` and the
     select has already moved to `02_naklonnaya_vertikalnaya`.
+- **Element "02" split into three — 2026-09-17.** User caught it during review:
+  `02_naklonnaya_vertikalnaya` (the entry named right above, in the previous
+  entry's own verification screenshot) actually bundled three distinct drills
+  from the source book page under one slug — "наклонная длинная" (long
+  diagonal), "наклонная короткая" (short diagonal), and "вертикальная"
+  (vertical), confirmed by the user explicitly ("да, три разных"). Fixed at
+  the registry level: `scripts/propis_ingest_elements.mjs`'s `REGISTRY` and
+  `handwriting_capture.html`'s `#elementSelect` both had the single
+  `02_naklonnaya_vertikalnaya` entry replaced with three —
+  `02a_naklonnaya_dlinnaya`, `02b_naklonnaya_korotkaya`, `02c_vertikalnaya`
+  (same `02a`/`02b` lettered-suffix convention `07a`/`07b` already
+  established for "two drills, one page") — kept in sync by hand between the
+  two files per the existing comment there, total inventory now 23 (was 21).
+  **No capture data existed yet for this slug** (`tools/propis/elements.json`
+  doesn't exist at all as of this fix — 0/21 was still true when the bug was
+  reported), so this is a pure registry correction with nothing to migrate or
+  re-ingest.
+  - **Still unresolved**: exactly where "вертикальная" sits on the source
+    page relative to the two diagonal strokes was never pinned down —  an
+    earlier attempt at pixel-level angle measurement on the original crop
+    (bold stroke ≈9°, dashed stroke ≈11° from vertical) couldn't confidently
+    place a third, separate mark, and the user's confirmation named the three
+    drills without giving their exact position. That's not a code problem —
+    it's "which pixels in the physical book page for `02c_vertikalnaya`", a
+    call only whoever operates `handwriting_capture.html` next (matching the
+    tracing to the actual book page in front of them) can make. The fixed
+    dropdown now offers the correct 3 separate options either way, so
+    whichever page region turns out to be "вертикальная", it gets captured
+    under its own correct slug instead of silently merged into a diagonal.
+- **New mode "Диктант" (`dictation`) — topic.json + options only, 2026-09-17, engine/view
+  not started.** User request: a standalone "controlled test" — the app speaks a letter,
+  word or short text aloud and the child writes it in their own paper notebook; no
+  keyboard, no writing surface on screen at all (unlike every other propis mode).
+  - **`tools/propis/topic.json`'s `modes[]`** gained `id`/`type` `"dictation"`,
+    `evaluation: "none"` (see reward note below for why this didn't need to change),
+    `hideConceptPicker: true`, matching the shape of every other propis mode.
+  - **`params`** — all five options render through `ParamsScreen.jsx`'s already-generic
+    `enum`/`number`/`boolean` param types (confirmed by reading its render logic, not
+    assumed — these are the same code paths `fingers_count`/`graphic_dictation`/etc.
+    already exercise, no new UI code needed for the options screen itself):
+    `level` (`enum`: буквы/слова/тексты), `itemCount` (`number`, how many items this
+    session), `unlimitedRepeats` (`boolean`) + `repeatLimit` (`number`, hidden via
+    `showWhen: {unlimitedRepeats: false}` when unlimited is on — `showWhen` was already
+    supported by the renderer, just unused by any propis mode until now), and
+    `videoRewardEnabled` (`boolean`, no threshold — see below).
+  - **Content banks — reused, nothing new authored**: letters from the existing captured
+    alphabet (`wordEngine.js` cards, uppercase and lowercase as separate dictation items
+    per the user's explicit call — "А" and "а" get their own audio each, not one recording
+    with a spoken case prefix), words from `scripts/propis_worksheets/words.py`
+    (BLOCK_A + BLOCK_B, 249 words total, confirmed by parsing the file rather than
+    guessing), texts from `topic.json`'s own `texts[]` (t01–t24, same list `read_text`
+    already uses) — all three drawn in random order at session-generation time (not yet
+    implemented — that's `engine.js`, next step, not this one).
+  - **Reward is deliberately NOT the shared `buildRewardProgress` percentage/threshold
+    system** every other rewarded topic uses — checked `rewardProgress.js` directly:
+    that pipeline computes a target from `correctCount`/`total`, and dictation has no
+    machine-checkable answer at all (the child's handwriting is on paper, the app never
+    sees it). Per the user's own design: a single end-of-session comparison screen shows
+    everything that was dictated, an adult visually checks the paper notebook against it,
+    then presses "Всё верно" and enters a PIN (a new, separate PIN prompt — not the
+    existing pre-session params-screen PIN gate, which propis currently bypasses entirely
+    via `ParamsScreen.jsx`'s topic-wide `isPropis` flag) to unlock `RewardVideoModal`
+    directly, no percentage involved. Net effect: `mode.evaluation` could stay `"none"`
+    after all (earlier assumption in this conversation that it needed to change was
+    wrong — corrected once the reward mechanism turned out to bypass the shared pipeline
+    entirely rather than reuse it with a 100% threshold).
+  - **Known follow-up, not done here**: `isPropis` in `ParamsScreen.jsx` (line ~1548,
+    `topicRecord?.meta.renderer === "propis"`) hides the video-reward toggle for the
+    *whole topic*; it needs to become mode-aware (e.g. also check `mode?.id ===
+    "dictation"`) before `videoRewardEnabled` can actually surface in the options screen
+    — the param is declared, but nothing shows it yet.
+  - **`media/icons/propis_dictation.svg`** added to `src/topics/builtinAssets.js` (propis
+    icons resolve purely through this builtin-fallback map — confirmed no
+    `tools/propis/media/` directory exists at all, `build-propis-deck.mjs` only ever
+    bundles `print/`+`thumbnails/`). Breaks the family's "ruled card + ink squiggle"
+    language on purpose, same reasoning as `print_materials`'s icon: this mode shows no
+    handwriting on screen, so the main image is the real audio-mode "diktor" circle
+    (`operation-audio-diktor`'s own teal gradient, `styles.css`) with two ring arcs
+    standing in for its ripple animation, corner badge is a small pencil instead of the
+    usual ink-squiggle card (a ruled card would wrongly imply the answer appears on
+    screen).
+  - **Version bump + deck rebuild**: `meta.version` `1.27.2` → `1.28.0` (new mode, not a
+    fix — minor bump), `node scripts/build-propis-deck.mjs` → `propis_v1.28.0.zip` (81
+    cards, 5 modes, 23 bundled assets), `catalog.json` updated to match.
+  - **Verification done**: JSON validity, `npm run build` clean, deck zip rebuild
+    succeeded. **Not done**: a live screenshot of the options screen — `ParamsScreen`
+    takes zero props (pulls everything from app-wide store/routing state internally,
+    confirmed by reading its signature), so mounting it standalone the way
+    `PrintMaterialsView` was screenshotted earlier this session would need a much
+    heavier full-app harness; deferred rather than built for a data-only schema change.
+    Structural confidence instead comes from `level`/`itemCount`/`unlimitedRepeats`/
+    `repeatLimit`/`videoRewardEnabled` using exactly the same `type` strings and field
+    shapes (`label.ru`, `values`+`labels.ru`, `min`/`max`/`default`, `showWhen`) that
+    other already-shipped topics' params already exercise in that same renderer.
+  - **Explicitly not started (as of the entry above)**: `engine.js`'s `dictation` branch,
+    the session view, the end-of-session comparison screen, the PIN-confirm-to-unlock-video
+    flow, the `isPropis` mode-awareness fix, and all dictation audio. All still true except
+    the first — see the follow-up entry directly below for the engine work.
+- **"Диктант" task generation — `engine.js` + word bank + audio-key scheme, 2026-09-17.**
+  Follow-up to the topic.json/options entry above. Still no session view/audio/reward
+  flow — this is purely "given the options, produce the right task object".
+  - **`tools/propis/topic.json` gained a top-level `"words"` array** (249 entries,
+    `{id: "w001".."w249", word, block: "A"|"B"}`) — ported from
+    `scripts/propis_worksheets/words.py`'s `BLOCK_A`/`BLOCK_B` (45 + 204 words, counted by
+    parsing the file with Python's `ast`, not by eyeballing it), the same "existing bank"
+    `texts.py`'s `TEXTS` already gets manually mirrored into `topic.json`'s `texts[]` for
+    (confirmed by diffing the two — `texts.py` and `topic.json`'s `texts` are verbatim
+    identical, no generation script bridges them; this is the established, if manual,
+    precedent, not a new pattern). **Learned the hard way while doing this**: don't
+    round-trip the whole file through `json.load`/`json.dump` to add one key — Python's
+    dump reformats every line (confirmed: 1343 insertions / 24 deletions for what should
+    have been ~250 lines added), even though the JSON content is equivalent, because its
+    default formatting differs from the file's actual hand-formatting conventions (compact
+    single-line objects). Reverted and instead generated just the new block as text in the
+    exact same single-line style as the neighboring `texts[]` entries, and spliced it in
+    with a plain string replace — 251 insertions, 0 deletions, real diff. Bumped
+    `meta.version` `1.28.0` → `1.29.0` and rebuilt the deck zip for this alone (word bank is
+    part of `topic.json`, which the zip bundles whole).
+  - **`useSessionEngine.js` gained a dedicated `renderer === "propis"` branch** passing the
+    *whole* `topicRecord` through to `generateTasks`, not just `topicRecord.cards` like
+    every other propis mode has received until now (the generic path around line 165-172).
+    Necessary because "Диктант" draws randomly from the full word/text banks
+    (`topicRecord.words`/`.texts`), not a parent-picked subset the way `read_text`'s own
+    `texts` param works. Confirmed safe for the other 4 modes before relying on it:
+    `propis/engine.js`'s own `Array.isArray(cards) ? cards : (cards?.cards ?? [])` already
+    tolerated either a raw array or a wrapper object, so passing the richer object through
+    changes nothing for `write_text`/`read_text`/`read_lines`/`browse` — verified with a
+    real (temporary, not committed) vitest file exercising all four dictation-param
+    combinations *and* a `write_words` call through the new pathway, all 6 assertions
+    green, alongside the existing 101 propis/session-engine tests still passing unmodified.
+  - **`src/topics/renderers/propis/dictationAudio.js`** (new) — the audio-key scheme.
+    Letters: `up_<lowercase letter>` / `lo_<lowercase letter>` (e.g. `up_а`, `lo_а`) rather
+    than the bare letter as the key — deliberately avoids relying on the Cyrillic
+    character's own case at all, because the build machine is Windows (CLAUDE.md) and
+    NTFS case-folds Cyrillic the same as Latin, so literal `А.mp3`/`а.mp3` filenames risk
+    colliding. Words/texts key on their own topic.json id (`word_w001`, `text_t01`) —
+    already ASCII, no such risk. `dictationAudioUrl(key)` resolves to
+    `/audio/propis-dictation/<key>.mp3`, a static path shipped with the app itself (like
+    `addition_subtraction`'s number words), not bundled into propis's own deck zip — propis's
+    renderer is already code-bundled, and this audio has nothing to do with the print PDFs
+    `build-propis-deck.mjs` bundles.
+  - **`engine.js`'s new `dictation` branch**: picks the pool for `sessionParams.level`
+    (letters/words/texts), shuffles it (`@/shared/utils/shuffle`, reused, not
+    reimplemented), clamps `itemCount` to the pool's actual size, and returns
+    `{type: "dictation", level, items: [{key, display}], repeatLimit, videoRewardEnabled}`
+    — `repeatLimit` is `null` when `unlimitedRepeats` is on, matching how the not-yet-built
+    view should read "no limit" (a sentinel, not a huge number).
+  - **Verification**: `npm run build` clean, full existing propis/session-engine test
+    suites (101 tests, 6 files) pass unmodified, a temporary manual-check vitest file (not
+    committed) exercised all four `sessionParams` combinations plus the cross-mode safety
+    check above, then was deleted. Ran the full repo test suite too — 14 unrelated files
+    failed (backend DB tests, `column_addition`/`function_cards`/`reading` engine tests,
+    `symmetry_draw` tool tests), none touching propis/session-engine/dictation, consistent
+    with pre-existing branch state rather than anything this change introduced.
+- **Texts level — resolved to per-sentence pacing, same day.** User's answer to the entry
+  above's open question: sentence by sentence, with a pause between sentences — not the
+  whole text in one breath.
+  - **`dictationAudio.js`** gained `splitIntoSentences(text)` (splits on
+    `/(?<=\.)\s+/` — "period, then whitespace") and `textSentenceDictationKey(textEntry, i)`
+    → `text_<id>_s<n>` (1-based, so it reads naturally next to the file on disk:
+    `text_t01_s1.mp3`..`text_t01_s5.mp3`). The split regex is safe for this specific bank,
+    not assumed safe in general: `texts.py`'s own generation rule is "exactly 5 short
+    declarative sentences, periods only (no commas, dashes, or quotes)" — confirmed by
+    actually running the split against all 24 real texts in `topic.json` (every one
+    produces exactly 5 sentences), not trusted from the docstring alone.
+  - **`engine.js`'s `dictation` branch, texts level**: still one dictation item per text
+    (so the comparison screen and the top-level "Дальше"/repeat-limit machinery keep
+    working the same way as letters/words), but each item now also carries `sentences:
+    [{key, display}, ...]` — five per text, meant to be stepped through one at a time by
+    the (still not-built) session view, with a pause between each. `display` on the item
+    itself stays the whole text, unchanged, since the end-of-session comparison screen
+    still needs to show the complete thing.
+  - **Verified** with a dedicated (temporary, not committed) vitest check: every text
+    produces exactly 5 `sentences` entries, keys match `text_t0N_sM`, and `t01`'s five
+    sentences match the source text split by hand, word for word — not just "5 items",
+    the actual content. Full propis/session-engine suite re-run after (102 tests, 7 files,
+    all green — one more than before purely from this check file existing at run time,
+    deleted immediately after).
+- **"Диктант" session view — `DictationView.jsx`, same day.** Follow-up to the two entries
+  above: the actual screen a parent/child sees during a dictation session (steps 2-5 from
+  the plan — comparison screen, PIN-gated reward, `isPropis` per-mode fix, real audio —
+  are still separate, not built here).
+  - **Own full-screen overlay** (`.propis-dictation-stage`, `position:fixed;inset:0;
+    z-index:500`), same pattern as `PropisPracticeView`/`WriteTextView`/etc. — checked
+    those first rather than guessing: every propis mode except `browse`
+    (`PrintMaterialsView`, which deliberately renders inside the normal `SessionScreen`
+    header chrome) takes over the whole screen this way, no special dispatch needed in
+    `SessionScreen.jsx` for a new one to do the same. Registered in `propis/index.jsx`'s
+    `task.type` switch (`"dictation"` → `DictationView`).
+  - **Background is cream (`#fdfcf9`), not the practice view's tan `#cabfa9`** — that tan is
+    specifically the "paper desk" metaphor for on-screen writing, which this mode has none
+    of (the child writes on real paper, off-screen). Cream matches the
+    designing-mirocard-screens skill's literacy-family default instead.
+  - **`useDictationPlayer.js`** (new) — a small, propis-only audio sequencer, not a reuse of
+    `addition_subtraction`'s `useAudioSequence` (per this project's per-family
+    "duplicated, not shared" convention for topic-specific logic, and that hook has no
+    notion of a pause between clips anyway, which this needs for texts). Plays
+    `[{url, pauseAfterMs?}]` one at a time via plain `<audio>` + `"ended"`, advances on
+    `"error"` too so a missing/not-yet-recorded audio file can't hang the sequence.
+  - **Diktor circle**: teal gradient + 3-ring ripple + 4-bar bounce, the exact same visual
+    formula as `addition_subtraction`'s `.operation-audio-diktor` family in `styles.css`
+    (own copy in `propis.css` as `.propis-dictation-diktor*`/`.propis-dictation-ripple`,
+    not a cross-topic import — same convention as above) — reused because it's already the
+    established "this circle plays a voice" language in this app, not reinvented.
+  - **UI never shows `item.display` during the session** — only the progress counter
+    ("N из total"), the diktor circle, and the two action buttons. This is deliberate, not
+    an oversight: showing the letter/word/text on screen while dictating it would defeat
+    the entire point of a dictation test.
+  - **State machine**: `index` (current item), `repeatsUsed` (resets on every advance),
+    `done` (past the last item). Auto-plays the new item on every `index` change (matches
+    `AudioOperationTask`'s existing precedent in `addition_subtraction`). "Повторить"
+    disabled once `repeatsUsed` reaches `task.repeatLimit` (never disabled when
+    `repeatLimit` is `null`, i.e. unlimited). Both action buttons disabled while
+    `isPlaying`, to stop overlapping playback. Texts play their `sentences[]` one after
+    another with a 2.5s pause between each (`SENTENCE_PAUSE_MS`), as one "Повторить"/one
+    "Дальше →" unit — repeating a text replays all its sentences from the start, not just
+    the current one; picking a per-sentence repeat granularity instead wasn't asked for.
+  - **Past the last item**: originally a plain "Диктант окончен!" placeholder — replaced
+    the same day by the real comparison screen, see the entry directly below.
+  - **Verified visually, not just from source** — the mandatory step per
+    designing-mirocard-screens: real React dev-preview harness (createRoot, both
+    `styles.css` and `propis.css` imported — first attempt without `styles.css` rendered
+    the done-screen title in a serif fallback font instead of Nunito, caught by comparing
+    the screenshot against the global-tokens section rather than assuming an isolated
+    harness matches the real app), headless-Chromium screenshots of: initial state (1 из 3,
+    both buttons, ripple/bar markup present), after 2 repeats (button correctly disabled at
+    the `repeatLimit=2` boundary), after advancing to item 2 (repeat count resets), the
+    end state after the last item, and the iOS safe-area check from
+    CLAUDE.md (`app-ios-standalone` + 59px/34px insets) — close button clears the
+    simulated Dynamic Island, bottom buttons clear the simulated home indicator. All via
+    real click events driving the actual component state (`page.click`), not just
+    reading the DOM once.
+- **"Диктант" comparison ("сверки") screen — `DictationReviewScreen.jsx`, same day.**
+  Replaces the "Диктант окончен!" placeholder from the entry above. Shown once every item
+  has been dictated; this is the FIRST point the answer appears on screen at all — there's
+  no automatic checking possible (child writes on paper, app never sees it), so an adult
+  compares this list against the notebook by eye.
+  - **Layout differs from the session view's `.propis-dictation-frame`** on purpose — that
+    one is sized for exactly one diktor circle + two buttons; this one holds an arbitrary
+    list (up to `itemCount`'s max of 40) and needs to scroll. Standard shape: fixed header
+    (title + hint) → `flex:1; overflow-y:auto` list → fixed footer button, all inside
+    `.propis-dictation-review` (own class, not a `.propis-dictation-frame` modifier).
+  - **Two list layouts, picked by `task.level`**: letters/words render as a wrapping row of
+    chips (`.propis-dictation-review-chip`, large bold text — legible at a glance while
+    comparing against handwriting); texts render as numbered full-paragraph blocks
+    (`.propis-dictation-review-text`, index badge + the item's whole `display` text, not
+    split back into its dictated sentences — the notebook page reads as continuous prose,
+    the sentence split was only ever a playback-pacing detail, not a display one).
+  - **Item order is exactly dictation order, not re-sorted** — `items.map` over the same
+    array the session view stepped through, since that's the order the child actually
+    wrote them in.
+  - **"Всё верно" vs "Готово"**: only shown when `task.videoRewardEnabled` — otherwise a
+    plain "Готово" that just calls `onClose`, no reward UI at all for a session that never
+    asked for one. Clicking "Всё верно" does **not** fake the PIN flow — it swaps in a
+    visible stub note ("PIN-подтверждение видео-награды будет добавлено отдельным шагом")
+    so the incompleteness is honest and visible rather than a silently-dead button or a
+    faked success state. The real PIN-gated `RewardVideoModal` unlock is still its own
+    separate step (see the plan).
+  - **Verified visually** for all three levels with the same dev-preview-harness approach
+    (not just letters): letters (3 chips, dictation order "А б В" preserved, "Всё верно"
+    shown), words (3 chips, plain "Готово" since that task's `videoRewardEnabled: false`),
+    texts (one numbered full-text block, "Всё верно" shown) — plus the reward-stub note
+    after clicking "Всё верно", and the safe-area check again on this screen specifically
+    (close button and footer button both clear simulated Dynamic Island/home-indicator
+    insets). One real snag hit and fixed during this: the first texts-level screenshot
+    attempt landed mid-playback (still on item 1 of 1, "Дальше" a no-op because
+    `isPlaying` was still true) — not a component bug, the test script's own wait time was
+    shorter than 2 sentences × the 2.5s inter-sentence pause; fixed by waiting long enough
+    before clicking, re-verified reaching the review screen correctly.
+- **"Всё верно" now opens a real PIN-gated video reward, 2026-09-17 —
+  replaces the stub note from the entry above.** `DictationReviewScreen.jsx`
+  gained a `stage` state (`"idle" | "pin" | "reward"`): clicking "Всё верно"
+  goes to `"pin"`, which renders the shared `PinGateModal` (the same
+  component/PIN as `ParamsScreen.jsx`'s own session-start gate — not a new,
+  separate PIN); success goes to `"reward"`, which renders the shared
+  `RewardVideoModal`; cancel returns to `"idle"`. Not a new architecture —
+  this is `column_addition`'s "Контрольная работа" pattern (`ColumnCopyView`
+  renders `RewardVideoModal` directly and self-contained, bypassing the
+  automatic `rewardPending`/threshold machinery), applied here because
+  Диктант has the same shape: no correctness-checking, so the standard
+  `mode.evaluation`-gated reward pipeline structurally doesn't fit.
+  - **Student/PIN come straight from `useAppStore`**, not threaded down as
+    new props through `PropisRenderer` → `DictationView` → here: every other
+    propis view is already self-contained this way, and `ParamsScreen.jsx`
+    reads `settings.adultPinHash` the same direct way. `activeStudent` is
+    `students.find(s => s.id === activeStudentId)`, same lookup
+    `SessionScreen.jsx` itself uses.
+  - **`pinHash === null` triggers `PinGateModal`'s own "set up a new PIN"
+    flow** (enter, then confirm) instead of "enter existing PIN" — this is
+    `PinGateModal`'s existing behavior, not new logic here. `onSetPin`
+    persists the new hash through the exact three-step pattern
+    `ParamsScreen.jsx`'s own `handleSetPin` uses: `patchSettings` (in-memory
+    store) → `kv.set(db, "settings", ...)` (IndexedDB) → fire-and-forget
+    `api.patch("/account/settings", ...)` (backend sync, `.catch(() => {})`
+    since a sync failure shouldn't block the PIN from working locally).
+  - **`RewardVideoModal` gets `activeStudent.rewardVideos ?? []`** — if the
+    active student has no configured reward videos, the modal still opens
+    (its own "⭐ Диктант готов" card with "Смотреть видео"/"Продолжать
+    занятие" buttons) and `handleWatch` no-ops to `onDismiss` if
+    `pickStoredRewardVideoId` finds nothing — same graceful-empty behavior
+    every other caller of this shared component already relies on, not
+    something added here.
+  - **Removed the now-orphaned `.propis-dictation-review-stub-note` CSS**
+    (the placeholder note's styling) — nothing references it anymore.
+  - **Verified**: `npx vite build` clean, full propis + `useSessionEngine`
+    vitest suite green (101 tests), and a dev-preview harness (`useAppStore
+    .setState` seeded with one fake student + one fake reward video, real
+    PIN unset so the setup flow exercises) screenshotted through all four
+    stages — idle review list → "Придумайте PIN-код" → "Повторите PIN-код"
+    → the real `RewardVideoModal` card, confirming `title="Диктант готов —
+    молодец!"` renders and the flow reaches the actual shared component
+    rather than the old placeholder. Did not separately re-screenshot the
+    cancel-back-to-idle path or the `videoRewardEnabled: false` "Готово"
+    path — both are unchanged code from the prior (already-verified) entry,
+    only the "Всё верно" branch changed here.
+  - **Still not done (as of this entry)**: `videoRewardEnabled` couldn't
+    actually be turned on for Диктант from the real options screen yet —
+    only hardcoded via a dev-preview task object as done here. Real Gemini
+    TTS audio generation for dictation items also hasn't been started.
+- **The `isPropis` "known follow-up" above turned out to be a non-issue —
+  corrected 2026-09-17, no code change needed.** Went to actually build the
+  mode-aware `isPropis` fix and first live-rendered `ParamsScreen` for the
+  Диктант mode via a dev-preview harness (`useAppStore.setState` seeded with
+  a fake `topicRecord` built straight from `tools/propis/topic.json`, wrapped
+  in `TimerProvider` since `ParamsScreen` calls `useTimer()` unconditionally)
+  to confirm the toggle was actually hidden before touching anything.
+  It wasn't: `isPropis` only gates two things —
+  the standalone "Видео-награда" toggle rendered separately around line
+  ~2036 (tied to the *topic-wide*, threshold-based `link.videoRewardEnabled`
+  / `buildRewardProgress` pipeline that's genuinely dead for propis) and
+  `bypassPin` for the pre-session PIN gate. Диктант's own `videoRewardEnabled`
+  is a completely different thing: a normal **mode-scoped param**
+  (`mode.params.videoRewardEnabled`, `type: "boolean"`) rendered through
+  `renderParam()`'s generic per-mode-param loop (`paramsContent`'s
+  non-`isReading` branch) — a code path that was never gated by `isPropis` in
+  the first place. Screenshotted it live: the "Видео-награда за диктант"
+  toggle renders under "Сколько раз можно повторить", flips on/off on click,
+  and its value flows into `params` → `sessionParams.videoRewardEnabled` in
+  `engine.js` exactly as designed. The original doc entry above was written
+  before this was actually tested and turned out to be wrong; leaving it in
+  place rather than deleting it, since this repo's convention is to record
+  what was believed at the time, not silently rewrite history. Only a
+  clarifying comment updated in `ParamsScreen.jsx` next to `isPropis` — no
+  logic changed.
+- **`scripts/generate-propis-dictation-audio.mjs` — written 2026-09-17, not
+  yet run.** Same pipeline as `generate-word-agreement-audio.mjs`: Gemini
+  native TTS (`gemini-2.5-flash-preview-tts`, voice `Kore`), raw PCM encoded
+  to MP3 via `@breezystack/lamejs`, `GEMINI_API_KEY` via
+  `scripts/lib/gemini-key.mjs`, resumable (skips files that already exist
+  unless `--force`), same daily-CreateVoice-quota detection that stops
+  cleanly instead of retrying into a wall that won't move until tomorrow.
+  Output: `public/audio/propis-dictation/<key>.mp3` — a static path shipped
+  with the app itself, matching `dictationAudioUrl()` in `dictationAudio.js`
+  exactly, **not** routed through `build-propis-deck.mjs`'s zip (this mode's
+  audio has nothing to do with the print-PDF assets that zip bundles).
+  - **Content read straight from `tools/propis/topic.json`**, not a separate
+    hardcoded list: letters (`cards[]` filtered to `type: "letter"` with
+    captured strokes), words (`words[]`), text sentences (`texts[]` run
+    through `dictationAudio.js`'s own `splitIntoSentences` — the exact same
+    function `engine.js`'s dictation branch uses for playback, so the audio
+    keys this script writes are guaranteed to match the keys the app looks
+    up at runtime rather than a second, driftable copy of the splitting
+    logic). Reuses `letterDictationKey`/`wordDictationKey`/
+    `textSentenceDictationKey` from `dictationAudio.js` directly for the
+    same reason.
+  - **Verified without spending any TTS quota**: imports resolve and the
+    script fails cleanly and immediately on the expected "GEMINI_API_KEY not
+    found" error (no key is configured in this environment — the summary
+    from an earlier session already flagged this as blocking real
+    generation, still true here). Separately re-derived `buildEntries()`'s
+    counts inline (bypassing the API-key gate) to confirm the real numbers
+    before trusting the script: 73 letters + 249 words + 120 text-sentences
+    = **442 unique keys, zero collisions**.
+  - **Not run — no `GEMINI_API_KEY` available in this environment.** Per
+    `generate-word-agreement-audio.mjs`'s own comments, the free/Tier-1 key
+    is hard-capped at 100 CreateVoice requests/day, so even with a key this
+    would take ~5 daily runs to cover all 442 clips (re-running without
+    `--force` picks up exactly where the previous run stopped). Whoever runs
+    this needs a `.env`/`.env.local` with `GEMINI_API_KEY` set, per
+    `scripts/lib/gemini-key.mjs`. `--only=letters|words|texts` is supported
+    for running one bank at a time if that's more convenient than the full
+    442-item pass.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires

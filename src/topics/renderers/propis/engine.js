@@ -1,5 +1,19 @@
+import { shuffle } from "@/shared/utils/shuffle";
+import {
+  letterDictationKey,
+  wordDictationKey,
+  textDictationKey,
+  textSentenceDictationKey,
+  splitIntoSentences,
+} from "./dictationAudio";
+
 export function generateTasks(mode, cards, sessionSize, sessionParams) {
   const allCards = Array.isArray(cards) ? cards : (cards?.cards ?? []);
+  // "Диктант" needs the full word/text banks, not just cards -- topicRecord is passed through
+  // whole for this renderer (see useSessionEngine.js's dedicated propis branch), so these are
+  // simply absent (undefined -> []) for every other mode, which never had them to begin with.
+  const wordBank = Array.isArray(cards) ? [] : (cards?.words ?? []);
+  const textBank = Array.isArray(cards) ? [] : (cards?.texts ?? []);
   const withStrokes = allCards.filter((c) => Array.isArray(c.strokes) && c.strokes.length > 0);
   const letters = withStrokes.filter((c) => c.type === "letter");
   const connectors = withStrokes.filter((c) => c.type === "connector");
@@ -53,6 +67,41 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     // not built from cards, so PrintMaterialsView reads topicRecord directly rather than
     // this task.
     return [{ type: "browse", id: "print_browse" }];
+  }
+
+  if (mode.type === "dictation") {
+    const level = sessionParams?.level ?? "letters";
+    const repeatLimit = sessionParams?.unlimitedRepeats ? null : (sessionParams?.repeatLimit ?? 3);
+    const videoRewardEnabled = Boolean(sessionParams?.videoRewardEnabled);
+
+    // Each pool maps to { key, display } -- `key` is what the (not-yet-written) audio
+    // player looks up via dictationAudioUrl(key), `display` is the plain text shown on the
+    // end-of-session comparison screen, spelled exactly as it should land in the notebook.
+    let pool;
+    if (level === "words") {
+      pool = wordBank.map((w) => ({ key: wordDictationKey(w), display: w.word }));
+    } else if (level === "texts") {
+      // One dictation item per text, but each item carries its own `sentences` list --
+      // dictated one at a time with a pause between them (user's call, 2026-09-17), not the
+      // whole text in one breath. `display` on the item stays the full text (what the
+      // end-of-session comparison screen shows); `sentences[].display` is what the
+      // (not-yet-written) session view actually steps through and plays.
+      pool = textBank.map((t) => ({
+        key: textDictationKey(t),
+        display: t.text,
+        sentences: splitIntoSentences(t.text).map((s, i) => ({
+          key: textSentenceDictationKey(t, i),
+          display: s,
+        })),
+      }));
+    } else {
+      pool = letters.map((l) => ({ key: letterDictationKey(l), display: l.label }));
+    }
+
+    const itemCount = Math.max(1, Math.min(sessionParams?.itemCount ?? 10, pool.length || 1));
+    const items = shuffle(pool).slice(0, itemCount);
+
+    return [{ type: "dictation", level, items, repeatLimit, videoRewardEnabled }];
   }
 
   return [];

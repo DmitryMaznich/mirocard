@@ -794,6 +794,31 @@ const BUILTIN_ASSETS = {
   <rect x="92" y="27" width="16" height="10" rx="2" fill="#fffdf8"/>
   <rect x="95" y="23" width="10" height="6" rx="1.5" fill="#fffdf8"/>
 </svg>`,
+  // dictation: breaks from the family's "ruled card + ink squiggle" language same as
+  // print_materials does, for the same reason -- this mode shows no handwriting on screen at
+  // all, just a voice. Main image is the actual "diktor" circle from the audio-mode UI
+  // (operation-audio-diktor's own teal gradient, styles.css) with two expanding ring arcs
+  // standing in for its real ripple animation; the corner badge swaps read_lines' "+"/
+  // print_materials' printer for a small pencil-on-paper glyph, since a real ruled card would
+  // wrongly imply the answer appears on screen, when the child is the one writing it down.
+  "media/icons/propis_dictation.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#eaf2fb"/>
+  <path d="M40 40a38 38 0 0 1 0 48" fill="none" stroke="#bcd8ec" stroke-width="4" stroke-linecap="round"/>
+  <path d="M50 50a24 24 0 0 1 0 28" fill="none" stroke="#8fc2b8" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="52" cy="64" r="26" fill="url(#dictationDiktorGradient)"/>
+  <rect x="45" y="53" width="5" height="22" rx="2.5" fill="#fffdf8"/>
+  <rect x="53" y="47" width="5" height="34" rx="2.5" fill="#fffdf8"/>
+  <rect x="61" y="56" width="5" height="16" rx="2.5" fill="#fffdf8"/>
+  <defs>
+    <linearGradient id="dictationDiktorGradient" x1="30" y1="42" x2="78" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4a9b8f"/>
+      <stop offset="1" stop-color="#2f6f65"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="30" r="15" fill="#ef6f5e"/>
+  <path d="M94 36l3-9 9-9 6 6-9 9-9 3z" fill="#fffdf8"/>
+</svg>`,
 };
 
 const TOPIC_AVATAR_VARIANTS = {
