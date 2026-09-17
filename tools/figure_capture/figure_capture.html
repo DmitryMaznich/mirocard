@@ -198,7 +198,7 @@
           <button class="button button--small icon-button" type="button" id="fitRasterBtn" data-tooltip="Подогнать растр по полю" title="Подогнать растр по полю" aria-label="Подогнать растр по полю">⊡</button>
           <button class="button button--small icon-button" type="button" id="resetRasterScaleBtn" data-tooltip="Сбросить все масштабы растра" title="Сбросить все масштабы растра" aria-label="Сбросить все масштабы растра">↺</button>
         </div>
-        <p class="hint">Сначала подберите общий масштаб, затем при необходимости растяните растр отдельно по X или Y — это компенсирует вытянутые клетки на скане.</p>
+        <p class="hint">Сначала подберите общий масштаб, затем при необходимости растяните растр отдельно по X или Y. Верхний левый угол подложки остаётся на месте.</p>
         <div class="nudge-controls" aria-label="Сдвиг растра">
           <button class="button button--small icon-button" type="button" data-nudge-raster="up" data-nudge-up data-tooltip="Сдвинуть растр вверх" title="Сдвинуть растр вверх" aria-label="Сдвинуть растр вверх">↑</button>
           <button class="button button--small icon-button" type="button" data-nudge-raster="left" data-nudge-left data-tooltip="Сдвинуть растр влево" title="Сдвинуть растр влево" aria-label="Сдвинуть растр влево">←</button>
@@ -1152,10 +1152,9 @@
     const scaleX = Math.max(1, number($("rasterScaleX").value, 100)) / 100;
     const scaleY = Math.max(1, number($("rasterScaleY").value, 100)) / 100;
     const current = state.rasterTransform ?? { x: 0, y: 0, width: state.rasterBase.width, height: state.rasterBase.height };
-    const center = { x: current.x + current.width / 2, y: current.y + current.height / 2 };
     const width = state.rasterBase.width * scale * scaleX;
     const height = state.rasterBase.height * scale * scaleY;
-    state.rasterTransform = { x: center.x - width / 2, y: center.y - height / 2, width, height };
+    state.rasterTransform = { x: current.x, y: current.y, width, height };
     render();
   }
 
