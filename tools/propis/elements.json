@@ -56,22 +56,6 @@
       }
     },
     {
-      "id": "02c_vertikalnaya",
-      "labelRu": "Вертикальная",
-      "category": "base_stroke",
-      "sourcePage": 5,
-      "viewBox": "0 0 19 150",
-      "strokes": [
-        {
-          "d": "M 14.910 62.220 4.000 86.330"
-        }
-      ],
-      "meta": {
-        "capturedAt": "2026-09-17T18:27:17.608Z",
-        "strokeCount": 1
-      }
-    },
-    {
       "id": "03_zaborchik_ploskie",
       "labelRu": "Заборчик плоские",
       "category": "base_stroke",

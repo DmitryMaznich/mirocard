@@ -830,6 +830,42 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     version of its full-size counterpart at a glance, not just by the
     measured numbers. `npm run build` and the full propis test suite
     (100 tests) still clean after both the registry and data changes.
+- **The verification above used the wrong coordinate transform — caught by
+  the user, fixed same day.** Reported (correctly) that full-size elements
+  didn't reach the height of the wide ruling zone in the screenshot, that
+  `02b_naklonnaya_korotkaya` looked short despite being drawn precisely,
+  and that `02c_vertikalnaya` looked identical to the short diagonal.
+  - **Root cause, first two reports**: the dev-preview mockup scaled
+    captured native coordinates by `LINE_MM / UNIT_H` (25/150) with no
+    offset — treating the NATIVE_L1..L7 capture grid
+    (`handwriting_capture.html`'s `drawRuling()`, what elements are
+    actually drawn against) as if it were the same system as this file's
+    own `L1`-`L4` mm ruling. `propisRuling.js`'s own comment on
+    `NATIVE_L1` says outright these are different systems that "can never
+    be accidentally interchanged" — missed that warning when building the
+    mockup. The correct mapping is affine, not a bare scale: subtract the
+    `NATIVE_L1` offset (row top in native units = 10) first, then scale by
+    `LINE_MM / (NATIVE_L4 - NATIVE_L1)` (25/130 ≈ 0.1923, not 25/150 ≈
+    0.1667). Verified this lands the native guide lines exactly on their
+    mm counterparts: `NATIVE_L2`(62) → 10mm (= this file's own `L2`),
+    `NATIVE_L3`(88) → 15mm (= `L3`, the bold baseline) — confirming
+    `02b`'s own capture (native y 63.12–86.19) really does span almost
+    exactly the real ruling's узкая строка (10–15mm) once converted
+    correctly, exactly as the user said they'd drawn it. Re-rendered all
+    11 elements with the corrected transform and re-screenshotted:
+    full-size elements now visibly fill the wide-ruling zone, `_uzkaya`
+    siblings land inside the узкая строка band instead of floating short
+    of it. This was a mockup-only bug — nothing shipped depends on it,
+    since propis doesn't have a Mode-2 element-practice screen yet.
+  - **Third report was a real data problem, not a rendering one**:
+    `02c_vertikalnaya`'s captured stroke measured at ~24° from vertical —
+    matching `02a`/`02b`'s own diagonal slant almost exactly, not a
+    vertical line at all. The user confirmed they hadn't actually drawn
+    the vertical yet. Removed the `02c_vertikalnaya` entry from
+    `tools/propis/elements.json` entirely rather than keep bad data
+    around — inventory is back to 11/27 until a real vertical capture
+    comes in. `02c_vertikalnaya` stays in `REGISTRY`/the datalist, just
+    uncaptured.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
