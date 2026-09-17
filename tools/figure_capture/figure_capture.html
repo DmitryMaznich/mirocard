@@ -1506,26 +1506,23 @@
       image.onload = () => {
         state.imageHref = String(reader.result);
         state.imageName = file.name;
-        setBoardSize(DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
         state.rasterBase = { width: state.width, height: state.height };
         state.rasterTransform = { x: 0, y: 0, width: state.width, height: state.height };
         $("rasterScale").value = "100";
         $("rasterScaleX").value = "100";
         $("rasterScaleY").value = "100";
         const keepsImportedVector = Boolean(state.importedCard && (finalPaths().length || finalDots().length));
-        state.calibrationMode = false;
         if (!keepsImportedVector) {
           state.paths = [[]];
           state.dots = [];
           state.activePath = 0;
           state.importedCard = null;
-          updateDraftDimensionsForGrid();
         }
         state.selectedNode = null;
         state.selectedDot = null;
         state.selectedSegment = null;
         state.alignMode = null;
-        setNotice(keepsImportedVector ? `«${file.name}» загружен. Вектор сохранён; подгоните растр ползунком и кнопками.` : `«${file.name}» загружен. Сетка уже видна — подгоните растр и начинайте обводку.`, "good");
+        setNotice(keepsImportedVector ? `«${file.name}» загружен. Сетка и вектор сохранены; подгоните только растр.` : `«${file.name}» загружен. Сетка сохранена без изменений — подгоните только растр и начинайте обводку.`, "good");
         render();
       };
       image.src = String(reader.result);
