@@ -27,12 +27,18 @@ function shapeFromCard(card) {
       paths: [commandsToPath(card.start, card.commands)], decorations: card.decorations ?? [], detail: `${card.commands.length} команд`,
     };
   }
-  if ((card.taskKind === "mirror" || card.taskKind === "repeat") && Array.isArray(card.sourcePaths)) {
+  if ((card.taskKind === "mirror" || card.taskKind === "repeat") && (Array.isArray(card.sourcePaths) || Array.isArray(card.sourceDots))) {
     const repeat = card.taskKind === "repeat";
+    const paths = card.sourcePaths ?? [];
+    const dots = card.sourceDots ?? [];
+    const detail = [
+      paths.length ? `${paths.length} ${paths.length === 1 ? "штрих" : "штрихов"}` : "",
+      dots.length ? `${dots.length} ${dots.length === 1 ? "точка" : "точек"}` : "",
+    ].filter(Boolean).join(" · ");
     return {
       id: card.id, label: card.label, kind: card.taskKind,
       columns: repeat ? card.axisCol : card.columns, rows: card.rows, axisCol: card.axisCol,
-      paths: card.sourcePaths, decorations: [], detail: `${card.sourcePaths.length} ${card.sourcePaths.length === 1 ? "штрих" : "штрихов"}`,
+      paths, dots, decorations: [], detail,
     };
   }
   return null;

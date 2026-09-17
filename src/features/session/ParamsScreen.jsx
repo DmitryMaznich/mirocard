@@ -458,7 +458,7 @@ function FigureThumbnail({ card }) {
   // card (0..axisCol); the other half is blank workspace for the child to
   // draw in. Cropping the thumbnail to that half keeps the pictogram large
   // and legible instead of shrinking it into half an otherwise-empty grid.
-  const hasSampleHalf = card.sourcePaths?.length && card.axisCol != null;
+  const hasSampleHalf = (card.sourcePaths?.length || card.sourceDots?.length) && card.axisCol != null;
   const columns = hasSampleHalf ? Number(card.axisCol) : Number(card.columns ?? 10);
   const rows = Number(card.rows ?? 8);
   const gridLines = [
@@ -474,6 +474,9 @@ function FigureThumbnail({ card }) {
           className="figure-picker__line"
           d={path.map((point, pointIndex) => `${pointIndex ? "L" : "M"} ${point.col} ${point.row}`).join(" ")}
         />
+      ))}
+      {(card.sourceDots ?? []).map((point, index) => (
+        <circle key={`dot-${index}`} className="figure-picker__dot" cx={point.col} cy={point.row} r="0.06" />
       ))}
     </svg>
   );

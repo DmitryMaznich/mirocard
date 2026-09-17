@@ -13986,6 +13986,7 @@ kbd {
   fill: none;
   vector-effect: non-scaling-stroke;
 }
+.figure-picker__dot { fill: #0f1e1a; }
 .figure-picker__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; font-size: .88rem; }
 .figure-picker__level { color: #69847f; font-size: .74rem; line-height: 1.2; }
 @media (max-width: 440px) {

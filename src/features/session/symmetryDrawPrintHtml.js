@@ -83,23 +83,35 @@ function dictationPageMarkup(card) {
 
 function stripMarkup(card) {
   const isRepeat = card.taskKind === "repeat";
-  const targetPaths = isRepeat ? translatePaths(card.sourcePaths, card.axisCol) : mirrorPaths(card.sourcePaths, card.axisCol);
-  const thumbPaths = [...card.sourcePaths, ...targetPaths]
+  const sourcePaths = card.sourcePaths ?? [];
+  const targetPaths = isRepeat ? translatePaths(sourcePaths, card.axisCol) : mirrorPaths(sourcePaths, card.axisCol);
+  const sourceDots = card.sourceDots ?? [];
+  const targetDots = sourceDots.map((point) => isRepeat
+    ? { col: point.col + card.axisCol, row: point.row }
+    : { col: card.axisCol * 2 - point.col, row: point.row });
+  const thumbPaths = [...sourcePaths, ...targetPaths]
     .map((path) => `<path class="sdp-thumb-path" d="${pathToD(path)}" />`)
     .join("");
-  const sourcePaths = card.sourcePaths
+  const thumbDots = [...sourceDots, ...targetDots]
+    .map((point) => `<circle class="sdp-thumb-dot" cx="${point.col}" cy="${point.row}" r="0.06" />`)
+    .join("");
+  const sourcePathMarkup = sourcePaths
     .map((path) => `<path class="sdp-source-path" d="${pathToD(path)}" />`)
+    .join("");
+  const sourceDotMarkup = sourceDots
+    .map((point) => `<circle class="sdp-source-dot" cx="${point.col}" cy="${point.row}" r="0.06" />`)
     .join("");
   const axisClass = isRepeat ? "sdp-repeat-axis" : "sdp-mirror-axis";
   return `
     <div class="sdp-strip">
       <div class="sdp-strip-thumb">
-        <svg viewBox="-0.5 -0.5 ${card.columns + 1} ${card.rows + 1}">${thumbPaths}</svg>
+        <svg viewBox="-0.5 -0.5 ${card.columns + 1} ${card.rows + 1}">${thumbPaths}${thumbDots}</svg>
       </div>
       <div class="sdp-strip-grid" style="--sdp-cols:${card.columns};--sdp-rows:${card.rows}">
         <svg viewBox="0 0 ${card.columns} ${card.rows}" preserveAspectRatio="xMinYMin meet">
           ${gridLinesMarkup(card.columns, card.rows)}
-          ${sourcePaths}
+          ${sourcePathMarkup}
+          ${sourceDotMarkup}
           <line class="${axisClass}" x1="${card.axisCol}" y1="0.15" x2="${card.axisCol}" y2="${card.rows - 0.15}" />
         </svg>
       </div>
@@ -145,6 +157,7 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Ro
 .sdp-dict-thumb { flex: 0 0 35mm; border: 0.4mm dashed #bbb; border-radius: 3mm; padding: 2mm; }
 .sdp-thumb-svg { width: 100%; display: block; }
 .sdp-thumb-path { fill: none; stroke: #1e3a6e; stroke-width: 0.12; }
+.sdp-thumb-dot { fill: #1e3a6e; }
 .sdp-deco { fill: none; stroke: #1e3a6e; stroke-width: 0.09; }
 .sdp-deco-dot { fill: #1e3a6e; }
 
@@ -163,6 +176,7 @@ body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Ro
 .sdp-grid-line { stroke: #bcd4ee; stroke-width: 1px; vector-effect: non-scaling-stroke; }
 .sdp-start-dot { fill: #2563eb; }
 .sdp-source-path { fill: none; stroke: #1e3a6e; stroke-width: 0.12; }
+.sdp-source-dot { fill: #1e3a6e; }
 .sdp-mirror-axis { stroke: #e8664f; stroke-width: 0.05; stroke-dasharray: 0.08 0.08; }
 .sdp-repeat-axis { stroke: #0d9488; stroke-width: 0.05; }
 

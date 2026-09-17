@@ -67,6 +67,7 @@
   .calibration.is-active { background: var(--warn-bg); color: var(--warn); }
   .stack { display: grid; gap: 8px; }
   .tool-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .tool-row.icon-grid { grid-template-columns: repeat(3, 40px); }
   .tool-button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: #edf4ff; box-shadow: inset 0 0 0 1px rgba(37,99,235,.12); }
   .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 9px; }
   .icon-grid { grid-template-columns: repeat(2, 40px); justify-content: center; }
@@ -117,6 +118,9 @@
   .vector-node { fill: #fff; stroke: var(--red); stroke-width: 2.3; vector-effect: non-scaling-stroke; cursor: grab; }
   .vector-node:hover, .vector-node.is-selected { fill: #fff0f1; stroke-width: 3.5; }
   .vector-node:active { cursor: grabbing; }
+  .vector-dot { fill: var(--red); stroke: #fff; stroke-width: 2.3; vector-effect: non-scaling-stroke; cursor: grab; }
+  .vector-dot:hover, .vector-dot.is-selected { fill: #c93545; stroke-width: 3.5; }
+  .vector-dot:active { cursor: grabbing; }
   .canvas-empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 22px; color: #4d759e; font-size: 14px; font-weight: 850; text-align: center; pointer-events: none; }
   .canvas-empty[hidden] { display: none; }
   .legend { display: flex; flex-wrap: wrap; gap: 12px; padding: 9px 3px 1px; color: var(--muted); font-size: 11px; font-weight: 800; }
@@ -134,7 +138,9 @@
   #preview { display: block; width: 100%; height: auto; }
   .preview-grid { stroke: #c5dbef; stroke-width: .04; vector-effect: non-scaling-stroke; }
   .preview-source { fill: none; stroke: #1e3faa; stroke-width: .16; stroke-linecap: round; stroke-linejoin: round; }
+  .preview-source-dot { fill: #1e3faa; }
   .preview-target { fill: none; stroke: #7959c9; stroke-width: .13; stroke-dasharray: .22 .14; stroke-linecap: round; stroke-linejoin: round; }
+  .preview-target-dot { fill: #7959c9; }
   .preview-axis { stroke: #e8664f; stroke-width: .08; stroke-dasharray: .18 .14; }
   .preview-gap { fill: #eef7f5; }
   .preview-label { fill: #5c7897; font: 800 .42px/1 Nunito, sans-serif; }
@@ -247,6 +253,7 @@
         <div class="tool-row icon-grid" role="group" aria-label="Инструмент обводки">
           <button class="button tool-button icon-button" type="button" id="traceTool" aria-pressed="true" data-tooltip="Обвести жестом" title="Обвести жестом" aria-label="Обвести жестом">〰</button>
           <button class="button tool-button icon-button" type="button" id="pointsTool" aria-pressed="false" data-tooltip="Ставить узлы" title="Ставить узлы" aria-label="Ставить узлы">⊹</button>
+          <button class="button tool-button icon-button" type="button" id="dotsTool" aria-pressed="false" data-tooltip="Поставить одиночную точку" title="Поставить одиночную точку" aria-label="Поставить одиночную точку">●</button>
         </div>
         <div class="stack" style="margin-top:10px">
           <label class="field">Привязка<select id="snapStep"><option value="1">Только узлы</option><option value="0.5">Узлы и полклетки</option><option value="0">Точные точки из JSON</option></select></label>
@@ -257,12 +264,12 @@
         <div class="action-grid icon-grid">
           <button class="button button--small icon-button" type="button" id="newPathBtn" data-tooltip="Новый штрих" title="Новый штрих" aria-label="Новый штрих">＋</button>
           <button class="button button--small icon-button" type="button" id="undoBtn" data-tooltip="Убрать последний узел или штрих" title="Убрать последний узел или штрих" aria-label="Убрать последний узел или штрих">↶</button>
-          <button class="button button--small icon-button" type="button" id="deleteNodeBtn" data-tooltip="Удалить выбранный узел" title="Удалить выбранный узел" aria-label="Удалить выбранный узел">⊗</button>
+          <button class="button button--small icon-button" type="button" id="deleteNodeBtn" data-tooltip="Удалить выбранный узел или точку" title="Удалить выбранный узел или точку" aria-label="Удалить выбранный узел или точку">⊗</button>
           <button class="button button--small icon-button" type="button" id="deleteSegmentBtn" data-tooltip="Вырезать выбранный участок" title="Вырезать выбранный участок" aria-label="Вырезать выбранный участок">✂</button>
           <button class="button button--small icon-button" type="button" id="deletePathBtn" data-tooltip="Удалить выбранный штрих" title="Удалить выбранный штрих" aria-label="Удалить выбранный штрих">⌫</button>
-          <button class="button button--small button--danger icon-button" type="button" id="clearPathsBtn" data-tooltip="Очистить все линии" title="Очистить все линии" aria-label="Очистить все линии">⌧</button>
+          <button class="button button--small button--danger icon-button" type="button" id="clearPathsBtn" data-tooltip="Очистить все линии и точки" title="Очистить все линии и точки" aria-label="Очистить все линии и точки">⌧</button>
         </div>
-        <p class="hint">Нажмите красный узел, чтобы удалить его или перетащить. Нажмите на красный отрезок, затем «Вырезать участок» — линия разорвётся по этому месту. «Удалить штрих» убирает весь выделенный контур.</p>
+        <p class="hint">«●» ставит отдельную точку размером с узел — она не соединяется с линиями. Нажмите красный узел или точку, чтобы перетащить или удалить. Нажмите на красный отрезок, затем «Вырезать участок» — линия разорвётся по этому месту.</p>
       </section>
 
       <section class="panel-section">
@@ -362,10 +369,13 @@
     gridDrag: null,
     tool: "trace",
     paths: [[]],
+    dots: [],
     activePath: 0,
     selectedNode: null,
+    selectedDot: null,
     selectedSegment: null,
     draggingNode: null,
+    draggingDot: null,
     tracing: null,
     collection: [],
     importedCard: null,
@@ -612,6 +622,10 @@
     return state.paths.filter((path) => path.length >= 2);
   }
 
+  function finalDots() {
+    return state.dots;
+  }
+
   function clearChildren(layer) { layer.replaceChildren(); }
 
   function pathD(points) {
@@ -787,10 +801,12 @@
           const hit = make("line", { class: "vector-segment-hit", x1: start.x, y1: start.y, x2: end.x, y2: end.y, "data-path": pathIndex, "data-segment": segmentIndex });
           hit.addEventListener("pointerdown", (event) => {
             event.preventDefault();
-            event.stopPropagation();
-            state.selectedNode = null;
-            state.selectedSegment = { pathIndex, segmentIndex };
-            state.draggingNode = null;
+          event.stopPropagation();
+          state.selectedNode = null;
+          state.selectedDot = null;
+          state.selectedSegment = { pathIndex, segmentIndex };
+          state.draggingNode = null;
+          state.draggingDot = null;
             render();
           });
           vectorLayer.append(hit);
@@ -804,13 +820,32 @@
           event.preventDefault();
           event.stopPropagation();
           state.selectedNode = { pathIndex, pointIndex };
+          state.selectedDot = null;
           state.selectedSegment = null;
           state.draggingNode = { pathIndex, pointIndex, pointerId: event.pointerId };
+          state.draggingDot = null;
           board.setPointerCapture?.(event.pointerId);
           render();
         });
         nodeLayer.append(node);
       });
+    });
+    state.dots.forEach((point, pointIndex) => {
+      const pixel = gridToPixel(point);
+      const isSelected = state.selectedDot === pointIndex;
+      const dot = make("circle", { class: `vector-dot${isSelected ? " is-selected" : ""}`, cx: pixel.x, cy: pixel.y, r: 5.8, "data-dot": pointIndex });
+      dot.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        state.selectedDot = pointIndex;
+        state.selectedNode = null;
+        state.selectedSegment = null;
+        state.draggingNode = null;
+        state.draggingDot = { pointIndex, pointerId: event.pointerId };
+        board.setPointerCapture?.(event.pointerId);
+        render();
+      });
+      nodeLayer.append(dot);
     });
   }
 
@@ -835,7 +870,8 @@
     const problems = [];
     const warnings = [];
     const paths = finalPaths();
-    if (!paths.length) problems.push("Нужен хотя бы один штрих с двумя узлами.");
+    const dots = finalDots();
+    if (!paths.length && !dots.length) problems.push("Нужен хотя бы один штрих или отдельная точка.");
     paths.forEach((path, pathIndex) => {
       path.forEach((point, pointIndex) => {
         if (point.col < 0 || point.col > sourceCols() || point.row < 0 || point.row > rows()) warnings.push(`Штрих ${pathIndex + 1}, узел ${pointIndex + 1} выходит за рабочую сетку.`);
@@ -844,14 +880,20 @@
         if (pointIndex && same(point, path[pointIndex - 1])) problems.push(`В штрихе ${pathIndex + 1} есть нулевой сегмент.`);
       });
     });
+    dots.forEach((point, pointIndex) => {
+      if (point.col < 0 || point.col > sourceCols() || point.row < 0 || point.row > rows()) warnings.push(`Точка ${pointIndex + 1} выходит за рабочую сетку.`);
+      const unit = snapStep();
+      if (unit > 0 && (Math.abs(point.col / unit - Math.round(point.col / unit)) > .0001 || Math.abs(point.row / unit - Math.round(point.row / unit)) > .0001)) problems.push(`Точка ${pointIndex + 1} не привязана к выбранному шагу.`);
+    });
     if (taskKind() === "dictation") {
       if (paths.length !== 1) problems.push("Графический диктант поддерживает ровно один непрерывный штрих.");
+      if (dots.length) problems.push("Отдельные точки доступны для симметрии и повторения, не для диктанта.");
       const dictation = dictationCommandsFromPath(paths[0] ?? []);
       problems.push(...dictation.problems);
     }
     if (!$("labelInput").value.trim()) problems.push("Укажите название карточки.");
     if (!safeId($("idInput").value)) problems.push("Идентификатор: строчные латинские буквы, цифры, _ или -.");
-    return { problems: [...new Set(problems)], warnings: [...new Set(warnings)], paths };
+    return { problems: [...new Set(problems)], warnings: [...new Set(warnings)], paths, dots };
   }
 
   function safeId(value) { return /^[a-z0-9][a-z0-9_-]*$/.test(value.trim()); }
@@ -883,6 +925,8 @@
     } else {
       card.axisCol = sourceCols();
       card.sourcePaths = finalPaths();
+      if (finalDots().length) card.sourceDots = clone(finalDots());
+      else delete card.sourceDots;
       delete card.start;
       delete card.commands;
     }
@@ -903,7 +947,13 @@
       el.append(glyph, copy);
       host.append(el);
     };
-    if (!result.problems.length && !result.warnings.length && result.paths.length) add("good", "✓", `${result.paths.length} штр. и ${result.paths.flat().length} узл.: можно экспортировать.`);
+    if (!result.problems.length && !result.warnings.length && (result.paths.length || result.dots.length)) {
+      const geometry = [
+        result.paths.length ? `${result.paths.length} штр. и ${result.paths.flat().length} узл.` : "",
+        result.dots.length ? `${result.dots.length} отдельн. точк.` : "",
+      ].filter(Boolean).join(" · ");
+      add("good", "✓", `${geometry} Можно экспортировать.`);
+    }
     result.problems.forEach((message) => add("bad", "!", message));
     result.warnings.forEach((message) => add("warn", "!", message));
     if (!calibrationReady()) add("warn", "i", "Сетка нужна для обводки растра; экспорт возможен после создания точек.");
@@ -950,6 +1000,14 @@
         : (point) => ({ col: width * 2 - point.col, row: point.row });
       preview.append(make("path", { class: "preview-target", d: previewPath(path, target) }));
     });
+    finalDots().forEach((point) => {
+      preview.append(make("circle", { class: "preview-source-dot", cx: point.col, cy: point.row, r: .08 }));
+      if (dictation) return;
+      const target = repeat
+        ? { col: point.col + width + gap, row: point.row }
+        : { col: width * 2 - point.col, row: point.row };
+      preview.append(make("circle", { class: "preview-target-dot", cx: target.col, cy: target.row, r: .07 }));
+    });
   }
 
   function renderCardOutput() {
@@ -964,6 +1022,7 @@
       height: state.height,
       calibration: state.calibration,
       paths: state.paths,
+      dots: state.dots,
       activePath: state.activePath,
       label: $("labelInput").value,
       id: $("idInput").value,
@@ -1013,20 +1072,25 @@
   function renderWorkStatus() {
     const paths = finalPaths();
     const count = paths.flat().length;
+    const dots = finalDots().length;
     const host = $("workStatus");
     if (state.calibrationMode) host.innerHTML = "<strong>Режим калибровки</strong> · отметьте следующий узел";
     else if (state.alignMode === "raster") host.innerHTML = "<strong>Подгонка растра</strong> · тяните картинку или её углы";
     else if (state.alignMode === "grid") host.innerHTML = "<strong>Подгонка сетки</strong> · тяните начало, X или Y";
-    else if (calibrationReady()) host.innerHTML = `<strong>${paths.length}</strong> штр. · <strong>${count}</strong> узл. · ${state.tool === "trace" ? "жест выпрямляется" : "добавление точек"}`;
+    else if (calibrationReady()) {
+      const action = state.tool === "trace" ? "жест выпрямляется" : state.tool === "points" ? "добавление узлов" : "добавление отдельных точек";
+      host.innerHTML = `<strong>${paths.length}</strong> штр. · <strong>${count}</strong> узл.${dots ? ` · <strong>${dots}</strong> точк.` : ""} · ${action}`;
+    }
     else host.textContent = "Сетка ещё не настроена";
     board.classList.toggle("is-calibrating", state.calibrationMode);
-    board.classList.toggle("is-points", !state.calibrationMode && state.tool === "points");
+    board.classList.toggle("is-points", !state.calibrationMode && (state.tool === "points" || state.tool === "dots"));
     board.classList.toggle("is-aligning", Boolean(state.alignMode));
   }
 
   function renderTools() {
     $("traceTool").setAttribute("aria-pressed", String(state.tool === "trace"));
     $("pointsTool").setAttribute("aria-pressed", String(state.tool === "points"));
+    $("dotsTool").setAttribute("aria-pressed", String(state.tool === "dots"));
     $("simplifyValue").textContent = fmt(epsilon());
     $("sourceOpacityValue").textContent = `${Math.round(number($("sourceOpacity").value, 44))}%`;
     $("gridScaleValue").textContent = `${Math.round(number($("gridScale").value, 48))} px`;
@@ -1173,7 +1237,26 @@
     if (path.length && same(path.at(-1), snapped)) return;
     path.push(snapped);
     state.selectedNode = { pathIndex: state.activePath, pointIndex: path.length - 1 };
+    state.selectedDot = null;
     state.selectedSegment = null;
+    render();
+  }
+
+  function addDot(point) {
+    if (taskKind() === "dictation") {
+      setNotice("Отдельные точки доступны для симметрии и повторения, не для диктанта.", "error");
+      return;
+    }
+    const snapped = snap(point);
+    if (state.dots.some((dot) => same(dot, snapped))) {
+      setNotice("В этом узле уже есть отдельная точка.", "error");
+      return;
+    }
+    state.dots.push(snapped);
+    state.selectedDot = state.dots.length - 1;
+    state.selectedNode = null;
+    state.selectedSegment = null;
+    setNotice("Отдельная точка добавлена.", "good");
     render();
   }
 
@@ -1192,6 +1275,7 @@
     state.paths.push([]);
     state.activePath = state.paths.length - 1;
     state.selectedNode = null;
+    state.selectedDot = null;
     state.selectedSegment = null;
     setNotice(`Жест выпрямлен: ${simplified.length} узл., ${simplified.length - 1} прямых сегм.`, "good");
     render();
@@ -1203,22 +1287,34 @@
       state.activePath = state.paths.length - 1;
     }
     state.selectedNode = null;
+    state.selectedDot = null;
     state.selectedSegment = null;
     setNotice("Начат новый штрих: следующий жест или узел не соединится с предыдущим.", "good");
     render();
   }
 
   function undoLast() {
+    if (state.selectedDot !== null && state.dots[state.selectedDot]) {
+      state.dots.splice(state.selectedDot, 1);
+      state.selectedDot = null;
+      state.selectedNode = null;
+      state.selectedSegment = null;
+      setNotice("Последняя точка убрана.");
+      render();
+      return;
+    }
     const active = activePath();
     if (active.length) {
       active.pop();
       state.selectedNode = null;
+      state.selectedDot = null;
       state.selectedSegment = null;
     } else {
       state.paths.pop();
       state.activePath = Math.max(0, state.paths.length - 1);
       if (!state.paths.length) state.paths = [[]];
       state.selectedNode = null;
+      state.selectedDot = null;
       state.selectedSegment = null;
     }
     setNotice("Последний узел убран.");
@@ -1226,11 +1322,21 @@
   }
 
   function deleteSelected() {
+    if (state.selectedDot !== null && state.dots[state.selectedDot]) {
+      state.dots.splice(state.selectedDot, 1);
+      state.selectedDot = null;
+      state.selectedNode = null;
+      state.selectedSegment = null;
+      setNotice("Точка удалена.");
+      render();
+      return;
+    }
     const selected = state.selectedNode;
-    if (!selected) { setNotice("Сначала выберите красный узел.", "error"); return; }
+    if (!selected) { setNotice("Сначала выберите красный узел или точку.", "error"); return; }
     const path = state.paths[selected.pathIndex];
     path.splice(selected.pointIndex, 1);
     state.selectedNode = null;
+    state.selectedDot = null;
     state.selectedSegment = null;
     setNotice("Узел удалён.");
     render();
@@ -1253,6 +1359,7 @@
     if (!state.paths.length) state.paths = [[]];
     state.activePath = Math.max(0, Math.min(state.activePath, state.paths.length - 1));
     state.selectedNode = null;
+    state.selectedDot = null;
     state.selectedSegment = null;
     setNotice("Участок вырезан: оставшиеся части стали отдельными штрихами.", "good");
     render();
@@ -1265,18 +1372,21 @@
     if (!state.paths.length) state.paths = [[]];
     state.activePath = Math.max(0, Math.min(state.activePath, state.paths.length - 1));
     state.selectedNode = null;
+    state.selectedDot = null;
     state.selectedSegment = null;
     setNotice("Штрих удалён.", "good");
     render();
   }
 
   function clearPaths() {
-    if (!finalPaths().length && !activePath().length) return;
+    if (!finalPaths().length && !activePath().length && !finalDots().length) return;
     state.paths = [[]];
+    state.dots = [];
     state.activePath = 0;
     state.selectedNode = null;
+    state.selectedDot = null;
     state.selectedSegment = null;
-    setNotice("Линии очищены. Растр и сетка сохранены.");
+    setNotice("Линии и точки очищены. Растр и сетка сохранены.");
     render();
   }
 
@@ -1292,9 +1402,12 @@
     state.rasterDrag = null;
     state.gridDrag = null;
     state.paths = [[]];
+    state.dots = [];
     state.activePath = 0;
     state.selectedNode = null;
+    state.selectedDot = null;
     state.selectedSegment = null;
+    state.draggingDot = null;
     state.tracing = null;
     state.importedCard = null;
     setBoardSize(960, 620);
@@ -1331,8 +1444,10 @@
     ];
     state.calibrationMode = false;
     state.paths = [[]];
+    state.dots = [];
     state.activePath = 0;
     state.selectedNode = null;
+    state.selectedDot = null;
     state.selectedSegment = null;
     setNotice("Пример готов. Попробуйте обвести рукой букву или контур — жест станет ломаной.", "good");
     render();
@@ -1389,15 +1504,17 @@
         $("rasterScale").value = "100";
         $("rasterScaleX").value = "100";
         $("rasterScaleY").value = "100";
-        const keepsImportedVector = Boolean(state.importedCard && finalPaths().length);
+        const keepsImportedVector = Boolean(state.importedCard && (finalPaths().length || finalDots().length));
         state.calibrationMode = false;
         if (!keepsImportedVector) {
           state.paths = [[]];
+          state.dots = [];
           state.activePath = 0;
           state.importedCard = null;
           updateDraftDimensionsForGrid();
         }
         state.selectedNode = null;
+        state.selectedDot = null;
         state.selectedSegment = null;
         state.alignMode = null;
         setNotice(keepsImportedVector ? `«${file.name}» загружен. Вектор сохранён; подгоните растр ползунком и кнопками.` : `«${file.name}» загружен. Сетка уже видна — подгоните растр и начинайте обводку.`, "good");
@@ -1431,7 +1548,10 @@
         const paths = card.taskKind === "dictation"
           ? [commandsToPath(card.start, card.commands)]
           : clone(card.sourcePaths ?? []);
-        if (!paths.length || paths.some((path) => !Array.isArray(path) || path.length < 2)) throw new Error("В JSON нет готовой траектории фигуры.");
+        const dots = card.taskKind === "dictation" ? [] : clone(card.sourceDots ?? []);
+        if (!Array.isArray(paths) || paths.some((path) => !Array.isArray(path) || path.length < 2)) throw new Error("В JSON есть некорректная траектория фигуры.");
+        if (!Array.isArray(dots) || dots.some((point) => !Number.isFinite(point?.col) || !Number.isFinite(point?.row))) throw new Error("В JSON есть некорректная отдельная точка.");
+        if (!paths.length && !dots.length) throw new Error("В JSON нет готовой траектории или отдельной точки.");
 
         state.importedCard = clone(card);
         state.imageHref = null;
@@ -1442,10 +1562,13 @@
         $("rasterScaleX").value = "100";
         $("rasterScaleY").value = "100";
         state.alignMode = null;
-        state.paths = paths;
-        state.activePath = Math.max(0, paths.length - 1);
+        state.paths = paths.length ? paths : [[]];
+        state.dots = dots;
+        state.activePath = Math.max(0, state.paths.length - 1);
         state.selectedNode = null;
+        state.selectedDot = null;
         state.selectedSegment = null;
+        state.draggingDot = null;
         state.tracing = null;
         $("labelInput").value = String(card.label ?? "Фигура");
         $("idInput").value = String(card.id ?? "");
@@ -1497,6 +1620,7 @@
     if (state.alignMode) return;
     if (!calibrationReady()) { setNotice("Сначала настройте сетку.", "error"); return; }
     if (state.tool === "points") { addNode(pixelToGrid(point)); return; }
+    if (state.tool === "dots") { addDot(pixelToGrid(point)); return; }
     state.tracing = [pixelToGrid(point)];
     state.tracePointerId = event.pointerId;
     board.setPointerCapture?.(event.pointerId);
@@ -1508,6 +1632,11 @@
     if (state.draggingNode && state.draggingNode.pointerId === event.pointerId) {
       const { pathIndex, pointIndex } = state.draggingNode;
       state.paths[pathIndex][pointIndex] = snap(pixelToGrid(svgPoint(event)));
+      render();
+      return;
+    }
+    if (state.draggingDot && state.draggingDot.pointerId === event.pointerId) {
+      state.dots[state.draggingDot.pointIndex] = snap(pixelToGrid(svgPoint(event)));
       render();
       return;
     }
@@ -1533,6 +1662,11 @@
     }
     if (state.draggingNode && state.draggingNode.pointerId === event.pointerId) {
       state.draggingNode = null;
+      render();
+      return;
+    }
+    if (state.draggingDot && state.draggingDot.pointerId === event.pointerId) {
+      state.draggingDot = null;
       render();
       return;
     }
@@ -1566,6 +1700,7 @@
   });
   $("traceTool").addEventListener("click", () => { state.tool = "trace"; state.alignMode = null; setNotice("Режим обводки: после жеста линия будет выпрямлена по узлам."); render(); });
   $("pointsTool").addEventListener("click", () => { state.tool = "points"; state.alignMode = null; setNotice("Режим точек: щёлкайте по узлам, чтобы строить прямые сегменты."); render(); });
+  $("dotsTool").addEventListener("click", () => { state.tool = "dots"; state.alignMode = null; setNotice("Режим отдельных точек: щёлкайте по узлам — точки не будут соединены линиями."); render(); });
   $("fitRasterBtn").addEventListener("click", fitRasterToBoard);
   $("resetRasterScaleBtn").addEventListener("click", () => {
     $("rasterScale").value = "100";
@@ -1616,6 +1751,7 @@
     if (event.key.toLowerCase() === "z" && !event.ctrlKey && !event.metaKey) { event.preventDefault(); undoLast(); }
     if (event.key.toLowerCase() === "t") { state.tool = "trace"; state.alignMode = null; render(); }
     if (event.key.toLowerCase() === "p") { state.tool = "points"; state.alignMode = null; render(); }
+    if (event.key.toLowerCase() === "o") { state.tool = "dots"; state.alignMode = null; render(); }
     if (event.key === "Escape" && state.alignMode) { state.alignMode = null; render(); }
   });
 

@@ -109,10 +109,12 @@
   pointer-events: none;
 }
 .symmetry-draw__source { stroke: var(--sd-given); stroke-width: 0.09; }
+.symmetry-draw__source-dot { fill: var(--sd-given); pointer-events: none; }
 /* The child's own stroke gets a soft low-opacity halo underneath a bold core -
    reads like felt-tip marker ink instead of a thin debug vector. */
 .symmetry-draw__stroke-glow { stroke: var(--sd-drawn); stroke-width: 0.22; opacity: 0.16; }
 .symmetry-draw__stroke { stroke: var(--sd-drawn); stroke-width: 0.11; }
+.symmetry-draw__stroke-dot { fill: var(--sd-drawn); pointer-events: none; }
 .symmetry-draw__repeat-feedback { fill: none; stroke-width: .13; stroke-linecap: round; pointer-events: none; animation: repeatFeedbackIn .28s ease-out both; }
 .symmetry-draw__repeat-feedback--covered { stroke: #20a76b; }
 .symmetry-draw__repeat-feedback--missed { stroke: #e77949; stroke-dasharray: .08 .11; }

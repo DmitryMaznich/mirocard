@@ -42,15 +42,23 @@ function assertGridSize(card) {
   assert(Number.isInteger(card.rows) && card.rows >= 2, `${card.id}: rows must be an integer of at least 2`);
 }
 
-function assertPaths(card) {
+function assertSourceGeometry(card) {
   assert(Number.isInteger(card.axisCol) && card.axisCol >= 1 && card.axisCol * 2 === card.columns, `${card.id}: axisCol must split the grid in half`);
-  assert(Array.isArray(card.sourcePaths) && card.sourcePaths.length, `${card.id}: sourcePaths is required`);
-  for (const [pathIndex, path] of card.sourcePaths.entries()) {
+  const paths = card.sourcePaths ?? [];
+  const dots = card.sourceDots ?? [];
+  assert(Array.isArray(paths), `${card.id}: sourcePaths must be an array`);
+  assert(Array.isArray(dots), `${card.id}: sourceDots must be an array`);
+  assert(paths.length || dots.length, `${card.id}: sourcePaths or sourceDots is required`);
+  for (const [pathIndex, path] of paths.entries()) {
     assert(Array.isArray(path) && path.length >= 2, `${card.id}: path ${pathIndex + 1} needs at least two points`);
     for (const [pointIndex, point] of path.entries()) {
       assert(isGridPoint(point), `${card.id}: point ${pathIndex + 1}.${pointIndex + 1} is invalid`);
       assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: point ${pathIndex + 1}.${pointIndex + 1} is outside the source grid`);
     }
+  }
+  for (const [pointIndex, point] of dots.entries()) {
+    assert(isGridPoint(point), `${card.id}: source dot ${pointIndex + 1} is invalid`);
+    assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: source dot ${pointIndex + 1} is outside the source grid`);
   }
 }
 
@@ -78,7 +86,7 @@ export function validateFigureCard(card) {
   assert(typeof card.label === "string" && card.label.trim(), `${card.id}: label is required`);
   assertGridSize(card);
   if (card.taskKind === "dictation") assertDictation(card);
-  else assertPaths(card);
+  else assertSourceGeometry(card);
   return card;
 }
 
@@ -109,7 +117,10 @@ export function mergeFigureGeometry(current, corrected) {
     merged.commands = clone(corrected.commands);
   } else {
     merged.axisCol = corrected.axisCol;
-    merged.sourcePaths = clone(corrected.sourcePaths);
+    if (corrected.sourcePaths?.length) merged.sourcePaths = clone(corrected.sourcePaths);
+    else delete merged.sourcePaths;
+    if (corrected.sourceDots?.length) merged.sourceDots = clone(corrected.sourceDots);
+    else delete merged.sourceDots;
   }
   validateFigureCard(merged);
   return merged;

@@ -17,6 +17,7 @@
   // Vertical position is NOT forgiven this way; only horizontal.
   const HORIZONTAL_SHIFT_TOLERANCE = 2;
   const EMPTY_PATHS = [];
+  const EMPTY_DOTS = [];
 
   function mirrorPaths(paths, axisCol) {
     return (paths ?? []).map((path) => path.map((point) => ({ col: 2 * axisCol - point.col, row: point.row })));
@@ -24,6 +25,14 @@
 
   function translatePaths(paths, axisCol) {
     return (paths ?? []).map((path) => path.map((point) => ({ col: point.col + axisCol, row: point.row })));
+  }
+
+  function mirrorDots(dots, axisCol) {
+    return (dots ?? []).map((point) => ({ col: 2 * axisCol - point.col, row: point.row }));
+  }
+
+  function translateDots(dots, axisCol) {
+    return (dots ?? []).map((point) => ({ col: point.col + axisCol, row: point.row }));
   }
 
   function pathsToSegments(paths) {
@@ -57,6 +66,10 @@
     return true;
   }
 
+  function isDotCovered(drawnPoints, target, tolerance) {
+    return drawnPoints.some((point) => distance(point, target) <= tolerance);
+  }
+
   // Straight-line samples bridging a pen lift between two strokes - lets a child
   // who taps point-to-point (e.g. following the numbered hint dots) instead of
   // dragging one continuous line still have that gap read as "connect A to B".
@@ -72,15 +85,15 @@
     return points;
   }
 
-  function evaluateCoverage(drawnPaths, targetSegments, tolerance, maxHorizontalShift) {
+  function evaluateCoverage(drawnPaths, targetSegments, targetDots, tolerance, maxHorizontalShift) {
     const drawnPoints = drawnPaths.flat();
     for (let i = 1; i < drawnPaths.length; i += 1) {
       const prevEnd = drawnPaths[i - 1]?.at(-1);
       const curStart = drawnPaths[i]?.[0];
       if (prevEnd && curStart) drawnPoints.push(...connectingSamples(prevEnd, curStart));
     }
-    const total = targetSegments.length;
-    let best = { covered: 0, total, complete: false, coveredIndexes: [] };
+    const total = targetSegments.length + targetDots.length;
+    let best = { covered: 0, total, complete: false, coveredIndexes: [], coveredDotIndexes: [] };
     // Try every whole-figure horizontal shift in range and keep whichever
     // position covers the most segments - a systematic left/right offset in
     // the child's stroke shouldn't hide how accurate the shape itself is.
@@ -89,8 +102,11 @@
       const coveredIndexes = targetSegments
         .map((segment, index) => isSegmentCovered(shiftedPoints, segment, tolerance) ? index : -1)
         .filter((index) => index >= 0);
-      const covered = coveredIndexes.length;
-      if (covered > best.covered) best = { covered, total, complete: total > 0 && covered === total, coveredIndexes };
+      const coveredDotIndexes = targetDots
+        .map((dot, index) => isDotCovered(shiftedPoints, dot, tolerance) ? index : -1)
+        .filter((index) => index >= 0);
+      const covered = coveredIndexes.length + coveredDotIndexes.length;
+      if (covered > best.covered) best = { covered, total, complete: total > 0 && covered === total, coveredIndexes, coveredDotIndexes };
       if (best.complete) break;
     }
     return best;
@@ -989,6 +1005,7 @@
     const rows = Number(shape.rows ?? 8);
     const axisCol = Number(shape.axisCol ?? 5);
     const sourcePaths = shape.sourcePaths || EMPTY_PATHS;
+    const sourceDots = shape.sourceDots || EMPTY_DOTS;
     const isRepeat = shape.taskKind === "repeat";
     // A repeat is two separate workspaces, not two halves around an axis.
     // Keep a narrow visual gutter so it cannot be mistaken for symmetry.
@@ -999,8 +1016,12 @@
       () => (isRepeat ? translatePaths(sourcePaths, workOrigin) : mirrorPaths(sourcePaths, axisCol)),
       [sourcePaths, axisCol, workOrigin, isRepeat],
     );
+    const targetDots = useMemo(
+      () => (isRepeat ? translateDots(sourceDots, workOrigin) : mirrorDots(sourceDots, axisCol)),
+      [sourceDots, axisCol, workOrigin, isRepeat],
+    );
     const targetSegments = useMemo(() => pathsToSegments(targetPaths), [targetPaths]);
-    const hintPoints = useMemo(() => targetPaths.flat(), [targetPaths]);
+    const hintPoints = useMemo(() => [...targetPaths.flat(), ...targetDots], [targetPaths, targetDots]);
 
     function pointFromEvent(event) {
       const svg = svgRef.current;
@@ -1057,7 +1078,7 @@
 
     function checkDrawing() {
       if (resolved) return;
-      const coverage = evaluateCoverage(drawnPaths, targetSegments, COVERAGE_TOLERANCE, HORIZONTAL_SHIFT_TOLERANCE);
+      const coverage = evaluateCoverage(drawnPaths, targetSegments, targetDots, COVERAGE_TOLERANCE, HORIZONTAL_SHIFT_TOLERANCE);
       const percent = coverage.total > 0 ? Math.round((coverage.covered / coverage.total) * 100) : 0;
       if (coverage.complete) {
         setResolved(true);
@@ -1093,7 +1114,7 @@
     }
 
     const instruction = mode?.ui?.instruction ?? "Дорисуй вторую половину фигуры";
-    const repeatStart = targetPaths[0]?.[0] ?? null;
+    const repeatStart = targetPaths[0]?.[0] ?? targetDots[0] ?? null;
     const coveredSegments = new Set(result?.coveredIndexes ?? []);
 
     return h("section", { className: `symmetry-draw${isRepeat ? " symmetry-draw--repeat" : ""}`, "aria-label": shape.label ?? "Симметричный рисунок" },
@@ -1131,12 +1152,14 @@
                 h("path", { key: "chev-bottom", className: "symmetry-draw__mirror-chevron", d: `M ${axisCol - 0.22} ${rows - 0.55} L ${axisCol} ${rows - 0.1} L ${axisCol + 0.22} ${rows - 0.55} Z` }),
               ] : null,
           sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
+          sourceDots.map((point, index) => h("circle", { key: `source-dot-${index}`, className: "symmetry-draw__source-dot", cx: point.col, cy: point.row, r: "0.05" })),
           isRepeat && repeatStart ? h("g", { className: "symmetry-draw__repeat-start", "aria-hidden": "true" },
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".23" }),
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".11" }, h("animate", { attributeName: "r", values: ".11;.17;.11", dur: "1.15s", repeatCount: "indefinite" })),
           ) : null,
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-glow-${index}`, className: "symmetry-draw__stroke-glow", d: pathToD(path) }) : null),
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-${index}`, className: "symmetry-draw__stroke", d: pathToD(path) }) : null),
+          drawnPaths.map((path, index) => path.length === 1 ? h("circle", { key: `drawn-dot-${index}`, className: "symmetry-draw__stroke-dot", cx: path[0].col, cy: path[0].row, r: "0.055" }) : null),
           isRepeat && result ? targetSegments.map((segment, index) => h("line", {
             key: `feedback-${index}`,
             className: `symmetry-draw__repeat-feedback symmetry-draw__repeat-feedback--${coveredSegments.has(index) ? "covered" : "missed"}`,
