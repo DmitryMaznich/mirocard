@@ -1544,7 +1544,10 @@ export default function ParamsScreen() {
   // Every propis mode is evaluation:"none" already, so buildRewardProgress's own
   // mode.evaluation !== "none" check already keeps the reward video from ever firing here --
   // the toggle below was just dead UI for this topic (2026-09-15, user request: remove it
-  // outright, not merely disable it).
+  // outright, not merely disable it). Диктант's own video-reward option is a separate,
+  // mode-scoped param (mode.params.videoRewardEnabled) rendered through the generic
+  // renderParam() path below -- that path isn't gated by isPropis at all, so it already
+  // surfaces correctly without touching this flag (confirmed via a live dev-preview render).
   const isPropis = topicRecord?.meta.renderer === "propis";
 
   const allModes = topicRecord?.modes ?? [];

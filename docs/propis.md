@@ -577,11 +577,35 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     cancel-back-to-idle path or the `videoRewardEnabled: false` "Готово"
     path — both are unchanged code from the prior (already-verified) entry,
     only the "Всё верно" branch changed here.
-  - **Still not done**: the `isPropis` toggle-visibility fix (below) is
-    topic-wide, not mode-aware — `videoRewardEnabled` can't actually be
-    turned on for Диктант from the options screen yet, only hardcoded via a
-    dev-preview task object as done here. Real Gemini TTS audio generation
-    for dictation items also hasn't been started.
+  - **Still not done (as of this entry)**: `videoRewardEnabled` couldn't
+    actually be turned on for Диктант from the real options screen yet —
+    only hardcoded via a dev-preview task object as done here. Real Gemini
+    TTS audio generation for dictation items also hasn't been started.
+- **The `isPropis` "known follow-up" above turned out to be a non-issue —
+  corrected 2026-09-17, no code change needed.** Went to actually build the
+  mode-aware `isPropis` fix and first live-rendered `ParamsScreen` for the
+  Диктант mode via a dev-preview harness (`useAppStore.setState` seeded with
+  a fake `topicRecord` built straight from `tools/propis/topic.json`, wrapped
+  in `TimerProvider` since `ParamsScreen` calls `useTimer()` unconditionally)
+  to confirm the toggle was actually hidden before touching anything.
+  It wasn't: `isPropis` only gates two things —
+  the standalone "Видео-награда" toggle rendered separately around line
+  ~2036 (tied to the *topic-wide*, threshold-based `link.videoRewardEnabled`
+  / `buildRewardProgress` pipeline that's genuinely dead for propis) and
+  `bypassPin` for the pre-session PIN gate. Диктант's own `videoRewardEnabled`
+  is a completely different thing: a normal **mode-scoped param**
+  (`mode.params.videoRewardEnabled`, `type: "boolean"`) rendered through
+  `renderParam()`'s generic per-mode-param loop (`paramsContent`'s
+  non-`isReading` branch) — a code path that was never gated by `isPropis` in
+  the first place. Screenshotted it live: the "Видео-награда за диктант"
+  toggle renders under "Сколько раз можно повторить", flips on/off on click,
+  and its value flows into `params` → `sessionParams.videoRewardEnabled` in
+  `engine.js` exactly as designed. The original doc entry above was written
+  before this was actually tested and turned out to be wrong; leaving it in
+  place rather than deleting it, since this repo's convention is to record
+  what was believed at the time, not silently rewrite history. Only a
+  clarifying comment updated in `ParamsScreen.jsx` next to `isPropis` — no
+  logic changed.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
