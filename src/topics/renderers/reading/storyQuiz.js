@@ -4,9 +4,13 @@
  *   # Мяч по очереди
  *   ? Найди, сколько мячей было у Вани и Миши.
  *   + один мяч
+ *   * Как ты думаешь, почему мама попросила катать мяч по очереди?
  *
- * `?` is the prompt. `+` is the exact word or phrase that the child needs
- * to find and tap in the story. Keeping the source as plain text makes a
+ * `?` is the prompt, `+` the exact word or phrase the child finds and taps
+ * in the story — five of this pair are required per story. `*` is an
+ * optional, unscored discussion question with no located phrase: a "why" or
+ * "what would you do" prompt meant for the child to answer out loud to the
+ * adult, not by tapping the text. Keeping the source as plain text makes a
  * per-child correction far less cumbersome than a form.
  */
 export function normalizeStoryQuizText(value) {
@@ -19,6 +23,21 @@ export function normalizeStoryQuizText(value) {
 }
 
 /**
+ * Splits one rendered line into its individual words, each with the
+ * character range it occupies in the visible text. Shared by the target
+ * matcher below and by the renderer, which makes every word — not just the
+ * target phrase — its own tap target.
+ */
+export function tokenizeStoryQuizWords(lineText) {
+  const text = String(lineText ?? "");
+  return [...text.matchAll(/[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*/gu)].map((match) => ({
+    start: match.index,
+    end: match.index + match[0].length,
+    normalized: normalizeStoryQuizText(match[0])[0] ?? "",
+  }));
+}
+
+/**
  * Finds all whole-word occurrences of a target phrase in one rendered line.
  * The returned character ranges refer to visible text, including the
  * syllable-reading variant, so the renderer can make them accessible targets.
@@ -28,12 +47,7 @@ export function getStoryQuizTargetMatches(lineText, target) {
   if (!wanted.length) return [];
 
   const text = String(lineText ?? "");
-  const words = [...text.matchAll(/[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*/gu)]
-    .map((match) => ({
-      start: match.index,
-      end: match.index + match[0].length,
-      normalized: normalizeStoryQuizText(match[0])[0] ?? "",
-    }));
+  const words = tokenizeStoryQuizWords(text);
   const matches = [];
 
   for (let index = 0; index <= words.length - wanted.length; index += 1) {
@@ -73,6 +87,7 @@ export function parseStoryQuizText(source) {
     } else {
       group.questions.push({
         id: `q${group.questions.length + 1}`,
+        kind: "find",
         prompt: question.prompt,
         target: question.target,
         targetLine: question.targetLine,
@@ -144,7 +159,26 @@ export function parseStoryQuizText(source) {
       return;
     }
 
-    fail(lineNumber, "Используйте # для рассказа, ? для вопроса и + для фрагмента в тексте.");
+    if (line.startsWith("*")) {
+      finishQuestion();
+      const prompt = line.slice(1).trim();
+      if (!prompt) {
+        fail(lineNumber, "После * напишите вопрос для обсуждения.");
+        return;
+      }
+      if (!group) {
+        fail(lineNumber, "Вопрос для обсуждения нужно поместить после названия рассказа со знаком #.");
+        return;
+      }
+      // A discussion question has no located phrase, so it needs no + line
+      // and does not count toward finishQuestion's error checks — push it
+      // straight in.
+      group.questions.push({ id: `q${group.questions.length + 1}`, kind: "discuss", prompt });
+      questionNumber += 1;
+      return;
+    }
+
+    fail(lineNumber, "Используйте # для рассказа, ? для вопроса, + для фрагмента в тексте и * для вопроса на обсуждение.");
   });
 
   finishGroup();
@@ -172,6 +206,7 @@ export function validateStoryQuizText(source, stories, selectedStoryIds = []) {
       continue;
     }
     for (const question of group.questions) {
+      if (question.kind === "discuss") continue;
       if (question.target && !storyQuizTargetExists(story, question.target)) {
         errors.push({
           line: question.targetLine,
@@ -185,8 +220,14 @@ export function validateStoryQuizText(source, stories, selectedStoryIds = []) {
     const group = parsed.groups.find((candidate) => candidate.title === story.title);
     if (!group) {
       errors.push({ line: null, message: `Нет вопросов к рассказу «${story.title}».` });
-    } else if (group.questions.length < 5) {
-      errors.push({ line: null, message: `К рассказу «${story.title}» нужно не меньше 5 вопросов.` });
+      continue;
+    }
+    // Only questions with a located phrase count toward the minimum — the
+    // discussion question (*) is optional and unscored, so it shouldn't let
+    // an author satisfy the "5 find-questions" requirement with fewer.
+    const findCount = group.questions.filter((question) => question.kind !== "discuss").length;
+    if (findCount < 5) {
+      errors.push({ line: null, message: `К рассказу «${story.title}» нужно не меньше 5 вопросов со знаком + (сейчас ${findCount}).` });
     }
   }
 

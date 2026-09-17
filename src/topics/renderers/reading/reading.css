@@ -209,13 +209,12 @@
   white-space: nowrap;
 }
 
-/* Story comprehension trainer: the upper reading panel preserves the story
-   and illustration in miniature, while the lower third contains one simple
-   four-choice question. Keeping it inside the same screen avoids a memory
-   tax from making a child switch back and forth between a story page and a
-   separate quiz page. */
+/* Story text locator. The question belongs with the story copy, not in a
+   separate answer area: the child answers by finding evidence in the text —
+   tapping any word gives feedback right there, not just in a status pill
+   elsewhere on screen. */
 .session-body.reading-body.story-quiz {
-  padding: 0;
+  padding: clamp(12px, 2vw, 22px);
   gap: 0;
   align-items: stretch;
   justify-content: stretch;
@@ -228,17 +227,18 @@
   min-height: 0;
   flex: 1 1 auto;
   display: grid;
-  /* Once the answer strip became compact, an even spread gives both the
-     readable story and its illustration enough room to breathe. */
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  padding: 16px 20px 10px;
+  gap: clamp(16px, 2.4vw, 30px);
+  padding: 0;
 }
 
 .story-quiz__story-copy {
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 2px 4px 2px 2px;
 }
 
 .story-quiz__story-count,
@@ -250,21 +250,67 @@
   text-transform: uppercase;
 }
 
+.story-quiz__story-count {
+  flex: none;
+  margin: 0 0 8px;
+}
+
+.story-quiz__question {
+  flex: none;
+  min-height: 0;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 16px;
+  background: #e0f1ea;
+  box-shadow: 0 4px 0 rgba(57, 132, 111, 0.14);
+}
+
+.story-quiz__question-count {
+  margin-bottom: 3px;
+  color: #47796d;
+  font-size: 0.7rem;
+}
+
+.story-quiz__prompt {
+  margin: 0;
+  color: #1d5649;
+  font-size: clamp(0.96rem, 1.55vw, 1.2rem);
+  font-weight: 900;
+  line-height: 1.24;
+}
+
+.story-quiz__hint {
+  margin-top: 5px;
+  color: #52786f;
+  font-size: clamp(0.7rem, 1.05vw, 0.84rem);
+  font-weight: 800;
+  line-height: 1.3;
+}
+
 .story-quiz__title {
+  flex: none;
   margin: 4px 0 8px;
   color: #274d46;
-  font-size: clamp(1.15rem, 2.2vw, 1.65rem);
+  font-size: clamp(1.12rem, 2vw, 1.58rem);
   font-weight: 900;
   line-height: 1.15;
 }
 
-.story-quiz .reading-flow-text {
-  font-size: clamp(0.78rem, 1.45vw, 1.05rem);
-  line-height: 1.35;
+.story-quiz__text {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
-.story-quiz .reading-flow-para {
-  margin-bottom: 0.45em;
+.story-quiz .story-quiz__text .reading-flow-text {
+  font-size: clamp(0.84rem, 1.5vw, 1.1rem);
+  line-height: 1.42;
+}
+
+.story-quiz .story-quiz__text .reading-flow-para {
+  margin-bottom: 0.58em;
 }
 
 .story-quiz .reading-flow-text .reading-flow-para:first-child::first-letter {
@@ -297,192 +343,11 @@
   object-fit: cover;
 }
 
-.story-quiz__question {
-  /* A question with four short choices needs a clear, touchable strip, not
-     the lower third of the screen. Clamp it to roughly half its former
-     height and leave the visual emphasis on the story itself. */
-  flex: 0 0 clamp(132px, 18%, 168px);
-  min-height: 0;
-  box-sizing: border-box;
-  padding: 8px 20px 10px;
-  border-top: 1px solid rgba(74, 155, 143, 0.2);
-  background: #eef7f3;
-  box-shadow: 0 -8px 22px rgba(26, 70, 59, 0.06);
-}
-
-.story-quiz__prompt {
-  margin: 1px 0 6px;
-  color: #183f37;
-  font-size: clamp(0.92rem, 1.55vw, 1.16rem);
-  font-weight: 900;
-  line-height: 1.2;
-}
-
-.story-quiz__answers {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.story-quiz__answer {
-  min-height: 34px;
-  padding: 6px 10px;
-  border: 1px solid rgba(43, 94, 83, 0.19);
-  border-radius: 12px;
-  background: #fff;
-  color: #24423d;
-  font: inherit;
-  font-size: clamp(0.78rem, 1.25vw, 0.98rem);
-  font-weight: 800;
-  line-height: 1.15;
-  text-align: left;
-  box-shadow: 0 2px 0 rgba(43, 94, 83, 0.1);
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-}
-
-.story-quiz__answer:not(:disabled):active {
-  transform: translateY(1px);
-}
-
-.story-quiz__answer--correct {
-  border-color: #3c9470;
-  background: #d9f3e5;
-  color: #1e694b;
-}
-
-.story-quiz__answer--wrong {
-  border-color: #d47a70;
-  background: #ffe5e1;
-  color: #9a3f36;
-}
-
-@media (orientation: portrait) {
-  .story-quiz__reading {
-    grid-template-columns: minmax(0, 1fr) minmax(104px, 0.8fr);
-    gap: 12px;
-    padding: 12px 14px 10px;
-  }
-
-  .story-quiz .reading-flow-text {
-    font-size: clamp(0.72rem, 2.9vw, 0.98rem);
-    line-height: 1.28;
-  }
-
-  .story-quiz__question {
-    flex-basis: clamp(184px, 29%, 212px);
-    min-height: 0;
-    padding: 12px 14px 14px;
-  }
-
-  .story-quiz__answers {
-    gap: 7px;
-  }
-}
-
-@media (max-height: 620px) and (orientation: landscape) {
-  .story-quiz__reading {
-    padding-top: 10px;
-    padding-bottom: 8px;
-  }
-
-  .story-quiz__question {
-    flex-basis: 120px;
-    min-height: 0;
-    padding-top: 9px;
-    padding-bottom: 10px;
-  }
-
-  .story-quiz__prompt {
-    margin-bottom: 6px;
-  }
-
-  .story-quiz__answer {
-    min-height: 34px;
-    padding: 6px 10px;
-  }
-}
-
-/* Story text locator. The question belongs with the story copy, not in a
-   separate answer area: the child answers by finding evidence in the text. */
-.session-body.reading-body.story-quiz {
-  padding: clamp(12px, 2vw, 22px);
-  background: #fdfcf9;
-}
-
-.story-quiz__reading {
-  flex: 1 1 auto;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(16px, 2.4vw, 30px);
-  padding: 0;
-}
-
-.story-quiz__story-copy {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 2px 4px 2px 2px;
-}
-
-.story-quiz__story-count {
-  flex: none;
-  margin: 0 0 8px;
-}
-
-.story-quiz__question {
-  flex: none;
-  min-height: 0;
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  border: 0;
-  border-radius: 16px;
-  background: #e0f1ea;
-  box-shadow: 0 4px 0 rgba(57, 132, 111, 0.14);
-}
-
-.story-quiz__question-count {
-  margin-bottom: 3px;
-  color: #47796d;
-  font-size: 0.7rem;
-}
-
-.story-quiz__prompt {
-  margin: 0;
-  color: #1d5649;
-  font-size: clamp(0.96rem, 1.55vw, 1.2rem);
-  line-height: 1.24;
-}
-
-.story-quiz__hint {
-  margin-top: 5px;
-  color: #52786f;
-  font-size: clamp(0.73rem, 1.05vw, 0.84rem);
-  font-weight: 800;
-  line-height: 1.3;
-}
-
-.story-quiz__title {
-  flex: none;
-  margin: 0 0 8px;
-  font-size: clamp(1.12rem, 2vw, 1.58rem);
-}
-
-.story-quiz__text {
-  min-height: 0;
-  flex: 1 1 auto;
-  overflow-y: auto;
-  padding-right: 5px;
-}
-
-.story-quiz .story-quiz__text .reading-flow-text {
-  font-size: clamp(0.84rem, 1.5vw, 1.1rem);
-  line-height: 1.42;
-}
-
-.story-quiz .story-quiz__text .reading-flow-para {
-  margin-bottom: 0.58em;
-}
-
-.story-quiz__target {
+/* Every word in the story is its own tap target, not just the target
+   phrase. A stray tap then always lands on something and reacts right under
+   the finger, instead of the whole passage silently scoring any miss —
+   including a tap that just landed between two words — as a wrong answer. */
+.story-quiz__word {
   display: inline;
   margin: 0;
   padding: 1px 2px;
@@ -495,6 +360,23 @@
   line-height: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+.story-quiz__word:disabled {
+  cursor: default;
+}
+
+.story-quiz__word--miss {
+  background: #ffd9d3;
+  box-shadow: inset 0 -2px 0 #d4685a;
+  color: #8a2f24;
+  animation: story-quiz-miss-pulse 0.45s ease;
+}
+
+@keyframes story-quiz-miss-pulse {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 
 .story-quiz__target:not(:disabled):hover,
@@ -512,6 +394,42 @@
   opacity: 1;
 }
 
+/* The one unscored "talk about it" question per story is visually a
+   different kind of card from "find it in the text" — a warmer, amber
+   accent instead of the teal/green used for the graded search questions —
+   so the adult can tell at a glance this one isn't a text-search task. */
+.story-quiz__question--discuss {
+  background: #faf1de;
+  box-shadow: 0 4px 0 rgba(163, 120, 41, 0.18);
+}
+
+.story-quiz__question--discuss .story-quiz__question-count {
+  color: #8a6a2c;
+}
+
+.story-quiz__question--discuss .story-quiz__prompt {
+  color: #6b4a12;
+}
+
+.story-quiz__discuss-next {
+  margin-top: 10px;
+  min-height: 36px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #c8932f;
+  color: #fff;
+  font: inherit;
+  font-size: clamp(0.82rem, 1.2vw, 0.94rem);
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(122, 84, 12, 0.35);
+}
+
+.story-quiz__discuss-next:active {
+  transform: translateY(1px);
+}
+
 @media (orientation: portrait) {
   .story-quiz__reading {
     grid-template-columns: minmax(0, 1fr) minmax(112px, 0.8fr);
@@ -524,11 +442,28 @@
     border-radius: 14px;
   }
 
-  .story-quiz__hint { display: none; }
+  .story-quiz__hint {
+    margin-top: 3px;
+    font-size: 0.68rem;
+  }
 
   .story-quiz .story-quiz__text .reading-flow-text {
     font-size: clamp(0.74rem, 2.8vw, 0.98rem);
     line-height: 1.3;
+  }
+}
+
+/* On a narrow phone the illustration competes with the story for width at
+   the exact moment legibility matters most. Drop it and let the story take
+   the full row — the same picture repeats across all 5 questions of a story
+   and adds nothing the "find it in the text" task itself needs. */
+@media (max-width: 480px) and (orientation: portrait) {
+  .story-quiz__reading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .story-quiz__illustration {
+    display: none;
   }
 }
 

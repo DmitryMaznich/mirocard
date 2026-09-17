@@ -93,6 +93,42 @@ describe("short stories selection", () => {
     ]);
     expect(tasks[0]).toMatchObject({ type: "story_quiz", storyIndex: 0, storyCount: 2, questionIndex: 0, questionCount: 5 });
   });
+
+  it("appends the unscored discussion question after a story's graded questions", () => {
+    const topic = {
+      ...SHORT_STORIES_TOPIC,
+      storyQuiz: {
+        defaultText: `# Первый\n\n${FIVE_QUESTIONS}\n\n* Почему так вышло?`,
+      },
+      texts: [{ id: "first", kind: "story", title: { ru: "Первый" }, lines: [] }],
+    };
+
+    const tasks = generateTasks({ type: "story_quiz" }, topic, "first", { selectedStories: ["first"] });
+    expect(tasks).toHaveLength(6);
+    expect(tasks.slice(0, 5).every((task) => task.type === "story_quiz")).toBe(true);
+    expect(tasks[5]).toMatchObject({
+      type: "story_quiz_discuss",
+      storyIndex: 0,
+      questionIndex: 5,
+      questionCount: 6,
+    });
+    expect(tasks[5].question).toMatchObject({ kind: "discuss", prompt: "Почему так вышло?" });
+  });
+
+  it("a story with only 4 find-questions plus a discussion question is not ready", () => {
+    const FOUR_QUESTIONS = Array.from({ length: 4 }, (_, index) => `? Вопрос ${index + 1}?
++ Первый`).join("\n\n");
+    const topic = {
+      ...SHORT_STORIES_TOPIC,
+      storyQuiz: {
+        defaultText: `# Первый\n\n${FOUR_QUESTIONS}\n\n* Почему так вышло?`,
+      },
+      texts: [{ id: "first", kind: "story", title: { ru: "Первый" }, lines: [] }],
+    };
+
+    const tasks = generateTasks({ type: "story_quiz" }, topic, "first", { selectedStories: ["first"] });
+    expect(tasks).toHaveLength(0);
+  });
 });
 
 describe("shopping_list mode", () => {

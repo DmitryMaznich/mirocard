@@ -67,7 +67,7 @@ function makeLines(pairs) {
 const manifest = {
   meta: {
     id: "reading_short_stories",
-    version: "1.6.2",
+    version: "1.6.3",
     minAppVersion: "1.0.2165",
     language: "ru",
     renderer: "reading",
@@ -83,6 +83,7 @@ const manifest = {
         "Режим «Читаем рассказы» читает все двенадцать рассказов подряд одной сессией – «Готово» на одном сразу открывает следующий.",
         "В настройках режима можно выбрать, какие именно рассказы читать (по умолчанию – все), и показ текста: обычный или по слогам.",
         "В режиме «Проверяем рассказ» ребёнок находит в тексте слова и фразы по вопросу. За пять верных находок подряд можно получить видео-бонус.",
+        "После пяти вопросов на поиск идёт один вопрос на обсуждение – ребёнок отвечает вслух, а не тапом по тексту, без автопроверки.",
         "Вопросы и фрагменты для поиска можно изменить отдельно для каждого ребёнка. Базовый вариант всегда можно вернуть.",
       ],
       en: ["Designed for therapist-led reading sessions."],
@@ -466,5 +467,5 @@ for (const [id, image] of Object.entries(illustrations)) {
   zip.file(`media/${id}.webp`, image);
 }
 const buffer = await zip.generateAsync({ type: "nodebuffer" });
-writeFileSync("public/decks/reading_short_stories_v1.6.2.zip", buffer);
-console.log("\nZIP written to public/decks/reading_short_stories_v1.6.2.zip");
+writeFileSync("public/decks/reading_short_stories_v1.6.3.zip", buffer);
+console.log("\nZIP written to public/decks/reading_short_stories_v1.6.3.zip");

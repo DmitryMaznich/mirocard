@@ -67,19 +67,30 @@ function buildStoryQuizTasks(topicRecord, sessionParams) {
   const selectedStories = selectedStoryIds?.length
     ? stories.filter((story) => selectedStoryIds.includes(story.id))
     : stories;
-  const readyStories = selectedStories.filter((story) => (questionsByStoryId[story.id] ?? []).length >= 5);
+  // The optional discussion question (kind "discuss") doesn't count toward
+  // the 5 find-questions a story needs to be included — see the matching
+  // check in storyQuiz.js's validateStoryQuizText.
+  const readyStories = selectedStories.filter((story) => (questionsByStoryId[story.id] ?? [])
+    .filter((question) => question.kind !== "discuss").length >= 5);
 
   return readyStories.flatMap((story, storyIndex) => {
-    const questions = questionsByStoryId[story.id] ?? [];
-    return questions.map((question, questionIndex) => ({
-      type: "story_quiz",
+    const allQuestions = questionsByStoryId[story.id] ?? [];
+    // Discussion questions are unscored, so they're appended after the
+    // graded find-questions rather than interleaved — the child finishes
+    // the scored part of the story before the adult opens the talking point.
+    const orderedQuestions = [
+      ...allQuestions.filter((question) => question.kind !== "discuss"),
+      ...allQuestions.filter((question) => question.kind === "discuss"),
+    ];
+    return orderedQuestions.map((question, questionIndex) => ({
+      type: question.kind === "discuss" ? "story_quiz_discuss" : "story_quiz",
       textId: story.id,
       text: story,
       question,
       storyIndex,
       storyCount: readyStories.length,
       questionIndex,
-      questionCount: questions.length,
+      questionCount: orderedQuestions.length,
     }));
   });
 }

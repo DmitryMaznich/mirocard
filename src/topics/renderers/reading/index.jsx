@@ -4,7 +4,7 @@ import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { shuffle } from "@/shared/utils/shuffle";
 import { getTopicTitle } from "@/shared/utils/format";
 import { tokenizeReadingLine } from "./engine";
-import { getStoryQuizTargetMatches } from "./storyQuiz";
+import { getStoryQuizTargetMatches, tokenizeStoryQuizWords } from "./storyQuiz";
 import { parseRecipeTxt, resolveStepOwners, applyPortions, applyFireEmoji, stepPortionsMultiplier, computeStepSegments, formatPortionsPhrase, parseTimerMinutesFromText, buildTimerLabel, applyOptionSelections, applyOptionValueConditional, filterStepsByOptions } from "./parseRecipeTxt";
 import { useTimer } from "@/features/timer/TimerContext";
 import { getRecipeSettings, getRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer, getShoppingOrder, saveShoppingOrder, applyShoppingOrder, getStoveHeatMapping, getRecipeOptionSelections } from "@/core/groupStore";
@@ -456,37 +456,85 @@ function StoryQuizTargetText({ lines, textStyle, target, answered, onTarget, onM
     paragraphs[paragraphs.length - 1].push(line);
   });
 
+  // Every word is its own tap target, not just the ones the child needs to
+  // find. That gives a stray tap somewhere to land on, with a reaction right
+  // under the finger, instead of the whole passage silently scoring any
+  // miss-tap — including a tap that just landed between two words — as a
+  // wrong answer.
+  const [missedWordUid, setMissedWordUid] = useState(null);
+  const missTimeoutRef = useRef(null);
+  useEffect(() => () => clearTimeout(missTimeoutRef.current), []);
+
+  function handleWordMiss(uid, event) {
+    event.stopPropagation();
+    if (answered) return;
+    clearTimeout(missTimeoutRef.current);
+    setMissedWordUid(uid);
+    missTimeoutRef.current = setTimeout(() => setMissedWordUid(null), 450);
+    onMiss();
+  }
+
   function renderLine(text, key) {
     const matches = getStoryQuizTargetMatches(text, target);
-    if (!matches.length) return text;
+    const words = tokenizeStoryQuizWords(text);
     const parts = [];
     let cursor = 0;
-    matches.forEach((match, index) => {
-      if (match.start > cursor) parts.push(text.slice(cursor, match.start));
-      const phrase = text.slice(match.start, match.end);
+    let wordIndex = 0;
+    let matchIndex = 0;
+
+    while (wordIndex < words.length) {
+      const word = words[wordIndex];
+      const match = matches[matchIndex];
+
+      if (match && word.start >= match.start && word.start < match.end) {
+        if (match.start > cursor) parts.push(text.slice(cursor, match.start));
+        const phrase = text.slice(match.start, match.end);
+        parts.push(
+          <button
+            key={`${key}_target_${matchIndex}`}
+            type="button"
+            className={`story-quiz__word story-quiz__target${answered ? " story-quiz__target--found" : ""}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onTarget();
+            }}
+            disabled={answered}
+            aria-label={answered ? `Найденный фрагмент: ${phrase}` : phrase}
+          >
+            {phrase}
+          </button>,
+        );
+        cursor = match.end;
+        matchIndex += 1;
+        while (wordIndex < words.length && words[wordIndex].start < match.end) wordIndex += 1;
+        continue;
+      }
+
+      if (word.start > cursor) parts.push(text.slice(cursor, word.start));
+      const wordText = text.slice(word.start, word.end);
+      const uid = `${key}_w${wordIndex}`;
       parts.push(
         <button
-          key={`${key}_target_${index}`}
+          key={uid}
           type="button"
-          className={`story-quiz__target${answered ? " story-quiz__target--found" : ""}`}
-          onClick={(event) => {
-            event.stopPropagation();
-            onTarget();
-          }}
+          className={`story-quiz__word${missedWordUid === uid ? " story-quiz__word--miss" : ""}`}
+          onClick={(event) => handleWordMiss(uid, event)}
           disabled={answered}
-          aria-label={`Найденный фрагмент: ${phrase}`}
+          aria-label={wordText}
         >
-          {phrase}
+          {wordText}
         </button>,
       );
-      cursor = match.end;
-    });
+      cursor = word.end;
+      wordIndex += 1;
+    }
+
     if (cursor < text.length) parts.push(text.slice(cursor));
     return parts;
   }
 
   return (
-    <div className="reading-text reading-text--flow story-quiz__text" onClick={onMiss}>
+    <div className="reading-text reading-text--flow story-quiz__text">
       <div className={`reading-flow-text${firstIsDialogue ? " reading-flow-text--no-dropcap" : ""}`}>
         {paragraphs.map((paraLines, paragraphIndex) => (
           <p className="reading-flow-para" key={paraLines[0]?.id ?? paragraphIndex}>
@@ -547,6 +595,43 @@ function StoryQuizTask({ task, topicId, sessionParams, onCorrect, onIncorrect })
             onTarget={chooseTarget}
             onMiss={markMiss}
           />
+        </div>
+        <div className="story-quiz__illustration">
+          <ReadingIllustration topicId={topicId} text={task.text} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// A "find the phrase" task checks only literal, lexical recall — the answer
+// can be scanned for without ever building a picture of the situation. One
+// unscored discussion question per story asks the child to reason about it
+// out loud with the adult instead (why did a character act that way, what
+// would the child have done) — there is no single located phrase to grade,
+// so it advances on the adult's own "next" tap rather than through the
+// find/miss scoring the rest of the mode uses.
+function StoryQuizDiscussTask({ task, topicId, sessionParams, onCorrect }) {
+  const textStyle = sessionParams?.textStyle ?? "normal";
+
+  function next() {
+    onCorrect(task.textId, task.question.id, { assisted: true });
+  }
+
+  return (
+    <div className="session-body reading-body story-quiz">
+      <div className="story-quiz__reading">
+        <div className="story-quiz__story-copy">
+          <div className="story-quiz__story-count">Рассказ {task.storyIndex + 1} из {task.storyCount}</div>
+          <section className="story-quiz__question story-quiz__question--discuss" aria-labelledby="story-quiz-discuss-question">
+            <div className="story-quiz__question-count">Обсудите вместе · {task.questionIndex + 1} из {task.questionCount}</div>
+            <h2 id="story-quiz-discuss-question" className="story-quiz__prompt">{task.question?.prompt}</h2>
+            <button type="button" className="story-quiz__discuss-next" onClick={next}>Обсудили, дальше</button>
+          </section>
+          <div className="reading-title story-quiz__title">{getTopicTitle(task.text?.title)}</div>
+          <div className="story-quiz__text">
+            <ReadingTextBlock lines={task.text?.lines ?? []} textStyle={textStyle} flow />
+          </div>
         </div>
         <div className="story-quiz__illustration">
           <ReadingIllustration topicId={topicId} text={task.text} />
@@ -1745,6 +1830,7 @@ function SafeCodeTask({ topicId, onAdvance }) {
 const TASK_RENDERERS = {
   read_text:           ReadTextTask,
   story_quiz:          StoryQuizTask,
+  story_quiz_discuss:  StoryQuizDiscussTask,
   understand_text:     UnderstandTextTask,
   assemble_line:       AssembleLineTask,
   follow_instruction:  InstructionTask,

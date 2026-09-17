@@ -17,7 +17,7 @@
     },
     {
       "id": "reading_short_stories",
-      "version": "1.6.2",
+      "version": "1.6.3",
       "title": {
         "ru": "Чтение: Короткие рассказы",
         "en": "Reading: Short Stories"
@@ -26,7 +26,7 @@
         "ru": "Двенадцать коротких рассказов с иллюстрациями для совместного чтения и самостоятельной проверки понимания.",
         "en": "Twelve short illustrated stories for shared reading and independent comprehension practice."
       },
-      "url": "./decks/reading_short_stories_v1.6.2.zip",
+      "url": "./decks/reading_short_stories_v1.6.3.zip",
       "status": "release",
       "access": "free"
     },

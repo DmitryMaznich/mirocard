@@ -69,3 +69,56 @@ ${COMPLETE_QUESTION}`);
     });
   });
 });
+
+describe("discussion question (*)", () => {
+  const FIVE_QUESTIONS = Array.from({ length: 5 }, (_, index) => `? Вопрос ${index + 1}?
++ один мяч`).join("\n\n");
+
+  it("parses a discussion line with no target requirement", () => {
+    const parsed = parseStoryQuizText(`# Мяч по очереди
+
+${FIVE_QUESTIONS}
+
+* Как ты думаешь, почему они помирились?`);
+
+    expect(parsed.valid).toBe(true);
+    const discussQuestion = parsed.groups[0].questions.at(-1);
+    expect(discussQuestion).toMatchObject({
+      kind: "discuss",
+      prompt: "Как ты думаешь, почему они помирились?",
+    });
+    expect(discussQuestion.target).toBeUndefined();
+  });
+
+  it("rejects an empty discussion prompt", () => {
+    const parsed = parseStoryQuizText(`# Мяч по очереди
+
+${FIVE_QUESTIONS}
+
+*`);
+    expect(parsed.valid).toBe(false);
+    expect(parsed.errors.some((error) => error.message.includes("вопрос для обсуждения"))).toBe(true);
+  });
+
+  it("does not count toward the 5 required find-questions", () => {
+    const FOUR_QUESTIONS = Array.from({ length: 4 }, (_, index) => `? Вопрос ${index + 1}?
++ один мяч`).join("\n\n");
+    const source = `# Мяч по очереди
+
+${FOUR_QUESTIONS}
+
+* Обсудим?`;
+    const validated = validateStoryQuizText(source, [BALL_STORY], ["ball"]);
+    expect(validated.valid).toBe(false);
+    expect(validated.errors.some((error) => error.message.includes("не меньше 5 вопросов"))).toBe(true);
+  });
+
+  it("is not checked against the story text (it has no located phrase)", () => {
+    const source = `# Мяч по очереди
+
+${FIVE_QUESTIONS}
+
+* Вопрос про то, чего в рассказе вообще нет`;
+    expect(validateStoryQuizText(source, [BALL_STORY], ["ball"]).valid).toBe(true);
+  });
+});
