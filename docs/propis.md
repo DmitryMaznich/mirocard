@@ -606,6 +606,44 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   what was believed at the time, not silently rewrite history. Only a
   clarifying comment updated in `ParamsScreen.jsx` next to `isPropis` — no
   logic changed.
+- **`scripts/generate-propis-dictation-audio.mjs` — written 2026-09-17, not
+  yet run.** Same pipeline as `generate-word-agreement-audio.mjs`: Gemini
+  native TTS (`gemini-2.5-flash-preview-tts`, voice `Kore`), raw PCM encoded
+  to MP3 via `@breezystack/lamejs`, `GEMINI_API_KEY` via
+  `scripts/lib/gemini-key.mjs`, resumable (skips files that already exist
+  unless `--force`), same daily-CreateVoice-quota detection that stops
+  cleanly instead of retrying into a wall that won't move until tomorrow.
+  Output: `public/audio/propis-dictation/<key>.mp3` — a static path shipped
+  with the app itself, matching `dictationAudioUrl()` in `dictationAudio.js`
+  exactly, **not** routed through `build-propis-deck.mjs`'s zip (this mode's
+  audio has nothing to do with the print-PDF assets that zip bundles).
+  - **Content read straight from `tools/propis/topic.json`**, not a separate
+    hardcoded list: letters (`cards[]` filtered to `type: "letter"` with
+    captured strokes), words (`words[]`), text sentences (`texts[]` run
+    through `dictationAudio.js`'s own `splitIntoSentences` — the exact same
+    function `engine.js`'s dictation branch uses for playback, so the audio
+    keys this script writes are guaranteed to match the keys the app looks
+    up at runtime rather than a second, driftable copy of the splitting
+    logic). Reuses `letterDictationKey`/`wordDictationKey`/
+    `textSentenceDictationKey` from `dictationAudio.js` directly for the
+    same reason.
+  - **Verified without spending any TTS quota**: imports resolve and the
+    script fails cleanly and immediately on the expected "GEMINI_API_KEY not
+    found" error (no key is configured in this environment — the summary
+    from an earlier session already flagged this as blocking real
+    generation, still true here). Separately re-derived `buildEntries()`'s
+    counts inline (bypassing the API-key gate) to confirm the real numbers
+    before trusting the script: 73 letters + 249 words + 120 text-sentences
+    = **442 unique keys, zero collisions**.
+  - **Not run — no `GEMINI_API_KEY` available in this environment.** Per
+    `generate-word-agreement-audio.mjs`'s own comments, the free/Tier-1 key
+    is hard-capped at 100 CreateVoice requests/day, so even with a key this
+    would take ~5 daily runs to cover all 442 clips (re-running without
+    `--force` picks up exactly where the previous run stopped). Whoever runs
+    this needs a `.env`/`.env.local` with `GEMINI_API_KEY` set, per
+    `scripts/lib/gemini-key.mjs`. `--only=letters|words|texts` is supported
+    for running one bank at a time if that's more convenient than the full
+    442-item pass.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
