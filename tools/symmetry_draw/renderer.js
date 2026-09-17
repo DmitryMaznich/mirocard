@@ -18,6 +18,7 @@
   const HORIZONTAL_SHIFT_TOLERANCE = 2;
   const EMPTY_PATHS = [];
   const EMPTY_DOTS = [];
+  const EMPTY_CIRCLES = [];
 
   function mirrorPaths(paths, axisCol) {
     return (paths ?? []).map((path) => path.map((point) => ({ col: 2 * axisCol - point.col, row: point.row })));
@@ -33,6 +34,14 @@
 
   function translateDots(dots, axisCol) {
     return (dots ?? []).map((point) => ({ col: point.col + axisCol, row: point.row }));
+  }
+
+  function mirrorCircles(circles, axisCol) {
+    return (circles ?? []).map((circle) => ({ ...circle, col: 2 * axisCol - circle.col }));
+  }
+
+  function translateCircles(circles, axisCol) {
+    return (circles ?? []).map((circle) => ({ ...circle, col: circle.col + axisCol }));
   }
 
   function pathsToSegments(paths) {
@@ -70,6 +79,15 @@
     return drawnPoints.some((point) => distance(point, target) <= tolerance);
   }
 
+  function isCircleCovered(drawnPoints, circle, tolerance) {
+    const radius = circle.diameter / 2;
+    const samples = Math.max(8, Math.ceil(Math.PI * circle.diameter * 2));
+    return Array.from({ length: samples }, (_, index) => {
+      const angle = (Math.PI * 2 * index) / samples;
+      return { col: circle.col + Math.cos(angle) * radius, row: circle.row + Math.sin(angle) * radius };
+    }).every((sample) => drawnPoints.some((point) => distance(point, sample) <= tolerance));
+  }
+
   // Straight-line samples bridging a pen lift between two strokes - lets a child
   // who taps point-to-point (e.g. following the numbered hint dots) instead of
   // dragging one continuous line still have that gap read as "connect A to B".
@@ -85,15 +103,15 @@
     return points;
   }
 
-  function evaluateCoverage(drawnPaths, targetSegments, targetDots, tolerance, maxHorizontalShift) {
+  function evaluateCoverage(drawnPaths, targetSegments, targetDots, targetCircles, tolerance, maxHorizontalShift) {
     const drawnPoints = drawnPaths.flat();
     for (let i = 1; i < drawnPaths.length; i += 1) {
       const prevEnd = drawnPaths[i - 1]?.at(-1);
       const curStart = drawnPaths[i]?.[0];
       if (prevEnd && curStart) drawnPoints.push(...connectingSamples(prevEnd, curStart));
     }
-    const total = targetSegments.length + targetDots.length;
-    let best = { covered: 0, total, complete: false, coveredIndexes: [], coveredDotIndexes: [] };
+    const total = targetSegments.length + targetDots.length + targetCircles.length;
+    let best = { covered: 0, total, complete: false, coveredIndexes: [], coveredDotIndexes: [], coveredCircleIndexes: [] };
     // Try every whole-figure horizontal shift in range and keep whichever
     // position covers the most segments - a systematic left/right offset in
     // the child's stroke shouldn't hide how accurate the shape itself is.
@@ -105,8 +123,11 @@
       const coveredDotIndexes = targetDots
         .map((dot, index) => isDotCovered(shiftedPoints, dot, tolerance) ? index : -1)
         .filter((index) => index >= 0);
-      const covered = coveredIndexes.length + coveredDotIndexes.length;
-      if (covered > best.covered) best = { covered, total, complete: total > 0 && covered === total, coveredIndexes, coveredDotIndexes };
+      const coveredCircleIndexes = targetCircles
+        .map((circle, index) => isCircleCovered(shiftedPoints, circle, tolerance) ? index : -1)
+        .filter((index) => index >= 0);
+      const covered = coveredIndexes.length + coveredDotIndexes.length + coveredCircleIndexes.length;
+      if (covered > best.covered) best = { covered, total, complete: total > 0 && covered === total, coveredIndexes, coveredDotIndexes, coveredCircleIndexes };
       if (best.complete) break;
     }
     return best;
@@ -1006,6 +1027,7 @@
     const axisCol = Number(shape.axisCol ?? 5);
     const sourcePaths = shape.sourcePaths || EMPTY_PATHS;
     const sourceDots = shape.sourceDots || EMPTY_DOTS;
+    const sourceCircles = shape.sourceCircles || EMPTY_CIRCLES;
     const isRepeat = shape.taskKind === "repeat";
     // A repeat is two separate workspaces, not two halves around an axis.
     // Keep a narrow visual gutter so it cannot be mistaken for symmetry.
@@ -1020,8 +1042,12 @@
       () => (isRepeat ? translateDots(sourceDots, workOrigin) : mirrorDots(sourceDots, axisCol)),
       [sourceDots, axisCol, workOrigin, isRepeat],
     );
+    const targetCircles = useMemo(
+      () => (isRepeat ? translateCircles(sourceCircles, workOrigin) : mirrorCircles(sourceCircles, axisCol)),
+      [sourceCircles, axisCol, workOrigin, isRepeat],
+    );
     const targetSegments = useMemo(() => pathsToSegments(targetPaths), [targetPaths]);
-    const hintPoints = useMemo(() => [...targetPaths.flat(), ...targetDots], [targetPaths, targetDots]);
+    const hintPoints = useMemo(() => [...targetPaths.flat(), ...targetDots, ...targetCircles], [targetPaths, targetDots, targetCircles]);
 
     function pointFromEvent(event) {
       const svg = svgRef.current;
@@ -1078,7 +1104,7 @@
 
     function checkDrawing() {
       if (resolved) return;
-      const coverage = evaluateCoverage(drawnPaths, targetSegments, targetDots, COVERAGE_TOLERANCE, HORIZONTAL_SHIFT_TOLERANCE);
+      const coverage = evaluateCoverage(drawnPaths, targetSegments, targetDots, targetCircles, COVERAGE_TOLERANCE, HORIZONTAL_SHIFT_TOLERANCE);
       const percent = coverage.total > 0 ? Math.round((coverage.covered / coverage.total) * 100) : 0;
       if (coverage.complete) {
         setResolved(true);
@@ -1114,8 +1140,9 @@
     }
 
     const instruction = mode?.ui?.instruction ?? "Дорисуй вторую половину фигуры";
-    const repeatStart = targetPaths[0]?.[0] ?? targetDots[0] ?? null;
+    const repeatStart = targetPaths[0]?.[0] ?? targetDots[0] ?? targetCircles[0] ?? null;
     const coveredSegments = new Set(result?.coveredIndexes ?? []);
+    const coveredCircles = new Set(result?.coveredCircleIndexes ?? []);
 
     return h("section", { className: `symmetry-draw${isRepeat ? " symmetry-draw--repeat" : ""}`, "aria-label": shape.label ?? "Симметричный рисунок" },
       h("span", { className: "symmetry-draw__tape", "aria-hidden": "true" }),
@@ -1153,6 +1180,7 @@
               ] : null,
           sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
           sourceDots.map((point, index) => h("circle", { key: `source-dot-${index}`, className: "symmetry-draw__source-dot", cx: point.col, cy: point.row, r: "0.05" })),
+          sourceCircles.map((circle, index) => h("circle", { key: `source-circle-${index}`, className: "symmetry-draw__source-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 })),
           isRepeat && repeatStart ? h("g", { className: "symmetry-draw__repeat-start", "aria-hidden": "true" },
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".23" }),
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".11" }, h("animate", { attributeName: "r", values: ".11;.17;.11", dur: "1.15s", repeatCount: "indefinite" })),
@@ -1165,7 +1193,13 @@
             className: `symmetry-draw__repeat-feedback symmetry-draw__repeat-feedback--${coveredSegments.has(index) ? "covered" : "missed"}`,
             x1: segment.a.col, y1: segment.a.row, x2: segment.b.col, y2: segment.b.row,
           })) : null,
+          isRepeat && result ? targetCircles.map((circle, index) => h("circle", {
+            key: `circle-feedback-${index}`,
+            className: `symmetry-draw__repeat-feedback symmetry-draw__repeat-feedback--${coveredCircles.has(index) ? "covered" : "missed"}`,
+            cx: circle.col, cy: circle.row, r: circle.diameter / 2,
+          })) : null,
           showHint ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,
+          showHint ? targetCircles.map((circle, index) => h("circle", { key: `hint-circle-${index}`, className: "symmetry-draw__hint-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 })) : null,
           showHint ? hintPoints.map((point, index) => h("circle", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point", cx: point.col, cy: point.row, r: "0.17" })) : null,
         ),
       ),

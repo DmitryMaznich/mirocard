@@ -46,9 +46,11 @@ function assertSourceGeometry(card) {
   assert(Number.isInteger(card.axisCol) && card.axisCol >= 1 && card.axisCol * 2 === card.columns, `${card.id}: axisCol must split the grid in half`);
   const paths = card.sourcePaths ?? [];
   const dots = card.sourceDots ?? [];
+  const circles = card.sourceCircles ?? [];
   assert(Array.isArray(paths), `${card.id}: sourcePaths must be an array`);
   assert(Array.isArray(dots), `${card.id}: sourceDots must be an array`);
-  assert(paths.length || dots.length, `${card.id}: sourcePaths or sourceDots is required`);
+  assert(Array.isArray(circles), `${card.id}: sourceCircles must be an array`);
+  assert(paths.length || dots.length || circles.length, `${card.id}: sourcePaths, sourceDots or sourceCircles is required`);
   for (const [pathIndex, path] of paths.entries()) {
     assert(Array.isArray(path) && path.length >= 2, `${card.id}: path ${pathIndex + 1} needs at least two points`);
     for (const [pointIndex, point] of path.entries()) {
@@ -59,6 +61,12 @@ function assertSourceGeometry(card) {
   for (const [pointIndex, point] of dots.entries()) {
     assert(isGridPoint(point), `${card.id}: source dot ${pointIndex + 1} is invalid`);
     assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: source dot ${pointIndex + 1} is outside the source grid`);
+  }
+  for (const [circleIndex, circle] of circles.entries()) {
+    assert(isGridPoint(circle), `${card.id}: source circle ${circleIndex + 1} has an invalid center`);
+    assert(Number.isFinite(circle.diameter) && circle.diameter > 0, `${card.id}: source circle ${circleIndex + 1} needs a positive diameter`);
+    const radius = circle.diameter / 2;
+    assert(circle.col - radius >= 0 && circle.col + radius <= card.axisCol && circle.row - radius >= 0 && circle.row + radius <= card.rows, `${card.id}: source circle ${circleIndex + 1} is outside the source grid`);
   }
 }
 
@@ -121,6 +129,8 @@ export function mergeFigureGeometry(current, corrected) {
     else delete merged.sourcePaths;
     if (corrected.sourceDots?.length) merged.sourceDots = clone(corrected.sourceDots);
     else delete merged.sourceDots;
+    if (corrected.sourceCircles?.length) merged.sourceCircles = clone(corrected.sourceCircles);
+    else delete merged.sourceCircles;
   }
   validateFigureCard(merged);
   return merged;

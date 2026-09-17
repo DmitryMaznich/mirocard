@@ -90,6 +90,9 @@
   .work-status strong { color: var(--accent); }
   .drawing-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; padding: 8px; border: 1px solid #d7e1ed; border-radius: 11px; background: #f8fbff; }
   .drawing-toolbar .tool-row, .drawing-toolbar .action-grid { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; }
+  .drawing-toolbar .circle-diameter { display: none; grid-template-columns: auto minmax(120px, 190px); align-items: center; gap: 8px; margin: 0; color: #486a91; font-size: 12px; font-weight: 800; }
+  .drawing-toolbar .circle-diameter.is-active { display: grid; }
+  .drawing-toolbar .circle-diameter .range-row { min-width: 160px; }
   .drawing-toolbar .icon-button::after { top: calc(100% + 8px); bottom: auto; }
   .canvas-wrap { position: relative; overflow: hidden; min-height: min(46.4vh, 576px); border: 1px solid #cfe0ef; border-radius: 12px; background: #e8f2fb; }
   #board { display: block; width: 100%; height: auto; min-height: min(46.4vh, 576px); max-height: 57.6vh; touch-action: none; user-select: none; cursor: crosshair; }
@@ -124,6 +127,10 @@
   .vector-dot { fill: var(--red); stroke: #fff; stroke-width: 2.3; vector-effect: non-scaling-stroke; cursor: grab; }
   .vector-dot:hover, .vector-dot.is-selected { fill: #c93545; stroke-width: 3.5; }
   .vector-dot:active { cursor: grabbing; }
+  .vector-circle { fill: none; stroke: var(--red); stroke-width: 3.25; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .vector-circle.is-selected { stroke: #c93545; stroke-width: 5; }
+  .vector-circle-hit { fill: none; stroke: transparent; stroke-width: 18; vector-effect: non-scaling-stroke; cursor: grab; pointer-events: stroke; }
+  .vector-circle-hit:active { cursor: grabbing; }
   .canvas-empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 22px; color: #4d759e; font-size: 14px; font-weight: 850; text-align: center; pointer-events: none; }
   .canvas-empty[hidden] { display: none; }
   .legend { display: flex; flex-wrap: wrap; gap: 12px; padding: 9px 3px 1px; color: var(--muted); font-size: 11px; font-weight: 800; }
@@ -142,8 +149,10 @@
   .preview-grid { stroke: #c5dbef; stroke-width: .04; vector-effect: non-scaling-stroke; }
   .preview-source { fill: none; stroke: #1e3faa; stroke-width: .16; stroke-linecap: round; stroke-linejoin: round; }
   .preview-source-dot { fill: #1e3faa; }
+  .preview-source-circle { fill: none; stroke: #1e3faa; stroke-width: .12; }
   .preview-target { fill: none; stroke: #7959c9; stroke-width: .13; stroke-dasharray: .22 .14; stroke-linecap: round; stroke-linejoin: round; }
   .preview-target-dot { fill: #7959c9; }
+  .preview-target-circle { fill: none; stroke: #7959c9; stroke-width: .1; stroke-dasharray: .16 .12; }
   .preview-axis { stroke: #e8664f; stroke-width: .08; stroke-dasharray: .18 .14; }
   .preview-gap { fill: #eef7f5; }
   .preview-label { fill: #5c7897; font: 800 .42px/1 Nunito, sans-serif; }
@@ -283,7 +292,11 @@
           <button class="button tool-button icon-button" type="button" id="traceTool" aria-pressed="true" data-tooltip="Обвести жестом" title="Обвести жестом" aria-label="Обвести жестом">〰</button>
           <button class="button tool-button icon-button" type="button" id="pointsTool" aria-pressed="false" data-tooltip="Ставить узлы" title="Ставить узлы" aria-label="Ставить узлы">⊹</button>
           <button class="button tool-button icon-button" type="button" id="dotsTool" aria-pressed="false" data-tooltip="Поставить одиночную точку" title="Поставить одиночную точку" aria-label="Поставить одиночную точку">●</button>
+          <button class="button tool-button icon-button" type="button" id="circleTool" aria-pressed="false" data-tooltip="Вставить круг" title="Вставить круг" aria-label="Вставить круг">○</button>
         </div>
+        <label class="circle-diameter" id="circleDiameterField">Диаметр, клеток
+          <span class="range-row"><input id="circleDiameter" type="range" min="0.25" max="12" step="0.25" value="2"><output class="range-value" id="circleDiameterValue">2 кл.</output></span>
+        </label>
         <div class="action-grid" role="group" aria-label="Действия с фигурой">
           <button class="button button--small icon-button" type="button" id="newPathBtn" data-tooltip="Новый штрих" title="Новый штрих" aria-label="Новый штрих">＋</button>
           <button class="button button--small icon-button" type="button" id="undoBtn" data-tooltip="Убрать последний узел, точку или штрих" title="Убрать последний узел, точку или штрих" aria-label="Убрать последний узел, точку или штрих">↶</button>
@@ -378,12 +391,15 @@
     tool: "trace",
     paths: [[]],
     dots: [],
+    circles: [],
     activePath: 0,
     selectedNode: null,
     selectedDot: null,
+    selectedCircle: null,
     selectedSegment: null,
     draggingNode: null,
     draggingDot: null,
+    draggingCircle: null,
     tracing: null,
     collection: [],
     importedCard: null,
@@ -620,6 +636,10 @@
     return state.dots;
   }
 
+  function finalCircles() {
+    return state.circles;
+  }
+
   function clearChildren(layer) { layer.replaceChildren(); }
 
   function pathD(points) {
@@ -627,6 +647,16 @@
       const pixel = gridToPixel(point);
       return `${index ? "L" : "M"} ${pixel.x.toFixed(2)} ${pixel.y.toFixed(2)}`;
     }).join(" ");
+  }
+
+  function circleD(circle) {
+    const radius = circle.diameter / 2;
+    const steps = Math.max(24, Math.ceil(circle.diameter * 16));
+    const points = Array.from({ length: steps }, (_, index) => {
+      const angle = (Math.PI * 2 * index) / steps;
+      return gridToPixel({ col: circle.col + Math.cos(angle) * radius, row: circle.row + Math.sin(angle) * radius });
+    });
+    return `${points.map((point, index) => `${index ? "L" : "M"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ")} Z`;
   }
 
   function rawD(points) {
@@ -795,12 +825,14 @@
           const hit = make("line", { class: "vector-segment-hit", x1: start.x, y1: start.y, x2: end.x, y2: end.y, "data-path": pathIndex, "data-segment": segmentIndex });
           hit.addEventListener("pointerdown", (event) => {
             event.preventDefault();
-          event.stopPropagation();
-          state.selectedNode = null;
-          state.selectedDot = null;
-          state.selectedSegment = { pathIndex, segmentIndex };
-          state.draggingNode = null;
-          state.draggingDot = null;
+            event.stopPropagation();
+            state.selectedNode = null;
+            state.selectedDot = null;
+            state.selectedCircle = null;
+            state.selectedSegment = { pathIndex, segmentIndex };
+            state.draggingNode = null;
+            state.draggingDot = null;
+            state.draggingCircle = null;
             render();
           });
           vectorLayer.append(hit);
@@ -815,9 +847,11 @@
           event.stopPropagation();
           state.selectedNode = { pathIndex, pointIndex };
           state.selectedDot = null;
+          state.selectedCircle = null;
           state.selectedSegment = null;
           state.draggingNode = { pathIndex, pointIndex, pointerId: event.pointerId };
           state.draggingDot = null;
+          state.draggingCircle = null;
           board.setPointerCapture?.(event.pointerId);
           render();
         });
@@ -833,13 +867,35 @@
         event.stopPropagation();
         state.selectedDot = pointIndex;
         state.selectedNode = null;
+        state.selectedCircle = null;
         state.selectedSegment = null;
         state.draggingNode = null;
         state.draggingDot = { pointIndex, pointerId: event.pointerId };
+        state.draggingCircle = null;
         board.setPointerCapture?.(event.pointerId);
         render();
       });
       nodeLayer.append(dot);
+    });
+    state.circles.forEach((circle, circleIndex) => {
+      const isSelected = state.selectedCircle === circleIndex;
+      vectorLayer.append(make("path", { class: `vector-circle${isSelected ? " is-selected" : ""}`, d: circleD(circle) }));
+      const hit = make("path", { class: "vector-circle-hit", d: circleD(circle), "data-circle": circleIndex });
+      hit.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        state.selectedCircle = circleIndex;
+        $("circleDiameter").value = String(circle.diameter);
+        state.selectedNode = null;
+        state.selectedDot = null;
+        state.selectedSegment = null;
+        state.draggingNode = null;
+        state.draggingDot = null;
+        state.draggingCircle = { circleIndex, pointerId: event.pointerId };
+        board.setPointerCapture?.(event.pointerId);
+        render();
+      });
+      vectorLayer.append(hit);
     });
   }
 
@@ -865,7 +921,8 @@
     const warnings = [];
     const paths = finalPaths();
     const dots = finalDots();
-    if (!paths.length && !dots.length) problems.push("Нужен хотя бы один штрих или отдельная точка.");
+    const circles = finalCircles();
+    if (!paths.length && !dots.length && !circles.length) problems.push("Нужен хотя бы один штрих, отдельная точка или круг.");
     paths.forEach((path, pathIndex) => {
       path.forEach((point, pointIndex) => {
         if (point.col < 0 || point.col > sourceCols() || point.row < 0 || point.row > rows()) warnings.push(`Штрих ${pathIndex + 1}, узел ${pointIndex + 1} выходит за рабочую сетку.`);
@@ -879,15 +936,26 @@
       const unit = snapStep();
       if (unit > 0 && (Math.abs(point.col / unit - Math.round(point.col / unit)) > .0001 || Math.abs(point.row / unit - Math.round(point.row / unit)) > .0001)) problems.push(`Точка ${pointIndex + 1} не привязана к выбранному шагу.`);
     });
+    circles.forEach((circle, circleIndex) => {
+      const radius = Number(circle?.diameter) / 2;
+      if (!Number.isFinite(circle?.col) || !Number.isFinite(circle?.row) || !Number.isFinite(radius) || radius <= 0) {
+        problems.push(`Круг ${circleIndex + 1} имеет некорректный центр или диаметр.`);
+        return;
+      }
+      if (circle.col - radius < 0 || circle.col + radius > sourceCols() || circle.row - radius < 0 || circle.row + radius > rows()) warnings.push(`Круг ${circleIndex + 1} выходит за рабочую сетку.`);
+      const unit = snapStep();
+      if (unit > 0 && (Math.abs(circle.col / unit - Math.round(circle.col / unit)) > .0001 || Math.abs(circle.row / unit - Math.round(circle.row / unit)) > .0001)) problems.push(`Центр круга ${circleIndex + 1} не привязан к выбранному шагу.`);
+    });
     if (taskKind() === "dictation") {
       if (paths.length !== 1) problems.push("Графический диктант поддерживает ровно один непрерывный штрих.");
       if (dots.length) problems.push("Отдельные точки доступны для симметрии и повторения, не для диктанта.");
+      if (circles.length) problems.push("Круги доступны для симметрии и повторения, не для диктанта.");
       const dictation = dictationCommandsFromPath(paths[0] ?? []);
       problems.push(...dictation.problems);
     }
     if (!$("labelInput").value.trim()) problems.push("Укажите название карточки.");
     if (!safeId($("idInput").value)) problems.push("Идентификатор: строчные латинские буквы, цифры, _ или -.");
-    return { problems: [...new Set(problems)], warnings: [...new Set(warnings)], paths, dots };
+    return { problems: [...new Set(problems)], warnings: [...new Set(warnings)], paths, dots, circles };
   }
 
   function safeId(value) { return /^[a-z0-9][a-z0-9_-]*$/.test(value.trim()); }
@@ -921,6 +989,8 @@
       card.sourcePaths = finalPaths();
       if (finalDots().length) card.sourceDots = clone(finalDots());
       else delete card.sourceDots;
+      if (finalCircles().length) card.sourceCircles = clone(finalCircles());
+      else delete card.sourceCircles;
       delete card.start;
       delete card.commands;
     }
@@ -941,10 +1011,11 @@
       el.append(glyph, copy);
       host.append(el);
     };
-    if (!result.problems.length && !result.warnings.length && (result.paths.length || result.dots.length)) {
+    if (!result.problems.length && !result.warnings.length && (result.paths.length || result.dots.length || result.circles.length)) {
       const geometry = [
         result.paths.length ? `${result.paths.length} штр. и ${result.paths.flat().length} узл.` : "",
         result.dots.length ? `${result.dots.length} отдельн. точк.` : "",
+        result.circles.length ? `${result.circles.length} круг.` : "",
       ].filter(Boolean).join(" · ");
       add("good", "✓", `${geometry} Можно экспортировать.`);
     }
@@ -1002,6 +1073,14 @@
         : { col: width * 2 - point.col, row: point.row };
       preview.append(make("circle", { class: "preview-target-dot", cx: target.col, cy: target.row, r: .07 }));
     });
+    finalCircles().forEach((circle) => {
+      preview.append(make("circle", { class: "preview-source-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 }));
+      if (dictation) return;
+      const target = repeat
+        ? { col: circle.col + width + gap, row: circle.row }
+        : { col: width * 2 - circle.col, row: circle.row };
+      preview.append(make("circle", { class: "preview-target-circle", cx: target.col, cy: target.row, r: circle.diameter / 2 }));
+    });
   }
 
   function renderCardOutput() {
@@ -1017,6 +1096,7 @@
       calibration: state.calibration,
       paths: state.paths,
       dots: state.dots,
+      circles: state.circles,
       activePath: state.activePath,
       label: $("labelInput").value,
       id: $("idInput").value,
@@ -1067,17 +1147,18 @@
     const paths = finalPaths();
     const count = paths.flat().length;
     const dots = finalDots().length;
+    const circles = finalCircles().length;
     const host = $("workStatus");
     if (state.calibrationMode) host.innerHTML = "<strong>Режим калибровки</strong> · отметьте следующий узел";
     else if (state.alignMode === "raster") host.innerHTML = "<strong>Подгонка растра</strong> · тяните картинку или её углы";
     else if (state.alignMode === "grid") host.innerHTML = "<strong>Подгонка сетки</strong> · тяните начало, X или Y";
     else if (calibrationReady()) {
-      const action = state.tool === "trace" ? "жест выпрямляется" : state.tool === "points" ? "добавление узлов" : "добавление отдельных точек";
-      host.innerHTML = `<strong>${paths.length}</strong> штр. · <strong>${count}</strong> узл.${dots ? ` · <strong>${dots}</strong> точк.` : ""} · ${action}`;
+      const action = state.tool === "trace" ? "жест выпрямляется" : state.tool === "points" ? "добавление узлов" : state.tool === "dots" ? "добавление отдельных точек" : "добавление кругов";
+      host.innerHTML = `<strong>${paths.length}</strong> штр. · <strong>${count}</strong> узл.${dots ? ` · <strong>${dots}</strong> точк.` : ""}${circles ? ` · <strong>${circles}</strong> круг.` : ""} · ${action}`;
     }
     else host.textContent = "Сетка ещё не настроена";
     board.classList.toggle("is-calibrating", state.calibrationMode);
-    board.classList.toggle("is-points", !state.calibrationMode && (state.tool === "points" || state.tool === "dots"));
+    board.classList.toggle("is-points", !state.calibrationMode && (state.tool === "points" || state.tool === "dots" || state.tool === "circles"));
     board.classList.toggle("is-aligning", Boolean(state.alignMode));
   }
 
@@ -1085,12 +1166,15 @@
     $("traceTool").setAttribute("aria-pressed", String(state.tool === "trace"));
     $("pointsTool").setAttribute("aria-pressed", String(state.tool === "points"));
     $("dotsTool").setAttribute("aria-pressed", String(state.tool === "dots"));
+    $("circleTool").setAttribute("aria-pressed", String(state.tool === "circles"));
+    $("circleDiameterField").classList.toggle("is-active", state.tool === "circles" || state.selectedCircle !== null);
     $("simplifyValue").textContent = fmt(epsilon());
     $("sourceOpacityValue").textContent = `${Math.round(number($("sourceOpacity").value, 44))}%`;
     $("gridScaleValue").textContent = `${Math.round(number($("gridScale").value, 48))} px`;
     $("rasterScaleValue").textContent = `${Math.round(number($("rasterScale").value, 100))}%`;
     $("rasterScaleXValue").textContent = `${Math.round(number($("rasterScaleX").value, 100))}%`;
     $("rasterScaleYValue").textContent = `${Math.round(number($("rasterScaleY").value, 100))}%`;
+    $("circleDiameterValue").textContent = `${fmt(number($("circleDiameter").value, 2))} кл.`;
   }
 
   function renderAlignmentTools() {
@@ -1207,9 +1291,9 @@
 
   function setRasterScale() {
     if (!state.imageHref || !state.rasterBase) return;
-    const scale = Math.max(1, number($("rasterScale").value, 100)) / 100;
-    const scaleX = Math.max(1, number($("rasterScaleX").value, 100)) / 100;
-    const scaleY = Math.max(1, number($("rasterScaleY").value, 100)) / 100;
+    const scale = Math.max(.01, number($("rasterScale").value, 100)) / 100;
+    const scaleX = Math.max(.01, number($("rasterScaleX").value, 100)) / 100;
+    const scaleY = Math.max(.01, number($("rasterScaleY").value, 100)) / 100;
     const current = state.rasterTransform ?? { x: 0, y: 0, width: state.rasterBase.width, height: state.rasterBase.height };
     const width = state.rasterBase.width * scale * scaleX;
     const height = state.rasterBase.height * scale * scaleY;
@@ -1233,6 +1317,7 @@
     path.push(snapped);
     state.selectedNode = { pathIndex: state.activePath, pointIndex: path.length - 1 };
     state.selectedDot = null;
+    state.selectedCircle = null;
     state.selectedSegment = null;
     render();
   }
@@ -1250,8 +1335,35 @@
     state.dots.push(snapped);
     state.selectedDot = state.dots.length - 1;
     state.selectedNode = null;
+    state.selectedCircle = null;
     state.selectedSegment = null;
     setNotice("Отдельная точка добавлена.", "good");
+    render();
+  }
+
+  function circleDiameter() {
+    return Math.max(.25, number($("circleDiameter").value, 2));
+  }
+
+  function addCircle(point) {
+    if (taskKind() === "dictation") {
+      setNotice("Круги доступны для симметрии и повторения, не для диктанта.", "error");
+      return;
+    }
+    const center = snap(point);
+    const circle = { ...center, diameter: circleDiameter() };
+    state.circles.push(circle);
+    state.selectedCircle = state.circles.length - 1;
+    state.selectedNode = null;
+    state.selectedDot = null;
+    state.selectedSegment = null;
+    setNotice(`Круг диаметром ${fmt(circle.diameter)} кл. добавлен. Потяните его, чтобы сдвинуть; ползунок меняет диаметр.`, "good");
+    render();
+  }
+
+  function setCircleDiameter() {
+    const diameter = circleDiameter();
+    if (state.selectedCircle !== null && state.circles[state.selectedCircle]) state.circles[state.selectedCircle].diameter = diameter;
     render();
   }
 
@@ -1271,6 +1383,7 @@
     state.activePath = state.paths.length - 1;
     state.selectedNode = null;
     state.selectedDot = null;
+    state.selectedCircle = null;
     state.selectedSegment = null;
     setNotice(`Жест выпрямлен: ${simplified.length} узл., ${simplified.length - 1} прямых сегм.`, "good");
     render();
@@ -1283,16 +1396,28 @@
     }
     state.selectedNode = null;
     state.selectedDot = null;
+    state.selectedCircle = null;
     state.selectedSegment = null;
     setNotice("Начат новый штрих: следующий жест или узел не соединится с предыдущим.", "good");
     render();
   }
 
   function undoLast() {
+    if (state.selectedCircle !== null && state.circles[state.selectedCircle]) {
+      state.circles.splice(state.selectedCircle, 1);
+      state.selectedCircle = null;
+      state.selectedNode = null;
+      state.selectedDot = null;
+      state.selectedSegment = null;
+      setNotice("Круг убран.");
+      render();
+      return;
+    }
     if (state.selectedDot !== null && state.dots[state.selectedDot]) {
       state.dots.splice(state.selectedDot, 1);
       state.selectedDot = null;
       state.selectedNode = null;
+      state.selectedCircle = null;
       state.selectedSegment = null;
       setNotice("Последняя точка убрана.");
       render();
@@ -1303,6 +1428,7 @@
       active.pop();
       state.selectedNode = null;
       state.selectedDot = null;
+      state.selectedCircle = null;
       state.selectedSegment = null;
     } else {
       state.paths.pop();
@@ -1310,6 +1436,7 @@
       if (!state.paths.length) state.paths = [[]];
       state.selectedNode = null;
       state.selectedDot = null;
+      state.selectedCircle = null;
       state.selectedSegment = null;
     }
     setNotice("Последний узел убран.");
@@ -1317,21 +1444,33 @@
   }
 
   function deleteSelected() {
+    if (state.selectedCircle !== null && state.circles[state.selectedCircle]) {
+      state.circles.splice(state.selectedCircle, 1);
+      state.selectedCircle = null;
+      state.selectedNode = null;
+      state.selectedDot = null;
+      state.selectedSegment = null;
+      setNotice("Круг удалён.");
+      render();
+      return;
+    }
     if (state.selectedDot !== null && state.dots[state.selectedDot]) {
       state.dots.splice(state.selectedDot, 1);
       state.selectedDot = null;
       state.selectedNode = null;
+      state.selectedCircle = null;
       state.selectedSegment = null;
       setNotice("Точка удалена.");
       render();
       return;
     }
     const selected = state.selectedNode;
-    if (!selected) { setNotice("Сначала выберите красный узел или точку.", "error"); return; }
+    if (!selected) { setNotice("Сначала выберите узел, точку или круг.", "error"); return; }
     const path = state.paths[selected.pathIndex];
     path.splice(selected.pointIndex, 1);
     state.selectedNode = null;
     state.selectedDot = null;
+    state.selectedCircle = null;
     state.selectedSegment = null;
     setNotice("Узел удалён.");
     render();
@@ -1355,6 +1494,7 @@
     state.activePath = Math.max(0, Math.min(state.activePath, state.paths.length - 1));
     state.selectedNode = null;
     state.selectedDot = null;
+    state.selectedCircle = null;
     state.selectedSegment = null;
     setNotice("Участок вырезан: оставшиеся части стали отдельными штрихами.", "good");
     render();
@@ -1368,20 +1508,23 @@
     state.activePath = Math.max(0, Math.min(state.activePath, state.paths.length - 1));
     state.selectedNode = null;
     state.selectedDot = null;
+    state.selectedCircle = null;
     state.selectedSegment = null;
     setNotice("Штрих удалён.", "good");
     render();
   }
 
   function clearPaths() {
-    if (!finalPaths().length && !activePath().length && !finalDots().length) return;
+    if (!finalPaths().length && !activePath().length && !finalDots().length && !finalCircles().length) return;
     state.paths = [[]];
     state.dots = [];
+    state.circles = [];
     state.activePath = 0;
     state.selectedNode = null;
     state.selectedDot = null;
+    state.selectedCircle = null;
     state.selectedSegment = null;
-    setNotice("Линии и точки очищены. Растр и сетка сохранены.");
+    setNotice("Линии, точки и круги очищены. Растр и сетка сохранены.");
     render();
   }
 
@@ -1398,11 +1541,14 @@
     state.gridDrag = null;
     state.paths = [[]];
     state.dots = [];
+    state.circles = [];
     state.activePath = 0;
     state.selectedNode = null;
     state.selectedDot = null;
+    state.selectedCircle = null;
     state.selectedSegment = null;
     state.draggingDot = null;
+    state.draggingCircle = null;
     state.tracing = null;
     state.importedCard = null;
     setBoardSize(DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
@@ -1440,9 +1586,11 @@
     state.calibrationMode = false;
     state.paths = [[]];
     state.dots = [];
+    state.circles = [];
     state.activePath = 0;
     state.selectedNode = null;
     state.selectedDot = null;
+    state.selectedCircle = null;
     state.selectedSegment = null;
     setNotice("Пример готов. Попробуйте обвести рукой букву или контур — жест станет ломаной.", "good");
     render();
@@ -1500,15 +1648,17 @@
         $("rasterScale").value = "100";
         $("rasterScaleX").value = "100";
         $("rasterScaleY").value = "100";
-        const keepsImportedVector = Boolean(state.importedCard && (finalPaths().length || finalDots().length));
+        const keepsImportedVector = Boolean(state.importedCard && (finalPaths().length || finalDots().length || finalCircles().length));
         if (!keepsImportedVector) {
           state.paths = [[]];
           state.dots = [];
+          state.circles = [];
           state.activePath = 0;
           state.importedCard = null;
         }
         state.selectedNode = null;
         state.selectedDot = null;
+        state.selectedCircle = null;
         state.selectedSegment = null;
         state.alignMode = null;
         setNotice(keepsImportedVector ? `«${file.name}» загружен в исходных пропорциях. Сетка и вектор сохранены; подгоните только растр.` : `«${file.name}» загружен в исходных пропорциях. Сетка сохранена без изменений — подгоните только растр и начинайте обводку.`, "good");
@@ -1543,9 +1693,11 @@
           ? [commandsToPath(card.start, card.commands)]
           : clone(card.sourcePaths ?? []);
         const dots = card.taskKind === "dictation" ? [] : clone(card.sourceDots ?? []);
+        const circles = card.taskKind === "dictation" ? [] : clone(card.sourceCircles ?? []);
         if (!Array.isArray(paths) || paths.some((path) => !Array.isArray(path) || path.length < 2)) throw new Error("В JSON есть некорректная траектория фигуры.");
         if (!Array.isArray(dots) || dots.some((point) => !Number.isFinite(point?.col) || !Number.isFinite(point?.row))) throw new Error("В JSON есть некорректная отдельная точка.");
-        if (!paths.length && !dots.length) throw new Error("В JSON нет готовой траектории или отдельной точки.");
+        if (!Array.isArray(circles) || circles.some((circle) => !Number.isFinite(circle?.col) || !Number.isFinite(circle?.row) || !Number.isFinite(circle?.diameter) || circle.diameter <= 0)) throw new Error("В JSON есть некорректный круг.");
+        if (!paths.length && !dots.length && !circles.length) throw new Error("В JSON нет готовой траектории, точки или круга.");
 
         state.importedCard = clone(card);
         state.imageHref = null;
@@ -1558,11 +1710,14 @@
         state.alignMode = null;
         state.paths = paths.length ? paths : [[]];
         state.dots = dots;
+        state.circles = circles;
         state.activePath = Math.max(0, state.paths.length - 1);
         state.selectedNode = null;
         state.selectedDot = null;
+        state.selectedCircle = null;
         state.selectedSegment = null;
         state.draggingDot = null;
+        state.draggingCircle = null;
         state.tracing = null;
         $("labelInput").value = String(card.label ?? "Фигура");
         $("idInput").value = String(card.id ?? "");
@@ -1615,6 +1770,7 @@
     if (!calibrationReady()) { setNotice("Сначала настройте сетку.", "error"); return; }
     if (state.tool === "points") { addNode(pixelToGrid(point)); return; }
     if (state.tool === "dots") { addDot(pixelToGrid(point)); return; }
+    if (state.tool === "circles") { addCircle(pixelToGrid(point)); return; }
     state.tracing = [pixelToGrid(point)];
     state.tracePointerId = event.pointerId;
     board.setPointerCapture?.(event.pointerId);
@@ -1631,6 +1787,12 @@
     }
     if (state.draggingDot && state.draggingDot.pointerId === event.pointerId) {
       state.dots[state.draggingDot.pointIndex] = snap(pixelToGrid(svgPoint(event)));
+      render();
+      return;
+    }
+    if (state.draggingCircle && state.draggingCircle.pointerId === event.pointerId) {
+      const circle = state.circles[state.draggingCircle.circleIndex];
+      if (circle) Object.assign(circle, snap(pixelToGrid(svgPoint(event))));
       render();
       return;
     }
@@ -1661,6 +1823,11 @@
     }
     if (state.draggingDot && state.draggingDot.pointerId === event.pointerId) {
       state.draggingDot = null;
+      render();
+      return;
+    }
+    if (state.draggingCircle && state.draggingCircle.pointerId === event.pointerId) {
+      state.draggingCircle = null;
       render();
       return;
     }
@@ -1695,6 +1862,7 @@
   $("traceTool").addEventListener("click", () => { state.tool = "trace"; state.alignMode = null; setNotice("Режим обводки: после жеста линия будет выпрямлена по узлам."); render(); });
   $("pointsTool").addEventListener("click", () => { state.tool = "points"; state.alignMode = null; setNotice("Режим точек: щёлкайте по узлам, чтобы строить прямые сегменты."); render(); });
   $("dotsTool").addEventListener("click", () => { state.tool = "dots"; state.alignMode = null; setNotice("Режим отдельных точек: щёлкайте по узлам — точки не будут соединены линиями."); render(); });
+  $("circleTool").addEventListener("click", () => { state.tool = "circles"; state.alignMode = null; setNotice("Режим кругов: щёлкните по узлу, чтобы поставить центр; диаметр задаётся ползунком."); render(); });
   $("fitRasterBtn").addEventListener("click", fitRasterToBoard);
   $("resetRasterScaleBtn").addEventListener("click", () => {
     $("rasterScale").value = "100";
@@ -1707,6 +1875,7 @@
   $("rasterScaleX").addEventListener("input", setRasterScale);
   $("rasterScaleY").addEventListener("input", setRasterScale);
   $("gridScale").addEventListener("input", setGridScale);
+  $("circleDiameter").addEventListener("input", setCircleDiameter);
   document.querySelectorAll("[data-nudge-raster]").forEach((button) => button.addEventListener("click", () => nudgeRaster(button.dataset.nudgeRaster)));
   document.querySelectorAll("[data-nudge-grid]").forEach((button) => button.addEventListener("click", () => nudgeGrid(button.dataset.nudgeGrid)));
   $("newPathBtn").addEventListener("click", newPath);

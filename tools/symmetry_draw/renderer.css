@@ -102,7 +102,7 @@
 .symmetry-draw__repeat-start circle:first-child { fill: rgba(16, 156, 146, .18); stroke: #0d9488; stroke-width: .05; }
 .symmetry-draw__repeat-start circle:last-child { fill: #16a89f; stroke: #fff; stroke-width: .045; }
 
-.symmetry-draw__source, .symmetry-draw__stroke, .symmetry-draw__stroke-glow, .symmetry-draw__hint-line {
+.symmetry-draw__source, .symmetry-draw__source-circle, .symmetry-draw__stroke, .symmetry-draw__stroke-glow, .symmetry-draw__hint-line, .symmetry-draw__hint-circle {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -110,6 +110,7 @@
 }
 .symmetry-draw__source { stroke: var(--sd-given); stroke-width: 0.09; }
 .symmetry-draw__source-dot { fill: var(--sd-given); pointer-events: none; }
+.symmetry-draw__source-circle { stroke: var(--sd-given); stroke-width: 0.09; }
 /* The child's own stroke gets a soft low-opacity halo underneath a bold core -
    reads like felt-tip marker ink instead of a thin debug vector. */
 .symmetry-draw__stroke-glow { stroke: var(--sd-drawn); stroke-width: 0.22; opacity: 0.16; }
@@ -118,7 +119,7 @@
 .symmetry-draw__repeat-feedback { fill: none; stroke-width: .13; stroke-linecap: round; pointer-events: none; animation: repeatFeedbackIn .28s ease-out both; }
 .symmetry-draw__repeat-feedback--covered { stroke: #20a76b; }
 .symmetry-draw__repeat-feedback--missed { stroke: #e77949; stroke-dasharray: .08 .11; }
-.symmetry-draw__hint-line { stroke: var(--sd-hint); stroke-width: 0.035; stroke-dasharray: 0.02 0.1; }
+.symmetry-draw__hint-line, .symmetry-draw__hint-circle { stroke: var(--sd-hint); stroke-width: 0.035; stroke-dasharray: 0.02 0.1; }
 .symmetry-draw__hint-point { fill: var(--sd-hint); pointer-events: none; }
 
 .symmetry-draw__controls { display: flex; width: 100%; min-width: 0; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; }
