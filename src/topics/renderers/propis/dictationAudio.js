@@ -34,3 +34,19 @@ export function wordDictationKey(wordEntry) {
 export function textDictationKey(textEntry) {
   return `text_${textEntry.id}`;
 }
+
+// Texts are dictated sentence by sentence, with a pause between sentences (user's explicit
+// call, 2026-09-17) -- a whole 5-sentence text read in one breath is unrealistic for a child
+// writing it by hand. Splitting on "period then whitespace" is safe for this bank specifically:
+// texts.py's own generation rule is "exactly 5 short declarative sentences, periods only (no
+// commas, dashes, or quotes)" -- confirmed against all 24 real texts in topic.json (every one
+// splits to exactly 5 sentences), not assumed from the docstring alone.
+const SENTENCE_SPLIT_RE = /(?<=\.)\s+/;
+
+export function splitIntoSentences(text) {
+  return text.trim().split(SENTENCE_SPLIT_RE).filter(Boolean);
+}
+
+export function textSentenceDictationKey(textEntry, sentenceIndex) {
+  return `text_${textEntry.id}_s${sentenceIndex + 1}`;
+}

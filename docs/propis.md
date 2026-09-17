@@ -409,12 +409,6 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     `{type: "dictation", level, items: [{key, display}], repeatLimit, videoRewardEnabled}`
     — `repeatLimit` is `null` when `unlimitedRepeats` is on, matching how the not-yet-built
     view should read "no limit" (a sentinel, not a huge number).
-  - **Texts level is provisional, flagged in code and here**: one dictation "item" per
-    whole text (5 sentences) for now, matching `read_text`'s granularity — but dictating a
-    full text in one uninterrupted breath doesn't work for a child writing it by hand. This
-    almost certainly needs per-sentence pacing (its own audio clips, one item per sentence,
-    "Дальше" advancing within a text) before the texts level is actually usable. Not
-    decided, not guessed — raised for the user to weigh in on before the view is built.
   - **Verification**: `npm run build` clean, full existing propis/session-engine test
     suites (101 tests, 6 files) pass unmodified, a temporary manual-check vitest file (not
     committed) exercised all four `sessionParams` combinations plus the cross-mode safety
@@ -422,6 +416,30 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     failed (backend DB tests, `column_addition`/`function_cards`/`reading` engine tests,
     `symmetry_draw` tool tests), none touching propis/session-engine/dictation, consistent
     with pre-existing branch state rather than anything this change introduced.
+- **Texts level — resolved to per-sentence pacing, same day.** User's answer to the entry
+  above's open question: sentence by sentence, with a pause between sentences — not the
+  whole text in one breath.
+  - **`dictationAudio.js`** gained `splitIntoSentences(text)` (splits on
+    `/(?<=\.)\s+/` — "period, then whitespace") and `textSentenceDictationKey(textEntry, i)`
+    → `text_<id>_s<n>` (1-based, so it reads naturally next to the file on disk:
+    `text_t01_s1.mp3`..`text_t01_s5.mp3`). The split regex is safe for this specific bank,
+    not assumed safe in general: `texts.py`'s own generation rule is "exactly 5 short
+    declarative sentences, periods only (no commas, dashes, or quotes)" — confirmed by
+    actually running the split against all 24 real texts in `topic.json` (every one
+    produces exactly 5 sentences), not trusted from the docstring alone.
+  - **`engine.js`'s `dictation` branch, texts level**: still one dictation item per text
+    (so the comparison screen and the top-level "Дальше"/repeat-limit machinery keep
+    working the same way as letters/words), but each item now also carries `sentences:
+    [{key, display}, ...]` — five per text, meant to be stepped through one at a time by
+    the (still not-built) session view, with a pause between each. `display` on the item
+    itself stays the whole text, unchanged, since the end-of-session comparison screen
+    still needs to show the complete thing.
+  - **Verified** with a dedicated (temporary, not committed) vitest check: every text
+    produces exactly 5 `sentences` entries, keys match `text_t0N_sM`, and `t01`'s five
+    sentences match the source text split by hand, word for word — not just "5 items",
+    the actual content. Full propis/session-engine suite re-run after (102 tests, 7 files,
+    all green — one more than before purely from this check file existing at run time,
+    deleted immediately after).
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires

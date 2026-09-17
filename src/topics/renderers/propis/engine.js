@@ -1,5 +1,11 @@
 import { shuffle } from "@/shared/utils/shuffle";
-import { letterDictationKey, wordDictationKey, textDictationKey } from "./dictationAudio";
+import {
+  letterDictationKey,
+  wordDictationKey,
+  textDictationKey,
+  textSentenceDictationKey,
+  splitIntoSentences,
+} from "./dictationAudio";
 
 export function generateTasks(mode, cards, sessionSize, sessionParams) {
   const allCards = Array.isArray(cards) ? cards : (cards?.cards ?? []);
@@ -75,12 +81,19 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     if (level === "words") {
       pool = wordBank.map((w) => ({ key: wordDictationKey(w), display: w.word }));
     } else if (level === "texts") {
-      // Whole text as one dictation item for now, same granularity read_text already uses --
-      // dictating a full 5-sentence text in one breath is unrealistic for a child writing by
-      // hand, so this almost certainly needs per-sentence pacing (its own audio clips, one
-      // "item" per sentence, "Дальше" advancing sentence-by-sentence within a text) before
-      // this level is actually usable. Flagged, not decided -- deliberately not guessed here.
-      pool = textBank.map((t) => ({ key: textDictationKey(t), display: t.text }));
+      // One dictation item per text, but each item carries its own `sentences` list --
+      // dictated one at a time with a pause between them (user's call, 2026-09-17), not the
+      // whole text in one breath. `display` on the item stays the full text (what the
+      // end-of-session comparison screen shows); `sentences[].display` is what the
+      // (not-yet-written) session view actually steps through and plays.
+      pool = textBank.map((t) => ({
+        key: textDictationKey(t),
+        display: t.text,
+        sentences: splitIntoSentences(t.text).map((s, i) => ({
+          key: textSentenceDictationKey(t, i),
+          display: s,
+        })),
+      }));
     } else {
       pool = letters.map((l) => ({ key: letterDictationKey(l), display: l.label }));
     }
