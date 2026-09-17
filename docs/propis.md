@@ -1724,6 +1724,99 @@ its own independent copy of the same small nib (practice mode's single-
 letter card) — not touched, out of scope, and not the same real-mm-scale
 situation this fix addresses.
 
+### "Элементы букв" option: rows of repeated pre-writing elements instead of text
+
+2026-09-17. User request: "в режиме тетрадный лист нужно добавить опцию
+Элементы букв которая переключает строки на выставление элементов вместо
+букв" — a per-mode toggle (`useElements`, `topic.json`'s `read_lines.params`)
+that switches every row in the session from free-typed cursive text to a
+single picked pre-writing element (крючки, петли, заборчики...) repeated
+across the row, matching how these elements are drilled in the physical
+copybook. Confirmed scope via 2 follow-up questions: **one element per row,
+auto-repeated to fill it** (not a mix of several elements in one row), and
+**the whole session is text-only or elements-only** (a mode-wide toggle, not
+per-row mixing) — "Один элемент повторяется на всю строку, как в книге. В
+одной строке только элементы."
+
+**Data pipeline**: elements live in `tools/propis/elements.json` (grown
+incrementally via `scripts/propis_ingest_elements.mjs`, see the ingestion
+sections above), kept separate from `topic.json` to avoid diff churn on every
+single capture. `scripts/build-propis-deck.mjs` now merges it into the
+*shipped* `topic.json` at build time only, as a new top-level `elements` key
+(the same pattern the script already uses for binary `ASSET_DIRS`) — so the
+source files stay small and independently-diffable, but the deck the app
+actually downloads carries everything this feature needs.
+`useSessionEngine.js` already passed the *full* `topicRecord` object (not
+just `.cards`) into `generateTasks` for the "Диктант" word/text banks, so
+`engine.js` just destructures one more bank the same way:
+`const elementBank = Array.isArray(cards) ? [] : (cards?.elements ?? []);`
+— defaults to `[]` for plain-array test fixtures, since no other propis mode
+had this bank before.
+
+**Picker UI**: `ParamsScreen.jsx`'s existing `LineListParam` (the free-text
+line editor added earlier this session, see above) grew a `useElements`/
+`elements` prop pair. When `useElements` is true, each row renders as a
+button showing the picked element's `labelRu` (or a "Строка N — выбрать
+элемент" placeholder) instead of a text `<input>`; tapping it opens
+`ElementPickerModal`, a grid of `ElementPreviewSvg` cards — each one a real
+miniature ruled-line card (built from `propisRuling.js`'s own
+`buildRowGuideLines`/`buildDiagonalLines`, not a hand-rolled approximation)
+with the element's actual captured strokes drawn on it at true relative
+scale, so the picker doubles as a legend of what each element looks like on
+paper. Tapping a card writes the element's `id` into that row (reusing
+`updateLine`) and closes the picker.
+
+**Engine/render wiring**: `engine.js`'s `read_lines` branch adds
+`useElements` and the full `elements` bank to the `print_page` task (lines
+still get trimmed/blank-filtered as before — an element row's "text" is just
+its `id` string). `wordEngine.js` gets a new `layoutElementLinesIntoRows`
+sibling to the existing `layoutTextIntoRows`, producing the same
+`{placed, rowCount}` shape so `paginateRows` needs no changes: for each line
+(one element id), it repeats `{type: "element", xOffset, strokes, width}`
+segments left-to-right until the next copy would overflow
+`CONTENT_W_UNITS`, mirroring the physical book's "fill the row" layout.
+`PrintPageView.jsx`'s per-segment render switch gets a matching `"element"`
+branch — `<AnimatedStrokes trajectory={{strokes: seg.strokes}} tipSize="large" />`
+when active, static `<path>` outlines otherwise — copied from the existing
+`"cursive"` branch since a captured element's `strokes` array already has
+the exact shape `AnimatedStrokes` expects.
+
+**Bug found and fixed during visual verification (self-caught, before
+presenting to the user)**: the first implementation reused
+`layoutTextIntoRows`'s row pitch (`TEXT_ROW_PITCH` = 72 native units = 12mm,
+tuned for flowing cursive text, whose ink rarely spans the full
+ascender-to-descender range) for element rows too. Screenshotting it showed
+large elements (whose captured height can reach the full
+`NATIVE_L4 - NATIVE_L1` = 130 native units) visibly overlapping the row
+above. Root cause: the *card* geometry elements are captured against (a full
+single notebook line, ascender gap to descender gap) is much taller than the
+*tight* pitch text rows use — the two were never meant to share a spacing
+constant. Fix: a new `ELEMENT_ROW_PHYSICAL_SLOTS = 2` constant in
+`wordEngine.js` — each logical element row now consumes **two** of
+`PrintPageView`'s physical row slots (`rowIndex = i * 2`, so row 0, 2, 4, ...
+instead of 0, 1, 2, ...), giving 144 native units of headroom per element
+row (comfortably over the 130-unit worst case) at the cost of roughly half
+as many element-rows fitting per printed page versus text-rows; the unused
+odd slot between element-rows doubles as natural breathing room. Verified
+via a second dev-preview screenshot round showing 6 cleanly-separated
+element rows with no overlap.
+
+Test coverage: `wordEngine.test.js` gained a
+`layoutElementLinesIntoRows` describe block (repeat-to-fill-row including
+the "one more copy would overflow" boundary, the `rowIndex` 0/2/4 physical-
+slot sequence + resulting `rowCount`, and an unknown-element-id row falling
+back to an empty `segments: []` rather than throwing).
+`engine.test.js` gained a `read_lines` describe block covering both the
+plain-array-cards default (`useElements: false`, `elements: []`) and the
+full topicRecord pass-through (`useElements: true` plus the `elements`
+bank arriving unchanged in the task).
+
+Shipped with 11/27 captured elements (per the user's explicit "Делаем
+сейчас" — don't wait for full digitization); the remaining elements keep
+being captured independently via the free-text-enabled
+`handwriting_capture.html` and ingested the same way as before, with no
+further code changes needed as the bank grows.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

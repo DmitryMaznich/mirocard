@@ -74,6 +74,36 @@ describe("generateTasks — read_text", () => {
   });
 });
 
+describe("generateTasks — read_lines", () => {
+  it("trims/drops blank lines, defaults useElements to false and elements to [] when cards is a plain array", () => {
+    const tasks = generateTasks({ type: "read_lines" }, [LETTER_CARD, CONNECTOR_CARD], 1, { lines: [" мама ", "", "  ", "папа"] });
+    expect(tasks).toEqual([{
+      type: "print_page",
+      letters: [LETTER_CARD],
+      connectors: [CONNECTOR_CARD],
+      punctuation: [],
+      lines: ["мама", "папа"],
+      useElements: false,
+      elements: [],
+    }]);
+  });
+
+  // "Элементы букв" (2026-09-17): elements come from the full topicRecord's own `.elements`
+  // bank (bundled into the deck by build-propis-deck.mjs), same as words/texts for "Диктант" —
+  // absent (-> []) for a plain-array `cards`, since no other propis mode ever had this bank.
+  it("passes through sessionParams.useElements and the topicRecord's elements bank", () => {
+    const ELEMENT = { id: "05_kryuchok_vlevo", labelRu: "Крючок влево", strokes: [] };
+    const topicRecord = { cards: [LETTER_CARD], elements: [ELEMENT] };
+    const tasks = generateTasks({ type: "read_lines" }, topicRecord, 1, {
+      lines: ["05_kryuchok_vlevo"],
+      useElements: true,
+    });
+    expect(tasks[0].useElements).toBe(true);
+    expect(tasks[0].elements).toEqual([ELEMENT]);
+    expect(tasks[0].lines).toEqual(["05_kryuchok_vlevo"]);
+  });
+});
+
 describe("generateTasks — unknown mode", () => {
   it("returns an empty array", () => {
     expect(generateTasks({ type: "nope" }, [LETTER_CARD])).toEqual([]);

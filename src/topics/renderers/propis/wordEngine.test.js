@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { transformPathD, getPathEndpoints } from "./pathGeometry.js";
-import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, layoutTextIntoRows, paginateRows } from "./wordEngine.js";
+import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows } from "./wordEngine.js";
 import { GUIDE_LINES } from "./propisRuling.js";
 
 const LETTER_A = {
@@ -858,5 +858,42 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
     const oAfterG = getPathEndpoints(afterG.strokes[1].d);
     const ownPlain = getPathEndpoints(O_PLAIN.strokes[0].d);
     expect(oAfterG.end[0] - oAfterG.start[0]).toBeCloseTo(ownPlain.end[0] - ownPlain.start[0], 6);
+  });
+});
+
+describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" option)", () => {
+  const WIDE_ELEMENT = {
+    id: "05_kryuchok_vlevo", labelRu: "Крючок влево", viewBox: "0 0 28 150",
+    strokes: [{ d: "M 7.6 17.4 C 8.5 16.7 20.7 24.1 4 61.1" }],
+  };
+  const elementsByLabel = new Map([[WIDE_ELEMENT.id, WIDE_ELEMENT]]);
+
+  it("repeats the same element across the row, at least once even if it overflows", () => {
+    const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel, 200);
+    expect(placed).toHaveLength(1);
+    expect(placed[0].segments.length).toBeGreaterThan(1);
+    for (const seg of placed[0].segments) {
+      expect(seg.type).toBe("element");
+      expect(seg.strokes).toBe(WIDE_ELEMENT.strokes);
+    }
+    // A too-narrow row still gets exactly one repeat, never zero.
+    const { placed: tight } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel, 5);
+    expect(tight[0].segments).toHaveLength(1);
+  });
+
+  it("assigns each row TWO physical row slots (rowIndex 0, 2, 4, ...) so a full-height element never overlaps its neighbor", () => {
+    const { placed, rowCount } = layoutElementLinesIntoRows(
+      ["05_kryuchok_vlevo", "05_kryuchok_vlevo", "05_kryuchok_vlevo"],
+      elementsByLabel,
+      200
+    );
+    expect(placed.map((p) => p.rowIndex)).toEqual([0, 2, 4]);
+    // 3 rows * 2 slots - 1 unused trailing slot = 5.
+    expect(rowCount).toBe(5);
+  });
+
+  it("renders an empty row (not a crash) for an id with no matching captured element", () => {
+    const { placed } = layoutElementLinesIntoRows(["99_not_captured_yet"], elementsByLabel, 200);
+    expect(placed).toEqual([{ word: "99_not_captured_yet", rowIndex: 0, x: 0, segments: [] }]);
   });
 });
