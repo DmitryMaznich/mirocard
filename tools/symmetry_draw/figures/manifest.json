@@ -1,7 +1,7 @@
 {
   "schema": "mirocard-figure-manifest/v1",
   "topicId": "symmetry_draw",
-  "topicVersion": "1.11.3",
+  "topicVersion": "1.11.4",
   "figures": [
     {
       "id": "symmetry_house",
@@ -470,6 +470,12 @@
       "label": "Рыбка",
       "taskKind": "dictation",
       "file": "dictation_small_fish.json"
+    },
+    {
+      "id": "yachta",
+      "label": "Яхта",
+      "taskKind": "mirror",
+      "file": "yachta.json"
     }
   ]
 }

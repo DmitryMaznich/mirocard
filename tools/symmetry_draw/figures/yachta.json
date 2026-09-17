@@ -1,0 +1,61 @@
+{
+  "id": "yachta",
+  "conceptId": "yachta",
+  "primary": true,
+  "difficulty": "challenge",
+  "label": "Яхта",
+  "taskKind": "mirror",
+  "columns": 40,
+  "rows": 20,
+  "axisCol": 20,
+  "sourcePaths": [
+    [
+      {
+        "col": 9,
+        "row": 12
+      },
+      {
+        "col": 9,
+        "row": 6
+      },
+      {
+        "col": 4,
+        "row": 12
+      },
+      {
+        "col": 9,
+        "row": 12
+      },
+      {
+        "col": 9,
+        "row": 16
+      },
+      {
+        "col": 5,
+        "row": 16
+      },
+      {
+        "col": 3,
+        "row": 13
+      },
+      {
+        "col": 9,
+        "row": 13
+      }
+    ]
+  ],
+  "sourceCircles": [
+    {
+      "col": 5.5,
+      "row": 14.5,
+      "diameter": 1,
+      "placement": "cell"
+    },
+    {
+      "col": 7.5,
+      "row": 14.5,
+      "diameter": 1,
+      "placement": "cell"
+    }
+  ]
+}
