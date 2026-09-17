@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 const TOPIC_DIR = "tools/propis";
 const TOPIC_PATH = `${TOPIC_DIR}/topic.json`;
+const ELEMENTS_PATH = `${TOPIC_DIR}/elements.json`;
 const CATALOG_PATH = "public/decks/catalog.json";
 // Ready-made print PDFs (print/) + their card thumbnails (thumbnails/), migrated in from the
 // standalone print_materials topic (2026-09-15) for the new "print_materials"/"browse" mode.
@@ -13,6 +14,16 @@ const CATALOG_PATH = "public/decks/catalog.json";
 const ASSET_DIRS = ["print", "thumbnails"];
 
 const topic = JSON.parse(readFileSync(TOPIC_PATH, "utf-8"));
+// Pre-writing elements (крючки, петли, заборчики...) live in their own file, not directly in
+// topic.json -- it's actively growing via scripts/propis_ingest_elements.mjs (11/27 captured
+// as of 2026-09-17) and would otherwise churn topic.json's diff on every single capture.
+// Merged into the SHIPPED topic.json here, the same way ASSET_DIRS merges binary files below,
+// so the source files stay separate but the deck itself carries everything read_lines'
+// "Элементы букв" option needs (PrintPageView.jsx reads topicRecord.elements).
+if (existsSync(ELEMENTS_PATH)) {
+  const { elements } = JSON.parse(readFileSync(ELEMENTS_PATH, "utf-8"));
+  topic.elements = elements;
+}
 const VERSION = topic.meta.version;
 const ZIP_PATH = `public/decks/propis_v${VERSION}.zip`;
 
@@ -40,7 +51,7 @@ for (const dir of ASSET_DIRS) {
 
 const buffer = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 writeFileSync(ZIP_PATH, buffer);
-console.log(`✓ ${ZIP_PATH} (${(buffer.length / 1024 / 1024).toFixed(2)} MB, ${topic.cards.length} cards, ${topic.modes.length} modes, ${assetCount} bundled assets)`);
+console.log(`✓ ${ZIP_PATH} (${(buffer.length / 1024 / 1024).toFixed(2)} MB, ${topic.cards.length} cards, ${topic.modes.length} modes, ${assetCount} bundled assets, ${topic.elements?.length ?? 0} elements)`);
 
 const catalog = JSON.parse(readFileSync(CATALOG_PATH, "utf-8"));
 const idx = catalog.decks.findIndex((d) => d.id === "propis");

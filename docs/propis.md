@@ -776,6 +776,96 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     `up_а → "заглавная А"`, `lo_а → "строчная а"`, etc. — confirming the
     actual phrase Gemini will receive now, not just that the code compiles.
     Full propis test suite (100 tests) and `npm run build` still clean.
+- **First real captures ingested into `tools/propis/elements.json`, 2026-09-17
+  — two rounds, now 12/27.** Round 1 (3 elements): `02a_naklonnaya_dlinnaya`,
+  `02b_naklonnaya_korotkaya`, `03_zaborchik_ploskie` — verified by measuring
+  each stroke's angle from vertical against the real scan (02a/02b/03's
+  diagonal side all landed at ~25°, the book's own standard slant; 02a's
+  span was ~2× 02b's, matching long/short) before trusting the labels.
+  Deliberately did NOT ingest that round's own `01_pryamaya_liniya` capture
+  — one of its 3 strokes was a stray/out-of-bounds scribble (y up to 228 in
+  a declared 150-tall viewBox, nowhere near the other two strokes'
+  coordinates) — flagged it to the user instead of baking in bad data.
+  - **Round 2 (10 elements, once the free-text element field above was
+    live)**: a clean recapture of `01_pryamaya_liniya` (2 strokes this
+    time, no stray artifact — verified), a recapture of
+    `03_zaborchik_ploskie` (the ingestion script's own id-based upsert
+    handles this as an update, not a duplicate), plus `02c_vertikalnaya`,
+    `04_zaborchik_ostrye`, `05_kryuchok_vlevo`, `06_kryuchok_vpravo` (all
+    already in `REGISTRY`) — **and four more the user captured under
+    their own ad-hoc labels** (`Заборчик мал.`, `Заборчик_остр.мал`,
+    `05_kryuchok_vlevo.мал`, `06_kryuchok_vpravo.мал`) that weren't in
+    `REGISTRY` at all.
+  - **Those four are deliberately NOT in the source book** — the book only
+    ever shows one height for 01/03/04/05/06's drills (see the pixel
+    measurement two entries above: 01's two printed rows are identical
+    height, not wide/narrow). The user captured a second, independently
+    hand-drawn half-height trace of 03/04/05/06 anyway, on their own
+    initiative once free typing was possible, for use in the app at a
+    narrower ruling than the book itself uses. Checked this wasn't
+    accidental noise before accepting it: computed each pair's bounding-box
+    y-span (`03`: 52.6 → `Заборчик мал.`: 27.2; `04`: 50.0 → 24.3; `05`:
+    50.0 → 24.3; `06`: 49.2 → 24.0) — every "мал." capture lands at ~48-54%
+    of its full-size sibling's height, matching 02a→02b's own ~46% ratio
+    closely enough to be a real, deliberate half-scale trace, not a
+    duplicate or a mis-click.
+  - **Renamed to canonical slugs before ingesting**, rather than keeping
+    the user's ad-hoc labels as permanent ids: `03_zaborchik_ploskie_uzkaya`,
+    `04_zaborchik_ostrye_uzkaya`, `05_kryuchok_vlevo_uzkaya`,
+    `06_kryuchok_vpravo_uzkaya` — `_uzkaya` ("узкая", narrow) rather than
+    a literal translation of "мал." ("small"), matching
+    `propisRuling.js`'s own established "узкая строка" terminology for a
+    tighter ruling, not inventing new vocabulary. Added all four to
+    `REGISTRY` (`scripts/propis_ingest_elements.mjs`) and to
+    `handwriting_capture.html`'s `#elementDatalist` (kept in sync by hand,
+    same convention as every other entry there) — inventory is now 27,
+    not 23. The registry's own header comment now explains these four are
+    an app-side addition, not book content, so a later reader doesn't go
+    hunting for a "narrow" row on page 5/6 that was never there.
+  - **Verified visually**: rendered all 12 ingested elements together on
+    the real `propisRuling.js` ruling geometry (same dev-preview approach
+    as the earlier mockup) and screenshotted them as one grid — every
+    shape matches its label (hook direction, fence tooth shape, diagonal
+    vs. vertical), and every `_uzkaya` sibling reads as a visibly smaller
+    version of its full-size counterpart at a glance, not just by the
+    measured numbers. `npm run build` and the full propis test suite
+    (100 tests) still clean after both the registry and data changes.
+- **The verification above used the wrong coordinate transform — caught by
+  the user, fixed same day.** Reported (correctly) that full-size elements
+  didn't reach the height of the wide ruling zone in the screenshot, that
+  `02b_naklonnaya_korotkaya` looked short despite being drawn precisely,
+  and that `02c_vertikalnaya` looked identical to the short diagonal.
+  - **Root cause, first two reports**: the dev-preview mockup scaled
+    captured native coordinates by `LINE_MM / UNIT_H` (25/150) with no
+    offset — treating the NATIVE_L1..L7 capture grid
+    (`handwriting_capture.html`'s `drawRuling()`, what elements are
+    actually drawn against) as if it were the same system as this file's
+    own `L1`-`L4` mm ruling. `propisRuling.js`'s own comment on
+    `NATIVE_L1` says outright these are different systems that "can never
+    be accidentally interchanged" — missed that warning when building the
+    mockup. The correct mapping is affine, not a bare scale: subtract the
+    `NATIVE_L1` offset (row top in native units = 10) first, then scale by
+    `LINE_MM / (NATIVE_L4 - NATIVE_L1)` (25/130 ≈ 0.1923, not 25/150 ≈
+    0.1667). Verified this lands the native guide lines exactly on their
+    mm counterparts: `NATIVE_L2`(62) → 10mm (= this file's own `L2`),
+    `NATIVE_L3`(88) → 15mm (= `L3`, the bold baseline) — confirming
+    `02b`'s own capture (native y 63.12–86.19) really does span almost
+    exactly the real ruling's узкая строка (10–15mm) once converted
+    correctly, exactly as the user said they'd drawn it. Re-rendered all
+    11 elements with the corrected transform and re-screenshotted:
+    full-size elements now visibly fill the wide-ruling zone, `_uzkaya`
+    siblings land inside the узкая строка band instead of floating short
+    of it. This was a mockup-only bug — nothing shipped depends on it,
+    since propis doesn't have a Mode-2 element-practice screen yet.
+  - **Third report was a real data problem, not a rendering one**:
+    `02c_vertikalnaya`'s captured stroke measured at ~24° from vertical —
+    matching `02a`/`02b`'s own diagonal slant almost exactly, not a
+    vertical line at all. The user confirmed they hadn't actually drawn
+    the vertical yet. Removed the `02c_vertikalnaya` entry from
+    `tools/propis/elements.json` entirely rather than keep bad data
+    around — inventory is back to 11/27 until a real vertical capture
+    comes in. `02c_vertikalnaya` stays in `REGISTRY`/the datalist, just
+    uncaptured.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
@@ -1633,6 +1723,99 @@ comment) — resizing it there would undo that. `LoopingLetterCell.jsx` has
 its own independent copy of the same small nib (practice mode's single-
 letter card) — not touched, out of scope, and not the same real-mm-scale
 situation this fix addresses.
+
+### "Элементы букв" option: rows of repeated pre-writing elements instead of text
+
+2026-09-17. User request: "в режиме тетрадный лист нужно добавить опцию
+Элементы букв которая переключает строки на выставление элементов вместо
+букв" — a per-mode toggle (`useElements`, `topic.json`'s `read_lines.params`)
+that switches every row in the session from free-typed cursive text to a
+single picked pre-writing element (крючки, петли, заборчики...) repeated
+across the row, matching how these elements are drilled in the physical
+copybook. Confirmed scope via 2 follow-up questions: **one element per row,
+auto-repeated to fill it** (not a mix of several elements in one row), and
+**the whole session is text-only or elements-only** (a mode-wide toggle, not
+per-row mixing) — "Один элемент повторяется на всю строку, как в книге. В
+одной строке только элементы."
+
+**Data pipeline**: elements live in `tools/propis/elements.json` (grown
+incrementally via `scripts/propis_ingest_elements.mjs`, see the ingestion
+sections above), kept separate from `topic.json` to avoid diff churn on every
+single capture. `scripts/build-propis-deck.mjs` now merges it into the
+*shipped* `topic.json` at build time only, as a new top-level `elements` key
+(the same pattern the script already uses for binary `ASSET_DIRS`) — so the
+source files stay small and independently-diffable, but the deck the app
+actually downloads carries everything this feature needs.
+`useSessionEngine.js` already passed the *full* `topicRecord` object (not
+just `.cards`) into `generateTasks` for the "Диктант" word/text banks, so
+`engine.js` just destructures one more bank the same way:
+`const elementBank = Array.isArray(cards) ? [] : (cards?.elements ?? []);`
+— defaults to `[]` for plain-array test fixtures, since no other propis mode
+had this bank before.
+
+**Picker UI**: `ParamsScreen.jsx`'s existing `LineListParam` (the free-text
+line editor added earlier this session, see above) grew a `useElements`/
+`elements` prop pair. When `useElements` is true, each row renders as a
+button showing the picked element's `labelRu` (or a "Строка N — выбрать
+элемент" placeholder) instead of a text `<input>`; tapping it opens
+`ElementPickerModal`, a grid of `ElementPreviewSvg` cards — each one a real
+miniature ruled-line card (built from `propisRuling.js`'s own
+`buildRowGuideLines`/`buildDiagonalLines`, not a hand-rolled approximation)
+with the element's actual captured strokes drawn on it at true relative
+scale, so the picker doubles as a legend of what each element looks like on
+paper. Tapping a card writes the element's `id` into that row (reusing
+`updateLine`) and closes the picker.
+
+**Engine/render wiring**: `engine.js`'s `read_lines` branch adds
+`useElements` and the full `elements` bank to the `print_page` task (lines
+still get trimmed/blank-filtered as before — an element row's "text" is just
+its `id` string). `wordEngine.js` gets a new `layoutElementLinesIntoRows`
+sibling to the existing `layoutTextIntoRows`, producing the same
+`{placed, rowCount}` shape so `paginateRows` needs no changes: for each line
+(one element id), it repeats `{type: "element", xOffset, strokes, width}`
+segments left-to-right until the next copy would overflow
+`CONTENT_W_UNITS`, mirroring the physical book's "fill the row" layout.
+`PrintPageView.jsx`'s per-segment render switch gets a matching `"element"`
+branch — `<AnimatedStrokes trajectory={{strokes: seg.strokes}} tipSize="large" />`
+when active, static `<path>` outlines otherwise — copied from the existing
+`"cursive"` branch since a captured element's `strokes` array already has
+the exact shape `AnimatedStrokes` expects.
+
+**Bug found and fixed during visual verification (self-caught, before
+presenting to the user)**: the first implementation reused
+`layoutTextIntoRows`'s row pitch (`TEXT_ROW_PITCH` = 72 native units = 12mm,
+tuned for flowing cursive text, whose ink rarely spans the full
+ascender-to-descender range) for element rows too. Screenshotting it showed
+large elements (whose captured height can reach the full
+`NATIVE_L4 - NATIVE_L1` = 130 native units) visibly overlapping the row
+above. Root cause: the *card* geometry elements are captured against (a full
+single notebook line, ascender gap to descender gap) is much taller than the
+*tight* pitch text rows use — the two were never meant to share a spacing
+constant. Fix: a new `ELEMENT_ROW_PHYSICAL_SLOTS = 2` constant in
+`wordEngine.js` — each logical element row now consumes **two** of
+`PrintPageView`'s physical row slots (`rowIndex = i * 2`, so row 0, 2, 4, ...
+instead of 0, 1, 2, ...), giving 144 native units of headroom per element
+row (comfortably over the 130-unit worst case) at the cost of roughly half
+as many element-rows fitting per printed page versus text-rows; the unused
+odd slot between element-rows doubles as natural breathing room. Verified
+via a second dev-preview screenshot round showing 6 cleanly-separated
+element rows with no overlap.
+
+Test coverage: `wordEngine.test.js` gained a
+`layoutElementLinesIntoRows` describe block (repeat-to-fill-row including
+the "one more copy would overflow" boundary, the `rowIndex` 0/2/4 physical-
+slot sequence + resulting `rowCount`, and an unknown-element-id row falling
+back to an empty `segments: []` rather than throwing).
+`engine.test.js` gained a `read_lines` describe block covering both the
+plain-array-cards default (`useElements: false`, `elements: []`) and the
+full topicRecord pass-through (`useElements: true` plus the `elements`
+bank arriving unchanged in the task).
+
+Shipped with 11/27 captured elements (per the user's explicit "Делаем
+сейчас" — don't wait for full digitization); the remaining elements keep
+being captured independently via the free-text-enabled
+`handwriting_capture.html` and ingested the same way as before, with no
+further code changes needed as the bank grows.
 
 ### Icon
 

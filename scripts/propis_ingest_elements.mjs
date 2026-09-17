@@ -9,7 +9,7 @@
 // own `type` field) — this script only picks out `type === "element"` entries, ignores the
 // rest, and merges them into tools/propis/elements.json by `id`.
 //
-// Source reference for the 23 elements below: Н.С. Жукова, «Пропись 1» (из комплекта
+// Source reference for the elements below: Н.С. Жукова, «Пропись 1» (из комплекта
 // «Прописи», 3 части), стр. 5–11 — see the reference sheet cut from that PDF this session.
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -18,19 +18,32 @@ import { samplePath, transformPathD } from "../src/topics/renderers/propis/pathG
 const VB_H = 150; // matches handwriting_capture.html's VB_H / propis's shared row height
 const PAD = 4; // horizontal breathing room so stroke-width doesn't clip at the viewBox edge
 
-// The 23-element inventory, in the order they're introduced in the source book. `category`
+// The element inventory, in the order they're introduced in the source book. `category`
 // ("02" originally bundled three distinct drills -- long diagonal, short diagonal, and a
 // vertical stroke -- under one slug/crop; split into 02a/02b/02c 2026-09-17 per user report.)
 // is a loose grouping for future UI/filtering — not load-bearing anywhere yet.
+//
+// The `_uzkaya` (narrow-ruling) entries below are NOT in the source book -- the book only
+// ever shows one height per drill for these (confirmed by direct pixel measurement of the
+// scan, 2026-09-17: 01/03/04/05's two printed rows are identical height, just practice
+// repeats). The user captured a second, deliberately half-height trace of 03/04/05/06 anyway
+// (own initiative, via the now-free-text element field) for use in the app at a narrower
+// ruling than the book itself uses -- confirmed these really are ~half the height of their
+// full-size sibling (measured, not assumed) before adding the slugs, so they're a real
+// distinct capture, not a duplicate.
 const REGISTRY = {
   "01_pryamaya_liniya":          { labelRu: "Прямая линия",              category: "base_stroke", sourcePage: 5 },
   "02a_naklonnaya_dlinnaya":     { labelRu: "Наклонная длинная",         category: "base_stroke", sourcePage: 5 },
   "02b_naklonnaya_korotkaya":    { labelRu: "Наклонная короткая",        category: "base_stroke", sourcePage: 5 },
   "02c_vertikalnaya":            { labelRu: "Вертикальная",              category: "base_stroke", sourcePage: 5 },
   "03_zaborchik_ploskie":        { labelRu: "Заборчик плоские",          category: "base_stroke", sourcePage: 5 },
+  "03_zaborchik_ploskie_uzkaya": { labelRu: "Заборчик плоские (узкая)",  category: "base_stroke", sourcePage: 5 },
   "04_zaborchik_ostrye":         { labelRu: "Заборчик острые",           category: "base_stroke", sourcePage: 6 },
+  "04_zaborchik_ostrye_uzkaya":  { labelRu: "Заборчик острые (узкая)",   category: "base_stroke", sourcePage: 6 },
   "05_kryuchok_vlevo":           { labelRu: "Крючок влево",              category: "base_stroke", sourcePage: 6 },
+  "05_kryuchok_vlevo_uzkaya":    { labelRu: "Крючок влево (узкая)",      category: "base_stroke", sourcePage: 6 },
   "06_kryuchok_vpravo":          { labelRu: "Крючок вправо",             category: "base_stroke", sourcePage: 6 },
+  "06_kryuchok_vpravo_uzkaya":   { labelRu: "Крючок вправо (узкая)",     category: "base_stroke", sourcePage: 6 },
   "07a_soedinenie_kryuchkov_1":  { labelRu: "Соединение крючков (1)",    category: "connector_drill", sourcePage: 7 },
   "07b_soedinenie_kryuchkov_2":  { labelRu: "Соединение крючков (2)",    category: "connector_drill", sourcePage: 7 },
   "08_chervyachok":              { labelRu: "Червячок",                  category: "wave", sourcePage: 7 },

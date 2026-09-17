@@ -28,6 +28,10 @@ import SymmetryDrawPrintParams from "@/features/session/SymmetryDrawPrintParams"
 import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
 import { shouldRequestSessionStartPin } from "@/features/session/sessionStartGate";
 import { getFigureDifficultyRecommendation } from "@/features/session/figureDifficultyProgress";
+import {
+  LINE_MM, NATIVE_L1, NATIVE_L4, INK_COLOR,
+  buildRowGuideLines, buildDiagonalLines,
+} from "@/topics/renderers/propis/propisRuling.js";
 import { validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
@@ -1115,16 +1119,89 @@ function TextUploadParam({ label, maxLength, value, onChange }) {
   );
 }
 
+// One pre-writing element's own reference card, rendered on a real (small) slice of the same
+// ruling geometry propisRuling.js/PrintPageView.jsx use for the actual page -- so a parent
+// picking "05_kryuchok_vlevo" sees the real hook shape, not just its slug. Elements are
+// captured against the NATIVE_L1..L7 guide grid (handwriting_capture.html's drawRuling()),
+// NOT the same coordinate system as this file's own L1-L4 mm ruling -- propisRuling.js's own
+// comment on NATIVE_L1 warns the two "can never be accidentally interchanged". The correct
+// conversion is affine: subtract the NATIVE_L1 offset (row top, in native units), then scale
+// by LINE_MM/(NATIVE_L4-NATIVE_L1) -- verified 2026-09-17 this lands NATIVE_L2->10mm and
+// NATIVE_L3->15mm exactly, matching this file's own L2/L3 (an earlier mockup used the naive
+// LINE_MM/UNIT_H scale with no offset and undershot every element's height).
+const ELEMENT_CARD_W_MM = LINE_MM * 1.0833;
+const ELEMENT_CARD_LINES = buildRowGuideLines(1);
+const ELEMENT_CARD_DIAG = buildDiagonalLines(LINE_MM, ELEMENT_CARD_W_MM, ELEMENT_CARD_W_MM / 2);
+const ELEMENT_SCALE = LINE_MM / (NATIVE_L4 - NATIVE_L1);
+
+function ElementPreviewSvg({ element }) {
+  return (
+    <svg viewBox={`0 0 ${ELEMENT_CARD_W_MM} ${LINE_MM}`} className="element-picker-card__svg" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width={ELEMENT_CARD_W_MM} height={LINE_MM} className="propis-paper" />
+      {ELEMENT_CARD_DIAG.map((l, i) => (
+        <line key={`d${i}`} x1={l.x1} y1={0} x2={l.x2} y2={LINE_MM} className="propis-line-diag" style={{ strokeWidth: 0.06 }} />
+      ))}
+      {ELEMENT_CARD_LINES.map((l, i) => (
+        <line key={`h${i}`} x1={0} y1={l.y} x2={ELEMENT_CARD_W_MM} y2={l.y}
+          className={l.bold ? "propis-line-bold" : "propis-line-thin"} style={{ strokeWidth: l.bold ? 0.2 : 0.1 }} />
+      ))}
+      <g transform={`translate(0 ${-NATIVE_L1 * ELEMENT_SCALE}) scale(${ELEMENT_SCALE})`}>
+        {element.strokes.map((s, i) => (
+          <path key={i} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+// Grid picker for read_lines' "Элементы букв" mode -- opened per row from LineListParam below
+// instead of that row's plain text input. Deliberately a flat grid over topicRecord.elements
+// (whatever's captured so far, see tools/propis/elements.json/docs/propis.md for progress),
+// not grouped by category -- 11/27 captured as of 2026-09-17, too few yet for grouping to earn
+// its own UI weight; revisit once the set is closer to complete.
+function ElementPickerModal({ elements, onPick, onClose }) {
+  return (
+    <Modal title="Выберите элемент" onClose={onClose}>
+      {elements.length === 0 ? (
+        <div className="element-picker-empty">Пока не оцифрован ни один элемент.</div>
+      ) : (
+        <div className="element-picker-grid">
+          {elements.map((el) => (
+            <button key={el.id} type="button" className="element-picker-card" onClick={() => onPick(el.id)}>
+              <ElementPreviewSvg element={el} />
+              <div className="element-picker-card__label">{el.labelRu}</div>
+            </button>
+          ))}
+        </div>
+      )}
+    </Modal>
+  );
+}
+
 // Structured line-by-line constructor for read_lines' "lines" param: one text input per
 // row instead of TextListParam's single shared textarea + Enter-to-break-line -- confirmed
 // with the user 2026-09-13 as the preferred authoring UX for mixing short, unrelated rows
 // (a letter, a syllable, a word) rather than a flowing text. Each input maps 1:1 to a
 // notebook row engine.js joins with "\n" for layoutTextIntoRows' existing hard-break
 // handling -- no new rendering/layout code needed, only this input.
-function LineListParam({ label, value, maxLength, onChange }) {
+//
+// `useElements`/`elements` (added 2026-09-17, "Элементы букв" option): when on, each row's
+// value holds an ELEMENT ID (e.g. "05_kryuchok_vlevo") instead of typed text -- picked from
+// ElementPickerModal rather than typed on the device's own keyboard, since the whole point of
+// this mode is placing a pre-writing drill, not text. The stored value's shape doesn't
+// change (still one string per row) so engine.js/wordEngine.js only need a new
+// interpretation of that string when the mode's own useElements flag is on, not a new field.
+function LineListParam({ label, value, maxLength, onChange, useElements = false, elements = [] }) {
   const lines = Array.isArray(value) && value.length > 0 ? value : [""];
   const inputRefs = useRef([]);
   const focusIndexRef = useRef(null);
+  const [pickerRowIndex, setPickerRowIndex] = useState(null);
+
+  const elementsById = useMemo(() => {
+    const map = new Map();
+    for (const el of elements) map.set(el.id, el);
+    return map;
+  }, [elements]);
 
   useEffect(() => {
     const i = focusIndexRef.current;
@@ -1149,21 +1226,36 @@ function LineListParam({ label, value, maxLength, onChange }) {
     onChange(next.length > 0 ? next : [""]);
   }
 
+  function pickElement(elementId) {
+    if (pickerRowIndex != null) updateLine(pickerRowIndex, elementId);
+    setPickerRowIndex(null);
+  }
+
   return (
     <div className="param-row param-row--block param-line-list">
       <div className="param-label">{label}</div>
       <div className="param-line-list__rows">
         {lines.map((line, i) => (
           <div key={i} className="param-line-list__row">
-            <input
-              ref={(el) => { inputRefs.current[i] = el; }}
-              type="text"
-              className="param-line-list__input"
-              value={line}
-              maxLength={maxLength}
-              placeholder={`Строка ${i + 1}`}
-              onChange={(e) => updateLine(i, e.target.value)}
-            />
+            {useElements ? (
+              <button
+                type="button"
+                className={`param-line-list__element-btn${!line ? " param-line-list__element-btn--empty" : ""}`}
+                onClick={() => setPickerRowIndex(i)}
+              >
+                {line ? (elementsById.get(line)?.labelRu ?? line) : `Строка ${i + 1} — выбрать элемент`}
+              </button>
+            ) : (
+              <input
+                ref={(el) => { inputRefs.current[i] = el; }}
+                type="text"
+                className="param-line-list__input"
+                value={line}
+                maxLength={maxLength}
+                placeholder={`Строка ${i + 1}`}
+                onChange={(e) => updateLine(i, e.target.value)}
+              />
+            )}
             <button
               type="button"
               className="param-line-list__remove"
@@ -1176,6 +1268,13 @@ function LineListParam({ label, value, maxLength, onChange }) {
           </div>
         ))}
       </div>
+      {useElements && pickerRowIndex != null && (
+        <ElementPickerModal
+          elements={elements}
+          onPick={pickElement}
+          onClose={() => setPickerRowIndex(null)}
+        />
+      )}
       <button type="button" className="param-text-upload__link" onClick={addLine}>
         + Добавить строку
       </button>
@@ -2113,6 +2212,8 @@ export default function ParamsScreen() {
                 maxLength={def.maxLength}
                 value={params[key] ?? [""]}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                useElements={Boolean(params.useElements)}
+                elements={topicRecord?.elements ?? []}
               />
             );
           }

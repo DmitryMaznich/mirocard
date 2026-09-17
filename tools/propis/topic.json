@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "propis",
-    "version": "1.29.0",
+    "version": "1.30.0",
     "renderer": "propis",
     "title": "Прописи",
     "avatar": "media/avatar_propis.svg",
@@ -102,6 +102,16 @@
         "duration": "5–10 минут"
       },
       "params": {
+        "useElements": {
+          "type": "boolean",
+          "label": {
+            "ru": "Элементы букв"
+          },
+          "hint": {
+            "ru": "Строки заполняются не буквами, а прописными элементами (крючки, петли, заборчики...) — один элемент повторяется на всю строку, как в прописи."
+          },
+          "default": false
+        },
         "lines": {
           "type": "line_list",
           "label": {

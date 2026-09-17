@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { layoutTextIntoRows, paginateRows } from "./wordEngine.js";
+import { layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
   INK_COLOR, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING,
@@ -123,6 +123,19 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                     <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   ))}
                 </g>
+              ) : seg.type === "element" ? (
+                // "Элементы букв" repeat -- same tap-to-animate as a cursive letter (the whole
+                // point of this mode is showing the drawing motion), AnimatedStrokes just needs
+                // {strokes}, which a raw element object already is, no trajectory-wrapping needed.
+                <g key={si} transform={`translate(${seg.xOffset} 0)`}>
+                  {isActive ? (
+                    <AnimatedStrokes trajectory={{ strokes: seg.strokes }} tipSize="large" />
+                  ) : (
+                    seg.strokes.map((s, ssi) => (
+                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    ))
+                  )}
+                </g>
               ) : (
                 <text key={si} x={seg.xOffset} y={NATIVE_L3} fontSize={FALLBACK_FONT_SIZE} fontFamily="system-ui, sans-serif" fill={INK_COLOR}>
                   {seg.text}
@@ -169,12 +182,21 @@ export default function PrintPageView({ task, onClose }) {
     return map;
   }, [task]);
 
+  const elementsByLabel = useMemo(() => {
+    const map = new Map();
+    for (const item of task?.elements ?? []) map.set(item.id, item);
+    return map;
+  }, [task]);
+
   const lines = task?.lines ?? [];
+  const useElements = Boolean(task?.useElements);
   const text = lines.join("\n");
 
   const layout = useMemo(
-    () => layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
-    [text, lettersByLabel, connectorsByKey, punctuationByLabel]
+    () => useElements
+      ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
+      : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
+    [useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
   const pages = useMemo(() => paginateRows(layout, PRINT_ROWS_PER_PAGE), [layout]);
 

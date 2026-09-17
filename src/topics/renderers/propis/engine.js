@@ -14,6 +14,10 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
   // simply absent (undefined -> []) for every other mode, which never had them to begin with.
   const wordBank = Array.isArray(cards) ? [] : (cards?.words ?? []);
   const textBank = Array.isArray(cards) ? [] : (cards?.texts ?? []);
+  // Pre-writing elements (крючки, петли...) for read_lines' "Элементы букв" option -- bundled
+  // into the deck separately from `cards` (build-propis-deck.mjs merges tools/propis/elements.json
+  // into topic.json's own `elements` key), same reasoning as words/texts above.
+  const elementBank = Array.isArray(cards) ? [] : (cards?.elements ?? []);
   const withStrokes = allCards.filter((c) => Array.isArray(c.strokes) && c.strokes.length > 0);
   const letters = withStrokes.filter((c) => c.type === "letter");
   const connectors = withStrokes.filter((c) => c.type === "connector");
@@ -58,7 +62,11 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     // Blank lines are dropped -- the constructor lets a parent leave half-filled draft rows
     // without them showing up on the child's screen.
     const lines = (sessionParams?.lines ?? []).map((l) => l.trim()).filter(Boolean);
-    return [{ type: "print_page", letters, connectors, punctuation, lines }];
+    // "Элементы букв" (2026-09-17): when on, each line's string is an ELEMENT ID (picked from
+    // ElementPickerModal in ParamsScreen.jsx, not typed) instead of text -- PrintPageView.jsx
+    // needs the element bank to resolve those ids into strokes, same as letters/connectors.
+    const useElements = Boolean(sessionParams?.useElements);
+    return [{ type: "print_page", letters, connectors, punctuation, lines, useElements, elements: elementBank }];
   }
 
   if (mode.type === "browse") {
