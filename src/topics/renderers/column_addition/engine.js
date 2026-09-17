@@ -131,11 +131,18 @@ function generateAddTask(carryMode, digits, card, usedPairs, bottomDigits = digi
     const hasCarry = columns.some(c => c.carryOut > 0);
     if (carryMode === "none" && hasCarry) continue;
     if (carryMode === "carry" && !hasCarry) continue;
-    // "Круглые дес." never produces a result over 100 — 60+70=130 is too far
-    // past the round-hundred boundary for this introductory category. The
-    // only way carryMode:"carry" can be satisfied here is tens summing to
-    // exactly 10 (40+60=100 etc.), which the retry above already narrows to.
-    if (roundTens && top + bottom > 100) continue;
+    // Neither "Круглые дес." nor "2-зн. + 1-зн." should ever spill a digit
+    // past the grid's own width — 60+70=130 and 97+4=101 both broke this the
+    // same way (a carry cascading past the last real column, e.g. 97's tens
+    // digit being 9 pushes a units carry straight into hundreds). Plain
+    // uniform-width digits (2 or 3) already stay in-range by construction in
+    // the branches above, so these rejects only ever fire for these two.
+    // Round-tens' own cap is the round number itself (100), one higher than
+    // "2+1"'s (99 — same ceiling as plain 2-значные addition), since
+    // round-tens carryMode:"carry" is specifically about reaching exactly
+    // that boundary (40+60=100), not staying strictly under it.
+    if (roundTens && top + bottom > 10 ** digits) continue;
+    if (bottomDigits < digits && top + bottom > 10 ** digits - 1) continue;
     // Avoid handing back the exact same pair twice within one generated batch —
     // pure independent random draws otherwise repeat far more often than a
     // parent/child expects, especially once carryMode narrows the digit space.

@@ -127,6 +127,14 @@ describe("generateTasks – column_arithmetic, digits: \"2+1\" (2-зн. + 1-зн
     for (const t of tasks) expect(t.columns.some((c) => c.carryOut > 0)).toBe(true);
   });
 
+  it("add: sum never exceeds 99, regardless of carryMode (97+4=101 must never appear)", () => {
+    for (const carryMode of ["none", "carry", "mixed"]) {
+      const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "add", carryMode, digits: "2+1" });
+      expect(tasks.length).toBeGreaterThan(0);
+      for (const t of tasks) expect(t.result).toBeLessThanOrEqual(99);
+    }
+  });
+
   it("subtract/none: no borrow", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 20, { operation: "subtract", carryMode: "none", digits: "2+1" });
     for (const t of tasks) expect(t.columns.every((c) => c.borrowOut === 0)).toBe(true);
@@ -259,6 +267,14 @@ describe("generateExamples – digits: \"2+1\" (column_copy print mode)", () => 
       expect(ex.top).toBeLessThanOrEqual(99);
       expect(ex.bottom).toBeGreaterThanOrEqual(1);
       expect(ex.bottom).toBeLessThanOrEqual(9);
+    }
+  });
+
+  it("add sum never exceeds 99, regardless of carryMode (the reported 97+4 bug)", () => {
+    for (const carryMode of ["none", "carry", "mixed"]) {
+      const examples = generateExamples(15, { operation: "add", carryMode, digits: "2+1" });
+      expect(examples.length).toBeGreaterThan(0);
+      for (const ex of examples) expect(ex.top + ex.bottom).toBeLessThanOrEqual(99);
     }
   });
 });
