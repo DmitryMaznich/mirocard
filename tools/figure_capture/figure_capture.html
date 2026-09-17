@@ -158,6 +158,10 @@
     .work-panel { grid-row: 1; }
     #board { min-height: 52vh; }
   }
+  @media (max-width: 720px) and (orientation: portrait) {
+    .canvas-wrap { height: calc(100svh - 138px); min-height: 0; }
+    #board { height: 100%; min-height: 0; max-height: none; }
+  }
 </style>
 
 <main class="app">
@@ -413,6 +417,36 @@
     board.setAttribute("viewBox", `0 0 ${state.width} ${state.height}`);
     paper.setAttribute("width", state.width);
     paper.setAttribute("height", state.height);
+  }
+
+  function syncBoardToViewport() {
+    const portrait = window.matchMedia?.("(max-width: 720px) and (orientation: portrait)").matches;
+    const rect = board.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const nextWidth = 960;
+    const nextHeight = portrait ? Math.round(nextWidth * rect.height / rect.width) : 620;
+    if (state.width === nextWidth && Math.abs(state.height - nextHeight) < 2) return;
+    const scaleX = nextWidth / state.width;
+    const scaleY = nextHeight / state.height;
+    if (state.rasterTransform) {
+      state.rasterTransform = {
+        x: state.rasterTransform.x * scaleX,
+        y: state.rasterTransform.y * scaleY,
+        width: state.rasterTransform.width * scaleX,
+        height: state.rasterTransform.height * scaleY,
+      };
+    }
+    if (state.rasterBase) {
+      state.rasterBase = { width: state.rasterBase.width * scaleX, height: state.rasterBase.height * scaleY };
+    }
+    setBoardSize(nextWidth, nextHeight);
+    updateDraftDimensionsForGrid();
+    render();
+  }
+
+  function scheduleBoardViewportSync() {
+    const schedule = window.requestAnimationFrame || ((callback) => setTimeout(callback, 0));
+    schedule(syncBoardToViewport);
   }
 
   function svgPoint(event) {
@@ -1555,6 +1589,10 @@
   syncCalibrationPoints();
   updateDraftDimensionsForGrid();
   render();
+  window.addEventListener("resize", scheduleBoardViewportSync);
+  window.matchMedia?.("(max-width: 720px) and (orientation: portrait)").addEventListener?.("change", scheduleBoardViewportSync);
+  if (window.ResizeObserver) new ResizeObserver(scheduleBoardViewportSync).observe(board);
+  scheduleBoardViewportSync();
   loadFigureFromLink();
 })();
 </script>
