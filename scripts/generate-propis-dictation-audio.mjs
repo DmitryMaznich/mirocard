@@ -138,7 +138,9 @@ const topic = JSON.parse(readFileSync(TOPIC_JSON_PATH, "utf8"));
 function buildEntries() {
   const entries = [];
   if (!ONLY || ONLY === "letters") {
-    const letters = topic.cards.filter((c) => c.type === "letter" && Array.isArray(c.strokes) && c.strokes.length > 0);
+    // Excludes joint-stroke variants (variantOf set, e.g. "о_middle_ll") -- those aren't
+    // standalone dictation items, their `label` is an internal id, not a spoken letter.
+    const letters = topic.cards.filter((c) => c.type === "letter" && !c.variantOf && Array.isArray(c.strokes) && c.strokes.length > 0);
     for (const card of letters) {
       // Bare `card.label` (a single character like "а") was the actual bug reported
       // 2026-09-17: Gemini TTS handed a lone Cyrillic letter with no other words around
