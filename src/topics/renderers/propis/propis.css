@@ -695,14 +695,3 @@
 .propis-dictation-review-footer .propis-dictation-next {
   width: 100%;
 }
-
-.propis-dictation-review-stub-note {
-  margin: 0;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: #fff4e0;
-  border: 2px solid #f0d9a8;
-  color: #8a6a1f;
-  font-size: 13.5px;
-  text-align: center;
-}

@@ -1,13 +1,38 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useAppStore } from "@/core/store";
+import { getDb, kv } from "@/core/db";
+import { api } from "@/core/api";
+import PinGateModal from "@/shared/components/PinGateModal";
+import RewardVideoModal from "@/shared/components/RewardVideoModal";
 
 // Shown once every item has been dictated. Never shown during the session itself (see
 // DictationView.jsx) -- this is the FIRST point the answer appears on screen at all, since
 // automatic checking is impossible here (the child writes on paper, the app never sees it).
-// The adult compares this list against the notebook by eye.
+// The adult compares this list against the notebook by eye, then (if the session has video
+// reward enabled) confirms with the SAME account-wide adult PIN used everywhere else in the
+// app (ParamsScreen.jsx's own session-start gate) before the reward unlocks -- not a new,
+// separate PIN. Reads student/PIN straight from the global store rather than threading them
+// down as new props through PropisRenderer -> DictationView -> here: every other propis view
+// is already self-contained (docs/propis.md), and ParamsScreen.jsx reads adultPinHash the
+// same direct way, so this isn't a new pattern.
 export default function DictationReviewScreen({ task, onClose }) {
   const items = task?.items ?? [];
   const level = task?.level ?? "letters";
-  const [showRewardStub, setShowRewardStub] = useState(false);
+
+  const students = useAppStore((s) => s.students);
+  const activeStudentId = useAppStore((s) => s.activeStudentId);
+  const adultPinHash = useAppStore((s) => s.settings.adultPinHash);
+  const patchSettings = useAppStore((s) => s.patchSettings);
+  const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
+
+  const [stage, setStage] = useState("idle"); // "idle" | "pin" | "reward"
+
+  const handleSetPin = useCallback(async (hash) => {
+    patchSettings({ adultPinHash: hash });
+    const db = await getDb();
+    await kv.set(db, "settings", { ...useAppStore.getState().settings, adultPinHash: hash });
+    api.patch("/account/settings", { adultPinHash: hash }).catch(() => {});
+  }, [patchSettings]);
 
   return (
     <div className="propis-dictation-stage">
@@ -35,14 +60,8 @@ export default function DictationReviewScreen({ task, onClose }) {
         </div>
 
         <div className="propis-dictation-review-footer">
-          {showRewardStub ? (
-            // PIN-gated video-reward unlock is its own follow-up step, not built yet -- see
-            // docs/propis.md. Left visibly unfinished rather than faking a working flow.
-            <p className="propis-dictation-review-stub-note">
-              PIN-подтверждение видео-награды будет добавлено отдельным шагом.
-            </p>
-          ) : task?.videoRewardEnabled ? (
-            <button type="button" className="propis-dictation-next" onClick={() => setShowRewardStub(true)}>
+          {task?.videoRewardEnabled ? (
+            <button type="button" className="propis-dictation-next" onClick={() => setStage("pin")}>
               ✓ Всё верно
             </button>
           ) : (
@@ -52,6 +71,24 @@ export default function DictationReviewScreen({ task, onClose }) {
           )}
         </div>
       </div>
+
+      {stage === "pin" && (
+        <PinGateModal
+          pinHash={adultPinHash}
+          onSuccess={() => setStage("reward")}
+          onSetPin={handleSetPin}
+          onCancel={() => setStage("idle")}
+        />
+      )}
+
+      {stage === "reward" && activeStudent && (
+        <RewardVideoModal
+          rewardVideos={activeStudent.rewardVideos ?? []}
+          studentId={activeStudent.id}
+          onDismiss={onClose}
+          title="Диктант готов — молодец!"
+        />
+      )}
     </div>
   );
 }

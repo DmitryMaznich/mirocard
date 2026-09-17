@@ -531,6 +531,57 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     `isPlaying` was still true) — not a component bug, the test script's own wait time was
     shorter than 2 sentences × the 2.5s inter-sentence pause; fixed by waiting long enough
     before clicking, re-verified reaching the review screen correctly.
+- **"Всё верно" now opens a real PIN-gated video reward, 2026-09-17 —
+  replaces the stub note from the entry above.** `DictationReviewScreen.jsx`
+  gained a `stage` state (`"idle" | "pin" | "reward"`): clicking "Всё верно"
+  goes to `"pin"`, which renders the shared `PinGateModal` (the same
+  component/PIN as `ParamsScreen.jsx`'s own session-start gate — not a new,
+  separate PIN); success goes to `"reward"`, which renders the shared
+  `RewardVideoModal`; cancel returns to `"idle"`. Not a new architecture —
+  this is `column_addition`'s "Контрольная работа" pattern (`ColumnCopyView`
+  renders `RewardVideoModal` directly and self-contained, bypassing the
+  automatic `rewardPending`/threshold machinery), applied here because
+  Диктант has the same shape: no correctness-checking, so the standard
+  `mode.evaluation`-gated reward pipeline structurally doesn't fit.
+  - **Student/PIN come straight from `useAppStore`**, not threaded down as
+    new props through `PropisRenderer` → `DictationView` → here: every other
+    propis view is already self-contained this way, and `ParamsScreen.jsx`
+    reads `settings.adultPinHash` the same direct way. `activeStudent` is
+    `students.find(s => s.id === activeStudentId)`, same lookup
+    `SessionScreen.jsx` itself uses.
+  - **`pinHash === null` triggers `PinGateModal`'s own "set up a new PIN"
+    flow** (enter, then confirm) instead of "enter existing PIN" — this is
+    `PinGateModal`'s existing behavior, not new logic here. `onSetPin`
+    persists the new hash through the exact three-step pattern
+    `ParamsScreen.jsx`'s own `handleSetPin` uses: `patchSettings` (in-memory
+    store) → `kv.set(db, "settings", ...)` (IndexedDB) → fire-and-forget
+    `api.patch("/account/settings", ...)` (backend sync, `.catch(() => {})`
+    since a sync failure shouldn't block the PIN from working locally).
+  - **`RewardVideoModal` gets `activeStudent.rewardVideos ?? []`** — if the
+    active student has no configured reward videos, the modal still opens
+    (its own "⭐ Диктант готов" card with "Смотреть видео"/"Продолжать
+    занятие" buttons) and `handleWatch` no-ops to `onDismiss` if
+    `pickStoredRewardVideoId` finds nothing — same graceful-empty behavior
+    every other caller of this shared component already relies on, not
+    something added here.
+  - **Removed the now-orphaned `.propis-dictation-review-stub-note` CSS**
+    (the placeholder note's styling) — nothing references it anymore.
+  - **Verified**: `npx vite build` clean, full propis + `useSessionEngine`
+    vitest suite green (101 tests), and a dev-preview harness (`useAppStore
+    .setState` seeded with one fake student + one fake reward video, real
+    PIN unset so the setup flow exercises) screenshotted through all four
+    stages — idle review list → "Придумайте PIN-код" → "Повторите PIN-код"
+    → the real `RewardVideoModal` card, confirming `title="Диктант готов —
+    молодец!"` renders and the flow reaches the actual shared component
+    rather than the old placeholder. Did not separately re-screenshot the
+    cancel-back-to-idle path or the `videoRewardEnabled: false` "Готово"
+    path — both are unchanged code from the prior (already-verified) entry,
+    only the "Всё верно" branch changed here.
+  - **Still not done**: the `isPropis` toggle-visibility fix (below) is
+    topic-wide, not mode-aware — `videoRewardEnabled` can't actually be
+    turned on for Диктант from the options screen yet, only hardcoded via a
+    dev-preview task object as done here. Real Gemini TTS audio generation
+    for dictation items also hasn't been started.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
