@@ -1817,6 +1817,33 @@ being captured independently via the free-text-enabled
 `handwriting_capture.html` and ingested the same way as before, with no
 further code changes needed as the bank grows.
 
+**Post-deploy bug: picker showed an empty list in production (2026-09-17).**
+The deployed deck ZIP had `elements` (11 entries, verified via `unzip -p ...
+topic.json`) and `engine.js`/`ParamsScreen.jsx` correctly read
+`topicRecord.elements` — but `topicLoader.js`'s `importTopic()`, which
+installs a downloaded deck ZIP into IndexedDB, builds its persisted
+`record` object by **explicitly whitelisting fields** (`meta`, `modes`,
+`cards`, `texts`, `categories`, `items`, ...) rather than spreading the
+parsed manifest — a pattern every earlier normalizer in this file (
+`normalizeProcedural`/`normalizeReading`, both `{ ...manifest, ... }`)
+does NOT follow, which is exactly why this one field silently vanished
+between "in the ZIP" and "in the app". `elements` was never added to
+that whitelist when this feature was built, so the freshly-fetched
+manifest's `elements` bank was dropped at the exact point it got saved to
+IndexedDB — invisible in a dev-preview harness (which builds/reads
+`topicRecord` directly, bypassing `importTopic` entirely) and only
+reachable by testing the real app against a real downloaded deck, which
+is how the user caught it. Fixed by adding `elements: manifest.elements ??
+undefined` next to `categories`/`items` in that same `record` object.
+
+**Also had to bump the deck version** (`1.30.0` -> `1.30.1`, no other
+manifest change): `catalogService.js`'s `silentUpdateOutdatedTopics`
+only re-downloads+re-imports a deck when `installed.meta.version !==
+catalog.version`, so shipping the code fix alone would have left
+anyone who'd already installed `1.30.0` (with the bug) stuck on that
+broken cached IndexedDB record forever, with no re-fetch ever triggered
+by the version check.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

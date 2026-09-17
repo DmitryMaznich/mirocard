@@ -1908,6 +1908,12 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
     scenarios:  manifest.scenarios  ?? undefined,
     categories: manifest.categories ?? undefined,
     items:      manifest.items      ?? undefined,
+    // propis' "Элементы букв" picker (ParamsScreen.jsx) reads this bank off
+    // the installed record the same way texts/cards are read above — without
+    // it here, the deck's own elements (present in the downloaded ZIP's
+    // topic.json, see build-propis-deck.mjs) never survive the IndexedDB
+    // install step, so the picker always renders empty (2026-09-17).
+    elements:   manifest.elements   ?? undefined,
     installedAt: new Date().toISOString(),
   };
 
