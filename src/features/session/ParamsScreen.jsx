@@ -1673,6 +1673,9 @@ export default function ParamsScreen() {
   const isPropis = topicRecord?.meta.renderer === "propis";
 
   const allModes = topicRecord?.modes ?? [];
+  // Shared reading is deliberately not a rewarded exercise. The separate
+  // "Проверяем рассказ" mode keeps its video-bonus settings.
+  const isShortStoriesReadingMode = isShortStories && activeModeId === "read_stories";
   // This deck chooses its stories on this screen. Sending the user back to the
   // generic text picker creates a loop, because that picker deliberately skips
   // itself for this combined-stories mode. Go home instead so another topic can
@@ -2207,7 +2210,7 @@ export default function ParamsScreen() {
             </div>
           )}
 
-          {hasVideos && !isAlphabetPairs && !isNavigatorFlashCards && !isPropis && (
+          {hasVideos && !isAlphabetPairs && !isNavigatorFlashCards && !isPropis && !isShortStoriesReadingMode && (
             <div className="param-section">
               <div className="param-section__header">Награда за занятие</div>
 
