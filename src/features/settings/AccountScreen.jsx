@@ -8,9 +8,22 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import DangerZone from "./DangerZone";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
+const PLAN_LABELS = {
+  trial: "Пробный период",
+  free_grant: "Бесплатный доступ",
+  monthly: "Месяц",
+  half_year: "Полгода",
+  annual: "Год",
+};
+
+function formatPeriodEnd(iso) {
+  return new Date(iso).toLocaleDateString("ru", { day: "numeric", month: "long", year: "numeric" });
+}
+
 export default function AccountScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
   const logout    = useAppStore((s) => s.logout);
+  const subscription = useAppStore((s) => s.subscription);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   async function handleLogout() {
@@ -31,6 +44,20 @@ export default function AccountScreen() {
 
       <div className="settings-body">
         <AccountCard onLogout={handleLogout} />
+
+        <div className="settings-section">
+          <div className="settings-section-title">Подписка</div>
+          <div className="settings-row">
+            <span className="settings-row__label">
+              {subscription
+                ? `${PLAN_LABELS[subscription.plan] ?? subscription.plan} · до ${formatPeriodEnd(subscription.currentPeriodEnd)}`
+                : "Подписка не оформлена"}
+            </span>
+            <button className="link-btn" onClick={() => setScreen("subscription")}>
+              Управлять подпиской
+            </button>
+          </div>
+        </div>
 
         <div className="settings-section">
           <div className="settings-section-title">Безопасность</div>

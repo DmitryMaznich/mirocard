@@ -77,6 +77,10 @@ export default function TopicLibraryScreen() {
 
     if (!isGranted && shouldClaimCatalogDeck(entry)) {
       const result = await claimDeck(entry.id);
+      if (result.status === "locked") {
+        setScreen("subscription");
+        return;
+      }
       upsertOwnedTopic({ topicId: entry.id, source: result.status === "granted" ? "free" : "request" });
       if (result.status !== "granted") return; // pending — don't download yet
     }
@@ -95,7 +99,7 @@ export default function TopicLibraryScreen() {
       }
     }
     return record;
-  }, [buildInfo.version, token, upsertTopicRecord, upsertOwnedTopic, ownedTopics]);
+  }, [buildInfo.version, token, upsertTopicRecord, upsertOwnedTopic, ownedTopics, setScreen]);
 
   function handleSelectTopic(record) {
     setActiveTopicId(record.meta.id);
