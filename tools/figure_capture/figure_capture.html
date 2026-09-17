@@ -173,6 +173,7 @@
     <div class="head-actions">
       <a class="button" href="figures_gallery.html">Галерея JSON</a>
       <button class="button button--danger" type="button" id="resetBtn">Новый черновик</button>
+      <button class="button" type="button" id="headerUndoBtn">Отменить</button>
     </div>
   </header>
 
@@ -1556,6 +1557,7 @@
   $("deletePathBtn").addEventListener("click", deleteSelectedPath);
   $("clearPathsBtn").addEventListener("click", clearPaths);
   $("resetBtn").addEventListener("click", resetDraft);
+  $("headerUndoBtn").addEventListener("click", undoLast);
   $("copyBtn").addEventListener("click", copyCard);
   $("downloadCardBtn").addEventListener("click", () => download(`${$("idInput").value.trim() || "grid-figure"}.json`, $("cardOutput").value));
   $("addToSetBtn").addEventListener("click", addToSet);
