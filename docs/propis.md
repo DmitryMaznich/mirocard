@@ -327,9 +327,10 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     zoomed into the "Соедини две точки наклонной линией, потом
     вертикальной" block pixel-by-pixel rather than eyeballing the earlier
     low-res preview — the block turns out to have **three rows, each at a
-    different rule-line spacing** (matching the book's own "wide → narrow
-    → narrowest" ruling progression used elsewhere on the same page for
-    `01`): row 1 (widest spacing) is a long diagonal stroke leaning ~10-15°
+    different rule-line spacing** (a "wide → narrow → narrowest" ruling
+    progression genuinely unique to this one block — see the correction
+    entry below: `01`'s own two rows were wrongly assumed to follow the
+    same pattern and don't): row 1 (widest spacing) is a long diagonal stroke leaning ~10-15°
     off vertical; row 2 (narrower spacing) is the same lean but visibly
     shorter, height set by the tighter ruling; row 3 (narrowest, double-
     ruled) is perfectly vertical, no lean at all — confirmed by direct
@@ -350,6 +351,49 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     — these are reference/source material for manual tracing in
     `handwriting_capture.html`, not app code, so nothing from this step is
     committed to the repo.
+- **User asked, correctly, whether every element with 2 example rows is
+  actually two elements (wide-ruled vs narrow-ruled), same as "02" —
+  checked by direct pixel measurement instead of assuming either way,
+  same day.** Measured rule-line-to-rule-line height for both rows on
+  every multi-row element checked (`01`, `03`, `04`, `05`, `07a`, `09`,
+  `12`, `16`, `18` — a representative spread across all 7 source pages,
+  not just page 5): **every one of them has row 1 and row 2 at identical
+  rule height**, confirmed by cropping both rows at the same pixel scale
+  side by side (not eyeballed separately, where a subtle height
+  difference is easy to imagine). `02` remains the one genuine exception
+  — its three rows really do shrink in height row to row, unlike any
+  other block checked. Sent the user a direct side-by-side proof image
+  (`01` row1 vs row2, identical height; `02` row1 vs row3, visibly
+  different) rather than just asserting this. Net effect: the other 19
+  non-`02` elements are correctly single elements shown twice for
+  practice, not two elements each — did **not** blanket-split them, since
+  the evidence doesn't support it; asked the user to name a specific
+  element if they still see a real difference somewhere, rather than
+  guess-splitting 19 elements into 38 on a hunch.
+- **Fixed `#elementSelect` dropdown replaced with a free-text `#elementInput`
+  + `<datalist>`, 2026-09-17 — user request: "список недостаточен, не
+  будем усложнять".** The forced-choice `<select>` (added earlier this
+  session specifically to avoid mistyping the long slugs) turned out to
+  cut the other way once the registry needs to grow past its original 23
+  entries during real capture work — a fixed list can't offer an element
+  that isn't in it yet. Swapped to `<input list="elementDatalist">`: the
+  same 23 options now act as autocomplete suggestions (still fast to pick
+  a known slug, still typo-resistant for those), but any text can be
+  typed and submitted — the ingestion script's existing REGISTRY
+  warn-and-skip on an unrecognized id is still the actual safety net, now
+  doing the job the `<select>` used to do by brute force. Renamed the
+  element throughout (`elementSelect` → `elementInput`) rather than
+  keeping the old name on a different tag, updated the type-switch hint
+  text (was "Выберите элемент из списка", now "Впишите слаг элемента"),
+  and replaced the old "auto-advance the select to the next option after
+  capture" behavior with a plain clear-and-refocus — the exact same
+  pattern `labelInput` (the letter/connector case) already used, not a
+  new one. Verified with a real headless-browser run: switching to
+  "Элемент" shows the text input with its placeholder, typing an
+  arbitrary slug not in the datalist (`21_novy_element_ne_v_spiske`) is
+  accepted as-is, and a full draw-stroke → "Добавить в набор" click
+  correctly saves it and clears the field for the next capture, with zero
+  console errors.
 - **New mode "Диктант" (`dictation`) — topic.json + options only, 2026-09-17, engine/view
   not started.** User request: a standalone "controlled test" — the app speaks a letter,
   word or short text aloud and the child writes it in their own paper notebook; no

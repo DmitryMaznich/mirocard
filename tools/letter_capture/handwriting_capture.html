@@ -482,11 +482,18 @@
           <div class="field label-field" id="labelFieldWrap">
             <label for="labelInput" id="labelFieldLabel">Буквы</label>
             <input type="text" id="labelInput" maxlength="3" placeholder="Аба" autocomplete="off" />
-            <!-- Fixed list for "Элемент" — the slugs (scripts/propis_ingest_elements.mjs's
-                 REGISTRY keys) are long to type by hand and a typo there gets silently
-                 skipped by the ingestion script. Keep these 23 options in sync with that
-                 REGISTRY by hand — this static HTML file has no build step to share it from. -->
-            <select id="elementSelect" style="display:none;">
+            <!-- Free-text for "Элемент", with the known slugs (scripts/propis_ingest_elements.mjs's
+                 REGISTRY keys) offered as autocomplete suggestions, not an enforced list --
+                 the fixed <select> this used to be turned out too restrictive once the
+                 registry itself needed to grow past its original 23 (2026-09-17, user
+                 request: "список недостаточен, не будем усложнять"). Typing a slug that's
+                 not yet in REGISTRY is fine here -- the ingestion script still warns and
+                 skips anything it doesn't recognize, so add new ones to REGISTRY first.
+                 Keep this datalist in sync with REGISTRY by hand, same as before -- this
+                 static HTML file has no build step to share it from. -->
+            <input type="text" id="elementInput" list="elementDatalist" autocomplete="off"
+                   placeholder="напр. 21_novy_element" style="display:none;" />
+            <datalist id="elementDatalist">
               <option value="01_pryamaya_liniya">01 · Прямая линия</option>
               <option value="02a_naklonnaya_dlinnaya">02a · Наклонная длинная</option>
               <option value="02b_naklonnaya_korotkaya">02b · Наклонная короткая</option>
@@ -510,7 +517,7 @@
               <option value="18_poluovaly_spinkami">18 · Полуовалы спинками</option>
               <option value="19_petelka_s_nosikom">19 · Петелька с носиком</option>
               <option value="20_kryuchok_s_petelkoy">20 · Крючок с петелькой</option>
-            </select>
+            </datalist>
           </div>
         </div>
         <div class="field-row" id="connectorFieldWrap" style="display:none;">
@@ -621,7 +628,7 @@
   const typeSelect = document.getElementById("typeSelect");
   const addToSetBtn = document.getElementById("addToSetBtn");
   const labelInput = document.getElementById("labelInput");
-  const elementSelect = document.getElementById("elementSelect");
+  const elementInput = document.getElementById("elementInput");
   const labelFieldLabel = document.getElementById("labelFieldLabel");
   const labelFieldWrap = document.getElementById("labelFieldWrap");
   const connectorFieldWrap = document.getElementById("connectorFieldWrap");
@@ -1221,9 +1228,9 @@
       "Впишите до 3 букв (например «Аба») — они же станут подложкой-образцом. " +
       "Нарисуйте штрих(и) выше и добавьте в набор — холст очистится для следующей записи." },
     element: { fieldLabel: "Элемент", hint:
-      "Выберите элемент из списка — подложки для него нет (не буква алфавита), сверяйтесь " +
-      "с референс-листом. Нарисуйте штрих(и) выше и добавьте в набор — список сам " +
-      "переключится на следующий элемент." }
+      "Впишите слаг элемента (начните печатать — подскажет известные) — подложки для " +
+      "него нет (не буква алфавита), сверяйтесь с референс-листом. Нарисуйте штрих(и) " +
+      "выше и добавьте в набор — поле очистится для следующей записи." }
   };
 
   function applyTypeUI() {
@@ -1239,8 +1246,8 @@
     }
     const isElement = typeSelect.value === "element";
     labelInput.style.display = isElement ? "none" : "";
-    elementSelect.style.display = isElement ? "" : "none";
-    labelFieldLabel.setAttribute("for", isElement ? "elementSelect" : "labelInput");
+    elementInput.style.display = isElement ? "" : "none";
+    labelFieldLabel.setAttribute("for", isElement ? "elementInput" : "labelInput");
     const t = TYPE_COPY[typeSelect.value];
     if (!isElement) {
       labelInput.placeholder = t.placeholder;
@@ -1399,7 +1406,7 @@
       });
     } else {
       const isElement = typeSelect.value === "element";
-      const label = isElement ? elementSelect.value : labelInput.value.trim();
+      const label = isElement ? elementInput.value.trim() : labelInput.value.trim();
       if (!label) return;
       collection.push({
         type: typeSelect.value,
@@ -1417,11 +1424,8 @@
     clearBtn.disabled = true;
     redrawAll();
     if (typeSelect.value === "element") {
-      // Advance to the next element in the fixed list — captures happen in order,
-      // so this saves a reselect for every single one of the 21 items.
-      if (elementSelect.selectedIndex < elementSelect.options.length - 1) {
-        elementSelect.selectedIndex += 1;
-      }
+      elementInput.value = "";
+      elementInput.focus();
     } else if (!isConnector) {
       labelInput.value = "";
       labelInput.focus();
