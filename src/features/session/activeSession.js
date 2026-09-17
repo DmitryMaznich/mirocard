@@ -46,15 +46,26 @@ export function restoreActiveSessionState(snapshot, context) {
   if ((normalized.context.textId ?? null) !== (context.textId ?? null)) return null;
   if (normalized.context.modeId !== context.modeId) return null;
   if (normalized.sessionState.topicVersion !== context.topicVersion) return null;
+  // A parent can alter a mode's selected concepts without changing the topic
+  // version. Never revive an earlier queue in that case: it would make the
+  // picker show the new selection while the child still sees the old cards.
+  if (Array.isArray(context.conceptIds) && !sameConceptIds(normalized.sessionState.conceptIds, context.conceptIds)) return null;
 
   return normalized.sessionState;
 }
 
-// restoreActiveSessionState only checks identity (student/topic/text/mode/version), not
-// settings — so a snapshot from before the parent edited params/reward settings in Настройки
-// would silently resurrect the old task list and old answersPerStar/strictStars. Callers use
-// this to decide whether to clear the snapshot before navigating back into a session, so an
-// actual settings change forces a fresh session while an unchanged round-trip still resumes.
+function sameConceptIds(saved, expected) {
+  if (!Array.isArray(saved)) return false;
+  const normalize = (ids) => [...new Set(ids.filter(Boolean))].sort();
+  const left = normalize(saved);
+  const right = normalize(expected);
+  return left.length === right.length && left.every((id, index) => id === right[index]);
+}
+
+// restoreActiveSessionState checks the identity, topic version, and (when a
+// caller supplies it) the selected concept set. Settings remain outside that
+// snapshot identity, so callers use this helper to decide whether a changed
+// setting needs a fresh session.
 export function sessionSettingsChanged(current, baseline) {
   if (!current || !baseline) return true;
   if (current.videoRewardEnabled !== baseline.videoRewardEnabled) return true;

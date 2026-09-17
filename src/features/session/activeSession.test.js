@@ -54,6 +54,29 @@ describe("activeSession helpers", () => {
       topicVersion: "2.0.0",
     })).toBeNull();
   });
+
+  it("starts a fresh deck when the selected concepts changed", () => {
+    const savedState = {
+      status: "task_active",
+      topicVersion: "1.0.0",
+      conceptIds: ["yachta"],
+      tasks: [{ id: "yachta-task" }],
+    };
+    const snapshot = createActiveSessionSnapshot(
+      { studentId: "s1", topicId: "symmetry_draw", modeId: "symmetry_draw" },
+      savedState,
+    );
+    const context = {
+      studentId: "s1",
+      topicId: "symmetry_draw",
+      textId: null,
+      modeId: "symmetry_draw",
+      topicVersion: "1.0.0",
+    };
+
+    expect(restoreActiveSessionState(snapshot, { ...context, conceptIds: ["yachta"] })).toEqual(savedState);
+    expect(restoreActiveSessionState(snapshot, { ...context, conceptIds: ["symmetry_house", "yachta"] })).toBeNull();
+  });
 });
 
 describe("canResumeActiveSession", () => {

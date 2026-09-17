@@ -266,6 +266,7 @@ export function useSessionEngine() {
       textId: isReading ? activeTextId : null,
       modeId: activeModeId,
       topicVersion: topicRecord.meta.version,
+      conceptIds: selectedConceptIds,
     }) ?? generatedState;
   });
   const { getActiveDurationMs } = useActiveSessionTimer(
