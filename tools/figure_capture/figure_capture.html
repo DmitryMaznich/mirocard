@@ -93,6 +93,8 @@
   .drawing-toolbar .circle-diameter { display: none; grid-template-columns: auto minmax(120px, 190px); align-items: center; gap: 8px; margin: 0; color: #486a91; font-size: 12px; font-weight: 800; }
   .drawing-toolbar .circle-diameter.is-active { display: grid; }
   .drawing-toolbar .circle-diameter .range-row { min-width: 160px; }
+  .drawing-toolbar .circle-cell-toggle { display: none; margin: 0; }
+  .drawing-toolbar .circle-cell-toggle.is-active { display: flex; }
   .drawing-toolbar .icon-button::after { top: calc(100% + 8px); bottom: auto; }
   .canvas-wrap { position: relative; overflow: hidden; min-height: min(46.4vh, 576px); border: 1px solid #cfe0ef; border-radius: 12px; background: #e8f2fb; }
   #board { display: block; width: 100%; height: auto; min-height: min(46.4vh, 576px); max-height: 57.6vh; touch-action: none; user-select: none; cursor: crosshair; }
@@ -295,8 +297,9 @@
           <button class="button tool-button icon-button" type="button" id="circleTool" aria-pressed="false" data-tooltip="Вставить круг" title="Вставить круг" aria-label="Вставить круг">○</button>
         </div>
         <label class="circle-diameter" id="circleDiameterField">Диаметр, клеток
-          <span class="range-row"><input id="circleDiameter" type="range" min="0.25" max="12" step="0.25" value="2"><output class="range-value" id="circleDiameterValue">2 кл.</output></span>
+          <span class="range-row"><input id="circleDiameter" type="range" min="0.25" max="12" step="0.25" value="1"><output class="range-value" id="circleDiameterValue">1 кл.</output></span>
         </label>
+        <label class="toggle circle-cell-toggle" id="circleCellToggle"><input id="circleInCell" type="checkbox" checked>вписать в клетку</label>
         <div class="action-grid" role="group" aria-label="Действия с фигурой">
           <button class="button button--small icon-button" type="button" id="newPathBtn" data-tooltip="Новый штрих" title="Новый штрих" aria-label="Новый штрих">＋</button>
           <button class="button button--small icon-button" type="button" id="undoBtn" data-tooltip="Убрать последний узел, точку или штрих" title="Убрать последний узел, точку или штрих" aria-label="Убрать последний узел, точку или штрих">↶</button>
@@ -886,6 +889,7 @@
         event.stopPropagation();
         state.selectedCircle = circleIndex;
         $("circleDiameter").value = String(circle.diameter);
+        $("circleInCell").checked = circle.placement === "cell";
         state.selectedNode = null;
         state.selectedDot = null;
         state.selectedSegment = null;
@@ -1167,7 +1171,9 @@
     $("pointsTool").setAttribute("aria-pressed", String(state.tool === "points"));
     $("dotsTool").setAttribute("aria-pressed", String(state.tool === "dots"));
     $("circleTool").setAttribute("aria-pressed", String(state.tool === "circles"));
-    $("circleDiameterField").classList.toggle("is-active", state.tool === "circles" || state.selectedCircle !== null);
+    const circleControlsActive = state.tool === "circles" || state.selectedCircle !== null;
+    $("circleDiameterField").classList.toggle("is-active", circleControlsActive);
+    $("circleCellToggle").classList.toggle("is-active", circleControlsActive);
     $("simplifyValue").textContent = fmt(epsilon());
     $("sourceOpacityValue").textContent = `${Math.round(number($("sourceOpacity").value, 44))}%`;
     $("gridScaleValue").textContent = `${Math.round(number($("gridScale").value, 48))} px`;
@@ -1342,7 +1348,12 @@
   }
 
   function circleDiameter() {
-    return Math.max(.25, number($("circleDiameter").value, 2));
+    return Math.max(.25, number($("circleDiameter").value, 1));
+  }
+
+  function circleCenter(point, placement = $("circleInCell").checked ? "cell" : "node") {
+    if (placement === "cell") return { col: tidy(Math.floor(point.col) + .5), row: tidy(Math.floor(point.row) + .5) };
+    return snap(point);
   }
 
   function addCircle(point) {
@@ -1350,14 +1361,15 @@
       setNotice("Круги доступны для симметрии и повторения, не для диктанта.", "error");
       return;
     }
-    const center = snap(point);
-    const circle = { ...center, diameter: circleDiameter() };
+    const placement = $("circleInCell").checked ? "cell" : "node";
+    const center = circleCenter(point, placement);
+    const circle = { ...center, diameter: circleDiameter(), placement };
     state.circles.push(circle);
     state.selectedCircle = state.circles.length - 1;
     state.selectedNode = null;
     state.selectedDot = null;
     state.selectedSegment = null;
-    setNotice(`Круг диаметром ${fmt(circle.diameter)} кл. добавлен. Потяните его, чтобы сдвинуть; ползунок меняет диаметр.`, "good");
+    setNotice(`Круг диаметром ${fmt(circle.diameter)} кл. добавлен ${placement === "cell" ? "в клетку" : "на узел"}. Потяните его, чтобы сдвинуть; ползунок меняет диаметр.`, "good");
     render();
   }
 
@@ -1561,6 +1573,8 @@
     $("rasterScale").value = "100";
     $("rasterScaleX").value = "100";
     $("rasterScaleY").value = "100";
+    $("circleDiameter").value = "1";
+    $("circleInCell").checked = true;
     syncCalibrationPoints();
     updateDraftDimensionsForGrid();
     setNotice("Новый черновик готов.", "good");
@@ -1792,7 +1806,7 @@
     }
     if (state.draggingCircle && state.draggingCircle.pointerId === event.pointerId) {
       const circle = state.circles[state.draggingCircle.circleIndex];
-      if (circle) Object.assign(circle, snap(pixelToGrid(svgPoint(event))));
+      if (circle) Object.assign(circle, circleCenter(pixelToGrid(svgPoint(event)), circle.placement ?? "node"));
       render();
       return;
     }
@@ -1862,7 +1876,7 @@
   $("traceTool").addEventListener("click", () => { state.tool = "trace"; state.alignMode = null; setNotice("Режим обводки: после жеста линия будет выпрямлена по узлам."); render(); });
   $("pointsTool").addEventListener("click", () => { state.tool = "points"; state.alignMode = null; setNotice("Режим точек: щёлкайте по узлам, чтобы строить прямые сегменты."); render(); });
   $("dotsTool").addEventListener("click", () => { state.tool = "dots"; state.alignMode = null; setNotice("Режим отдельных точек: щёлкайте по узлам — точки не будут соединены линиями."); render(); });
-  $("circleTool").addEventListener("click", () => { state.tool = "circles"; state.alignMode = null; setNotice("Режим кругов: щёлкните по узлу, чтобы поставить центр; диаметр задаётся ползунком."); render(); });
+  $("circleTool").addEventListener("click", () => { state.tool = "circles"; state.alignMode = null; setNotice("Режим кругов: щёлкните по клетке, чтобы вписать круг; переключатель позволяет ставить центр на узел."); render(); });
   $("fitRasterBtn").addEventListener("click", fitRasterToBoard);
   $("resetRasterScaleBtn").addEventListener("click", () => {
     $("rasterScale").value = "100";
@@ -1876,6 +1890,10 @@
   $("rasterScaleY").addEventListener("input", setRasterScale);
   $("gridScale").addEventListener("input", setGridScale);
   $("circleDiameter").addEventListener("input", setCircleDiameter);
+  $("circleInCell").addEventListener("change", () => {
+    if (state.selectedCircle !== null && state.circles[state.selectedCircle]) state.circles[state.selectedCircle].placement = $("circleInCell").checked ? "cell" : "node";
+    render();
+  });
   document.querySelectorAll("[data-nudge-raster]").forEach((button) => button.addEventListener("click", () => nudgeRaster(button.dataset.nudgeRaster)));
   document.querySelectorAll("[data-nudge-grid]").forEach((button) => button.addEventListener("click", () => nudgeGrid(button.dataset.nudgeGrid)));
   $("newPathBtn").addEventListener("click", newPath);
