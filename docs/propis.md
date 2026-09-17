@@ -440,6 +440,61 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     the actual content. Full propis/session-engine suite re-run after (102 tests, 7 files,
     all green — one more than before purely from this check file existing at run time,
     deleted immediately after).
+- **"Диктант" session view — `DictationView.jsx`, same day.** Follow-up to the two entries
+  above: the actual screen a parent/child sees during a dictation session (steps 2-5 from
+  the plan — comparison screen, PIN-gated reward, `isPropis` per-mode fix, real audio —
+  are still separate, not built here).
+  - **Own full-screen overlay** (`.propis-dictation-stage`, `position:fixed;inset:0;
+    z-index:500`), same pattern as `PropisPracticeView`/`WriteTextView`/etc. — checked
+    those first rather than guessing: every propis mode except `browse`
+    (`PrintMaterialsView`, which deliberately renders inside the normal `SessionScreen`
+    header chrome) takes over the whole screen this way, no special dispatch needed in
+    `SessionScreen.jsx` for a new one to do the same. Registered in `propis/index.jsx`'s
+    `task.type` switch (`"dictation"` → `DictationView`).
+  - **Background is cream (`#fdfcf9`), not the practice view's tan `#cabfa9`** — that tan is
+    specifically the "paper desk" metaphor for on-screen writing, which this mode has none
+    of (the child writes on real paper, off-screen). Cream matches the
+    designing-mirocard-screens skill's literacy-family default instead.
+  - **`useDictationPlayer.js`** (new) — a small, propis-only audio sequencer, not a reuse of
+    `addition_subtraction`'s `useAudioSequence` (per this project's per-family
+    "duplicated, not shared" convention for topic-specific logic, and that hook has no
+    notion of a pause between clips anyway, which this needs for texts). Plays
+    `[{url, pauseAfterMs?}]` one at a time via plain `<audio>` + `"ended"`, advances on
+    `"error"` too so a missing/not-yet-recorded audio file can't hang the sequence.
+  - **Diktor circle**: teal gradient + 3-ring ripple + 4-bar bounce, the exact same visual
+    formula as `addition_subtraction`'s `.operation-audio-diktor` family in `styles.css`
+    (own copy in `propis.css` as `.propis-dictation-diktor*`/`.propis-dictation-ripple`,
+    not a cross-topic import — same convention as above) — reused because it's already the
+    established "this circle plays a voice" language in this app, not reinvented.
+  - **UI never shows `item.display` during the session** — only the progress counter
+    ("N из total"), the diktor circle, and the two action buttons. This is deliberate, not
+    an oversight: showing the letter/word/text on screen while dictating it would defeat
+    the entire point of a dictation test.
+  - **State machine**: `index` (current item), `repeatsUsed` (resets on every advance),
+    `done` (past the last item). Auto-plays the new item on every `index` change (matches
+    `AudioOperationTask`'s existing precedent in `addition_subtraction`). "Повторить"
+    disabled once `repeatsUsed` reaches `task.repeatLimit` (never disabled when
+    `repeatLimit` is `null`, i.e. unlimited). Both action buttons disabled while
+    `isPlaying`, to stop overlapping playback. Texts play their `sentences[]` one after
+    another with a 2.5s pause between each (`SENTENCE_PAUSE_MS`), as one "Повторить"/one
+    "Дальше →" unit — repeating a text replays all its sentences from the start, not just
+    the current one; picking a per-sentence repeat granularity instead wasn't asked for.
+  - **Past the last item**: a plain "Диктант окончен!" placeholder, not the real
+    comparison screen yet — explicitly marked as such in the UI copy itself
+    ("Экран сверки появится здесь позже"), not silently left blank.
+  - **Verified visually, not just from source** — the mandatory step per
+    designing-mirocard-screens: real React dev-preview harness (createRoot, both
+    `styles.css` and `propis.css` imported — first attempt without `styles.css` rendered
+    the done-screen title in a serif fallback font instead of Nunito, caught by comparing
+    the screenshot against the global-tokens section rather than assuming an isolated
+    harness matches the real app), headless-Chromium screenshots of: initial state (1 из 3,
+    both buttons, ripple/bar markup present), after 2 repeats (button correctly disabled at
+    the `repeatLimit=2` boundary), after advancing to item 2 (repeat count resets), the
+    "Диктант окончен!" screen after the last item, and the iOS safe-area check from
+    CLAUDE.md (`app-ios-standalone` + 59px/34px insets) — close button clears the
+    simulated Dynamic Island, bottom buttons clear the simulated home indicator. All via
+    real click events driving the actual component state (`page.click`), not just
+    reading the DOM once.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
