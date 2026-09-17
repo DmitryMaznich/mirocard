@@ -9,8 +9,8 @@
     --muted: #5f7896;
     --paper: #fffdf6;
     --canvas: #f3f8fd;
-    --line: #c9ddf1;
-    --node: #8fb6dc;
+    --line: #741b3d;
+    --node: #8b3151;
     --accent: #2563eb;
     --accent-deep: #173d91;
     --teal: #0d9488;
@@ -88,8 +88,11 @@
   .work-title { margin: 0; color: var(--ink); font-size: 15px; font-weight: 900; }
   .work-status { min-width: 0; color: var(--muted); font-size: 12px; font-weight: 800; text-align: right; }
   .work-status strong { color: var(--accent); }
-  .canvas-wrap { position: relative; overflow: hidden; min-height: min(58vh, 720px); border: 1px solid #cfe0ef; border-radius: 12px; background: #e8f2fb; }
-  #board { display: block; width: 100%; height: auto; min-height: min(58vh, 720px); max-height: 72vh; touch-action: none; user-select: none; cursor: crosshair; }
+  .drawing-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 10px; padding: 8px; border: 1px solid #d7e1ed; border-radius: 11px; background: #f8fbff; }
+  .drawing-toolbar .tool-row, .drawing-toolbar .action-grid { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; }
+  .drawing-toolbar .icon-button::after { top: calc(100% + 8px); bottom: auto; }
+  .canvas-wrap { position: relative; overflow: hidden; min-height: min(46.4vh, 576px); border: 1px solid #cfe0ef; border-radius: 12px; background: #e8f2fb; }
+  #board { display: block; width: 100%; height: auto; min-height: min(46.4vh, 576px); max-height: 57.6vh; touch-action: none; user-select: none; cursor: crosshair; }
   #board.is-calibrating { cursor: cell; }
   #board.is-points { cursor: copy; }
   #board.is-aligning { cursor: move; }
@@ -103,8 +106,8 @@
   .grid-handle--x { fill: #0d9488; }
   .grid-handle--y { fill: #f59e0b; }
   .grid-handle:active { cursor: grabbing; }
-  .grid-line { stroke: var(--line); stroke-width: 1.2; vector-effect: non-scaling-stroke; pointer-events: none; }
-  .grid-label { fill: #6d91b5; font: 800 13px/1 Nunito, sans-serif; pointer-events: none; }
+  .grid-line { stroke: var(--line); stroke-width: 1.35; stroke-opacity: .88; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .grid-label { fill: #66112f; font: 800 13px/1 Nunito, sans-serif; paint-order: stroke; stroke: #fffdf6; stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
   .cal-point { stroke: #fff; stroke-width: 2.5; vector-effect: non-scaling-stroke; pointer-events: none; }
   .cal-point--origin { fill: var(--accent); }
   .cal-point--x { fill: var(--teal); }
@@ -164,10 +167,11 @@
     .workspace, .right-column { grid-template-columns: 1fr; }
     .right-column { display: grid; }
     .work-panel { grid-row: 1; }
-    #board { min-height: 52vh; }
+    .drawing-toolbar { justify-content: center; }
+    #board { min-height: 41.6vh; }
   }
   @media (max-width: 720px) and (orientation: portrait) {
-    .canvas-wrap { height: calc(100svh - 138px); min-height: 0; }
+    .canvas-wrap { height: calc(100svh - 248px); min-height: 0; }
     #board { height: 100%; min-height: 0; max-height: none; }
   }
 </style>
@@ -250,26 +254,13 @@
 
       <section class="panel-section">
         <h2 class="section-title">4. Обводка</h2>
-        <div class="tool-row icon-grid" role="group" aria-label="Инструмент обводки">
-          <button class="button tool-button icon-button" type="button" id="traceTool" aria-pressed="true" data-tooltip="Обвести жестом" title="Обвести жестом" aria-label="Обвести жестом">〰</button>
-          <button class="button tool-button icon-button" type="button" id="pointsTool" aria-pressed="false" data-tooltip="Ставить узлы" title="Ставить узлы" aria-label="Ставить узлы">⊹</button>
-          <button class="button tool-button icon-button" type="button" id="dotsTool" aria-pressed="false" data-tooltip="Поставить одиночную точку" title="Поставить одиночную точку" aria-label="Поставить одиночную точку">●</button>
-        </div>
-        <div class="stack" style="margin-top:10px">
+        <div class="stack">
           <label class="field">Привязка<select id="snapStep"><option value="1">Только узлы</option><option value="0.5">Узлы и полклетки</option><option value="0">Точные точки из JSON</option></select></label>
           <label class="field">Чувствительность к углам
             <span class="range-row"><input id="simplifyRange" type="range" min="0.08" max="0.7" step="0.01" value="0.26"><output class="range-value" id="simplifyValue">0,26</output></span>
           </label>
         </div>
-        <div class="action-grid icon-grid">
-          <button class="button button--small icon-button" type="button" id="newPathBtn" data-tooltip="Новый штрих" title="Новый штрих" aria-label="Новый штрих">＋</button>
-          <button class="button button--small icon-button" type="button" id="undoBtn" data-tooltip="Убрать последний узел или штрих" title="Убрать последний узел или штрих" aria-label="Убрать последний узел или штрих">↶</button>
-          <button class="button button--small icon-button" type="button" id="deleteNodeBtn" data-tooltip="Удалить выбранный узел или точку" title="Удалить выбранный узел или точку" aria-label="Удалить выбранный узел или точку">⊗</button>
-          <button class="button button--small icon-button" type="button" id="deleteSegmentBtn" data-tooltip="Вырезать выбранный участок" title="Вырезать выбранный участок" aria-label="Вырезать выбранный участок">✂</button>
-          <button class="button button--small icon-button" type="button" id="deletePathBtn" data-tooltip="Удалить выбранный штрих" title="Удалить выбранный штрих" aria-label="Удалить выбранный штрих">⌫</button>
-          <button class="button button--small button--danger icon-button" type="button" id="clearPathsBtn" data-tooltip="Очистить все линии и точки" title="Очистить все линии и точки" aria-label="Очистить все линии и точки">⌧</button>
-        </div>
-        <p class="hint">«●» ставит отдельную точку размером с узел — она не соединяется с линиями. Нажмите красный узел или точку, чтобы перетащить или удалить. Нажмите на красный отрезок, затем «Вырезать участок» — линия разорвётся по этому месту.</p>
+        <p class="hint">Все инструменты находятся в панели над сеткой. «●» ставит отдельную точку размером с узел; узел или точку можно перетащить либо удалить.</p>
       </section>
 
       <section class="panel-section">
@@ -287,9 +278,24 @@
         <h2 class="work-title">Рабочее поле</h2>
         <div class="work-status" id="workStatus">Сетка ещё не настроена</div>
       </div>
+      <div class="drawing-toolbar" aria-label="Инструменты обводки">
+        <div class="tool-row" role="group" aria-label="Инструмент обводки">
+          <button class="button tool-button icon-button" type="button" id="traceTool" aria-pressed="true" data-tooltip="Обвести жестом" title="Обвести жестом" aria-label="Обвести жестом">〰</button>
+          <button class="button tool-button icon-button" type="button" id="pointsTool" aria-pressed="false" data-tooltip="Ставить узлы" title="Ставить узлы" aria-label="Ставить узлы">⊹</button>
+          <button class="button tool-button icon-button" type="button" id="dotsTool" aria-pressed="false" data-tooltip="Поставить одиночную точку" title="Поставить одиночную точку" aria-label="Поставить одиночную точку">●</button>
+        </div>
+        <div class="action-grid" role="group" aria-label="Действия с фигурой">
+          <button class="button button--small icon-button" type="button" id="newPathBtn" data-tooltip="Новый штрих" title="Новый штрих" aria-label="Новый штрих">＋</button>
+          <button class="button button--small icon-button" type="button" id="undoBtn" data-tooltip="Убрать последний узел, точку или штрих" title="Убрать последний узел, точку или штрих" aria-label="Убрать последний узел, точку или штрих">↶</button>
+          <button class="button button--small icon-button" type="button" id="deleteNodeBtn" data-tooltip="Удалить выбранный узел или точку" title="Удалить выбранный узел или точку" aria-label="Удалить выбранный узел или точку">⊗</button>
+          <button class="button button--small icon-button" type="button" id="deleteSegmentBtn" data-tooltip="Вырезать выбранный участок" title="Вырезать выбранный участок" aria-label="Вырезать выбранный участок">✂</button>
+          <button class="button button--small icon-button" type="button" id="deletePathBtn" data-tooltip="Удалить выбранный штрих" title="Удалить выбранный штрих" aria-label="Удалить выбранный штрих">⌫</button>
+          <button class="button button--small button--danger icon-button" type="button" id="clearPathsBtn" data-tooltip="Очистить все линии и точки" title="Очистить все линии и точки" aria-label="Очистить все линии и точки">⌧</button>
+        </div>
+      </div>
       <div class="canvas-wrap">
-        <svg id="board" viewBox="0 0 960 620" role="img" aria-label="Поле обводки растрового прототипа">
-          <rect class="board-paper" id="paper" x="0" y="0" width="960" height="620"></rect>
+        <svg id="board" viewBox="0 0 960 496" role="img" aria-label="Поле обводки растрового прототипа">
+          <rect class="board-paper" id="paper" x="0" y="0" width="960" height="496"></rect>
           <g id="sourceLayer"></g>
           <g id="gridLayer"></g>
           <g id="calibrationLayer"></g>
@@ -342,6 +348,8 @@
   const SVG_NS = "http://www.w3.org/2000/svg";
   const STORAGE_KEY = "mirocard_grid_figure_collection_v1";
   const DRAFT_KEY = "mirocard_grid_figure_draft_v1";
+  const DEFAULT_BOARD_WIDTH = 960;
+  const DEFAULT_BOARD_HEIGHT = 496;
 
   const $ = (id) => document.getElementById(id);
   const board = $("board");
@@ -359,8 +367,8 @@
     imageName: null,
     rasterTransform: null,
     rasterBase: null,
-    width: 960,
-    height: 620,
+    width: DEFAULT_BOARD_WIDTH,
+    height: DEFAULT_BOARD_HEIGHT,
     calibration: { origin: { x: 0, y: 0 }, ux: { x: 48, y: 0 }, uy: { x: 0, y: 48 } },
     calibrationPoints: [],
     calibrationMode: false,
@@ -441,8 +449,8 @@
     const portrait = window.matchMedia?.("(max-width: 720px) and (orientation: portrait)").matches;
     const rect = board.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
-    const nextWidth = 960;
-    const nextHeight = portrait ? Math.round(nextWidth * rect.height / rect.width) : 620;
+    const nextWidth = DEFAULT_BOARD_WIDTH;
+    const nextHeight = portrait ? Math.round(nextWidth * rect.height / rect.width) : DEFAULT_BOARD_HEIGHT;
     if (state.width === nextWidth && Math.abs(state.height - nextHeight) < 2) return;
     const scaleX = nextWidth / state.width;
     const scaleY = nextHeight / state.height;
@@ -1410,7 +1418,7 @@
     state.draggingDot = null;
     state.tracing = null;
     state.importedCard = null;
-    setBoardSize(960, 620);
+    setBoardSize(DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
     $("labelInput").value = "Новая фигура";
     $("idInput").value = "repeat_new_figure";
     $("idInput").readOnly = false;
@@ -1435,7 +1443,7 @@
     state.importedCard = null;
     $("idInput").readOnly = false;
     $("taskKind").disabled = false;
-    setBoardSize(960, 620);
+    setBoardSize(DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
     state.calibration = { origin: { x: 122, y: 86 }, ux: { x: 66, y: 0 }, uy: { x: 0, y: 47 } };
     state.calibrationPoints = [
       { x: 122, y: 86 },
@@ -1498,7 +1506,7 @@
       image.onload = () => {
         state.imageHref = String(reader.result);
         state.imageName = file.name;
-        setBoardSize(960, 620);
+        setBoardSize(DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
         state.rasterBase = { width: state.width, height: state.height };
         state.rasterTransform = { x: 0, y: 0, width: state.width, height: state.height };
         $("rasterScale").value = "100";
@@ -1526,7 +1534,7 @@
   }
 
   function setEditorGrid(columns, height) {
-    setBoardSize(960, 620);
+    setBoardSize(DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
     const cell = Math.max(18, Math.min(72, (state.width - 160) / columns, (state.height - 150) / height));
     const origin = { x: 80, y: 76 };
     state.calibration = { origin, ux: { x: cell, y: 0 }, uy: { x: 0, y: cell } };
