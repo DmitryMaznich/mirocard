@@ -776,6 +776,60 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     `up_а → "заглавная А"`, `lo_а → "строчная а"`, etc. — confirming the
     actual phrase Gemini will receive now, not just that the code compiles.
     Full propis test suite (100 tests) and `npm run build` still clean.
+- **First real captures ingested into `tools/propis/elements.json`, 2026-09-17
+  — two rounds, now 12/27.** Round 1 (3 elements): `02a_naklonnaya_dlinnaya`,
+  `02b_naklonnaya_korotkaya`, `03_zaborchik_ploskie` — verified by measuring
+  each stroke's angle from vertical against the real scan (02a/02b/03's
+  diagonal side all landed at ~25°, the book's own standard slant; 02a's
+  span was ~2× 02b's, matching long/short) before trusting the labels.
+  Deliberately did NOT ingest that round's own `01_pryamaya_liniya` capture
+  — one of its 3 strokes was a stray/out-of-bounds scribble (y up to 228 in
+  a declared 150-tall viewBox, nowhere near the other two strokes'
+  coordinates) — flagged it to the user instead of baking in bad data.
+  - **Round 2 (10 elements, once the free-text element field above was
+    live)**: a clean recapture of `01_pryamaya_liniya` (2 strokes this
+    time, no stray artifact — verified), a recapture of
+    `03_zaborchik_ploskie` (the ingestion script's own id-based upsert
+    handles this as an update, not a duplicate), plus `02c_vertikalnaya`,
+    `04_zaborchik_ostrye`, `05_kryuchok_vlevo`, `06_kryuchok_vpravo` (all
+    already in `REGISTRY`) — **and four more the user captured under
+    their own ad-hoc labels** (`Заборчик мал.`, `Заборчик_остр.мал`,
+    `05_kryuchok_vlevo.мал`, `06_kryuchok_vpravo.мал`) that weren't in
+    `REGISTRY` at all.
+  - **Those four are deliberately NOT in the source book** — the book only
+    ever shows one height for 01/03/04/05/06's drills (see the pixel
+    measurement two entries above: 01's two printed rows are identical
+    height, not wide/narrow). The user captured a second, independently
+    hand-drawn half-height trace of 03/04/05/06 anyway, on their own
+    initiative once free typing was possible, for use in the app at a
+    narrower ruling than the book itself uses. Checked this wasn't
+    accidental noise before accepting it: computed each pair's bounding-box
+    y-span (`03`: 52.6 → `Заборчик мал.`: 27.2; `04`: 50.0 → 24.3; `05`:
+    50.0 → 24.3; `06`: 49.2 → 24.0) — every "мал." capture lands at ~48-54%
+    of its full-size sibling's height, matching 02a→02b's own ~46% ratio
+    closely enough to be a real, deliberate half-scale trace, not a
+    duplicate or a mis-click.
+  - **Renamed to canonical slugs before ingesting**, rather than keeping
+    the user's ad-hoc labels as permanent ids: `03_zaborchik_ploskie_uzkaya`,
+    `04_zaborchik_ostrye_uzkaya`, `05_kryuchok_vlevo_uzkaya`,
+    `06_kryuchok_vpravo_uzkaya` — `_uzkaya` ("узкая", narrow) rather than
+    a literal translation of "мал." ("small"), matching
+    `propisRuling.js`'s own established "узкая строка" terminology for a
+    tighter ruling, not inventing new vocabulary. Added all four to
+    `REGISTRY` (`scripts/propis_ingest_elements.mjs`) and to
+    `handwriting_capture.html`'s `#elementDatalist` (kept in sync by hand,
+    same convention as every other entry there) — inventory is now 27,
+    not 23. The registry's own header comment now explains these four are
+    an app-side addition, not book content, so a later reader doesn't go
+    hunting for a "narrow" row on page 5/6 that was never there.
+  - **Verified visually**: rendered all 12 ingested elements together on
+    the real `propisRuling.js` ruling geometry (same dev-preview approach
+    as the earlier mockup) and screenshotted them as one grid — every
+    shape matches its label (hook direction, fence tooth shape, diagonal
+    vs. vertical), and every `_uzkaya` sibling reads as a visibly smaller
+    version of its full-size counterpart at a glance, not just by the
+    measured numbers. `npm run build` and the full propis test suite
+    (100 tests) still clean after both the registry and data changes.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
