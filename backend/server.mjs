@@ -1166,7 +1166,17 @@ function serveStaticFile(res, absPath) {
 function trySpaFallback(req, res, pathname) {
   if (!SERVE_STATIC || req.method !== "GET") return false;
 
-  const relative = path.normalize(pathname).replace(/^([.][.][/\\])+/, "");
+  // url.pathname is percent-encoded (WHATWG URL never decodes it), so non-ASCII
+  // filenames -- e.g. propis dictation audio named after Cyrillic letters --
+  // need decoding before hitting the filesystem, or existsSync always misses
+  // and every request for them silently falls through to the SPA shell below.
+  let decodedPathname = pathname;
+  try {
+    decodedPathname = decodeURIComponent(pathname);
+  } catch {
+    // malformed percent-encoding -- fall through to the SPA shell as before
+  }
+  const relative = path.normalize(decodedPathname).replace(/^([.][.][/\\])+/, "");
   const candidate = path.join(DEPLOY_FRONTEND_DIR, relative);
   if (candidate.startsWith(DEPLOY_FRONTEND_DIR) && existsSync(candidate) && statSync(candidate).isFile()) {
     serveStaticFile(res, candidate);
