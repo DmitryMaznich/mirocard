@@ -291,6 +291,79 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     all 21 options, drawing enables "Добавить в набор", and after clicking it the
     collection holds `{type:"element", label:"01_pryamaya_liniya", ...}` and the
     select has already moved to `02_naklonnaya_vertikalnaya`.
+- **New mode "Диктант" (`dictation`) — topic.json + options only, 2026-09-17, engine/view
+  not started.** User request: a standalone "controlled test" — the app speaks a letter,
+  word or short text aloud and the child writes it in their own paper notebook; no
+  keyboard, no writing surface on screen at all (unlike every other propis mode).
+  - **`tools/propis/topic.json`'s `modes[]`** gained `id`/`type` `"dictation"`,
+    `evaluation: "none"` (see reward note below for why this didn't need to change),
+    `hideConceptPicker: true`, matching the shape of every other propis mode.
+  - **`params`** — all five options render through `ParamsScreen.jsx`'s already-generic
+    `enum`/`number`/`boolean` param types (confirmed by reading its render logic, not
+    assumed — these are the same code paths `fingers_count`/`graphic_dictation`/etc.
+    already exercise, no new UI code needed for the options screen itself):
+    `level` (`enum`: буквы/слова/тексты), `itemCount` (`number`, how many items this
+    session), `unlimitedRepeats` (`boolean`) + `repeatLimit` (`number`, hidden via
+    `showWhen: {unlimitedRepeats: false}` when unlimited is on — `showWhen` was already
+    supported by the renderer, just unused by any propis mode until now), and
+    `videoRewardEnabled` (`boolean`, no threshold — see below).
+  - **Content banks — reused, nothing new authored**: letters from the existing captured
+    alphabet (`wordEngine.js` cards, uppercase and lowercase as separate dictation items
+    per the user's explicit call — "А" and "а" get their own audio each, not one recording
+    with a spoken case prefix), words from `scripts/propis_worksheets/words.py`
+    (BLOCK_A + BLOCK_B, 249 words total, confirmed by parsing the file rather than
+    guessing), texts from `topic.json`'s own `texts[]` (t01–t24, same list `read_text`
+    already uses) — all three drawn in random order at session-generation time (not yet
+    implemented — that's `engine.js`, next step, not this one).
+  - **Reward is deliberately NOT the shared `buildRewardProgress` percentage/threshold
+    system** every other rewarded topic uses — checked `rewardProgress.js` directly:
+    that pipeline computes a target from `correctCount`/`total`, and dictation has no
+    machine-checkable answer at all (the child's handwriting is on paper, the app never
+    sees it). Per the user's own design: a single end-of-session comparison screen shows
+    everything that was dictated, an adult visually checks the paper notebook against it,
+    then presses "Всё верно" and enters a PIN (a new, separate PIN prompt — not the
+    existing pre-session params-screen PIN gate, which propis currently bypasses entirely
+    via `ParamsScreen.jsx`'s topic-wide `isPropis` flag) to unlock `RewardVideoModal`
+    directly, no percentage involved. Net effect: `mode.evaluation` could stay `"none"`
+    after all (earlier assumption in this conversation that it needed to change was
+    wrong — corrected once the reward mechanism turned out to bypass the shared pipeline
+    entirely rather than reuse it with a 100% threshold).
+  - **Known follow-up, not done here**: `isPropis` in `ParamsScreen.jsx` (line ~1548,
+    `topicRecord?.meta.renderer === "propis"`) hides the video-reward toggle for the
+    *whole topic*; it needs to become mode-aware (e.g. also check `mode?.id ===
+    "dictation"`) before `videoRewardEnabled` can actually surface in the options screen
+    — the param is declared, but nothing shows it yet.
+  - **`media/icons/propis_dictation.svg`** added to `src/topics/builtinAssets.js` (propis
+    icons resolve purely through this builtin-fallback map — confirmed no
+    `tools/propis/media/` directory exists at all, `build-propis-deck.mjs` only ever
+    bundles `print/`+`thumbnails/`). Breaks the family's "ruled card + ink squiggle"
+    language on purpose, same reasoning as `print_materials`'s icon: this mode shows no
+    handwriting on screen, so the main image is the real audio-mode "diktor" circle
+    (`operation-audio-diktor`'s own teal gradient, `styles.css`) with two ring arcs
+    standing in for its ripple animation, corner badge is a small pencil instead of the
+    usual ink-squiggle card (a ruled card would wrongly imply the answer appears on
+    screen).
+  - **Version bump + deck rebuild**: `meta.version` `1.27.2` → `1.28.0` (new mode, not a
+    fix — minor bump), `node scripts/build-propis-deck.mjs` → `propis_v1.28.0.zip` (81
+    cards, 5 modes, 23 bundled assets), `catalog.json` updated to match.
+  - **Verification done**: JSON validity, `npm run build` clean, deck zip rebuild
+    succeeded. **Not done**: a live screenshot of the options screen — `ParamsScreen`
+    takes zero props (pulls everything from app-wide store/routing state internally,
+    confirmed by reading its signature), so mounting it standalone the way
+    `PrintMaterialsView` was screenshotted earlier this session would need a much
+    heavier full-app harness; deferred rather than built for a data-only schema change.
+    Structural confidence instead comes from `level`/`itemCount`/`unlimitedRepeats`/
+    `repeatLimit`/`videoRewardEnabled` using exactly the same `type` strings and field
+    shapes (`label.ru`, `values`+`labels.ru`, `min`/`max`/`default`, `showWhen`) that
+    other already-shipped topics' params already exercise in that same renderer.
+  - **Explicitly not started**: `engine.js`'s `dictation` branch (currently falls through
+    to `return []`, same as any unrecognized `mode.type` — confirmed this doesn't crash
+    `SessionScreen`, just yields zero tasks), the session view itself (diktor circle +
+    advance-by-tap/button + repeat button), the end-of-session comparison screen, the new
+    PIN-confirm-to-unlock-video flow, the `isPropis` mode-awareness fix above, and all
+    dictation audio (new `scripts/generate-propis-dictation-audio.mjs`, Gemini
+    `gemini-2.5-flash-preview-tts`, voice `Kore` — same pipeline as
+    `generate-word-agreement-audio.mjs`).
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
