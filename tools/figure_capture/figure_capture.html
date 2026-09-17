@@ -34,7 +34,6 @@
   .app { width: min(1540px, 100%); margin: 0 auto; padding: clamp(12px, 2vw, 28px); }
   .app-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
   h1 { margin: 0; color: var(--ink); font-size: clamp(24px, 3vw, 36px); line-height: 1.06; letter-spacing: -.03em; }
-  .lede { max-width: 66ch; margin: 7px 0 0; color: var(--muted); font-size: 14px; font-weight: 650; line-height: 1.45; }
   .head-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
   .button { min-height: 40px; padding: 9px 13px; border: 1px solid #bed4ea; border-radius: 10px; color: #275389; background: #fff; font-weight: 800; line-height: 1; box-shadow: 0 2px 0 rgba(42, 87, 143, .12); text-decoration: none; }
   .button:hover:not(:disabled) { background: #f5f9ff; }
@@ -44,10 +43,15 @@
   .button--teal { border-color: var(--teal); color: #fff; background: var(--teal); box-shadow: 0 3px 0 #087067; }
   .button--danger { border-color: #f2bdc3; color: var(--bad); background: #fff; }
   .button--small { min-height: 32px; padding: 6px 9px; border-radius: 8px; font-size: 12px; }
+  .icon-button { position: relative; display: inline-grid; place-items: center; width: 40px; min-width: 40px; height: 40px; min-height: 40px; padding: 0; font-size: 20px; line-height: 1; }
+  .icon-button.button--small { width: 36px; min-width: 36px; height: 36px; min-height: 36px; padding: 0; font-size: 18px; }
+  .icon-button::after { position: absolute; z-index: 20; right: 0; bottom: calc(100% + 8px); width: max-content; max-width: min(240px, 78vw); padding: 7px 9px; border-radius: 8px; color: #fff; background: #173d72; box-shadow: 0 6px 18px rgba(19,61,114,.24); content: attr(data-tooltip); font-size: 12px; font-weight: 800; line-height: 1.25; opacity: 0; pointer-events: none; transform: translateY(3px); transition: opacity .14s ease, transform .14s ease; }
+  .icon-button:hover::after, .icon-button:focus-visible::after, .icon-button:focus-within::after { opacity: 1; transform: translateY(0); }
+  .icon-button > input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 
   .workspace { display: grid; grid-template-columns: minmax(220px, 270px) minmax(0, 1fr) minmax(220px, 280px); gap: 14px; align-items: start; }
   .panel { border: 1px solid var(--border); border-radius: 16px; background: rgba(255,255,255,.94); box-shadow: 0 10px 28px rgba(35, 77, 125, .08); }
-  .side-panel { overflow: hidden; }
+  .side-panel { overflow: visible; }
   .panel-section { padding: 15px; border-top: 1px solid #e5edf6; }
   .panel-section:first-child { border-top: 0; }
   .section-title { margin: 0 0 9px; color: var(--ink); font-size: 14px; font-weight: 900; letter-spacing: .01em; }
@@ -58,9 +62,6 @@
   .field input:focus, .field select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.13); }
   .field--inline { grid-template-columns: 1fr 1fr; gap: 8px; }
   .field--inline > label { display: grid; gap: 5px; }
-  .file-button { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 42px; padding: 9px; border: 1.5px dashed #9cbbdb; border-radius: 10px; color: #2a5d9d; background: #f8fbff; font-size: 13px; font-weight: 900; text-align: center; cursor: pointer; }
-  .file-button:hover { border-color: var(--accent); background: #f1f6ff; }
-  .file-button input { display: none; }
   .calibration { margin-top: 10px; padding: 9px; border-radius: 10px; background: #f2f8ff; color: #365b86; font-size: 12px; font-weight: 750; line-height: 1.36; }
   .calibration.is-ready { background: var(--good-bg); color: #206841; }
   .calibration.is-active { background: var(--warn-bg); color: var(--warn); }
@@ -68,6 +69,7 @@
   .tool-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
   .tool-button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: #edf4ff; box-shadow: inset 0 0 0 1px rgba(37,99,235,.12); }
   .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 9px; }
+  .icon-grid { grid-template-columns: repeat(2, 40px); justify-content: center; }
   .toggle { display: flex; align-items: center; gap: 8px; min-height: 28px; color: #486a91; font-size: 12px; font-weight: 800; cursor: pointer; }
   .toggle input { width: 16px; height: 16px; accent-color: var(--accent); }
   .range-row { display: grid; grid-template-columns: 1fr 42px; align-items: center; gap: 8px; }
@@ -168,12 +170,14 @@
   <header class="app-head">
     <div>
       <h1>Мастерская фигур</h1>
-      <p class="lede">Обведите прототип жестом или точками. После отпускания каждый жест превращается в прямые сегменты между узлами сетки — кривизна руки в результат не попадает.</p>
     </div>
     <div class="head-actions">
-      <a class="button" href="figures_gallery.html">Галерея JSON</a>
-      <button class="button button--danger" type="button" id="resetBtn">Новый черновик</button>
-      <button class="button" type="button" id="headerUndoBtn">Отменить</button>
+      <label class="button icon-button" data-tooltip="Загрузить растровую подложку" title="Загрузить растровую подложку" aria-label="Загрузить растровую подложку">▧
+        <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+      </label>
+      <a class="button icon-button" href="figures_gallery.html" data-tooltip="Открыть галерею JSON" title="Открыть галерею JSON" aria-label="Открыть галерею JSON">▦</a>
+      <button class="button button--danger icon-button" type="button" id="resetBtn" data-tooltip="Новый черновик" title="Новый черновик" aria-label="Новый черновик">↻</button>
+      <button class="button icon-button" type="button" id="headerUndoBtn" data-tooltip="Отменить последнее действие" title="Отменить последнее действие" aria-label="Отменить последнее действие">↶</button>
     </div>
   </header>
 
@@ -181,9 +185,6 @@
     <aside class="panel side-panel left-column" aria-label="Настройка фигуры">
       <section class="panel-section">
         <h2 class="section-title">1. Растровая подложка</h2>
-        <label class="file-button">Загрузить растр или скан
-          <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
-        </label>
         <label class="field">Масштаб растра (пропорционально)
           <span class="range-row"><input id="rasterScale" type="range" min="25" max="250" step="1" value="100"><output class="range-value" id="rasterScaleValue">100%</output></span>
         </label>
@@ -193,16 +194,16 @@
         <label class="field">Коррекция по вертикали
           <span class="range-row"><input id="rasterScaleY" type="range" min="25" max="250" step="1" value="100"><output class="range-value" id="rasterScaleYValue">100%</output></span>
         </label>
-        <div class="action-grid">
-          <button class="button button--small" type="button" id="fitRasterBtn">Растр по полю</button>
-          <button class="button button--small" type="button" id="resetRasterScaleBtn">Сбросить масштаб</button>
+        <div class="action-grid icon-grid">
+          <button class="button button--small icon-button" type="button" id="fitRasterBtn" data-tooltip="Подогнать растр по полю" title="Подогнать растр по полю" aria-label="Подогнать растр по полю">⊡</button>
+          <button class="button button--small icon-button" type="button" id="resetRasterScaleBtn" data-tooltip="Сбросить все масштабы растра" title="Сбросить все масштабы растра" aria-label="Сбросить все масштабы растра">↺</button>
         </div>
         <p class="hint">Сначала подберите общий масштаб, затем при необходимости растяните растр отдельно по X или Y — это компенсирует вытянутые клетки на скане.</p>
         <div class="nudge-controls" aria-label="Сдвиг растра">
-          <button class="button button--small" type="button" data-nudge-raster="up" data-nudge-up aria-label="Сдвинуть растр вверх">↑</button>
-          <button class="button button--small" type="button" data-nudge-raster="left" data-nudge-left aria-label="Сдвинуть растр влево">←</button>
-          <button class="button button--small" type="button" data-nudge-raster="down" data-nudge-down aria-label="Сдвинуть растр вниз">↓</button>
-          <button class="button button--small" type="button" data-nudge-raster="right" data-nudge-right aria-label="Сдвинуть растр вправо">→</button>
+          <button class="button button--small icon-button" type="button" data-nudge-raster="up" data-nudge-up data-tooltip="Сдвинуть растр вверх" title="Сдвинуть растр вверх" aria-label="Сдвинуть растр вверх">↑</button>
+          <button class="button button--small icon-button" type="button" data-nudge-raster="left" data-nudge-left data-tooltip="Сдвинуть растр влево" title="Сдвинуть растр влево" aria-label="Сдвинуть растр влево">←</button>
+          <button class="button button--small icon-button" type="button" data-nudge-raster="down" data-nudge-down data-tooltip="Сдвинуть растр вниз" title="Сдвинуть растр вниз" aria-label="Сдвинуть растр вниз">↓</button>
+          <button class="button button--small icon-button" type="button" data-nudge-raster="right" data-nudge-right data-tooltip="Сдвинуть растр вправо" title="Сдвинуть растр вправо" aria-label="Сдвинуть растр вправо">→</button>
         </div>
       </section>
 
@@ -211,23 +212,23 @@
         <label class="field">Шаг сетки
           <span class="range-row"><input id="gridScale" type="range" min="20" max="120" step="1" value="48"><output class="range-value" id="gridScaleValue">48 px</output></span>
         </label>
-        <div class="action-grid">
-          <button class="button button--small" type="button" id="resetGridBtn">Сетка по умолчанию</button>
+        <div class="action-grid icon-grid">
+          <button class="button button--small icon-button" type="button" id="resetGridBtn" data-tooltip="Сбросить сетку" title="Сбросить сетку" aria-label="Сбросить сетку">⌗</button>
         </div>
         <p class="hint">Меньше шаг — клеток на полотне больше; больше шаг — клеток меньше. Сетка видна всегда.</p>
         <div class="calibration" id="calibrationStatus">Сетка готова.</div>
         <p class="hint">Точное положение сетки — по 2 пикселя за нажатие.</p>
         <div class="nudge-controls" aria-label="Сдвиг сетки">
-          <button class="button button--small" type="button" data-nudge-grid="up" data-nudge-up aria-label="Сдвинуть сетку вверх">↑</button>
-          <button class="button button--small" type="button" data-nudge-grid="left" data-nudge-left aria-label="Сдвинуть сетку влево">←</button>
-          <button class="button button--small" type="button" data-nudge-grid="down" data-nudge-down aria-label="Сдвинуть сетку вниз">↓</button>
-          <button class="button button--small" type="button" data-nudge-grid="right" data-nudge-right aria-label="Сдвинуть сетку вправо">→</button>
+          <button class="button button--small icon-button" type="button" data-nudge-grid="up" data-nudge-up data-tooltip="Сдвинуть сетку вверх" title="Сдвинуть сетку вверх" aria-label="Сдвинуть сетку вверх">↑</button>
+          <button class="button button--small icon-button" type="button" data-nudge-grid="left" data-nudge-left data-tooltip="Сдвинуть сетку влево" title="Сдвинуть сетку влево" aria-label="Сдвинуть сетку влево">←</button>
+          <button class="button button--small icon-button" type="button" data-nudge-grid="down" data-nudge-down data-tooltip="Сдвинуть сетку вниз" title="Сдвинуть сетку вниз" aria-label="Сдвинуть сетку вниз">↓</button>
+          <button class="button button--small icon-button" type="button" data-nudge-grid="right" data-nudge-right data-tooltip="Сдвинуть сетку вправо" title="Сдвинуть сетку вправо" aria-label="Сдвинуть сетку вправо">→</button>
         </div>
       </section>
 
       <section class="panel-section">
         <h2 class="section-title">3. Карточка</h2>
-        <label class="file-button">Открыть JSON фигуры
+        <label class="button icon-button" data-tooltip="Открыть JSON фигуры" title="Открыть JSON фигуры" aria-label="Открыть JSON фигуры">⇧
           <input id="figureJsonInput" type="file" accept="application/json,.json">
         </label>
         <p class="hint">Выберите один файл из <code>tools/symmetry_draw/figures</code>. Идентификатор и режим сохраняются, меняется только вектор фигуры.</p>
@@ -243,9 +244,9 @@
 
       <section class="panel-section">
         <h2 class="section-title">4. Обводка</h2>
-        <div class="tool-row" role="group" aria-label="Инструмент обводки">
-          <button class="button tool-button" type="button" id="traceTool" aria-pressed="true">Обвести жестом</button>
-          <button class="button tool-button" type="button" id="pointsTool" aria-pressed="false">Ставить узлы</button>
+        <div class="tool-row icon-grid" role="group" aria-label="Инструмент обводки">
+          <button class="button tool-button icon-button" type="button" id="traceTool" aria-pressed="true" data-tooltip="Обвести жестом" title="Обвести жестом" aria-label="Обвести жестом">〰</button>
+          <button class="button tool-button icon-button" type="button" id="pointsTool" aria-pressed="false" data-tooltip="Ставить узлы" title="Ставить узлы" aria-label="Ставить узлы">⊹</button>
         </div>
         <div class="stack" style="margin-top:10px">
           <label class="field">Привязка<select id="snapStep"><option value="1">Только узлы</option><option value="0.5">Узлы и полклетки</option><option value="0">Точные точки из JSON</option></select></label>
@@ -253,13 +254,13 @@
             <span class="range-row"><input id="simplifyRange" type="range" min="0.08" max="0.7" step="0.01" value="0.26"><output class="range-value" id="simplifyValue">0,26</output></span>
           </label>
         </div>
-        <div class="action-grid">
-          <button class="button button--small" type="button" id="newPathBtn">Новый штрих</button>
-          <button class="button button--small" type="button" id="undoBtn">Убрать последний</button>
-          <button class="button button--small" type="button" id="deleteNodeBtn">Удалить узел</button>
-          <button class="button button--small" type="button" id="deleteSegmentBtn">Вырезать участок</button>
-          <button class="button button--small" type="button" id="deletePathBtn">Удалить штрих</button>
-          <button class="button button--small button--danger" type="button" id="clearPathsBtn">Очистить линии</button>
+        <div class="action-grid icon-grid">
+          <button class="button button--small icon-button" type="button" id="newPathBtn" data-tooltip="Новый штрих" title="Новый штрих" aria-label="Новый штрих">＋</button>
+          <button class="button button--small icon-button" type="button" id="undoBtn" data-tooltip="Убрать последний узел или штрих" title="Убрать последний узел или штрих" aria-label="Убрать последний узел или штрих">↶</button>
+          <button class="button button--small icon-button" type="button" id="deleteNodeBtn" data-tooltip="Удалить выбранный узел" title="Удалить выбранный узел" aria-label="Удалить выбранный узел">⊗</button>
+          <button class="button button--small icon-button" type="button" id="deleteSegmentBtn" data-tooltip="Вырезать выбранный участок" title="Вырезать выбранный участок" aria-label="Вырезать выбранный участок">✂</button>
+          <button class="button button--small icon-button" type="button" id="deletePathBtn" data-tooltip="Удалить выбранный штрих" title="Удалить выбранный штрих" aria-label="Удалить выбранный штрих">⌫</button>
+          <button class="button button--small button--danger icon-button" type="button" id="clearPathsBtn" data-tooltip="Очистить все линии" title="Очистить все линии" aria-label="Очистить все линии">⌧</button>
         </div>
         <p class="hint">Нажмите красный узел, чтобы удалить его или перетащить. Нажмите на красный отрезок, затем «Вырезать участок» — линия разорвётся по этому месту. «Удалить штрих» убирает весь выделенный контур.</p>
       </section>
@@ -313,16 +314,16 @@
         <div class="panel-section">
           <h2 class="section-title">Экспорт</h2>
           <textarea id="cardOutput" readonly aria-label="JSON карточки"></textarea>
-          <div class="action-grid">
-            <button class="button button--small" type="button" id="copyBtn">Скопировать JSON</button>
-            <button class="button button--small button--primary" type="button" id="downloadCardBtn">Скачать карточку</button>
+          <div class="action-grid icon-grid">
+            <button class="button button--small icon-button" type="button" id="copyBtn" data-tooltip="Скопировать JSON" title="Скопировать JSON" aria-label="Скопировать JSON">⧉</button>
+            <button class="button button--small button--primary icon-button" type="button" id="downloadCardBtn" data-tooltip="Скачать JSON фигуры" title="Скачать JSON фигуры" aria-label="Скачать JSON фигуры">⇩</button>
           </div>
-          <button class="button button--teal" style="width:100%; margin-top:9px" type="button" id="addToSetBtn">Добавить в набор</button>
+          <div class="action-grid icon-grid"><button class="button button--teal icon-button" type="button" id="addToSetBtn" data-tooltip="Добавить фигуру в набор" title="Добавить фигуру в набор" aria-label="Добавить фигуру в набор">⊕</button></div>
         </div>
         <div class="panel-section">
           <h2 class="section-title">Набор <span id="setCount">0</span></h2>
           <div class="set-list" id="setList"></div>
-          <button class="button button--primary" style="width:100%; margin-top:9px" type="button" id="downloadSetBtn">Скачать набор карточек</button>
+          <div class="action-grid icon-grid"><button class="button button--primary icon-button" type="button" id="downloadSetBtn" data-tooltip="Скачать набор карточек" title="Скачать набор карточек" aria-label="Скачать набор карточек">⇩</button></div>
         </div>
       </section>
     </aside>
@@ -994,7 +995,11 @@
       name.textContent = `${entry.label} · ${entry.taskKind === "repeat" ? "повтор" : "зеркало"}`;
       const remove = document.createElement("button");
       remove.type = "button";
-      remove.textContent = "Удалить";
+      remove.className = "icon-button button--small";
+      remove.dataset.tooltip = "Удалить из набора";
+      remove.title = "Удалить из набора";
+      remove.setAttribute("aria-label", "Удалить из набора");
+      remove.textContent = "×";
       remove.addEventListener("click", () => {
         state.collection.splice(index, 1);
         saveCollection();
