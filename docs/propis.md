@@ -291,6 +291,35 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     all 21 options, drawing enables "Добавить в набор", and after clicking it the
     collection holds `{type:"element", label:"01_pryamaya_liniya", ...}` and the
     select has already moved to `02_naklonnaya_vertikalnaya`.
+- **Element "02" split into three — 2026-09-17.** User caught it during review:
+  `02_naklonnaya_vertikalnaya` (the entry named right above, in the previous
+  entry's own verification screenshot) actually bundled three distinct drills
+  from the source book page under one slug — "наклонная длинная" (long
+  diagonal), "наклонная короткая" (short diagonal), and "вертикальная"
+  (vertical), confirmed by the user explicitly ("да, три разных"). Fixed at
+  the registry level: `scripts/propis_ingest_elements.mjs`'s `REGISTRY` and
+  `handwriting_capture.html`'s `#elementSelect` both had the single
+  `02_naklonnaya_vertikalnaya` entry replaced with three —
+  `02a_naklonnaya_dlinnaya`, `02b_naklonnaya_korotkaya`, `02c_vertikalnaya`
+  (same `02a`/`02b` lettered-suffix convention `07a`/`07b` already
+  established for "two drills, one page") — kept in sync by hand between the
+  two files per the existing comment there, total inventory now 23 (was 21).
+  **No capture data existed yet for this slug** (`tools/propis/elements.json`
+  doesn't exist at all as of this fix — 0/21 was still true when the bug was
+  reported), so this is a pure registry correction with nothing to migrate or
+  re-ingest.
+  - **Still unresolved**: exactly where "вертикальная" sits on the source
+    page relative to the two diagonal strokes was never pinned down —  an
+    earlier attempt at pixel-level angle measurement on the original crop
+    (bold stroke ≈9°, dashed stroke ≈11° from vertical) couldn't confidently
+    place a third, separate mark, and the user's confirmation named the three
+    drills without giving their exact position. That's not a code problem —
+    it's "which pixels in the physical book page for `02c_vertikalnaya`", a
+    call only whoever operates `handwriting_capture.html` next (matching the
+    tracing to the actual book page in front of them) can make. The fixed
+    dropdown now offers the correct 3 separate options either way, so
+    whichever page region turns out to be "вертикальная", it gets captured
+    under its own correct slug instead of silently merged into a diagonal.
 - **New mode "Диктант" (`dictation`) — topic.json + options only, 2026-09-17, engine/view
   not started.** User request: a standalone "controlled test" — the app speaks a letter,
   word or short text aloud and the child writes it in their own paper notebook; no

@@ -9,7 +9,7 @@
 // own `type` field) — this script only picks out `type === "element"` entries, ignores the
 // rest, and merges them into tools/propis/elements.json by `id`.
 //
-// Source reference for the 21 elements below: Н.С. Жукова, «Пропись 1» (из комплекта
+// Source reference for the 23 elements below: Н.С. Жукова, «Пропись 1» (из комплекта
 // «Прописи», 3 части), стр. 5–11 — see the reference sheet cut from that PDF this session.
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -18,11 +18,15 @@ import { samplePath, transformPathD } from "../src/topics/renderers/propis/pathG
 const VB_H = 150; // matches handwriting_capture.html's VB_H / propis's shared row height
 const PAD = 4; // horizontal breathing room so stroke-width doesn't clip at the viewBox edge
 
-// The 21-element inventory, in the order they're introduced in the source book. `category`
+// The 23-element inventory, in the order they're introduced in the source book. `category`
+// ("02" originally bundled three distinct drills -- long diagonal, short diagonal, and a
+// vertical stroke -- under one slug/crop; split into 02a/02b/02c 2026-09-17 per user report.)
 // is a loose grouping for future UI/filtering — not load-bearing anywhere yet.
 const REGISTRY = {
   "01_pryamaya_liniya":          { labelRu: "Прямая линия",              category: "base_stroke", sourcePage: 5 },
-  "02_naklonnaya_vertikalnaya":  { labelRu: "Наклонная/вертикальная",    category: "base_stroke", sourcePage: 5 },
+  "02a_naklonnaya_dlinnaya":     { labelRu: "Наклонная длинная",         category: "base_stroke", sourcePage: 5 },
+  "02b_naklonnaya_korotkaya":    { labelRu: "Наклонная короткая",        category: "base_stroke", sourcePage: 5 },
+  "02c_vertikalnaya":            { labelRu: "Вертикальная",              category: "base_stroke", sourcePage: 5 },
   "03_zaborchik_ploskie":        { labelRu: "Заборчик плоские",          category: "base_stroke", sourcePage: 5 },
   "04_zaborchik_ostrye":         { labelRu: "Заборчик острые",           category: "base_stroke", sourcePage: 6 },
   "05_kryuchok_vlevo":           { labelRu: "Крючок влево",              category: "base_stroke", sourcePage: 6 },
