@@ -751,7 +751,7 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
 // as many element-rows fitting per printed page as text-rows would. The unused odd physical
 // slot between two element-rows isn't wasted: it reads as normal breathing room around a big
 // drill, same as the source book itself gives one.
-const ELEMENT_ROW_PHYSICAL_SLOTS = 2;
+export const ELEMENT_ROW_PHYSICAL_SLOTS = 2;
 
 // read_lines' "Элементы букв" option: one element at the START of each row, one row per input
 // line (revised 2026-09-17 from an earlier "repeat the element across the whole row" version --
