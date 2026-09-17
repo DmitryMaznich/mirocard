@@ -42,7 +42,7 @@ import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
 import {
   createPendingSubscription, getActiveSubscriptionForAccount,
   hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
-  createPromoCode, listPromoCodes,
+  createPromoCode, listPromoCodes, grantTrialSubscription,
 } from "./lib/billing-repository.mjs";
 import { PLAN_CATALOG, applyDiscount } from "./lib/billing-plans.mjs";
 import {
@@ -247,6 +247,8 @@ async function handleRegister(req, res) {
     }
     throw e;
   }
+
+  grantTrialSubscription(db, account.id);
 
   const rawToken = randomUUID();
   createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
@@ -651,7 +653,11 @@ async function handleGetDecksCatalog(req, res) {
 async function handleClaimDeck(req, res) {
   const account = requireAuth(req);
   const url = new URL(req.url, "http://localhost");
-  const topicId = url.pathname.split("/")[2];
+  // req.url still carries the /api prefix here (only the router's local `p`
+  // is normalized) — normalize before splitting or index [2] lands on
+  // "decks" instead of the topic id. Pre-existing bug, never triggered
+  // before because no catalog entry had ever used access:"paid".
+  const topicId = normalizeApiPath(url.pathname).split("/")[2];
 
   const entry = getCatalogEntry(topicId);
   if (!entry) return writeJson(res, 404, { error: "Deck not found in catalog" });
@@ -671,15 +677,20 @@ async function handleClaimDeck(req, res) {
     return writeJson(res, 200, { status: "granted", topicId });
   }
 
-  // paid — create pending request
-  claimAccountTopic(db, account.id, { topicId, topicVersion: entry.version, source: "request" });
-  return writeJson(res, 200, { status: "pending", topicId });
+  // paid — automatic grant for an entitled account, otherwise the caller
+  // needs to subscribe. Replaces the older manual-approval "request" flow,
+  // which was never exercised by any live catalog entry.
+  if (hasActiveEntitlement(db, account.id)) {
+    claimAccountTopic(db, account.id, { topicId, topicVersion: entry.version, source: "paid" });
+    return writeJson(res, 200, { status: "granted", topicId });
+  }
+  return writeJson(res, 200, { status: "locked", topicId });
 }
 
 async function handleDownloadDeck(req, res) {
   const account = requireAuth(req);
   const url = new URL(req.url, "http://localhost");
-  const topicId = url.pathname.split("/")[2];
+  const topicId = normalizeApiPath(url.pathname).split("/")[2];
 
   const entry = getCatalogEntry(topicId);
   if (!entry) return writeJson(res, 404, { error: "Deck not found" });
