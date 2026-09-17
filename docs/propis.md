@@ -320,6 +320,36 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     dropdown now offers the correct 3 separate options either way, so
     whichever page region turns out to be "вертикальная", it gets captured
     under its own correct slug instead of silently merged into a diagonal.
+  - **Resolved 2026-09-17, same day, once the user re-uploaded the source
+    PDF** (`Propis_Pervaya.pdf` — the original upload from the digitization
+    phase doesn't persist across sessions, had to be asked for again).
+    Rendered printed page 5 (PDF page 6) at 300dpi via `pdftoppm` and
+    zoomed into the "Соедини две точки наклонной линией, потом
+    вертикальной" block pixel-by-pixel rather than eyeballing the earlier
+    low-res preview — the block turns out to have **three rows, each at a
+    different rule-line spacing** (matching the book's own "wide → narrow
+    → narrowest" ruling progression used elsewhere on the same page for
+    `01`): row 1 (widest spacing) is a long diagonal stroke leaning ~10-15°
+    off vertical; row 2 (narrower spacing) is the same lean but visibly
+    shorter, height set by the tighter ruling; row 3 (narrowest, double-
+    ruled) is perfectly vertical, no lean at all — confirmed by direct
+    pixel comparison of the three rows' stroke angles side by side, not
+    just a visual impression. This maps exactly onto the three slugs
+    already in place: row 1 → `02a_naklonnaya_dlinnaya`, row 2 →
+    `02b_naklonnaya_korotkaya`, row 3 → `02c_vertikalnaya` — no renaming
+    needed, the earlier fix had already guessed the right order.
+  - **Re-extracted the full 23-element reference set** while the PDF was
+    available (all crops regenerated from scratch via `pdftoppm -r 300` +
+    Pillow crops per element, not reused from any earlier session's output
+    — none persisted), verified via a 23-cell contact-sheet montage before
+    delivery so every crop could be checked for cut-off text/strokes in one
+    pass instead of 23 separate round-trips; caught and fixed 3 crops that
+    were initially too tight (`02a`, `14_petelka_s_kruzhochkom`,
+    `20_kryuchok_s_petelkoy`) by re-checking their source page regions at
+    full width before re-cropping. Delivered as a zip directly to the user
+    — these are reference/source material for manual tracing in
+    `handwriting_capture.html`, not app code, so nothing from this step is
+    committed to the repo.
 - **New mode "Диктант" (`dictation`) — topic.json + options only, 2026-09-17, engine/view
   not started.** User request: a standalone "controlled test" — the app speaks a letter,
   word or short text aloud and the child writes it in their own paper notebook; no
