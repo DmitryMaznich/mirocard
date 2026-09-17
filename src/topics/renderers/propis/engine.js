@@ -1,5 +1,13 @@
+import { shuffle } from "@/shared/utils/shuffle";
+import { letterDictationKey, wordDictationKey, textDictationKey } from "./dictationAudio";
+
 export function generateTasks(mode, cards, sessionSize, sessionParams) {
   const allCards = Array.isArray(cards) ? cards : (cards?.cards ?? []);
+  // "Диктант" needs the full word/text banks, not just cards -- topicRecord is passed through
+  // whole for this renderer (see useSessionEngine.js's dedicated propis branch), so these are
+  // simply absent (undefined -> []) for every other mode, which never had them to begin with.
+  const wordBank = Array.isArray(cards) ? [] : (cards?.words ?? []);
+  const textBank = Array.isArray(cards) ? [] : (cards?.texts ?? []);
   const withStrokes = allCards.filter((c) => Array.isArray(c.strokes) && c.strokes.length > 0);
   const letters = withStrokes.filter((c) => c.type === "letter");
   const connectors = withStrokes.filter((c) => c.type === "connector");
@@ -53,6 +61,34 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     // not built from cards, so PrintMaterialsView reads topicRecord directly rather than
     // this task.
     return [{ type: "browse", id: "print_browse" }];
+  }
+
+  if (mode.type === "dictation") {
+    const level = sessionParams?.level ?? "letters";
+    const repeatLimit = sessionParams?.unlimitedRepeats ? null : (sessionParams?.repeatLimit ?? 3);
+    const videoRewardEnabled = Boolean(sessionParams?.videoRewardEnabled);
+
+    // Each pool maps to { key, display } -- `key` is what the (not-yet-written) audio
+    // player looks up via dictationAudioUrl(key), `display` is the plain text shown on the
+    // end-of-session comparison screen, spelled exactly as it should land in the notebook.
+    let pool;
+    if (level === "words") {
+      pool = wordBank.map((w) => ({ key: wordDictationKey(w), display: w.word }));
+    } else if (level === "texts") {
+      // Whole text as one dictation item for now, same granularity read_text already uses --
+      // dictating a full 5-sentence text in one breath is unrealistic for a child writing by
+      // hand, so this almost certainly needs per-sentence pacing (its own audio clips, one
+      // "item" per sentence, "Дальше" advancing sentence-by-sentence within a text) before
+      // this level is actually usable. Flagged, not decided -- deliberately not guessed here.
+      pool = textBank.map((t) => ({ key: textDictationKey(t), display: t.text }));
+    } else {
+      pool = letters.map((l) => ({ key: letterDictationKey(l), display: l.label }));
+    }
+
+    const itemCount = Math.max(1, Math.min(sessionParams?.itemCount ?? 10, pool.length || 1));
+    const items = shuffle(pool).slice(0, itemCount);
+
+    return [{ type: "dictation", level, items, repeatLimit, videoRewardEnabled }];
   }
 
   return [];

@@ -356,14 +356,72 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     `repeatLimit`/`videoRewardEnabled` using exactly the same `type` strings and field
     shapes (`label.ru`, `values`+`labels.ru`, `min`/`max`/`default`, `showWhen`) that
     other already-shipped topics' params already exercise in that same renderer.
-  - **Explicitly not started**: `engine.js`'s `dictation` branch (currently falls through
-    to `return []`, same as any unrecognized `mode.type` — confirmed this doesn't crash
-    `SessionScreen`, just yields zero tasks), the session view itself (diktor circle +
-    advance-by-tap/button + repeat button), the end-of-session comparison screen, the new
-    PIN-confirm-to-unlock-video flow, the `isPropis` mode-awareness fix above, and all
-    dictation audio (new `scripts/generate-propis-dictation-audio.mjs`, Gemini
-    `gemini-2.5-flash-preview-tts`, voice `Kore` — same pipeline as
-    `generate-word-agreement-audio.mjs`).
+  - **Explicitly not started (as of the entry above)**: `engine.js`'s `dictation` branch,
+    the session view, the end-of-session comparison screen, the PIN-confirm-to-unlock-video
+    flow, the `isPropis` mode-awareness fix, and all dictation audio. All still true except
+    the first — see the follow-up entry directly below for the engine work.
+- **"Диктант" task generation — `engine.js` + word bank + audio-key scheme, 2026-09-17.**
+  Follow-up to the topic.json/options entry above. Still no session view/audio/reward
+  flow — this is purely "given the options, produce the right task object".
+  - **`tools/propis/topic.json` gained a top-level `"words"` array** (249 entries,
+    `{id: "w001".."w249", word, block: "A"|"B"}`) — ported from
+    `scripts/propis_worksheets/words.py`'s `BLOCK_A`/`BLOCK_B` (45 + 204 words, counted by
+    parsing the file with Python's `ast`, not by eyeballing it), the same "existing bank"
+    `texts.py`'s `TEXTS` already gets manually mirrored into `topic.json`'s `texts[]` for
+    (confirmed by diffing the two — `texts.py` and `topic.json`'s `texts` are verbatim
+    identical, no generation script bridges them; this is the established, if manual,
+    precedent, not a new pattern). **Learned the hard way while doing this**: don't
+    round-trip the whole file through `json.load`/`json.dump` to add one key — Python's
+    dump reformats every line (confirmed: 1343 insertions / 24 deletions for what should
+    have been ~250 lines added), even though the JSON content is equivalent, because its
+    default formatting differs from the file's actual hand-formatting conventions (compact
+    single-line objects). Reverted and instead generated just the new block as text in the
+    exact same single-line style as the neighboring `texts[]` entries, and spliced it in
+    with a plain string replace — 251 insertions, 0 deletions, real diff. Bumped
+    `meta.version` `1.28.0` → `1.29.0` and rebuilt the deck zip for this alone (word bank is
+    part of `topic.json`, which the zip bundles whole).
+  - **`useSessionEngine.js` gained a dedicated `renderer === "propis"` branch** passing the
+    *whole* `topicRecord` through to `generateTasks`, not just `topicRecord.cards` like
+    every other propis mode has received until now (the generic path around line 165-172).
+    Necessary because "Диктант" draws randomly from the full word/text banks
+    (`topicRecord.words`/`.texts`), not a parent-picked subset the way `read_text`'s own
+    `texts` param works. Confirmed safe for the other 4 modes before relying on it:
+    `propis/engine.js`'s own `Array.isArray(cards) ? cards : (cards?.cards ?? [])` already
+    tolerated either a raw array or a wrapper object, so passing the richer object through
+    changes nothing for `write_text`/`read_text`/`read_lines`/`browse` — verified with a
+    real (temporary, not committed) vitest file exercising all four dictation-param
+    combinations *and* a `write_words` call through the new pathway, all 6 assertions
+    green, alongside the existing 101 propis/session-engine tests still passing unmodified.
+  - **`src/topics/renderers/propis/dictationAudio.js`** (new) — the audio-key scheme.
+    Letters: `up_<lowercase letter>` / `lo_<lowercase letter>` (e.g. `up_а`, `lo_а`) rather
+    than the bare letter as the key — deliberately avoids relying on the Cyrillic
+    character's own case at all, because the build machine is Windows (CLAUDE.md) and
+    NTFS case-folds Cyrillic the same as Latin, so literal `А.mp3`/`а.mp3` filenames risk
+    colliding. Words/texts key on their own topic.json id (`word_w001`, `text_t01`) —
+    already ASCII, no such risk. `dictationAudioUrl(key)` resolves to
+    `/audio/propis-dictation/<key>.mp3`, a static path shipped with the app itself (like
+    `addition_subtraction`'s number words), not bundled into propis's own deck zip — propis's
+    renderer is already code-bundled, and this audio has nothing to do with the print PDFs
+    `build-propis-deck.mjs` bundles.
+  - **`engine.js`'s new `dictation` branch**: picks the pool for `sessionParams.level`
+    (letters/words/texts), shuffles it (`@/shared/utils/shuffle`, reused, not
+    reimplemented), clamps `itemCount` to the pool's actual size, and returns
+    `{type: "dictation", level, items: [{key, display}], repeatLimit, videoRewardEnabled}`
+    — `repeatLimit` is `null` when `unlimitedRepeats` is on, matching how the not-yet-built
+    view should read "no limit" (a sentinel, not a huge number).
+  - **Texts level is provisional, flagged in code and here**: one dictation "item" per
+    whole text (5 sentences) for now, matching `read_text`'s granularity — but dictating a
+    full text in one uninterrupted breath doesn't work for a child writing it by hand. This
+    almost certainly needs per-sentence pacing (its own audio clips, one item per sentence,
+    "Дальше" advancing within a text) before the texts level is actually usable. Not
+    decided, not guessed — raised for the user to weigh in on before the view is built.
+  - **Verification**: `npm run build` clean, full existing propis/session-engine test
+    suites (101 tests, 6 files) pass unmodified, a temporary manual-check vitest file (not
+    committed) exercised all four `sessionParams` combinations plus the cross-mode safety
+    check above, then was deleted. Ran the full repo test suite too — 14 unrelated files
+    failed (backend DB tests, `column_addition`/`function_cards`/`reading` engine tests,
+    `symmetry_draw` tool tests), none touching propis/session-engine/dictation, consistent
+    with pre-existing branch state rather than anything this change introduced.
 - **Video-reward toggle — removed from every propis mode 2026-09-15, not just
   hidden.** User request. It was already fully inert here before this
   change: `buildRewardProgress` (`rewardProgress.js`) requires
