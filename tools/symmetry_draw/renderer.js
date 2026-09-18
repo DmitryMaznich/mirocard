@@ -215,6 +215,17 @@
     return `${command.cells} ${word} ${DIRECTION[command.direction].label}`;
   }
 
+  // These paths deliberately mirror dictation-audio.mjs. This renderer is
+  // shipped as a raw script inside the topic ZIP, so importing the Node helper
+  // here would make the downloaded deck fail to load.
+  function directionAudioPath(command) {
+    return `audio/dictation/directions/${command.direction}_${command.cells}.mp3`;
+  }
+
+  function coordinateAudioPath(point) {
+    return `audio/dictation/coordinates/${point.col}_${point.row + 1}.mp3`;
+  }
+
   function navigatorRouteText(direction, cells) {
     const count = Math.max(1, Number(cells) || 1);
     const word = count === 1 ? "клетку" : count < 5 ? "клетки" : "клеток";
@@ -284,6 +295,7 @@
         end: point,
         text: coordinateText(point),
         speech: coordinateSpeech(point),
+        audioPath: coordinateAudioPath(point),
         coordinate: { letter: columnLabel(point.col), number: point.row + 1 },
       }));
     }
@@ -291,11 +303,18 @@
     return (shape.commands ?? []).map((command) => {
       const end = commandEnd(current, command);
       current = end;
-      return { end, text: commandText(command), speech: commandText(command), direction: command.direction };
+      return {
+        end,
+        text: commandText(command),
+        speech: commandText(command),
+        direction: command.direction,
+        cells: command.cells,
+        audioPath: directionAudioPath(command),
+      };
     });
   }
 
-  function DictationTask({ task, onCorrect, onMistake, sessionParams }) {
+  function DictationTask({ task, onCorrect, onMistake, sessionParams, topicId, soundEnabled, playTopicFile }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const gestureRef = useRef([]);
@@ -315,13 +334,33 @@
     const steps = useMemo(() => buildSteps(shape), [shape]);
     const isCoordinate = shape.taskKind === "coordinate";
     const showArrow = sessionParams?.showArrow ?? true;
+    const commandPresentation = sessionParams?.dictationPresentation ?? "text_graphics_voice";
+    const usesRecordedVoice = commandPresentation === "text_graphics_voice" || commandPresentation === "voice";
+    const isVoiceOnly = commandPresentation === "voice";
     const step = steps[stepIndex];
+    const commandAudioPath = step?.audioPath ?? null;
+    const canPlayRecordedInstruction = Boolean(usesRecordedVoice && soundEnabled && topicId && playTopicFile && commandAudioPath);
     const columns = Number(shape.columns ?? 10);
     const rows = Number(shape.rows ?? 10);
     const target = step ? step.end : null;
     const nearestCol = tapPoint ? Math.max(0, Math.min(columns, Math.round(tapPoint.col))) : null;
     const nearestRow = tapPoint ? Math.max(0, Math.min(rows, Math.round(tapPoint.row))) : null;
     const tapCoordText = isCoordinate && tapPoint ? `${columnLabel(nearestCol)}${nearestRow + 1}` : null;
+
+    // Browser speech synthesis deliberately is not a fallback here: Russian
+    // stress and intonation vary across devices. Every command comes from the
+    // deck's prerecorded neural-TTS bank instead, including offline use.
+    const playInstruction = useCallback(() => {
+      if (canPlayRecordedInstruction) playTopicFile(topicId, commandAudioPath);
+    }, [canPlayRecordedInstruction, playTopicFile, topicId, commandAudioPath]);
+
+    useEffect(() => {
+      if (finished || !canPlayRecordedInstruction) return undefined;
+      // A brief delay lets the session transition settle before playback;
+      // without it mobile browsers can drop the first command on a new card.
+      const timer = window.setTimeout(playInstruction, 220);
+      return () => window.clearTimeout(timer);
+    }, [stepIndex, finished, canPlayRecordedInstruction, playInstruction]);
 
     function localPoint(event) {
       const svg = svgRef.current;
@@ -334,14 +373,6 @@
       const local = point.matrixTransform(ctm.inverse());
       if (local.x < -0.45 || local.x > columns + 0.45 || local.y < -0.45 || local.y > rows + 0.45) return null;
       return { col: Math.max(0, Math.min(columns, local.x)), row: Math.max(0, Math.min(rows, local.y)) };
-    }
-
-    function speakInstruction() {
-      if (!step || !window.speechSynthesis) return;
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(step.speech);
-      utterance.lang = "ru-RU";
-      window.speechSynthesis.speak(utterance);
     }
 
     function startGesture(event) {
@@ -435,13 +466,18 @@
 
     const tapBadgeWidth = tapCoordText ? 0.3 + tapCoordText.length * 0.26 : 0;
 
-    return h("section", { className: `dictation${isCoordinate ? " dictation--coordinate" : ""}`, "aria-label": isCoordinate ? "Точки по координатам" : "Графический диктант" },
-      h("div", { className: "dictation__command" },
-        step?.direction && showArrow ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command: { direction: step.direction } })) : null,
+    return h("section", { className: `dictation${isCoordinate ? " dictation--coordinate" : ""}${isVoiceOnly ? " dictation--voice-only" : ""}`, "aria-label": isCoordinate ? "Точки по координатам" : "Графический диктант" },
+      h("div", { className: `dictation__command${isVoiceOnly ? " dictation__command--voice-only" : ""}` },
+        !isVoiceOnly && step?.direction && showArrow ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command: { direction: step.direction } })) : null,
         h("div", { className: "dictation__command-copy" },
-          h("div", { className: "dictation__text" },
+          h("div", { className: `dictation__text${isVoiceOnly && !finished ? " dictation__text--listen" : ""}` },
             finished
               ? `Получился рисунок: ${shape.label}`
+              : isVoiceOnly
+                ? [
+                    h("span", { key: "speaker", className: "dictation__listen-icon", "aria-hidden": "true" }, "🔊"),
+                    h("span", { key: "prompt" }, soundEnabled ? "Слушай команду" : "Включите звук"),
+                  ]
               : isCoordinate && step?.coordinate
                 ? [
                     h("span", { key: "prompt", className: "dictation__coordinate-prompt" }, "Найди точку"),
@@ -451,7 +487,14 @@
                 : step?.text ?? "",
           ),
         ),
-        !finished ? h("button", { type: "button", className: "dictation__repeat", onClick: speakInstruction, "aria-label": "Повторить инструкцию", title: "Повторить инструкцию" }, "↻") : null,
+        !finished && usesRecordedVoice ? h("button", {
+          type: "button",
+          className: "dictation__repeat",
+          onClick: playInstruction,
+          disabled: !canPlayRecordedInstruction,
+          "aria-label": "Повторить голосовую команду",
+          title: canPlayRecordedInstruction ? "Повторить голосовую команду" : "Включите звук, чтобы прослушать команду",
+        }, "🔊") : null,
       ),
       h("div", { className: "dictation__canvas" },
         h("svg", { ref: svgRef, className: "dictation__grid", viewBox: `-0.55 -0.78 ${columns + 1.1} ${rows + 1.58}`, onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture, onPointerLeave: finishGesture },

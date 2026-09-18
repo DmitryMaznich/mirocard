@@ -2016,14 +2016,25 @@ export default function ParamsScreen() {
         info={mode?.params?.dictationCommand?.info?.ru}
         onShowInfo={setActiveInfo}
       />
+      <EnumParam
+        label="Подача команд"
+        options={["text_graphics_voice", "voice"]}
+        labels={{ text_graphics_voice: "Текст, стрелка и голос", voice: "Только голос" }}
+        value={params.dictationPresentation ?? "text_graphics_voice"}
+        onChange={(v) => setParams((p) => ({ ...p, dictationPresentation: v }))}
+        info={mode?.params?.dictationPresentation?.info?.ru}
+        onShowInfo={setActiveInfo}
+      />
       {(params.dictationCommand ?? "directions") === "directions" && (
         <>
-          <BooleanParam
-            label="Стрелка в подсказке"
-            hint="Выключите, чтобы ребёнок читал команду текстом, а не смотрел на значок"
-            value={params.showArrow ?? true}
-            onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
-          />
+          {(params.dictationPresentation ?? "text_graphics_voice") === "text_graphics_voice" && (
+            <BooleanParam
+              label="Стрелка в подсказке"
+              hint="Выключите, чтобы ребёнок опирался на текст и голос, а не на значок"
+              value={params.showArrow ?? true}
+              onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
+            />
+          )}
           <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} params={params} />
         </>
       )}
