@@ -1980,6 +1980,68 @@ placement changes for `useElements`. Verified by rendering 12 elements
 across 2 pages and navigating to page 2: the first element there landed
 at `translate(24 -16)` (correct primary-row position) after the fix.
 
+**Third redesign: elements shrink to fit ONE ordinary row instead of
+widening the row to fit the element (2026-09-18, same day, after
+both fixes above shipped and the user still saw a broken page).**
+Two separate real bugs turned up in the field, both traced back to
+the SAME root design choice (elements kept their full captured scale,
+NATIVE_L1..L4 = the whole physical row, and the row itself grew to
+fit them):
+
+1. **"Doubled" ruling lines**, found by pixel-diffing the user's own
+   photo (`PIL`, cropping+4x-upscaling the suspect band rather than
+   trusting a description) against a fresh render: the "spare" row's
+   own base thin/bold pair sits only ~4 native units away from the
+   *previous* primary row's `ELEMENT_EXTRA_GUIDES` bottom mark
+   (`NATIVE_L4`=140, vs. the spare row's own thin line at local
+   136) — two DIFFERENT lines, each individually "correct" by its own
+   row's math, landing close enough together to read as one doubled
+   line. The extra guides were never contained to their own row's
+   space; they spilled into the neighbor's.
+2. **"Elements skip every other row"** — not actually a bug (verified:
+   elements landed exactly on every *primary* row, by design), but
+   flagged by the user as unwanted once they could see it clearly
+   against the now-fixed base ruling. This was never actually
+   user-approved — it was this session's own recommendation, adopted
+   under time pressure (see the very first height-mismatch fix's own
+   note on a Stop-hook forcing a commit before the user could weigh
+   in) — so once explicitly asked, "как в книге" (full scale, sparse)
+   lost to "плотно" (dense, one row) via `AskUserQuestion`.
+
+Rather than patch the guide-spillover bug in place a third time, both
+problems dissolved by inverting the whole approach: instead of making
+the ROW match the element's captured scale, make the ELEMENT match the
+row's. `wordEngine.js` gained `ELEMENT_SCALE = TEXT_ROW_PITCH /
+(NATIVE_L4 - NATIVE_L1)` (72/130 ≈ 0.554) and `layoutElementLinesIntoRows`
+now runs every element's own strokes through the existing
+`transformPathD` helper (`pathGeometry.js`, already used elsewhere for
+translating connector strokes — no new geometry code) with
+`scaleX: scaleY: ELEMENT_SCALE` and `translateY: NATIVE_L3 * (1 -
+ELEMENT_SCALE)` — a scale anchored on the baseline itself, so a scaled
+element still sits on the exact same baseline every ordinary text row
+already uses, instead of drifting off it. `rowIndex` is plain `i` again
+(one physical row slot per element, matching `layoutTextIntoRows`
+exactly), and `startPoint`/`width` are computed from the *scaled*
+stroke data so the start dot and hit-rect land on the shrunk shape, not
+the original.
+
+This let `PrintPageView.jsx` drop everything `useElements`-specific
+added by the two previous fixes: `ELEMENT_ROW_GUIDES`/
+`ELEMENT_EXTRA_GUIDES`, the even-row-only pagination adjustment, and
+the widened tap hit-rect — the base ruling, `paginateRows` call, and
+hit-rect are now byte-for-byte the same code path text rows use. No
+per-mode branching left in the ruling/pagination/hit-rect code at all;
+`layoutElementLinesIntoRows` returns the exact `{placed, rowCount}`
+shape `layoutTextIntoRows` does, with `rowIndex` in the same single-slot
+units.
+
+Re-verified the same way as every fix in this cluster — real rendered
+DOM, not eyeballing: ruling lines back to a clean, unbroken thin/bold
+pair at every single row (`y1` 48/72, 120/144, 192/216, ... all exactly
+72 apart, `sw` alternating 0.4/0.9, no extras); element rows landing at
+consecutive `rowIndex` 0,1,2,3,4 (`rowOriginY` -16,56,128,200,272, each
+exactly `TEXT_ROW_PITCH` apart) — dense, no gaps, no doubling.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
