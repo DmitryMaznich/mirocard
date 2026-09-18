@@ -1144,7 +1144,13 @@
       const percent = coverage.total > 0 ? Math.round((coverage.covered / coverage.total) * 100) : 0;
       if (coverage.complete) {
         setResolved(true);
-        setResult({ percent: 100, complete: true, coveredIndexes: coverage.coveredIndexes });
+        setResult({
+          percent: 100,
+          complete: true,
+          coveredIndexes: coverage.coveredIndexes,
+          coveredDotIndexes: coverage.coveredDotIndexes,
+          coveredCircleIndexes: coverage.coveredCircleIndexes,
+        });
         // A card solved with the hint showing still counts as done for the
         // child, but shouldn't earn a star - skip onCorrect (which drives the
         // streak/reward count) and just move on ourselves instead.
@@ -1153,7 +1159,13 @@
         return;
       }
       onMistake?.(task.conceptId, shape.id);
-      setResult({ percent, complete: false, coveredIndexes: coverage.coveredIndexes });
+      setResult({
+        percent,
+        complete: false,
+        coveredIndexes: coverage.coveredIndexes,
+        coveredDotIndexes: coverage.coveredDotIndexes,
+        coveredCircleIndexes: coverage.coveredCircleIndexes,
+      });
     }
 
     const gridLines = [];
@@ -1178,6 +1190,7 @@
     const instruction = mode?.ui?.instruction ?? "Дорисуй вторую половину фигуры";
     const repeatStart = targetPaths[0]?.[0] ?? targetDots[0] ?? targetCircles[0] ?? null;
     const coveredSegments = new Set(result?.coveredIndexes ?? []);
+    const coveredDots = new Set(result?.coveredDotIndexes ?? []);
     const coveredCircles = new Set(result?.coveredCircleIndexes ?? []);
 
     return h("section", { className: `symmetry-draw${isRepeat ? " symmetry-draw--repeat" : ""}`, "aria-label": shape.label ?? "Симметричный рисунок" },
@@ -1224,14 +1237,19 @@
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-glow-${index}`, className: "symmetry-draw__stroke-glow", d: pathToD(path) }) : null),
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-${index}`, className: "symmetry-draw__stroke", d: pathToD(path) }) : null),
           drawnPaths.map((path, index) => path.length === 1 ? h("circle", { key: `drawn-dot-${index}`, className: "symmetry-draw__stroke-dot", cx: path[0].col, cy: path[0].row, r: "0.055" }) : null),
-          isRepeat && result ? targetSegments.map((segment, index) => h("line", {
+          result ? targetSegments.map((segment, index) => h("line", {
             key: `feedback-${index}`,
-            className: `symmetry-draw__repeat-feedback symmetry-draw__repeat-feedback--${coveredSegments.has(index) ? "covered" : "missed"}`,
+            className: `symmetry-draw__answer-feedback symmetry-draw__answer-feedback--${coveredSegments.has(index) ? "covered" : "missed"}`,
             x1: segment.a.col, y1: segment.a.row, x2: segment.b.col, y2: segment.b.row,
           })) : null,
-          isRepeat && result ? targetCircles.map((circle, index) => h("circle", {
+          result ? targetDots.map((point, index) => h("circle", {
+            key: `dot-feedback-${index}`,
+            className: `symmetry-draw__answer-feedback-dot symmetry-draw__answer-feedback-dot--${coveredDots.has(index) ? "covered" : "missed"}`,
+            cx: point.col, cy: point.row, r: "0.12",
+          })) : null,
+          result ? targetCircles.map((circle, index) => h("circle", {
             key: `circle-feedback-${index}`,
-            className: `symmetry-draw__repeat-feedback symmetry-draw__repeat-feedback--${coveredCircles.has(index) ? "covered" : "missed"}`,
+            className: `symmetry-draw__answer-feedback symmetry-draw__answer-feedback--${coveredCircles.has(index) ? "covered" : "missed"}`,
             cx: circle.col, cy: circle.row, r: circle.diameter / 2,
           })) : null,
           showHint ? targetPaths.map((path, index) => h("path", { key: `hint-line-${index}`, className: "symmetry-draw__hint-line", d: pathToD(path) })) : null,

@@ -1,7 +1,7 @@
 {
   "schema": "mirocard-figure-manifest/v1",
   "topicId": "symmetry_draw",
-  "topicVersion": "1.11.11",
+  "topicVersion": "1.11.12",
   "figures": [
     {
       "id": "symmetry_house",

@@ -41,3 +41,9 @@ test("an axis-only drawing can be confirmed without a redundant stroke", () => {
   assert.equal(result.complete, true);
   assert.equal(result.total, 0);
 });
+
+test("mirror and repeat drawings use the same answer-outline feedback", () => {
+  assert.doesNotMatch(rendererSource, /isRepeat && result \? targetSegments/);
+  assert.match(rendererSource, /result \? targetSegments\.map\(\(segment, index\) => h\("line", \{/);
+  assert.match(rendererSource, /symmetry-draw__answer-feedback--\$\{coveredSegments\.has\(index\) \? "covered" : "missed"\}/);
+});

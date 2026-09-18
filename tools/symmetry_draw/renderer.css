@@ -116,9 +116,12 @@
 .symmetry-draw__stroke-glow { stroke: var(--sd-drawn); stroke-width: 0.22; opacity: 0.16; }
 .symmetry-draw__stroke { stroke: var(--sd-drawn); stroke-width: 0.11; }
 .symmetry-draw__stroke-dot { fill: var(--sd-drawn); pointer-events: none; }
-.symmetry-draw__repeat-feedback { fill: none; stroke-width: .13; stroke-linecap: round; pointer-events: none; animation: repeatFeedbackIn .28s ease-out both; }
-.symmetry-draw__repeat-feedback--covered { stroke: #20a76b; }
-.symmetry-draw__repeat-feedback--missed { stroke: #e77949; stroke-dasharray: .08 .11; }
+.symmetry-draw__answer-feedback { fill: none; stroke-width: .13; stroke-linecap: round; pointer-events: none; animation: answerFeedbackIn .28s ease-out both; }
+.symmetry-draw__answer-feedback--covered { stroke: #20a76b; }
+.symmetry-draw__answer-feedback--missed { stroke: #e77949; stroke-dasharray: .08 .11; }
+.symmetry-draw__answer-feedback-dot { pointer-events: none; animation: answerFeedbackIn .28s ease-out both; }
+.symmetry-draw__answer-feedback-dot--covered { fill: #20a76b; }
+.symmetry-draw__answer-feedback-dot--missed { fill: #e77949; }
 .symmetry-draw__hint-line, .symmetry-draw__hint-circle { stroke: var(--sd-hint); stroke-width: 0.035; stroke-dasharray: 0.02 0.1; }
 .symmetry-draw__hint-point { fill: var(--sd-hint); pointer-events: none; }
 
@@ -165,7 +168,7 @@
   0% { transform: scale(0.85); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
-@keyframes repeatFeedbackIn { from { opacity: 0; stroke-width: .04; } to { opacity: .92; stroke-width: .13; } }
+@keyframes answerFeedbackIn { from { opacity: 0; stroke-width: .04; } to { opacity: .92; stroke-width: .13; } }
 
 @media (max-width: 560px) {
   .symmetry-draw { width: 100%; padding: 4px 4px 0; }
