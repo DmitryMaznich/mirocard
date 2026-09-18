@@ -18,8 +18,8 @@ import Button from "@/shared/components/Button";
 // button entirely — the whole row is already the tap target, the button was
 // redundant. In its place, a single small circular badge on the right now
 // carries the state as an icon instead of a word (checkmark = open/installed,
-// down-arrow = not installed, up-arrow = update available, lock = paid tier
-// awaiting a request, clock = request already sent). The "⋯"/"i" menu
+// down-arrow = not installed, up-arrow = update available, lock = paid tier,
+// requires a subscription, clock = legacy manual-request state). The "⋯"/"i" menu
 // trigger sits just left of that badge, deliberately smaller and lower-
 // contrast so it doesn't compete with the primary status badge for attention.
 //
@@ -122,7 +122,7 @@ export default function TopicTile({
     : status === "open"    ? "Открыть"
     : status === "update"  ? `Доступно обновление v${entry.version}`
     : status === "install" ? "Установить"
-    : status === "request" ? "Запросить доступ"
+    : status === "request" ? "По подписке"
     : "Запрос отправлен";
 
   return (

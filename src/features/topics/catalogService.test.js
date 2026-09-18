@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isLocalModeProfile, shouldClaimCatalogDeck } from "./catalogService";
+import { isLocalModeProfile, shouldClaimCatalogDeck, isFreeStaticInstall } from "./catalogService";
 
 describe("shouldClaimCatalogDeck", () => {
   it("does not require a token to install a free deck in local mode", () => {
@@ -21,5 +21,29 @@ describe("isLocalModeProfile", () => {
     expect(isLocalModeProfile({ email: "local" }, null)).toBe(true);
     expect(isLocalModeProfile({ email: "adult@example.test" }, null)).toBe(false);
     expect(isLocalModeProfile({ email: "local" }, "token-1")).toBe(false);
+  });
+});
+
+describe("isFreeStaticInstall", () => {
+  const paid = { access: "paid", url: "./decks/foo.zip" };
+  const free = { access: "free", url: "./decks/foo.zip" };
+  const localAccount = { email: "local" };
+  const signedInAccount = { email: "adult@example.test" };
+
+  it("is true for a genuinely free entry, signed in or not", () => {
+    expect(isFreeStaticInstall(free, signedInAccount, "token-1")).toBe(true);
+    expect(isFreeStaticInstall(free, null, null)).toBe(true);
+  });
+
+  it("is false for a paid entry on a signed-in account", () => {
+    expect(isFreeStaticInstall(paid, signedInAccount, "token-1")).toBe(false);
+  });
+
+  it("is true for a paid entry in local mode -- there is no account to gate", () => {
+    expect(isFreeStaticInstall(paid, localAccount, null)).toBe(true);
+  });
+
+  it("is false without a static url to download from, even in local mode", () => {
+    expect(isFreeStaticInstall({ access: "paid" }, localAccount, null)).toBe(false);
   });
 });

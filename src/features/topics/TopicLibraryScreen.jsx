@@ -18,6 +18,7 @@ import {
   claimDeck,
   shouldClaimCatalogDeck,
   isLocalModeProfile,
+  isFreeStaticInstall,
 } from "./catalogService";
 import { CATEGORY_ORDER, getTopicCategory } from "./topicCategories";
 import { getPersonalTopicCaption } from "./topicOrigin";
@@ -59,7 +60,7 @@ export default function TopicLibraryScreen() {
   const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
     const owned = (ownedTopics ?? []).find((o) => o.topicId === entry.id);
     const isGranted = owned != null && owned.source !== "request";
-    const isFreeStaticDeck = (entry.access ?? "free") === "free" && Boolean(entry.url);
+    const isFreeStaticDeck = isFreeStaticInstall(entry, account, token);
 
     // A free deck is a self-contained public file. Download it first, rather
     // than making installation depend on an account call that may be stale or
@@ -75,12 +76,20 @@ export default function TopicLibraryScreen() {
       await atomicUpsertOwnedTopic(db, { topicId: entry.id, source: "free" });
     }
 
-    if (!isGranted && shouldClaimCatalogDeck(entry)) {
+    if (!isFreeStaticDeck && !isGranted && shouldClaimCatalogDeck(entry)) {
       const result = await claimDeck(entry.id);
+      if (result.status === "locked") {
+        setScreen("subscription");
+        return;
+      }
       upsertOwnedTopic({ topicId: entry.id, source: result.status === "granted" ? "free" : "request" });
       if (result.status !== "granted") return; // pending — don't download yet
     }
-    const record = await fetchCatalogTopic(entry, buildInfo.version, force);
+    // Local mode never has an account to authenticate a paid-tier download
+    // with, so it must take the direct static-file path regardless of what
+    // the catalog entry's own "access" says.
+    const downloadEntry = isFreeStaticDeck ? { ...entry, access: "free" } : entry;
+    const record = await fetchCatalogTopic(downloadEntry, buildInfo.version, force);
     upsertTopicRecord(record);
 
     // Keep the account library in sync when possible, without turning a free
@@ -95,7 +104,7 @@ export default function TopicLibraryScreen() {
       }
     }
     return record;
-  }, [buildInfo.version, token, upsertTopicRecord, upsertOwnedTopic, ownedTopics]);
+  }, [buildInfo.version, token, account, upsertTopicRecord, upsertOwnedTopic, ownedTopics, setScreen]);
 
   function handleSelectTopic(record) {
     setActiveTopicId(record.meta.id);
@@ -185,7 +194,7 @@ export default function TopicLibraryScreen() {
         entry={item.entry}
         installedRecord={item.installedRecord}
         isActive={item.installedRecord?.meta.id === activeTopicId}
-        access={item.entry?.access ?? "free"}
+        access={isLocalMode ? "free" : (item.entry?.access ?? "free")}
         claimSource={owned?.source ?? null}
         personalCaption={personalCaption}
         onInstall={installCatalogEntry}
