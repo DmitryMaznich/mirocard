@@ -2238,6 +2238,72 @@ its row (e.g. `01_pryamaya_liniya`: 9.84–62.14, matching
 row's own two upper thin lines, `_uzkaya` elements hug the bold
 baseline, matching the reference mockup's proportions.
 
+**Fourth round, same day: the combined 4-line block itself was wrong —
+split into two real, separately-sized row types (2026-09-18, "широкая
+со штрихом- узкаяпустая- широкая пустая- узкая пустая - широкая со
+штрихом. то есть одна широкая строка получается пустой").** The
+previous fix's `ELEMENT_ROW_PITCH` design gave every element the SAME
+combined block (150 native units, all 4 guide lines: `NATIVE_L1`,
+`NATIVE_L2`, `NATIVE_L3`-bold, `NATIVE_L4`), regardless of which zone
+the element's own data actually used. That preserved the wide-vs-narrow
+POSITION distinction correctly (pixel-verified against the user's own
+screenshot: three real elements landed on three consecutive
+`ELEMENT_ROW_PITCH`-apart rows, each in its own real native y-range, no
+literal row skip) — but each element only ever used ONE of the block's
+two zones (the wide family used roughly the top third, `_uzkaya` used
+roughly the bottom third), leaving the REST of that same combined block
+looking like extra empty ruled space the user read as a skipped row.
+Confirmed via `AskUserQuestion`: each element needs its OWN row sized to
+EXACTLY its real zone, consecutive rows stacked directly against each
+other ("вплотную") — no combined block, no per-row filler.
+
+Fix: two real row types instead of one combined block —
+`WIDE_ROW_HEIGHT = NATIVE_L2 - NATIVE_L1` (52, the plain family's own
+ascender zone) and `NARROW_ROW_HEIGHT = NATIVE_L3 - NATIVE_L2` (26, the
+narrow/x-height zone). `layoutElementLinesIntoRows` now classifies each
+element and translates its strokes onto a 0-based row-local origin
+(`-NATIVE_L1` for a wide element, `-NATIVE_L2` for a narrow one — no
+scaling, same real captured size as before), and returns each placed
+row's own `rowHeightUnits`. A NEW `paginateElementRows` replaces
+`paginateRows` for element mode: since rows now have variable height,
+it packs by real cumulative height instead of a fixed rows-per-page
+count, stacking rows with ZERO gap (a row's own bottom line doubles as
+the next row's own top line, the same way a real ruled notebook page's
+lines are shared between adjacent rows) — same even-page-count,
+minimum-2 physical-sheet convention `paginateRows` already used.
+`PrintPageView.jsx` draws ruling only for the rows actually present on
+a page (no fixed row count to fill), each a plain thin-top/bold-bottom
+pair sized to that row's own real height.
+
+**Fifth round, same day: the wide/narrow classifier itself was wrong
+for one specific element (2026-09-18).** The first cut classified by id
+suffix (`elementId.includes("_uzkaya")`) — wrong for
+`02b_naklonnaya_korotkaya`: it has no `_uzkaya` suffix at all (named
+"korotkaya"/short, not "uzkaya"/narrow), but its own captured native
+y-range (~63–86) sits squarely in the narrow/x-height band, not the
+wide one. The id-based classifier silently gave it `WIDE_ROW_HEIGHT`
+— a row twice as tall as its real content needed, reintroducing the
+exact kind of extra-empty-space bug this whole redesign exists to
+eliminate, just for one specific card instead of every one. Fix:
+classify from the element's OWN captured data instead of its id — the
+midpoint between the two bands' own anchor lines
+(`(NATIVE_L2 + NATIVE_L3) / 2` = 75) cleanly separates every captured
+element's own real max-Y with margin either way. The id-suffix check is
+kept only as a last-resort fallback for an id with no captured data at
+all (nothing else to classify by in that case). Locked in with a
+regression test using `02b_naklonnaya_korotkaya`'s real capture data.
+
+Verified via `wordEngine.test.js` (rewritten: two distinct row heights,
+`paginateElementRows`' own zero-gap stacking/page-overflow/even-count
+behavior, the `02b` regression) and a throwaway `dev-elements.jsx`
+render (Playwright, 6 real elements spanning both families including
+`02b`) confirmed via real DOM inspection that row origins land at
+exactly the expected cumulative offsets (72, 124, 150, 176, 228, 254 —
+diffs 52/26/26/52/26/52, matching each element's own real type with no
+gap and no wasted space) and the full 4-page-cycle print-portal view
+renders identically. No deck-zip rebuild needed (same reasoning as
+every prior round this session — propis's ZIP carries no JS).
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
