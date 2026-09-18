@@ -1,5 +1,5 @@
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
-import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
+import { GUIDE_LINES, NATIVE_L1, NATIVE_L3, NATIVE_L4, TEXT_ROW_PITCH } from "./propisRuling.js";
 
 // Points within this margin of a letter's closest approach to the baseline are treated as
 // part of its baseline-contact zone — needed because most letters never sample to a
@@ -739,49 +739,45 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
   return { placed, rowCount };
 }
 
-// A logical element row occupies TWO of PrintPageView's physical ruled-line slots (2 *
-// TEXT_ROW_PITCH = 144 native units), not one -- found 2026-09-17 by actually rendering a page
-// and comparing against the picker preview: elements are captured against the full
-// NATIVE_L1..L4 span (up to 130 native units for a wide element like 01_pryamaya_liniya),
-// while TEXT_ROW_PITCH (72 units = 12mm) is sized for flowing CURSIVE TEXT, whose own letters
-// stay much closer to the baseline than a full-height drill does. A single-pitch row visibly
-// overlapped the row above it. Doubling the pitch (rather than shrinking every element to fit
-// the tighter text spacing) keeps elements at the same scale they were captured/previewed at --
-// matching the user's "как в книге" ("like in the book") intent -- at the cost of roughly half
-// as many element-rows fitting per printed page as text-rows would. The unused odd physical
-// slot between two element-rows isn't wasted: it reads as normal breathing room around a big
-// drill, same as the source book itself gives one.
-export const ELEMENT_ROW_PHYSICAL_SLOTS = 2;
+// Elements are captured against the full NATIVE_L1..L4 span (up to 130 native units for a wide
+// element like 01_pryamaya_liniya) -- the whole physical row, ascender-top to descender-bottom.
+// TEXT_ROW_PITCH (72 units) is a single ordinary row's pitch. Scaling every element down to fit
+// that same pitch (rather than doubling the row's own physical space to fit the element at its
+// captured scale, tried first and reverted 2026-09-18 -- see docs/propis.md for the two prior
+// attempts and why each was rejected) keeps "one element = one row", matching the user's
+// explicit choice once shown both options live: elements repeat DENSELY, one per row, the same
+// as ordinary text rows -- not "как в книге"'s original full scale after all. Anchored on the
+// baseline (NATIVE_L3) so the scaled shape still sits on the same baseline every row already
+// shares with cursive text, instead of drifting off it.
+export const ELEMENT_SCALE = TEXT_ROW_PITCH / (NATIVE_L4 - NATIVE_L1);
 
 // read_lines' "Элементы букв" option: one element at the START of each row, one row per input
-// line (revised 2026-09-17 from an earlier "repeat the element across the whole row" version --
-// the user wants just the single drill instance with a start dot, not a filled row). Returns the
-// same {placed, rowCount} shape layoutTextIntoRows/paginateRows already use, so
-// PrintPageView.jsx/paginateRows don't need a second code path for pagination, only for building
-// the row layout itself -- `rowIndex` here is already a PHYSICAL row-slot index (see
-// ELEMENT_ROW_PHYSICAL_SLOTS above), so paginateRows' existing
-// Math.floor(rowIndex / rowsPerPage) arithmetic keeps working unmodified.
+// line, scaled down to ELEMENT_SCALE so it fits a single ordinary row -- no special pagination
+// or ruling case needed elsewhere (PrintPageView.jsx/paginateRows treat this exactly like a
+// text row).
 export function layoutElementLinesIntoRows(lines, elementsByLabel) {
   const placed = lines.map((elementId, i) => {
-    const rowIndex = i * ELEMENT_ROW_PHYSICAL_SLOTS;
+    const rowIndex = i;
     const element = elementsByLabel.get(elementId);
     if (!element) {
       // Unknown/uncaptured element id (e.g. a session saved before this element existed, or
       // the id typo'd somewhere upstream) -- render an empty row rather than crash.
       return { word: elementId, rowIndex, x: 0, segments: [] };
     }
+    const translateY = NATIVE_L3 * (1 - ELEMENT_SCALE);
+    const strokes = element.strokes.map((s) => ({
+      d: transformPathD(s.d, { scaleX: ELEMENT_SCALE, scaleY: ELEMENT_SCALE, translateY }),
+    }));
     // startPoint marks where the pen should first touch down -- the trajectory's own start,
-    // not the row's -- so a mirrored/reflected element (none exist yet, but strokes aren't
-    // guaranteed left-to-right) still gets the dot in the right place.
-    const startPoint = getPathEndpoints(element.strokes[0].d).start;
-    const vbW = Number(element.viewBox.split(" ")[2]);
-    const segment = { type: "element", xOffset: 0, strokes: element.strokes, width: vbW, startPoint };
+    // not the row's -- computed from the already-scaled stroke so it lands exactly on it, same
+    // as a mirrored/reflected element (none exist yet, but strokes aren't guaranteed
+    // left-to-right) would still get the dot in the right place.
+    const startPoint = getPathEndpoints(strokes[0].d).start;
+    const vbW = Number(element.viewBox.split(" ")[2]) * ELEMENT_SCALE;
+    const segment = { type: "element", xOffset: 0, strokes, width: vbW, startPoint };
     return { word: elementId, rowIndex, x: 0, segments: [segment] };
   });
-  // Physical slots consumed: lines.length element-rows at ELEMENT_ROW_PHYSICAL_SLOTS each,
-  // minus the one trailing "breathing room" slot after the very last row (nothing needs to
-  // reserve a slot it doesn't use).
-  const rowCount = Math.max(lines.length * ELEMENT_ROW_PHYSICAL_SLOTS - (ELEMENT_ROW_PHYSICAL_SLOTS - 1), 1);
+  const rowCount = Math.max(lines.length, 1);
   return { placed, rowCount };
 }
 

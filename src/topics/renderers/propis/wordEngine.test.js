@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { transformPathD, getPathEndpoints } from "./pathGeometry.js";
-import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows } from "./wordEngine.js";
-import { GUIDE_LINES } from "./propisRuling.js";
+import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows, ELEMENT_SCALE } from "./wordEngine.js";
+import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
 
 const LETTER_A = {
   id: "а",
@@ -867,26 +867,29 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     strokes: [{ d: "M 7.6 17.4 C 8.5 16.7 20.7 24.1 4 61.1" }],
   };
   const elementsByLabel = new Map([[WIDE_ELEMENT.id, WIDE_ELEMENT]]);
+  const scaledD = transformPathD(WIDE_ELEMENT.strokes[0].d, {
+    scaleX: ELEMENT_SCALE, scaleY: ELEMENT_SCALE, translateY: NATIVE_L3 * (1 - ELEMENT_SCALE),
+  });
 
-  it("places a single element at the start of the row, marked with its trajectory's start point", () => {
+  it("places a single element at the start of the row, scaled down to fit one ordinary row, marked with its scaled trajectory's start point", () => {
     const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel);
     expect(placed).toHaveLength(1);
     expect(placed[0].segments).toHaveLength(1);
     const [seg] = placed[0].segments;
     expect(seg.type).toBe("element");
     expect(seg.xOffset).toBe(0);
-    expect(seg.strokes).toBe(WIDE_ELEMENT.strokes);
-    expect(seg.startPoint).toEqual(getPathEndpoints(WIDE_ELEMENT.strokes[0].d).start);
+    expect(seg.strokes).toEqual([{ d: scaledD }]);
+    expect(seg.width).toBeCloseTo(28 * ELEMENT_SCALE, 6);
+    expect(seg.startPoint).toEqual(getPathEndpoints(scaledD).start);
   });
 
-  it("assigns each row TWO physical row slots (rowIndex 0, 2, 4, ...) so a full-height element never overlaps its neighbor", () => {
+  it("assigns one ordinary row per element (rowIndex 0, 1, 2, ...) -- no doubled-up physical slots", () => {
     const { placed, rowCount } = layoutElementLinesIntoRows(
       ["05_kryuchok_vlevo", "05_kryuchok_vlevo", "05_kryuchok_vlevo"],
       elementsByLabel
     );
-    expect(placed.map((p) => p.rowIndex)).toEqual([0, 2, 4]);
-    // 3 rows * 2 slots - 1 unused trailing slot = 5.
-    expect(rowCount).toBe(5);
+    expect(placed.map((p) => p.rowIndex)).toEqual([0, 1, 2]);
+    expect(rowCount).toBe(3);
   });
 
   it("renders an empty row (not a crash) for an id with no matching captured element", () => {
