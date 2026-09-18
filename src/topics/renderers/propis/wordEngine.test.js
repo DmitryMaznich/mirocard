@@ -903,6 +903,32 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     expect(maxY).toBeCloseTo(NARROW_TARGET_LINE, 3);
   });
 
+  it("shrinks a wide element whose real height (52+) overruns the row's real headroom (48, TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) so its own top stays within the row instead of spilling into the previous row -- regression for the sixth round's fix, which anchored the bottom but left the top overflowing (reported 2026-09-18, seventh round)", () => {
+    // Mirrors 01_pryamaya_liniya's real elements.json span (native y 9.9-62.14, ~52.2 tall).
+    const TOO_TALL_WIDE_ELEMENT = {
+      id: "01_pryamaya_liniya", labelRu: "Прямая линия", viewBox: "0 0 40 150",
+      strokes: [{ d: "M 5.1 9.9 34.1 9.8" }, { d: "M 4.8 61.6 C 5.4 61.8 25.6 62.1 35.0 62.1" }],
+    };
+    const byLabel = new Map([[TOO_TALL_WIDE_ELEMENT.id, TOO_TALL_WIDE_ELEMENT]]);
+    const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel);
+    const ys = placed[0].segments[0].strokes.flatMap((s) => samplePath(s.d).map((p) => p[1]));
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    expect(maxY).toBeCloseTo(WIDE_TARGET_LINE, 3);
+    // Shrunk just enough: real height (~52.2) no longer exceeds the 48-unit headroom.
+    expect(maxY - minY).toBeLessThanOrEqual(48 + 0.01);
+    expect(maxY - minY).toBeGreaterThan(40); // still close to real size, not over-shrunk
+  });
+
+  it("does NOT shrink a wide element whose real height already fits the row's headroom -- never scales an already-fitting element up or down", () => {
+    // WIDE_ELEMENT's own real span is ~43.7 (17.4 to 61.1), under the 48-unit budget.
+    const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel);
+    const expectedD = transformPathD(WIDE_ELEMENT.strokes[0].d, {
+      translateY: WIDE_TARGET_LINE - Math.max(...samplePath(WIDE_ELEMENT.strokes[0].d).map((p) => p[1])),
+    });
+    expect(placed[0].segments[0].strokes[0].d).toBe(expectedD);
+  });
+
   it("assigns one ordinary row per element (rowIndex 0, 1, 2, ...) -- the same dense grid layoutTextIntoRows uses, no bespoke element pagination", () => {
     const { placed, rowCount } = layoutElementLinesIntoRows(
       ["05_kryuchok_vlevo", "05_kryuchok_vlevo", "05_kryuchok_vlevo"],

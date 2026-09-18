@@ -2356,6 +2356,49 @@ lands exactly on its target line (64 for wide, 88 for narrow,
 confirmed for all 6 elements including `02b`'s 63.8 — real per-card
 variance, well within the anchor's own tolerance).
 
+**Seventh round, same day: anchoring the bottom wasn't enough — tall
+elements' own TOP overran the row's real headroom (2026-09-18, "разберись
+и исправь почему высокие элементы получаются выше чем высота широкой
+строки").** The sixth round's fix anchored each element's bottom onto
+its target line at full real scale, but never checked whether the
+element's own real height actually fit the vertical room a
+`TEXT_ROW_PITCH`-apart grid actually offers there. It mostly doesn't,
+for the wide family specifically: `TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET`
+= 48 native units is all the headroom a wide element's top has before
+running into the PREVIOUS row's own baseline (72 units above, minus the
+24-unit gap already reserved for that row's own narrow-family
+headroom) — but every wide-family element's own real captured height is
+~49–53 native units (`elements.json`: 01 at 53.1, 02a at 50.4, 03 at
+52.6, 04/05 at 50.0, 06 at 49.1), consistently a few units OVER that
+48-unit budget. Anchored only at the bottom, the excess spilled upward
+past the row's own real boundary into whatever the previous row was
+using. A few narrow-family elements run slightly over their own
+23–27-unit real height against the exact-same-sized 24-unit
+thin-to-bold gap too (`03_zaborchik_ploskie_uzkaya` at 27.2 specifically).
+
+Fix: `layoutElementLinesIntoRows` now samples each element's own real
+min/max Y (not just the max used for anchoring) and computes
+`scale = Math.min(1, headroom / (maxY - minY))` — `WIDE_HEADROOM` (48)
+for the wide family, `NARROW_HEADROOM` (24, `TEXT_ROW_THIN_OFFSET`) for
+narrow — applied as a uniform `scaleX`/`scaleY` (keeps proportions,
+doesn't just vertically squash) before the same bottom-anchor
+translate. `Math.min(1, ...)` guarantees this only ever shrinks an
+element that doesn't already fit — an element whose real size is
+already within budget (most `_uzkaya` cards, `02b`) renders completely
+untouched, at its exact real captured size, same as before this fix.
+
+Verified via `wordEngine.test.js` (two new tests: a real too-tall wide
+element — mirroring `01_pryamaya_liniya`'s own ~52.2-unit span — gets
+shrunk so its height no longer exceeds 48 while staying close to its
+real size, not over-shrunk; an already-fitting wide element's output
+`d` string is byte-identical to the unscaled anchor-only transform) and
+a throwaway `dev-elements.jsx`/Playwright render across 7 real elements
+(both families, including the borderline `02b` and
+`03_zaborchik_ploskie_uzkaya`): every wide row's own content now spans
+EXACTLY 48 units (local y 16–64) with its top landing exactly on the
+previous row's own baseline (zero overlap, zero gap), and every
+already-fitting narrow row's own real height (23.1–23.8) is unchanged.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
