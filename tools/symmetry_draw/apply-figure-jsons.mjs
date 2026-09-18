@@ -6,10 +6,11 @@ import { FIGURES_DIR, ROOT, TOPIC_PATH, clone, figureFilePath, fitFigureToGrid, 
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
-const files = args.filter((argument) => argument !== "--dry-run");
+const refreshRuntime = args.includes("--refresh");
+const files = args.filter((argument) => argument !== "--dry-run" && argument !== "--refresh");
 
-if (!files.length) {
-  console.error("Usage: node tools/symmetry_draw/apply-figure-jsons.mjs [--dry-run] <corrected-figure.json> [...]");
+if (!files.length && !refreshRuntime) {
+  console.error("Usage: node tools/symmetry_draw/apply-figure-jsons.mjs [--dry-run] [--refresh] <corrected-figure.json> [...]");
   process.exitCode = 1;
 } else {
   const corrected = files.map((file) => {
@@ -36,7 +37,7 @@ if (!files.length) {
       changed.push(merged);
     }
   }
-  if (!changed.length) throw new Error("No geometry changes to deploy.");
+  if (!changed.length && !refreshRuntime) throw new Error("No geometry changes to deploy.");
 
   const catalogPath = resolve(ROOT, "public/decks/catalog.json");
   const catalog = JSON.parse(readFileSync(catalogPath, "utf8"));
@@ -51,7 +52,8 @@ if (!files.length) {
   const topicText = `${JSON.stringify(nextTopic, null, 2)}\n`;
 
   if (dryRun) {
-    console.log(`✓ validated ${changed.length} correction(s): ${changed.map((card) => card.id).join(", ")}`);
+    if (changed.length) console.log(`✓ validated ${changed.length} correction(s): ${changed.map((card) => card.id).join(", ")}`);
+    if (refreshRuntime) console.log("✓ validated a deck runtime refresh");
     console.log(`  will publish local deck ${deckName} and update catalog ${topic.meta.version} → ${nextVersion}`);
   } else {
     const deckBuffer = await createSymmetryDrawDeckBuffer(topicText);
@@ -63,7 +65,10 @@ if (!files.length) {
     catalogEntry.url = `./decks/${deckName}`;
     catalogEntry.zipUrl = deckName;
     writeFileSync(catalogPath, `${JSON.stringify(catalog, null, 2)}\n`);
-    console.log(`✓ deployed ${changed.length} corrected figure JSON file(s) into symmetry_draw v${nextVersion}`);
+    const changeDescription = changed.length
+      ? `${changed.length} corrected figure JSON file(s)`
+      : "a deck runtime refresh";
+    console.log(`✓ deployed ${changeDescription} into symmetry_draw v${nextVersion}`);
     console.log(`  ${deckPath}`);
   }
 }

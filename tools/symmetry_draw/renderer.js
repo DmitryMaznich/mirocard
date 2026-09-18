@@ -40,6 +40,38 @@
     return (circles ?? []).map((circle) => ({ ...circle, col: 2 * axisCol - circle.col }));
   }
 
+  // An element that is already on the mirror axis is its own reflection. It
+  // is visible in the given half of the drawing, so requiring a child to
+  // trace it again is both redundant and hard to infer. Keep a segment that
+  // merely begins at the axis (its other end still needs reflecting), but
+  // remove whole axis-aligned segments from the expected answer and hint.
+  function isOnMirrorAxis(point, axisCol) {
+    return Math.abs(point.col - axisCol) < 0.0001;
+  }
+
+  function omitSelfMirroredSegments(paths, axisCol) {
+    const answerPaths = [];
+    for (const path of paths ?? []) {
+      let answerPath = [];
+      const flush = () => {
+        if (answerPath.length > 1) answerPaths.push(answerPath);
+        answerPath = [];
+      };
+      for (let index = 1; index < path.length; index += 1) {
+        const start = path[index - 1];
+        const end = path[index];
+        if (isOnMirrorAxis(start, axisCol) && isOnMirrorAxis(end, axisCol)) {
+          flush();
+          continue;
+        }
+        if (!answerPath.length) answerPath.push(start);
+        answerPath.push(end);
+      }
+      flush();
+    }
+    return answerPaths;
+  }
+
   function translateCircles(circles, axisCol) {
     return (circles ?? []).map((circle) => ({ ...circle, col: circle.col + axisCol }));
   }
@@ -111,6 +143,10 @@
       if (prevEnd && curStart) drawnPoints.push(...connectingSamples(prevEnd, curStart));
     }
     const total = targetSegments.length + targetDots.length + targetCircles.length;
+    // A card may consist only of self-symmetric elements on the axis. There
+    // is then intentionally nothing to add; the child's confirmation should
+    // finish the task instead of producing a misleading 0% result.
+    if (!total) return { covered: 0, total, complete: true, coveredIndexes: [], coveredDotIndexes: [], coveredCircleIndexes: [] };
     let best = { covered: 0, total, complete: false, coveredIndexes: [], coveredDotIndexes: [], coveredCircleIndexes: [] };
     // Try every whole-figure horizontal shift in range and keep whichever
     // position covers the most segments - a systematic left/right offset in
@@ -1034,18 +1070,18 @@
     const repeatGap = isRepeat ? 1.5 : 0;
     const workOrigin = isRepeat ? axisCol + repeatGap : axisCol;
     const canvasColumns = columns + repeatGap;
-    const targetPaths = useMemo(
-      () => (isRepeat ? translatePaths(sourcePaths, workOrigin) : mirrorPaths(sourcePaths, axisCol)),
-      [sourcePaths, axisCol, workOrigin, isRepeat],
-    );
-    const targetDots = useMemo(
-      () => (isRepeat ? translateDots(sourceDots, workOrigin) : mirrorDots(sourceDots, axisCol)),
-      [sourceDots, axisCol, workOrigin, isRepeat],
-    );
-    const targetCircles = useMemo(
-      () => (isRepeat ? translateCircles(sourceCircles, workOrigin) : mirrorCircles(sourceCircles, axisCol)),
-      [sourceCircles, axisCol, workOrigin, isRepeat],
-    );
+    const targetPaths = useMemo(() => {
+      const reflected = isRepeat ? translatePaths(sourcePaths, workOrigin) : mirrorPaths(sourcePaths, axisCol);
+      return isRepeat ? reflected : omitSelfMirroredSegments(reflected, axisCol);
+    }, [sourcePaths, axisCol, workOrigin, isRepeat]);
+    const targetDots = useMemo(() => {
+      const reflected = isRepeat ? translateDots(sourceDots, workOrigin) : mirrorDots(sourceDots, axisCol);
+      return isRepeat ? reflected : reflected.filter((point) => !isOnMirrorAxis(point, axisCol));
+    }, [sourceDots, axisCol, workOrigin, isRepeat]);
+    const targetCircles = useMemo(() => {
+      const reflected = isRepeat ? translateCircles(sourceCircles, workOrigin) : mirrorCircles(sourceCircles, axisCol);
+      return isRepeat ? reflected : reflected.filter((circle) => !isOnMirrorAxis(circle, axisCol));
+    }, [sourceCircles, axisCol, workOrigin, isRepeat]);
     const targetSegments = useMemo(() => pathsToSegments(targetPaths), [targetPaths]);
     const hintPoints = useMemo(() => [...targetPaths.flat(), ...targetDots, ...targetCircles], [targetPaths, targetDots, targetCircles]);
 
