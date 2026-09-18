@@ -13,7 +13,7 @@
       },
       "url": "./decks/reading_dad_poems_v1.0.24.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "reading_short_stories",
@@ -28,7 +28,7 @@
       },
       "url": "./decks/reading_short_stories_v1.6.3.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "reading_dad_instructions",
@@ -43,7 +43,7 @@
       },
       "url": "./decks/reading_dad_instructions_v1.0.6.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "emotions_v2",
@@ -58,7 +58,7 @@
       },
       "url": "./decks/emotions_v2_v1.10.0.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "people_names",
@@ -73,7 +73,7 @@
       },
       "renderer": "flashcards",
       "status": "beta",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "clothes_basic",
@@ -88,7 +88,7 @@
       },
       "url": "./decks/clothes_basic_v1.1.0.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "verbs_v2",
@@ -103,7 +103,7 @@
       },
       "url": "./decks/verbs_v2_v1.2.0.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "transport_photo",
@@ -118,7 +118,7 @@
       },
       "url": "./decks/transport_photo_v1.1.0.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "comparison",
@@ -133,7 +133,7 @@
       },
       "url": "./decks/comparison_v2.35.1.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "math_houses",
@@ -148,7 +148,7 @@
       },
       "url": "./decks/math_houses_v1.2.0.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "addition_subtraction",
@@ -163,7 +163,7 @@
       },
       "url": "./decks/addition_subtraction_v1.6.0.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "sentence_puzzle",
@@ -178,7 +178,7 @@
       },
       "url": "./decks/sentence_puzzle_v1.9.19.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "tools_functions",
@@ -193,7 +193,7 @@
       },
       "url": "./decks/tools_functions_v1.3.9.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "column_addition",
@@ -203,7 +203,7 @@
         "ru": "Сложение и вычитание в столбик"
       },
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "word_formation_soup",
@@ -214,7 +214,8 @@
         "ru": "Словообразование"
       },
       "renderer": "word_formation",
-      "file": "word_formation_soup_v1.0.50.zip"
+      "file": "word_formation_soup_v1.0.50.zip",
+      "access": "paid"
     },
     {
       "id": "phonetic_analysis",
@@ -225,7 +226,8 @@
         "ru": "Звуки и буквы",
         "en": "Sounds and Letters"
       },
-      "renderer": "phonetic_analysis"
+      "renderer": "phonetic_analysis",
+      "access": "paid"
     },
     {
       "id": "written_letters",
@@ -241,7 +243,7 @@
       "url": "./decks/written_letters_v1.0.4.zip",
       "zipUrl": "written_letters_v1.0.4.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "letter_writing",
@@ -256,7 +258,7 @@
       },
       "url": "./decks/letter_writing_v1.1.0.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "propis",
@@ -271,7 +273,7 @@
       },
       "url": "./decks/propis_v1.29.0.zip",
       "status": "beta",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "vowel_consonant_ru",
@@ -286,7 +288,7 @@
       },
       "url": "./decks/vowel_consonant_ru_v1.0.0.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "magnetic_alphabet",
@@ -301,7 +303,7 @@
       },
       "url": "./decks/magnetic_alphabet_v1.7.1.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "coffee",
@@ -316,7 +318,7 @@
       },
       "url": "./decks/coffee_v1.0.0.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "opposites",
@@ -329,7 +331,7 @@
       },
       "url": "./decks/opposites_v2.13.1.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "first_then",
@@ -339,7 +341,7 @@
       },
       "url": "./decks/first_then_v1.1.9.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "spatial_prepositions_ru",
@@ -354,7 +356,7 @@
       },
       "renderer": "spatial_prepositions",
       "status": "beta",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "word_agreement_ru",
@@ -369,7 +371,7 @@
       },
       "renderer": "word_agreement",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "symmetry_draw",
@@ -384,7 +386,7 @@
       },
       "renderer": "flashcards",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "print_materials",
@@ -396,7 +398,8 @@
         "ru": "Тетради и рабочие листы для печати"
       },
       "url": "./decks/print_materials_v1.0.36.zip",
-      "hidden": true
+      "hidden": true,
+      "access": "paid"
     }
   ]
 }

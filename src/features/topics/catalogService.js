@@ -20,6 +20,14 @@ export function isLocalModeProfile(account, token) {
   return account?.email === "local" && !token;
 }
 
+// Local mode has no backend account, so there is nothing a trial or
+// subscription could attach to -- the paid gate can never apply to it.
+// Treated the same as a genuinely free catalog entry: downloaded directly
+// from its static URL, no claim call, no lock badge.
+export function isFreeStaticInstall(entry, account, token) {
+  return (isLocalModeProfile(account, token) || (entry.access ?? "free") === "free") && Boolean(entry.url);
+}
+
 export async function fetchCatalog() {
   try {
     return await api.get("/decks/catalog");
