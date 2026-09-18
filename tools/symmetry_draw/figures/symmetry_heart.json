@@ -3,7 +3,7 @@
   "conceptId": "symmetry_heart",
   "label": "Сердечко",
   "columns": 12,
-  "rows": 9,
+  "rows": 12,
   "axisCol": 6,
   "sourcePaths": [
     [
@@ -12,68 +12,48 @@
         "row": 2
       },
       {
-        "col": 6,
-        "row": 1.8
+        "col": 5,
+        "row": 1
       },
       {
-        "col": 5.7,
-        "row": 1.2
+        "col": 4,
+        "row": 1
       },
       {
-        "col": 5.2,
-        "row": 0.5
+        "col": 3,
+        "row": 1
       },
       {
-        "col": 4.3,
-        "row": 0
+        "col": 2,
+        "row": 2
       },
       {
-        "col": 3.2,
-        "row": 0
+        "col": 1,
+        "row": 3
       },
       {
-        "col": 2.2,
-        "row": 0.4
+        "col": 1,
+        "row": 4
       },
       {
-        "col": 1.5,
-        "row": 1.2
+        "col": 2,
+        "row": 6
       },
       {
-        "col": 1.2,
-        "row": 2.3
+        "col": 3,
+        "row": 7
       },
       {
-        "col": 1.5,
-        "row": 3.4
+        "col": 4,
+        "row": 8
       },
       {
-        "col": 2.2,
-        "row": 4.5
-      },
-      {
-        "col": 3.2,
-        "row": 5.5
-      },
-      {
-        "col": 4.3,
-        "row": 6.4
-      },
-      {
-        "col": 5.2,
-        "row": 7.2
-      },
-      {
-        "col": 5.7,
-        "row": 7.9
+        "col": 5,
+        "row": 9
       },
       {
         "col": 6,
-        "row": 8.4
-      },
-      {
-        "col": 6,
-        "row": 8.6
+        "row": 11
       }
     ]
   ],

@@ -5,27 +5,17 @@
   "label": "Ключ",
   "taskKind": "dictation",
   "difficulty": "reinforce",
-  "columns": 11,
-  "rows": 9,
+  "columns": 12,
+  "rows": 7,
   "start": {
     "col": 1,
-    "row": 5
+    "row": 4
   },
   "commands": [
     {
       "type": "move",
-      "direction": "right",
+      "direction": "up",
       "cells": 3
-    },
-    {
-      "type": "move",
-      "direction": "up_right",
-      "cells": 1
-    },
-    {
-      "type": "move",
-      "direction": "down_right",
-      "cells": 1
     },
     {
       "type": "move",
@@ -36,6 +26,66 @@
       "type": "move",
       "direction": "down",
       "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 5
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "up",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down_left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "up_left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 1
     },
     {
       "type": "move",
@@ -50,12 +100,12 @@
     {
       "type": "move",
       "direction": "left",
-      "cells": 2
+      "cells": 1
     },
     {
       "type": "move",
       "direction": "down",
-      "cells": 2
+      "cells": 1
     },
     {
       "type": "move",
@@ -65,11 +115,26 @@
     {
       "type": "move",
       "direction": "up",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "down",
       "cells": 2
     },
     {
       "type": "move",
       "direction": "left",
+      "cells": 3
+    },
+    {
+      "type": "move",
+      "direction": "up",
       "cells": 3
     }
   ]

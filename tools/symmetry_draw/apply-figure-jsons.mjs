@@ -20,7 +20,7 @@ if (!files.length && !refreshRuntime) {
     const cards = Array.isArray(content) ? content : [content];
     if (!cards.length) throw new Error(`${path}: the exported figure set is empty`);
     return cards.map((rawCard) => {
-      const card = normalizeFigureGridNoise(rawCard);
+      const card = fitFigureToGrid(normalizeFigureGridNoise(rawCard));
       validateFigureCard(card);
       return { path, card };
     });

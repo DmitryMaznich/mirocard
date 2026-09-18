@@ -5,7 +5,7 @@
   "label": "Лабиринт",
   "taskKind": "dictation",
   "columns": 10,
-  "rows": 10,
+  "rows": 9,
   "start": {
     "col": 1,
     "row": 1
@@ -19,27 +19,52 @@
     {
       "type": "move",
       "direction": "down",
-      "cells": 2
+      "cells": 1
     },
     {
       "type": "move",
       "direction": "left",
+      "cells": 6
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "right",
       "cells": 5
     },
     {
       "type": "move",
       "direction": "down",
-      "cells": 3
+      "cells": 1
     },
     {
       "type": "move",
       "direction": "right",
-      "cells": 3
+      "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "down",
+      "cells": 1
+    },
+    {
+      "type": "move",
+      "direction": "left",
+      "cells": 8
     },
     {
       "type": "move",
       "direction": "down",
       "cells": 2
+    },
+    {
+      "type": "move",
+      "direction": "right",
+      "cells": 5
     }
   ],
   "difficulty": "starter"

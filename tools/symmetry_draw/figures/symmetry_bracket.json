@@ -1,26 +1,26 @@
 {
   "id": "symmetry_bracket",
   "conceptId": "symmetry_bracket",
-  "label": "Скобка",
-  "columns": 12,
+  "label": "Прямоугольник",
+  "columns": 6,
   "rows": 12,
-  "axisCol": 6,
+  "axisCol": 3,
   "sourcePaths": [
     [
       {
-        "col": 6,
+        "col": 3,
         "row": 1
       },
       {
-        "col": 4,
+        "col": 1,
         "row": 1
       },
       {
-        "col": 4,
+        "col": 1,
         "row": 11
       },
       {
-        "col": 6,
+        "col": 3,
         "row": 11
       }
     ]

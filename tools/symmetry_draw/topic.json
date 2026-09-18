@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.11.12",
+    "version": "1.11.13",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -424,7 +424,7 @@
       "conceptId": "symmetry_heart",
       "label": "Сердечко",
       "columns": 12,
-      "rows": 9,
+      "rows": 12,
       "axisCol": 6,
       "sourcePaths": [
         [
@@ -433,68 +433,48 @@
             "row": 2
           },
           {
-            "col": 6,
-            "row": 1.8
+            "col": 5,
+            "row": 1
           },
           {
-            "col": 5.7,
-            "row": 1.2
+            "col": 4,
+            "row": 1
           },
           {
-            "col": 5.2,
-            "row": 0.5
+            "col": 3,
+            "row": 1
           },
           {
-            "col": 4.3,
-            "row": 0
+            "col": 2,
+            "row": 2
           },
           {
-            "col": 3.2,
-            "row": 0
+            "col": 1,
+            "row": 3
           },
           {
-            "col": 2.2,
-            "row": 0.4
+            "col": 1,
+            "row": 4
           },
           {
-            "col": 1.5,
-            "row": 1.2
+            "col": 2,
+            "row": 6
           },
           {
-            "col": 1.2,
-            "row": 2.3
+            "col": 3,
+            "row": 7
           },
           {
-            "col": 1.5,
-            "row": 3.4
+            "col": 4,
+            "row": 8
           },
           {
-            "col": 2.2,
-            "row": 4.5
-          },
-          {
-            "col": 3.2,
-            "row": 5.5
-          },
-          {
-            "col": 4.3,
-            "row": 6.4
-          },
-          {
-            "col": 5.2,
-            "row": 7.2
-          },
-          {
-            "col": 5.7,
-            "row": 7.9
+            "col": 5,
+            "row": 9
           },
           {
             "col": 6,
-            "row": 8.4
-          },
-          {
-            "col": 6,
-            "row": 8.6
+            "row": 11
           }
         ]
       ],
@@ -594,19 +574,19 @@
         [
           {
             "col": 6,
-            "row": 0
+            "row": 1
           },
           {
-            "col": 0,
-            "row": 6
+            "col": 1,
+            "row": 4
           },
           {
-            "col": 0,
-            "row": 8
+            "col": 1,
+            "row": 10
           },
           {
             "col": 6,
-            "row": 14
+            "row": 13
           }
         ]
       ],
@@ -748,79 +728,79 @@
     {
       "id": "symmetry_car",
       "conceptId": "symmetry_car",
-      "label": "Машина",
-      "columns": 20,
-      "rows": 10,
-      "axisCol": 10,
+      "label": "Звездолет",
+      "columns": 18,
+      "rows": 12,
+      "axisCol": 9,
       "sourcePaths": [
         [
           {
-            "col": 10,
-            "row": 0
+            "col": 9,
+            "row": 1
           },
           {
-            "col": 8,
-            "row": 0
+            "col": 7,
+            "row": 1
           },
+          {
+            "col": 4,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 7
+          },
+          {
+            "col": 2,
+            "row": 9
+          },
+          {
+            "col": 9,
+            "row": 9
+          }
+        ],
+        [
           {
             "col": 5,
-            "row": 3
+            "row": 4
+          },
+          {
+            "col": 7,
+            "row": 4
+          },
+          {
+            "col": 7,
+            "row": 6
           },
           {
             "col": 5,
             "row": 6
           },
           {
+            "col": 5,
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 9
+          },
+          {
             "col": 3,
-            "row": 8
+            "row": 9
           },
           {
-            "col": 10,
-            "row": 8
-          }
-        ],
-        [
-          {
-            "col": 6,
-            "row": 3
+            "col": 3,
+            "row": 11
           },
           {
-            "col": 8,
-            "row": 3
+            "col": 1,
+            "row": 11
           },
           {
-            "col": 8,
-            "row": 5
-          },
-          {
-            "col": 6,
-            "row": 5
-          },
-          {
-            "col": 6,
-            "row": 3
-          }
-        ],
-        [
-          {
-            "col": 2,
-            "row": 8
-          },
-          {
-            "col": 4,
-            "row": 8
-          },
-          {
-            "col": 4,
-            "row": 10
-          },
-          {
-            "col": 2,
-            "row": 10
-          },
-          {
-            "col": 2,
-            "row": 8
+            "col": 1,
+            "row": 9
           }
         ]
       ],
@@ -856,26 +836,26 @@
     {
       "id": "symmetry_bracket",
       "conceptId": "symmetry_bracket",
-      "label": "Скобка",
-      "columns": 12,
+      "label": "Прямоугольник",
+      "columns": 6,
       "rows": 12,
-      "axisCol": 6,
+      "axisCol": 3,
       "sourcePaths": [
         [
           {
-            "col": 6,
+            "col": 3,
             "row": 1
           },
           {
-            "col": 4,
+            "col": 1,
             "row": 1
           },
           {
-            "col": 4,
+            "col": 1,
             "row": 11
           },
           {
-            "col": 6,
+            "col": 3,
             "row": 11
           }
         ]
@@ -886,7 +866,7 @@
     {
       "id": "symmetry_stairs",
       "conceptId": "symmetry_stairs",
-      "label": "Лесенка",
+      "label": "Крест",
       "columns": 12,
       "rows": 12,
       "axisCol": 6,
@@ -933,56 +913,66 @@
       "id": "symmetry_little_car",
       "conceptId": "symmetry_little_car",
       "label": "Машинка",
-      "columns": 12,
-      "rows": 9,
-      "axisCol": 6,
+      "columns": 14,
+      "rows": 8,
+      "axisCol": 7,
       "sourcePaths": [
         [
           {
-            "col": 6,
+            "col": 7,
+            "row": 1
+          },
+          {
+            "col": 5,
+            "row": 1
+          },
+          {
+            "col": 3,
             "row": 3
           },
           {
-            "col": 4,
+            "col": 1,
             "row": 3
           },
           {
-            "col": 2,
-            "row": 5
+            "col": 1,
+            "row": 6
           },
           {
-            "col": 0,
-            "row": 5
-          },
-          {
-            "col": 0,
-            "row": 8
-          },
-          {
-            "col": 6,
-            "row": 8
+            "col": 7,
+            "row": 6
           }
         ],
         [
           {
-            "col": 2,
-            "row": 7
+            "col": 3,
+            "row": 5
+          },
+          {
+            "col": 4,
+            "row": 6
           },
           {
             "col": 3,
-            "row": 8
-          },
-          {
-            "col": 2,
-            "row": 9
-          },
-          {
-            "col": 1,
-            "row": 8
-          },
-          {
-            "col": 2,
             "row": 7
+          },
+          {
+            "col": 2,
+            "row": 6
+          },
+          {
+            "col": 3,
+            "row": 5
+          }
+        ],
+        [
+          {
+            "col": 7,
+            "row": 3
+          },
+          {
+            "col": 3,
+            "row": 3
           }
         ]
       ],
@@ -1538,81 +1528,45 @@
       "primary": true,
       "label": "Робот",
       "taskKind": "repeat",
-      "columns": 18,
-      "rows": 14,
-      "axisCol": 9,
+      "columns": 20,
+      "rows": 15,
+      "axisCol": 10,
       "sourcePaths": [
         [
           {
-            "col": 2,
-            "row": 1
-          },
-          {
-            "col": 6,
-            "row": 1
-          },
-          {
-            "col": 6,
-            "row": 4
-          },
-          {
-            "col": 2,
-            "row": 4
-          },
-          {
-            "col": 2,
-            "row": 1
-          }
-        ],
-        [
-          {
-            "col": 4,
-            "row": 1
-          },
-          {
-            "col": 4,
-            "row": 0
-          }
-        ],
-        [
-          {
-            "col": 1,
-            "row": 4
+            "col": 3,
+            "row": 2
           },
           {
             "col": 7,
-            "row": 4
+            "row": 2
           },
           {
             "col": 7,
-            "row": 10
-          },
-          {
-            "col": 1,
-            "row": 10
-          },
-          {
-            "col": 1,
-            "row": 4
-          }
-        ],
-        [
-          {
-            "col": 1,
             "row": 5
           },
           {
-            "col": 0,
+            "col": 3,
             "row": 5
           },
           {
-            "col": 0,
-            "row": 8
+            "col": 3,
+            "row": 2
           }
         ],
         [
           {
-            "col": 7,
+            "col": 5,
+            "row": 2
+          },
+          {
+            "col": 5,
+            "row": 1
+          }
+        ],
+        [
+          {
+            "col": 2,
             "row": 5
           },
           {
@@ -1621,39 +1575,139 @@
           },
           {
             "col": 8,
+            "row": 11
+          },
+          {
+            "col": 2,
+            "row": 11
+          },
+          {
+            "col": 2,
+            "row": 5
+          }
+        ],
+        [
+          {
+            "col": 2,
+            "row": 6
+          },
+          {
+            "col": 1,
+            "row": 6
+          },
+          {
+            "col": 1,
+            "row": 9
+          }
+        ],
+        [
+          {
+            "col": 8,
+            "row": 6
+          },
+          {
+            "col": 9,
+            "row": 6
+          },
+          {
+            "col": 9,
+            "row": 9
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 11
+          },
+          {
+            "col": 4,
+            "row": 14
+          },
+          {
+            "col": 3,
+            "row": 14
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 11
+          },
+          {
+            "col": 6,
+            "row": 14
+          },
+          {
+            "col": 7,
+            "row": 14
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 6
+          },
+          {
+            "col": 4,
+            "row": 7
+          },
+          {
+            "col": 6,
+            "row": 7
+          },
+          {
+            "col": 6,
+            "row": 6
+          },
+          {
+            "col": 4,
+            "row": 6
+          }
+        ],
+        [
+          {
+            "col": 4,
+            "row": 8
+          },
+          {
+            "col": 4,
+            "row": 9
+          },
+          {
+            "col": 6,
+            "row": 9
+          },
+          {
+            "col": 6,
+            "row": 8
+          },
+          {
+            "col": 4,
             "row": 8
           }
         ],
         [
           {
-            "col": 3,
-            "row": 10
-          },
-          {
-            "col": 3,
-            "row": 13
-          },
-          {
-            "col": 2,
-            "row": 13
-          }
-        ],
-        [
-          {
-            "col": 5,
-            "row": 10
-          },
-          {
-            "col": 5,
-            "row": 13
+            "col": 4,
+            "row": 4
           },
           {
             "col": 6,
-            "row": 13
+            "row": 4
           }
         ]
       ],
-      "difficulty": "challenge"
+      "difficulty": "challenge",
+      "sourceDots": [
+        {
+          "col": 4,
+          "row": 3
+        },
+        {
+          "col": 6,
+          "row": 3
+        }
+      ]
     },
     {
       "id": "repeat_train",
@@ -2116,171 +2170,195 @@
       "label": "Небоскрёб",
       "taskKind": "repeat",
       "columns": 16,
-      "rows": 16,
+      "rows": 17,
       "axisCol": 8,
       "sourcePaths": [
         [
           {
             "col": 1,
-            "row": 2
+            "row": 3
           },
           {
             "col": 7,
-            "row": 2
+            "row": 3
           },
           {
             "col": 7,
-            "row": 15
+            "row": 16
           },
           {
             "col": 1,
-            "row": 15
+            "row": 16
           },
           {
             "col": 1,
-            "row": 2
+            "row": 3
           }
         ],
         [
           {
             "col": 4,
-            "row": 2
+            "row": 3
           },
           {
             "col": 4,
-            "row": 0
+            "row": 1
           }
         ],
         [
           {
             "col": 2,
-            "row": 4
-          },
-          {
-            "col": 3,
-            "row": 4
+            "row": 5
           },
           {
             "col": 3,
             "row": 5
           },
           {
-            "col": 2,
-            "row": 5
+            "col": 3,
+            "row": 6
           },
           {
             "col": 2,
-            "row": 4
+            "row": 6
+          },
+          {
+            "col": 2,
+            "row": 5
           }
         ],
         [
-          {
-            "col": 5,
-            "row": 4
-          },
-          {
-            "col": 6,
-            "row": 4
-          },
-          {
-            "col": 6,
-            "row": 5
-          },
           {
             "col": 5,
             "row": 5
           },
           {
+            "col": 6,
+            "row": 5
+          },
+          {
+            "col": 6,
+            "row": 6
+          },
+          {
             "col": 5,
-            "row": 4
+            "row": 6
+          },
+          {
+            "col": 5,
+            "row": 5
           }
         ],
         [
           {
             "col": 2,
-            "row": 7
-          },
-          {
-            "col": 3,
-            "row": 7
+            "row": 8
           },
           {
             "col": 3,
             "row": 8
           },
           {
-            "col": 2,
-            "row": 8
+            "col": 3,
+            "row": 9
           },
           {
             "col": 2,
-            "row": 7
+            "row": 9
+          },
+          {
+            "col": 2,
+            "row": 8
           }
         ],
         [
           {
             "col": 5,
-            "row": 7
-          },
-          {
-            "col": 6,
-            "row": 7
+            "row": 8
           },
           {
             "col": 6,
             "row": 8
           },
           {
-            "col": 5,
-            "row": 8
+            "col": 6,
+            "row": 9
           },
           {
             "col": 5,
-            "row": 7
+            "row": 9
+          },
+          {
+            "col": 5,
+            "row": 8
           }
         ],
         [
           {
             "col": 2,
-            "row": 10
+            "row": 11
           },
           {
             "col": 3,
-            "row": 10
+            "row": 11
           },
           {
             "col": 3,
-            "row": 11
+            "row": 12
+          },
+          {
+            "col": 2,
+            "row": 12
           },
           {
             "col": 2,
             "row": 11
-          },
-          {
-            "col": 2,
-            "row": 10
           }
         ],
         [
           {
             "col": 5,
-            "row": 10
-          },
-          {
-            "col": 6,
-            "row": 10
+            "row": 11
           },
           {
             "col": 6,
             "row": 11
           },
           {
-            "col": 5,
-            "row": 11
+            "col": 6,
+            "row": 12
           },
           {
             "col": 5,
-            "row": 10
+            "row": 12
+          },
+          {
+            "col": 5,
+            "row": 11
+          }
+        ],
+        [
+          {
+            "col": 3,
+            "row": 14
+          },
+          {
+            "col": 5,
+            "row": 14
+          },
+          {
+            "col": 5,
+            "row": 16
+          }
+        ],
+        [
+          {
+            "col": 3,
+            "row": 14
+          },
+          {
+            "col": 3,
+            "row": 16
           }
         ]
       ],
@@ -2437,16 +2515,11 @@
       "rows": 10,
       "start": {
         "col": 1,
-        "row": 8
+        "row": 9
       },
       "commands": [
         {
           "type": "move",
-          "direction": "right",
-          "cells": 2
-        },
-        {
-          "type": "move",
           "direction": "up",
           "cells": 2
         },
@@ -2469,6 +2542,31 @@
           "type": "move",
           "direction": "up",
           "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 8
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 8
         }
       ],
       "difficulty": "starter"
@@ -2751,7 +2849,7 @@
       "label": "Лабиринт",
       "taskKind": "dictation",
       "columns": 10,
-      "rows": 10,
+      "rows": 9,
       "start": {
         "col": 1,
         "row": 1
@@ -2765,27 +2863,52 @@
         {
           "type": "move",
           "direction": "down",
-          "cells": 2
+          "cells": 1
         },
         {
           "type": "move",
           "direction": "left",
+          "cells": 6
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
           "cells": 5
         },
         {
           "type": "move",
           "direction": "down",
-          "cells": 3
+          "cells": 1
         },
         {
           "type": "move",
           "direction": "right",
-          "cells": 3
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 8
         },
         {
           "type": "move",
           "direction": "down",
           "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 5
         }
       ],
       "difficulty": "starter"
@@ -6961,44 +7084,54 @@
       "label": "Лодочка",
       "taskKind": "repeat",
       "difficulty": "starter",
-      "columns": 16,
-      "rows": 8,
-      "axisCol": 8,
+      "columns": 14,
+      "rows": 7,
+      "axisCol": 7,
       "sourcePaths": [
         [
           {
             "col": 1,
-            "row": 6
+            "row": 5
           },
           {
             "col": 6,
-            "row": 6
+            "row": 5
           },
           {
             "col": 5,
-            "row": 7
+            "row": 6
           },
           {
             "col": 2,
-            "row": 7
+            "row": 6
           },
           {
             "col": 1,
-            "row": 6
+            "row": 5
           }
         ],
         [
           {
             "col": 4,
-            "row": 6
+            "row": 5
           },
           {
             "col": 4,
-            "row": 2
+            "row": 1
           },
           {
             "col": 6,
-            "row": 5
+            "row": 4
+          }
+        ],
+        [
+          {
+            "col": 6,
+            "row": 4
+          },
+          {
+            "col": 4,
+            "row": 4
           }
         ]
       ]
@@ -7068,49 +7201,63 @@
       "taskKind": "repeat",
       "difficulty": "reinforce",
       "columns": 16,
-      "rows": 8,
+      "rows": 6,
       "axisCol": 8,
       "sourcePaths": [
         [
           {
-            "col": 2,
-            "row": 4
+            "col": 1,
+            "row": 3
           },
           {
-            "col": 4,
-            "row": 2
+            "col": 3,
+            "row": 1
           },
           {
-            "col": 6,
-            "row": 4
+            "col": 5,
+            "row": 3
           },
           {
-            "col": 4,
-            "row": 6
+            "col": 3,
+            "row": 5
           },
           {
-            "col": 2,
-            "row": 4
+            "col": 1,
+            "row": 3
           }
         ],
         [
           {
-            "col": 6,
-            "row": 4
+            "col": 5,
+            "row": 3
           },
           {
-            "col": 8,
-            "row": 2
+            "col": 7,
+            "row": 1
           },
           {
-            "col": 8,
-            "row": 6
+            "col": 7,
+            "row": 5
           },
           {
-            "col": 6,
-            "row": 4
+            "col": 5,
+            "row": 3
           }
         ]
+      ],
+      "sourceDots": [
+        {
+          "col": 2.46,
+          "row": 2.46
+        }
+      ],
+      "sourceCircles": [
+        {
+          "col": 2.5,
+          "row": 2.5,
+          "diameter": 1,
+          "placement": "cell"
+        }
       ]
     },
     {
@@ -9606,13 +9753,63 @@
       "label": "Стул",
       "taskKind": "dictation",
       "difficulty": "starter",
-      "columns": 11,
+      "columns": 7,
       "rows": 9,
       "start": {
-        "col": 2,
-        "row": 7
+        "col": 1,
+        "row": 8
       },
       "commands": [
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up_right",
+          "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 2
+        },
         {
           "type": "move",
           "direction": "up",
@@ -9620,38 +9817,13 @@
         },
         {
           "type": "move",
-          "direction": "right",
-          "cells": 4
-        },
-        {
-          "type": "move",
-          "direction": "down",
-          "cells": 2
-        },
-        {
-          "type": "move",
           "direction": "left",
-          "cells": 2
+          "cells": 3
         },
         {
           "type": "move",
           "direction": "down",
           "cells": 3
-        },
-        {
-          "type": "move",
-          "direction": "right",
-          "cells": 4
-        },
-        {
-          "type": "move",
-          "direction": "up",
-          "cells": 3
-        },
-        {
-          "type": "move",
-          "direction": "left",
-          "cells": 2
         }
       ]
     },
@@ -9784,27 +9956,17 @@
       "label": "Ключ",
       "taskKind": "dictation",
       "difficulty": "reinforce",
-      "columns": 11,
-      "rows": 9,
+      "columns": 12,
+      "rows": 7,
       "start": {
         "col": 1,
-        "row": 5
+        "row": 4
       },
       "commands": [
         {
           "type": "move",
-          "direction": "right",
+          "direction": "up",
           "cells": 3
-        },
-        {
-          "type": "move",
-          "direction": "up_right",
-          "cells": 1
-        },
-        {
-          "type": "move",
-          "direction": "down_right",
-          "cells": 1
         },
         {
           "type": "move",
@@ -9815,6 +9977,66 @@
           "type": "move",
           "direction": "down",
           "cells": 2
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 5
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "up_left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
+          "cells": 1
         },
         {
           "type": "move",
@@ -9829,12 +10051,12 @@
         {
           "type": "move",
           "direction": "left",
-          "cells": 2
+          "cells": 1
         },
         {
           "type": "move",
           "direction": "down",
-          "cells": 2
+          "cells": 1
         },
         {
           "type": "move",
@@ -9844,11 +10066,26 @@
         {
           "type": "move",
           "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down",
           "cells": 2
         },
         {
           "type": "move",
           "direction": "left",
+          "cells": 3
+        },
+        {
+          "type": "move",
+          "direction": "up",
           "cells": 3
         }
       ]

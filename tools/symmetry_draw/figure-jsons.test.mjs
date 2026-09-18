@@ -47,6 +47,17 @@ test("fitFigureToGrid preserves dictation commands while moving the start", () =
   assert.deepEqual(fitted.commands, [{ direction: "right", cells: 3 }, { direction: "up", cells: 2 }]);
 });
 
+test("fitFigureToGrid corrects a stale dictation canvas around its real route", () => {
+  const fitted = fitFigureToGrid({
+    id: "stale_canvas", label: "Старая сетка", taskKind: "dictation", columns: 11, rows: 9,
+    start: { col: 2, row: 10 }, commands: [{ direction: "up", cells: 5 }, { direction: "right", cells: 3 }],
+  });
+
+  assert.equal(fitted.rows, 7);
+  assert.deepEqual(fitted.start, { col: 1, row: 6 });
+  assert.doesNotThrow(() => validateFigureCard(fitted));
+});
+
 test("normalizeFigureGridNoise keeps real fractions but removes workshop pointer noise", () => {
   const corrected = normalizeFigureGridNoise({
     id: "symmetry_crown", label: "Корона", taskKind: "mirror", columns: 12, rows: 6, axisCol: 6,
@@ -58,6 +69,16 @@ test("normalizeFigureGridNoise keeps real fractions but removes workshop pointer
   assert.deepEqual(corrected.sourcePaths[0], [
     { col: 0, row: 3 }, { col: 2, row: 1 }, { col: 3.5, row: 3 }, { col: 6, row: 1 },
   ]);
+  assert.doesNotThrow(() => validateFigureCard(corrected));
+});
+
+test("normalizeFigureGridNoise corrects a slightly missed edge without moving half-cells", () => {
+  const corrected = normalizeFigureGridNoise({
+    id: "edge_noise", label: "Шум у края", taskKind: "mirror", columns: 12, rows: 10, axisCol: 6,
+    sourcePaths: [[{ col: 6, row: 1.16 }, { col: 3.5, row: 10.16 }]],
+  });
+
+  assert.deepEqual(corrected.sourcePaths[0], [{ col: 6, row: 1 }, { col: 3.5, row: 10 }]);
   assert.doesNotThrow(() => validateFigureCard(corrected));
 });
 

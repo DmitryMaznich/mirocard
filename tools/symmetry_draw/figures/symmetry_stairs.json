@@ -1,7 +1,7 @@
 {
   "id": "symmetry_stairs",
   "conceptId": "symmetry_stairs",
-  "label": "Лесенка",
+  "label": "Крест",
   "columns": 12,
   "rows": 12,
   "axisCol": 6,

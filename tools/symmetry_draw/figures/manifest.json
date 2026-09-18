@@ -1,7 +1,7 @@
 {
   "schema": "mirocard-figure-manifest/v1",
   "topicId": "symmetry_draw",
-  "topicVersion": "1.11.12",
+  "topicVersion": "1.11.13",
   "figures": [
     {
       "id": "symmetry_house",
@@ -65,7 +65,7 @@
     },
     {
       "id": "symmetry_car",
-      "label": "Машина",
+      "label": "Звездолет",
       "taskKind": "mirror",
       "file": "symmetry_car.json"
     },
@@ -77,13 +77,13 @@
     },
     {
       "id": "symmetry_bracket",
-      "label": "Скобка",
+      "label": "Прямоугольник",
       "taskKind": "mirror",
       "file": "symmetry_bracket.json"
     },
     {
       "id": "symmetry_stairs",
-      "label": "Лесенка",
+      "label": "Крест",
       "taskKind": "mirror",
       "file": "symmetry_stairs.json"
     },

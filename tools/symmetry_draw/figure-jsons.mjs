@@ -18,12 +18,12 @@ export function clone(value) {
 }
 
 /**
- * Pointer input in the workshop can leave a point a few hundredths of a cell
+ * Pointer input in the workshop can leave a point a small fraction of a cell
  * away from a grid node (for example 6.05 instead of 6). Those values are
  * neither intentional half-cells nor valid points beyond a panel edge. Keep
  * genuine fractional geometry, but canonicalise this small pointer noise.
  */
-export function normalizeFigureGridNoise(card, tolerance = 0.1) {
+export function normalizeFigureGridNoise(card, tolerance = 0.2) {
   assert(Number.isFinite(tolerance) && tolerance >= 0, "Grid-noise tolerance must be non-negative");
   const normalized = clone(card);
   const snapCoordinate = (value) => {
@@ -68,7 +68,7 @@ function assertGridSize(card) {
   assert(Number.isInteger(card.rows) && card.rows >= 2, `${card.id}: rows must be an integer of at least 2`);
 }
 
-function assertSourceGeometry(card) {
+function assertSourceGeometry(card, checkBounds = true) {
   assert(Number.isInteger(card.axisCol) && card.axisCol >= 1 && card.axisCol * 2 === card.columns, `${card.id}: axisCol must split the grid in half`);
   const paths = card.sourcePaths ?? [];
   const dots = card.sourceDots ?? [];
@@ -81,24 +81,24 @@ function assertSourceGeometry(card) {
     assert(Array.isArray(path) && path.length >= 2, `${card.id}: path ${pathIndex + 1} needs at least two points`);
     for (const [pointIndex, point] of path.entries()) {
       assert(isGridPoint(point), `${card.id}: point ${pathIndex + 1}.${pointIndex + 1} is invalid`);
-      assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: point ${pathIndex + 1}.${pointIndex + 1} is outside the source grid`);
+      if (checkBounds) assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: point ${pathIndex + 1}.${pointIndex + 1} is outside the source grid`);
     }
   }
   for (const [pointIndex, point] of dots.entries()) {
     assert(isGridPoint(point), `${card.id}: source dot ${pointIndex + 1} is invalid`);
-    assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: source dot ${pointIndex + 1} is outside the source grid`);
+    if (checkBounds) assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: source dot ${pointIndex + 1} is outside the source grid`);
   }
   for (const [circleIndex, circle] of circles.entries()) {
     assert(isGridPoint(circle), `${card.id}: source circle ${circleIndex + 1} has an invalid center`);
     assert(Number.isFinite(circle.diameter) && circle.diameter > 0, `${card.id}: source circle ${circleIndex + 1} needs a positive diameter`);
     const radius = circle.diameter / 2;
-    assert(circle.col - radius >= 0 && circle.col + radius <= card.axisCol && circle.row - radius >= 0 && circle.row + radius <= card.rows, `${card.id}: source circle ${circleIndex + 1} is outside the source grid`);
+    if (checkBounds) assert(circle.col - radius >= 0 && circle.col + radius <= card.axisCol && circle.row - radius >= 0 && circle.row + radius <= card.rows, `${card.id}: source circle ${circleIndex + 1} is outside the source grid`);
   }
 }
 
-function assertDictation(card) {
+function assertDictation(card, checkBounds = true) {
   assert(isGridPoint(card.start), `${card.id}: start is required`);
-  assert(card.start.col >= 0 && card.start.col <= card.columns && card.start.row >= 0 && card.start.row <= card.rows, `${card.id}: start is outside the grid`);
+  if (checkBounds) assert(card.start.col >= 0 && card.start.col <= card.columns && card.start.row >= 0 && card.start.row <= card.rows, `${card.id}: start is outside the grid`);
   assert(Array.isArray(card.commands) && card.commands.length, `${card.id}: commands is required`);
   let current = card.start;
   for (const [index, command] of card.commands.entries()) {
@@ -106,18 +106,18 @@ function assertDictation(card) {
     assert(Number.isInteger(command?.cells) && command.cells >= 1, `${card.id}: command ${index + 1} needs a positive integer cell count`);
     const vector = DIRECTION_VECTORS[command.direction];
     current = { col: current.col + vector[0] * command.cells, row: current.row + vector[1] * command.cells };
-    assert(current.col >= 0 && current.col <= card.columns && current.row >= 0 && current.row <= card.rows, `${card.id}: command ${index + 1} leaves the grid`);
+    if (checkBounds) assert(current.col >= 0 && current.col <= card.columns && current.row >= 0 && current.row <= card.rows, `${card.id}: command ${index + 1} leaves the grid`);
   }
 }
 
-export function validateFigureCard(card) {
+export function validateFigureCard(card, { allowOutOfBounds = false } = {}) {
   assert(card && typeof card === "object", "Figure JSON must be an object");
   assert(typeof card.id === "string" && /^[a-z0-9][a-z0-9_-]*$/.test(card.id), "Figure JSON has an invalid id");
   assert(isFigureCard(card), `${card.id}: unsupported taskKind`);
   assert(typeof card.label === "string" && card.label.trim(), `${card.id}: label is required`);
   assertGridSize(card);
-  if (card.taskKind === "dictation") assertDictation(card);
-  else assertSourceGeometry(card);
+  if (card.taskKind === "dictation") assertDictation(card, !allowOutOfBounds);
+  else assertSourceGeometry(card, !allowOutOfBounds);
   return card;
 }
 
@@ -196,7 +196,10 @@ function translateDecorations(decorations, offset) {
  * and work panels, and dictations keep the original command sequence.
  */
 export function fitFigureToGrid(card, padding = 1) {
-  validateFigureCard(card);
+  // Workshop exports may retain the dimensions of the canvas before the
+  // final point was placed. Validate their structure first, crop/centre the
+  // actual geometry, then validate the resulting grid strictly below.
+  validateFigureCard(card, { allowOutOfBounds: true });
   assert(Number.isFinite(padding) && padding >= 0, "Grid padding must be a non-negative number");
   const fitted = clone(card);
 
