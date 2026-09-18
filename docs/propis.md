@@ -2399,6 +2399,24 @@ EXACTLY 48 units (local y 16–64) with its top landing exactly on the
 previous row's own baseline (zero overlap, zero gap), and every
 already-fitting narrow row's own real height (23.1–23.8) is unchanged.
 
+**Start dots: halved, one per stroke (2026-09-18).** Two small,
+unrelated polish requests on the same feature: `ELEMENT_START_DOT_R`
+(the "put the pen here" landmark circle) halved from 6 to 3 native
+units; and — since a multi-stroke element like `01_pryamaya_liniya`
+(two separate horizontal lines) or `03_zaborchik_ploskie` (four
+strokes) is really several disconnected pen-lifts, not one continuous
+line — every stroke now gets its own start dot, not just the first.
+`layoutElementLinesIntoRows`'s segment carries `startPoints` (an array,
+one entry per stroke, each `getPathEndpoints(stroke.d).start`) instead
+of the old singular `startPoint`; `PrintPageView.jsx` maps over it to
+draw one `<circle>` per stroke. Verified via `wordEngine.test.js` (a
+`01_pryamaya_liniya`-shaped fixture asserts exactly 2 start points, one
+per stroke, each matching that stroke's own endpoint) and a throwaway
+Playwright render confirming real DOM circle counts match each
+element's own stroke count (`01_pryamaya_liniya`: 2,
+`03_zaborchik_ploskie`: 4, a single-stroke `_uzkaya` card: 1), all at
+`r=3`.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

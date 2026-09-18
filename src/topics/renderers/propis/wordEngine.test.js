@@ -890,10 +890,23 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     expect(seg.xOffset).toBe(0);
     expect(seg.strokes).toEqual([{ d: expectedD }]);
     expect(seg.width).toBe(28);
-    expect(seg.startPoint).toEqual(getPathEndpoints(expectedD).start);
+    expect(seg.startPoints).toEqual([getPathEndpoints(expectedD).start]);
     // Anchored: the element's own lowest point lands exactly on the row's thin line.
     const maxY = Math.max(...samplePath(expectedD).map((p) => p[1]));
     expect(maxY).toBeCloseTo(WIDE_TARGET_LINE, 3);
+  });
+
+  it("marks the start of EVERY stroke, not just the first -- a multi-stroke element like 01_pryamaya_liniya (two separate lines) needs a landmark for each disconnected pen-lift", () => {
+    const TWO_STROKE_ELEMENT = {
+      id: "01_pryamaya_liniya", labelRu: "Прямая линия", viewBox: "0 0 40 150",
+      strokes: [{ d: "M 5.1 9.9 34.1 9.8" }, { d: "M 4.8 61.6 C 5.4 61.8 25.6 62.1 35.0 62.1" }],
+    };
+    const byLabel = new Map([[TWO_STROKE_ELEMENT.id, TWO_STROKE_ELEMENT]]);
+    const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel);
+    const [seg] = placed[0].segments;
+    expect(seg.startPoints).toHaveLength(2);
+    expect(seg.startPoints[0]).toEqual(getPathEndpoints(seg.strokes[0].d).start);
+    expect(seg.startPoints[1]).toEqual(getPathEndpoints(seg.strokes[1].d).start);
   });
 
   it("anchors a '_uzkaya' element onto the row's own bold baseline instead", () => {

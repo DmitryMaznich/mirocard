@@ -816,9 +816,13 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel) {
     const strokes = element.strokes.map((s) => ({
       d: transformPathD(s.d, { scaleX: scale, scaleY: scale, translateY }),
     }));
-    const startPoint = getPathEndpoints(strokes[0].d).start;
+    // One start dot per stroke, not just the first -- a multi-stroke element (e.g.
+    // 01_pryamaya_liniya's two separate lines, 03_zaborchik_ploskie's four) is drawn as
+    // several disconnected pen-lifts, each with its own "put the pen here" landmark, same
+    // as a real prописи workbook marks every separate stroke's own start.
+    const startPoints = strokes.map((s) => getPathEndpoints(s.d).start);
     const vbW = Number(element.viewBox.split(" ")[2]) * scale;
-    const segment = { type: "element", xOffset: 0, strokes, width: vbW, startPoint };
+    const segment = { type: "element", xOffset: 0, strokes, width: vbW, startPoints };
     return { word: elementId, rowIndex, x: 0, segments: [segment] };
   });
   const rowCount = Math.max(lines.length, 1);
