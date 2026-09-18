@@ -35,6 +35,17 @@ const FALLBACK_FONT_SIZE = 34;
 // dot per stroke (see startPoints below) reads as clutter on a multi-stroke element at the
 // old size, small enough now to stay a clear landmark without dominating.
 const ELEMENT_START_DOT_R = 3;
+// Small red "which way does the pen move" marker, one per stroke, at its own midpoint
+// (wordEngine.js's getMidpointTangent) -- per the user's explicit ask (2026-09-18,
+// "маленькие красные стрелочки по направлению написания"). A flat isosceles triangle,
+// tip pointing along local +x, so rotating the wrapping <g> by the stroke's own tangent
+// angle (atan2 in degrees, same convention `rotate()` uses) aims it correctly regardless
+// of direction. Sized relative to ELEMENT_START_DOT_R (3) -- comparably small, a clear
+// landmark without competing with the ink itself.
+const ARROW_COLOR = "#dc2626";
+const ARROW_LEN = 5;
+const ARROW_HALF_W = 2.4;
+const ARROW_PATH = `M ${ARROW_LEN} 0 L ${-ARROW_LEN * 0.4} ${-ARROW_HALF_W} L ${-ARROW_LEN * 0.4} ${ARROW_HALF_W} Z`;
 
 // Which physical A4-sheet half this page is (even index = left slot, odd = right slot) and
 // where its own margin line / content start sit as a result — mirrors
@@ -161,6 +172,11 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                   )}
                   {seg.startPoints?.map((pt, pi) => (
                     <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} />
+                  ))}
+                  {seg.directionArrows?.map((a, ai) => a && (
+                    <g key={ai} transform={`translate(${a.point[0]} ${a.point[1]}) rotate(${a.angleDeg})`}>
+                      <path d={ARROW_PATH} fill={ARROW_COLOR} />
+                    </g>
                   ))}
                 </g>
               ) : (

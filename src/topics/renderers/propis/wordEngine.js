@@ -1,4 +1,4 @@
-import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent } from "./pathGeometry.js";
 import { GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET } from "./propisRuling.js";
 
 // Points within this margin of a letter's closest approach to the baseline are treated as
@@ -821,8 +821,13 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel) {
     // several disconnected pen-lifts, each with its own "put the pen here" landmark, same
     // as a real prописи workbook marks every separate stroke's own start.
     const startPoints = strokes.map((s) => getPathEndpoints(s.d).start);
+    // One small direction arrow per stroke too, at its own midpoint (never the start
+    // point, so it never sits on top of the start dot) -- shows which way the pen moves,
+    // per the user's explicit ask (2026-09-18): "маленькие красные стрелочки по
+    // направлению написания".
+    const directionArrows = strokes.map((s) => getMidpointTangent(s.d));
     const vbW = Number(element.viewBox.split(" ")[2]) * scale;
-    const segment = { type: "element", xOffset: 0, strokes, width: vbW, startPoints };
+    const segment = { type: "element", xOffset: 0, strokes, width: vbW, startPoints, directionArrows };
     return { word: elementId, rowIndex, x: 0, segments: [segment] };
   });
   const rowCount = Math.max(lines.length, 1);

@@ -2417,6 +2417,45 @@ element's own stroke count (`01_pryamaya_liniya`: 2,
 `03_zaborchik_ploskie`: 4, a single-stroke `_uzkaya` card: 1), all at
 `r=3`.
 
+**Direction arrows: one small red arrow per stroke, at its midpoint
+(2026-09-18, "маленькие красные стрелочки по направлению написания").**
+New `pathGeometry.js` helper, `getMidpointTangent(d)`: finds the point
+at the middle of a stroke BY ARC LENGTH (not by sample index) and the
+tangent direction there. Real bug found building this: `samplePath`
+only subdivides `C` (bezier) segments — a straight `M`-only polyline
+like `01_pryamaya_liniya`'s own `"M 5.1 9.9 34.1 9.8"` samples to just
+its 2 raw endpoints, so indexing into the sample array at the midpoint
+lands on an ENDPOINT, not a real midpoint. Fixed by walking the sampled
+points' cumulative segment lengths and linearly interpolating within
+whichever segment crosses the half-length mark — correct for both a
+sparse straight polyline and a densely-sampled bezier curve. Placed at
+the midpoint (not either endpoint) specifically so it never collides
+with a stroke's own start dot.
+
+`layoutElementLinesIntoRows` computes one `directionArrows` entry per
+stroke (`getMidpointTangent` applied to the already-anchored/scaled
+stroke, so its point/angle already account for whatever
+shrink-to-fit scale that stroke got — see the seventh round above).
+`PrintPageView.jsx` renders each as a small filled red (`#dc2626`)
+triangle, tip pointing along local +x, wrapped in a `<g transform=
+"translate(...) rotate(...)">` using the arrow's own point/angle —
+`rotate()`'s degree convention matches `Math.atan2(dy,dx)*180/PI`
+directly, no extra conversion needed. Sized relative to
+`ELEMENT_START_DOT_R` (comparably small, `ARROW_LEN=5`,
+`ARROW_HALF_W=2.4`).
+
+Verified via `pathGeometry.test.js` (horizontal/vertical/reversed
+line fixtures confirm the midpoint and angle sign; a degenerate
+single-point stroke returns `null`) and `wordEngine.test.js` (a
+`01_pryamaya_liniya`-shaped two-stroke fixture asserts exactly 2
+`directionArrows`, each matching `getMidpointTangent` applied to that
+same already-transformed stroke) plus a throwaway Playwright render
+(4x zoom crop) confirming small red arrowheads visible on every stroke
+of `01_pryamaya_liniya` (2), `03_zaborchik_ploskie` (4, one per zigzag
+segment, each pointing along its own real direction), and a
+single-stroke `_uzkaya` card (1) — 7 arrows total, matching the 7
+strokes across those 3 elements.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
