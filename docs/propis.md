@@ -2682,6 +2682,36 @@ kept 2 dots on its primary and 2 per repeat copy (28 total across 14 copies) —
 fix is scoped to "joined" only, not a blanket change. No `elements.json` change, no deck-zip
 rebuild needed.
 
+**Dense diagonal (косая линия) backing for element pages, same day.** The user's ask: "для
+рисования элементов нам нужна подложка с частыми наклонными линиями". The page already draws
+a diagonal slant-guide grid across the whole sheet (`SHEET_DIAGONAL_LINES`,
+`TEXT_ROW_DIAGONAL_SPACING` = 20mm, "стандарт российских школ") — but that spacing is sized
+for cursive letters/words, and most captured elements are well under 120 native units (20mm)
+wide, so a whole крючок or заборчик tooth could sit entirely between two diagonal lines with
+no slant reference crossing it at all.
+
+`propisRuling.js` gets a new `ELEMENT_DIAGONAL_MM = 3` / `TEXT_ROW_ELEMENT_DIAGONAL_SPACING`
+pair — not an invented number: 3mm is this exact codebase's own established "плотная" (dense)
+convention (`scripts/cover_tetrad.py`'s `diag_step = 3 * MM if style == "плотная" else
+7 * MM`), the same value `scripts/propis_worksheets/propis_ruling.py` considered and
+explicitly rejected for the ordinary letter/word pages ("dense diagonal lines are visual
+noise for this notebook's actual purpose — letter/word shape and connection, not slant
+drilling") — a rejection that doesn't apply here, since slant drilling IS the whole point of
+"Элементы букв" (крючки/заборчики/наклонные ARE the slant-practice exercise).
+`PrintPageView.jsx` precomputes a second `SHEET_DIAGONAL_LINES_DENSE` line set at this
+spacing; `PrintPage` now takes a `useElements` prop and picks between the two sets, passed
+through from both call sites (the single interactive page and the full print-all stack).
+Only the diagonal backing differs — the horizontal row grid stays exactly shared between
+element and text pages, per this file's own standing rule just above.
+
+Verified via a throwaway Playwright render comparing an elements-page vs. a text-page at the
+same viewport: 495 diagonal lines on the elements page vs. 75 on the text page (~6.6x, close
+to the 20mm/3mm ≈ 6.67x ratio expected), and visually confirmed the elements page's diagonal
+hatching reads noticeably denser while the text page is unchanged. 122/122 propis tests pass
+(no test file covers `PrintPageView.jsx` directly — it's Playwright-verified only, same as
+every other round in this section), `npm run build` clean. No `elements.json` change, no
+deck-zip rebuild needed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

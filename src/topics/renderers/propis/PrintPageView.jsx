@@ -4,7 +4,7 @@ import { layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows } from "./
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
   INK_COLOR, NATIVE_L3,
-  TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING,
+  TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
   buildDiagonalLines, mmToNativeUnits,
   PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_MARGIN_MM, PRINT_LEFT_INSET_MM, PRINT_CENTER_INSET_MM,
   PRINT_CONTENT_W_MM, PRINT_FIRST_BASELINE_MM, PRINT_ROWS_PER_PAGE,
@@ -81,6 +81,11 @@ function slotGeometry(pageIndex) {
 // at sheet-x=[148.5, 297] now sits at this slot's own local x=[0, 148.5] — the svg's own
 // default overflow:hidden clips the rest, same as any other line here.
 const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_DIAGONAL_SPACING);
+// "Элементы букв" pages use a much denser diagonal backing than ordinary text pages -- see
+// TEXT_ROW_ELEMENT_DIAGONAL_SPACING's own comment (propisRuling.js) for why the standard
+// 20mm spacing doesn't work for these: most elements are narrower than one 20mm gap, so a
+// whole крючок/заборчик could render with no slant guide crossing it at all.
+const SHEET_DIAGONAL_LINES_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
 const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
 
 // One physical page's ruling + content, reused for both the interactive on-screen view (one
@@ -88,21 +93,25 @@ const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
 // see PrintPageView's own "propis-print-all" block). `activeIndex`/`onToggleActive` are
 // omitted (undefined) for the print render — nothing is tappable on paper.
 //
-// "Элементы букв" rows (`useElements`) use the EXACT SAME grid/ruling ordinary text rows
-// do — no `useElements`-specific ruling code at all. Every earlier attempt this same day
-// (2026-09-18) gave element rows their OWN bespoke ruling (a combined 4-line block; two
-// separately-sized wide/narrow row types) and each one, in a different way, ran into the
-// same wall: "узкие строки это не пустые промежутки, это именно узкие строки разлиновки
-// для прописей! эта разлиновка должна оставаться в любом случае есть на ней символ или
-// нет" -- the ruling is a FIXED, always-printed feature of the page, like a real ruled
-// notebook, not a per-element slot that appears/disappears/resizes with content. Reusing
-// the text-row grid verbatim is the only way to guarantee that: the ruling literally can't
-// depend on content because it's the same code path regardless of `useElements`. Only
+// "Элементы букв" rows (`useElements`) use the EXACT SAME horizontal row grid/ruling
+// ordinary text rows do — no `useElements`-specific ROW ruling code at all. Every earlier
+// attempt this same day (2026-09-18) gave element rows their OWN bespoke row ruling (a
+// combined 4-line block; two separately-sized wide/narrow row types) and each one, in a
+// different way, ran into the same wall: "узкие строки это не пустые промежутки, это именно
+// узкие строки разлиновки для прописей! эта разлиновка должна оставаться в любом случае есть
+// на ней символ или нет" -- the row ruling is a FIXED, always-printed feature of the page,
+// like a real ruled notebook, not a per-element slot that appears/disappears/resizes with
+// content. Reusing the text-row grid verbatim is the only way to guarantee that. Only
 // wordEngine.js's layoutElementLinesIntoRows differs (anchoring each element's own real,
-// unscaled ink onto whichever of the row's two existing guide lines matches its family).
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
+// unscaled ink onto whichever of the row's two existing guide lines matches its family) --
+// and, same day, the DIAGONAL backing: `useElements` picks SHEET_DIAGONAL_LINES_DENSE
+// instead of the standard set (see its own comment) -- that one axis genuinely does need to
+// differ, since the standard 20mm spacing is too sparse for a single narrow element's own
+// ink to ever cross a slant guide at all.
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
+  const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   return (
     <svg
       className="propis-print-page-svg"
@@ -110,7 +119,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
-      {SHEET_DIAGONAL_LINES.map((l, i) => (
+      {diagonalLines.map((l, i) => (
         <line
           key={`d${i}`}
           x1={l.x1 + diagonalShiftX} y1={0} x2={l.x2 + diagonalShiftX} y2={PAGE_H_UNITS}
@@ -292,6 +301,7 @@ export default function PrintPageView({ task, onClose }) {
                 pageIndex={pageIndex}
                 activeIndex={activeIndex}
                 onToggleActive={(i) => setActiveIndex((cur) => (cur === i ? null : i))}
+                useElements={useElements}
               />
             </div>
 
@@ -339,8 +349,8 @@ export default function PrintPageView({ task, onClose }) {
               <div className="propis-print-all" aria-hidden="true">
                 {Array.from({ length: pages.length / 2 }, (_, sheetIndex) => (
                   <div key={sheetIndex} className="propis-print-all__sheet">
-                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} />
-                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} />
+                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} />
+                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} />
                   </div>
                 ))}
               </div>,

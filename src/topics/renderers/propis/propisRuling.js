@@ -101,6 +101,22 @@ export const TEXT_ROW_THIN_OFFSET = 24;
 // coordinate space as everything else in their SVG (20mm * 150/25 = 120).
 export const TEXT_ROW_DIAGONAL_SPACING = (DIAGONAL_MM * UNIT_H) / LINE_MM;
 
+// Dense 3mm diagonal spacing for "Элементы букв" print pages specifically (2026-09-18,
+// user's explicit ask: "для рисования элементов нам нужна подложка с частыми наклонными
+// линиями"). NOT a new number invented for this -- 3mm is this exact codebase's own
+// established "плотная" (dense) convention (see scripts/cover_tetrad.py's
+// `diag_step = 3 * MM if style == "плотная" else 7 * MM`), previously considered and
+// explicitly REJECTED for the ordinary letter/word print pages (scripts/propis_worksheets/
+// propis_ruling.py's own docstring: "the dense 3mm diagonal lines are visual noise for this
+// notebook's actual purpose (letter/word shape and connection, not slant drilling)") --
+// but that rejection doesn't apply here, because slant drilling IS the whole point of the
+// "Элементы букв" page (крючки/заборчики/наклонные ARE the slant-practice exercise), and the
+// standard 20mm spacing is too sparse to even cross a single element's own narrow ink (most
+// elements are well under 120 native units wide -- 20mm's own native-unit spacing -- so a
+// whole element could sit between two diagonal lines with no slant reference inside it at all).
+export const ELEMENT_DIAGONAL_MM = 3;
+export const TEXT_ROW_ELEMENT_DIAGONAL_SPACING = (ELEMENT_DIAGONAL_MM * UNIT_H) / LINE_MM;
+
 // mm -> this file's native units, same scale every other constant above uses
 // (150 units per 25mm). Exported so callers building print-page geometry (only
 // PrintPageView.jsx today) don't hand-roll the conversion.
