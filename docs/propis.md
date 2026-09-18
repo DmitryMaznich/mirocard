@@ -2712,6 +2712,52 @@ hatching reads noticeably denser while the text page is unchanged. 122/122 propi
 every other round in this section), `npm run build` clean. No `elements.json` change, no
 deck-zip rebuild needed.
 
+**Each element's start point snaps onto the dense diagonal grid, same day.** The user's
+follow-up on the grid above: "эта сетка дает нам четкий ориентир по планированию расстояния
+между элементами то есть каждый элемент должен быть так или иначе привязан к сетке и точка
+должна находиться на какой-то из линий точка начала всегда" -- the dense diagonal backing
+isn't just decoration once real elements sit on the page, it's the spacing reference a child
+(or a parent copying the page by hand) uses to judge how far apart to draw each element, so
+every element's own start point needs to land exactly on one of those lines, not float at an
+arbitrary X.
+
+This genuinely has to happen at RENDER time in `PrintPageView.jsx`, not in
+`wordEngine.js`'s `layoutElementLinesIntoRows` -- the diagonal grid's phase depends on which
+physical page slot (left/right half of the A4 sheet, `diagonalShiftX`) a row ends up on,
+which `layoutElementLinesIntoRows` has no way to know (pagination/slot assignment happens
+later, in `paginateRows` and `PrintPageView`'s own render). Added two small trig helpers:
+`diagonalLineX(n, y, spacingUnits, diagonalShiftX)` (the exact inverse of
+`buildDiagonalLines`' own x1/x2 construction -- line `n`'s real X at any page-absolute Y) and
+`nearestDiagonalX(x, y, spacingUnits, diagonalShiftX)` (rounds to the nearest line index `n`,
+then returns that line's own real X). Per element row, `PrintPage` now computes the delta
+between the primary's own first start point (`seg.startPoints[0]`, in page-absolute
+coordinates -- `rowOriginY(p.rowIndex) + localY`, `contentXUnits + p.x + localX`) and its
+nearest diagonal line, and adds that delta to the row's own wrapping `<g>` transform -- a
+single rigid shift of the WHOLE row (primary + every `buildRepeatChain` copy, since they all
+render inside that same group), not a change to any of the element's own internal geometry
+(chain spacing/joining is untouched, only where the row as a whole sits on the page).
+
+Applies to every element regardless of `repeatMode` -- even a multi-dot "spaced" element
+(e.g. `01_pryamaya_liniya`'s two real separate lines) snaps by its FIRST stroke's own start
+point, which is the one dot that represents "the" element's own anchor, consistent with the
+user's own "точка начала всегда" (singular).
+
+Known, accepted imprecision: the snap can shift a row by up to half the dense spacing (3mm/2
+≈ 9 native units) in either direction, so a repeat chain sized against the row's own
+UNSHIFTED width (`buildRepeatChain`'s own `rowWidthUnits` check) could in principle have its
+last copy poke a few units past the printable edge after the whole row shifts right. Not
+fixed this round -- the maximum possible overshoot is small relative to the print margin, and
+re-deriving `buildRepeatChain`'s own stopping width per-row to account for the snap shift
+would need wordEngine.js to know about page/slot geometry too, reopening the same
+architecture question this comment starts with.
+
+Verified via a throwaway Playwright render + DOM measurement (not just eyeballed): for 4
+element rows on the same page, computed the perpendicular distance from each row's own start
+dot to its nearest rendered diagonal `<line>` directly from the SVG DOM -- `0` for all 4 (down
+to floating-point precision), confirming every start point sits exactly on a grid line rather
+than merely near one. 122/122 propis tests pass, `npm run build` clean. No `elements.json`
+change, no deck-zip rebuild needed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

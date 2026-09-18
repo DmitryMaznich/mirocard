@@ -5,6 +5,7 @@ import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
   INK_COLOR, NATIVE_L3,
   TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
+  ANGLE_FROM_HORIZONTAL_DEG,
   buildDiagonalLines, mmToNativeUnits,
   PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_MARGIN_MM, PRINT_LEFT_INSET_MM, PRINT_CENTER_INSET_MM,
   PRINT_CONTENT_W_MM, PRINT_FIRST_BASELINE_MM, PRINT_ROWS_PER_PAGE,
@@ -87,6 +88,29 @@ const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, 
 // whole крючок/заборчик could render with no slant guide crossing it at all.
 const SHEET_DIAGONAL_LINES_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
 const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
+const DIAGONAL_TAN = Math.tan(((90 - ANGLE_FROM_HORIZONTAL_DEG) * Math.PI) / 180);
+
+// Where line n of the dense diagonal grid (see SHEET_DIAGONAL_LINES_DENSE) actually renders
+// at a given page-absolute Y, on THIS page's own slot (accounting for diagonalShiftX) --
+// inverse of buildDiagonalLines' own x1/x2 construction: line n's un-shifted X at height 0 is
+// n*spacing, and it leans by `y*DIAGONAL_TAN` per unit of Y (see that function's own comment
+// on the top-right-leaning "/" shape), so its X at any Y is `n*spacing - y*DIAGONAL_TAN`, then
+// shifted the same way the rendered <line> elements are.
+function diagonalLineX(n, y, spacingUnits, diagonalShiftX) {
+  return n * spacingUnits - y * DIAGONAL_TAN + diagonalShiftX;
+}
+
+// Each element's own start point must land exactly on the dense diagonal grid (2026-09-18,
+// user's explicit ask: "эта сетка дает нам четкий ориентир по планированию расстояния между
+// элементами... точка начала всегда [должна находиться на какой-то из линий]") -- the grid
+// isn't just decoration once elements exist on the page, it's the spacing reference a child
+// (or a parent copying the page by hand) uses to judge how far apart to draw each element.
+// Finds the nearest grid line index n (real, not rounded to an integer boundary the caller
+// then has to re-snap) via the inverse of diagonalLineX, then returns that line's own real X.
+function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
+  const n = Math.round((x - diagonalShiftX + y * DIAGONAL_TAN) / spacingUnits);
+  return diagonalLineX(n, y, spacingUnits, diagonalShiftX);
+}
 
 // One physical page's ruling + content, reused for both the interactive on-screen view (one
 // page at a time, tap-to-animate) and the print-only stacked view (every page, static ink,
@@ -150,8 +174,22 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }
         // state either, unlike a cursive/text row which keeps both.
         const isElementRow = p.segments.some((seg) => seg.type === "element");
         const isActive = onToggleActive && !isElementRow ? i === activeIndex : false;
+        // Snap the element's own start point onto the nearest dense-diagonal grid line (see
+        // nearestDiagonalX's own comment) -- shifts the WHOLE row (primary + every repeat
+        // copy, all rendered inside this same <g>) by a rigid delta, so nothing about the
+        // element's own internal geometry (buildRepeatChain's spacing/chaining) changes, only
+        // where the row as a whole sits on the page.
+        const startPoint = isElementRow ? p.segments[0].startPoints?.[0] : null;
+        const elementSnapDx = startPoint
+          ? nearestDiagonalX(
+              contentXUnits + p.x + startPoint[0],
+              rowOriginY(p.rowIndex) + startPoint[1],
+              TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
+              diagonalShiftX
+            ) - (contentXUnits + p.x + startPoint[0])
+          : 0;
         return (
-          <g key={i} transform={`translate(${contentXUnits + p.x} ${rowOriginY(p.rowIndex)})`}>
+          <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowOriginY(p.rowIndex)})`}>
             {onToggleActive && !isElementRow && (
               <rect
                 className="propis-text-word-hit"
