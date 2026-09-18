@@ -2456,6 +2456,29 @@ segment, each pointing along its own real direction), and a
 single-stroke `_uzkaya` card (1) — 7 arrows total, matching the 7
 strokes across those 3 elements.
 
+**Offset to the side, not sitting on the line (2026-09-18, "нужна
+стрелочка рядом со штрихом, слева или снизу").** The first version
+placed each arrow directly ON the stroke's own midpoint — correct
+direction, but visually merged with the ink and could read as PART of
+the letter shape rather than an annotation beside it. Fixed by shifting
+the arrow's anchor point perpendicular to its own travel direction by
+`ARROW_SIDE_OFFSET` (6 native units, `wordEngine.js`) — a deterministic
+function of the angle (`sin`/`cos` of the same `angleDeg`
+`getMidpointTangent` already returns), so every arrow lands on the SAME
+relative side of its own stroke (not left-or-right at random depending
+on which happens to have more room) — a consistent, learnable
+convention across every element instead of an arbitrary per-stroke
+choice. The arrow itself keeps the same rotation (still points along
+the real travel direction); only its position moved.
+
+Verified via `wordEngine.test.js` (asserts each `directionArrows` point
+sits exactly `ARROW_SIDE_OFFSET` away from `getMidpointTangent`'s own
+raw midpoint, perpendicular offset, not equal to it) and a throwaway
+Playwright render confirming every arrow across the same 7 strokes
+(`01_pryamaya_liniya`, `03_zaborchik_ploskie`, an `_uzkaya` card) sits
+exactly 6 units from its own stroke's real midpoint, visibly clear of
+the ink.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
