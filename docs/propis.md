@@ -1932,6 +1932,54 @@ Also widened the tap-to-animate hit-rect for element rows
 old hit-rect only covered the narrow text-row band, so tapping near the
 top or bottom of a tall element (outside that band) wouldn't register.
 
+**That height fix's own regression: the "spare" slot went completely
+unruled (2026-09-18).** The height fix above didn't just ADD the 4-line
+`ELEMENT_ROW_GUIDES` set — it REPLACED the base thin+bold ruling
+entirely, drawing it only at the primary (`ELEMENT_ROW_INDICES`, every
+`ELEMENT_ROW_PHYSICAL_SLOTS`-th) row and nothing at all at the spare
+row in between. Reported the same way `TEXT_ROW_PITCH`'s own comment
+already warns about for the narrow/text case ("the original 'extra
+blank ruled line between every text line' bug, 2026-08-19") — just now
+for the wide/element case instead: "Пропускаются широкие строки, как
+раньше были с узкими" (a screenshot showed real blank, unruled gaps of
+paper between elements, not just extra breathing room). Fix: keep the
+base thin+bold ruling drawn on EVERY row unconditionally (exactly as
+text mode always did — the `useElements` branch was removed from that
+part entirely), and layer two EXTRA lines (`ELEMENT_EXTRA_GUIDES`:
+ascender-top `NATIVE_L1`, descender-bottom `NATIVE_L4`) on top, only at
+the primary row of each element pair. Nothing is ever left unruled
+again; the tall element rows just get 2 additional marks over the
+normal continuous ruling instead of a wholesale replacement.
+
+**A second, latent bug found and fixed in the same pass: element
+rows drift out of alignment on every page after the first.**
+`PRINT_ROWS_PER_PAGE` (17, the real print page's own physical row
+count) is ODD, but element rows always advance in pairs
+(`ELEMENT_ROW_PHYSICAL_SLOTS`=2). `paginateRows`' own pagination wraps
+each row's GLOBAL index via `rowIndex % rowsPerPage` — since 17 is odd,
+crossing into page 1 (global row 17+) flips which local rows are even:
+page 0's elements land at local rows 0,2,4,...,16 (matching
+`ELEMENT_ROW_INDICES`' own even-only guide lines, correct by luck), but
+page 1's would land at local 1,3,5,...,15 — ALL ODD, a full
+`TEXT_ROW_PITCH` off from any guide line at all, drifting to a
+different, still-wrong parity on every subsequent page. Not visible in
+a same-page screenshot (the reported bug above only needed ≤8 elements
+to reproduce), but confirmed by rendering 12 elements — the DOM's own
+`transform` on page 1's first element read `translate(24 -16)` BEFORE
+this fix, where `-16` is `rowOriginY(0)`, the exact value a CORRECT
+local row 0 should have, but page 1's actual local rowIndex was 1
+(`rowOriginY(1)`), not 0. Fix: for element mode, round
+`PRINT_ROWS_PER_PAGE` DOWN to the nearest multiple of
+`ELEMENT_ROW_PHYSICAL_SLOTS` (17 -> 16) before calling `paginateRows`,
+so every page's own local slot 0 is always primary regardless of how
+many pages came before — at the cost of the very last physical row (16)
+on each page never holding an element (extra bottom margin, not a
+bug). `ROW_INDICES`/the base ruling itself is unaffected (still all 17
+real physical rows) — only the pagination row-count used for CONTENT
+placement changes for `useElements`. Verified by rendering 12 elements
+across 2 pages and navigating to page 2: the first element there landed
+at `translate(24 -16)` (correct primary-row position) after the fix.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

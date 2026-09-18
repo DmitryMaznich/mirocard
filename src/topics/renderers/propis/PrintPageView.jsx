@@ -65,24 +65,24 @@ const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, 
 const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
 // "Элементы букв" rows use ELEMENT_ROW_PHYSICAL_SLOTS (2) physical slots each — only the
 // FIRST slot of each pair is an actual element row, the second is spare breathing room (see
-// wordEngine.js's own comment on ELEMENT_ROW_PHYSICAL_SLOTS) — so only those slots get a
-// ruling drawn at all.
+// wordEngine.js's own comment on ELEMENT_ROW_PHYSICAL_SLOTS).
 const ELEMENT_ROW_INDICES = ROW_INDICES.filter((row) => row % ELEMENT_ROW_PHYSICAL_SLOTS === 0);
-// The TEXT ruling above (thin @ NATIVE_L3-TEXT_ROW_THIN_OFFSET, bold @ NATIVE_L3) only marks
+// The base per-row ruling (thin @ NATIVE_L3-TEXT_ROW_THIN_OFFSET, bold @ NATIVE_L3) only marks
 // the narrow x-height zone (4mm) — plenty for cursive letters, whose own ink rarely reaches
 // NATIVE_L1/NATIVE_L4 (max measured ascender/descender well inside that pitch, see
 // TEXT_ROW_PITCH's own comment). An element's strokes are captured against the FULL
-// NATIVE_L1..L4 span on purpose (that's the whole physical row, ascender-top to
-// descender-bottom) and routinely reach both ends — reported 2026-09-17 as "the element's
-// height doesn't match the row's height" once the TEXT ruling (not this one) was still being
-// drawn under "Элементы букв" rows. This guide set mirrors GUIDE_LINES/buildRowGuideLines'
-// own 4-line shape (ascender-top, x-height-top, baseline bold, descender-bottom) so the
-// drawn row visually IS the same row the element was captured against, not an unrelated
-// narrower one.
-const ELEMENT_ROW_GUIDES = [
+// NATIVE_L1..L4 span on purpose and routinely reach both ends — reported 2026-09-17 as "the
+// element's height doesn't match the row's height". First fix REPLACED the base ruling with a
+// 4-line set drawn only at the primary (even) row slots — which fixed the height match but
+// introduced a worse regression, reported the same day: the spare slot between two element
+// rows was left with NO ruling at all, i.e. a blank strip of unruled paper ("пропускаются
+// широкие строки, как раньше были с узкими" — the exact "extra blank ruled line" class of bug
+// TEXT_ROW_PITCH's own comment already warns about, just for the wide/element case instead of
+// the narrow/text one). Fix: keep the base thin+bold ruling on EVERY row unconditionally (below,
+// same as text mode always did), and only ADD these two extra ascender-top/descender-bottom
+// lines on top, at the primary row of each element pair — nothing is ever left unruled.
+const ELEMENT_EXTRA_GUIDES = [
   { u: NATIVE_L1, bold: false },
-  { u: NATIVE_L2, bold: false },
-  { u: NATIVE_L3, bold: true },
   { u: NATIVE_L4, bold: false },
 ];
 
@@ -108,33 +108,32 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }
           stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W}
         />
       ))}
-      {useElements
-        ? ELEMENT_ROW_INDICES.map((row) => (
-            <g key={`g${row}`}>
-              {ELEMENT_ROW_GUIDES.map((g, gi) => (
-                <line
-                  key={gi}
-                  x1="0" y1={rowOriginY(row) + g.u}
-                  x2={PAGE_W_UNITS} y2={rowOriginY(row) + g.u}
-                  stroke={GUIDE_COLOR} strokeWidth={g.bold ? GUIDE_BOLD_W : GUIDE_THIN_W}
-                />
-              ))}
-            </g>
-          ))
-        : ROW_INDICES.map((row) => (
-            <g key={`g${row}`}>
-              <line
-                x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
-                x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
-                stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W}
-              />
-              <line
-                x1="0" y1={rowOriginY(row) + NATIVE_L3}
-                x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3}
-                stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W}
-              />
-            </g>
+      {ROW_INDICES.map((row) => (
+        <g key={`g${row}`}>
+          <line
+            x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
+            x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
+            stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W}
+          />
+          <line
+            x1="0" y1={rowOriginY(row) + NATIVE_L3}
+            x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3}
+            stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W}
+          />
+        </g>
+      ))}
+      {useElements && ELEMENT_ROW_INDICES.map((row) => (
+        <g key={`ge${row}`}>
+          {ELEMENT_EXTRA_GUIDES.map((g, gi) => (
+            <line
+              key={gi}
+              x1="0" y1={rowOriginY(row) + g.u}
+              x2={PAGE_W_UNITS} y2={rowOriginY(row) + g.u}
+              stroke={GUIDE_COLOR} strokeWidth={g.bold ? GUIDE_BOLD_W : GUIDE_THIN_W}
+            />
           ))}
+        </g>
+      ))}
       <line x1={marginXUnits} y1={0} x2={marginXUnits} y2={PAGE_H_UNITS} stroke={MARGIN_COLOR} strokeWidth={MARGIN_LINE_W} />
       {page.map((p, i) => {
         const isActive = onToggleActive ? i === activeIndex : false;
@@ -251,7 +250,18 @@ export default function PrintPageView({ task, onClose }) {
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
     [useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
-  const pages = useMemo(() => paginateRows(layout, PRINT_ROWS_PER_PAGE), [layout]);
+  // Element rows always come in pairs of physical slots (ELEMENT_ROW_PHYSICAL_SLOTS) — but
+  // PRINT_ROWS_PER_PAGE (17, the real print page's own row count) is ODD, so pagination's
+  // `rowIndex % rowsPerPage` wrapping would flip which slot is "primary" every time a new
+  // page starts (17 % 2 = 1): page 0 keeps elements on local rows 0,2,4,...,16 as expected,
+  // but page 1 would land them on 1,3,5,...,15 instead — a full pitch off from
+  // ELEMENT_ROW_INDICES' own even-only guide lines, drifting further out of sync on every
+  // odd-indexed page after that. Rounding down to the nearest EVEN row count for element mode
+  // (16) keeps every page's own local slot 0 "primary" regardless of how many pages came
+  // before it, at the cost of the page's very last physical row (16) never holding an element
+  // — an intentional bit of extra bottom margin, not a bug.
+  const rowsPerPage = useElements ? PRINT_ROWS_PER_PAGE - (PRINT_ROWS_PER_PAGE % ELEMENT_ROW_PHYSICAL_SLOTS) : PRINT_ROWS_PER_PAGE;
+  const pages = useMemo(() => paginateRows(layout, rowsPerPage), [layout, rowsPerPage]);
 
   const [pageIndex, setPageIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState(null);
