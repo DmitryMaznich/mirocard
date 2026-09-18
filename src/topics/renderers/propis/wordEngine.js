@@ -1,5 +1,5 @@
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
-import { GUIDE_LINES, NATIVE_L1, NATIVE_L3, NATIVE_L4, TEXT_ROW_PITCH } from "./propisRuling.js";
+import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
 
 // Points within this margin of a letter's closest approach to the baseline are treated as
 // part of its baseline-contact zone — needed because most letters never sample to a
@@ -739,20 +739,33 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
   return { placed, rowCount };
 }
 
-// Elements are captured against the full NATIVE_L1..L4 span (up to 130 native units for a wide
-// element like 01_pryamaya_liniya) -- the whole physical row, ascender-top to descender-bottom.
-// TEXT_ROW_PITCH (72 units) is a single ordinary row's pitch. Scaling every element down to fit
-// that same pitch (rather than doubling the row's own physical space to fit the element at its
-// captured scale, tried first and reverted 2026-09-18 -- see docs/propis.md for the two prior
-// attempts and why each was rejected) keeps "one element = one row", matching the user's
-// explicit choice once shown both options live: elements repeat DENSELY, one per row, the same
-// as ordinary text rows -- not "как в книге"'s original full scale after all.
-export const ELEMENT_SCALE = TEXT_ROW_PITCH / (NATIVE_L4 - NATIVE_L1);
+// Elements render at their REAL captured scale -- no ELEMENT_SCALE, no per-element or
+// fixed-anchor renormalization, exactly like a letter's own strokes (see
+// buildWordTrajectory: `s.d` used untouched). Two earlier approaches were tried and
+// rejected this same day (2026-09-18):
+//   1. Scale the element DOWN to fit an ordinary TEXT_ROW_PITCH (72-unit) row -- kept "one
+//      element = one ordinary row" (dense, same page capacity as text), but every scale
+//      anchor tried (fixed NATIVE_L3, then per-element self-anchor) either flattened every
+//      element onto the same target line or left it floating off its real one -- because
+//      compressing a ~130-native-unit-tall capture into a 72-unit slot has no anchor point
+//      that preserves BOTH families' real relative position at once; the two are only ever
+//      "correctly placed" by accident, for one specific rescue point.
+//   2. Widen the ROW instead (doubling TEXT_ROW_PITCH, or layering extra guide lines onto
+//      the primary slot) -- rejected earlier in the day for its OWN separate bugs (a blank
+//      spare slot with no ruling; doubled/cluttered lines spilling into the next row) --
+//      not because widening the row was the wrong idea, just a broken first attempt at it.
+// Reverted back to widening the row (2026-09-18, third round) after the user pointed at a
+// reference mockup (a standalone per-element SVG card, real native-to-mm scale, no
+// compression at all) as the correct rendering and asked why the print page can't match
+// it -- confirming real scale was right all along; only the ROW needed to be wider, not
+// the element smaller. propisRuling.js's ELEMENT_ROW_PITCH is that "own dedicated wide
+// row" done properly: exactly one element's own real row per print-page row, own full
+// 4-line ruling (PrintPageView.jsx), no doubling, no spare slot.
 
-// read_lines' "Элементы букв" option: one element at the START of each row, one row per input
-// line, scaled down to ELEMENT_SCALE so it fits a single ordinary row -- no special pagination
-// or ruling case needed elsewhere (PrintPageView.jsx/paginateRows treat this exactly like a
-// text row).
+// read_lines' "Элементы букв" option: one element at the START of each row, one row per
+// input line, at its own real captured scale (no shrinking) -- PrintPageView.jsx gives
+// element rows their own wider pitch/ruling (propisRuling.js's ELEMENT_ROW_PITCH), not the
+// ordinary text row's TEXT_ROW_PITCH.
 export function layoutElementLinesIntoRows(lines, elementsByLabel) {
   const placed = lines.map((elementId, i) => {
     const rowIndex = i;
@@ -762,38 +775,14 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel) {
       // the id typo'd somewhere upstream) -- render an empty row rather than crash.
       return { word: elementId, rowIndex, x: 0, segments: [] };
     }
-    // A SINGLE fixed transform (same scale + same translateY for every element, anchored on
-    // the shared NATIVE_L3 baseline constant) -- NOT a per-element anchor. Tried per-element
-    // (2026-09-18, briefly live as v1.0.2197): scaling+translating each element so its OWN
-    // lowest captured point landed exactly on NATIVE_L3 made every element flush against the
-    // baseline regardless of which capture band it came from -- which looked "fixed" in
-    // isolation but was wrong per the user (2026-09-18, second report): the elements were
-    // deliberately captured against DIFFERENT physical ruling zones on purpose (see
-    // elements.json's two disjoint native-Y bands, and this file's own capture ruling in
-    // propisRuling.js's GUIDE_LINES) -- the plain "wide-row" family (01, 02a, 03-06, no
-    // suffix) was drawn in the row's ASCENDER zone (native y ~10-62, between line 1 and line
-    // 3), the "_uzkaya"/narrow-row family in the NARROW/x-height zone (native y ~60-88,
-    // between line 3 and line 5, the same zone a letter's own body occupies). That's the
-    // element's real "привязка к линиям" from the source book and the capture tool
-    // (handwriting_capture.html draws the identical GUIDE_LINES ruling) -- forcing every
-    // element's bottom onto the baseline erases it, making every element read as if it were
-    // captured in the narrow row regardless of which one it actually was. A single uniform
-    // affine map (fixed anchor point NATIVE_L3, same scale everywhere) preserves that
-    // distinction automatically: it doesn't renormalize per element, so the wide-row family's
-    // own already-higher native position stays proportionally higher after scaling, and the
-    // narrow-row family's already-lower position stays proportionally lower, landing close to
-    // the baseline -- exactly mirroring how they sit relative to each other (and to the
-    // shared ruling) in the capture tool itself.
-    const translateY = NATIVE_L3 * (1 - ELEMENT_SCALE);
-    const strokes = element.strokes.map((s) => ({
-      d: transformPathD(s.d, { scaleX: ELEMENT_SCALE, scaleY: ELEMENT_SCALE, translateY }),
-    }));
-    // startPoint marks where the pen should first touch down -- the trajectory's own start,
-    // not the row's -- computed from the already-scaled stroke so it lands exactly on it, same
-    // as a mirrored/reflected element (none exist yet, but strokes aren't guaranteed
-    // left-to-right) would still get the dot in the right place.
+    // No transform at all -- the element's own captured strokes are already in the same
+    // native-unit coordinate system PrintPageView.jsx's whole page is built in (see
+    // propisRuling.js's mmToNativeUnits: 6 native units per mm, the same ratio
+    // handwriting_capture.html's own canvas uses), exactly how a letter's strokes render
+    // untouched in buildWordTrajectory.
+    const strokes = element.strokes;
     const startPoint = getPathEndpoints(strokes[0].d).start;
-    const vbW = Number(element.viewBox.split(" ")[2]) * ELEMENT_SCALE;
+    const vbW = Number(element.viewBox.split(" ")[2]);
     const segment = { type: "element", xOffset: 0, strokes, width: vbW, startPoint };
     return { word: elementId, rowIndex, x: 0, segments: [segment] };
   });

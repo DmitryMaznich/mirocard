@@ -2150,6 +2150,94 @@ including `wordEngine.js`, always ships from the main app bundle
 regardless of deck version (see this doc's own file-map note on this).
 Only the app's own `package.json` version bump was needed.
 
+**Third round, same day: reverted BACK to widening the row, this time
+done right (2026-09-18, "ты даже в мокапе рисовал правильно, почему не
+можешь также вывести в тетрадный лист?").** The "uniform fixed
+transform" fix above (v1.0.2198) preserved the wide-row vs. `_uzkaya`
+distinction correctly — real `elements.json` data confirmed both
+families landed in visibly different bands within their shared 72-unit
+row slot — but the user rejected the whole premise once shown a
+reference: an existing mockup Artifact
+(`https://claude.ai/artifact/31EACs4o7eMEGXqzn9skMR`, a standalone
+per-element SVG card built earlier this session) renders each element
+at its REAL native-to-mm scale (`transform="translate(6.25 0)
+scale(0.16666666666666666)"` — exactly `1/6`, the same
+`mmToNativeUnits` ratio the whole print page already uses, i.e.
+effectively no compression at all, just the native-unit-IS-already-mm
+convention every letter's own strokes already render in untouched) —
+not `ELEMENT_SCALE` (72/130 ≈ 0.554), a SEPARATE, tighter compression
+invented specifically to squeeze an element into an ordinary
+`TEXT_ROW_PITCH` (72-unit) slot. The mockup's own ruling guide lines
+(y=0/10/15-bold/25 in its 25mm-tall local box) are `propisRuling.js`'s
+plain mm-based `L1-L4`, not `NATIVE_L1-L4` — but the element STROKES
+inside it use raw, untransformed `NATIVE_*`-system coordinates (e.g.
+`02a_naklonnaya_dlinnaya`'s path starts at native y=10.59, exactly
+matching its own row in `elements.json`) — i.e. the mockup treats an
+element exactly like a letter (`buildWordTrajectory` never scales a
+letter's own `d` either), and only its RULING is drawn at a
+theoretically-clean mm grid rather than the native capture-tool grid.
+
+Confirmed via `AskUserQuestion`: the user explicitly reversed the
+earlier "dense, one element = one ordinary row" choice from the redesign
+above, accepting that element rows must be taller than text rows (real
+native scale costs real vertical space — this IS what a physically
+"wide row" in the source book means, and cramming a real elbow-room
+drilling exercise into an ordinary cursive-writing row defeats its whole
+purpose).
+
+Fix (this round): elements render completely UNSCALED (`wordEngine.js`'s
+`layoutElementLinesIntoRows` no longer applies any `transformPathD` at
+all — `seg.strokes = element.strokes` directly, same treatment
+`buildWordTrajectory` gives a letter's own `d`), and
+`PrintPageView.jsx`'s element rows get their OWN dedicated pitch/ruling
+instead of reusing the text row's:
+
+- `propisRuling.js`'s new `ELEMENT_ROW_PITCH = UNIT_H` (150 native
+  units = 25mm) — the SAME full capture-canvas height every element
+  (and letter) is drawn against, not a second independently-chosen
+  number, and not `NATIVE_L4 - NATIVE_L1` (130) either (that would tile
+  rows back-to-back with zero breathing room between one row's L4 and
+  the next row's L1).
+- `ELEMENT_ROW_Y_SHIFT = mmToNativeUnits(PRINT_FIRST_BASELINE_MM) -
+  NATIVE_L1` anchors element row 0's own TOP guide line (`NATIVE_L1`)
+  where a text row's own BASELINE would sit (`PRINT_FIRST_BASELINE_MM`,
+  12mm from the page top) — reuses that already-justified margin
+  constant instead of inventing a new one; anchored on `NATIVE_L1`
+  rather than `NATIVE_L3` because elements no longer share a single
+  "baseline" reference point the way letters do (nothing is scaled
+  around it anymore).
+- `ELEMENT_ROWS_PER_PAGE = floor((mmToNativeUnits(PRINT_PAGE_H_MM) -
+  mmToNativeUnits(PRINT_FIRST_BASELINE_MM)) / ELEMENT_ROW_PITCH)` = 7 —
+  same top-margin allowance as text rows, just divided by the taller
+  pitch. No real print-PDF ground truth to match here yet (element
+  mode's PDF export, CLAUDE.md's "mode 2", isn't built), unlike
+  `PRINT_ROWS_PER_PAGE=17`, which mirrors an existing script exactly.
+- `PrintPage` (the shared per-page component) now takes a `useElements`
+  prop and branches ONLY its ruling/pitch/hit-rect: element rows draw
+  the full 4-line ruling (`NATIVE_L1`/`NATIVE_L2` thin, `NATIVE_L3`
+  bold, `NATIVE_L4` thin — the real capture-tool ruling, matching
+  `handwriting_capture.html`'s own `drawRuling()`), text rows keep the
+  existing 2-line thin/bold pair. This is the SAME "widen the row"
+  concept as the two approaches tried and reverted earlier the same day
+  (see above) — done properly this time: exactly one element's own real
+  row per print-page row (no doubled pitch, no spare blank slot), one
+  ruling drawn once per row (no layering extra lines onto a
+  pre-existing slot, no spillover into the neighbor).
+
+Verified two ways: `wordEngine.test.js`'s regression coverage was
+rewritten to assert the real (unscaled) native y-ranges directly instead
+of a post-transform value, and a throwaway `dev-elements.jsx` render
+(Playwright, 390×844 mobile viewport, 5 real elements spanning both
+capture families) confirmed via real DOM inspection — `getPointAtLength`
+sampling each row's own `<path>` bbox — that row origins land exactly
+`ELEMENT_ROW_PITCH` (150) apart (62, 212, 362, 512, 662), each row's own
+4 guide lines land at `origin + NATIVE_L1/L2/L3/L4` exactly, and each
+element's own content sits at its real, untouched native y-range inside
+its row (e.g. `01_pryamaya_liniya`: 9.84–62.14, matching
+`elements.json` exactly) — visually: wide-row elements sit between the
+row's own two upper thin lines, `_uzkaya` elements hug the bold
+baseline, matching the reference mockup's proportions.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

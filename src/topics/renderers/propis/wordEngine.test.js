@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { transformPathD, getPathEndpoints, samplePath } from "./pathGeometry.js";
-import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows, ELEMENT_SCALE } from "./wordEngine.js";
+import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows } from "./wordEngine.js";
 import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
 
 const LETTER_A = {
@@ -867,25 +867,20 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     strokes: [{ d: "M 7.6 17.4 C 8.5 16.7 20.7 24.1 4 61.1" }],
   };
   const elementsByLabel = new Map([[WIDE_ELEMENT.id, WIDE_ELEMENT]]);
-  // A single fixed transform, same for every element (see layoutElementLinesIntoRows' own
-  // comment): anchored on the shared NATIVE_L3 constant, not on this element's own data.
-  const scaledD = transformPathD(WIDE_ELEMENT.strokes[0].d, {
-    scaleX: ELEMENT_SCALE, scaleY: ELEMENT_SCALE, translateY: NATIVE_L3 * (1 - ELEMENT_SCALE),
-  });
 
-  it("places a single element at the start of the row, scaled down to fit one ordinary row, marked with its scaled trajectory's start point", () => {
+  it("places a single element at the start of the row at its real captured scale -- no shrinking, no transform at all, same as a letter's own strokes", () => {
     const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel);
     expect(placed).toHaveLength(1);
     expect(placed[0].segments).toHaveLength(1);
     const [seg] = placed[0].segments;
     expect(seg.type).toBe("element");
     expect(seg.xOffset).toBe(0);
-    expect(seg.strokes).toEqual([{ d: scaledD }]);
-    expect(seg.width).toBeCloseTo(28 * ELEMENT_SCALE, 6);
-    expect(seg.startPoint).toEqual(getPathEndpoints(scaledD).start);
+    expect(seg.strokes).toBe(WIDE_ELEMENT.strokes);
+    expect(seg.width).toBe(28);
+    expect(seg.startPoint).toEqual(getPathEndpoints(WIDE_ELEMENT.strokes[0].d).start);
   });
 
-  it("assigns one ordinary row per element (rowIndex 0, 1, 2, ...) -- no doubled-up physical slots", () => {
+  it("assigns one row per element (rowIndex 0, 1, 2, ...) -- PrintPageView.jsx gives each its own wider ELEMENT_ROW_PITCH slot, not a doubled-up ordinary text row", () => {
     const { placed, rowCount } = layoutElementLinesIntoRows(
       ["05_kryuchok_vlevo", "05_kryuchok_vlevo", "05_kryuchok_vlevo"],
       elementsByLabel
@@ -894,37 +889,28 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     expect(rowCount).toBe(3);
   });
 
-  it("keeps a 'wide-row' element (captured against the ascender zone, native y ~10-62) sitting clearly above the baseline, not flush against it -- regression for forcing every element onto the baseline regardless of which ruling zone it was actually captured in (reported 2026-09-18, second round: \"ты сделал все элементы в узкой строке\")", () => {
-    // Mirrors real elements.json data for the plain (non-"_uzkaya") family: captured against
-    // the wide row's own ASCENDER zone (line 1 to line 3), never reaching the baseline
-    // (NATIVE_L3=88) -- and it shouldn't: that's its real привязка to the source ruling,
-    // distinct from the "_uzkaya" family below.
+  it("keeps a 'wide-row' element (captured against the ascender zone, native y ~10-62) distinctly above where a '_uzkaya' (narrow-row) element's own bottom sits (native y ~87-88, close to NATIVE_L3) -- real elements.json data, unscaled, so each keeps its own real привязка to the source ruling", () => {
     const WIDE_ROW_FAMILY_ELEMENT = {
       id: "01_pryamaya_liniya", labelRu: "Прямая линия", viewBox: "0 0 40 150",
       strokes: [{ d: "M 5.1 9.9 34.1 9.8" }, { d: "M 4.8 61.6 C 5.4 61.8 25.6 62.1 35.0 62.1" }],
     };
-    const byLabel = new Map([[WIDE_ROW_FAMILY_ELEMENT.id, WIDE_ROW_FAMILY_ELEMENT]]);
-    const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel);
-    const [seg] = placed[0].segments;
-    const maxY = Math.max(...seg.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1])));
-    // The element's own bottom lands well short of the baseline (native 62 scales+anchors to
-    // ~73.7, not 88) -- distinctly higher than a "_uzkaya" element's bottom would (see next test).
-    expect(maxY).toBeLessThan(NATIVE_L3 - 10);
-  });
-
-  it("keeps a '_uzkaya' (narrow-row) element sitting close to the baseline -- distinct from the wide-row family above, same uniform transform, no per-element special-casing", () => {
-    // Mirrors real elements.json data for an "_uzkaya" element: captured against the row's
-    // NARROW/x-height zone (line 3 to line 5), already close to the baseline in native
-    // coordinates, unlike the wide-row family.
     const NARROW_ROW_FAMILY_ELEMENT = {
       id: "03_zaborchik_ploskie_uzkaya", labelRu: "Заборчик (узкая строка)", viewBox: "0 0 40 150",
       strokes: [{ d: "M 4.9 60.3 34.5 61.0" }, { d: "M 5.1 87.0 34.8 87.5" }],
     };
-    const byLabel = new Map([[NARROW_ROW_FAMILY_ELEMENT.id, NARROW_ROW_FAMILY_ELEMENT]]);
-    const { placed } = layoutElementLinesIntoRows(["03_zaborchik_ploskie_uzkaya"], byLabel);
-    const [seg] = placed[0].segments;
-    const maxY = Math.max(...seg.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1])));
-    expect(maxY).toBeGreaterThan(NATIVE_L3 - 5);
+    const byLabel = new Map([
+      [WIDE_ROW_FAMILY_ELEMENT.id, WIDE_ROW_FAMILY_ELEMENT],
+      [NARROW_ROW_FAMILY_ELEMENT.id, NARROW_ROW_FAMILY_ELEMENT],
+    ]);
+    const { placed } = layoutElementLinesIntoRows(
+      ["01_pryamaya_liniya", "03_zaborchik_ploskie_uzkaya"],
+      byLabel
+    );
+    const maxYOf = (p) => Math.max(...p.segments[0].strokes.flatMap((s) => samplePath(s.d).map((pt) => pt[1])));
+    const wideMaxY = maxYOf(placed[0]);
+    const narrowMaxY = maxYOf(placed[1]);
+    expect(wideMaxY).toBeLessThan(NATIVE_L3 - 20);
+    expect(narrowMaxY).toBeGreaterThan(NATIVE_L3 - 5);
   });
 
   it("renders an empty row (not a crash) for an id with no matching captured element", () => {

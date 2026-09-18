@@ -143,6 +143,32 @@ export const PRINT_FIRST_BASELINE_MM = 12;
 // count exactly (still 17 with the corrected first-baseline offset above).
 export const PRINT_ROWS_PER_PAGE = 17;
 
+// "Элементы букв" rows (PrintPageView.jsx/wordEngine.js's layoutElementLinesIntoRows) get
+// their OWN wider row pitch instead of TEXT_ROW_PITCH -- an element renders at its real
+// captured scale (no shrinking, see wordEngine.js's own comment on the two rejected
+// shrink-to-fit designs), and that real capture uses the full UNIT_H (150 native units =
+// 25mm) canvas, not the compact 72-unit text-row pitch. Reusing UNIT_H directly (rather
+// than picking a new number) keeps this tied to the one already-justified "how tall is one
+// captured row" constant instead of a second independent guess.
+export const ELEMENT_ROW_PITCH = UNIT_H;
+// Element row 0's own top guide line (NATIVE_L1) lands where a text row's own baseline
+// would (PRINT_FIRST_BASELINE_MM from the page top) -- reuses that already-justified
+// top-margin constant instead of picking a new one, anchored on NATIVE_L1 (the element
+// row's own top line) instead of NATIVE_L3 (irrelevant here: elements render unscaled, so
+// there's no single shared "baseline" point across both capture families the way a letter
+// has -- see wordEngine.js). Consuming code adds this the same way rowOriginY subtracts
+// ROW_Y_SHIFT for text rows.
+export const ELEMENT_ROW_Y_SHIFT = mmToNativeUnits(PRINT_FIRST_BASELINE_MM) - NATIVE_L1;
+// How many wide element rows fit one physical page -- same top-margin allowance as text
+// rows (PRINT_FIRST_BASELINE_MM), just divided by the taller ELEMENT_ROW_PITCH instead of
+// TEXT_ROW_PITCH. No real print-PDF counterpart to match exactly yet (element mode's PDF
+// export, CLAUDE.md's "mode 2", isn't built) -- this is the on-screen preview's own
+// reasonable page-fit count, not a ground truth pulled from an existing script the way
+// PRINT_ROWS_PER_PAGE is.
+export const ELEMENT_ROWS_PER_PAGE = Math.floor(
+  (mmToNativeUnits(PRINT_PAGE_H_MM) - mmToNativeUnits(PRINT_FIRST_BASELINE_MM)) / ELEMENT_ROW_PITCH
+);
+
 export const INK_COLOR = "#1d4ed8";
 export const NIB_COLOR = "#fbbf24";
 // Quartered (not just halved) for the same reason the ruling stroke-widths are:
