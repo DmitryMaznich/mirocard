@@ -27,18 +27,20 @@ describe("cardsForRenderer", () => {
 });
 
 describe("resolveModeSelection", () => {
-  it("keeps every manually selected symmetry figure despite a stale concept selection", () => {
+  it("keeps every manually selected symmetry figure even when cards are not primary", () => {
     const mode = { id: "symmetry_draw", type: "mirror_draw" };
     const topicRecord = {
       meta: { id: "symmetry_draw", renderer: "flashcards" },
-      cards: [
-        { id: "yachta", conceptId: "yachta", primary: true, taskKind: "mirror" },
-        { id: "butterfly", conceptId: "butterfly", primary: true, taskKind: "mirror" },
-      ],
+      cards: ["yachta", "butterfly", "crown", "heart", "boat"].map((id, index) => ({
+        id,
+        conceptId: id,
+        primary: index < 3,
+        taskKind: "mirror",
+      })),
     };
     const params = withFigureFilter({}, mode, {
       type: "manual",
-      cardIds: ["yachta", "butterfly"],
+      cardIds: ["yachta", "butterfly", "crown", "heart", "boat"],
     });
 
     const result = resolveModeSelection(topicRecord, mode, {
@@ -46,6 +48,6 @@ describe("resolveModeSelection", () => {
       selectedConceptIds: ["symmetry_draw:all::yachta"],
     }, false, null);
 
-    expect(result.selectedConceptIds).toEqual(["yachta", "butterfly"]);
+    expect(result.selectedConceptIds).toEqual(["yachta", "butterfly", "crown", "heart", "boat"]);
   });
 });

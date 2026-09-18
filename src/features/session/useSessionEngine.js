@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
-import { deriveConcepts, getConceptCards, getFigureFilter, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
@@ -48,16 +48,19 @@ function resolveMode(topicRecord, modeId) {
 // mode switch (via ModePickerScreen -> params) would have produced.
 export function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) {
   const sessionParams = { ...(link.params ?? {}), strictStars: resolveStrictStars(mode, link.strictStars) };
+  const isFigurePickerMode = topicRecord?.meta?.id === "symmetry_draw"
+    && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type);
   const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)
-    .filter((c) => c.primary)
+    // Every figure in the drawing gallery is a distinct exercise. Older
+    // imported mirror cards do not all carry `primary: true`, so applying
+    // that generic flashcard convention here silently shrinks a chosen set
+    // of five figures to the three legacy-primary cards.
+    .filter((c) => isFigurePickerMode || c.primary)
     .map((c) => c.conceptId);
-  // The visual figure picker is a complete, mode-specific selection. A
+  // The visual figure controls are a complete, mode-specific selection. A
   // legacy concept-picker value may still be stored for the same mode, but it
-  // must not narrow a parent-selected set of figures (e.g. leave "Яхта" and
-  // silently drop the newly selected "Бабочка").
-  const hasManualFigureSelection = topicRecord?.meta?.id === "symmetry_draw"
-    && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type)
-    && getFigureFilter(sessionParams, mode).type === "manual";
+  // must not narrow either a manual set or a difficulty-filtered gallery.
+  const hasFigureGalleryFilter = isFigurePickerMode;
   const modeSelectedConceptIds = mode
     ? readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, sessionParams)
     : (link.selectedConceptIds?.length ? link.selectedConceptIds : null);
@@ -67,7 +70,7 @@ export function resolveModeSelection(topicRecord, mode, link, isReading, activeT
   const validSelectedConceptIds = modeSelectedConceptIds?.filter((id) => defaultModeConceptIds.includes(id)) ?? [];
   const selectedConceptIds = isReading
     ? (activeTextId ? [activeTextId] : [])
-    : (hasManualFigureSelection
+    : (hasFigureGalleryFilter
         ? defaultModeConceptIds
         : (validSelectedConceptIds.length ? validSelectedConceptIds : defaultModeConceptIds));
   return { sessionParams, selectedConceptIds };
