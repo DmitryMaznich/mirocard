@@ -85,6 +85,16 @@ describe("handleAdvance — none evaluation (intro)", () => {
     expect(state.taskIndex).toBe(0);
   });
 
+  it("keeps an evaluated looping deck active after its final card", () => {
+    const loopingMode = { ...MODE, loop: true };
+    let state = createSessionState([TASKS[0]], loopingMode, "s1", "t1", "1.0.0", ["tshirt"], null, true);
+    state = handleAnswer(state, true);
+    state = handleAdvance(state);
+
+    expect(state.status).toBe("task_active");
+    expect(state.taskIndex).toBe(0);
+  });
+
   it("reshuffles a multi-relation looping round without repeating its closing relation first", () => {
     const tasks = [
       { type: "spatial_recognize", card: { id: "in-1", relation: "in" } },

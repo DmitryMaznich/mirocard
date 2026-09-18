@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fitFigureToGrid, normalizeFigureGridNoise, validateFigureCard } from "./figure-jsons.mjs";
+import { fitFigureToGrid, normalizeFigureGridNoise, readTopic, validateFigureCard } from "./figure-jsons.mjs";
 
 test("fitFigureToGrid centres a mirror figure and keeps one-cell margins", () => {
   const fitted = fitFigureToGrid({
@@ -59,4 +59,13 @@ test("normalizeFigureGridNoise keeps real fractions but removes workshop pointer
     { col: 0, row: 3 }, { col: 2, row: 1 }, { col: 3.5, row: 3 }, { col: 6, row: 1 },
   ]);
   assert.doesNotThrow(() => validateFigureCard(corrected));
+});
+
+test("drawing drills loop until an adult closes the session", () => {
+  const topic = readTopic();
+  const drawingModes = ["graphic_dictation", "repeat_draw", "symmetry_draw"];
+
+  for (const modeId of drawingModes) {
+    assert.equal(topic.modes.find((mode) => mode.id === modeId)?.loop, true, `${modeId} must loop`);
+  }
 });

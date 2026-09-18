@@ -17,6 +17,7 @@ import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
 import SafeCodeParamsContent from "@/features/reading/SafeCodeParamsContent";
 import StoveHeatModal from "@/shared/components/StoveHeatModal";
@@ -503,6 +504,8 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
   const difficultyLabels = mode?.params?.figureDifficulty?.labels?.ru ?? {};
   const selectedIds = figureFilter.type === "manual" ? figureFilter.cardIds : null;
   const selectedCount = activeFigures.length;
+  const minimumSelection = requiredFigureSelectionCount(allFigures.length);
+  const selectionReady = draftIds.size >= minimumSelection;
   const visibleFigures = browseDifficulty === "all"
     ? allFigures
     : allFigures.filter((card) => card.difficulty === browseDifficulty);
@@ -516,7 +519,12 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
   function toggle(cardId) {
     setDraftIds((current) => {
       const next = new Set(current);
-      if (next.has(cardId)) next.delete(cardId);
+      // A session needs five figures so the child can always earn the
+      // five-star reward before the first circuit ends.
+      if (next.has(cardId)) {
+        if (next.size <= minimumSelection) return current;
+        next.delete(cardId);
+      }
       else next.add(cardId);
       return next;
     });
@@ -524,7 +532,7 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
 
   function applySelection() {
     const cardIds = allFigures.filter((card) => draftIds.has(card.id)).map((card) => card.id);
-    if (!cardIds.length) return;
+    if (cardIds.length < minimumSelection) return;
     onChange((current) => withFigureFilter(current, mode, { type: "manual", cardIds }));
     setOpen(false);
   }
@@ -537,7 +545,11 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
         onClick={openPicker}
       >
         <span>Свой набор</span>
-        <span className="figure-difficulty-option__count">{selectedIds ? `${selectedCount} выбрано` : "Выбрать рисунки"}</span>
+        <span className="figure-difficulty-option__count">
+          {selectedIds
+            ? (selectedCount >= minimumSelection ? `${selectedCount} выбрано` : `Выберите ещё ${minimumSelection - selectedCount}`)
+            : "Выбрать рисунки"}
+        </span>
       </button>
       {open && (
         <Modal
@@ -546,11 +558,11 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
           actions={(
             <>
               <Button variant="secondary" onClick={() => setOpen(false)}>Отмена</Button>
-              <Button onClick={applySelection} disabled={!draftIds.size}>Выбрать {draftIds.size || ""}</Button>
+              <Button onClick={applySelection} disabled={!selectionReady}>Выбрать {draftIds.size || ""}</Button>
             </>
           )}
         >
-          <p className="figure-picker__intro">Отметьте рисунки для занятия. Выбор заменяет быстрый фильтр сложности; кнопки сложности вернут набор целиком.</p>
+          <p className="figure-picker__intro">Отметьте не меньше {minimumSelection} рисунков для занятия — тогда ребёнок сможет заработать приз за серию из пяти. Выбор заменяет быстрый фильтр сложности; кнопки сложности вернут набор целиком.</p>
           <div className="figure-picker__filters" aria-label="Показать рисунки по сложности">
             {mode?.params?.figureDifficulty?.values?.map((difficulty) => (
               <button
@@ -564,7 +576,10 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
             ))}
           </div>
           <div className="figure-picker__toolbar">
-            <span className="param-hint">{draftIds.size} из {allFigures.length} отмечено</span>
+            <span className="param-hint">
+              {draftIds.size} из {allFigures.length} отмечено
+              {!selectionReady && ` · выберите ещё ${minimumSelection - draftIds.size}`}
+            </span>
             <label className="figure-picker__select-all">
               <input
                 type="checkbox"
@@ -584,6 +599,7 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
                   className={`figure-picker__card ${selected ? "figure-picker__card--selected" : ""}`}
                   onClick={() => toggle(card.id)}
                   aria-pressed={selected}
+                  disabled={selected && draftIds.size <= minimumSelection}
                 >
                   <FigureThumbnail card={card} />
                   <span className="figure-picker__name">{card.label}</span>
@@ -2259,7 +2275,14 @@ export default function ParamsScreen() {
         params.selectedStories ?? [],
       )
     : null;
-  const isStartDisabled = sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid);
+  const isManualFigureSetTooSmall = topicRecord?.meta?.id === "symmetry_draw"
+    && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type)
+    && getFigureFilter(params, mode).type === "manual"
+    && !hasMinimumFigureSelection(
+      getConceptCards(topicRecord, mode, params).length,
+      getConceptCards(topicRecord, mode, withFigureFilter(params, mode, { type: "difficulty", difficulty: "all" })).length,
+    );
+  const isStartDisabled = sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid) || isManualFigureSetTooSmall;
 
   return (
     <div className="screen">
@@ -2305,6 +2328,9 @@ export default function ParamsScreen() {
         <div className="params-settings-col">
           <div className="params-body">
             {paramsContent}
+            {isManualFigureSetTooSmall && (
+              <div className="param-hint" role="alert">Для занятия с наградой выберите не меньше {MIN_FIGURES_FOR_REWARD} рисунков.</div>
+            )}
             {isMyPeople && !myPeopleReady && (
               <div className="param-section">
                 <div className="param-section__header">Нужно заполнить данные ученика</div>

@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.11.10",
+    "version": "1.11.11",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -199,6 +199,7 @@
       "id": "graphic_dictation",
       "type": "graphic_dictation",
       "evaluation": "auto",
+      "loop": true,
       "ui": {
         "title": "Графический диктант",
         "instruction": "Слушай команду и веди линию от активной точки",
@@ -271,6 +272,7 @@
       "id": "repeat_draw",
       "type": "repeat_draw",
       "evaluation": "auto",
+      "loop": true,
       "params": {
         "figureDifficulty": {
           "type": "enum",
@@ -304,6 +306,7 @@
       "id": "symmetry_draw",
       "type": "mirror_draw",
       "evaluation": "auto",
+      "loop": true,
       "params": {
         "figureDifficulty": {
           "type": "enum",
