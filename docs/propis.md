@@ -2565,6 +2565,60 @@ confirmed via two rounds of `AskUserQuestion` before implementing:
   above, which was code-only and needed no rebuild (see CLAUDE.md's own
   "Deck-zip topics load from their downloaded ZIP" section for why).
 
+**Scope correction, same day: this whole page is a print-only worksheet target, not an
+on-screen interactive demo — arrows come back, the animation/tap layer goes away
+entirely.** After the repeat-copy feature above shipped, the user reconsidered a further
+"tap an element to animate the whole row" idea (dashed row fills in sequentially as a pen
+animates, settling into solid ink) and rejected it as unneeded complexity for a screen
+interaction — then went a step further: "элементы на экране... это перебор... проще и
+привычнее это делать в тетради" (elements on screen are overkill; simpler and more
+familiar to do this in a physical notebook), i.e. the real product here isn't an on-screen
+lesson at all, it's a **PDF worksheet generator** — "мне нужны нормальные тренировочные
+тетради в пдф формате". Confirmed via two-question `AskUserQuestion` round: (1) the repeat
+copy should fill the ENTIRE row edge to edge, not just one sample copy, and (2) tap-to-
+animate should be removed from element rows completely, not merely made optional.
+
+- **Direction arrows are back**, restored essentially verbatim from the same-day commits
+  that had added then removed them (`e707a11`, `13e73e0`, reverted by `a53efb6`) —
+  `pathGeometry.js`'s `getMidpointTangent` (arc-length midpoint + tangent angle, handles an
+  `M`-only polyline correctly, see its own comment for why `samplePath`-index alone doesn't)
+  and `PrintPageView.jsx`'s `ARROW_COLOR`/`ARROW_LEN`/`ARROW_HALF_W`/`ARROW_PATH` +
+  `ARROW_SIDE_OFFSET` render/position them, one per stroke, offset to the side of the ink.
+  The earlier removal reasoning ("оставляем анимацию... стрелочки просто ненужная инфа")
+  only ever applied to a SCREEN demo where the animation already shows direction — on a
+  printed page, with no animation at all, an arrow is the only way left to indicate stroke
+  direction, so it's no longer redundant.
+- **The single repeat copy became a whole-row chain.** `wordEngine.js`'s
+  `buildRepeatStrokes` (unchanged core: one "joined" exact-snap or "spaced" fixed-gap step)
+  is now wrapped by `buildRepeatChain(strokes, repeatMode, rowWidthUnits)`, which keeps
+  chaining off the PREVIOUS copy (not always the primary) until the next candidate copy's
+  own rightmost ink point would exceed `rowWidthUnits` — filling the row edge to edge with
+  trace-guide copies the same way a real prописи workbook's practice row does, instead of
+  showing just one sample. A `MAX_REPEAT_CHAIN = 200` hard cap guards against a
+  pathological future element whose captured data has near-zero net horizontal advance.
+  `layoutElementLinesIntoRows` now takes a required third `rowWidthUnits` argument (same
+  convention as `layoutTextIntoRows`'s own required row-width parameter) —
+  `PrintPageView.jsx` passes its existing `CONTENT_W_UNITS`. A segment's `repeatChain` is
+  now `[{ strokes, startPoints }, ...]` (one entry per copy), replacing the flat
+  `repeatStrokes`/`repeatStartPoints` pair from the single-repeat design.
+- **Tap-to-animate is gone from element rows, not merely hidden.** `PrintPage` now computes
+  `isElementRow = p.segments.some((seg) => seg.type === "element")` per row and skips BOTH
+  the tap hit-rect (`onToggleActive && !isElementRow`) and the `isActive`/`AnimatedStrokes`
+  branch for that row entirely — an element row always renders static ink (primary solid +
+  arrows + dots, repeat chain dashed + faded), regardless of `activeIndex`. Cursive/text
+  rows are completely unaffected (`isElementRow` is only ever true for `useElements` tasks,
+  which never mix element and cursive segments on the same page). `AnimatedStrokes` is still
+  imported and used for cursive rows; nothing about that mode changed.
+- Verified: 121/121 propis vitest tests (multi-copy chain geometry for both joined/spaced,
+  arrow angle+offset, empty-chain-when-row-too-narrow), `npm run build` clean, and a
+  throwaway Playwright render (DOM-inspected, not just eyeballed: dashed-path count and
+  circle count per row matched the expected `repeatChain.length`, `hasHitRect: false` on
+  every element row) confirming a wide заборчик row produced 14 chained copies and a narrow
+  one 22, both edge-to-edge with no clipped/overflowing tail copy, before cleanup.
+- This round touches only code (arrow restoration reused existing element data,
+  `elements.json` itself unchanged) — no deck-zip rebuild needed, unlike the `repeatMode`
+  round just above.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

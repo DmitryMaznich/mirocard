@@ -35,6 +35,24 @@ const FALLBACK_FONT_SIZE = 34;
 // dot per stroke (see startPoints below) reads as clutter on a multi-stroke element at the
 // old size, small enough now to stay a clear landmark without dominating.
 const ELEMENT_START_DOT_R = 3;
+// Small red "which way does the pen move" marker, one per stroke, at its own midpoint
+// (wordEngine.js's getMidpointTangent) -- per the user's explicit ask (2026-09-18,
+// "маленькие красные стрелочки по направлению написания"). Briefly removed the same day
+// when the feature was still built for an on-screen animated demo (the user judged it
+// redundant with the animation itself); restored once the user clarified the real target is
+// a PRINTED practice sheet with no animation at all -- on paper, an arrow is the only way to
+// show stroke direction. A flat isosceles triangle, tip pointing along local +x, so rotating
+// the wrapping <g> by the stroke's own tangent angle (atan2 in degrees, same convention
+// `rotate()` uses) aims it correctly regardless of direction. Sized relative to
+// ELEMENT_START_DOT_R (3) -- comparably small, a clear landmark without competing with ink.
+const ARROW_COLOR = "#dc2626";
+const ARROW_LEN = 5;
+const ARROW_HALF_W = 2.4;
+const ARROW_PATH = `M ${ARROW_LEN} 0 L ${-ARROW_LEN * 0.4} ${-ARROW_HALF_W} L ${-ARROW_LEN * 0.4} ${ARROW_HALF_W} Z`;
+// Repeat copies (wordEngine.js's buildRepeatChain) render dashed and faded so a whole row of
+// them reads as trace guides, not as ink of equal weight to the primary example.
+const REPEAT_DASH = "4 3";
+const REPEAT_OPACITY = 0.5;
 
 // Which physical A4-sheet half this page is (even index = left slot, odd = right slot) and
 // where its own margin line / content start sit as a result — mirrors
@@ -115,10 +133,17 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
       ))}
       <line x1={marginXUnits} y1={0} x2={marginXUnits} y2={PAGE_H_UNITS} stroke={MARGIN_COLOR} strokeWidth={MARGIN_LINE_W} />
       {page.map((p, i) => {
-        const isActive = onToggleActive ? i === activeIndex : false;
+        // Element rows ("Элементы букв") are a print-only worksheet target with no
+        // interactivity at all (2026-09-18, revised after the user decided a screen demo/
+        // animation is unneeded overhead -- "мне нужны нормальные тренировочные тетради в
+        // пдф формате... только анимация не нужна и отдельный режим наполнения экранного
+        // листа с элементами [не нужен]"): no tap-to-animate, so no hit-rect and no active
+        // state either, unlike a cursive/text row which keeps both.
+        const isElementRow = p.segments.some((seg) => seg.type === "element");
+        const isActive = onToggleActive && !isElementRow ? i === activeIndex : false;
         return (
           <g key={i} transform={`translate(${contentXUnits + p.x} ${rowOriginY(p.rowIndex)})`}>
-            {onToggleActive && (
+            {onToggleActive && !isElementRow && (
               <rect
                 className="propis-text-word-hit"
                 x={-4} y={NATIVE_L3 - TEXT_ROW_PITCH / 2} width={p.segments.reduce((s, seg) => s + seg.width, 0) + 8} height={TEXT_ROW_PITCH}
@@ -143,38 +168,37 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                   ))}
                 </g>
               ) : seg.type === "element" ? (
-                // "Элементы букв" -- same tap-to-animate as a cursive letter (the whole point of
-                // this mode is showing the drawing motion), AnimatedStrokes just needs {strokes},
-                // which a raw element object already is, no trajectory-wrapping needed. The start
-                // dots stay visible even while animating (they're print-page landmarks for where
-                // to put the pen, not part of the animation) -- drawn last so they sit on top. One
-                // per STROKE, not just the first: a multi-stroke element (01_pryamaya_liniya's two
-                // separate lines, 03_zaborchik_ploskie's four) is several disconnected pen-lifts,
-                // each needing its own "start here" mark.
+                // "Элементы букв" -- always static ink (no tap/animation, see isElementRow
+                // above): the primary example, its start dot(s) and direction arrow(s), then
+                // the rest of the row filled with dashed trace-guide copies
+                // (wordEngine.js's buildRepeatChain) for the child to trace over on paper.
+                // One start dot per STROKE, not just the first: a multi-stroke element
+                // (01_pryamaya_liniya's two separate lines, 03_zaborchik_ploskie's four) is
+                // several disconnected pen-lifts, each needing its own "start here" mark.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
-                  {isActive ? (
-                    <AnimatedStrokes trajectory={{ strokes: seg.strokes }} tipSize="large" />
-                  ) : (
-                    seg.strokes.map((s, ssi) => (
-                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                    ))
-                  )}
+                  {seg.strokes.map((s, ssi) => (
+                    <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  ))}
                   {seg.startPoints?.map((pt, pi) => (
                     <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} />
                   ))}
-                  {/* Repeat copy (wordEngine.js's buildRepeatStrokes) -- dashed and
-                      semi-transparent so it reads as "the element again", not a second equally
-                      weighted stroke to trace; static even while the primary is animating,
-                      same reasoning as the start dots above (a print-page landmark, not part
-                      of the pen-motion demo). */}
-                  {seg.repeatStrokes?.map((s, ssi) => (
-                    <path
-                      key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2}
-                      strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4 3" opacity={0.5}
-                    />
+                  {seg.directionArrows?.map((a, ai) => a && (
+                    <g key={ai} transform={`translate(${a.point[0]} ${a.point[1]}) rotate(${a.angleDeg})`}>
+                      <path d={ARROW_PATH} fill={ARROW_COLOR} />
+                    </g>
                   ))}
-                  {seg.repeatStartPoints?.map((pt, pi) => (
-                    <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} opacity={0.5} />
+                  {seg.repeatChain?.map((copy, ci) => (
+                    <g key={ci}>
+                      {copy.strokes.map((s, ssi) => (
+                        <path
+                          key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2}
+                          strokeLinecap="round" strokeLinejoin="round" strokeDasharray={REPEAT_DASH} opacity={REPEAT_OPACITY}
+                        />
+                      ))}
+                      {copy.startPoints?.map((pt, pi) => (
+                        <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} opacity={REPEAT_OPACITY} />
+                      ))}
+                    </g>
                   ))}
                 </g>
               ) : (
@@ -235,7 +259,7 @@ export default function PrintPageView({ task, onClose }) {
 
   const layout = useMemo(
     () => useElements
-      ? layoutElementLinesIntoRows(lines, elementsByLabel)
+      ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
     [useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
