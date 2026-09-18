@@ -2,7 +2,7 @@
   "id": "repeat_windmill",
   "conceptId": "repeat_windmill",
   "primary": true,
-  "label": "Мельница",
+  "label": "Кристалл",
   "taskKind": "repeat",
   "difficulty": "challenge",
   "columns": 16,

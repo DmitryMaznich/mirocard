@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.11.15",
+    "version": "1.11.16",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -7287,7 +7287,7 @@
       "id": "repeat_windmill",
       "conceptId": "repeat_windmill",
       "primary": true,
-      "label": "Мельница",
+      "label": "Кристалл",
       "taskKind": "repeat",
       "difficulty": "challenge",
       "columns": 16,

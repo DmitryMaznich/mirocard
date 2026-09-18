@@ -365,7 +365,7 @@
     },
     {
       "id": "repeat_windmill",
-      "label": "Мельница",
+      "label": "Кристалл",
       "taskKind": "repeat",
       "file": "repeat_windmill.json"
     },
