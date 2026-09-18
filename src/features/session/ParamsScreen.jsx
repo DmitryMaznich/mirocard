@@ -2016,27 +2016,34 @@ export default function ParamsScreen() {
         info={mode?.params?.dictationCommand?.info?.ru}
         onShowInfo={setActiveInfo}
       />
-      <EnumParam
-        label="Подача команд"
-        options={["text_graphics_voice", "voice"]}
-        labels={{ text_graphics_voice: "Текст, стрелка и голос", voice: "Только голос" }}
-        value={params.dictationPresentation ?? "text_graphics_voice"}
-        onChange={(v) => setParams((p) => ({ ...p, dictationPresentation: v }))}
-        info={mode?.params?.dictationPresentation?.info?.ru}
+      <BooleanParam
+        label="Текст команды"
+        hint="Показывает текущую команду: направление и число клеток или координату точки."
+        value={params.showCommandText ?? true}
+        onChange={(v) => setParams((p) => ({ ...p, showCommandText: v }))}
+        info={mode?.params?.showCommandText?.info?.ru}
         onShowInfo={setActiveInfo}
       />
       {(params.dictationCommand ?? "directions") === "directions" && (
-        <>
-          {(params.dictationPresentation ?? "text_graphics_voice") === "text_graphics_voice" && (
-            <BooleanParam
-              label="Стрелка в подсказке"
-              hint="Выключите, чтобы ребёнок опирался на текст и голос, а не на значок"
-              value={params.showArrow ?? true}
-              onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
-            />
-          )}
-          <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} params={params} />
-        </>
+        <BooleanParam
+          label="Стрелка направления"
+          hint="Показывает направление следующей линии."
+          value={params.showArrow ?? true}
+          onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
+          info={mode?.params?.showArrow?.info?.ru}
+          onShowInfo={setActiveInfo}
+        />
+      )}
+      <BooleanParam
+        label="Голосовая команда"
+        hint="Качественная озвучка запускается автоматически на каждом шаге; кнопка с динамиком повторяет её."
+        value={params.playCommandVoice ?? true}
+        onChange={(v) => setParams((p) => ({ ...p, playCommandVoice: v }))}
+        info={mode?.params?.playCommandVoice?.info?.ru}
+        onShowInfo={setActiveInfo}
+      />
+      {(params.dictationCommand ?? "directions") === "directions" && (
+        <SymmetryDrawPrintParams topicRecord={topicRecord} mode={mode} params={params} />
       )}
     </>
   ) : isSymmetryDrawPrint ? (

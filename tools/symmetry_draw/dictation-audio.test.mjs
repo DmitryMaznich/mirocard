@@ -44,14 +44,21 @@ test("removed graphic-dictation figures are absent in both command modes", () =>
   }
 });
 
-test("dictation uses deck recordings and can hide the written command", () => {
+test("dictation uses deck recordings and has independent text, arrow and voice settings", () => {
   const start = renderer.indexOf("function DictationTask");
   const end = renderer.indexOf("function CoordinatePracticeTask");
   const dictation = renderer.slice(start, end);
-  assert.match(dictation, /dictationPresentation/);
+  assert.match(dictation, /showCommandText/);
+  assert.match(dictation, /showArrow/);
+  assert.match(dictation, /playCommandVoice/);
   assert.match(dictation, /playTopicFile\(topicId, commandAudioPath\)/);
   assert.match(dictation, /isVoiceOnly/);
+  assert.doesNotMatch(dictation, /dictationPresentation/);
+  assert.doesNotMatch(dictation, /setTimeout\(playInstruction/);
   assert.doesNotMatch(dictation, /speechSynthesis|SpeechSynthesisUtterance/);
   const mode = topic.modes.find((item) => item.type === "graphic_dictation");
-  assert.deepEqual(mode?.params?.dictationPresentation?.values, ["text_graphics_voice", "voice"]);
+  assert.equal(mode?.params?.showCommandText?.default, true);
+  assert.equal(mode?.params?.showArrow?.default, true);
+  assert.equal(mode?.params?.playCommandVoice?.default, true);
+  assert.equal(mode?.params?.dictationPresentation, undefined);
 });

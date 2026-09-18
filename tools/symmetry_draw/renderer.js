@@ -333,13 +333,16 @@
     const shape = task.card;
     const steps = useMemo(() => buildSteps(shape), [shape]);
     const isCoordinate = shape.taskKind === "coordinate";
-    const showArrow = sessionParams?.showArrow ?? true;
-    const commandPresentation = sessionParams?.dictationPresentation ?? "text_graphics_voice";
-    const usesRecordedVoice = commandPresentation === "text_graphics_voice" || commandPresentation === "voice";
-    const isVoiceOnly = commandPresentation === "voice";
+    // Each way of receiving a command is an independent adult setting.  This
+    // makes gradual fading possible: for example, keep the voice while hiding
+    // the text, or leave text on but remove the direction icon.
+    const showCommandText = sessionParams?.showCommandText ?? true;
+    const showArrow = !isCoordinate && (sessionParams?.showArrow ?? true);
+    const playCommandVoice = sessionParams?.playCommandVoice ?? true;
+    const isVoiceOnly = !showCommandText && !showArrow && playCommandVoice;
     const step = steps[stepIndex];
     const commandAudioPath = step?.audioPath ?? null;
-    const canPlayRecordedInstruction = Boolean(usesRecordedVoice && soundEnabled && topicId && playTopicFile && commandAudioPath);
+    const canPlayRecordedInstruction = Boolean(playCommandVoice && soundEnabled && topicId && playTopicFile && commandAudioPath);
     const columns = Number(shape.columns ?? 10);
     const rows = Number(shape.rows ?? 10);
     const target = step ? step.end : null;
@@ -355,11 +358,7 @@
     }, [canPlayRecordedInstruction, playTopicFile, topicId, commandAudioPath]);
 
     useEffect(() => {
-      if (finished || !canPlayRecordedInstruction) return undefined;
-      // A brief delay lets the session transition settle before playback;
-      // without it mobile browsers can drop the first command on a new card.
-      const timer = window.setTimeout(playInstruction, 220);
-      return () => window.clearTimeout(timer);
+      if (!finished && canPlayRecordedInstruction) playInstruction();
     }, [stepIndex, finished, canPlayRecordedInstruction, playInstruction]);
 
     function localPoint(event) {
@@ -468,12 +467,12 @@
 
     return h("section", { className: `dictation${isCoordinate ? " dictation--coordinate" : ""}${isVoiceOnly ? " dictation--voice-only" : ""}`, "aria-label": isCoordinate ? "Точки по координатам" : "Графический диктант" },
       h("div", { className: `dictation__command${isVoiceOnly ? " dictation__command--voice-only" : ""}` },
-        !isVoiceOnly && step?.direction && showArrow ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command: { direction: step.direction } })) : null,
-        h("div", { className: "dictation__command-copy" },
-          h("div", { className: `dictation__text${isVoiceOnly && !finished ? " dictation__text--listen" : ""}` },
+        step?.direction && showArrow ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command: { direction: step.direction } })) : null,
+        (finished || showCommandText || playCommandVoice) ? h("div", { className: "dictation__command-copy" },
+          h("div", { className: `dictation__text${!showCommandText && playCommandVoice && !finished ? " dictation__text--listen" : ""}` },
             finished
               ? `Получился рисунок: ${shape.label}`
-              : isVoiceOnly
+              : !showCommandText && playCommandVoice
                 ? [
                     h("span", { key: "speaker", className: "dictation__listen-icon", "aria-hidden": "true" }, "🔊"),
                     h("span", { key: "prompt" }, soundEnabled ? "Слушай команду" : "Включите звук"),
@@ -486,8 +485,8 @@
                   ]
                 : step?.text ?? "",
           ),
-        ),
-        !finished && usesRecordedVoice ? h("button", {
+        ) : null,
+        !finished && playCommandVoice ? h("button", {
           type: "button",
           className: "dictation__repeat",
           onClick: playInstruction,
