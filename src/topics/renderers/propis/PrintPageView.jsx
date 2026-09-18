@@ -1,11 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows, paginateElementRows } from "./wordEngine.js";
+import { layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
   INK_COLOR, NATIVE_L3,
   TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING,
-  ELEMENT_PAGE_TOP_MARGIN, ELEMENT_PAGE_CONTENT_HEIGHT,
   buildDiagonalLines, mmToNativeUnits,
   PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_MARGIN_MM, PRINT_LEFT_INSET_MM, PRINT_CENTER_INSET_MM,
   PRINT_CONTENT_W_MM, PRINT_FIRST_BASELINE_MM, PRINT_ROWS_PER_PAGE,
@@ -70,23 +69,19 @@ const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
 // see PrintPageView's own "propis-print-all" block). `activeIndex`/`onToggleActive` are
 // omitted (undefined) for the print render — nothing is tappable on paper.
 //
-// "Элементы букв" rows (`useElements`) get their own ruling/hit-rect instead of reusing the
-// ordinary text row's — an element renders at its real captured scale in its own real row
-// TYPE (wide or narrow, see wordEngine.js's layoutElementLinesIntoRows/paginateElementRows),
-// not a fixed pitch. Three earlier attempts the same day (2026-09-18) were reverted: shrink
-// every element into one ordinary TEXT_ROW_PITCH slot (lost the real scale — every anchor
-// tried either flattened both capture families onto the same line or left one floating);
-// widen every row to a single COMBINED block spanning both a wide AND narrow zone at once
-// (real scale kept, but each element only ever used one of the block's two zones, the other
-// reading as an empty extra row — "широкая со штрихом - узкая пустая - широкая пустая",
-// fourth report); and, before either of those, doubling the ordinary row's own pitch or
-// layering extra guide lines onto it (separate bugs: a blank spare slot with no ruling;
-// doubled/cluttered lines spilling into the neighbor). This is "each element its own real
-// row, packed tight" — ruling drawn only for the rows actually present on this page (no
-// fixed row count), each sized to exactly `p.rowHeightUnits` (52 for a wide-family element,
-// 26 for "_uzkaya"), a plain thin-top/bold-bottom pair per row (its bottom line doubling as
-// the next row's own top, same as a real ruled notebook page — no gap between rows).
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }) {
+// "Элементы букв" rows (`useElements`) use the EXACT SAME grid/ruling ordinary text rows
+// do — no `useElements`-specific ruling code at all. Every earlier attempt this same day
+// (2026-09-18) gave element rows their OWN bespoke ruling (a combined 4-line block; two
+// separately-sized wide/narrow row types) and each one, in a different way, ran into the
+// same wall: "узкие строки это не пустые промежутки, это именно узкие строки разлиновки
+// для прописей! эта разлиновка должна оставаться в любом случае есть на ней символ или
+// нет" -- the ruling is a FIXED, always-printed feature of the page, like a real ruled
+// notebook, not a per-element slot that appears/disappears/resizes with content. Reusing
+// the text-row grid verbatim is the only way to guarantee that: the ruling literally can't
+// depend on content because it's the same code path regardless of `useElements`. Only
+// wordEngine.js's layoutElementLinesIntoRows differs (anchoring each element's own real,
+// unscaled ink onto whichever of the row's two existing guide lines matches its family).
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
   return (
@@ -103,47 +98,29 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }
           stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W}
         />
       ))}
-      {useElements
-        ? page.map((p) => (
-            <g key={`g${p.rowIndex}`}>
-              <line
-                x1="0" y1={ELEMENT_PAGE_TOP_MARGIN + p.rowOffsetUnits}
-                x2={PAGE_W_UNITS} y2={ELEMENT_PAGE_TOP_MARGIN + p.rowOffsetUnits}
-                stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W}
-              />
-              <line
-                x1="0" y1={ELEMENT_PAGE_TOP_MARGIN + p.rowOffsetUnits + p.rowHeightUnits}
-                x2={PAGE_W_UNITS} y2={ELEMENT_PAGE_TOP_MARGIN + p.rowOffsetUnits + p.rowHeightUnits}
-                stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W}
-              />
-            </g>
-          ))
-        : ROW_INDICES.map((row) => (
-            <g key={`g${row}`}>
-              <line
-                x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
-                x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
-                stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W}
-              />
-              <line
-                x1="0" y1={rowOriginY(row) + NATIVE_L3}
-                x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3}
-                stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W}
-              />
-            </g>
-          ))}
+      {ROW_INDICES.map((row) => (
+        <g key={`g${row}`}>
+          <line
+            x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
+            x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
+            stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W}
+          />
+          <line
+            x1="0" y1={rowOriginY(row) + NATIVE_L3}
+            x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3}
+            stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W}
+          />
+        </g>
+      ))}
       <line x1={marginXUnits} y1={0} x2={marginXUnits} y2={PAGE_H_UNITS} stroke={MARGIN_COLOR} strokeWidth={MARGIN_LINE_W} />
       {page.map((p, i) => {
         const isActive = onToggleActive ? i === activeIndex : false;
-        const originY = useElements ? ELEMENT_PAGE_TOP_MARGIN + p.rowOffsetUnits : rowOriginY(p.rowIndex);
-        const rowPitch = useElements ? p.rowHeightUnits : TEXT_ROW_PITCH;
-        const hitY = useElements ? 0 : NATIVE_L3 - TEXT_ROW_PITCH / 2;
         return (
-          <g key={i} transform={`translate(${contentXUnits + p.x} ${originY})`}>
+          <g key={i} transform={`translate(${contentXUnits + p.x} ${rowOriginY(p.rowIndex)})`}>
             {onToggleActive && (
               <rect
                 className="propis-text-word-hit"
-                x={-4} y={hitY} width={p.segments.reduce((s, seg) => s + seg.width, 0) + 8} height={rowPitch}
+                x={-4} y={NATIVE_L3 - TEXT_ROW_PITCH / 2} width={p.segments.reduce((s, seg) => s + seg.width, 0) + 8} height={TEXT_ROW_PITCH}
                 onClick={() => onToggleActive(i)}
               />
             )}
@@ -244,12 +221,7 @@ export default function PrintPageView({ task, onClose }) {
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
     [useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
-  const pages = useMemo(
-    () => useElements
-      ? paginateElementRows(layout, ELEMENT_PAGE_CONTENT_HEIGHT)
-      : paginateRows(layout, PRINT_ROWS_PER_PAGE),
-    [layout, useElements]
-  );
+  const pages = useMemo(() => paginateRows(layout, PRINT_ROWS_PER_PAGE), [layout]);
 
   const [pageIndex, setPageIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -278,7 +250,6 @@ export default function PrintPageView({ task, onClose }) {
                 pageIndex={pageIndex}
                 activeIndex={activeIndex}
                 onToggleActive={(i) => setActiveIndex((cur) => (cur === i ? null : i))}
-                useElements={useElements}
               />
             </div>
 
@@ -326,8 +297,8 @@ export default function PrintPageView({ task, onClose }) {
               <div className="propis-print-all" aria-hidden="true">
                 {Array.from({ length: pages.length / 2 }, (_, sheetIndex) => (
                   <div key={sheetIndex} className="propis-print-all__sheet">
-                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} />
-                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} />
+                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} />
+                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} />
                   </div>
                 ))}
               </div>,

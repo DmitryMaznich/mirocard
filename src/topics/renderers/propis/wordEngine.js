@@ -1,5 +1,5 @@
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
-import { GUIDE_LINES, NATIVE_L1, NATIVE_L2, NATIVE_L3 } from "./propisRuling.js";
+import { GUIDE_LINES, NATIVE_L2, NATIVE_L3 } from "./propisRuling.js";
 
 // Points within this margin of a letter's closest approach to the baseline are treated as
 // part of its baseline-contact zone — needed because most letters never sample to a
@@ -739,77 +739,64 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
   return { placed, rowCount };
 }
 
-// Elements come from TWO physically distinct ruled row types in the source book, not one
-// combined block: elements.json's own capture data splits into two disjoint native-Y
-// bands -- a "wide" row (the ASCENDER zone, NATIVE_L1 to NATIVE_L2, 52 native units) for
-// the plain family (01, 02a, 03-06) and a "narrow" row (the same NARROW/x-height zone a
-// letter's own body occupies, NATIVE_L2 to NATIVE_L3, 26 native units) for the "_uzkaya"
-// family. Earlier same-day attempts (2026-09-18) either shrank every element into one
-// ordinary TEXT_ROW_PITCH slot (lost the real captured scale entirely -- see docs/propis.md
-// for why every anchor tried there was wrong) or widened every row to a single COMBINED
-// block spanning both zones at once (real scale preserved, but each element only ever used
-// ONE of the block's two zones, leaving the other looking like an empty extra row -- the
-// user's "широкая со штрихом - узкая пустая - широкая пустая" report, fourth round).
-// Neither survived: confirmed with the user that each element needs its OWN row sized to
-// EXACTLY its own real zone, with consecutive rows stacked directly against each other
-// ("вплотную") -- the same way a real ruled notebook's lines are shared between adjacent
-// rows, not a fixed pitch with unused space baked into every row regardless of content.
-export const WIDE_ROW_HEIGHT = NATIVE_L2 - NATIVE_L1; // 52 -- the plain family's own zone
-export const NARROW_ROW_HEIGHT = NATIVE_L3 - NATIVE_L2; // 26 -- the "_uzkaya" family's own zone
+// "Элементы букв" rows reuse EXACTLY the same fixed grid ordinary text rows already draw
+// (rowIndex=i, PRINT_ROWS_PER_PAGE, TEXT_ROW_PITCH, the always-on thin/bold ruling pair) --
+// confirmed with the user 2026-09-18, sixth round, after every bespoke element-row ruling
+// this same day (a combined 4-line block; two separately-sized wide/narrow row types) kept
+// missing the same point: "узкие строки это не пустые промежутки, это именно узкие строки
+// разлиновки для прописей! эта разлиновка должна оставаться в любом случае есть на ней
+// символ или нет" -- the ruling is a FIXED, always-printed feature of the page (like a real
+// ruled notebook), not a per-element slot that appears/disappears/resizes with content. The
+// simplest way to guarantee that is to not give element rows any ruling of their own at
+// all -- literally reuse the text-row grid (see PrintPageView.jsx), and only decide where
+// EACH element's own ink lands within its row: anchored (translate only, no scale -- real
+// captured size) onto whichever of that row's own two existing guide lines matches the
+// element's real family -- the wide family (ascender-zone capture, 01/02a/03-06) onto the
+// row's thin line (NATIVE_L3 - TEXT_ROW_THIN_OFFSET, the same line a tall letter's ascender
+// reaches toward), the narrow family (x-height-zone capture, "_uzkaya" and
+// 02b_naklonnaya_korotkaya) onto the row's own bold baseline (NATIVE_L3) -- exactly where a
+// letter's own body already sits. Anchored on each element's OWN lowest captured point
+// (samplePath, not just raw M/C endpoints -- a bulging curve's real max isn't always at an
+// endpoint), not a fixed per-family constant, so real per-card capture variance (60 vs 63,
+// 86 vs 88) doesn't leave a visible gap from its target line.
+const WIDE_TARGET_LINE = NATIVE_L3 - 24; // TEXT_ROW_THIN_OFFSET, propisRuling.js
+const NARROW_TARGET_LINE = NATIVE_L3;
 
 // Classified from the element's OWN captured data, not its id -- "_uzkaya" names most of
 // the narrow family but not all of it: 02b_naklonnaya_korotkaya has no "_uzkaya" suffix at
 // all (it's "korotkaya"/short, not "uzkaya"/narrow) yet its own native y-range (~63-86) is
-// squarely in the narrow/x-height band, not the wide/ascender one (confirmed 2026-09-18,
-// fifth round: an id-suffix classifier gave it WIDE_ROW_HEIGHT, silently producing a row
-// twice as tall as its real content needed -- exactly the kind of extra-empty-space bug
-// this whole redesign exists to eliminate). The midpoint between the two bands' own
-// natural anchor lines (NATIVE_L2=62, NATIVE_L3=88) cleanly separates every captured
-// element with margin either way (wide family tops out ~60-63, narrow family's own top
-// starts ~60-63 too but its BOTTOM reaches ~86-88) -- classify by where the element's own
-// lowest point actually falls, not by a naming convention that doesn't cover every card.
+// squarely in the narrow/x-height band, not the wide/ascender one. The midpoint between the
+// two bands' own natural anchor lines (NATIVE_L2=62, NATIVE_L3=88) cleanly separates every
+// captured element with margin either way.
 function isNarrowElement(element) {
   const maxY = Math.max(...element.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1])));
   return maxY > (NATIVE_L2 + NATIVE_L3) / 2;
 }
 
-// Unknown/uncaptured element id (e.g. a session saved before this element existed, or the
-// id typo'd somewhere upstream): no captured data to classify by, so this falls back to the
-// id's own "_uzkaya" suffix as a best-effort guess -- imperfect (see isNarrowElement's own
-// comment), but there's nothing else to go on when the element itself is missing.
-function guessNarrowFromId(elementId) {
-  return elementId.includes("_uzkaya");
-}
-
-// read_lines' "Элементы букв" option: one element per row, each row sized to exactly that
-// element's own real row type (WIDE_ROW_HEIGHT or NARROW_ROW_HEIGHT), at its real captured
-// scale (no shrinking -- same untouched-`d` treatment buildWordTrajectory gives a letter).
-// PrintPageView.jsx/paginateElementRows below packs these variable-height rows onto a page
-// by real cumulative height, not a fixed rows-per-page count.
+// read_lines' "Элементы букв" option: one element per row on the SAME dense grid
+// layoutTextIntoRows uses (rowIndex=i), at its real captured scale (no shrinking -- same
+// untouched-`d` treatment buildWordTrajectory gives a letter). PrintPageView.jsx's ordinary
+// paginateRows/PRINT_ROWS_PER_PAGE/ruling apply unchanged, no element-specific case at all.
 export function layoutElementLinesIntoRows(lines, elementsByLabel) {
   const placed = lines.map((elementId, i) => {
     const rowIndex = i;
     const element = elementsByLabel.get(elementId);
     if (!element) {
-      // Still needs a real rowHeightUnits so pagination/ruling has something to draw.
-      const rowHeightUnits = guessNarrowFromId(elementId) ? NARROW_ROW_HEIGHT : WIDE_ROW_HEIGHT;
-      return { word: elementId, rowIndex, x: 0, segments: [], rowHeightUnits };
+      return { word: elementId, rowIndex, x: 0, segments: [] };
     }
     const narrow = isNarrowElement(element);
-    const rowHeightUnits = narrow ? NARROW_ROW_HEIGHT : WIDE_ROW_HEIGHT;
-    // Each row's own native origin -- the wide row's real content always starts at
-    // NATIVE_L1, the narrow row's always starts at NATIVE_L2 (the two capture bands above)
-    // -- translating by its negative maps the element's real native y directly onto a
-    // 0-based row-local offset (matching this row's own [0, rowHeightUnits] span), no
-    // scaling at all (real captured size, unchanged).
-    const rowNativeOrigin = narrow ? NATIVE_L2 : NATIVE_L1;
+    const targetLine = narrow ? NARROW_TARGET_LINE : WIDE_TARGET_LINE;
+    const elementMaxY = Math.max(
+      ...element.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1]))
+    );
+    const translateY = targetLine - elementMaxY;
     const strokes = element.strokes.map((s) => ({
-      d: transformPathD(s.d, { translateY: -rowNativeOrigin }),
+      d: transformPathD(s.d, { translateY }),
     }));
     const startPoint = getPathEndpoints(strokes[0].d).start;
     const vbW = Number(element.viewBox.split(" ")[2]);
     const segment = { type: "element", xOffset: 0, strokes, width: vbW, startPoint };
-    return { word: elementId, rowIndex, x: 0, segments: [segment], rowHeightUnits };
+    return { word: elementId, rowIndex, x: 0, segments: [segment] };
   });
   const rowCount = Math.max(lines.length, 1);
   return { placed, rowCount };
@@ -833,27 +820,5 @@ export function paginateRows(layout, rowsPerPage) {
     const pageIndex = Math.floor(p.rowIndex / rowsPerPage);
     pages[pageIndex].push({ ...p, rowIndex: p.rowIndex % rowsPerPage });
   }
-  return pages;
-}
-
-// Element rows have variable height (layoutElementLinesIntoRows' own rowHeightUnits per
-// row), so paginateRows' fixed rowsPerPage bucketing doesn't apply -- packs rows onto a
-// page by real cumulative height instead, stacking them directly against each other
-// ("вплотную", no gap: a row's own bottom line doubles as the next row's own top line,
-// same as a real ruled notebook page). Same even-page-count physical-sheet convention as
-// paginateRows (see its own comment).
-export function paginateElementRows(layout, pageContentHeightUnits) {
-  const pages = [[]];
-  let offset = 0;
-  for (const p of layout.placed) {
-    if (offset > 0 && offset + p.rowHeightUnits > pageContentHeightUnits) {
-      pages.push([]);
-      offset = 0;
-    }
-    pages[pages.length - 1].push({ ...p, rowOffsetUnits: offset });
-    offset += p.rowHeightUnits;
-  }
-  if (pages.length < 2) pages.push([]);
-  if (pages.length % 2 !== 0) pages.push([]);
   return pages;
 }
