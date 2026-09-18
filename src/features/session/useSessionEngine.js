@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
-import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, getFigureFilter, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
@@ -46,11 +46,18 @@ function resolveMode(topicRecord, modeId) {
 // Shared between the top-level render and the loopModes auto-advance effect,
 // so a freshly picked next mode gets the same concept selection a normal
 // mode switch (via ModePickerScreen -> params) would have produced.
-function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) {
+export function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) {
   const sessionParams = { ...(link.params ?? {}), strictStars: resolveStrictStars(mode, link.strictStars) };
   const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)
     .filter((c) => c.primary)
     .map((c) => c.conceptId);
+  // The visual figure picker is a complete, mode-specific selection. A
+  // legacy concept-picker value may still be stored for the same mode, but it
+  // must not narrow a parent-selected set of figures (e.g. leave "Яхта" and
+  // silently drop the newly selected "Бабочка").
+  const hasManualFigureSelection = topicRecord?.meta?.id === "symmetry_draw"
+    && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type)
+    && getFigureFilter(sessionParams, mode).type === "manual";
   const modeSelectedConceptIds = mode
     ? readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, sessionParams)
     : (link.selectedConceptIds?.length ? link.selectedConceptIds : null);
@@ -60,7 +67,9 @@ function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) 
   const validSelectedConceptIds = modeSelectedConceptIds?.filter((id) => defaultModeConceptIds.includes(id)) ?? [];
   const selectedConceptIds = isReading
     ? (activeTextId ? [activeTextId] : [])
-    : (validSelectedConceptIds.length ? validSelectedConceptIds : defaultModeConceptIds);
+    : (hasManualFigureSelection
+        ? defaultModeConceptIds
+        : (validSelectedConceptIds.length ? validSelectedConceptIds : defaultModeConceptIds));
   return { sessionParams, selectedConceptIds };
 }
 
