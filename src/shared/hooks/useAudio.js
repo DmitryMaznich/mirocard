@@ -16,6 +16,7 @@ function createAudio(src) {
 
 export function useAudio() {
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isTopicAudioPlaying, setIsTopicAudioPlaying] = useState(false);
   const currentRef = useRef(null);
   const genRef     = useRef(0);
   const feedbackRef = useRef(null);
@@ -79,6 +80,7 @@ export function useAudio() {
       currentRef.current.pause();
       currentRef.current = null;
     }
+    setIsTopicAudioPlaying(false);
   }, []);
 
   const playFeedback = useCallback((kind) => {
@@ -101,22 +103,34 @@ export function useAudio() {
     if (!soundEnabled || !topicId || !filePath) return;
     stop();
     const myGen = genRef.current;
+    let audio = null;
+    let url = null;
     try {
       const db = await getDb();
       if (genRef.current !== myGen) return;
       const blob = await topics.getFile(db, topicId, filePath);
       if (genRef.current !== myGen) return;
       if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
+      url = URL.createObjectURL(blob);
+      audio = new Audio(url);
       audio.playsInline = true;
       if (genRef.current !== myGen) { URL.revokeObjectURL(url); return; }
       currentRef.current = audio;
-      audio.onended = () => URL.revokeObjectURL(url);
-      audio.onerror = () => URL.revokeObjectURL(url);
+      const finish = () => {
+        URL.revokeObjectURL(url);
+        if (currentRef.current !== audio) return;
+        currentRef.current = null;
+        setIsTopicAudioPlaying(false);
+      };
+      audio.onended = finish;
+      audio.onerror = finish;
       await audio.play();
+      if (genRef.current === myGen && currentRef.current === audio) setIsTopicAudioPlaying(true);
     } catch {
       // Topic audio is best-effort because browsers can still reject playback.
+      if (currentRef.current === audio) currentRef.current = null;
+      if (url) URL.revokeObjectURL(url);
+      if (genRef.current === myGen) setIsTopicAudioPlaying(false);
     }
   }, [soundEnabled, stop]);
 
@@ -136,5 +150,5 @@ export function useAudio() {
     return Boolean(a && !a.paused && !a.ended);
   }, []);
 
-  return { soundEnabled, toggleSound, playFeedback, playTopicFile, isAudioPlaying };
+  return { soundEnabled, toggleSound, playFeedback, playTopicFile, isAudioPlaying, isTopicAudioPlaying };
 }

@@ -314,7 +314,7 @@
     });
   }
 
-  function DictationTask({ task, onCorrect, onMistake, sessionParams, topicId, soundEnabled, playTopicFile }) {
+  function DictationTask({ task, onCorrect, onMistake, sessionParams, topicId, soundEnabled, playTopicFile, isTopicAudioPlaying = false }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const gestureRef = useRef([]);
@@ -488,12 +488,16 @@
         ) : null,
         !finished && playCommandVoice ? h("button", {
           type: "button",
-          className: "dictation__repeat",
+          className: `dictation__repeat${isTopicAudioPlaying ? " dictation__repeat--speaking" : ""}`,
           onClick: playInstruction,
           disabled: !canPlayRecordedInstruction,
           "aria-label": "Повторить голосовую команду",
           title: canPlayRecordedInstruction ? "Повторить голосовую команду" : "Включите звук, чтобы прослушать команду",
-        }, "🔊") : null,
+        }, [
+          h("span", { key: "speaker", className: "dictation__speaker", "aria-hidden": "true" }, "🔊"),
+          h("span", { key: "wave-one", className: "dictation__sound-wave dictation__sound-wave--one", "aria-hidden": "true" }),
+          h("span", { key: "wave-two", className: "dictation__sound-wave dictation__sound-wave--two", "aria-hidden": "true" }),
+        ]) : null,
       ),
       h("div", { className: "dictation__canvas" },
         h("svg", { ref: svgRef, className: "dictation__grid", viewBox: `-0.55 -0.78 ${columns + 1.1} ${rows + 1.58}`, onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture, onPointerLeave: finishGesture },
