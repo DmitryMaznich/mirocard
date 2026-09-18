@@ -8,6 +8,7 @@
       "id": "01_pryamaya_liniya",
       "labelRu": "Прямая линия",
       "category": "base_stroke",
+      "repeatMode": "spaced",
       "sourcePage": 5,
       "viewBox": "0 0 40 150",
       "strokes": [
@@ -27,6 +28,7 @@
       "id": "02a_naklonnaya_dlinnaya",
       "labelRu": "Наклонная длинная",
       "category": "base_stroke",
+      "repeatMode": "spaced",
       "sourcePage": 5,
       "viewBox": "0 0 32 150",
       "strokes": [
@@ -43,6 +45,7 @@
       "id": "02b_naklonnaya_korotkaya",
       "labelRu": "Наклонная короткая",
       "category": "base_stroke",
+      "repeatMode": "spaced",
       "sourcePage": 5,
       "viewBox": "0 0 19 150",
       "strokes": [
@@ -59,6 +62,7 @@
       "id": "03_zaborchik_ploskie",
       "labelRu": "Заборчик плоские",
       "category": "base_stroke",
+      "repeatMode": "joined",
       "sourcePage": 5,
       "viewBox": "0 0 80 150",
       "strokes": [
@@ -84,6 +88,7 @@
       "id": "03_zaborchik_ploskie_uzkaya",
       "labelRu": "Заборчик плоские (узкая)",
       "category": "base_stroke",
+      "repeatMode": "joined",
       "sourcePage": 5,
       "viewBox": "0 0 53 150",
       "strokes": [
@@ -109,6 +114,7 @@
       "id": "04_zaborchik_ostrye",
       "labelRu": "Заборчик острые",
       "category": "base_stroke",
+      "repeatMode": "joined",
       "sourcePage": 6,
       "viewBox": "0 0 33 150",
       "strokes": [
@@ -128,6 +134,7 @@
       "id": "04_zaborchik_ostrye_uzkaya",
       "labelRu": "Заборчик острые (узкая)",
       "category": "base_stroke",
+      "repeatMode": "joined",
       "sourcePage": 6,
       "viewBox": "0 0 24 150",
       "strokes": [
@@ -147,6 +154,7 @@
       "id": "05_kryuchok_vlevo",
       "labelRu": "Крючок влево",
       "category": "base_stroke",
+      "repeatMode": "spaced",
       "sourcePage": 6,
       "viewBox": "0 0 28 150",
       "strokes": [
@@ -163,6 +171,7 @@
       "id": "05_kryuchok_vlevo_uzkaya",
       "labelRu": "Крючок влево (узкая)",
       "category": "base_stroke",
+      "repeatMode": "spaced",
       "sourcePage": 6,
       "viewBox": "0 0 24 150",
       "strokes": [
@@ -179,6 +188,7 @@
       "id": "06_kryuchok_vpravo",
       "labelRu": "Крючок вправо",
       "category": "base_stroke",
+      "repeatMode": "spaced",
       "sourcePage": 6,
       "viewBox": "0 0 29 150",
       "strokes": [
@@ -195,6 +205,7 @@
       "id": "06_kryuchok_vpravo_uzkaya",
       "labelRu": "Крючок вправо (узкая)",
       "category": "base_stroke",
+      "repeatMode": "spaced",
       "sourcePage": 6,
       "viewBox": "0 0 22 150",
       "strokes": [
