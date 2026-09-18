@@ -2619,6 +2619,37 @@ animate should be removed from element rows completely, not merely made optional
   `elements.json` itself unchanged) — no deck-zip rebuild needed, unlike the `repeatMode`
   round just above.
 
+**Regression, same day: "joined" chains drifted vertically across a full row — fixed by not
+snapping Y at each join.** The user spotted it directly from a rendered page screenshot: both
+заборчик rows visibly sagged downward toward their right edge. Root cause — the "joined"
+step in `buildRepeatStrokes` snapped BOTH axes at every join (matching the next copy's own
+start exactly to the previous copy's own end), and while a single joint's own Y mismatch is
+under 1 native unit for every captured заборчик variant (confirmed earlier when the joined
+design was first built), that per-joint tilt is the SAME sign and magnitude every step, so it
+compounds linearly once `buildRepeatChain` started generating many copies to fill a whole
+row instead of just one. Measured against real elements.json data at a realistic row width
+(~711 units): `03_zaborchik_ploskie` −7.3 units over ~14 copies, `03_zaborchik_ploskie_uzkaya`
++9.5 over ~22, `04_zaborchik_ostrye` **−12.2 over ~29** (a quarter to a third of the row's own
+24–48 unit headroom), `04_zaborchik_ostrye_uzkaya` −5.3 over ~44.
+
+Fix: `buildRepeatStrokes`'s "joined" branch now only computes `dx` (X still snaps exactly, so
+the chain stays gap-free) and drops the `dy` snap entirely — every copy is a pure horizontal
+translate of the one before it, so the whole chain shares EXACTLY the primary's own Y
+positions, however many copies deep. Trade-off: the same sub-1-unit Y mismatch at every
+single joint that was always there and already judged imperceptible on its own — it just no
+longer compounds. This matches the feature's own governing rule (content anchors to the
+row's fixed ruling, never drifts with it) better than the original "exact snap on both axes"
+design did.
+
+Verified: updated the "joined" test to assert zero Y drift across the whole chain (using a
+fixture with a deliberately large, exaggerated per-joint Y mismatch so a regression would
+fail loudly rather than by under a unit) — 121/121 propis tests pass, `npm run build` clean.
+Also re-verified via a throwaway Playwright render + direct DOM measurement of every repeat
+copy's own first-stroke-start Y across both `04_zaborchik_ostrye` (29 copies) and
+`03_zaborchik_ploskie_uzkaya` (22 copies): `maxDeviationFromPrimary: 0` for both, and the
+screenshot confirms both rows now hold level right to the row's own edge. No `elements.json`
+change, so no deck-zip rebuild needed for this fix either.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

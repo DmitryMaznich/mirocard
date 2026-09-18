@@ -814,25 +814,38 @@ const MAX_REPEAT_CHAIN = 200;
 // One additional copy of an element's own strokes, placed immediately after `strokes` --
 // `repeatMode` (elements.json, confirmed per-element with the user) picks how the two relate:
 //  - "joined" (заборчики, 03/04 + their _uzkaya variants): the copy's own FIRST-stroke start
-//    point snaps exactly onto `strokes`' own LAST-stroke end point -- both axes, no gap --
-//    the same "exact snap" pattern buildWordTrajectory already uses for letter-to-letter joins
-//    (see its own top-of-file comment). Confirmed against all 4 variants' real captured stroke
-//    data: the Y-mismatch between one copy's own end and the next copy's own start is under 1
-//    native unit for every one of them, so chaining this repeatedly produces a genuinely
-//    continuous, seamless line -- matching the user's own description ("заборчик высокий...
-//    должен дать на выходе сплошную ломаную кривую по строке, без пропусков").
+//    point snaps onto `strokes`' own LAST-stroke end point on the X axis -- the same "exact
+//    snap" pattern buildWordTrajectory already uses for letter-to-letter joins (see its own
+//    top-of-file comment). The Y axis is deliberately NOT snapped the same way -- see the
+//    "no vertical drift" note below, added 2026-09-18 after the user spotted a real row
+//    visibly sagging across its own width.
 //  - "spaced" (everything else -- прямая/наклонные lines, крючки): the copy is offset
 //    sideways only, by `strokes`' own real ink width plus REPEAT_GAP_SPACED, keeping the
 //    same vertical anchor (translateY) `strokes` already has -- a plain "draw it again over
 //    there" copy, not a chain. Every copy is an identical shape (only translated), so its own
 //    ink width is the same regardless of which link in the chain `strokes` actually is.
+//
+// No vertical drift across a chain (2026-09-18): an early version of "joined" also snapped Y
+// -- `dy = lastEnd[1] - firstStart[1]`, matched to the previous copy's real endpoint exactly,
+// same idea as X. A single joint's own dy is under 1 native unit for every captured заборчик
+// variant (confirmed against real elements.json data), imperceptible on its own -- but once
+// buildRepeatChain below started chaining MANY copies to fill a whole printed row (not just
+// one), that same small per-joint dy compounds every step, since each copy carries the same
+// tilt as the one before it. Confirmed on real data: 04_zaborchik_ostrye's own dy=-0.42/step
+// over the ~29 copies a real row fits adds up to -12 native units -- roughly a quarter to a
+// third of the row's own headroom (24-48 units) -- visibly sagging the whole row downward by
+// its right edge (reported by the user from a rendered page). Forcing dy=0 keeps every copy
+// on EXACTLY the same horizontal level as the row's own primary example -- consistent with
+// this whole feature's governing rule that content anchors to the row's fixed ruling, never
+// drifts with it (see layoutElementLinesIntoRows' own top comment) -- at the cost of the same
+// sub-1-unit Y mismatch at every single joint that was already judged imperceptible before
+// this fix, just no longer compounding across the row.
 function buildRepeatStrokes(strokes, repeatMode) {
   if (repeatMode === "joined") {
     const firstStart = getPathEndpoints(strokes[0].d).start;
     const lastEnd = getPathEndpoints(strokes[strokes.length - 1].d).end;
     const dx = lastEnd[0] - firstStart[0];
-    const dy = lastEnd[1] - firstStart[1];
-    return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx, translateY: dy }) }));
+    return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
   }
   const xs = strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]));
   const inkWidth = Math.max(...xs) - Math.min(...xs);

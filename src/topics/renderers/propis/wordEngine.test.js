@@ -1015,8 +1015,11 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
   });
 
   describe("repeat chain (2026-09-18, fills the whole printed row for tracing, not just a single sample repeat)", () => {
-    it("'joined' repeatMode: each copy's own first-stroke start snaps exactly onto the PREVIOUS copy's own last-stroke end -- no gap, a continuous chain (заборчик family)", () => {
-      // Real elements.json shape for 03_zaborchik_ploskie_uzkaya: two disconnected strokes.
+    it("'joined' repeatMode: each copy's own first-stroke start snaps onto the PREVIOUS copy's own last-stroke end on X -- but Y stays level with the primary (no snap), so a long chain never drifts (2026-09-18, regression: a real row of 04_zaborchik_ostrye visibly sagged ~12 native units by its right edge before this fix)", () => {
+      // Real elements.json shape for 03_zaborchik_ploskie_uzkaya: two disconnected strokes,
+      // with a deliberately large Y mismatch between stroke0's own start and stroke1's own
+      // end (60.3 -> 87.5) -- exaggerated vs. the real capture's sub-1-unit tilt, specifically
+      // so an accidental Y-snap regression would fail this test loudly instead of by <1 unit.
       const JOINED_ELEMENT = {
         id: "03_zaborchik_ploskie_uzkaya", labelRu: "Заборчик (узкая)", viewBox: "0 0 53 150",
         repeatMode: "joined",
@@ -1027,11 +1030,17 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
       const [seg] = placed[0].segments;
       // A ~44-unit-wide element chained across a 700-unit row produces several copies.
       expect(seg.repeatChain.length).toBeGreaterThan(2);
+      const primaryFirstStart = getPathEndpoints(seg.strokes[0].d).start;
       let prevStrokes = seg.strokes;
       for (const copy of seg.repeatChain) {
         const prevLastEnd = getPathEndpoints(prevStrokes[prevStrokes.length - 1].d).end;
         const copyFirstStart = getPathEndpoints(copy.strokes[0].d).start;
-        expect(copyFirstStart).toEqual(prevLastEnd);
+        // X still snaps exactly, so the chain has no horizontal gap.
+        expect(copyFirstStart[0]).toBeCloseTo(prevLastEnd[0], 6);
+        // Y does NOT snap to the previous copy's own end -- every copy's own first-stroke
+        // start stays on the SAME level as the row's primary example, however many copies
+        // deep the chain is, so no per-joint tilt ever compounds across the row.
+        expect(copyFirstStart[1]).toBeCloseTo(primaryFirstStart[1], 6);
         expect(copy.strokes).toHaveLength(prevStrokes.length);
         expect(copy.startPoints).toEqual(copy.strokes.map((s) => getPathEndpoints(s.d).start));
         prevStrokes = copy.strokes;
