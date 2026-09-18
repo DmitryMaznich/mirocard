@@ -2099,6 +2099,57 @@ like the real "wide-row" family (data topping out at y≈62, matching
 `01_pryamaya_liniya`'s own capture) and asserts its scaled max-Y lands
 on `NATIVE_L3`.
 
+**Reverted the same day, later — the per-element anchor above was
+itself wrong (2026-09-18, third report): "ты сделал все элементы в
+узкой строке… это разные элементы".** Deployed as v1.0.2197, the
+per-element `elementMaxY` anchor above made every single element flush
+against `NATIVE_L3`, regardless of which capture band it came from.
+That reads as "fixed" in isolation (nothing floats), but it erases the
+actual reason the two bands exist in the first place: `elements.json`'s
+"wide-row" vs. `_uzkaya` split isn't capture noise, it's each element's
+real, deliberate line-binding from the source book and the capture tool
+— the plain family was drawn in the row's ASCENDER zone (line 1 to line
+3), the `_uzkaya` family in the NARROW/x-height zone (line 3 to line 5,
+the same zone a letter's own body occupies). The capture tool
+(`handwriting_capture.html`) draws the exact same `GUIDE_LINES` ruling
+this app's ruling constants already are, so an element's raw native-Y
+position already fully encodes which physical line it was drawn against
+— that's the "привязка к линиям" the user was asking to preserve, and a
+per-element self-anchor silently discards it in favor of "make it touch
+the baseline no matter what."
+
+Fix: back to a single FIXED transform, same `scaleX`/`scaleY`/
+`translateY` for every element (`translateY = NATIVE_L3 * (1 -
+ELEMENT_SCALE)`, the pre-v1.0.2197 formula) — no per-element
+renormalization at all. Because it's one uniform affine map over the
+shared native coordinate space (the same space `GUIDE_LINES`, letters,
+and the capture tool's own ruling all already share), it preserves each
+element's *relative* position automatically: the wide-row family's
+already-higher native range stays proportionally higher after scaling
+(native 9.8–62.9 → row-local ≈44.7–74.1, straddling the row's own thin
+guide line at 64 from above), the narrow-row family's already-lower
+range stays proportionally lower (native 60.2–87.7 → row-local
+≈72.6–87.8, hugging the baseline) — computed directly from real
+`elements.json` data, not synthetic. Confirms the two families really
+do land in visibly different vertical bands within their own row slot,
+which is exactly what "как было в мастерской" means here.
+
+`wordEngine.test.js`'s regression test from the previous fix (asserting
+every element's max-Y lands on `NATIVE_L3`) encoded the now-wrong
+behavior and was replaced with two tests: one asserting a synthetic
+"wide-row" element's transformed max-Y stays well short of the baseline
+(`< NATIVE_L3 - 10`), one asserting a synthetic `_uzkaya` element's
+stays close to it (`> NATIVE_L3 - 5`) — both driven through the same
+unconditional `layoutElementLinesIntoRows` call, no per-family branch in
+the code itself.
+
+No deck-zip rebuild needed for this round: propis is the one deck-zip
+topic whose ZIP carries no JS at all (`topic.json` + `print/*.pdf` +
+`thumbnails/*.png` only — confirmed via `unzip -l`) — its renderer,
+including `wordEngine.js`, always ships from the main app bundle
+regardless of deck version (see this doc's own file-map note on this).
+Only the app's own `package.json` version bump was needed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

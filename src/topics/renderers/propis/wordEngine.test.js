@@ -867,12 +867,10 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     strokes: [{ d: "M 7.6 17.4 C 8.5 16.7 20.7 24.1 4 61.1" }],
   };
   const elementsByLabel = new Map([[WIDE_ELEMENT.id, WIDE_ELEMENT]]);
-  // Anchored on the element's OWN lowest captured point (not a fixed NATIVE_L3), so it lands
-  // on the baseline regardless of which capture band its raw data comes from -- see
-  // layoutElementLinesIntoRows' own comment on the two disjoint bands in elements.json.
-  const elementMaxY = Math.max(...samplePath(WIDE_ELEMENT.strokes[0].d).map((p) => p[1]));
+  // A single fixed transform, same for every element (see layoutElementLinesIntoRows' own
+  // comment): anchored on the shared NATIVE_L3 constant, not on this element's own data.
   const scaledD = transformPathD(WIDE_ELEMENT.strokes[0].d, {
-    scaleX: ELEMENT_SCALE, scaleY: ELEMENT_SCALE, translateY: NATIVE_L3 - elementMaxY * ELEMENT_SCALE,
+    scaleX: ELEMENT_SCALE, scaleY: ELEMENT_SCALE, translateY: NATIVE_L3 * (1 - ELEMENT_SCALE),
   });
 
   it("places a single element at the start of the row, scaled down to fit one ordinary row, marked with its scaled trajectory's start point", () => {
@@ -896,11 +894,11 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     expect(rowCount).toBe(3);
   });
 
-  it("sits on the row's baseline even when the element's own raw data never reaches NATIVE_L3 -- regression for the real 'wide-row' capture family (01, 02a, 03-06), whose data tops out around y=62, not 88", () => {
-    // Mirrors real elements.json data: this family was captured against the wide row's own
-    // upper half, never reaching the true baseline (NATIVE_L3=88) in its own raw coordinates
-    // -- a fixed-NATIVE_L3 anchor left it floating well above the row's baseline instead of
-    // sitting on it (reported 2026-09-18: "элемент стоит не на своём месте").
+  it("keeps a 'wide-row' element (captured against the ascender zone, native y ~10-62) sitting clearly above the baseline, not flush against it -- regression for forcing every element onto the baseline regardless of which ruling zone it was actually captured in (reported 2026-09-18, second round: \"ты сделал все элементы в узкой строке\")", () => {
+    // Mirrors real elements.json data for the plain (non-"_uzkaya") family: captured against
+    // the wide row's own ASCENDER zone (line 1 to line 3), never reaching the baseline
+    // (NATIVE_L3=88) -- and it shouldn't: that's its real привязка to the source ruling,
+    // distinct from the "_uzkaya" family below.
     const WIDE_ROW_FAMILY_ELEMENT = {
       id: "01_pryamaya_liniya", labelRu: "Прямая линия", viewBox: "0 0 40 150",
       strokes: [{ d: "M 5.1 9.9 34.1 9.8" }, { d: "M 4.8 61.6 C 5.4 61.8 25.6 62.1 35.0 62.1" }],
@@ -909,7 +907,24 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel);
     const [seg] = placed[0].segments;
     const maxY = Math.max(...seg.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1])));
-    expect(maxY).toBeCloseTo(NATIVE_L3, 3);
+    // The element's own bottom lands well short of the baseline (native 62 scales+anchors to
+    // ~73.7, not 88) -- distinctly higher than a "_uzkaya" element's bottom would (see next test).
+    expect(maxY).toBeLessThan(NATIVE_L3 - 10);
+  });
+
+  it("keeps a '_uzkaya' (narrow-row) element sitting close to the baseline -- distinct from the wide-row family above, same uniform transform, no per-element special-casing", () => {
+    // Mirrors real elements.json data for an "_uzkaya" element: captured against the row's
+    // NARROW/x-height zone (line 3 to line 5), already close to the baseline in native
+    // coordinates, unlike the wide-row family.
+    const NARROW_ROW_FAMILY_ELEMENT = {
+      id: "03_zaborchik_ploskie_uzkaya", labelRu: "Заборчик (узкая строка)", viewBox: "0 0 40 150",
+      strokes: [{ d: "M 4.9 60.3 34.5 61.0" }, { d: "M 5.1 87.0 34.8 87.5" }],
+    };
+    const byLabel = new Map([[NARROW_ROW_FAMILY_ELEMENT.id, NARROW_ROW_FAMILY_ELEMENT]]);
+    const { placed } = layoutElementLinesIntoRows(["03_zaborchik_ploskie_uzkaya"], byLabel);
+    const [seg] = placed[0].segments;
+    const maxY = Math.max(...seg.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1])));
+    expect(maxY).toBeGreaterThan(NATIVE_L3 - 5);
   });
 
   it("renders an empty row (not a crash) for an id with no matching captured element", () => {
