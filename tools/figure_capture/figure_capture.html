@@ -440,6 +440,13 @@
     return Object.is(rounded, -0) ? 0 : rounded;
   }
 
+  // Preserve intentional fractional geometry, but remove the few hundredths
+  // of a cell produced by pointer input near a grid node.
+  function normalizeGridNoise(value) {
+    const rounded = Math.round(value);
+    return Math.abs(value - rounded) <= .1 + Number.EPSILON * 16 ? rounded : tidy(value);
+  }
+
   function fmt(value) {
     return String(tidy(value)).replace(".", ",");
   }
@@ -514,7 +521,7 @@
 
   function snap(point) {
     const step = snapStep();
-    if (step <= 0) return { col: tidy(point.col), row: tidy(point.row) };
+    if (step <= 0) return { col: normalizeGridNoise(point.col), row: normalizeGridNoise(point.row) };
     return {
       col: tidy(Math.round(point.col / step) * step),
       row: tidy(Math.round(point.row / step) * step),
@@ -1703,11 +1710,14 @@
         const width = card.taskKind === "dictation" ? number(card.columns) : number(card.axisCol);
         const height = number(card.rows);
         if (!Number.isInteger(width) || width < 2 || !Number.isInteger(height) || height < 2) throw new Error("В JSON не заданы корректные размеры сетки.");
-        const paths = card.taskKind === "dictation"
+        const normalizePoint = (point) => ({ ...point, col: normalizeGridNoise(point.col), row: normalizeGridNoise(point.row) });
+        const paths = (card.taskKind === "dictation"
           ? [commandsToPath(card.start, card.commands)]
-          : clone(card.sourcePaths ?? []);
-        const dots = card.taskKind === "dictation" ? [] : clone(card.sourceDots ?? []);
-        const circles = card.taskKind === "dictation" ? [] : clone(card.sourceCircles ?? []);
+          : clone(card.sourcePaths ?? [])).map((path) => path.map(normalizePoint));
+        const dots = card.taskKind === "dictation" ? [] : clone(card.sourceDots ?? []).map(normalizePoint);
+        const circles = card.taskKind === "dictation"
+          ? []
+          : clone(card.sourceCircles ?? []).map((circle) => ({ ...circle, ...normalizePoint(circle) }));
         if (!Array.isArray(paths) || paths.some((path) => !Array.isArray(path) || path.length < 2)) throw new Error("В JSON есть некорректная траектория фигуры.");
         if (!Array.isArray(dots) || dots.some((point) => !Number.isFinite(point?.col) || !Number.isFinite(point?.row))) throw new Error("В JSON есть некорректная отдельная точка.");
         if (!Array.isArray(circles) || circles.some((circle) => !Number.isFinite(circle?.col) || !Number.isFinite(circle?.row) || !Number.isFinite(circle?.diameter) || circle.diameter <= 0)) throw new Error("В JSON есть некорректный круг.");

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { fitFigureToGrid } from "./figure-jsons.mjs";
+import { fitFigureToGrid, normalizeFigureGridNoise, validateFigureCard } from "./figure-jsons.mjs";
 
 test("fitFigureToGrid centres a mirror figure and keeps one-cell margins", () => {
   const fitted = fitFigureToGrid({
@@ -45,4 +45,18 @@ test("fitFigureToGrid preserves dictation commands while moving the start", () =
   assert.equal(fitted.rows, 4);
   assert.deepEqual(fitted.start, { col: 1, row: 3 });
   assert.deepEqual(fitted.commands, [{ direction: "right", cells: 3 }, { direction: "up", cells: 2 }]);
+});
+
+test("normalizeFigureGridNoise keeps real fractions but removes workshop pointer noise", () => {
+  const corrected = normalizeFigureGridNoise({
+    id: "symmetry_crown", label: "Корона", taskKind: "mirror", columns: 12, rows: 6, axisCol: 6,
+    sourcePaths: [[
+      { col: 0.04, row: 2.9 }, { col: 2.05, row: 1.06 }, { col: 3.5, row: 3.02 }, { col: 6.05, row: 0.98 },
+    ]],
+  });
+
+  assert.deepEqual(corrected.sourcePaths[0], [
+    { col: 0, row: 3 }, { col: 2, row: 1 }, { col: 3.5, row: 3 }, { col: 6, row: 1 },
+  ]);
+  assert.doesNotThrow(() => validateFigureCard(corrected));
 });

@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.11.9",
+    "version": "1.11.10",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -700,36 +700,42 @@
       "id": "symmetry_boat",
       "conceptId": "symmetry_boat",
       "label": "Кораблик",
-      "columns": 10,
-      "rows": 7,
-      "axisCol": 5,
+      "columns": 14,
+      "rows": 9,
+      "axisCol": 7,
       "sourcePaths": [
         [
           {
-            "col": 5,
-            "row": 0
+            "col": 7,
+            "row": 1
           },
           {
-            "col": 2,
-            "row": 3
-          },
-          {
-            "col": 5,
-            "row": 3
+            "col": 3,
+            "row": 4
           }
         ],
         [
           {
-            "col": 5,
-            "row": 3
+            "col": 7,
+            "row": 4
           },
           {
             "col": 1,
-            "row": 3
+            "row": 4
           },
           {
-            "col": 5,
-            "row": 7
+            "col": 3,
+            "row": 8
+          }
+        ],
+        [
+          {
+            "col": 7,
+            "row": 8
+          },
+          {
+            "col": 3,
+            "row": 8
           }
         ]
       ],
@@ -984,41 +990,15 @@
       "id": "symmetry_crown",
       "conceptId": "symmetry_crown",
       "label": "Зигзаг-корона",
-      "columns": 12,
-      "rows": 6,
-      "axisCol": 6,
+      "columns": 14,
+      "rows": 7,
+      "axisCol": 7,
       "sourcePaths": [
         [
           {
-            "col": 0,
-            "row": 6
+            "col": 1,
+            "row": 3
           },
-          {
-            "col": 2,
-            "row": 4
-          },
-          {
-            "col": 4,
-            "row": 6
-          },
-          {
-            "col": 6,
-            "row": 4
-          }
-        ]
-      ],
-      "taskKind": "mirror",
-      "difficulty": "reinforce"
-    },
-    {
-      "id": "symmetry_slingshot",
-      "conceptId": "symmetry_slingshot",
-      "label": "Рогатка",
-      "columns": 12,
-      "rows": 9,
-      "axisCol": 6,
-      "sourcePaths": [
-        [
           {
             "col": 3,
             "row": 1
@@ -1028,12 +1008,62 @@
             "row": 3
           },
           {
+            "col": 7,
+            "row": 1
+          }
+        ],
+        [
+          {
+            "col": 7,
+            "row": 6
+          },
+          {
+            "col": 1,
+            "row": 6
+          },
+          {
+            "col": 1,
+            "row": 3
+          }
+        ]
+      ],
+      "taskKind": "mirror",
+      "difficulty": "reinforce"
+    },
+    {
+      "id": "symmetry_slingshot",
+      "conceptId": "symmetry_slingshot",
+      "label": "Воронка",
+      "columns": 12,
+      "rows": 11,
+      "axisCol": 6,
+      "sourcePaths": [
+        [
+          {
+            "col": 1,
+            "row": 1
+          },
+          {
             "col": 5,
-            "row": 8
+            "row": 5
+          },
+          {
+            "col": 5,
+            "row": 9
           },
           {
             "col": 6,
-            "row": 9
+            "row": 10
+          }
+        ],
+        [
+          {
+            "col": 1,
+            "row": 1
+          },
+          {
+            "col": 6,
+            "row": 1
           }
         ]
       ],
@@ -2446,18 +2476,13 @@
       "primary": true,
       "label": "Молния",
       "taskKind": "dictation",
-      "columns": 11,
-      "rows": 10,
+      "columns": 7,
+      "rows": 9,
       "start": {
-        "col": 3,
+        "col": 6,
         "row": 1
       },
       "commands": [
-        {
-          "type": "move",
-          "direction": "right",
-          "cells": 4
-        },
         {
           "type": "move",
           "direction": "down_left",
@@ -2475,8 +2500,18 @@
         },
         {
           "type": "move",
-          "direction": "right",
-          "cells": 3
+          "direction": "up",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "down_right",
+          "cells": 1
+        },
+        {
+          "type": "move",
+          "direction": "left",
+          "cells": 1
         }
       ],
       "difficulty": "reinforce"

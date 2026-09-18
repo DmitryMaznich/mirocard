@@ -2,7 +2,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createSymmetryDrawDeckBuffer } from "./build.mjs";
 import { buildFiguresGallery } from "./build-figures-gallery.mjs";
-import { FIGURES_DIR, ROOT, TOPIC_PATH, clone, exportFigureJsons, fitFigureToGrid, mergeFigureGeometry, nextPatchVersion, readTopic, validateFigureCard } from "./figure-jsons.mjs";
+import { FIGURES_DIR, ROOT, TOPIC_PATH, clone, exportFigureJsons, fitFigureToGrid, mergeFigureGeometry, nextPatchVersion, normalizeFigureGridNoise, readTopic, validateFigureCard } from "./figure-jsons.mjs";
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
@@ -14,11 +14,16 @@ if (!files.length && !refreshRuntime) {
   console.error("Usage: node tools/symmetry_draw/apply-figure-jsons.mjs [--dry-run] [--refresh] [--add] <figure.json> [...]");
   process.exitCode = 1;
 } else {
-  const corrected = files.map((file) => {
+  const corrected = files.flatMap((file) => {
     const path = resolve(process.cwd(), file);
-    const card = JSON.parse(readFileSync(path, "utf8"));
-    validateFigureCard(card);
-    return { path, card };
+    const content = JSON.parse(readFileSync(path, "utf8"));
+    const cards = Array.isArray(content) ? content : [content];
+    if (!cards.length) throw new Error(`${path}: the exported figure set is empty`);
+    return cards.map((rawCard) => {
+      const card = normalizeFigureGridNoise(rawCard);
+      validateFigureCard(card);
+      return { path, card };
+    });
   });
   const ids = new Set();
   for (const { card } of corrected) {

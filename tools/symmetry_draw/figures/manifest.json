@@ -1,7 +1,7 @@
 {
   "schema": "mirocard-figure-manifest/v1",
   "topicId": "symmetry_draw",
-  "topicVersion": "1.11.9",
+  "topicVersion": "1.11.10",
   "figures": [
     {
       "id": "symmetry_house",
@@ -101,7 +101,7 @@
     },
     {
       "id": "symmetry_slingshot",
-      "label": "Рогатка",
+      "label": "Воронка",
       "taskKind": "mirror",
       "file": "symmetry_slingshot.json"
     },

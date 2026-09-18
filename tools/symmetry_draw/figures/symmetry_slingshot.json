@@ -1,27 +1,37 @@
 {
   "id": "symmetry_slingshot",
   "conceptId": "symmetry_slingshot",
-  "label": "Рогатка",
+  "label": "Воронка",
   "columns": 12,
-  "rows": 9,
+  "rows": 11,
   "axisCol": 6,
   "sourcePaths": [
     [
       {
-        "col": 3,
+        "col": 1,
         "row": 1
       },
       {
         "col": 5,
-        "row": 3
+        "row": 5
       },
       {
         "col": 5,
-        "row": 8
+        "row": 9
       },
       {
         "col": 6,
-        "row": 9
+        "row": 10
+      }
+    ],
+    [
+      {
+        "col": 1,
+        "row": 1
+      },
+      {
+        "col": 6,
+        "row": 1
       }
     ]
   ],

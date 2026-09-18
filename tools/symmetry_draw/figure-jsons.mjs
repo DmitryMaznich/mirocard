@@ -17,6 +17,28 @@ export function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+/**
+ * Pointer input in the workshop can leave a point a few hundredths of a cell
+ * away from a grid node (for example 6.05 instead of 6). Those values are
+ * neither intentional half-cells nor valid points beyond a panel edge. Keep
+ * genuine fractional geometry, but canonicalise this small pointer noise.
+ */
+export function normalizeFigureGridNoise(card, tolerance = 0.1) {
+  assert(Number.isFinite(tolerance) && tolerance >= 0, "Grid-noise tolerance must be non-negative");
+  const normalized = clone(card);
+  const snapCoordinate = (value) => {
+    const nearest = Math.round(value);
+    return Math.abs(value - nearest) <= tolerance + Number.EPSILON * 16 ? nearest : value;
+  };
+  const snapPoint = (point) => ({ ...point, col: snapCoordinate(point.col), row: snapCoordinate(point.row) });
+
+  if (normalized.start) normalized.start = snapPoint(normalized.start);
+  if (normalized.sourcePaths) normalized.sourcePaths = normalized.sourcePaths.map((path) => path.map(snapPoint));
+  if (normalized.sourceDots) normalized.sourceDots = normalized.sourceDots.map(snapPoint);
+  if (normalized.sourceCircles) normalized.sourceCircles = normalized.sourceCircles.map(snapPoint);
+  return normalized;
+}
+
 export function isFigureCard(card) {
   return Boolean(card && FIGURE_TASK_KINDS.has(card.taskKind));
 }
