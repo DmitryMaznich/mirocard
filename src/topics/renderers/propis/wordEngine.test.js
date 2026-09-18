@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { transformPathD, getPathEndpoints, samplePath, getMidpointTangent } from "./pathGeometry.js";
+import { transformPathD, getPathEndpoints, samplePath } from "./pathGeometry.js";
 import {
   classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory,
   layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows,
@@ -907,26 +907,6 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     expect(seg.startPoints).toHaveLength(2);
     expect(seg.startPoints[0]).toEqual(getPathEndpoints(seg.strokes[0].d).start);
     expect(seg.startPoints[1]).toEqual(getPathEndpoints(seg.strokes[1].d).start);
-  });
-
-  it("gives every stroke a direction arrow, offset to the side of the stroke's own midpoint (not sitting on top of the ink), matching getMidpointTangent applied to the already-anchored/scaled stroke", () => {
-    const ARROW_SIDE_OFFSET = 6;
-    const TWO_STROKE_ELEMENT = {
-      id: "01_pryamaya_liniya", labelRu: "Прямая линия", viewBox: "0 0 40 150",
-      strokes: [{ d: "M 5.1 9.9 34.1 9.8" }, { d: "M 4.8 61.6 C 5.4 61.8 25.6 62.1 35.0 62.1" }],
-    };
-    const byLabel = new Map([[TWO_STROKE_ELEMENT.id, TWO_STROKE_ELEMENT]]);
-    const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel);
-    const [seg] = placed[0].segments;
-    expect(seg.directionArrows).toHaveLength(2);
-    seg.directionArrows.forEach((arrow, i) => {
-      expect(arrow).not.toBeNull();
-      const expected = getMidpointTangent(seg.strokes[i].d);
-      expect(arrow.angleDeg).toBeCloseTo(expected.angleDeg, 6);
-      // Offset perpendicular to the travel direction, not equal to the raw midpoint.
-      const dist = Math.hypot(arrow.point[0] - expected.point[0], arrow.point[1] - expected.point[1]);
-      expect(dist).toBeCloseTo(ARROW_SIDE_OFFSET, 3);
-    });
   });
 
   it("anchors a '_uzkaya' element onto the row's own bold baseline instead", () => {

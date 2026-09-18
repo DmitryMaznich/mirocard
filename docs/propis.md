@@ -2479,6 +2479,20 @@ Playwright render confirming every arrow across the same 7 strokes
 exactly 6 units from its own stroke's real midpoint, visibly clear of
 the ink.
 
+**Removed entirely the same day (2026-09-18, "стрелочки, честно говоря,
+полная ерунда... это избыток визуальной информации").** After seeing
+the offset version live, the user reconsidered the whole feature, not
+just its positioning: the animation (tap-to-play) already shows
+direction, the start dot already marks where to begin — a third
+always-visible marker was one signal too many for what this screen
+needs. Reverted completely: `layoutElementLinesIntoRows` no longer
+builds `directionArrows` at all (just `startPoints`, same as before the
+arrows existed), `PrintPageView.jsx` dropped the arrow `<path>`/
+`ARROW_*` constants and their render block, and
+`pathGeometry.js`'s `getMidpointTangent` — unused everywhere once the
+arrows were gone — was deleted outright along with its own tests,
+rather than left as dead code on the theory it might be reused later.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

@@ -133,46 +133,6 @@ export function findClosestApproach(points, targetY, toleranceMargin = 1.5) {
   return { first: near[0], last: points[lastLocalMinIdx] };
 }
 
-// The point at the middle of a stroke BY ARC LENGTH (not by sample index — samplePath
-// only subdivides `C` segments, so a straight `M`-only polyline like
-// 01_pryamaya_liniya's "M 5.1 9.9 34.1 9.8" samples to just its 2 raw endpoints, and
-// indexing into that would land on an endpoint instead of a real midpoint) and the
-// tangent direction the pen is moving there — used for a small "which way does this go"
-// direction-arrow marker (propis "Элементы букв", PrintPageView.jsx). Placed at the
-// MIDPOINT rather than either endpoint so it never collides with a stroke's own start-dot
-// landmark (drawn at its `M` point). Returns null for a degenerate stroke with zero total
-// length (can't have a direction).
-export function getMidpointTangent(d, samplesPerSegment = 100) {
-  const points = samplePath(d, samplesPerSegment);
-  if (points.length < 2) return null;
-
-  const dist = (p, q) => Math.hypot(q[0] - p[0], q[1] - p[1]);
-  const segLens = [];
-  let total = 0;
-  for (let i = 1; i < points.length; i++) {
-    const len = dist(points[i - 1], points[i]);
-    segLens.push(len);
-    total += len;
-  }
-  if (total === 0) return null;
-
-  const half = total / 2;
-  let acc = 0;
-  for (let i = 0; i < segLens.length; i++) {
-    const segLen = segLens[i];
-    if (acc + segLen >= half || i === segLens.length - 1) {
-      const a = points[i];
-      const b = points[i + 1];
-      const t = segLen > 0 ? (half - acc) / segLen : 0;
-      const point = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-      const angleDeg = (Math.atan2(b[1] - a[1], b[0] - a[0]) * 180) / Math.PI;
-      return { point, angleDeg };
-    }
-    acc += segLen;
-  }
-  return null;
-}
-
 export function transformPathD(d, { scaleX = 1, scaleY = 1, translateX = 0, translateY = 0 } = {}) {
   const tokens = d.match(TOKEN_RE) || [];
   const tx = (x) => (x * scaleX + translateX).toFixed(3);
