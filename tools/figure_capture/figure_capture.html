@@ -1617,7 +1617,7 @@
   function addToSet() {
     const { problems } = validate();
     if (problems.length) {
-      setNotice("Сначала исправьте ошибки проверки — в набор попадают только корректные траектории.", "error");
+      setNotice(`Нельзя добавить в набор: ${problems.join(" ")}`, "error");
       return;
     }
     const card = buildCard();
@@ -1760,12 +1760,18 @@
 
   async function loadFigureFromLink() {
     const params = new URLSearchParams(location.search);
-    const serializedCard = params.get("card");
+    const windowNamePrefix = "mirocard-grid-figure:";
+    const cardFromWindowName = window.name.startsWith(windowNamePrefix)
+      ? window.name.slice(windowNamePrefix.length)
+      : null;
+    const serializedCard = params.get("card") || cardFromWindowName;
     if (serializedCard) {
       try {
         const card = JSON.parse(serializedCard);
+        if (cardFromWindowName) window.name = "";
         openFigureCard(card, `${card.label || card.id || "Фигура"} из галереи`);
       } catch (error) {
+        if (cardFromWindowName) window.name = "";
         setNotice(`Не удалось открыть фигуру из галереи: ${error.message}`, "error");
       }
       return;

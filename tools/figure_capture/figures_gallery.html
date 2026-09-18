@@ -157,6 +157,12 @@
       // block fetch() between local file:// URLs, which made this action fail
       // when the tools were opened directly from the repository.
       edit.href = `figure_capture.html?card=${encodeURIComponent(JSON.stringify(figure.editorCard))}`;
+      edit.addEventListener("click", () => {
+        // Some embedded browsers reuse an already open workshop tab and may
+        // discard a long local-file query. window.name survives this same-tab
+        // navigation and is cleared by the workshop immediately after use.
+        window.name = `mirocard-grid-figure:${JSON.stringify(figure.editorCard)}`;
+      });
       edit.textContent = "В мастерскую";
       edit.title = "Открыть эту фигуру для редактирования";
       const actions = document.createElement("span");
