@@ -771,7 +771,15 @@
   //      + red height/width guides (mid-band lines, vertical pitch lines) ----
   (function drawRuling() {
     const ANGLE_DEG = 65; // matches make_lined_paper_landscape_standard.py (65° from horizontal / 25° from vertical)
-    const SPACING = 8;
+    // 9 native units (1.5mm), not the earlier 8 (1.333mm) -- 2026-09-18, confirmed with the
+    // user: propisRuling.js's ELEMENT_DIAGONAL_MM (the "Элементы букв" print page's own dense
+    // diagonal backing) is fixed at 3mm, a real standard, not something to change here -- so
+    // this tool's own grid was retuned to the nearest clean divisor of it instead (9*2=18
+    // native units = 3mm exactly), so an artist capturing a stroke here sees a diagonal grid
+    // that's an exact 2:1 multiple of what the printed element page will show, not an
+    // unrelated ratio (8 gave 18/8=2.25, not a whole multiple -- the two grids' lines would
+    // drift out of phase with each other rather than periodically coinciding).
+    const SPACING = 9;
     // Set by eye against how a connector stroke actually looks, not by the secant angle
     // between a captured connector's raw start/end points — that computation (~22-33°
     // across the two captured connectors) came out much shallower than the stroke visually

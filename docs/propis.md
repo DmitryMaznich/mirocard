@@ -2758,6 +2758,37 @@ to floating-point precision), confirming every start point sits exactly on a gri
 than merely near one. 122/122 propis tests pass, `npm run build` clean. No `elements.json`
 change, no deck-zip rebuild needed.
 
+**Мастерская траекторий's own diagonal grid retuned to a clean multiple of the print page's,
+same day.** The user's follow-up question: does the capture tool's own diagonal spacing
+(`tools/letter_capture/handwriting_capture.html`'s `drawRuling()`, used to trace element
+strokes on a phone under a straightedge) line up with the print page's dense element grid,
+beyond just sharing the same 65° angle? It didn't — capture tool `SPACING = 8` native units
+(1.333mm) vs. the print page's `ELEMENT_DIAGONAL_MM = 3mm` (18 native units), a ratio of
+18/8 = 2.25, not a whole multiple. The two grids' lines would only ever periodically coincide
+at their (8×9 = 18×4 =) 72-unit LCM, not on every interval — an artist aiming a captured
+stroke at the capture tool's own diagonal reference wouldn't see that same alignment hold once
+the stroke renders on the print page's differently-paced grid.
+
+The 3mm print spacing is a fixed, previously-confirmed norm (not something to change here —
+see the round above), so the fix goes the other way: `SPACING` in the capture tool changed
+from 8 to **9** native units (1.5mm) — the closest clean divisor of 18 (2×9=18), i.e. exactly
+2 capture-tool intervals per 1 print-page interval, with the smallest possible change from the
+existing value. `SPACING` is shared between the tool's thin (65°) AND bold (50°, connector)
+diagonal grids (both anchor off the same x0 step, by original design — see drawRuling's own
+comment), and the tool itself is shared between letter and element capture, so this also
+subtly retunes the reference grid an artist sees while capturing ordinary letters, not just
+elements — confirmed acceptable with the user before changing it.
+
+`tools/letter_capture/handwriting_capture.html` is the SOURCE; `public/letter_capture.html`
+is a gitignored, build-generated copy (`scripts/sync-capture-tool.mjs`, runs as part of
+`npm run build`'s `prebuild` step) — only the source file needed editing/committing.
+
+Verified: ran the sync script directly and confirmed the copy picked up `SPACING = 9`, then a
+throwaway Playwright load of the built `public/letter_capture.html` confirming the ruling
+still renders with no console errors (50 `.rule-slant` lines drawn, page loads cleanly).
+122/122 propis tests pass, `npm run build` clean (no test file covers this standalone capture
+tool directly — same as the rest of this session's PrintPageView.jsx work).
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
