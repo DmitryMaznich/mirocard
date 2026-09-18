@@ -2304,6 +2304,58 @@ gap and no wasted space) and the full 4-page-cycle print-portal view
 renders identically. No deck-zip rebuild needed (same reasoning as
 every prior round this session — propis's ZIP carries no JS).
 
+**Sixth round, same day: the per-row ruling itself was the wrong idea —
+reuse the ordinary text grid, unmodified (2026-09-18, "ты не догоняешь
+что узкие строки это не пустые промежутки, это именно узкие строки
+разлиновки для прописей! эта разлиновка должна оставаться в любом
+случае есть на ней символ или нет").** The fifth round's two-row-type
+design (`WIDE_ROW_HEIGHT`/`NARROW_ROW_HEIGHT`, `paginateElementRows`)
+drew ruling ONLY for the rows actually present on the page, sized to
+exactly that row's own content — which is precisely what the user was
+objecting to, even though it looked "fixed": a real ruled notebook page
+prints its lines (both wide AND narrow bands) as a permanent feature of
+the page, regardless of what's written where — the ruling can't
+legitimately depend on content at all, any more than graph paper's grid
+disappears where nothing's drawn. Every element-row ruling design tried
+this session (the combined 4-line block, the two variable-height row
+types) kept reintroducing some version of "ruling exists only where
+there's something to rule," just shaped differently. The user pointed
+directly at the fix: `layoutTextIntoRows`/`PrintPageView`'s existing
+ordinary-row rendering already does this correctly (fixed
+`PRINT_ROWS_PER_PAGE` rows, `TEXT_ROW_PITCH` apart, always fully ruled)
+— "мы должны просто элементы строить на сетке по такому же принципу."
+
+Fix: element mode now reuses that grid completely unmodified — no
+`useElements` branch anywhere in `PrintPageView.jsx`'s ruling,
+pagination, or hit-rect code at all (removed `paginateElementRows`,
+`ELEMENT_PAGE_TOP_MARGIN`/`ELEMENT_PAGE_CONTENT_HEIGHT`,
+`WIDE_ROW_HEIGHT`/`NARROW_ROW_HEIGHT`, the whole per-row-ruling
+machinery from the fifth round). `layoutElementLinesIntoRows` goes back
+to `rowIndex = i` (dense, one element per ordinary row, same as
+`layoutTextIntoRows`) and keeps the element's own real captured scale
+(no shrinking) but now anchors it via a plain translate onto whichever
+of that row's own TWO ALREADY-EXISTING guide lines matches the
+element's real family: the wide family (ascender-zone capture) onto the
+row's thin line (`NATIVE_L3 - TEXT_ROW_THIN_OFFSET` = 64, the same line
+a tall letter's own ascender reaches toward), the narrow family
+(x-height-zone capture, `_uzkaya` and `02b_naklonnaya_korotkaya`) onto
+the row's bold baseline (`NATIVE_L3` = 88, where a letter's own body
+already sits) — anchored on the element's OWN lowest captured point
+(`samplePath`, not raw M/C endpoints), not a fixed per-family constant,
+so real per-card capture variance doesn't leave a visible gap.
+
+Verified via `wordEngine.test.js` (rewritten around the two target
+lines, an anchor-precision check, the `02b` regression re-expressed
+against the new anchor) and a throwaway `dev-elements.jsx` render
+(Playwright, the same 6 real elements) confirming via real DOM
+inspection that the ruling is now IDENTICAL to text mode — all 17
+`PRINT_ROWS_PER_PAGE` rows drawn at their fixed `TEXT_ROW_PITCH`-apart
+positions (48/72, 120/144, 192/216, ... 1200/1224) regardless of how
+many rows actually carry content — and each element's own lowest point
+lands exactly on its target line (64 for wide, 88 for narrow,
+confirmed for all 6 elements including `02b`'s 63.8 — real per-card
+variance, well within the anchor's own tolerance).
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

@@ -143,18 +143,6 @@ export const PRINT_FIRST_BASELINE_MM = 12;
 // count exactly (still 17 with the corrected first-baseline offset above).
 export const PRINT_ROWS_PER_PAGE = 17;
 
-// "Элементы букв" rows (PrintPageView.jsx/wordEngine.js's layoutElementLinesIntoRows) each
-// get their OWN row height (WIDE_ROW_HEIGHT or NARROW_ROW_HEIGHT, wordEngine.js) instead of
-// a fixed pitch -- rows stack directly against each other ("вплотную"), so pagination packs
-// by real cumulative height (paginateElementRows) rather than a rows-per-page count. Reuses
-// the SAME top-margin constant text rows use (PRINT_FIRST_BASELINE_MM) for both the top and
-// bottom margin, since there's no other established margin for this mode and no real
-// print-PDF ground truth to match yet (element mode's PDF export, CLAUDE.md's "mode 2",
-// isn't built).
-export const ELEMENT_PAGE_TOP_MARGIN = mmToNativeUnits(PRINT_FIRST_BASELINE_MM);
-export const ELEMENT_PAGE_CONTENT_HEIGHT =
-  mmToNativeUnits(PRINT_PAGE_H_MM) - 2 * ELEMENT_PAGE_TOP_MARGIN;
-
 export const INK_COLOR = "#1d4ed8";
 export const NIB_COLOR = "#fbbf24";
 // Quartered (not just halved) for the same reason the ruling stroke-widths are:

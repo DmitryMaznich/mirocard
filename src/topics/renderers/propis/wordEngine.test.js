@@ -2,10 +2,9 @@ import { describe, it, expect } from "vitest";
 import { transformPathD, getPathEndpoints, samplePath } from "./pathGeometry.js";
 import {
   classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory,
-  layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows, paginateElementRows,
-  WIDE_ROW_HEIGHT, NARROW_ROW_HEIGHT,
+  layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows,
 } from "./wordEngine.js";
-import { GUIDE_LINES, NATIVE_L1, NATIVE_L2, NATIVE_L3 } from "./propisRuling.js";
+import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
 
 const LETTER_A = {
   id: "а",
@@ -866,6 +865,9 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
 });
 
 describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" option)", () => {
+  const WIDE_TARGET_LINE = NATIVE_L3 - 24; // TEXT_ROW_THIN_OFFSET
+  const NARROW_TARGET_LINE = NATIVE_L3;
+
   const WIDE_ELEMENT = {
     id: "05_kryuchok_vlevo", labelRu: "Крючок влево", viewBox: "0 0 28 150",
     strokes: [{ d: "M 7.6 17.4 C 8.5 16.7 20.7 24.1 4 61.1" }],
@@ -876,29 +878,32 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
   };
   const elementsByLabel = new Map([[WIDE_ELEMENT.id, WIDE_ELEMENT], [NARROW_ELEMENT.id, NARROW_ELEMENT]]);
 
-  it("places a single wide-family element at its real captured scale, translated onto a 0-based row-local origin (NATIVE_L1) -- no shrinking", () => {
+  it("places a single wide-family element on the ordinary text-row grid (rowIndex=i), real captured scale, anchored onto the row's own thin line", () => {
     const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel);
     expect(placed).toHaveLength(1);
+    expect(placed[0].rowIndex).toBe(0);
     expect(placed[0].segments).toHaveLength(1);
-    expect(placed[0].rowHeightUnits).toBe(WIDE_ROW_HEIGHT);
     const [seg] = placed[0].segments;
-    const expectedD = transformPathD(WIDE_ELEMENT.strokes[0].d, { translateY: -NATIVE_L1 });
+    const elementMaxY = Math.max(...samplePath(WIDE_ELEMENT.strokes[0].d).map((p) => p[1]));
+    const expectedD = transformPathD(WIDE_ELEMENT.strokes[0].d, { translateY: WIDE_TARGET_LINE - elementMaxY });
     expect(seg.type).toBe("element");
     expect(seg.xOffset).toBe(0);
     expect(seg.strokes).toEqual([{ d: expectedD }]);
     expect(seg.width).toBe(28);
     expect(seg.startPoint).toEqual(getPathEndpoints(expectedD).start);
+    // Anchored: the element's own lowest point lands exactly on the row's thin line.
+    const maxY = Math.max(...samplePath(expectedD).map((p) => p[1]));
+    expect(maxY).toBeCloseTo(WIDE_TARGET_LINE, 3);
   });
 
-  it("places a '_uzkaya' element translated onto a 0-based row-local origin (NATIVE_L2) instead, with the narrow row's own height", () => {
+  it("anchors a '_uzkaya' element onto the row's own bold baseline instead", () => {
     const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo_uzkaya"], elementsByLabel);
-    expect(placed[0].rowHeightUnits).toBe(NARROW_ROW_HEIGHT);
     const [seg] = placed[0].segments;
-    const expectedD = transformPathD(NARROW_ELEMENT.strokes[0].d, { translateY: -NATIVE_L2 });
-    expect(seg.strokes).toEqual([{ d: expectedD }]);
+    const maxY = Math.max(...samplePath(seg.strokes[0].d).map((p) => p[1]));
+    expect(maxY).toBeCloseTo(NARROW_TARGET_LINE, 3);
   });
 
-  it("assigns one row per element (rowIndex 0, 1, 2, ...) -- paginateElementRows packs them by real height, not a fixed rows-per-page count", () => {
+  it("assigns one ordinary row per element (rowIndex 0, 1, 2, ...) -- the same dense grid layoutTextIntoRows uses, no bespoke element pagination", () => {
     const { placed, rowCount } = layoutElementLinesIntoRows(
       ["05_kryuchok_vlevo", "05_kryuchok_vlevo", "05_kryuchok_vlevo"],
       elementsByLabel
@@ -907,7 +912,7 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     expect(rowCount).toBe(3);
   });
 
-  it("keeps a wide-family element's own bottom near WIDE_ROW_HEIGHT and a narrow-family element's own bottom near NARROW_ROW_HEIGHT -- real elements.json data, each in its own row-local scale, no shared coordinate space between them", () => {
+  it("keeps a wide-family element anchored on the thin line and a narrow-family element anchored on the bold line -- real elements.json data, both on the SAME row grid", () => {
     const WIDE_ROW_FAMILY_ELEMENT = {
       id: "01_pryamaya_liniya", labelRu: "Прямая линия", viewBox: "0 0 40 150",
       strokes: [{ d: "M 5.1 9.9 34.1 9.8" }, { d: "M 4.8 61.6 C 5.4 61.8 25.6 62.1 35.0 62.1" }],
@@ -925,56 +930,23 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
       byLabel
     );
     const maxYOf = (p) => Math.max(...p.segments[0].strokes.flatMap((s) => samplePath(s.d).map((pt) => pt[1])));
-    expect(maxYOf(placed[0])).toBeGreaterThan(WIDE_ROW_HEIGHT - 2);
-    expect(maxYOf(placed[0])).toBeLessThan(WIDE_ROW_HEIGHT + 2);
-    expect(maxYOf(placed[1])).toBeGreaterThan(NARROW_ROW_HEIGHT - 2);
-    expect(maxYOf(placed[1])).toBeLessThan(NARROW_ROW_HEIGHT + 2);
+    expect(maxYOf(placed[0])).toBeCloseTo(WIDE_TARGET_LINE, 1);
+    expect(maxYOf(placed[1])).toBeCloseTo(NARROW_TARGET_LINE, 1);
   });
 
-  it("classifies 02b_naklonnaya_korotkaya as a narrow row from its own data even though its id has no '_uzkaya' suffix -- regression for the id-based classifier that gave it WIDE_ROW_HEIGHT by mistake (reported 2026-09-18, fifth round)", () => {
+  it("classifies 02b_naklonnaya_korotkaya as narrow from its own data even though its id has no '_uzkaya' suffix -- regression for an id-based classifier that got it wrong", () => {
     const KOROTKAYA_ELEMENT = {
       id: "02b_naklonnaya_korotkaya", labelRu: "Наклонная короткая", viewBox: "0 0 27 150",
       strokes: [{ d: "M 14.780 63.120 4.000 86.190" }],
     };
     const byLabel = new Map([[KOROTKAYA_ELEMENT.id, KOROTKAYA_ELEMENT]]);
     const { placed } = layoutElementLinesIntoRows(["02b_naklonnaya_korotkaya"], byLabel);
-    expect(placed[0].rowHeightUnits).toBe(NARROW_ROW_HEIGHT);
+    const maxY = Math.max(...samplePath(placed[0].segments[0].strokes[0].d).map((p) => p[1]));
+    expect(maxY).toBeCloseTo(NARROW_TARGET_LINE, 1);
   });
 
-  it("renders an empty row (not a crash) for an id with no matching captured element, still carrying a real rowHeightUnits", () => {
+  it("renders an empty row (not a crash) for an id with no matching captured element", () => {
     const { placed } = layoutElementLinesIntoRows(["99_not_captured_yet"], elementsByLabel);
-    expect(placed).toEqual([{ word: "99_not_captured_yet", rowIndex: 0, x: 0, segments: [], rowHeightUnits: WIDE_ROW_HEIGHT }]);
-  });
-
-  it("classifies a '_uzkaya'-suffixed unknown id as a narrow row even with no captured data", () => {
-    const { placed } = layoutElementLinesIntoRows(["99_unknown_uzkaya"], elementsByLabel);
-    expect(placed[0].rowHeightUnits).toBe(NARROW_ROW_HEIGHT);
-  });
-});
-
-describe("paginateElementRows", () => {
-  const wideRow = (rowIndex) => ({ word: `w${rowIndex}`, rowIndex, x: 0, segments: [], rowHeightUnits: WIDE_ROW_HEIGHT });
-  const narrowRow = (rowIndex) => ({ word: `n${rowIndex}`, rowIndex, x: 0, segments: [], rowHeightUnits: NARROW_ROW_HEIGHT });
-
-  it("stacks rows back-to-back with zero gap -- each row's own rowOffsetUnits starts exactly where the previous one's ends", () => {
-    const layout = { placed: [wideRow(0), narrowRow(1), wideRow(2)] };
-    const pages = paginateElementRows(layout, 1000);
-    expect(pages[0].map((p) => p.rowOffsetUnits)).toEqual([0, WIDE_ROW_HEIGHT, WIDE_ROW_HEIGHT + NARROW_ROW_HEIGHT]);
-  });
-
-  it("starts a new page once the next row would overflow the page's content height, never splitting a row across pages", () => {
-    // Page fits exactly 2 wide rows (104) but not a 3rd (156 > 120).
-    const layout = { placed: [wideRow(0), wideRow(1), wideRow(2)] };
-    const pages = paginateElementRows(layout, 120);
-    expect(pages[0]).toHaveLength(2);
-    expect(pages[1]).toHaveLength(1);
-    expect(pages[1][0].rowOffsetUnits).toBe(0);
-  });
-
-  it("always returns an even page count, minimum 2, same physical-sheet convention as paginateRows", () => {
-    const layout = { placed: [wideRow(0)] };
-    const pages = paginateElementRows(layout, 1000);
-    expect(pages.length).toBe(2);
-    expect(pages[1]).toEqual([]);
+    expect(placed).toEqual([{ word: "99_not_captured_yet", rowIndex: 0, x: 0, segments: [] }]);
   });
 });
