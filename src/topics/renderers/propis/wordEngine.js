@@ -1,5 +1,5 @@
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
-import { GUIDE_LINES, NATIVE_L2, NATIVE_L3 } from "./propisRuling.js";
+import { GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET } from "./propisRuling.js";
 
 // Points within this margin of a letter's closest approach to the baseline are treated as
 // part of its baseline-contact zone — needed because most letters never sample to a
@@ -749,9 +749,11 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
 // ruled notebook), not a per-element slot that appears/disappears/resizes with content. The
 // simplest way to guarantee that is to not give element rows any ruling of their own at
 // all -- literally reuse the text-row grid (see PrintPageView.jsx), and only decide where
-// EACH element's own ink lands within its row: anchored (translate only, no scale -- real
-// captured size) onto whichever of that row's own two existing guide lines matches the
-// element's real family -- the wide family (ascender-zone capture, 01/02a/03-06) onto the
+// EACH element's own ink lands within its row: anchored, at its real captured size
+// whenever that already fits the row's own headroom (see WIDE_HEADROOM/NARROW_HEADROOM
+// below -- shrunk only when it doesn't), onto whichever of that row's own two existing
+// guide lines matches the element's real family -- the wide family (ascender-zone capture,
+// 01/02a/03-06) onto the
 // row's thin line (NATIVE_L3 - TEXT_ROW_THIN_OFFSET, the same line a tall letter's ascender
 // reaches toward), the narrow family (x-height-zone capture, "_uzkaya" and
 // 02b_naklonnaya_korotkaya) onto the row's own bold baseline (NATIVE_L3) -- exactly where a
@@ -759,8 +761,24 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
 // (samplePath, not just raw M/C endpoints -- a bulging curve's real max isn't always at an
 // endpoint), not a fixed per-family constant, so real per-card capture variance (60 vs 63,
 // 86 vs 88) doesn't leave a visible gap from its target line.
-const WIDE_TARGET_LINE = NATIVE_L3 - 24; // TEXT_ROW_THIN_OFFSET, propisRuling.js
+const WIDE_TARGET_LINE = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
 const NARROW_TARGET_LINE = NATIVE_L3;
+
+// How much vertical room a row actually offers ABOVE each target line before running into
+// the neighboring content: a wide element's own top has only until the PREVIOUS row's own
+// baseline (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET = 48 units) before it starts overlapping
+// that row; a narrow element's own top has only until THIS row's own thin line
+// (TEXT_ROW_THIN_OFFSET = 24 units) before it starts overlapping the wide zone directly
+// above it in the same row. Real captured elements often run slightly over both budgets
+// (wide family typically ~49-53 native units tall, narrow family ~23-27 -- see
+// elements.json) -- confirmed 2026-09-18 (seventh round): anchoring only the BOTTOM onto
+// the target line (as the sixth round's fix did) left the TOP of a too-tall element
+// spilling up past its own row's real headroom, into whatever the previous row/zone was
+// using. Scaling down ONLY the elements that actually exceed their budget (never scaling an
+// already-fitting one UP) keeps every element at its full real size whenever that size
+// already fits, and shrinks just enough the few that don't.
+const WIDE_HEADROOM = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET; // 48
+const NARROW_HEADROOM = TEXT_ROW_THIN_OFFSET; // 24
 
 // Classified from the element's OWN captured data, not its id -- "_uzkaya" names most of
 // the narrow family but not all of it: 02b_naklonnaya_korotkaya has no "_uzkaya" suffix at
@@ -774,8 +792,9 @@ function isNarrowElement(element) {
 }
 
 // read_lines' "Элементы букв" option: one element per row on the SAME dense grid
-// layoutTextIntoRows uses (rowIndex=i), at its real captured scale (no shrinking -- same
-// untouched-`d` treatment buildWordTrajectory gives a letter). PrintPageView.jsx's ordinary
+// layoutTextIntoRows uses (rowIndex=i), at its real captured scale unless that scale would
+// overrun the row's own real headroom (WIDE_HEADROOM/NARROW_HEADROOM above), in which case
+// it's shrunk just enough to fit. PrintPageView.jsx's ordinary
 // paginateRows/PRINT_ROWS_PER_PAGE/ruling apply unchanged, no element-specific case at all.
 export function layoutElementLinesIntoRows(lines, elementsByLabel) {
   const placed = lines.map((elementId, i) => {
@@ -786,16 +805,24 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel) {
     }
     const narrow = isNarrowElement(element);
     const targetLine = narrow ? NARROW_TARGET_LINE : WIDE_TARGET_LINE;
-    const elementMaxY = Math.max(
-      ...element.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1]))
-    );
-    const translateY = targetLine - elementMaxY;
+    const headroom = narrow ? NARROW_HEADROOM : WIDE_HEADROOM;
+    const ys = element.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1]));
+    const elementMinY = Math.min(...ys);
+    const elementMaxY = Math.max(...ys);
+    // Shrink only if the element's own real height would overrun its row's actual
+    // headroom -- never scale an already-fitting element up.
+    const scale = Math.min(1, headroom / (elementMaxY - elementMinY));
+    const translateY = targetLine - elementMaxY * scale;
     const strokes = element.strokes.map((s) => ({
-      d: transformPathD(s.d, { translateY }),
+      d: transformPathD(s.d, { scaleX: scale, scaleY: scale, translateY }),
     }));
-    const startPoint = getPathEndpoints(strokes[0].d).start;
-    const vbW = Number(element.viewBox.split(" ")[2]);
-    const segment = { type: "element", xOffset: 0, strokes, width: vbW, startPoint };
+    // One start dot per stroke, not just the first -- a multi-stroke element (e.g.
+    // 01_pryamaya_liniya's two separate lines, 03_zaborchik_ploskie's four) is drawn as
+    // several disconnected pen-lifts, each with its own "put the pen here" landmark, same
+    // as a real prописи workbook marks every separate stroke's own start.
+    const startPoints = strokes.map((s) => getPathEndpoints(s.d).start);
+    const vbW = Number(element.viewBox.split(" ")[2]) * scale;
+    const segment = { type: "element", xOffset: 0, strokes, width: vbW, startPoints };
     return { word: elementId, rowIndex, x: 0, segments: [segment] };
   });
   const rowCount = Math.max(lines.length, 1);

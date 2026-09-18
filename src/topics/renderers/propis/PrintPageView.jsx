@@ -30,10 +30,11 @@ const GUIDE_THIN_W = 0.4;
 const GUIDE_BOLD_W = 0.9;
 const MARGIN_LINE_W = 1.4;
 const FALLBACK_FONT_SIZE = 34;
-// ~1mm radius (native units are 6/mm, propisRuling.js's UNIT_H=150 per LINE_MM=25) -- visible
-// as a clear "start here" landmark next to a 2-unit-wide stroke without dominating a small
-// element like 02b_naklonnaya_korotkaya.
-const ELEMENT_START_DOT_R = 6;
+// ~0.5mm radius (native units are 6/mm, propisRuling.js's UNIT_H=150 per LINE_MM=25) --
+// halved from the original 6 (2026-09-18, "уменьши точки в начале штриха в два раза"): a
+// dot per stroke (see startPoints below) reads as clutter on a multi-stroke element at the
+// old size, small enough now to stay a clear landmark without dominating.
+const ELEMENT_START_DOT_R = 3;
 
 // Which physical A4-sheet half this page is (even index = left slot, odd = right slot) and
 // where its own margin line / content start sit as a result — mirrors
@@ -145,8 +146,11 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                 // "Элементы букв" -- same tap-to-animate as a cursive letter (the whole point of
                 // this mode is showing the drawing motion), AnimatedStrokes just needs {strokes},
                 // which a raw element object already is, no trajectory-wrapping needed. The start
-                // dot stays visible even while animating (it's a print-page landmark for where to
-                // put the pen, not part of the animation) -- drawn last so it sits on top.
+                // dots stay visible even while animating (they're print-page landmarks for where
+                // to put the pen, not part of the animation) -- drawn last so they sit on top. One
+                // per STROKE, not just the first: a multi-stroke element (01_pryamaya_liniya's two
+                // separate lines, 03_zaborchik_ploskie's four) is several disconnected pen-lifts,
+                // each needing its own "start here" mark.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive ? (
                     <AnimatedStrokes trajectory={{ strokes: seg.strokes }} tipSize="large" />
@@ -155,9 +159,9 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                       <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                     ))
                   )}
-                  {seg.startPoint && (
-                    <circle cx={seg.startPoint[0]} cy={seg.startPoint[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} />
-                  )}
+                  {seg.startPoints?.map((pt, pi) => (
+                    <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} />
+                  ))}
                 </g>
               ) : (
                 <text key={si} x={seg.xOffset} y={NATIVE_L3} fontSize={FALLBACK_FONT_SIZE} fontFamily="system-ui, sans-serif" fill={INK_COLOR}>
