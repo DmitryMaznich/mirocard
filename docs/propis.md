@@ -2042,6 +2042,63 @@ pair at every single row (`y1` 48/72, 120/144, 192/216, ... all exactly
 consecutive `rowIndex` 0,1,2,3,4 (`rowOriginY` -16,56,128,200,272, each
 exactly `TEXT_ROW_PITCH` apart) — dense, no gaps, no doubling.
 
+**That redesign's own bug: the scale anchor assumed every element's raw
+data already touched the baseline, which it doesn't (2026-09-18, same
+day, next report: "элемент стоит не на своём месте").** The dense
+layout above scaled around a FIXED `NATIVE_L3` (baseline) anchor,
+carrying over the same unstated assumption letters get for free (a
+letter's own captured stroke is drawn ending at/near the baseline by
+construction). Checking `elements.json` directly (`node -e` dumping
+each element's own native y-range) showed that assumption is false for
+elements: the captures split into two disjoint bands that never
+actually reach `NATIVE_L3`=88 —
+```
+01_pryamaya_liniya        y 9.8  - 62.1
+02a_naklonnaya_dlinnaya    y 10.6 - 61.0
+03_zaborchik_ploskie       y 10.3 - 62.9   } "wide-row" family — tops out at NATIVE_L2=62
+04_zaborchik_ostrye        y 11.2 - 61.2   } (the wide row's own x-height-top guide),
+05_kryuchok_vlevo          y 11.1 - 61.1   } never approaches the baseline at all
+06_kryuchok_vpravo         y 11.1 - 60.2
+02b_naklonnaya_korotkaya      y 63.1 - 86.2
+03_zaborchik_ploskie_uzkaya    y 60.3 - 87.5  } "_uzkaya" (narrow-row) family — captured
+04_zaborchik_ostrye_uzkaya     y 62.8 - 87.1  } lower, close to but still short of 88
+05_kryuchok_vlevo_uzkaya       y 63.4 - 87.7
+06_kryuchok_vpravo_uzkaya      y 62.6 - 86.6
+```
+This is the same "широкая/узкая строка" split from earlier in this doc
+(elements drilled in the physical book's wide vs. narrow ruled row are
+genuinely different captures, not a scale difference) — but it also
+means the two families were never captured against a shared baseline
+convention the way letters are. Anchoring the scale on `NATIVE_L3`
+scaled each element AROUND a point its own data never reaches, leaving
+it floating in the upper portion of its row instead of sitting on the
+baseline the way a real drilled element (pen starts high, comes down to
+touch the writing line) or a letter does.
+
+Fix: anchor on each element's OWN lowest captured point instead of a
+shared constant. `layoutElementLinesIntoRows` now runs every stroke
+through `samplePath` (flattening the Béziers, not just their M/C
+endpoints — a curve's deepest point isn't always at an endpoint) to
+find `elementMaxY`, then solves for the `translateY` that puts THAT
+point exactly on `NATIVE_L3` after scaling: `translateY = NATIVE_L3 -
+elementMaxY * ELEMENT_SCALE` (replacing the old fixed `NATIVE_L3 * (1 -
+ELEMENT_SCALE)`). Works identically for either capture band — the wide
+family's own bottom (~62) and the narrow family's own bottom (~87) each
+land on 88 post-transform, without needing to know which band a given
+element came from.
+
+Verified via real rendered DOM (not eyeballing, same discipline as
+every fix in this cluster) across a 5-element mix of both families:
+every row's own content bounding box bottom (`getBBox()`, in the row's
+own local coordinate space) came back exactly `88` — i.e. `NATIVE_L3`
+— and its absolute position (`rowOriginY + 88`) landed exactly on that
+row's own bold baseline line (72, 144, 216, 288, 360 — matching the
+ruling's own bold `y1`s one-for-one). A new regression test
+(`wordEngine.test.js`) locks this in with a synthetic element shaped
+like the real "wide-row" family (data topping out at y≈62, matching
+`01_pryamaya_liniya`'s own capture) and asserts its scaled max-Y lands
+on `NATIVE_L3`.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
