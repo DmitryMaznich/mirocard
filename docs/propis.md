@@ -2650,6 +2650,38 @@ copy's own first-stroke-start Y across both `04_zaborchik_ostrye` (29 copies) an
 screenshot confirms both rows now hold level right to the row's own edge. No `elements.json`
 change, so no deck-zip rebuild needed for this fix either.
 
+**Заборчики collapse to ONE start dot, same day.** Reported by the user directly: заборчик
+elements were captured on a phone under a straightedge, so each straight segment forced a
+separate pen-lift on the touchscreen — real captures ended up as 2 or 4 disconnected
+`strokes` even though the actual notebook motion is one continuous zigzag. The general "one
+start dot per captured stroke" rule (correct for a genuinely multi-part element like
+`01_pryamaya_liniya`'s two real separate lines) was applying the same logic here and marking
+"multiple pen-lifts" that were never real — "изза этого весь элемент выглядит неправильно".
+
+Fix: new `startPointsFor(strokes, repeatMode)` in `wordEngine.js` — for `repeatMode ===
+"joined"` (exactly the заборчик family: `03_zaborchik_ploskie(_uzkaya)`,
+`04_zaborchik_ostrye(_uzkaya)`), returns only the first stroke's own start point regardless
+of how many strokes the element actually has; every other (`"spaced"`) element keeps one dot
+per stroke as before. Deliberately keyed off the EXISTING `repeatMode` field rather than a
+new one — "joined" already meant exactly "this element is one continuous motion with no real
+gaps," which is precisely the same condition that makes multiple start dots wrong. Applied to
+both the primary example (`layoutElementLinesIntoRows`) and every copy in the repeat chain
+(`buildRepeatChain`, which now calls the same `startPointsFor` instead of unconditionally
+mapping over every copy's own strokes) — a repeat copy is just a translated clone of the same
+shape, so it had the exact same multi-dot problem. The ink itself (`strokes`,
+`directionArrows`) is untouched — still one `<path>` and one arrow per real captured stroke;
+only the dot count changed, since that's specifically what read as wrong.
+
+Verified: new test asserting a 4-stroke `03_zaborchik_ploskie` fixture produces exactly one
+`startPoints` entry (while its own `strokes` array still has all 4), updated the existing
+joined-chain drift test's own dot assertion to match, 122/122 propis tests pass, `npm run
+build` clean. Also re-verified via a throwaway Playwright render + DOM measurement: a
+4-stroke заборчик row's primary now has exactly 1 dot (down from 4) and each of its 14 chain
+copies has 1 dot too (14 total, not 56), while a genuinely two-line `01_pryamaya_liniya` row
+kept 2 dots on its primary and 2 per repeat copy (28 total across 14 copies) — confirming the
+fix is scoped to "joined" only, not a blanket change. No `elements.json` change, no deck-zip
+rebuild needed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

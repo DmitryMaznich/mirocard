@@ -912,6 +912,24 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     expect(seg.startPoints[1]).toEqual(getPathEndpoints(seg.strokes[1].d).start);
   });
 
+  it("collapses a 'joined' element's several captured strokes down to a SINGLE start dot (2026-09-18, \"соедини все штрихи одного элемента чтобы осталась одна точка начала\") -- заборчик's multiple strokes are a hand-capture artifact (drawn under a straightedge on a phone, forcing a pen-lift per segment), not a real multi-part motion the way 01_pryamaya_liniya's two genuinely separate lines are", () => {
+    const FOUR_STROKE_JOINED_ELEMENT = {
+      id: "03_zaborchik_ploskie", labelRu: "Заборчик плоские", viewBox: "0 0 80 150",
+      repeatMode: "joined",
+      strokes: [
+        { d: "M 27.740 11.080 5.170 59.790" },
+        { d: "M 4.000 61.590 29.150 61.290" },
+        { d: "M 29.120 60.430 C 29.500 59.310 27.670 62.890 30.260 57.080 C 32.860 51.270 41.070 33.190 44.680 25.570 C 48.290 17.950 49.510 16.110 51.930 11.380" },
+        { d: "M 53.030 10.250 75.610 10.560" },
+      ],
+    };
+    const byLabel = new Map([[FOUR_STROKE_JOINED_ELEMENT.id, FOUR_STROKE_JOINED_ELEMENT]]);
+    const { placed } = layoutElementLinesIntoRows(["03_zaborchik_ploskie"], byLabel, ROW_WIDTH);
+    const [seg] = placed[0].segments;
+    expect(seg.strokes).toHaveLength(4); // the ink itself is untouched, still 4 strokes
+    expect(seg.startPoints).toEqual([getPathEndpoints(seg.strokes[0].d).start]); // one dot
+  });
+
   it("gives every stroke a direction arrow, offset to the side of the stroke's own midpoint (not sitting on top of the ink), matching getMidpointTangent applied to the already-anchored/scaled stroke", () => {
     const ARROW_SIDE_OFFSET = 6;
     const TWO_STROKE_ELEMENT = {
@@ -1042,7 +1060,10 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
         // deep the chain is, so no per-joint tilt ever compounds across the row.
         expect(copyFirstStart[1]).toBeCloseTo(primaryFirstStart[1], 6);
         expect(copy.strokes).toHaveLength(prevStrokes.length);
-        expect(copy.startPoints).toEqual(copy.strokes.map((s) => getPathEndpoints(s.d).start));
+        // "joined" collapses to a single start dot per copy (see startPointsFor) -- the
+        // element's several captured strokes are a hand-capture artifact (drawn under a
+        // straightedge, forcing a pen-lift per segment), not a real multi-part motion.
+        expect(copy.startPoints).toEqual([getPathEndpoints(copy.strokes[0].d).start]);
         prevStrokes = copy.strokes;
       }
     });

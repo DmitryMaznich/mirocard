@@ -853,6 +853,22 @@ function buildRepeatStrokes(strokes, repeatMode) {
   return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
 }
 
+// How many "put the pen here" start-dot landmarks a given set of strokes gets (2026-09-18,
+// "соедини все штрихи одного элемента чтобы осталась одна точка начала"): "joined" elements
+// (заборчики) are captured as several separate strokes purely because they were hand-drawn on
+// a phone screen under a straightedge -- lining up a ruler for each straight segment forces a
+// pen-lift between them -- not because the real notebook motion has multiple starts. A real
+// заборчик is one continuous zigzag with a single "put the pen here", so marking every
+// captured stroke's own start (the general rule for genuinely multi-part elements, e.g.
+// 01_pryamaya_liniya's two real separate lines) misrepresented it as several disconnected
+// pen-lifts. Every "joined" element collapses to just its first stroke's own start; every
+// "spaced" element keeps one dot per stroke as before (01_pryamaya_liniya's two lines are a
+// real multi-part element and still need both marked).
+function startPointsFor(strokes, repeatMode) {
+  if (repeatMode === "joined") return [getPathEndpoints(strokes[0].d).start];
+  return strokes.map((s) => getPathEndpoints(s.d).start);
+}
+
 // A whole row's worth of repeat copies -- 2026-09-18, replacing the earlier "exactly one
 // repeat" design after the user decided the real target is a PRINTABLE practice sheet, not an
 // on-screen animated demo: a printed row needs the same trace-guide pattern a real prописи
@@ -869,7 +885,7 @@ function buildRepeatChain(strokes, repeatMode, rowWidthUnits) {
     const next = buildRepeatStrokes(current, repeatMode);
     const nextMaxX = Math.max(...next.flatMap((s) => samplePath(s.d).map((p) => p[0])));
     if (nextMaxX > rowWidthUnits) break;
-    chain.push({ strokes: next, startPoints: next.map((s) => getPathEndpoints(s.d).start) });
+    chain.push({ strokes: next, startPoints: startPointsFor(next, repeatMode) });
     current = next;
   }
   return chain;
@@ -902,11 +918,11 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel, rowWidthUnits
     const strokes = element.strokes.map((s) => ({
       d: transformPathD(s.d, { scaleX: scale, scaleY: scale, translateY }),
     }));
-    // One start dot per stroke, not just the first -- a multi-stroke element (e.g.
-    // 01_pryamaya_liniya's two separate lines, 03_zaborchik_ploskie's four) is drawn as
-    // several disconnected pen-lifts, each with its own "put the pen here" landmark, same
-    // as a real prописи workbook marks every separate stroke's own start.
-    const startPoints = strokes.map((s) => getPathEndpoints(s.d).start);
+    const repeatMode = element.repeatMode ?? "spaced";
+    // See startPointsFor's own comment: "joined" elements (заборчики) collapse to a single
+    // start dot -- their multiple captured strokes are a hand-capture artifact (drawn under a
+    // straightedge on a phone, forcing a pen-lift per segment), not a real multi-part motion.
+    const startPoints = startPointsFor(strokes, repeatMode);
     // One small direction arrow per stroke too, at its own midpoint (never the start
     // point, so it never sits on top of the start dot) -- shows which way the pen moves,
     // per the user's explicit ask (2026-09-18): "маленькие красные стрелочки по
@@ -927,7 +943,7 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel, rowWidthUnits
       ];
       return { point, angleDeg: tangent.angleDeg };
     });
-    const repeatChain = buildRepeatChain(strokes, element.repeatMode ?? "spaced", rowWidthUnits);
+    const repeatChain = buildRepeatChain(strokes, repeatMode, rowWidthUnits);
     // Row's own total ink extent (primary + every repeat copy) -- kept on the segment for
     // any caller that wants it (e.g. debugging/measurement); no longer drives a tap-hit-rect
     // since element rows are no longer interactive (2026-09-18, print-only worksheet target).
