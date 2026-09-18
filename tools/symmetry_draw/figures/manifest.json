@@ -1,7 +1,7 @@
 {
   "schema": "mirocard-figure-manifest/v1",
   "topicId": "symmetry_draw",
-  "topicVersion": "1.11.4",
+  "topicVersion": "1.11.9",
   "figures": [
     {
       "id": "symmetry_house",
@@ -476,6 +476,12 @@
       "label": "Яхта",
       "taskKind": "mirror",
       "file": "yachta.json"
+    },
+    {
+      "id": "butterfly",
+      "label": "Бабочка",
+      "taskKind": "mirror",
+      "file": "butterfly.json"
     }
   ]
 }

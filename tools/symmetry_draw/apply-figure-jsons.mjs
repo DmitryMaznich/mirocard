@@ -2,15 +2,16 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createSymmetryDrawDeckBuffer } from "./build.mjs";
 import { buildFiguresGallery } from "./build-figures-gallery.mjs";
-import { FIGURES_DIR, ROOT, TOPIC_PATH, clone, figureFilePath, fitFigureToGrid, mergeFigureGeometry, nextPatchVersion, readTopic, validateFigureCard } from "./figure-jsons.mjs";
+import { FIGURES_DIR, ROOT, TOPIC_PATH, clone, exportFigureJsons, fitFigureToGrid, mergeFigureGeometry, nextPatchVersion, readTopic, validateFigureCard } from "./figure-jsons.mjs";
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const refreshRuntime = args.includes("--refresh");
-const files = args.filter((argument) => argument !== "--dry-run" && argument !== "--refresh");
+const addFigures = args.includes("--add");
+const files = args.filter((argument) => argument !== "--dry-run" && argument !== "--refresh" && argument !== "--add");
 
 if (!files.length && !refreshRuntime) {
-  console.error("Usage: node tools/symmetry_draw/apply-figure-jsons.mjs [--dry-run] [--refresh] <corrected-figure.json> [...]");
+  console.error("Usage: node tools/symmetry_draw/apply-figure-jsons.mjs [--dry-run] [--refresh] [--add] <figure.json> [...]");
   process.exitCode = 1;
 } else {
   const corrected = files.map((file) => {
@@ -30,7 +31,13 @@ if (!files.length && !refreshRuntime) {
   const changed = [];
   for (const { card } of corrected) {
     const index = nextTopic.cards.findIndex((item) => item.id === card.id);
-    if (index < 0) throw new Error(`${card.id}: the topic does not contain this figure`);
+    if (index < 0) {
+      if (!addFigures) throw new Error(`${card.id}: the topic does not contain this figure (use --add for a new figure)`);
+      const added = fitFigureToGrid(card);
+      nextTopic.cards.push(added);
+      changed.push(added);
+      continue;
+    }
     const merged = fitFigureToGrid(mergeFigureGeometry(nextTopic.cards[index], card));
     if (JSON.stringify(merged) !== JSON.stringify(nextTopic.cards[index])) {
       nextTopic.cards[index] = merged;
@@ -58,7 +65,7 @@ if (!files.length && !refreshRuntime) {
   } else {
     const deckBuffer = await createSymmetryDrawDeckBuffer(topicText);
     writeFileSync(TOPIC_PATH, topicText);
-    for (const card of changed) writeFileSync(figureFilePath(card.id, FIGURES_DIR), `${JSON.stringify(card, null, 2)}\n`);
+    exportFigureJsons(nextTopic, FIGURES_DIR);
     buildFiguresGallery();
     writeFileSync(deckPath, deckBuffer);
     catalogEntry.version = nextVersion;
