@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows } from "./wordEngine.js";
+import { layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows, ELEMENT_ROW_PHYSICAL_SLOTS } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
-  INK_COLOR, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING,
+  INK_COLOR, NATIVE_L1, NATIVE_L2, NATIVE_L3, NATIVE_L4,
+  TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING,
   buildDiagonalLines, mmToNativeUnits,
   PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_MARGIN_MM, PRINT_LEFT_INSET_MM, PRINT_CENTER_INSET_MM,
   PRINT_CONTENT_W_MM, PRINT_FIRST_BASELINE_MM, PRINT_ROWS_PER_PAGE,
@@ -29,6 +30,10 @@ const GUIDE_THIN_W = 0.4;
 const GUIDE_BOLD_W = 0.9;
 const MARGIN_LINE_W = 1.4;
 const FALLBACK_FONT_SIZE = 34;
+// ~1mm radius (native units are 6/mm, propisRuling.js's UNIT_H=150 per LINE_MM=25) -- visible
+// as a clear "start here" landmark next to a 2-unit-wide stroke without dominating a small
+// element like 02b_naklonnaya_korotkaya.
+const ELEMENT_START_DOT_R = 6;
 
 // Which physical A4-sheet half this page is (even index = left slot, odd = right slot) and
 // where its own margin line / content start sit as a result — mirrors
@@ -58,12 +63,35 @@ function slotGeometry(pageIndex) {
 // default overflow:hidden clips the rest, same as any other line here.
 const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_DIAGONAL_SPACING);
 const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
+// "Элементы букв" rows use ELEMENT_ROW_PHYSICAL_SLOTS (2) physical slots each — only the
+// FIRST slot of each pair is an actual element row, the second is spare breathing room (see
+// wordEngine.js's own comment on ELEMENT_ROW_PHYSICAL_SLOTS) — so only those slots get a
+// ruling drawn at all.
+const ELEMENT_ROW_INDICES = ROW_INDICES.filter((row) => row % ELEMENT_ROW_PHYSICAL_SLOTS === 0);
+// The TEXT ruling above (thin @ NATIVE_L3-TEXT_ROW_THIN_OFFSET, bold @ NATIVE_L3) only marks
+// the narrow x-height zone (4mm) — plenty for cursive letters, whose own ink rarely reaches
+// NATIVE_L1/NATIVE_L4 (max measured ascender/descender well inside that pitch, see
+// TEXT_ROW_PITCH's own comment). An element's strokes are captured against the FULL
+// NATIVE_L1..L4 span on purpose (that's the whole physical row, ascender-top to
+// descender-bottom) and routinely reach both ends — reported 2026-09-17 as "the element's
+// height doesn't match the row's height" once the TEXT ruling (not this one) was still being
+// drawn under "Элементы букв" rows. This guide set mirrors GUIDE_LINES/buildRowGuideLines'
+// own 4-line shape (ascender-top, x-height-top, baseline bold, descender-bottom) so the
+// drawn row visually IS the same row the element was captured against, not an unrelated
+// narrower one.
+const ELEMENT_ROW_GUIDES = [
+  { u: NATIVE_L1, bold: false },
+  { u: NATIVE_L2, bold: false },
+  { u: NATIVE_L3, bold: true },
+  { u: NATIVE_L4, bold: false },
+];
 
 // One physical page's ruling + content, reused for both the interactive on-screen view (one
 // page at a time, tap-to-animate) and the print-only stacked view (every page, static ink,
 // see PrintPageView's own "propis-print-all" block). `activeIndex`/`onToggleActive` are
-// omitted (undefined) for the print render — nothing is tappable on paper.
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
+// omitted (undefined) for the print render — nothing is tappable on paper. `useElements`
+// picks which of the two row rulings above gets drawn (see ELEMENT_ROW_GUIDES' own comment).
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
   return (
@@ -80,32 +108,52 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
           stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W}
         />
       ))}
-      {ROW_INDICES.map((row) => (
-        <g key={`g${row}`}>
-          <line
-            x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
-            x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
-            stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W}
-          />
-          <line
-            x1="0" y1={rowOriginY(row) + NATIVE_L3}
-            x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3}
-            stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W}
-          />
-        </g>
-      ))}
+      {useElements
+        ? ELEMENT_ROW_INDICES.map((row) => (
+            <g key={`g${row}`}>
+              {ELEMENT_ROW_GUIDES.map((g, gi) => (
+                <line
+                  key={gi}
+                  x1="0" y1={rowOriginY(row) + g.u}
+                  x2={PAGE_W_UNITS} y2={rowOriginY(row) + g.u}
+                  stroke={GUIDE_COLOR} strokeWidth={g.bold ? GUIDE_BOLD_W : GUIDE_THIN_W}
+                />
+              ))}
+            </g>
+          ))
+        : ROW_INDICES.map((row) => (
+            <g key={`g${row}`}>
+              <line
+                x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
+                x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
+                stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W}
+              />
+              <line
+                x1="0" y1={rowOriginY(row) + NATIVE_L3}
+                x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3}
+                stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W}
+              />
+            </g>
+          ))}
       <line x1={marginXUnits} y1={0} x2={marginXUnits} y2={PAGE_H_UNITS} stroke={MARGIN_COLOR} strokeWidth={MARGIN_LINE_W} />
       {page.map((p, i) => {
         const isActive = onToggleActive ? i === activeIndex : false;
         return (
           <g key={i} transform={`translate(${contentXUnits + p.x} ${rowOriginY(p.rowIndex)})`}>
-            {onToggleActive && (
-              <rect
-                className="propis-text-word-hit"
-                x={-4} y={NATIVE_L3 - TEXT_ROW_PITCH / 2} width={p.segments.reduce((s, seg) => s + seg.width, 0) + 8} height={TEXT_ROW_PITCH}
-                onClick={() => onToggleActive(i)}
-              />
-            )}
+            {onToggleActive && (() => {
+              // An element row's own content reaches much taller than a cursive text row's
+              // (NATIVE_L1..L4 vs. the tight TEXT_ROW_PITCH band) -- widen the tap target to
+              // match, or the top/bottom of a tall element (e.g. 01_pryamaya_liniya) would sit
+              // outside it and not register a tap.
+              const hitH = useElements ? ELEMENT_ROW_PHYSICAL_SLOTS * TEXT_ROW_PITCH : TEXT_ROW_PITCH;
+              return (
+                <rect
+                  className="propis-text-word-hit"
+                  x={-4} y={NATIVE_L3 - hitH / 2} width={p.segments.reduce((s, seg) => s + seg.width, 0) + 8} height={hitH}
+                  onClick={() => onToggleActive(i)}
+                />
+              );
+            })()}
             {p.segments.map((seg, si) =>
               seg.type === "cursive" ? (
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
@@ -124,9 +172,11 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                   ))}
                 </g>
               ) : seg.type === "element" ? (
-                // "Элементы букв" repeat -- same tap-to-animate as a cursive letter (the whole
-                // point of this mode is showing the drawing motion), AnimatedStrokes just needs
-                // {strokes}, which a raw element object already is, no trajectory-wrapping needed.
+                // "Элементы букв" -- same tap-to-animate as a cursive letter (the whole point of
+                // this mode is showing the drawing motion), AnimatedStrokes just needs {strokes},
+                // which a raw element object already is, no trajectory-wrapping needed. The start
+                // dot stays visible even while animating (it's a print-page landmark for where to
+                // put the pen, not part of the animation) -- drawn last so it sits on top.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive ? (
                     <AnimatedStrokes trajectory={{ strokes: seg.strokes }} tipSize="large" />
@@ -134,6 +184,9 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                     seg.strokes.map((s, ssi) => (
                       <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                     ))
+                  )}
+                  {seg.startPoint && (
+                    <circle cx={seg.startPoint[0]} cy={seg.startPoint[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} />
                   )}
                 </g>
               ) : (
@@ -194,7 +247,7 @@ export default function PrintPageView({ task, onClose }) {
 
   const layout = useMemo(
     () => useElements
-      ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
+      ? layoutElementLinesIntoRows(lines, elementsByLabel)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
     [useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
@@ -227,6 +280,7 @@ export default function PrintPageView({ task, onClose }) {
                 pageIndex={pageIndex}
                 activeIndex={activeIndex}
                 onToggleActive={(i) => setActiveIndex((cur) => (cur === i ? null : i))}
+                useElements={useElements}
               />
             </div>
 
@@ -274,8 +328,8 @@ export default function PrintPageView({ task, onClose }) {
               <div className="propis-print-all" aria-hidden="true">
                 {Array.from({ length: pages.length / 2 }, (_, sheetIndex) => (
                   <div key={sheetIndex} className="propis-print-all__sheet">
-                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} />
-                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} />
+                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} />
+                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} />
                   </div>
                 ))}
               </div>,

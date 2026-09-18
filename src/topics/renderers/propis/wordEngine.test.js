@@ -868,24 +868,21 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
   };
   const elementsByLabel = new Map([[WIDE_ELEMENT.id, WIDE_ELEMENT]]);
 
-  it("repeats the same element across the row, at least once even if it overflows", () => {
-    const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel, 200);
+  it("places a single element at the start of the row, marked with its trajectory's start point", () => {
+    const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel);
     expect(placed).toHaveLength(1);
-    expect(placed[0].segments.length).toBeGreaterThan(1);
-    for (const seg of placed[0].segments) {
-      expect(seg.type).toBe("element");
-      expect(seg.strokes).toBe(WIDE_ELEMENT.strokes);
-    }
-    // A too-narrow row still gets exactly one repeat, never zero.
-    const { placed: tight } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel, 5);
-    expect(tight[0].segments).toHaveLength(1);
+    expect(placed[0].segments).toHaveLength(1);
+    const [seg] = placed[0].segments;
+    expect(seg.type).toBe("element");
+    expect(seg.xOffset).toBe(0);
+    expect(seg.strokes).toBe(WIDE_ELEMENT.strokes);
+    expect(seg.startPoint).toEqual(getPathEndpoints(WIDE_ELEMENT.strokes[0].d).start);
   });
 
   it("assigns each row TWO physical row slots (rowIndex 0, 2, 4, ...) so a full-height element never overlaps its neighbor", () => {
     const { placed, rowCount } = layoutElementLinesIntoRows(
       ["05_kryuchok_vlevo", "05_kryuchok_vlevo", "05_kryuchok_vlevo"],
-      elementsByLabel,
-      200
+      elementsByLabel
     );
     expect(placed.map((p) => p.rowIndex)).toEqual([0, 2, 4]);
     // 3 rows * 2 slots - 1 unused trailing slot = 5.
@@ -893,7 +890,7 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
   });
 
   it("renders an empty row (not a crash) for an id with no matching captured element", () => {
-    const { placed } = layoutElementLinesIntoRows(["99_not_captured_yet"], elementsByLabel, 200);
+    const { placed } = layoutElementLinesIntoRows(["99_not_captured_yet"], elementsByLabel);
     expect(placed).toEqual([{ word: "99_not_captured_yet", rowIndex: 0, x: 0, segments: [] }]);
   });
 });

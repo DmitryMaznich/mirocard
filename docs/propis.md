@@ -1844,6 +1844,94 @@ anyone who'd already installed `1.30.0` (with the bug) stuck on that
 broken cached IndexedDB record forever, with no re-fetch ever triggered
 by the version check.
 
+**Revised to a single start-of-row element with a start dot (2026-09-17,
+same day, right after the picker-empty fix).** The first shipped version
+matched the user's original "Один элемент повторяется на всю строку, как
+в книге" instruction literally: `layoutElementLinesIntoRows` repeated the
+element left-to-right until the next copy would overflow
+`CONTENT_W_UNITS`. Once actually looking at the printed result, the user
+asked for the opposite of "fill the row" — just the single drill
+instance at the row's start, with a dot marking where the trajectory
+begins (a physical worksheet landmark: this mode's whole point is
+printing a page to trace by hand, so "where do I put my pen" matters as
+much as "what shape do I draw"). Changed
+`layoutElementLinesIntoRows(lines, elementsByLabel)` (dropped the now-
+unused `rowWidthUnits` param and the `ELEMENT_REPEAT_GAP_UNITS` constant)
+to emit exactly one `{type: "element", xOffset: 0, ...}` segment per row,
+plus a new `startPoint` field: `getPathEndpoints(element.strokes[0].d)
+.start` — the same `pathGeometry.js` helper `wordEngine.js` already uses
+for connector-chaining, so no new geometry code, just a new call site.
+`PrintPageView.jsx`'s `"element"` render branch draws a small `<circle>`
+(`ELEMENT_START_DOT_R = 6` native units ≈ 1mm radius) at that point,
+inside the same `<g transform="translate(xOffset 0)">` the strokes
+themselves render in — no separate coordinate transform needed, since
+`startPoint` is already in the element's own native path-coordinate
+space (the exact space the earlier `NATIVE_L1..L4` vs. this file's own
+`L1-L4` mixup bit us in, so this was checked by rendering a real
+dev-preview page rather than trusting the math by eye — the dot landed
+exactly on each stroke's own starting pixel for all 3 test elements).
+Kept visible during the tap-to-animate state too (drawn last, on top) —
+it's a static print/reference landmark, not part of the pen-tracing
+animation itself.
+
+**Row ruling didn't match the element's own captured height (2026-09-17,
+same day, right after the start-dot revision).** User: "Высота элементов
+тоже не соответствует высоте строк, исправь." Root cause: an "Элементы
+букв" row still drew the same ruling `layoutTextIntoRows`' rows use —
+just a thin auxiliary line (`TEXT_ROW_THIN_OFFSET`=24 units above
+baseline) plus the bold baseline itself, a 24-unit-tall band sized for
+flowing CURSIVE TEXT (whose own ink rarely reaches far past that,
+per `TEXT_ROW_PITCH`'s own measured-ascender/descender comment). An
+element's strokes are captured against the FULL `NATIVE_L1`(row
+top)..`NATIVE_L4`(row bottom) span on purpose — a 130-unit range — so
+next to that skinny 24-unit guide, the element visually blew straight
+past both ends with nothing marking where "the row" it belongs to
+actually starts or stops.
+
+Fix: `PrintPageView.jsx` now draws one of two DIFFERENT row rulings
+depending on `task.useElements` — the existing thin+bold pair for text
+rows (unchanged), or a new 4-line `ELEMENT_ROW_GUIDES` set
+(`NATIVE_L1`/`NATIVE_L2`/`NATIVE_L3`-bold/`NATIVE_L4`, i.e. the same
+ascender-top/x-height-top/baseline/descender-bottom shape
+`GUIDE_LINES`/`buildRowGuideLines` already use elsewhere) for element
+rows — drawn only at `ELEMENT_ROW_INDICES` (every
+`ELEMENT_ROW_PHYSICAL_SLOTS`-th physical slot, now exported from
+`wordEngine.js` instead of a locally re-guessed "2" — the "spare"
+breathing-room slot between two element rows gets no ruling of its own).
+
+**First attempt at this shipped with an off-by-one-baseline bug**, caught
+before committing by checking actual rendered `<line>`/stroke coordinates
+via a Playwright `page.evaluate()` (not by eyeballing a screenshot — the
+same lesson as the earlier `NATIVE_L1..L4` vs. this file's own `L1-L4`
+mixup: trust computed numbers over a glance). The new guide lines were
+positioned at `rowOriginY(row) + g.u - NATIVE_L3`, mirroring the OLD
+text-row bold-baseline line's formula (`rowOriginY(row) + NATIVE_L3`)
+too literally — that formula's `+ NATIVE_L3` term exists ONLY because
+the text ruling's own reference point (`g.u`) was always exactly
+`NATIVE_L3` (the baseline itself, no separate variable needed); once
+`g.u` became a genuinely varying per-line value (`NATIVE_L1`/`L2`/`L3`/
+`L4`), subtracting `NATIVE_L3` a second time shifted every element-row
+guide line up by a full 88 units — while the strokes themselves (placed
+via the unrelated `translate(x, rowOriginY(row))` on their own `<g>`,
+never touched by this bug) stayed exactly where they were captured.
+`page.evaluate()` on a live page showed row 0's guide `y1`s as
+`-94, -42, -16, 36` against the first element's own stroke bounding box
+sitting at local y≈9.8 (i.e. absolute y≈-6, nowhere near any of those
+four numbers) — confirming the mismatch numerically before it was
+"fixed" a second time. Corrected formula: `rowOriginY(row) + g.u` (no
+subtraction at all — `g.u` already IS the absolute-native-space value to
+place). Re-verified the same way: row 0's guides landed at
+`-6, 46, 72, 124`, and 01_pryamaya_liniya's own two strokes (native
+y≈9.8 and y≈61.6) landed within 0.2-0.4 units of the `NATIVE_L1`(-6) and
+`NATIVE_L2`(46) guides respectively — as close as real captured ink
+(never drawn exactly ON a guide line) should get.
+
+Also widened the tap-to-animate hit-rect for element rows
+(`ELEMENT_ROW_PHYSICAL_SLOTS * TEXT_ROW_PITCH` tall instead of just
+`TEXT_ROW_PITCH`) — a secondary consequence of the same height gap: the
+old hit-rect only covered the narrow text-row band, so tapping near the
+top or bottom of a tall element (outside that band) wouldn't register.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

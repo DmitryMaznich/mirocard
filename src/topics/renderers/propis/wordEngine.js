@@ -739,13 +739,6 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
   return { placed, rowCount };
 }
 
-// Gap between repeats of the SAME element filling one drill row -- deliberately denser than
-// WORD_GAP_UNITS (33, gap between two DIFFERENT words), matching how the source book packs a
-// row with one repeated stroke (docs/propis.md's element-digitization notes). Not measured
-// off a real scan the way WORD_GAP_UNITS was -- a reasonable first value, revisit once a real
-// printed "Элементы букв" page can be compared against the book by eye.
-const ELEMENT_REPEAT_GAP_UNITS = 20;
-
 // A logical element row occupies TWO of PrintPageView's physical ruled-line slots (2 *
 // TEXT_ROW_PITCH = 144 native units), not one -- found 2026-09-17 by actually rendering a page
 // and comparing against the picker preview: elements are captured against the full
@@ -758,17 +751,17 @@ const ELEMENT_REPEAT_GAP_UNITS = 20;
 // as many element-rows fitting per printed page as text-rows would. The unused odd physical
 // slot between two element-rows isn't wasted: it reads as normal breathing room around a big
 // drill, same as the source book itself gives one.
-const ELEMENT_ROW_PHYSICAL_SLOTS = 2;
+export const ELEMENT_ROW_PHYSICAL_SLOTS = 2;
 
-// read_lines' "Элементы букв" option (2026-09-17): one element repeated across the WHOLE row
-// width, one row per input line -- unlike layoutTextIntoRows, never wraps onto a new row (a
-// row here is always exactly one line's own content, by design: the user picks ONE element per
-// row, it fills that row and nothing else). Returns the same {placed, rowCount} shape
-// layoutTextIntoRows/paginateRows already use, so PrintPageView.jsx and paginateRows don't need
-// a second code path for pagination, only for building the row layout itself -- `rowIndex` here
-// is already a PHYSICAL row-slot index (see ELEMENT_ROW_PHYSICAL_SLOTS above), so paginateRows'
-// existing Math.floor(rowIndex / rowsPerPage) arithmetic keeps working unmodified.
-export function layoutElementLinesIntoRows(lines, elementsByLabel, rowWidthUnits) {
+// read_lines' "Элементы букв" option: one element at the START of each row, one row per input
+// line (revised 2026-09-17 from an earlier "repeat the element across the whole row" version --
+// the user wants just the single drill instance with a start dot, not a filled row). Returns the
+// same {placed, rowCount} shape layoutTextIntoRows/paginateRows already use, so
+// PrintPageView.jsx/paginateRows don't need a second code path for pagination, only for building
+// the row layout itself -- `rowIndex` here is already a PHYSICAL row-slot index (see
+// ELEMENT_ROW_PHYSICAL_SLOTS above), so paginateRows' existing
+// Math.floor(rowIndex / rowsPerPage) arithmetic keeps working unmodified.
+export function layoutElementLinesIntoRows(lines, elementsByLabel) {
   const placed = lines.map((elementId, i) => {
     const rowIndex = i * ELEMENT_ROW_PHYSICAL_SLOTS;
     const element = elementsByLabel.get(elementId);
@@ -777,20 +770,13 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel, rowWidthUnits
       // the id typo'd somewhere upstream) -- render an empty row rather than crash.
       return { word: elementId, rowIndex, x: 0, segments: [] };
     }
+    // startPoint marks where the pen should first touch down -- the trajectory's own start,
+    // not the row's -- so a mirrored/reflected element (none exist yet, but strokes aren't
+    // guaranteed left-to-right) still gets the dot in the right place.
+    const startPoint = getPathEndpoints(element.strokes[0].d).start;
     const vbW = Number(element.viewBox.split(" ")[2]);
-    const segments = [];
-    let x = 0;
-    // Always place at least one repeat even if it overflows the row (same "first item always
-    // lands" rule layoutTextIntoRows uses for an overlong word), then keep going only while
-    // the NEXT repeat would fully fit.
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      segments.push({ type: "element", xOffset: x, strokes: element.strokes, width: vbW });
-      const nextX = x + vbW + ELEMENT_REPEAT_GAP_UNITS;
-      if (nextX + vbW > rowWidthUnits) break;
-      x = nextX;
-    }
-    return { word: elementId, rowIndex, x: 0, segments };
+    const segment = { type: "element", xOffset: 0, strokes: element.strokes, width: vbW, startPoint };
+    return { word: elementId, rowIndex, x: 0, segments: [segment] };
   });
   // Physical slots consumed: lines.length element-rows at ELEMENT_ROW_PHYSICAL_SLOTS each,
   // minus the one trailing "breathing room" slot after the very last row (nothing needs to
