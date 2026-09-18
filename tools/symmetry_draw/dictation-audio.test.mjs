@@ -21,9 +21,27 @@ test("dictation audio names are safe and phrases stay child-readable", () => {
 
 test("every available graphic-dictation command has one recording target", () => {
   const entries = collectDictationAudioEntries(topic);
-  assert.equal(entries.length, 140);
+  assert.equal(entries.length, 128);
   assert.equal(new Set(entries.map((entry) => entry.path)).size, entries.length);
   assert.ok(entries.every((entry) => entry.path.endsWith(".mp3") && entry.text.length > 0));
+});
+
+test("removed graphic-dictation figures are absent in both command modes", () => {
+  const removedIds = new Set([
+    "dictation_boat_small",
+    "dictation_flower",
+    "dictation_small_plane",
+    "dictation_small_fish",
+    "coordinate_boat_small",
+    "coordinate_flower",
+    "coordinate_small_plane",
+    "coordinate_small_fish",
+  ]);
+
+  const retainedIds = new Set(topic.cards.map((card) => card.id));
+  for (const id of removedIds) {
+    assert.equal(retainedIds.has(id), false, `${id} must not be selectable`);
+  }
 });
 
 test("dictation uses deck recordings and can hide the written command", () => {
