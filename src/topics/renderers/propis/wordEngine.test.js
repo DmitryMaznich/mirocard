@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { transformPathD, getPathEndpoints } from "./pathGeometry.js";
+import { transformPathD, getPathEndpoints, samplePath } from "./pathGeometry.js";
 import { classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory, layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows, ELEMENT_SCALE } from "./wordEngine.js";
 import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
 
@@ -867,8 +867,12 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     strokes: [{ d: "M 7.6 17.4 C 8.5 16.7 20.7 24.1 4 61.1" }],
   };
   const elementsByLabel = new Map([[WIDE_ELEMENT.id, WIDE_ELEMENT]]);
+  // Anchored on the element's OWN lowest captured point (not a fixed NATIVE_L3), so it lands
+  // on the baseline regardless of which capture band its raw data comes from -- see
+  // layoutElementLinesIntoRows' own comment on the two disjoint bands in elements.json.
+  const elementMaxY = Math.max(...samplePath(WIDE_ELEMENT.strokes[0].d).map((p) => p[1]));
   const scaledD = transformPathD(WIDE_ELEMENT.strokes[0].d, {
-    scaleX: ELEMENT_SCALE, scaleY: ELEMENT_SCALE, translateY: NATIVE_L3 * (1 - ELEMENT_SCALE),
+    scaleX: ELEMENT_SCALE, scaleY: ELEMENT_SCALE, translateY: NATIVE_L3 - elementMaxY * ELEMENT_SCALE,
   });
 
   it("places a single element at the start of the row, scaled down to fit one ordinary row, marked with its scaled trajectory's start point", () => {
@@ -890,6 +894,22 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     );
     expect(placed.map((p) => p.rowIndex)).toEqual([0, 1, 2]);
     expect(rowCount).toBe(3);
+  });
+
+  it("sits on the row's baseline even when the element's own raw data never reaches NATIVE_L3 -- regression for the real 'wide-row' capture family (01, 02a, 03-06), whose data tops out around y=62, not 88", () => {
+    // Mirrors real elements.json data: this family was captured against the wide row's own
+    // upper half, never reaching the true baseline (NATIVE_L3=88) in its own raw coordinates
+    // -- a fixed-NATIVE_L3 anchor left it floating well above the row's baseline instead of
+    // sitting on it (reported 2026-09-18: "элемент стоит не на своём месте").
+    const WIDE_ROW_FAMILY_ELEMENT = {
+      id: "01_pryamaya_liniya", labelRu: "Прямая линия", viewBox: "0 0 40 150",
+      strokes: [{ d: "M 5.1 9.9 34.1 9.8" }, { d: "M 4.8 61.6 C 5.4 61.8 25.6 62.1 35.0 62.1" }],
+    };
+    const byLabel = new Map([[WIDE_ROW_FAMILY_ELEMENT.id, WIDE_ROW_FAMILY_ELEMENT]]);
+    const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel);
+    const [seg] = placed[0].segments;
+    const maxY = Math.max(...seg.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1])));
+    expect(maxY).toBeCloseTo(NATIVE_L3, 3);
   });
 
   it("renders an empty row (not a crash) for an id with no matching captured element", () => {

@@ -746,9 +746,7 @@ export function layoutTextIntoRows(text, lettersByLabel, connectorsByKey, rowWid
 // captured scale, tried first and reverted 2026-09-18 -- see docs/propis.md for the two prior
 // attempts and why each was rejected) keeps "one element = one row", matching the user's
 // explicit choice once shown both options live: elements repeat DENSELY, one per row, the same
-// as ordinary text rows -- not "как в книге"'s original full scale after all. Anchored on the
-// baseline (NATIVE_L3) so the scaled shape still sits on the same baseline every row already
-// shares with cursive text, instead of drifting off it.
+// as ordinary text rows -- not "как в книге"'s original full scale after all.
 export const ELEMENT_SCALE = TEXT_ROW_PITCH / (NATIVE_L4 - NATIVE_L1);
 
 // read_lines' "Элементы букв" option: one element at the START of each row, one row per input
@@ -764,7 +762,22 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel) {
       // the id typo'd somewhere upstream) -- render an empty row rather than crash.
       return { word: elementId, rowIndex, x: 0, segments: [] };
     }
-    const translateY = NATIVE_L3 * (1 - ELEMENT_SCALE);
+    // Anchoring the scale on a FIXED NATIVE_L3 (baseline) assumed every element's own raw
+    // data already touches the baseline the way a letter's own captured stroke does -- wrong:
+    // elements.json shows two disjoint capture bands, neither reaching NATIVE_L3=88 (the
+    // "_uzkaya"/narrow-row family tops out around y=87, but the plain "wide-row" family --
+    // 01, 02a, 03, 04, 05, 06 -- only ever reaches y=~62, since it was captured against the
+    // wide row's OWN upper half, not the baseline). A fixed NATIVE_L3 anchor left every
+    // wide-row element floating well above its row's baseline instead of sitting on it the
+    // way a real drilled element (or a letter) does (reported 2026-09-18: "элемент стоит не
+    // на своём месте"). Fix: anchor each element on its OWN lowest captured point instead --
+    // sample every stroke (not just M/C endpoints, which a bulging curve can overshoot) via
+    // samplePath, and scale+translate so that point lands exactly on NATIVE_L3, whichever
+    // capture band the element's own raw data happens to start from.
+    const elementMaxY = Math.max(
+      ...element.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1]))
+    );
+    const translateY = NATIVE_L3 - elementMaxY * ELEMENT_SCALE;
     const strokes = element.strokes.map((s) => ({
       d: transformPathD(s.d, { scaleX: ELEMENT_SCALE, scaleY: ELEMENT_SCALE, translateY }),
     }));
