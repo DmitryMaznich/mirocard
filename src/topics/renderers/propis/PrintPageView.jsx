@@ -162,6 +162,20 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                   {seg.startPoints?.map((pt, pi) => (
                     <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} />
                   ))}
+                  {/* Repeat copy (wordEngine.js's buildRepeatStrokes) -- dashed and
+                      semi-transparent so it reads as "the element again", not a second equally
+                      weighted stroke to trace; static even while the primary is animating,
+                      same reasoning as the start dots above (a print-page landmark, not part
+                      of the pen-motion demo). */}
+                  {seg.repeatStrokes?.map((s, ssi) => (
+                    <path
+                      key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2}
+                      strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4 3" opacity={0.5}
+                    />
+                  ))}
+                  {seg.repeatStartPoints?.map((pt, pi) => (
+                    <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} opacity={0.5} />
+                  ))}
                 </g>
               ) : (
                 <text key={si} x={seg.xOffset} y={NATIVE_L3} fontSize={FALLBACK_FONT_SIZE} fontFamily="system-ui, sans-serif" fill={INK_COLOR}>

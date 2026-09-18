@@ -791,6 +791,44 @@ function isNarrowElement(element) {
   return maxY > (NATIVE_L2 + NATIVE_L3) / 2;
 }
 
+// Fixed horizontal gap (native units) between the primary element and its "spaced" repeat --
+// see buildRepeatStrokes below. Not derived from any per-element measurement (real captured
+// ink widths for the spaced family range ~10-31 units, see elements.json) -- a constant gap
+// reads consistently across all of them, matching how a real prописи workbook spaces repeated
+// hooks/lines evenly rather than scaling the gap to each glyph's own width.
+const REPEAT_GAP_SPACED = 20;
+
+// One extra "repeat" copy of an element's own strokes, placed next to the primary copy so a
+// row shows two of the same element the way a real prописи workbook does (2026-09-18,
+// replaces the removed direction-arrow feature -- see its own comment below for context).
+// `repeatMode` (elements.json, confirmed per-element with the user) picks how the two copies
+// relate:
+//  - "joined" (заборчики, 03/04 + their _uzkaya variants): the repeat's own FIRST-stroke start
+//    point snaps exactly onto the primary's own LAST-stroke end point -- both axes, no gap --
+//    the same "exact snap" pattern buildWordTrajectory already uses for letter-to-letter joins
+//    (see its own top-of-file comment). Confirmed against all 4 variants' real captured stroke
+//    data: the Y-mismatch between one copy's own end and the next copy's own start is under 1
+//    native unit for every one of them, so this produces a genuinely continuous, seamless line
+//    -- matching the user's own description ("заборчик высокий... должен дать на выходе
+//    сплошную ломаную кривую по строке, без пропусков").
+//  - "spaced" (everything else -- прямая/наклонные lines, крючки): the repeat is offset
+//    sideways only, by the primary's own real ink width plus REPEAT_GAP_SPACED, keeping the
+//    same vertical anchor (translateY) the primary already has -- a plain "draw it again over
+//    there" copy, not a chain.
+function buildRepeatStrokes(strokes, repeatMode) {
+  if (repeatMode === "joined") {
+    const firstStart = getPathEndpoints(strokes[0].d).start;
+    const lastEnd = getPathEndpoints(strokes[strokes.length - 1].d).end;
+    const dx = lastEnd[0] - firstStart[0];
+    const dy = lastEnd[1] - firstStart[1];
+    return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx, translateY: dy }) }));
+  }
+  const xs = strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]));
+  const inkWidth = Math.max(...xs) - Math.min(...xs);
+  const dx = inkWidth + REPEAT_GAP_SPACED;
+  return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
+}
+
 // read_lines' "Элементы букв" option: one element per row on the SAME dense grid
 // layoutTextIntoRows uses (rowIndex=i), at its real captured scale unless that scale would
 // overrun the row's own real headroom (WIDE_HEADROOM/NARROW_HEADROOM above), in which case
@@ -821,8 +859,14 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel) {
     // several disconnected pen-lifts, each with its own "put the pen here" landmark, same
     // as a real prописи workbook marks every separate stroke's own start.
     const startPoints = strokes.map((s) => getPathEndpoints(s.d).start);
-    const vbW = Number(element.viewBox.split(" ")[2]) * scale;
-    const segment = { type: "element", xOffset: 0, strokes, width: vbW, startPoints };
+    const repeatStrokes = buildRepeatStrokes(strokes, element.repeatMode ?? "spaced");
+    const repeatStartPoints = repeatStrokes.map((s) => getPathEndpoints(s.d).start);
+    // Hit-rect width covers both copies' real ink, not just the primary's own box -- a raw
+    // viewBox-based width (the pre-repeat design) left the repeat copy poking out past the
+    // row's own tap target.
+    const allXs = [...strokes, ...repeatStrokes].flatMap((s) => samplePath(s.d).map((p) => p[0]));
+    const width = Math.max(...allXs);
+    const segment = { type: "element", xOffset: 0, strokes, width, startPoints, repeatStrokes, repeatStartPoints };
     return { word: elementId, rowIndex, x: 0, segments: [segment] };
   });
   const rowCount = Math.max(lines.length, 1);

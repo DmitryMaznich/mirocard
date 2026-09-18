@@ -889,8 +889,17 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     expect(seg.type).toBe("element");
     expect(seg.xOffset).toBe(0);
     expect(seg.strokes).toEqual([{ d: expectedD }]);
-    expect(seg.width).toBe(28);
+    // width now covers both the primary AND its repeat copy's real ink (see
+    // buildRepeatStrokes) -- no repeatMode on this fixture defaults to "spaced": the repeat
+    // sits to the right, offset by the primary's own ink width plus the fixed gap.
+    const primaryXs = samplePath(expectedD).map((p) => p[0]);
+    const inkWidth = Math.max(...primaryXs) - Math.min(...primaryXs);
+    const expectedRepeatD = transformPathD(expectedD, { translateX: inkWidth + 20 });
+    const expectedWidth = Math.max(...samplePath(expectedRepeatD).map((p) => p[0]));
+    expect(seg.width).toBeCloseTo(expectedWidth, 3);
     expect(seg.startPoints).toEqual([getPathEndpoints(expectedD).start]);
+    expect(seg.repeatStrokes).toEqual([{ d: expectedRepeatD }]);
+    expect(seg.repeatStartPoints).toEqual([getPathEndpoints(expectedRepeatD).start]);
     // Anchored: the element's own lowest point lands exactly on the row's thin line.
     const maxY = Math.max(...samplePath(expectedD).map((p) => p[1]));
     expect(maxY).toBeCloseTo(WIDE_TARGET_LINE, 3);
@@ -987,5 +996,59 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
   it("renders an empty row (not a crash) for an id with no matching captured element", () => {
     const { placed } = layoutElementLinesIntoRows(["99_not_captured_yet"], elementsByLabel);
     expect(placed).toEqual([{ word: "99_not_captured_yet", rowIndex: 0, x: 0, segments: [] }]);
+  });
+
+  describe("repeat copy (2026-09-18, replaces the removed direction-arrow feature)", () => {
+    it("'joined' repeatMode: the repeat's own first-stroke start snaps exactly onto the primary's own last-stroke end -- no gap, a continuous chain (заборчик family)", () => {
+      // Real elements.json shape for 03_zaborchik_ploskie_uzkaya: two disconnected strokes.
+      const JOINED_ELEMENT = {
+        id: "03_zaborchik_ploskie_uzkaya", labelRu: "Заборчик (узкая)", viewBox: "0 0 53 150",
+        repeatMode: "joined",
+        strokes: [{ d: "M 4.0 60.3 28.5 61.0" }, { d: "M 28.7 86.8 48.1 87.5" }],
+      };
+      const byLabel = new Map([[JOINED_ELEMENT.id, JOINED_ELEMENT]]);
+      const { placed } = layoutElementLinesIntoRows(["03_zaborchik_ploskie_uzkaya"], byLabel);
+      const [seg] = placed[0].segments;
+      const primaryLastEnd = getPathEndpoints(seg.strokes[seg.strokes.length - 1].d).end;
+      const repeatFirstStart = getPathEndpoints(seg.repeatStrokes[0].d).start;
+      expect(repeatFirstStart).toEqual(primaryLastEnd);
+      // Every repeat stroke carries the SAME chain offset -- the whole shape moves together,
+      // not just its first stroke.
+      expect(seg.repeatStrokes).toHaveLength(seg.strokes.length);
+      const dx = repeatFirstStart[0] - getPathEndpoints(seg.strokes[0].d).start[0];
+      const dy = repeatFirstStart[1] - getPathEndpoints(seg.strokes[0].d).start[1];
+      const expectedSecondRepeat = transformPathD(seg.strokes[1].d, { translateX: dx, translateY: dy });
+      expect(seg.repeatStrokes[1].d).toBe(expectedSecondRepeat);
+    });
+
+    it("'spaced' repeatMode: the repeat is offset sideways only (same translateY as primary), by the primary's own real ink width plus the fixed gap (крючки, прямая/наклонные lines)", () => {
+      const SPACED_ELEMENT = {
+        id: "05_kryuchok_vlevo", labelRu: "Крючок влево", viewBox: "0 0 28 150",
+        repeatMode: "spaced",
+        strokes: [{ d: "M 7.6 17.4 C 8.5 16.7 20.7 24.1 4 61.1" }],
+      };
+      const byLabel = new Map([[SPACED_ELEMENT.id, SPACED_ELEMENT]]);
+      const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], byLabel);
+      const [seg] = placed[0].segments;
+      const primaryXs = samplePath(seg.strokes[0].d).map((p) => p[0]);
+      const primaryYs = samplePath(seg.strokes[0].d).map((p) => p[1]);
+      const inkWidth = Math.max(...primaryXs) - Math.min(...primaryXs);
+      const expectedRepeatD = transformPathD(seg.strokes[0].d, { translateX: inkWidth + 20 });
+      expect(seg.repeatStrokes).toEqual([{ d: expectedRepeatD }]);
+      // Vertical anchor is untouched -- same y-range as the primary, just shifted right.
+      const repeatYs = samplePath(seg.repeatStrokes[0].d).map((p) => p[1]);
+      expect(Math.min(...repeatYs)).toBeCloseTo(Math.min(...primaryYs), 6);
+      expect(Math.max(...repeatYs)).toBeCloseTo(Math.max(...primaryYs), 6);
+    });
+
+    it("defaults to 'spaced' when an element has no repeatMode of its own", () => {
+      const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel);
+      const [seg] = placed[0].segments;
+      const primaryXs = samplePath(seg.strokes[0].d).map((p) => p[0]);
+      const repeatXs = samplePath(seg.repeatStrokes[0].d).map((p) => p[0]);
+      // Spaced, not joined: the repeat's own leftmost point sits well clear of the primary's
+      // own rightmost point (a joined chain would instead touch at a single shared point).
+      expect(Math.min(...repeatXs)).toBeGreaterThan(Math.max(...primaryXs));
+    });
   });
 });

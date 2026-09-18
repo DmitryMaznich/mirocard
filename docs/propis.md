@@ -2493,6 +2493,78 @@ arrows existed), `PrintPageView.jsx` dropped the arrow `<path>`/
 arrows were gone — was deleted outright along with its own tests,
 rather than left as dead code on the theory it might be reused later.
 
+**Repeat copy: one dashed second instance per row, "joined" or "spaced"
+depending on the element (2026-09-18, same day, replacing the arrows with
+what the user actually asked for instead).** The arrows' own removal
+message immediately continued with a different, concrete request: show
+each element's own repeat pattern — some elements (заборчики) chain into
+one continuous unbroken line when written in a row, others (крючки,
+прямая/наклонные lines) repeat with a visible gap between instances. Design
+confirmed via two rounds of `AskUserQuestion` before implementing:
+- Exactly ONE extra repeat per row (not a full tiled row) — enough to show
+  the pattern without turning every row into a dense repeated strip.
+- Classification is per-element, stored as a new `"repeatMode":
+  "joined" | "spaced"` field on each of the 11 objects in
+  `tools/propis/elements.json` (not derived from id/prefix — same
+  reasoning as `isNarrowElement`'s own data-based classifier, see above):
+  `03_zaborchik_ploskie(_uzkaya)` and `04_zaborchik_ostrye(_uzkaya)` are
+  `"joined"`; every other element (`01_pryamaya_liniya`,
+  `02a_naklonnaya_dlinnaya`, `02b_naklonnaya_korotkaya`,
+  `05_kryuchok_vlevo(_uzkaya)`, `06_kryuchok_vpravo(_uzkaya)`) is
+  `"spaced"`.
+- `"joined"`: `wordEngine.js`'s new `buildRepeatStrokes` snaps the repeat
+  copy's own FIRST-stroke start point exactly onto the primary's own
+  LAST-stroke end point (both axes, zero gap) — the same "exact snap"
+  pattern `buildWordTrajectory` already uses for letter-to-letter joins.
+  Verified against all 4 заборчик variants' real captured stroke data
+  before implementing: the Y-mismatch between one copy's own end and the
+  next copy's own start is under 1 native unit for every one of them, so
+  the chain-snap produces a genuinely continuous line with no visible
+  seam — matching "заборчик высокий... должен дать на выходе сплошную
+  ломаную кривую по строке, без пропусков" instead of drawing a second,
+  disconnected copy next to the first.
+- `"spaced"`: the repeat is offset sideways only, by the primary's own
+  real ink width (`samplePath`-measured, not the nominal viewBox box)
+  plus a fixed `REPEAT_GAP_SPACED = 20` native-unit gap, keeping the same
+  vertical anchor (`translateY`) the primary already has — a plain
+  "draw it again over there," not a chain. 20 was picked by inspection
+  against the spaced family's own real ink widths (roughly 10–31 native
+  units across the 7 spaced elements) rather than derived from any one of
+  them, then confirmed visually (see below) to read as a clear, evenly
+  spaced gap rather than crowding the row.
+- `PrintPageView.jsx` renders `seg.repeatStrokes`/`seg.repeatStartPoints`
+  with the same ink color, `strokeDasharray="4 3"` and `opacity={0.5}` —
+  dashed and faded so the repeat reads as "the element again," not a
+  second equally weighted stroke to trace. Like the primary's own start
+  dots, the repeat stays static even while the primary is animating
+  (tap-to-play) — it's a print-page landmark, not part of the pen-motion
+  demo.
+- `seg.width` (used only for the row's own tap-hit-rect) switched from the
+  primary's nominal viewBox-box width to the real ink extent of BOTH
+  copies together (`Math.max` over every sampled X across primary +
+  repeat strokes) — the old box-based width left the repeat poking out
+  past its own row's tap target.
+- Verified geometrically (not just visually) via a throwaway Playwright
+  dev harness rendering `PrintPageView` with all 4 element types (a wide
+  and a narrow заборчик, a крючок, прямая линия) and inspecting the
+  rendered SVG's own `<path d>`/`<circle>` DOM directly: confirmed the
+  "joined" repeat's own first point matches the primary's own last point
+  exactly (both coordinates, to the pixel), confirmed the "spaced" repeat
+  keeps the same Y as the primary and offsets X by ink-width + 20,
+  confirmed dashed paths carry `stroke-dasharray` and dots carry
+  `opacity="0.5"`. Screenshots additionally confirmed no visual seam on
+  the joined pairs and a clear, legible gap on the spaced pairs. Dev
+  harness (`src/dev-elements.jsx` + `dev-elements.html`) and the
+  Playwright scripts were deleted before committing, per this doc's own
+  "Verifying visual changes locally" section below.
+- Because this touches `elements.json` DATA (not just code), any already-
+  installed user only sees `repeatMode` after the propis deck ZIP itself
+  is rebuilt (`tools/propis/build-propis-deck.mjs` merges `elements.json`
+  into the ZIP's own `topic.json` copy) and republished under a bumped
+  `tools/propis/topic.json` version — unlike the arrow-removal fix just
+  above, which was code-only and needed no rebuild (see CLAUDE.md's own
+  "Deck-zip topics load from their downloaded ZIP" section for why).
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
