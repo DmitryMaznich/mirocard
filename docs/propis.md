@@ -2789,6 +2789,56 @@ still renders with no console errors (50 `.rule-slant` lines drawn, page loads c
 122/122 propis tests pass, `npm run build` clean (no test file covers this standalone capture
 tool directly — same as the rest of this session's PrintPageView.jsx work).
 
+**Regression, same day: only the ROW's own first point was snapped to the grid — every
+"spaced" repeat copy needed its own start snapped too.** The user reported (from a real phone
+screenshot of the deployed print preview) that element starts still weren't landing on grid
+lines. First hypothesis (moiré from downsampling the dense grid in the print-preview
+thumbnail) was tested three ways -- normal screen zoom, device-pixel-ratios 1-4, and an actual
+Chromium `page.pdf()` export rasterized at 300 DPI with `pdftoppm` -- and rejected: every one
+rendered the diagonal lines solid, no artifact. The user then stated flatly it wasn't
+rendering, it was a real calculation gap, and confirmed via `AskUserQuestion`: "каждый повтор
+в строке" (every REPEAT in the row) needs its own start on a grid line -- not just the row's
+one already-snapped starting point, which is all the earlier round actually did.
+
+Fix (`wordEngine.js`, `buildRepeatStrokes`'s "spaced" branch): the gap between consecutive
+copies is no longer just `inkWidth + REPEAT_GAP_SPACED` -- it's rounded UP to the nearest
+whole multiple of `TEXT_ROW_ELEMENT_DIAGONAL_SPACING` (the dense grid's own spacing).
+This works with NO page/slot awareness needed in `wordEngine.js` at all, because of a
+property of the grid itself: at any FIXED Y, the dense diagonal grid's own lines recur at
+that exact fixed horizontal period regardless of Y or which page slot you're on (see
+`diagonalLineX`'s own comment in `PrintPageView.jsx` — `X(y) = n*spacing - y*tanAngle +
+shift`, so consecutive `n` differ by exactly `spacing` at any given `y`). Every "spaced" copy
+already shares the exact same Y as the one before it (translateY never changes for spaced
+mode), so shifting by any whole multiple of that period keeps a copy on A grid line as long
+as the row's own first point already is one — which `PrintPageView.jsx`'s own render-time
+snap (previous round) already guarantees. No changes needed there at all.
+
+**"joined" (заборчик) repeats are deliberately NOT included in this fix.** They have no
+start dot of their own to snap in the first place — `startPointsFor` already collapses a
+заборчик's entire row to a single dot, since the whole thing is one continuous stroke with no
+real per-copy "start" (confirmed earlier this same day, "соедини все штрихи"). Forcing
+"joined"'s own `dx` to a grid multiple would also directly undo the seamless-chain fix from
+two rounds ago — that `dx` is fixed to the real captured stroke's own exact advance
+specifically so consecutive copies touch with no visible gap or overlap; rounding it to the
+nearest grid line would reintroduce exactly that seam.
+
+Multi-stroke "spaced" elements (only `01_pryamaya_liniya` — two real separate lines) snap
+only their FIRST stroke's own start per copy, same convention used everywhere else in this
+file for "the" start of a multi-part element (see `startPointsFor`, `buildWordTrajectory`'s
+`mainStrokeIndex`) — the second line's own start keeps whatever fixed offset the real capture
+data gives it, not independently forced onto its own grid line.
+
+Verified: updated the existing "spaced" repeat-chain test to assert the step is a whole
+multiple of `TEXT_ROW_ELEMENT_DIAGONAL_SPACING` (not just close to the old raw ink+gap
+value), 122/122 propis tests pass, `npm run build` clean. Also re-verified via a throwaway
+Playwright render + DOM measurement: for `05_kryuchok_vlevo` (single-stroke), the primary AND
+all 12 repeat copies' own start dots measure `0` perpendicular distance to their nearest
+rendered diagonal line; for `01_pryamaya_liniya` (two-stroke), every copy's own FIRST dot
+measures `0` while the SECOND dot (the genuinely separate second line) consistently measures
+the same fixed ~3.9-unit offset across every copy — confirming the fix, not drift, and
+confirming it correctly scopes to "the" start point per copy rather than every dot. Cleaned
+up before commit. No `elements.json` change, no deck-zip rebuild needed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
