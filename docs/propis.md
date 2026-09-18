@@ -2565,6 +2565,230 @@ confirmed via two rounds of `AskUserQuestion` before implementing:
   above, which was code-only and needed no rebuild (see CLAUDE.md's own
   "Deck-zip topics load from their downloaded ZIP" section for why).
 
+**Scope correction, same day: this whole page is a print-only worksheet target, not an
+on-screen interactive demo — arrows come back, the animation/tap layer goes away
+entirely.** After the repeat-copy feature above shipped, the user reconsidered a further
+"tap an element to animate the whole row" idea (dashed row fills in sequentially as a pen
+animates, settling into solid ink) and rejected it as unneeded complexity for a screen
+interaction — then went a step further: "элементы на экране... это перебор... проще и
+привычнее это делать в тетради" (elements on screen are overkill; simpler and more
+familiar to do this in a physical notebook), i.e. the real product here isn't an on-screen
+lesson at all, it's a **PDF worksheet generator** — "мне нужны нормальные тренировочные
+тетради в пдф формате". Confirmed via two-question `AskUserQuestion` round: (1) the repeat
+copy should fill the ENTIRE row edge to edge, not just one sample copy, and (2) tap-to-
+animate should be removed from element rows completely, not merely made optional.
+
+- **Direction arrows are back**, restored essentially verbatim from the same-day commits
+  that had added then removed them (`e707a11`, `13e73e0`, reverted by `a53efb6`) —
+  `pathGeometry.js`'s `getMidpointTangent` (arc-length midpoint + tangent angle, handles an
+  `M`-only polyline correctly, see its own comment for why `samplePath`-index alone doesn't)
+  and `PrintPageView.jsx`'s `ARROW_COLOR`/`ARROW_LEN`/`ARROW_HALF_W`/`ARROW_PATH` +
+  `ARROW_SIDE_OFFSET` render/position them, one per stroke, offset to the side of the ink.
+  The earlier removal reasoning ("оставляем анимацию... стрелочки просто ненужная инфа")
+  only ever applied to a SCREEN demo where the animation already shows direction — on a
+  printed page, with no animation at all, an arrow is the only way left to indicate stroke
+  direction, so it's no longer redundant.
+- **The single repeat copy became a whole-row chain.** `wordEngine.js`'s
+  `buildRepeatStrokes` (unchanged core: one "joined" exact-snap or "spaced" fixed-gap step)
+  is now wrapped by `buildRepeatChain(strokes, repeatMode, rowWidthUnits)`, which keeps
+  chaining off the PREVIOUS copy (not always the primary) until the next candidate copy's
+  own rightmost ink point would exceed `rowWidthUnits` — filling the row edge to edge with
+  trace-guide copies the same way a real prописи workbook's practice row does, instead of
+  showing just one sample. A `MAX_REPEAT_CHAIN = 200` hard cap guards against a
+  pathological future element whose captured data has near-zero net horizontal advance.
+  `layoutElementLinesIntoRows` now takes a required third `rowWidthUnits` argument (same
+  convention as `layoutTextIntoRows`'s own required row-width parameter) —
+  `PrintPageView.jsx` passes its existing `CONTENT_W_UNITS`. A segment's `repeatChain` is
+  now `[{ strokes, startPoints }, ...]` (one entry per copy), replacing the flat
+  `repeatStrokes`/`repeatStartPoints` pair from the single-repeat design.
+- **Tap-to-animate is gone from element rows, not merely hidden.** `PrintPage` now computes
+  `isElementRow = p.segments.some((seg) => seg.type === "element")` per row and skips BOTH
+  the tap hit-rect (`onToggleActive && !isElementRow`) and the `isActive`/`AnimatedStrokes`
+  branch for that row entirely — an element row always renders static ink (primary solid +
+  arrows + dots, repeat chain dashed + faded), regardless of `activeIndex`. Cursive/text
+  rows are completely unaffected (`isElementRow` is only ever true for `useElements` tasks,
+  which never mix element and cursive segments on the same page). `AnimatedStrokes` is still
+  imported and used for cursive rows; nothing about that mode changed.
+- Verified: 121/121 propis vitest tests (multi-copy chain geometry for both joined/spaced,
+  arrow angle+offset, empty-chain-when-row-too-narrow), `npm run build` clean, and a
+  throwaway Playwright render (DOM-inspected, not just eyeballed: dashed-path count and
+  circle count per row matched the expected `repeatChain.length`, `hasHitRect: false` on
+  every element row) confirming a wide заборчик row produced 14 chained copies and a narrow
+  one 22, both edge-to-edge with no clipped/overflowing tail copy, before cleanup.
+- This round touches only code (arrow restoration reused existing element data,
+  `elements.json` itself unchanged) — no deck-zip rebuild needed, unlike the `repeatMode`
+  round just above.
+
+**Regression, same day: "joined" chains drifted vertically across a full row — fixed by not
+snapping Y at each join.** The user spotted it directly from a rendered page screenshot: both
+заборчик rows visibly sagged downward toward their right edge. Root cause — the "joined"
+step in `buildRepeatStrokes` snapped BOTH axes at every join (matching the next copy's own
+start exactly to the previous copy's own end), and while a single joint's own Y mismatch is
+under 1 native unit for every captured заборчик variant (confirmed earlier when the joined
+design was first built), that per-joint tilt is the SAME sign and magnitude every step, so it
+compounds linearly once `buildRepeatChain` started generating many copies to fill a whole
+row instead of just one. Measured against real elements.json data at a realistic row width
+(~711 units): `03_zaborchik_ploskie` −7.3 units over ~14 copies, `03_zaborchik_ploskie_uzkaya`
++9.5 over ~22, `04_zaborchik_ostrye` **−12.2 over ~29** (a quarter to a third of the row's own
+24–48 unit headroom), `04_zaborchik_ostrye_uzkaya` −5.3 over ~44.
+
+Fix: `buildRepeatStrokes`'s "joined" branch now only computes `dx` (X still snaps exactly, so
+the chain stays gap-free) and drops the `dy` snap entirely — every copy is a pure horizontal
+translate of the one before it, so the whole chain shares EXACTLY the primary's own Y
+positions, however many copies deep. Trade-off: the same sub-1-unit Y mismatch at every
+single joint that was always there and already judged imperceptible on its own — it just no
+longer compounds. This matches the feature's own governing rule (content anchors to the
+row's fixed ruling, never drifts with it) better than the original "exact snap on both axes"
+design did.
+
+Verified: updated the "joined" test to assert zero Y drift across the whole chain (using a
+fixture with a deliberately large, exaggerated per-joint Y mismatch so a regression would
+fail loudly rather than by under a unit) — 121/121 propis tests pass, `npm run build` clean.
+Also re-verified via a throwaway Playwright render + direct DOM measurement of every repeat
+copy's own first-stroke-start Y across both `04_zaborchik_ostrye` (29 copies) and
+`03_zaborchik_ploskie_uzkaya` (22 copies): `maxDeviationFromPrimary: 0` for both, and the
+screenshot confirms both rows now hold level right to the row's own edge. No `elements.json`
+change, so no deck-zip rebuild needed for this fix either.
+
+**Заборчики collapse to ONE start dot, same day.** Reported by the user directly: заборчик
+elements were captured on a phone under a straightedge, so each straight segment forced a
+separate pen-lift on the touchscreen — real captures ended up as 2 or 4 disconnected
+`strokes` even though the actual notebook motion is one continuous zigzag. The general "one
+start dot per captured stroke" rule (correct for a genuinely multi-part element like
+`01_pryamaya_liniya`'s two real separate lines) was applying the same logic here and marking
+"multiple pen-lifts" that were never real — "изза этого весь элемент выглядит неправильно".
+
+Fix: new `startPointsFor(strokes, repeatMode)` in `wordEngine.js` — for `repeatMode ===
+"joined"` (exactly the заборчик family: `03_zaborchik_ploskie(_uzkaya)`,
+`04_zaborchik_ostrye(_uzkaya)`), returns only the first stroke's own start point regardless
+of how many strokes the element actually has; every other (`"spaced"`) element keeps one dot
+per stroke as before. Deliberately keyed off the EXISTING `repeatMode` field rather than a
+new one — "joined" already meant exactly "this element is one continuous motion with no real
+gaps," which is precisely the same condition that makes multiple start dots wrong. Applied to
+both the primary example (`layoutElementLinesIntoRows`) and every copy in the repeat chain
+(`buildRepeatChain`, which now calls the same `startPointsFor` instead of unconditionally
+mapping over every copy's own strokes) — a repeat copy is just a translated clone of the same
+shape, so it had the exact same multi-dot problem. The ink itself (`strokes`,
+`directionArrows`) is untouched — still one `<path>` and one arrow per real captured stroke;
+only the dot count changed, since that's specifically what read as wrong.
+
+Verified: new test asserting a 4-stroke `03_zaborchik_ploskie` fixture produces exactly one
+`startPoints` entry (while its own `strokes` array still has all 4), updated the existing
+joined-chain drift test's own dot assertion to match, 122/122 propis tests pass, `npm run
+build` clean. Also re-verified via a throwaway Playwright render + DOM measurement: a
+4-stroke заборчик row's primary now has exactly 1 dot (down from 4) and each of its 14 chain
+copies has 1 dot too (14 total, not 56), while a genuinely two-line `01_pryamaya_liniya` row
+kept 2 dots on its primary and 2 per repeat copy (28 total across 14 copies) — confirming the
+fix is scoped to "joined" only, not a blanket change. No `elements.json` change, no deck-zip
+rebuild needed.
+
+**Dense diagonal (косая линия) backing for element pages, same day.** The user's ask: "для
+рисования элементов нам нужна подложка с частыми наклонными линиями". The page already draws
+a diagonal slant-guide grid across the whole sheet (`SHEET_DIAGONAL_LINES`,
+`TEXT_ROW_DIAGONAL_SPACING` = 20mm, "стандарт российских школ") — but that spacing is sized
+for cursive letters/words, and most captured elements are well under 120 native units (20mm)
+wide, so a whole крючок or заборчик tooth could sit entirely between two diagonal lines with
+no slant reference crossing it at all.
+
+`propisRuling.js` gets a new `ELEMENT_DIAGONAL_MM = 3` / `TEXT_ROW_ELEMENT_DIAGONAL_SPACING`
+pair — not an invented number: 3mm is this exact codebase's own established "плотная" (dense)
+convention (`scripts/cover_tetrad.py`'s `diag_step = 3 * MM if style == "плотная" else
+7 * MM`), the same value `scripts/propis_worksheets/propis_ruling.py` considered and
+explicitly rejected for the ordinary letter/word pages ("dense diagonal lines are visual
+noise for this notebook's actual purpose — letter/word shape and connection, not slant
+drilling") — a rejection that doesn't apply here, since slant drilling IS the whole point of
+"Элементы букв" (крючки/заборчики/наклонные ARE the slant-practice exercise).
+`PrintPageView.jsx` precomputes a second `SHEET_DIAGONAL_LINES_DENSE` line set at this
+spacing; `PrintPage` now takes a `useElements` prop and picks between the two sets, passed
+through from both call sites (the single interactive page and the full print-all stack).
+Only the diagonal backing differs — the horizontal row grid stays exactly shared between
+element and text pages, per this file's own standing rule just above.
+
+Verified via a throwaway Playwright render comparing an elements-page vs. a text-page at the
+same viewport: 495 diagonal lines on the elements page vs. 75 on the text page (~6.6x, close
+to the 20mm/3mm ≈ 6.67x ratio expected), and visually confirmed the elements page's diagonal
+hatching reads noticeably denser while the text page is unchanged. 122/122 propis tests pass
+(no test file covers `PrintPageView.jsx` directly — it's Playwright-verified only, same as
+every other round in this section), `npm run build` clean. No `elements.json` change, no
+deck-zip rebuild needed.
+
+**Each element's start point snaps onto the dense diagonal grid, same day.** The user's
+follow-up on the grid above: "эта сетка дает нам четкий ориентир по планированию расстояния
+между элементами то есть каждый элемент должен быть так или иначе привязан к сетке и точка
+должна находиться на какой-то из линий точка начала всегда" -- the dense diagonal backing
+isn't just decoration once real elements sit on the page, it's the spacing reference a child
+(or a parent copying the page by hand) uses to judge how far apart to draw each element, so
+every element's own start point needs to land exactly on one of those lines, not float at an
+arbitrary X.
+
+This genuinely has to happen at RENDER time in `PrintPageView.jsx`, not in
+`wordEngine.js`'s `layoutElementLinesIntoRows` -- the diagonal grid's phase depends on which
+physical page slot (left/right half of the A4 sheet, `diagonalShiftX`) a row ends up on,
+which `layoutElementLinesIntoRows` has no way to know (pagination/slot assignment happens
+later, in `paginateRows` and `PrintPageView`'s own render). Added two small trig helpers:
+`diagonalLineX(n, y, spacingUnits, diagonalShiftX)` (the exact inverse of
+`buildDiagonalLines`' own x1/x2 construction -- line `n`'s real X at any page-absolute Y) and
+`nearestDiagonalX(x, y, spacingUnits, diagonalShiftX)` (rounds to the nearest line index `n`,
+then returns that line's own real X). Per element row, `PrintPage` now computes the delta
+between the primary's own first start point (`seg.startPoints[0]`, in page-absolute
+coordinates -- `rowOriginY(p.rowIndex) + localY`, `contentXUnits + p.x + localX`) and its
+nearest diagonal line, and adds that delta to the row's own wrapping `<g>` transform -- a
+single rigid shift of the WHOLE row (primary + every `buildRepeatChain` copy, since they all
+render inside that same group), not a change to any of the element's own internal geometry
+(chain spacing/joining is untouched, only where the row as a whole sits on the page).
+
+Applies to every element regardless of `repeatMode` -- even a multi-dot "spaced" element
+(e.g. `01_pryamaya_liniya`'s two real separate lines) snaps by its FIRST stroke's own start
+point, which is the one dot that represents "the" element's own anchor, consistent with the
+user's own "точка начала всегда" (singular).
+
+Known, accepted imprecision: the snap can shift a row by up to half the dense spacing (3mm/2
+≈ 9 native units) in either direction, so a repeat chain sized against the row's own
+UNSHIFTED width (`buildRepeatChain`'s own `rowWidthUnits` check) could in principle have its
+last copy poke a few units past the printable edge after the whole row shifts right. Not
+fixed this round -- the maximum possible overshoot is small relative to the print margin, and
+re-deriving `buildRepeatChain`'s own stopping width per-row to account for the snap shift
+would need wordEngine.js to know about page/slot geometry too, reopening the same
+architecture question this comment starts with.
+
+Verified via a throwaway Playwright render + DOM measurement (not just eyeballed): for 4
+element rows on the same page, computed the perpendicular distance from each row's own start
+dot to its nearest rendered diagonal `<line>` directly from the SVG DOM -- `0` for all 4 (down
+to floating-point precision), confirming every start point sits exactly on a grid line rather
+than merely near one. 122/122 propis tests pass, `npm run build` clean. No `elements.json`
+change, no deck-zip rebuild needed.
+
+**Мастерская траекторий's own diagonal grid retuned to a clean multiple of the print page's,
+same day.** The user's follow-up question: does the capture tool's own diagonal spacing
+(`tools/letter_capture/handwriting_capture.html`'s `drawRuling()`, used to trace element
+strokes on a phone under a straightedge) line up with the print page's dense element grid,
+beyond just sharing the same 65° angle? It didn't — capture tool `SPACING = 8` native units
+(1.333mm) vs. the print page's `ELEMENT_DIAGONAL_MM = 3mm` (18 native units), a ratio of
+18/8 = 2.25, not a whole multiple. The two grids' lines would only ever periodically coincide
+at their (8×9 = 18×4 =) 72-unit LCM, not on every interval — an artist aiming a captured
+stroke at the capture tool's own diagonal reference wouldn't see that same alignment hold once
+the stroke renders on the print page's differently-paced grid.
+
+The 3mm print spacing is a fixed, previously-confirmed norm (not something to change here —
+see the round above), so the fix goes the other way: `SPACING` in the capture tool changed
+from 8 to **9** native units (1.5mm) — the closest clean divisor of 18 (2×9=18), i.e. exactly
+2 capture-tool intervals per 1 print-page interval, with the smallest possible change from the
+existing value. `SPACING` is shared between the tool's thin (65°) AND bold (50°, connector)
+diagonal grids (both anchor off the same x0 step, by original design — see drawRuling's own
+comment), and the tool itself is shared between letter and element capture, so this also
+subtly retunes the reference grid an artist sees while capturing ordinary letters, not just
+elements — confirmed acceptable with the user before changing it.
+
+`tools/letter_capture/handwriting_capture.html` is the SOURCE; `public/letter_capture.html`
+is a gitignored, build-generated copy (`scripts/sync-capture-tool.mjs`, runs as part of
+`npm run build`'s `prebuild` step) — only the source file needed editing/committing.
+
+Verified: ran the sync script directly and confirmed the copy picked up `SPACING = 9`, then a
+throwaway Playwright load of the built `public/letter_capture.html` confirming the ruling
+still renders with no console errors (50 `.rule-slant` lines drawn, page loads cleanly).
+122/122 propis tests pass, `npm run build` clean (no test file covers this standalone capture
+tool directly — same as the rest of this session's PrintPageView.jsx work).
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

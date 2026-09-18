@@ -1,4 +1,4 @@
-import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent } from "./pathGeometry.js";
 import { GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET } from "./propisRuling.js";
 
 // Points within this margin of a letter's closest approach to the baseline are treated as
@@ -791,37 +791,61 @@ function isNarrowElement(element) {
   return maxY > (NATIVE_L2 + NATIVE_L3) / 2;
 }
 
-// Fixed horizontal gap (native units) between the primary element and its "spaced" repeat --
-// see buildRepeatStrokes below. Not derived from any per-element measurement (real captured
-// ink widths for the spaced family range ~10-31 units, see elements.json) -- a constant gap
-// reads consistently across all of them, matching how a real prописи workbook spaces repeated
-// hooks/lines evenly rather than scaling the gap to each glyph's own width.
+// How far a direction arrow sits off to the side of the stroke it marks (native units) --
+// clears the 2-unit-wide ink plus a little breathing room, without wandering far enough to
+// read as unrelated to the line next to it.
+const ARROW_SIDE_OFFSET = 6;
+
+// Fixed horizontal gap (native units) between consecutive "spaced" copies of an element --
+// see buildRepeatStrokes/buildRepeatChain below. Not derived from any per-element
+// measurement (real captured ink widths for the spaced family range ~10-31 units, see
+// elements.json) -- a constant gap reads consistently across all of them, matching how a
+// real prописи workbook spaces repeated hooks/lines evenly rather than scaling the gap to
+// each glyph's own width.
 const REPEAT_GAP_SPACED = 20;
 
-// One extra "repeat" copy of an element's own strokes, placed next to the primary copy so a
-// row shows two of the same element the way a real prописи workbook does (2026-09-18,
-// replaces the removed direction-arrow feature -- see its own comment below for context).
-// `repeatMode` (elements.json, confirmed per-element with the user) picks how the two copies
-// relate:
-//  - "joined" (заборчики, 03/04 + their _uzkaya variants): the repeat's own FIRST-stroke start
-//    point snaps exactly onto the primary's own LAST-stroke end point -- both axes, no gap --
-//    the same "exact snap" pattern buildWordTrajectory already uses for letter-to-letter joins
-//    (see its own top-of-file comment). Confirmed against all 4 variants' real captured stroke
-//    data: the Y-mismatch between one copy's own end and the next copy's own start is under 1
-//    native unit for every one of them, so this produces a genuinely continuous, seamless line
-//    -- matching the user's own description ("заборчик высокий... должен дать на выходе
-//    сплошную ломаную кривую по строке, без пропусков").
-//  - "spaced" (everything else -- прямая/наклонные lines, крючки): the repeat is offset
-//    sideways only, by the primary's own real ink width plus REPEAT_GAP_SPACED, keeping the
-//    same vertical anchor (translateY) the primary already has -- a plain "draw it again over
-//    there" copy, not a chain.
+// Hard ceiling on how many copies buildRepeatChain will ever generate for one row, regardless
+// of how wide rowWidthUnits is -- a safety net against a future element whose own captured
+// data has near-zero net horizontal advance (a data-entry mistake, not a real element), which
+// would otherwise make the row-filling loop below add many thousands of copies before its own
+// width check ever catches up.
+const MAX_REPEAT_CHAIN = 200;
+
+// One additional copy of an element's own strokes, placed immediately after `strokes` --
+// `repeatMode` (elements.json, confirmed per-element with the user) picks how the two relate:
+//  - "joined" (заборчики, 03/04 + their _uzkaya variants): the copy's own FIRST-stroke start
+//    point snaps onto `strokes`' own LAST-stroke end point on the X axis -- the same "exact
+//    snap" pattern buildWordTrajectory already uses for letter-to-letter joins (see its own
+//    top-of-file comment). The Y axis is deliberately NOT snapped the same way -- see the
+//    "no vertical drift" note below, added 2026-09-18 after the user spotted a real row
+//    visibly sagging across its own width.
+//  - "spaced" (everything else -- прямая/наклонные lines, крючки): the copy is offset
+//    sideways only, by `strokes`' own real ink width plus REPEAT_GAP_SPACED, keeping the
+//    same vertical anchor (translateY) `strokes` already has -- a plain "draw it again over
+//    there" copy, not a chain. Every copy is an identical shape (only translated), so its own
+//    ink width is the same regardless of which link in the chain `strokes` actually is.
+//
+// No vertical drift across a chain (2026-09-18): an early version of "joined" also snapped Y
+// -- `dy = lastEnd[1] - firstStart[1]`, matched to the previous copy's real endpoint exactly,
+// same idea as X. A single joint's own dy is under 1 native unit for every captured заборчик
+// variant (confirmed against real elements.json data), imperceptible on its own -- but once
+// buildRepeatChain below started chaining MANY copies to fill a whole printed row (not just
+// one), that same small per-joint dy compounds every step, since each copy carries the same
+// tilt as the one before it. Confirmed on real data: 04_zaborchik_ostrye's own dy=-0.42/step
+// over the ~29 copies a real row fits adds up to -12 native units -- roughly a quarter to a
+// third of the row's own headroom (24-48 units) -- visibly sagging the whole row downward by
+// its right edge (reported by the user from a rendered page). Forcing dy=0 keeps every copy
+// on EXACTLY the same horizontal level as the row's own primary example -- consistent with
+// this whole feature's governing rule that content anchors to the row's fixed ruling, never
+// drifts with it (see layoutElementLinesIntoRows' own top comment) -- at the cost of the same
+// sub-1-unit Y mismatch at every single joint that was already judged imperceptible before
+// this fix, just no longer compounding across the row.
 function buildRepeatStrokes(strokes, repeatMode) {
   if (repeatMode === "joined") {
     const firstStart = getPathEndpoints(strokes[0].d).start;
     const lastEnd = getPathEndpoints(strokes[strokes.length - 1].d).end;
     const dx = lastEnd[0] - firstStart[0];
-    const dy = lastEnd[1] - firstStart[1];
-    return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx, translateY: dy }) }));
+    return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
   }
   const xs = strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]));
   const inkWidth = Math.max(...xs) - Math.min(...xs);
@@ -829,12 +853,52 @@ function buildRepeatStrokes(strokes, repeatMode) {
   return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
 }
 
+// How many "put the pen here" start-dot landmarks a given set of strokes gets (2026-09-18,
+// "соедини все штрихи одного элемента чтобы осталась одна точка начала"): "joined" elements
+// (заборчики) are captured as several separate strokes purely because they were hand-drawn on
+// a phone screen under a straightedge -- lining up a ruler for each straight segment forces a
+// pen-lift between them -- not because the real notebook motion has multiple starts. A real
+// заборчик is one continuous zigzag with a single "put the pen here", so marking every
+// captured stroke's own start (the general rule for genuinely multi-part elements, e.g.
+// 01_pryamaya_liniya's two real separate lines) misrepresented it as several disconnected
+// pen-lifts. Every "joined" element collapses to just its first stroke's own start; every
+// "spaced" element keeps one dot per stroke as before (01_pryamaya_liniya's two lines are a
+// real multi-part element and still need both marked).
+function startPointsFor(strokes, repeatMode) {
+  if (repeatMode === "joined") return [getPathEndpoints(strokes[0].d).start];
+  return strokes.map((s) => getPathEndpoints(s.d).start);
+}
+
+// A whole row's worth of repeat copies -- 2026-09-18, replacing the earlier "exactly one
+// repeat" design after the user decided the real target is a PRINTABLE practice sheet, not an
+// on-screen animated demo: a printed row needs the same trace-guide pattern a real prописи
+// workbook prints, filled edge to edge, not a single sample copy. Chains buildRepeatStrokes
+// repeatedly off of the PREVIOUS copy (not always off the primary) -- for "joined" that's the
+// whole point (each new copy continues from where the last one's ink actually ended); for
+// "spaced" it's equivalent anyway since every copy has the same ink width. Stops as soon as
+// the next candidate copy's own rightmost ink point would fall outside `rowWidthUnits` --
+// never emits a copy that would render clipped or spilling past the row's own printable width.
+function buildRepeatChain(strokes, repeatMode, rowWidthUnits) {
+  const chain = [];
+  let current = strokes;
+  while (chain.length < MAX_REPEAT_CHAIN) {
+    const next = buildRepeatStrokes(current, repeatMode);
+    const nextMaxX = Math.max(...next.flatMap((s) => samplePath(s.d).map((p) => p[0])));
+    if (nextMaxX > rowWidthUnits) break;
+    chain.push({ strokes: next, startPoints: startPointsFor(next, repeatMode) });
+    current = next;
+  }
+  return chain;
+}
+
 // read_lines' "Элементы букв" option: one element per row on the SAME dense grid
 // layoutTextIntoRows uses (rowIndex=i), at its real captured scale unless that scale would
 // overrun the row's own real headroom (WIDE_HEADROOM/NARROW_HEADROOM above), in which case
 // it's shrunk just enough to fit. PrintPageView.jsx's ordinary
 // paginateRows/PRINT_ROWS_PER_PAGE/ruling apply unchanged, no element-specific case at all.
-export function layoutElementLinesIntoRows(lines, elementsByLabel) {
+// `rowWidthUnits` (required, same convention as layoutTextIntoRows) bounds buildRepeatChain --
+// see its own comment.
+export function layoutElementLinesIntoRows(lines, elementsByLabel, rowWidthUnits) {
   const placed = lines.map((elementId, i) => {
     const rowIndex = i;
     const element = elementsByLabel.get(elementId);
@@ -854,19 +918,40 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel) {
     const strokes = element.strokes.map((s) => ({
       d: transformPathD(s.d, { scaleX: scale, scaleY: scale, translateY }),
     }));
-    // One start dot per stroke, not just the first -- a multi-stroke element (e.g.
-    // 01_pryamaya_liniya's two separate lines, 03_zaborchik_ploskie's four) is drawn as
-    // several disconnected pen-lifts, each with its own "put the pen here" landmark, same
-    // as a real prописи workbook marks every separate stroke's own start.
-    const startPoints = strokes.map((s) => getPathEndpoints(s.d).start);
-    const repeatStrokes = buildRepeatStrokes(strokes, element.repeatMode ?? "spaced");
-    const repeatStartPoints = repeatStrokes.map((s) => getPathEndpoints(s.d).start);
-    // Hit-rect width covers both copies' real ink, not just the primary's own box -- a raw
-    // viewBox-based width (the pre-repeat design) left the repeat copy poking out past the
-    // row's own tap target.
-    const allXs = [...strokes, ...repeatStrokes].flatMap((s) => samplePath(s.d).map((p) => p[0]));
+    const repeatMode = element.repeatMode ?? "spaced";
+    // See startPointsFor's own comment: "joined" elements (заборчики) collapse to a single
+    // start dot -- their multiple captured strokes are a hand-capture artifact (drawn under a
+    // straightedge on a phone, forcing a pen-lift per segment), not a real multi-part motion.
+    const startPoints = startPointsFor(strokes, repeatMode);
+    // One small direction arrow per stroke too, at its own midpoint (never the start
+    // point, so it never sits on top of the start dot) -- shows which way the pen moves,
+    // per the user's explicit ask (2026-09-18): "маленькие красные стрелочки по
+    // направлению написания", restored the same day after a brief removal once the user
+    // clarified this page is a printed worksheet (no on-screen animation to show direction
+    // instead) -- on paper, an arrow is the only way to indicate stroke direction at all.
+    // Offset to one side of the stroke (not sitting directly on top of the ink): shifted
+    // perpendicular to the travel direction by ARROW_SIDE_OFFSET, always to the SAME
+    // relative side (a deterministic function of the angle, not left-or-right at random),
+    // so it reads as a consistent convention across every stroke.
+    const directionArrows = strokes.map((s) => {
+      const tangent = getMidpointTangent(s.d);
+      if (!tangent) return null;
+      const rad = (tangent.angleDeg * Math.PI) / 180;
+      const point = [
+        tangent.point[0] + Math.sin(rad) * ARROW_SIDE_OFFSET,
+        tangent.point[1] - Math.cos(rad) * ARROW_SIDE_OFFSET,
+      ];
+      return { point, angleDeg: tangent.angleDeg };
+    });
+    const repeatChain = buildRepeatChain(strokes, repeatMode, rowWidthUnits);
+    // Row's own total ink extent (primary + every repeat copy) -- kept on the segment for
+    // any caller that wants it (e.g. debugging/measurement); no longer drives a tap-hit-rect
+    // since element rows are no longer interactive (2026-09-18, print-only worksheet target).
+    const allXs = [strokes, ...repeatChain.map((c) => c.strokes)]
+      .flat()
+      .flatMap((s) => samplePath(s.d).map((p) => p[0]));
     const width = Math.max(...allXs);
-    const segment = { type: "element", xOffset: 0, strokes, width, startPoints, repeatStrokes, repeatStartPoints };
+    const segment = { type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain };
     return { word: elementId, rowIndex, x: 0, segments: [segment] };
   });
   const rowCount = Math.max(lines.length, 1);

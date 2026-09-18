@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getPathEndpoints, transformPathD, samplePath, findClosestApproach } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent } from "./pathGeometry.js";
 
 // Real captured stroke, first M-only-then-C path from tools/propis/topic.json ("Б", stroke 0)
 const REAL_STROKE_D =
@@ -126,5 +126,28 @@ describe("findClosestApproach", () => {
     ];
     const result = findClosestApproach(points, 88, 1.5);
     expect(result.last).toEqual([18, 86.4]);
+  });
+});
+
+describe("getMidpointTangent", () => {
+  it("finds the midpoint and its rightward direction for a horizontal line", () => {
+    const result = getMidpointTangent("M 0 10 20 10");
+    expect(result.point[0]).toBeCloseTo(10, 1);
+    expect(result.point[1]).toBeCloseTo(10, 1);
+    expect(result.angleDeg).toBeCloseTo(0, 0);
+  });
+
+  it("finds a downward-pointing direction for a vertical line", () => {
+    const result = getMidpointTangent("M 5 0 5 20");
+    expect(result.angleDeg).toBeCloseTo(90, 0);
+  });
+
+  it("finds an upward-pointing direction when the stroke travels bottom to top", () => {
+    const result = getMidpointTangent("M 5 20 5 0");
+    expect(result.angleDeg).toBeCloseTo(-90, 0);
+  });
+
+  it("returns null for a degenerate single-point stroke", () => {
+    expect(getMidpointTangent("M 5 5")).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { transformPathD, getPathEndpoints, samplePath } from "./pathGeometry.js";
+import { transformPathD, getPathEndpoints, samplePath, getMidpointTangent } from "./pathGeometry.js";
 import {
   classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory,
   layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows,
@@ -867,6 +867,10 @@ describe("buildWordTrajectory — dual-nature letter (о) connection variants", 
 describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" option)", () => {
   const WIDE_TARGET_LINE = NATIVE_L3 - 24; // TEXT_ROW_THIN_OFFSET
   const NARROW_TARGET_LINE = NATIVE_L3;
+  // Generous width for tests that don't care how many repeats fill the row (real
+  // CONTENT_W_UNITS is ~711) -- just needs to be wide enough that at least one repeat exists
+  // wherever a test asserts on `repeatChain[0]`.
+  const ROW_WIDTH = 700;
 
   const WIDE_ELEMENT = {
     id: "05_kryuchok_vlevo", labelRu: "Крючок влево", viewBox: "0 0 28 150",
@@ -879,7 +883,7 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
   const elementsByLabel = new Map([[WIDE_ELEMENT.id, WIDE_ELEMENT], [NARROW_ELEMENT.id, NARROW_ELEMENT]]);
 
   it("places a single wide-family element on the ordinary text-row grid (rowIndex=i), real captured scale, anchored onto the row's own thin line", () => {
-    const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel);
+    const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel, ROW_WIDTH);
     expect(placed).toHaveLength(1);
     expect(placed[0].rowIndex).toBe(0);
     expect(placed[0].segments).toHaveLength(1);
@@ -889,17 +893,7 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     expect(seg.type).toBe("element");
     expect(seg.xOffset).toBe(0);
     expect(seg.strokes).toEqual([{ d: expectedD }]);
-    // width now covers both the primary AND its repeat copy's real ink (see
-    // buildRepeatStrokes) -- no repeatMode on this fixture defaults to "spaced": the repeat
-    // sits to the right, offset by the primary's own ink width plus the fixed gap.
-    const primaryXs = samplePath(expectedD).map((p) => p[0]);
-    const inkWidth = Math.max(...primaryXs) - Math.min(...primaryXs);
-    const expectedRepeatD = transformPathD(expectedD, { translateX: inkWidth + 20 });
-    const expectedWidth = Math.max(...samplePath(expectedRepeatD).map((p) => p[0]));
-    expect(seg.width).toBeCloseTo(expectedWidth, 3);
     expect(seg.startPoints).toEqual([getPathEndpoints(expectedD).start]);
-    expect(seg.repeatStrokes).toEqual([{ d: expectedRepeatD }]);
-    expect(seg.repeatStartPoints).toEqual([getPathEndpoints(expectedRepeatD).start]);
     // Anchored: the element's own lowest point lands exactly on the row's thin line.
     const maxY = Math.max(...samplePath(expectedD).map((p) => p[1]));
     expect(maxY).toBeCloseTo(WIDE_TARGET_LINE, 3);
@@ -911,15 +905,53 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
       strokes: [{ d: "M 5.1 9.9 34.1 9.8" }, { d: "M 4.8 61.6 C 5.4 61.8 25.6 62.1 35.0 62.1" }],
     };
     const byLabel = new Map([[TWO_STROKE_ELEMENT.id, TWO_STROKE_ELEMENT]]);
-    const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel);
+    const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel, ROW_WIDTH);
     const [seg] = placed[0].segments;
     expect(seg.startPoints).toHaveLength(2);
     expect(seg.startPoints[0]).toEqual(getPathEndpoints(seg.strokes[0].d).start);
     expect(seg.startPoints[1]).toEqual(getPathEndpoints(seg.strokes[1].d).start);
   });
 
+  it("collapses a 'joined' element's several captured strokes down to a SINGLE start dot (2026-09-18, \"соедини все штрихи одного элемента чтобы осталась одна точка начала\") -- заборчик's multiple strokes are a hand-capture artifact (drawn under a straightedge on a phone, forcing a pen-lift per segment), not a real multi-part motion the way 01_pryamaya_liniya's two genuinely separate lines are", () => {
+    const FOUR_STROKE_JOINED_ELEMENT = {
+      id: "03_zaborchik_ploskie", labelRu: "Заборчик плоские", viewBox: "0 0 80 150",
+      repeatMode: "joined",
+      strokes: [
+        { d: "M 27.740 11.080 5.170 59.790" },
+        { d: "M 4.000 61.590 29.150 61.290" },
+        { d: "M 29.120 60.430 C 29.500 59.310 27.670 62.890 30.260 57.080 C 32.860 51.270 41.070 33.190 44.680 25.570 C 48.290 17.950 49.510 16.110 51.930 11.380" },
+        { d: "M 53.030 10.250 75.610 10.560" },
+      ],
+    };
+    const byLabel = new Map([[FOUR_STROKE_JOINED_ELEMENT.id, FOUR_STROKE_JOINED_ELEMENT]]);
+    const { placed } = layoutElementLinesIntoRows(["03_zaborchik_ploskie"], byLabel, ROW_WIDTH);
+    const [seg] = placed[0].segments;
+    expect(seg.strokes).toHaveLength(4); // the ink itself is untouched, still 4 strokes
+    expect(seg.startPoints).toEqual([getPathEndpoints(seg.strokes[0].d).start]); // one dot
+  });
+
+  it("gives every stroke a direction arrow, offset to the side of the stroke's own midpoint (not sitting on top of the ink), matching getMidpointTangent applied to the already-anchored/scaled stroke", () => {
+    const ARROW_SIDE_OFFSET = 6;
+    const TWO_STROKE_ELEMENT = {
+      id: "01_pryamaya_liniya", labelRu: "Прямая линия", viewBox: "0 0 40 150",
+      strokes: [{ d: "M 5.1 9.9 34.1 9.8" }, { d: "M 4.8 61.6 C 5.4 61.8 25.6 62.1 35.0 62.1" }],
+    };
+    const byLabel = new Map([[TWO_STROKE_ELEMENT.id, TWO_STROKE_ELEMENT]]);
+    const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel, ROW_WIDTH);
+    const [seg] = placed[0].segments;
+    expect(seg.directionArrows).toHaveLength(2);
+    seg.directionArrows.forEach((arrow, i) => {
+      expect(arrow).not.toBeNull();
+      const expected = getMidpointTangent(seg.strokes[i].d);
+      expect(arrow.angleDeg).toBeCloseTo(expected.angleDeg, 6);
+      // Offset perpendicular to the travel direction, not equal to the raw midpoint.
+      const dist = Math.hypot(arrow.point[0] - expected.point[0], arrow.point[1] - expected.point[1]);
+      expect(dist).toBeCloseTo(ARROW_SIDE_OFFSET, 3);
+    });
+  });
+
   it("anchors a '_uzkaya' element onto the row's own bold baseline instead", () => {
-    const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo_uzkaya"], elementsByLabel);
+    const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo_uzkaya"], elementsByLabel, ROW_WIDTH);
     const [seg] = placed[0].segments;
     const maxY = Math.max(...samplePath(seg.strokes[0].d).map((p) => p[1]));
     expect(maxY).toBeCloseTo(NARROW_TARGET_LINE, 3);
@@ -932,7 +964,7 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
       strokes: [{ d: "M 5.1 9.9 34.1 9.8" }, { d: "M 4.8 61.6 C 5.4 61.8 25.6 62.1 35.0 62.1" }],
     };
     const byLabel = new Map([[TOO_TALL_WIDE_ELEMENT.id, TOO_TALL_WIDE_ELEMENT]]);
-    const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel);
+    const { placed } = layoutElementLinesIntoRows(["01_pryamaya_liniya"], byLabel, ROW_WIDTH);
     const ys = placed[0].segments[0].strokes.flatMap((s) => samplePath(s.d).map((p) => p[1]));
     const minY = Math.min(...ys);
     const maxY = Math.max(...ys);
@@ -944,7 +976,7 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
 
   it("does NOT shrink a wide element whose real height already fits the row's headroom -- never scales an already-fitting element up or down", () => {
     // WIDE_ELEMENT's own real span is ~43.7 (17.4 to 61.1), under the 48-unit budget.
-    const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel);
+    const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel, ROW_WIDTH);
     const expectedD = transformPathD(WIDE_ELEMENT.strokes[0].d, {
       translateY: WIDE_TARGET_LINE - Math.max(...samplePath(WIDE_ELEMENT.strokes[0].d).map((p) => p[1])),
     });
@@ -954,7 +986,8 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
   it("assigns one ordinary row per element (rowIndex 0, 1, 2, ...) -- the same dense grid layoutTextIntoRows uses, no bespoke element pagination", () => {
     const { placed, rowCount } = layoutElementLinesIntoRows(
       ["05_kryuchok_vlevo", "05_kryuchok_vlevo", "05_kryuchok_vlevo"],
-      elementsByLabel
+      elementsByLabel,
+      ROW_WIDTH
     );
     expect(placed.map((p) => p.rowIndex)).toEqual([0, 1, 2]);
     expect(rowCount).toBe(3);
@@ -975,7 +1008,8 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
     ]);
     const { placed } = layoutElementLinesIntoRows(
       ["01_pryamaya_liniya", "03_zaborchik_ploskie_uzkaya"],
-      byLabel
+      byLabel,
+      ROW_WIDTH
     );
     const maxYOf = (p) => Math.max(...p.segments[0].strokes.flatMap((s) => samplePath(s.d).map((pt) => pt[1])));
     expect(maxYOf(placed[0])).toBeCloseTo(WIDE_TARGET_LINE, 1);
@@ -988,67 +1022,108 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
       strokes: [{ d: "M 14.780 63.120 4.000 86.190" }],
     };
     const byLabel = new Map([[KOROTKAYA_ELEMENT.id, KOROTKAYA_ELEMENT]]);
-    const { placed } = layoutElementLinesIntoRows(["02b_naklonnaya_korotkaya"], byLabel);
+    const { placed } = layoutElementLinesIntoRows(["02b_naklonnaya_korotkaya"], byLabel, ROW_WIDTH);
     const maxY = Math.max(...samplePath(placed[0].segments[0].strokes[0].d).map((p) => p[1]));
     expect(maxY).toBeCloseTo(NARROW_TARGET_LINE, 1);
   });
 
   it("renders an empty row (not a crash) for an id with no matching captured element", () => {
-    const { placed } = layoutElementLinesIntoRows(["99_not_captured_yet"], elementsByLabel);
+    const { placed } = layoutElementLinesIntoRows(["99_not_captured_yet"], elementsByLabel, ROW_WIDTH);
     expect(placed).toEqual([{ word: "99_not_captured_yet", rowIndex: 0, x: 0, segments: [] }]);
   });
 
-  describe("repeat copy (2026-09-18, replaces the removed direction-arrow feature)", () => {
-    it("'joined' repeatMode: the repeat's own first-stroke start snaps exactly onto the primary's own last-stroke end -- no gap, a continuous chain (заборчик family)", () => {
-      // Real elements.json shape for 03_zaborchik_ploskie_uzkaya: two disconnected strokes.
+  describe("repeat chain (2026-09-18, fills the whole printed row for tracing, not just a single sample repeat)", () => {
+    it("'joined' repeatMode: each copy's own first-stroke start snaps onto the PREVIOUS copy's own last-stroke end on X -- but Y stays level with the primary (no snap), so a long chain never drifts (2026-09-18, regression: a real row of 04_zaborchik_ostrye visibly sagged ~12 native units by its right edge before this fix)", () => {
+      // Real elements.json shape for 03_zaborchik_ploskie_uzkaya: two disconnected strokes,
+      // with a deliberately large Y mismatch between stroke0's own start and stroke1's own
+      // end (60.3 -> 87.5) -- exaggerated vs. the real capture's sub-1-unit tilt, specifically
+      // so an accidental Y-snap regression would fail this test loudly instead of by <1 unit.
       const JOINED_ELEMENT = {
         id: "03_zaborchik_ploskie_uzkaya", labelRu: "Заборчик (узкая)", viewBox: "0 0 53 150",
         repeatMode: "joined",
         strokes: [{ d: "M 4.0 60.3 28.5 61.0" }, { d: "M 28.7 86.8 48.1 87.5" }],
       };
       const byLabel = new Map([[JOINED_ELEMENT.id, JOINED_ELEMENT]]);
-      const { placed } = layoutElementLinesIntoRows(["03_zaborchik_ploskie_uzkaya"], byLabel);
+      const { placed } = layoutElementLinesIntoRows(["03_zaborchik_ploskie_uzkaya"], byLabel, ROW_WIDTH);
       const [seg] = placed[0].segments;
-      const primaryLastEnd = getPathEndpoints(seg.strokes[seg.strokes.length - 1].d).end;
-      const repeatFirstStart = getPathEndpoints(seg.repeatStrokes[0].d).start;
-      expect(repeatFirstStart).toEqual(primaryLastEnd);
-      // Every repeat stroke carries the SAME chain offset -- the whole shape moves together,
-      // not just its first stroke.
-      expect(seg.repeatStrokes).toHaveLength(seg.strokes.length);
-      const dx = repeatFirstStart[0] - getPathEndpoints(seg.strokes[0].d).start[0];
-      const dy = repeatFirstStart[1] - getPathEndpoints(seg.strokes[0].d).start[1];
-      const expectedSecondRepeat = transformPathD(seg.strokes[1].d, { translateX: dx, translateY: dy });
-      expect(seg.repeatStrokes[1].d).toBe(expectedSecondRepeat);
+      // A ~44-unit-wide element chained across a 700-unit row produces several copies.
+      expect(seg.repeatChain.length).toBeGreaterThan(2);
+      const primaryFirstStart = getPathEndpoints(seg.strokes[0].d).start;
+      let prevStrokes = seg.strokes;
+      for (const copy of seg.repeatChain) {
+        const prevLastEnd = getPathEndpoints(prevStrokes[prevStrokes.length - 1].d).end;
+        const copyFirstStart = getPathEndpoints(copy.strokes[0].d).start;
+        // X still snaps exactly, so the chain has no horizontal gap.
+        expect(copyFirstStart[0]).toBeCloseTo(prevLastEnd[0], 6);
+        // Y does NOT snap to the previous copy's own end -- every copy's own first-stroke
+        // start stays on the SAME level as the row's primary example, however many copies
+        // deep the chain is, so no per-joint tilt ever compounds across the row.
+        expect(copyFirstStart[1]).toBeCloseTo(primaryFirstStart[1], 6);
+        expect(copy.strokes).toHaveLength(prevStrokes.length);
+        // "joined" collapses to a single start dot per copy (see startPointsFor) -- the
+        // element's several captured strokes are a hand-capture artifact (drawn under a
+        // straightedge, forcing a pen-lift per segment), not a real multi-part motion.
+        expect(copy.startPoints).toEqual([getPathEndpoints(copy.strokes[0].d).start]);
+        prevStrokes = copy.strokes;
+      }
     });
 
-    it("'spaced' repeatMode: the repeat is offset sideways only (same translateY as primary), by the primary's own real ink width plus the fixed gap (крючки, прямая/наклонные lines)", () => {
+    it("'spaced' repeatMode: each copy is offset sideways only (same translateY as the previous one), by the element's own real ink width plus the fixed gap (крючки, прямая/наклонные lines)", () => {
       const SPACED_ELEMENT = {
         id: "05_kryuchok_vlevo", labelRu: "Крючок влево", viewBox: "0 0 28 150",
         repeatMode: "spaced",
         strokes: [{ d: "M 7.6 17.4 C 8.5 16.7 20.7 24.1 4 61.1" }],
       };
       const byLabel = new Map([[SPACED_ELEMENT.id, SPACED_ELEMENT]]);
-      const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], byLabel);
+      const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], byLabel, ROW_WIDTH);
       const [seg] = placed[0].segments;
-      const primaryXs = samplePath(seg.strokes[0].d).map((p) => p[0]);
       const primaryYs = samplePath(seg.strokes[0].d).map((p) => p[1]);
+      const primaryXs = samplePath(seg.strokes[0].d).map((p) => p[0]);
       const inkWidth = Math.max(...primaryXs) - Math.min(...primaryXs);
-      const expectedRepeatD = transformPathD(seg.strokes[0].d, { translateX: inkWidth + 20 });
-      expect(seg.repeatStrokes).toEqual([{ d: expectedRepeatD }]);
-      // Vertical anchor is untouched -- same y-range as the primary, just shifted right.
-      const repeatYs = samplePath(seg.repeatStrokes[0].d).map((p) => p[1]);
-      expect(Math.min(...repeatYs)).toBeCloseTo(Math.min(...primaryYs), 6);
-      expect(Math.max(...repeatYs)).toBeCloseTo(Math.max(...primaryYs), 6);
+      expect(seg.repeatChain.length).toBeGreaterThan(2);
+      const firstCopyD = seg.repeatChain[0].strokes[0].d;
+      const expectedFirstD = transformPathD(seg.strokes[0].d, { translateX: inkWidth + 20 });
+      expect(firstCopyD).toBe(expectedFirstD);
+      // Every copy keeps the same vertical anchor as the primary, just shifted right.
+      for (const copy of seg.repeatChain) {
+        const ys = samplePath(copy.strokes[0].d).map((p) => p[1]);
+        expect(Math.min(...ys)).toBeCloseTo(Math.min(...primaryYs), 6);
+        expect(Math.max(...ys)).toBeCloseTo(Math.max(...primaryYs), 6);
+      }
+      // Consecutive copies are evenly spaced by the same step, not accumulating drift.
+      const step = inkWidth + 20;
+      for (let i = 1; i < seg.repeatChain.length; i++) {
+        const prevStart = getPathEndpoints(seg.repeatChain[i - 1].strokes[0].d).start;
+        const curStart = getPathEndpoints(seg.repeatChain[i].strokes[0].d).start;
+        expect(curStart[0] - prevStart[0]).toBeCloseTo(step, 3);
+      }
     });
 
     it("defaults to 'spaced' when an element has no repeatMode of its own", () => {
-      const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel);
+      const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel, ROW_WIDTH);
       const [seg] = placed[0].segments;
       const primaryXs = samplePath(seg.strokes[0].d).map((p) => p[0]);
-      const repeatXs = samplePath(seg.repeatStrokes[0].d).map((p) => p[0]);
-      // Spaced, not joined: the repeat's own leftmost point sits well clear of the primary's
-      // own rightmost point (a joined chain would instead touch at a single shared point).
-      expect(Math.min(...repeatXs)).toBeGreaterThan(Math.max(...primaryXs));
+      const firstCopyXs = samplePath(seg.repeatChain[0].strokes[0].d).map((p) => p[0]);
+      // Spaced, not joined: the first copy's own leftmost point sits well clear of the
+      // primary's own rightmost point (a joined chain would instead touch at one shared point).
+      expect(Math.min(...firstCopyXs)).toBeGreaterThan(Math.max(...primaryXs));
+    });
+
+    it("stops adding copies once the next one would fall outside rowWidthUnits -- never renders a copy clipped or spilling past the row's printable width", () => {
+      const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel, ROW_WIDTH);
+      const [seg] = placed[0].segments;
+      for (const copy of seg.repeatChain) {
+        const maxX = Math.max(...copy.strokes.flatMap((s) => samplePath(s.d).map((p) => p[0])));
+        expect(maxX).toBeLessThanOrEqual(ROW_WIDTH);
+      }
+    });
+
+    it("produces an empty chain when the row is too narrow for even one repeat", () => {
+      const { placed } = layoutElementLinesIntoRows(["05_kryuchok_vlevo"], elementsByLabel, 1);
+      const [seg] = placed[0].segments;
+      expect(seg.repeatChain).toEqual([]);
+      // The primary itself is still drawn regardless.
+      expect(seg.strokes).toHaveLength(1);
     });
   });
 });

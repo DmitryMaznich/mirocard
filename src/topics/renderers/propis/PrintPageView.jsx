@@ -4,7 +4,8 @@ import { layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows } from "./
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
   INK_COLOR, NATIVE_L3,
-  TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING,
+  TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
+  ANGLE_FROM_HORIZONTAL_DEG,
   buildDiagonalLines, mmToNativeUnits,
   PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_MARGIN_MM, PRINT_LEFT_INSET_MM, PRINT_CENTER_INSET_MM,
   PRINT_CONTENT_W_MM, PRINT_FIRST_BASELINE_MM, PRINT_ROWS_PER_PAGE,
@@ -35,6 +36,24 @@ const FALLBACK_FONT_SIZE = 34;
 // dot per stroke (see startPoints below) reads as clutter on a multi-stroke element at the
 // old size, small enough now to stay a clear landmark without dominating.
 const ELEMENT_START_DOT_R = 3;
+// Small red "which way does the pen move" marker, one per stroke, at its own midpoint
+// (wordEngine.js's getMidpointTangent) -- per the user's explicit ask (2026-09-18,
+// "маленькие красные стрелочки по направлению написания"). Briefly removed the same day
+// when the feature was still built for an on-screen animated demo (the user judged it
+// redundant with the animation itself); restored once the user clarified the real target is
+// a PRINTED practice sheet with no animation at all -- on paper, an arrow is the only way to
+// show stroke direction. A flat isosceles triangle, tip pointing along local +x, so rotating
+// the wrapping <g> by the stroke's own tangent angle (atan2 in degrees, same convention
+// `rotate()` uses) aims it correctly regardless of direction. Sized relative to
+// ELEMENT_START_DOT_R (3) -- comparably small, a clear landmark without competing with ink.
+const ARROW_COLOR = "#dc2626";
+const ARROW_LEN = 5;
+const ARROW_HALF_W = 2.4;
+const ARROW_PATH = `M ${ARROW_LEN} 0 L ${-ARROW_LEN * 0.4} ${-ARROW_HALF_W} L ${-ARROW_LEN * 0.4} ${ARROW_HALF_W} Z`;
+// Repeat copies (wordEngine.js's buildRepeatChain) render dashed and faded so a whole row of
+// them reads as trace guides, not as ink of equal weight to the primary example.
+const REPEAT_DASH = "4 3";
+const REPEAT_OPACITY = 0.5;
 
 // Which physical A4-sheet half this page is (even index = left slot, odd = right slot) and
 // where its own margin line / content start sit as a result — mirrors
@@ -63,28 +82,60 @@ function slotGeometry(pageIndex) {
 // at sheet-x=[148.5, 297] now sits at this slot's own local x=[0, 148.5] — the svg's own
 // default overflow:hidden clips the rest, same as any other line here.
 const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_DIAGONAL_SPACING);
+// "Элементы букв" pages use a much denser diagonal backing than ordinary text pages -- see
+// TEXT_ROW_ELEMENT_DIAGONAL_SPACING's own comment (propisRuling.js) for why the standard
+// 20mm spacing doesn't work for these: most elements are narrower than one 20mm gap, so a
+// whole крючок/заборчик could render with no slant guide crossing it at all.
+const SHEET_DIAGONAL_LINES_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
 const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
+const DIAGONAL_TAN = Math.tan(((90 - ANGLE_FROM_HORIZONTAL_DEG) * Math.PI) / 180);
+
+// Where line n of the dense diagonal grid (see SHEET_DIAGONAL_LINES_DENSE) actually renders
+// at a given page-absolute Y, on THIS page's own slot (accounting for diagonalShiftX) --
+// inverse of buildDiagonalLines' own x1/x2 construction: line n's un-shifted X at height 0 is
+// n*spacing, and it leans by `y*DIAGONAL_TAN` per unit of Y (see that function's own comment
+// on the top-right-leaning "/" shape), so its X at any Y is `n*spacing - y*DIAGONAL_TAN`, then
+// shifted the same way the rendered <line> elements are.
+function diagonalLineX(n, y, spacingUnits, diagonalShiftX) {
+  return n * spacingUnits - y * DIAGONAL_TAN + diagonalShiftX;
+}
+
+// Each element's own start point must land exactly on the dense diagonal grid (2026-09-18,
+// user's explicit ask: "эта сетка дает нам четкий ориентир по планированию расстояния между
+// элементами... точка начала всегда [должна находиться на какой-то из линий]") -- the grid
+// isn't just decoration once elements exist on the page, it's the spacing reference a child
+// (or a parent copying the page by hand) uses to judge how far apart to draw each element.
+// Finds the nearest grid line index n (real, not rounded to an integer boundary the caller
+// then has to re-snap) via the inverse of diagonalLineX, then returns that line's own real X.
+function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
+  const n = Math.round((x - diagonalShiftX + y * DIAGONAL_TAN) / spacingUnits);
+  return diagonalLineX(n, y, spacingUnits, diagonalShiftX);
+}
 
 // One physical page's ruling + content, reused for both the interactive on-screen view (one
 // page at a time, tap-to-animate) and the print-only stacked view (every page, static ink,
 // see PrintPageView's own "propis-print-all" block). `activeIndex`/`onToggleActive` are
 // omitted (undefined) for the print render — nothing is tappable on paper.
 //
-// "Элементы букв" rows (`useElements`) use the EXACT SAME grid/ruling ordinary text rows
-// do — no `useElements`-specific ruling code at all. Every earlier attempt this same day
-// (2026-09-18) gave element rows their OWN bespoke ruling (a combined 4-line block; two
-// separately-sized wide/narrow row types) and each one, in a different way, ran into the
-// same wall: "узкие строки это не пустые промежутки, это именно узкие строки разлиновки
-// для прописей! эта разлиновка должна оставаться в любом случае есть на ней символ или
-// нет" -- the ruling is a FIXED, always-printed feature of the page, like a real ruled
-// notebook, not a per-element slot that appears/disappears/resizes with content. Reusing
-// the text-row grid verbatim is the only way to guarantee that: the ruling literally can't
-// depend on content because it's the same code path regardless of `useElements`. Only
+// "Элементы букв" rows (`useElements`) use the EXACT SAME horizontal row grid/ruling
+// ordinary text rows do — no `useElements`-specific ROW ruling code at all. Every earlier
+// attempt this same day (2026-09-18) gave element rows their OWN bespoke row ruling (a
+// combined 4-line block; two separately-sized wide/narrow row types) and each one, in a
+// different way, ran into the same wall: "узкие строки это не пустые промежутки, это именно
+// узкие строки разлиновки для прописей! эта разлиновка должна оставаться в любом случае есть
+// на ней символ или нет" -- the row ruling is a FIXED, always-printed feature of the page,
+// like a real ruled notebook, not a per-element slot that appears/disappears/resizes with
+// content. Reusing the text-row grid verbatim is the only way to guarantee that. Only
 // wordEngine.js's layoutElementLinesIntoRows differs (anchoring each element's own real,
-// unscaled ink onto whichever of the row's two existing guide lines matches its family).
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
+// unscaled ink onto whichever of the row's two existing guide lines matches its family) --
+// and, same day, the DIAGONAL backing: `useElements` picks SHEET_DIAGONAL_LINES_DENSE
+// instead of the standard set (see its own comment) -- that one axis genuinely does need to
+// differ, since the standard 20mm spacing is too sparse for a single narrow element's own
+// ink to ever cross a slant guide at all.
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
+  const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   return (
     <svg
       className="propis-print-page-svg"
@@ -92,7 +143,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
-      {SHEET_DIAGONAL_LINES.map((l, i) => (
+      {diagonalLines.map((l, i) => (
         <line
           key={`d${i}`}
           x1={l.x1 + diagonalShiftX} y1={0} x2={l.x2 + diagonalShiftX} y2={PAGE_H_UNITS}
@@ -115,10 +166,31 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
       ))}
       <line x1={marginXUnits} y1={0} x2={marginXUnits} y2={PAGE_H_UNITS} stroke={MARGIN_COLOR} strokeWidth={MARGIN_LINE_W} />
       {page.map((p, i) => {
-        const isActive = onToggleActive ? i === activeIndex : false;
+        // Element rows ("Элементы букв") are a print-only worksheet target with no
+        // interactivity at all (2026-09-18, revised after the user decided a screen demo/
+        // animation is unneeded overhead -- "мне нужны нормальные тренировочные тетради в
+        // пдф формате... только анимация не нужна и отдельный режим наполнения экранного
+        // листа с элементами [не нужен]"): no tap-to-animate, so no hit-rect and no active
+        // state either, unlike a cursive/text row which keeps both.
+        const isElementRow = p.segments.some((seg) => seg.type === "element");
+        const isActive = onToggleActive && !isElementRow ? i === activeIndex : false;
+        // Snap the element's own start point onto the nearest dense-diagonal grid line (see
+        // nearestDiagonalX's own comment) -- shifts the WHOLE row (primary + every repeat
+        // copy, all rendered inside this same <g>) by a rigid delta, so nothing about the
+        // element's own internal geometry (buildRepeatChain's spacing/chaining) changes, only
+        // where the row as a whole sits on the page.
+        const startPoint = isElementRow ? p.segments[0].startPoints?.[0] : null;
+        const elementSnapDx = startPoint
+          ? nearestDiagonalX(
+              contentXUnits + p.x + startPoint[0],
+              rowOriginY(p.rowIndex) + startPoint[1],
+              TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
+              diagonalShiftX
+            ) - (contentXUnits + p.x + startPoint[0])
+          : 0;
         return (
-          <g key={i} transform={`translate(${contentXUnits + p.x} ${rowOriginY(p.rowIndex)})`}>
-            {onToggleActive && (
+          <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowOriginY(p.rowIndex)})`}>
+            {onToggleActive && !isElementRow && (
               <rect
                 className="propis-text-word-hit"
                 x={-4} y={NATIVE_L3 - TEXT_ROW_PITCH / 2} width={p.segments.reduce((s, seg) => s + seg.width, 0) + 8} height={TEXT_ROW_PITCH}
@@ -143,38 +215,37 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive }) {
                   ))}
                 </g>
               ) : seg.type === "element" ? (
-                // "Элементы букв" -- same tap-to-animate as a cursive letter (the whole point of
-                // this mode is showing the drawing motion), AnimatedStrokes just needs {strokes},
-                // which a raw element object already is, no trajectory-wrapping needed. The start
-                // dots stay visible even while animating (they're print-page landmarks for where
-                // to put the pen, not part of the animation) -- drawn last so they sit on top. One
-                // per STROKE, not just the first: a multi-stroke element (01_pryamaya_liniya's two
-                // separate lines, 03_zaborchik_ploskie's four) is several disconnected pen-lifts,
-                // each needing its own "start here" mark.
+                // "Элементы букв" -- always static ink (no tap/animation, see isElementRow
+                // above): the primary example, its start dot(s) and direction arrow(s), then
+                // the rest of the row filled with dashed trace-guide copies
+                // (wordEngine.js's buildRepeatChain) for the child to trace over on paper.
+                // One start dot per STROKE, not just the first: a multi-stroke element
+                // (01_pryamaya_liniya's two separate lines, 03_zaborchik_ploskie's four) is
+                // several disconnected pen-lifts, each needing its own "start here" mark.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
-                  {isActive ? (
-                    <AnimatedStrokes trajectory={{ strokes: seg.strokes }} tipSize="large" />
-                  ) : (
-                    seg.strokes.map((s, ssi) => (
-                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                    ))
-                  )}
+                  {seg.strokes.map((s, ssi) => (
+                    <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  ))}
                   {seg.startPoints?.map((pt, pi) => (
                     <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} />
                   ))}
-                  {/* Repeat copy (wordEngine.js's buildRepeatStrokes) -- dashed and
-                      semi-transparent so it reads as "the element again", not a second equally
-                      weighted stroke to trace; static even while the primary is animating,
-                      same reasoning as the start dots above (a print-page landmark, not part
-                      of the pen-motion demo). */}
-                  {seg.repeatStrokes?.map((s, ssi) => (
-                    <path
-                      key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2}
-                      strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4 3" opacity={0.5}
-                    />
+                  {seg.directionArrows?.map((a, ai) => a && (
+                    <g key={ai} transform={`translate(${a.point[0]} ${a.point[1]}) rotate(${a.angleDeg})`}>
+                      <path d={ARROW_PATH} fill={ARROW_COLOR} />
+                    </g>
                   ))}
-                  {seg.repeatStartPoints?.map((pt, pi) => (
-                    <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} opacity={0.5} />
+                  {seg.repeatChain?.map((copy, ci) => (
+                    <g key={ci}>
+                      {copy.strokes.map((s, ssi) => (
+                        <path
+                          key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2}
+                          strokeLinecap="round" strokeLinejoin="round" strokeDasharray={REPEAT_DASH} opacity={REPEAT_OPACITY}
+                        />
+                      ))}
+                      {copy.startPoints?.map((pt, pi) => (
+                        <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} opacity={REPEAT_OPACITY} />
+                      ))}
+                    </g>
                   ))}
                 </g>
               ) : (
@@ -235,7 +306,7 @@ export default function PrintPageView({ task, onClose }) {
 
   const layout = useMemo(
     () => useElements
-      ? layoutElementLinesIntoRows(lines, elementsByLabel)
+      ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
     [useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
@@ -268,6 +339,7 @@ export default function PrintPageView({ task, onClose }) {
                 pageIndex={pageIndex}
                 activeIndex={activeIndex}
                 onToggleActive={(i) => setActiveIndex((cur) => (cur === i ? null : i))}
+                useElements={useElements}
               />
             </div>
 
@@ -315,8 +387,8 @@ export default function PrintPageView({ task, onClose }) {
               <div className="propis-print-all" aria-hidden="true">
                 {Array.from({ length: pages.length / 2 }, (_, sheetIndex) => (
                   <div key={sheetIndex} className="propis-print-all__sheet">
-                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} />
-                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} />
+                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} />
+                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} />
                   </div>
                 ))}
               </div>,
