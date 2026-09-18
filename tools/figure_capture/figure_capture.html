@@ -1759,7 +1759,21 @@
   }
 
   async function loadFigureFromLink() {
-    const figureUrl = new URLSearchParams(location.search).get("figure");
+    const params = new URLSearchParams(location.search);
+    const serializedCard = params.get("card");
+    if (serializedCard) {
+      try {
+        const card = JSON.parse(serializedCard);
+        openFigureCard(card, `${card.label || card.id || "Фигура"} из галереи`);
+      } catch (error) {
+        setNotice(`Не удалось открыть фигуру из галереи: ${error.message}`, "error");
+      }
+      return;
+    }
+
+    // Keep the old URL form working for already copied links and for the
+    // hosted tool. Newly created gallery links use the inline card above.
+    const figureUrl = params.get("figure");
     if (!figureUrl) return;
     try {
       const response = await fetch(new URL(figureUrl, location.href));

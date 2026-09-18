@@ -25,6 +25,10 @@ function shapeFromCard(card) {
     return {
       id: card.id, label: card.label, kind: "dictation", columns: card.columns, rows: card.rows,
       paths: [commandsToPath(card.start, card.commands)], decorations: card.decorations ?? [], detail: `${card.commands.length} команд`,
+      // Keep the source card with its original commands. The gallery hands it
+      // straight to the workshop so that opening a local file does not depend
+      // on a browser-permitted fetch() of a neighbouring JSON file.
+      editorCard: card,
     };
   }
   if ((card.taskKind === "mirror" || card.taskKind === "repeat") && (Array.isArray(card.sourcePaths) || Array.isArray(card.sourceDots) || Array.isArray(card.sourceCircles))) {
@@ -41,6 +45,7 @@ function shapeFromCard(card) {
       id: card.id, label: card.label, kind: card.taskKind,
       columns: repeat ? card.axisCol : card.columns, rows: card.rows, axisCol: card.axisCol,
       paths, dots, circles, decorations: [], detail,
+      editorCard: card,
     };
   }
   return null;
