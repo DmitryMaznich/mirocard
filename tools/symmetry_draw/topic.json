@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.11.5",
+    "version": "1.11.6",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -10875,55 +10875,55 @@
       "difficulty": "challenge",
       "label": "Яхта",
       "taskKind": "mirror",
-      "columns": 40,
-      "rows": 20,
-      "axisCol": 20,
+      "columns": 14,
+      "rows": 12,
+      "axisCol": 7,
       "sourcePaths": [
         [
           {
-            "col": 20,
-            "row": 12
+            "col": 7,
+            "row": 7
           },
           {
-            "col": 20,
-            "row": 6
+            "col": 7,
+            "row": 1
           },
           {
-            "col": 15,
-            "row": 12
+            "col": 2,
+            "row": 7
           },
           {
-            "col": 20,
-            "row": 12
+            "col": 7,
+            "row": 7
           },
           {
-            "col": 20,
-            "row": 16
+            "col": 7,
+            "row": 11
           },
           {
-            "col": 16,
-            "row": 16
+            "col": 3,
+            "row": 11
           },
           {
-            "col": 14,
-            "row": 13
+            "col": 1,
+            "row": 8
           },
           {
-            "col": 20,
-            "row": 13
+            "col": 7,
+            "row": 8
           }
         ]
       ],
       "sourceCircles": [
         {
-          "col": 16.5,
-          "row": 14.5,
+          "col": 3.5,
+          "row": 9.5,
           "diameter": 1,
           "placement": "cell"
         },
         {
-          "col": 18.5,
-          "row": 14.5,
+          "col": 5.5,
+          "row": 9.5,
           "diameter": 1,
           "placement": "cell"
         }

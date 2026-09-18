@@ -7,7 +7,11 @@ export const TOPIC_PATH = resolve(ROOT, "tools/symmetry_draw/topic.json");
 export const FIGURES_DIR = resolve(ROOT, "tools/symmetry_draw/figures");
 export const FIGURE_TASK_KINDS = new Set(["mirror", "repeat", "dictation"]);
 
-const DIRECTION = new Set(["up", "up_right", "right", "down_right", "down", "down_left", "left", "up_left"]);
+const DIRECTION_VECTORS = {
+  up: [0, -1], up_right: [1, -1], right: [1, 0], down_right: [1, 1],
+  down: [0, 1], down_left: [-1, 1], left: [-1, 0], up_left: [-1, -1],
+};
+const DIRECTION = new Set(Object.keys(DIRECTION_VECTORS));
 
 export function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -78,10 +82,7 @@ function assertDictation(card) {
   for (const [index, command] of card.commands.entries()) {
     assert(DIRECTION.has(command?.direction), `${card.id}: command ${index + 1} has an unknown direction`);
     assert(Number.isInteger(command?.cells) && command.cells >= 1, `${card.id}: command ${index + 1} needs a positive integer cell count`);
-    const vector = {
-      up: [0, -1], up_right: [1, -1], right: [1, 0], down_right: [1, 1],
-      down: [0, 1], down_left: [-1, 1], left: [-1, 0], up_left: [-1, -1],
-    }[command.direction];
+    const vector = DIRECTION_VECTORS[command.direction];
     current = { col: current.col + vector[0] * command.cells, row: current.row + vector[1] * command.cells };
     assert(current.col >= 0 && current.col <= card.columns && current.row >= 0 && current.row <= card.rows, `${card.id}: command ${index + 1} leaves the grid`);
   }
@@ -96,6 +97,117 @@ export function validateFigureCard(card) {
   if (card.taskKind === "dictation") assertDictation(card);
   else assertSourceGeometry(card);
   return card;
+}
+
+function includePoint(bounds, point, radius = 0) {
+  bounds.minCol = Math.min(bounds.minCol, point.col - radius);
+  bounds.maxCol = Math.max(bounds.maxCol, point.col + radius);
+  bounds.minRow = Math.min(bounds.minRow, point.row - radius);
+  bounds.maxRow = Math.max(bounds.maxRow, point.row + radius);
+}
+
+function emptyBounds() {
+  return { minCol: Infinity, maxCol: -Infinity, minRow: Infinity, maxRow: -Infinity };
+}
+
+function sourceBounds(card) {
+  const bounds = emptyBounds();
+  for (const path of card.sourcePaths ?? []) for (const point of path) includePoint(bounds, point);
+  for (const point of card.sourceDots ?? []) includePoint(bounds, point);
+  for (const circle of card.sourceCircles ?? []) includePoint(bounds, circle, circle.diameter / 2);
+  return bounds;
+}
+
+function dictationBounds(card) {
+  const bounds = emptyBounds();
+  let current = card.start;
+  includePoint(bounds, current);
+  for (const command of card.commands) {
+    const [col, row] = DIRECTION_VECTORS[command.direction];
+    current = { col: current.col + col * command.cells, row: current.row + row * command.cells };
+    includePoint(bounds, current);
+  }
+  for (const decoration of card.decorations ?? []) {
+    if (Array.isArray(decoration.points)) {
+      for (const point of decoration.points) includePoint(bounds, point);
+    } else if (isGridPoint(decoration)) {
+      includePoint(bounds, decoration);
+      if (decoration.type === "rect") includePoint(bounds, {
+        col: decoration.col + Number(decoration.width ?? 1),
+        row: decoration.row + Number(decoration.height ?? 1),
+      });
+    }
+  }
+  return bounds;
+}
+
+function fittedSize(bounds, padding) {
+  return {
+    columns: Math.max(2, Math.ceil(bounds.maxCol - bounds.minCol + padding * 2)),
+    rows: Math.max(2, Math.ceil(bounds.maxRow - bounds.minRow + padding * 2)),
+    offset: { col: padding - bounds.minCol, row: padding - bounds.minRow },
+  };
+}
+
+function translateSourceGeometry(card, offset) {
+  const movePoint = (point) => ({ ...point, col: point.col + offset.col, row: point.row + offset.row });
+  if (card.sourcePaths) card.sourcePaths = card.sourcePaths.map((path) => path.map(movePoint));
+  if (card.sourceDots) card.sourceDots = card.sourceDots.map(movePoint);
+  if (card.sourceCircles) card.sourceCircles = card.sourceCircles.map(movePoint);
+}
+
+function translateDecorations(decorations, offset) {
+  return decorations?.map((decoration) => {
+    const next = { ...decoration };
+    if (Array.isArray(next.points)) next.points = next.points.map((point) => ({ ...point, col: point.col + offset.col, row: point.row + offset.row }));
+    else if (isGridPoint(next)) {
+      next.col += offset.col;
+      next.row += offset.row;
+    }
+    return next;
+  });
+}
+
+/**
+ * Crops a figure's grid to its drawing plus a one-cell safety margin. Mirror
+ * cards stay centred on their axis, repeat cards retain equally sized sample
+ * and work panels, and dictations keep the original command sequence.
+ */
+export function fitFigureToGrid(card, padding = 1) {
+  validateFigureCard(card);
+  assert(Number.isFinite(padding) && padding >= 0, "Grid padding must be a non-negative number");
+  const fitted = clone(card);
+
+  if (fitted.taskKind === "dictation") {
+    const bounds = dictationBounds(fitted);
+    const size = fittedSize(bounds, padding);
+    fitted.columns = size.columns;
+    fitted.rows = size.rows;
+    fitted.start = { col: fitted.start.col + size.offset.col, row: fitted.start.row + size.offset.row };
+    if (fitted.decorations) fitted.decorations = translateDecorations(fitted.decorations, size.offset);
+  } else {
+    const bounds = sourceBounds(fitted);
+    const vertical = fittedSize(bounds, padding);
+    const offset = { col: 0, row: vertical.offset.row };
+    fitted.rows = vertical.rows;
+
+    if (fitted.taskKind === "mirror") {
+      const halfWidth = Math.max(fitted.axisCol - bounds.minCol, bounds.maxCol - fitted.axisCol);
+      const axisCol = Math.max(1, Math.ceil(halfWidth + padding));
+      offset.col = axisCol - fitted.axisCol;
+      fitted.axisCol = axisCol;
+      fitted.columns = axisCol * 2;
+    } else {
+      const horizontal = fittedSize(bounds, padding);
+      offset.col = horizontal.offset.col;
+      fitted.axisCol = horizontal.columns;
+      fitted.columns = horizontal.columns * 2;
+    }
+    translateSourceGeometry(fitted, offset);
+  }
+
+  validateFigureCard(fitted);
+  return fitted;
 }
 
 export function exportFigureJsons(topic = readTopic(), outputDir = FIGURES_DIR) {

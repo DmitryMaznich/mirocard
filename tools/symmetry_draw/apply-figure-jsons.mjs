@@ -2,7 +2,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createSymmetryDrawDeckBuffer } from "./build.mjs";
 import { buildFiguresGallery } from "./build-figures-gallery.mjs";
-import { FIGURES_DIR, ROOT, TOPIC_PATH, clone, figureFilePath, mergeFigureGeometry, nextPatchVersion, readTopic, validateFigureCard } from "./figure-jsons.mjs";
+import { FIGURES_DIR, ROOT, TOPIC_PATH, clone, figureFilePath, fitFigureToGrid, mergeFigureGeometry, nextPatchVersion, readTopic, validateFigureCard } from "./figure-jsons.mjs";
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
@@ -30,7 +30,7 @@ if (!files.length) {
   for (const { card } of corrected) {
     const index = nextTopic.cards.findIndex((item) => item.id === card.id);
     if (index < 0) throw new Error(`${card.id}: the topic does not contain this figure`);
-    const merged = mergeFigureGeometry(nextTopic.cards[index], card);
+    const merged = fitFigureToGrid(mergeFigureGeometry(nextTopic.cards[index], card));
     if (JSON.stringify(merged) !== JSON.stringify(nextTopic.cards[index])) {
       nextTopic.cards[index] = merged;
       changed.push(merged);
