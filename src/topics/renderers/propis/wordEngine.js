@@ -1,5 +1,7 @@
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent } from "./pathGeometry.js";
-import { GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET } from "./propisRuling.js";
+import {
+  GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
+} from "./propisRuling.js";
 
 // Points within this margin of a letter's closest approach to the baseline are treated as
 // part of its baseline-contact zone — needed because most letters never sample to a
@@ -796,12 +798,11 @@ function isNarrowElement(element) {
 // read as unrelated to the line next to it.
 const ARROW_SIDE_OFFSET = 6;
 
-// Fixed horizontal gap (native units) between consecutive "spaced" copies of an element --
-// see buildRepeatStrokes/buildRepeatChain below. Not derived from any per-element
-// measurement (real captured ink widths for the spaced family range ~10-31 units, see
-// elements.json) -- a constant gap reads consistently across all of them, matching how a
-// real prописи workbook spaces repeated hooks/lines evenly rather than scaling the gap to
-// each glyph's own width.
+// Minimum horizontal gap (native units) between consecutive "spaced" copies of an element,
+// BEFORE rounding up to the grid (see buildRepeatStrokes' own comment) -- not derived from
+// any per-element measurement (real captured ink widths for the spaced family range ~10-31
+// units, see elements.json), just a floor that keeps copies from crowding each other once
+// the real spacing gets rounded up to whatever grid multiple clears it.
 const REPEAT_GAP_SPACED = 20;
 
 // Hard ceiling on how many copies buildRepeatChain will ever generate for one row, regardless
@@ -820,10 +821,32 @@ const MAX_REPEAT_CHAIN = 200;
 //    "no vertical drift" note below, added 2026-09-18 after the user spotted a real row
 //    visibly sagging across its own width.
 //  - "spaced" (everything else -- прямая/наклонные lines, крючки): the copy is offset
-//    sideways only, by `strokes`' own real ink width plus REPEAT_GAP_SPACED, keeping the
-//    same vertical anchor (translateY) `strokes` already has -- a plain "draw it again over
-//    there" copy, not a chain. Every copy is an identical shape (only translated), so its own
-//    ink width is the same regardless of which link in the chain `strokes` actually is.
+//    sideways only, keeping the same vertical anchor (translateY) `strokes` already has -- a
+//    plain "draw it again over there" copy, not a chain. Every copy is an identical shape
+//    (only translated), so its own ink width is the same regardless of which link in the
+//    chain `strokes` actually is.
+//
+// Every "spaced" copy's own start point lands on the dense diagonal grid too, same as the
+// PRIMARY's (2026-09-18, user's explicit ask, confirmed via AskUserQuestion: "каждый повтор в
+// строке" -- not just the row's own first point). Unlike the primary (snapped at render time
+// in PrintPageView.jsx, which alone knows the page/slot geometry -- see its own comment), this
+// needs no page awareness at all: since every "spaced" copy shares the EXACT SAME Y as the one
+// before it, and the dense grid's own lines recur at a FIXED horizontal period
+// (TEXT_ROW_ELEMENT_DIAGONAL_SPACING, independent of Y and of which page slot you're on --
+// see diagonalLineX's own comment in PrintPageView.jsx), shifting by any exact multiple of
+// that period keeps every copy on A grid line as long as the row's own first point already is
+// -- which PrintPageView.jsx's own render-time snap guarantees. So the real gap only needs
+// rounding UP to the nearest multiple of that period (never down, to avoid the copies
+// overlapping): `dx = ceil((inkWidth + REPEAT_GAP_SPACED) / TEXT_ROW_ELEMENT_DIAGONAL_SPACING)
+// * TEXT_ROW_ELEMENT_DIAGONAL_SPACING`.
+//
+// "joined" copies are NOT snapped this way, deliberately: a заборчик's own repeat copies have
+// no start dot of their own at all (see startPointsFor's own comment -- the whole row is ONE
+// continuous stroke, collapsed to a single dot for the entire element), so there is no
+// per-copy "start" left to align to anything. Forcing "joined"'s own dx to a grid multiple
+// would also reopen a solved problem: dx there is fixed to the real captured stroke's own
+// exact advance specifically so the chain has NO visible gap or overlap (confirmed earlier
+// this same day) -- rounding it to the nearest grid line would reintroduce exactly that seam.
 //
 // No vertical drift across a chain (2026-09-18): an early version of "joined" also snapped Y
 // -- `dy = lastEnd[1] - firstStart[1]`, matched to the previous copy's real endpoint exactly,
@@ -849,7 +872,8 @@ function buildRepeatStrokes(strokes, repeatMode) {
   }
   const xs = strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]));
   const inkWidth = Math.max(...xs) - Math.min(...xs);
-  const dx = inkWidth + REPEAT_GAP_SPACED;
+  const minDx = inkWidth + REPEAT_GAP_SPACED;
+  const dx = Math.ceil(minDx / TEXT_ROW_ELEMENT_DIAGONAL_SPACING) * TEXT_ROW_ELEMENT_DIAGONAL_SPACING;
   return strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
 }
 

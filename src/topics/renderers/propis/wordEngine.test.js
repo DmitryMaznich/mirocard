@@ -4,7 +4,7 @@ import {
   classifyLine, getConnectionInfo, resolveConnectionInfo, getBaselineContacts, buildWordTrajectory,
   layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows,
 } from "./wordEngine.js";
-import { GUIDE_LINES, NATIVE_L3 } from "./propisRuling.js";
+import { GUIDE_LINES, NATIVE_L3, TEXT_ROW_ELEMENT_DIAGONAL_SPACING } from "./propisRuling.js";
 
 const LETTER_A = {
   id: "а",
@@ -1068,7 +1068,7 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
       }
     });
 
-    it("'spaced' repeatMode: each copy is offset sideways only (same translateY as the previous one), by the element's own real ink width plus the fixed gap (крючки, прямая/наклонные lines)", () => {
+    it("'spaced' repeatMode: each copy is offset sideways only (same translateY as the previous one), by the element's own real ink width plus the fixed gap, ROUNDED UP to the nearest multiple of the dense diagonal grid's own spacing (2026-09-18, \"каждый повтор в строке\" must land on a grid line, not just the row's own first point -- see buildRepeatStrokes' own comment for why a grid-period step guarantees this)", () => {
       const SPACED_ELEMENT = {
         id: "05_kryuchok_vlevo", labelRu: "Крючок влево", viewBox: "0 0 28 150",
         repeatMode: "spaced",
@@ -1080,18 +1080,24 @@ describe("layoutElementLinesIntoRows (read_lines' \"Элементы букв\" 
       const primaryYs = samplePath(seg.strokes[0].d).map((p) => p[1]);
       const primaryXs = samplePath(seg.strokes[0].d).map((p) => p[0]);
       const inkWidth = Math.max(...primaryXs) - Math.min(...primaryXs);
+      const step = Math.ceil((inkWidth + 20) / TEXT_ROW_ELEMENT_DIAGONAL_SPACING) * TEXT_ROW_ELEMENT_DIAGONAL_SPACING;
       expect(seg.repeatChain.length).toBeGreaterThan(2);
       const firstCopyD = seg.repeatChain[0].strokes[0].d;
-      const expectedFirstD = transformPathD(seg.strokes[0].d, { translateX: inkWidth + 20 });
+      const expectedFirstD = transformPathD(seg.strokes[0].d, { translateX: step });
       expect(firstCopyD).toBe(expectedFirstD);
+      // The step is a whole multiple of the grid spacing, not the raw ink-width+gap value --
+      // this is the actual point of the fix, not just an implementation detail.
+      expect(step % TEXT_ROW_ELEMENT_DIAGONAL_SPACING).toBeCloseTo(0, 9);
+      expect(step).toBeGreaterThanOrEqual(inkWidth + 20); // still clears the minimum gap
       // Every copy keeps the same vertical anchor as the primary, just shifted right.
       for (const copy of seg.repeatChain) {
         const ys = samplePath(copy.strokes[0].d).map((p) => p[1]);
         expect(Math.min(...ys)).toBeCloseTo(Math.min(...primaryYs), 6);
         expect(Math.max(...ys)).toBeCloseTo(Math.max(...primaryYs), 6);
       }
-      // Consecutive copies are evenly spaced by the same step, not accumulating drift.
-      const step = inkWidth + 20;
+      // Consecutive copies are evenly spaced by the same grid-multiple step, not accumulating
+      // drift -- so if the row's own first point lands on a grid line (PrintPageView.jsx's own
+      // render-time snap), every copy after it does too, automatically.
       for (let i = 1; i < seg.repeatChain.length; i++) {
         const prevStart = getPathEndpoints(seg.repeatChain[i - 1].strokes[0].d).start;
         const curStart = getPathEndpoints(seg.repeatChain[i].strokes[0].d).start;
