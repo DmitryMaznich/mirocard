@@ -13666,6 +13666,25 @@ kbd {
 
 .params-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .param-section { display: flex; flex-direction: column; gap: 8px; }
+/* A single plate holding several related options (e.g. the graphic-dictation
+   instruction controls) instead of each rendering as its own floating
+   .param-row card - the plate carries the card look, its rows go flat. */
+.param-plate {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 3px 8px rgba(0,0,0,0.03);
+  overflow: hidden;
+}
+.param-plate .param-row {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+/* general-sibling, not adjacent: BooleanParam's optional hint renders as its
+   own element right after the row, which would break a plain `+` chain */
+.param-plate .param-row ~ .param-row { border-top: 1px solid #eef2f1; }
 .param-section__header {
   font-size: 0.72rem;
   font-weight: 700;

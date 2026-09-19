@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.11.20",
+    "version": "1.12.0",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -141,10 +141,26 @@
           "min": 3,
           "max": 10,
           "default": 5,
+          "disabledWhen": {
+            "unlimitedResponseTime": true
+          },
           "info": {
             "ru": {
               "text": "Сколько времени есть на один свайп. Когда полоса полностью исчезает, задание засчитывается как ошибка.",
               "tip": "Начните с 5 секунд; увеличьте время, если ребёнок сначала вслух проговаривает направление."
+            }
+          }
+        },
+        "unlimitedResponseTime": {
+          "type": "boolean",
+          "default": false,
+          "label": {
+            "ru": "Без ограничения по времени"
+          },
+          "info": {
+            "ru": {
+              "text": "Убирает таймер полностью: сейчас его истечение засчитывается как ошибка наравне с неверным свайпом, хотя ребёнок мог просто не успеть.",
+              "tip": "Включите, если ребёнку нужно время проговорить направление или подумать, прежде чем ответить."
             }
           }
         }
@@ -196,10 +212,50 @@
       }
     },
     {
+      "id": "repeat_draw",
+      "type": "repeat_draw",
+      "evaluation": "auto",
+      "loop": true,
+      "rewardDefaults": {
+        "strictStars": false
+      },
+      "params": {
+        "figureDifficulty": {
+          "type": "enum",
+          "label": {
+            "ru": "Сложность фигур"
+          },
+          "values": [
+            "all",
+            "starter",
+            "reinforce",
+            "challenge"
+          ],
+          "default": "all",
+          "labels": {
+            "ru": {
+              "all": "Все уровни",
+              "starter": "Первые фигуры",
+              "reinforce": "Закрепление",
+              "challenge": "Сложные фигуры"
+            }
+          }
+        }
+      },
+      "ui": {
+        "title": "Повтори рисунок",
+        "instruction": "Смотри на рисунок слева и нарисуй такой же справа",
+        "icon": "media/repeat_avatar.svg"
+      }
+    },
+    {
       "id": "graphic_dictation",
       "type": "graphic_dictation",
       "evaluation": "auto",
       "loop": true,
+      "rewardDefaults": {
+        "strictStars": false
+      },
       "ui": {
         "title": "Графический диктант",
         "instruction": "Слушай команду и веди линию от активной точки",
@@ -258,7 +314,6 @@
         },
         "showCommandText": {
           "type": "boolean",
-          "section": "Поддержка при выполнении",
           "label": {
             "ru": "Текст команды"
           },
@@ -272,18 +327,18 @@
         },
         "showArrow": {
           "type": "boolean",
-          "section": "Поддержка при выполнении",
           "default": true,
           "label": {
             "ru": "Стрелка направления"
           },
-          "hint": {
-            "ru": "Доступно для рисунков по направлениям: показывает направление следующей линии."
+          "info": {
+            "ru": {
+              "text": "Доступно для рисунков по направлениям: показывает направление следующей линии."
+            }
           }
         },
         "playCommandVoice": {
           "type": "boolean",
-          "section": "Поддержка при выполнении",
           "default": true,
           "label": {
             "ru": "Голосовая команда"
@@ -298,44 +353,13 @@
       }
     },
     {
-      "id": "repeat_draw",
-      "type": "repeat_draw",
-      "evaluation": "auto",
-      "loop": true,
-      "params": {
-        "figureDifficulty": {
-          "type": "enum",
-          "label": {
-            "ru": "Сложность фигур"
-          },
-          "values": [
-            "all",
-            "starter",
-            "reinforce",
-            "challenge"
-          ],
-          "default": "all",
-          "labels": {
-            "ru": {
-              "all": "Все уровни",
-              "starter": "Первые фигуры",
-              "reinforce": "Закрепление",
-              "challenge": "Сложные фигуры"
-            }
-          }
-        }
-      },
-      "ui": {
-        "title": "Повтори рисунок",
-        "instruction": "Смотри на рисунок слева и нарисуй такой же справа",
-        "icon": "media/repeat_avatar.svg"
-      }
-    },
-    {
       "id": "symmetry_draw",
       "type": "mirror_draw",
       "evaluation": "auto",
       "loop": true,
+      "rewardDefaults": {
+        "strictStars": false
+      },
       "params": {
         "figureDifficulty": {
           "type": "enum",
