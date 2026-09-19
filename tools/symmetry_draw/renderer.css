@@ -442,10 +442,21 @@
     margin-bottom: 6px;
     padding: 8px;
   }
+  /* Explicit, role-based placement - not sibling order. Any of the three
+     children (arrow/copy/repeat) can be absent depending on settings (e.g.
+     voice-only drops both arrow and repeat, leaving copy as the sole child),
+     and grid auto-placement would otherwise slot whichever child renders
+     first into track 1 (52px) - squeezing/hiding the voice button and its
+     caption into a sliver instead of the flexible middle track. */
+  .dictation__arrow-wrap { grid-column: 1; }
+  .dictation__command-copy { grid-column: 2; }
+  .dictation__repeat { grid-column: 3; }
   /* No arrow icon in coordinate mode, so the 52px arrow column would just sit
      empty - drop it so the instruction ("Найди точку Е2") fits on one line
      instead of wrapping into the space a 2-column layout would have used. */
   .dictation--coordinate .dictation__command { grid-template-columns: minmax(0, 1fr) 44px; }
+  .dictation--coordinate .dictation__command-copy { grid-column: 1; }
+  .dictation--coordinate .dictation__repeat { grid-column: 2; }
   .dictation__command-copy { min-width: 0; }
   .dictation__arrow-wrap { width: 52px; height: 52px; border-width: 1.5px; }
   .dictation__arrow { width: 42px; height: 42px; font-size: 36px; }
