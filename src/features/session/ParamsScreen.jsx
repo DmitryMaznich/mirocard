@@ -2007,33 +2007,38 @@ export default function ParamsScreen() {
       >
         <FigurePickerParam topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} />
       </FigureDifficultyParam>
+      <EnumParam
+        label="Как строить рисунок"
+        options={["directions", "coordinates"]}
+        labels={{ directions: "По направлениям", coordinates: "По координатам" }}
+        value={params.dictationCommand ?? "directions"}
+        onChange={(v) => setParams((p) => ({ ...p, dictationCommand: v }))}
+        info={mode?.params?.dictationCommand?.info?.ru}
+        onShowInfo={setActiveInfo}
+      />
       <div className="param-plate">
-        <EnumParam
-          label="Как строить рисунок"
-          options={["directions", "coordinates"]}
-          labels={{ directions: "По направлениям", coordinates: "По координатам" }}
-          value={params.dictationCommand ?? "directions"}
-          onChange={(v) => setParams((p) => ({ ...p, dictationCommand: v }))}
-        />
         <BooleanParam
           label="Текст команды"
-          hint="Показывает текущую команду: направление и число клеток или координату точки."
           value={params.showCommandText ?? true}
           onChange={(v) => setParams((p) => ({ ...p, showCommandText: v }))}
+          info={mode?.params?.showCommandText?.info?.ru}
+          onShowInfo={setActiveInfo}
         />
         {(params.dictationCommand ?? "directions") === "directions" && (
           <BooleanParam
             label="Стрелка направления"
-            hint="Показывает направление следующей линии."
             value={params.showArrow ?? true}
             onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
+            info={mode?.params?.showArrow?.info?.ru}
+            onShowInfo={setActiveInfo}
           />
         )}
         <BooleanParam
           label="Голосовая команда"
-          hint="Качественная озвучка запускается автоматически на каждом шаге; кнопка с динамиком повторяет её."
           value={params.playCommandVoice ?? true}
           onChange={(v) => setParams((p) => ({ ...p, playCommandVoice: v }))}
+          info={mode?.params?.playCommandVoice?.info?.ru}
+          onShowInfo={setActiveInfo}
         />
       </div>
       {(params.dictationCommand ?? "directions") === "directions" && (
