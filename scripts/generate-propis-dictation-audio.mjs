@@ -149,7 +149,11 @@ function buildEntries() {
       // original design call (dictationAudio.js's own header comment already said this;
       // this script just wasn't actually building that phrase before).
       const caseWord = isUpperCaseLetterCard(card) ? "заглавная" : "строчная";
-      entries.push({ id: letterDictationKey(card), text: `${caseWord} ${card.label}` });
+      // "ь" has no sound of its own -- "строчная ь" reliably errored out of Gemini TTS
+      // (finishReason "OTHER", 3/3 attempts, 2026-09-19), unlike every other letter incl.
+      // "ъ". Say its actual name instead, same as a person would read it aloud.
+      const text = card.label === "ь" ? "мягкий знак" : `${caseWord} ${card.label}`;
+      entries.push({ id: letterDictationKey(card), text });
     }
   }
   if (!ONLY || ONLY === "words") {
