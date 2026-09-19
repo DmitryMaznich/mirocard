@@ -509,7 +509,18 @@
               ? `Получился рисунок: ${shape.label}`
               : !showCommandText && playCommandVoice
                 ? [
-                    h("span", { key: "speaker", className: `dictation__listen-icon${isTopicAudioPlaying ? " dictation__listen-icon--speaking" : ""}`, "aria-hidden": "true" },
+                    // The only voice control when the text is hidden - the small
+                    // .dictation__repeat button below is skipped in this case
+                    // (see its own condition) so there is one speaker control,
+                    // not two identical-looking ones side by side.
+                    h("button", {
+                      key: "speaker", type: "button",
+                      className: `dictation__listen-icon${isTopicAudioPlaying ? " dictation__listen-icon--speaking" : ""}`,
+                      onClick: playInstruction,
+                      disabled: !canPlayRecordedInstruction,
+                      "aria-label": "Повторить голосовую команду",
+                      title: canPlayRecordedInstruction ? "Повторить голосовую команду" : "Включите звук, чтобы прослушать команду",
+                    },
                       h("span", { className: "dictation__repeat-glow", "aria-hidden": "true" }),
                       h(SpeakerGlyph, { speaking: isTopicAudioPlaying }),
                     ),
@@ -526,7 +537,7 @@
                 : step?.text ?? "",
           ),
         ) : null,
-        !finished && playCommandVoice ? h("button", {
+        !finished && playCommandVoice && showCommandText ? h("button", {
           type: "button",
           className: `dictation__repeat${isTopicAudioPlaying ? " dictation__repeat--speaking" : ""}`,
           onClick: playInstruction,

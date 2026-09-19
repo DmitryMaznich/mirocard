@@ -240,7 +240,10 @@
   width: clamp(52px, 8vw, 68px); height: clamp(52px, 8vw, 68px); border-radius: 20px;
   background: #eaf1ff; border: 2px solid #cbd9ea; color: #2563eb;
   filter: drop-shadow(0 2px 2px rgba(40, 93, 168, .2));
+  padding: 0; font: inherit; cursor: pointer;
 }
+.dictation__listen-icon:hover { background: #dcebff; }
+.dictation__listen-icon:disabled { opacity: .48; cursor: not-allowed; }
 .dictation__listen-icon .dictation__speaker-icon { width: 56%; height: 56%; }
 .dictation__listen-caption { display: inline-flex; align-items: center; gap: 3px; }
 .dictation__repeat {
