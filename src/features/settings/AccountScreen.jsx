@@ -7,18 +7,7 @@ import AccountCard from "./AccountCard";
 import ChangePasswordModal from "./ChangePasswordModal";
 import DangerZone from "./DangerZone";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-
-const PLAN_LABELS = {
-  trial: "Пробный период",
-  free_grant: "Бесплатный доступ",
-  monthly: "Месяц",
-  half_year: "Полгода",
-  annual: "Год",
-};
-
-function formatPeriodEnd(iso) {
-  return new Date(iso).toLocaleDateString("ru", { day: "numeric", month: "long", year: "numeric" });
-}
+import { PLAN_LABELS, formatPeriodEnd } from "@/features/billing/planLabels";
 
 export default function AccountScreen() {
   const setScreen = useAppStore((s) => s.setScreen);

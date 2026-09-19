@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import { PLAN_LABELS, formatPeriodEnd } from "./planLabels";
 
 const PLANS = [
   { id: "monthly", name: "Месяц", hint: "Без долгих обязательств", priceLabel: "€ 9,90" },
@@ -15,6 +16,7 @@ function formatMinor(amountMinor) {
 
 export default function SubscriptionScreen() {
   const pendingCheckoutPlan = useAppStore((s) => s.pendingCheckoutPlan);
+  const subscription = useAppStore((s) => s.subscription);
   const setScreen = useAppStore((s) => s.setScreen);
   const setCheckout = useAppStore((s) => s.setCheckout);
 
@@ -68,6 +70,15 @@ export default function SubscriptionScreen() {
       </div>
 
       <div className="subscription-body">
+        {subscription && (
+          <div className="subscription-status">
+            <span className="subscription-status__label">Текущий план</span>
+            <span className="subscription-status__value">
+              {PLAN_LABELS[subscription.plan] ?? subscription.plan} · до {formatPeriodEnd(subscription.currentPeriodEnd)}
+            </span>
+          </div>
+        )}
+
         <div className="subscription-lead">
           <p className="subscription-lead__eyebrow">Оформление</p>
           <h2 className="subscription-lead__title">Все занятия — в одной подписке</h2>
