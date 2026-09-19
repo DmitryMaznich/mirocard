@@ -10,7 +10,7 @@ describe("SubscriptionScreen", () => {
   let root = null;
 
   beforeEach(() => {
-    useAppStore.setState({ pendingCheckoutPlan: "annual", setScreen: vi.fn() });
+    useAppStore.setState({ pendingCheckoutPlan: "annual", subscription: null, setScreen: vi.fn() });
   });
 
   afterEach(() => {
@@ -31,6 +31,20 @@ describe("SubscriptionScreen", () => {
     mount();
     const selected = container.querySelector(".plan--selected .plan__name");
     expect(selected.textContent).toBe("Год");
+  });
+
+  it("shows no current-plan banner when there is no subscription", () => {
+    mount();
+    expect(container.querySelector(".subscription-status")).toBeFalsy();
+  });
+
+  it("shows the current plan and its expiry when a subscription is active", () => {
+    useAppStore.setState({
+      subscription: { plan: "trial", status: "active", currentPeriodEnd: "2026-09-24T14:42:49.495Z" },
+    });
+    mount();
+    const value = container.querySelector(".subscription-status__value");
+    expect(value.textContent).toBe("Пробный период · до 24 сентября 2026 г.");
   });
 
   it("switching plan updates the CTA total", () => {
