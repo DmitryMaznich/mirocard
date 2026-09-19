@@ -1,7 +1,7 @@
 {
   "meta": {
     "id": "symmetry_draw",
-    "version": "1.11.20",
+    "version": "1.11.21",
     "renderer": "flashcards",
     "customModesOnly": true,
     "title": "Рисуем по клеткам",
@@ -258,7 +258,6 @@
         },
         "showCommandText": {
           "type": "boolean",
-          "section": "Поддержка при выполнении",
           "label": {
             "ru": "Текст команды"
           },
@@ -272,7 +271,6 @@
         },
         "showArrow": {
           "type": "boolean",
-          "section": "Поддержка при выполнении",
           "default": true,
           "label": {
             "ru": "Стрелка направления"
@@ -283,7 +281,6 @@
         },
         "playCommandVoice": {
           "type": "boolean",
-          "section": "Поддержка при выполнении",
           "default": true,
           "label": {
             "ru": "Голосовая команда"
