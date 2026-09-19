@@ -753,6 +753,9 @@
     // Speech API (or where it was disabled by a parent/device policy).
     const usesAuditoryPrompt = isListening && canSpeak;
     const [waitingForInitialCommand, setWaitingForInitialCommand] = useState(() => isListening && canSpeak);
+    // With the timer off, a slow-processing child never has a timeout silently
+    // scored as a wrong answer alongside genuine mistakes.
+    const unlimitedTime = Boolean(sessionParams?.unlimitedResponseTime);
     const responseSeconds = Math.max(3, Math.min(10, Math.round(Number(sessionParams?.responseSeconds) || 5)));
     const durationMs = responseSeconds * 1000;
     const remainingRef = useRef(durationMs);
@@ -824,7 +827,7 @@
     }, [onMistake, task.conceptId, task.card?.id]);
 
     useEffect(() => {
-      if (paused || waitingForInitialCommand || resolvedRef.current) return undefined;
+      if (unlimitedTime || paused || waitingForInitialCommand || resolvedRef.current) return undefined;
       const remainingAtStart = remainingRef.current;
       const startedAt = Date.now();
       const ticker = window.setInterval(() => {
@@ -834,7 +837,7 @@
         if (next === 0 && !resolvedRef.current) retryAfterMistake();
       }, 50);
       return () => window.clearInterval(ticker);
-    }, [paused, waitingForInitialCommand, task.id, retryAfterMistake]);
+    }, [unlimitedTime, paused, waitingForInitialCommand, task.id, retryAfterMistake]);
 
     const speakCommand = useCallback((releasesInitialTimer = false) => {
       if (!canSpeak) {
@@ -999,13 +1002,13 @@
           ? h("p", { className: "navigator__audio-fallback", role: "status" }, "Озвучка недоступна — команда показана текстом")
           : null,
       ),
-      h("div", { className: `navigator__timer${timerState}`, "aria-label": waitingForInitialCommand ? "Сначала послушайте команду" : "Время на ответ" },
+      !unlimitedTime ? h("div", { className: `navigator__timer${timerState}`, "aria-label": waitingForInitialCommand ? "Сначала послушайте команду" : "Время на ответ" },
         h("div", { className: "navigator__timer-track" }, h("i", { style: { transform: `scaleX(${remaining / durationMs})` } })),
         h("svg", { className: "navigator__timer-clock", viewBox: "0 0 24 24", "aria-hidden": "true" },
           h("circle", { cx: "12", cy: "12", r: "8.5" }),
           h("path", { d: "M12 7.3v5.1l3.5 2" }),
         ),
-      ),
+      ) : null,
       showHint ? h("p", { className: "navigator__hint", role: "status" }, isGridRoute
         ? "Подсказка: проведи по подсвеченному маршруту"
         : "Подсказка: найди подсвеченную стрелку",
