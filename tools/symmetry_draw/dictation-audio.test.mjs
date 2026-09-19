@@ -53,7 +53,7 @@ test("dictation uses deck recordings and has independent text, arrow and voice s
   assert.match(dictation, /playCommandVoice/);
   assert.match(dictation, /playTopicFile\(topicId, commandAudioPath\)/);
   assert.match(dictation, /isTopicAudioPlaying/);
-  assert.match(dictation, /dictation__sound-wave/);
+  assert.match(dictation, /h\(SpeakerGlyph,/);
   assert.match(dictation, /isVoiceOnly/);
   assert.doesNotMatch(dictation, /dictationPresentation/);
   assert.doesNotMatch(dictation, /setTimeout\(playInstruction/);

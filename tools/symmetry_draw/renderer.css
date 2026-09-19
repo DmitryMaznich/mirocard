@@ -235,8 +235,15 @@
 .dictation__text { font: 900 clamp(23px, 4vw, 34px)/1.1 Nunito, sans-serif; transition: color .2s, transform .2s; }
 .dictation__text--lit { color: #285da8; transform: scale(1.02); }
 .dictation__text--listen { display: flex; align-items: center; justify-content: center; gap: 12px; color: #285da8; }
-.dictation__listen-icon { font-size: clamp(34px, 5vw, 48px); line-height: 1; filter: drop-shadow(0 2px 2px rgba(40, 93, 168, .2)); }
-.dictation__repeat, .dictation__hint {
+.dictation__listen-icon {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: clamp(52px, 8vw, 68px); height: clamp(52px, 8vw, 68px); border-radius: 20px;
+  background: #eaf1ff; border: 2px solid #cbd9ea; color: #2563eb;
+  filter: drop-shadow(0 2px 2px rgba(40, 93, 168, .2));
+}
+.dictation__listen-icon .dictation__speaker-icon { width: 56%; height: 56%; }
+.dictation__listen-caption { display: inline-flex; align-items: center; gap: 3px; }
+.dictation__repeat {
   min-height: 42px;
   padding: 8px 13px;
   border: 1px solid #cbd9ea;
@@ -260,31 +267,80 @@
   margin-left: auto;
   overflow: visible;
 }
-.dictation__speaker { position: relative; z-index: 1; }
-.dictation__sound-wave {
-  position: absolute;
-  inset: 7px;
-  z-index: 0;
-  border: 2px solid rgba(40, 93, 168, .72);
-  border-radius: 50%;
-  opacity: 0;
-  pointer-events: none;
-}
 .dictation__repeat--speaking {
   color: #174b91;
   border-color: #7ea8dc;
   background: #edf5ff;
   box-shadow: 0 0 0 3px rgba(79, 139, 209, .12);
 }
-.dictation__repeat--speaking .dictation__sound-wave { animation: dictationSoundWave 1.1s ease-out infinite; }
-.dictation__repeat--speaking .dictation__sound-wave--two { animation-delay: .55s; }
-@keyframes dictationSoundWave {
-  0% { transform: scale(.42); opacity: .82; }
-  82%, 100% { transform: scale(1.42); opacity: 0; }
-}
-.dictation__repeat:hover, .dictation__hint:hover { background: #f3f7fd; }
+.dictation__repeat:hover { background: #f3f7fd; }
 .dictation__repeat:disabled { opacity: .48; cursor: not-allowed; }
-.dictation__canvas { padding: 6px; border-radius: 16px; background: #fffef8; box-shadow: inset 0 0 0 1px rgba(30, 58, 110, .08); }
+.dictation__canvas { position: relative; padding: 6px; border-radius: 16px; background: #fffef8; box-shadow: inset 0 0 0 1px rgba(30, 58, 110, .08); }
+.dictation__canvas--wrong { animation: dictationCanvasShake .4s ease-in-out; box-shadow: inset 0 0 0 2px #ef4444; }
+@keyframes dictationCanvasShake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+/* ── Step progress (figure title card + step N of M) ───────────────── */
+.dictation-card {
+  --dc-paper: #fffdf6; --dc-grid: #d8e6f5; --dc-ink: #1e3a6e; --dc-accent: #2563eb; --dc-accent-deep: #173d91;
+  position: relative; width: min(100%, 940px); margin: 0 auto;
+  padding: clamp(4px, 1.2vw, 12px) clamp(8px, 2vw, 20px) 0;
+}
+.dictation-card__tape {
+  position: absolute; top: 2px; left: clamp(18px, 4vw, 34px); width: 46px; height: 18px;
+  background: rgba(37, 99, 235, .16); border: 1px solid rgba(37, 99, 235, .22); transform: rotate(-7deg); border-radius: 2px; z-index: 1;
+}
+.dictation-card__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px clamp(10px, 2.4vw, 18px) 2px; width: 100%; min-width: 0; }
+.dictation-card__head-text { flex: 1 1 auto; min-width: 0; }
+.dictation-card__title { font: 800 clamp(14px, 2.4vw, 17px)/1.15 Nunito, sans-serif; color: var(--dc-ink); }
+.dictation-card__instruction { margin-top: 1px; font: 700 clamp(10.5px, 1.8vw, 12px)/1.2 Nunito, sans-serif; color: var(--dc-accent); text-transform: uppercase; letter-spacing: .04em; }
+.dictation-card__chip {
+  flex-shrink: 0; font: 800 clamp(10.5px, 1.8vw, 12px)/1 Nunito, sans-serif; color: var(--dc-accent);
+  background: rgba(37, 99, 235, .1); border: 1px solid rgba(37, 99, 235, .22); padding: 5px 10px; border-radius: 999px;
+}
+.dictation-card__progress-track { height: 6px; border-radius: 99px; background: var(--dc-grid); margin: 0 clamp(10px, 2.4vw, 18px) 8px; overflow: hidden; }
+.dictation-card__progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--dc-accent), #4f8bd1); transition: width .25s ease-out; }
+
+/* ── Hint FAB (matches the 💡 pattern used elsewhere, e.g. column_addition) ── */
+.dictation__hint-fab {
+  position: absolute; top: 8px; right: 8px; width: 42px; height: 42px; border-radius: 50%;
+  background: #2563eb; color: #fff; border: none; display: grid; place-items: center;
+  font-size: 20px; box-shadow: 0 4px 12px rgba(37, 99, 235, .32); cursor: pointer; z-index: 2;
+}
+.dictation__hint-fab[aria-pressed="true"] { background: #173d91; }
+.dictation__hint-text { color: #536b89; font: 700 14px/1.3 Nunito, sans-serif; text-align: center; margin: 8px 0 0; }
+
+/* ── Speaker glyph: shared by the small replay button and the big
+     "voice-only" listening icon, so both states use one visual language. ── */
+.dictation__repeat-glow {
+  position: absolute; inset: -8px; border-radius: 50%; z-index: 0; opacity: 0;
+  background: radial-gradient(circle, rgba(37, 99, 235, .35), rgba(37, 99, 235, 0) 70%);
+}
+.dictation__repeat--speaking .dictation__repeat-glow,
+.dictation__listen-icon--speaking .dictation__repeat-glow { animation: dictationGlowBreathe 1.6s ease-in-out infinite; }
+@keyframes dictationGlowBreathe { 0%, 100% { opacity: .18; transform: scale(.92); } 50% { opacity: .5; transform: scale(1.12); } }
+.dictation__speaker-icon { position: relative; z-index: 1; width: 26px; height: 26px; color: #285da8; }
+.dictation__speaker-body { fill: currentColor; transform-origin: 40% 50%; }
+.dictation__speaker-arc { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; opacity: .18; transform-origin: 30% 50%; }
+.dictation__speaker-icon--speaking .dictation__speaker-body { animation: dictationSpeakerBreathe 1.6s ease-in-out infinite; }
+@keyframes dictationSpeakerBreathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+.dictation__speaker-icon--speaking .dictation__speaker-arc--1 { animation: dictationArcPulse 1.6s ease-in-out infinite; }
+.dictation__speaker-icon--speaking .dictation__speaker-arc--2 { animation: dictationArcPulse 1.6s ease-in-out infinite .18s; }
+.dictation__speaker-icon--speaking .dictation__speaker-arc--3 { animation: dictationArcPulse 1.6s ease-in-out infinite .36s; }
+@keyframes dictationArcPulse { 0%, 100% { opacity: .18; } 35% { opacity: 1; } 70% { opacity: .35; } }
+.dictation__dot { width: 6px; height: 6px; border-radius: 50%; background: #536b89; opacity: .3; display: inline-block; }
+.dictation__listen-caption--speaking .dictation__dot { animation: dictationDotWave 1.3s ease-in-out infinite; }
+.dictation__listen-caption--speaking .dictation__dot:nth-child(2) { animation-delay: .18s; }
+.dictation__listen-caption--speaking .dictation__dot:nth-child(3) { animation-delay: .36s; }
+@keyframes dictationDotWave { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .dictation__canvas--wrong,
+  .dictation__repeat-glow,
+  .dictation__speaker-icon--speaking .dictation__speaker-body,
+  .dictation__speaker-icon--speaking .dictation__speaker-arc,
+  .dictation__listen-caption--speaking .dictation__dot { animation: none !important; }
+  .dictation__speaker-icon--speaking .dictation__speaker-arc { opacity: .9; }
+  .dictation__listen-caption--speaking .dictation__dot { opacity: .9; }
+}
 .dictation__grid { display: block; width: 100%; max-height: min(60vh, 620px); touch-action: none; user-select: none; cursor: crosshair; }
 .dictation__paper { fill: #fffef8; }
 .dictation__grid-line { stroke: #9fc4e8; stroke-width: 1; vector-effect: non-scaling-stroke; }
@@ -299,12 +355,8 @@
 .dictation__target { fill: #f4c95d; stroke: #9a6b11; stroke-width: .05; pointer-events: none; }
 .dictation__guide { stroke: #9c86e8; stroke-width: .045; stroke-dasharray: .1 .12; }
 .dictation__guide--demo { animation: dictationDemo 1.2s linear infinite; }
-.dictation__helpers { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 46px; margin-top: 9px; }
-.dictation__hint { color: #5d4aa5; border-color: #d7cdf3; }
-.dictation__hint[aria-pressed="true"] { color: #7a5b00; border-color: #e7c55e; background: #fff8db; }
-.dictation__hint-text { color: #536b89; font: 700 14px/1.3 Nunito, sans-serif; }
 .dictation__notice, .dictation__done { margin: 9px 0 0; text-align: center; font: 700 16px/1.35 Nunito, sans-serif; }
-.dictation__notice { color: #536b89; }
+.dictation__notice--error { color: #ef4444; }
 .dictation__done { color: #2f7a54; }
 @keyframes dictationDemo { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 
@@ -396,9 +448,10 @@
   .dictation__arrow { width: 42px; height: 42px; font-size: 36px; }
   .dictation__text { font-size: clamp(18px, 6vw, 24px); }
   .dictation__repeat { grid-column: auto; width: 44px; min-width: 44px; height: 44px; min-height: 44px; font-size: 24px; }
-  .dictation__sound-wave { inset: 6px; }
+  .dictation__speaker-icon { width: 22px; height: 22px; }
   .dictation__grid { max-height: 54vh; }
-  .dictation__helpers { flex-direction: row; flex-wrap: wrap; gap: 5px 8px; }
+  .dictation__hint-fab { width: 36px; height: 36px; font-size: 17px; }
+  .dictation-card__head { padding: 8px 10px 2px; }
 }
 
 /* ── Navigator ─────────────────────────────────────────────────── */

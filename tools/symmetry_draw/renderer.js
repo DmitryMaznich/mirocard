@@ -262,6 +262,19 @@
     return h("div", { className: "dictation__arrow", "aria-hidden": "true" }, DIRECTION[command.direction].arrow);
   }
 
+  // Shared speaker glyph for both the small replay button and the large
+  // "voice-only" listening icon, so a single visual language ("sound coming
+  // from a speaker", breathing gently) represents speech in both places
+  // instead of the small button's old bare emoji + abstract ping rings.
+  function SpeakerGlyph({ speaking }) {
+    return h("svg", { className: `dictation__speaker-icon${speaking ? " dictation__speaker-icon--speaking" : ""}`, viewBox: "0 0 24 24", "aria-hidden": "true" },
+      h("path", { className: "dictation__speaker-body", d: "M4 9v6h4l5 4V5L8 9H4Z" }),
+      h("path", { className: "dictation__speaker-arc dictation__speaker-arc--1", d: "M15.2 9.6a3.4 3.4 0 0 1 0 4.8" }),
+      h("path", { className: "dictation__speaker-arc dictation__speaker-arc--2", d: "M17.4 7.4a6.6 6.6 0 0 1 0 9.2" }),
+      h("path", { className: "dictation__speaker-arc dictation__speaker-arc--3", d: "M19.6 5.2a9.8 9.8 0 0 1 0 13.6" }),
+    );
+  }
+
   // Battleship-style column letters used only when shape.taskKind === "coordinate".
   // Skips Ё, Й and З (pronunciation/visual ambiguity). Duplicated from
   // tools/symmetry_draw/column_label.mjs — this file ships as a raw browser
@@ -325,6 +338,10 @@
     const [showTargetHint, setShowTargetHint] = useState(false);
     const [notice, setNotice] = useState("");
     const [finished, setFinished] = useState(false);
+    // Bumped on every mistake so the error text/canvas shake can replay even
+    // when two consecutive mistakes produce the identical message - remount
+    // via `key` is what actually restarts a CSS animation, not just the class.
+    const [mistakeSeq, setMistakeSeq] = useState(0);
     // Raw (unsnapped) point of the current/last touch - drives the "you
     // touched here" marker and the live coordinate readout in coordinate
     // mode. Distinct from `activePoint` (the fixed FROM point) and `preview`
@@ -412,6 +429,7 @@
         onMistake?.(task.conceptId, shape.id);
         setPreview(null);
         setNotice(isCoordinate ? "Попробуй ещё раз. Нажми на точку или веди линию от активной." : "Попробуй ещё раз. Начни с активной точки.");
+        setMistakeSeq((n) => n + 1);
         return;
       }
       setCompleted((lines) => [...lines, { start: activePoint, end: step.end }]);
@@ -465,7 +483,24 @@
 
     const tapBadgeWidth = tapCoordText ? 0.3 + tapCoordText.length * 0.26 : 0;
 
-    return h("section", { className: `dictation${isCoordinate ? " dictation--coordinate" : ""}${isVoiceOnly ? " dictation--voice-only" : ""}`, "aria-label": isCoordinate ? "Точки по координатам" : "Графический диктант" },
+    // "Step N of M" is the only predictability cue a long dictation figure
+    // (some run 30-50 lines) has - the session-level "3 / 8" counter in the
+    // topbar counts cards, not the steps inside this one.
+    const stepsTotal = steps.length;
+    const stepDisplay = Math.min(stepIndex + 1, stepsTotal);
+    const progressPercent = stepsTotal ? Math.round(((finished ? stepsTotal : stepIndex) / stepsTotal) * 100) : 0;
+
+    return h("div", { className: "dictation-card" },
+      h("div", { className: "dictation-card__tape", "aria-hidden": "true" }),
+      h("div", { className: "dictation-card__head" },
+        h("div", { className: "dictation-card__head-text" },
+          h("div", { className: "dictation-card__title" }, shape.label),
+          h("div", { className: "dictation-card__instruction" }, isCoordinate ? "Точки по координатам" : "Графический диктант"),
+        ),
+        stepsTotal ? h("span", { className: "dictation-card__chip" }, `Шаг ${stepDisplay} из ${stepsTotal}`) : null,
+      ),
+      stepsTotal ? h("div", { className: "dictation-card__progress-track" }, h("div", { className: "dictation-card__progress-fill", style: { width: `${progressPercent}%` } })) : null,
+      h("section", { className: `dictation${isCoordinate ? " dictation--coordinate" : ""}${isVoiceOnly ? " dictation--voice-only" : ""}`, "aria-label": isCoordinate ? "Точки по координатам" : "Графический диктант" },
       h("div", { className: `dictation__command${isVoiceOnly ? " dictation__command--voice-only" : ""}` },
         step?.direction && showArrow ? h("div", { className: "dictation__arrow-wrap" }, h(InstructionGraphic, { command: { direction: step.direction } })) : null,
         (finished || showCommandText || playCommandVoice) ? h("div", { className: "dictation__command-copy" },
@@ -474,8 +509,13 @@
               ? `Получился рисунок: ${shape.label}`
               : !showCommandText && playCommandVoice
                 ? [
-                    h("span", { key: "speaker", className: "dictation__listen-icon", "aria-hidden": "true" }, "🔊"),
-                    h("span", { key: "prompt" }, soundEnabled ? "Слушай команду" : "Включите звук"),
+                    h("span", { key: "speaker", className: `dictation__listen-icon${isTopicAudioPlaying ? " dictation__listen-icon--speaking" : ""}`, "aria-hidden": "true" },
+                      h("span", { className: "dictation__repeat-glow", "aria-hidden": "true" }),
+                      h(SpeakerGlyph, { speaking: isTopicAudioPlaying }),
+                    ),
+                    soundEnabled
+                      ? h("span", { key: "prompt", className: `dictation__listen-caption${isTopicAudioPlaying ? " dictation__listen-caption--speaking" : ""}` }, "Слушай", h("span", { className: "dictation__dot" }), h("span", { className: "dictation__dot" }), h("span", { className: "dictation__dot" }))
+                      : h("span", { key: "prompt" }, "Включите звук"),
                   ]
               : isCoordinate && step?.coordinate
                 ? [
@@ -494,12 +534,11 @@
           "aria-label": "Повторить голосовую команду",
           title: canPlayRecordedInstruction ? "Повторить голосовую команду" : "Включите звук, чтобы прослушать команду",
         }, [
-          h("span", { key: "speaker", className: "dictation__speaker", "aria-hidden": "true" }, "🔊"),
-          h("span", { key: "wave-one", className: "dictation__sound-wave dictation__sound-wave--one", "aria-hidden": "true" }),
-          h("span", { key: "wave-two", className: "dictation__sound-wave dictation__sound-wave--two", "aria-hidden": "true" }),
+          h("span", { key: "glow", className: "dictation__repeat-glow", "aria-hidden": "true" }),
+          h(SpeakerGlyph, { key: "icon", speaking: isTopicAudioPlaying }),
         ]) : null,
       ),
-      h("div", { className: "dictation__canvas" },
+      h("div", { key: `canvas-${mistakeSeq}`, className: `dictation__canvas${notice ? " dictation__canvas--wrong" : ""}` },
         h("svg", { ref: svgRef, className: "dictation__grid", viewBox: `-0.55 -0.78 ${columns + 1.1} ${rows + 1.58}`, onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture, onPointerLeave: finishGesture },
           h("rect", { className: "dictation__paper", x: "-0.5", y: "-0.72", width: columns + 1, height: rows + 1.45, rx: "0.12" }),
           grid,
@@ -528,12 +567,20 @@
             h("text", { x: 0, y: 0.08, textAnchor: "middle" }, tapCoordText),
           ) : null,
         ),
+        !finished ? h("button", {
+          type: "button",
+          className: "dictation__hint-fab",
+          onClick: useHint,
+          "aria-pressed": showTargetHint,
+          "aria-label": "Показать конечную точку",
+          title: "Показать конечную точку",
+        }, "💡") : null,
       ),
-      !finished ? h("div", { className: "dictation__helpers" },
-        h("button", { type: "button", className: "dictation__hint", onClick: useHint, "aria-pressed": showTargetHint }, "● Показать точку"),
-        h("span", { className: "dictation__hint-text" }, showTargetHint ? "Жёлтая точка — конец линии." : "Подсветит конечный узел."),
-      ) : h("p", { className: "dictation__done" }, `Готово: ${shape.label}`),
-      notice ? h("p", { className: "dictation__notice", "aria-live": "polite" }, notice) : null,
+      !finished
+        ? (showTargetHint ? h("p", { className: "dictation__hint-text" }, "Жёлтая точка — конец линии.") : null)
+        : h("p", { className: "dictation__done" }, `Готово: ${shape.label}`),
+      notice ? h("p", { key: `notice-${mistakeSeq}`, className: "dictation__notice dictation__notice--error", "aria-live": "polite" }, notice) : null,
+      ),
     );
   }
 
