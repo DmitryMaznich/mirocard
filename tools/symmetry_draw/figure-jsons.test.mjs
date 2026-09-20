@@ -35,6 +35,22 @@ test("fitFigureToGrid crops both panels of a repeat card consistently", () => {
   assert.deepEqual(fitted.sourcePaths[0], [{ col: 1, row: 1 }, { col: 3, row: 4 }]);
 });
 
+test("fixed geometry is validated and follows the source when fitting the grid", () => {
+  const fitted = fitFigureToGrid({
+    id: "fixed_test", label: "Фигура с готовым элементом", taskKind: "mirror", columns: 10, rows: 10, axisCol: 5,
+    sourcePaths: [[{ col: 3, row: 3 }, { col: 5, row: 4 }]],
+    fixedPaths: [[{ col: 2, row: 2 }, { col: 3, row: 2 }]],
+    fixedDots: [{ col: 4, row: 3 }],
+    fixedCircles: [{ col: 3.5, row: 4.5, diameter: 1, placement: "cell" }],
+  });
+
+  assert.deepEqual(fitted.sourcePaths[0], [{ col: 2, row: 2 }, { col: 4, row: 3 }]);
+  assert.deepEqual(fitted.fixedPaths[0], [{ col: 1, row: 1 }, { col: 2, row: 1 }]);
+  assert.deepEqual(fitted.fixedDots, [{ col: 3, row: 2 }]);
+  assert.deepEqual(fitted.fixedCircles, [{ col: 2.5, row: 3.5, diameter: 1, placement: "cell" }]);
+  assert.doesNotThrow(() => validateFigureCard(fitted));
+});
+
 test("fitFigureToGrid preserves dictation commands while moving the start", () => {
   const fitted = fitFigureToGrid({
     id: "dictation_test", label: "Диктант", taskKind: "dictation", columns: 20, rows: 20,

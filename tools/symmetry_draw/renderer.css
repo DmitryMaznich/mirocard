@@ -102,7 +102,7 @@
 .symmetry-draw__repeat-start circle:first-child { fill: rgba(16, 156, 146, .18); stroke: #0d9488; stroke-width: .05; }
 .symmetry-draw__repeat-start circle:last-child { fill: #16a89f; stroke: #fff; stroke-width: .045; }
 
-.symmetry-draw__source, .symmetry-draw__source-circle, .symmetry-draw__stroke, .symmetry-draw__stroke-glow, .symmetry-draw__hint-line, .symmetry-draw__hint-circle {
+.symmetry-draw__source, .symmetry-draw__source-circle, .symmetry-draw__fixed-source, .symmetry-draw__fixed-source-circle, .symmetry-draw__fixed-target, .symmetry-draw__fixed-target-circle, .symmetry-draw__stroke, .symmetry-draw__stroke-glow, .symmetry-draw__hint-line, .symmetry-draw__hint-circle {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -111,6 +111,12 @@
 .symmetry-draw__source { stroke: var(--sd-given); stroke-width: 0.09; }
 .symmetry-draw__source-dot { fill: var(--sd-given); pointer-events: none; }
 .symmetry-draw__source-circle { stroke: var(--sd-given); stroke-width: 0.09; }
+/* Teal marks are already printed in the child's panel. They remain visible
+   in the sample too, so the reference is the complete final picture. */
+.symmetry-draw__fixed-source, .symmetry-draw__fixed-source-circle { stroke: #0d9488; stroke-width: 0.09; }
+.symmetry-draw__fixed-source-dot { fill: #0d9488; pointer-events: none; }
+.symmetry-draw__fixed-target, .symmetry-draw__fixed-target-circle { stroke: #0d9488; stroke-width: 0.11; }
+.symmetry-draw__fixed-target-dot { fill: #0d9488; pointer-events: none; }
 /* The child's own stroke gets a soft low-opacity halo underneath a bold core -
    reads like felt-tip marker ink instead of a thin debug vector. */
 .symmetry-draw__stroke-glow { stroke: var(--sd-drawn); stroke-width: 0.22; opacity: 0.16; }

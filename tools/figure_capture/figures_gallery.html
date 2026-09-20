@@ -36,11 +36,13 @@
     .figure-wrap { aspect-ratio: 1.34 / 1; padding: 8px; background: #f7fbff; }
     .figure { display: block; width: 100%; height: 100%; overflow: visible; }
     .grid { stroke: #c9def1; stroke-width: .045; vector-effect: non-scaling-stroke; }
-    .source, .mirror, .source-circle, .mirror-circle { fill: none; stroke: #1e3faa; stroke-width: .16; stroke-linecap: round; stroke-linejoin: round; }
+    .source, .mirror, .source-circle, .mirror-circle, .fixed-source, .fixed-mirror, .fixed-source-circle, .fixed-mirror-circle { fill: none; stroke: #1e3faa; stroke-width: .16; stroke-linecap: round; stroke-linejoin: round; }
     .mirror { stroke: #0d9488; }
     .mirror-circle { stroke: #0d9488; }
     .source-dot { fill: #1e3faa; }
     .mirror-dot { fill: #0d9488; }
+    .fixed-source, .fixed-mirror, .fixed-source-circle, .fixed-mirror-circle { stroke: #0d9488; }
+    .fixed-source-dot, .fixed-mirror-dot { fill: #0d9488; }
     .axis { stroke: #e8664f; stroke-width: .08; stroke-dasharray: .18 .15; }
     .decoration { fill: none; stroke: #1e3faa; stroke-width: .12; stroke-linecap: round; stroke-linejoin: round; }
     .decoration-dot { fill: #1e3faa; }
@@ -124,6 +126,9 @@
       figure.paths.forEach((path) => canvas.append(svg("path", { class: "source", d: d(path) })));
       (figure.dots ?? []).forEach((point) => canvas.append(svg("circle", { class: "source-dot", cx: point.col, cy: point.row, r: .05 })));
       (figure.circles ?? []).forEach((circle) => canvas.append(svg("circle", { class: "source-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 })));
+      (figure.fixedPaths ?? []).forEach((path) => canvas.append(svg("path", { class: "fixed-source", d: d(path) })));
+      (figure.fixedDots ?? []).forEach((point) => canvas.append(svg("circle", { class: "fixed-source-dot", cx: point.col, cy: point.row, r: .06 })));
+      (figure.fixedCircles ?? []).forEach((circle) => canvas.append(svg("circle", { class: "fixed-source-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 })));
       if (figure.kind === "mirror") {
         canvas.append(svg("line", { class: "axis", x1: figure.axisCol, y1: 0, x2: figure.axisCol, y2: figure.rows }));
         figure.paths.forEach((path) => canvas.append(svg("path", { class: "mirror", d: d(path.map((point) => mirror(point, figure.axisCol))) })));
@@ -134,6 +139,15 @@
         (figure.circles ?? []).forEach((circle) => {
           const target = mirror(circle, figure.axisCol);
           canvas.append(svg("circle", { class: "mirror-circle", cx: target.col, cy: target.row, r: circle.diameter / 2 }));
+        });
+        (figure.fixedPaths ?? []).forEach((path) => canvas.append(svg("path", { class: "fixed-mirror", d: d(path.map((point) => mirror(point, figure.axisCol))) })));
+        (figure.fixedDots ?? []).forEach((point) => {
+          const target = mirror(point, figure.axisCol);
+          canvas.append(svg("circle", { class: "fixed-mirror-dot", cx: target.col, cy: target.row, r: .06 }));
+        });
+        (figure.fixedCircles ?? []).forEach((circle) => {
+          const target = mirror(circle, figure.axisCol);
+          canvas.append(svg("circle", { class: "fixed-mirror-circle", cx: target.col, cy: target.row, r: circle.diameter / 2 }));
         });
       }
       figure.decorations.forEach((decoration) => drawDecoration(canvas, decoration));

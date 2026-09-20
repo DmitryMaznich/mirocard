@@ -36,15 +36,20 @@ function shapeFromCard(card) {
     const paths = card.sourcePaths ?? [];
     const dots = card.sourceDots ?? [];
     const circles = card.sourceCircles ?? [];
+    const fixedPaths = card.fixedPaths ?? [];
+    const fixedDots = card.fixedDots ?? [];
+    const fixedCircles = card.fixedCircles ?? [];
+    const fixedCount = fixedPaths.length + fixedDots.length + fixedCircles.length;
     const detail = [
       paths.length ? `${paths.length} ${paths.length === 1 ? "штрих" : "штрихов"}` : "",
       dots.length ? `${dots.length} ${dots.length === 1 ? "точка" : "точек"}` : "",
       circles.length ? `${circles.length} ${circles.length === 1 ? "круг" : "кругов"}` : "",
+      fixedCount ? `${fixedCount} готов. элем.` : "",
     ].filter(Boolean).join(" · ");
     return {
       id: card.id, label: card.label, kind: card.taskKind,
       columns: repeat ? card.axisCol : card.columns, rows: card.rows, axisCol: card.axisCol,
-      paths, dots, circles, decorations: [], detail,
+      paths, dots, circles, fixedPaths, fixedDots, fixedCircles, decorations: [], detail,
       editorCard: card,
     };
   }

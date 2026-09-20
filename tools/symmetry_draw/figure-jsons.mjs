@@ -36,6 +36,9 @@ export function normalizeFigureGridNoise(card, tolerance = 0.2) {
   if (normalized.sourcePaths) normalized.sourcePaths = normalized.sourcePaths.map((path) => path.map(snapPoint));
   if (normalized.sourceDots) normalized.sourceDots = normalized.sourceDots.map(snapPoint);
   if (normalized.sourceCircles) normalized.sourceCircles = normalized.sourceCircles.map(snapPoint);
+  if (normalized.fixedPaths) normalized.fixedPaths = normalized.fixedPaths.map((path) => path.map(snapPoint));
+  if (normalized.fixedDots) normalized.fixedDots = normalized.fixedDots.map(snapPoint);
+  if (normalized.fixedCircles) normalized.fixedCircles = normalized.fixedCircles.map(snapPoint);
   return normalized;
 }
 
@@ -68,32 +71,37 @@ function assertGridSize(card) {
   assert(Number.isInteger(card.rows) && card.rows >= 2, `${card.id}: rows must be an integer of at least 2`);
 }
 
+function assertPanelGeometry(card, prefix, paths, dots, circles, checkBounds) {
+  assert(Array.isArray(paths), `${card.id}: ${prefix}Paths must be an array`);
+  assert(Array.isArray(dots), `${card.id}: ${prefix}Dots must be an array`);
+  assert(Array.isArray(circles), `${card.id}: ${prefix}Circles must be an array`);
+  for (const [pathIndex, path] of paths.entries()) {
+    assert(Array.isArray(path) && path.length >= 2, `${card.id}: ${prefix} path ${pathIndex + 1} needs at least two points`);
+    for (const [pointIndex, point] of path.entries()) {
+      assert(isGridPoint(point), `${card.id}: ${prefix} point ${pathIndex + 1}.${pointIndex + 1} is invalid`);
+      if (checkBounds) assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: ${prefix} point ${pathIndex + 1}.${pointIndex + 1} is outside the source grid`);
+    }
+  }
+  for (const [pointIndex, point] of dots.entries()) {
+    assert(isGridPoint(point), `${card.id}: ${prefix} dot ${pointIndex + 1} is invalid`);
+    if (checkBounds) assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: ${prefix} dot ${pointIndex + 1} is outside the source grid`);
+  }
+  for (const [circleIndex, circle] of circles.entries()) {
+    assert(isGridPoint(circle), `${card.id}: ${prefix} circle ${circleIndex + 1} has an invalid center`);
+    assert(Number.isFinite(circle.diameter) && circle.diameter > 0, `${card.id}: ${prefix} circle ${circleIndex + 1} needs a positive diameter`);
+    const radius = circle.diameter / 2;
+    if (checkBounds) assert(circle.col - radius >= 0 && circle.col + radius <= card.axisCol && circle.row - radius >= 0 && circle.row + radius <= card.rows, `${card.id}: ${prefix} circle ${circleIndex + 1} is outside the source grid`);
+  }
+}
+
 function assertSourceGeometry(card, checkBounds = true) {
   assert(Number.isInteger(card.axisCol) && card.axisCol >= 1 && card.axisCol * 2 === card.columns, `${card.id}: axisCol must split the grid in half`);
   const paths = card.sourcePaths ?? [];
   const dots = card.sourceDots ?? [];
   const circles = card.sourceCircles ?? [];
-  assert(Array.isArray(paths), `${card.id}: sourcePaths must be an array`);
-  assert(Array.isArray(dots), `${card.id}: sourceDots must be an array`);
-  assert(Array.isArray(circles), `${card.id}: sourceCircles must be an array`);
   assert(paths.length || dots.length || circles.length, `${card.id}: sourcePaths, sourceDots or sourceCircles is required`);
-  for (const [pathIndex, path] of paths.entries()) {
-    assert(Array.isArray(path) && path.length >= 2, `${card.id}: path ${pathIndex + 1} needs at least two points`);
-    for (const [pointIndex, point] of path.entries()) {
-      assert(isGridPoint(point), `${card.id}: point ${pathIndex + 1}.${pointIndex + 1} is invalid`);
-      if (checkBounds) assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: point ${pathIndex + 1}.${pointIndex + 1} is outside the source grid`);
-    }
-  }
-  for (const [pointIndex, point] of dots.entries()) {
-    assert(isGridPoint(point), `${card.id}: source dot ${pointIndex + 1} is invalid`);
-    if (checkBounds) assert(point.col >= 0 && point.col <= card.axisCol && point.row >= 0 && point.row <= card.rows, `${card.id}: source dot ${pointIndex + 1} is outside the source grid`);
-  }
-  for (const [circleIndex, circle] of circles.entries()) {
-    assert(isGridPoint(circle), `${card.id}: source circle ${circleIndex + 1} has an invalid center`);
-    assert(Number.isFinite(circle.diameter) && circle.diameter > 0, `${card.id}: source circle ${circleIndex + 1} needs a positive diameter`);
-    const radius = circle.diameter / 2;
-    if (checkBounds) assert(circle.col - radius >= 0 && circle.col + radius <= card.axisCol && circle.row - radius >= 0 && circle.row + radius <= card.rows, `${card.id}: source circle ${circleIndex + 1} is outside the source grid`);
-  }
+  assertPanelGeometry(card, "source", paths, dots, circles, checkBounds);
+  assertPanelGeometry(card, "fixed", card.fixedPaths ?? [], card.fixedDots ?? [], card.fixedCircles ?? [], checkBounds);
 }
 
 function assertDictation(card, checkBounds = true) {
@@ -137,6 +145,9 @@ function sourceBounds(card) {
   for (const path of card.sourcePaths ?? []) for (const point of path) includePoint(bounds, point);
   for (const point of card.sourceDots ?? []) includePoint(bounds, point);
   for (const circle of card.sourceCircles ?? []) includePoint(bounds, circle, circle.diameter / 2);
+  for (const path of card.fixedPaths ?? []) for (const point of path) includePoint(bounds, point);
+  for (const point of card.fixedDots ?? []) includePoint(bounds, point);
+  for (const circle of card.fixedCircles ?? []) includePoint(bounds, circle, circle.diameter / 2);
   return bounds;
 }
 
@@ -176,6 +187,9 @@ function translateSourceGeometry(card, offset) {
   if (card.sourcePaths) card.sourcePaths = card.sourcePaths.map((path) => path.map(movePoint));
   if (card.sourceDots) card.sourceDots = card.sourceDots.map(movePoint);
   if (card.sourceCircles) card.sourceCircles = card.sourceCircles.map(movePoint);
+  if (card.fixedPaths) card.fixedPaths = card.fixedPaths.map((path) => path.map(movePoint));
+  if (card.fixedDots) card.fixedDots = card.fixedDots.map(movePoint);
+  if (card.fixedCircles) card.fixedCircles = card.fixedCircles.map(movePoint);
 }
 
 function translateDecorations(decorations, offset) {
@@ -268,6 +282,12 @@ export function mergeFigureGeometry(current, corrected) {
     else delete merged.sourceDots;
     if (corrected.sourceCircles?.length) merged.sourceCircles = clone(corrected.sourceCircles);
     else delete merged.sourceCircles;
+    if (corrected.fixedPaths?.length) merged.fixedPaths = clone(corrected.fixedPaths);
+    else delete merged.fixedPaths;
+    if (corrected.fixedDots?.length) merged.fixedDots = clone(corrected.fixedDots);
+    else delete merged.fixedDots;
+    if (corrected.fixedCircles?.length) merged.fixedCircles = clone(corrected.fixedCircles);
+    else delete merged.fixedCircles;
   }
   validateFigureCard(merged);
   return merged;

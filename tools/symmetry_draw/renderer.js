@@ -1171,6 +1171,9 @@
     const sourcePaths = shape.sourcePaths || EMPTY_PATHS;
     const sourceDots = shape.sourceDots || EMPTY_DOTS;
     const sourceCircles = shape.sourceCircles || EMPTY_CIRCLES;
+    const fixedPaths = shape.fixedPaths || EMPTY_PATHS;
+    const fixedDots = shape.fixedDots || EMPTY_DOTS;
+    const fixedCircles = shape.fixedCircles || EMPTY_CIRCLES;
     const isRepeat = shape.taskKind === "repeat";
     // A repeat is two separate workspaces, not two halves around an axis.
     // Keep a narrow visual gutter so it cannot be mistaken for symmetry.
@@ -1189,6 +1192,22 @@
       const reflected = isRepeat ? translateCircles(sourceCircles, workOrigin) : mirrorCircles(sourceCircles, axisCol);
       return isRepeat ? reflected : reflected.filter((circle) => !isOnMirrorAxis(circle, axisCol));
     }, [sourceCircles, axisCol, workOrigin, isRepeat]);
+    // Fixed elements are authored in the sample coordinate space, then shown
+    // immediately in the child's panel. They complete the picture (for
+    // example, a mouse's nose and whiskers), but are intentionally absent
+    // from targetSegments and the coverage check below.
+    const fixedTargetPaths = useMemo(
+      () => isRepeat ? translatePaths(fixedPaths, workOrigin) : mirrorPaths(fixedPaths, axisCol),
+      [fixedPaths, axisCol, workOrigin, isRepeat],
+    );
+    const fixedTargetDots = useMemo(
+      () => isRepeat ? translateDots(fixedDots, workOrigin) : mirrorDots(fixedDots, axisCol),
+      [fixedDots, axisCol, workOrigin, isRepeat],
+    );
+    const fixedTargetCircles = useMemo(
+      () => isRepeat ? translateCircles(fixedCircles, workOrigin) : mirrorCircles(fixedCircles, axisCol),
+      [fixedCircles, axisCol, workOrigin, isRepeat],
+    );
     const targetSegments = useMemo(() => pathsToSegments(targetPaths), [targetPaths]);
     const hintPoints = useMemo(() => [...targetPaths.flat(), ...targetDots, ...targetCircles], [targetPaths, targetDots, targetCircles]);
 
@@ -1337,6 +1356,12 @@
           sourcePaths.map((path, index) => h("path", { key: `source-${index}`, className: "symmetry-draw__source", d: pathToD(path) })),
           sourceDots.map((point, index) => h("circle", { key: `source-dot-${index}`, className: "symmetry-draw__source-dot", cx: point.col, cy: point.row, r: "0.05" })),
           sourceCircles.map((circle, index) => h("circle", { key: `source-circle-${index}`, className: "symmetry-draw__source-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 })),
+          fixedPaths.map((path, index) => h("path", { key: `fixed-source-${index}`, className: "symmetry-draw__fixed-source", d: pathToD(path) })),
+          fixedDots.map((point, index) => h("circle", { key: `fixed-source-dot-${index}`, className: "symmetry-draw__fixed-source-dot", cx: point.col, cy: point.row, r: "0.06" })),
+          fixedCircles.map((circle, index) => h("circle", { key: `fixed-source-circle-${index}`, className: "symmetry-draw__fixed-source-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 })),
+          fixedTargetPaths.map((path, index) => h("path", { key: `fixed-target-${index}`, className: "symmetry-draw__fixed-target", d: pathToD(path) })),
+          fixedTargetDots.map((point, index) => h("circle", { key: `fixed-target-dot-${index}`, className: "symmetry-draw__fixed-target-dot", cx: point.col, cy: point.row, r: "0.06" })),
+          fixedTargetCircles.map((circle, index) => h("circle", { key: `fixed-target-circle-${index}`, className: "symmetry-draw__fixed-target-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 })),
           isRepeat && repeatStart ? h("g", { className: "symmetry-draw__repeat-start", "aria-hidden": "true" },
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".23" }),
             h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".11" }, h("animate", { attributeName: "r", values: ".11;.17;.11", dur: "1.15s", repeatCount: "indefinite" })),

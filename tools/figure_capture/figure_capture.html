@@ -121,16 +121,25 @@
   .raw-path { fill: none; stroke: rgba(121,89,201,.58); stroke-width: 3; stroke-dasharray: 6 5; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
   .vector-shadow { fill: none; stroke: rgba(232,79,95,.20); stroke-width: 10; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
   .vector-path { fill: none; stroke: var(--red); stroke-width: 3.25; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+  .vector-shadow--fixed { stroke: rgba(13,148,136,.22); }
+  .vector-path--fixed { stroke: var(--teal); }
   .vector-segment-hit { stroke: transparent; stroke-width: 17; vector-effect: non-scaling-stroke; cursor: pointer; pointer-events: stroke; }
   .vector-segment-selected { stroke: #ff9da8; stroke-width: 8; vector-effect: non-scaling-stroke; stroke-linecap: round; pointer-events: none; }
+  .vector-segment-selected--fixed { stroke: #8bd9d1; }
   .vector-node { fill: #fff; stroke: var(--red); stroke-width: 2.3; vector-effect: non-scaling-stroke; cursor: grab; }
   .vector-node:hover, .vector-node.is-selected { fill: #fff0f1; stroke-width: 3.5; }
+  .vector-node--fixed { stroke: var(--teal); }
+  .vector-node--fixed:hover, .vector-node--fixed.is-selected { fill: #e6fbf7; }
   .vector-node:active { cursor: grabbing; }
   .vector-dot { fill: var(--red); stroke: #fff; stroke-width: 2.3; vector-effect: non-scaling-stroke; cursor: grab; }
   .vector-dot:hover, .vector-dot.is-selected { fill: #c93545; stroke-width: 3.5; }
+  .vector-dot--fixed { fill: var(--teal); }
+  .vector-dot--fixed:hover, .vector-dot--fixed.is-selected { fill: #087067; }
   .vector-dot:active { cursor: grabbing; }
   .vector-circle { fill: none; stroke: var(--red); stroke-width: 3.25; vector-effect: non-scaling-stroke; pointer-events: none; }
   .vector-circle.is-selected { stroke: #c93545; stroke-width: 5; }
+  .vector-circle--fixed { stroke: var(--teal); }
+  .vector-circle--fixed.is-selected { stroke: #087067; }
   .vector-circle-hit { fill: none; stroke: transparent; stroke-width: 18; vector-effect: non-scaling-stroke; cursor: grab; pointer-events: stroke; }
   .vector-circle-hit:active { cursor: grabbing; }
   .canvas-empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 22px; color: #4d759e; font-size: 14px; font-weight: 850; text-align: center; pointer-events: none; }
@@ -140,6 +149,7 @@
   .swatch { width: 20px; height: 3px; border-radius: 3px; }
   .swatch--raw { background: repeating-linear-gradient(90deg, #7959c9 0 6px, transparent 6px 10px); }
   .swatch--vector { background: var(--red); }
+  .swatch--fixed { background: var(--teal); }
 
   .validation { display: grid; gap: 7px; }
   .check { display: flex; gap: 7px; align-items: flex-start; padding: 8px; border-radius: 9px; font-size: 12px; font-weight: 750; line-height: 1.3; }
@@ -155,6 +165,10 @@
   .preview-target { fill: none; stroke: #7959c9; stroke-width: .13; stroke-dasharray: .22 .14; stroke-linecap: round; stroke-linejoin: round; }
   .preview-target-dot { fill: #7959c9; }
   .preview-target-circle { fill: none; stroke: #7959c9; stroke-width: .1; stroke-dasharray: .16 .12; }
+  .preview-fixed-source, .preview-fixed-source-circle, .preview-fixed-target, .preview-fixed-target-circle { fill: none; stroke: var(--teal); stroke-linecap: round; stroke-linejoin: round; }
+  .preview-fixed-source, .preview-fixed-target { stroke-width: .16; }
+  .preview-fixed-source-circle, .preview-fixed-target-circle { stroke-width: .12; }
+  .preview-fixed-source-dot, .preview-fixed-target-dot { fill: var(--teal); }
   .preview-axis { stroke: #e8664f; stroke-width: .08; stroke-dasharray: .18 .14; }
   .preview-gap { fill: #eef7f5; }
   .preview-label { fill: #5c7897; font: 800 .42px/1 Nunito, sans-serif; }
@@ -199,6 +213,7 @@
       <a class="button icon-button" href="figures_gallery.html" data-tooltip="Открыть галерею JSON" title="Открыть галерею JSON" aria-label="Открыть галерею JSON">▦</a>
       <button class="button button--danger icon-button" type="button" id="resetBtn" data-tooltip="Новый черновик" title="Новый черновик" aria-label="Новый черновик">↻</button>
       <button class="button icon-button" type="button" id="headerUndoBtn" data-tooltip="Отменить последнее действие" title="Отменить последнее действие" aria-label="Отменить последнее действие">↶</button>
+      <button class="button icon-button" type="button" id="headerRedoBtn" data-tooltip="Повторить отменённое действие" title="Повторить отменённое действие" aria-label="Повторить отменённое действие">↷</button>
     </div>
   </header>
 
@@ -271,7 +286,7 @@
             <span class="range-row"><input id="simplifyRange" type="range" min="0.08" max="0.7" step="0.01" value="0.26"><output class="range-value" id="simplifyValue">0,26</output></span>
           </label>
         </div>
-        <p class="hint">Все инструменты находятся в панели над сеткой. «●» ставит отдельную точку размером с узел; узел или точку можно перетащить либо удалить.</p>
+        <p class="hint">Все инструменты находятся в панели над сеткой. «▣» переключает слой готовых элементов: они будут напечатаны в поле ребёнка, а красные линии ребёнок обводит сам.</p>
       </section>
 
       <section class="panel-section">
@@ -295,6 +310,7 @@
           <button class="button tool-button icon-button" type="button" id="pointsTool" aria-pressed="false" data-tooltip="Ставить узлы" title="Ставить узлы" aria-label="Ставить узлы">⊹</button>
           <button class="button tool-button icon-button" type="button" id="dotsTool" aria-pressed="false" data-tooltip="Поставить одиночную точку" title="Поставить одиночную точку" aria-label="Поставить одиночную точку">●</button>
           <button class="button tool-button icon-button" type="button" id="circleTool" aria-pressed="false" data-tooltip="Вставить круг" title="Вставить круг" aria-label="Вставить круг">○</button>
+          <button class="button tool-button icon-button" type="button" id="fixedLayerBtn" aria-pressed="false" data-tooltip="Готовые элементы: они сразу появятся в поле ребёнка" title="Готовые элементы" aria-label="Готовые элементы">▣</button>
         </div>
         <label class="circle-diameter" id="circleDiameterField">Диаметр, клеток
           <span class="range-row"><input id="circleDiameter" type="range" min="0.25" max="12" step="0.25" value="1"><output class="range-value" id="circleDiameterValue">1 кл.</output></span>
@@ -302,11 +318,12 @@
         <label class="toggle circle-cell-toggle" id="circleCellToggle"><input id="circleInCell" type="checkbox" checked>вписать в клетку</label>
         <div class="action-grid" role="group" aria-label="Действия с фигурой">
           <button class="button button--small icon-button" type="button" id="newPathBtn" data-tooltip="Новый штрих" title="Новый штрих" aria-label="Новый штрих">＋</button>
-          <button class="button button--small icon-button" type="button" id="undoBtn" data-tooltip="Убрать последний узел, точку или штрих" title="Убрать последний узел, точку или штрих" aria-label="Убрать последний узел, точку или штрих">↶</button>
+          <button class="button button--small icon-button" type="button" id="undoBtn" data-tooltip="Отменить последнее действие (Ctrl/Cmd + Z)" title="Отменить последнее действие" aria-label="Отменить последнее действие">↶</button>
+          <button class="button button--small icon-button" type="button" id="redoBtn" data-tooltip="Повторить отменённое действие (Ctrl/Cmd + Shift + Z)" title="Повторить отменённое действие" aria-label="Повторить отменённое действие">↷</button>
           <button class="button button--small icon-button" type="button" id="deleteNodeBtn" data-tooltip="Удалить выбранный узел или точку" title="Удалить выбранный узел или точку" aria-label="Удалить выбранный узел или точку">⊗</button>
           <button class="button button--small icon-button" type="button" id="deleteSegmentBtn" data-tooltip="Вырезать выбранный участок" title="Вырезать выбранный участок" aria-label="Вырезать выбранный участок">✂</button>
           <button class="button button--small icon-button" type="button" id="deletePathBtn" data-tooltip="Удалить выбранный штрих" title="Удалить выбранный штрих" aria-label="Удалить выбранный штрих">⌫</button>
-          <button class="button button--small button--danger icon-button" type="button" id="clearPathsBtn" data-tooltip="Очистить все линии и точки" title="Очистить все линии и точки" aria-label="Очистить все линии и точки">⌧</button>
+          <button class="button button--small button--danger icon-button" type="button" id="clearPathsBtn" data-tooltip="Очистить активный слой" title="Очистить активный слой" aria-label="Очистить активный слой">⌧</button>
         </div>
       </div>
       <div class="canvas-wrap">
@@ -322,7 +339,7 @@
         </svg>
         <div class="canvas-empty" id="canvasEmpty" hidden></div>
       </div>
-      <div class="legend" aria-hidden="true"><span class="legend-item"><span class="swatch swatch--raw"></span>ручной жест до выпрямления</span><span class="legend-item"><span class="swatch swatch--vector"></span>итоговая ломаная по сетке</span></div>
+      <div class="legend" aria-hidden="true"><span class="legend-item"><span class="swatch swatch--raw"></span>ручной жест до выпрямления</span><span class="legend-item"><span class="swatch swatch--vector"></span>ребёнок обводит</span><span class="legend-item"><span class="swatch swatch--fixed"></span>готовый элемент</span></div>
       <div class="notice" id="notice" aria-live="polite"></div>
     </section>
 
@@ -396,6 +413,11 @@
     dots: [],
     circles: [],
     activePath: 0,
+    fixedPaths: [[]],
+    fixedDots: [],
+    fixedCircles: [],
+    fixedActivePath: 0,
+    fixedLayer: false,
     selectedNode: null,
     selectedDot: null,
     selectedCircle: null,
@@ -406,6 +428,10 @@
     tracing: null,
     collection: [],
     importedCard: null,
+    history: [],
+    future: [],
+    geometryDragBefore: null,
+    circleDiameterBefore: null,
   };
 
   const DIRECTION_BY_DELTA = {
@@ -536,6 +562,109 @@
     return JSON.parse(JSON.stringify(value));
   }
 
+  // History deliberately contains just the editable vector geometry. Raster
+  // calibration has its own precise controls and must not cause a later undo to
+  // jump an imported picture or the grid away from the figure being edited.
+  function geometrySnapshot() {
+    return {
+      paths: clone(state.paths),
+      dots: clone(state.dots),
+      circles: clone(state.circles),
+      activePath: state.activePath,
+      fixedPaths: clone(state.fixedPaths),
+      fixedDots: clone(state.fixedDots),
+      fixedCircles: clone(state.fixedCircles),
+      fixedActivePath: state.fixedActivePath,
+    };
+  }
+
+  function sameGeometry(left, right) {
+    return JSON.stringify(left) === JSON.stringify(right);
+  }
+
+  function clearSelection() {
+    state.selectedNode = null;
+    state.selectedDot = null;
+    state.selectedCircle = null;
+    state.selectedSegment = null;
+  }
+
+  function clearGeometryHistory() {
+    state.history = [];
+    state.future = [];
+    state.geometryDragBefore = null;
+    state.circleDiameterBefore = null;
+  }
+
+  function commitGeometryChange(before) {
+    if (!before || sameGeometry(before, geometrySnapshot())) return false;
+    state.history.push(before);
+    if (state.history.length > 100) state.history.shift();
+    state.future = [];
+    return true;
+  }
+
+  function restoreGeometry(snapshot) {
+    state.paths = clone(snapshot.paths);
+    state.dots = clone(snapshot.dots);
+    state.circles = clone(snapshot.circles);
+    state.fixedPaths = clone(snapshot.fixedPaths ?? [[]]);
+    state.fixedDots = clone(snapshot.fixedDots ?? []);
+    state.fixedCircles = clone(snapshot.fixedCircles ?? []);
+    state.activePath = Math.max(0, Math.min(snapshot.activePath, state.paths.length - 1));
+    if (!state.paths.length) {
+      state.paths = [[]];
+      state.activePath = 0;
+    }
+    state.fixedActivePath = Math.max(0, Math.min(snapshot.fixedActivePath ?? 0, state.fixedPaths.length - 1));
+    if (!state.fixedPaths.length) {
+      state.fixedPaths = [[]];
+      state.fixedActivePath = 0;
+    }
+    state.tracing = null;
+    state.tracePointerId = null;
+    state.draggingNode = null;
+    state.draggingDot = null;
+    state.draggingCircle = null;
+    clearSelection();
+  }
+
+  function finishCircleDiameterChange() {
+    if (!state.circleDiameterBefore) return;
+    commitGeometryChange(state.circleDiameterBefore);
+    state.circleDiameterBefore = null;
+  }
+
+  function undoLast() {
+    finishCircleDiameterChange();
+    if (!state.history.length) {
+      setNotice("Пока нечего отменять.");
+      render();
+      return;
+    }
+    const current = geometrySnapshot();
+    const previous = state.history.pop();
+    state.future.push(current);
+    restoreGeometry(previous);
+    setNotice("Последнее действие отменено.", "good");
+    render();
+  }
+
+  function redoLast() {
+    finishCircleDiameterChange();
+    if (!state.future.length) {
+      setNotice("Пока нечего повторять.");
+      render();
+      return;
+    }
+    const current = geometrySnapshot();
+    const next = state.future.pop();
+    state.history.push(current);
+    restoreGeometry(next);
+    setNotice("Действие повторено.", "good");
+    render();
+  }
+
   function commandsToPath(start, commands) {
     const vectors = {
       up: { col: 0, row: -1 }, up_right: { col: 1, row: -1 }, right: { col: 1, row: 0 }, down_right: { col: 1, row: 1 },
@@ -633,21 +762,32 @@
     return result;
   }
 
-  function activePath() {
-    if (!state.paths[state.activePath]) state.paths[state.activePath] = [];
-    return state.paths[state.activePath];
+  function layerPaths(fixed = state.fixedLayer) { return fixed ? state.fixedPaths : state.paths; }
+  function layerDots(fixed = state.fixedLayer) { return fixed ? state.fixedDots : state.dots; }
+  function layerCircles(fixed = state.fixedLayer) { return fixed ? state.fixedCircles : state.circles; }
+  function activePathIndex(fixed = state.fixedLayer) { return fixed ? state.fixedActivePath : state.activePath; }
+  function setActivePathIndex(value, fixed = state.fixedLayer) {
+    if (fixed) state.fixedActivePath = value;
+    else state.activePath = value;
   }
 
-  function finalPaths() {
-    return state.paths.filter((path) => path.length >= 2);
+  function activePath(fixed = state.fixedLayer) {
+    const paths = layerPaths(fixed);
+    const index = activePathIndex(fixed);
+    if (!paths[index]) paths[index] = [];
+    return paths[index];
   }
 
-  function finalDots() {
-    return state.dots;
+  function finalPaths(fixed = false) {
+    return layerPaths(fixed).filter((path) => path.length >= 2);
   }
 
-  function finalCircles() {
-    return state.circles;
+  function finalDots(fixed = false) {
+    return layerDots(fixed);
+  }
+
+  function finalCircles(fixed = false) {
+    return layerCircles(fixed);
   }
 
   function clearChildren(layer) { layer.replaceChildren(); }
@@ -815,30 +955,27 @@
     return true;
   }
 
-  function renderPaths() {
-    clearChildren(rawLayer);
-    clearChildren(vectorLayer);
-    clearChildren(nodeLayer);
-    if (!calibrationReady()) return;
-    if (state.tracing?.length > 1) rawLayer.append(make("path", { class: "raw-path", d: rawD(state.tracing) }));
-    if (!$("showVector").checked) return;
-
-    state.paths.forEach((path, pathIndex) => {
+  function renderVectorLayer(fixed) {
+    const paths = layerPaths(fixed);
+    const dots = layerDots(fixed);
+    const circles = layerCircles(fixed);
+    const fixedClass = fixed ? "--fixed" : "";
+    paths.forEach((path, pathIndex) => {
       if (path.length >= 2) {
-        vectorLayer.append(make("path", { class: "vector-shadow", d: pathD(path) }));
-        vectorLayer.append(make("path", { class: "vector-path", d: pathD(path) }));
+        vectorLayer.append(make("path", { class: `vector-shadow vector-shadow${fixedClass}`, d: pathD(path) }));
+        vectorLayer.append(make("path", { class: `vector-path vector-path${fixedClass}`, d: pathD(path) }));
         path.slice(1).forEach((point, segmentIndex) => {
           const start = gridToPixel(path[segmentIndex]);
           const end = gridToPixel(point);
-          const isSelected = state.selectedSegment && state.selectedSegment.pathIndex === pathIndex && state.selectedSegment.segmentIndex === segmentIndex;
-          if (isSelected) vectorLayer.append(make("line", { class: "vector-segment-selected", x1: start.x, y1: start.y, x2: end.x, y2: end.y }));
-          const hit = make("line", { class: "vector-segment-hit", x1: start.x, y1: start.y, x2: end.x, y2: end.y, "data-path": pathIndex, "data-segment": segmentIndex });
+          const isSelected = state.fixedLayer === fixed && state.selectedSegment && state.selectedSegment.pathIndex === pathIndex && state.selectedSegment.segmentIndex === segmentIndex;
+          if (isSelected) vectorLayer.append(make("line", { class: `vector-segment-selected vector-segment-selected${fixedClass}`, x1: start.x, y1: start.y, x2: end.x, y2: end.y }));
+          const hit = make("line", { class: "vector-segment-hit", x1: start.x, y1: start.y, x2: end.x, y2: end.y, "data-path": pathIndex, "data-segment": segmentIndex, "data-fixed": fixed });
           hit.addEventListener("pointerdown", (event) => {
             event.preventDefault();
             event.stopPropagation();
-            state.selectedNode = null;
-            state.selectedDot = null;
-            state.selectedCircle = null;
+            finishCircleDiameterChange();
+            state.fixedLayer = fixed;
+            clearSelection();
             state.selectedSegment = { pathIndex, segmentIndex };
             state.draggingNode = null;
             state.draggingDot = null;
@@ -850,16 +987,19 @@
       }
       path.forEach((point, pointIndex) => {
         const pixel = gridToPixel(point);
-        const isSelected = state.selectedNode && state.selectedNode.pathIndex === pathIndex && state.selectedNode.pointIndex === pointIndex;
-        const node = make("circle", { class: `vector-node${isSelected ? " is-selected" : ""}`, cx: pixel.x, cy: pixel.y, r: 5.8, "data-path": pathIndex, "data-point": pointIndex });
+        const isSelected = state.fixedLayer === fixed && state.selectedNode && state.selectedNode.pathIndex === pathIndex && state.selectedNode.pointIndex === pointIndex;
+        const node = make("circle", { class: `vector-node vector-node${fixedClass}${isSelected ? " is-selected" : ""}`, cx: pixel.x, cy: pixel.y, r: 5.8, "data-path": pathIndex, "data-point": pointIndex, "data-fixed": fixed });
         node.addEventListener("pointerdown", (event) => {
           event.preventDefault();
           event.stopPropagation();
+          finishCircleDiameterChange();
+          state.geometryDragBefore = geometrySnapshot();
+          state.fixedLayer = fixed;
           state.selectedNode = { pathIndex, pointIndex };
           state.selectedDot = null;
           state.selectedCircle = null;
           state.selectedSegment = null;
-          state.draggingNode = { pathIndex, pointIndex, pointerId: event.pointerId };
+          state.draggingNode = { fixed, pathIndex, pointIndex, pointerId: event.pointerId };
           state.draggingDot = null;
           state.draggingCircle = null;
           board.setPointerCapture?.(event.pointerId);
@@ -868,32 +1008,38 @@
         nodeLayer.append(node);
       });
     });
-    state.dots.forEach((point, pointIndex) => {
+    dots.forEach((point, pointIndex) => {
       const pixel = gridToPixel(point);
-      const isSelected = state.selectedDot === pointIndex;
-      const dot = make("circle", { class: `vector-dot${isSelected ? " is-selected" : ""}`, cx: pixel.x, cy: pixel.y, r: 5.8, "data-dot": pointIndex });
+      const isSelected = state.fixedLayer === fixed && state.selectedDot === pointIndex;
+      const dot = make("circle", { class: `vector-dot vector-dot${fixedClass}${isSelected ? " is-selected" : ""}`, cx: pixel.x, cy: pixel.y, r: 5.8, "data-dot": pointIndex, "data-fixed": fixed });
       dot.addEventListener("pointerdown", (event) => {
         event.preventDefault();
         event.stopPropagation();
+        finishCircleDiameterChange();
+        state.geometryDragBefore = geometrySnapshot();
+        state.fixedLayer = fixed;
         state.selectedDot = pointIndex;
         state.selectedNode = null;
         state.selectedCircle = null;
         state.selectedSegment = null;
         state.draggingNode = null;
-        state.draggingDot = { pointIndex, pointerId: event.pointerId };
+        state.draggingDot = { fixed, pointIndex, pointerId: event.pointerId };
         state.draggingCircle = null;
         board.setPointerCapture?.(event.pointerId);
         render();
       });
       nodeLayer.append(dot);
     });
-    state.circles.forEach((circle, circleIndex) => {
-      const isSelected = state.selectedCircle === circleIndex;
-      vectorLayer.append(make("path", { class: `vector-circle${isSelected ? " is-selected" : ""}`, d: circleD(circle) }));
-      const hit = make("path", { class: "vector-circle-hit", d: circleD(circle), "data-circle": circleIndex });
+    circles.forEach((circle, circleIndex) => {
+      const isSelected = state.fixedLayer === fixed && state.selectedCircle === circleIndex;
+      vectorLayer.append(make("path", { class: `vector-circle vector-circle${fixedClass}${isSelected ? " is-selected" : ""}`, d: circleD(circle) }));
+      const hit = make("path", { class: "vector-circle-hit", d: circleD(circle), "data-circle": circleIndex, "data-fixed": fixed });
       hit.addEventListener("pointerdown", (event) => {
         event.preventDefault();
         event.stopPropagation();
+        finishCircleDiameterChange();
+        state.geometryDragBefore = geometrySnapshot();
+        state.fixedLayer = fixed;
         state.selectedCircle = circleIndex;
         $("circleDiameter").value = String(circle.diameter);
         $("circleInCell").checked = circle.placement === "cell";
@@ -902,12 +1048,23 @@
         state.selectedSegment = null;
         state.draggingNode = null;
         state.draggingDot = null;
-        state.draggingCircle = { circleIndex, pointerId: event.pointerId };
+        state.draggingCircle = { fixed, circleIndex, pointerId: event.pointerId };
         board.setPointerCapture?.(event.pointerId);
         render();
       });
       vectorLayer.append(hit);
     });
+  }
+
+  function renderPaths() {
+    clearChildren(rawLayer);
+    clearChildren(vectorLayer);
+    clearChildren(nodeLayer);
+    if (!calibrationReady()) return;
+    if (state.tracing?.length > 1) rawLayer.append(make("path", { class: "raw-path", d: rawD(state.tracing) }));
+    if (!$("showVector").checked) return;
+    renderVectorLayer(false);
+    renderVectorLayer(true);
   }
 
   function renderGeometryHint() {
@@ -933,40 +1090,48 @@
     const paths = finalPaths();
     const dots = finalDots();
     const circles = finalCircles();
+    const fixedPaths = finalPaths(true);
+    const fixedDots = finalDots(true);
+    const fixedCircles = finalCircles(true);
     if (!paths.length && !dots.length && !circles.length) problems.push("Нужен хотя бы один штрих, отдельная точка или круг.");
-    paths.forEach((path, pathIndex) => {
-      path.forEach((point, pointIndex) => {
-        if (point.col < 0 || point.col > sourceCols() || point.row < 0 || point.row > rows()) warnings.push(`Штрих ${pathIndex + 1}, узел ${pointIndex + 1} выходит за рабочую сетку.`);
-        const unit = snapStep();
-        if (unit > 0 && (Math.abs(point.col / unit - Math.round(point.col / unit)) > .0001 || Math.abs(point.row / unit - Math.round(point.row / unit)) > .0001)) problems.push(`Узел ${pathIndex + 1}.${pointIndex + 1} не привязан к выбранному шагу.`);
-        if (pointIndex && same(point, path[pointIndex - 1])) problems.push(`В штрихе ${pathIndex + 1} есть нулевой сегмент.`);
+    const validateLayer = (layerPaths, layerDots, layerCircles, label = "") => {
+      layerPaths.forEach((path, pathIndex) => {
+        path.forEach((point, pointIndex) => {
+          if (point.col < 0 || point.col > sourceCols() || point.row < 0 || point.row > rows()) warnings.push(`${label}штрих ${pathIndex + 1}, узел ${pointIndex + 1} выходит за рабочую сетку.`);
+          const unit = snapStep();
+          if (unit > 0 && (Math.abs(point.col / unit - Math.round(point.col / unit)) > .0001 || Math.abs(point.row / unit - Math.round(point.row / unit)) > .0001)) problems.push(`${label}узел ${pathIndex + 1}.${pointIndex + 1} не привязан к выбранному шагу.`);
+          if (pointIndex && same(point, path[pointIndex - 1])) problems.push(`${label}штрих ${pathIndex + 1} содержит нулевой сегмент.`);
+        });
       });
-    });
-    dots.forEach((point, pointIndex) => {
-      if (point.col < 0 || point.col > sourceCols() || point.row < 0 || point.row > rows()) warnings.push(`Точка ${pointIndex + 1} выходит за рабочую сетку.`);
-      const unit = snapStep();
-      if (unit > 0 && (Math.abs(point.col / unit - Math.round(point.col / unit)) > .0001 || Math.abs(point.row / unit - Math.round(point.row / unit)) > .0001)) problems.push(`Точка ${pointIndex + 1} не привязана к выбранному шагу.`);
-    });
-    circles.forEach((circle, circleIndex) => {
-      const radius = Number(circle?.diameter) / 2;
-      if (!Number.isFinite(circle?.col) || !Number.isFinite(circle?.row) || !Number.isFinite(radius) || radius <= 0) {
-        problems.push(`Круг ${circleIndex + 1} имеет некорректный центр или диаметр.`);
-        return;
-      }
-      if (circle.col - radius < 0 || circle.col + radius > sourceCols() || circle.row - radius < 0 || circle.row + radius > rows()) warnings.push(`Круг ${circleIndex + 1} выходит за рабочую сетку.`);
-      const unit = snapStep();
-      if (unit > 0 && (Math.abs(circle.col / unit - Math.round(circle.col / unit)) > .0001 || Math.abs(circle.row / unit - Math.round(circle.row / unit)) > .0001)) problems.push(`Центр круга ${circleIndex + 1} не привязан к выбранному шагу.`);
-    });
+      layerDots.forEach((point, pointIndex) => {
+        if (point.col < 0 || point.col > sourceCols() || point.row < 0 || point.row > rows()) warnings.push(`${label}точка ${pointIndex + 1} выходит за рабочую сетку.`);
+        const unit = snapStep();
+        if (unit > 0 && (Math.abs(point.col / unit - Math.round(point.col / unit)) > .0001 || Math.abs(point.row / unit - Math.round(point.row / unit)) > .0001)) problems.push(`${label}точка ${pointIndex + 1} не привязана к выбранному шагу.`);
+      });
+      layerCircles.forEach((circle, circleIndex) => {
+        const radius = Number(circle?.diameter) / 2;
+        if (!Number.isFinite(circle?.col) || !Number.isFinite(circle?.row) || !Number.isFinite(radius) || radius <= 0) {
+          problems.push(`${label}круг ${circleIndex + 1} имеет некорректный центр или диаметр.`);
+          return;
+        }
+        if (circle.col - radius < 0 || circle.col + radius > sourceCols() || circle.row - radius < 0 || circle.row + radius > rows()) warnings.push(`${label}круг ${circleIndex + 1} выходит за рабочую сетку.`);
+        const unit = snapStep();
+        if (unit > 0 && (Math.abs(circle.col / unit - Math.round(circle.col / unit)) > .0001 || Math.abs(circle.row / unit - Math.round(circle.row / unit)) > .0001)) problems.push(label ? `Центр готового круга ${circleIndex + 1} не привязан к выбранному шагу.` : `Центр круга ${circleIndex + 1} не привязан к выбранному шагу.`);
+      });
+    };
+    validateLayer(paths, dots, circles);
+    validateLayer(fixedPaths, fixedDots, fixedCircles, "Готовый ");
     if (taskKind() === "dictation") {
       if (paths.length !== 1) problems.push("Графический диктант поддерживает ровно один непрерывный штрих.");
       if (dots.length) problems.push("Отдельные точки доступны для симметрии и повторения, не для диктанта.");
       if (circles.length) problems.push("Круги доступны для симметрии и повторения, не для диктанта.");
+      if (fixedPaths.length || fixedDots.length || fixedCircles.length) problems.push("Готовые элементы доступны для симметрии и повторения, не для диктанта.");
       const dictation = dictationCommandsFromPath(paths[0] ?? []);
       problems.push(...dictation.problems);
     }
     if (!$("labelInput").value.trim()) problems.push("Укажите название карточки.");
     if (!safeId($("idInput").value)) problems.push("Идентификатор: строчные латинские буквы, цифры, _ или -.");
-    return { problems: [...new Set(problems)], warnings: [...new Set(warnings)], paths, dots, circles };
+    return { problems: [...new Set(problems)], warnings: [...new Set(warnings)], paths, dots, circles, fixedPaths, fixedDots, fixedCircles };
   }
 
   function safeId(value) { return /^[a-z0-9][a-z0-9_-]*$/.test(value.trim()); }
@@ -995,6 +1160,11 @@
       card.commands = result.commands;
       delete card.axisCol;
       delete card.sourcePaths;
+      delete card.sourceDots;
+      delete card.sourceCircles;
+      delete card.fixedPaths;
+      delete card.fixedDots;
+      delete card.fixedCircles;
     } else {
       card.axisCol = sourceCols();
       card.sourcePaths = finalPaths();
@@ -1002,6 +1172,12 @@
       else delete card.sourceDots;
       if (finalCircles().length) card.sourceCircles = clone(finalCircles());
       else delete card.sourceCircles;
+      if (finalPaths(true).length) card.fixedPaths = clone(finalPaths(true));
+      else delete card.fixedPaths;
+      if (finalDots(true).length) card.fixedDots = clone(finalDots(true));
+      else delete card.fixedDots;
+      if (finalCircles(true).length) card.fixedCircles = clone(finalCircles(true));
+      else delete card.fixedCircles;
       delete card.start;
       delete card.commands;
     }
@@ -1027,6 +1203,9 @@
         result.paths.length ? `${result.paths.length} штр. и ${result.paths.flat().length} узл.` : "",
         result.dots.length ? `${result.dots.length} отдельн. точк.` : "",
         result.circles.length ? `${result.circles.length} круг.` : "",
+        result.fixedPaths.length || result.fixedDots.length || result.fixedCircles.length
+          ? `${result.fixedPaths.length + result.fixedDots.length + result.fixedCircles.length} готов. элем.`
+          : "",
       ].filter(Boolean).join(" · ");
       add("good", "✓", `${geometry} Можно экспортировать.`);
     }
@@ -1092,6 +1271,25 @@
         : { col: width * 2 - circle.col, row: circle.row };
       preview.append(make("circle", { class: "preview-target-circle", cx: target.col, cy: target.row, r: circle.diameter / 2 }));
     });
+    if (!dictation) {
+      const targetPoint = repeat
+        ? (point) => ({ col: point.col + width + gap, row: point.row })
+        : (point) => ({ col: width * 2 - point.col, row: point.row });
+      finalPaths(true).forEach((path) => {
+        preview.append(make("path", { class: "preview-fixed-source", d: previewPath(path, (point) => point) }));
+        preview.append(make("path", { class: "preview-fixed-target", d: previewPath(path, targetPoint) }));
+      });
+      finalDots(true).forEach((point) => {
+        const target = targetPoint(point);
+        preview.append(make("circle", { class: "preview-fixed-source-dot", cx: point.col, cy: point.row, r: .09 }));
+        preview.append(make("circle", { class: "preview-fixed-target-dot", cx: target.col, cy: target.row, r: .09 }));
+      });
+      finalCircles(true).forEach((circle) => {
+        const target = targetPoint(circle);
+        preview.append(make("circle", { class: "preview-fixed-source-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 }));
+        preview.append(make("circle", { class: "preview-fixed-target-circle", cx: target.col, cy: target.row, r: circle.diameter / 2 }));
+      });
+    }
   }
 
   function renderCardOutput() {
@@ -1109,6 +1307,10 @@
       dots: state.dots,
       circles: state.circles,
       activePath: state.activePath,
+      fixedPaths: state.fixedPaths,
+      fixedDots: state.fixedDots,
+      fixedCircles: state.fixedCircles,
+      fixedActivePath: state.fixedActivePath,
       label: $("labelInput").value,
       id: $("idInput").value,
       taskKind: taskKind(),
@@ -1159,13 +1361,14 @@
     const count = paths.flat().length;
     const dots = finalDots().length;
     const circles = finalCircles().length;
+    const fixedCount = finalPaths(true).flat().length + finalDots(true).length + finalCircles(true).length;
     const host = $("workStatus");
     if (state.calibrationMode) host.innerHTML = "<strong>Режим калибровки</strong> · отметьте следующий узел";
     else if (state.alignMode === "raster") host.innerHTML = "<strong>Подгонка растра</strong> · тяните картинку или её углы";
     else if (state.alignMode === "grid") host.innerHTML = "<strong>Подгонка сетки</strong> · тяните начало, X или Y";
     else if (calibrationReady()) {
       const action = state.tool === "trace" ? "жест выпрямляется" : state.tool === "points" ? "добавление узлов" : state.tool === "dots" ? "добавление отдельных точек" : "добавление кругов";
-      host.innerHTML = `<strong>${paths.length}</strong> штр. · <strong>${count}</strong> узл.${dots ? ` · <strong>${dots}</strong> точк.` : ""}${circles ? ` · <strong>${circles}</strong> круг.` : ""} · ${action}`;
+      host.innerHTML = `<strong>${paths.length}</strong> штр. · <strong>${count}</strong> узл.${dots ? ` · <strong>${dots}</strong> точк.` : ""}${circles ? ` · <strong>${circles}</strong> круг.` : ""}${fixedCount ? ` · <strong>${fixedCount}</strong> готов.` : ""} · ${state.fixedLayer ? "готовые элементы" : action}`;
     }
     else host.textContent = "Сетка ещё не настроена";
     board.classList.toggle("is-calibrating", state.calibrationMode);
@@ -1178,6 +1381,13 @@
     $("pointsTool").setAttribute("aria-pressed", String(state.tool === "points"));
     $("dotsTool").setAttribute("aria-pressed", String(state.tool === "dots"));
     $("circleTool").setAttribute("aria-pressed", String(state.tool === "circles"));
+    const fixedUnavailable = taskKind() === "dictation";
+    if (fixedUnavailable && state.fixedLayer) {
+      state.fixedLayer = false;
+      clearSelection();
+    }
+    $("fixedLayerBtn").setAttribute("aria-pressed", String(state.fixedLayer));
+    $("fixedLayerBtn").disabled = fixedUnavailable;
     const circleControlsActive = state.tool === "circles" || state.selectedCircle !== null;
     $("circleDiameterField").classList.toggle("is-active", circleControlsActive);
     $("circleCellToggle").classList.toggle("is-active", circleControlsActive);
@@ -1188,6 +1398,10 @@
     $("rasterScaleXValue").textContent = `${Math.round(number($("rasterScaleX").value, 100))}%`;
     $("rasterScaleYValue").textContent = `${Math.round(number($("rasterScaleY").value, 100))}%`;
     $("circleDiameterValue").textContent = `${fmt(number($("circleDiameter").value, 2))} кл.`;
+    $("undoBtn").disabled = !state.history.length;
+    $("headerUndoBtn").disabled = !state.history.length;
+    $("redoBtn").disabled = !state.future.length;
+    $("headerRedoBtn").disabled = !state.future.length;
   }
 
   function renderAlignmentTools() {
@@ -1327,8 +1541,10 @@
     const path = activePath();
     const snapped = snap(point);
     if (path.length && same(path.at(-1), snapped)) return;
+    const before = geometrySnapshot();
     path.push(snapped);
-    state.selectedNode = { pathIndex: state.activePath, pointIndex: path.length - 1 };
+    commitGeometryChange(before);
+    state.selectedNode = { pathIndex: activePathIndex(), pointIndex: path.length - 1 };
     state.selectedDot = null;
     state.selectedCircle = null;
     state.selectedSegment = null;
@@ -1341,12 +1557,15 @@
       return;
     }
     const snapped = snap(point);
-    if (state.dots.some((dot) => same(dot, snapped))) {
+    const dots = layerDots();
+    if (dots.some((dot) => same(dot, snapped))) {
       setNotice("В этом узле уже есть отдельная точка.", "error");
       return;
     }
-    state.dots.push(snapped);
-    state.selectedDot = state.dots.length - 1;
+    const before = geometrySnapshot();
+    dots.push(snapped);
+    commitGeometryChange(before);
+    state.selectedDot = dots.length - 1;
     state.selectedNode = null;
     state.selectedCircle = null;
     state.selectedSegment = null;
@@ -1371,8 +1590,11 @@
     const placement = $("circleInCell").checked ? "cell" : "node";
     const center = circleCenter(point, placement);
     const circle = { ...center, diameter: circleDiameter(), placement };
-    state.circles.push(circle);
-    state.selectedCircle = state.circles.length - 1;
+    const before = geometrySnapshot();
+    const circles = layerCircles();
+    circles.push(circle);
+    commitGeometryChange(before);
+    state.selectedCircle = circles.length - 1;
     state.selectedNode = null;
     state.selectedDot = null;
     state.selectedSegment = null;
@@ -1382,7 +1604,11 @@
 
   function setCircleDiameter() {
     const diameter = circleDiameter();
-    if (state.selectedCircle !== null && state.circles[state.selectedCircle]) state.circles[state.selectedCircle].diameter = diameter;
+    const circle = state.selectedCircle !== null ? layerCircles()[state.selectedCircle] : null;
+    if (circle && circle.diameter !== diameter) {
+      if (!state.circleDiameterBefore) state.circleDiameterBefore = geometrySnapshot();
+      circle.diameter = diameter;
+    }
     render();
   }
 
@@ -1393,78 +1619,48 @@
       render();
       return;
     }
-    if (!activePath().length) state.paths[state.activePath] = simplified;
+    const before = geometrySnapshot();
+    const paths = layerPaths();
+    if (!activePath().length) paths[activePathIndex()] = simplified;
     else {
-      state.paths.push(simplified);
-      state.activePath = state.paths.length - 1;
+      paths.push(simplified);
+      setActivePathIndex(paths.length - 1);
     }
-    state.paths.push([]);
-    state.activePath = state.paths.length - 1;
+    paths.push([]);
+    setActivePathIndex(paths.length - 1);
     state.selectedNode = null;
     state.selectedDot = null;
     state.selectedCircle = null;
     state.selectedSegment = null;
+    commitGeometryChange(before);
     setNotice(`Жест выпрямлен: ${simplified.length} узл., ${simplified.length - 1} прямых сегм.`, "good");
     render();
   }
 
   function newPath() {
+    const before = geometrySnapshot();
     if (activePath().length) {
-      state.paths.push([]);
-      state.activePath = state.paths.length - 1;
+      const paths = layerPaths();
+      paths.push([]);
+      setActivePathIndex(paths.length - 1);
     }
     state.selectedNode = null;
     state.selectedDot = null;
     state.selectedCircle = null;
     state.selectedSegment = null;
+    commitGeometryChange(before);
     setNotice("Начат новый штрих: следующий жест или узел не соединится с предыдущим.", "good");
     render();
   }
 
-  function undoLast() {
-    if (state.selectedCircle !== null && state.circles[state.selectedCircle]) {
-      state.circles.splice(state.selectedCircle, 1);
-      state.selectedCircle = null;
-      state.selectedNode = null;
-      state.selectedDot = null;
-      state.selectedSegment = null;
-      setNotice("Круг убран.");
-      render();
-      return;
-    }
-    if (state.selectedDot !== null && state.dots[state.selectedDot]) {
-      state.dots.splice(state.selectedDot, 1);
-      state.selectedDot = null;
-      state.selectedNode = null;
-      state.selectedCircle = null;
-      state.selectedSegment = null;
-      setNotice("Последняя точка убрана.");
-      render();
-      return;
-    }
-    const active = activePath();
-    if (active.length) {
-      active.pop();
-      state.selectedNode = null;
-      state.selectedDot = null;
-      state.selectedCircle = null;
-      state.selectedSegment = null;
-    } else {
-      state.paths.pop();
-      state.activePath = Math.max(0, state.paths.length - 1);
-      if (!state.paths.length) state.paths = [[]];
-      state.selectedNode = null;
-      state.selectedDot = null;
-      state.selectedCircle = null;
-      state.selectedSegment = null;
-    }
-    setNotice("Последний узел убран.");
-    render();
-  }
-
   function deleteSelected() {
-    if (state.selectedCircle !== null && state.circles[state.selectedCircle]) {
-      state.circles.splice(state.selectedCircle, 1);
+    const circles = layerCircles();
+    const dots = layerDots();
+    const paths = layerPaths();
+    if (state.selectedCircle !== null && circles[state.selectedCircle]) {
+      const before = geometrySnapshot();
+      circles.splice(state.selectedCircle, 1);
+      commitGeometryChange(before);
       state.selectedCircle = null;
       state.selectedNode = null;
       state.selectedDot = null;
@@ -1473,8 +1669,10 @@
       render();
       return;
     }
-    if (state.selectedDot !== null && state.dots[state.selectedDot]) {
-      state.dots.splice(state.selectedDot, 1);
+    if (state.selectedDot !== null && dots[state.selectedDot]) {
+      const before = geometrySnapshot();
+      dots.splice(state.selectedDot, 1);
+      commitGeometryChange(before);
       state.selectedDot = null;
       state.selectedNode = null;
       state.selectedCircle = null;
@@ -1485,8 +1683,10 @@
     }
     const selected = state.selectedNode;
     if (!selected) { setNotice("Сначала выберите узел, точку или круг.", "error"); return; }
-    const path = state.paths[selected.pathIndex];
+    const path = paths[selected.pathIndex];
+    const before = geometrySnapshot();
     path.splice(selected.pointIndex, 1);
+    commitGeometryChange(before);
     state.selectedNode = null;
     state.selectedDot = null;
     state.selectedCircle = null;
@@ -1497,24 +1697,27 @@
 
   function deleteSelectedSegment() {
     const selected = state.selectedSegment;
-    if (!selected) { setNotice("Нажмите на красный отрезок, который нужно вырезать.", "error"); return; }
-    const path = state.paths[selected.pathIndex];
+    if (!selected) { setNotice("Нажмите на отрезок, который нужно вырезать.", "error"); return; }
+    const paths = layerPaths();
+    const path = paths[selected.pathIndex];
     if (!path || selected.segmentIndex < 0 || selected.segmentIndex >= path.length - 1) {
       state.selectedSegment = null;
       setNotice("Этот отрезок уже изменён. Выберите его ещё раз.", "error");
       render();
       return;
     }
+    const before = geometrySnapshot();
     const left = path.slice(0, selected.segmentIndex + 1);
     const right = path.slice(selected.segmentIndex + 1);
     const replacements = [left, right].filter((part) => part.length >= 2);
-    state.paths.splice(selected.pathIndex, 1, ...replacements);
-    if (!state.paths.length) state.paths = [[]];
-    state.activePath = Math.max(0, Math.min(state.activePath, state.paths.length - 1));
+    paths.splice(selected.pathIndex, 1, ...replacements);
+    if (!paths.length) paths.push([]);
+    setActivePathIndex(Math.max(0, Math.min(activePathIndex(), paths.length - 1)));
     state.selectedNode = null;
     state.selectedDot = null;
     state.selectedCircle = null;
     state.selectedSegment = null;
+    commitGeometryChange(before);
     setNotice("Участок вырезан: оставшиеся части стали отдельными штрихами.", "good");
     render();
   }
@@ -1522,28 +1725,40 @@
   function deleteSelectedPath() {
     const pathIndex = state.selectedNode?.pathIndex ?? state.selectedSegment?.pathIndex;
     if (pathIndex === undefined) { setNotice("Выберите узел или отрезок штриха, который нужно удалить.", "error"); return; }
-    state.paths.splice(pathIndex, 1);
-    if (!state.paths.length) state.paths = [[]];
-    state.activePath = Math.max(0, Math.min(state.activePath, state.paths.length - 1));
+    const before = geometrySnapshot();
+    const paths = layerPaths();
+    paths.splice(pathIndex, 1);
+    if (!paths.length) paths.push([]);
+    setActivePathIndex(Math.max(0, Math.min(activePathIndex(), paths.length - 1)));
     state.selectedNode = null;
     state.selectedDot = null;
     state.selectedCircle = null;
     state.selectedSegment = null;
+    commitGeometryChange(before);
     setNotice("Штрих удалён.", "good");
     render();
   }
 
   function clearPaths() {
     if (!finalPaths().length && !activePath().length && !finalDots().length && !finalCircles().length) return;
-    state.paths = [[]];
-    state.dots = [];
-    state.circles = [];
-    state.activePath = 0;
+    const before = geometrySnapshot();
+    if (state.fixedLayer) {
+      state.fixedPaths = [[]];
+      state.fixedDots = [];
+      state.fixedCircles = [];
+      state.fixedActivePath = 0;
+    } else {
+      state.paths = [[]];
+      state.dots = [];
+      state.circles = [];
+      state.activePath = 0;
+    }
     state.selectedNode = null;
     state.selectedDot = null;
     state.selectedCircle = null;
     state.selectedSegment = null;
-    setNotice("Линии, точки и круги очищены. Растр и сетка сохранены.");
+    commitGeometryChange(before);
+    setNotice(`${state.fixedLayer ? "Готовые элементы" : "Линии, точки и круги"} очищены. Растр и сетка сохранены.`);
     render();
   }
 
@@ -1562,6 +1777,11 @@
     state.dots = [];
     state.circles = [];
     state.activePath = 0;
+    state.fixedPaths = [[]];
+    state.fixedDots = [];
+    state.fixedCircles = [];
+    state.fixedActivePath = 0;
+    state.fixedLayer = false;
     state.selectedNode = null;
     state.selectedDot = null;
     state.selectedCircle = null;
@@ -1570,6 +1790,7 @@
     state.draggingCircle = null;
     state.tracing = null;
     state.importedCard = null;
+    clearGeometryHistory();
     setBoardSize(DEFAULT_BOARD_WIDTH, DEFAULT_BOARD_HEIGHT);
     $("labelInput").value = "Новая фигура";
     $("idInput").value = "repeat_new_figure";
@@ -1609,10 +1830,16 @@
     state.dots = [];
     state.circles = [];
     state.activePath = 0;
+    state.fixedPaths = [[]];
+    state.fixedDots = [];
+    state.fixedCircles = [];
+    state.fixedActivePath = 0;
+    state.fixedLayer = false;
     state.selectedNode = null;
     state.selectedDot = null;
     state.selectedCircle = null;
     state.selectedSegment = null;
+    clearGeometryHistory();
     setNotice("Пример готов. Попробуйте обвести рукой букву или контур — жест станет ломаной.", "good");
     render();
   }
@@ -1669,13 +1896,19 @@
         $("rasterScale").value = "100";
         $("rasterScaleX").value = "100";
         $("rasterScaleY").value = "100";
-        const keepsImportedVector = Boolean(state.importedCard && (finalPaths().length || finalDots().length || finalCircles().length));
+        const keepsImportedVector = Boolean(state.importedCard && (finalPaths().length || finalDots().length || finalCircles().length || finalPaths(true).length || finalDots(true).length || finalCircles(true).length));
         if (!keepsImportedVector) {
           state.paths = [[]];
           state.dots = [];
           state.circles = [];
           state.activePath = 0;
+          state.fixedPaths = [[]];
+          state.fixedDots = [];
+          state.fixedCircles = [];
+          state.fixedActivePath = 0;
+          state.fixedLayer = false;
           state.importedCard = null;
+          clearGeometryHistory();
         }
         state.selectedNode = null;
         state.selectedDot = null;
@@ -1718,9 +1951,19 @@
         const circles = card.taskKind === "dictation"
           ? []
           : clone(card.sourceCircles ?? []).map((circle) => ({ ...circle, ...normalizePoint(circle) }));
+        const fixedPaths = card.taskKind === "dictation"
+          ? []
+          : clone(card.fixedPaths ?? []).map((path) => path.map(normalizePoint));
+        const fixedDots = card.taskKind === "dictation" ? [] : clone(card.fixedDots ?? []).map(normalizePoint);
+        const fixedCircles = card.taskKind === "dictation"
+          ? []
+          : clone(card.fixedCircles ?? []).map((circle) => ({ ...circle, ...normalizePoint(circle) }));
         if (!Array.isArray(paths) || paths.some((path) => !Array.isArray(path) || path.length < 2)) throw new Error("В JSON есть некорректная траектория фигуры.");
         if (!Array.isArray(dots) || dots.some((point) => !Number.isFinite(point?.col) || !Number.isFinite(point?.row))) throw new Error("В JSON есть некорректная отдельная точка.");
         if (!Array.isArray(circles) || circles.some((circle) => !Number.isFinite(circle?.col) || !Number.isFinite(circle?.row) || !Number.isFinite(circle?.diameter) || circle.diameter <= 0)) throw new Error("В JSON есть некорректный круг.");
+        if (!Array.isArray(fixedPaths) || fixedPaths.some((path) => !Array.isArray(path) || path.length < 2)) throw new Error("В JSON есть некорректная готовая траектория.");
+        if (!Array.isArray(fixedDots) || fixedDots.some((point) => !Number.isFinite(point?.col) || !Number.isFinite(point?.row))) throw new Error("В JSON есть некорректная готовая точка.");
+        if (!Array.isArray(fixedCircles) || fixedCircles.some((circle) => !Number.isFinite(circle?.col) || !Number.isFinite(circle?.row) || !Number.isFinite(circle?.diameter) || circle.diameter <= 0)) throw new Error("В JSON есть некорректный готовый круг.");
         if (!paths.length && !dots.length && !circles.length) throw new Error("В JSON нет готовой траектории, точки или круга.");
 
         state.importedCard = clone(card);
@@ -1736,6 +1979,11 @@
         state.dots = dots;
         state.circles = circles;
         state.activePath = Math.max(0, state.paths.length - 1);
+        state.fixedPaths = fixedPaths.length ? fixedPaths : [[]];
+        state.fixedDots = fixedDots;
+        state.fixedCircles = fixedCircles;
+        state.fixedActivePath = Math.max(0, state.fixedPaths.length - 1);
+        state.fixedLayer = false;
         state.selectedNode = null;
         state.selectedDot = null;
         state.selectedCircle = null;
@@ -1743,6 +1991,7 @@
         state.draggingDot = null;
         state.draggingCircle = null;
         state.tracing = null;
+        clearGeometryHistory();
         $("labelInput").value = String(card.label ?? "Фигура");
         $("idInput").value = String(card.id ?? "");
         $("idInput").readOnly = true;
@@ -1824,18 +2073,18 @@
   board.addEventListener("pointermove", (event) => {
     if (moveRaster(event) || moveGrid(event)) return;
     if (state.draggingNode && state.draggingNode.pointerId === event.pointerId) {
-      const { pathIndex, pointIndex } = state.draggingNode;
-      state.paths[pathIndex][pointIndex] = snap(pixelToGrid(svgPoint(event)));
+      const { fixed, pathIndex, pointIndex } = state.draggingNode;
+      layerPaths(fixed)[pathIndex][pointIndex] = snap(pixelToGrid(svgPoint(event)));
       render();
       return;
     }
     if (state.draggingDot && state.draggingDot.pointerId === event.pointerId) {
-      state.dots[state.draggingDot.pointIndex] = snap(pixelToGrid(svgPoint(event)));
+      layerDots(state.draggingDot.fixed)[state.draggingDot.pointIndex] = snap(pixelToGrid(svgPoint(event)));
       render();
       return;
     }
     if (state.draggingCircle && state.draggingCircle.pointerId === event.pointerId) {
-      const circle = state.circles[state.draggingCircle.circleIndex];
+      const circle = layerCircles(state.draggingCircle.fixed)[state.draggingCircle.circleIndex];
       if (circle) Object.assign(circle, circleCenter(pixelToGrid(svgPoint(event)), circle.placement ?? "node"));
       render();
       return;
@@ -1862,16 +2111,22 @@
     }
     if (state.draggingNode && state.draggingNode.pointerId === event.pointerId) {
       state.draggingNode = null;
+      commitGeometryChange(state.geometryDragBefore);
+      state.geometryDragBefore = null;
       render();
       return;
     }
     if (state.draggingDot && state.draggingDot.pointerId === event.pointerId) {
       state.draggingDot = null;
+      commitGeometryChange(state.geometryDragBefore);
+      state.geometryDragBefore = null;
       render();
       return;
     }
     if (state.draggingCircle && state.draggingCircle.pointerId === event.pointerId) {
       state.draggingCircle = null;
+      commitGeometryChange(state.geometryDragBefore);
+      state.geometryDragBefore = null;
       render();
       return;
     }
@@ -1903,10 +2158,18 @@
     if (file) loadFigureJson(file);
     event.target.value = "";
   });
-  $("traceTool").addEventListener("click", () => { state.tool = "trace"; state.alignMode = null; setNotice("Режим обводки: после жеста линия будет выпрямлена по узлам."); render(); });
-  $("pointsTool").addEventListener("click", () => { state.tool = "points"; state.alignMode = null; setNotice("Режим точек: щёлкайте по узлам, чтобы строить прямые сегменты."); render(); });
-  $("dotsTool").addEventListener("click", () => { state.tool = "dots"; state.alignMode = null; setNotice("Режим отдельных точек: щёлкайте по узлам — точки не будут соединены линиями."); render(); });
-  $("circleTool").addEventListener("click", () => { state.tool = "circles"; state.alignMode = null; setNotice("Режим кругов: щёлкните по клетке, чтобы вписать круг; переключатель позволяет ставить центр на узел."); render(); });
+  $("traceTool").addEventListener("click", () => { state.tool = "trace"; state.alignMode = null; setNotice(`Режим обводки: ${state.fixedLayer ? "готовая" : "обычная"} линия после жеста будет выпрямлена по узлам.`); render(); });
+  $("pointsTool").addEventListener("click", () => { state.tool = "points"; state.alignMode = null; setNotice(`Режим точек: щёлкайте по узлам, чтобы добавлять ${state.fixedLayer ? "готовые элементы" : "прямые сегменты"}.`); render(); });
+  $("dotsTool").addEventListener("click", () => { state.tool = "dots"; state.alignMode = null; setNotice(`Режим отдельных точек: щёлкайте по узлам — ${state.fixedLayer ? "готовые" : "обычные"} точки не будут соединены линиями.`); render(); });
+  $("circleTool").addEventListener("click", () => { state.tool = "circles"; state.alignMode = null; setNotice(`Режим кругов: щёлкните по клетке, чтобы вписать ${state.fixedLayer ? "готовый" : "обычный"} круг.`); render(); });
+  $("fixedLayerBtn").addEventListener("click", () => {
+    if (taskKind() === "dictation") return;
+    finishCircleDiameterChange();
+    state.fixedLayer = !state.fixedLayer;
+    clearSelection();
+    setNotice(state.fixedLayer ? "Слой готовых элементов включён: всё добавленное сразу появится в поле ребёнка." : "Слой обводки включён: ребёнок будет рисовать эти элементы сам.", "good");
+    render();
+  });
   $("fitRasterBtn").addEventListener("click", fitRasterToBoard);
   $("resetRasterScaleBtn").addEventListener("click", () => {
     $("rasterScale").value = "100";
@@ -1920,20 +2183,29 @@
   $("rasterScaleY").addEventListener("input", setRasterScale);
   $("gridScale").addEventListener("input", setGridScale);
   $("circleDiameter").addEventListener("input", setCircleDiameter);
+  $("circleDiameter").addEventListener("change", finishCircleDiameterChange);
   $("circleInCell").addEventListener("change", () => {
-    if (state.selectedCircle !== null && state.circles[state.selectedCircle]) state.circles[state.selectedCircle].placement = $("circleInCell").checked ? "cell" : "node";
+    finishCircleDiameterChange();
+    const circle = state.selectedCircle !== null ? layerCircles()[state.selectedCircle] : null;
+    if (circle) {
+      const before = geometrySnapshot();
+      circle.placement = $("circleInCell").checked ? "cell" : "node";
+      commitGeometryChange(before);
+    }
     render();
   });
   document.querySelectorAll("[data-nudge-raster]").forEach((button) => button.addEventListener("click", () => nudgeRaster(button.dataset.nudgeRaster)));
   document.querySelectorAll("[data-nudge-grid]").forEach((button) => button.addEventListener("click", () => nudgeGrid(button.dataset.nudgeGrid)));
   $("newPathBtn").addEventListener("click", newPath);
   $("undoBtn").addEventListener("click", undoLast);
+  $("redoBtn").addEventListener("click", redoLast);
   $("deleteNodeBtn").addEventListener("click", deleteSelected);
   $("deleteSegmentBtn").addEventListener("click", deleteSelectedSegment);
   $("deletePathBtn").addEventListener("click", deleteSelectedPath);
   $("clearPathsBtn").addEventListener("click", clearPaths);
   $("resetBtn").addEventListener("click", resetDraft);
   $("headerUndoBtn").addEventListener("click", undoLast);
+  $("headerRedoBtn").addEventListener("click", redoLast);
   $("copyBtn").addEventListener("click", copyCard);
   $("downloadCardBtn").addEventListener("click", () => download(`${$("idInput").value.trim() || "grid-figure"}.json`, $("cardOutput").value));
   $("addToSetBtn").addEventListener("click", addToSet);
@@ -1959,10 +2231,20 @@
     if (event.key.toLowerCase() === "x") { event.preventDefault(); deleteSelectedSegment(); }
     if (event.key.toLowerCase() === "d") { event.preventDefault(); deleteSelectedPath(); }
     if (event.key.toLowerCase() === "n") { event.preventDefault(); newPath(); }
-    if (event.key.toLowerCase() === "z" && !event.ctrlKey && !event.metaKey) { event.preventDefault(); undoLast(); }
-    if (event.key.toLowerCase() === "t") { state.tool = "trace"; state.alignMode = null; render(); }
-    if (event.key.toLowerCase() === "p") { state.tool = "points"; state.alignMode = null; render(); }
-    if (event.key.toLowerCase() === "o") { state.tool = "dots"; state.alignMode = null; render(); }
+    const key = event.key.toLowerCase();
+    if ((event.ctrlKey || event.metaKey) && key === "z") {
+      event.preventDefault();
+      if (event.shiftKey) redoLast();
+      else undoLast();
+      return;
+    }
+    if ((event.ctrlKey || event.metaKey) && key === "y") { event.preventDefault(); redoLast(); return; }
+    if (key === "z") { event.preventDefault(); undoLast(); }
+    if (key === "t") { state.tool = "trace"; state.alignMode = null; render(); }
+    if (key === "p") { state.tool = "points"; state.alignMode = null; render(); }
+    if (key === "o") { state.tool = "dots"; state.alignMode = null; render(); }
+    if (key === "c") { state.tool = "circles"; state.alignMode = null; render(); }
+    if (key === "f" && taskKind() !== "dictation") { state.fixedLayer = !state.fixedLayer; clearSelection(); render(); }
     if (event.key === "Escape" && state.alignMode) { state.alignMode = null; render(); }
   });
 
