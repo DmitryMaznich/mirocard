@@ -79,6 +79,16 @@ describe("TopicTile — mounted through the real component", () => {
     expect(onInstall).toHaveBeenCalledWith({ id: "propis", version: "1.1.0" }, { force: true });
   });
 
+  it("shows the update action even when the older installed topic is active", async () => {
+    const onInstall = vi.fn().mockResolvedValue(undefined);
+    const record = { meta: { id: "symmetry_draw", version: "1.12.2" } };
+    mount({ installedRecord: record, entry: { id: "symmetry_draw", version: "1.12.3" }, isActive: true, onInstall });
+    const badge = container.querySelector(".topic-tile-row__badge");
+    expect(badge?.getAttribute("aria-label")).toContain("Доступно обновление v1.12.3");
+    await act(async () => { badge.click(); });
+    expect(onInstall).toHaveBeenCalledWith({ id: "symmetry_draw", version: "1.12.3" }, { force: true });
+  });
+
   it("paid tier, no access yet: badge is enabled and requests access on tap", async () => {
     const onInstall = vi.fn().mockResolvedValue(undefined);
     mount({ entry: { id: "propis", version: "1.0.0" }, access: "paid", claimSource: null, onInstall });

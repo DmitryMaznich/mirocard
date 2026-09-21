@@ -52,10 +52,10 @@ export default function TopicTile({
   let status;
   if (!installedRecord) {
     status = isPending ? "pending" : (!isGranted && access === "paid" ? "request" : "install");
-  } else if (isActive) {
-    status = "active";
   } else if (entry && installedRecord.meta.version !== entry.version) {
     status = "update";
+  } else if (isActive) {
+    status = "active";
   } else {
     status = "open";
   }
