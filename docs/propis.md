@@ -2952,6 +2952,74 @@ nonsensical bounding rects until caught. 122/122 propis tests pass (no test adde
 DOM/touch-event plumbing with no pure function to unit-test), `npm run build` clean. Cleaned
 up the throwaway harness before commit. No `elements.json` change, no deck-zip rebuild needed.
 
+**Element inventory research, plus a photo backdrop for the capture tool (2026-09-21).** User
+asked to start building out the remaining element catalog ("давай формировать каталог
+элементов для добавления"), then supplied the actual physical source: Горецкий/Федосова
+«Прописи. 1 класс» (4 parts, "Школа России" series, 2023) — a different, official-curriculum
+book from the Жукова set the current 11/27 `elements.json` entries and the `REGISTRY` in
+`scripts/propis_ingest_elements.mjs` were built from.
+
+Surveyed all 132 pages across the 4 parts (`pdftoppm`-rendered where needed, plus the PDF-read
+tool for the bulk of it) looking for pages that introduce a NEW pre-writing element (no
+colored letter tile in the top-left corner, unlike an ordinary letter-introduction page).
+Found the pattern holds only in part 1: pages 7–15 (9 pages), each pairing one element with
+the specific upcoming letter group it's building toward. Parts 2–4 go straight into letters
+with their own colored tile from the first page — no separate elements section anywhere in
+them. Catalog (page → element → letters it's for): 7 К/П/Ю (straight climbing zigzag), 8 П/Б/А
+(short hook/diagonal), 9 В/Ж/Д (larger hook with a "foot"), 10 Л/И/М (hook-loop chain), 11 Л/М/П
+(smaller hook variant), 12 Г/П/Т (small hook with a dot), 13 У/Я/З (small zigzag hook), 14 Н
+(paired loop-hooks), 15 З/Е/Ё (hook + round + descending loop).
+
+Asked for a recommendation "как специалист по русскому курсиву": favored this Горецкий/
+Федосова set over sticking with (or trying to finish) the Жукова-based `REGISTRY` — it's the
+actual "Школа России" curriculum a real child follows in class, so the app becomes direct
+reinforcement of what's already being taught rather than a parallel system drilling
+differently-shaped strokes for the same letters. Traded off against: only 9 elements (vs. 27
+planned in the old set) and no new element shapes at all past page 15 (У, Я, ovals — the old
+set's `08_chervyachok`/`09_zmeyka`/`10_oval_s_hvostikom` etc. — never appear in this book; every
+later letter just recombines strokes already covered by these 9). User agreed with keeping the
+9 as the new basis rather than finishing the old 27.
+
+**Photo backdrop added to `tools/letter_capture/handwriting_capture.html`** so these 9 (and any
+future scan-sourced element) can be traced directly instead of eyeballed from a screenshot —
+the tool previously had exactly one kind of tracing subloжка, a live-rendered font glyph
+(`guideLayer`/`updateGuideFromLabel`), with no way to load an arbitrary image at all. New
+`imageGuideLayer` SVG `<g>` (sits between `ruleLayer` and the existing text `guideLayer`, so
+drawn strokes always render on top of the photo) plus a `usePinchZoom`-adjacent-but-separate
+piece of state: `imgGuideDataUrl`/`imgGuideNaturalW`/`H` (from `FileReader` + a probe `Image()`
+for natural size, in-memory only — nothing here touches the saved letter/element set or
+`localStorage`, matching the text guide's own no-persistence convention), `imgGuideOffsetX/Y`
+(canvas units, nudged 2 at a time — coarser than the text guide's 1-unit step, since a photo
+crop's alignment tolerance is looser than a font glyph's), and `imgGuideScale` (a multiplier on
+top of a fit-to-`VB_H`-height base scale, so "Масштаб=1" always means "the photo's own line
+height matches the canvas ruling height" regardless of the source image's raw pixel size, not
+an absolute number the artist has to reason about). Opacity slider (default 0.55) lets the
+ruling show through for initial alignment. "Убрать фото" clears it; toggling the checkbox
+hides/shows without discarding the upload.
+
+**Caught two bugs before handing this to the user, not after.** (1) First crop attempt included
+4 rows of the book (the demo row plus 3 counted-repetition rows) fit-to-height into the canvas —
+since the canvas viewBox height (`VB_H`=150) represents ONE ruled line, not a whole page
+section, this squeezed all 4 rows into a sliver a quarter their intended size; fixed by
+re-cropping to just the single demo row per page. (2) That tighter first-pass crop then clipped
+the bottom of taller elements (the loop-hook chains on pages 14–15 have descenders reaching
+below the row) — caught by rendering the actual crop through the real tool via Playwright and
+looking at the screenshot, not by eye on the source PDF alone; widened the crop's bottom bound
+until a sample of the tallest pages (9, 11, 15) all cleared it with margin.
+
+Verified via Playwright end-to-end against the real (not a throwaway harness) tool, synced to
+`public/letter_capture.html` first: uploaded a real cropped page image through
+`#imageGuideFileInput`, then drove nudge (both axes), scale, opacity, reset, toggle-off/on, and
+clear — reading the resulting `<image>` element's actual `width`/`height`/`transform`/`opacity`
+attributes from the DOM after each step (not just a screenshot) to confirm the math, plus one
+full-visual screenshot with the text guide hidden to confirm a real crop reads cleanly as a
+traceable shape once positioned. 122/122 propis tests pass, `npm run build` clean — this file
+isn't covered by the vitest suite (plain-HTML dev tool, no exported functions to unit-test),
+consistent with how the rest of `handwriting_capture.html`'s features have been verified this
+session (SPACING retune, etc.). Delivered the 9 final crops to the user directly (outside the
+repo — they're reference material for manual tracing, not app data) rather than committing them
+anywhere; nothing under `tools/propis/elements.json` or the deck ZIP changed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

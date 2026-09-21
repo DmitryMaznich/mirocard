@@ -253,6 +253,11 @@
   }
   .guide-nudge button:active { background: var(--accent-soft); }
   #guideNudgeReset { min-width: 56px; font-variant-numeric: tabular-nums; font-size: 10.5px; }
+  #imageGuideNudgeReset { min-width: 88px; font-variant-numeric: tabular-nums; font-size: 10.5px; }
+  /* Opacity/scale sliders for the photo backdrop (see imageGuideLayer JS) — inline with
+     their own label, same row height as the other toggle-row controls. */
+  .img-guide-slider-label { gap: 8px; }
+  .img-guide-slider-label input[type="range"] { width: 110px; accent-color: var(--accent); }
 
   h2.card-title {
     margin: 0 0 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
@@ -387,6 +392,7 @@
         <div class="canvas-wrap" id="canvasWrap">
           <svg id="drawSvg" viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">
             <g id="ruleLayer"></g>
+            <g id="imageGuideLayer"></g>
             <g id="guideLayer"></g>
             <g id="rawLayer"></g>
             <g id="smoothLayer"></g>
@@ -442,6 +448,34 @@
               <button type="button" id="guideNudgeRight" aria-label="Сдвинуть подложку вправо">▶</button>
             </div>
             <button type="button" id="guideNudgeDown" aria-label="Сдвинуть подложку вниз">▼</button>
+          </div>
+        </div>
+        <div class="toggle-row">
+          <label class="guide-toggle-label">
+            <input type="checkbox" id="imageGuideToggle" checked />
+            Фото-подложка для обводки
+          </label>
+          <button type="button" id="imageGuideUploadBtn">Загрузить фото</button>
+          <input type="file" id="imageGuideFileInput" class="hidden-file-input" accept="image/*" />
+          <button type="button" id="imageGuideClearBtn" title="Убрать загруженное фото">Убрать фото</button>
+        </div>
+        <div class="toggle-row" id="imageGuideControlsRow">
+          <label class="guide-toggle-label img-guide-slider-label" title="Прозрачность фото-подложки">
+            Прозрачность
+            <input type="range" id="imageGuideOpacity" min="0.1" max="1" step="0.05" value="0.55" />
+          </label>
+          <label class="guide-toggle-label img-guide-slider-label" title="Масштаб фото-подложки">
+            Масштаб
+            <input type="range" id="imageGuideScale" min="0.3" max="3" step="0.02" value="1" />
+          </label>
+          <div class="guide-nudge" title="Сдвиг фото-подложки на 2 юнита холста за клик">
+            <button type="button" id="imageGuideNudgeUp" aria-label="Сдвинуть фото вверх">▲</button>
+            <div class="guide-nudge-row">
+              <button type="button" id="imageGuideNudgeLeft" aria-label="Сдвинуть фото влево">◀</button>
+              <button type="button" id="imageGuideNudgeReset" title="Сбросить сдвиг и масштаб фото">X:<span id="imageGuideOffsetXLabel">0</span> Y:<span id="imageGuideOffsetYLabel">0</span></button>
+              <button type="button" id="imageGuideNudgeRight" aria-label="Сдвинуть фото вправо">▶</button>
+            </div>
+            <button type="button" id="imageGuideNudgeDown" aria-label="Сдвинуть фото вниз">▼</button>
           </div>
         </div>
         <div class="toggle-row">
@@ -602,6 +636,20 @@
   const rawLayer = document.getElementById("rawLayer");
   const smoothLayer = document.getElementById("smoothLayer");
   const guideLayer = document.getElementById("guideLayer");
+  const imageGuideLayer = document.getElementById("imageGuideLayer");
+  const imageGuideToggle = document.getElementById("imageGuideToggle");
+  const imageGuideUploadBtn = document.getElementById("imageGuideUploadBtn");
+  const imageGuideFileInput = document.getElementById("imageGuideFileInput");
+  const imageGuideClearBtn = document.getElementById("imageGuideClearBtn");
+  const imageGuideOpacity = document.getElementById("imageGuideOpacity");
+  const imageGuideScaleInput = document.getElementById("imageGuideScale");
+  const imageGuideNudgeUp = document.getElementById("imageGuideNudgeUp");
+  const imageGuideNudgeDown = document.getElementById("imageGuideNudgeDown");
+  const imageGuideNudgeLeft = document.getElementById("imageGuideNudgeLeft");
+  const imageGuideNudgeRight = document.getElementById("imageGuideNudgeRight");
+  const imageGuideNudgeReset = document.getElementById("imageGuideNudgeReset");
+  const imageGuideOffsetXLabel = document.getElementById("imageGuideOffsetXLabel");
+  const imageGuideOffsetYLabel = document.getElementById("imageGuideOffsetYLabel");
   const undoBtn = document.getElementById("undoBtn");
   const clearBtn = document.getElementById("clearBtn");
   const canvasWrap = document.getElementById("canvasWrap");
@@ -1296,6 +1344,104 @@
     updateGuideOffsetLabels();
     updateGuideFromLabel();
   });
+
+  // Photo backdrop (2026-09-21, "нужны подложки которые можно грузить в мастерскую чтобы
+  // я могу оцифровать траекторию" -- tracing real scanned copybook pages, e.g. the Горецкий/
+  // Федосова "Школа России" element pages, directly instead of eyeballing proportions from a
+  // screenshot). Separate from the text-based letter subloжка above (guideLayer/
+  // updateGuideFromLabel) -- that one renders live font glyphs and has no use for an
+  // arbitrary photo. Kept entirely client-side: FileReader → data URL → in-memory only, same
+  // as the rest of this tool's state (nothing here is written to the saved letter/element
+  // set or persisted across a reload, matching the text guide's own offset behavior).
+  let imgGuideDataUrl = null;
+  let imgGuideNaturalW = 0;
+  let imgGuideNaturalH = 0;
+  let imgGuideOffsetX = 0;
+  let imgGuideOffsetY = 0;
+  let imgGuideScale = 1;
+  function updateImageGuideOffsetLabels() {
+    imageGuideOffsetXLabel.textContent = String(imgGuideOffsetX);
+    imageGuideOffsetYLabel.textContent = String(imgGuideOffsetY);
+  }
+  // Fits the photo's height to the canvas's own VB_H by default (native units, not px) --
+  // most crops from the source PDFs are landscape strips a bit wider than VB_W*SLOTS, which
+  // reads as "fills the writing band, scrolls past the right edge" rather than "shrunk to
+  // fit width", closer to how the page actually looks at 1:1 on paper. imgGuideScale is a
+  // multiplier ON TOP of this fit-to-height base, not an absolute scale, so "Масштаб=1" always
+  // means "photo's own line-height matches the canvas ruling height" regardless of the
+  // source image's raw pixel size.
+  function updateImageGuide() {
+    imageGuideLayer.innerHTML = "";
+    if (!imageGuideToggle.checked || !imgGuideDataUrl || !imgGuideNaturalH) return;
+    const baseScale = VB_H / imgGuideNaturalH;
+    const scale = baseScale * imgGuideScale;
+    const w = imgGuideNaturalW * scale;
+    const h = imgGuideNaturalH * scale;
+    const el = svgNS("image", {
+      x: "0", y: "0", width: String(w), height: String(h),
+      opacity: imageGuideOpacity.value,
+      transform: "translate(" + imgGuideOffsetX + "," + imgGuideOffsetY + ")",
+    });
+    el.setAttributeNS("http://www.w3.org/1999/xlink", "href", imgGuideDataUrl);
+    el.setAttribute("href", imgGuideDataUrl);
+    imageGuideLayer.appendChild(el);
+  }
+  imageGuideUploadBtn.addEventListener("click", () => imageGuideFileInput.click());
+  imageGuideFileInput.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        imgGuideDataUrl = reader.result;
+        imgGuideNaturalW = img.naturalWidth;
+        imgGuideNaturalH = img.naturalHeight;
+        imgGuideOffsetX = 0;
+        imgGuideOffsetY = 0;
+        imgGuideScale = 1;
+        imageGuideScaleInput.value = "1";
+        imageGuideToggle.checked = true;
+        updateImageGuideOffsetLabels();
+        updateImageGuide();
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+    imageGuideFileInput.value = ""; // lets re-picking the SAME file re-fire change
+  });
+  imageGuideClearBtn.addEventListener("click", () => {
+    imgGuideDataUrl = null;
+    updateImageGuide();
+  });
+  imageGuideToggle.addEventListener("change", updateImageGuide);
+  imageGuideOpacity.addEventListener("input", updateImageGuide);
+  imageGuideScaleInput.addEventListener("input", () => {
+    imgGuideScale = Number(imageGuideScaleInput.value);
+    updateImageGuide();
+  });
+  const IMG_GUIDE_NUDGE_STEP = 2; // coarser than the 1-unit text-guide nudge -- a photo
+  // crop's own alignment tolerance is looser than a font glyph's, so 1-unit clicks would
+  // mostly just waste taps to cover any meaningful distance.
+  function nudgeImageGuide(dx, dy) {
+    imgGuideOffsetX += dx * IMG_GUIDE_NUDGE_STEP;
+    imgGuideOffsetY += dy * IMG_GUIDE_NUDGE_STEP;
+    updateImageGuideOffsetLabels();
+    updateImageGuide();
+  }
+  imageGuideNudgeUp.addEventListener("click", () => nudgeImageGuide(0, -1));
+  imageGuideNudgeDown.addEventListener("click", () => nudgeImageGuide(0, 1));
+  imageGuideNudgeLeft.addEventListener("click", () => nudgeImageGuide(-1, 0));
+  imageGuideNudgeRight.addEventListener("click", () => nudgeImageGuide(1, 0));
+  imageGuideNudgeReset.addEventListener("click", () => {
+    imgGuideOffsetX = 0;
+    imgGuideOffsetY = 0;
+    imgGuideScale = 1;
+    imageGuideScaleInput.value = "1";
+    updateImageGuideOffsetLabels();
+    updateImageGuide();
+  });
+
   // Mirrors each trim checkbox onto its fullscreen counterpart (and back) so either one can
   // be toggled from wherever it's reachable — doFinishStroke only ever reads the sidebar
   // pair (trimStartChk/trimEndChk), so the fullscreen pair's job is purely to stay in sync
@@ -1313,6 +1459,7 @@
   applyTypeUI();
   updateGuideOffsetLabels();
   updateGuideFromLabel();
+  updateImageGuideOffsetLabels();
   // The base64 @font-face still loads asynchronously per spec even though it's a data URI —
   // re-render once it's actually ready so the very first guide isn't measured/drawn against a
   // fallback font for a frame.
