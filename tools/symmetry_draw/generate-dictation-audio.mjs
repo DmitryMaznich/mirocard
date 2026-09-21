@@ -44,6 +44,7 @@ function pcmToMp3(pcmBytes) {
 }
 
 class DailyQuotaExhausted extends Error {}
+class InvalidApiKey extends Error {}
 
 function promptFor(text) {
   return `Прочитай короткую команду графического диктанта по-русски. Спокойно, чётко и дружелюбно, как для ребёнка. Не добавляй вступление или пояснение. Команда: ${text}`;
@@ -75,6 +76,9 @@ async function synthesizeOnce(apiKey, text) {
   }
 
   const data = await response.json();
+  if (response.status === 400 && data?.error?.details?.some((detail) => detail?.reason === "API_KEY_INVALID")) {
+    throw new InvalidApiKey("Gemini API key is invalid");
+  }
   const audio = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
   if (!audio) throw new Error(`Gemini TTS error: ${JSON.stringify(data).slice(0, 500)}`);
   return pcmToMp3(Buffer.from(audio, "base64"));
@@ -122,6 +126,11 @@ for (const entry of entries) {
     if (error instanceof DailyQuotaExhausted) {
       console.log("DAILY QUOTA EXHAUSTED — stopping here; rerun tomorrow to continue.");
       stoppedOnQuota = true;
+      break;
+    }
+    if (error instanceof InvalidApiKey) {
+      console.log("INVALID API KEY — stopping without further requests.");
+      failed += 1;
       break;
     }
     console.log(`FAILED: ${error.message}`);

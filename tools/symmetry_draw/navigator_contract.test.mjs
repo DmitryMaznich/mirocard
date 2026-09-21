@@ -37,7 +37,7 @@ test("learning flash cards start predictably and choice exercises retain four ca
 test("a dictation error preserves the completed part of the drawing", () => {
   assert.match(sessionScreen, /const keepsDictationCanvasOnMistake = topicRecord\.meta\.id === "symmetry_draw"/);
   assert.match(sessionScreen, /\["graphic_dictation", "coordinate_dictation"\]\.includes\(currentTask\?\.type\)/);
-  assert.match(sessionScreen, /const rendererTaskKey = keepsDictationCanvasOnMistake\s*\? String\(taskIndex\)\s*:/);
+  assert.match(sessionScreen, /const rendererTaskKey = keepsDictationCanvasOnMistake \|\| keepsObserveSceneOnMistake\s*\? String\(taskIndex\)\s*:/);
 });
 
 test("every figure-building mode has a complete three-level card pool", () => {

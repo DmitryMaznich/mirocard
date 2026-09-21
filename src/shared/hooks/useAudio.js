@@ -18,6 +18,7 @@ export function useAudio() {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isTopicAudioPlaying, setIsTopicAudioPlaying] = useState(false);
   const currentRef = useRef(null);
+  const currentCleanupRef = useRef(null);
   const genRef     = useRef(0);
   const feedbackRef = useRef(null);
   const unlockedRef = useRef(false);
@@ -80,6 +81,8 @@ export function useAudio() {
       currentRef.current.pause();
       currentRef.current = null;
     }
+    currentCleanupRef.current?.();
+    currentCleanupRef.current = null;
     setIsTopicAudioPlaying(false);
   }, []);
 
@@ -99,40 +102,76 @@ export function useAudio() {
     }
   }, [getFeedbackAudio, soundEnabled, stop, unlockFeedbackAudio]);
 
-  const playTopicFile = useCallback(async (topicId, filePath) => {
-    if (!soundEnabled || !topicId || !filePath) return;
+  // A coordinate can be assembled from a letter recording and a number
+  // recording. Loading the whole short sequence before it starts means a
+  // missing component cannot leave the child with a half-spoken command.
+  const playTopicFiles = useCallback(async (topicId, filePaths) => {
+    const paths = (Array.isArray(filePaths) ? filePaths : [filePaths]).filter(Boolean);
+    if (!soundEnabled || !topicId || !paths.length) return false;
     stop();
     const myGen = genRef.current;
-    let audio = null;
-    let url = null;
     try {
       const db = await getDb();
-      if (genRef.current !== myGen) return;
-      const blob = await topics.getFile(db, topicId, filePath);
-      if (genRef.current !== myGen) return;
-      if (!blob) return;
-      url = URL.createObjectURL(blob);
-      audio = new Audio(url);
-      audio.playsInline = true;
-      if (genRef.current !== myGen) { URL.revokeObjectURL(url); return; }
-      currentRef.current = audio;
-      const finish = () => {
-        URL.revokeObjectURL(url);
-        if (currentRef.current !== audio) return;
-        currentRef.current = null;
-        setIsTopicAudioPlaying(false);
-      };
-      audio.onended = finish;
-      audio.onerror = finish;
-      await audio.play();
-      if (genRef.current === myGen && currentRef.current === audio) setIsTopicAudioPlaying(true);
+      if (genRef.current !== myGen) return false;
+      const blobs = [];
+      for (const path of paths) {
+        const blob = await topics.getFile(db, topicId, path);
+        if (genRef.current !== myGen) return false;
+        if (!blob) return false;
+        blobs.push(blob);
+      }
+
+      for (let index = 0; index < blobs.length; index += 1) {
+        if (genRef.current !== myGen) return false;
+        const blob = blobs[index];
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.playsInline = true;
+        currentRef.current = audio;
+
+        const completed = await new Promise((resolve) => {
+          let settled = false;
+          let cancelCurrent = null;
+          const finish = (played) => {
+            if (settled) return;
+            settled = true;
+            audio.onended = null;
+            audio.onerror = null;
+            URL.revokeObjectURL(url);
+            if (currentRef.current === audio) currentRef.current = null;
+            if (currentCleanupRef.current === cancelCurrent) currentCleanupRef.current = null;
+            resolve(played);
+          };
+          cancelCurrent = () => finish(false);
+          currentCleanupRef.current = cancelCurrent;
+          audio.onended = () => finish(true);
+          audio.onerror = () => finish(false);
+          audio.play()
+            .then(() => {
+              if (genRef.current === myGen && currentRef.current === audio) setIsTopicAudioPlaying(true);
+            })
+            .catch(() => finish(false));
+        });
+        if (!completed || genRef.current !== myGen) return false;
+        if (index + 1 < blobs.length) await new Promise((resolve) => window.setTimeout(resolve, 120));
+      }
+      return true;
     } catch {
       // Topic audio is best-effort because browsers can still reject playback.
-      if (currentRef.current === audio) currentRef.current = null;
-      if (url) URL.revokeObjectURL(url);
-      if (genRef.current === myGen) setIsTopicAudioPlaying(false);
+      return false;
+    } finally {
+      if (genRef.current === myGen) {
+        currentRef.current = null;
+        currentCleanupRef.current = null;
+        setIsTopicAudioPlaying(false);
+      }
     }
   }, [soundEnabled, stop]);
+
+  const playTopicFile = useCallback(
+    (topicId, filePath) => playTopicFiles(topicId, [filePath]),
+    [playTopicFiles],
+  );
 
   const toggleSound = useCallback(() => {
     setSoundEnabled((v) => {
@@ -150,5 +189,5 @@ export function useAudio() {
     return Boolean(a && !a.paused && !a.ended);
   }, []);
 
-  return { soundEnabled, toggleSound, playFeedback, playTopicFile, isAudioPlaying, isTopicAudioPlaying };
+  return { soundEnabled, toggleSound, playFeedback, playTopicFile, playTopicFiles, isAudioPlaying, isTopicAudioPlaying };
 }

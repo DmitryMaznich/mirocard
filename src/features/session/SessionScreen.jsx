@@ -103,7 +103,7 @@ export default function SessionScreen() {
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
 
-  const { soundEnabled, toggleSound, playFeedback, playTopicFile, isAudioPlaying, isTopicAudioPlaying } = useAudio();
+  const { soundEnabled, toggleSound, playFeedback, playTopicFile, playTopicFiles, isAudioPlaying, isTopicAudioPlaying } = useAudio();
   const pendingAudioAdvanceRef = useRef(null);
   const [manualAdvanceGate, setManualAdvanceGate] = useState({ key: null, state: null });
   const [isPlanDrawerOpen, setIsPlanDrawerOpen] = useState(false);
@@ -391,6 +391,7 @@ export default function SessionScreen() {
             soundEnabled={soundEnabled}
             playFeedback={playFeedback}
             playTopicFile={playTopicFile}
+            playTopicFiles={playTopicFiles}
             isTopicAudioPlaying={isTopicAudioPlaying}
             onCorrect={isAdvanceGateActive ? noop : handleCorrect}
             onPrevious={onPrevious}

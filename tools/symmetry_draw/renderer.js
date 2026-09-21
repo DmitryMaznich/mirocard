@@ -222,8 +222,11 @@
     return `audio/dictation/directions/${command.direction}_${command.cells}.mp3`;
   }
 
-  function coordinateAudioPath(point) {
-    return `audio/dictation/coordinates/${point.col}_${point.row + 1}.mp3`;
+  function coordinateAudioPaths(point) {
+    return [
+      `audio/dictation/coordinate_letters/${point.col}.mp3`,
+      `audio/dictation/coordinate_numbers/${point.row + 1}.mp3`,
+    ];
   }
 
   function navigatorRouteText(direction, cells) {
@@ -282,8 +285,7 @@
   // DIRECTION/commandsToPath are duplicated between verify_trace.mjs and here.
   const COORDINATE_COLUMN_LETTERS = [
     "А", "Б", "В", "Г", "Д", "Е", "Ж", "И", "К", "Л", "М", "Н",
-    "О", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ч", "Ш", "Щ", "Ъ",
-    "Ы", "Ь", "Э", "Ю", "Я",
+    "О", "П", "Р", "С", "Т", "У", "Ф", "Х",
   ];
 
   function columnLabel(col) {
@@ -308,7 +310,7 @@
         end: point,
         text: coordinateText(point),
         speech: coordinateSpeech(point),
-        audioPath: coordinateAudioPath(point),
+        audioPaths: coordinateAudioPaths(point),
         coordinate: { letter: columnLabel(point.col), number: point.row + 1 },
       }));
     }
@@ -322,12 +324,12 @@
         speech: commandText(command),
         direction: command.direction,
         cells: command.cells,
-        audioPath: directionAudioPath(command),
+        audioPaths: [directionAudioPath(command)],
       };
     });
   }
 
-  function DictationTask({ task, onCorrect, onMistake, sessionParams, topicId, soundEnabled, playTopicFile, isTopicAudioPlaying = false }) {
+  function DictationTask({ task, onCorrect, onMistake, sessionParams, topicId, soundEnabled, playTopicFiles, isTopicAudioPlaying = false }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const gestureRef = useRef([]);
@@ -358,8 +360,8 @@
     const playCommandVoice = sessionParams?.playCommandVoice ?? true;
     const isVoiceOnly = !showCommandText && !showArrow && playCommandVoice;
     const step = steps[stepIndex];
-    const commandAudioPath = step?.audioPath ?? null;
-    const canPlayRecordedInstruction = Boolean(playCommandVoice && soundEnabled && topicId && playTopicFile && commandAudioPath);
+    const commandAudioPaths = step?.audioPaths ?? [];
+    const canPlayRecordedInstruction = Boolean(playCommandVoice && soundEnabled && topicId && playTopicFiles && commandAudioPaths.length);
     const columns = Number(shape.columns ?? 10);
     const rows = Number(shape.rows ?? 10);
     const target = step ? step.end : null;
@@ -371,8 +373,8 @@
     // stress and intonation vary across devices. Every command comes from the
     // deck's prerecorded neural-TTS bank instead, including offline use.
     const playInstruction = useCallback(() => {
-      if (canPlayRecordedInstruction) playTopicFile(topicId, commandAudioPath);
-    }, [canPlayRecordedInstruction, playTopicFile, topicId, commandAudioPath]);
+      if (canPlayRecordedInstruction) playTopicFiles(topicId, commandAudioPaths);
+    }, [canPlayRecordedInstruction, playTopicFiles, topicId, commandAudioPaths]);
 
     useEffect(() => {
       if (!finished && canPlayRecordedInstruction) playInstruction();
