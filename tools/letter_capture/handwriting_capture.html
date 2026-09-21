@@ -404,13 +404,17 @@
             <button id="fsClearBtn" class="danger" title="Очистить холст">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
             </button>
+            <button type="button" id="fsImgScaleDown" title="Уменьшить фото-подложку" aria-label="Уменьшить фото-подложку">−🖼</button>
+            <button type="button" id="fsImgScaleUp" title="Увеличить фото-подложку" aria-label="Увеличить фото-подложку">+🖼</button>
           </div>
           <div class="fs-toolbar fs-toolbar--right" id="fsToolbarRight">
-            <div class="guide-nudge guide-nudge--fs" title="Сдвиг подложки на 1 юнит холста — не влияет на сохранённые данные, только на положение образца">
+            <div class="guide-nudge guide-nudge--fs" title="Сдвигает ФОТО, если оно загружено и включено — иначе буквенный образец">
               <button type="button" id="fsGuideNudgeUp" aria-label="Сдвинуть подложку вверх">▲</button>
               <div class="guide-nudge-row">
                 <button type="button" id="fsGuideNudgeLeft" aria-label="Сдвинуть подложку влево">◀</button>
-                <button type="button" id="fsGuideNudgeReset" title="Сбросить сдвиг подложки">X:<span id="fsGuideOffsetXLabel">0</span> Y:<span id="fsGuideOffsetYLabel">0</span></button>
+                <button type="button" id="fsGuideNudgeReset" title="Сбросить сдвиг (и масштаб фото)">
+                  <span id="fsGuideNudgeTargetLabel">Фото</span> X:<span id="fsGuideOffsetXLabel">0</span> Y:<span id="fsGuideOffsetYLabel">0</span>
+                </button>
                 <button type="button" id="fsGuideNudgeRight" aria-label="Сдвинуть подложку вправо">▶</button>
               </div>
               <button type="button" id="fsGuideNudgeDown" aria-label="Сдвинуть подложку вниз">▼</button>
@@ -673,6 +677,9 @@
   const fsGuideNudgeReset = document.getElementById("fsGuideNudgeReset");
   const fsGuideOffsetXLabel = document.getElementById("fsGuideOffsetXLabel");
   const fsGuideOffsetYLabel = document.getElementById("fsGuideOffsetYLabel");
+  const fsGuideNudgeTargetLabel = document.getElementById("fsGuideNudgeTargetLabel");
+  const fsImgScaleDown = document.getElementById("fsImgScaleDown");
+  const fsImgScaleUp = document.getElementById("fsImgScaleUp");
   const trimStartChk = document.getElementById("trimStartChk");
   const trimEndChk = document.getElementById("trimEndChk");
   const fsTrimStartChk = document.getElementById("fsTrimStartChk");
@@ -1243,6 +1250,7 @@
     fullscreenBtn.innerHTML =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>Свернуть';
     layoutFullscreenCanvas();
+    syncFsNudgeTarget();
     try {
       const req = canvasWrap.requestFullscreen || canvasWrap.webkitRequestFullscreen;
       if (req) req.call(canvasWrap).catch(() => {});
@@ -1334,15 +1342,20 @@
     updateGuideOffsetLabels();
     updateGuideFromLabel();
   });
-  fsGuideNudgeUp.addEventListener("click", () => nudgeGuide(0, -1));
-  fsGuideNudgeDown.addEventListener("click", () => nudgeGuide(0, 1));
-  fsGuideNudgeLeft.addEventListener("click", () => nudgeGuide(-1, 0));
-  fsGuideNudgeRight.addEventListener("click", () => nudgeGuide(1, 0));
+  // fsNudge/fsNudgeReset (defined below, with the photo backdrop) retarget these four
+  // buttons + reset to whichever guide is actually visible in fullscreen — see that
+  // function's own comment for why a single shared D-pad, not two.
+  fsGuideNudgeUp.addEventListener("click", () => fsNudge(0, -1));
+  fsGuideNudgeDown.addEventListener("click", () => fsNudge(0, 1));
+  fsGuideNudgeLeft.addEventListener("click", () => fsNudge(-1, 0));
+  fsGuideNudgeRight.addEventListener("click", () => fsNudge(1, 0));
   fsGuideNudgeReset.addEventListener("click", () => {
+    if (fsNudgeTargetIsImage) { resetImageGuide(); syncFsNudgeTarget(); return; }
     guideOffsetX = GUIDE_OFFSET_X_DEFAULT;
     guideOffsetY = GUIDE_OFFSET_Y_DEFAULT;
     updateGuideOffsetLabels();
     updateGuideFromLabel();
+    syncFsNudgeTarget();
   });
 
   // Photo backdrop (2026-09-21, "нужны подложки которые можно грузить в мастерскую чтобы
@@ -1356,9 +1369,23 @@
   let imgGuideDataUrl = null;
   let imgGuideNaturalW = 0;
   let imgGuideNaturalH = 0;
-  let imgGuideOffsetX = 0;
-  let imgGuideOffsetY = 0;
+  // Defaults to VB_W (the first vertical slot divider), not 0 -- same reasoning as the text
+  // guide's own GUIDE_OFFSET_X_DEFAULT above: fullscreen mode crops the SVG's own viewBox to
+  // just the MIDDLE slot (FULLSCREEN_CROP_VB = "VB_W 0 VB_W VB_H"), so an image placed at x=0
+  // would render mostly or entirely off-screen the moment the artist goes fullscreen, with no
+  // visual cue why the photo "disappeared".
+  const IMG_GUIDE_OFFSET_X_DEFAULT = VB_W;
+  const IMG_GUIDE_OFFSET_Y_DEFAULT = 0;
+  let imgGuideOffsetX = IMG_GUIDE_OFFSET_X_DEFAULT;
+  let imgGuideOffsetY = IMG_GUIDE_OFFSET_Y_DEFAULT;
   let imgGuideScale = 1;
+  const IMG_GUIDE_SCALE_MIN = 0.3;
+  const IMG_GUIDE_SCALE_MAX = 3;
+  function setImageGuideScale(next) {
+    imgGuideScale = Math.max(IMG_GUIDE_SCALE_MIN, Math.min(IMG_GUIDE_SCALE_MAX, next));
+    imageGuideScaleInput.value = String(imgGuideScale);
+    updateImageGuide();
+  }
   function updateImageGuideOffsetLabels() {
     imageGuideOffsetXLabel.textContent = String(imgGuideOffsetX);
     imageGuideOffsetYLabel.textContent = String(imgGuideOffsetY);
@@ -1397,13 +1424,14 @@
         imgGuideDataUrl = reader.result;
         imgGuideNaturalW = img.naturalWidth;
         imgGuideNaturalH = img.naturalHeight;
-        imgGuideOffsetX = 0;
-        imgGuideOffsetY = 0;
+        imgGuideOffsetX = IMG_GUIDE_OFFSET_X_DEFAULT;
+        imgGuideOffsetY = IMG_GUIDE_OFFSET_Y_DEFAULT;
         imgGuideScale = 1;
         imageGuideScaleInput.value = "1";
         imageGuideToggle.checked = true;
         updateImageGuideOffsetLabels();
         updateImageGuide();
+        syncFsNudgeTarget();
       };
       img.src = reader.result;
     };
@@ -1413,13 +1441,11 @@
   imageGuideClearBtn.addEventListener("click", () => {
     imgGuideDataUrl = null;
     updateImageGuide();
+    syncFsNudgeTarget();
   });
-  imageGuideToggle.addEventListener("change", updateImageGuide);
+  imageGuideToggle.addEventListener("change", () => { updateImageGuide(); syncFsNudgeTarget(); });
   imageGuideOpacity.addEventListener("input", updateImageGuide);
-  imageGuideScaleInput.addEventListener("input", () => {
-    imgGuideScale = Number(imageGuideScaleInput.value);
-    updateImageGuide();
-  });
+  imageGuideScaleInput.addEventListener("input", () => setImageGuideScale(Number(imageGuideScaleInput.value)));
   const IMG_GUIDE_NUDGE_STEP = 2; // coarser than the 1-unit text-guide nudge -- a photo
   // crop's own alignment tolerance is looser than a font glyph's, so 1-unit clicks would
   // mostly just waste taps to cover any meaningful distance.
@@ -1429,18 +1455,48 @@
     updateImageGuideOffsetLabels();
     updateImageGuide();
   }
-  imageGuideNudgeUp.addEventListener("click", () => nudgeImageGuide(0, -1));
-  imageGuideNudgeDown.addEventListener("click", () => nudgeImageGuide(0, 1));
-  imageGuideNudgeLeft.addEventListener("click", () => nudgeImageGuide(-1, 0));
-  imageGuideNudgeRight.addEventListener("click", () => nudgeImageGuide(1, 0));
-  imageGuideNudgeReset.addEventListener("click", () => {
-    imgGuideOffsetX = 0;
-    imgGuideOffsetY = 0;
+  function resetImageGuide() {
+    imgGuideOffsetX = IMG_GUIDE_OFFSET_X_DEFAULT;
+    imgGuideOffsetY = IMG_GUIDE_OFFSET_Y_DEFAULT;
     imgGuideScale = 1;
     imageGuideScaleInput.value = "1";
     updateImageGuideOffsetLabels();
     updateImageGuide();
-  });
+  }
+  imageGuideNudgeUp.addEventListener("click", () => nudgeImageGuide(0, -1));
+  imageGuideNudgeDown.addEventListener("click", () => nudgeImageGuide(0, 1));
+  imageGuideNudgeLeft.addEventListener("click", () => nudgeImageGuide(-1, 0));
+  imageGuideNudgeRight.addEventListener("click", () => nudgeImageGuide(1, 0));
+  imageGuideNudgeReset.addEventListener("click", resetImageGuide);
+
+  // Fullscreen's own D-pad (fsGuideNudge*) is shared between the two independent guides --
+  // there's no screen space on a phone for two separate D-pads. Retargets to whichever guide
+  // is actually visible: the photo backdrop if one's loaded and its checkbox is on (the
+  // realistic case once an artist is tracing a scan -- see the 2026-09-21 "не понимаю что
+  // они делают" report, filed because these buttons silently moved the OTHER, invisible
+  // guide), else the original letter/word font-glyph guide. Decided once per fullscreen
+  // entry (enterFullscreen calls this) rather than re-checked on every tap, since the
+  // sidebar checkbox that would flip the target isn't reachable while the fullscreen
+  // overlay covers it anyway.
+  let fsNudgeTargetIsImage = false;
+  function syncFsNudgeTarget() {
+    fsNudgeTargetIsImage = Boolean(imageGuideToggle.checked && imgGuideDataUrl);
+    fsGuideNudgeTargetLabel.textContent = fsNudgeTargetIsImage ? "Фото" : "Буквы";
+    if (fsNudgeTargetIsImage) {
+      fsGuideOffsetXLabel.textContent = String(imgGuideOffsetX);
+      fsGuideOffsetYLabel.textContent = String(imgGuideOffsetY);
+    } else {
+      fsGuideOffsetXLabel.textContent = String(guideOffsetX);
+      fsGuideOffsetYLabel.textContent = String(guideOffsetY);
+    }
+  }
+  function fsNudge(dx, dy) {
+    if (fsNudgeTargetIsImage) nudgeImageGuide(dx, dy);
+    else nudgeGuide(dx, dy);
+    syncFsNudgeTarget();
+  }
+  fsImgScaleDown.addEventListener("click", () => setImageGuideScale(imgGuideScale / 1.15));
+  fsImgScaleUp.addEventListener("click", () => setImageGuideScale(imgGuideScale * 1.15));
 
   // Mirrors each trim checkbox onto its fullscreen counterpart (and back) so either one can
   // be toggled from wherever it's reachable — doFinishStroke only ever reads the sidebar
@@ -1460,6 +1516,7 @@
   updateGuideOffsetLabels();
   updateGuideFromLabel();
   updateImageGuideOffsetLabels();
+  syncFsNudgeTarget();
   // The base64 @font-face still loads asynchronously per spec even though it's a data URI —
   // re-render once it's actually ready so the very first guide isn't measured/drawn against a
   // fallback font for a frame.
