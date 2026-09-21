@@ -2869,16 +2869,22 @@ red/green marks are precision references for an artist tracing a single letter, 
 a plain physical page ruling meant for a child, where a second color would read as a different
 kind of line rather than "the same ruling, one more guide."
 
-Applies to every row regardless of `useElements` — it's the ordinary row ruling, drawn before
-`useElements` decides which diagonal backing (`SHEET_DIAGONAL_LINES` vs.
-`SHEET_DIAGONAL_LINES_DENSE`) or segment type renders on top of it.
+**Scoped to `useElements` rows only, next day (2026-09-21).** Initially rendered on every row
+regardless of mode. User caught it: "эта сетка нужна только в режиме элементов, в буквах я бы
+ее не делал. Пускай она будет только в режиме элементов" — the mid-line is a placement aid for
+elements, not something a plain cursive-text page needs. Wrapped the `<line>` in
+`{useElements && (...)}` inside the same `ROW_INDICES.map` block; the thin/bold row lines and
+the diagonal backing choice (`SHEET_DIAGONAL_LINES` vs. `SHEET_DIAGONAL_LINES_DENSE`) are
+unaffected — only this one line is conditional.
 
 Verified via a throwaway `dev-elements.jsx`/`dev-elements.html` harness rendering a `print_page`
 task built directly from `tools/propis/elements.json` (bypassing the deck-ZIP/IndexedDB
-pipeline entirely, same shortcut as this session's other Playwright rounds), screenshotted at
-3x device scale: the new dashed line renders once per row, above the thin line, inside the WIDE
-zone, with visibly even dash spacing matching the capture tool's own. 122/122 propis tests pass
-(no test needed updating — this is a pure additive `<line>`, no data/geometry function
+pipeline entirely, same shortcut as this session's other Playwright rounds), with a `?mode=`
+query param toggling between an elements task and a plain-text task — screenshotted both: the
+elements task shows the dashed line once per row, above the thin line, inside the WIDE zone,
+with visibly even dash spacing matching the capture tool's own; the text task shows no dashed
+line at all, only the pre-existing thin/bold pair. 122/122 propis tests pass (no test needed
+updating — this is a pure additive `<line>`, no data/geometry function
 changed), `npm run build` clean. Cleaned up the throwaway harness before commit. No
 `elements.json` change, no deck-zip rebuild needed (`PrintPageView.jsx` ships from the main app
 bundle, not a deck ZIP).

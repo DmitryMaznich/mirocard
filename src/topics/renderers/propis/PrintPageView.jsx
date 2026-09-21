@@ -30,9 +30,11 @@ const GUIDE_DIAG_W = 0.25;
 const GUIDE_THIN_W = 0.4;
 const GUIDE_BOLD_W = 0.9;
 const MARGIN_LINE_W = 1.4;
-// Dashed mid-line for each row's own WIDE (ascender) zone (2026-09-20, user's explicit ask:
-// "в этой разлиновке тетрадной добавить пунктирную линию в каждой широкой строке, посредине
-// широкой строки... В мастерской такая линия у нас уже есть") -- the exact same reference
+// Dashed mid-line for each row's own WIDE (ascender) zone, "Элементы букв" rows only
+// (2026-09-20, user's explicit ask: "в этой разлиновке тетрадной добавить пунктирную линию
+// в каждой широкой строке, посредине широкой строки... В мастерской такая линия у нас уже
+// есть", scoped to useElements the next day -- "эта сетка нужна только в режиме элементов,
+// в буквах я бы ее не делал") -- the exact same reference
 // line tools/letter_capture/handwriting_capture.html's own drawRuling() already draws as
 // `.rule-red-h` at its own TOP_MID (propisRuling.js's NATIVE_TOP_MID=36, "tall ascenders top
 // out here"), reusing its own dash pattern (`stroke-dasharray: 2 1.4`) verbatim so the two
@@ -171,11 +173,13 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }
       ))}
       {ROW_INDICES.map((row) => (
         <g key={`g${row}`}>
-          <line
-            x1="0" y1={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
-            x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
-            stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH}
-          />
+          {useElements && (
+            <line
+              x1="0" y1={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
+              x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
+              stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH}
+            />
+          )}
           <line
             x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
             x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
