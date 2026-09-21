@@ -1,6 +1,6 @@
 // Creates the high-quality prerecorded command bank for Graphic Dictation.
 // Usage:
-//   node tools/symmetry_draw/generate-dictation-audio.mjs [--dry-run] [--force] [--voice=Kore]
+//   node tools/symmetry_draw/generate-dictation-audio.mjs [--dry-run] [--force] [--voice=Kore] [--only=path[,path...]]
 // The run is resumable: existing MP3s are preserved, and Gemini's daily
 // CreateVoice cap stops the script cleanly so it can continue tomorrow.
 
@@ -24,7 +24,18 @@ const dryRun = args.includes("--dry-run");
 const force = args.includes("--force");
 const voiceArg = args.find((arg) => arg.startsWith("--voice="));
 const VOICE = voiceArg ? voiceArg.slice("--voice=".length) : "Kore";
-const entries = collectDictationAudioEntries(TOPIC);
+const onlyArg = args.find((arg) => arg.startsWith("--only="));
+const requestedPaths = onlyArg
+  ? new Set(onlyArg.slice("--only=".length).split(",").map((path) => path.trim()).filter(Boolean))
+  : null;
+const allEntries = collectDictationAudioEntries(TOPIC);
+const entries = requestedPaths ? allEntries.filter(({ path }) => requestedPaths.has(path)) : allEntries;
+
+if (requestedPaths) {
+  if (!requestedPaths.size) throw new Error("--only requires at least one dictation audio path");
+  const unknownPaths = [...requestedPaths].filter((path) => !allEntries.some((entry) => entry.path === path));
+  if (unknownPaths.length) throw new Error(`Unknown dictation audio path(s): ${unknownPaths.join(", ")}`);
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -46,18 +57,34 @@ function pcmToMp3(pcmBytes) {
 class DailyQuotaExhausted extends Error {}
 class InvalidApiKey extends Error {}
 
-function promptFor(text) {
-  return `Прочитай короткую команду графического диктанта по-русски. Спокойно, чётко и дружелюбно, как для ребёнка. Не добавляй вступление или пояснение. Команда: ${text}`;
+const NUMBER_WORDS = [
+  "", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять",
+  "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать",
+  "восемнадцать", "девятнадцать", "двадцать",
+];
+
+function promptFor(entry) {
+  const { path, text } = entry;
+  let transcript = text;
+  if (path.startsWith("audio/dictation/coordinate_letters/")) {
+    transcript = { "К": "ка" }[text] ?? text;
+  }
+  if (path.startsWith("audio/dictation/coordinate_numbers/")) {
+    const number = Number(text);
+    transcript = NUMBER_WORDS[number];
+    if (!transcript) throw new Error(`Unsupported coordinate number: ${text}`);
+  }
+  return `Прочитай короткую команду графического диктанта по-русски. Спокойно, чётко и дружелюбно, как для ребёнка. Не добавляй вступление или пояснение. Команда: ${transcript}`;
 }
 
-async function synthesizeOnce(apiKey, text) {
+async function synthesizeOnce(apiKey, entry) {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: promptFor(text) }] }],
+        contents: [{ parts: [{ text: promptFor(entry) }] }],
         generationConfig: {
           responseModalities: ["AUDIO"],
           speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } },
@@ -84,10 +111,10 @@ async function synthesizeOnce(apiKey, text) {
   return pcmToMp3(Buffer.from(audio, "base64"));
 }
 
-async function synthesize(apiKey, text) {
+async function synthesize(apiKey, entry) {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt += 1) {
     try {
-      return await synthesizeOnce(apiKey, text);
+      return await synthesizeOnce(apiKey, entry);
     } catch (error) {
       if (error instanceof DailyQuotaExhausted || !error.retryable || attempt === MAX_RETRIES) throw error;
       const delay = 5000 * attempt;
@@ -118,7 +145,7 @@ for (const entry of entries) {
   mkdirSync(dirname(output), { recursive: true });
   process.stdout.write(`  gen   ${entry.path}  \"${entry.text}\"... `);
   try {
-    const mp3 = await synthesize(apiKey, entry.text);
+    const mp3 = await synthesize(apiKey, entry);
     writeFileSync(output, mp3);
     console.log(`${mp3.length} bytes`);
     generated += 1;
