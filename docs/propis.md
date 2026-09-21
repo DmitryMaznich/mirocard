@@ -3020,6 +3020,56 @@ session (SPACING retune, etc.). Delivered the 9 final crops to the user directly
 repo — they're reference material for manual tracing, not app data) rather than committing them
 anywhere; nothing under `tools/propis/elements.json` or the deck ZIP changed.
 
+**Fullscreen D-pad silently moved the WRONG guide — fixed same day.** User report: "мне нужно
+чтобы подложку можно было двигать в полноэкранном режиме, сейчас там есть какие-то кнопки для
+сдвига но я не понимаю что они делают." Root cause: the fullscreen overlay's own D-pad
+(`fsGuideNudge*`) predates the photo backdrop and was still hard-wired to `nudgeGuide` — the
+original font-glyph letter subloжка — so tapping it while a photo was loaded moved a guide that
+wasn't even visible, with no feedback that anything happened. There's no room on a phone screen
+for two separate D-pads in the fullscreen overlay, so fixed by RETARGETING the existing one:
+`syncFsNudgeTarget()` (called on fullscreen entry, and once at page load) decides which guide is
+"active" — the photo if one's loaded and its checkbox is on, else the original text guide — and
+`fsNudge(dx, dy)`/the reset button branch on that decision each tap. The target can't change
+mid-fullscreen-session (the sidebar checkbox that would flip it sits behind the fullscreen
+overlay, unreachable — confirmed by a Playwright `uncheck()` genuinely timing out against it),
+so deciding once at entry is correct, not just an optimization. The D-pad's own reset-button
+label now shows which one is live (`fsGuideNudgeTargetLabel`, "Фото" / "Буквы") plus its current
+X/Y, instead of a plain unlabeled "Сдвинуть подложку" that gave no hint there were now two.
+
+**Second bug found investigating the first, before it ever reached the user as a report:**
+fullscreen mode crops the SVG's own viewBox down to just the MIDDLE of the 3 canvas slots
+(`FULLSCREEN_CROP_VB = "VB_W 0 VB_W VB_H"`, i.e. `x=[100,200]` — see `layoutFullscreenCanvas`'s
+own comment on why: one symbol at a time, cropped for a portrait phone). The photo backdrop's
+default offset was `(0, 0)` — placing a typical crop's ink at roughly `x=[0,300]`, mostly OUTSIDE
+that `[100,200]` window. So even with the D-pad now correctly wired to move the photo, a freshly
+uploaded image would render off-screen the instant the artist went fullscreen, with nothing to
+suggest why. Fixed by defaulting `imgGuideOffsetX` to `VB_W` (100) instead of `0` — the exact
+same fix the ORIGINAL text guide already had, for the exact same reason
+(`GUIDE_OFFSET_X_DEFAULT = VB_W`, from the first slot-divider default chosen well before this
+session) — re-derived independently here rather than noticed by re-reading that comment, then
+confirmed the parallel was intentional, not a coincidence: both guides share the same fullscreen
+crop window, so both need the same default to survive it.
+
+Also added `+🖼`/`−🖼` scale buttons to the fullscreen left toolbar (×1.15 per tap, sharing the
+same `setImageGuideScale()` clamp `[0.3, 3]` as the sidebar slider) — movement alone doesn't fix
+a photo that's simply the wrong size for the ruling once actually viewed at fullscreen scale, and
+there was previously no way to resize without backing out of fullscreen first.
+
+Verified via Playwright end-to-end against the real synced tool: uploaded a real crop, confirmed
+its default `transform` lands at `translate(100,0)` (not `(0,0)`); entered fullscreen and read
+`fsGuideNudgeTargetLabel` (`"Фото"`); tapped all four D-pad directions and confirmed the
+`<image>`'s own transform moved by the expected `IMG_GUIDE_NUDGE_STEP`-sized amount while the
+text guide's offset stayed untouched; tapped both scale buttons and read the resulting slider
+value; tapped reset and confirmed both offset and scale returned to their defaults. Then, in a
+second run, turned the photo off BEFORE entering fullscreen (turning it off from inside
+fullscreen isn't reachable, per the "can't change mid-session" note above) and confirmed the
+label read `"Буквы"` and the D-pad moved the TEXT guide's own offset instead, leaving the
+(unrelated, untouched) image offset exactly where it was. One full-visual fullscreen screenshot
+with the photo loaded and positioned confirms the same reading a real phone screen would show:
+the ruled box, the traceable ink, and the "Фото X:100 Y:0" label all inside the cropped
+fullscreen view with no nudging needed first. 122/122 propis tests pass, `npm run build` clean.
+No `elements.json` change, no deck-zip rebuild needed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
