@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
@@ -289,6 +289,158 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }
   );
 }
 
+// Pinch-zoom/pan for the on-screen "Тетрадный лист" preview (2026-09-21, "насколько сложно
+// сделать зум с пальцами тетрадного листа... чтобы рассмотреть подробнее") -- can't lean on
+// the browser's own native pinch-zoom here: index.html's viewport meta sets
+// `user-scalable=no, maximum-scale=1.0` app-wide (deliberate, to stop accidental page-zoom
+// during normal drag/tap interactions elsewhere in the app), so this has to be a small
+// self-contained gesture handler scoped to just this one screen, not a CSS-only trick.
+// Kept as plain DOM listeners + a mutable ref (not React state) for the live scale/pan --
+// touchmove can fire dozens of times a frame, and re-rendering PrintPage's whole SVG tree on
+// every one would be needless work when only a CSS transform on the wrapping div is needed.
+// `isZoomed` is the one bit that DOES go through React state, and only flips on meaningful
+// transitions (gesture end, double-tap, explicit reset) -- cheap, and it's what the floating
+// reset button's visibility depends on.
+const ZOOM_MIN = 1;
+const ZOOM_MAX = 4;
+const DOUBLE_TAP_MS = 300;
+const DOUBLE_TAP_SLOP_PX = 24;
+
+function usePinchZoom(wrapRef, contentRef) {
+  const [isZoomed, setIsZoomed] = useState(false);
+  const state = useRef({ scale: 1, tx: 0, ty: 0 });
+  const gesture = useRef({ pinch: null, pan: null, lastTap: null });
+
+  const apply = useCallback(() => {
+    const content = contentRef.current;
+    if (!content) return;
+    const { scale, tx, ty } = state.current;
+    content.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+  }, [contentRef]);
+
+  // Content is centered in the wrap, so panning range grows with how far past 1x we've
+  // zoomed -- half the wrap's own size times (scale-1) keeps the zoomed content from being
+  // dragged entirely off screen in either direction.
+  const clamp = useCallback(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const { scale } = state.current;
+    const rect = wrap.getBoundingClientRect();
+    const maxX = (rect.width * (scale - 1)) / 2;
+    const maxY = (rect.height * (scale - 1)) / 2;
+    state.current.tx = Math.max(-maxX, Math.min(maxX, state.current.tx));
+    state.current.ty = Math.max(-maxY, Math.min(maxY, state.current.ty));
+  }, [wrapRef]);
+
+  const reset = useCallback(() => {
+    state.current = { scale: 1, tx: 0, ty: 0 };
+    apply();
+    setIsZoomed(false);
+  }, [apply]);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+
+    const dist = (t0, t1) => Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
+
+    function onTouchStart(e) {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const [t0, t1] = e.touches;
+        gesture.current.pinch = { dist: dist(t0, t1), ...state.current };
+        gesture.current.pan = null;
+        return;
+      }
+      if (e.touches.length !== 1) return;
+      const t = e.touches[0];
+      gesture.current.pan = { x: t.clientX, y: t.clientY, tx: state.current.tx, ty: state.current.ty };
+      gesture.current.pinch = null;
+
+      const now = Date.now();
+      const last = gesture.current.lastTap;
+      const isDoubleTap = last && now - last.time < DOUBLE_TAP_MS
+        && Math.hypot(t.clientX - last.x, t.clientY - last.y) < DOUBLE_TAP_SLOP_PX;
+      if (isDoubleTap) {
+        e.preventDefault();
+        gesture.current.lastTap = null;
+        if (state.current.scale > ZOOM_MIN + 0.01) {
+          reset();
+        } else {
+          state.current = { scale: 2, tx: 0, ty: 0 };
+          apply();
+          setIsZoomed(true);
+        }
+        return;
+      }
+      gesture.current.lastTap = { time: now, x: t.clientX, y: t.clientY };
+    }
+
+    function onTouchMove(e) {
+      if (e.touches.length === 2 && gesture.current.pinch) {
+        e.preventDefault();
+        const [t0, t1] = e.touches;
+        const { dist: startDist, scale: startScale, tx: startTx, ty: startTy } = gesture.current.pinch;
+        state.current.scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, startScale * (dist(t0, t1) / startDist)));
+        // Pinch also drifts tx/ty proportionally so the gesture reads as "zoom about roughly
+        // where my fingers are", not "zoom about the exact center every time".
+        state.current.tx = startTx * (state.current.scale / startScale);
+        state.current.ty = startTy * (state.current.scale / startScale);
+        clamp();
+        apply();
+        return;
+      }
+      if (e.touches.length === 1 && gesture.current.pan && state.current.scale > ZOOM_MIN + 0.01) {
+        e.preventDefault();
+        const t = e.touches[0];
+        state.current.tx = gesture.current.pan.tx + (t.clientX - gesture.current.pan.x);
+        state.current.ty = gesture.current.pan.ty + (t.clientY - gesture.current.pan.y);
+        clamp();
+        apply();
+      }
+    }
+
+    function onTouchEnd(e) {
+      if (e.touches.length < 2) gesture.current.pinch = null;
+      if (e.touches.length === 0) gesture.current.pan = null;
+      if (state.current.scale <= ZOOM_MIN + 0.01) {
+        state.current = { scale: 1, tx: 0, ty: 0 };
+        apply();
+        setIsZoomed(false);
+      } else {
+        setIsZoomed(true);
+      }
+    }
+
+    // Trackpad pinch on desktop arrives as wheel events with ctrlKey set (both Chrome and
+    // Safari's convention) -- handled the same way as a real touch pinch for easier testing
+    // without a phone, ctrl+scroll on a mouse is rare enough not to collide with anything else.
+    function onWheel(e) {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      state.current.scale = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, state.current.scale - e.deltaY * 0.01));
+      clamp();
+      apply();
+      setIsZoomed(state.current.scale > ZOOM_MIN + 0.01);
+    }
+
+    wrap.addEventListener("touchstart", onTouchStart, { passive: false });
+    wrap.addEventListener("touchmove", onTouchMove, { passive: false });
+    wrap.addEventListener("touchend", onTouchEnd, { passive: false });
+    wrap.addEventListener("touchcancel", onTouchEnd, { passive: false });
+    wrap.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      wrap.removeEventListener("touchstart", onTouchStart);
+      wrap.removeEventListener("touchmove", onTouchMove);
+      wrap.removeEventListener("touchend", onTouchEnd);
+      wrap.removeEventListener("touchcancel", onTouchEnd);
+      wrap.removeEventListener("wheel", onWheel);
+    };
+  }, [wrapRef, contentRef, apply, clamp, reset]);
+
+  return { isZoomed, reset };
+}
+
 // "Тетрадный лист" (read_lines) — real print-page geometry (propisRuling.js's PRINT_*
 // constants), not a scrolling container: one physical page shown at a time (Prev/Next), red
 // margin line, exactly PRINT_ROWS_PER_PAGE (17) ruled rows always drawn regardless of
@@ -347,6 +499,11 @@ export default function PrintPageView({ task, onClose }) {
   // rather than let a stale pageIndex point past the end.
   useEffect(() => { if (pageIndex > pages.length - 1) setPageIndex(0); }, [pages.length, pageIndex]);
 
+  const zoomWrapRef = useRef(null);
+  const zoomContentRef = useRef(null);
+  const { isZoomed, reset: resetZoom } = usePinchZoom(zoomWrapRef, zoomContentRef);
+  useEffect(() => { resetZoom(); }, [pageIndex, resetZoom]);
+
   const canPrev = pageIndex > 0;
   const canNext = pageIndex < pages.length - 1;
 
@@ -361,14 +518,26 @@ export default function PrintPageView({ task, onClose }) {
           </div>
         ) : (
           <>
-            <div className="propis-print-page-wrap">
-              <PrintPage
-                page={pages[pageIndex] ?? []}
-                pageIndex={pageIndex}
-                activeIndex={activeIndex}
-                onToggleActive={(i) => setActiveIndex((cur) => (cur === i ? null : i))}
-                useElements={useElements}
-              />
+            <div className="propis-print-page-wrap" ref={zoomWrapRef}>
+              <div className="propis-print-page-zoom" ref={zoomContentRef}>
+                <PrintPage
+                  page={pages[pageIndex] ?? []}
+                  pageIndex={pageIndex}
+                  activeIndex={activeIndex}
+                  onToggleActive={(i) => setActiveIndex((cur) => (cur === i ? null : i))}
+                  useElements={useElements}
+                />
+              </div>
+              {isZoomed && (
+                <button
+                  type="button"
+                  className="propis-print-zoom-reset"
+                  onClick={resetZoom}
+                  aria-label="Сбросить масштаб"
+                >
+                  1×
+                </button>
+              )}
             </div>
 
             <div className="propis-text-nav">
