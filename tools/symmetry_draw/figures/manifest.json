@@ -1,7 +1,7 @@
 {
   "schema": "mirocard-figure-manifest/v1",
   "topicId": "symmetry_draw",
-  "topicVersion": "1.11.13",
+  "topicVersion": "1.12.3",
   "figures": [
     {
       "id": "symmetry_house",
@@ -442,34 +442,10 @@
       "file": "dictation_fence.json"
     },
     {
-      "id": "dictation_boat_small",
-      "label": "Кораблик",
-      "taskKind": "dictation",
-      "file": "dictation_boat_small.json"
-    },
-    {
       "id": "dictation_key",
       "label": "Ключ",
       "taskKind": "dictation",
       "file": "dictation_key.json"
-    },
-    {
-      "id": "dictation_flower",
-      "label": "Цветок",
-      "taskKind": "dictation",
-      "file": "dictation_flower.json"
-    },
-    {
-      "id": "dictation_small_plane",
-      "label": "Самолётик",
-      "taskKind": "dictation",
-      "file": "dictation_small_plane.json"
-    },
-    {
-      "id": "dictation_small_fish",
-      "label": "Рыбка",
-      "taskKind": "dictation",
-      "file": "dictation_small_fish.json"
     },
     {
       "id": "yachta",
