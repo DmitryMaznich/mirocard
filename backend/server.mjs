@@ -711,7 +711,9 @@ async function handleDownloadDeck(req, res) {
     "Content-Type": "application/zip",
     "Content-Length": stat.size,
     "Content-Disposition": `attachment; filename="${path.basename(zipPath)}"`,
-    "Cache-Control": "private, max-age=3600",
+    // This endpoint's URL does not contain the deck version. Its response
+    // must not outlive a catalog update and conceal a newer ZIP.
+    "Cache-Control": "no-store",
   });
   createReadStream(zipPath).pipe(res);
 }

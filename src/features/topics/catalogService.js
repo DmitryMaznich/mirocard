@@ -28,6 +28,12 @@ export function isFreeStaticInstall(entry, account, token) {
   return (isLocalModeProfile(account, token) || (entry.access ?? "free") === "free") && Boolean(entry.url);
 }
 
+// The access-controlled endpoint is intentionally keyed only by topic id.
+// Its ZIP therefore has to bypass HTTP caches whenever a catalog item changes.
+export function getDeckDownloadUrl(topicId, refresh = Date.now()) {
+  return `/api/decks/${encodeURIComponent(topicId)}/download?_refresh=${refresh}`;
+}
+
 export async function fetchCatalog() {
   try {
     return await api.get("/decks/catalog");
@@ -59,14 +65,14 @@ export async function fetchCatalogTopic(entry, appVersion) {
     res = await fetch(directUrl, { cache: "no-store" });
     // Fallback to API if static fails (e.g., deck not in dist)
     if (!res.ok && token) {
-      res = await fetch(`/api/decks/${entry.id}/download`, {
+      res = await fetch(getDeckDownloadUrl(entry.id), {
         headers: { Authorization: `Bearer ${token}` },
       });
     }
   } else {
     // Paid/restricted decks: must go through API (auth + access check)
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    res = await fetch(`/api/decks/${entry.id}/download`, { headers });
+    res = await fetch(getDeckDownloadUrl(entry.id), { headers });
     // Fallback to static if API fails
     if (!res.ok && entry.url) {
       const directUrl = entry.url.replace(/^\.\//, "/");

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isLocalModeProfile, shouldClaimCatalogDeck, isFreeStaticInstall } from "./catalogService";
+import { getDeckDownloadUrl, isLocalModeProfile, shouldClaimCatalogDeck, isFreeStaticInstall } from "./catalogService";
 
 describe("shouldClaimCatalogDeck", () => {
   it("does not require a token to install a free deck in local mode", () => {
@@ -45,5 +45,19 @@ describe("isFreeStaticInstall", () => {
 
   it("is false without a static url to download from, even in local mode", () => {
     expect(isFreeStaticInstall({ access: "paid" }, localAccount, null)).toBe(false);
+  });
+});
+
+describe("getDeckDownloadUrl", () => {
+  it("cache-busts the unversioned download endpoint", () => {
+    expect(getDeckDownloadUrl("symmetry_draw", 123)).toBe(
+      "/api/decks/symmetry_draw/download?_refresh=123",
+    );
+  });
+
+  it("encodes a topic id before placing it in the URL", () => {
+    expect(getDeckDownloadUrl("topic/a", 456)).toBe(
+      "/api/decks/topic%2Fa/download?_refresh=456",
+    );
   });
 });
