@@ -30,6 +30,27 @@ const GUIDE_DIAG_W = 0.25;
 const GUIDE_THIN_W = 0.4;
 const GUIDE_BOLD_W = 0.9;
 const MARGIN_LINE_W = 1.4;
+// Dashed mid-line for each row's own WIDE (ascender) zone, "Элементы букв" rows only
+// (2026-09-20, user's explicit ask: "в этой разлиновке тетрадной добавить пунктирную линию
+// в каждой широкой строке, посредине широкой строки... В мастерской такая линия у нас уже
+// есть", scoped to useElements the next day -- "эта сетка нужна только в режиме элементов,
+// в буквах я бы ее не делал") -- the exact same reference
+// line tools/letter_capture/handwriting_capture.html's own drawRuling() already draws as
+// `.rule-red-h` at its own TOP_MID (propisRuling.js's NATIVE_TOP_MID=36, "tall ascenders top
+// out here"), reusing its own dash pattern (`stroke-dasharray: 2 1.4`) verbatim so the two
+// tools' ruling reads as the same reference, not a new invention. The WIDE zone here is NOT
+// the capture tool's own per-card L1..L2 span though -- this page's row cycle was deliberately
+// NOT a copy of that per-card spacing (see TEXT_ROW_PITCH's own comment: the old 4-line-per-
+// row NATIVE_L1..L4 set didn't fit the real print notebook's own 12mm cycle, replaced by this
+// page's own 2-line thin/bold pair) -- so the offset is re-derived from THIS page's own real
+// geometry instead: the WIDE zone spans from the previous row's own baseline (TEXT_ROW_PITCH
+// above this row's own baseline) down to this row's own thin line (TEXT_ROW_THIN_OFFSET above
+// baseline), so its true midpoint sits `TEXT_ROW_THIN_OFFSET + (TEXT_ROW_PITCH -
+// TEXT_ROW_THIN_OFFSET) / 2` above the baseline -- 24 + (72-24)/2 = 48 units, not simply
+// NATIVE_TOP_MID's own 36 (which answers a different question: the midpoint of a single
+// isolated card's own 52-unit L1..L2 span, not this page's own 48-unit inter-row wide zone).
+const WIDE_MID_OFFSET = TEXT_ROW_THIN_OFFSET + (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) / 2;
+const GUIDE_WIDE_MID_DASH = "2 1.4";
 const FALLBACK_FONT_SIZE = 34;
 // ~0.5mm radius (native units are 6/mm, propisRuling.js's UNIT_H=150 per LINE_MM=25) --
 // halved from the original 6 (2026-09-18, "уменьши точки в начале штриха в два раза"): a
@@ -152,6 +173,13 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }
       ))}
       {ROW_INDICES.map((row) => (
         <g key={`g${row}`}>
+          {useElements && (
+            <line
+              x1="0" y1={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
+              x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
+              stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH}
+            />
+          )}
           <line
             x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
             x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}

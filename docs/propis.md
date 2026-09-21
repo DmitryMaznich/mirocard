@@ -2839,6 +2839,56 @@ the same fixed ~3.9-unit offset across every copy — confirming the fix, not dr
 confirming it correctly scopes to "the" start point per copy rather than every dot. Cleaned
 up before commit. No `elements.json` change, no deck-zip rebuild needed.
 
+**Dashed wide-zone mid-line added to the print page's own row ruling (2026-09-20).** User
+request: "в этой разлиновке тетрадной добавить пунктирную линию в каждой широкой строке,
+посредине широкой строки... В мастерской такая линия у нас уже есть" — mirror a reference
+line that already exists in the capture tool ("мастерская траекторий"), so the two rulings
+read as the same reference rather than two different systems.
+
+The capture tool (`tools/letter_capture/handwriting_capture.html`'s `drawRuling()`) already
+draws `TOP_MID = (L1 + L2) / 2 = 36` (native units, matches `propisRuling.js`'s own exported
+`NATIVE_TOP_MID`) as `<line class="rule-red-h">`, dashed via CSS `stroke-dasharray: 2 1.4`.
+That constant is NOT directly reusable on the print page though: the print page's row-to-row
+spacing (`TEXT_ROW_PITCH = 72`) was deliberately redesigned away from the capture tool's raw
+per-card `NATIVE_L1..L4` layout (see `TEXT_ROW_PITCH`'s own comment in `propisRuling.js`) —
+`NATIVE_TOP_MID` answers a different question (the midpoint of one isolated capture card's own
+52-unit L1..L2 span), not this page's own inter-row WIDE (ascender) zone. Re-derived instead
+from the print page's own real geometry: the WIDE zone for row N spans from row N-1's own
+baseline (`TEXT_ROW_PITCH` above row N's baseline) down to row N's own thin line
+(`TEXT_ROW_THIN_OFFSET` above baseline), so its true midpoint sits
+`TEXT_ROW_THIN_OFFSET + (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) / 2` = 24 + 24 = **48** native
+units above each row's own baseline — a new `WIDE_MID_OFFSET` constant in `PrintPageView.jsx`,
+not `NATIVE_TOP_MID`.
+
+Rendered as one more `<line>` per row inside the existing `ROW_INDICES.map` block, positioned
+at `rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET`, same `GUIDE_COLOR` (blue) and
+`GUIDE_THIN_W` as the row's own thin line, with `strokeDasharray="2 1.4"` — the same dash
+pattern as the capture tool's `.rule-red-h`, reused verbatim rather than inventing a new one.
+Kept the page's own blue rather than copying the capture tool's red: the capture tool's
+red/green marks are precision references for an artist tracing a single letter, while this is
+a plain physical page ruling meant for a child, where a second color would read as a different
+kind of line rather than "the same ruling, one more guide."
+
+**Scoped to `useElements` rows only, next day (2026-09-21).** Initially rendered on every row
+regardless of mode. User caught it: "эта сетка нужна только в режиме элементов, в буквах я бы
+ее не делал. Пускай она будет только в режиме элементов" — the mid-line is a placement aid for
+elements, not something a plain cursive-text page needs. Wrapped the `<line>` in
+`{useElements && (...)}` inside the same `ROW_INDICES.map` block; the thin/bold row lines and
+the diagonal backing choice (`SHEET_DIAGONAL_LINES` vs. `SHEET_DIAGONAL_LINES_DENSE`) are
+unaffected — only this one line is conditional.
+
+Verified via a throwaway `dev-elements.jsx`/`dev-elements.html` harness rendering a `print_page`
+task built directly from `tools/propis/elements.json` (bypassing the deck-ZIP/IndexedDB
+pipeline entirely, same shortcut as this session's other Playwright rounds), with a `?mode=`
+query param toggling between an elements task and a plain-text task — screenshotted both: the
+elements task shows the dashed line once per row, above the thin line, inside the WIDE zone,
+with visibly even dash spacing matching the capture tool's own; the text task shows no dashed
+line at all, only the pre-existing thin/bold pair. 122/122 propis tests pass (no test needed
+updating — this is a pure additive `<line>`, no data/geometry function
+changed), `npm run build` clean. Cleaned up the throwaway harness before commit. No
+`elements.json` change, no deck-zip rebuild needed (`PrintPageView.jsx` ships from the main app
+bundle, not a deck ZIP).
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
