@@ -206,6 +206,7 @@
 }
 
 .propis-print-page-wrap {
+  position: relative;
   flex: 1 1 auto;
   display: flex;
   align-items: center;
@@ -214,6 +215,45 @@
   overflow: hidden;
   background: #cabfa9;
   min-height: 0;
+  /* Pinch-zoom/pan on this screen is handled entirely by usePinchZoom's own touch listeners
+     (PrintPageView.jsx) -- touch-action:none stops the browser's own default touch handling
+     (scroll bounce, pull-to-refresh) from fighting that JS during a gesture. */
+  touch-action: none;
+}
+
+/* Transform host for pinch-zoom/pan (usePinchZoom, PrintPageView.jsx) -- kept as its own
+   element wrapping the page SVG rather than transforming propis-print-page-wrap itself, so
+   the wrap's own flex centering/padding stays untouched by the live scale/translate. */
+.propis-print-page-zoom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+}
+
+.propis-print-zoom-reset {
+  position: absolute;
+  /* Explicit z-index, not left to stacking-context DOM order: propis-print-page-zoom's own
+     `transform` promotes it into the same stacking layer as this (position:absolute,
+     z-index:auto) button, and at a large zoom its scaled content visually bleeds past its own
+     box into the wrap's padding corners where this button sits — without a real z-index it's
+     a toss-up which one paints on top there (found via Playwright: the button was unclickable
+     at 4x zoom, the scaled paper rect underneath it was eating the click). */
+  z-index: 2;
+  top: calc(8px + var(--app-safe-top, 0px));
+  right: calc(8px + var(--app-safe-right, 0px));
+  min-width: 40px;
+  height: 32px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 16px;
+  background: rgba(20, 20, 20, 0.55);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 /* Real A5 proportions (148.5x210mm, one A4-landscape half) — a fixed aspect ratio, not a

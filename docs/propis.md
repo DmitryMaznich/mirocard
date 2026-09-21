@@ -2889,6 +2889,69 @@ changed), `npm run build` clean. Cleaned up the throwaway harness before commit.
 `elements.json` change, no deck-zip rebuild needed (`PrintPageView.jsx` ships from the main app
 bundle, not a deck ZIP).
 
+**Pinch-zoom/pan added to the on-screen "Тетрадный лист" preview (2026-09-21).** User asked
+how hard it'd be to zoom into a section of the page after filling a session with elements, "to
+look at it more closely" — then "сделай" once told it was cheap.
+
+Turned out NOT to be a pure-CSS job as first estimated: `index.html`'s viewport meta sets
+`user-scalable=no, maximum-scale=1.0` app-wide (deliberate, so accidental page-zoom doesn't
+happen mid-drag/tap on other screens), which blocks the browser's own native pinch-zoom
+everywhere, including here. So this is a small self-contained gesture handler
+(`usePinchZoom`, `PrintPageView.jsx`) scoped to just this one screen rather than a couple of
+CSS properties.
+
+**Design**: plain `touchstart`/`touchmove`/`touchend` listeners on `.propis-print-page-wrap`,
+keeping live `scale`/`tx`/`ty` in a `useRef` (not React state) and writing them straight to a
+wrapping div's `style.transform` — touchmove can fire dozens of times a frame, and re-rendering
+the whole `PrintPage` SVG tree on every one would be wasted work when only a CSS transform is
+needed. `isZoomed` is the one piece that DOES go through `useState`, and only flips on
+meaningful transitions (gesture end, double-tap, explicit reset) — it's what the floating reset
+button's visibility depends on, not something that needs to track every pixel of a live drag.
+Two touches → pinch (distance ratio → scale, clamped `[1, 4]`, translate drifts proportionally
+so it reads as "zoom about where my fingers are" rather than always-center); one touch while
+zoomed → pan, clamped so the content can't be dragged fully off-screen (`±(wrapSize·(scale-1))/2`
+per axis); double-tap → toggle between 1× and 2× (standard convention, cheap to add once the
+single-tap-vs-double-tap timing logic already existed for text-mode row toggling's own tap
+handler to coexist with); `ctrl`+wheel also drives it (trackpad pinch on desktop sends wheel
+events with `ctrlKey`) — free desktop-testing support, not part of the actual ask. Zoom resets
+automatically on Prev/Next page change (`useEffect` keyed on `pageIndex`) — a leftover 3x zoom
+on a totally different page's content would just be confusing.
+
+**No conflict with existing tap-to-toggle** (`onToggleActive`, text-mode rows only — element
+rows have no `onClick` at all, see the "Removed entirely" arrow-animation entry above): the
+gesture handler only calls `e.preventDefault()` for an actual 2-finger pinch or a CONFIRMED
+double-tap, never for an ordinary single tap, so `onClick` on a text row's hit-rect still fires
+through unaffected.
+
+**Reset button** (`.propis-print-zoom-reset`, a floating "1×" pill, top-right, shown only while
+`isZoomed`): needed an explicit `z-index` it wouldn't have needed at 1x — at a large zoom the
+transformed content's own stacking context (any `transform` creates one) visually bleeds past
+its own box into the wrap's padding corners where the button sits, and without a real z-index
+it was a toss-up which one painted on top there; caught via Playwright (the button was
+unclickable at 4x zoom in a synthetic-touch test, `elementFromPoint` resolving to the scaled
+paper `<rect>` underneath it instead) rather than by eye. Positioned per this repo's mandatory
+iOS-safe-area rule (`top: calc(8px + var(--app-safe-top, 0px))`, same for `right`) since it's a
+new screen-corner floating button, even though it's visually nested inside the already-padded
+wrap — position:absolute offsets are relative to the wrap's PADDING edge, not its already-safe
+content edge, so the safe-area var still has to be baked into the button's own offset.
+
+Verified via a throwaway `dev-elements.jsx`/`dev-elements.html` harness (this time importing
+`propis.css` explicitly, unlike earlier rounds — `PrintPageView.jsx` alone doesn't pull it in,
+only the topic's own `index.jsx` does, and the harness bypasses that; missing it silently left
+every element unstyled/statically-positioned in an early test run, mis-diagnosed at first as a
+z-index bug before realizing the CSS simply hadn't loaded) and a Playwright context with
+`hasTouch: true`, dispatching synthetic `TouchEvent`s (real `Touch` objects, not
+`touchscreen.tap()` which only supports one finger) to drive: pinch-out to 4x, pan while
+zoomed, reset-button click, double-tap zoom-in then zoom-out, and zoom auto-resetting on a
+Prev/Next page change — all six read the resulting `transform` (or the reset button's
+presence) directly from the DOM rather than trusting a screenshot alone. Also had to add a
+`<meta name="viewport">` to the throwaway harness's own HTML (copied from the real
+`index.html`) — Chromium's mobile emulation falls back to a ~980px desktop-width virtual
+viewport without one, which put every touch coordinate in the wrong space and produced
+nonsensical bounding rects until caught. 122/122 propis tests pass (no test added — this is
+DOM/touch-event plumbing with no pure function to unit-test), `npm run build` clean. Cleaned
+up the throwaway harness before commit. No `elements.json` change, no deck-zip rebuild needed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
