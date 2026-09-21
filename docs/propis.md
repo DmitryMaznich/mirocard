@@ -3070,6 +3070,58 @@ the ruled box, the traceable ink, and the "Фото X:100 Y:0" label all inside 
 fullscreen view with no nudging needed first. 122/122 propis tests pass, `npm run build` clean.
 No `elements.json` change, no deck-zip rebuild needed.
 
+**Two-finger pinch/drag for the photo backdrop, same day.** User, after the D-pad fix above:
+"блин, тяжело. можешь сделать чтобы подложку можно было перемещать и зумировать пальцами?
+кнопки можно оставить для тонкой настройки" — buttons alone were too slow for coarse
+positioning; touch gestures for that, buttons stay for the fine nudge.
+
+**Split by finger count, not by mode**: one finger keeps drawing exactly as before (a stroke
+is always drawn with a single finger, so there's no real ambiguity to resolve); two fingers
+pinch/drag the photo. Implemented on `svgEl`'s existing `touchstart`/`touchmove` listeners
+(previously just an unconditional `preventDefault()` to stop the browser's own touch
+scrolling/zoom from fighting the Pointer-Events-based drawing) — now branching on
+`e.touches.length`. `touchMidAndDist()` reuses `svgPoint()` (the same `getScreenCTM()`-based
+screen→canvas-unit conversion drawing itself uses) directly on the raw `Touch` objects, since
+it only reads `.clientX`/`.clientY` — this incidentally means the gesture works unmodified in
+fullscreen's cropped viewBox too, no separate fullscreen-specific math needed. Scale is
+anchored to the pinch midpoint's own image-local point (`localX = (startMid.x -
+startOffsetX) / startScale`, then `newOffset = mid.x - localX * newScale`), not to the
+image's top-left corner where `updateImageGuide`'s own `x=0,y=0 + translate(offsetX,offsetY)`
+construction would naturally anchor a bare scale change — otherwise the image would visibly
+grow/shrink away from your fingers instead of zooming where you're actually looking.
+
+**Found and fixed a real, if narrow, existing bug while wiring this in — not new, but this
+session's first close read of `startStroke` surfaced it**: `startStroke` had no guard
+against a SECOND pointer's own `pointerdown` firing while a first is already mid-stroke (Pointer
+Events are per-finger/independent of the touch-count branching above) — it would silently reset
+`currentRaw`/`currentPathEl` out from under the first finger's still-active stroke, corrupting
+it. Added `if (drawing) return;` as the very first line. This matters concretely for the new
+gesture: the first finger of a pinch always fires its own `pointerdown` a few ms before the
+second lands (browsers deliver multi-touch starts one finger at a time), which without the
+guard would have started a real (if tiny) stroke that the second finger's arrival then
+corrupts rather than cleanly discards. New `cancelStroke()` (sibling to `endStroke`, but
+discards the in-progress stroke's DOM nodes and state WITHOUT pushing to `strokes`, unlike
+`endStroke` which always commits) is called the moment a second touch is detected, cleaning
+up that accidental first-finger stroke before pinch tracking begins — confirmed empirically,
+not just reasoned through, via the verification below.
+
+Verified via Playwright with a REAL CDP-level touch injection (`Input.dispatchTouchEvent`,
+not page-JS `dispatchEvent` — the latter bypasses Chromium's own touch-to-pointer-event
+synthesis entirely, which would have made the interaction between the two systems
+untestable): (1) a genuine single-finger touch-drag still commits a real stroke (checked via
+`undoBtn`'s enabled state, since `strokes` itself isn't exposed globally) — existing behavior
+unaffected; (2) with a photo loaded, a two-finger pinch-outward increases `imgGuideScale` and
+the rendered `<image>`'s own `width`, clamped at `IMG_GUIDE_SCALE_MAX`; (3) critically, after
+that pinch, clicking undo exactly once fully disabled the undo button again — proving the
+pinch committed ZERO stray strokes to the `strokes` array (not just "looked fine", the
+`cancelStroke` fix was load-bearing and directly confirmed); (4) a separate constant-finger-
+distance two-finger drag panned the image (`transform` shifted) while its `width` stayed
+byte-for-byte identical — confirming pan and zoom are cleanly decoupled, a pure drag never
+nudges scale. One screenshot after a pan confirms the same visual read a real phone would
+show: photo shifted, sidebar sliders and X/Y readout all reflecting the new position. 122/122
+propis tests pass, `npm run build` clean. No `elements.json` change, no deck-zip rebuild
+needed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

@@ -1127,6 +1127,12 @@
   }
 
   function startStroke(evt) {
+    // A second finger landing while the first is already drawing (e.g. mid-pinch on the
+    // photo backdrop, see the touchstart/touchmove handlers below) fires its OWN pointerdown
+    // too -- Pointer Events are per-finger, independent of the raw touch gesture handling.
+    // Without this guard it would silently reset currentRaw/currentPathEl out from under the
+    // first finger's still-active stroke, corrupting it. Only the first active pointer draws.
+    if (drawing) return;
     evt.preventDefault();
     drawing = true;
     currentT0 = performance.now();
@@ -1197,13 +1203,83 @@
     redrawAll();
   }
 
+  // Discards whatever's currently mid-stroke WITHOUT committing it to `strokes` -- unlike
+  // endStroke, which always commits. Needed for the two-finger photo gesture below: the
+  // first finger to land already ran startStroke (drawing was false at that point) before
+  // the second finger arrives and this turns into a pinch, leaving a near-zero-length stray
+  // stroke that would otherwise get committed on the eventual pointerup/pointercancel.
+  function cancelStroke() {
+    if (!drawing) return;
+    drawing = false;
+    if (currentRawPolyEl) currentRawPolyEl.remove();
+    if (currentPathEl) currentPathEl.remove();
+    currentRaw = null;
+    currentFiltered = null;
+    currentRawPolyEl = null;
+    currentPathEl = null;
+  }
+
   svgEl.addEventListener("pointerdown", startStroke, { passive: false });
   svgEl.addEventListener("pointermove", moveStroke, { passive: false });
   svgEl.addEventListener("pointerup", endStroke);
   svgEl.addEventListener("pointercancel", endStroke);
   svgEl.addEventListener("pointerleave", (e) => { if (drawing) endStroke(); });
-  svgEl.addEventListener("touchstart", (e) => e.preventDefault(), { passive: false });
-  svgEl.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
+
+  // Two-finger pinch-to-zoom / drag-to-pan for the photo backdrop (2026-09-21, "тяжело...
+  // можешь сделать чтобы подложку можно было перемещать и зумировать пальцами? кнопки можно
+  // оставить для тонкой настройки" -- the button D-pad from the earlier round stays for fine
+  // nudging, this adds the coarse positioning). One finger keeps drawing exactly as before
+  // (untouched here); two fingers are unambiguous since strokes are always drawn one finger
+  // at a time, so there's no gesture conflict to resolve. Only engages when a photo is
+  // actually loaded (`imgGuideDataUrl`) -- with none loaded a two-finger touch is a no-op,
+  // same as before this change.
+  // svgPoint's own getScreenCTM()-based conversion (used for drawing) works unmodified on a
+  // Touch object too (it only reads .clientX/.clientY), so it's reused as-is here -- and
+  // since it reads the CTM live, this works identically in fullscreen's cropped viewBox with
+  // no separate fullscreen-specific gesture code needed.
+  function touchMidAndDist(touches) {
+    const p0 = svgPoint(touches[0]);
+    const p1 = svgPoint(touches[1]);
+    return { mid: { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 }, dist: Math.hypot(p1.x - p0.x, p1.y - p0.y) };
+  }
+  let photoGesture = null;
+  svgEl.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    if (e.touches.length === 2 && imgGuideDataUrl) {
+      cancelStroke();
+      const t = touchMidAndDist(e.touches);
+      photoGesture = { startDist: t.dist, startMid: t.mid, startOffsetX: imgGuideOffsetX, startOffsetY: imgGuideOffsetY, startScale: imgGuideScale };
+    }
+  }, { passive: false });
+  svgEl.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    if (e.touches.length !== 2 || !photoGesture) return;
+    const t = touchMidAndDist(e.touches);
+    if (photoGesture.startDist > 1) {
+      // Anchors the image-local point that started under the two fingers' midpoint so it
+      // stays under wherever that midpoint currently is -- zooms "about your fingers", not
+      // about the image's own top-left corner (which is where scale is naturally anchored
+      // by updateImageGuide's own x=0,y=0 + translate(offsetX,offsetY) construction).
+      const newScale = Math.max(IMG_GUIDE_SCALE_MIN, Math.min(IMG_GUIDE_SCALE_MAX, photoGesture.startScale * (t.dist / photoGesture.startDist)));
+      const localX = (photoGesture.startMid.x - photoGesture.startOffsetX) / photoGesture.startScale;
+      const localY = (photoGesture.startMid.y - photoGesture.startOffsetY) / photoGesture.startScale;
+      imgGuideScale = newScale;
+      imageGuideScaleInput.value = String(newScale);
+      imgGuideOffsetX = t.mid.x - localX * newScale;
+      imgGuideOffsetY = t.mid.y - localY * newScale;
+    } else {
+      // Fingers started (near-)coincident -- dist ratio is numerically unstable, so this
+      // frame is pan-only off the midpoint's own movement.
+      imgGuideOffsetX = photoGesture.startOffsetX + (t.mid.x - photoGesture.startMid.x);
+      imgGuideOffsetY = photoGesture.startOffsetY + (t.mid.y - photoGesture.startMid.y);
+    }
+    updateImageGuideOffsetLabels();
+    updateImageGuide();
+    syncFsNudgeTarget();
+  }, { passive: false });
+  function endPhotoGestureIfDone(e) { if (e.touches.length < 2) photoGesture = null; }
+  svgEl.addEventListener("touchend", endPhotoGestureIfDone);
+  svgEl.addEventListener("touchcancel", endPhotoGestureIfDone);
 
   function doUndo() {
     strokes.pop();
