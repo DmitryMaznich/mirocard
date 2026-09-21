@@ -40,6 +40,28 @@ test("a dictation error preserves the completed part of the drawing", () => {
   assert.match(sessionScreen, /const rendererTaskKey = keepsDictationCanvasOnMistake \|\| keepsObserveSceneOnMistake\s*\? String\(taskIndex\)\s*:/);
 });
 
+test("key and rocket use complete, continuous dictation contours", () => {
+  const endOf = (card) => {
+    if (card.taskKind === "coordinate") return card.points.at(-1);
+    return card.commands.reduce((point, command) => ({
+      col: point.col + vectors[command.direction][0] * command.cells,
+      row: point.row + vectors[command.direction][1] * command.cells,
+    }), { ...card.start });
+  };
+
+  for (const id of ["dictation_key", "coordinate_key", "coordinate_rocket"]) {
+    const card = topic.cards.find((item) => item.id === id);
+    assert.deepEqual(endOf(card), card.start, `${id} closes at its start point`);
+  }
+
+  const rocket = topic.cards.find((item) => item.id === "coordinate_rocket");
+  assert.deepEqual(rocket.points, [
+    { col: 8, row: 4 }, { col: 8, row: 8 }, { col: 9, row: 9 }, { col: 7, row: 9 },
+    { col: 6, row: 8 }, { col: 5, row: 9 }, { col: 3, row: 9 }, { col: 4, row: 8 },
+    { col: 4, row: 4 }, { col: 6, row: 1 },
+  ]);
+});
+
 test("every figure-building mode has a complete three-level card pool", () => {
   for (const taskKind of ["mirror", "repeat", "dictation", "coordinate"]) {
     const cards = topic.cards.filter((card) => card.taskKind === taskKind);

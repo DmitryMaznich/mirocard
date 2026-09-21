@@ -135,7 +135,7 @@
     {
       "type": "move",
       "direction": "up",
-      "cells": 3
+      "cells": 2
     }
   ]
 }
