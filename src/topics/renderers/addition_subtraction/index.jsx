@@ -464,8 +464,10 @@ function WorksheetTask({ task, onCorrect, student }) {
   return (
     <div className="operation-stage operation-stage--worksheet">
       <div className="operation-worksheet">
-        {groups.map((group, gi) => (
-          <div key={gi} className="operation-worksheet__group">
+        {groups.map((group, gi) => {
+          const isActiveGroup = gi === Math.floor(activeIdx / task.perGroup);
+          return (
+          <div key={gi} className={`operation-worksheet__group${isActiveGroup ? " operation-worksheet__group--active" : ""}`}>
             <div className="operation-worksheet__group-label">{gi + 1}</div>
             <div className="operation-worksheet__list">
               {group.map((ex, ei) => {
@@ -489,14 +491,21 @@ function WorksheetTask({ task, onCorrect, student }) {
                         isActive && wrong ? "operation-worksheet__answer--wrong" : "",
                       ].filter(Boolean).join(" ")}
                     >
-                      {isSolved ? ex.result : isActive ? (digits.join("") || "?") : ""}
+                      {isSolved
+                        ? ex.result
+                        : isActive
+                          ? (digits.length
+                              ? digits.join("")
+                              : <span className="operation-worksheet__answer-placeholder">?</span>)
+                          : ""}
                     </span>
                   </div>
                 );
               })}
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {!showReward && activeEx && (

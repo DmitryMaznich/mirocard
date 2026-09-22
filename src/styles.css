@@ -18280,6 +18280,13 @@ body { background: #eef0ef; }
   gap: 6px;
   min-height: 0;
   overflow: hidden;
+  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+}
+
+.operation-worksheet__group--active {
+  background: #fffbea;
+  border-color: #f3d675;
+  box-shadow: 0 0 0 3px rgba(243, 214, 117, 0.28);
 }
 
 .operation-worksheet__group-label {
@@ -18343,6 +18350,11 @@ body { background: #eef0ef; }
   background: #fff4ee;
   color: #9f3029;
   animation: operation-audio-shake 0.4s ease;
+}
+
+.operation-worksheet__answer-placeholder {
+  color: #e0433f;
+  font-weight: 800;
 }
 
 /* row div is invisible to layout — children go directly into the parent grid */
