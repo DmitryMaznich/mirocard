@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend-tests:
+    name: Backend tests (incl. migration + paywall integration)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: npm ci (backend)
+        run: npm ci
+        working-directory: backend
+      - name: Backend security audit (production dependencies -- blocking)
+        run: npm audit --audit-level=high
+        working-directory: backend
+      # Named separately per the launch checklist even though it's part of
+      # the same suite -- proves the orders/entitlements backfill migration
+      # (backend/lib/db.mjs) and its idempotency-across-restarts guarantee
+      # specifically, not just "tests passed in general".
+      - name: Migration test (db.mjs backfill + idempotency)
+        run: node --test tests/db.test.mjs
+        working-directory: backend
+      # Same reasoning -- this is the P0-1 paywall-bypass regression suite
+      # specifically (real HTTP server, not just repository-level calls).
+      - name: Paywall integration test
+        run: node --test tests/paywall.test.mjs
+        working-directory: backend
+      - name: Full backend test suite
+        run: node --test tests/*.test.mjs
+        working-directory: backend
+
+  frontend-tests:
+    name: Frontend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: npm ci
+        run: npm ci
+      - name: Vitest
+        run: npx vitest run
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: npm ci
+        run: npm ci
+      # backend/ is fully lint-clean as of this launch-prep branch --
+      # blocking, so it can't silently regress.
+      - name: Lint backend (blocking)
+        run: npx eslint backend
+      # The rest of the repo (src/, tools/, scripts/, landing/) carries
+      # pre-existing lint debt from before this branch (~190 violations,
+      # confirmed present on origin/main -- see docs/release-evidence.md)
+      # that a commercial-launch security/billing pass didn't take on.
+      # Reported, not blocking, so it doesn't mask this workflow's actual
+      # purpose (verifying the payment/paywall/legal work) behind
+      # unrelated failures, while still keeping the numbers visible on
+      # every run so the debt can't be quietly forgotten either.
+      - name: Lint full repo (informational -- see comment above)
+        run: npx eslint .
+        continue-on-error: true
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: npm ci
+        run: npm ci
+      - name: npm ci (backend)
+        run: npm ci
+        working-directory: backend
+      - name: Build
+        run: npm run build
+      - name: Root security audit (build tooling -- informational, see docs/release-evidence.md)
+        run: npm audit --audit-level=high
+        continue-on-error: true
