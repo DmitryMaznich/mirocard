@@ -1,6 +1,7 @@
 import { getDb } from "../backend/lib/db.mjs";
 import { findEntitlementsNeedingReminders, markReminderSent } from "../backend/lib/billing-repository.mjs";
 import { sendEntitlementReminderEmail } from "../backend/lib/mailer.mjs";
+import { trackEvent, reportError } from "../backend/lib/observability.mjs";
 
 const HOUR_MS = 60 * 60 * 1000;
 
@@ -10,11 +11,12 @@ export async function runReminderSweepOnce(db) {
     try {
       await sendEntitlementReminderEmail(email, { kind, endsAt: entitlement.ends_at, plan: entitlement.plan });
       markReminderSent(db, entitlement.id, kind);
+      trackEvent("expiry_reminder_sent", { kind, plan: entitlement.plan });
     } catch (err) {
       // Leave the reminder unmarked so the next hourly sweep retries it --
       // an email provider hiccup must not silently skip the reminder
       // forever, only delay it.
-      console.error(`[entitlement-reminder] failed to send ${kind} reminder for entitlement ${entitlement.id}:`, err.message);
+      reportError(err, { scope: "entitlement-reminder", kind, entitlementId: entitlement.id });
     }
   }
   return due.length;

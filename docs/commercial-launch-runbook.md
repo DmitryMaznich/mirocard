@@ -212,7 +212,91 @@ dependency in this codebase; everything scheduled runs in-process, gated on
 - A purchase confirmation email (durable record, independent of the DB) is
   sent once an order is actually confirmed by a provider webhook — see §3.
 
-## 5. Known residual risks
+## 5. Observability, backups, release identity
+
+### Health, version, errors
+
+- `GET /healthz` (no auth, no PII) — DB reachability, `version`
+  (`package.json`), `gitSha` (read straight out of `.git/`, shared between
+  frontend build and backend via `scripts/git-sha.mjs` so both report the
+  exact same value for the exact same build), and `backupAgeMinutes` (age
+  of the newest file under `<DATA_DIR>/backups`, `null` if none exist yet).
+  Returns `503` if the DB check fails. Point Railway's own health check
+  (or an external uptime monitor) at this.
+- `GET /api/version` now also returns `gitSha` alongside `version` — lets
+  the post-deploy check in this repo's root `CLAUDE.md`
+  ("verify `/api/version` returns the new version") also confirm it's the
+  exact commit that was supposed to ship, not just *a* newer version.
+- `backend/lib/observability.mjs`: `reportError(err, context)` and
+  `trackEvent(name, properties)`, both pluggable via env
+  (`ERROR_REPORTING_WEBHOOK_URL`, `ANALYTICS_WEBHOOK_URL`) and a no-op
+  otherwise. Deliberately vendor-agnostic — point either at a real
+  vendor's HTTP ingest endpoint (Sentry, PostHog, a small relay you own,
+  ...) when one is chosen; nothing here hardcodes one. `context`/
+  `properties` are structural only (opaque IDs, plan names, amounts, event
+  kinds) by contract — never email/name/notes text.
+- Funnel events currently wired: `registration_completed`,
+  `email_verified`, `promo_validated`, `promo_redeemed`,
+  `checkout_created`, `payment_success`, `refund`,
+  `expiry_reminder_sent`, `backup_completed`. **Not yet wired** (flagged
+  rather than left silently missing): a landing-page CTA click (that's a
+  client-only event on the separate `landing/` static site, which has no
+  backend to call from), "first lesson completed" (needs picking which
+  session-completion event counts as "first"), and D1/D7/D28 retention
+  cohorts (needs a scheduled cohort query, not a single event call site —
+  the raw data for it already exists in `sessions`/`entitlements` and
+  could be computed later without a schema change).
+- Every unhandled route error goes through `reportError` now (previously
+  a bare `console.error`) — still always logs locally either way; only
+  the outbound webhook is new/optional.
+
+### Backups
+
+- `scripts/railway-backup-loop.mjs` (hourly, gated on `RAILWAY_ENVIRONMENT`,
+  unchanged destination — `<DATA_DIR>/backups` on the same Railway
+  volume) had a real bug fixed in this branch: a failed backup attempt
+  (corrupt file, disk issue, a failed `PRAGMA integrity_check` — which
+  `scripts/backup-sqlite.mjs` already ran and threw on) propagated as an
+  uncaught exception out of the `setInterval` callback, which crashes the
+  whole Node process. One bad backup used to be able to take production
+  down with it. Now caught, reported via `reportError`, and retried on the
+  next hourly tick instead. See `backend/tests/railway-backup-loop.test.mjs`
+  for the regression test (starts the real loop against a deliberately
+  corrupt source file and asserts no `uncaughtException` fires).
+- **Off-site copy is still a gap** — see §6. This branch can fix in-process
+  robustness (the crash bug above) but can't provision or credential an
+  external bucket from inside this sandboxed session.
+- **Restore drill (do this for real before relying on backups)**:
+  1. Pick a backup file from `/data/backups/mirocard-<timestamp>.db`
+     (Railway dashboard → volume browser, or `railway ssh` if available on
+     the plan in use).
+  2. Copy it somewhere you can inspect safely — never restore directly
+     over the live volume as the first step of a drill.
+  3. Verify integrity independently of the backup job itself:
+     `node --input-type=module -e "import {DatabaseSync} from 'node:sqlite'; const db=new DatabaseSync(process.argv[1]); console.log(db.prepare('PRAGMA integrity_check').get());" -- /path/to/mirocard-<timestamp>.db`
+     — expect `{ integrity_check: 'ok' }`.
+  4. Boot the backend against the copy locally: `MIROCARD_DATA_DIR=<dir containing the copy, renamed to mirocard.db> node backend/server.mjs` and confirm `/healthz` and a login against a known test account both work.
+  5. Time the whole drill and write the duration down somewhere the team
+     can find it later (`docs/release-evidence.md` or an incident-response
+     doc) — that number is your actual RTO if this were a real incident,
+     not a guess.
+  6. Repeat this periodically (e.g. quarterly), not just once — a backup
+     process nobody has ever restored from is unverified by definition.
+
+### Release identity
+
+- Deploys already happen from Railway auto-deploying `main` on every
+  push (per this repo's `CLAUDE.md`); there is no separate "tagged
+  release" step today. `/healthz`/`/api/version`'s new `gitSha` field is
+  what makes a running deployment's identity independently verifiable
+  against the repo regardless — after any deploy, `git log --oneline -1`
+  locally and `curl https://app.mironium.com/healthz` should show matching
+  short SHAs. If a more formal tag-per-release process is wanted later, it
+  layers on top of this without needing another code change (`gitSha` was
+  read from `.git/HEAD`, which reflects whatever commit — tagged or not —
+  actually built the running image).
+
+## 6. Known residual risks
 
 See `docs/release-evidence.md` for the full, current list against the
 Definition of Done. Highlights carried in this document because they
@@ -226,6 +310,21 @@ affect how the campaign should be run operationally:
   treat "МИР / СБП" as unverified/at-risk until proven in Lava's sandbox.
 - No off-site backup exists yet for the Railway SQLite volume (hourly
   backups exist, but land on the same volume as the live DB) — a
-  volume-level failure loses both. Not something this branch can fix from
-  inside a sandbox session; flagged for the human doing the Railway setup
-  in §6.
+  volume-level failure loses both. Fixing this needs an actual external
+  bucket/credential decision (S3-compatible? the existing SmartNAS
+  mentioned in this repo's root `CLAUDE.md`?) that's a human's call, not
+  something to wire up speculatively from inside this session. Once
+  decided, the mechanical part is small: run
+  `scripts/backup-sqlite.mjs`-style export on the schedule already in
+  place and sync the output off-volume (`rclone`, a signed upload, or
+  reusing whatever mechanism already moves other backups to SmartNAS).
+- Account deletion is soft-delete only (`accounts.status = 'deleted'`,
+  which does correctly invalidate every existing auth token for that
+  account immediately via `findAccountByToken`'s `status = 'active'`
+  join) — there is no real data erasure, and no self-service data export.
+  Both are real gaps against the rights described in
+  `backend/legal/privacy.html`; building them safely (especially erasure,
+  given some data — photos — is deliberately de-duplicated across
+  accounts, see `backend/server.mjs`'s `handleGetPhoto` comment) is a
+  separate, careful piece of work this pass didn't attempt rather than
+  rush.

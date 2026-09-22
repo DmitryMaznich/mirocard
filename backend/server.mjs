@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { randomUUID, createHash } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync, createReadStream, statSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, createReadStream, statSync, readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -59,6 +59,8 @@ import {
   verifyLavaTopWebhookAuth, parseLavaTopWebhookEvent,
 } from "./lib/billing-providers/lava-top.mjs";
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
+import { gitSha } from "../scripts/git-sha.mjs";
+import { reportError, trackEvent } from "./lib/observability.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
@@ -270,6 +272,7 @@ async function handleRegister(req, res) {
   }
 
   grantTrialSubscription(db, account.id);
+  trackEvent("registration_completed", { role, referralSource });
 
   const rawToken = randomUUID();
   createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
@@ -377,6 +380,7 @@ async function handleVerifyEmail(req, res) {
   if (!accountId) return writeJson(res, 400, { error: "invalid_or_expired_token" });
 
   activateAccount(db, accountId);
+  trackEvent("email_verified", {});
   const account = findAccountById(db, accountId);
   const token = makeToken(account.id);
   const settings = getAccountSettings(db, account.id);
@@ -934,6 +938,7 @@ async function handleBillingCheckout(req, res) {
         orderId, amountMinor, currency: planDef.currency, accountEmail: account.email,
       }));
     }
+    trackEvent("checkout_created", { plan, provider, amountMinor, currency: planDef.currency, hasPromoCode: Boolean(appliedCode) });
     writeJson(res, 200, { checkoutUrl, orderId, appliedCode });
   } catch (err) {
     // err.message can carry the payment provider's raw error response body
@@ -957,7 +962,7 @@ async function handleStripeWebhook(req, res) {
     return writeJson(res, 401, { error: "Invalid signature" });
   }
   const result = processBillingEvent(db, { provider: "stripe", event: parseStripeWebhookEvent(rawBody), rawBody });
-  sendPurchaseConfirmationIfCompleted(result);
+  handleWebhookOutcome(result);
   writeJson(res, 200, { received: true });
 }
 
@@ -968,7 +973,7 @@ async function handleLavaTopWebhook(req, res) {
     return writeJson(res, 401, { error: "Invalid auth" });
   }
   const result = processBillingEvent(db, { provider: "lava_top", event: parseLavaTopWebhookEvent(rawBody), rawBody });
-  sendPurchaseConfirmationIfCompleted(result);
+  handleWebhookOutcome(result);
   writeJson(res, 200, { received: true });
 }
 
@@ -977,11 +982,18 @@ async function handleLavaTopWebhook(req, res) {
 // order (not a duplicate delivery, not a stale/out-of-order event that
 // processBillingEvent correctly no-op'd) -- see the `kind: "completed"`
 // result billing-orchestrator.mjs only returns on that specific branch.
-function sendPurchaseConfirmationIfCompleted(result) {
-  if (result?.kind !== "completed") return;
+function handleWebhookOutcome(result) {
+  if (result?.kind !== "completed" && result?.kind !== "refunded") return;
   const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(result.orderId);
+  if (!order) return;
+
+  trackEvent(result.kind === "completed" ? "payment_success" : "refund", {
+    plan: order.plan, provider: order.provider, amountMinor: order.amount_minor, currency: order.currency,
+  });
+
+  if (result.kind !== "completed") return;
   const account = findAccountById(db, result.accountId);
-  if (!order || !account) return;
+  if (!account) return;
   const sub = getActiveSubscriptionForAccount(db, result.accountId);
   sendPurchaseConfirmationEmail(account.email, {
     plan: order.plan, amountMinor: order.amount_minor, currency: order.currency,
@@ -1002,6 +1014,7 @@ async function handleValidateCode(req, res) {
     return writeJson(res, 400, { error: "code and a known plan are required" });
   }
   const result = validatePromoCode(db, body.code, { accountId: account.id, plan: body.plan });
+  trackEvent("promo_validated", { ok: result.ok, reason: result.reason, kind: result.kind });
   if (!result.ok) return writeJson(res, 200, result);
 
   if (result.kind === "free_grant") return writeJson(res, 200, result);
@@ -1018,6 +1031,7 @@ async function handleRedeemCode(req, res) {
   if (!body?.code) return writeJson(res, 400, { error: "code is required" });
 
   const result = redeemFreeGrantCode(db, body.code, account.id);
+  trackEvent("promo_redeemed", { ok: result.ok, reason: result.reason, code: result.ok ? String(body.code).trim().toUpperCase() : undefined });
   if (result.ok) {
     incrementRevision(db, account.id);
     const sub = getActiveSubscriptionForAccount(db, account.id);
@@ -1241,7 +1255,13 @@ async function handleLegalDoc(req, res, slug) {
 
 // ─── Version handler ───────────────────────────────────────────────────────────
 
-async function handleVersion(req, res) {
+// Repo root: BACKEND_DIR is <root>/backend, matching where .git/ and
+// package.json actually live regardless of DEPLOY_FRONTEND_DIR (which can
+// be pointed elsewhere via MIROCARD_DEPLOY_FRONTEND_DIR).
+const REPO_ROOT = path.resolve(BACKEND_DIR, "..");
+const GIT_SHA = gitSha(REPO_ROOT);
+
+async function readPackageVersion() {
   try {
     // version.json was written by the old deploy-prod.mjs script for the
     // retired Windows/Caddy host. Railway builds straight from a Docker
@@ -1249,13 +1269,57 @@ async function handleVersion(req, res) {
     // "unknown" — worthless for a client trying to detect it's stale.
     // package.json's version is bumped as its own commit on every release
     // (see DEPLOYMENT.md) and is always present in the built image.
-    const pkgPath = path.join(DEPLOY_FRONTEND_DIR, "..", "package.json");
-    const content = await readFile(pkgPath, "utf8");
-    const { version } = JSON.parse(content);
-    writeJson(res, 200, { version });
+    const content = await readFile(path.join(REPO_ROOT, "package.json"), "utf8");
+    return JSON.parse(content).version ?? "unknown";
   } catch {
-    writeJson(res, 200, { version: "unknown" });
+    return "unknown";
   }
+}
+
+async function handleVersion(req, res) {
+  const version = await readPackageVersion();
+  writeJson(res, 200, { version, gitSha: GIT_SHA });
+}
+
+// Newest file under <DATA_DIR>/backups -- see
+// scripts/railway-backup-loop.mjs, which writes there hourly. Returns null
+// (not an error) if the directory doesn't exist yet or is empty, which is
+// the expected state for a fresh non-Railway checkout, not a health
+// problem in itself -- /healthz's caller decides what age is acceptable.
+function backupAgeMinutes() {
+  try {
+    const backupDir = path.join(DATA_DIR, "backups");
+    if (!existsSync(backupDir)) return null;
+    const files = readdirSync(backupDir);
+    if (!files.length) return null;
+    const newestMtimeMs = Math.max(...files.map((f) => statSync(path.join(backupDir, f)).mtimeMs));
+    return Math.round((Date.now() - newestMtimeMs) / 60000);
+  } catch {
+    return null;
+  }
+}
+
+// No auth, no PII: an uptime monitor or Railway's own health check needs
+// to be able to call this without a token, and its response must never
+// carry anything about a specific account/student regardless.
+async function handleHealthz(req, res) {
+  let dbOk = false;
+  try {
+    db.prepare("SELECT 1").get();
+    dbOk = true;
+  } catch {
+    dbOk = false;
+  }
+
+  const version = await readPackageVersion();
+  const healthy = dbOk;
+  writeJson(res, healthy ? 200 : 503, {
+    status: healthy ? "ok" : "degraded",
+    version,
+    gitSha: GIT_SHA,
+    db: dbOk,
+    backupAgeMinutes: backupAgeMinutes(),
+  });
 }
 
 // ─── Audio Overrides ──────────────────────────────────────────────────────────
@@ -1537,6 +1601,7 @@ async function router(req, res) {
 
     // Version
     if (method === "GET"    && p === "/version")                  return await handleVersion(req, res);
+    if (method === "GET"    && p === "/healthz")                  return await handleHealthz(req, res);
 
     // Legal pages
     { const legalSlug = Object.keys(LEGAL_DOCS).find((slug) => p === `/${slug}`);
@@ -1549,7 +1614,7 @@ async function router(req, res) {
     if (err?.status) {
       writeJson(res, err.status, { error: err.message });
     } else {
-      console.error(err);
+      reportError(err, { method, path: p });
       writeJson(res, 500, { error: "Internal server error" });
     }
   }
