@@ -18433,11 +18433,16 @@ body { background: #eef0ef; }
   .sp-pool > div svg { width: 88px; height: 56px; }
 }
 
-/* ─── Mode 8: Worksheet ─────────────────────────────────────────────────── */
+/* ─── Mode 8: Worksheet ("Контрольная работа") ─────────────────────────────
+   One continuous numbered sheet (not a grid of small clipped cards — that
+   version silently hid the answer cell on narrow screens whenever a row's
+   content happened to be a little wide, see git history 2026-09). Groups
+   are now just soft section breaks inside a single scroller, so nothing
+   ever needs its own overflow:hidden box that can eat a row alive. */
 .operation-stage--worksheet {
-  /* Override base operation-stage: full-width, exact height, no scroll */
-  width: calc(100dvw - 8px);
-  max-width: 1400px;
+  /* Override base operation-stage: full-width, exact height, no scroll on
+     the stage itself — only .operation-worksheet (the sheet) scrolls. */
+  width: min(680px, calc(100dvw - 8px));
   height: calc(100dvh - 112px);
   min-height: 0;
   padding: 10px;
@@ -18445,80 +18450,124 @@ body { background: #eef0ef; }
   align-items: stretch;
   justify-content: flex-start;
   overflow: hidden;
-  gap: 0;
-}
-
-/* Grid fills entire stage height; grid-auto-rows: 1fr divides height equally between rows */
-.operation-worksheet {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 1fr;
   gap: 10px;
 }
 
-.operation-worksheet__group {
-  container-type: inline-size;
-  background: #f4faf8;
-  border: 1.5px solid #c6e8e0;
-  border-radius: 14px;
-  padding: 10px 12px 12px;
+.operation-worksheet {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  min-height: 0;
-  overflow: hidden;
-  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  background: #fbfdfc;
+  border: 1.5px solid #d7ece6;
+  border-radius: 16px;
+  padding: 2px 14px;
 }
 
-.operation-worksheet__group--active {
-  background: #fffbea;
-  border-color: #f3d675;
-  box-shadow: 0 0 0 3px rgba(243, 214, 117, 0.28);
+.operation-worksheet__divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1.5px dashed #d7ece6;
 }
 
-.operation-worksheet__group-label {
-  width: 24px;
-  height: 24px;
+.operation-worksheet__row:first-child .operation-worksheet__divider {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.operation-worksheet__divider-badge {
+  width: 21px;
+  height: 21px;
   border-radius: 50%;
   background: radial-gradient(circle at 36% 30%, #72d4c4, #1a8a7a 72%);
   color: #fff;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  align-self: flex-start;
 }
 
-.operation-worksheet__list {
-  flex: 1;
-  min-height: 0;
-  display: grid;
-  /* 7 columns: A  ±  B  ±  C  =  answer */
-  grid-template-columns: auto auto auto auto auto auto auto;
-  align-content: space-evenly;
+.operation-worksheet__divider-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #6b8580;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Each row is a real box now (not display:contents) so it can carry its own
+   ruled underline and, on the active row, a full-width highlight band. */
+.operation-worksheet__line {
+  display: flex;
   align-items: baseline;
-  justify-content: center;
-  overflow-y: auto;
-  font-size: clamp(0.85rem, 8cqi, 1.5rem);
+  flex-wrap: nowrap;
+  gap: clamp(4px, 1.6vw, 8px);
+  padding: 8px 6px;
+  border-bottom: 1px solid #eef5f2;
+  font-size: clamp(0.95rem, 4vw, 1.15rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  line-height: 1.3;
+  color: #1a2e2a;
+  opacity: 0.5;
+  border-radius: 8px;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.operation-worksheet__row:last-child .operation-worksheet__line { border-bottom: none; }
+
+.operation-worksheet__line--solved { opacity: 1; }
+
+.operation-worksheet__line--active {
+  opacity: 1;
+  background: #fffbea;
+  border-bottom-color: transparent;
+  font-size: clamp(1.1rem, 5vw, 1.4rem);
+  padding: 12px 8px;
+}
+
+.operation-worksheet__num-badge {
+  flex-shrink: 0;
+  min-width: 1.7em;
+  text-align: right;
+  color: #a9c2bd;
+  font-weight: 800;
+  font-size: 0.78em;
+}
+
+.operation-worksheet__line--active .operation-worksheet__num-badge { color: #c9a227; }
+
+.operation-worksheet__num {
+  min-width: 1.35em;
+  text-align: right;
+  color: #1a2e2a;
+}
+
+.operation-worksheet__sign--add    { color: #1f7a6f; padding: 0 2px; }
+.operation-worksheet__sign--subtract { color: #c04040; padding: 0 2px; }
+
+.operation-worksheet__equals {
+  color: #4a635e;
+  padding: 0 2px;
 }
 
 .operation-worksheet__answer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.7em;
-  padding: 0 4px;
-  margin-left: 3px;
+  min-width: 1.8em;
+  margin-left: auto;
+  padding: 1px 6px;
   border-radius: 6px;
   border: 2px dashed #d7e5e0;
   color: #1a2e2a;
+  flex-shrink: 0;
 }
 
 .operation-worksheet__answer--active {
@@ -18546,45 +18595,18 @@ body { background: #eef0ef; }
   font-weight: 800;
 }
 
-/* row div is invisible to layout — children go directly into the parent grid */
-.operation-worksheet__row {
-  display: contents;
-}
-
-.operation-worksheet__num {
-  text-align: right;
-  padding: 1px 2px;
-  color: #1a2e2a;
-}
-
-.operation-worksheet__sign--add    { color: #1f7a6f; padding: 1px 3px; }
-.operation-worksheet__sign--subtract { color: #c04040; padding: 1px 3px; }
-
-.operation-worksheet__equals {
-  color: #888;
-  padding: 1px 3px;
-}
-
-/* ── Portrait phone (≤ 520 px): 2 cols × 3 rows ── */
-@media (max-width: 520px) {
-  .operation-stage--worksheet { padding: 8px; }
-  .operation-worksheet { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .operation-worksheet__group { padding: 8px 10px 10px; border-radius: 12px; }
-  /* font-size on list handled by cqi container query */
-}
-
-/* ── Landscape phone (height ≤ 500 px, orientation: landscape): 6 cols × 1 row ── */
+/* ── Landscape phone (height ≤ 500 px): tighter rows, no wasted padding ── */
 @media (max-height: 500px) and (orientation: landscape) {
-  .operation-stage--worksheet { padding: 6px; }
-  .operation-worksheet { grid-template-columns: repeat(6, 1fr); gap: 6px; }
-  .operation-worksheet__group { padding: 6px 8px 8px; border-radius: 10px; gap: 4px; }
-  .operation-worksheet__group-label { width: 20px; height: 20px; font-size: 0.68rem; }
-  .operation-worksheet__list { font-size: 0.82rem; align-content: flex-start; gap: 2px 0; }
+  .operation-stage--worksheet { padding: 6px; gap: 6px; }
+  .operation-worksheet__line { padding: 5px 6px; font-size: clamp(0.85rem, 3vw, 1rem); }
+  .operation-worksheet__line--active { font-size: clamp(0.95rem, 3.6vw, 1.15rem); padding: 8px; }
+  .operation-worksheet__divider { margin-top: 8px; padding-top: 6px; }
 }
 
-/* ── Landscape tablet (≥ 768 px wide, landscape, height > 500 px): 3 cols × 2 rows ── */
-@media (min-width: 768px) and (orientation: landscape) and (min-height: 501px) {
-  .operation-worksheet { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+/* ── Tablet / desktop: a touch more breathing room, still one page-like column ── */
+@media (min-width: 768px) {
+  .operation-worksheet__line { padding: 10px 10px; }
+  .operation-worksheet__line--active { padding: 14px 12px; }
 }
 
 /* ── Global Timer ─────────────────────────────────────────── */
