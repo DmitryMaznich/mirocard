@@ -1426,6 +1426,7 @@ button {
 .subscription-error { margin-top: 12px; font-size: 13px; color: #e05252; font-weight: 700; }
 
 .subscription-footer { flex-shrink: 0; padding: 14px 16px calc(16px + var(--app-safe-bottom, 0px)); }
+.subscription-disclaimer { margin: 0 0 10px; font-size: 12px; line-height: 1.4; color: #6b7573; text-align: center; }
 
 .checkout-transition__center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 0 40px; text-align: center; }
 .checkout-spinner { width: 56px; height: 56px; border-radius: 50%; border: 5px solid #dde6e3; border-top-color: #4a9b8f; animation: checkout-spin .9s linear infinite; }

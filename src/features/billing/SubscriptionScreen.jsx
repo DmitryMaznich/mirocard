@@ -123,6 +123,15 @@ export default function SubscriptionScreen() {
       </div>
 
       <div className="subscription-footer">
+        {/* M0 launch: this is a single prepaid-period purchase, not a
+            recurring subscription -- no card is kept on file and nothing
+            charges again automatically. Said explicitly here rather than
+            only in the Terms, since "Подписка"/"Оформить" alone could
+            otherwise read as an auto-renewing plan. See
+            docs/commercial-launch-runbook.md's M0/M1 section. */}
+        <p className="subscription-disclaimer">
+          Разовая оплата за «{plan.name}». Без автосписаний — карта не сохраняется, по истечении периода доступ закончится, продлить можно будет вручную в любой момент.
+        </p>
         <button type="button" className="btn btn-primary subscription-cta" disabled={submitting} onClick={submit}>
           Оформить — {discounted != null ? `€ ${formatMinor(discounted)}` : plan.priceLabel}
         </button>
