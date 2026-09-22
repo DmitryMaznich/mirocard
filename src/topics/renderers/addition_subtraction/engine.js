@@ -81,6 +81,49 @@ function buildObserveTask(card, params = {}, shape = "circle") {
   };
 }
 
+const NAME_ACTION_COUNT_MAX = 3;
+
+// Picks the next operation for "Назови действие" so the child can't answer
+// by rhythm: random, but never three identical actions in a row.
+function pickNameActionCard(cards, history) {
+  const ops = new Set(cards.map((card) => normalizeOperation(card.params?.operation)));
+  const [prev, prevPrev] = history.slice(-2).reverse();
+  let pool = cards;
+  if (ops.size > 1 && prev && prev === prevPrev) {
+    pool = cards.filter((card) => normalizeOperation(card.params?.operation) !== prev);
+  }
+  return pool[randomInt(0, pool.length - 1)];
+}
+
+function buildNameActionTask(card, params = {}, shape = "circle") {
+  const operation = normalizeOperation(card.params?.operation);
+  const maxNumber = toNumber(params.maxNumber, 3) <= 3 ? 3 : 5;
+  const countStep = Boolean(params.countStep);
+  // Without the "Сколько?" step the change is always one object: the child
+  // names the action only. With it, the hand makes 1-3 separate trips so the
+  // amount can be counted, not guessed from the size of the difference.
+  const delta = countStep ? randomInt(1, Math.min(NAME_ACTION_COUNT_MAX, maxNumber - 1)) : 1;
+  const start = operation === "add"
+    ? randomInt(1, maxNumber - delta)
+    : randomInt(delta + 1, maxNumber);
+  const result = operation === "add" ? start + delta : start - delta;
+
+  return {
+    type: "operation_name_action",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    operation,
+    start,
+    delta,
+    result,
+    maxNumber,
+    shape,
+    countStep,
+    countOptions: [1, 2, 3],
+    answerMode: params.answerMode === "voice" ? "voice" : "buttons",
+  };
+}
+
 function buildOperationTask(modeType, card, params = {}, taskIndex = 0) {
   const operation = normalizeOperation(card.params?.operation);
   const railSize = Math.max(3, Math.min(DEFAULT_RAIL_SIZE, toNumber(params.railSize ?? params.maxNumber, DEFAULT_RAIL_SIZE)));
@@ -365,6 +408,17 @@ export function generateTasks(mode, cards, arg3, arg4) {
     return Array.from({ length: count }, (_, index) =>
       buildObserveTask(operationCards[index % operationCards.length], params, resolveObserveShape(index, params))
     );
+  }
+
+  if (modeType === "operation_name_action") {
+    // Not shuffled afterwards: the no-three-in-a-row guard is built into the order.
+    const history = [];
+    return Array.from({ length: count }, (_, index) => {
+      const card = pickNameActionCard(operationCards, history);
+      const task = buildNameActionTask(card, params, resolveObserveShape(index, params));
+      history.push(task.operation);
+      return task;
+    });
   }
 
   if (modeType === "operation_audio") {

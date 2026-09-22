@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import HelperPanel from "./HelperPanel";
+import NameActionTask from "./NameActionTask";
 import {
   buildStickSlots,
   evaluateStickMove,
@@ -654,14 +655,6 @@ function ManualSessionTask({ task, onCorrect, onIncorrect, streakCount = 0 }) {
   );
 }
 
-function PlaceholderTask() {
-  return (
-    <div className="operation-stage operation-stage--placeholder">
-      <div className="operation-placeholder-text">Скоро</div>
-    </div>
-  );
-}
-
 function ObserveQuantityRail({ task, phase }) {
   const isBefore = phase === "before";
   const isChanging = phase === "changing";
@@ -1274,7 +1267,7 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, p
     return <ManipulationTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
   }
   if (type === "operation_name_action") {
-    return <PlaceholderTask />;
+    return <NameActionTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} playFeedback={playFeedback} soundEnabled={soundEnabled} />;
   }
   if (type === "operation_action_from_sign") {
     return <SignActionTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;

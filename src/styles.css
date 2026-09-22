@@ -14911,6 +14911,193 @@ kbd {
   }
 }
 
+/* Second operations mode "Назови действие": the observe tray plus a hand
+   that brings/takes the object, and verb cards illustrated with that hand. */
+.operation-stage--name-action {
+  padding-bottom: calc(20px + var(--app-safe-bottom, 0px));
+}
+
+.name-action__scene {
+  position: relative;
+  width: min(100%, 540px);
+  /* Room for the hand to come down onto the tray; collapses once the
+     question is on screen so the answer area isn't pushed off-balance. */
+  padding-top: clamp(118px, 32vw, 170px);
+  transition: padding-top 320ms ease;
+}
+
+.name-action__scene--settled {
+  padding-top: clamp(8px, 2vw, 16px);
+}
+
+.name-action__tray {
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: inset 0 0 0 3px #e3eeeb, 0 8px 18px rgba(71, 61, 48, 0.06);
+}
+
+.name-action__dot--taken {
+  visibility: hidden;
+}
+
+/* A zero-size anchor moved with transform to the centre of the target slot;
+   the carried object is centred on it, the hand sits above with its
+   fingertips over the object's top part. */
+.name-action__hand {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 700ms cubic-bezier(0.33, 0.9, 0.4, 1), opacity 260ms ease;
+  will-change: transform;
+}
+
+.name-action__hand--visible { opacity: 1; }
+.name-action__hand--instant { transition: none; }
+
+.name-action__hand-svg {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--na-dot) * 0.18);
+  width: clamp(64px, calc(var(--na-dot) * 1.9), 136px);
+  height: auto;
+  transform: translateX(-50%);
+  overflow: visible;
+  filter: drop-shadow(0 6px 6px rgba(52, 101, 93, 0.18));
+}
+
+.name-action__carried {
+  position: absolute;
+  left: calc(var(--na-dot) * -0.5);
+  top: calc(var(--na-dot) * -0.5);
+  width: var(--na-dot);
+}
+
+.name-action__prompt {
+  min-height: 1.5em;
+  margin: 0;
+  color: #536461;
+  font-size: clamp(1.1rem, 4.6vw, 1.4rem);
+  font-weight: 800;
+  visibility: hidden;
+}
+
+.name-action__prompt--visible { visibility: visible; }
+
+.name-action__answer {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.name-action__answer--verb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 10px 12px;
+}
+
+.name-action__answer--verb span { font-size: clamp(1.1rem, 4.8vw, 1.7rem); }
+
+.name-action__answer--wrong {
+  border-color: #ef4444;
+  background: #fef2f2;
+  animation: name-action-shake 0.4s ease;
+}
+
+@keyframes name-action-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+}
+
+.name-action__answer--verb .name-action__sign {
+  font-size: clamp(2.6rem, 11vw, 3.6rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.name-action__sign--add { color: #1f7a6f; }
+.name-action__sign--subtract { color: #c04040; }
+
+.name-action__count-step {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.name-action__count {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 3vw, 18px);
+}
+
+.name-action__count .observe-change__answer { font-size: clamp(1.8rem, 8vw, 2.6rem); }
+
+/* "Скажи вслух": the child has no buttons; a quiet strip for the adult. */
+.name-action__adult {
+  width: min(100%, 560px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 16px;
+  border: 1px solid #dde7e4;
+  border-radius: 20px;
+  background: #f4f7f6;
+  visibility: hidden;
+}
+
+.name-action__adult--visible { visibility: visible; }
+
+.name-action__adult-text {
+  flex: 1;
+  min-width: 0;
+  color: #6b8380;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: left;
+}
+
+.name-action__adult-text strong {
+  display: block;
+  color: #27423e;
+  font-size: 1.05rem;
+}
+
+.name-action__adult-btn {
+  width: 54px;
+  height: 54px;
+  flex: none;
+  border: 0;
+  border-radius: 16px;
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.name-action__adult-btn--retry { border: 2px solid #c9ddd9; background: #fff; color: #395552; }
+.name-action__adult-btn--ok { background: #22c55e; color: #fff; box-shadow: 0 4px 0 #16a34a; }
+.name-action__adult-btn--ok:active { transform: translateY(3px); box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .name-action__hand { transition-duration: 1ms; }
+  .name-action__scene { transition: none; }
+}
+
 .operation-stage--stick {
   width: calc(100dvw - 8px);
   max-width: 1400px;
