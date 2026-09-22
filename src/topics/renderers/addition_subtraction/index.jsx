@@ -456,54 +456,55 @@ function WorksheetTask({ task, onCorrect, student }) {
     onCorrect?.(task.conceptId, task.cardId);
   }, [onCorrect, task.conceptId, task.cardId]);
 
-  const groups = [];
-  for (let g = 0; g < task.groupCount; g++) {
-    groups.push(task.examples.slice(g * task.perGroup, (g + 1) * task.perGroup));
-  }
-
   return (
     <div className="operation-stage operation-stage--worksheet">
       <div className="operation-worksheet">
-        {groups.map((group, gi) => {
-          const isActiveGroup = gi === Math.floor(activeIdx / task.perGroup);
+        {task.examples.map((ex, flatIdx) => {
+          const isActive = flatIdx === activeIdx;
+          const isSolved = !!solved[flatIdx];
+          const groupIndex = Math.floor(flatIdx / task.perGroup);
+          const isGroupStart = flatIdx % task.perGroup === 0;
           return (
-          <div key={gi} className={`operation-worksheet__group${isActiveGroup ? " operation-worksheet__group--active" : ""}`}>
-            <div className="operation-worksheet__group-label">{gi + 1}</div>
-            <div className="operation-worksheet__list">
-              {group.map((ex, ei) => {
-                const flatIdx = gi * task.perGroup + ei;
-                const isActive = flatIdx === activeIdx;
-                const isSolved = !!solved[flatIdx];
-                return (
-                  <div key={ei} className="operation-worksheet__row">
-                    <span className="operation-worksheet__num">{ex.A}</span>
-                    <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opAB}`}>{ex.signAB}</span>
-                    <span className="operation-worksheet__num">{ex.B}</span>
-                    <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opBC}`}>{ex.signBC}</span>
-                    <span className="operation-worksheet__num">{ex.C}</span>
-                    <span className="operation-worksheet__equals">=</span>
-                    <span
-                      ref={isActive ? activeRef : null}
-                      className={[
-                        "operation-worksheet__answer",
-                        isSolved ? "operation-worksheet__answer--correct" : "",
-                        isActive ? "operation-worksheet__answer--active" : "",
-                        isActive && wrong ? "operation-worksheet__answer--wrong" : "",
-                      ].filter(Boolean).join(" ")}
-                    >
-                      {isSolved
-                        ? ex.result
-                        : isActive
-                          ? (digits.length
-                              ? digits.join("")
-                              : <span className="operation-worksheet__answer-placeholder">?</span>)
-                          : ""}
-                    </span>
-                  </div>
-                );
-              })}
+            <div key={flatIdx} className="operation-worksheet__row">
+              {isGroupStart && (
+                <div className="operation-worksheet__divider">
+                  <span className="operation-worksheet__divider-badge">{groupIndex + 1}</span>
+                  <span className="operation-worksheet__divider-label">Группа {groupIndex + 1}</span>
+                </div>
+              )}
+              <div
+                ref={isActive ? activeRef : null}
+                className={[
+                  "operation-worksheet__line",
+                  isSolved ? "operation-worksheet__line--solved" : "",
+                  isActive ? "operation-worksheet__line--active" : "",
+                ].filter(Boolean).join(" ")}
+              >
+                <span className="operation-worksheet__num-badge">{flatIdx + 1}.</span>
+                <span className="operation-worksheet__num">{ex.A}</span>
+                <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opAB}`}>{ex.signAB}</span>
+                <span className="operation-worksheet__num">{ex.B}</span>
+                <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opBC}`}>{ex.signBC}</span>
+                <span className="operation-worksheet__num">{ex.C}</span>
+                <span className="operation-worksheet__equals">=</span>
+                <span
+                  className={[
+                    "operation-worksheet__answer",
+                    isSolved ? "operation-worksheet__answer--correct" : "",
+                    isActive ? "operation-worksheet__answer--active" : "",
+                    isActive && wrong ? "operation-worksheet__answer--wrong" : "",
+                  ].filter(Boolean).join(" ")}
+                >
+                  {isSolved
+                    ? ex.result
+                    : isActive
+                      ? (digits.length
+                          ? digits.join("")
+                          : <span className="operation-worksheet__answer-placeholder">?</span>)
+                      : ""}
+                </span>
+              </div>
             </div>
-          </div>
           );
         })}
       </div>
