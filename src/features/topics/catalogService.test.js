@@ -27,24 +27,26 @@ describe("isLocalModeProfile", () => {
 describe("isFreeStaticInstall", () => {
   const paid = { access: "paid", url: "./decks/foo.zip" };
   const free = { access: "free", url: "./decks/foo.zip" };
-  const localAccount = { email: "local" };
-  const signedInAccount = { email: "adult@example.test" };
 
-  it("is true for a genuinely free entry, signed in or not", () => {
-    expect(isFreeStaticInstall(free, signedInAccount, "token-1")).toBe(true);
-    expect(isFreeStaticInstall(free, null, null)).toBe(true);
+  it("is true for a genuinely free entry regardless of who's asking", () => {
+    expect(isFreeStaticInstall(free)).toBe(true);
   });
 
   it("is false for a paid entry on a signed-in account", () => {
-    expect(isFreeStaticInstall(paid, signedInAccount, "token-1")).toBe(false);
+    expect(isFreeStaticInstall(paid)).toBe(false);
   });
 
-  it("is true for a paid entry in local mode -- there is no account to gate", () => {
-    expect(isFreeStaticInstall(paid, localAccount, null)).toBe(true);
+  // Regression guard for a real paywall-bypass bug: local mode used to be
+  // waved through paid entries as if they were free, purely because it has
+  // no account to gate against. It must stay locked instead -- local mode
+  // has no way to hold a paid entitlement, so treating "no account" as
+  // "free access" handed out every paid deck to anyone using local mode.
+  it("is false for a paid entry even with no account at all (local mode)", () => {
+    expect(isFreeStaticInstall(paid, null, null)).toBe(false);
   });
 
-  it("is false without a static url to download from, even in local mode", () => {
-    expect(isFreeStaticInstall({ access: "paid" }, localAccount, null)).toBe(false);
+  it("is false without a static url to download from", () => {
+    expect(isFreeStaticInstall({ access: "paid" })).toBe(false);
   });
 });
 

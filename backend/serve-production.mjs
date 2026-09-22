@@ -64,6 +64,18 @@ function proxyApi(request, response) {
 }
 
 async function serveStatic(requestPath, response) {
+  // This legacy static server (retired Windows/Caddy host only -- Railway
+  // production runs backend/server.mjs directly with SERVE_STATIC=1, never
+  // this file) has no entitlement/catalog logic of its own, so it must not
+  // hand out anything under decks/ itself: that would hand out every paid
+  // deck ZIP (and the raw catalog listing every paid ZIP's URL) with no
+  // auth check. All deck traffic -- catalog, free or paid -- is proxied to
+  // the real backend's /api/decks/* routes instead, which do enforce it.
+  if (/^\/decks\//.test(requestPath)) {
+    response.writeHead(404, { "Content-Type": "application/json; charset=utf-8" });
+    response.end(JSON.stringify({ error: "Not found" }));
+    return;
+  }
   const normalizedPath = requestPath === "/" ? "/index.html" : requestPath;
   const safePath = path.normalize(normalizedPath).replace(/^(\.\.[/\\])+/, "");
   let filePath = path.join(STATIC_DIR, safePath);

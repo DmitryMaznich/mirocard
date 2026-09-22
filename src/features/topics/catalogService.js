@@ -20,12 +20,16 @@ export function isLocalModeProfile(account, token) {
   return account?.email === "local" && !token;
 }
 
-// Local mode has no backend account, so there is nothing a trial or
-// subscription could attach to -- the paid gate can never apply to it.
-// Treated the same as a genuinely free catalog entry: downloaded directly
-// from its static URL, no claim call, no lock badge.
-export function isFreeStaticInstall(entry, account, token) {
-  return (isLocalModeProfile(account, token) || (entry.access ?? "free") === "free") && Boolean(entry.url);
+// Only a genuinely free catalog entry is downloaded directly from its
+// static URL, with no claim call and no lock badge. Local mode is
+// deliberately NOT special-cased here anymore: it has no backend account to
+// authenticate a paid download with, which is exactly why a paid entry must
+// stay locked in local mode rather than being waved through as free (see
+// isLocalModeProfile below -- it now only affects the free/API-fallback
+// choice for genuinely free entries, never whether a paid entry is treated
+// as free).
+export function isFreeStaticInstall(entry) {
+  return (entry.access ?? "free") === "free" && Boolean(entry.url);
 }
 
 // The access-controlled endpoint is intentionally keyed only by topic id.
@@ -35,14 +39,13 @@ export function getDeckDownloadUrl(topicId, refresh = Date.now()) {
 }
 
 export async function fetchCatalog() {
-  try {
-    return await api.get("/decks/catalog");
-  } catch {
-    // Fallback: fetch the static catalog.json (works without auth for free/local installs)
-    const res = await fetch("/decks/catalog.json", { cache: "no-store" });
-    if (!res.ok) throw new Error("Не удалось загрузить каталог");
-    return res.json();
-  }
+  // /api/decks/catalog works without auth too (see backend/server.mjs) --
+  // it just strips the `url` field from every paid entry when the caller
+  // isn't authenticated, so it's safe for logged-out / local-mode use.
+  // There used to be a fallback here to the raw static /decks/catalog.json,
+  // which the server no longer serves at all: that file lists every paid
+  // deck's direct download URL with zero access control.
+  return api.get("/decks/catalog");
 }
 
 export async function claimDeck(topicId) {
@@ -70,14 +73,14 @@ export async function fetchCatalogTopic(entry, appVersion) {
       });
     }
   } else {
-    // Paid/restricted decks: must go through API (auth + access check)
+    // Paid/restricted decks: must go through the authenticated,
+    // entitlement-checked API and ONLY that -- there is no static-URL
+    // fallback here on purpose. Falling back to entry.url on an API
+    // failure (401/403 for an unentitled or unauthenticated caller
+    // included) used to let anyone re-fetch the same paid ZIP straight
+    // from public static hosting, defeating the paywall entirely.
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     res = await fetch(getDeckDownloadUrl(entry.id), { headers });
-    // Fallback to static if API fails
-    if (!res.ok && entry.url) {
-      const directUrl = entry.url.replace(/^\.\//, "/");
-      res = await fetch(directUrl);
-    }
   }
 
   if (!res.ok) {

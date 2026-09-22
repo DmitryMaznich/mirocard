@@ -3,6 +3,7 @@ import { randomUUID, createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync, createReadStream, statSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
@@ -639,14 +640,31 @@ async function handleDeleteTopic(req, res) {
 // ─── Decks catalog + claim + download ────────────────────────────────────────
 
 async function handleGetDecksCatalog(req, res) {
-  const account = requireAuth(req);
-  const flags = new Set(JSON.parse(account.feature_flags ?? "[]"));
+  // Auth is optional here on purpose: local-mode / logged-out visitors need
+  // to see the free catalog too. What must never happen regardless of auth
+  // state is a paid entry's static `url` leaking out of this response --
+  // that URL is a direct, unauthenticated path to the ZIP (see
+  // handleDownloadDeck / trySpaFallback), so paid downloads must always go
+  // through the entitlement-checked /decks/:id/download endpoint instead.
+  let flags = new Set();
+  try {
+    const account = requireAuth(req);
+    flags = new Set(JSON.parse(account.feature_flags ?? "[]"));
+  } catch {
+    // anonymous caller — treated as having no feature flags
+  }
   const catalog = loadCatalog();
-  const decks = (catalog.decks ?? []).filter((d) => {
-    const status = d.status ?? "release";
-    if (status === "release") return true;
-    return flags.has(status);
-  });
+  const decks = (catalog.decks ?? [])
+    .filter((d) => {
+      const status = d.status ?? "release";
+      if (status === "release") return true;
+      return flags.has(status);
+    })
+    .map((d) => {
+      if ((d.access ?? "free") === "free") return d;
+      const { url, ...rest } = d;
+      return rest;
+    });
   writeJson(res, 200, { ...catalog, decks });
 }
 
@@ -666,7 +684,15 @@ async function handleClaimDeck(req, res) {
   const existing = getAccountTopicByTopicId(db, account.id, topicId);
 
   if (existing && isGranted(existing.source)) {
-    return writeJson(res, 200, { status: "granted", topicId });
+    // A previous "paid" claim only stays granted while the entitlement that
+    // earned it is still active -- otherwise this would keep telling the
+    // client "granted" forever even after the subscription/trial/promo
+    // period that justified it has expired. Free and admin-granted claims
+    // never expire this way.
+    if (existing.source !== "paid" || hasActiveEntitlement(db, account.id)) {
+      return writeJson(res, 200, { status: "granted", topicId });
+    }
+    return writeJson(res, 200, { status: "locked", topicId });
   }
   if (existing && existing.source === "request") {
     return writeJson(res, 200, { status: "pending", topicId });
@@ -698,6 +724,15 @@ async function handleDownloadDeck(req, res) {
   const row = getAccountTopicByTopicId(db, account.id, topicId);
   if (!row || !isGranted(row.source)) {
     return writeJson(res, 403, { error: "No access to this deck" });
+  }
+  // A "paid" claim is only a download right for as long as the entitlement
+  // that earned it stays active -- checked again here, not just at claim
+  // time, so a lapsed subscription/trial/promo can't keep re-downloading a
+  // paid deck indefinitely off a claim row made while it was still active.
+  // Free and admin-granted ("grant") claims are intentionally exempt: they
+  // were never tied to a subscription period in the first place.
+  if (row.source === "paid" && !hasActiveEntitlement(db, account.id)) {
+    return writeJson(res, 403, { error: "Entitlement expired" });
   }
 
   // entry.url is like "./decks/foo_v1.0.zip" — resolve relative to DECKS_DIR parent
@@ -1176,6 +1211,46 @@ function serveStaticFile(res, absPath) {
   createReadStream(absPath).pipe(res);
 }
 
+// Deck ZIPs and catalog.json live in DEPLOY_FRONTEND_DIR/decks alongside the
+// rest of the built SPA (see CLAUDE.md "Deck-zip topics load from their
+// downloaded ZIP"), so the generic static-file fallback below would
+// otherwise hand out every paid deck's bytes to anyone who knows its URL --
+// with no auth, no entitlement check, bypassing /decks/:id/download
+// entirely. Free decks are meant to be publicly fetchable this way (that's
+// the whole point of "local mode" / no-account installs); paid decks and
+// the raw catalog (which lists every paid deck's static URL) are not.
+const DECKS_URL_PREFIX = `decks${path.sep}`;
+
+function isPubliclyServableDeckAsset(relative) {
+  // `relative` still carries its leading separator here (path.normalize
+  // doesn't strip it, and path.join tolerates it) -- strip it before
+  // matching the "decks/" prefix, or every request would short-circuit
+  // through the `return true` below and skip this check entirely.
+  const withoutLeadingSep = relative.replace(/^[/\\]+/, "");
+  if (!withoutLeadingSep.startsWith(DECKS_URL_PREFIX)) return true;
+  const rest = withoutLeadingSep.slice(DECKS_URL_PREFIX.length);
+  // The catalog itself is only ever served through GET /api/decks/catalog,
+  // which strips the `url` field from every non-free entry before
+  // responding -- the raw file on disk still has every URL, so it must
+  // never be handed out verbatim.
+  if (rest === "catalog.json") return false;
+  let catalog;
+  try {
+    catalog = loadCatalog();
+  } catch {
+    return false;
+  }
+  const entry = (catalog.decks ?? []).find((d) => {
+    const entryRelative = (d.url ?? "").replace(/^\.\/decks\//, "");
+    return entryRelative === rest.split(path.sep).join("/");
+  });
+  // An unrecognized filename under decks/ (stale build artifact, directory
+  // listing probe, etc.) is refused the same as a paid one -- there is no
+  // legitimate reason for a path under decks/ to be servable without a
+  // matching free catalog entry.
+  return Boolean(entry) && (entry.access ?? "free") === "free";
+}
+
 function trySpaFallback(req, res, pathname) {
   if (!SERVE_STATIC || req.method !== "GET") return false;
 
@@ -1190,6 +1265,12 @@ function trySpaFallback(req, res, pathname) {
     // malformed percent-encoding -- fall through to the SPA shell as before
   }
   const relative = path.normalize(decodedPathname).replace(/^([.][.][/\\])+/, "");
+
+  if (!isPubliclyServableDeckAsset(relative)) {
+    writeJson(res, 404, { error: "Not found" });
+    return true;
+  }
+
   const candidate = path.join(DEPLOY_FRONTEND_DIR, relative);
   if (candidate.startsWith(DEPLOY_FRONTEND_DIR) && existsSync(candidate) && statSync(candidate).isFile()) {
     serveStaticFile(res, candidate);
@@ -1309,15 +1390,26 @@ async function router(req, res) {
   }
 }
 
-createServer(router).listen(PORT, () => {
-  console.log(`Mirocard2 backend running on port ${PORT}`);
-});
+export { router, db };
 
-// Railway has no Windows Task Scheduler for hourly SQLite backups, so the
-// running service does it in-process instead. RAILWAY_ENVIRONMENT is
-// injected by Railway itself, so this never runs on the home host.
-if (process.env.RAILWAY_ENVIRONMENT) {
-  import("../scripts/railway-backup-loop.mjs")
-    .then(({ startBackupLoop }) => startBackupLoop({ dataDir: DATA_DIR }))
-    .catch((err) => console.error("[backup] failed to start backup loop:", err));
+// Only bind a real listener (and start the backup loop) when this file is
+// run directly (`node backend/server.mjs`, exactly what the Dockerfile's
+// CMD does) -- not when it's imported, e.g. by backend/tests/*.test.mjs to
+// exercise `router` against an isolated in-process HTTP server. Without
+// this guard, importing server.mjs for testing would also try to bind
+// PORT for real and race whatever's already listening on it.
+const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMainModule) {
+  createServer(router).listen(PORT, () => {
+    console.log(`Mirocard2 backend running on port ${PORT}`);
+  });
+
+  // Railway has no Windows Task Scheduler for hourly SQLite backups, so the
+  // running service does it in-process instead. RAILWAY_ENVIRONMENT is
+  // injected by Railway itself, so this never runs on the home host.
+  if (process.env.RAILWAY_ENVIRONMENT) {
+    import("../scripts/railway-backup-loop.mjs")
+      .then(({ startBackupLoop }) => startBackupLoop({ dataDir: DATA_DIR }))
+      .catch((err) => console.error("[backup] failed to start backup loop:", err));
+  }
 }

@@ -20,6 +20,7 @@ import {
   isLocalModeProfile,
   isFreeStaticInstall,
 } from "./catalogService";
+import { hasActiveEntitlement } from "@/features/billing/entitlement";
 import { CATEGORY_ORDER, getTopicCategory } from "./topicCategories";
 import { getPersonalTopicCaption } from "./topicOrigin";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -37,6 +38,7 @@ export default function TopicLibraryScreen() {
   const ownedTopics       = useAppStore((s) => s.ownedTopics);
   const account           = useAppStore((s) => s.account);
   const token             = useAppStore((s) => s.token);
+  const subscription      = useAppStore((s) => s.subscription);
 
   const [catalog,           setCatalog]           = useState(null);
   const [catalogError,      setCatalogError]      = useState(false);
@@ -60,7 +62,7 @@ export default function TopicLibraryScreen() {
   const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
     const owned = (ownedTopics ?? []).find((o) => o.topicId === entry.id);
     const isGranted = owned != null && owned.source !== "request";
-    const isFreeStaticDeck = isFreeStaticInstall(entry, account, token);
+    const isFreeStaticDeck = isFreeStaticInstall(entry);
 
     // A free deck is a self-contained public file. Download it first, rather
     // than making installation depend on an account call that may be stale or
@@ -77,6 +79,16 @@ export default function TopicLibraryScreen() {
     }
 
     if (!isFreeStaticDeck && !isGranted && shouldClaimCatalogDeck(entry)) {
+      // Local mode has no backend account to claim a paid deck with -- there
+      // is no entitlement it could ever hold, so a paid entry simply stays
+      // locked (prompting sign-up/subscribe) instead of firing a claim call
+      // that can only ever come back 401. This is the actual paywall gate
+      // for local mode; it must never be bypassed by treating the entry as
+      // free the way it used to be.
+      if (isLocalModeProfile(account, token)) {
+        setScreen("subscription");
+        return;
+      }
       const result = await claimDeck(entry.id);
       if (result.status === "locked") {
         setScreen("subscription");
@@ -85,11 +97,7 @@ export default function TopicLibraryScreen() {
       upsertOwnedTopic({ topicId: entry.id, source: result.status === "granted" ? "free" : "request" });
       if (result.status !== "granted") return; // pending — don't download yet
     }
-    // Local mode never has an account to authenticate a paid-tier download
-    // with, so it must take the direct static-file path regardless of what
-    // the catalog entry's own "access" says.
-    const downloadEntry = isFreeStaticDeck ? { ...entry, access: "free" } : entry;
-    const record = await fetchCatalogTopic(downloadEntry, buildInfo.version, force);
+    const record = await fetchCatalogTopic(entry, buildInfo.version, force);
     upsertTopicRecord(record);
 
     // Keep the account library in sync when possible, without turning a free
@@ -183,6 +191,13 @@ export default function TopicLibraryScreen() {
 
   function renderItem(item) {
     const owned = ownedById[item.id] ?? null;
+    // A "paid" claim recorded locally can be stale -- the subscription/
+    // trial/promo period that earned it may have ended since. The backend
+    // re-checks this independently on every claim/download call regardless
+    // (see handleClaimDeck/handleDownloadDeck); this only decides whether
+    // the UI still offers to open an already-downloaded copy or shows it
+    // locked instead.
+    const entitlementExpired = owned?.source === "paid" && !hasActiveEntitlement(account, subscription);
     const personalCaption = item.installedRecord
       ? getPersonalTopicCaption(item.installedRecord.meta, ownedTopics)
       : null;
@@ -194,8 +209,10 @@ export default function TopicLibraryScreen() {
         entry={item.entry}
         installedRecord={item.installedRecord}
         isActive={item.installedRecord?.meta.id === activeTopicId}
-        access={isLocalMode ? "free" : (item.entry?.access ?? "free")}
+        access={item.entry?.access ?? "free"}
         claimSource={owned?.source ?? null}
+        entitlementExpired={entitlementExpired}
+        onLockedTap={() => setScreen("subscription")}
         personalCaption={personalCaption}
         onInstall={installCatalogEntry}
         onSelect={handleSelectTopic}
