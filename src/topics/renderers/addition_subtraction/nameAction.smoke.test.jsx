@@ -81,7 +81,7 @@ describe("operation_name_action", () => {
     expect(container.querySelectorAll(".observe-change__rail .observe-change__dot")).toHaveLength(3);
     expect(container.querySelector(".observe-change__answer-area--visible")).not.toBeNull();
     expect(container.querySelector(".name-action__scene--settled")).not.toBeNull();
-    expect([...container.querySelectorAll(".name-action__answer--verb")].map((b) => b.textContent.trim())).toEqual(["Прибавили", "Убрали"]);
+    expect([...container.querySelectorAll(".name-action__answer--verb")].map((b) => b.textContent.trim())).toEqual(["+Прибавили", "−Убрали"]);
     expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Что сделали?");
   });
 

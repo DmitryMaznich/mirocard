@@ -15018,29 +15018,14 @@ kbd {
   80% { transform: translateX(5px); }
 }
 
-.name-action__icon {
-  width: clamp(86px, 26vw, 128px);
-  height: auto;
-  /* the sleeve runs off the top of the picture, not across the card border */
-  overflow: hidden;
+.name-action__answer--verb .name-action__sign {
+  font-size: clamp(2.6rem, 11vw, 3.6rem);
+  font-weight: 900;
+  line-height: 1;
 }
 
-.name-action__icon-hand {
-  animation: 1.8s ease-in-out infinite;
-}
-
-.name-action__icon--add .name-action__icon-hand { animation-name: name-action-icon-down; }
-.name-action__icon--subtract .name-action__icon-hand { animation-name: name-action-icon-up; }
-
-@keyframes name-action-icon-down {
-  0% { transform: translateY(-8px); opacity: 0.4; }
-  45%, 100% { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes name-action-icon-up {
-  0% { transform: translateY(8px); }
-  55%, 100% { transform: translateY(0); }
-}
+.name-action__sign--add { color: #1f7a6f; }
+.name-action__sign--subtract { color: #c04040; }
 
 .name-action__count-step {
   width: 100%;
@@ -15111,7 +15096,6 @@ kbd {
 @media (prefers-reduced-motion: reduce) {
   .name-action__hand { transition-duration: 1ms; }
   .name-action__scene { transition: none; }
-  .name-action__icon-hand { animation: none; }
 }
 
 .operation-stage--stick {

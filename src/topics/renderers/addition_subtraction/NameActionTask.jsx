@@ -65,53 +65,11 @@ function Hand({ grip }) {
   );
 }
 
-// Picture for the answer cards: the same hand as in the scene holding an
-// object over a tray with an empty place. "Прибавили" — the hand is low,
-// about to put the object in, and loops downward; "Убрали" — the hand is
-// high, the object already lifted out, and loops upward. Speed marks on the
-// side the hand came from keep the direction readable with reduced motion.
-const ICON_HAND_SCALE = 0.4;
-
-function ActionIcon({ kind }) {
-  const add = kind === "add";
-  const dotY = add ? 64 : 40;
-  // fingertips (y=120 in hand units) overlap the top of the object (r=10)
-  const handTop = dotY - 6 - 120 * ICON_HAND_SCALE;
-  return (
-    <svg className={`name-action__icon name-action__icon--${kind}`} viewBox="0 -22 120 130" aria-hidden="true">
-      <rect x="4" y="78" width="112" height="28" rx="12" fill="#fff" stroke="#b8d9d4" strokeWidth="3" />
-      <circle cx="24" cy="92" r="10" fill="#4a9b8f" />
-      <circle cx="50" cy="92" r="10" fill="#4a9b8f" />
-      <circle cx="84" cy="92" r="10" fill="none" stroke="#9cc3bd" strokeWidth="2.5" strokeDasharray="4 4" />
-      <g className="name-action__icon-hand">
-        <g stroke="#9cc3bd" strokeWidth="3.5" strokeLinecap="round">
-          {add ? (
-            <>
-              <line x1="62" y1="4" x2="62" y2="24" />
-              <line x1="106" y1="4" x2="106" y2="24" />
-            </>
-          ) : (
-            <>
-              <line x1="62" y1="54" x2="62" y2="72" />
-              <line x1="106" y1="54" x2="106" y2="72" />
-            </>
-          )}
-        </g>
-        <circle cx="84" cy={dotY} r="10" fill="#4a9b8f" />
-        <svg
-          x={84 - 50 * ICON_HAND_SCALE}
-          y={handTop - 40 * ICON_HAND_SCALE}
-          width={100 * ICON_HAND_SCALE}
-          height={160 * ICON_HAND_SCALE}
-          viewBox="0 -40 100 160"
-          overflow="visible"
-        >
-          <HandShapes grip />
-        </svg>
-      </g>
-    </svg>
-  );
-}
+// The answer cards carry the sign next to the verb: the child at this age
+// mostly can't read "Прибавили", and the sign gives a clear visual handle.
+// The pairing also prepares mode 4 (sign ↔ word) through plain exposure —
+// here the child still decides by the hand's action, the sign only labels it.
+const SIGN = { add: "+", subtract: "−" };
 
 export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedback, soundEnabled }) {
   const shape = SHAPES.includes(task.shape) ? task.shape : "circle";
@@ -392,7 +350,7 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
                       disabled={phase !== "verb" || Boolean(feedback)}
                       aria-label={VERB[value]}
                     >
-                      <ActionIcon kind={value} />
+                      <span className={`name-action__sign name-action__sign--${value}`} aria-hidden="true">{SIGN[value]}</span>
                       <span>{VERB[value]}</span>
                     </button>
                   );
