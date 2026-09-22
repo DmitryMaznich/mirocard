@@ -413,6 +413,23 @@ export function initDb(dbPath = DB_PATH) {
     );
     CREATE INDEX IF NOT EXISTS idx_entitlements_account ON entitlements(account_id);
     CREATE INDEX IF NOT EXISTS idx_entitlements_account_active ON entitlements(account_id, status, ends_at);
+
+    -- One row per checkout, recording exactly what the account agreed to
+    -- and against which version of the legal docs -- a durable audit trail
+    -- independent of whatever the current /terms page says later. Required
+    -- before handleBillingCheckout will create an order at all (see
+    -- LEGAL_DOCS_VERSION in lib/config.mjs).
+    CREATE TABLE IF NOT EXISTS checkout_consents (
+      id                      TEXT PRIMARY KEY,
+      account_id              TEXT NOT NULL REFERENCES accounts(id),
+      order_id                TEXT NOT NULL REFERENCES orders(id),
+      legal_docs_version      TEXT NOT NULL,
+      terms_accepted          INTEGER NOT NULL,
+      price_period_confirmed  INTEGER NOT NULL,
+      digital_content_ack     INTEGER NOT NULL,
+      created_at              TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_checkout_consents_account ON checkout_consents(account_id);
   `);
 
   backfillOrdersAndEntitlementsFromLegacySubscriptions(db);

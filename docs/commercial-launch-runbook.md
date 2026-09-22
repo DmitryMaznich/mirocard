@@ -186,7 +186,33 @@ shape, and `scripts/railway-backup-loop.mjs` for the in-process
 dependency in this codebase; everything scheduled runs in-process, gated on
 `RAILWAY_ENVIRONMENT` being set so it never fires in local dev).
 
-## 4. Known residual risks
+## 4. Legal pages, versioning, checkout consent
+
+- `/terms`, `/privacy`, `/refunds`, `/cancellation`, `/contact` are now real
+  server-rendered routes on the app host (`backend/server.mjs`'s
+  `handleLegalDoc`, content in `backend/legal/*.html`) — they no longer fall
+  through to the SPA shell. Each page shows a "Version: {LEGAL_DOCS_VERSION}"
+  footer and, while that env var is unset (defaults to `"draft"`), a visible
+  draft banner.
+- `LEGAL_DOCS_VERSION` (`backend/lib/config.mjs`) is a hard gate:
+  `POST /api/billing/checkout` returns `503` while it's `"draft"` — a
+  commercial checkout cannot go live pointing at unreviewed legal text. See
+  `docs/legal-launch-inputs.md` for exactly what has to be resolved before
+  setting it to a real value in Railway.
+- Checkout (`SubscriptionScreen.jsx`) now requires three checkboxes before
+  the purchase button enables: accepting Terms, confirming the exact
+  price/period, and acknowledging immediate digital-content delivery (this
+  last one is explicitly flagged for legal sign-off in
+  `docs/legal-launch-inputs.md` §2 — it is a technical placeholder for a
+  consent mechanism, not asserted here as legally sufficient). All three are
+  persisted per order in a new `checkout_consents` table
+  (`backend/lib/db.mjs`), tagged with the `LEGAL_DOCS_VERSION` in effect at
+  the time — so a later dispute can be matched to exactly what the customer
+  agreed to and which version of the docs said so.
+- A purchase confirmation email (durable record, independent of the DB) is
+  sent once an order is actually confirmed by a provider webhook — see §3.
+
+## 5. Known residual risks
 
 See `docs/release-evidence.md` for the full, current list against the
 Definition of Done. Highlights carried in this document because they

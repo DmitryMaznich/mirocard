@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
-  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC,
+  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION,
 } from "./lib/config.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
 import { getDb } from "./lib/db.mjs";
@@ -44,9 +44,9 @@ import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
 import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
 import {
-  createOrder, getActiveSubscriptionForAccount,
+  createOrder, getOrderByExternalId, getActiveSubscriptionForAccount,
   hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
-  createPromoCode, listPromoCodes, grantTrialSubscription,
+  createPromoCode, listPromoCodes, grantTrialSubscription, recordCheckoutConsent,
 } from "./lib/billing-repository.mjs";
 import { PLAN_CATALOG, applyDiscount } from "./lib/billing-plans.mjs";
 import {
@@ -60,6 +60,8 @@ import {
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
+
+const BACKEND_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 const db = getDb();
 
@@ -878,13 +880,25 @@ const CHECKOUT_METHODS = { card: "stripe", mir_sbp: "lava_top" };
 async function handleBillingCheckout(req, res) {
   const account = requireAuth(req);
   if (!checkCheckoutLimit(account.id)) return rateLimited(res);
+
+  // Checkout must never go live pointing at unreviewed legal text -- see
+  // LEGAL_DOCS_VERSION in lib/config.mjs and docs/legal-launch-inputs.md.
+  // This is a deploy-configuration gate, not a per-request error, so it
+  // fails the same way for every caller until an operator sets the env var.
+  if (LEGAL_DOCS_VERSION === "draft") {
+    return writeJson(res, 503, { error: "Checkout is not yet configured for production (legal docs not finalized)" });
+  }
+
   const body = await readJsonBody(req);
-  const { plan, method, code } = body ?? {};
+  const { plan, method, code, consents } = body ?? {};
 
   const planDef = PLAN_CATALOG[plan];
   if (!planDef) return writeJson(res, 400, { error: "Unknown plan" });
   const provider = CHECKOUT_METHODS[method];
   if (!provider) return writeJson(res, 400, { error: "Unknown payment method" });
+  if (!consents?.termsAccepted || !consents?.pricePeriodConfirmed || !consents?.digitalContentAck) {
+    return writeJson(res, 400, { error: "All checkout consents are required" });
+  }
 
   let amountMinor = planDef.amountMinor;
   let appliedCode = null;
@@ -899,6 +913,12 @@ async function handleBillingCheckout(req, res) {
   const orderId = randomUUID();
   createOrder(db, account.id, {
     provider, plan, orderId, currency: planDef.currency, amountMinor, appliedCode,
+  });
+  const order = getOrderByExternalId(db, orderId);
+  recordCheckoutConsent(db, {
+    accountId: account.id, orderId: order.id, legalDocsVersion: LEGAL_DOCS_VERSION,
+    termsAccepted: consents.termsAccepted, pricePeriodConfirmed: consents.pricePeriodConfirmed,
+    digitalContentAck: consents.digitalContentAck,
   });
 
   try {
@@ -1141,6 +1161,64 @@ async function handleGetPhoto(req, res) {
     "Access-Control-Allow-Origin": "*",
   });
   res.end(buffer);
+}
+
+// ─── Legal document pages ───────────────────────────────────────────────────
+// Served as real, versioned HTML documents -- registered as explicit
+// routes ahead of trySpaFallback's catch-all, so /terms etc. never
+// silently falls through to the SPA shell (that was the actual bug this
+// closes: none of these paths existed as real routes before, only as an
+// in-app modal for /privacy and static drafts on the separate landing
+// domain for /terms and /refunds -- see docs/legal-launch-inputs.md and
+// docs/commercial-launch-runbook.md for what's still a draft here).
+
+const LEGAL_DIR = path.join(BACKEND_DIR, "legal");
+const LEGAL_DOCS = {
+  terms: "Условия использования",
+  privacy: "Политика конфиденциальности",
+  refunds: "Возврат средств",
+  cancellation: "Отмена доступа",
+  contact: "Контакты",
+};
+
+function renderLegalPage(slug, title, bodyHtml) {
+  const draftBanner = LEGAL_DOCS_VERSION === "draft"
+    ? `<p class="legal-draft-banner"><strong>Черновик.</strong> Этот документ ещё не прошёл финальную юридическую проверку.</p>`
+    : "";
+  return `<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title} — Mironium</title>
+<style>
+  body { font: 16px/1.6 -apple-system, "Nunito", sans-serif; color: #23302c; max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 28px; margin-bottom: 8px; }
+  h2 { font-size: 18px; margin-top: 28px; }
+  a { color: #2f5b57; }
+  code { background: #f0ece2; padding: 1px 5px; border-radius: 4px; }
+  .legal-draft-banner { background: #fff3cd; border: 1px solid #ffe08a; border-radius: 8px; padding: 10px 14px; margin-bottom: 24px; }
+  .legal-draft-notice { color: #6b7573; font-size: 14px; }
+  .legal-footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e4dccf; font-size: 12px; color: #6b7573; }
+</style>
+</head>
+<body>
+${draftBanner}
+${bodyHtml}
+<p class="legal-footer">Версия документа: ${LEGAL_DOCS_VERSION}</p>
+</body>
+</html>`;
+}
+
+async function handleLegalDoc(req, res, slug) {
+  const title = LEGAL_DOCS[slug];
+  try {
+    const bodyHtml = await readFile(path.join(LEGAL_DIR, `${slug}.html`), "utf8");
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(renderLegalPage(slug, title, bodyHtml));
+  } catch {
+    writeJson(res, 404, { error: "Not found" });
+  }
 }
 
 // ─── Version handler ───────────────────────────────────────────────────────────
@@ -1434,6 +1512,10 @@ async function router(req, res) {
 
     // Version
     if (method === "GET"    && p === "/version")                  return await handleVersion(req, res);
+
+    // Legal pages
+    { const legalSlug = Object.keys(LEGAL_DOCS).find((slug) => p === `/${slug}`);
+      if (method === "GET" && legalSlug) return await handleLegalDoc(req, res, legalSlug); }
 
     if (!url.pathname.startsWith("/api/") && trySpaFallback(req, res, url.pathname)) return;
 

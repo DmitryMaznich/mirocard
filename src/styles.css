@@ -1427,6 +1427,10 @@ button {
 
 .subscription-footer { flex-shrink: 0; padding: 14px 16px calc(16px + var(--app-safe-bottom, 0px)); }
 .subscription-disclaimer { margin: 0 0 10px; font-size: 12px; line-height: 1.4; color: #6b7573; text-align: center; }
+.subscription-consents { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.subscription-consent { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.4; color: #4a5450; cursor: pointer; }
+.subscription-consent input { margin-top: 2px; flex-shrink: 0; }
+.subscription-consent a { color: #2f5b57; }
 
 .checkout-transition__center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 0 40px; text-align: center; }
 .checkout-spinner { width: 56px; height: 56px; border-radius: 50%; border: 5px solid #dde6e3; border-top-color: #4a9b8f; animation: checkout-spin .9s linear infinite; }

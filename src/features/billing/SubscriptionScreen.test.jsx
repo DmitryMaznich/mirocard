@@ -71,10 +71,26 @@ describe("SubscriptionScreen", () => {
     expect(cta.textContent).toContain("80,91");
   });
 
-  it("submitting calls checkout with the selected plan and method", async () => {
+  it("the CTA stays disabled until all three consents are checked", () => {
+    mount();
+    const cta = container.querySelector(".subscription-cta");
+    expect(cta.disabled).toBe(true);
+    for (const checkbox of container.querySelectorAll(".subscription-consent input")) {
+      act(() => { checkbox.click(); });
+    }
+    expect(cta.disabled).toBe(false);
+  });
+
+  it("submitting calls checkout with the selected plan, method and consents, only once all three are checked", async () => {
     const postSpy = vi.spyOn(apiModule.api, "post").mockResolvedValue({ checkoutUrl: "https://pay.example/x", orderId: "o1" });
     mount();
+    for (const checkbox of container.querySelectorAll(".subscription-consent input")) {
+      act(() => { checkbox.click(); });
+    }
     await act(async () => { container.querySelector(".subscription-cta").click(); await Promise.resolve(); });
-    expect(postSpy).toHaveBeenCalledWith("/billing/checkout", { plan: "annual", method: "card", code: null });
+    expect(postSpy).toHaveBeenCalledWith("/billing/checkout", {
+      plan: "annual", method: "card", code: null,
+      consents: { termsAccepted: true, pricePeriodConfirmed: true, digitalContentAck: true },
+    });
   });
 });

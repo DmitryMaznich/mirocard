@@ -28,9 +28,13 @@ export default function SubscriptionScreen() {
   const [promoError, setPromoError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [pricePeriodConfirmed, setPricePeriodConfirmed] = useState(false);
+  const [digitalContentAck, setDigitalContentAck] = useState(false);
 
   const plan = PLANS.find((p) => p.id === planId);
   const discounted = promoResult?.ok && promoResult.kind !== "free_grant" ? promoResult.discountedAmountMinor : null;
+  const consentsGiven = termsAccepted && pricePeriodConfirmed && digitalContentAck;
 
   async function applyPromo() {
     setPromoError(null);
@@ -52,7 +56,10 @@ export default function SubscriptionScreen() {
     setSubmitError(null);
     try {
       const code = promoResult?.ok && promoResult.kind !== "free_grant" ? promoResult.code : null;
-      const result = await api.post("/billing/checkout", { plan: planId, method, code });
+      const result = await api.post("/billing/checkout", {
+        plan: planId, method, code,
+        consents: { termsAccepted, pricePeriodConfirmed, digitalContentAck },
+      });
       setCheckout(result.checkoutUrl, result.orderId);
       setScreen("checkout_redirect");
     } catch (err) {
@@ -119,6 +126,21 @@ export default function SubscriptionScreen() {
           </div>
         )}
 
+        <div className="subscription-consents">
+          <label className="subscription-consent">
+            <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} />
+            <span>Я принимаю <a href="/terms" target="_blank" rel="noopener noreferrer">Условия использования</a></span>
+          </label>
+          <label className="subscription-consent">
+            <input type="checkbox" checked={pricePeriodConfirmed} onChange={(e) => setPricePeriodConfirmed(e.target.checked)} />
+            <span>Подтверждаю цену {discounted != null ? `€ ${formatMinor(discounted)}` : plan.priceLabel} и период доступа «{plan.name}»</span>
+          </label>
+          <label className="subscription-consent">
+            <input type="checkbox" checked={digitalContentAck} onChange={(e) => setDigitalContentAck(e.target.checked)} />
+            <span>Согласен(на) на немедленное предоставление цифрового контента после оплаты — это может ограничить моё право на отказ от покупки (см. <a href="/refunds" target="_blank" rel="noopener noreferrer">Возврат средств</a>)</span>
+          </label>
+        </div>
+
         {submitError && <p className="subscription-error">{submitError}</p>}
       </div>
 
@@ -132,7 +154,7 @@ export default function SubscriptionScreen() {
         <p className="subscription-disclaimer">
           Разовая оплата за «{plan.name}». Без автосписаний — карта не сохраняется, по истечении периода доступ закончится, продлить можно будет вручную в любой момент.
         </p>
-        <button type="button" className="btn btn-primary subscription-cta" disabled={submitting} onClick={submit}>
+        <button type="button" className="btn btn-primary subscription-cta" disabled={submitting || !consentsGiven} onClick={submit}>
           Оформить — {discounted != null ? `€ ${formatMinor(discounted)}` : plan.priceLabel}
         </button>
       </div>

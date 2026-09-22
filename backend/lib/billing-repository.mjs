@@ -149,6 +149,19 @@ export function recordPaymentEvent(db, { accountId, provider, eventType, externa
   }
 }
 
+// ─── Checkout consent (see LEGAL_DOCS_VERSION in lib/config.mjs) ──────────
+
+export function recordCheckoutConsent(db, { accountId, orderId, legalDocsVersion, termsAccepted, pricePeriodConfirmed, digitalContentAck }) {
+  db.prepare(`
+    INSERT INTO checkout_consents
+      (id, account_id, order_id, legal_docs_version, terms_accepted, price_period_confirmed, digital_content_ack, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    randomUUID(), accountId, orderId, legalDocsVersion,
+    termsAccepted ? 1 : 0, pricePeriodConfirmed ? 1 : 0, digitalContentAck ? 1 : 0, now(),
+  );
+}
+
 // ─── Promo codes ─────────────────────────────────────────────────────────
 
 export function createPromoCode(db, {

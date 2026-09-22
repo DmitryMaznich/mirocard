@@ -56,3 +56,11 @@ export const STRIPE_WEBHOOK_SECRET = readEnv("STRIPE_WEBHOOK_SECRET");
 // Billing — Lava Top (Mir/SBP rail)
 export const LAVA_TOP_API_KEY         = readEnv("LAVA_TOP_API_KEY");
 export const LAVA_TOP_WEBHOOK_SECRET  = readEnv("LAVA_TOP_WEBHOOK_SECRET");
+
+// Legal docs — "draft" (the default) means the launch checklist in
+// docs/legal-launch-inputs.md hasn't been signed off yet. handleBillingCheckout
+// refuses to create a real order while this is "draft", so a commercial
+// checkout can never go live pointing at unreviewed legal text. Set this to
+// a real version string (e.g. an ISO date the docs were approved) once
+// product/legal have signed off -- see docs/legal-launch-inputs.md.
+export const LEGAL_DOCS_VERSION = readEnv("LEGAL_DOCS_VERSION") || "draft";
