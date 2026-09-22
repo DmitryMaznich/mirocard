@@ -480,7 +480,6 @@ function WorksheetTask({ task, onCorrect, student }) {
                   isActive ? "operation-worksheet__line--active" : "",
                 ].filter(Boolean).join(" ")}
               >
-                <span className="operation-worksheet__num-badge">{flatIdx + 1}.</span>
                 <span className="operation-worksheet__num">{ex.A}</span>
                 <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opAB}`}>{ex.signAB}</span>
                 <span className="operation-worksheet__num">{ex.B}</span>
