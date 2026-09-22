@@ -88,7 +88,7 @@ async function registerAndLogin({ allAccess = false } = {}) {
 }
 
 function expireEntitlement(accountId) {
-  db.prepare("UPDATE subscriptions SET current_period_end = ? WHERE account_id = ?")
+  db.prepare("UPDATE entitlements SET ends_at = ? WHERE account_id = ? AND status = 'active'")
     .run("2000-01-01T00:00:00.000Z", accountId);
 }
 
@@ -195,11 +195,12 @@ test("entitlement expiring AFTER a successful claim blocks further downloads and
 
 test("an all_access (grandfathered) account is unaffected -- claim and download keep working", async () => {
   const { accountId, token } = await registerAndLogin({ allAccess: true });
-  // Grandfathered accounts have no subscriptions row at all (see
+  // Grandfathered accounts have no entitlements row at all (see
   // backend/scripts/grant-all-access-to-existing-accounts.mjs) -- remove
-  // the trial row registration granted to prove access comes purely from
-  // the all_access feature flag, same as production grandfathering.
-  db.prepare("DELETE FROM subscriptions WHERE account_id = ?").run(accountId);
+  // the trial entitlement registration granted to prove access comes
+  // purely from the all_access feature flag, same as production
+  // grandfathering.
+  db.prepare("DELETE FROM entitlements WHERE account_id = ?").run(accountId);
 
   const claimRes = await fetch(`${base}/api/decks/paid_deck/claim`, {
     method: "POST",

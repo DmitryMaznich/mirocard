@@ -41,7 +41,7 @@ import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
 import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
 import {
-  createPendingSubscription, getActiveSubscriptionForAccount,
+  createOrder, getActiveSubscriptionForAccount,
   hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
   createPromoCode, listPromoCodes, grantTrialSubscription,
 } from "./lib/billing-repository.mjs";
@@ -875,9 +875,8 @@ async function handleBillingCheckout(req, res) {
   }
 
   const orderId = randomUUID();
-  createPendingSubscription(db, account.id, {
-    provider, plan, orderId, currency: planDef.currency, amountMinor,
-    periodDays: planDef.periodDays, appliedCode,
+  createOrder(db, account.id, {
+    provider, plan, orderId, currency: planDef.currency, amountMinor, appliedCode,
   });
 
   try {
@@ -894,7 +893,12 @@ async function handleBillingCheckout(req, res) {
     }
     writeJson(res, 200, { checkoutUrl, orderId, appliedCode });
   } catch (err) {
-    writeJson(res, 502, { error: "Payment provider error", detail: err.message });
+    // err.message can carry the payment provider's raw error response body
+    // (see billing-providers/stripe.mjs and lava-top.mjs, which embed it
+    // verbatim to make server-side debugging easier) -- that must never
+    // reach the client as-is, only the server log.
+    console.error(`[billing] checkout session creation failed for order ${orderId}:`, err.message);
+    writeJson(res, 502, { error: "Payment provider error" });
   }
 }
 
