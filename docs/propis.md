@@ -3177,6 +3177,59 @@ and end `y` identical); a two-segment corner shape (near-vertical then a turn to
 at radius 5 produces a path containing an `L … Q … L` rounded-corner join. 122/122 propis
 tests pass, `npm run build` clean. No `elements.json` change, no deck-zip rebuild needed.
 
+**Positional line-snap for diagonals, same day.** User, after trying the snap-to-grid
+feature above: "отличная фича!!! сделай также прилипание к наклонным линиям если идет вдоль
+наклонной" — the direction-only snap above makes a segment *parallel* to a diagonal family,
+but doesn't pull it onto any specific printed line; this closes that gap for the two diagonal
+families only (matches the request's own scope — horizontal wasn't asked for, and isn't a
+periodic grid the same way: L1..L4/TOP_MID/BOT_MID/NARROW_MID are seven fixed, unevenly-
+spaced reference lines, not "the nearest of an evenly spaced family").
+
+Every slant line `drawRuling()` draws is anchored at its own crossing of the baseline (L3):
+`x0 = x + (y-L3)/tan(angle)` is invariant for every point on that one line, and both the thin
+and bold families share the same `x0` grid (period `SNAP_GRID_SPACING=9`, phase
+`SNAP_GRID_LOOP_FROM`) — duplicated from `drawRuling`'s own `SPACING`/`loopFrom` derivation,
+same reasoning as the two angle constants added earlier (kept in sync by hand, `drawRuling`
+itself untouched). `snapPointToGridLine()` nudges a single point sideways (x only, y fixed)
+so its `x0` lands on the nearest multiple; horizontal (`snapIdx` 0/1) passes through
+unchanged.
+
+Wiring it into Pass 1's existing chain (`prev → next` by direction+length) needed no separate
+propagation step: the nudge is called on every newly chained point, and since `x0` is
+invariant along a line of that exact slope, nudging is a no-op on every point after the first
+in an unbroken diagonal run — in effect only that run's first point gets pulled onto the line,
+and the rest just continues from there, arithmetically already on it. The stroke's own very
+first point never passes through that loop (it's the anchor, not a "next"), so if the stroke
+*opens* on a diagonal it needed one extra line after the loop to nudge `snappedPts[0]` too —
+safe unlike every other point, since nothing precedes it in the chain to disconnect from.
+
+The one accepted rough edge: at a family *transition* inside one stroke (e.g. horizontal into
+diagonal), only the diagonal side's new point gets nudged — the shared vertex with the
+preceding segment is left where the direction-snap chain already put it, so the corrected
+segment is a hair off the family's exact slope right at that seam. Measured on a synthetic
+horizontal→65°-diagonal test case: about 1 unit of correction on an 11-unit segment — small
+enough to be imperceptible at the tool's normal draw scale, and bounded by
+`SNAP_GRID_SPACING/2` (4.5 units) in the worst case. Retroactively correcting the shared
+vertex too would ripple backward through segments already finalized, defeating the whole
+point of forward-only chaining (see the "no gaps" comment on Pass 1 itself) — not worth it
+for a seam this small, and the dominant real case (an artist tracing one continuous diagonal
+guide line start to finish) never hits it at all, since the whole run is one family.
+
+Verified with a standalone reimplementation of just the new functions in plain Node (no
+browser) first, against synthetic points placed exactly on/near a known real grid line
+computed offline from `L3=88`, `VB_H=150`, `SPACING=9` (giving `loopFrom≈-61.024`): a 5-point
+thin-diagonal run offset 2.3 units from its nearest real line collapses to a single `x0`
+matching that line exactly from the second point on; a horizontal→diagonal transition case
+confirmed the ~1-unit seam above; a bold-family (50°) run confirmed the same behavior using
+the *other* diagonal family, sharing the same `x0` grid as the thin family per `drawRuling`'s
+own design. Then end-to-end in Playwright (mouse-drawn, tracing a real computed grid-line
+position with small simulated hand wobble): both endpoints of the resulting path have
+`x0` within 0.004 of the expected grid line (started at 0.16 off before the `snappedPts[0]`
+fix above, confirming that fix was load-bearing, not cosmetic); the existing horizontal
+direction-only snap is provably unaffected (identical output to before this change). 122/122
+propis tests pass, `npm run build` clean. No `elements.json` change, no deck-zip rebuild
+needed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same

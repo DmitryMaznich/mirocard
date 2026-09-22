@@ -493,7 +493,7 @@
           </label>
         </div>
         <div class="toggle-row">
-          <label class="guide-toggle-label" title="Каждый прямой участок штриха довыравнивается по ближайшему направлению сетки (горизонталь, тонкая или жирная диагональ) — снимает дрожание руки/стилуса на прямых линиях">
+          <label class="guide-toggle-label" title="Каждый прямой участок штриха довыравнивается по ближайшему направлению сетки (горизонталь, тонкая или жирная диагональ) — снимает дрожание руки/стилуса на прямых линиях. Диагональные участки дополнительно прилипают к самой ближайшей наклонной линии, если идут вдоль неё">
             <input type="checkbox" id="snapToGridChk" />
             Выравнивать по сетке
           </label>
@@ -1069,6 +1069,38 @@
     while (a <= -Math.PI) a += 2 * Math.PI;
     return a;
   }
+  // Grid-LINE (not just direction) snapping for the two diagonal families, added 2026-09-22
+  // ("прилипание к наклонным линиям если идет вдоль наклонной"). Every slant line in
+  // drawRuling() is anchored at its own crossing of the baseline (L3): x0 = x - (y-L3)*slope,
+  // i.e. x = x0 - (y-L3)/tan(angle) -- see that function's own "Every slant line ... is
+  // anchored at its own crossing of the baseline" comment. Both the thin and bold diagonal
+  // families share the same x0 grid (period SPACING, starting at loopFrom) per that same
+  // comment, so one nearest-line lookup covers both -- only the angle used to convert
+  // between (x,y) and x0 differs per family. Duplicated here rather than reading
+  // drawRuling's own locals, same reasoning as SNAP_ANGLE_DIAG_THIN_DEG/BOLD_DEG above.
+  const SNAP_GRID_SPACING = 9;
+  const SNAP_GRID_LOOP_FROM = -Math.max(
+    (VB_H - L3) / Math.tan(SNAP_ANGLE_DIAG_THIN_DEG * Math.PI / 180),
+    (VB_H - L3) / Math.tan(SNAP_ANGLE_DIAG_BOLD_DEG * Math.PI / 180)
+  ) - SNAP_GRID_SPACING;
+  function nearestGridX0(x0) {
+    const k = Math.round((x0 - SNAP_GRID_LOOP_FROM) / SNAP_GRID_SPACING);
+    return SNAP_GRID_LOOP_FROM + k * SNAP_GRID_SPACING;
+  }
+  // Nudges a single point sideways (x only, y untouched) onto the nearest actual diagonal
+  // grid line of its own family -- horizontal (snapIdx 0/1) is left alone: the ruling's
+  // horizontal lines (L1..L4, TOP_MID, BOT_MID, NARROW_MID) aren't an evenly-spaced periodic
+  // family the way the two diagonal grids are, so "nearest" has no single well-defined
+  // meaning there, and the user's own request was scoped to diagonals ("к наклонным линиям").
+  function snapPointToGridLine(point, snapIdx) {
+    let angleDeg;
+    if (snapIdx === 2 || snapIdx === 3) angleDeg = SNAP_ANGLE_DIAG_THIN_DEG;
+    else if (snapIdx === 4 || snapIdx === 5) angleDeg = SNAP_ANGLE_DIAG_BOLD_DEG;
+    else return point;
+    const tanA = Math.tan(angleDeg * Math.PI / 180);
+    const x0 = point.x + (point.y - L3) / tanA;
+    return { x: point.x + (nearestGridX0(x0) - x0), y: point.y };
+  }
   // Returns an INDEX into SNAP_ANGLES_RAD, not a recomputed float -- the merge pass below
   // compares these for exact equality to decide whether two adjacent segments belong to the
   // same straight run, which only works reliably against the fixed candidate set itself, not
@@ -1113,7 +1145,14 @@
     // Pass 1: snap each ORIGINAL segment's own direction+length to the nearest grid-line
     // family, but chain the RESULT from the previous SNAPPED point (not the original one) --
     // this keeps the whole stroke connected with no gaps, since each new vertex is built
-    // from where the chain actually ended up, not from where the hand happened to be.
+    // from where the chain actually ended up, not from where the hand happened to be. For a
+    // diagonal family, also nudge the new point sideways onto the nearest actual grid LINE
+    // (snapPointToGridLine) -- since that nudge only ever moves the point along x at fixed
+    // y, and the next point is built from THIS (already nudged) point by construction, the
+    // nudge propagates through the rest of the chain for free: it's a no-op on every point
+    // after the first in an unbroken diagonal run (x0 is invariant along a line of that
+    // exact slope), so in effect only the run's first point gets pulled onto the grid line
+    // and everything downstream just continues from there, still perfectly connected.
     const snappedPts = [pts[0]];
     const snapIdx = [];
     for (let i = 1; i < pts.length; i++) {
@@ -1123,8 +1162,16 @@
       snapIdx.push(idx);
       const a = SNAP_ANGLES_RAD[idx];
       const prev = snappedPts[snappedPts.length - 1];
-      snappedPts.push({ x: prev.x + Math.cos(a) * len, y: prev.y + Math.sin(a) * len });
+      const next = { x: prev.x + Math.cos(a) * len, y: prev.y + Math.sin(a) * len };
+      snappedPts.push(snapPointToGridLine(next, idx));
     }
+    // The stroke's very own first point never goes through the loop above (it's the anchor
+    // everything else chains from), so if the stroke OPENS on a diagonal it's still the raw,
+    // un-nudged hand position at this point -- nudge it too. Safe to do after the fact,
+    // unlike every other point: nothing precedes it in the chain to disconnect from, and
+    // nearestGridX0 resolves to the same target line independently of which point asked, so
+    // this can't drag it onto a different line than the rest of the run already snapped to.
+    if (snapIdx.length) snappedPts[0] = snapPointToGridLine(snappedPts[0], snapIdx[0]);
     // Pass 2: merge consecutive segments that snapped to the SAME grid family into one --
     // RDP can over-segment a hand-drawn "should be one straight line" stroke into several
     // small collinear-ish pieces wherever wobble happens to cross its own epsilon; without
