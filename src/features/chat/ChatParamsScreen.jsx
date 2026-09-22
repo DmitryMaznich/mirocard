@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { scriptToText, textToScript } from "./scriptFormat";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { getInitials } from "@/shared/utils/format";
 import { persistStudentTopicLink } from "@/core/linkUtils";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -153,7 +154,7 @@ export default function ChatParamsScreen() {
                     >
                       <span className="chat-contact-option__avatar">
                         {adult.photo
-                          ? <img src={adult.photo} alt={adult.name} />
+                          ? <AuthenticatedImage src={adult.photo} alt={adult.name} />
                           : getInitials(adult.name)}
                       </span>
                       <span className="chat-contact-option__name">{adult.name}</span>

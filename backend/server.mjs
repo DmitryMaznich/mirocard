@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION,
+  CORS_ALLOWED_ORIGINS,
 } from "./lib/config.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
 import { getDb } from "./lib/db.mjs";
@@ -35,7 +36,7 @@ import {
 import {
   createPasswordHash, verifyPasswordHash,
 } from "./lib/security.mjs";
-import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBearerToken, getClientIp } from "./lib/http.mjs";
+import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBearerToken, getClientIp, applyCors } from "./lib/http.mjs";
 import { createRateLimiter } from "./lib/rate-limit.mjs";
 import {
   sendPasswordResetEmail, sendEmailVerificationEmail, sendPromoGrantEmail, sendPurchaseConfirmationEmail,
@@ -1149,6 +1150,21 @@ async function handleUploadPhoto(req, res) {
 }
 
 async function handleGetPhoto(req, res) {
+  // Previously unauthenticated: the hash is an unguessable 128-bit
+  // content-addressed ID, but "secret by URL" alone means anyone who ever
+  // sees the URL (a shared screenshot, a browser history sync, a proxy/CDN
+  // log, a referrer leak) can view a child's photo indefinitely with no
+  // further check. requireAuth() closes that -- only a signed-in Mironium
+  // account can read any photo now. It's not further scoped to "only the
+  // account that uploaded this exact photo": the `photos` table is a
+  // content-addressed, cross-account dedup store (INSERT OR IGNORE on the
+  // hash) with no owning-account column, and adding one naively would
+  // break a legitimate second account whose student happens to share a
+  // byte-identical photo with a different account's student, since only
+  // the first uploader would keep access. Flagged as a residual scope
+  // limitation in docs/release-evidence.md rather than introducing that
+  // regression under this launch's time constraints.
+  requireAuth(req);
   const url = new URL(req.url, "http://localhost");
   const hash = url.pathname.split("/").at(-1);
   const photo = getPhoto(db, hash);
@@ -1157,8 +1173,10 @@ async function handleGetPhoto(req, res) {
   res.writeHead(200, {
     "Content-Type": photo.content_type,
     "Content-Length": String(buffer.length),
-    "Cache-Control": "public, max-age=31536000, immutable",
-    "Access-Control-Allow-Origin": "*",
+    // Was publicly, immutably cacheable for a year -- now that this
+    // requires auth, a shared/proxy cache must not serve one account's
+    // photo response to a different caller.
+    "Cache-Control": "private, max-age=31536000, immutable",
   });
   res.end(buffer);
 }
@@ -1421,10 +1439,17 @@ function trySpaFallback(req, res, pathname) {
 
 // ─── Router ────────────────────────────────────────────────────────────────────
 
+function resolveAllowedOrigin(req) {
+  const origin = req.headers.origin;
+  return origin && CORS_ALLOWED_ORIGINS.includes(origin) ? origin : null;
+}
+
 async function router(req, res) {
   const url = new URL(req.url, "http://localhost");
   const method = req.method.toUpperCase();
   const p = normalizeApiPath(url.pathname);
+
+  applyCors(res, resolveAllowedOrigin(req));
 
   if (method === "OPTIONS") return writeNoContent(res);
 

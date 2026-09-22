@@ -16,8 +16,14 @@ async function sendEmail({ to, subject, text, html }) {
   });
 
   if (!res.ok) {
+    // Every call site here .catch(console.error)s this, so whatever ends
+    // up in the message lands in server logs -- Resend's error body can
+    // echo back request fields (recipient address, subject) depending on
+    // the failure, so this is capped rather than logged verbatim. The
+    // status code alone is normally enough to tell "bad request" from
+    // "Resend is down" from "rate limited".
     const body = await res.text().catch(() => "");
-    throw new Error(`Resend API error ${res.status}: ${body}`);
+    throw new Error(`Resend API error ${res.status}: ${body.slice(0, 200)}`);
   }
 }
 

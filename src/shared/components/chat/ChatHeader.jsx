@@ -1,4 +1,5 @@
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
 export default function ChatHeader({ contact, topicId, onBack }) {
@@ -14,7 +15,7 @@ export default function ChatHeader({ contact, topicId, onBack }) {
       )}
       <div className="chat-header__avatar">
         {photoSrc
-          ? <img src={photoSrc} alt="" />
+          ? <AuthenticatedImage src={photoSrc} alt="" />
           : contact?.emoji
             ? <span>{contact.emoji}</span>
             : <span>👤</span>}

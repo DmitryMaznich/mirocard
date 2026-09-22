@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
 import Button from "@/shared/components/Button";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 
@@ -75,7 +76,7 @@ function AdultAddForm({ onConfirm, onCancel }) {
     <div className="se-adult-add-form">
       <div className="se-adult-add-form__row">
         {photo ? (
-          <img src={photo} className="se-adult-add-form__preview" onClick={() => cameraRef.current?.click()} alt="" />
+          <AuthenticatedImage src={photo} className="se-adult-add-form__preview" onClick={() => cameraRef.current?.click()} alt="" />
         ) : (
           <div className="se-adult-add-form__photo-btns">
             <button type="button" className="se-adult-add-form__photo-btn" onClick={() => cameraRef.current?.click()} disabled={loading}>
@@ -273,7 +274,7 @@ export default function StudentEditScreen() {
               title="Изменить фото"
             >
               {photo
-                ? <img src={photo} className="se-photo-btn__img" alt="" />
+                ? <AuthenticatedImage src={photo} className="se-photo-btn__img" alt="" />
                 : <div className="se-photo-btn__initials">{photoLoading ? "…" : initials}</div>
               }
               <div className="se-photo-btn__cam">📷</div>
@@ -368,7 +369,7 @@ export default function StudentEditScreen() {
           {adults.map((adult) => (
             <div key={adult.id} className="se-list-row">
               {adult.photo
-                ? <img src={adult.photo} className="se-list-avatar" alt={adult.name} />
+                ? <AuthenticatedImage src={adult.photo} className="se-list-avatar" alt={adult.name} />
                 : <div className="se-list-avatar se-list-avatar--initials">{getInitials(adult.name)}</div>
               }
               <span className="se-list-name">{adult.name}</span>
