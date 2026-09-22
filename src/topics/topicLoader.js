@@ -1007,13 +1007,14 @@ const DEFAULT_MODES = {
       id: "operation_worksheet",
       type: "operation_worksheet",
       evaluation: "none",
+      hideConceptPicker: true,
       ui: { title: "8. Контрольная работа", instruction: "Реши в тетради и впиши ответ", icon: "media/icons/operations_missing_sign.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 10, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
         includeZero: { type: "boolean", default: false, label: { ru: "Включить ноль" } },
-        groupCount: { type: "enum", values: [2, 3, 4, 6], labels: { ru: { "2": "2 группы", "3": "3 группы", "4": "4 группы", "6": "6 групп" } }, default: 6, label: { ru: "Количество групп" } },
-        perGroup: { type: "enum", values: [4, 6, 8, 10], labels: { ru: { "4": "4 примера", "6": "6 примеров", "8": "8 примеров", "10": "10 примеров" } }, default: 6, label: { ru: "Примеров в группе" } },
+        groupCount: { type: "enum", values: [2, 3, 4, 6], default: 6, compact: true, label: { ru: "Количество групп" } },
+        perGroup: { type: "enum", values: [4, 6, 8, 10], default: 6, compact: true, label: { ru: "Примеров в группе" } },
       },
     },
     {

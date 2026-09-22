@@ -347,9 +347,9 @@ function NumberStepper({ label, value, min, max, onChange, info, onShowInfo, dis
   );
 }
 
-function EnumParam({ label, options, labels, value, onChange, disabledValues, info, onShowInfo, disabled = false }) {
+function EnumParam({ label, options, labels, value, onChange, disabledValues, info, onShowInfo, disabled = false, compact = false }) {
   return (
-    <div className="param-row">
+    <div className={`param-row${compact ? " param-row--compact" : ""}`}>
       <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
       <div className="param-enum-group">
         {options.map((opt) => {
@@ -357,7 +357,7 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues, in
           return (
             <button
               key={opt}
-              className={`enum-btn ${value === opt ? "enum-btn--active" : ""}`}
+              className={`enum-btn${compact ? " enum-btn--compact" : ""} ${value === opt ? "enum-btn--active" : ""}`}
               onClick={() => onChange(opt)}
               disabled={isDisabled}
             >
@@ -2140,6 +2140,7 @@ export default function ParamsScreen() {
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
                 disabledValues={def.disabledValues}
                 disabled={isDisabled}
+                compact={def.compact}
                 info={def.info?.ru}
                 onShowInfo={setActiveInfo}
               />
