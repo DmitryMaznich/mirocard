@@ -492,6 +492,17 @@
             Обрезать конец штриха по линии 4
           </label>
         </div>
+        <div class="toggle-row">
+          <label class="guide-toggle-label" title="Каждый прямой участок штриха довыравнивается по ближайшему направлению сетки (горизонталь, тонкая или жирная диагональ) — снимает дрожание руки/стилуса на прямых линиях">
+            <input type="checkbox" id="snapToGridChk" />
+            Выравнивать по сетке
+          </label>
+          <label class="guide-toggle-label img-guide-slider-label" title="Радиус скругления на стыке двух выровненных участков (0 — острый угол)">
+            Скругление
+            <input type="range" id="snapRoundingInput" min="0" max="15" step="0.5" value="3" />
+            <span id="snapRoundingLabel">3</span>
+          </label>
+        </div>
 
         <div class="stats">
           <span>Штрихов: <b id="statStrokes">0</b></span>
@@ -684,6 +695,9 @@
   const trimEndChk = document.getElementById("trimEndChk");
   const fsTrimStartChk = document.getElementById("fsTrimStartChk");
   const fsTrimEndChk = document.getElementById("fsTrimEndChk");
+  const snapToGridChk = document.getElementById("snapToGridChk");
+  const snapRoundingInput = document.getElementById("snapRoundingInput");
+  const snapRoundingLabel = document.getElementById("snapRoundingLabel");
   const typeSelect = document.getElementById("typeSelect");
   const addToSetBtn = document.getElementById("addToSetBtn");
   const labelInput = document.getElementById("labelInput");
@@ -1029,6 +1043,110 @@
     return d.trim();
   }
 
+  // ---- snap-to-grid + rounded corners (2026-09-22, "очень трудно рисовать идеальные линии
+  // стилусом... линия руки автоматически подтягивается и выравнивается по ближайшей линии
+  // сетки, с выставляемым скруглением на поворотах") ----
+  // An alternative to fitSpline for strokes that are meant to be straight (or straight-
+  // segmented, like a заборчик's zigzag) -- rather than smoothing the hand's own wobble into
+  // a curve, this FORCES each straight-ish segment onto the nearest real grid-line direction
+  // this tool actually draws (see drawRuling() above): horizontal, the thin 65° pitch grid,
+  // or the bold 50° connector grid. Kept as separate constants rather than hoisting
+  // drawRuling's own local ANGLE_DEG/ANGLE_DEG_BOLD out of that IIFE, to avoid touching a
+  // function whose geometry is already independently verified elsewhere in this file -- these
+  // two numbers must simply be kept in sync with those by hand if the ruling ever changes.
+  const SNAP_ANGLE_DIAG_THIN_DEG = 65;
+  const SNAP_ANGLE_DIAG_BOLD_DEG = 50;
+  // Six fixed candidates, not three -- a line has two directions (a segment drawn bottom-to-
+  // top along the thin diagonal is not the same as one drawn top-to-bottom), and snapping
+  // must preserve which one the artist actually drew, not just which LINE it's nearest to.
+  const SNAP_ANGLES_RAD = [
+    0, Math.PI,
+    -SNAP_ANGLE_DIAG_THIN_DEG * Math.PI / 180, (180 - SNAP_ANGLE_DIAG_THIN_DEG) * Math.PI / 180,
+    -SNAP_ANGLE_DIAG_BOLD_DEG * Math.PI / 180, (180 - SNAP_ANGLE_DIAG_BOLD_DEG) * Math.PI / 180,
+  ];
+  function normalizeAngle(a) {
+    while (a > Math.PI) a -= 2 * Math.PI;
+    while (a <= -Math.PI) a += 2 * Math.PI;
+    return a;
+  }
+  // Returns an INDEX into SNAP_ANGLES_RAD, not a recomputed float -- the merge pass below
+  // compares these for exact equality to decide whether two adjacent segments belong to the
+  // same straight run, which only works reliably against the fixed candidate set itself, not
+  // against angles rebuilt from already-snapped (and therefore fp-rounded) coordinates.
+  function bestSnapIndex(angleRad) {
+    let bestI = 0, bestDiff = Infinity;
+    for (let i = 0; i < SNAP_ANGLES_RAD.length; i++) {
+      const diff = Math.abs(normalizeAngle(angleRad - SNAP_ANGLES_RAD[i]));
+      if (diff < bestDiff) { bestDiff = diff; bestI = i; }
+    }
+    return bestI;
+  }
+  // Fillets one interior corner: trims both adjacent segments back by min(radius, half each
+  // segment's own length) -- the clamp keeps the two trim points from crossing on a very
+  // short segment -- then bridges the gap with a quadratic Bézier using the ORIGINAL (sharp)
+  // corner point as its control point. That specific construction is what makes the curve
+  // tangent to both straight segments at the trim points automatically, with no separate
+  // tangent computation needed (unlike fitSpline's own Catmull-Rom-style tangents above,
+  // which exist precisely because THAT curve has no straight sections to be tangent to).
+  function filletPolylinePath(points, radius) {
+    if (points.length < 2) return "M " + (points[0] ? points[0].x.toFixed(2) + " " + points[0].y.toFixed(2) : "0 0");
+    if (radius <= 0 || points.length === 2) {
+      return "M " + points.map(p => p.x.toFixed(2) + " " + p.y.toFixed(2)).join(" L ");
+    }
+    let d = "M " + points[0].x.toFixed(2) + " " + points[0].y.toFixed(2);
+    for (let i = 1; i < points.length - 1; i++) {
+      const prev = points[i - 1], corner = points[i], next = points[i + 1];
+      const dIn = Math.hypot(corner.x - prev.x, corner.y - prev.y);
+      const dOut = Math.hypot(next.x - corner.x, next.y - corner.y);
+      const t = Math.min(radius, dIn / 2, dOut / 2);
+      const a = { x: corner.x - (corner.x - prev.x) / dIn * t, y: corner.y - (corner.y - prev.y) / dIn * t };
+      const b = { x: corner.x + (next.x - corner.x) / dOut * t, y: corner.y + (next.y - corner.y) / dOut * t };
+      d += " L " + a.x.toFixed(2) + " " + a.y.toFixed(2);
+      d += " Q " + corner.x.toFixed(2) + " " + corner.y.toFixed(2) + " " + b.x.toFixed(2) + " " + b.y.toFixed(2);
+    }
+    const last = points[points.length - 1];
+    d += " L " + last.x.toFixed(2) + " " + last.y.toFixed(2);
+    return d;
+  }
+  function snapAndFilletPath(pts, radius) {
+    if (pts.length < 2) return fitSpline(pts);
+    // Pass 1: snap each ORIGINAL segment's own direction+length to the nearest grid-line
+    // family, but chain the RESULT from the previous SNAPPED point (not the original one) --
+    // this keeps the whole stroke connected with no gaps, since each new vertex is built
+    // from where the chain actually ended up, not from where the hand happened to be.
+    const snappedPts = [pts[0]];
+    const snapIdx = [];
+    for (let i = 1; i < pts.length; i++) {
+      const dx = pts[i].x - pts[i - 1].x, dy = pts[i].y - pts[i - 1].y;
+      const len = Math.hypot(dx, dy);
+      const idx = bestSnapIndex(Math.atan2(dy, dx));
+      snapIdx.push(idx);
+      const a = SNAP_ANGLES_RAD[idx];
+      const prev = snappedPts[snappedPts.length - 1];
+      snappedPts.push({ x: prev.x + Math.cos(a) * len, y: prev.y + Math.sin(a) * len });
+    }
+    // Pass 2: merge consecutive segments that snapped to the SAME grid family into one --
+    // RDP can over-segment a hand-drawn "should be one straight line" stroke into several
+    // small collinear-ish pieces wherever wobble happens to cross its own epsilon; without
+    // this they'd stay as separate tiny segments with an unwanted rounded corner between
+    // them instead of reading as the single clean line the artist actually intended.
+    const merged = [snappedPts[0]];
+    const mergedIdx = [];
+    for (let i = 0; i < snapIdx.length; i++) {
+      if (mergedIdx.length > 0 && mergedIdx[mergedIdx.length - 1] === snapIdx[i]) {
+        merged[merged.length - 1] = snappedPts[i + 1];
+      } else {
+        merged.push(snappedPts[i + 1]);
+        mergedIdx.push(snapIdx[i]);
+      }
+    }
+    return filletPolylinePath(merged, radius);
+  }
+  function buildPathD(simplified) {
+    return snapToGridChk.checked ? snapAndFilletPath(simplified, Number(snapRoundingInput.value)) : fitSpline(simplified);
+  }
+  snapRoundingInput.addEventListener("input", () => { snapRoundingLabel.textContent = snapRoundingInput.value; });
+
   // Cuts a finished stroke's point list exactly at y=targetY, discarding whichever side
   // trimStartChk/trimEndChk asked to drop — for a connector meant to end (or begin) exactly
   // on line 4 (the universal hand-off point), instead of wherever hand tremor happened to
@@ -1122,7 +1240,7 @@
       rafPending = false;
       if (!drawing || !currentFiltered || !currentPathEl) return;
       const simplified = rdp(currentFiltered, RDP_EPSILON);
-      currentPathEl.setAttribute("d", fitSpline(simplified));
+      currentPathEl.setAttribute("d", buildPathD(simplified));
     });
   }
 
@@ -1192,7 +1310,7 @@
     if (trimStartChk.checked) trimmed = trimToLine(trimmed, NARROW_MID, "start");
     if (trimEndChk.checked) trimmed = trimToLine(trimmed, NARROW_MID, "end");
     const simplified = rdp(trimmed, RDP_EPSILON);
-    const d = fitSpline(simplified);
+    const d = buildPathD(simplified);
     strokes.push({ raw: currentRaw, smoothD: d, simplifiedCount: simplified.length });
     currentRaw = null;
     currentFiltered = null;

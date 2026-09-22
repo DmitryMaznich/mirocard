@@ -3122,6 +3122,61 @@ show: photo shifted, sidebar sliders and X/Y readout all reflecting the new posi
 propis tests pass, `npm run build` clean. No `elements.json` change, no deck-zip rebuild
 needed.
 
+**Snap-to-grid + rounded corners, same day.** User: "Давай еще сделаем одну фичу: опция,
+при включении которой линия руки автоматически подтягивается и выравнивается по ближайшей
+линии сетки, с выставляемым скруглением на поворотах. Очень трудно рисовать идеальные линии
+стилусом сейчас" — drawing a perfectly straight, correctly-angled line by hand with a stylus
+is hard; this trades hand-wobble for the tool's own ruling.
+
+New checkbox `#snapToGridChk` + rounding slider `#snapRoundingInput` (0–15, default 3),
+alongside the existing trim checkboxes. `buildPathD()` dispatches between the existing
+`fitSpline()` (Catmull-Rom-style smoothing, unchanged, still the default) and the new
+`snapAndFilletPath()` when the checkbox is on — wired into both call sites that used to call
+`fitSpline()` directly (`scheduleLiveUpdate()`'s live preview, and `endStroke()`'s committed
+path), so the snap behavior is visible while still drawing, not just after lifting the pen.
+
+Only three line families exist to snap onto — read directly out of `drawRuling()`'s own
+geometry rather than re-deriving it: horizontal (0°), the thin 65° pitch-grid diagonal, and
+the bold 50° connector-grid diagonal, both diagonals leaning "/" in this tool's coordinate
+system. Kept `SNAP_ANGLE_DIAG_THIN_DEG`/`SNAP_ANGLE_DIAG_BOLD_DEG` as their own constants
+next to the new code instead of hoisting `drawRuling`'s local `ANGLE_DEG`/`ANGLE_DEG_BOLD`
+out of that IIFE — avoids touching an already-verified function; these two numbers just need
+to be kept in sync by hand if the ruling ever changes. `SNAP_ANGLES_RAD` has *six* candidates,
+not three: a segment's drawn direction (which way the hand moved along a line) must be
+preserved, not just which line it's nearest to, so each family gets both directions.
+
+`snapAndFilletPath()` runs two passes: (1) snap each ORIGINAL (pre-simplification) segment's
+own direction+length to its nearest grid family, but chain each new point from the previous
+*snapped* point rather than the original one, so the whole stroke stays connected with no
+gaps; (2) merge consecutive segments that snapped to the *same* family, since RDP simplifi-
+cation can over-segment a hand-drawn "should be one straight line" into several small
+collinear-ish pieces wherever the wobble happens to cross its own epsilon — without merging,
+those would read as separate tiny segments with an unwanted rounded corner between them
+instead of one clean line. `bestSnapIndex()` returns an index into the fixed candidate array
+rather than a recomputed angle, specifically so this merge step can compare by exact index
+equality instead of comparing floats rebuilt from already-rounded coordinates.
+
+`filletPolylinePath()` does the corner rounding: trims each interior corner back by
+`min(radius, half of each adjacent segment's own length)` (the clamp stops the two trim
+points from crossing on a short segment), then bridges the gap with a quadratic Bézier `Q`
+using the *original* sharp corner as the curve's control point — that specific choice is what
+makes the curve automatically tangent to both straight segments at the trim points, with no
+separate tangent computation needed (unlike `fitSpline`'s Catmull-Rom tangents, which exist
+precisely because that curve has no straight sections to be tangent to).
+
+Verified via Playwright (mouse-drawn strokes, not touch — this feature has no touch-specific
+code path). First pass crashed with an empty `.smooth-stroke` NodeList after drawing, which
+looked like a real bug in the new code; root cause turned out to be the *test harness*, not
+the app — Playwright's `page.check()` auto-scrolls its target into view, which scrolled the
+canvas off-screen (`getBoundingClientRect().y` went from +300 to -170) before the mouse-drawn
+points were computed, so they landed above the viewport and never hit the SVG at all. Fixed
+by re-scrolling to the top and re-reading the canvas's bounding box immediately before every
+draw. With that fixed: a wobbly near-horizontal hand-drawn line (`y` varying ±2 units) snaps
+to a single perfectly horizontal segment at radius 0 (`M 19.45 60.00 L 120.11 60.00`, start
+and end `y` identical); a two-segment corner shape (near-vertical then a turn toward diagonal)
+at radius 5 produces a path containing an `L … Q … L` rounded-corner join. 122/122 propis
+tests pass, `npm run build` clean. No `elements.json` change, no deck-zip rebuild needed.
+
 ### Icon
 
 `media/icons/propis_read_lines.svg` (`builtinAssets.js`) reuses the same
