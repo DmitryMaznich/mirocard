@@ -41,7 +41,18 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["src/test-setup.js"],
-    exclude: ["**/node_modules/**", "**/dist/**", "runtime/**", ".superpowers/**"],
+    // Vitest's own default include glob (**/*.{test,spec}.?(c|m)[jt]sx?)
+    // would otherwise also pick up backend/tests/*.test.mjs and
+    // tools/**/*.test.mjs, which use Node's built-in node:test runner
+    // (see backend/package.json's own "test" script) and fail outright
+    // under Vitest -- not because they're broken, but because they're a
+    // different, incompatible test API. A .worktrees/ checkout sitting
+    // alongside the repo (a known per-task Claude Code artifact, see
+    // .gitignore) would get swept in the same way if it ever exists here.
+    exclude: [
+      "**/node_modules/**", "**/dist/**", "runtime/**", ".superpowers/**",
+      "backend/**", "tools/**", ".worktrees/**", ".claude/worktrees/**", ".pytest_cache/**",
+    ],
     pool: "vmForks",
   },
 });

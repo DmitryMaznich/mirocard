@@ -25,9 +25,9 @@ import {
   appendSession, getSessions,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
   getAccountTopicByTopicId, claimAccountTopic, grantAccountTopic, setAccountFeatureFlags,
-  listAllAccounts, revokeAccountTopic, touchAccountSeen, recordHeartbeat, getActiveTokens,
+  listAllAccounts, revokeAccountTopic, touchAccountSeen, recordHeartbeat,
   upsertStudentTopicLink, getStudentTopicLinks,
-  upsertConceptProgress, getAllConceptProgress,
+  upsertConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
   getPhoto, migratePhotoData, extractAndStorePhoto,
   getAccountKvByPrefixes,
@@ -296,10 +296,9 @@ async function handleLogin(req, res) {
 
   const account = anyAccount?.status === "active" ? anyAccount : null;
   let passwordMatches = account && verifyPasswordHash(password, account.password_hash);
-  let matchedLegacyPassword = false;
 
   if (account && !passwordMatches) {
-    matchedLegacyPassword = getLegacyPasswordHashes(email).some((hash) =>
+    const matchedLegacyPassword = getLegacyPasswordHashes(email).some((hash) =>
       verifyPasswordHash(password, hash)
     );
     if (matchedLegacyPassword) {
@@ -597,7 +596,7 @@ async function handleAppendSession(req, res) {
 // ─── Analysis handlers ────────────────────────────────────────────────────────
 
 async function handleGetTopicAnalysis(req, res) {
-  const account = requireAuth(req);
+  requireAuth(req);
   const url = new URL(req.url, "http://x");
   const studentId = url.searchParams.get("studentId");
   const topicId   = url.searchParams.get("topicId");
@@ -1308,7 +1307,7 @@ async function handleHealthz(req, res) {
     db.prepare("SELECT 1").get();
     dbOk = true;
   } catch {
-    dbOk = false;
+    // dbOk already false
   }
 
   const version = await readPackageVersion();
