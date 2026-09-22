@@ -47,13 +47,32 @@ export default function SubscriptionScreen() {
     setPromoResult(result);
     if (result.kind === "free_grant") {
       const redeem = await api.post("/billing/redeem-code", { code: result.code });
-      if (redeem.ok) setScreen("checkout_return");
+      if (redeem.ok) {
+        // A free-grant redemption completes synchronously server-side --
+        // there's no order to poll. Clear checkoutOrderId (it may still
+        // hold a stale value from an earlier, unrelated real-checkout
+        // attempt this session) so CheckoutReturnScreen reads the current
+        // subscription once instead of polling the wrong order's status.
+        setCheckout(null, null);
+        setScreen("checkout_return");
+      }
     }
   }
 
   async function submit() {
     setSubmitting(true);
     setSubmitError(null);
+
+    // Must open synchronously, right here in the click handler, before any
+    // `await` -- iOS Safari (and other strict popup blockers) only allow
+    // window.open() through as a direct result of a user gesture; calling
+    // it later, after the checkout-session API call resolves, is exactly
+    // what used to get silently blocked. Opening a blank tab now and
+    // redirecting it once the real checkout URL comes back keeps it
+    // inside that gesture without making the user stare at a blank tab
+    // any longer than the API call itself takes.
+    const checkoutWindow = window.open("", "_blank", "noopener,noreferrer");
+
     try {
       const code = promoResult?.ok && promoResult.kind !== "free_grant" ? promoResult.code : null;
       const result = await api.post("/billing/checkout", {
@@ -61,8 +80,12 @@ export default function SubscriptionScreen() {
         consents: { termsAccepted, pricePeriodConfirmed, digitalContentAck },
       });
       setCheckout(result.checkoutUrl, result.orderId);
+      if (checkoutWindow && !checkoutWindow.closed) {
+        checkoutWindow.location.href = result.checkoutUrl;
+      }
       setScreen("checkout_redirect");
     } catch (err) {
+      if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.close();
       setSubmitError(err.message);
     } finally {
       setSubmitting(false);

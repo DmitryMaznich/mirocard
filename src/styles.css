@@ -1439,6 +1439,8 @@ button {
 .checkout-transition__sub { margin-top: 8px; font-size: 13.5px; font-weight: 600; color: #6b7b78; line-height: 1.5; }
 .checkout-lock-note { margin-top: 6px; font-size: 12px; font-weight: 700; color: #8a938f; }
 .checkout-return__check { width: 76px; height: 76px; border-radius: 50%; background: #4a9b8f; color: #fff; font-size: 32px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 24px rgba(42,107,96,.32); }
+.checkout-return__actions { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+.checkout-return__support { text-align: center; font-size: 13px; font-weight: 700; color: #2f5b57; text-decoration: underline; padding: 4px 0; }
 .back-btn--disabled { opacity: .45; pointer-events: none; }
 
 .settings-header {

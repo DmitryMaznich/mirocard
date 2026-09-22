@@ -33,6 +33,17 @@ export function getOrderByExternalId(db, orderId) {
   return db.prepare("SELECT * FROM orders WHERE external_contract_id = ?").get(orderId) ?? null;
 }
 
+// The entitlement a specific completed order granted, if any. Used by the
+// checkout-return screen's status poll to answer "did THIS checkout
+// succeed" -- as opposed to hasActiveEntitlement/getActiveSubscriptionForAccount,
+// which answer "is the account entitled right now" and would say yes even
+// for an account whose active access came from something else entirely
+// (an existing subscription, a trial, all_access), wrongly implying a
+// still-pending or failed checkout had succeeded.
+export function getEntitlementForOrder(db, orderId) {
+  return db.prepare("SELECT * FROM entitlements WHERE source = 'order' AND source_id = ?").get(orderId) ?? null;
+}
+
 export function completeOrder(db, orderId) {
   db.prepare("UPDATE orders SET status = 'completed', updated_at = ? WHERE id = ?").run(now(), orderId);
 }

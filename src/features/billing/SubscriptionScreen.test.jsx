@@ -93,4 +93,41 @@ describe("SubscriptionScreen", () => {
       consents: { termsAccepted: true, pricePeriodConfirmed: true, digitalContentAck: true },
     });
   });
+
+  it("opens the checkout window synchronously (before the checkout API call resolves), then redirects it to the real URL -- the popup-blocker fix", async () => {
+    let resolveApiCall;
+    vi.spyOn(apiModule.api, "post").mockReturnValue(new Promise((resolve) => { resolveApiCall = resolve; }));
+    const fakeWindow = { closed: false, location: {} };
+    const openSpy = vi.spyOn(window, "open").mockReturnValue(fakeWindow);
+
+    mount();
+    for (const checkbox of container.querySelectorAll(".subscription-consent input")) {
+      act(() => { checkbox.click(); });
+    }
+    act(() => { container.querySelector(".subscription-cta").click(); });
+
+    // window.open must already have happened -- synchronously, inside the
+    // click -- even though the checkout API call hasn't resolved yet.
+    expect(openSpy).toHaveBeenCalledWith("", "_blank", "noopener,noreferrer");
+    expect(fakeWindow.location.href).toBeUndefined();
+
+    await act(async () => {
+      resolveApiCall({ checkoutUrl: "https://checkout.stripe.com/pay/cs_test", orderId: "o1" });
+      await Promise.resolve();
+    });
+    expect(fakeWindow.location.href).toBe("https://checkout.stripe.com/pay/cs_test");
+  });
+
+  it("closes the opened window instead of leaving a stray blank tab if the checkout API call fails", async () => {
+    vi.spyOn(apiModule.api, "post").mockRejectedValue(new Error("network error"));
+    const fakeWindow = { closed: false, close: vi.fn() };
+    vi.spyOn(window, "open").mockReturnValue(fakeWindow);
+
+    mount();
+    for (const checkbox of container.querySelectorAll(".subscription-consent input")) {
+      act(() => { checkbox.click(); });
+    }
+    await act(async () => { container.querySelector(".subscription-cta").click(); await Promise.resolve(); });
+    expect(fakeWindow.close).toHaveBeenCalled();
+  });
 });

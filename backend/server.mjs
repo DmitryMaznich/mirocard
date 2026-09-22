@@ -45,7 +45,7 @@ import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
 import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
 import {
-  createOrder, getOrderByExternalId, getActiveSubscriptionForAccount,
+  createOrder, getOrderByExternalId, getEntitlementForOrder, getActiveSubscriptionForAccount,
   hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
   createPromoCode, listPromoCodes, grantTrialSubscription, recordCheckoutConsent,
 } from "./lib/billing-repository.mjs";
@@ -1005,6 +1005,32 @@ async function handleGetSubscription(req, res) {
   writeJson(res, 200, getActiveSubscriptionForAccount(db, account.id));
 }
 
+// Answers "did this specific checkout attempt succeed" -- distinct from
+// handleGetSubscription, which reports the account's current overall
+// entitlement and would say "active" even while THIS order is still
+// pending, if the account happens to already be entitled some other way
+// (an existing subscription, a trial, all_access). The checkout-return
+// screen polls this by orderId specifically so it never shows "Подписка
+// активна" for an unrelated pre-existing entitlement.
+async function handleGetOrderStatus(req, res) {
+  const account = requireAuth(req);
+  const url = new URL(req.url, "http://localhost");
+  const orderId = url.searchParams.get("orderId");
+  if (!orderId) return writeJson(res, 400, { error: "orderId required" });
+
+  const order = getOrderByExternalId(db, orderId);
+  if (!order || order.account_id !== account.id) {
+    return writeJson(res, 404, { error: "Order not found" });
+  }
+
+  const entitlement = order.status === "completed" ? getEntitlementForOrder(db, order.id) : null;
+  writeJson(res, 200, {
+    status: order.status, // 'pending' | 'completed' | 'refunded' | 'chargeback' | 'abandoned'
+    plan: order.plan,
+    currentPeriodEnd: entitlement?.ends_at ?? null,
+  });
+}
+
 async function handleValidateCode(req, res) {
   const account = requireAuth(req);
   if (!checkPromoLimit(account.id)) return rateLimited(res);
@@ -1577,6 +1603,7 @@ async function router(req, res) {
     if (method === "POST" && p === "/billing/webhook/stripe")    return await handleStripeWebhook(req, res);
     if (method === "POST" && p === "/billing/webhook/lava-top")  return await handleLavaTopWebhook(req, res);
     if (method === "GET"  && p === "/billing/subscription")      return await handleGetSubscription(req, res);
+    if (method === "GET"  && p === "/billing/order-status")      return await handleGetOrderStatus(req, res);
     if (method === "POST" && p === "/billing/validate-code") return await handleValidateCode(req, res);
     if (method === "POST" && p === "/billing/redeem-code")   return await handleRedeemCode(req, res);
 
