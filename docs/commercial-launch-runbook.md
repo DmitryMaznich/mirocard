@@ -299,8 +299,11 @@ dependency in this codebase; everything scheduled runs in-process, gated on
 ## 6. Known residual risks
 
 See `docs/release-evidence.md` for the full, current list against the
-Definition of Done. Highlights carried in this document because they
-affect how the campaign should be run operationally:
+Definition of Done, and `docs/sandbox-e2e-checklist.md` for the
+Stripe/Lava sandbox test plan that hasn't been run yet (no real
+payment-provider credentials in this sandboxed session). Highlights
+carried in this document because they affect how the campaign should be
+run operationally:
 
 - Lava Top's provider integration (`backend/lib/billing-providers/lava-top.mjs`)
   has never been exercised against Lava Top's real API — field names are
