@@ -35,8 +35,11 @@ import {
 import {
   createPasswordHash, verifyPasswordHash,
 } from "./lib/security.mjs";
-import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBearerToken } from "./lib/http.mjs";
-import { sendPasswordResetEmail, sendEmailVerificationEmail } from "./lib/mailer.mjs";
+import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBearerToken, getClientIp } from "./lib/http.mjs";
+import { createRateLimiter } from "./lib/rate-limit.mjs";
+import {
+  sendPasswordResetEmail, sendEmailVerificationEmail, sendPromoGrantEmail, sendPurchaseConfirmationEmail,
+} from "./lib/mailer.mjs";
 import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
 import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
@@ -124,6 +127,19 @@ function checkResendLimit(email) {
   if (entry.count >= 3) return false;
   entry.count++;
   return true;
+}
+
+// ─── Rate limits (see lib/rate-limit.mjs for what these do and don't cover) ────
+const HOUR_MS = 60 * 60 * 1000;
+const checkRegisterLimit  = createRateLimiter({ max: 10, windowMs: HOUR_MS });        // per IP
+const checkLoginLimit     = createRateLimiter({ max: 10, windowMs: 15 * 60 * 1000 }); // per email, 15min
+const checkForgotPwLimit  = createRateLimiter({ max: 5,  windowMs: HOUR_MS });        // per email
+const checkPromoLimit     = createRateLimiter({ max: 20, windowMs: HOUR_MS });        // per account
+const checkCheckoutLimit  = createRateLimiter({ max: 20, windowMs: HOUR_MS });        // per account
+const checkWebhookLimit   = createRateLimiter({ max: 600, windowMs: 60 * 1000 });     // per provider, coarse flood guard
+
+function rateLimited(res) {
+  writeJson(res, 429, { error: "Too many requests, try again later" });
 }
 
 function requireDeployToken(req) {
@@ -214,6 +230,7 @@ function serializeStudent(row) {
 // ─── Auth handlers ─────────────────────────────────────────────────────────────
 
 async function handleRegister(req, res) {
+  if (!checkRegisterLimit(getClientIp(req))) return rateLimited(res);
   const body = await readJsonBody(req);
   const email = sanitizeEmail(body?.email);
   const password = String(body?.password || "");
@@ -263,6 +280,8 @@ async function handleLogin(req, res) {
   const email = sanitizeEmail(body?.email);
   const password = String(body?.password || "");
 
+  if (!checkLoginLimit(email || getClientIp(req))) return rateLimited(res);
+
   const anyAccount = email ? findAccountByEmailAny(db, email) : null;
 
   if (anyAccount?.status === "pending") {
@@ -308,6 +327,8 @@ async function handleLogout(req, res) {
 async function handleForgotPassword(req, res) {
   const body = await readJsonBody(req);
   const email = sanitizeEmail(body?.email);
+
+  if (!checkForgotPwLimit(email || getClientIp(req))) return rateLimited(res);
 
   const account = email ? findAccountByEmail(db, email) : null;
   if (account) {
@@ -856,6 +877,7 @@ const CHECKOUT_METHODS = { card: "stripe", mir_sbp: "lava_top" };
 
 async function handleBillingCheckout(req, res) {
   const account = requireAuth(req);
+  if (!checkCheckoutLimit(account.id)) return rateLimited(res);
   const body = await readJsonBody(req);
   const { plan, method, code } = body ?? {};
 
@@ -903,21 +925,47 @@ async function handleBillingCheckout(req, res) {
 }
 
 async function handleStripeWebhook(req, res) {
+  // Coarse volumetric guard ahead of the (comparatively expensive) HMAC
+  // signature check -- keyed by provider, not caller, since a legitimate
+  // Stripe delivery can't be distinguished from a flood at this point
+  // without trusting Stripe's published IP ranges, which this backend
+  // doesn't currently verify.
+  if (!checkWebhookLimit("stripe")) return rateLimited(res);
   const rawBody = (await readRawBody(req)).toString("utf8");
   if (!verifyStripeWebhookSignature(rawBody, req.headers["stripe-signature"])) {
     return writeJson(res, 401, { error: "Invalid signature" });
   }
-  processBillingEvent(db, { provider: "stripe", event: parseStripeWebhookEvent(rawBody), rawBody });
+  const result = processBillingEvent(db, { provider: "stripe", event: parseStripeWebhookEvent(rawBody), rawBody });
+  sendPurchaseConfirmationIfCompleted(result);
   writeJson(res, 200, { received: true });
 }
 
 async function handleLavaTopWebhook(req, res) {
+  if (!checkWebhookLimit("lava_top")) return rateLimited(res);
   const rawBody = (await readRawBody(req)).toString("utf8");
   if (!verifyLavaTopWebhookAuth(req.headers["x-api-key"])) {
     return writeJson(res, 401, { error: "Invalid auth" });
   }
-  processBillingEvent(db, { provider: "lava_top", event: parseLavaTopWebhookEvent(rawBody), rawBody });
+  const result = processBillingEvent(db, { provider: "lava_top", event: parseLavaTopWebhookEvent(rawBody), rawBody });
+  sendPurchaseConfirmationIfCompleted(result);
   writeJson(res, 200, { received: true });
+}
+
+// Fires the durable purchase-confirmation email exactly once, only when
+// this exact webhook delivery is the one that actually completed the
+// order (not a duplicate delivery, not a stale/out-of-order event that
+// processBillingEvent correctly no-op'd) -- see the `kind: "completed"`
+// result billing-orchestrator.mjs only returns on that specific branch.
+function sendPurchaseConfirmationIfCompleted(result) {
+  if (result?.kind !== "completed") return;
+  const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(result.orderId);
+  const account = findAccountById(db, result.accountId);
+  if (!order || !account) return;
+  const sub = getActiveSubscriptionForAccount(db, result.accountId);
+  sendPurchaseConfirmationEmail(account.email, {
+    plan: order.plan, amountMinor: order.amount_minor, currency: order.currency,
+    endsAt: sub?.currentPeriodEnd,
+  }).catch(console.error);
 }
 
 async function handleGetSubscription(req, res) {
@@ -927,6 +975,7 @@ async function handleGetSubscription(req, res) {
 
 async function handleValidateCode(req, res) {
   const account = requireAuth(req);
+  if (!checkPromoLimit(account.id)) return rateLimited(res);
   const body = await readJsonBody(req);
   if (!body?.code || !PLAN_CATALOG[body.plan]) {
     return writeJson(res, 400, { error: "code and a known plan are required" });
@@ -943,11 +992,16 @@ async function handleValidateCode(req, res) {
 
 async function handleRedeemCode(req, res) {
   const account = requireAuth(req);
+  if (!checkPromoLimit(account.id)) return rateLimited(res);
   const body = await readJsonBody(req);
   if (!body?.code) return writeJson(res, 400, { error: "code is required" });
 
   const result = redeemFreeGrantCode(db, body.code, account.id);
-  if (result.ok) incrementRevision(db, account.id);
+  if (result.ok) {
+    incrementRevision(db, account.id);
+    const sub = getActiveSubscriptionForAccount(db, account.id);
+    sendPromoGrantEmail(account.email, { code: String(body.code).trim().toUpperCase(), endsAt: sub?.currentPeriodEnd }).catch(console.error);
+  }
   writeJson(res, result.ok ? 200 : 400, result);
 }
 
@@ -1415,5 +1469,9 @@ if (isMainModule) {
     import("../scripts/railway-backup-loop.mjs")
       .then(({ startBackupLoop }) => startBackupLoop({ dataDir: DATA_DIR }))
       .catch((err) => console.error("[backup] failed to start backup loop:", err));
+
+    import("../scripts/entitlement-reminder-loop.mjs")
+      .then(({ startReminderLoop }) => startReminderLoop())
+      .catch((err) => console.error("[entitlement-reminder] failed to start reminder loop:", err));
   }
 }

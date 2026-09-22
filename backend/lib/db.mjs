@@ -402,6 +402,12 @@ export function initDb(dbPath = DB_PATH) {
       starts_at             TEXT NOT NULL,
       ends_at               TEXT NOT NULL,
       cancel_at_period_end  INTEGER DEFAULT 0,
+      -- Dedup markers for scripts/entitlement-reminder-loop.mjs -- each
+      -- reminder must fire at most once per entitlement, even though the
+      -- loop re-scans all active entitlements on every run.
+      reminder_5d_sent_at      TEXT,
+      reminder_1d_sent_at      TEXT,
+      reminder_expired_sent_at TEXT,
       created_at            TEXT NOT NULL,
       updated_at            TEXT NOT NULL
     );

@@ -35,6 +35,19 @@ export function getBearerToken(request) {
   return token;
 }
 
+// Railway (and any reverse proxy in front of the backend) terminates the
+// real client connection, so request.socket.remoteAddress is the proxy's
+// own address, not the caller's -- X-Forwarded-For carries the original
+// client IP as its first (leftmost) entry. Falls back to the raw socket
+// address for a direct connection (e.g. local dev, or tests).
+export function getClientIp(request) {
+  const forwarded = request.headers["x-forwarded-for"];
+  if (typeof forwarded === "string" && forwarded.trim()) {
+    return forwarded.split(",")[0].trim();
+  }
+  return request.socket?.remoteAddress ?? "unknown";
+}
+
 export async function readRawBody(request, maxBytes = 2 * 1024 * 1024) {
   const chunks = [];
   let total = 0;

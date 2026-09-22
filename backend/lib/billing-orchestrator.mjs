@@ -70,7 +70,7 @@ export function processBillingEvent(db, { provider, event, rawBody }) {
       extendEntitlementForOrder(db, order);
       finalizeDiscountRedemption(db, order.applied_code, order.account_id);
       incrementRevision(db, order.account_id);
-      return { ok: true };
+      return { ok: true, kind: "completed", orderId: order.id, accountId: order.account_id };
     }
 
     // Refund/chargeback: only a completed order can be refunded.
@@ -78,6 +78,6 @@ export function processBillingEvent(db, { provider, event, rawBody }) {
     markOrderRefunded(db, order.id, event.eventType);
     revokeEntitlementsForOrder(db, order.id);
     incrementRevision(db, order.account_id);
-    return { ok: true };
+    return { ok: true, kind: "refunded", orderId: order.id, accountId: order.account_id };
   });
 }

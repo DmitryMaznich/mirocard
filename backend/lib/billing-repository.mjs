@@ -244,6 +244,56 @@ export function redeemFreeGrantCode(db, rawCode, accountId) {
   return { ok: true };
 }
 
+// ─── Expiry reminders (scripts/entitlement-reminder-loop.mjs) ──────────────
+
+const REMINDER_KINDS = ["days5", "days1", "expired"];
+
+// Only an account's CURRENT entitlement (the active row with the furthest
+// ends_at -- same selection rule as hasActiveEntitlement/
+// getActiveSubscriptionForAccount) is reminder-worthy. An earlier active
+// row that a later one has stacked on top of (e.g. a trial an order later
+// extended past) is NOT "ending" from the account's point of view even
+// though ITS OWN ends_at has passed or is approaching -- reminding about
+// it would be a false "your access is ending" email while access
+// actually continues uninterrupted.
+export function findEntitlementsNeedingReminders(db, { at = now() } = {}) {
+  const days5Cutoff = new Date(new Date(at).getTime() + 5 * 86400000).toISOString();
+  const days1Cutoff = new Date(new Date(at).getTime() + 1 * 86400000).toISOString();
+
+  const currentActiveRows = db.prepare(`
+    SELECT e.* FROM entitlements e
+    INNER JOIN (
+      SELECT account_id, MAX(ends_at) AS max_ends_at
+      FROM entitlements
+      WHERE status = 'active'
+      GROUP BY account_id
+    ) latest ON latest.account_id = e.account_id AND latest.max_ends_at = e.ends_at
+    WHERE e.status = 'active'
+  `).all();
+
+  const due = [];
+  for (const row of currentActiveRows) {
+    const account = db.prepare("SELECT email FROM accounts WHERE id = ?").get(row.account_id);
+    if (!account) continue;
+    if (row.ends_at < at) {
+      if (!row.reminder_expired_sent_at) due.push({ kind: "expired", entitlement: row, email: account.email });
+      continue; // already past -- days5/days1 no longer meaningful
+    }
+    if (row.ends_at <= days1Cutoff && !row.reminder_1d_sent_at) {
+      due.push({ kind: "days1", entitlement: row, email: account.email });
+    } else if (row.ends_at <= days5Cutoff && !row.reminder_5d_sent_at) {
+      due.push({ kind: "days5", entitlement: row, email: account.email });
+    }
+  }
+  return due;
+}
+
+export function markReminderSent(db, entitlementId, kind) {
+  if (!REMINDER_KINDS.includes(kind)) throw new Error(`Unknown reminder kind: ${kind}`);
+  const column = { days5: "reminder_5d_sent_at", days1: "reminder_1d_sent_at", expired: "reminder_expired_sent_at" }[kind];
+  db.prepare(`UPDATE entitlements SET ${column} = ? WHERE id = ?`).run(now(), entitlementId);
+}
+
 // For a discount (percent_off/fixed_off) code, redemption is only finalized
 // once the provider webhook confirms payment (called from
 // billing-orchestrator.mjs) -- never at checkout time -- so an abandoned
