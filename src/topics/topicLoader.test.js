@@ -192,7 +192,7 @@ describe("importTopic — valid cases", () => {
       "5. Найди знак",
       "6. Сколько стало?",
       "7. Цепочка",
-      "8. Листок",
+      "8. Контрольная работа",
       "10. Найди неизвестное",
     ]);
     const observeMode = record.modes.find((mode) => mode.id === "operation_observe");

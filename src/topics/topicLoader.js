@@ -1006,8 +1006,8 @@ const DEFAULT_MODES = {
     {
       id: "operation_worksheet",
       type: "operation_worksheet",
-      evaluation: "auto",
-      ui: { title: "8. Листок", instruction: "Перепиши примеры в тетрадь", icon: "media/icons/operations_missing_sign.svg" },
+      evaluation: "none",
+      ui: { title: "8. Контрольная работа", instruction: "Реши в тетради и впиши ответ", icon: "media/icons/operations_missing_sign.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 10, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
