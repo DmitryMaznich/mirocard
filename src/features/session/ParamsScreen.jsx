@@ -347,9 +347,9 @@ function NumberStepper({ label, value, min, max, onChange, info, onShowInfo, dis
   );
 }
 
-function EnumParam({ label, options, labels, value, onChange, disabledValues, info, onShowInfo, disabled = false }) {
+function EnumParam({ label, options, labels, value, onChange, disabledValues, info, onShowInfo, disabled = false, compact = false }) {
   return (
-    <div className="param-row">
+    <div className={`param-row${compact ? " param-row--compact" : ""}`}>
       <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
       <div className="param-enum-group">
         {options.map((opt) => {
@@ -357,7 +357,7 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues, in
           return (
             <button
               key={opt}
-              className={`enum-btn ${value === opt ? "enum-btn--active" : ""}`}
+              className={`enum-btn${compact ? " enum-btn--compact" : ""} ${value === opt ? "enum-btn--active" : ""}`}
               onClick={() => onChange(opt)}
               disabled={isDisabled}
             >
@@ -1629,6 +1629,7 @@ export default function ParamsScreen() {
   const isSymmetryDrawPrint   = activeTopicId === "symmetry_draw" && ["mirror_draw", "repeat_draw"].includes(mode?.type);
   const isGraphicDictation   = activeTopicId === "symmetry_draw" && mode?.type === "graphic_dictation";
   const modeHasCategoryParam  = !!mode?.params?.category;
+  const hideVideoReward       = mode?.hideVideoReward === true;
 
   const storyQuizStories = (topicRecord?.texts ?? [])
     .filter((text) => text.kind === "story")
@@ -1774,7 +1775,7 @@ export default function ParamsScreen() {
   }
 
   const [params,         setParams]        = useState(getInitialParams);
-  const [videoReward,   setVideoReward]   = useState(link.videoRewardEnabled ?? true);
+  const [videoReward,   setVideoReward]   = useState(hideVideoReward ? false : (link.videoRewardEnabled ?? true));
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
   const forceStrictStars = mode?.rewardDefaults?.forceStrictStars === true;
   const [strictStarsSetting, setStrictStars] = useState(link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true);
@@ -1883,17 +1884,22 @@ export default function ParamsScreen() {
     // and left) must still resume normally, so only clear when settings really differ.
     const baseline = {
       params: getInitialParams(),
-      videoRewardEnabled: link.videoRewardEnabled ?? true,
+      videoRewardEnabled: hideVideoReward ? false : (link.videoRewardEnabled ?? true),
       answersPerStar: link.answersPerStar ?? 1,
       strictStars: forceStrictStars ? true : (link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true),
     };
-    const current = { params, videoRewardEnabled: videoReward, answersPerStar, strictStars };
+    const current = { params, videoRewardEnabled: hideVideoReward ? false : videoReward, answersPerStar, strictStars };
     if (sessionSettingsChanged(current, baseline)) {
       clearActiveSessionSnapshot();
       getDb().then((db) => clearPersistedActiveSessionSnapshot(db)).catch(() => {});
     }
 
-    persistStudentTopicLink(activeStudentId, activeTopicId, { params, videoRewardEnabled: videoReward, answersPerStar, strictStars });
+    persistStudentTopicLink(activeStudentId, activeTopicId, {
+      params,
+      videoRewardEnabled: hideVideoReward ? false : videoReward,
+      answersPerStar,
+      strictStars,
+    });
     setScreen("session");
     setSessionReturnScreen(null);
   }
@@ -1904,6 +1910,20 @@ export default function ParamsScreen() {
     await kv.set(db, "settings", { ...useAppStore.getState().settings, adultPinHash: hash });
     api.patch("/account/settings", { adultPinHash: hash }).catch(() => {});
   }
+
+  const isDailyOrientation = topicRecord?.meta.renderer === "daily_orientation";
+  const dailyOrientationContentKeys = [
+    "showWeekday",
+    "showDayOfMonth",
+    "showMonth",
+    "showSeason",
+    "showAnalogClock",
+    "showTimeWords",
+    "showDigitalTime",
+  ];
+  const dailyOrientationContentCount = isDailyOrientation
+    ? dailyOrientationContentKeys.filter((key) => params[key] ?? mode?.params?.[key]?.default).length
+    : 0;
 
   const paramsContent = isReading ? (
     <>
@@ -2140,6 +2160,7 @@ export default function ParamsScreen() {
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
                 disabledValues={def.disabledValues}
                 disabled={isDisabled}
+                compact={def.compact}
                 info={def.info?.ru}
                 onShowInfo={setActiveInfo}
               />
@@ -2174,13 +2195,18 @@ export default function ParamsScreen() {
             );
           }
           if (def.type === "boolean") {
+            const value = params[key] ?? def.default ?? false;
+            const isLastDailyOrientationContent = isDailyOrientation
+              && dailyOrientationContentKeys.includes(key)
+              && value
+              && dailyOrientationContentCount <= 1;
             return (
               <BooleanParam
                 key={key}
                 label={def.label?.ru ?? key}
                 hint={def.hint?.ru ?? ""}
-                value={params[key] ?? def.default ?? false}
-                disabled={def.dependsOn ? !params[def.dependsOn] : false}
+                value={value}
+                disabled={(def.dependsOn ? !params[def.dependsOn] : false) || isLastDailyOrientationContent}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
                 info={def.info?.ru}
                 onShowInfo={setActiveInfo}
@@ -2363,7 +2389,7 @@ export default function ParamsScreen() {
             </div>
           )}
 
-          {hasVideos && !isAlphabetPairs && !isNavigatorFlashCards && !isPropis && !isShortStoriesReadingMode && (
+          {hasVideos && !hideVideoReward && !isAlphabetPairs && !isNavigatorFlashCards && !isPropis && !isShortStoriesReadingMode && (
             <div className="param-section">
               <div className="param-section__header">Награда за занятие</div>
 

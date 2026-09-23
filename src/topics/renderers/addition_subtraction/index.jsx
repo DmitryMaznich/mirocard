@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSpeech } from "@/shared/hooks/useSpeech";
+import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import HelperPanel from "./HelperPanel";
+import NameActionTask from "./NameActionTask";
 import {
   buildStickSlots,
   evaluateStickMove,
@@ -322,6 +324,7 @@ function ChoiceGrid({ options, selected, answer, onAnswer, variant }) {
         const isSign = option.value === "+" || option.value === "-";
         const className = [
           "operation-choice",
+          isSign && option.value === "-" ? "operation-choice--subtract" : "",
           isCorrect ? "operation-choice--correct" : "",
           isWrong ? "operation-choice--wrong" : "",
         ].filter(Boolean).join(" ");
@@ -397,32 +400,133 @@ function NumberPad({ maxNumber, answer, selected, onAnswer }) {
   );
 }
 
-function WorksheetTask({ task }) {
-  const groups = [];
-  for (let g = 0; g < task.groupCount; g++) {
-    groups.push(task.examples.slice(g * task.perGroup, (g + 1) * task.perGroup));
+// "Контрольная работа": the child computes each example on paper (or with
+// fingers/counting rod) and enters only the final result here — this screen
+// never shows intermediate steps or answer choices. One example is editable
+// at a time (activeIdx), in the same reading order the printed groups are
+// laid out in, so the flat examples[] index maps directly onto (group, row).
+// A wrong entry just shakes and clears — unlimited retries, no penalty — the
+// point is protecting against guessing, not grading. Finishing every example
+// shows one reward video (self-contained here, not the session-wide streak,
+// since this mode's evaluation is "none").
+function WorksheetTask({ task, onCorrect, student }) {
+  const total = task.examples.length;
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [solved, setSolved] = useState({});
+  const [digits, setDigits] = useState([]);
+  const [wrong, setWrong] = useState(false);
+  const [showReward, setShowReward] = useState(false);
+  const activeRef = useRef(null);
+  const wrongTimerRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(wrongTimerRef.current), []);
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [activeIdx]);
+
+  const activeEx = task.examples[activeIdx] ?? null;
+
+  function addDigit(d) {
+    if (wrong || !activeEx || digits.length >= AUDIO_MAX_DIGITS) return;
+    setDigits((prev) => [...prev, d]);
   }
+
+  function removeDigit() {
+    if (wrong) return;
+    setDigits((prev) => prev.slice(0, -1));
+  }
+
+  function checkAnswer() {
+    if (wrong || !activeEx || digits.length === 0) return;
+    const value = Number(digits.join(""));
+    if (value === activeEx.result) {
+      setSolved((prev) => ({ ...prev, [activeIdx]: true }));
+      setDigits([]);
+      if (activeIdx + 1 < total) {
+        setActiveIdx(activeIdx + 1);
+      } else {
+        setTimeout(() => setShowReward(true), 400);
+      }
+    } else {
+      setWrong(true);
+      wrongTimerRef.current = setTimeout(() => { setWrong(false); setDigits([]); }, 550);
+    }
+  }
+
+  const handleRewardDismiss = useCallback(() => {
+    setShowReward(false);
+    onCorrect?.(task.conceptId, task.cardId);
+  }, [onCorrect, task.conceptId, task.cardId]);
+
   return (
     <div className="operation-stage operation-stage--worksheet">
       <div className="operation-worksheet">
-        {groups.map((group, gi) => (
-          <div key={gi} className="operation-worksheet__group">
-            <div className="operation-worksheet__group-label">{gi + 1}</div>
-            <div className="operation-worksheet__list">
-              {group.map((ex, ei) => (
-                <div key={ei} className="operation-worksheet__row">
-                  <span className="operation-worksheet__num">{ex.A}</span>
-                  <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opAB}`}>{ex.signAB}</span>
-                  <span className="operation-worksheet__num">{ex.B}</span>
-                  <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opBC}`}>{ex.signBC}</span>
-                  <span className="operation-worksheet__num">{ex.C}</span>
-                  <span className="operation-worksheet__equals">=</span>
+        {task.examples.map((ex, flatIdx) => {
+          const isActive = flatIdx === activeIdx;
+          const isSolved = !!solved[flatIdx];
+          const groupIndex = Math.floor(flatIdx / task.perGroup);
+          const isGroupStart = flatIdx % task.perGroup === 0;
+          return (
+            <div key={flatIdx} className="operation-worksheet__row">
+              {isGroupStart && (
+                <div className="operation-worksheet__divider">
+                  <span className="operation-worksheet__divider-badge">{groupIndex + 1}</span>
+                  <span className="operation-worksheet__divider-label">Группа {groupIndex + 1}</span>
                 </div>
-              ))}
+              )}
+              <div
+                ref={isActive ? activeRef : null}
+                className={[
+                  "operation-worksheet__line",
+                  isSolved ? "operation-worksheet__line--solved" : "",
+                  isActive ? "operation-worksheet__line--active" : "",
+                ].filter(Boolean).join(" ")}
+              >
+                <span className="operation-worksheet__num">{ex.A}</span>
+                <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opAB}`}>{ex.signAB}</span>
+                <span className="operation-worksheet__num">{ex.B}</span>
+                <span className={`operation-worksheet__sign operation-worksheet__sign--${ex.opBC}`}>{ex.signBC}</span>
+                <span className="operation-worksheet__num">{ex.C}</span>
+                <span className="operation-worksheet__equals">=</span>
+                <span
+                  className={[
+                    "operation-worksheet__answer",
+                    isSolved ? "operation-worksheet__answer--correct" : "",
+                    isActive ? "operation-worksheet__answer--active" : "",
+                    isActive && wrong ? "operation-worksheet__answer--wrong" : "",
+                  ].filter(Boolean).join(" ")}
+                >
+                  {isSolved
+                    ? ex.result
+                    : isActive
+                      ? (digits.length
+                          ? digits.join("")
+                          : <span className="operation-worksheet__answer-placeholder">?</span>)
+                      : ""}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {!showReward && activeEx && (
+        <AudioAnswerPad
+          digits={digits}
+          disabled={wrong}
+          onDigit={addDigit}
+          onBackspace={removeDigit}
+          onCheck={checkAnswer}
+        />
+      )}
+
+      {showReward && (
+        <RewardVideoModal
+          rewardVideos={student?.rewardVideos ?? []}
+          studentId={student?.id}
+          onDismiss={handleRewardDismiss}
+        />
+      )}
     </div>
   );
 }
@@ -552,14 +656,6 @@ function ManualSessionTask({ task, onCorrect, onIncorrect, streakCount = 0 }) {
   );
 }
 
-function PlaceholderTask() {
-  return (
-    <div className="operation-stage operation-stage--placeholder">
-      <div className="operation-placeholder-text">Скоро</div>
-    </div>
-  );
-}
-
 function ObserveQuantityRail({ task, phase }) {
   const isBefore = phase === "before";
   const isChanging = phase === "changing";
@@ -658,10 +754,14 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
       return;
     }
 
+    // Stay on this wrong tap instead of auto-replaying: the child taps ↻
+    // (pulsing below) when ready, rather than being swept into a replay
+    // they didn't ask for.
+    setSelected(value);
     setFeedback("retry");
+    playFeedback?.("incorrect");
     say("Неправильно. Посмотри ещё раз.");
     onIncorrect(task.conceptId, task.cardId);
-    schedule(startSequence, 850);
   }
 
   return (
@@ -669,7 +769,12 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
       <div className="observe-change">
         <ObserveQuantityRail task={task} phase={phase} />
         <div className="observe-change__controls" aria-label="Повтор задания">
-          <button type="button" className="observe-change__repeat" onClick={replay} aria-label="Показать ещё раз">
+          <button
+            type="button"
+            className={`observe-change__repeat${feedback === "retry" ? " observe-change__repeat--attention" : ""}`}
+            onClick={replay}
+            aria-label="Показать ещё раз"
+          >
             ↻
           </button>
         </div>
@@ -680,21 +785,37 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
           <div className="observe-change__answers">
             <button
               type="button"
-              className={`observe-change__answer observe-change__answer--more${feedback === "correct" && task.answer === "more" ? " observe-change__answer--correct" : ""}`}
+              className={[
+                "observe-change__answer",
+                "observe-change__answer--more",
+                feedback === "correct" && task.answer === "more" ? "observe-change__answer--correct" : "",
+                feedback === "retry" && selected === "more" ? "observe-change__answer--wrong" : "",
+              ].filter(Boolean).join(" ")}
               onClick={() => handleAnswer("more")}
               disabled={selected != null || feedback === "retry"}
               aria-label="Стало больше"
             >
-              Больше
+              <svg className="observe-change__answer-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5 L20 18 L4 18 Z" />
+              </svg>
+              <span>Больше</span>
             </button>
             <button
               type="button"
-              className={`observe-change__answer observe-change__answer--less${feedback === "correct" && task.answer === "less" ? " observe-change__answer--correct" : ""}`}
+              className={[
+                "observe-change__answer",
+                "observe-change__answer--less",
+                feedback === "correct" && task.answer === "less" ? "observe-change__answer--correct" : "",
+                feedback === "retry" && selected === "less" ? "observe-change__answer--wrong" : "",
+              ].filter(Boolean).join(" ")}
               onClick={() => handleAnswer("less")}
               disabled={selected != null || feedback === "retry"}
               aria-label="Стало меньше"
             >
-              Меньше
+              <svg className="observe-change__answer-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 19 L4 6 L20 6 Z" />
+              </svg>
+              <span>Меньше</span>
             </button>
           </div>
         </div>
@@ -1154,11 +1275,11 @@ function AudioOperationTask({ task, onCorrect, onIncorrect }) {
   );
 }
 
-function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled }) {
+function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled, student }) {
   const type = task.type;
 
   if (type === "operation_worksheet") {
-    return <WorksheetTask task={task} />;
+    return <WorksheetTask task={task} onCorrect={onCorrect} student={student} />;
   }
   // Kept for the future specialist-only physical-stick tool. It is no longer
   // part of the child-facing `operation_observe` lesson.
@@ -1172,7 +1293,7 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, p
     return <ManipulationTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
   }
   if (type === "operation_name_action") {
-    return <PlaceholderTask />;
+    return <NameActionTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} playFeedback={playFeedback} soundEnabled={soundEnabled} />;
   }
   if (type === "operation_action_from_sign") {
     return <SignActionTask task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} />;
@@ -1195,7 +1316,7 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, p
   return null;
 }
 
-export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled }) {
+export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled, student }) {
   if (!task) return null;
-  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} />;
+  return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} student={student} />;
 }

@@ -100,7 +100,7 @@ describe("operation_observe", () => {
     expect(speech.speak.mock.calls.map(([text]) => text)).not.toContain("Убрали 1.");
   });
 
-  it("records an incorrect answer and replays the same scene", () => {
+  it("records an incorrect answer, marks it, and waits for a tap on repeat instead of auto-replaying", () => {
     vi.useFakeTimers();
     const onIncorrect = vi.fn();
     mount(addTask, { onIncorrect, soundEnabled: true });
@@ -112,11 +112,21 @@ describe("operation_observe", () => {
     });
 
     expect(onIncorrect).toHaveBeenCalledWith("plus", "operation_plus");
-    expect(container.querySelector(".observe-change__feedback")).toBeNull();
     expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Неправильно. Посмотри ещё раз.");
+    expect(container.querySelector(".observe-change__answer--less").classList.contains("observe-change__answer--wrong")).toBe(true);
+    expect(container.querySelector(".observe-change__repeat").classList.contains("observe-change__repeat--attention")).toBe(true);
 
-    act(() => { vi.advanceTimersByTime(850); });
+    // No auto-restart: the scene stays put (still 3 dots, the "after" count)
+    // until the child deliberately taps repeat.
+    act(() => { vi.advanceTimersByTime(5000); });
+    expect(container.querySelectorAll(".observe-change__dot")).toHaveLength(3);
+
+    act(() => {
+      container.querySelector(".observe-change__repeat")
+        .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
     expect(container.querySelectorAll(".observe-change__dot")).toHaveLength(2);
+    expect(container.querySelector(".observe-change__repeat").classList.contains("observe-change__repeat--attention")).toBe(false);
   });
 
   it("records a correct answer only after the calm confirmation", () => {

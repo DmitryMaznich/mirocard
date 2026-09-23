@@ -35,6 +35,46 @@ describe("addition_subtraction engine", () => {
     });
   });
 
+  it("creates name-action tasks with a single change by default", () => {
+    const tasks = generateTasks("operation_name_action", CARDS, 30, {});
+
+    expect(tasks).toHaveLength(30);
+    tasks.forEach((task) => {
+      expect(task.type).toBe("operation_name_action");
+      expect(task.delta).toBe(1);
+      expect(task.maxNumber).toBe(3);
+      expect(task.answerMode).toBe("buttons");
+      expect(task.countStep).toBe(false);
+      expect(task.start).toBeGreaterThanOrEqual(1);
+      expect(task.result).toBeGreaterThanOrEqual(1);
+      expect(Math.max(task.start, task.result)).toBeLessThanOrEqual(3);
+      expect(task.result).toBe(task.operation === "add" ? task.start + 1 : task.start - 1);
+    });
+  });
+
+  it("never gives three identical actions in a row in name-action", () => {
+    for (let run = 0; run < 20; run += 1) {
+      const ops = generateTasks("operation_name_action", CARDS, 15, {}).map((task) => task.operation);
+      ops.forEach((op, index) => {
+        if (index >= 2) expect(op === ops[index - 1] && op === ops[index - 2]).toBe(false);
+      });
+    }
+  });
+
+  it("keeps the counted change within 1-3 and the range when the count step is on", () => {
+    const tasks = generateTasks("operation_name_action", CARDS, 60, { countStep: true, maxNumber: 5, answerMode: "voice" });
+
+    tasks.forEach((task) => {
+      expect(task.countStep).toBe(true);
+      expect(task.answerMode).toBe("voice");
+      expect(task.delta).toBeGreaterThanOrEqual(1);
+      expect(task.delta).toBeLessThanOrEqual(3);
+      expect(task.countOptions).toContain(task.delta);
+      expect(Math.min(task.start, task.result)).toBeGreaterThanOrEqual(1);
+      expect(Math.max(task.start, task.result)).toBeLessThanOrEqual(5);
+    });
+  });
+
   it("keeps observation tasks in the selected range", () => {
     const tasks = generateTasks("operation_observe", CARDS, 20, { maxNumber: 3 });
 

@@ -334,10 +334,14 @@ export default function SessionScreen() {
     // "browse" task type but runs under the "propis" renderer, not "print_materials".
     || mode?.type === "browse"
   );
+  // This topic is intended to remain open as a wall display. Its renderer
+  // contains the complete navigation itself, so the standard session chrome
+  // would only shrink the visual support and compete with the time carousel.
+  const isDailyOrientation = topicRecord.meta.renderer === "daily_orientation";
 
   return (
-    <div className="session-screen">
-      <div className={`session-header-wrap${mode.evaluation === "none" ? " session-header-wrap--compact" : ""}`}>
+    <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}`}>
+      {!isDailyOrientation && <div className={`session-header-wrap${mode.evaluation === "none" ? " session-header-wrap--compact" : ""}`}>
         <SessionHeader
           topicTitle={topicTitle}
           modeTitle={modeTitle}
@@ -371,7 +375,7 @@ export default function SessionScreen() {
           onLockPointerDown={startLockHold}
           onLockPointerUp={cancelLockHold}
         />
-      </div>
+      </div>}
 
       {Renderer && currentTask ? (
         <div

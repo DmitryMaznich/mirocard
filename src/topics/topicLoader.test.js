@@ -186,13 +186,13 @@ describe("importTopic — valid cases", () => {
     ]);
     expect(record.modes.map((m) => m.ui.title)).toEqual([
       "1. Что изменилось?",
-      "2. Назови действие (скоро)",
+      "2. Назови действие",
       "3. Сделай действие",
       "4. Знак ↔ Действие",
       "5. Найди знак",
       "6. Сколько стало?",
       "7. Цепочка",
-      "8. Листок",
+      "8. Контрольная работа",
       "10. Найди неизвестное",
     ]);
     const observeMode = record.modes.find((mode) => mode.id === "operation_observe");
