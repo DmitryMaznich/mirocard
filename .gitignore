@@ -125,3 +125,6 @@ public/symmetry_draw/figures/
 # tripped deploy-prod.mjs's clean-worktree check across concurrent
 # sessions (each session/worktree accumulates its own local files).
 public/decks/_audio_src/
+
+# Written at image build time (scripts/build-info.mjs)
+build-info.json

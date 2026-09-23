@@ -58,7 +58,7 @@ import {
   verifyLavaTopWebhookAuth, parseLavaTopWebhookEvent,
 } from "./lib/billing-providers/lava-top.mjs";
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
-import { gitSha } from "../scripts/git-sha.mjs";
+import { resolveGitSha } from "../scripts/build-info.mjs";
 import { reportError, trackEvent } from "./lib/observability.mjs";
 import { parseSnapshotTime } from "./lib/backup/rotation.mjs";
 import { isOffsiteConfigured } from "./lib/backup/s3-client.mjs";
@@ -1334,7 +1334,12 @@ async function handleLegalDoc(req, res, slug, lang = "ru") {
 // package.json actually live regardless of DEPLOY_FRONTEND_DIR (which can
 // be pointed elsewhere via MIROCARD_DEPLOY_FRONTEND_DIR).
 const REPO_ROOT = path.resolve(BACKEND_DIR, "..");
-const GIT_SHA = gitSha(REPO_ROOT);
+// Env (RAILWAY_GIT_COMMIT_SHA) -> build-info.json baked into the image ->
+// .git (local dev). See scripts/build-info.mjs.
+const GIT_SHA = resolveGitSha({ repoRoot: REPO_ROOT });
+if (GIT_SHA === "unknown" && process.env.RAILWAY_ENVIRONMENT) {
+  reportError(new Error("Release identity unknown: no git SHA in env, build-info.json or .git"), { scope: "release-identity" });
+}
 
 async function readPackageVersion() {
   try {
