@@ -93,3 +93,39 @@ jobs:
       - name: Root security audit (build tooling -- informational, see docs/release-evidence.md)
         run: npm audit --audit-level=high
         continue-on-error: true
+
+  docker-release-identity:
+    # Proves a production-like image (Dockerfile, no .git in the context --
+    # see .dockerignore) reports the exact commit it was built from, and
+    # that a build without a SHA fails instead of shipping gitSha "unknown".
+    name: Docker image reports its commit SHA
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build without a SHA must fail
+        run: |
+          if docker build -t mirocard:no-sha . ; then
+            echo "::error::image built without a commit SHA"; exit 1
+          fi
+      - name: Build with the commit SHA
+        run: docker build --build-arg GIT_SHA=${{ github.sha }} -t mirocard:ci .
+      - name: Running container reports that SHA on /api/version and /healthz
+        run: |
+          docker run -d --name app -p 3012:3012 \
+            -e RAILWAY_ENVIRONMENT=ci -e SERVE_STATIC=1 -e MIROCARD_DATA_DIR=/tmp/data \
+            -e AUTH_SECRET=ci -e ACCOUNT_SECRET=ci -e MIROCARD_DEPLOY_TOKEN=ci \
+            -e MIROCARD_ADMIN_TOKEN=ci -e RESEND_API_KEY=ci \
+            mirocard:ci
+          for i in $(seq 1 30); do curl -fsS localhost:3012/healthz >/dev/null && break; sleep 1; done
+          expected=$(echo "${{ github.sha }}" | cut -c1-7)
+          version=$(curl -fsS localhost:3012/api/version)
+          health=$(curl -fsS localhost:3012/healthz)
+          echo "expected=$expected version=$version health=$health"
+          echo "$version" | grep -q "\"gitSha\":\"$expected\""
+          echo "$health"  | grep -q "\"gitSha\":\"$expected\""
+          docker exec app test ! -e /app/.git
+          # sharp (photo normalization) must load in the production image:
+          docker exec app node -e "import('/app/backend/node_modules/sharp/lib/index.js').then((m) => console.log('libvips', m.default.versions.vips))"
+      - name: Container logs
+        if: always()
+        run: docker logs app || true
