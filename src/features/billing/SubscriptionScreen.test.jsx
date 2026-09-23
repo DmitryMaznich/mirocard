@@ -27,15 +27,58 @@ describe("SubscriptionScreen", () => {
     act(() => { root.render(<SubscriptionScreen />); });
   }
 
+  function mountOnPayStep() {
+    mount();
+    act(() => { container.querySelector(".subscription-cta").click(); });
+  }
+
   it("pre-selects the plan from pendingCheckoutPlan", () => {
     mount();
     const selected = container.querySelector(".plan--selected .plan__name");
     expect(selected.textContent).toBe("Год");
   });
 
-  it("shows no current-plan banner when there is no subscription", () => {
+  it("says there is no active access when there is no subscription", () => {
     mount();
-    expect(container.querySelector(".subscription-status")).toBeFalsy();
+    expect(container.querySelector(".subscription-status__value").textContent).toBe("Нет активного доступа");
+  });
+
+  it("step 1 shows plans but no payment methods or consents; they appear only after «Перейти к оплате»", () => {
+    mount();
+    expect(container.querySelectorAll(".plan").length).toBe(3);
+    expect(container.querySelector(".subscription-consents")).toBeFalsy();
+    expect(container.querySelector(".pay-methods")).toBeFalsy();
+    const cta = container.querySelector(".subscription-cta");
+    expect(cta.textContent).toBe("Перейти к оплате — € 89,90");
+    expect(cta.disabled).toBe(false);
+
+    act(() => { cta.click(); });
+    expect(container.querySelector(".screen-title").textContent).toBe("Оплата");
+    expect(container.querySelector(".subscription-consents")).toBeTruthy();
+    expect(container.querySelector(".pay-methods")).toBeTruthy();
+    expect(container.querySelector(".subscription-summary").textContent).toContain("Год");
+
+    act(() => { container.querySelector(".back-btn").click(); });
+    expect(container.querySelector(".screen-title").textContent).toBe("Подписка");
+    expect(container.querySelector(".subscription-consents")).toBeFalsy();
+  });
+
+  it("an unlimited (all_access) account sees «Бессрочный доступ» and no plans or purchase button", () => {
+    useAppStore.setState({
+      subscription: { plan: "all_access", status: "active", currentPeriodEnd: "9999-12-31T00:00:00.000Z" },
+    });
+    mount();
+    expect(container.querySelector(".subscription-status__value").textContent).toBe("Бессрочный доступ");
+    expect(container.textContent).not.toContain("9999");
+    expect(container.querySelector(".plan")).toBeFalsy();
+    expect(container.querySelector(".subscription-cta")).toBeFalsy();
+  });
+
+  it("shows how many days of access are left", () => {
+    const end = new Date(Date.now() + 10 * 86400000 - 60000).toISOString();
+    useAppStore.setState({ subscription: { plan: "annual", status: "active", currentPeriodEnd: end } });
+    mount();
+    expect(container.querySelector(".subscription-status__hint").textContent).toBe("Осталось 10 дней");
   });
 
   it("shows the current plan and its expiry when a subscription is active", () => {
@@ -48,7 +91,7 @@ describe("SubscriptionScreen", () => {
   });
 
   it("switching consent language to Slovenian shows Slovenian text and /sl links, and clears ticked boxes", () => {
-    mount();
+    mountOnPayStep();
     const boxes = () => Array.from(container.querySelectorAll(".subscription-consent input"));
     act(() => { boxes()[0].click(); });
     expect(boxes()[0].checked).toBe(true);
@@ -71,7 +114,7 @@ describe("SubscriptionScreen", () => {
     const post = vi.spyOn(apiModule.api, "post").mockResolvedValue({ checkoutUrl: "https://checkout.example/x", orderId: "o1" });
     vi.spyOn(window, "open").mockReturnValue(null);
     useAppStore.setState({ setCheckout: vi.fn() });
-    mount();
+    mountOnPayStep();
     const slBtn = Array.from(container.querySelectorAll(".consent-lang__btn")).find((b) => b.textContent === "Slovenščina");
     act(() => { slBtn.click(); });
     for (const box of container.querySelectorAll(".subscription-consent input")) act(() => { box.click(); });
@@ -80,7 +123,7 @@ describe("SubscriptionScreen", () => {
   });
 
   it("shows МИР / СБП as a disabled 'coming soon' option and keeps card selected", () => {
-    mount();
+    mountOnPayStep();
     const chips = container.querySelectorAll(".pay-chip");
     const mir = Array.from(chips).find((c) => c.textContent.includes("МИР / СБП"));
     expect(mir.disabled).toBe(true);
@@ -114,7 +157,7 @@ describe("SubscriptionScreen", () => {
   });
 
   it("the CTA stays disabled until all three consents are checked", () => {
-    mount();
+    mountOnPayStep();
     const cta = container.querySelector(".subscription-cta");
     expect(cta.disabled).toBe(true);
     for (const checkbox of container.querySelectorAll(".subscription-consent input")) {
@@ -125,7 +168,7 @@ describe("SubscriptionScreen", () => {
 
   it("submitting calls checkout with the selected plan, method and consents, only once all three are checked", async () => {
     const postSpy = vi.spyOn(apiModule.api, "post").mockResolvedValue({ checkoutUrl: "https://pay.example/x", orderId: "o1" });
-    mount();
+    mountOnPayStep();
     for (const checkbox of container.querySelectorAll(".subscription-consent input")) {
       act(() => { checkbox.click(); });
     }
@@ -143,7 +186,7 @@ describe("SubscriptionScreen", () => {
     const fakeWindow = { closed: false, location: {} };
     const openSpy = vi.spyOn(window, "open").mockReturnValue(fakeWindow);
 
-    mount();
+    mountOnPayStep();
     for (const checkbox of container.querySelectorAll(".subscription-consent input")) {
       act(() => { checkbox.click(); });
     }
@@ -166,7 +209,7 @@ describe("SubscriptionScreen", () => {
     const fakeWindow = { closed: false, close: vi.fn() };
     vi.spyOn(window, "open").mockReturnValue(fakeWindow);
 
-    mount();
+    mountOnPayStep();
     for (const checkbox of container.querySelectorAll(".subscription-consent input")) {
       act(() => { checkbox.click(); });
     }

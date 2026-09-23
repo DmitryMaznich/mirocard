@@ -440,6 +440,7 @@ export function initDb(dbPath = DB_PATH) {
   }
 
   backfillOrdersAndEntitlementsFromLegacySubscriptions(db);
+  grantAllAccessToExistingAccounts(db);
 
   return db;
 }
@@ -452,6 +453,34 @@ export function initDb(dbPath = DB_PATH) {
 // already discarded prior-purchase history by the time this ships, so a
 // legacy account that bought twice only has its most recent purchase to
 // backfill from.
+// Every account created before the commercial launch keeps free, unlimited
+// access ("all_access" feature flag) -- product decision 2026-09-23: people
+// who joined while the app was free are not moved onto the paywall. This
+// used to be a manual one-off script
+// (backend/scripts/grant-all-access-to-existing-accounts.mjs) that was never
+// run against production, so pre-launch accounts lost paid topics once the
+// paywall bypasses were closed. Running it here on every startup makes it
+// impossible to forget; it only ever adds the flag, never removes one, and
+// is a no-op once every eligible account has it. Accounts created at or
+// after the cutoff get the normal trial.
+export const ALL_ACCESS_CUTOFF = "2026-09-23T22:00:00.000Z"; // 24.09.2026 00:00 CEST
+
+export function grantAllAccessToExistingAccounts(db, { cutoff = ALL_ACCESS_CUTOFF } = {}) {
+  const rows = db.prepare("SELECT id, feature_flags FROM accounts WHERE created_at < ?").all(cutoff);
+  const update = db.prepare("UPDATE accounts SET feature_flags = ? WHERE id = ?");
+  let granted = 0;
+  for (const row of rows) {
+    let flags;
+    try { flags = JSON.parse(row.feature_flags || "[]"); } catch { flags = []; }
+    if (!Array.isArray(flags)) flags = [];
+    if (flags.includes("all_access")) continue;
+    update.run(JSON.stringify([...flags, "all_access"]), row.id);
+    granted += 1;
+  }
+  if (granted > 0) console.log(`Granted all_access to ${granted} pre-launch account(s).`);
+  return granted;
+}
+
 function backfillOrdersAndEntitlementsFromLegacySubscriptions(db) {
   const legacyRows = db.prepare("SELECT * FROM subscriptions").all();
   for (const sub of legacyRows) {
