@@ -40,6 +40,7 @@ import PrivacyScreen from "@/features/help/PrivacyScreen";
 import GlobalTimer from "@/features/timer/GlobalTimer";
 import { useTimer } from "@/features/timer/TimerContext";
 import InstallBanner from "@/shared/components/InstallBanner";
+import SyncRejectedNotice from "@/shared/components/SyncRejectedNotice";
 import PlannerMenuScreen from "@/features/planner/PlannerMenuScreen";
 import PlannerShoppingScreen from "@/features/planner/PlannerShoppingScreen";
 import PlannerPutawayScreen from "@/features/planner/PlannerPutawayScreen";
@@ -336,6 +337,7 @@ export default function App() {
       </ErrorBoundary>
       <OrientationGuard orientationLock={orientationLock} />
       {screen !== "boot" && screen !== "session" && <InstallBanner />}
+      <SyncRejectedNotice />
       {showSessionExitPrompt && (
         <Modal
           title="Завершить занятие?"

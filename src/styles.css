@@ -22680,3 +22680,6 @@ body { background: #eef0ef; }
   .mp-order-row__actions button { width: 26px; height: 26px; }
 }
 
+
+.sync-rejected-notice__text { margin: 0 0 10px; font-size: 14px; line-height: 1.45; color: #3f4a47; }
+.sync-rejected-notice__text:last-child { margin-bottom: 0; }

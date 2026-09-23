@@ -50,13 +50,22 @@ async function enqueue(type, data) {
   await req2p(db.transaction(SQ, "readwrite").objectStore(SQ).add({ type, data })).catch(() => {});
 }
 
+// Fired with the server's `rejected` list when it refuses an operation for
+// good (e.g. a photo that isn't an image or exceeds the account's quota).
+// The operation is still removed from the queue: retrying can never succeed
+// and would block every later change behind it.
+export const SYNC_REJECTED_EVENT = "mirocard:sync-rejected";
+
 export async function flushQueue() {
   const db = await getDb();
   const entries = await cursorAll(db).catch(() => []);
   for (const { key, type, data } of entries) {
     try {
-      await api.post("/sync", { operations: [{ type, data }] });
+      const result = await api.post("/sync", { operations: [{ type, data }] });
       await req2p(db.transaction(SQ, "readwrite").objectStore(SQ).delete(key)).catch(() => {});
+      if (Array.isArray(result?.rejected) && result.rejected.length && typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent(SYNC_REJECTED_EVENT, { detail: result.rejected }));
+      }
     } catch {
       break; // stop on first failure, retry next time
     }

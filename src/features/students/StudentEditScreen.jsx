@@ -23,7 +23,9 @@ function normaliseAdults(raw) {
   if (!Array.isArray(raw)) return [];
   return raw.map((a) => ({ id: a.id, name: a.name ?? "", photo: a.photo ?? null }));
 }
-async function resizeToDataUrl(file, maxSize = 400) {
+// Up to 1024 px square; the server re-encodes to a bounded WebP
+// (backend/lib/photo-normalizer.mjs). 400 px looked soft on a tablet.
+async function resizeToDataUrl(file, maxSize = 1024) {
   return new Promise((resolve) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
@@ -35,7 +37,7 @@ async function resizeToDataUrl(file, maxSize = 400) {
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
+      resolve(canvas.toDataURL("image/jpeg", 0.9));
     };
     img.src = url;
   });
@@ -64,7 +66,7 @@ function AdultAddForm({ onConfirm, onCancel }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setLoading(true);
-    setPhoto(await resizeToDataUrl(file, 200));
+    setPhoto(await resizeToDataUrl(file));
     setLoading(false);
   }
 
@@ -153,7 +155,7 @@ export default function StudentEditScreen() {
     const file = e.target.files?.[0];
     if (!file) return;
     setPhotoLoading(true);
-    setPhoto(await resizeToDataUrl(file, 400));
+    setPhoto(await resizeToDataUrl(file));
     setPhotoLoading(false);
   }
 
