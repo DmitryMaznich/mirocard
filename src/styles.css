@@ -15782,6 +15782,13 @@ button.operation-dot {
   line-height: 0.85;
 }
 
+/* Keep the enlarged +/- glyph background-free even when the button also
+   carries the --subtract color modifier (otherwise the minus glyph alone
+   gets a faint tinted box the plus glyph doesn't, see operation-choice--subtract). */
+.operation-choice-grid--large-signs .operation-choice--subtract .operation-choice__sign {
+  background: transparent;
+}
+
 .operation-number-choice {
   font-size: 2rem;
 }

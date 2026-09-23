@@ -324,6 +324,7 @@ function ChoiceGrid({ options, selected, answer, onAnswer, variant }) {
         const isSign = option.value === "+" || option.value === "-";
         const className = [
           "operation-choice",
+          isSign && option.value === "-" ? "operation-choice--subtract" : "",
           isCorrect ? "operation-choice--correct" : "",
           isWrong ? "operation-choice--wrong" : "",
         ].filter(Boolean).join(" ");
