@@ -309,8 +309,11 @@ export function findEntitlementsNeedingReminders(db, { at = now() } = {}) {
 
   const due = [];
   for (const row of currentActiveRows) {
-    const account = db.prepare("SELECT email FROM accounts WHERE id = ?").get(row.account_id);
+    const account = db.prepare("SELECT email, feature_flags FROM accounts WHERE id = ?").get(row.account_id);
     if (!account) continue;
+    // Unlimited (all_access) accounts never lose access, so an "ending
+    // soon"/"ended" email about a leftover trial row would be false.
+    if (safeJson(account.feature_flags, []).includes("all_access")) continue;
     if (row.ends_at < at) {
       if (!row.reminder_expired_sent_at && row.ends_at >= expiredWindowStart) {
         due.push({ kind: "expired", entitlement: row, email: account.email });

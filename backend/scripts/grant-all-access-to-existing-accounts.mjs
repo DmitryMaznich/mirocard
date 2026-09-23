@@ -1,3 +1,7 @@
+// SUPERSEDED: backend/lib/db.mjs grantAllAccessToExistingAccounts() now does
+// this automatically on every startup (cutoff ALL_ACCESS_CUTOFF). Kept for
+// reference / manual use only.
+//
 // One-off migration: give every pre-existing account the "all_access" feature
 // flag so the new paywall (Task: trial-and-paywall) doesn't lock out anyone
 // who joined back when the whole app was free. New signups after this

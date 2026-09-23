@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { PLAN_LABELS, formatPeriodEnd } from "./planLabels";
+import { PLAN_LABELS, formatPeriodEnd, daysLeft, isUnlimitedPlan } from "./planLabels";
 
 const PLANS = [
   { id: "monthly", name: "Месяц", hint: "Без долгих обязательств", priceLabel: "€ 9,90" },
@@ -35,6 +35,13 @@ function legalLink(href, label) {
   return <a href={href} target="_blank" rel="noopener noreferrer">{label}</a>;
 }
 
+function pluralDays(n) {
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return "день";
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "дня";
+  return "дней";
+}
+
 function formatMinor(amountMinor) {
   return (amountMinor / 100).toFixed(2).replace(".", ",");
 }
@@ -57,6 +64,10 @@ export default function SubscriptionScreen() {
   const [pricePeriodConfirmed, setPricePeriodConfirmed] = useState(false);
   const [digitalContentAck, setDigitalContentAck] = useState(false);
   const [consentLocale, setConsentLocale] = useState("ru");
+  // Two steps: "choose" shows the current access and the plans; payment
+  // method, promo-discounted total and the legal consents only appear on
+  // "pay", after the user deliberately moves on to paying.
+  const [step, setStep] = useState("choose");
 
   const plan = PLANS.find((p) => p.id === planId);
   const discounted = promoResult?.ok && promoResult.kind !== "free_grant" ? promoResult.discountedAmountMinor : null;
@@ -132,6 +143,76 @@ export default function SubscriptionScreen() {
     }
   }
 
+  const unlimited = isUnlimitedPlan(subscription?.plan);
+  const remaining = subscription && !unlimited ? daysLeft(subscription.currentPeriodEnd) : null;
+
+  if (step === "pay") {
+    return (
+      <div className="screen subscription-screen">
+        <div className="screen-header">
+          <button className="back-btn" onClick={() => setStep("choose")} aria-label="Назад к выбору плана"><BackArrowIcon /></button>
+          <h1 className="screen-title">Оплата</h1>
+        </div>
+
+        <div className="subscription-body">
+          <div className="subscription-summary">
+            <span className="subscription-summary__plan">{plan.name}</span>
+            <span className="subscription-summary__price">{priceText}</span>
+          </div>
+          {subscription && !unlimited && (
+            <p className="subscription-summary__note">Новый период добавится к текущему — после {formatPeriodEnd(subscription.currentPeriodEnd)}.</p>
+          )}
+
+          <p className="section-label">Способ оплаты</p>
+          <div className="pay-methods">
+            <button type="button" className={`pay-chip${method === "card" ? " pay-chip--selected" : ""}`} onClick={() => setMethod("card")}>Картой</button>
+            {/* Launch is EU/Stripe only. МИР/СБП (Lava Top) is shown disabled
+                to signal it's planned, not forgotten; the server refuses it
+                too (DISABLED_CHECKOUT_METHODS in backend/server.mjs). */}
+            <button type="button" className="pay-chip pay-chip--disabled" disabled aria-disabled="true" title="Скоро">
+              МИР / СБП
+              <span className="pay-chip__soon">скоро</span>
+            </button>
+          </div>
+
+          <div className="subscription-consents" lang={consentLocale}>
+            <div className="consent-lang" role="group" aria-label="Язык условий / Jezik pogojev">
+              <button type="button" className={`consent-lang__btn${consentLocale === "ru" ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === "ru"} onClick={() => switchConsentLocale("ru")}>Русский</button>
+              <button type="button" className={`consent-lang__btn${consentLocale === "sl" ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === "sl"} onClick={() => switchConsentLocale("sl")}>Slovenščina</button>
+            </div>
+            <label className="subscription-consent">
+              <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} />
+              <span>{ct.terms(legalLink)}</span>
+            </label>
+            <label className="subscription-consent">
+              <input type="checkbox" checked={pricePeriodConfirmed} onChange={(e) => setPricePeriodConfirmed(e.target.checked)} />
+              <span>{ct.price(priceText, consentPlanName)}</span>
+            </label>
+            <label className="subscription-consent">
+              <input type="checkbox" checked={digitalContentAck} onChange={(e) => setDigitalContentAck(e.target.checked)} />
+              <span>{ct.digital(legalLink)}</span>
+            </label>
+          </div>
+
+          {submitError && <p className="subscription-error">{submitError}</p>}
+        </div>
+
+        <div className="subscription-footer">
+          {/* M0 launch: a single prepaid-period purchase, not a recurring
+              subscription -- no card is kept on file and nothing charges
+              again automatically. Said explicitly here rather than only in
+              the Terms. See docs/commercial-launch-runbook.md's M0/M1 section. */}
+          <p className="subscription-disclaimer" lang={consentLocale}>
+            {ct.disclaimer(consentPlanName)}
+          </p>
+          <button type="button" className="btn btn-primary subscription-cta" disabled={submitting || !consentsGiven} onClick={submit}>
+            Оплатить — {priceText}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="screen subscription-screen">
       <div className="screen-header">
@@ -140,97 +221,76 @@ export default function SubscriptionScreen() {
       </div>
 
       <div className="subscription-body">
-        {subscription && (
-          <div className="subscription-status">
-            <span className="subscription-status__label">Текущий план</span>
-            <span className="subscription-status__value">
-              {PLAN_LABELS[subscription.plan] ?? subscription.plan} · до {formatPeriodEnd(subscription.currentPeriodEnd)}
-            </span>
-          </div>
-        )}
-
-        <div className="subscription-lead">
-          <p className="subscription-lead__eyebrow">Оформление</p>
-          <h2 className="subscription-lead__title">Все занятия — в одной подписке</h2>
-        </div>
-
-        <div className="plan-list">
-          {PLANS.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className={`plan${p.id === planId ? " plan--selected" : ""}`}
-              onClick={() => { setPlanId(p.id); setPromoResult(null); }}
-            >
-              <span className="plan__radio" />
-              <span className="plan__info">
-                <span className="plan__name">{p.name}</span>
-                <span className="plan__hint">{p.hint}</span>
+        <div className={`subscription-status${subscription ? "" : " subscription-status--none"}`}>
+          <span className="subscription-status__label">Ваш доступ</span>
+          {unlimited ? (
+            <>
+              <span className="subscription-status__value">Бессрочный доступ</span>
+              <span className="subscription-status__hint">Все темы открыты без ограничения срока — покупать ничего не нужно.</span>
+            </>
+          ) : subscription ? (
+            <>
+              <span className="subscription-status__value">
+                {PLAN_LABELS[subscription.plan] ?? subscription.plan} · до {formatPeriodEnd(subscription.currentPeriodEnd)}
               </span>
-              <span className="plan__price">{p.priceLabel}</span>
-            </button>
-          ))}
+              <span className="subscription-status__hint">
+                {remaining > 0 ? `Осталось ${remaining} ${pluralDays(remaining)}` : "Заканчивается сегодня"}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="subscription-status__value">Нет активного доступа</span>
+              <span className="subscription-status__hint">Платные темы закрыты. Выберите план, чтобы открыть их.</span>
+            </>
+          )}
         </div>
 
-        <p className="section-label">Способ оплаты</p>
-        <div className="pay-methods">
-          <button type="button" className={`pay-chip${method === "card" ? " pay-chip--selected" : ""}`} onClick={() => setMethod("card")}>Картой</button>
-          {/* Launch is EU/Stripe only. МИР/СБП (Lava Top) is shown disabled
-              to signal it's planned, not forgotten; the server refuses it
-              too (DISABLED_CHECKOUT_METHODS in backend/server.mjs). */}
-          <button type="button" className="pay-chip pay-chip--disabled" disabled aria-disabled="true" title="Скоро">
-            МИР / СБП
-            <span className="pay-chip__soon">скоро</span>
+        {!unlimited && (
+          <>
+            <div className="subscription-lead">
+              <p className="subscription-lead__eyebrow">{subscription ? "Продление" : "Оформление"}</p>
+              <h2 className="subscription-lead__title">Все занятия — в одной подписке</h2>
+            </div>
+
+            <div className="plan-list">
+              {PLANS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={`plan${p.id === planId ? " plan--selected" : ""}`}
+                  onClick={() => { setPlanId(p.id); setPromoResult(null); }}
+                >
+                  <span className="plan__radio" />
+                  <span className="plan__info">
+                    <span className="plan__name">{p.name}</span>
+                    <span className="plan__hint">{p.hint}</span>
+                  </span>
+                  <span className="plan__price">{p.priceLabel}</span>
+                </button>
+              ))}
+            </div>
+
+            {!promoOpen && (
+              <button type="button" className="promo-toggle" onClick={() => setPromoOpen(true)}>У меня есть промокод</button>
+            )}
+            {promoOpen && (
+              <div className="promo-row">
+                <input className="promo-input" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} placeholder="ПРОМОКОД" />
+                <button type="button" className="promo-apply" onClick={applyPromo}>Применить</button>
+                {promoError && <span className="promo-error">Код не подходит</span>}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {!unlimited && (
+        <div className="subscription-footer">
+          <button type="button" className="btn btn-primary subscription-cta" onClick={() => setStep("pay")}>
+            Перейти к оплате — {priceText}
           </button>
         </div>
-
-        {!promoOpen && (
-          <button type="button" className="promo-toggle" onClick={() => setPromoOpen(true)}>У меня есть промокод</button>
-        )}
-        {promoOpen && (
-          <div className="promo-row">
-            <input className="promo-input" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} placeholder="ПРОМОКОД" />
-            <button type="button" className="promo-apply" onClick={applyPromo}>Применить</button>
-            {promoError && <span className="promo-error">Код не подходит</span>}
-          </div>
-        )}
-
-        <div className="subscription-consents" lang={consentLocale}>
-          <div className="consent-lang" role="group" aria-label="Язык условий / Jezik pogojev">
-            <button type="button" className={`consent-lang__btn${consentLocale === "ru" ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === "ru"} onClick={() => switchConsentLocale("ru")}>Русский</button>
-            <button type="button" className={`consent-lang__btn${consentLocale === "sl" ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === "sl"} onClick={() => switchConsentLocale("sl")}>Slovenščina</button>
-          </div>
-          <label className="subscription-consent">
-            <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} />
-            <span>{ct.terms(legalLink)}</span>
-          </label>
-          <label className="subscription-consent">
-            <input type="checkbox" checked={pricePeriodConfirmed} onChange={(e) => setPricePeriodConfirmed(e.target.checked)} />
-            <span>{ct.price(priceText, consentPlanName)}</span>
-          </label>
-          <label className="subscription-consent">
-            <input type="checkbox" checked={digitalContentAck} onChange={(e) => setDigitalContentAck(e.target.checked)} />
-            <span>{ct.digital(legalLink)}</span>
-          </label>
-        </div>
-
-        {submitError && <p className="subscription-error">{submitError}</p>}
-      </div>
-
-      <div className="subscription-footer">
-        {/* M0 launch: this is a single prepaid-period purchase, not a
-            recurring subscription -- no card is kept on file and nothing
-            charges again automatically. Said explicitly here rather than
-            only in the Terms, since "Подписка"/"Оформить" alone could
-            otherwise read as an auto-renewing plan. See
-            docs/commercial-launch-runbook.md's M0/M1 section. */}
-        <p className="subscription-disclaimer" lang={consentLocale}>
-          {ct.disclaimer(consentPlanName)}
-        </p>
-        <button type="button" className="btn btn-primary subscription-cta" disabled={submitting || !consentsGiven} onClick={submit}>
-          Оформить — {discounted != null ? `€ ${formatMinor(discounted)}` : plan.priceLabel}
-        </button>
-      </div>
+      )}
     </div>
   );
 }
