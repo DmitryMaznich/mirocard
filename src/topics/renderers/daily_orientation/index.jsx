@@ -206,7 +206,6 @@ export default function DailyOrientationRenderer({ sessionParams }) {
           <section className={`daily-orientation__grid daily-orientation__grid--${visibleCardCount}`} aria-live="polite">
             {display.showWeekday && (
               <article className="daily-orientation__card daily-orientation__card--weekday">
-                <h2 className="daily-orientation__card-title">День недели</h2>
                 <p className="daily-orientation__question">{getRelativePrompt(offset, "day")}</p>
                 <strong className="daily-orientation__answer">{weekday}</strong>
               </article>
@@ -214,7 +213,6 @@ export default function DailyOrientationRenderer({ sessionParams }) {
 
             {hasDate && (
               <article className={`daily-orientation__card daily-orientation__card--date${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__card--date-single"}`}>
-                <h2 className="daily-orientation__card-title daily-orientation__card-title--context">Дата</h2>
                 <div className={`daily-orientation__date-values${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__date-values--single"}`}>
                   {display.showDayOfMonth && (
                     <div className="daily-orientation__date-part">
@@ -236,7 +234,6 @@ export default function DailyOrientationRenderer({ sessionParams }) {
             {display.showSeason && (
               <article className={`daily-orientation__card daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
                 <div className="daily-orientation__season-background" aria-hidden="true"><SeasonMark season={season} /></div>
-                <h2 className="daily-orientation__card-title">Время года</h2>
                 <p className="daily-orientation__question">{getRelativePrompt(offset, "season")}</p>
                 <strong className="daily-orientation__answer">{season.label}</strong>
               </article>
@@ -244,8 +241,7 @@ export default function DailyOrientationRenderer({ sessionParams }) {
 
             {hasTime && (
               <article className={timeCardClassName}>
-                <h2 className="daily-orientation__card-title">Время</h2>
-                <p className="daily-orientation__question daily-orientation__question--time">Который сейчас час?</p>
+                <p className="daily-orientation__question daily-orientation__question--time">Сколько сейчас времени?</p>
                 <div className="daily-orientation__time-content">
                   {display.showAnalogClock && <AnalogClock now={now} />}
                   {(display.showTimeWords || display.showDigitalTime) && (

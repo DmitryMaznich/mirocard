@@ -179,7 +179,7 @@
 .daily-orientation__card--time {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   align-items: center;
   justify-items: center;
   gap: 10px;
@@ -190,14 +190,13 @@
 
 .daily-orientation__card--time-without-clock,
 .daily-orientation__card--time-clock-only {
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .daily-orientation__card--time-clock-only .daily-orientation__time-content { justify-content: center; }
 .daily-orientation__card--time-without-clock .daily-orientation__time-content { justify-content: center; }
 
-.daily-orientation__question,
-.daily-orientation__card-title {
+.daily-orientation__question {
   margin: 0;
   color: var(--orientation-ink);
   font-weight: 850;
@@ -205,20 +204,6 @@
 }
 
 .daily-orientation__question { font-size: 47px; text-align: center; }
-.daily-orientation__card-title {
-  font-size: 30px;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-.daily-orientation__card-title--context {
-  align-self: center;
-  padding: 8px 18px;
-  border-radius: 999px;
-  background: rgba(215, 103, 71, .13);
-  color: #9f4e3d;
-  font-size: 25px;
-}
 .daily-orientation__question--date {
   font-size: 35px;
   line-height: 1.08;

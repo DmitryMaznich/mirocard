@@ -41,9 +41,9 @@ export function getSeason(monthIndex) {
 
 export function getRelativePrompt(offset, noun) {
   if (noun === "day") {
-    if (offset < 0) return "Какой был день?";
-    if (offset > 0) return "Какой будет день?";
-    return "Какой сегодня день?";
+    if (offset < 0) return "Какой вчера был день недели?";
+    if (offset > 0) return "Какой завтра будет день недели?";
+    return "Какой сегодня день недели?";
   }
   if (noun === "date") {
     if (offset < 0) return "Какое число было вчера?";
@@ -55,8 +55,8 @@ export function getRelativePrompt(offset, noun) {
     if (offset > 0) return "Какой месяц будет завтра?";
     return "Какой сейчас месяц?";
   }
-  if (offset < 0) return "Какое было время года?";
-  if (offset > 0) return "Какое будет время года?";
+  if (offset < 0) return "Какое вчера было время года?";
+  if (offset > 0) return "Какое завтра будет время года?";
   return "Какое сейчас время года?";
 }
 
