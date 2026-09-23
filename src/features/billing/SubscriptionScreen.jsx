@@ -175,7 +175,13 @@ export default function SubscriptionScreen() {
         <p className="section-label">Способ оплаты</p>
         <div className="pay-methods">
           <button type="button" className={`pay-chip${method === "card" ? " pay-chip--selected" : ""}`} onClick={() => setMethod("card")}>Картой</button>
-          <button type="button" className={`pay-chip${method === "mir_sbp" ? " pay-chip--selected" : ""}`} onClick={() => setMethod("mir_sbp")}>МИР / СБП</button>
+          {/* Launch is EU/Stripe only. МИР/СБП (Lava Top) is shown disabled
+              to signal it's planned, not forgotten; the server refuses it
+              too (DISABLED_CHECKOUT_METHODS in backend/server.mjs). */}
+          <button type="button" className="pay-chip pay-chip--disabled" disabled aria-disabled="true" title="Скоро">
+            МИР / СБП
+            <span className="pay-chip__soon">скоро</span>
+          </button>
         </div>
 
         {!promoOpen && (

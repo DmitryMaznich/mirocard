@@ -79,6 +79,16 @@ describe("SubscriptionScreen", () => {
     expect(post).toHaveBeenCalledWith("/billing/checkout", expect.objectContaining({ locale: "sl" }));
   });
 
+  it("shows МИР / СБП as a disabled 'coming soon' option and keeps card selected", () => {
+    mount();
+    const chips = container.querySelectorAll(".pay-chip");
+    const mir = Array.from(chips).find((c) => c.textContent.includes("МИР / СБП"));
+    expect(mir.disabled).toBe(true);
+    expect(mir.textContent).toContain("скоро");
+    act(() => { mir.click(); });
+    expect(container.querySelector(".pay-chip--selected").textContent).toBe("Картой");
+  });
+
   it("switching plan updates the CTA total", () => {
     mount();
     const monthlyRadio = container.querySelectorAll(".plan")[0];

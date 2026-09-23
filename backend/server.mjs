@@ -880,6 +880,10 @@ async function handleAdminCreatePromoCode(req, res) {
 // ─── Billing ────────────────────────────────────────────────────────────────
 
 const CHECKOUT_METHODS = { card: "stripe", mir_sbp: "lava_top" };
+// Launch is EU/Stripe only (docs/legal-launch-inputs.md §1). Lava Top stays
+// wired but refused here until its integration is verified and the legal
+// docs cover it -- the checkout UI shows it disabled with "скоро".
+const DISABLED_CHECKOUT_METHODS = new Set(["mir_sbp"]);
 
 async function handleBillingCheckout(req, res) {
   const account = requireAuth(req);
@@ -901,6 +905,9 @@ async function handleBillingCheckout(req, res) {
   if (!planDef) return writeJson(res, 400, { error: "Unknown plan" });
   const provider = CHECKOUT_METHODS[method];
   if (!provider) return writeJson(res, 400, { error: "Unknown payment method" });
+  if (DISABLED_CHECKOUT_METHODS.has(method)) {
+    return writeJson(res, 400, { error: "Payment method not available yet" });
+  }
   if (!consents?.termsAccepted || !consents?.pricePeriodConfirmed || !consents?.digitalContentAck) {
     return writeJson(res, 400, { error: "All checkout consents are required" });
   }

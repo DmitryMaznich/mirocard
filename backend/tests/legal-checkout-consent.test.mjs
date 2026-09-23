@@ -144,3 +144,19 @@ test("checkout records a Slovenian consent locale when the client sends locale: 
   }
   assert.deepEqual(locales, { sl: "sl", de: "ru" });
 });
+
+test("МИР/СБП (Lava Top) is refused at checkout while it is disabled for launch, and creates no order", async () => {
+  const { token } = await registerAndLogin();
+  const before = db.prepare("SELECT COUNT(*) AS n FROM orders").get().n;
+  const res = await fetch(`${base}/api/billing/checkout`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      plan: "monthly", method: "mir_sbp",
+      consents: { termsAccepted: true, pricePeriodConfirmed: true, digitalContentAck: true },
+    }),
+  });
+  assert.equal(res.status, 400);
+  assert.equal((await res.json()).error, "Payment method not available yet");
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM orders").get().n, before);
+});
