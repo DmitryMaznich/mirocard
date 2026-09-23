@@ -7,12 +7,13 @@ summarized; full output is in this session's transcript) — nothing here is
 asserted without a corresponding test/command run against this branch.
 
 **Verdict up front: this branch is not yet ready to flip on for real paying
-customers.** 10 of 13 items are met (one — item 5 — is met specifically for
-the M0 scope this launch uses, not for a full recurring-subscription
-product). 3 items are genuinely unmet or only partially met, and none of
-them are cosmetic: no payment-provider sandbox run has ever been executed
-against this code, the legal document text is still placeholder/draft by
-design, and there is no off-site backup. Do not remove the "not yet
+customers.** 9 of 13 items are fully met (one — item 5 — is met specifically
+for the M0 scope this launch uses, not for a full recurring-subscription
+product), 3 are partially met (8 legal, 11 backups/restore drill, 13 tagged
+releases) and 1 is not met (6 sandbox E2E). The blockers are not cosmetic:
+no payment-provider sandbox run has ever been executed against this code,
+the legal document text is still placeholder/draft by design, and there is
+no off-site backup. Do not remove the "not yet
 recommended for production" status in `docs/commercial-launch-runbook.md`
 until those three are closed.
 
@@ -150,33 +151,25 @@ A restore-drill *procedure* is documented in
 performed** against a real backup file, because doing so needs Railway
 dashboard/volume access this sandboxed session doesn't have.
 
-### 12. CI fully green on a clean worktree — **NOT MET**
+### 12. CI fully green on a clean worktree — **MET**
 
-`.github/workflows/ci.yml` exists with `backend-tests` (blocking),
-`frontend-tests`, `lint`, and `build` jobs. On a real green-check run of
-this branch:
-- `backend-tests` is genuinely green: 175/175 backend tests pass, 0
-  vulnerabilities in `npm audit --prefix backend`.
-- `npx eslint backend` (newly linted for the first time — `.mjs` files were
-  previously excluded from lint entirely due to a config gap unrelated to
-  this branch, fixed here) is clean.
+`.github/workflows/ci.yml` has `backend-tests`, `frontend-tests`, `lint`,
+and `build` jobs. Verified on this branch after merging current `origin/main`:
+- `backend-tests`: 175/175 pass, 0 vulnerabilities in
+  `npm audit --prefix backend`.
+- `frontend-tests` (`npx vitest run`): 110/110 files, 1459/1459 tests pass.
+  The 12 failures previously recorded here pre-existed on `origin/main` and
+  were all stale tests that had not been updated after intentional code
+  changes (youtube-nocookie embed URL, recipe sessions never auto-resuming,
+  the new «Помощь и поддержка» menu item, the 5-structure `FINGER_MAP`,
+  `choose_action` options switching to `actionInf`). The tests were updated
+  to the current behavior; no app code was changed to make them pass.
+- `npx eslint backend` (blocking) is clean.
 - `npm run build` succeeds.
-- `frontend-tests` (`npx vitest run` at the repo root) is **not fully
-  green**: 1431/1443 tests pass, 5 files / 12 tests fail. These 12 failures
-  were confirmed **pre-existing and unrelated to this branch** — verified
-  by creating a separate temporary worktree at `origin/main` (before any of
-  this branch's changes) and running the identical command, which produced
-  the same 12 failing tests.
-- Full-repo `npx eslint .` (informational, not a blocking CI gate) reports
-  ~195 problems, ~190 of which pre-exist on `origin/main` and are unrelated
-  to this branch's files.
-
-Because a real CI run on this PR would show `frontend-tests` red (for
-reasons outside this branch's own changes), item 12 is marked **not met**
-rather than papering over it — a genuinely green CI badge requires either
-fixing those 12 pre-existing failures (a separate, unscoped piece of work)
-or the repo owner accepting them as known-flaky/pre-existing and adjusting
-CI expectations accordingly.
+- Informational, non-blocking steps (`continue-on-error: true`): full-repo
+  `npx eslint .` still reports pre-existing lint debt outside `backend/`,
+  and the root `npm audit` reports build-tooling vulnerabilities (see
+  below). Neither turns the CI run red.
 
 ### 13. Production release reproducible from tag+commit SHA — **PARTIALLY MET**
 
@@ -203,9 +196,8 @@ $ npm audit --prefix backend
 # 0 vulnerabilities
 
 $ npx vitest run          # repo root
-# 101 passed, 5 failed (files) | 1431 passed, 12 failed (tests)
-# — confirmed identical failing-test set exists on a clean origin/main
-#   worktree, predating this branch
+# 110 passed (files) | 1459 passed (tests)
+# — after merging origin/main and updating 12 stale pre-existing tests
 
 $ npx eslint backend
 # clean, 0 problems (this is the first time backend/**/*.mjs was ever
