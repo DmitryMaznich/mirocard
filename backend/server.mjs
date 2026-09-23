@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
-  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION, PHOTO_LIMITS,
+  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION, PHOTO_LIMITS, OFFSITE_BACKUP,
   CORS_ALLOWED_ORIGINS,
 } from "./lib/config.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
@@ -60,6 +60,8 @@ import {
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
 import { gitSha } from "../scripts/git-sha.mjs";
 import { reportError, trackEvent } from "./lib/observability.mjs";
+import { parseSnapshotTime } from "./lib/backup/rotation.mjs";
+import { isOffsiteConfigured } from "./lib/backup/s3-client.mjs";
 import {
   getOwnedPhoto, storePhotoDataUrl, resolveSyncOperationPhotos, migrateLegacyDataUrlPhotos, PhotoQuotaError,
 } from "./lib/photo-store.mjs";
@@ -1363,13 +1365,29 @@ function backupAgeMinutes() {
   try {
     const backupDir = path.join(DATA_DIR, "backups");
     if (!existsSync(backupDir)) return null;
-    const files = readdirSync(backupDir);
-    if (!files.length) return null;
-    const newestMtimeMs = Math.max(...files.map((f) => statSync(path.join(backupDir, f)).mtimeMs));
-    return Math.round((Date.now() - newestMtimeMs) / 60000);
+    // Only real snapshots count -- not offsite-state.json or anything else
+    // that happens to be in the directory.
+    const times = readdirSync(backupDir).map(parseSnapshotTime).filter((t) => t !== null);
+    if (!times.length) return null;
+    return Math.round((Date.now() - Math.max(...times)) / 60000);
   } catch {
     return null;
   }
+}
+
+function offsiteBackupStatus() {
+  const configured = isOffsiteConfigured(OFFSITE_BACKUP);
+  let lastUploadAt = null;
+  try {
+    lastUploadAt = JSON.parse(readFileSync(path.join(DATA_DIR, "backups", "offsite-state.json"), "utf8")).lastUploadAt ?? null;
+  } catch {
+    // no upload yet
+  }
+  return {
+    configured,
+    lastUploadAt,
+    ageMinutes: lastUploadAt ? Math.round((Date.now() - Date.parse(lastUploadAt)) / 60000) : null,
+  };
 }
 
 // No auth, no PII: an uptime monitor or Railway's own health check needs
@@ -1392,6 +1410,7 @@ async function handleHealthz(req, res) {
     gitSha: GIT_SHA,
     db: dbOk,
     backupAgeMinutes: backupAgeMinutes(),
+    offsiteBackup: offsiteBackupStatus(),
   });
 }
 
