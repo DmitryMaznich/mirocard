@@ -564,7 +564,17 @@ export function getAllSessions(db, accountId) {
 
 // ─── Account topics ───────────────────────────────────────────────────────────
 
+// Sources that unlock a deck download (server.mjs isGranted). Only the
+// server may write them: claimAccountTopic (free/paid, entitlement-checked)
+// and grantAccountTopic (admin). This function is reachable from client
+// input (POST /account-topics and the sync op topic.acquire), so a
+// client-supplied granting source is downgraded -- otherwise any account
+// could self-grant a paid deck, or self-assign a non-expiring "grant"
+// while entitled and keep it after the entitlement ends.
+const SERVER_ONLY_TOPIC_SOURCES = new Set(["free", "grant", "paid"]);
+
 export function upsertAccountTopic(db, accountId, { id, topicId, topicVersion, source = "download", licenseToken = null }) {
+  if (SERVER_ONLY_TOPIC_SOURCES.has(source)) source = "download";
   const ts = now();
   db.prepare(`
     INSERT INTO account_topics (id, account_id, topic_id, topic_version, acquired_at, source, license_token)
