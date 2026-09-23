@@ -9,6 +9,7 @@ import { useAudio } from "@/shared/hooks/useAudio";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getTopicTitle } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import { isPaidTopicLocked } from "@/features/billing/entitlement";
 import SessionHeader from "./SessionHeader";
 import SessionPlanDrawer from "@/features/lessonPlan/SessionPlanDrawer";
 import { formatPlanTongueLabel } from "@/features/lessonPlan/lessonPlanUtils";
@@ -41,7 +42,34 @@ export function shouldPreferBundledRenderer(renderer) {
   return renderer === "spatial_prepositions";
 }
 
+// Every way into a session (topic library, home, lesson plan, params
+// screen, resuming an interrupted session) renders this screen, so the
+// paid-topic lock lives here once instead of at each entry point -- the
+// library tile alone used to be the only place that checked it.
 export default function SessionScreen() {
+  const activeTopicId = useAppStore((s) => s.activeTopicId);
+  const ownedTopics = useAppStore((s) => s.ownedTopics);
+  const account = useAppStore((s) => s.account);
+  const subscription = useAppStore((s) => s.subscription);
+  const setScreen = useAppStore((s) => s.setScreen);
+  if (isPaidTopicLocked({ topicId: activeTopicId, ownedTopics, account, subscription })) {
+    return (
+      <div className="screen session-locked">
+        <div className="screen-header">
+          <button className="back-btn" onClick={() => setScreen("home")} aria-label="На главную"><BackArrowIcon /></button>
+          <h1 className="screen-title">Доступ закончился</h1>
+        </div>
+        <div className="session-locked__body">
+          <p className="session-locked__text">Эта тема входит в платный доступ, а оплаченный период уже закончился. Продлите доступ, чтобы продолжить занятия.</p>
+          <button type="button" className="btn btn-primary" onClick={() => setScreen("subscription")}>Продлить доступ</button>
+        </div>
+      </div>
+    );
+  }
+  return <SessionScreenContent />;
+}
+
+function SessionScreenContent() {
   const setScreen             = useAppStore((s) => s.setScreen);
   const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
