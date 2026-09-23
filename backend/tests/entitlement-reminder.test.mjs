@@ -59,6 +59,15 @@ test("findEntitlementsNeedingReminders flags a past ends_at as expired-due", () 
   assert.equal(due[0].kind, "expired");
 });
 
+test("an entitlement that expired long ago (e.g. a legacy trial backfilled on first deploy) gets no expired reminder", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  grantTrialSubscription(db, acc.id, { trialDays: 30 });
+  setEntitlementEndsAt(db, acc.id, new Date(Date.now() - 60 * 86400000).toISOString());
+
+  assert.deepEqual(findEntitlementsNeedingReminders(db), []);
+});
+
 test("markReminderSent makes the same reminder kind not-due again", () => {
   const db = makeDb();
   const acc = makeAccount(db);

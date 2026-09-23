@@ -74,11 +74,25 @@ export const VAPID_PUBLIC_KEY  = readEnv("VAPID_PUBLIC_KEY");
 export const VAPID_PRIVATE_KEY = readEnv("VAPID_PRIVATE_KEY");
 export const PUSH_SUBJECT      = readEnv("PUSH_SUBJECT") || "mailto:hello@mirocard.app";
 
-// Billing — Stripe (card rail). Required in production: it's the only
-// payment rail this launch actually relies on (see
+// Legal docs — "draft" (the default) means the launch checklist in
+// docs/legal-launch-inputs.md hasn't been signed off yet. handleBillingCheckout
+// refuses to create a real order while this is "draft", so a commercial
+// checkout can never go live pointing at unreviewed legal text. Set this to
+// a real version string (e.g. an ISO date the docs were approved) once
+// product/legal have signed off -- see docs/legal-launch-inputs.md.
+export const LEGAL_DOCS_VERSION = readEnv("LEGAL_DOCS_VERSION") || "draft";
+
+// Billing — Stripe (card rail), the only rail this launch relies on (see
 // docs/commercial-launch-runbook.md §5 on Lava Top being unverified).
-export const STRIPE_SECRET_KEY     = requiredInProduction("STRIPE_SECRET_KEY", "");
-export const STRIPE_WEBHOOK_SECRET = requiredInProduction("STRIPE_WEBHOOK_SECRET", "");
+// Required in production only once checkout is enabled (LEGAL_DOCS_VERSION
+// set to a real version): while it's "draft", handleBillingCheckout refuses
+// every order, so the keys are unused -- and production ran without them
+// before this was added, so requiring them unconditionally would crash the
+// first deploy. Flipping LEGAL_DOCS_VERSION without the keys still fails
+// startup loudly instead of letting checkout 500.
+const CHECKOUT_ENABLED = LEGAL_DOCS_VERSION !== "draft";
+export const STRIPE_SECRET_KEY     = CHECKOUT_ENABLED ? requiredInProduction("STRIPE_SECRET_KEY", "") : readEnv("STRIPE_SECRET_KEY");
+export const STRIPE_WEBHOOK_SECRET = CHECKOUT_ENABLED ? requiredInProduction("STRIPE_WEBHOOK_SECRET", "") : readEnv("STRIPE_WEBHOOK_SECRET");
 
 // Billing — Lava Top (Mir/SBP rail). Deliberately NOT required-in-production:
 // its integration is unverified against Lava Top's real API (see
@@ -89,13 +103,6 @@ export const STRIPE_WEBHOOK_SECRET = requiredInProduction("STRIPE_WEBHOOK_SECRET
 export const LAVA_TOP_API_KEY         = readEnv("LAVA_TOP_API_KEY");
 export const LAVA_TOP_WEBHOOK_SECRET  = readEnv("LAVA_TOP_WEBHOOK_SECRET");
 
-// Legal docs — "draft" (the default) means the launch checklist in
-// docs/legal-launch-inputs.md hasn't been signed off yet. handleBillingCheckout
-// refuses to create a real order while this is "draft", so a commercial
-// checkout can never go live pointing at unreviewed legal text. Set this to
-// a real version string (e.g. an ISO date the docs were approved) once
-// product/legal have signed off -- see docs/legal-launch-inputs.md.
-export const LEGAL_DOCS_VERSION = readEnv("LEGAL_DOCS_VERSION") || "draft";
 
 // CORS — see lib/http.mjs. Comma-separated list of allowed origins;
 // defaults to the production app origin plus local dev ports so a missing

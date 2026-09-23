@@ -284,9 +284,17 @@ const REMINDER_KINDS = ["days5", "days1", "expired"];
 // though ITS OWN ends_at has passed or is approaching -- reminding about
 // it would be a false "your access is ending" email while access
 // actually continues uninterrupted.
+// "Your access ended" is only sent for access that ended recently. Without
+// this bound, the first deploy of the reminder loop would email every
+// account whose (backfilled) trial expired at any point in the past -- an
+// unsolicited blast to long-gone users -- and so would any sweep after a
+// long outage.
+const EXPIRED_REMINDER_WINDOW_DAYS = 3;
+
 export function findEntitlementsNeedingReminders(db, { at = now() } = {}) {
   const days5Cutoff = new Date(new Date(at).getTime() + 5 * 86400000).toISOString();
   const days1Cutoff = new Date(new Date(at).getTime() + 1 * 86400000).toISOString();
+  const expiredWindowStart = new Date(new Date(at).getTime() - EXPIRED_REMINDER_WINDOW_DAYS * 86400000).toISOString();
 
   const currentActiveRows = db.prepare(`
     SELECT e.* FROM entitlements e
@@ -304,7 +312,9 @@ export function findEntitlementsNeedingReminders(db, { at = now() } = {}) {
     const account = db.prepare("SELECT email FROM accounts WHERE id = ?").get(row.account_id);
     if (!account) continue;
     if (row.ends_at < at) {
-      if (!row.reminder_expired_sent_at) due.push({ kind: "expired", entitlement: row, email: account.email });
+      if (!row.reminder_expired_sent_at && row.ends_at >= expiredWindowStart) {
+        due.push({ kind: "expired", entitlement: row, email: account.email });
+      }
       continue; // already past -- days5/days1 no longer meaningful
     }
     if (row.ends_at <= days1Cutoff && !row.reminder_1d_sent_at) {

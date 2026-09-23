@@ -77,3 +77,40 @@ test("LAVA_TOP_API_KEY is not required even in production (Lava Top is an option
     process.env = saved;
   }
 });
+
+function setCoreProductionSecrets() {
+  process.env.RAILWAY_ENVIRONMENT = "production";
+  process.env.AUTH_SECRET = "x";
+  process.env.ACCOUNT_SECRET = "x";
+  process.env.MIROCARD_DEPLOY_TOKEN = "x";
+  process.env.MIROCARD_ADMIN_TOKEN = "x";
+  process.env.RESEND_API_KEY = "x";
+}
+
+test("Stripe keys are not required in production while checkout is disabled (LEGAL_DOCS_VERSION draft/unset) -- matches the live env before launch", async () => {
+  const saved = { ...process.env };
+  setCoreProductionSecrets();
+  delete process.env.LEGAL_DOCS_VERSION;
+  delete process.env.STRIPE_SECRET_KEY;
+  delete process.env.STRIPE_WEBHOOK_SECRET;
+  try {
+    const config = await freshConfigImport();
+    assert.equal(config.LEGAL_DOCS_VERSION, "draft");
+    assert.equal(config.STRIPE_SECRET_KEY, "");
+  } finally {
+    process.env = saved;
+  }
+});
+
+test("once checkout is enabled (LEGAL_DOCS_VERSION set), a missing Stripe key fails startup in production", async () => {
+  const saved = { ...process.env };
+  setCoreProductionSecrets();
+  process.env.LEGAL_DOCS_VERSION = "2026-10-15";
+  delete process.env.STRIPE_SECRET_KEY;
+  delete process.env.STRIPE_WEBHOOK_SECRET;
+  try {
+    await assert.rejects(freshConfigImport(), /STRIPE_SECRET_KEY must be set/);
+  } finally {
+    process.env = saved;
+  }
+});
