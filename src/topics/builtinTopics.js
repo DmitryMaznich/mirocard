@@ -1,7 +1,9 @@
 import { buildRecipesTopicRecord } from "./builtinRecipesTopic.js";
 import { buildMyPeopleTopicRecord } from "./builtinMyPeopleTopic.js";
+import { buildDailyOrientationTopicRecord } from "./builtinDailyOrientationTopic.js";
 
 export const BUILTIN_TOPICS = [
+  buildDailyOrientationTopicRecord(),
   {
     meta: {
       id: "streak_tracker",

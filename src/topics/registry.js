@@ -18,6 +18,7 @@ import WordAgreementRenderer        from "./renderers/word_agreement/index.jsx";
 import SpatialPrepositionsRenderer  from "./renderers/spatial_prepositions/index.jsx";
 import PropisRenderer               from "./renderers/propis/index.jsx";
 import MyPeopleRenderer             from "./renderers/my_people/index.jsx";
+import DailyOrientationRenderer     from "./renderers/daily_orientation/index.jsx";
 
 export const RENDERER_REGISTRY = {
   flashcards:            FlashcardsRenderer,
@@ -40,4 +41,5 @@ export const RENDERER_REGISTRY = {
   spatial_prepositions:  SpatialPrepositionsRenderer,
   propis:                PropisRenderer,
   my_people:             MyPeopleRenderer,
+  daily_orientation:     DailyOrientationRenderer,
 };

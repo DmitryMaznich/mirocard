@@ -26,6 +26,7 @@ export const CATALOG_CATEGORIES = {
   coffee:                   "Практика",
   chat_with_mom:            "Практика",
   my_people:                "Практика",
+  daily_orientation:        "Практика",
 };
 
 export const OTHER_CATEGORY = "Другое";

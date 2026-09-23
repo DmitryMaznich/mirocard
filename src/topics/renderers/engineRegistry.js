@@ -20,6 +20,7 @@ import { generateTasks as wordAgreementEngine }        from "./word_agreement/en
 import { generateTasks as spatialPrepositionsEngine }  from "./spatial_prepositions/engine.js";
 import { generateTasks as propisEngine }               from "./propis/engine.js";
 import { generateTasks as myPeopleEngine }             from "./my_people/engine.js";
+import { generateTasks as dailyOrientationEngine }     from "./daily_orientation/engine.js";
 
 export const ENGINE_REGISTRY = {
   flashcards:            flashcardsEngine,
@@ -44,4 +45,5 @@ export const ENGINE_REGISTRY = {
   spatial_prepositions:  spatialPrepositionsEngine,
   propis:                propisEngine,
   my_people:             myPeopleEngine,
+  daily_orientation:     dailyOrientationEngine,
 };
