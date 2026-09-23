@@ -136,8 +136,8 @@ Rules for Claude Code:
 
 Production DB protection (Railway, current):
 
-- The `mirocard-backend` service itself runs the hourly backup loop in-process (`scripts/railway-backup-loop.mjs`), writing to `/data/backups/` on the same Volume, 14-day retention.
-- No off-site copy yet — known gap, not yet solved. `scripts/fetch-production-db-backup.py` (SSH-based, below) no longer applies to current production.
+- The `mirocard-backend` service itself runs the hourly backup loop in-process (`scripts/railway-backup-loop.mjs`), writing to `/data/backups/` on the same Volume; rotation keeps the newest 24 hourly snapshots plus one per day for 14 days.
+- Off-site copy to an S3-compatible bucket is implemented but only active once `BACKUP_S3_*` is set in Railway (until then it logs `offsite_backup_not_configured`). Restore / restore drill: `node scripts/restore-sqlite-backup.mjs` — see `docs/commercial-launch-runbook.md` §5. `scripts/fetch-production-db-backup.py` (SSH-based, below) no longer applies to current production.
 - Do not restart or stop the backend for backups.
 
 Old host backups (retired, 192.168.1.163):

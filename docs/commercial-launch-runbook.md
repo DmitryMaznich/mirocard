@@ -253,49 +253,132 @@ dependency in this codebase; everything scheduled runs in-process, gated on
 
 ### Backups
 
-- `scripts/railway-backup-loop.mjs` (hourly, gated on `RAILWAY_ENVIRONMENT`,
-  unchanged destination — `<DATA_DIR>/backups` on the same Railway
-  volume) had a real bug fixed in this branch: a failed backup attempt
-  (corrupt file, disk issue, a failed `PRAGMA integrity_check` — which
-  `scripts/backup-sqlite.mjs` already ran and threw on) propagated as an
-  uncaught exception out of the `setInterval` callback, which crashes the
-  whole Node process. One bad backup used to be able to take production
-  down with it. Now caught, reported via `reportError`, and retried on the
-  next hourly tick instead. See `backend/tests/railway-backup-loop.test.mjs`
-  for the regression test (starts the real loop against a deliberately
-  corrupt source file and asserts no `uncaughtException` fires).
-- **Off-site copy is still a gap** — see §6. This branch can fix in-process
-  robustness (the crash bug above) but can't provision or credential an
-  external bucket from inside this sandboxed session.
-- **Restore drill (do this for real before relying on backups)**:
-  1. Pick a backup file from `/data/backups/mirocard-<timestamp>.db`
-     (Railway dashboard → volume browser, or `railway ssh` if available on
-     the plan in use).
-  2. Copy it somewhere you can inspect safely — never restore directly
-     over the live volume as the first step of a drill.
-  3. Verify integrity independently of the backup job itself:
-     `node --input-type=module -e "import {DatabaseSync} from 'node:sqlite'; const db=new DatabaseSync(process.argv[1]); console.log(db.prepare('PRAGMA integrity_check').get());" -- /path/to/mirocard-<timestamp>.db`
-     — expect `{ integrity_check: 'ok' }`.
-  4. Boot the backend against the copy locally: `MIROCARD_DATA_DIR=<dir containing the copy, renamed to mirocard.db> node backend/server.mjs` and confirm `/healthz` and a login against a known test account both work.
-  5. Time the whole drill and write the duration down somewhere the team
-     can find it later (`docs/release-evidence.md` or an incident-response
-     doc) — that number is your actual RTO if this were a real incident,
-     not a guess.
-  6. Repeat this periodically (e.g. quarterly), not just once — a backup
-     process nobody has ever restored from is unverified by definition.
+Two layers (`scripts/railway-backup-loop.mjs`, runs in-process on Railway,
+gated on `RAILWAY_ENVIRONMENT`):
+
+1. **Local snapshots, bounded rotation.** Every hour `VACUUM INTO` a new
+   snapshot in `<DATA_DIR>/backups` + `PRAGMA integrity_check` (throws on
+   failure; a failed cycle is reported and retried next hour, never crashes
+   the process). Rotation (`backend/lib/backup/rotation.mjs`): the newest
+   `BACKUP_KEEP_HOURLY` (24) snapshots, then at most one per UTC day for
+   `BACKUP_KEEP_DAILY_DAYS` (14) more days -- ~38 files instead of 336.
+   Only files matching the exact snapshot name pattern, directly in that
+   directory and not symlinks, are ever deleted.
+2. **Off-site copy (optional, S3-compatible).** When `BACKUP_S3_*` is set,
+   every `BACKUP_S3_EVERY_HOURS` (6) the verified snapshot is uploaded to
+   the bucket (`backend/lib/backup/s3-client.mjs`, SigV4, checked against
+   AWS's published test vector). The PUT carries `Content-MD5` and a
+   signed SHA-256 of the payload (the store rejects a mismatched body); a
+   HEAD afterwards verifies size and the SHA-256 recorded as object
+   metadata. Not configured -> one structured warning
+   (`"code":"offsite_backup_not_configured"`) + `reportError` /
+   `trackEvent` per process start; the app keeps running. `/healthz`
+   reports `offsiteBackup: {configured, lastUploadAt, ageMinutes}`.
+
+**Recommended bucket:** Cloudflare R2 (no egress fees, S3 API). Create a
+bucket (e.g. `mironium-backups`), an API token scoped to *Object Read &
+Write on that bucket only*, and a lifecycle rule deleting objects older
+than e.g. 30 days. Then set in Railway -> `mirocard-backend` -> Variables:
+`BACKUP_S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com`,
+`BACKUP_S3_BUCKET`, `BACKUP_S3_ACCESS_KEY_ID`, `BACKUP_S3_SECRET_ACCESS_KEY`
+(`BACKUP_S3_REGION` defaults to `auto`, `BACKUP_S3_PREFIX` to
+`mirocard/sqlite/`). Backups contain personal data incl. children's
+photos: the bucket must be private and EU-located (R2 "EU" jurisdiction).
+
+**Restore drill -- required before calling backups done.** Nothing in this
+repo has been restored from a real off-site copy yet; that is a manual,
+owner-run step after merge:
+
+1. On a machine with Node 22 and this repo, export the same `BACKUP_S3_*`
+   values (read-only credentials are enough).
+2. `node scripts/restore-sqlite-backup.mjs --list` -> shows snapshots.
+3. `node scripts/restore-sqlite-backup.mjs --from-s3 latest --out /tmp/restore-drill/mirocard.db`
+4. **Success =** exit code 0, output ends with `RESTORE OK`, JSON shows
+   `"integrity": "ok"`, the recorded SHA-256, and row counts for
+   `accounts`/`students`/`photos`/`orders` that are plausible vs.
+   production (e.g. accounts within a few of the live count).
+5. Boot the app on the copy: `MIROCARD_DATA_DIR=/tmp/restore-drill node backend/server.mjs`,
+   then `curl localhost:3012/healthz` and log in with a known test account.
+6. Write the date, snapshot key and total time taken into
+   `docs/release-evidence.md` (that time is the real RTO). Repeat quarterly.
+
+`--file <path>` restores/verifies a local snapshot the same way. The
+command never overwrites an existing path unless `--force` is passed; it
+never touches the live database on its own.
 
 ### Release identity
 
-- Deploys already happen from Railway auto-deploying `main` on every
-  push (per this repo's `CLAUDE.md`); there is no separate "tagged
-  release" step today. `/healthz`/`/api/version`'s new `gitSha` field is
-  what makes a running deployment's identity independently verifiable
-  against the repo regardless — after any deploy, `git log --oneline -1`
-  locally and `curl https://app.mironium.com/healthz` should show matching
-  short SHAs. If a more formal tag-per-release process is wanted later, it
-  layers on top of this without needing another code change (`gitSha` was
-  read from `.git/HEAD`, which reflects whatever commit — tagged or not —
-  actually built the running image).
+Railway builds from the Dockerfile **without `.git` in the context**, so
+the old `.git`-reading resolver reported `gitSha: "unknown"` in production.
+Now (`scripts/build-info.mjs`):
+
+- the Dockerfile declares `ARG RAILWAY_GIT_COMMIT_SHA` (Railway passes its
+  provided variables into a Dockerfile build only when declared as `ARG` --
+  docs.railway.com/builds/dockerfiles#using-variables-at-build-time) and
+  `ARG GIT_SHA` for manual/CI builds;
+- the build writes `build-info.json` (full SHA, version, source) into the
+  image and **fails if no SHA is available** (`REQUIRE_GIT_SHA=1`), so an
+  image that can't identify its commit is never deployed (Railway keeps the
+  previous deployment running when a build fails);
+- server and frontend resolve: env -> `build-info.json` -> `.git` (dev only);
+- `.dockerignore` keeps `.git` out of local builds too, so they match Railway;
+- CI job "Docker image reports its commit SHA" builds the real image with
+  and without a SHA and asserts `/api/version` + `/healthz` report it.
+
+**A deploy is not successful unless** `curl https://app.mironium.com/api/version`
+and `/healthz` return the `version` of the release commit **and** a
+`gitSha` equal to the first 7 characters of that commit
+(`git rev-parse --short=7 origin/main` after the merge). `unknown` or a
+different SHA = the deploy is not the release you prepared; stop and
+investigate before announcing anything.
+
+Emergency only: if a Railway build ever fails with "No git commit SHA
+available" although the commit exists (e.g. a manual `railway up` without
+git metadata), set a service variable `GIT_SHA=<full sha>` for that build.
+Do not set `REQUIRE_GIT_SHA=0` in production.
+
+### Photos (children's photos -- privacy-critical)
+
+- Every photo (student, close adults, "Мои люди", instruction steps,
+  legacy inline `data:` URLs) is decoded server-side by libvips (`sharp`)
+  and re-encoded (`backend/lib/photo-normalizer.mjs`): JPEG/PNG/WebP only
+  (MIME type/extension ignored), HEIC rejected with instructions (the
+  production libvips has no HEVC decoder), EXIF orientation applied, all
+  metadata (incl. GPS) stripped, max 1440 px long side, WebP q84 -> lower
+  quality -> lower resolution (not below 1024 px) until <= 550 KiB, hard
+  max 650 KiB, 16 MP decompression-bomb guard, 10 MiB input.
+- Ownership (`photo_owners`): `GET /api/photos/:hash` only for an owning
+  account; everyone else gets 404. A reference alone never grants
+  ownership; the one-time backfill (`app_migrations:
+  photo_ownership_backfill_v1`) linked photos that existing data referenced
+  when this shipped.
+- Quotas per account: `MAX_PHOTOS_PER_ACCOUNT` (12) and
+  `MAX_PHOTO_STORAGE_BYTES_PER_ACCOUNT` (6 MiB). Re-uploading an owned photo
+  is free; a photo no longer referenced anywhere stops counting after
+  `PHOTO_UNREFERENCED_GRACE_HOURS` (24). Over quota -> 409 with a message
+  saying what to delete/replace; in sync, the op is dropped and reported in
+  `rejected` (the client shows it; the queue never stalls).
+- **Watch after launch:** 12 photos per account includes instruction-step
+  photos; a user building many photo instructions will hit it. Raise via
+  env if support tickets show it.
+
+### Paid content and the offline boundary
+
+- Server: a paid deck's claim/download re-checks the entitlement on every
+  request; a client can no longer self-assign a granting topic source
+  (fixed: sync `topic.acquire` / `POST /account-topics` with
+  `source:"grant"` used to unlock paid decks without paying).
+- Client: every session start passes `SessionScreen`, which shows "Доступ
+  закончился" for a downloaded paid topic once the entitlement lapsed
+  (previously only the library tile checked).
+- **Limit, by design:** a downloaded ZIP lives in the device's browser
+  storage. It cannot be cryptographically revoked from a device that stays
+  offline: offline, the lock uses the last-synced end date and the device
+  clock, and a technically skilled user could extract the files. The Terms
+  promise that access *ends* (true in the app) and forbid circumventing
+  technical restrictions (§8); they do not promise deletion of offline
+  copies. No legal text change needed; open question for the lawyer only
+  if a stronger promise is ever wanted.
 
 ## 6. Known residual risks
 
@@ -312,16 +395,10 @@ run operationally:
   own top-of-file comment). Until a sandbox call confirms it, **run the
   Instagram campaign (and any paid checkout) on the card/Stripe rail only**;
   treat "МИР / СБП" as unverified/at-risk until proven in Lava's sandbox.
-- No off-site backup exists yet for the Railway SQLite volume (hourly
-  backups exist, but land on the same volume as the live DB) — a
-  volume-level failure loses both. Fixing this needs an actual external
-  bucket/credential decision (S3-compatible? the existing SmartNAS
-  mentioned in this repo's root `CLAUDE.md`?) that's a human's call, not
-  something to wire up speculatively from inside this session. Once
-  decided, the mechanical part is small: run
-  `scripts/backup-sqlite.mjs`-style export on the schedule already in
-  place and sync the output off-volume (`rclone`, a signed upload, or
-  reusing whatever mechanism already moves other backups to SmartNAS).
+- Off-site backup is **implemented but not yet configured**: until the
+  owner creates the bucket and sets `BACKUP_S3_*` (see §5), all snapshots
+  still live on the same Railway volume as the DB. A restore drill from a
+  real off-site copy has not been performed.
 - Account deletion is soft-delete only (`accounts.status = 'deleted'`,
   which does correctly invalidate every existing auth token for that
   account immediately via `findAccountByToken`'s `status = 'active'`
@@ -340,6 +417,17 @@ automatically on backend startup (there is no separate migration-runner
 tool in this codebase — this is the existing, pre-branch pattern, reused
 as-is). They are safe to run against the live Railway volume with existing
 data, and safe to run twice:
+
+**Added in the photos/ops hardening stage** (all in `initDb()` or awaited
+before the server listens; none deletes or rewrites user data):
+
+| Migration | What it does | Why it is idempotent |
+|---|---|---|
+| `photo_owners` table + index | New table (hash, account_id, created_at, released_at), PK (hash, account_id) | `CREATE TABLE/INDEX IF NOT EXISTS` |
+| `photos.byte_size` | Adds the column, fills decoded size for rows where it is NULL (BLOB = length, base64 = computed) | Column added only if missing; `UPDATE ... WHERE byte_size IS NULL` touches only unfilled rows |
+| Ownership backfill | Links each photo hash that existing student rows (photo, closeAdults, "Мои люди", profile) and `account_kv` values reference to that account, only if the photo exists | Runs **once per database**, recorded in `app_migrations` (`photo_ownership_backfill_v1`); `INSERT OR IGNORE` on the PK. Once-only is a security property: later references must not grant ownership |
+| Legacy `data:` photos | Rows still holding inline `data:` URLs (student photo / closeAdults / "Мои люди") are normalized to WebP, stored, owner-linked and replaced by `/api/photos/<hash>`; unreadable ones are left exactly as they were | Only rows matching `LIKE 'data:%'` are selected; after conversion they no longer match. Quota not enforced (existing data) |
+| `all_access` grant (previous stage) | Pre-launch accounts get the flag | Only adds a missing flag |
 
 - **Three new tables**, each `CREATE TABLE IF NOT EXISTS`: `orders` (every
   checkout attempt, immutable), `entitlements` (the actual time-boxed
@@ -393,14 +481,27 @@ description), not a bug.
 | `CORS_ALLOWED_ORIGINS` | Yes | No | `https://app.mironium.com,http://localhost:5174,http://localhost:4173` | Comma-separated allowlist replacing the previous hardcoded `Access-Control-Allow-Origin: *`. Set explicitly in Railway only if the real production origin ever differs from the default. |
 | `ERROR_REPORTING_WEBHOOK_URL` | Yes | No | unset → `reportError` is a local-log-only no-op | POST target for error events (`backend/lib/observability.mjs`); point at a real vendor's HTTP ingest endpoint when one is chosen. Nothing is sent if unset. |
 | `ANALYTICS_WEBHOOK_URL` | Yes | No | unset → `trackEvent` is a local-log-only no-op | POST target for the funnel events listed in §5. Same no-op-if-unset behavior. |
-| `STRIPE_SECRET_KEY` | No (pre-existing var) | **Yes, newly enforced** | `""` (was previously silently allowed empty) | Stripe API key. Previously could be missing in production with no startup error — now fails fast instead. |
-| `STRIPE_WEBHOOK_SECRET` | No (pre-existing var) | **Yes, newly enforced** | `""` | Stripe webhook signature verification secret. Same newly-enforced behavior. |
+| `STRIPE_SECRET_KEY` | No (pre-existing var) | **Only once checkout is enabled** (`LEGAL_DOCS_VERSION` != `draft`) | `""` | Stripe API key. Production currently has none; requiring it unconditionally would have crashed the first deploy. |
+| `STRIPE_WEBHOOK_SECRET` | No (pre-existing var) | Same as above | `""` | Stripe webhook signature verification secret. |
 | `AUTH_SECRET` | No (pre-existing var) | **Yes, newly enforced** | `"dev-auth-secret-change-me"` | Session/token signing secret. Was previously allowed to silently run in production on the hardcoded dev default. |
 | `ACCOUNT_SECRET` | No (pre-existing var) | **Yes, newly enforced** | `"dev-account-secret-change-me"` | Same class of fix as `AUTH_SECRET`. |
 | `MIROCARD_DEPLOY_TOKEN` | No (pre-existing var) | **Yes, newly enforced** | `"mirocard-deploy-2026"` | Same class of fix. |
 | `MIROCARD_ADMIN_TOKEN` | No (pre-existing var) | **Yes, newly enforced** | `"dev-admin-token-change-me"` | Guards `/admin/*` routes, including the promo-code creation endpoint used in §2. |
 | `RESEND_API_KEY` | No (pre-existing var) | **Yes, newly enforced** | `""` | Transactional email API key. Was previously allowed to silently degrade to console-logging emails in production. |
 | `LAVA_TOP_API_KEY` / `LAVA_TOP_WEBHOOK_SECRET` | No (pre-existing vars) | No — **deliberately exempt** | unset | Left optional because the Lava Top integration is unverified (see §6/§9) — a production deploy without these just 502s the "МИР / СБП" payment option rather than refusing to start over an optional rail. |
+| `PHOTO_MAX_INPUT_BYTES` | Yes | No | `10485760` (10 MiB) | Max `POST /photos` body and max decoded size of one photo. |
+| `PHOTO_MAX_INPUT_PIXELS` | Yes | No | `16000000` | Decompression-bomb guard (decoded pixels). |
+| `PHOTO_MAX_LONG_SIDE` / `PHOTO_MIN_LONG_SIDE` | Yes | No | `1440` / `1024` | Output long side; size reduction never goes below the minimum. |
+| `PHOTO_WEBP_QUALITY` / `PHOTO_WEBP_MIN_QUALITY` | Yes | No | `84` / `60` | Start and floor WebP quality. |
+| `PHOTO_TARGET_OUTPUT_BYTES` / `PHOTO_MAX_OUTPUT_BYTES` | Yes | No | `563200` (550 KiB) / `665600` (650 KiB) | Target and hard maximum stored photo size. |
+| `MAX_PHOTOS_PER_ACCOUNT` | Yes | No | `12` | Active photos per account. |
+| `MAX_PHOTO_STORAGE_BYTES_PER_ACCOUNT` | Yes | No | `6291456` (6 MiB) | Active photo bytes per account. |
+| `PHOTO_UNREFERENCED_GRACE_HOURS` | Yes | No | `24` | After this, a photo the account no longer references stops counting toward its quota. |
+| `MAX_JSON_BODY_BYTES` | Yes | No | `25165824` (24 MiB) | Cap for any JSON request body (was unbounded). |
+| `BACKUP_KEEP_HOURLY` / `BACKUP_KEEP_DAILY_DAYS` | Yes | No | `24` / `14` | Local snapshot rotation. |
+| `BACKUP_S3_ENDPOINT` / `BACKUP_S3_BUCKET` / `BACKUP_S3_ACCESS_KEY_ID` / `BACKUP_S3_SECRET_ACCESS_KEY` | Yes | No (warning if unset) | unset = off-site disabled | S3-compatible off-site backup target (see §5). |
+| `BACKUP_S3_REGION` / `BACKUP_S3_PREFIX` / `BACKUP_S3_EVERY_HOURS` | Yes | No | `auto` / `mirocard/sqlite/` / `6` | Off-site details. |
+| `GIT_SHA` (build arg) / `RAILWAY_GIT_COMMIT_SHA` (Railway-provided) | Yes | Build fails without one | -- | Release identity baked into the image (see §5). Not a service variable to set by hand. |
 
 **Action required before this branch can be deployed to Railway
 production**: confirm `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
@@ -470,9 +571,11 @@ them before or during rollout:
 5. Watch the Railway deploy logs for the new service coming up cleanly —
    specifically watch for a `FATAL: ... must be set` startup error, which
    would mean step 2 was missed.
-6. `curl https://app.mironium.com/healthz` — expect `200` with `ok: true`,
-   a `version` matching the bump in step 3, and a `gitSha` matching
-   `git log --oneline -1`'s short SHA.
+6. `curl https://app.mironium.com/healthz` — expect `200`, `status: "ok"`,
+   a `version` matching the bump in step 3, and a `gitSha` equal to
+   `git rev-parse --short=7 origin/main` of the merged release commit.
+   **`unknown` or any other SHA = the deploy is NOT successful** (§5
+   Release identity). Also note `offsiteBackup.configured`.
 7. `curl https://app.mironium.com/api/version` — same version/SHA check,
    per this repo's existing post-deploy rule.
 8. Confirm `/`, `/terms`, `/privacy`, `/refunds`, `/cancellation`,
