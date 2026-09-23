@@ -195,6 +195,10 @@
 
 .daily-orientation__card--time-clock-only .daily-orientation__time-content { justify-content: center; }
 .daily-orientation__card--time-without-clock .daily-orientation__time-content { justify-content: center; }
+.daily-orientation__card--time-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
 
 .daily-orientation__question {
   margin: 0;

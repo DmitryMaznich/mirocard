@@ -45,6 +45,18 @@ describe("DailyOrientationRenderer", () => {
     expect(container.textContent).toContain("Какой завтра будет день недели?");
     expect(container.textContent).toContain("Какое число будет завтра?");
     expect(container.textContent).toContain("Какой месяц будет завтра?");
+
+    const timeCard = container.querySelector(".daily-orientation__card--time");
+    expect(timeCard?.classList.contains("daily-orientation__card--time-hidden")).toBe(true);
+    expect(timeCard?.getAttribute("aria-hidden")).toBe("true");
+    expect(container.querySelectorAll(".daily-orientation__card")).toHaveLength(4);
+
+    const today = Array.from(container.querySelectorAll("button"))
+      .find((button) => button.textContent === "Сегодня");
+    act(() => today.click());
+
+    expect(timeCard?.classList.contains("daily-orientation__card--time-hidden")).toBe(false);
+    expect(timeCard?.getAttribute("aria-hidden")).toBe("false");
   });
 
   it("renders only the selected orientation blocks and closes gaps in the grid", () => {

@@ -145,6 +145,7 @@ export default function DailyOrientationRenderer({ sessionParams }) {
   const season = getSeason(activeDate.getMonth());
   const hasDate = display.showDayOfMonth || display.showMonth;
   const hasTime = display.showAnalogClock || display.showTimeWords || display.showDigitalTime;
+  const hideCurrentTime = offset !== 0;
   const visibleCardCount = [display.showWeekday, hasDate, display.showSeason, hasTime].filter(Boolean).length;
   const timeCardClassName = [
     "daily-orientation__card",
@@ -153,6 +154,7 @@ export default function DailyOrientationRenderer({ sessionParams }) {
     display.showAnalogClock && !display.showTimeWords && !display.showDigitalTime
       ? "daily-orientation__card--time-clock-only"
       : "",
+    hideCurrentTime ? "daily-orientation__card--time-hidden" : "",
   ].filter(Boolean).join(" ");
 
   function selectOffset(nextOffset) {
@@ -240,7 +242,7 @@ export default function DailyOrientationRenderer({ sessionParams }) {
             )}
 
             {hasTime && (
-              <article className={timeCardClassName}>
+              <article className={timeCardClassName} aria-hidden={hideCurrentTime}>
                 <p className="daily-orientation__question daily-orientation__question--time">Сколько сейчас времени?</p>
                 <div className="daily-orientation__time-content">
                   {display.showAnalogClock && <AnalogClock now={now} />}
