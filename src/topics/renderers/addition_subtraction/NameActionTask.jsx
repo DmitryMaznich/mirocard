@@ -211,10 +211,12 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
   function handleVerb(value) {
     if (phase !== "verb" || feedback) return;
     if (value !== task.operation) {
+      // No auto-restart: mark the tapped card wrong and let the pulsing ↻
+      // (below) be the child's own decision to replay, not something that
+      // sweeps them along on a timer mid-hand-animation.
       setFeedback({ step: "verb", value, kind: "wrong" });
       say("Посмотри ещё раз.");
       onIncorrect(task.conceptId, task.cardId);
-      schedule(() => startSequence(), 1100);
       return;
     }
     setFeedback({ step: "verb", value, kind: "correct" });
@@ -233,12 +235,12 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
   function handleCount(value) {
     if (phase !== "count" || feedback) return;
     if (value !== task.delta) {
+      // Same as handleVerb: wait for a tap on ↻ instead of auto-replaying.
+      // When the child does tap it, keepVerb:true shows the trips again so
+      // they can count them, then asks only "сколько?" — the verb stays named.
       setFeedback({ step: "count", value, kind: "wrong" });
       say("Посчитай ещё раз.");
       onIncorrect(task.conceptId, task.cardId);
-      // Show the trips again so the child can count them, then ask only
-      // "сколько?" — the verb is already named.
-      schedule(() => startSequence({ keepVerb: true }), 1100);
       return;
     }
     setFeedback({ step: "count", value, kind: "correct" });
@@ -292,7 +294,7 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
           <div className="observe-change__controls">
             <button
               type="button"
-              className="observe-change__repeat"
+              className={`observe-change__repeat${feedback?.kind === "wrong" ? " observe-change__repeat--attention" : ""}`}
               onClick={() => startSequence({ keepVerb: verbSolved })}
               disabled={phase === "done"}
               aria-label="Показать ещё раз"
@@ -309,7 +311,7 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
         {isVoice ? (
           <div className={`name-action__adult${asking && phase !== "done" ? " name-action__adult--visible" : ""}`} aria-hidden={!asking}>
             <div className="name-action__adult-text">
-              Для взрослого — ребёнок сказал:
+              Для взрослого — ребёнок должен сказать:
               <strong>{expectedPhrase}</strong>
             </div>
             <button type="button" className="name-action__adult-btn name-action__adult-btn--retry" onClick={handleAdultRetry} disabled={phase !== "verb"} aria-label="Нет, показать ещё раз">↻</button>

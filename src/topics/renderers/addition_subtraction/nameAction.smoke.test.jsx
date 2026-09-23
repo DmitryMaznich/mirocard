@@ -99,7 +99,7 @@ describe("operation_name_action", () => {
     expect(onCorrect).toHaveBeenCalledWith("plus", "operation_plus");
   });
 
-  it("records a wrong verb and replays the scene", () => {
+  it("records a wrong verb, marks it, and waits for a tap on repeat instead of auto-replaying", () => {
     vi.useFakeTimers();
     const onIncorrect = vi.fn();
     mount(baseTask, { onIncorrect });
@@ -109,9 +109,21 @@ describe("operation_name_action", () => {
 
     expect(onIncorrect).toHaveBeenCalledWith("plus", "operation_plus");
     expect(container.querySelector(".name-action__answer--wrong")).not.toBeNull();
-    act(() => { vi.advanceTimersByTime(1100); });
+    expect(container.querySelector(".observe-change__repeat--attention")).not.toBeNull();
+
+    // No auto-restart: the scene stays put (still 3 dots, answer area still
+    // visible) until the child deliberately taps repeat.
+    act(() => { vi.advanceTimersByTime(5000); });
+    expect(container.querySelectorAll(".observe-change__rail .observe-change__dot")).toHaveLength(3);
+    expect(container.querySelector(".observe-change__answer-area--visible")).not.toBeNull();
+
+    click(".observe-change__repeat");
     expect(container.querySelectorAll(".observe-change__rail .observe-change__dot")).toHaveLength(2);
     expect(container.querySelector(".observe-change__answer-area--visible")).toBeNull();
+
+    act(() => { vi.advanceTimersByTime(QUESTION_AT); });
+    expect(container.querySelectorAll(".observe-change__rail .observe-change__dot")).toHaveLength(3);
+    expect(container.querySelector(".observe-change__answer-area--visible")).not.toBeNull();
   });
 
   it("asks how many after the verb when the count step is on", () => {
