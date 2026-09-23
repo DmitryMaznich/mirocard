@@ -1,9 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
-import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { gitSha } from "./scripts/git-sha.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -20,25 +20,6 @@ const apiProxy = {
   },
 };
 
-function gitSha() {
-  try {
-    const gitDir = path.resolve(__dirname, ".git");
-    const headPath = path.join(gitDir, "HEAD");
-    if (!existsSync(headPath)) return "unknown";
-
-    const head = readFileSync(headPath, "utf8").trim();
-    if (!head.startsWith("ref: ")) {
-      return head.slice(0, 7) || "unknown";
-    }
-
-    const refPath = path.join(gitDir, head.slice(5).replace(/\//g, path.sep));
-    if (!existsSync(refPath)) return "unknown";
-    return readFileSync(refPath, "utf8").trim().slice(0, 7) || "unknown";
-  } catch {
-    return "unknown";
-  }
-}
-
 export default defineConfig({
   plugins: [react(), viteSingleFile()],
   build: { emptyOutDir: false },
@@ -54,13 +35,24 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-    __GIT_SHA__: JSON.stringify(gitSha()),
+    __GIT_SHA__: JSON.stringify(gitSha(__dirname)),
   },
   test: {
     environment: "jsdom",
     globals: true,
     setupFiles: ["src/test-setup.js"],
-    exclude: ["**/node_modules/**", "**/dist/**", "runtime/**", ".superpowers/**"],
+    // Vitest's own default include glob (**/*.{test,spec}.?(c|m)[jt]sx?)
+    // would otherwise also pick up backend/tests/*.test.mjs and
+    // tools/**/*.test.mjs, which use Node's built-in node:test runner
+    // (see backend/package.json's own "test" script) and fail outright
+    // under Vitest -- not because they're broken, but because they're a
+    // different, incompatible test API. A .worktrees/ checkout sitting
+    // alongside the repo (a known per-task Claude Code artifact, see
+    // .gitignore) would get swept in the same way if it ever exists here.
+    exclude: [
+      "**/node_modules/**", "**/dist/**", "runtime/**", ".superpowers/**",
+      "backend/**", "tools/**", ".worktrees/**", ".claude/worktrees/**", ".pytest_cache/**",
+    ],
     pool: "vmForks",
   },
 });

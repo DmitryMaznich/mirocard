@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import { initDb } from "../lib/db.mjs";
 import { createAccount, activateAccount } from "../lib/account-repository.mjs";
 import {
-  createPendingSubscription,
-  activateSubscriptionByOrderId,
-  markSubscriptionRefundedByOrderId,
-  getSubscriptionByOrderId,
+  createOrder,
+  getOrderByExternalId,
+  completeOrder,
+  markOrderRefunded,
+  extendEntitlementForOrder,
+  revokeEntitlementsForOrder,
   getActiveSubscriptionForAccount,
   recordPaymentEvent,
   hasActiveEntitlement,
@@ -26,19 +28,20 @@ function makeAccount(db) {
 
 function makeDb() { return initDb(":memory:"); }
 
-test("createPendingSubscription then activateSubscriptionByOrderId flips status to active", () => {
+test("createOrder then completeOrder+extendEntitlementForOrder grants access", () => {
   const db = makeDb();
   const acc = makeAccount(db);
 
-  createPendingSubscription(db, acc.id, {
+  createOrder(db, acc.id, {
     provider: "stripe", plan: "annual", orderId: "order-1",
-    currency: "EUR", amountMinor: 8990, periodDays: 366, appliedCode: null,
+    currency: "EUR", amountMinor: 8990, appliedCode: null,
   });
 
   assert.equal(getActiveSubscriptionForAccount(db, acc.id), null); // still pending
 
-  const returnedAccountId = activateSubscriptionByOrderId(db, "order-1");
-  assert.equal(returnedAccountId, acc.id);
+  const order = getOrderByExternalId(db, "order-1");
+  completeOrder(db, order.id);
+  extendEntitlementForOrder(db, order);
 
   const active = getActiveSubscriptionForAccount(db, acc.id);
   assert.equal(active.plan, "annual");
@@ -46,24 +49,48 @@ test("createPendingSubscription then activateSubscriptionByOrderId flips status 
   assert.ok(hasActiveEntitlement(db, acc.id));
 });
 
-test("activateSubscriptionByOrderId returns null for an unknown orderId", () => {
+test("getOrderByExternalId returns null for an unknown orderId", () => {
   const db = makeDb();
-  assert.equal(activateSubscriptionByOrderId(db, "nope"), null);
+  assert.equal(getOrderByExternalId(db, "nope"), null);
 });
 
-test("markSubscriptionRefundedByOrderId revokes entitlement", () => {
+test("markOrderRefunded + revokeEntitlementsForOrder revokes the entitlement that order granted", () => {
   const db = makeDb();
   const acc = makeAccount(db);
-  createPendingSubscription(db, acc.id, {
+  createOrder(db, acc.id, {
     provider: "stripe", plan: "monthly", orderId: "order-2",
-    currency: "EUR", amountMinor: 990, periodDays: 31, appliedCode: null,
+    currency: "EUR", amountMinor: 990, appliedCode: null,
   });
-  activateSubscriptionByOrderId(db, "order-2");
+  const order = getOrderByExternalId(db, "order-2");
+  completeOrder(db, order.id);
+  extendEntitlementForOrder(db, order);
   assert.ok(hasActiveEntitlement(db, acc.id));
 
-  markSubscriptionRefundedByOrderId(db, "order-2");
+  markOrderRefunded(db, order.id, "charge.refunded");
+  revokeEntitlementsForOrder(db, order.id);
   assert.equal(hasActiveEntitlement(db, acc.id), false);
-  assert.equal(getSubscriptionByOrderId(db, "order-2").status, "refunded");
+  assert.equal(getOrderByExternalId(db, "order-2").status, "refunded");
+});
+
+test("refunding one order does not revoke a still-active entitlement from a different order", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+
+  createOrder(db, acc.id, { provider: "stripe", plan: "monthly", orderId: "order-a", currency: "EUR", amountMinor: 990 });
+  const orderA = getOrderByExternalId(db, "order-a");
+  completeOrder(db, orderA.id);
+  extendEntitlementForOrder(db, orderA);
+
+  createOrder(db, acc.id, { provider: "stripe", plan: "monthly", orderId: "order-b", currency: "EUR", amountMinor: 990 });
+  const orderB = getOrderByExternalId(db, "order-b");
+  completeOrder(db, orderB.id);
+  extendEntitlementForOrder(db, orderB); // stacks on top of order-a's period
+
+  markOrderRefunded(db, orderA.id, "charge.refunded");
+  revokeEntitlementsForOrder(db, orderA.id);
+
+  // order-b's grant is untouched, so the account is still entitled.
+  assert.ok(hasActiveEntitlement(db, acc.id));
 });
 
 test("recordPaymentEvent returns true once, false on a duplicate delivery", () => {
@@ -74,11 +101,20 @@ test("recordPaymentEvent returns true once, false on a duplicate delivery", () =
   assert.equal(recordPaymentEvent(db, args), false);
 });
 
-test("hasActiveEntitlement is true for an account with the all_access feature flag, even without a subscription", () => {
+test("hasActiveEntitlement is true for an account with the all_access feature flag, even without any entitlement row", () => {
   const db = makeDb();
   const acc = makeAccount(db);
   db.prepare("UPDATE accounts SET feature_flags = ? WHERE id = ?").run(JSON.stringify(["all_access"]), acc.id);
   assert.ok(hasActiveEntitlement(db, acc.id));
+});
+
+test("getActiveSubscriptionForAccount reflects an all_access account too (not just hasActiveEntitlement)", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  db.prepare("UPDATE accounts SET feature_flags = ? WHERE id = ?").run(JSON.stringify(["all_access"]), acc.id);
+  const sub = getActiveSubscriptionForAccount(db, acc.id);
+  assert.equal(sub.plan, "all_access");
+  assert.equal(sub.status, "active");
 });
 
 test("hasActiveEntitlement is false for an unknown account", () => {
@@ -164,6 +200,32 @@ test("redeemFreeGrantCode activates entitlement immediately without a payment pr
   assert.equal(sub.plan, "free_grant");
 });
 
+test("redeemFreeGrantCode replaces an active trial rather than stacking on top of it", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  grantTrialSubscription(db, acc.id); // ~7 days left
+  createPromoCode(db, {
+    code: "INSTAGRAM31", kind: "free_grant", value: null, currency: null,
+    appliesToPlan: null, grantDurationDays: 31, maxRedemptions: null,
+    expiresAt: null, note: null, createdBy: "dima",
+  });
+
+  const result = redeemFreeGrantCode(db, "INSTAGRAM31", acc.id);
+  assert.equal(result.ok, true);
+
+  const sub = getActiveSubscriptionForAccount(db, acc.id);
+  assert.equal(sub.plan, "free_grant");
+  const daysLeft = (new Date(sub.currentPeriodEnd) - Date.now()) / 86400000;
+  assert.ok(daysLeft > 30 && daysLeft <= 31, `expected ~31 days left (promo replaces trial), got ${daysLeft}`);
+
+  // Exactly one active entitlement — the trial was revoked, not left running
+  // alongside the promo grant.
+  const activeCount = db.prepare(
+    "SELECT COUNT(*) AS n FROM entitlements WHERE account_id = ? AND status = 'active'"
+  ).get(acc.id).n;
+  assert.equal(activeCount, 1);
+});
+
 test("redeemFreeGrantCode refuses a discount-kind code", () => {
   const db = makeDb();
   const acc = makeAccount(db);
@@ -217,51 +279,77 @@ test("grantTrialSubscription accepts a custom trial length", () => {
   assert.ok(daysLeft > 13.9 && daysLeft <= 14, `expected ~14 days left, got ${daysLeft}`);
 });
 
-test("createPendingSubscription does not interrupt an active, non-expired entitlement while checkout is pending", () => {
+test("grantTrialSubscription is defensively a no-op if called twice for the same account", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  grantTrialSubscription(db, acc.id, { trialDays: 7 });
+  grantTrialSubscription(db, acc.id, { trialDays: 30 }); // must not overwrite/extend
+  const sub = getActiveSubscriptionForAccount(db, acc.id);
+  const daysLeft = (new Date(sub.currentPeriodEnd) - Date.now()) / 86400000;
+  assert.ok(daysLeft <= 7.1, `second call must not have granted 30 days, got ${daysLeft}`);
+});
+
+test("a pending order does not interrupt an active, non-expired entitlement while checkout is pending", () => {
   const db = makeDb();
   const acc = makeAccount(db);
   grantTrialSubscription(db, acc.id); // active trial, ~7 days left
 
-  createPendingSubscription(db, acc.id, {
+  createOrder(db, acc.id, {
     provider: "stripe", plan: "annual", orderId: "order-new",
-    currency: "EUR", amountMinor: 8990, periodDays: 366, appliedCode: null,
+    currency: "EUR", amountMinor: 8990, appliedCode: null,
   });
 
   // Still entitled — the pending checkout must not have knocked out the trial.
   assert.ok(hasActiveEntitlement(db, acc.id));
   const sub = getActiveSubscriptionForAccount(db, acc.id);
   assert.equal(sub.status, "active");
+  assert.equal(sub.plan, "trial");
 
-  // Confirming the payment now correctly upgrades to the paid period.
-  activateSubscriptionByOrderId(db, "order-new");
+  // Confirming the payment now correctly upgrades to the paid period,
+  // stacked on top of (not replacing) the trial's remaining time.
+  const order = getOrderByExternalId(db, "order-new");
+  completeOrder(db, order.id);
+  extendEntitlementForOrder(db, order);
   const paid = getActiveSubscriptionForAccount(db, acc.id);
   assert.equal(paid.plan, "annual");
   const daysLeft = (new Date(paid.currentPeriodEnd) - Date.now()) / 86400000;
-  assert.ok(daysLeft > 360, `expected ~366 days left after confirming the annual plan, got ${daysLeft}`);
+  assert.ok(daysLeft > 366, `expected >366 days left (366-day plan stacked on top of the trial's remaining days), got ${daysLeft}`);
 });
 
-test("createPendingSubscription still resets to pending for an account with no prior active entitlement", () => {
+test("createOrder still leaves the account unentitled when there was no prior active entitlement", () => {
   const db = makeDb();
   const acc = makeAccount(db);
 
-  createPendingSubscription(db, acc.id, {
+  createOrder(db, acc.id, {
     provider: "stripe", plan: "monthly", orderId: "order-fresh",
-    currency: "EUR", amountMinor: 990, periodDays: 31, appliedCode: null,
+    currency: "EUR", amountMinor: 990, appliedCode: null,
   });
 
   assert.equal(hasActiveEntitlement(db, acc.id), false); // still pending, not yet paid
-  assert.equal(getSubscriptionByOrderId(db, "order-fresh").status, "pending");
+  assert.equal(getOrderByExternalId(db, "order-fresh").status, "pending");
 });
 
-test("activateSubscriptionByOrderId recomputes current_period_end fresh from the plan, not the value set at checkout time", () => {
+test("a second checkout marks the account's still-pending prior order abandoned", () => {
   const db = makeDb();
   const acc = makeAccount(db);
-  createPendingSubscription(db, acc.id, {
+  createOrder(db, acc.id, { provider: "stripe", plan: "monthly", orderId: "order-x", currency: "EUR", amountMinor: 990 });
+  createOrder(db, acc.id, { provider: "stripe", plan: "annual", orderId: "order-y", currency: "EUR", amountMinor: 8990 });
+
+  assert.equal(getOrderByExternalId(db, "order-x").status, "abandoned");
+  assert.equal(getOrderByExternalId(db, "order-y").status, "pending");
+});
+
+test("extendEntitlementForOrder computes the new period from the plan, not any value set at checkout time", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  createOrder(db, acc.id, {
     provider: "stripe", plan: "monthly", orderId: "order-3",
-    currency: "EUR", amountMinor: 990, periodDays: 31, appliedCode: null,
+    currency: "EUR", amountMinor: 990, appliedCode: null,
   });
 
-  activateSubscriptionByOrderId(db, "order-3");
+  const order = getOrderByExternalId(db, "order-3");
+  completeOrder(db, order.id);
+  extendEntitlementForOrder(db, order);
   const sub = getActiveSubscriptionForAccount(db, acc.id);
   const daysLeft = (new Date(sub.currentPeriodEnd) - Date.now()) / 86400000;
   assert.ok(daysLeft > 30 && daysLeft <= 31, `expected ~31 days left, got ${daysLeft}`);

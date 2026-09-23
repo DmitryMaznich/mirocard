@@ -8,71 +8,141 @@ function safeJson(value, fallback) {
   catch { return fallback; }
 }
 
-// A pending checkout must never interrupt an entitlement the account already
-// has (trial or a prior paid period still running) — a browser back-button or
-// an abandoned payment would otherwise leave them locked out despite never
-// having actually paid. So while status is still 'active' and not yet
-// expired, the conflict branch only updates the correlation fields (who's
-// buying what, via which provider/orderId) and leaves status/current_period_end
-// alone; the real period is (re)computed fresh in activateSubscriptionByOrderId
-// once the provider actually confirms payment.
-export function createPendingSubscription(db, accountId, {
-  provider, plan, orderId, currency, amountMinor, periodDays, appliedCode = null,
-}) {
+// ─── Orders (one row per checkout attempt, full history) ───────────────────
+
+// Every call starts a brand-new order row -- never overwrites or reuses a
+// prior one, so a second checkout attempt (retry, plan change, abandoned
+// first attempt) never loses the first attempt's audit trail. Any of the
+// account's own still-"pending" orders are marked "abandoned" first, purely
+// for tidiness (so "pending" always means "the most recent unconfirmed
+// attempt"); this never touches entitlements, so it can never take away
+// access the account already has.
+export function createOrder(db, accountId, { provider, plan, orderId, currency, amountMinor, appliedCode = null }) {
   const ts = now();
-  const currentPeriodEnd = new Date(Date.now() + periodDays * 86400000).toISOString();
+  db.prepare(
+    "UPDATE orders SET status = 'abandoned', updated_at = ? WHERE account_id = ? AND status = 'pending'"
+  ).run(ts, accountId);
   db.prepare(`
-    INSERT INTO subscriptions
-      (id, account_id, provider, plan, status, currency, amount_minor, external_contract_id, applied_code, current_period_end, cancel_at_period_end, created_at, updated_at)
-    VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, 0, ?, ?)
-    ON CONFLICT(account_id) DO UPDATE SET
-      provider = excluded.provider,
-      plan = excluded.plan,
-      status = CASE WHEN status = 'active' AND current_period_end > ? THEN status ELSE 'pending' END,
-      currency = excluded.currency,
-      amount_minor = excluded.amount_minor,
-      external_contract_id = excluded.external_contract_id,
-      applied_code = excluded.applied_code,
-      current_period_end = CASE WHEN status = 'active' AND current_period_end > ? THEN current_period_end ELSE excluded.current_period_end END,
-      updated_at = excluded.updated_at
-  `).run(randomUUID(), accountId, provider, plan, currency, amountMinor, orderId, appliedCode, currentPeriodEnd, ts, ts, ts, ts);
+    INSERT INTO orders
+      (id, account_id, provider, plan, status, currency, amount_minor, external_contract_id, applied_code, created_at, updated_at)
+    VALUES (?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?)
+  `).run(randomUUID(), accountId, provider, plan, currency, amountMinor, orderId, appliedCode, ts, ts);
 }
 
-export function getSubscriptionByOrderId(db, orderId) {
-  return db.prepare("SELECT * FROM subscriptions WHERE external_contract_id = ?").get(orderId) ?? null;
+export function getOrderByExternalId(db, orderId) {
+  return db.prepare("SELECT * FROM orders WHERE external_contract_id = ?").get(orderId) ?? null;
 }
 
-export function activateSubscriptionByOrderId(db, orderId) {
-  const row = getSubscriptionByOrderId(db, orderId);
-  if (!row) return null;
-  // Computed fresh here (not reused from the optimistic value createPendingSubscription
-  // wrote at checkout time) so the paid period always starts from the moment the
-  // provider actually confirms payment, not from whenever the invoice was created.
-  const periodDays = PLAN_CATALOG[row.plan]?.periodDays;
-  const currentPeriodEnd = periodDays
-    ? new Date(Date.now() + periodDays * 86400000).toISOString()
-    : row.current_period_end;
-  db.prepare("UPDATE subscriptions SET status = 'active', current_period_end = ?, updated_at = ? WHERE id = ?")
-    .run(currentPeriodEnd, now(), row.id);
-  return row.account_id;
+// The entitlement a specific completed order granted, if any. Used by the
+// checkout-return screen's status poll to answer "did THIS checkout
+// succeed" -- as opposed to hasActiveEntitlement/getActiveSubscriptionForAccount,
+// which answer "is the account entitled right now" and would say yes even
+// for an account whose active access came from something else entirely
+// (an existing subscription, a trial, all_access), wrongly implying a
+// still-pending or failed checkout had succeeded.
+export function getEntitlementForOrder(db, orderId) {
+  return db.prepare("SELECT * FROM entitlements WHERE source = 'order' AND source_id = ?").get(orderId) ?? null;
 }
 
-export function markSubscriptionRefundedByOrderId(db, orderId) {
-  const row = getSubscriptionByOrderId(db, orderId);
-  if (!row) return null;
-  db.prepare("UPDATE subscriptions SET status = 'refunded', updated_at = ? WHERE id = ?").run(now(), row.id);
-  return row.account_id;
+export function completeOrder(db, orderId) {
+  db.prepare("UPDATE orders SET status = 'completed', updated_at = ? WHERE id = ?").run(now(), orderId);
+}
+
+export function markOrderRefunded(db, orderId, eventType) {
+  const status = eventType === "chargeback.initiated" ? "chargeback" : "refunded";
+  db.prepare("UPDATE orders SET status = ?, updated_at = ? WHERE id = ?").run(status, now(), orderId);
+}
+
+// ─── Entitlements (the actual access grant) ────────────────────────────────
+
+function activeEntitlementRow(db, accountId) {
+  return db.prepare(
+    "SELECT * FROM entitlements WHERE account_id = ? AND status = 'active' AND ends_at > ? ORDER BY ends_at DESC LIMIT 1"
+  ).get(accountId, now());
+}
+
+// A confirmed order extends the account's access -- starting from
+// max(now, the current active entitlement's ends_at), never from `now`
+// alone. Reusing `now` for a renewal would silently discard whatever paid
+// time the account already had left; always inserting a NEW row (rather
+// than updating an existing one in place) keeps every grant individually
+// visible for audit, with "current access" simply being whichever active
+// row has the furthest ends_at.
+export function extendEntitlementForOrder(db, order) {
+  const periodDays = PLAN_CATALOG[order.plan]?.periodDays;
+  if (!periodDays) {
+    console.error(`[billing] extendEntitlementForOrder: unknown plan "${order.plan}" for order ${order.id}`);
+    return null;
+  }
+  const current = activeEntitlementRow(db, order.account_id);
+  const baseMs = current ? Math.max(Date.now(), new Date(current.ends_at).getTime()) : Date.now();
+  const startsAt = new Date(baseMs).toISOString();
+  const endsAt = new Date(baseMs + periodDays * 86400000).toISOString();
+  const ts = now();
+  db.prepare(`
+    INSERT INTO entitlements
+      (id, account_id, source, source_id, plan, status, starts_at, ends_at, cancel_at_period_end, created_at, updated_at)
+    VALUES (?, ?, 'order', ?, ?, 'active', ?, ?, 0, ?, ?)
+  `).run(randomUUID(), order.account_id, order.id, order.plan, startsAt, endsAt, ts, ts);
+  return endsAt;
+}
+
+// Refunding/charging back one order revokes only the entitlement grant
+// *that order* created -- not any other overlapping grant (e.g. a trial,
+// or a later order bought while this one was still active). If that leaves
+// no other active entitlement, access correctly ends; if the account still
+// has one from elsewhere, they keep access, which is the correct outcome.
+export function revokeEntitlementsForOrder(db, orderId) {
+  db.prepare(
+    "UPDATE entitlements SET status = 'revoked', updated_at = ? WHERE source = 'order' AND source_id = ? AND status = 'active'"
+  ).run(now(), orderId);
+}
+
+// Called once at registration — gives every new account a no-promo-code-
+// needed trial. The existence check (rather than a UNIQUE constraint, now
+// that an account can hold many entitlement rows over its lifetime) is
+// defensive only: registration should never call this twice for the same
+// account.
+export function grantTrialSubscription(db, accountId, { trialDays = 7 } = {}) {
+  const already = db.prepare("SELECT 1 FROM entitlements WHERE account_id = ? AND source = 'trial'").get(accountId);
+  if (already) return;
+  const ts = now();
+  const endsAt = new Date(Date.now() + trialDays * 86400000).toISOString();
+  db.prepare(`
+    INSERT INTO entitlements
+      (id, account_id, source, source_id, plan, status, starts_at, ends_at, cancel_at_period_end, created_at, updated_at)
+    VALUES (?, ?, 'trial', NULL, 'trial', 'active', ?, ?, 0, ?, ?)
+  `).run(randomUUID(), accountId, ts, endsAt, ts, ts);
+}
+
+export function hasActiveEntitlement(db, accountId) {
+  const account = db.prepare("SELECT feature_flags FROM accounts WHERE id = ?").get(accountId);
+  if (!account) return false;
+  const flags = safeJson(account.feature_flags, []);
+  if (flags.includes("all_access")) return true;
+  return Boolean(activeEntitlementRow(db, accountId));
 }
 
 export function getActiveSubscriptionForAccount(db, accountId) {
-  const row = db.prepare("SELECT * FROM subscriptions WHERE account_id = ?").get(accountId);
-  if (!row || row.status !== "active") return null;
-  return {
-    plan: row.plan,
-    status: row.status,
-    currentPeriodEnd: row.current_period_end,
-    cancelAtPeriodEnd: Boolean(row.cancel_at_period_end),
-  };
+  const row = activeEntitlementRow(db, accountId);
+  if (row) {
+    return {
+      plan: row.plan,
+      status: row.status,
+      currentPeriodEnd: row.ends_at,
+      cancelAtPeriodEnd: Boolean(row.cancel_at_period_end),
+    };
+  }
+  // Grandfathered all_access accounts hold no entitlements row during
+  // normal operation (the feature flag alone is authoritative for
+  // hasActiveEntitlement) -- surfaced here too so the UI doesn't tell a
+  // grandfathered account "no active plan".
+  const account = db.prepare("SELECT feature_flags FROM accounts WHERE id = ?").get(accountId);
+  const flags = safeJson(account?.feature_flags, []);
+  if (flags.includes("all_access")) {
+    return { plan: "all_access", status: "active", currentPeriodEnd: "9999-12-31T00:00:00.000Z", cancelAtPeriodEnd: false };
+  }
+  return null;
 }
 
 // Returns true if this is the first time this exact provider event has been
@@ -90,30 +160,24 @@ export function recordPaymentEvent(db, { accountId, provider, eventType, externa
   }
 }
 
-// Called once at registration — gives every new account a no-promo-code-needed
-// trial. ON CONFLICT DO NOTHING is defensive only: this should never actually
-// run twice for the same account, but must never clobber a real subscription
-// if it somehow did.
-export function grantTrialSubscription(db, accountId, { trialDays = 7 } = {}) {
-  const ts = now();
-  const currentPeriodEnd = new Date(Date.now() + trialDays * 86400000).toISOString();
+// ─── Checkout consent (see LEGAL_DOCS_VERSION in lib/config.mjs) ──────────
+
+export function recordCheckoutConsent(db, { accountId, orderId, legalDocsVersion, termsAccepted, pricePeriodConfirmed, digitalContentAck, locale = "ru" }) {
   db.prepare(`
-    INSERT INTO subscriptions
-      (id, account_id, provider, plan, status, currency, amount_minor, external_contract_id, applied_code, current_period_end, cancel_at_period_end, created_at, updated_at)
-    VALUES (?, ?, 'trial', 'trial', 'active', 'EUR', 0, NULL, NULL, ?, 0, ?, ?)
-    ON CONFLICT(account_id) DO NOTHING
-  `).run(randomUUID(), accountId, currentPeriodEnd, ts, ts);
+    INSERT INTO checkout_consents
+      (id, account_id, order_id, legal_docs_version, terms_accepted, price_period_confirmed, digital_content_ack, locale, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    randomUUID(), accountId, orderId, legalDocsVersion,
+    termsAccepted ? 1 : 0, pricePeriodConfirmed ? 1 : 0, digitalContentAck ? 1 : 0, locale, now(),
+  );
 }
 
-export function hasActiveEntitlement(db, accountId) {
-  const account = db.prepare("SELECT feature_flags FROM accounts WHERE id = ?").get(accountId);
-  if (!account) return false;
-  const flags = safeJson(account.feature_flags, []);
-  if (flags.includes("all_access")) return true;
-
-  const sub = db.prepare("SELECT status, current_period_end FROM subscriptions WHERE account_id = ?").get(accountId);
-  return Boolean(sub && sub.status === "active" && sub.current_period_end > now());
+export function getCheckoutConsentForOrder(db, orderId) {
+  return db.prepare("SELECT * FROM checkout_consents WHERE order_id = ? ORDER BY created_at DESC LIMIT 1").get(orderId) ?? null;
 }
+
+// ─── Promo codes ─────────────────────────────────────────────────────────
 
 export function createPromoCode(db, {
   code, kind, value = null, currency = null, appliesToPlan = null,
@@ -176,31 +240,102 @@ function recordRedemption(db, code, accountId) {
   db.prepare("UPDATE promo_codes SET redeemed_count = redeemed_count + 1 WHERE code = ?").run(code);
 }
 
+// A free-grant promo code (e.g. the Instagram INSTAGRAM31 campaign)
+// deliberately REPLACES whatever entitlement period is currently running
+// (trial, or a still-active prior order) rather than stacking on top of
+// it -- redeeming a 31-day code mid-trial jumps straight to a fresh 31-day
+// period starting today; it does not add 31 days on top of the trial's
+// remaining time. This is a deliberate product decision for the Instagram
+// launch (see docs/commercial-launch-runbook.md), not an artifact of the
+// schema.
 export function redeemFreeGrantCode(db, rawCode, accountId) {
   const validation = validatePromoCode(db, rawCode, { accountId, plan: null });
   if (!validation.ok) return validation;
   if (validation.kind !== "free_grant") return { ok: false, reason: "not_free_grant" };
 
   const ts = now();
-  const currentPeriodEnd = validation.grantDurationDays
+  const endsAt = validation.grantDurationDays
     ? new Date(Date.now() + validation.grantDurationDays * 86400000).toISOString()
     : "9999-12-31T00:00:00.000Z"; // no expiry
 
+  db.prepare(
+    "UPDATE entitlements SET status = 'revoked', updated_at = ? WHERE account_id = ? AND status = 'active'"
+  ).run(ts, accountId);
+
   db.prepare(`
-    INSERT INTO subscriptions
-      (id, account_id, provider, plan, status, currency, amount_minor, external_contract_id, applied_code, current_period_end, cancel_at_period_end, created_at, updated_at)
-    VALUES (?, ?, 'promo', 'free_grant', 'active', 'EUR', 0, ?, ?, ?, 0, ?, ?)
-    ON CONFLICT(account_id) DO UPDATE SET
-      provider = 'promo', plan = 'free_grant', status = 'active',
-      applied_code = excluded.applied_code,
-      current_period_end = excluded.current_period_end,
-      updated_at = excluded.updated_at
-  `).run(randomUUID(), accountId, `promo:${validation.code}:${accountId}`, validation.code, currentPeriodEnd, ts, ts);
+    INSERT INTO entitlements
+      (id, account_id, source, source_id, plan, status, starts_at, ends_at, cancel_at_period_end, created_at, updated_at)
+    VALUES (?, ?, 'promo', ?, 'free_grant', 'active', ?, ?, 0, ?, ?)
+  `).run(randomUUID(), accountId, validation.code, ts, endsAt, ts, ts);
 
   recordRedemption(db, validation.code, accountId);
   return { ok: true };
 }
 
+// ─── Expiry reminders (scripts/entitlement-reminder-loop.mjs) ──────────────
+
+const REMINDER_KINDS = ["days5", "days1", "expired"];
+
+// Only an account's CURRENT entitlement (the active row with the furthest
+// ends_at -- same selection rule as hasActiveEntitlement/
+// getActiveSubscriptionForAccount) is reminder-worthy. An earlier active
+// row that a later one has stacked on top of (e.g. a trial an order later
+// extended past) is NOT "ending" from the account's point of view even
+// though ITS OWN ends_at has passed or is approaching -- reminding about
+// it would be a false "your access is ending" email while access
+// actually continues uninterrupted.
+// "Your access ended" is only sent for access that ended recently. Without
+// this bound, the first deploy of the reminder loop would email every
+// account whose (backfilled) trial expired at any point in the past -- an
+// unsolicited blast to long-gone users -- and so would any sweep after a
+// long outage.
+const EXPIRED_REMINDER_WINDOW_DAYS = 3;
+
+export function findEntitlementsNeedingReminders(db, { at = now() } = {}) {
+  const days5Cutoff = new Date(new Date(at).getTime() + 5 * 86400000).toISOString();
+  const days1Cutoff = new Date(new Date(at).getTime() + 1 * 86400000).toISOString();
+  const expiredWindowStart = new Date(new Date(at).getTime() - EXPIRED_REMINDER_WINDOW_DAYS * 86400000).toISOString();
+
+  const currentActiveRows = db.prepare(`
+    SELECT e.* FROM entitlements e
+    INNER JOIN (
+      SELECT account_id, MAX(ends_at) AS max_ends_at
+      FROM entitlements
+      WHERE status = 'active'
+      GROUP BY account_id
+    ) latest ON latest.account_id = e.account_id AND latest.max_ends_at = e.ends_at
+    WHERE e.status = 'active'
+  `).all();
+
+  const due = [];
+  for (const row of currentActiveRows) {
+    const account = db.prepare("SELECT email FROM accounts WHERE id = ?").get(row.account_id);
+    if (!account) continue;
+    if (row.ends_at < at) {
+      if (!row.reminder_expired_sent_at && row.ends_at >= expiredWindowStart) {
+        due.push({ kind: "expired", entitlement: row, email: account.email });
+      }
+      continue; // already past -- days5/days1 no longer meaningful
+    }
+    if (row.ends_at <= days1Cutoff && !row.reminder_1d_sent_at) {
+      due.push({ kind: "days1", entitlement: row, email: account.email });
+    } else if (row.ends_at <= days5Cutoff && !row.reminder_5d_sent_at) {
+      due.push({ kind: "days5", entitlement: row, email: account.email });
+    }
+  }
+  return due;
+}
+
+export function markReminderSent(db, entitlementId, kind) {
+  if (!REMINDER_KINDS.includes(kind)) throw new Error(`Unknown reminder kind: ${kind}`);
+  const column = { days5: "reminder_5d_sent_at", days1: "reminder_1d_sent_at", expired: "reminder_expired_sent_at" }[kind];
+  db.prepare(`UPDATE entitlements SET ${column} = ? WHERE id = ?`).run(now(), entitlementId);
+}
+
+// For a discount (percent_off/fixed_off) code, redemption is only finalized
+// once the provider webhook confirms payment (called from
+// billing-orchestrator.mjs) -- never at checkout time -- so an abandoned
+// €-checkout can't burn a limited-use code's redemption count for nothing.
 export function finalizeDiscountRedemption(db, code, accountId) {
   if (!code) return;
   const already = db.prepare(

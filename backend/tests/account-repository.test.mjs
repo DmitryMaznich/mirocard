@@ -7,7 +7,6 @@ import {
   findAccountByEmailAny,
   findAccountById,
   updateAccount,
-  deleteAccount,
   activateAccount,
   storeAuthToken,
   findAccountByToken,
@@ -128,8 +127,6 @@ import {
   claimAccountTopic,
   grantAccountTopic,
   setAccountFeatureFlags,
-  upsertStudentTopicLink,
-  getStudentTopicLinks,
   upsertConceptProgress,
   getConceptProgress,
 } from "../lib/account-repository.mjs";

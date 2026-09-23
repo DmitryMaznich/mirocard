@@ -35,10 +35,17 @@ export default function TopicTile({
   access = "free",
   claimSource,        // ownedTopics[...].source, or null
   personalCaption,    // getPersonalTopicCaption() result, or null — imported/granted topics only
+  // True when this is a previously-claimed PAID topic whose entitlement
+  // (subscription/trial/promo) has since expired. A downloaded copy may
+  // still sit in local storage (see catalogService's DRM note), but the
+  // app itself must stop offering to open it -- same locked treatment as
+  // never having claimed it, prompting a resubscribe instead.
+  entitlementExpired = false,
   onInstall,
   onSelect,
   onMenu,
   onInfo,
+  onLockedTap,
   disabled = false,
 }) {
   const [loading, setLoading] = useState(false);
@@ -47,10 +54,12 @@ export default function TopicTile({
 
   const isBuiltin = Boolean(installedRecord?.meta.builtin);
   const isPending = claimSource === "request";
-  const isGranted = claimSource != null && claimSource !== "request";
+  const isGranted = claimSource != null && claimSource !== "request" && !entitlementExpired;
 
   let status;
-  if (!installedRecord) {
+  if (entitlementExpired) {
+    status = "request";
+  } else if (!installedRecord) {
     status = isPending ? "pending" : (!isGranted && access === "paid" ? "request" : "install");
   } else if (entry && installedRecord.meta.version !== entry.version) {
     status = "update";
@@ -60,7 +69,7 @@ export default function TopicTile({
     status = "open";
   }
 
-  const canOpen = status === "active" || status === "open" || status === "update";
+  const canOpen = !entitlementExpired && (status === "active" || status === "open" || status === "update");
   const isDone = status === "active" || status === "open";
 
   async function handleAction() {
@@ -80,7 +89,8 @@ export default function TopicTile({
   // confirm first. An update to something already installed isn't "a new
   // deck" in the same sense, so it keeps the previous one-tap behavior.
   function requestAction() {
-    if (status === "install") setConfirmingInstall(true);
+    if (entitlementExpired && onLockedTap) onLockedTap(entry);
+    else if (status === "install") setConfirmingInstall(true);
     else handleAction();
   }
 

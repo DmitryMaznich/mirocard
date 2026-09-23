@@ -92,10 +92,18 @@ describe("canResumeActiveSession", () => {
 
   it("is true when the topic and text both still exist", () => {
     const snapshot = createActiveSessionSnapshot(
-      { studentId: "s1", topicId: "reading_topic", textId: "recipe_a", modeId: "follow_instruction" },
+      { studentId: "s1", topicId: "reading_topic", textId: "recipe_a", modeId: "read_text" },
       { status: "task_active", topicVersion: "1.0.0" },
     );
     expect(canResumeActiveSession(snapshot, topicRecords)).toBe(true);
+  });
+
+  it("is false for recipe cooking (follow_instruction) even when topic and text exist", () => {
+    const snapshot = createActiveSessionSnapshot(
+      { studentId: "s1", topicId: "reading_topic", textId: "recipe_a", modeId: "follow_instruction" },
+      { status: "task_active", topicVersion: "1.0.0" },
+    );
+    expect(canResumeActiveSession(snapshot, topicRecords)).toBe(false);
   });
 
   it("is true for a non-reading topic with no textId to check", () => {
@@ -108,7 +116,7 @@ describe("canResumeActiveSession", () => {
 
   it("is false when the topic no longer exists in topicRecords", () => {
     const snapshot = createActiveSessionSnapshot(
-      { studentId: "s1", topicId: "deleted_topic", textId: "recipe_a", modeId: "follow_instruction" },
+      { studentId: "s1", topicId: "deleted_topic", textId: "recipe_a", modeId: "read_text" },
       { status: "task_active", topicVersion: "1.0.0" },
     );
     expect(canResumeActiveSession(snapshot, topicRecords)).toBe(false);
@@ -116,7 +124,7 @@ describe("canResumeActiveSession", () => {
 
   it("is false when the topic exists but the text no longer does (the bug's actual symptom)", () => {
     const snapshot = createActiveSessionSnapshot(
-      { studentId: "s1", topicId: "reading_topic", textId: "recipe_deleted", modeId: "follow_instruction" },
+      { studentId: "s1", topicId: "reading_topic", textId: "recipe_deleted", modeId: "read_text" },
       { status: "task_active", topicVersion: "1.0.0" },
     );
     expect(canResumeActiveSession(snapshot, topicRecords)).toBe(false);

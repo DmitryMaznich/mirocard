@@ -1,12 +1,14 @@
 import { createServer } from "node:http";
 import { randomUUID, createHash } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync, createReadStream, statSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, createReadStream, statSync, readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
-  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC,
+  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION,
+  CORS_ALLOWED_ORIGINS,
 } from "./lib/config.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
 import { getDb } from "./lib/db.mjs";
@@ -23,9 +25,9 @@ import {
   appendSession, getSessions,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
   getAccountTopicByTopicId, claimAccountTopic, grantAccountTopic, setAccountFeatureFlags,
-  listAllAccounts, revokeAccountTopic, touchAccountSeen, recordHeartbeat, getActiveTokens,
+  listAllAccounts, revokeAccountTopic, touchAccountSeen, recordHeartbeat,
   upsertStudentTopicLink, getStudentTopicLinks,
-  upsertConceptProgress, getAllConceptProgress,
+  upsertConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
   getPhoto, migratePhotoData, extractAndStorePhoto,
   getAccountKvByPrefixes,
@@ -34,15 +36,18 @@ import {
 import {
   createPasswordHash, verifyPasswordHash,
 } from "./lib/security.mjs";
-import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBearerToken } from "./lib/http.mjs";
-import { sendPasswordResetEmail, sendEmailVerificationEmail } from "./lib/mailer.mjs";
+import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBearerToken, getClientIp, applyCors } from "./lib/http.mjs";
+import { createRateLimiter } from "./lib/rate-limit.mjs";
+import {
+  sendPasswordResetEmail, sendEmailVerificationEmail, sendPromoGrantEmail, sendPurchaseConfirmationEmail,
+} from "./lib/mailer.mjs";
 import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
 import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
 import {
-  createPendingSubscription, getActiveSubscriptionForAccount,
+  createOrder, getOrderByExternalId, getEntitlementForOrder, getActiveSubscriptionForAccount,
   hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
-  createPromoCode, listPromoCodes, grantTrialSubscription,
+  createPromoCode, listPromoCodes, grantTrialSubscription, recordCheckoutConsent, getCheckoutConsentForOrder,
 } from "./lib/billing-repository.mjs";
 import { PLAN_CATALOG, applyDiscount } from "./lib/billing-plans.mjs";
 import {
@@ -54,8 +59,12 @@ import {
   verifyLavaTopWebhookAuth, parseLavaTopWebhookEvent,
 } from "./lib/billing-providers/lava-top.mjs";
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
+import { gitSha } from "../scripts/git-sha.mjs";
+import { reportError, trackEvent } from "./lib/observability.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
+
+const BACKEND_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 const db = getDb();
 
@@ -123,6 +132,19 @@ function checkResendLimit(email) {
   if (entry.count >= 3) return false;
   entry.count++;
   return true;
+}
+
+// ─── Rate limits (see lib/rate-limit.mjs for what these do and don't cover) ────
+const HOUR_MS = 60 * 60 * 1000;
+const checkRegisterLimit  = createRateLimiter({ max: 10, windowMs: HOUR_MS });        // per IP
+const checkLoginLimit     = createRateLimiter({ max: 10, windowMs: 15 * 60 * 1000 }); // per email, 15min
+const checkForgotPwLimit  = createRateLimiter({ max: 5,  windowMs: HOUR_MS });        // per email
+const checkPromoLimit     = createRateLimiter({ max: 20, windowMs: HOUR_MS });        // per account
+const checkCheckoutLimit  = createRateLimiter({ max: 20, windowMs: HOUR_MS });        // per account
+const checkWebhookLimit   = createRateLimiter({ max: 600, windowMs: 60 * 1000 });     // per provider, coarse flood guard
+
+function rateLimited(res) {
+  writeJson(res, 429, { error: "Too many requests, try again later" });
 }
 
 function requireDeployToken(req) {
@@ -213,6 +235,7 @@ function serializeStudent(row) {
 // ─── Auth handlers ─────────────────────────────────────────────────────────────
 
 async function handleRegister(req, res) {
+  if (!checkRegisterLimit(getClientIp(req))) return rateLimited(res);
   const body = await readJsonBody(req);
   const email = sanitizeEmail(body?.email);
   const password = String(body?.password || "");
@@ -249,6 +272,7 @@ async function handleRegister(req, res) {
   }
 
   grantTrialSubscription(db, account.id);
+  trackEvent("registration_completed", { role, referralSource });
 
   const rawToken = randomUUID();
   createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
@@ -262,6 +286,8 @@ async function handleLogin(req, res) {
   const email = sanitizeEmail(body?.email);
   const password = String(body?.password || "");
 
+  if (!checkLoginLimit(email || getClientIp(req))) return rateLimited(res);
+
   const anyAccount = email ? findAccountByEmailAny(db, email) : null;
 
   if (anyAccount?.status === "pending") {
@@ -270,10 +296,9 @@ async function handleLogin(req, res) {
 
   const account = anyAccount?.status === "active" ? anyAccount : null;
   let passwordMatches = account && verifyPasswordHash(password, account.password_hash);
-  let matchedLegacyPassword = false;
 
   if (account && !passwordMatches) {
-    matchedLegacyPassword = getLegacyPasswordHashes(email).some((hash) =>
+    const matchedLegacyPassword = getLegacyPasswordHashes(email).some((hash) =>
       verifyPasswordHash(password, hash)
     );
     if (matchedLegacyPassword) {
@@ -307,6 +332,8 @@ async function handleLogout(req, res) {
 async function handleForgotPassword(req, res) {
   const body = await readJsonBody(req);
   const email = sanitizeEmail(body?.email);
+
+  if (!checkForgotPwLimit(email || getClientIp(req))) return rateLimited(res);
 
   const account = email ? findAccountByEmail(db, email) : null;
   if (account) {
@@ -352,6 +379,7 @@ async function handleVerifyEmail(req, res) {
   if (!accountId) return writeJson(res, 400, { error: "invalid_or_expired_token" });
 
   activateAccount(db, accountId);
+  trackEvent("email_verified", {});
   const account = findAccountById(db, accountId);
   const token = makeToken(account.id);
   const settings = getAccountSettings(db, account.id);
@@ -568,7 +596,7 @@ async function handleAppendSession(req, res) {
 // ─── Analysis handlers ────────────────────────────────────────────────────────
 
 async function handleGetTopicAnalysis(req, res) {
-  const account = requireAuth(req);
+  requireAuth(req);
   const url = new URL(req.url, "http://x");
   const studentId = url.searchParams.get("studentId");
   const topicId   = url.searchParams.get("topicId");
@@ -639,14 +667,31 @@ async function handleDeleteTopic(req, res) {
 // ─── Decks catalog + claim + download ────────────────────────────────────────
 
 async function handleGetDecksCatalog(req, res) {
-  const account = requireAuth(req);
-  const flags = new Set(JSON.parse(account.feature_flags ?? "[]"));
+  // Auth is optional here on purpose: local-mode / logged-out visitors need
+  // to see the free catalog too. What must never happen regardless of auth
+  // state is a paid entry's static `url` leaking out of this response --
+  // that URL is a direct, unauthenticated path to the ZIP (see
+  // handleDownloadDeck / trySpaFallback), so paid downloads must always go
+  // through the entitlement-checked /decks/:id/download endpoint instead.
+  let flags = new Set();
+  try {
+    const account = requireAuth(req);
+    flags = new Set(JSON.parse(account.feature_flags ?? "[]"));
+  } catch {
+    // anonymous caller — treated as having no feature flags
+  }
   const catalog = loadCatalog();
-  const decks = (catalog.decks ?? []).filter((d) => {
-    const status = d.status ?? "release";
-    if (status === "release") return true;
-    return flags.has(status);
-  });
+  const decks = (catalog.decks ?? [])
+    .filter((d) => {
+      const status = d.status ?? "release";
+      if (status === "release") return true;
+      return flags.has(status);
+    })
+    .map((d) => {
+      if ((d.access ?? "free") === "free") return d;
+      const { url, ...rest } = d;
+      return rest;
+    });
   writeJson(res, 200, { ...catalog, decks });
 }
 
@@ -666,7 +711,15 @@ async function handleClaimDeck(req, res) {
   const existing = getAccountTopicByTopicId(db, account.id, topicId);
 
   if (existing && isGranted(existing.source)) {
-    return writeJson(res, 200, { status: "granted", topicId });
+    // A previous "paid" claim only stays granted while the entitlement that
+    // earned it is still active -- otherwise this would keep telling the
+    // client "granted" forever even after the subscription/trial/promo
+    // period that justified it has expired. Free and admin-granted claims
+    // never expire this way.
+    if (existing.source !== "paid" || hasActiveEntitlement(db, account.id)) {
+      return writeJson(res, 200, { status: "granted", topicId });
+    }
+    return writeJson(res, 200, { status: "locked", topicId });
   }
   if (existing && existing.source === "request") {
     return writeJson(res, 200, { status: "pending", topicId });
@@ -698,6 +751,15 @@ async function handleDownloadDeck(req, res) {
   const row = getAccountTopicByTopicId(db, account.id, topicId);
   if (!row || !isGranted(row.source)) {
     return writeJson(res, 403, { error: "No access to this deck" });
+  }
+  // A "paid" claim is only a download right for as long as the entitlement
+  // that earned it stays active -- checked again here, not just at claim
+  // time, so a lapsed subscription/trial/promo can't keep re-downloading a
+  // paid deck indefinitely off a claim row made while it was still active.
+  // Free and admin-granted ("grant") claims are intentionally exempt: they
+  // were never tied to a subscription period in the first place.
+  if (row.source === "paid" && !hasActiveEntitlement(db, account.id)) {
+    return writeJson(res, 403, { error: "Entitlement expired" });
   }
 
   // entry.url is like "./decks/foo_v1.0.zip" — resolve relative to DECKS_DIR parent
@@ -818,16 +880,37 @@ async function handleAdminCreatePromoCode(req, res) {
 // ─── Billing ────────────────────────────────────────────────────────────────
 
 const CHECKOUT_METHODS = { card: "stripe", mir_sbp: "lava_top" };
+// Launch is EU/Stripe only (docs/legal-launch-inputs.md §1). Lava Top stays
+// wired but refused here until its integration is verified and the legal
+// docs cover it -- the checkout UI shows it disabled with "скоро".
+const DISABLED_CHECKOUT_METHODS = new Set(["mir_sbp"]);
 
 async function handleBillingCheckout(req, res) {
   const account = requireAuth(req);
+  if (!checkCheckoutLimit(account.id)) return rateLimited(res);
+
+  // Checkout must never go live pointing at unreviewed legal text -- see
+  // LEGAL_DOCS_VERSION in lib/config.mjs and docs/legal-launch-inputs.md.
+  // This is a deploy-configuration gate, not a per-request error, so it
+  // fails the same way for every caller until an operator sets the env var.
+  if (LEGAL_DOCS_VERSION === "draft") {
+    return writeJson(res, 503, { error: "Checkout is not yet configured for production (legal docs not finalized)" });
+  }
+
   const body = await readJsonBody(req);
-  const { plan, method, code } = body ?? {};
+  const { plan, method, code, consents } = body ?? {};
+  const locale = body?.locale === "sl" ? "sl" : "ru";
 
   const planDef = PLAN_CATALOG[plan];
   if (!planDef) return writeJson(res, 400, { error: "Unknown plan" });
   const provider = CHECKOUT_METHODS[method];
   if (!provider) return writeJson(res, 400, { error: "Unknown payment method" });
+  if (DISABLED_CHECKOUT_METHODS.has(method)) {
+    return writeJson(res, 400, { error: "Payment method not available yet" });
+  }
+  if (!consents?.termsAccepted || !consents?.pricePeriodConfirmed || !consents?.digitalContentAck) {
+    return writeJson(res, 400, { error: "All checkout consents are required" });
+  }
 
   let amountMinor = planDef.amountMinor;
   let appliedCode = null;
@@ -840,9 +923,14 @@ async function handleBillingCheckout(req, res) {
   }
 
   const orderId = randomUUID();
-  createPendingSubscription(db, account.id, {
-    provider, plan, orderId, currency: planDef.currency, amountMinor,
-    periodDays: planDef.periodDays, appliedCode,
+  createOrder(db, account.id, {
+    provider, plan, orderId, currency: planDef.currency, amountMinor, appliedCode,
+  });
+  const order = getOrderByExternalId(db, orderId);
+  recordCheckoutConsent(db, {
+    accountId: account.id, orderId: order.id, legalDocsVersion: LEGAL_DOCS_VERSION,
+    termsAccepted: consents.termsAccepted, pricePeriodConfirmed: consents.pricePeriodConfirmed,
+    digitalContentAck: consents.digitalContentAck, locale,
   });
 
   try {
@@ -857,28 +945,70 @@ async function handleBillingCheckout(req, res) {
         orderId, amountMinor, currency: planDef.currency, accountEmail: account.email,
       }));
     }
+    trackEvent("checkout_created", { plan, provider, amountMinor, currency: planDef.currency, hasPromoCode: Boolean(appliedCode) });
     writeJson(res, 200, { checkoutUrl, orderId, appliedCode });
   } catch (err) {
-    writeJson(res, 502, { error: "Payment provider error", detail: err.message });
+    // err.message can carry the payment provider's raw error response body
+    // (see billing-providers/stripe.mjs and lava-top.mjs, which embed it
+    // verbatim to make server-side debugging easier) -- that must never
+    // reach the client as-is, only the server log.
+    console.error(`[billing] checkout session creation failed for order ${orderId}:`, err.message);
+    writeJson(res, 502, { error: "Payment provider error" });
   }
 }
 
 async function handleStripeWebhook(req, res) {
+  // Coarse volumetric guard ahead of the (comparatively expensive) HMAC
+  // signature check -- keyed by provider, not caller, since a legitimate
+  // Stripe delivery can't be distinguished from a flood at this point
+  // without trusting Stripe's published IP ranges, which this backend
+  // doesn't currently verify.
+  if (!checkWebhookLimit("stripe")) return rateLimited(res);
   const rawBody = (await readRawBody(req)).toString("utf8");
   if (!verifyStripeWebhookSignature(rawBody, req.headers["stripe-signature"])) {
     return writeJson(res, 401, { error: "Invalid signature" });
   }
-  processBillingEvent(db, { provider: "stripe", event: parseStripeWebhookEvent(rawBody), rawBody });
+  const result = processBillingEvent(db, { provider: "stripe", event: parseStripeWebhookEvent(rawBody), rawBody });
+  handleWebhookOutcome(result);
   writeJson(res, 200, { received: true });
 }
 
 async function handleLavaTopWebhook(req, res) {
+  if (!checkWebhookLimit("lava_top")) return rateLimited(res);
   const rawBody = (await readRawBody(req)).toString("utf8");
   if (!verifyLavaTopWebhookAuth(req.headers["x-api-key"])) {
     return writeJson(res, 401, { error: "Invalid auth" });
   }
-  processBillingEvent(db, { provider: "lava_top", event: parseLavaTopWebhookEvent(rawBody), rawBody });
+  const result = processBillingEvent(db, { provider: "lava_top", event: parseLavaTopWebhookEvent(rawBody), rawBody });
+  handleWebhookOutcome(result);
   writeJson(res, 200, { received: true });
+}
+
+// Fires the durable purchase-confirmation email exactly once, only when
+// this exact webhook delivery is the one that actually completed the
+// order (not a duplicate delivery, not a stale/out-of-order event that
+// processBillingEvent correctly no-op'd) -- see the `kind: "completed"`
+// result billing-orchestrator.mjs only returns on that specific branch.
+function handleWebhookOutcome(result) {
+  if (result?.kind !== "completed" && result?.kind !== "refunded") return;
+  const order = db.prepare("SELECT * FROM orders WHERE id = ?").get(result.orderId);
+  if (!order) return;
+
+  trackEvent(result.kind === "completed" ? "payment_success" : "refund", {
+    plan: order.plan, provider: order.provider, amountMinor: order.amount_minor, currency: order.currency,
+  });
+
+  if (result.kind !== "completed") return;
+  const account = findAccountById(db, result.accountId);
+  if (!account) return;
+  const sub = getActiveSubscriptionForAccount(db, result.accountId);
+  const consent = getCheckoutConsentForOrder(db, order.id);
+  sendPurchaseConfirmationEmail(account.email, {
+    plan: order.plan, amountMinor: order.amount_minor, currency: order.currency,
+    endsAt: sub?.currentPeriodEnd,
+    locale: consent?.locale ?? "ru",
+    legalDocsVersion: consent?.legal_docs_version,
+  }).catch(console.error);
 }
 
 async function handleGetSubscription(req, res) {
@@ -886,13 +1016,41 @@ async function handleGetSubscription(req, res) {
   writeJson(res, 200, getActiveSubscriptionForAccount(db, account.id));
 }
 
+// Answers "did this specific checkout attempt succeed" -- distinct from
+// handleGetSubscription, which reports the account's current overall
+// entitlement and would say "active" even while THIS order is still
+// pending, if the account happens to already be entitled some other way
+// (an existing subscription, a trial, all_access). The checkout-return
+// screen polls this by orderId specifically so it never shows "Подписка
+// активна" for an unrelated pre-existing entitlement.
+async function handleGetOrderStatus(req, res) {
+  const account = requireAuth(req);
+  const url = new URL(req.url, "http://localhost");
+  const orderId = url.searchParams.get("orderId");
+  if (!orderId) return writeJson(res, 400, { error: "orderId required" });
+
+  const order = getOrderByExternalId(db, orderId);
+  if (!order || order.account_id !== account.id) {
+    return writeJson(res, 404, { error: "Order not found" });
+  }
+
+  const entitlement = order.status === "completed" ? getEntitlementForOrder(db, order.id) : null;
+  writeJson(res, 200, {
+    status: order.status, // 'pending' | 'completed' | 'refunded' | 'chargeback' | 'abandoned'
+    plan: order.plan,
+    currentPeriodEnd: entitlement?.ends_at ?? null,
+  });
+}
+
 async function handleValidateCode(req, res) {
   const account = requireAuth(req);
+  if (!checkPromoLimit(account.id)) return rateLimited(res);
   const body = await readJsonBody(req);
   if (!body?.code || !PLAN_CATALOG[body.plan]) {
     return writeJson(res, 400, { error: "code and a known plan are required" });
   }
   const result = validatePromoCode(db, body.code, { accountId: account.id, plan: body.plan });
+  trackEvent("promo_validated", { ok: result.ok, reason: result.reason, kind: result.kind });
   if (!result.ok) return writeJson(res, 200, result);
 
   if (result.kind === "free_grant") return writeJson(res, 200, result);
@@ -904,11 +1062,17 @@ async function handleValidateCode(req, res) {
 
 async function handleRedeemCode(req, res) {
   const account = requireAuth(req);
+  if (!checkPromoLimit(account.id)) return rateLimited(res);
   const body = await readJsonBody(req);
   if (!body?.code) return writeJson(res, 400, { error: "code is required" });
 
   const result = redeemFreeGrantCode(db, body.code, account.id);
-  if (result.ok) incrementRevision(db, account.id);
+  trackEvent("promo_redeemed", { ok: result.ok, reason: result.reason, code: result.ok ? String(body.code).trim().toUpperCase() : undefined });
+  if (result.ok) {
+    incrementRevision(db, account.id);
+    const sub = getActiveSubscriptionForAccount(db, account.id);
+    sendPromoGrantEmail(account.email, { code: String(body.code).trim().toUpperCase(), endsAt: sub?.currentPeriodEnd }).catch(console.error);
+  }
   writeJson(res, result.ok ? 200 : 400, result);
 }
 
@@ -1036,6 +1200,21 @@ async function handleUploadPhoto(req, res) {
 }
 
 async function handleGetPhoto(req, res) {
+  // Previously unauthenticated: the hash is an unguessable 128-bit
+  // content-addressed ID, but "secret by URL" alone means anyone who ever
+  // sees the URL (a shared screenshot, a browser history sync, a proxy/CDN
+  // log, a referrer leak) can view a child's photo indefinitely with no
+  // further check. requireAuth() closes that -- only a signed-in Mironium
+  // account can read any photo now. It's not further scoped to "only the
+  // account that uploaded this exact photo": the `photos` table is a
+  // content-addressed, cross-account dedup store (INSERT OR IGNORE on the
+  // hash) with no owning-account column, and adding one naively would
+  // break a legitimate second account whose student happens to share a
+  // byte-identical photo with a different account's student, since only
+  // the first uploader would keep access. Flagged as a residual scope
+  // limitation in docs/release-evidence.md rather than introducing that
+  // regression under this launch's time constraints.
+  requireAuth(req);
   const url = new URL(req.url, "http://localhost");
   const hash = url.pathname.split("/").at(-1);
   const photo = getPhoto(db, hash);
@@ -1044,15 +1223,100 @@ async function handleGetPhoto(req, res) {
   res.writeHead(200, {
     "Content-Type": photo.content_type,
     "Content-Length": String(buffer.length),
-    "Cache-Control": "public, max-age=31536000, immutable",
-    "Access-Control-Allow-Origin": "*",
+    // Was publicly, immutably cacheable for a year -- now that this
+    // requires auth, a shared/proxy cache must not serve one account's
+    // photo response to a different caller.
+    "Cache-Control": "private, max-age=31536000, immutable",
   });
   res.end(buffer);
 }
 
+// ─── Legal document pages ───────────────────────────────────────────────────
+// Served as real, versioned HTML documents -- registered as explicit
+// routes ahead of trySpaFallback's catch-all, so /terms etc. never
+// silently falls through to the SPA shell (that was the actual bug this
+// closes: none of these paths existed as real routes before, only as an
+// in-app modal for /privacy and static drafts on the separate landing
+// domain for /terms and /refunds -- see docs/legal-launch-inputs.md and
+// docs/commercial-launch-runbook.md for what's still a draft here).
+
+const LEGAL_DIR = path.join(BACKEND_DIR, "legal");
+const LEGAL_DOCS = {
+  terms: "Условия использования",
+  privacy: "Политика конфиденциальности",
+  refunds: "Возврат средств",
+  cancellation: "Отмена доступа",
+  contact: "Контакты",
+};
+// Slovenian versions live at /sl/<slug> (backend/legal/sl/) -- ZVPot-1
+// requires Slovenian for consumer dealings in Slovenia. Russian stays the
+// default at /<slug>, which is what the in-app checkout links to.
+const LEGAL_DOCS_SL = {
+  terms: "Splošni pogoji uporabe",
+  privacy: "Politika zasebnosti",
+  refunds: "Vračilo kupnine in pravica do odstopa",
+  cancellation: "Preklic dostopa",
+  contact: "Kontakt",
+};
+const LEGAL_STRINGS = {
+  ru: { draft: "<strong>Черновик.</strong> Этот документ ещё не прошёл финальную юридическую проверку.", version: "Версия документа" },
+  sl: { draft: "<strong>Osnutek.</strong> Ta dokument še ni bil dokončno pravno pregledan.", version: "Različica dokumenta" },
+};
+
+function renderLegalPage(slug, title, bodyHtml, lang = "ru") {
+  const t = LEGAL_STRINGS[lang];
+  const draftBanner = LEGAL_DOCS_VERSION === "draft"
+    ? `<p class="legal-draft-banner">${t.draft}</p>`
+    : "";
+  const langSwitch = `<nav class="legal-lang">${lang === "ru" ? "<strong>Русский</strong>" : `<a href="/${slug}" hreflang="ru">Русский</a>`} · ${lang === "sl" ? "<strong>Slovenščina</strong>" : `<a href="/sl/${slug}" hreflang="sl">Slovenščina</a>`}</nav>`;
+  return `<!doctype html>
+<html lang="${lang}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title} — Mironium</title>
+<style>
+  body { font: 16px/1.6 -apple-system, "Nunito", sans-serif; color: #23302c; max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 28px; margin-bottom: 8px; }
+  h2 { font-size: 18px; margin-top: 28px; }
+  a { color: #2f5b57; }
+  code { background: #f0ece2; padding: 1px 5px; border-radius: 4px; }
+  .legal-draft-banner { background: #fff3cd; border: 1px solid #ffe08a; border-radius: 8px; padding: 10px 14px; margin-bottom: 24px; }
+  .legal-draft-notice { color: #6b7573; font-size: 14px; }
+  .legal-lang { font-size: 14px; margin-bottom: 16px; }
+  .legal-footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e4dccf; font-size: 12px; color: #6b7573; }
+</style>
+</head>
+<body>
+${langSwitch}
+${draftBanner}
+${bodyHtml}
+<p class="legal-footer">${t.version}: ${LEGAL_DOCS_VERSION}</p>
+</body>
+</html>`;
+}
+
+async function handleLegalDoc(req, res, slug, lang = "ru") {
+  const title = (lang === "sl" ? LEGAL_DOCS_SL : LEGAL_DOCS)[slug];
+  const dir = lang === "sl" ? path.join(LEGAL_DIR, "sl") : LEGAL_DIR;
+  try {
+    const bodyHtml = await readFile(path.join(dir, `${slug}.html`), "utf8");
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    res.end(renderLegalPage(slug, title, bodyHtml, lang));
+  } catch {
+    writeJson(res, 404, { error: "Not found" });
+  }
+}
+
 // ─── Version handler ───────────────────────────────────────────────────────────
 
-async function handleVersion(req, res) {
+// Repo root: BACKEND_DIR is <root>/backend, matching where .git/ and
+// package.json actually live regardless of DEPLOY_FRONTEND_DIR (which can
+// be pointed elsewhere via MIROCARD_DEPLOY_FRONTEND_DIR).
+const REPO_ROOT = path.resolve(BACKEND_DIR, "..");
+const GIT_SHA = gitSha(REPO_ROOT);
+
+async function readPackageVersion() {
   try {
     // version.json was written by the old deploy-prod.mjs script for the
     // retired Windows/Caddy host. Railway builds straight from a Docker
@@ -1060,13 +1324,57 @@ async function handleVersion(req, res) {
     // "unknown" — worthless for a client trying to detect it's stale.
     // package.json's version is bumped as its own commit on every release
     // (see DEPLOYMENT.md) and is always present in the built image.
-    const pkgPath = path.join(DEPLOY_FRONTEND_DIR, "..", "package.json");
-    const content = await readFile(pkgPath, "utf8");
-    const { version } = JSON.parse(content);
-    writeJson(res, 200, { version });
+    const content = await readFile(path.join(REPO_ROOT, "package.json"), "utf8");
+    return JSON.parse(content).version ?? "unknown";
   } catch {
-    writeJson(res, 200, { version: "unknown" });
+    return "unknown";
   }
+}
+
+async function handleVersion(req, res) {
+  const version = await readPackageVersion();
+  writeJson(res, 200, { version, gitSha: GIT_SHA });
+}
+
+// Newest file under <DATA_DIR>/backups -- see
+// scripts/railway-backup-loop.mjs, which writes there hourly. Returns null
+// (not an error) if the directory doesn't exist yet or is empty, which is
+// the expected state for a fresh non-Railway checkout, not a health
+// problem in itself -- /healthz's caller decides what age is acceptable.
+function backupAgeMinutes() {
+  try {
+    const backupDir = path.join(DATA_DIR, "backups");
+    if (!existsSync(backupDir)) return null;
+    const files = readdirSync(backupDir);
+    if (!files.length) return null;
+    const newestMtimeMs = Math.max(...files.map((f) => statSync(path.join(backupDir, f)).mtimeMs));
+    return Math.round((Date.now() - newestMtimeMs) / 60000);
+  } catch {
+    return null;
+  }
+}
+
+// No auth, no PII: an uptime monitor or Railway's own health check needs
+// to be able to call this without a token, and its response must never
+// carry anything about a specific account/student regardless.
+async function handleHealthz(req, res) {
+  let dbOk = false;
+  try {
+    db.prepare("SELECT 1").get();
+    dbOk = true;
+  } catch {
+    // dbOk already false
+  }
+
+  const version = await readPackageVersion();
+  const healthy = dbOk;
+  writeJson(res, healthy ? 200 : 503, {
+    status: healthy ? "ok" : "degraded",
+    version,
+    gitSha: GIT_SHA,
+    db: dbOk,
+    backupAgeMinutes: backupAgeMinutes(),
+  });
 }
 
 // ─── Audio Overrides ──────────────────────────────────────────────────────────
@@ -1176,6 +1484,46 @@ function serveStaticFile(res, absPath) {
   createReadStream(absPath).pipe(res);
 }
 
+// Deck ZIPs and catalog.json live in DEPLOY_FRONTEND_DIR/decks alongside the
+// rest of the built SPA (see CLAUDE.md "Deck-zip topics load from their
+// downloaded ZIP"), so the generic static-file fallback below would
+// otherwise hand out every paid deck's bytes to anyone who knows its URL --
+// with no auth, no entitlement check, bypassing /decks/:id/download
+// entirely. Free decks are meant to be publicly fetchable this way (that's
+// the whole point of "local mode" / no-account installs); paid decks and
+// the raw catalog (which lists every paid deck's static URL) are not.
+const DECKS_URL_PREFIX = `decks${path.sep}`;
+
+function isPubliclyServableDeckAsset(relative) {
+  // `relative` still carries its leading separator here (path.normalize
+  // doesn't strip it, and path.join tolerates it) -- strip it before
+  // matching the "decks/" prefix, or every request would short-circuit
+  // through the `return true` below and skip this check entirely.
+  const withoutLeadingSep = relative.replace(/^[/\\]+/, "");
+  if (!withoutLeadingSep.startsWith(DECKS_URL_PREFIX)) return true;
+  const rest = withoutLeadingSep.slice(DECKS_URL_PREFIX.length);
+  // The catalog itself is only ever served through GET /api/decks/catalog,
+  // which strips the `url` field from every non-free entry before
+  // responding -- the raw file on disk still has every URL, so it must
+  // never be handed out verbatim.
+  if (rest === "catalog.json") return false;
+  let catalog;
+  try {
+    catalog = loadCatalog();
+  } catch {
+    return false;
+  }
+  const entry = (catalog.decks ?? []).find((d) => {
+    const entryRelative = (d.url ?? "").replace(/^\.\/decks\//, "");
+    return entryRelative === rest.split(path.sep).join("/");
+  });
+  // An unrecognized filename under decks/ (stale build artifact, directory
+  // listing probe, etc.) is refused the same as a paid one -- there is no
+  // legitimate reason for a path under decks/ to be servable without a
+  // matching free catalog entry.
+  return Boolean(entry) && (entry.access ?? "free") === "free";
+}
+
 function trySpaFallback(req, res, pathname) {
   if (!SERVE_STATIC || req.method !== "GET") return false;
 
@@ -1190,6 +1538,12 @@ function trySpaFallback(req, res, pathname) {
     // malformed percent-encoding -- fall through to the SPA shell as before
   }
   const relative = path.normalize(decodedPathname).replace(/^([.][.][/\\])+/, "");
+
+  if (!isPubliclyServableDeckAsset(relative)) {
+    writeJson(res, 404, { error: "Not found" });
+    return true;
+  }
+
   const candidate = path.join(DEPLOY_FRONTEND_DIR, relative);
   if (candidate.startsWith(DEPLOY_FRONTEND_DIR) && existsSync(candidate) && statSync(candidate).isFile()) {
     serveStaticFile(res, candidate);
@@ -1204,10 +1558,17 @@ function trySpaFallback(req, res, pathname) {
 
 // ─── Router ────────────────────────────────────────────────────────────────────
 
+function resolveAllowedOrigin(req) {
+  const origin = req.headers.origin;
+  return origin && CORS_ALLOWED_ORIGINS.includes(origin) ? origin : null;
+}
+
 async function router(req, res) {
   const url = new URL(req.url, "http://localhost");
   const method = req.method.toUpperCase();
   const p = normalizeApiPath(url.pathname);
+
+  applyCors(res, resolveAllowedOrigin(req));
 
   if (method === "OPTIONS") return writeNoContent(res);
 
@@ -1272,6 +1633,7 @@ async function router(req, res) {
     if (method === "POST" && p === "/billing/webhook/stripe")    return await handleStripeWebhook(req, res);
     if (method === "POST" && p === "/billing/webhook/lava-top")  return await handleLavaTopWebhook(req, res);
     if (method === "GET"  && p === "/billing/subscription")      return await handleGetSubscription(req, res);
+    if (method === "GET"  && p === "/billing/order-status")      return await handleGetOrderStatus(req, res);
     if (method === "POST" && p === "/billing/validate-code") return await handleValidateCode(req, res);
     if (method === "POST" && p === "/billing/redeem-code")   return await handleRedeemCode(req, res);
 
@@ -1295,6 +1657,13 @@ async function router(req, res) {
 
     // Version
     if (method === "GET"    && p === "/version")                  return await handleVersion(req, res);
+    if (method === "GET"    && p === "/healthz")                  return await handleHealthz(req, res);
+
+    // Legal pages
+    { const legalSlug = Object.keys(LEGAL_DOCS).find((slug) => p === `/${slug}`);
+      if (method === "GET" && legalSlug) return await handleLegalDoc(req, res, legalSlug); }
+    { const legalSlug = Object.keys(LEGAL_DOCS_SL).find((slug) => p === `/sl/${slug}`);
+      if (method === "GET" && legalSlug) return await handleLegalDoc(req, res, legalSlug, "sl"); }
 
     if (!url.pathname.startsWith("/api/") && trySpaFallback(req, res, url.pathname)) return;
 
@@ -1303,21 +1672,36 @@ async function router(req, res) {
     if (err?.status) {
       writeJson(res, err.status, { error: err.message });
     } else {
-      console.error(err);
+      reportError(err, { method, path: p });
       writeJson(res, 500, { error: "Internal server error" });
     }
   }
 }
 
-createServer(router).listen(PORT, () => {
-  console.log(`Mirocard2 backend running on port ${PORT}`);
-});
+export { router, db };
 
-// Railway has no Windows Task Scheduler for hourly SQLite backups, so the
-// running service does it in-process instead. RAILWAY_ENVIRONMENT is
-// injected by Railway itself, so this never runs on the home host.
-if (process.env.RAILWAY_ENVIRONMENT) {
-  import("../scripts/railway-backup-loop.mjs")
-    .then(({ startBackupLoop }) => startBackupLoop({ dataDir: DATA_DIR }))
-    .catch((err) => console.error("[backup] failed to start backup loop:", err));
+// Only bind a real listener (and start the backup loop) when this file is
+// run directly (`node backend/server.mjs`, exactly what the Dockerfile's
+// CMD does) -- not when it's imported, e.g. by backend/tests/*.test.mjs to
+// exercise `router` against an isolated in-process HTTP server. Without
+// this guard, importing server.mjs for testing would also try to bind
+// PORT for real and race whatever's already listening on it.
+const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMainModule) {
+  createServer(router).listen(PORT, () => {
+    console.log(`Mirocard2 backend running on port ${PORT}`);
+  });
+
+  // Railway has no Windows Task Scheduler for hourly SQLite backups, so the
+  // running service does it in-process instead. RAILWAY_ENVIRONMENT is
+  // injected by Railway itself, so this never runs on the home host.
+  if (process.env.RAILWAY_ENVIRONMENT) {
+    import("../scripts/railway-backup-loop.mjs")
+      .then(({ startBackupLoop }) => startBackupLoop({ dataDir: DATA_DIR }))
+      .catch((err) => console.error("[backup] failed to start backup loop:", err));
+
+    import("../scripts/entitlement-reminder-loop.mjs")
+      .then(({ startReminderLoop }) => startReminderLoop())
+      .catch((err) => console.error("[entitlement-reminder] failed to start reminder loop:", err));
+  }
 }

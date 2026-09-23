@@ -6,7 +6,7 @@ import { deriveConcepts } from "@/shared/utils/topicUtils";
 const CARDS = [
   {
     id: "hammer_tool_1", conceptId: "hammer", primary: true,
-    label: "Молоток", labelInstrumental: "молотком", action: "забивают гвозди",
+    label: "Молоток", labelInstrumental: "молотком", action: "забивают гвозди", actionInf: "забивать гвозди",
     image: "media/hammer_tool_1.webp", type: "tool",
     audio: { ru: "audio/hammer_question.mp3" },
   },
@@ -16,7 +16,7 @@ const CARDS = [
 
   {
     id: "screwdriver_tool_1", conceptId: "screwdriver", primary: true,
-    label: "Отвёртка", labelInstrumental: "отвёрткой", action: "закручивают шурупы",
+    label: "Отвёртка", labelInstrumental: "отвёрткой", action: "закручивают шурупы", actionInf: "закручивать шурупы",
     image: "media/screwdriver_tool_1.webp", type: "tool",
   },
   { id: "screwdriver_scene_before", conceptId: "screwdriver", primary: false, image: "media/screwdriver_scene_before.webp", type: "scene_before" },
@@ -24,7 +24,7 @@ const CARDS = [
 
   {
     id: "drill_tool_1", conceptId: "drill", primary: true,
-    label: "Дрель", labelInstrumental: "дрелью", action: "сверлят отверстия",
+    label: "Дрель", labelInstrumental: "дрелью", action: "сверлят отверстия", actionInf: "сверлить отверстия",
     image: "media/drill_tool_1.webp", type: "tool",
   },
   { id: "drill_scene_before", conceptId: "drill", primary: false, image: "media/drill_scene_before.webp", type: "scene_before" },
@@ -32,7 +32,7 @@ const CARDS = [
 
   {
     id: "handsaw_tool_1", conceptId: "handsaw", primary: true,
-    label: "Пила", labelInstrumental: "пилой", action: "пилят доску",
+    label: "Пила", labelInstrumental: "пилой", action: "пилят доску", actionInf: "пилить доску",
     image: "media/handsaw_tool_1.webp", type: "tool",
   },
   { id: "handsaw_scene_before", conceptId: "handsaw", primary: false, image: "media/handsaw_scene_before.webp", type: "scene_before" },
@@ -71,7 +71,7 @@ describe("generateTasks — choose_action", () => {
     for (const t of tasks) {
       const target = t.options.find(o => o.isTarget);
       const concept = CONCEPTS.find(c => c.conceptId === t.conceptId);
-      expect(target.action).toBe(concept.primary.action);
+      expect(target.actionInf).toBe(concept.primary.actionInf);
     }
   });
 
@@ -86,15 +86,17 @@ describe("generateTasks — choose_action", () => {
   it("task has question string containing labelInstrumental", () => {
     const tasks = generateTasks("choose_action", CONCEPTS, CARDS, {});
     for (const t of tasks) {
-      expect(t.question).toContain(t.labelInstrumental);
+      const concept = CONCEPTS.find(c => c.conceptId === t.conceptId);
+      expect(t.question).toContain(concept.primary.labelInstrumental);
     }
   });
 
-  it("task has feedbackText containing label and action", () => {
+  it("task has feedbackText containing capitalized labelInstrumental and action", () => {
     const tasks = generateTasks("choose_action", CONCEPTS, CARDS, {});
     for (const t of tasks) {
       const concept = CONCEPTS.find(c => c.conceptId === t.conceptId);
-      expect(t.feedbackText).toContain(concept.primary.label);
+      const lInstr = concept.primary.labelInstrumental;
+      expect(t.feedbackText).toContain(lInstr[0].toUpperCase() + lInstr.slice(1));
       expect(t.feedbackText).toContain(concept.primary.action);
     }
   });

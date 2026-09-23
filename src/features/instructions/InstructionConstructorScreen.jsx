@@ -8,6 +8,7 @@ import { uploadInstructionPhoto } from "./instructionPhotoUpload";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import "./instructions.css";
 
 const EMOJI_CATEGORIES = [
@@ -184,7 +185,7 @@ export default function InstructionConstructorScreen() {
                   <div className="cn-step-photo">
                     {step.photo ? (
                       <div className="cn-step-photo__preview">
-                        <img src={step.photo} alt="" />
+                        <AuthenticatedImage src={step.photo} alt="" />
                         <button
                           type="button"
                           className="cn-step-photo__remove"

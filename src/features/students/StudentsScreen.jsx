@@ -4,6 +4,7 @@ import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { formatDate, getInitials } from "@/shared/utils/format";
 import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
@@ -81,7 +82,7 @@ export default function StudentsScreen() {
                     onClick={() => handleStudentClick(student)}
                   >
                     {student.photo
-                      ? <img src={student.photo} className="student-avatar student-avatar--photo" alt="" />
+                      ? <AuthenticatedImage src={student.photo} className="student-avatar student-avatar--photo" alt="" />
                       : <div className="student-avatar">{getInitials(student.name)}</div>
                     }
                     <div className="student-info">
@@ -108,7 +109,7 @@ export default function StudentsScreen() {
         {panelStudent ? (
           <div className="students-detail-panel">
             {panelStudent.photo
-              ? <img src={panelStudent.photo} className="student-detail-avatar student-detail-avatar--photo" alt="" />
+              ? <AuthenticatedImage src={panelStudent.photo} className="student-detail-avatar student-detail-avatar--photo" alt="" />
               : <div className="student-detail-avatar">{getInitials(panelStudent.name)}</div>
             }
             <div className="student-detail-name">{panelStudent.name}</div>

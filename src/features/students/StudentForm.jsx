@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import Button from "@/shared/components/Button";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
 
 const LANGUAGES = [
@@ -46,7 +47,7 @@ async function resizeToDataUrl(file, size = 200) {
 function AdultAvatar({ adult, size = 40 }) {
   if (adult.photo) {
     return (
-      <img
+      <AuthenticatedImage
         src={adult.photo}
         alt={adult.name}
         style={{

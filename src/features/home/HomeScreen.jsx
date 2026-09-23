@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import Button from "@/shared/components/Button";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import TopicCover from "@/shared/components/TopicCover";
 import ModeIcon from "@/shared/components/ModeIcon";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
@@ -62,7 +63,7 @@ function HomeHeader({
           convenience, not a real feature, so it stays visually inert. */}
       <div className="home-header__avatar" onClick={onAvatarTap} style={{ cursor: "default" }}>
         {student
-          ? (student.photo ? <img src={student.photo} alt="" /> : getInitials(student.name))
+          ? (student.photo ? <AuthenticatedImage src={student.photo} alt="" /> : getInitials(student.name))
           : '—'}
       </div>
       <div className="home-header__copy">

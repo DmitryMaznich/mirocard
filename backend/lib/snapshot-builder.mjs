@@ -11,7 +11,7 @@ function safeJson(value, fallback) {
   catch { return fallback; }
 }
 
-export function buildBootstrap(db, accountId, sinceRevision = 0) {
+export function buildBootstrap(db, accountId) {
   const account  = findAccountById(db, accountId);
   const settings = getAccountSettings(db, accountId);
   const revision = getRevision(db, accountId);

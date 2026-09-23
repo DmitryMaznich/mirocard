@@ -57,11 +57,21 @@ export async function createCheckoutSession({ orderId, planLabel, amountMinor, c
   return { checkoutUrl: session.url, externalId: session.id };
 }
 
-export function verifyStripeWebhookSignature(rawBody, signatureHeader) {
+// toleranceSec matches Stripe's own SDK default (5 minutes) -- without it,
+// a signature computed over a captured/replayed old payload would verify
+// forever, since t is only ever used as HMAC input here, never checked
+// against the current time.
+const DEFAULT_TOLERANCE_SEC = 300;
+
+export function verifyStripeWebhookSignature(rawBody, signatureHeader, { toleranceSec = DEFAULT_TOLERANCE_SEC, nowMs = Date.now() } = {}) {
   if (!signatureHeader) return false;
   const parts = Object.fromEntries(signatureHeader.split(",").map((kv) => kv.split("=")));
   const { t: timestamp, v1: expectedSig } = parts;
   if (!timestamp || !expectedSig) return false;
+
+  const timestampSec = Number(timestamp);
+  if (!Number.isFinite(timestampSec)) return false;
+  if (Math.abs(nowMs / 1000 - timestampSec) > toleranceSec) return false;
 
   const computed = createHmac("sha256", STRIPE_WEBHOOK_SECRET)
     .update(`${timestamp}.${rawBody}`)

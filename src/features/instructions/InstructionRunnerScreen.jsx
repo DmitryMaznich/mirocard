@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, Fragment } from "react";
 import { useAppStore } from "@/core/store";
 import { getAllInstructions } from "./instructionsApi";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import "./instructions.css";
 
@@ -126,7 +127,7 @@ export default function InstructionRunnerScreen() {
       <div key={stepIndex} className="instruction-step">
         <div className="instruction-step-text">{splitSentences(steps[stepIndex].text)}</div>
         {steps[stepIndex].photo && (
-          <img
+          <AuthenticatedImage
             className="instruction-step-img instruction-step-img--inline"
             src={steps[stepIndex].photo}
             alt=""

@@ -75,6 +75,20 @@ test("verifyStripeWebhookSignature rejects a missing header", () => {
   assert.equal(verifyStripeWebhookSignature("{}", undefined), false);
 });
 
+test("verifyStripeWebhookSignature rejects a correctly-signed but stale (replayed) payload", () => {
+  const rawBody = '{"id":"evt_1"}';
+  const staleTimestamp = Math.floor(Date.now() / 1000) - 600; // 10 minutes old, beyond the 5-minute tolerance
+  const signature = createHmac("sha256", "whsec_test_secret").update(`${staleTimestamp}.${rawBody}`).digest("hex");
+  assert.equal(verifyStripeWebhookSignature(rawBody, `t=${staleTimestamp},v1=${signature}`), false);
+});
+
+test("verifyStripeWebhookSignature accepts a payload within a custom tolerance window", () => {
+  const rawBody = '{"id":"evt_1"}';
+  const timestamp = Math.floor(Date.now() / 1000) - 600;
+  const signature = createHmac("sha256", "whsec_test_secret").update(`${timestamp}.${rawBody}`).digest("hex");
+  assert.ok(verifyStripeWebhookSignature(rawBody, `t=${timestamp},v1=${signature}`, { toleranceSec: 3600 }));
+});
+
 test("parseStripeWebhookEvent extracts orderId and amount from a checkout.session.completed event", () => {
   const rawBody = JSON.stringify({
     id: "evt_1",

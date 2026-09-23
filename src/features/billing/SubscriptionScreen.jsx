@@ -10,6 +10,31 @@ const PLANS = [
   { id: "annual", name: "Год", hint: "€ 7,49 в месяц · максимальная выгода", priceLabel: "€ 89,90" },
 ];
 
+// Pre-contract consent text is offered in Slovenian too (ZVPot-1: consumer
+// dealings in Slovenia must be available in Slovenian). The rest of the app
+// UI stays Russian. The chosen locale is sent with checkout, stored on the
+// consent row, and decides the purchase-confirmation email's language.
+const CONSENT_TEXT = {
+  ru: {
+    planNames: { monthly: "Месяц", half_year: "Полгода", annual: "Год" },
+    terms: (link) => <>Я принимаю {link("/terms", "Условия использования")}</>,
+    price: (price, planName) => `Подтверждаю цену ${price} и период доступа «${planName}»`,
+    digital: (link) => <>Прошу открыть доступ сразу после оплаты и понимаю, что с этого момента теряю право на отказ от покупки в течение 14 дней (см. {link("/refunds", "Возврат средств")})</>,
+    disclaimer: (planName) => `Разовая оплата за «${planName}». Без автосписаний — карта не сохраняется, по истечении периода доступ закончится, продлить можно будет вручную в любой момент.`,
+  },
+  sl: {
+    planNames: { monthly: "Mesec", half_year: "Pol leta", annual: "Leto" },
+    terms: (link) => <>Sprejemam {link("/sl/terms", "Splošne pogoje uporabe")}</>,
+    price: (price, planName) => `Potrjujem ceno ${price} in obdobje dostopa »${planName}«`,
+    digital: (link) => <>Prosim za dostop takoj po plačilu in se zavedam, da s tem izgubim pravico do odstopa od pogodbe v 14 dneh (glejte {link("/sl/refunds", "Vračilo kupnine")})</>,
+    disclaimer: (planName) => `Enkratno plačilo za »${planName}«. Brez samodejnih bremenitev — kartica se ne shrani, po izteku obdobja se dostop zaključi, podaljšate ga lahko ročno kadar koli.`,
+  },
+};
+
+function legalLink(href, label) {
+  return <a href={href} target="_blank" rel="noopener noreferrer">{label}</a>;
+}
+
 function formatMinor(amountMinor) {
   return (amountMinor / 100).toFixed(2).replace(".", ",");
 }
@@ -28,9 +53,27 @@ export default function SubscriptionScreen() {
   const [promoError, setPromoError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [pricePeriodConfirmed, setPricePeriodConfirmed] = useState(false);
+  const [digitalContentAck, setDigitalContentAck] = useState(false);
+  const [consentLocale, setConsentLocale] = useState("ru");
 
   const plan = PLANS.find((p) => p.id === planId);
   const discounted = promoResult?.ok && promoResult.kind !== "free_grant" ? promoResult.discountedAmountMinor : null;
+  const consentsGiven = termsAccepted && pricePeriodConfirmed && digitalContentAck;
+  const ct = CONSENT_TEXT[consentLocale];
+  const consentPlanName = ct.planNames[plan.id];
+  const priceText = discounted != null ? `€ ${formatMinor(discounted)}` : plan.priceLabel;
+
+  // Consent is only valid in the wording the customer actually saw, so
+  // switching language clears any boxes ticked in the other one.
+  function switchConsentLocale(next) {
+    if (next === consentLocale) return;
+    setConsentLocale(next);
+    setTermsAccepted(false);
+    setPricePeriodConfirmed(false);
+    setDigitalContentAck(false);
+  }
 
   async function applyPromo() {
     setPromoError(null);
@@ -43,19 +86,46 @@ export default function SubscriptionScreen() {
     setPromoResult(result);
     if (result.kind === "free_grant") {
       const redeem = await api.post("/billing/redeem-code", { code: result.code });
-      if (redeem.ok) setScreen("checkout_return");
+      if (redeem.ok) {
+        // A free-grant redemption completes synchronously server-side --
+        // there's no order to poll. Clear checkoutOrderId (it may still
+        // hold a stale value from an earlier, unrelated real-checkout
+        // attempt this session) so CheckoutReturnScreen reads the current
+        // subscription once instead of polling the wrong order's status.
+        setCheckout(null, null);
+        setScreen("checkout_return");
+      }
     }
   }
 
   async function submit() {
     setSubmitting(true);
     setSubmitError(null);
+
+    // Must open synchronously, right here in the click handler, before any
+    // `await` -- iOS Safari (and other strict popup blockers) only allow
+    // window.open() through as a direct result of a user gesture; calling
+    // it later, after the checkout-session API call resolves, is exactly
+    // what used to get silently blocked. Opening a blank tab now and
+    // redirecting it once the real checkout URL comes back keeps it
+    // inside that gesture without making the user stare at a blank tab
+    // any longer than the API call itself takes.
+    const checkoutWindow = window.open("", "_blank", "noopener,noreferrer");
+
     try {
       const code = promoResult?.ok && promoResult.kind !== "free_grant" ? promoResult.code : null;
-      const result = await api.post("/billing/checkout", { plan: planId, method, code });
+      const result = await api.post("/billing/checkout", {
+        plan: planId, method, code,
+        consents: { termsAccepted, pricePeriodConfirmed, digitalContentAck },
+        locale: consentLocale,
+      });
       setCheckout(result.checkoutUrl, result.orderId);
+      if (checkoutWindow && !checkoutWindow.closed) {
+        checkoutWindow.location.href = result.checkoutUrl;
+      }
       setScreen("checkout_redirect");
     } catch (err) {
+      if (checkoutWindow && !checkoutWindow.closed) checkoutWindow.close();
       setSubmitError(err.message);
     } finally {
       setSubmitting(false);
@@ -105,7 +175,13 @@ export default function SubscriptionScreen() {
         <p className="section-label">Способ оплаты</p>
         <div className="pay-methods">
           <button type="button" className={`pay-chip${method === "card" ? " pay-chip--selected" : ""}`} onClick={() => setMethod("card")}>Картой</button>
-          <button type="button" className={`pay-chip${method === "mir_sbp" ? " pay-chip--selected" : ""}`} onClick={() => setMethod("mir_sbp")}>МИР / СБП</button>
+          {/* Launch is EU/Stripe only. МИР/СБП (Lava Top) is shown disabled
+              to signal it's planned, not forgotten; the server refuses it
+              too (DISABLED_CHECKOUT_METHODS in backend/server.mjs). */}
+          <button type="button" className="pay-chip pay-chip--disabled" disabled aria-disabled="true" title="Скоро">
+            МИР / СБП
+            <span className="pay-chip__soon">скоро</span>
+          </button>
         </div>
 
         {!promoOpen && (
@@ -119,11 +195,39 @@ export default function SubscriptionScreen() {
           </div>
         )}
 
+        <div className="subscription-consents" lang={consentLocale}>
+          <div className="consent-lang" role="group" aria-label="Язык условий / Jezik pogojev">
+            <button type="button" className={`consent-lang__btn${consentLocale === "ru" ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === "ru"} onClick={() => switchConsentLocale("ru")}>Русский</button>
+            <button type="button" className={`consent-lang__btn${consentLocale === "sl" ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === "sl"} onClick={() => switchConsentLocale("sl")}>Slovenščina</button>
+          </div>
+          <label className="subscription-consent">
+            <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} />
+            <span>{ct.terms(legalLink)}</span>
+          </label>
+          <label className="subscription-consent">
+            <input type="checkbox" checked={pricePeriodConfirmed} onChange={(e) => setPricePeriodConfirmed(e.target.checked)} />
+            <span>{ct.price(priceText, consentPlanName)}</span>
+          </label>
+          <label className="subscription-consent">
+            <input type="checkbox" checked={digitalContentAck} onChange={(e) => setDigitalContentAck(e.target.checked)} />
+            <span>{ct.digital(legalLink)}</span>
+          </label>
+        </div>
+
         {submitError && <p className="subscription-error">{submitError}</p>}
       </div>
 
       <div className="subscription-footer">
-        <button type="button" className="btn btn-primary subscription-cta" disabled={submitting} onClick={submit}>
+        {/* M0 launch: this is a single prepaid-period purchase, not a
+            recurring subscription -- no card is kept on file and nothing
+            charges again automatically. Said explicitly here rather than
+            only in the Terms, since "Подписка"/"Оформить" alone could
+            otherwise read as an auto-renewing plan. See
+            docs/commercial-launch-runbook.md's M0/M1 section. */}
+        <p className="subscription-disclaimer" lang={consentLocale}>
+          {ct.disclaimer(consentPlanName)}
+        </p>
+        <button type="button" className="btn btn-primary subscription-cta" disabled={submitting || !consentsGiven} onClick={submit}>
           Оформить — {discounted != null ? `€ ${formatMinor(discounted)}` : plan.priceLabel}
         </button>
       </div>
