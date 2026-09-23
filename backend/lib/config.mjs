@@ -113,3 +113,65 @@ export const CORS_ALLOWED_ORIGINS = (readEnv("CORS_ALLOWED_ORIGINS") || "https:/
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+// ─── Photos ──────────────────────────────────────────────────────────────────
+// Every user photo (student, close adults, "Мои люди", instruction steps) is
+// decoded and re-encoded server-side by lib/photo-normalizer.mjs; these are
+// the limits it enforces. All overridable via env, defaults are the
+// production values.
+function readIntEnv(name, fallback) {
+  const raw = readEnv(name);
+  if (!raw) return fallback;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`${name} must be a positive number, got "${raw}"`);
+  }
+  return Math.floor(value);
+}
+
+const KIB = 1024;
+const MIB = 1024 * KIB;
+
+export const PHOTO_LIMITS = Object.freeze({
+  // Raw request body for POST /photos (and the decoded size of any single
+  // data: URL inside a sync operation).
+  maxInputBytes:      readIntEnv("PHOTO_MAX_INPUT_BYTES", 10 * MIB),
+  // Decompression-bomb guard, checked by libvips before decoding pixels.
+  maxInputPixels:     readIntEnv("PHOTO_MAX_INPUT_PIXELS", 16_000_000),
+  maxLongSide:        readIntEnv("PHOTO_MAX_LONG_SIDE", 1440),
+  minLongSide:        readIntEnv("PHOTO_MIN_LONG_SIDE", 1024),
+  startQuality:       readIntEnv("PHOTO_WEBP_QUALITY", 84),
+  minQuality:         readIntEnv("PHOTO_WEBP_MIN_QUALITY", 60),
+  targetOutputBytes:  readIntEnv("PHOTO_TARGET_OUTPUT_BYTES", 550 * KIB),
+  maxOutputBytes:     readIntEnv("PHOTO_MAX_OUTPUT_BYTES", 650 * KIB),
+});
+
+export const MAX_PHOTOS_PER_ACCOUNT = readIntEnv("MAX_PHOTOS_PER_ACCOUNT", 12);
+export const MAX_PHOTO_STORAGE_BYTES_PER_ACCOUNT = readIntEnv("MAX_PHOTO_STORAGE_BYTES_PER_ACCOUNT", 6 * MIB);
+// A photo the account no longer references anywhere (replaced/deleted) stops
+// counting toward its quota after this grace period. The grace keeps a
+// just-uploaded photo (POST /photos returns the URL before the client saves
+// the record that references it) counted, so it can't be used to bypass the
+// quota.
+export const PHOTO_UNREFERENCED_GRACE_HOURS = readIntEnv("PHOTO_UNREFERENCED_GRACE_HOURS", 24);
+// Upper bound for any JSON request body (sync batches can carry several
+// embedded photos). Previously unbounded.
+export const MAX_JSON_BODY_BYTES = readIntEnv("MAX_JSON_BODY_BYTES", 24 * MIB);
+
+// ─── Backups ─────────────────────────────────────────────────────────────────
+// Local rotation on the Railway volume (scripts/railway-backup-loop.mjs):
+// newest N hourly snapshots, then at most one per day for D more days.
+export const BACKUP_KEEP_HOURLY = readIntEnv("BACKUP_KEEP_HOURLY", 24);
+export const BACKUP_KEEP_DAILY_DAYS = readIntEnv("BACKUP_KEEP_DAILY_DAYS", 14);
+// Optional off-site copy to any S3-compatible bucket (AWS S3, Cloudflare R2,
+// Backblaze B2, ...). Unset = off-site disabled, logged as a warning.
+export const OFFSITE_BACKUP = Object.freeze({
+  endpoint:        readEnv("BACKUP_S3_ENDPOINT"),        // e.g. https://<account>.r2.cloudflarestorage.com
+  region:          readEnv("BACKUP_S3_REGION") || "auto",
+  bucket:          readEnv("BACKUP_S3_BUCKET"),
+  prefix:          readEnv("BACKUP_S3_PREFIX") || "mirocard/sqlite/",
+  accessKeyId:     readEnv("BACKUP_S3_ACCESS_KEY_ID"),
+  secretAccessKey: readEnv("BACKUP_S3_SECRET_ACCESS_KEY"),
+  // Upload one hourly snapshot off-site every N hours (default: every 6h).
+  everyHours:      readIntEnv("BACKUP_S3_EVERY_HOURS", 6),
+});

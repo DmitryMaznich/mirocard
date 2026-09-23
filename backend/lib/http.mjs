@@ -1,3 +1,5 @@
+import { MAX_JSON_BODY_BYTES } from "./config.mjs";
+
 export function writeJson(response, statusCode, payload) {
   response.writeHead(statusCode, {
     "Content-Type": "application/json; charset=utf-8",
@@ -11,9 +13,15 @@ export function writeNoContent(response) {
   response.end();
 }
 
-export async function readJsonBody(request) {
+// Every JSON body is size-capped (previously unbounded: one request could
+// buffer arbitrary memory). Sync batches may legitimately carry several
+// embedded photos, hence the generous default -- see MAX_JSON_BODY_BYTES.
+export async function readJsonBody(request, maxBytes = MAX_JSON_BODY_BYTES) {
   const chunks = [];
+  let total = 0;
   for await (const chunk of request) {
+    total += chunk.length;
+    if (total > maxBytes) throw { status: 413, message: "Payload too large" };
     chunks.push(chunk);
   }
   if (chunks.length === 0) return null;

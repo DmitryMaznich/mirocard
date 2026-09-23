@@ -153,8 +153,9 @@ test("upsertStudent creates and getStudents returns it", () => {
 test("upsertStudent preserves existing photo when incoming photo is null", () => {
   const db = makeDb();
   const acc = makeAccount(db);
-  // First write with a photo
-  upsertStudent(db, acc.id, { id: "s_photo", name: "Аня", photo: "data:image/jpeg;base64,/9j/test123==" });
+  // First write with a photo (already normalized + stored by the sync
+  // pre-pass -- the repository only ever sees /api/photos/<hash> refs).
+  upsertStudent(db, acc.id, { id: "s_photo", name: "Аня", photo: "/api/photos/0123456789abcdef0123456789abcdef" });
   const after1 = getStudents(db, acc.id).find((s) => s.id === "s_photo");
   assert.ok(after1.photo?.startsWith("/api/photos/"), "photo should be stored as /api/photos/...");
   const savedPhotoUrl = after1.photo;
@@ -442,21 +443,16 @@ test("setAccountFeatureFlags updates account flags", () => {
   assert.deepEqual(JSON.parse(row.feature_flags), ["beta", "experimental"]);
 });
 
-test("extractAndStorePhoto stores a data URL and returns a stable /api/photos/<hash> URL", () => {
+test("extractAndStorePhoto refuses a raw data: URL (photos must be normalized by photo-store first)", () => {
   const db = makeDb();
-  const url = extractAndStorePhoto(db, "data:image/webp;base64,AAAA");
-  assert.match(url, /^\/api\/photos\/[0-9a-f]{32}$/);
-  const hash = url.split("/").at(-1);
-  const stored = getPhoto(db, hash);
-  assert.equal(stored.content_type, "image/webp");
-  assert.equal(stored.data, "AAAA");
+  assert.throws(() => extractAndStorePhoto(db, "data:image/webp;base64,AAAA"), /unnormalized photo/);
 });
 
-test("extractAndStorePhoto dedupes identical content to the same hash", () => {
+test("extractAndStorePhoto passes an already-stored /api/photos/<hash> ref through unchanged", () => {
   const db = makeDb();
-  const first = extractAndStorePhoto(db, "data:image/webp;base64,BBBB");
-  const second = extractAndStorePhoto(db, "data:image/webp;base64,BBBB");
-  assert.equal(first, second);
+  const ref = "/api/photos/0123456789abcdef0123456789abcdef";
+  assert.equal(extractAndStorePhoto(db, ref), ref);
+  assert.equal(extractAndStorePhoto(db, null), null);
 });
 
 test("getPhoto returns null for an unknown hash", () => {

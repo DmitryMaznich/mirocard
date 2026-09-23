@@ -1,4 +1,4 @@
-import { randomUUID, createHash } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -11,16 +11,17 @@ function safeJson(value, fallback) {
 
 // ─── Photos ───────────────────────────────────────────────────────────────────
 
-export function extractAndStorePhoto(db, dataUrl) {
-  if (!dataUrl || !dataUrl.startsWith("data:")) return dataUrl;
-  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/s);
-  if (!match) return dataUrl;
-  const [, contentType, data] = match;
-  const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);
-  db.prepare(
-    "INSERT OR IGNORE INTO photos (hash, content_type, data, created_at) VALUES (?, ?, ?, ?)"
-  ).run(hash, contentType, data, now());
-  return `/api/photos/${hash}`;
+// Photos are normalized, stored and owner-linked *before* repository code
+// runs (lib/photo-store.mjs: resolveSyncOperationPhotos / storePhotoDataUrl),
+// because that needs async image decoding. By the time a value reaches here
+// it must already be a /api/photos/<hash> reference. A raw data: URL means
+// a code path skipped normalization: refuse it rather than store unbounded,
+// unvalidated bytes. (processSync logs and skips the operation.)
+export function extractAndStorePhoto(db, value) {
+  if (typeof value === "string" && value.startsWith("data:")) {
+    throw new Error("unnormalized photo data URL reached the repository layer");
+  }
+  return value;
 }
 
 function processCloseAdultPhotos(db, adults) {
@@ -81,34 +82,8 @@ export function getPhoto(db, hash) {
   return db.prepare("SELECT content_type, data FROM photos WHERE hash = ?").get(hash) ?? null;
 }
 
-export function migratePhotoData(db) {
-  const rows = db.prepare(
-    "SELECT id, photo, close_adults FROM students WHERE photo IS NOT NULL OR close_adults IS NOT NULL"
-  ).all();
-  for (const s of rows) {
-    let changed = false;
-    let newPhoto = s.photo;
-    const adults = safeJson(s.close_adults, []);
-
-    if (newPhoto && newPhoto.startsWith("data:")) {
-      newPhoto = extractAndStorePhoto(db, newPhoto);
-      changed = true;
-    }
-
-    const processedAdults = adults.map((a) => {
-      if (a.photo && a.photo.startsWith("data:")) {
-        changed = true;
-        return { ...a, photo: extractAndStorePhoto(db, a.photo) };
-      }
-      return a;
-    });
-
-    if (changed) {
-      db.prepare("UPDATE students SET photo = ?, close_adults = ? WHERE id = ?")
-        .run(newPhoto, JSON.stringify(processedAdults), s.id);
-    }
-  }
-}
+// Legacy inline data: URLs are migrated at startup by
+// migrateLegacyDataUrlPhotos() in lib/photo-store.mjs (async, normalizing).
 
 // ─── Accounts ─────────────────────────────────────────────────────────────────
 

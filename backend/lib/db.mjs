@@ -3,6 +3,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { DB_PATH } from "./config.mjs";
+import { migratePhotoStoreSchema, runPhotoOwnershipBackfillOnce } from "./photo-store.mjs";
 
 let _db = null;
 
@@ -441,6 +442,11 @@ export function initDb(dbPath = DB_PATH) {
 
   backfillOrdersAndEntitlementsFromLegacySubscriptions(db);
   grantAllAccessToExistingAccounts(db);
+  // Photo ownership (photo_owners) + photos.byte_size; then, once per
+  // database, link every photo existing data already references to its
+  // account (see runPhotoOwnershipBackfillOnce for why only once).
+  migratePhotoStoreSchema(db);
+  runPhotoOwnershipBackfillOnce(db);
 
   return db;
 }
