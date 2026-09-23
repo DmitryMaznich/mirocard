@@ -15,13 +15,13 @@ describe("DailyOrientationRenderer", () => {
     vi.useRealTimers();
   });
 
-  function mountAt(date) {
+  function mountAt(date, sessionParams) {
     vi.useFakeTimers();
     vi.setSystemTime(date);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
-    act(() => root.render(<DailyOrientationRenderer />));
+    act(() => root.render(<DailyOrientationRenderer sessionParams={sessionParams} />));
   }
 
   it("shows today by default and updates the date fields through the carousel", () => {
@@ -38,5 +38,27 @@ describe("DailyOrientationRenderer", () => {
     expect(container.textContent).toContain("СРЕДА");
     expect(container.textContent).toContain("23-е");
     expect(container.textContent).toContain("Какой будет день?");
+  });
+
+  it("renders only the selected orientation blocks and closes gaps in the grid", () => {
+    mountAt(new Date(2026, 8, 22, 14, 35), {
+      showCarousel: false,
+      showWeekday: false,
+      showDayOfMonth: false,
+      showMonth: true,
+      showSeason: false,
+      showAnalogClock: true,
+      showTimeWords: false,
+      showDigitalTime: false,
+    });
+
+    expect(container.querySelector(".daily-orientation__carousel")).toBeNull();
+    expect(container.querySelector(".daily-orientation__grid")?.classList.contains("daily-orientation__grid--2")).toBe(true);
+    expect(container.textContent).toContain("Месяц");
+    expect(container.textContent).toContain("СЕНТЯБРЬ");
+    expect(container.textContent).not.toContain("ЧИСЛО");
+    expect(container.textContent).not.toContain("Который сейчас час?");
+    expect(container.querySelector(".daily-orientation__clock")).not.toBeNull();
+    expect(container.querySelector(".daily-orientation__digital-time")).toBeNull();
   });
 });

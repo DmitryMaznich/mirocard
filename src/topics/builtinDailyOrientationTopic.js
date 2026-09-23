@@ -24,6 +24,61 @@ export function buildDailyOrientationTopicRecord() {
         id: "daily_orientation",
         type: "daily_orientation",
         evaluation: "none",
+        // This is a standing visual support rather than a set of exercises:
+        // there is one metadata card only so the normal session flow stays
+        // compatible, but no concepts or rewards are meaningful here.
+        hideConceptPicker: true,
+        hideVideoReward: true,
+        params: {
+          showCarousel: {
+            type: "boolean",
+            label: { ru: "Вчера, сегодня, завтра" },
+            default: true,
+            section: "Что показывать",
+          },
+          showWeekday: {
+            type: "boolean",
+            label: { ru: "День недели" },
+            default: true,
+            section: "Что показывать",
+          },
+          showDayOfMonth: {
+            type: "boolean",
+            label: { ru: "Число" },
+            default: true,
+            section: "Что показывать",
+          },
+          showMonth: {
+            type: "boolean",
+            label: { ru: "Месяц" },
+            default: true,
+            section: "Что показывать",
+          },
+          showSeason: {
+            type: "boolean",
+            label: { ru: "Время года" },
+            default: true,
+            section: "Что показывать",
+          },
+          showAnalogClock: {
+            type: "boolean",
+            label: { ru: "Аналоговые часы" },
+            default: true,
+            section: "Что показывать",
+          },
+          showTimeWords: {
+            type: "boolean",
+            label: { ru: "Время словами" },
+            default: true,
+            section: "Что показывать",
+          },
+          showDigitalTime: {
+            type: "boolean",
+            label: { ru: "Цифровое время" },
+            default: true,
+            section: "Что показывать",
+          },
+        },
         ui: {
           title: { ru: "Экран на сегодня" },
           instruction: { ru: "Интерактивный ориентир для ежедневного разговора" },

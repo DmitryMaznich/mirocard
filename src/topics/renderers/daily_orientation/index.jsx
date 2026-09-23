@@ -8,8 +8,34 @@ const CAROUSEL_ITEMS = [
   { offset: 1, label: "Завтра" },
 ];
 
+const DISPLAY_OPTION_KEYS = [
+  "showCarousel",
+  "showWeekday",
+  "showDayOfMonth",
+  "showMonth",
+  "showSeason",
+  "showAnalogClock",
+  "showTimeWords",
+  "showDigitalTime",
+];
+
+const CONTENT_OPTION_KEYS = DISPLAY_OPTION_KEYS.filter((key) => key !== "showCarousel");
+
 const DESIGN_WIDTH = 1600;
 const DESIGN_HEIGHT = 1000;
+
+function resolveDisplayOptions(sessionParams = {}) {
+  const options = Object.fromEntries(
+    DISPLAY_OPTION_KEYS.map((key) => [key, sessionParams[key] !== false])
+  );
+
+  // The settings screen keeps at least one orientation item on. This fallback
+  // also protects an old or manually edited saved setting from producing an
+  // unusable blank wall display.
+  return CONTENT_OPTION_KEYS.some((key) => options[key])
+    ? options
+    : { ...options, showWeekday: true };
+}
 
 function useDashboardScale() {
   const viewportRef = useRef(null);
@@ -108,14 +134,26 @@ function AnalogClock({ now }) {
   );
 }
 
-export default function DailyOrientationRenderer() {
+export default function DailyOrientationRenderer({ sessionParams }) {
   const now = useCurrentTime();
   const { viewportRef, scale } = useDashboardScale();
   const [offset, setOffset] = useState(0);
   const dragStart = useRef(null);
+  const display = resolveDisplayOptions(sessionParams);
   const activeDate = addCalendarDays(now, offset);
   const { weekday, month, dayOfMonth } = formatDisplayDate(activeDate);
   const season = getSeason(activeDate.getMonth());
+  const hasDate = display.showDayOfMonth || display.showMonth;
+  const hasTime = display.showAnalogClock || display.showTimeWords || display.showDigitalTime;
+  const visibleCardCount = [display.showWeekday, hasDate, display.showSeason, hasTime].filter(Boolean).length;
+  const timeCardClassName = [
+    "daily-orientation__card",
+    "daily-orientation__card--time",
+    !display.showAnalogClock ? "daily-orientation__card--time-without-clock" : "",
+    display.showAnalogClock && !display.showTimeWords && !display.showDigitalTime
+      ? "daily-orientation__card--time-clock-only"
+      : "",
+  ].filter(Boolean).join(" ");
 
   function selectOffset(nextOffset) {
     setOffset(Math.max(-1, Math.min(1, nextOffset)));
@@ -139,67 +177,85 @@ export default function DailyOrientationRenderer() {
   return (
     <main className="daily-orientation" aria-label="Экран ориентации во времени">
       <div className="daily-orientation__viewport" ref={viewportRef}>
-        <div className="daily-orientation__canvas" style={{ transform: `scale(${scale})` }}>
-          <nav
-            className="daily-orientation__carousel"
-            aria-label="Выберите: вчера, сегодня или завтра"
-            onPointerDown={beginSwipe}
-            onPointerUp={endSwipe}
-            onPointerCancel={() => { dragStart.current = null; }}
-          >
-            {CAROUSEL_ITEMS.map((item, index) => (
-              <span className="daily-orientation__carousel-slot" key={item.offset}>
-                {index === 1 && <Chevron direction="left" />}
-                <button
-                  type="button"
-                  className={`daily-orientation__carousel-item${offset === item.offset ? " daily-orientation__carousel-item--active" : ""}`}
-                  onClick={() => selectOffset(item.offset)}
-                  aria-pressed={offset === item.offset}
-                >
-                  {item.label}
-                </button>
-                {index === 1 && <Chevron direction="right" />}
-              </span>
-            ))}
-          </nav>
+        <div className={`daily-orientation__canvas${display.showCarousel ? "" : " daily-orientation__canvas--without-carousel"}`} style={{ transform: `scale(${scale})` }}>
+          {display.showCarousel && (
+            <nav
+              className="daily-orientation__carousel"
+              aria-label="Выберите: вчера, сегодня или завтра"
+              onPointerDown={beginSwipe}
+              onPointerUp={endSwipe}
+              onPointerCancel={() => { dragStart.current = null; }}
+            >
+              {CAROUSEL_ITEMS.map((item, index) => (
+                <span className="daily-orientation__carousel-slot" key={item.offset}>
+                  {index === 1 && <Chevron direction="left" />}
+                  <button
+                    type="button"
+                    className={`daily-orientation__carousel-item${offset === item.offset ? " daily-orientation__carousel-item--active" : ""}`}
+                    onClick={() => selectOffset(item.offset)}
+                    aria-pressed={offset === item.offset}
+                  >
+                    {item.label}
+                  </button>
+                  {index === 1 && <Chevron direction="right" />}
+                </span>
+              ))}
+            </nav>
+          )}
 
-          <section className="daily-orientation__grid" aria-live="polite">
-            <article className="daily-orientation__card daily-orientation__card--weekday">
-              <p className="daily-orientation__question">{getRelativePrompt(offset, "day")}</p>
-              <strong className="daily-orientation__answer">{weekday}</strong>
-            </article>
+          <section className={`daily-orientation__grid daily-orientation__grid--${visibleCardCount}`} aria-live="polite">
+            {display.showWeekday && (
+              <article className="daily-orientation__card daily-orientation__card--weekday">
+                <p className="daily-orientation__question">{getRelativePrompt(offset, "day")}</p>
+                <strong className="daily-orientation__answer">{weekday}</strong>
+              </article>
+            )}
 
-            <article className="daily-orientation__card daily-orientation__card--date">
-              <h2 className="daily-orientation__card-title">Дата</h2>
-              <div className="daily-orientation__date-values">
-                <div className="daily-orientation__date-part">
-                  <span className="daily-orientation__label">Число</span>
-                  <strong className="daily-orientation__date-number">{dayOfMonth}</strong>
+            {hasDate && (
+              <article className={`daily-orientation__card daily-orientation__card--date${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__card--date-single"}`}>
+                <h2 className="daily-orientation__card-title">Дата</h2>
+                <div className={`daily-orientation__date-values${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__date-values--single"}`}>
+                  {display.showDayOfMonth && (
+                    <div className="daily-orientation__date-part">
+                      <span className="daily-orientation__label">Число</span>
+                      <strong className="daily-orientation__date-number">{dayOfMonth}</strong>
+                    </div>
+                  )}
+                  {display.showDayOfMonth && display.showMonth && <div className="daily-orientation__date-divider" aria-hidden="true" />}
+                  {display.showMonth && (
+                    <div className="daily-orientation__date-part">
+                      <span className="daily-orientation__label">Месяц</span>
+                      <strong className="daily-orientation__date-month">{month}</strong>
+                    </div>
+                  )}
                 </div>
-                <div className="daily-orientation__date-divider" aria-hidden="true" />
-                <div className="daily-orientation__date-part">
-                  <span className="daily-orientation__label">Месяц</span>
-                  <strong className="daily-orientation__date-month">{month}</strong>
+              </article>
+            )}
+
+            {display.showSeason && (
+              <article className={`daily-orientation__card daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
+                <SeasonMark season={season} />
+                <div className="daily-orientation__season-copy">
+                  <p className="daily-orientation__question">{getRelativePrompt(offset, "season")}</p>
+                  <strong className="daily-orientation__answer">{season.label}</strong>
                 </div>
-              </div>
-            </article>
+              </article>
+            )}
 
-            <article className={`daily-orientation__card daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
-              <SeasonMark season={season} />
-              <div className="daily-orientation__season-copy">
-                <p className="daily-orientation__question">{getRelativePrompt(offset, "season")}</p>
-                <strong className="daily-orientation__answer">{season.label}</strong>
-              </div>
-            </article>
-
-            <article className="daily-orientation__card daily-orientation__card--time">
-              <AnalogClock now={now} />
-              <div className="daily-orientation__time-copy">
-                <p className="daily-orientation__question">Который сейчас час?</p>
-                <strong className="daily-orientation__time-words">{formatRussianClockTime(now)}</strong>
-              </div>
-              <output className="daily-orientation__digital-time" aria-label={`Цифровое время: ${formatDigitalClock(now)}`}>{formatDigitalClock(now)}</output>
-            </article>
+            {hasTime && (
+              <article className={timeCardClassName}>
+                {display.showAnalogClock && <AnalogClock now={now} />}
+                {display.showTimeWords && (
+                  <div className="daily-orientation__time-copy">
+                    <p className="daily-orientation__question">Который сейчас час?</p>
+                    <strong className="daily-orientation__time-words">{formatRussianClockTime(now)}</strong>
+                  </div>
+                )}
+                {display.showDigitalTime && (
+                  <output className="daily-orientation__digital-time" aria-label={`Цифровое время: ${formatDigitalClock(now)}`}>{formatDigitalClock(now)}</output>
+                )}
+              </article>
+            )}
           </section>
         </div>
       </div>
