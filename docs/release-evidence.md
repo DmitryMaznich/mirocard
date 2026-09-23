@@ -103,15 +103,12 @@ three consent checkboxes persisted per-order with a timestamp and the
 `LEGAL_DOCS_VERSION` in effect at that moment
 (`backend/tests/legal-checkout-consent.test.mjs`); checkout is hard-gated
 to `503` while `LEGAL_DOCS_VERSION` is `"draft"` (the shipped default). What
-is **not met**: the actual document *content* is still placeholder/draft
-except `privacy.html` (which has real entity/data-processor content) — per
-the brief's own explicit instruction not to invent legal text, company
-registration details, tax/VAT handling, or a refund policy.
-`docs/legal-launch-inputs.md` lists exactly what a human (product owner or
-lawyer) needs to supply before `LEGAL_DOCS_VERSION` can be set to a real
-value and checkout unblocked. This is deliberately left in the "not yet"
-state — flipping it requires content this session isn't authorized to
-invent, not more code.
+is **not met**: the documents are now full drafts for the decided scope
+(EU only, Smart Washing d.o.o., Stripe only, statutory-minimum refunds —
+see `docs/legal-launch-inputs.md` §1), but they have not been reviewed by a
+lawyer, three company-register placeholders (`[[...]]`) are still unfilled,
+and `LEGAL_DOCS_VERSION` is still `"draft"`, so checkout stays gated to
+`503`. Open legal/tax questions are listed in `docs/legal-launch-inputs.md` §3.
 
 ### 9. No dev fallback secrets in production — **MET**
 

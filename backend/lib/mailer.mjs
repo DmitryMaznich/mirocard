@@ -1,4 +1,4 @@
-import { RESEND_API_KEY, SMTP_FROM, APP_BASE_URL } from "./config.mjs";
+import { RESEND_API_KEY, SMTP_FROM, APP_BASE_URL, LEGAL_DOCS_VERSION } from "./config.mjs";
 
 async function sendEmail({ to, subject, text, html }) {
   if (!RESEND_API_KEY) {
@@ -97,10 +97,18 @@ export async function sendPurchaseConfirmationEmail(email, { plan, amountMinor, 
   const planLabel = { monthly: "Месяц", half_year: "Полгода", annual: "Год" }[plan] ?? plan;
   const amount = `${(amountMinor / 100).toFixed(2)} ${currency}`;
   const until = formatRuDate(endsAt);
+  // EU Consumer Rights Directive art. 8(7): the confirmation of a
+  // distance contract, on a durable medium, must record the consumer's
+  // prior consent to immediate supply of digital content and their
+  // acknowledgment that the right of withdrawal is thereby lost. Checkout
+  // refuses to create an order without that consent (digitalContentAck),
+  // so every paid purchase reaching this email has given it.
+  const legal = `Условия использования (версия ${LEGAL_DOCS_VERSION}): ${APP_BASE_URL}/terms\nВозврат средств: ${APP_BASE_URL}/refunds`;
+  const withdrawal = `Перед оплатой вы согласились на немедленное предоставление доступа к цифровому контенту и подтвердили, что с этого момента утрачиваете право на отказ от покупки в течение 14 дней. Случаи, когда деньги возвращаются, описаны на странице «Возврат средств».`;
   await sendEmail({
     to: email,
     subject: `Оплата получена — Mironium`,
-    text: `Спасибо за покупку!\n\nПлан: ${planLabel}\nСумма: ${amount}\nДоступ действует до: ${until}\n\nЭто разовая оплата — карта не сохраняется, повторных списаний не будет. После ${until} доступ к платным темам закончится, продлить можно будет вручную.`,
-    html: `<p>Спасибо за покупку!</p><ul><li>План: ${planLabel}</li><li>Сумма: ${amount}</li><li>Доступ действует до: ${until}</li></ul><p>Это разовая оплата — карта не сохраняется, повторных списаний не будет. После ${until} доступ к платным темам закончится, продлить можно будет вручную.</p>`,
+    text: `Спасибо за покупку!\n\nПродавец: Smart Washing d.o.o., Kamnica 11b, 1262 Dol pri Ljubljani, Slovenija, НДС SI98748092\nПлан: ${planLabel}\nСумма (с НДС): ${amount}\nДоступ действует до: ${until}\n\nЭто разовая оплата — карта не сохраняется, повторных списаний не будет. После ${until} доступ к платным темам закончится, продлить можно будет вручную.\n\n${withdrawal}\n\n${legal}`,
+    html: `<p>Спасибо за покупку!</p><ul><li>Продавец: Smart Washing d.o.o., Kamnica 11b, 1262 Dol pri Ljubljani, Slovenija, НДС SI98748092</li><li>План: ${planLabel}</li><li>Сумма (с НДС): ${amount}</li><li>Доступ действует до: ${until}</li></ul><p>Это разовая оплата — карта не сохраняется, повторных списаний не будет. После ${until} доступ к платным темам закончится, продлить можно будет вручную.</p><p>${withdrawal}</p><p><a href="${APP_BASE_URL}/terms">Условия использования</a> (версия ${LEGAL_DOCS_VERSION}) · <a href="${APP_BASE_URL}/refunds">Возврат средств</a></p>`,
   });
 }

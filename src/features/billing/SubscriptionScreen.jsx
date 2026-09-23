@@ -160,7 +160,7 @@ export default function SubscriptionScreen() {
           </label>
           <label className="subscription-consent">
             <input type="checkbox" checked={digitalContentAck} onChange={(e) => setDigitalContentAck(e.target.checked)} />
-            <span>Согласен(на) на немедленное предоставление цифрового контента после оплаты — это может ограничить моё право на отказ от покупки (см. <a href="/refunds" target="_blank" rel="noopener noreferrer">Возврат средств</a>)</span>
+            <span>Прошу открыть доступ сразу после оплаты и понимаю, что с этого момента теряю право на отказ от покупки в течение 14 дней (см. <a href="/refunds" target="_blank" rel="noopener noreferrer">Возврат средств</a>)</span>
           </label>
         </div>
 
