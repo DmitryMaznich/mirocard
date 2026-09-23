@@ -14775,7 +14775,7 @@ kbd {
 
 .observe-change__rail {
   width: 100%;
-  min-height: clamp(78px, 18vw, 120px);
+  min-height: clamp(96px, 24vw, 168px);
   display: grid;
   grid-template-columns: repeat(var(--observe-slots), minmax(0, 1fr));
   align-items: center;
@@ -14818,14 +14818,18 @@ kbd {
   animation: observe-dot-leave 1200ms ease-in both;
 }
 
+/* Mid-animation glow ring on the one dot that's actually changing — the
+   slide/scale alone was easy to miss for a kid tracking the whole rail. */
 @keyframes observe-dot-enter {
-  from { opacity: 0; transform: translateX(56%) scale(0.54); }
-  to   { opacity: 1; transform: translateX(0) scale(1); }
+  0%   { opacity: 0; transform: translateX(56%) scale(0.54); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 0 rgba(255, 196, 61, 0); }
+  55%  { opacity: 1; transform: translateX(0) scale(1.22); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 9px rgba(255, 196, 61, 0.6); }
+  100% { opacity: 1; transform: translateX(0) scale(1); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 0 rgba(255, 196, 61, 0); }
 }
 
 @keyframes observe-dot-leave {
-  from { opacity: 1; transform: translateX(0) scale(1); }
-  to   { opacity: 0; transform: translateX(56%) scale(0.54); }
+  0%   { opacity: 1; transform: translateX(0) scale(1); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 9px rgba(255, 196, 61, 0.6); }
+  45%  { opacity: 1; transform: translateX(0) scale(1.1); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 9px rgba(255, 196, 61, 0.6); }
+  100% { opacity: 0; transform: translateX(56%) scale(0.54); box-shadow: inset 0 -7px 0 rgba(0, 0, 0, 0.08), 0 4px 8px rgba(52, 101, 93, 0.2), 0 0 0 0 rgba(255, 196, 61, 0); }
 }
 
 .observe-change__controls {
@@ -14837,18 +14841,37 @@ kbd {
 }
 
 .observe-change__repeat {
-  min-height: 42px;
-  min-width: 42px;
-  border: 2px solid #c9ddd9;
-  border-radius: 14px;
-  background: #fff;
-  color: #395552;
+  min-height: 56px;
+  min-width: 56px;
+  border: 2px solid #3d8f82;
+  border-radius: 16px;
+  background: #4a9b8f;
+  color: #fff;
   font: inherit;
   font-weight: 800;
   cursor: pointer;
+  box-shadow: 0 3px 0 #2a6b60;
+  transition: transform 0.08s, box-shadow 0.08s;
 }
 
-.observe-change__repeat { padding: 4px; font-size: 1.35rem; line-height: 1; }
+.observe-change__repeat:active { transform: translateY(3px); box-shadow: none; }
+
+.observe-change__repeat { padding: 4px; font-size: 1.7rem; line-height: 1; }
+
+/* When a wrong tap needs a deliberate replay (no more auto-restart), this
+   pulse is the only cue pointing at what to press next — must read clearly. */
+.observe-change__repeat--attention {
+  animation: observe-repeat-pulse 1100ms ease-in-out infinite;
+}
+
+@keyframes observe-repeat-pulse {
+  0%, 100% { box-shadow: 0 3px 0 #2a6b60, 0 0 0 0 rgba(74, 155, 143, 0.55); }
+  50%      { box-shadow: 0 3px 0 #2a6b60, 0 0 0 8px rgba(74, 155, 143, 0.28); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .observe-change__repeat--attention { animation: none; box-shadow: 0 3px 0 #2a6b60, 0 0 0 5px rgba(74, 155, 143, 0.4); }
+}
 
 .observe-change__repeat:focus-visible,
 .observe-change__answer:focus-visible {
@@ -14890,11 +14913,32 @@ kbd {
   font-weight: 900;
   cursor: pointer;
   box-shadow: 0 8px 18px rgba(71, 61, 48, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
+
+.observe-change__answer-icon {
+  width: clamp(20px, 6vw, 30px);
+  height: clamp(20px, 6vw, 30px);
+}
+
+.observe-change__answer--more .observe-change__answer-icon { fill: #1f7a6f; }
+.observe-change__answer--less .observe-change__answer-icon { fill: #c04040; }
 
 .observe-change__answer:not(:disabled):hover { transform: translateY(-2px); }
 .observe-change__answer:disabled { cursor: default; }
 .observe-change__answer--correct { border-color: #4a9b8f; background: #eaf7f3; color: #1f6f64; }
+
+.observe-change__answer--wrong {
+  border-color: #ef6f5e;
+  background: #fff4ee;
+  color: #9f3029;
+  animation: operation-audio-shake 0.4s ease;
+}
+.observe-change__answer--wrong .observe-change__answer-icon { fill: #9f3029; }
 
 @media (max-height: 670px) {
   .operation-stage--observe { min-height: calc(100dvh - 108px); }

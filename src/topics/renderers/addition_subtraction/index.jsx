@@ -753,10 +753,14 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
       return;
     }
 
+    // Stay on this wrong tap instead of auto-replaying: the child taps ↻
+    // (pulsing below) when ready, rather than being swept into a replay
+    // they didn't ask for.
+    setSelected(value);
     setFeedback("retry");
+    playFeedback?.("incorrect");
     say("Неправильно. Посмотри ещё раз.");
     onIncorrect(task.conceptId, task.cardId);
-    schedule(startSequence, 850);
   }
 
   return (
@@ -764,7 +768,12 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
       <div className="observe-change">
         <ObserveQuantityRail task={task} phase={phase} />
         <div className="observe-change__controls" aria-label="Повтор задания">
-          <button type="button" className="observe-change__repeat" onClick={replay} aria-label="Показать ещё раз">
+          <button
+            type="button"
+            className={`observe-change__repeat${feedback === "retry" ? " observe-change__repeat--attention" : ""}`}
+            onClick={replay}
+            aria-label="Показать ещё раз"
+          >
             ↻
           </button>
         </div>
@@ -775,21 +784,37 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
           <div className="observe-change__answers">
             <button
               type="button"
-              className={`observe-change__answer observe-change__answer--more${feedback === "correct" && task.answer === "more" ? " observe-change__answer--correct" : ""}`}
+              className={[
+                "observe-change__answer",
+                "observe-change__answer--more",
+                feedback === "correct" && task.answer === "more" ? "observe-change__answer--correct" : "",
+                feedback === "retry" && selected === "more" ? "observe-change__answer--wrong" : "",
+              ].filter(Boolean).join(" ")}
               onClick={() => handleAnswer("more")}
               disabled={selected != null || feedback === "retry"}
               aria-label="Стало больше"
             >
-              Больше
+              <svg className="observe-change__answer-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5 L20 18 L4 18 Z" />
+              </svg>
+              <span>Больше</span>
             </button>
             <button
               type="button"
-              className={`observe-change__answer observe-change__answer--less${feedback === "correct" && task.answer === "less" ? " observe-change__answer--correct" : ""}`}
+              className={[
+                "observe-change__answer",
+                "observe-change__answer--less",
+                feedback === "correct" && task.answer === "less" ? "observe-change__answer--correct" : "",
+                feedback === "retry" && selected === "less" ? "observe-change__answer--wrong" : "",
+              ].filter(Boolean).join(" ")}
               onClick={() => handleAnswer("less")}
               disabled={selected != null || feedback === "retry"}
               aria-label="Стало меньше"
             >
-              Меньше
+              <svg className="observe-change__answer-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 19 L4 6 L20 6 Z" />
+              </svg>
+              <span>Меньше</span>
             </button>
           </div>
         </div>
