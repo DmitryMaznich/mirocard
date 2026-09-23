@@ -443,10 +443,11 @@ describe("FingerSystem", () => {
     }
   });
 
-  it("right - left is 0 or 1 for all", () => {
+  it("right hand fills to 5 before the left hand is used (5-structure)", () => {
     for (let i = 0; i <= 10; i++) {
       const { right, left } = FINGER_MAP[i];
-      expect(right - left).toBeLessThanOrEqual(1);
+      expect(right).toBe(Math.min(i, 5));
+      expect(left).toBe(Math.max(i - 5, 0));
     }
   });
 
@@ -457,20 +458,20 @@ describe("FingerSystem", () => {
     }
   });
 
-  it("getFingerConfig(7) returns {right:4, left:3}", () => {
-    expect(getFingerConfig(7)).toEqual({ right: 4, left: 3 });
+  it("getFingerConfig(7) returns {right:5, left:2}", () => {
+    expect(getFingerConfig(7)).toEqual({ right: 5, left: 2 });
   });
 
   it("getRemoveMode: b matches left → removeMode hand left", () => {
-    expect(getRemoveMode(7, 3)).toEqual({ removeMode: "hand", removeHand: "left" });
+    expect(getRemoveMode(7, 2)).toEqual({ removeMode: "hand", removeHand: "left" });
   });
 
   it("getRemoveMode: b matches right → removeMode hand right", () => {
-    expect(getRemoveMode(7, 4)).toEqual({ removeMode: "hand", removeHand: "right" });
+    expect(getRemoveMode(7, 5)).toEqual({ removeMode: "hand", removeHand: "right" });
   });
 
   it("getRemoveMode: b matches neither → fold", () => {
-    expect(getRemoveMode(7, 2)).toEqual({ removeMode: "fold" });
+    expect(getRemoveMode(7, 3)).toEqual({ removeMode: "fold" });
   });
 });
 
@@ -478,7 +479,7 @@ const FINGER_CARDS = [
   { id: "fshow_3",      conceptId: "fshow_3",      renderer: "column_addition", params: { mode: "fingers_show",  n: 3 } },
   { id: "fshow_7",      conceptId: "fshow_7",      renderer: "column_addition", params: { mode: "fingers_show",  n: 7 } },
   { id: "fcount_a_3_4", conceptId: "fcount_a_3_4", renderer: "column_addition", params: { mode: "fingers_count", op: "add", a: 3, b: 4 } },
-  { id: "fcount_s_7_3", conceptId: "fcount_s_7_3", renderer: "column_addition", params: { mode: "fingers_count", op: "sub", a: 7, b: 3 } },
+  { id: "fcount_s_7_2", conceptId: "fcount_s_7_2", renderer: "column_addition", params: { mode: "fingers_count", op: "sub", a: 7, b: 2 } },
 ];
 
 describe("generateTasks – fingers_show", () => {
@@ -517,9 +518,9 @@ describe("generateTasks – fingers_count", () => {
     for (const t of subTasks) expect(t.removeMode).toMatch(/^hand|fold$/);
   });
 
-  it("sub task 7-3: removeMode hand, removeHand left", () => {
+  it("sub task 7-2: removeMode hand, removeHand left", () => {
     const tasks = generateTasks("fingers_count", FINGER_CARDS, 10);
-    const t = tasks.find(t => t.op === "sub" && t.a === 7 && t.b === 3);
+    const t = tasks.find(t => t.op === "sub" && t.a === 7 && t.b === 2);
     expect(t?.removeMode).toBe("hand");
     expect(t?.removeHand).toBe("left");
   });

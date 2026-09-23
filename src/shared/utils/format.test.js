@@ -25,10 +25,10 @@ describe("YouTube reward helpers", () => {
     const embedUrl = makeYoutubeEmbedUrl(VIDEO_ID);
     const parsed = new URL(embedUrl);
 
-    expect(parsed.origin).toBe("https://www.youtube.com");
+    expect(parsed.origin).toBe("https://www.youtube-nocookie.com");
     expect(parsed.pathname).toBe(`/embed/${VIDEO_ID}`);
     expect(parsed.searchParams.get("autoplay")).toBe("1");
     expect(parsed.searchParams.get("playsinline")).toBe("1");
-    expect(parsed.searchParams.get("origin")).toBe(window.location.origin);
+    expect(parsed.searchParams.get("mute")).toBe("1");
   });
 });

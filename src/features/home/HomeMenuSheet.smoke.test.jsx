@@ -33,13 +33,14 @@ describe("HomeMenuSheet — mounted through the real component", () => {
       onOpenProfile: vi.fn(),
       onOpenStudents: vi.fn(),
       onOpenSettings: vi.fn(),
+      onOpenHelp: vi.fn(),
     };
   }
 
-  it("renders the three destinations grouped into two sections", () => {
+  it("renders the four destinations grouped into two sections", () => {
     mount(baseProps());
     const items = Array.from(container.querySelectorAll(".action-sheet__item")).map((el) => el.textContent);
-    expect(items).toEqual(["Профиль", "Ученики", "Настройки", "Отмена"]);
+    expect(items).toEqual(["Профиль", "Ученики", "Настройки", "Помощь и поддержка", "Отмена"]);
     const titles = Array.from(container.querySelectorAll(".action-sheet__title")).map((el) => el.textContent);
     expect(titles).toEqual(["Аккаунт", "Приложение"]);
   });
