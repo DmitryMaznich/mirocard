@@ -19,49 +19,16 @@ function numberWord(n) {
   return NUMBER_WORDS[n] ?? String(n);
 }
 
-const SKIN = "#f6c9a8";
-const SKIN_LINE = "#d49a78";
-
-// Back of a hand, fingers pointing down; fingertips end at y≈120 of a
-// 100-wide coordinate box, the sleeve runs off the top (negative y).
-function HandShapes({ grip }) {
-  return (
-    <>
-      <rect x="27" y="-40" width="46" height="66" rx="12" fill="#86b4e6" />
-      <rect x="25" y="18" width="50" height="12" rx="6" fill="#6a9fd8" />
-      <path d="M29 28 H71 V66 Q71 80 58 82 H42 Q29 80 29 66 Z" fill={SKIN} stroke={SKIN_LINE} strokeWidth="3" strokeLinejoin="round" />
-      {grip ? (
-        <>
-          {/* fingers bent over the object, thumb closing from the side */}
-          <rect x="31" y="66" width="11" height="34" rx="5.5" fill={SKIN} stroke={SKIN_LINE} strokeWidth="3" />
-          <rect x="41.5" y="68" width="11" height="40" rx="5.5" fill={SKIN} stroke={SKIN_LINE} strokeWidth="3" />
-          <rect x="52" y="68" width="11" height="38" rx="5.5" fill={SKIN} stroke={SKIN_LINE} strokeWidth="3" />
-          <rect x="62" y="66" width="10" height="30" rx="5" fill={SKIN} stroke={SKIN_LINE} strokeWidth="3" />
-          <path d="M32 44 Q16 62 24 112" fill="none" stroke={SKIN_LINE} strokeWidth="14" strokeLinecap="round" />
-          <path d="M32 44 Q16 62 24 112" fill="none" stroke={SKIN} strokeWidth="8" strokeLinecap="round" />
-        </>
-      ) : (
-        <>
-          {/* open hand: fingers straight and slightly spread */}
-          <rect x="28" y="66" width="11" height="40" rx="5.5" fill={SKIN} stroke={SKIN_LINE} strokeWidth="3" transform="rotate(6 33 66)" />
-          <rect x="40" y="68" width="11" height="50" rx="5.5" fill={SKIN} stroke={SKIN_LINE} strokeWidth="3" transform="rotate(2 45 68)" />
-          <rect x="51" y="68" width="11" height="48" rx="5.5" fill={SKIN} stroke={SKIN_LINE} strokeWidth="3" transform="rotate(-2 56 68)" />
-          <rect x="62" y="66" width="10" height="38" rx="5" fill={SKIN} stroke={SKIN_LINE} strokeWidth="3" transform="rotate(-7 67 66)" />
-          <path d="M31 44 Q12 58 10 88" fill="none" stroke={SKIN_LINE} strokeWidth="14" strokeLinecap="round" />
-          <path d="M31 44 Q12 58 10 88" fill="none" stroke={SKIN} strokeWidth="8" strokeLinecap="round" />
-        </>
-      )}
-    </>
-  );
-}
-
 function Hand({ grip }) {
   // The CSS lines the bottom edge (fingertips) up with the top part of the
   // carried object.
   return (
-    <svg className="name-action__hand-svg" viewBox="0 0 100 120" aria-hidden="true">
-      <HandShapes grip={grip} />
-    </svg>
+    <img
+      className="name-action__hand-svg"
+      src={grip ? "/name-action/hand_grip.webp" : "/name-action/hand_open.webp"}
+      alt=""
+      aria-hidden="true"
+    />
   );
 }
 
