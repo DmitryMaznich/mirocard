@@ -10,6 +10,31 @@ const PLANS = [
   { id: "annual", name: "Год", hint: "€ 7,49 в месяц · максимальная выгода", priceLabel: "€ 89,90" },
 ];
 
+// Pre-contract consent text is offered in Slovenian too (ZVPot-1: consumer
+// dealings in Slovenia must be available in Slovenian). The rest of the app
+// UI stays Russian. The chosen locale is sent with checkout, stored on the
+// consent row, and decides the purchase-confirmation email's language.
+const CONSENT_TEXT = {
+  ru: {
+    planNames: { monthly: "Месяц", half_year: "Полгода", annual: "Год" },
+    terms: (link) => <>Я принимаю {link("/terms", "Условия использования")}</>,
+    price: (price, planName) => `Подтверждаю цену ${price} и период доступа «${planName}»`,
+    digital: (link) => <>Прошу открыть доступ сразу после оплаты и понимаю, что с этого момента теряю право на отказ от покупки в течение 14 дней (см. {link("/refunds", "Возврат средств")})</>,
+    disclaimer: (planName) => `Разовая оплата за «${planName}». Без автосписаний — карта не сохраняется, по истечении периода доступ закончится, продлить можно будет вручную в любой момент.`,
+  },
+  sl: {
+    planNames: { monthly: "Mesec", half_year: "Pol leta", annual: "Leto" },
+    terms: (link) => <>Sprejemam {link("/sl/terms", "Splošne pogoje uporabe")}</>,
+    price: (price, planName) => `Potrjujem ceno ${price} in obdobje dostopa »${planName}«`,
+    digital: (link) => <>Prosim za dostop takoj po plačilu in se zavedam, da s tem izgubim pravico do odstopa od pogodbe v 14 dneh (glejte {link("/sl/refunds", "Vračilo kupnine")})</>,
+    disclaimer: (planName) => `Enkratno plačilo za »${planName}«. Brez samodejnih bremenitev — kartica se ne shrani, po izteku obdobja se dostop zaključi, podaljšate ga lahko ročno kadar koli.`,
+  },
+};
+
+function legalLink(href, label) {
+  return <a href={href} target="_blank" rel="noopener noreferrer">{label}</a>;
+}
+
 function formatMinor(amountMinor) {
   return (amountMinor / 100).toFixed(2).replace(".", ",");
 }
@@ -31,10 +56,24 @@ export default function SubscriptionScreen() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [pricePeriodConfirmed, setPricePeriodConfirmed] = useState(false);
   const [digitalContentAck, setDigitalContentAck] = useState(false);
+  const [consentLocale, setConsentLocale] = useState("ru");
 
   const plan = PLANS.find((p) => p.id === planId);
   const discounted = promoResult?.ok && promoResult.kind !== "free_grant" ? promoResult.discountedAmountMinor : null;
   const consentsGiven = termsAccepted && pricePeriodConfirmed && digitalContentAck;
+  const ct = CONSENT_TEXT[consentLocale];
+  const consentPlanName = ct.planNames[plan.id];
+  const priceText = discounted != null ? `€ ${formatMinor(discounted)}` : plan.priceLabel;
+
+  // Consent is only valid in the wording the customer actually saw, so
+  // switching language clears any boxes ticked in the other one.
+  function switchConsentLocale(next) {
+    if (next === consentLocale) return;
+    setConsentLocale(next);
+    setTermsAccepted(false);
+    setPricePeriodConfirmed(false);
+    setDigitalContentAck(false);
+  }
 
   async function applyPromo() {
     setPromoError(null);
@@ -78,6 +117,7 @@ export default function SubscriptionScreen() {
       const result = await api.post("/billing/checkout", {
         plan: planId, method, code,
         consents: { termsAccepted, pricePeriodConfirmed, digitalContentAck },
+        locale: consentLocale,
       });
       setCheckout(result.checkoutUrl, result.orderId);
       if (checkoutWindow && !checkoutWindow.closed) {
@@ -149,18 +189,22 @@ export default function SubscriptionScreen() {
           </div>
         )}
 
-        <div className="subscription-consents">
+        <div className="subscription-consents" lang={consentLocale}>
+          <div className="consent-lang" role="group" aria-label="Язык условий / Jezik pogojev">
+            <button type="button" className={`consent-lang__btn${consentLocale === "ru" ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === "ru"} onClick={() => switchConsentLocale("ru")}>Русский</button>
+            <button type="button" className={`consent-lang__btn${consentLocale === "sl" ? " consent-lang__btn--active" : ""}`} aria-pressed={consentLocale === "sl"} onClick={() => switchConsentLocale("sl")}>Slovenščina</button>
+          </div>
           <label className="subscription-consent">
             <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)} />
-            <span>Я принимаю <a href="/terms" target="_blank" rel="noopener noreferrer">Условия использования</a></span>
+            <span>{ct.terms(legalLink)}</span>
           </label>
           <label className="subscription-consent">
             <input type="checkbox" checked={pricePeriodConfirmed} onChange={(e) => setPricePeriodConfirmed(e.target.checked)} />
-            <span>Подтверждаю цену {discounted != null ? `€ ${formatMinor(discounted)}` : plan.priceLabel} и период доступа «{plan.name}»</span>
+            <span>{ct.price(priceText, consentPlanName)}</span>
           </label>
           <label className="subscription-consent">
             <input type="checkbox" checked={digitalContentAck} onChange={(e) => setDigitalContentAck(e.target.checked)} />
-            <span>Прошу открыть доступ сразу после оплаты и понимаю, что с этого момента теряю право на отказ от покупки в течение 14 дней (см. <a href="/refunds" target="_blank" rel="noopener noreferrer">Возврат средств</a>)</span>
+            <span>{ct.digital(legalLink)}</span>
           </label>
         </div>
 
@@ -174,8 +218,8 @@ export default function SubscriptionScreen() {
             only in the Terms, since "Подписка"/"Оформить" alone could
             otherwise read as an auto-renewing plan. See
             docs/commercial-launch-runbook.md's M0/M1 section. */}
-        <p className="subscription-disclaimer">
-          Разовая оплата за «{plan.name}». Без автосписаний — карта не сохраняется, по истечении периода доступ закончится, продлить можно будет вручную в любой момент.
+        <p className="subscription-disclaimer" lang={consentLocale}>
+          {ct.disclaimer(consentPlanName)}
         </p>
         <button type="button" className="btn btn-primary subscription-cta" disabled={submitting || !consentsGiven} onClick={submit}>
           Оформить — {discounted != null ? `€ ${formatMinor(discounted)}` : plan.priceLabel}

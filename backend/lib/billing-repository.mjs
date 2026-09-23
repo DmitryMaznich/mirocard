@@ -162,15 +162,19 @@ export function recordPaymentEvent(db, { accountId, provider, eventType, externa
 
 // ─── Checkout consent (see LEGAL_DOCS_VERSION in lib/config.mjs) ──────────
 
-export function recordCheckoutConsent(db, { accountId, orderId, legalDocsVersion, termsAccepted, pricePeriodConfirmed, digitalContentAck }) {
+export function recordCheckoutConsent(db, { accountId, orderId, legalDocsVersion, termsAccepted, pricePeriodConfirmed, digitalContentAck, locale = "ru" }) {
   db.prepare(`
     INSERT INTO checkout_consents
-      (id, account_id, order_id, legal_docs_version, terms_accepted, price_period_confirmed, digital_content_ack, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (id, account_id, order_id, legal_docs_version, terms_accepted, price_period_confirmed, digital_content_ack, locale, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     randomUUID(), accountId, orderId, legalDocsVersion,
-    termsAccepted ? 1 : 0, pricePeriodConfirmed ? 1 : 0, digitalContentAck ? 1 : 0, now(),
+    termsAccepted ? 1 : 0, pricePeriodConfirmed ? 1 : 0, digitalContentAck ? 1 : 0, locale, now(),
   );
+}
+
+export function getCheckoutConsentForOrder(db, orderId) {
+  return db.prepare("SELECT * FROM checkout_consents WHERE order_id = ? ORDER BY created_at DESC LIMIT 1").get(orderId) ?? null;
 }
 
 // ─── Promo codes ─────────────────────────────────────────────────────────

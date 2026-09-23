@@ -47,7 +47,7 @@ import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
 import {
   createOrder, getOrderByExternalId, getEntitlementForOrder, getActiveSubscriptionForAccount,
   hasActiveEntitlement, validatePromoCode, redeemFreeGrantCode,
-  createPromoCode, listPromoCodes, grantTrialSubscription, recordCheckoutConsent,
+  createPromoCode, listPromoCodes, grantTrialSubscription, recordCheckoutConsent, getCheckoutConsentForOrder,
 } from "./lib/billing-repository.mjs";
 import { PLAN_CATALOG, applyDiscount } from "./lib/billing-plans.mjs";
 import {
@@ -895,6 +895,7 @@ async function handleBillingCheckout(req, res) {
 
   const body = await readJsonBody(req);
   const { plan, method, code, consents } = body ?? {};
+  const locale = body?.locale === "sl" ? "sl" : "ru";
 
   const planDef = PLAN_CATALOG[plan];
   if (!planDef) return writeJson(res, 400, { error: "Unknown plan" });
@@ -922,7 +923,7 @@ async function handleBillingCheckout(req, res) {
   recordCheckoutConsent(db, {
     accountId: account.id, orderId: order.id, legalDocsVersion: LEGAL_DOCS_VERSION,
     termsAccepted: consents.termsAccepted, pricePeriodConfirmed: consents.pricePeriodConfirmed,
-    digitalContentAck: consents.digitalContentAck,
+    digitalContentAck: consents.digitalContentAck, locale,
   });
 
   try {
@@ -994,9 +995,12 @@ function handleWebhookOutcome(result) {
   const account = findAccountById(db, result.accountId);
   if (!account) return;
   const sub = getActiveSubscriptionForAccount(db, result.accountId);
+  const consent = getCheckoutConsentForOrder(db, order.id);
   sendPurchaseConfirmationEmail(account.email, {
     plan: order.plan, amountMinor: order.amount_minor, currency: order.currency,
     endsAt: sub?.currentPeriodEnd,
+    locale: consent?.locale ?? "ru",
+    legalDocsVersion: consent?.legal_docs_version,
   }).catch(console.error);
 }
 

@@ -93,22 +93,52 @@ export async function sendEntitlementReminderEmail(email, { kind, endsAt, plan }
 
 // Durable purchase record, sent once a paid order is confirmed by a
 // provider webhook (see backend/lib/billing-orchestrator.mjs).
-export async function sendPurchaseConfirmationEmail(email, { plan, amountMinor, currency, endsAt }) {
-  const planLabel = { monthly: "Месяц", half_year: "Полгода", annual: "Год" }[plan] ?? plan;
+const SELLER_LINE = "Smart Washing d.o.o., Kamnica 11b, 1262 Dol pri Ljubljani, Slovenija";
+
+const PURCHASE_EMAIL = {
+  ru: {
+    plans: { monthly: "Месяц", half_year: "Полгода", annual: "Год" },
+    dateLocale: "ru-RU",
+    subject: "Оплата получена — Mironium",
+    thanks: "Спасибо за покупку!",
+    seller: `Продавец: ${SELLER_LINE}, НДС SI98748092`,
+    plan: "План", amount: "Сумма (с НДС)", until: "Доступ действует до",
+    oneTime: (until) => `Это разовая оплата — карта не сохраняется, повторных списаний не будет. После ${until} доступ к платным темам закончится, продлить можно будет вручную.`,
+    withdrawal: "Перед оплатой вы согласились на немедленное предоставление доступа к цифровому контенту и подтвердили, что с этого момента утрачиваете право на отказ от покупки в течение 14 дней. Случаи, когда деньги возвращаются, описаны на странице «Возврат средств».",
+    terms: "Условия использования", refunds: "Возврат средств", version: "версия",
+    pathPrefix: "",
+  },
+  sl: {
+    plans: { monthly: "Mesec", half_year: "Pol leta", annual: "Leto" },
+    dateLocale: "sl-SI",
+    subject: "Plačilo prejeto — Mironium",
+    thanks: "Hvala za nakup!",
+    seller: `Prodajalec: ${SELLER_LINE}, ID za DDV SI98748092`,
+    plan: "Paket", amount: "Znesek (z DDV)", until: "Dostop velja do",
+    oneTime: (until) => `Gre za enkratno plačilo — kartica se ne shrani, ponovnih bremenitev ne bo. Po ${until} se dostop do plačljivih tem zaključi, podaljšate ga lahko ročno.`,
+    withdrawal: "Pred plačilom ste privolili v takojšnjo dobavo digitalne vsebine in potrdili, da s tem izgubite pravico do odstopa od pogodbe v 14 dneh. Primeri, ko vrnemo kupnino, so opisani na strani »Vračilo kupnine«.",
+    terms: "Splošni pogoji uporabe", refunds: "Vračilo kupnine", version: "različica",
+    pathPrefix: "/sl",
+  },
+};
+
+// EU Consumer Rights Directive art. 8(7): the confirmation of a distance
+// contract, on a durable medium, must record the consumer's prior consent
+// to immediate supply of digital content and their acknowledgment that the
+// right of withdrawal is thereby lost. Checkout refuses to create an order
+// without that consent (digitalContentAck), so every paid purchase reaching
+// this email has given it. Sent in the language the consent was given in.
+export async function sendPurchaseConfirmationEmail(email, { plan, amountMinor, currency, endsAt, locale = "ru", legalDocsVersion = LEGAL_DOCS_VERSION }) {
+  const t = PURCHASE_EMAIL[locale] ?? PURCHASE_EMAIL.ru;
+  const planLabel = t.plans[plan] ?? plan;
   const amount = `${(amountMinor / 100).toFixed(2)} ${currency}`;
-  const until = formatRuDate(endsAt);
-  // EU Consumer Rights Directive art. 8(7): the confirmation of a
-  // distance contract, on a durable medium, must record the consumer's
-  // prior consent to immediate supply of digital content and their
-  // acknowledgment that the right of withdrawal is thereby lost. Checkout
-  // refuses to create an order without that consent (digitalContentAck),
-  // so every paid purchase reaching this email has given it.
-  const legal = `Условия использования (версия ${LEGAL_DOCS_VERSION}): ${APP_BASE_URL}/terms\nВозврат средств: ${APP_BASE_URL}/refunds`;
-  const withdrawal = `Перед оплатой вы согласились на немедленное предоставление доступа к цифровому контенту и подтвердили, что с этого момента утрачиваете право на отказ от покупки в течение 14 дней. Случаи, когда деньги возвращаются, описаны на странице «Возврат средств».`;
+  const until = endsAt ? new Date(endsAt).toLocaleDateString(t.dateLocale, { day: "numeric", month: "long", year: "numeric" }) : "";
+  const termsUrl = `${APP_BASE_URL}${t.pathPrefix}/terms`;
+  const refundsUrl = `${APP_BASE_URL}${t.pathPrefix}/refunds`;
   await sendEmail({
     to: email,
-    subject: `Оплата получена — Mironium`,
-    text: `Спасибо за покупку!\n\nПродавец: Smart Washing d.o.o., Kamnica 11b, 1262 Dol pri Ljubljani, Slovenija, НДС SI98748092\nПлан: ${planLabel}\nСумма (с НДС): ${amount}\nДоступ действует до: ${until}\n\nЭто разовая оплата — карта не сохраняется, повторных списаний не будет. После ${until} доступ к платным темам закончится, продлить можно будет вручную.\n\n${withdrawal}\n\n${legal}`,
-    html: `<p>Спасибо за покупку!</p><ul><li>Продавец: Smart Washing d.o.o., Kamnica 11b, 1262 Dol pri Ljubljani, Slovenija, НДС SI98748092</li><li>План: ${planLabel}</li><li>Сумма (с НДС): ${amount}</li><li>Доступ действует до: ${until}</li></ul><p>Это разовая оплата — карта не сохраняется, повторных списаний не будет. После ${until} доступ к платным темам закончится, продлить можно будет вручную.</p><p>${withdrawal}</p><p><a href="${APP_BASE_URL}/terms">Условия использования</a> (версия ${LEGAL_DOCS_VERSION}) · <a href="${APP_BASE_URL}/refunds">Возврат средств</a></p>`,
+    subject: t.subject,
+    text: `${t.thanks}\n\n${t.seller}\n${t.plan}: ${planLabel}\n${t.amount}: ${amount}\n${t.until}: ${until}\n\n${t.oneTime(until)}\n\n${t.withdrawal}\n\n${t.terms} (${t.version} ${legalDocsVersion}): ${termsUrl}\n${t.refunds}: ${refundsUrl}`,
+    html: `<p>${t.thanks}</p><ul><li>${t.seller}</li><li>${t.plan}: ${planLabel}</li><li>${t.amount}: ${amount}</li><li>${t.until}: ${until}</li></ul><p>${t.oneTime(until)}</p><p>${t.withdrawal}</p><p><a href="${termsUrl}">${t.terms}</a> (${t.version} ${legalDocsVersion}) · <a href="${refundsUrl}">${t.refunds}</a></p>`,
   });
 }

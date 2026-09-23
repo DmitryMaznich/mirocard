@@ -111,4 +111,36 @@ test("a successful checkout records the consent, linked to the order and the cur
   assert.equal(consent.terms_accepted, 1);
   assert.equal(consent.price_period_confirmed, 1);
   assert.equal(consent.digital_content_ack, 1);
+  assert.equal(consent.locale, "ru", "defaults to Russian when the client sends no locale");
+});
+
+test("checkout records a Slovenian consent locale when the client sends locale: \"sl\"; anything else falls back to ru", async () => {
+  const { token } = await registerAndLogin();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    if (String(url).includes("api.stripe.com")) {
+      return { ok: true, json: async () => ({ id: "cs_test_sl", url: "https://checkout.stripe.com/pay/cs_test_sl" }) };
+    }
+    return originalFetch(url, init);
+  };
+  const locales = {};
+  try {
+    for (const sent of ["sl", "de"]) {
+      const res = await fetch(`${base}/api/billing/checkout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          plan: "monthly", method: "card", locale: sent,
+          consents: { termsAccepted: true, pricePeriodConfirmed: true, digitalContentAck: true },
+        }),
+      });
+      assert.equal(res.status, 200);
+      const { orderId } = await res.json();
+      const order = db.prepare("SELECT * FROM orders WHERE external_contract_id = ?").get(orderId);
+      locales[sent] = db.prepare("SELECT locale FROM checkout_consents WHERE order_id = ?").get(order.id).locale;
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert.deepEqual(locales, { sl: "sl", de: "ru" });
 });

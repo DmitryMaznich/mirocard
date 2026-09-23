@@ -1431,6 +1431,9 @@ button {
 .subscription-consent { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.4; color: #4a5450; cursor: pointer; }
 .subscription-consent input { margin-top: 2px; flex-shrink: 0; }
 .subscription-consent a { color: #2f5b57; }
+.consent-lang { display: flex; gap: 6px; }
+.consent-lang__btn { font: inherit; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1px solid #d6dedb; background: #fff; color: #6b7b78; cursor: pointer; }
+.consent-lang__btn--active { background: #2f5b57; border-color: #2f5b57; color: #fff; }
 
 .checkout-transition__center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 0 40px; text-align: center; }
 .checkout-spinner { width: 56px; height: 56px; border-radius: 50%; border: 5px solid #dde6e3; border-top-color: #4a9b8f; animation: checkout-spin .9s linear infinite; }

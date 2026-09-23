@@ -431,6 +431,13 @@ export function initDb(dbPath = DB_PATH) {
     );
     CREATE INDEX IF NOT EXISTS idx_checkout_consents_account ON checkout_consents(account_id);
   `);
+  // Language the consent checkboxes were shown in ("ru" | "sl") -- a
+  // dispute needs to know which wording the customer actually agreed to,
+  // and the purchase-confirmation email is sent in the same language.
+  const consentColumns = db.prepare("PRAGMA table_info(checkout_consents)").all();
+  if (!consentColumns.some((c) => c.name === "locale")) {
+    db.exec("ALTER TABLE checkout_consents ADD COLUMN locale TEXT NOT NULL DEFAULT 'ru'");
+  }
 
   backfillOrdersAndEntitlementsFromLegacySubscriptions(db);
 
