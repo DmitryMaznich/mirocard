@@ -241,7 +241,7 @@ test("softDeleteStudent marks deleted_at", () => {
   const db = makeDb();
   const acc = makeAccount(db);
   upsertStudent(db, acc.id, { id: "s2", name: "Вася" });
-  softDeleteStudent(db, "s2");
+  softDeleteStudent(db, acc.id, "s2");
   const students = getStudents(db, acc.id);
   assert.equal(students.length, 0);
 });
@@ -288,14 +288,16 @@ test("upsertAccountTopic and getAccountTopics", () => {
 
 test("upsertConceptProgress levels", () => {
   const db = makeDb();
-  upsertConceptProgress(db, {
+  const acc = makeAccount(db);
+  upsertStudent(db, acc.id, { id: "st1", name: "Ира" });
+  upsertConceptProgress(db, acc.id, {
     studentId: "st1", topicId: "t1", conceptId: "hat", level: 2,
   });
   const progress = getConceptProgress(db, "st1", "t1");
   assert.equal(progress.length, 1);
   assert.equal(progress[0].level, 2);
 
-  upsertConceptProgress(db, {
+  upsertConceptProgress(db, acc.id, {
     studentId: "st1", topicId: "t1", conceptId: "hat", level: 3,
   });
   const updated = getConceptProgress(db, "st1", "t1");

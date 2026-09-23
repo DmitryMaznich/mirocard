@@ -419,6 +419,9 @@ export function upsertStudent(db, accountId, {
       health_data_consent = excluded.health_data_consent,
       health_data_consent_at = excluded.health_data_consent_at,
       updated_at = excluded.updated_at
+    -- Ids are client-generated: never let one account overwrite another
+    -- account's student that happens to (or is made to) share an id.
+    WHERE students.account_id = excluded.account_id
   `).run(
     id,
     accountId,
@@ -506,10 +509,10 @@ export function getStudents(db, accountId) {
   ).all(accountId);
 }
 
-export function softDeleteStudent(db, studentId) {
+export function softDeleteStudent(db, accountId, studentId) {
   db.prepare(
-    "UPDATE students SET deleted_at = ?, updated_at = ? WHERE id = ?"
-  ).run(now(), now(), studentId);
+    "UPDATE students SET deleted_at = ?, updated_at = ? WHERE id = ? AND account_id = ?"
+  ).run(now(), now(), studentId, accountId);
 }
 
 // ─── Sessions ─────────────────────────────────────────────────────────────────
@@ -570,6 +573,7 @@ export function upsertAccountTopic(db, accountId, { id, topicId, topicVersion, s
       topic_version = excluded.topic_version,
       source = excluded.source,
       license_token = excluded.license_token
+    WHERE account_topics.account_id = excluded.account_id
   `).run(id, accountId, topicId, topicVersion, ts, source, licenseToken);
 }
 
@@ -579,10 +583,10 @@ export function getAccountTopics(db, accountId) {
   ).all(accountId);
 }
 
-export function softDeleteAccountTopic(db, id) {
+export function softDeleteAccountTopic(db, accountId, id) {
   db.prepare(
-    "UPDATE account_topics SET deleted_at = ? WHERE id = ?"
-  ).run(now(), id);
+    "UPDATE account_topics SET deleted_at = ? WHERE id = ? AND account_id = ?"
+  ).run(now(), id, accountId);
 }
 
 export function getAccountTopicByTopicId(db, accountId, topicId) {
@@ -678,6 +682,7 @@ export function upsertStudentTopicLink(db, accountId, {
       video_reward_enabled = excluded.video_reward_enabled,
       reward_threshold = excluded.reward_threshold,
       updated_at = excluded.updated_at
+    WHERE student_topic_links.account_id = excluded.account_id
   `).run(
     id, accountId, studentId, topicId,
     selectionMode, JSON.stringify(selectedConceptIds), repsPerConcept,
@@ -693,7 +698,11 @@ export function getStudentTopicLinks(db, accountId) {
 
 // ─── Concept progress ─────────────────────────────────────────────────────────
 
-export function upsertConceptProgress(db, { studentId, topicId, conceptId, level, lastSeenAt = null }) {
+export function upsertConceptProgress(db, accountId, { studentId, topicId, conceptId, level, lastSeenAt = null }) {
+  // concept_progress has no account column: only write progress for a
+  // student that belongs to the calling account.
+  const owned = db.prepare("SELECT 1 FROM students WHERE id = ? AND account_id = ?").get(studentId, accountId);
+  if (!owned) return;
   db.prepare(`
     INSERT INTO concept_progress (student_id, topic_id, concept_id, level, last_seen_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?)

@@ -549,10 +549,10 @@ async function handleUpsertStudent(req, res) {
 }
 
 async function handleDeleteStudent(req, res) {
-  requireAuth(req);
+  const account = requireAuth(req);
   const url = new URL(req.url, "http://localhost");
   const studentId = url.pathname.split("/").at(-1);
-  softDeleteStudent(db, studentId);
+  softDeleteStudent(db, account.id, studentId);
   writeNoContent(res);
 }
 
@@ -663,10 +663,10 @@ async function handleAcquireTopic(req, res) {
 }
 
 async function handleDeleteTopic(req, res) {
-  requireAuth(req);
+  const account = requireAuth(req);
   const url = new URL(req.url, "http://localhost");
   const id = url.pathname.split("/").at(-1);
-  softDeleteAccountTopic(db, id);
+  softDeleteAccountTopic(db, account.id, id);
   writeNoContent(res);
 }
 
@@ -1110,9 +1110,9 @@ async function handleUpsertStudentTopicLink(req, res) {
 }
 
 async function handleUpsertConceptProgress(req, res) {
-  requireAuth(req);
+  const account = requireAuth(req);
   const body = await readJsonBody(req);
-  upsertConceptProgress(db, body);
+  upsertConceptProgress(db, account.id, body ?? {});
   writeJson(res, 200, { ok: true });
 }
 
