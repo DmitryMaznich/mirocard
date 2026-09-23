@@ -125,7 +125,7 @@ jobs:
           echo "$health"  | grep -q "\"gitSha\":\"$expected\""
           docker exec app test ! -e /app/.git
           # sharp (photo normalization) must load in the production image:
-          docker exec app node -e "import('/app/backend/node_modules/sharp/lib/index.js').then((m) => console.log('libvips', m.default.versions.vips))"
+          docker exec -w /app/backend app node --input-type=module -e "import sharp from 'sharp'; console.log('sharp', sharp.versions.sharp, 'libvips', sharp.versions.vips)"
       - name: Container logs
         if: always()
         run: docker logs app || true
