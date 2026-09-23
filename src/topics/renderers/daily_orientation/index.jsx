@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { addCalendarDays, formatDigitalClock, formatDisplayDate, formatRussianClockTime, getRelativePrompt, getSeason } from "./timeUtils";
 import "./dailyOrientation.css";
 
@@ -7,6 +7,37 @@ const CAROUSEL_ITEMS = [
   { offset: 0, label: "Сегодня" },
   { offset: 1, label: "Завтра" },
 ];
+
+const DESIGN_WIDTH = 1600;
+const DESIGN_HEIGHT = 1000;
+
+function useDashboardScale() {
+  const viewportRef = useRef(null);
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return undefined;
+
+    function updateScale() {
+      const { width, height } = viewport.getBoundingClientRect();
+      if (!width || !height) return;
+      const nextScale = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT);
+      setScale((current) => (Math.abs(current - nextScale) < 0.001 ? current : nextScale));
+    }
+
+    updateScale();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateScale);
+    observer?.observe(viewport);
+    window.addEventListener("resize", updateScale);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", updateScale);
+    };
+  }, []);
+
+  return { viewportRef, scale };
+}
 
 function useCurrentTime() {
   const [now, setNow] = useState(() => new Date());
@@ -79,6 +110,7 @@ function AnalogClock({ now }) {
 
 export default function DailyOrientationRenderer() {
   const now = useCurrentTime();
+  const { viewportRef, scale } = useDashboardScale();
   const [offset, setOffset] = useState(0);
   const dragStart = useRef(null);
   const activeDate = addCalendarDays(now, offset);
@@ -106,67 +138,75 @@ export default function DailyOrientationRenderer() {
 
   return (
     <main className="daily-orientation" aria-label="Экран ориентации во времени">
-      <nav
-        className="daily-orientation__carousel"
-        aria-label="Выберите: вчера, сегодня или завтра"
-        onPointerDown={beginSwipe}
-        onPointerUp={endSwipe}
-        onPointerCancel={() => { dragStart.current = null; }}
-      >
-        {CAROUSEL_ITEMS.map((item, index) => (
-          <span className="daily-orientation__carousel-slot" key={item.offset}>
-            {index === 1 && <Chevron direction="left" />}
-            <button
-              type="button"
-              className={`daily-orientation__carousel-item${offset === item.offset ? " daily-orientation__carousel-item--active" : ""}`}
-              onClick={() => selectOffset(item.offset)}
-              aria-pressed={offset === item.offset}
-            >
-              {item.label}
-            </button>
-            {index === 1 && <Chevron direction="right" />}
-          </span>
-        ))}
-      </nav>
+      <div className="daily-orientation__viewport" ref={viewportRef}>
+        <div className="daily-orientation__canvas" style={{ transform: `scale(${scale})` }}>
+          <nav
+            className="daily-orientation__carousel"
+            aria-label="Выберите: вчера, сегодня или завтра"
+            onPointerDown={beginSwipe}
+            onPointerUp={endSwipe}
+            onPointerCancel={() => { dragStart.current = null; }}
+          >
+            {CAROUSEL_ITEMS.map((item, index) => (
+              <span className="daily-orientation__carousel-slot" key={item.offset}>
+                {index === 1 && <Chevron direction="left" />}
+                <button
+                  type="button"
+                  className={`daily-orientation__carousel-item${offset === item.offset ? " daily-orientation__carousel-item--active" : ""}`}
+                  onClick={() => selectOffset(item.offset)}
+                  aria-pressed={offset === item.offset}
+                >
+                  {item.label}
+                </button>
+                {index === 1 && <Chevron direction="right" />}
+              </span>
+            ))}
+          </nav>
 
-      <section className="daily-orientation__grid" aria-live="polite">
-        <article className="daily-orientation__card daily-orientation__card--weekday">
-          <p className="daily-orientation__question">{getRelativePrompt(offset, "day")}</p>
-          <strong className="daily-orientation__answer">{weekday}</strong>
-        </article>
+          <section className="daily-orientation__grid" aria-live="polite">
+            <article className="daily-orientation__card daily-orientation__card--weekday">
+              <p className="daily-orientation__question">{getRelativePrompt(offset, "day")}</p>
+              <strong className="daily-orientation__answer">{weekday}</strong>
+            </article>
 
-        <article className="daily-orientation__card daily-orientation__card--date">
-          <h2 className="daily-orientation__card-title">Дата</h2>
-          <div className="daily-orientation__date-values">
-            <div className="daily-orientation__date-part">
-              <span className="daily-orientation__label">Число</span>
-              <strong className="daily-orientation__date-number">{dayOfMonth}</strong>
-            </div>
-            <div className="daily-orientation__date-divider" aria-hidden="true" />
-            <div className="daily-orientation__date-part">
-              <span className="daily-orientation__label">Месяц</span>
-              <strong className="daily-orientation__date-month">{month}</strong>
-            </div>
-          </div>
-        </article>
+            <article className="daily-orientation__card daily-orientation__card--date">
+              <h2 className="daily-orientation__card-title">Дата</h2>
+              <div className="daily-orientation__date-values">
+                <div className="daily-orientation__date-part">
+                  <span className="daily-orientation__label">Число</span>
+                  <strong className="daily-orientation__date-number">{dayOfMonth}</strong>
+                </div>
+                <div className="daily-orientation__date-divider" aria-hidden="true" />
+                <div className="daily-orientation__date-part">
+                  <span className="daily-orientation__label">Месяц</span>
+                  <strong className="daily-orientation__date-month">{month}</strong>
+                </div>
+              </div>
+            </article>
 
-        <article className={`daily-orientation__card daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
-          <SeasonMark season={season} />
-          <div className="daily-orientation__season-copy">
-            <p className="daily-orientation__question">{getRelativePrompt(offset, "season")}</p>
-            <strong className="daily-orientation__answer">{season.label}</strong>
-          </div>
-        </article>
+            <article className={`daily-orientation__card daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
+              <SeasonMark season={season} />
+              <div className="daily-orientation__season-copy">
+                <p className="daily-orientation__question">{getRelativePrompt(offset, "season")}</p>
+                <strong className="daily-orientation__answer">{season.label}</strong>
+              </div>
+            </article>
 
-        <article className="daily-orientation__card daily-orientation__card--time">
-          <AnalogClock now={now} />
-          <div className="daily-orientation__time-copy">
-            <p className="daily-orientation__question">Который сейчас час?</p>
-            <strong className="daily-orientation__time-words">{formatRussianClockTime(now)}</strong>
-          </div>
-          <output className="daily-orientation__digital-time" aria-label={`Цифровое время: ${formatDigitalClock(now)}`}>{formatDigitalClock(now)}</output>
-        </article>
-      </section>
+            <article className="daily-orientation__card daily-orientation__card--time">
+              <AnalogClock now={now} />
+              <div className="daily-orientation__time-copy">
+                <p className="daily-orientation__question">Который сейчас час?</p>
+                <strong className="daily-orientation__time-words">{formatRussianClockTime(now)}</strong>
+              </div>
+              <output className="daily-orientation__digital-time" aria-label={`Цифровое время: ${formatDigitalClock(now)}`}>{formatDigitalClock(now)}</output>
+            </article>
+          </section>
+        </div>
+      </div>
+      <div className="daily-orientation__rotate-notice" role="status">
+        <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="28" y="20" width="64" height="80" rx="10" /><path d="M99 60a39 39 0 0 1-35 38M21 60a39 39 0 0 1 35-38" /><path d="m91 88 7 10 10-7M29 32l-7-10-10 7" /></svg>
+        <p>Поверните планшет горизонтально</p>
+      </div>
     </main>
   );
 }
