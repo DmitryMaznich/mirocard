@@ -22,5 +22,7 @@ describe("daily orientation time helpers", () => {
   it("changes the spoken prompt when the carousel moves", () => {
     expect(getRelativePrompt(-1, "day")).toBe("Какой был день?");
     expect(getRelativePrompt(1, "season")).toBe("Какое будет время года?");
+    expect(getRelativePrompt(0, "date")).toBe("Какое сегодня число?");
+    expect(getRelativePrompt(-1, "month")).toBe("Какой месяц был вчера?");
   });
 });

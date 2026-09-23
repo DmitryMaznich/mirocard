@@ -206,6 +206,7 @@ export default function DailyOrientationRenderer({ sessionParams }) {
           <section className={`daily-orientation__grid daily-orientation__grid--${visibleCardCount}`} aria-live="polite">
             {display.showWeekday && (
               <article className="daily-orientation__card daily-orientation__card--weekday">
+                <h2 className="daily-orientation__card-title">День недели</h2>
                 <p className="daily-orientation__question">{getRelativePrompt(offset, "day")}</p>
                 <strong className="daily-orientation__answer">{weekday}</strong>
               </article>
@@ -213,18 +214,18 @@ export default function DailyOrientationRenderer({ sessionParams }) {
 
             {hasDate && (
               <article className={`daily-orientation__card daily-orientation__card--date${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__card--date-single"}`}>
-                <h2 className="daily-orientation__card-title">Дата</h2>
+                <h2 className="daily-orientation__card-title daily-orientation__card-title--context">Дата</h2>
                 <div className={`daily-orientation__date-values${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__date-values--single"}`}>
                   {display.showDayOfMonth && (
                     <div className="daily-orientation__date-part">
-                      <span className="daily-orientation__label">Число</span>
+                      <p className="daily-orientation__question daily-orientation__question--date">{getRelativePrompt(offset, "date")}</p>
                       <strong className="daily-orientation__date-number">{dayOfMonth}</strong>
                     </div>
                   )}
                   {display.showDayOfMonth && display.showMonth && <div className="daily-orientation__date-divider" aria-hidden="true" />}
                   {display.showMonth && (
                     <div className="daily-orientation__date-part">
-                      <span className="daily-orientation__label">Месяц</span>
+                      <p className="daily-orientation__question daily-orientation__question--date">{getRelativePrompt(offset, "month")}</p>
                       <strong className="daily-orientation__date-month">{month}</strong>
                     </div>
                   )}
@@ -234,26 +235,28 @@ export default function DailyOrientationRenderer({ sessionParams }) {
 
             {display.showSeason && (
               <article className={`daily-orientation__card daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
-                <SeasonMark season={season} />
-                <div className="daily-orientation__season-copy">
-                  <p className="daily-orientation__question">{getRelativePrompt(offset, "season")}</p>
-                  <strong className="daily-orientation__answer">{season.label}</strong>
-                </div>
+                <div className="daily-orientation__season-background" aria-hidden="true"><SeasonMark season={season} /></div>
+                <h2 className="daily-orientation__card-title">Время года</h2>
+                <p className="daily-orientation__question">{getRelativePrompt(offset, "season")}</p>
+                <strong className="daily-orientation__answer">{season.label}</strong>
               </article>
             )}
 
             {hasTime && (
               <article className={timeCardClassName}>
-                {display.showAnalogClock && <AnalogClock now={now} />}
-                {display.showTimeWords && (
-                  <div className="daily-orientation__time-copy">
-                    <p className="daily-orientation__question">Который сейчас час?</p>
-                    <strong className="daily-orientation__time-words">{formatRussianClockTime(now)}</strong>
-                  </div>
-                )}
-                {display.showDigitalTime && (
-                  <output className="daily-orientation__digital-time" aria-label={`Цифровое время: ${formatDigitalClock(now)}`}>{formatDigitalClock(now)}</output>
-                )}
+                <h2 className="daily-orientation__card-title">Время</h2>
+                <p className="daily-orientation__question daily-orientation__question--time">Который сейчас час?</p>
+                <div className="daily-orientation__time-content">
+                  {display.showAnalogClock && <AnalogClock now={now} />}
+                  {(display.showTimeWords || display.showDigitalTime) && (
+                    <div className="daily-orientation__time-readout">
+                      {display.showTimeWords && <strong className="daily-orientation__time-words">{formatRussianClockTime(now)}</strong>}
+                      {display.showDigitalTime && (
+                        <output className="daily-orientation__digital-time" aria-label={`Цифровое время: ${formatDigitalClock(now)}`}>{formatDigitalClock(now)}</output>
+                      )}
+                    </div>
+                  )}
+                </div>
               </article>
             )}
           </section>

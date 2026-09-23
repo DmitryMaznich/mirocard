@@ -45,6 +45,16 @@ export function getRelativePrompt(offset, noun) {
     if (offset > 0) return "Какой будет день?";
     return "Какой сегодня день?";
   }
+  if (noun === "date") {
+    if (offset < 0) return "Какое число было вчера?";
+    if (offset > 0) return "Какое число будет завтра?";
+    return "Какое сегодня число?";
+  }
+  if (noun === "month") {
+    if (offset < 0) return "Какой месяц был вчера?";
+    if (offset > 0) return "Какой месяц будет завтра?";
+    return "Какой сейчас месяц?";
+  }
   if (offset < 0) return "Какое было время года?";
   if (offset > 0) return "Какое будет время года?";
   return "Какое сейчас время года?";

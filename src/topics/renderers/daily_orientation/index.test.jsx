@@ -30,6 +30,8 @@ describe("DailyOrientationRenderer", () => {
     expect(container.textContent).toContain("ВТОРНИК");
     expect(container.textContent).toContain("22-е");
     expect(container.textContent).toContain("СЕНТЯБРЬ");
+    expect(container.textContent).toContain("Какое сегодня число?");
+    expect(container.textContent).toContain("Какой сейчас месяц?");
 
     const tomorrow = Array.from(container.querySelectorAll("button"))
       .find((button) => button.textContent === "Завтра");
@@ -38,6 +40,8 @@ describe("DailyOrientationRenderer", () => {
     expect(container.textContent).toContain("СРЕДА");
     expect(container.textContent).toContain("23-е");
     expect(container.textContent).toContain("Какой будет день?");
+    expect(container.textContent).toContain("Какое число будет завтра?");
+    expect(container.textContent).toContain("Какой месяц будет завтра?");
   });
 
   it("renders only the selected orientation blocks and closes gaps in the grid", () => {
@@ -54,10 +58,11 @@ describe("DailyOrientationRenderer", () => {
 
     expect(container.querySelector(".daily-orientation__carousel")).toBeNull();
     expect(container.querySelector(".daily-orientation__grid")?.classList.contains("daily-orientation__grid--2")).toBe(true);
-    expect(container.textContent).toContain("Месяц");
+    expect(container.textContent).toContain("Дата");
     expect(container.textContent).toContain("СЕНТЯБРЬ");
-    expect(container.textContent).not.toContain("ЧИСЛО");
-    expect(container.textContent).not.toContain("Который сейчас час?");
+    expect(container.textContent).toContain("Какой сейчас месяц?");
+    expect(container.textContent).not.toContain("Какое сегодня число?");
+    expect(container.textContent).toContain("Который сейчас час?");
     expect(container.querySelector(".daily-orientation__clock")).not.toBeNull();
     expect(container.querySelector(".daily-orientation__digital-time")).toBeNull();
   });

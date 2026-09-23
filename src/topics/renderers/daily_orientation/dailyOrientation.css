@@ -154,7 +154,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 36px;
+  gap: 24px;
   background: var(--orientation-sage);
 }
 
@@ -162,42 +162,42 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 28px;
+  gap: 18px;
   background: var(--orientation-terracotta);
 }
 
 .daily-orientation__card--season {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  position: relative;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 54px;
+  justify-content: center;
+  gap: 24px;
   background: var(--orientation-amber);
 }
 
 .daily-orientation__card--time {
   display: grid;
-  grid-template-columns: 310px minmax(0, 1fr);
-  grid-template-rows: 1fr auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   align-items: center;
-  column-gap: 46px;
+  justify-items: center;
+  gap: 10px;
+  padding-top: 32px;
+  padding-bottom: 32px;
   background: var(--orientation-blue);
 }
 
 .daily-orientation__card--time-without-clock,
 .daily-orientation__card--time-clock-only {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 36px;
+  grid-template-rows: auto auto minmax(0, 1fr);
 }
 
-.daily-orientation__card--time-without-clock .daily-orientation__digital-time { justify-self: auto; }
-.daily-orientation__card--time-clock-only .daily-orientation__clock { grid-row: auto; }
+.daily-orientation__card--time-clock-only .daily-orientation__time-content { justify-content: center; }
+.daily-orientation__card--time-without-clock .daily-orientation__time-content { justify-content: center; }
 
 .daily-orientation__question,
-.daily-orientation__card-title,
-.daily-orientation__label {
+.daily-orientation__card-title {
   margin: 0;
   color: var(--orientation-ink);
   font-weight: 850;
@@ -205,8 +205,25 @@
 }
 
 .daily-orientation__question { font-size: 47px; text-align: center; }
-.daily-orientation__card-title { font-size: 42px; text-align: center; text-transform: uppercase; }
-.daily-orientation__label { font-size: 30px; text-transform: uppercase; }
+.daily-orientation__card-title {
+  font-size: 30px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.daily-orientation__card-title--context {
+  align-self: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(215, 103, 71, .13);
+  color: #9f4e3d;
+  font-size: 25px;
+}
+.daily-orientation__question--date {
+  font-size: 35px;
+  line-height: 1.08;
+}
+.daily-orientation__question--time { font-size: 39px; }
 
 .daily-orientation__answer,
 .daily-orientation__date-number,
@@ -225,7 +242,7 @@
   display: grid;
   grid-template-columns: minmax(0, .8fr) 2px minmax(0, 1.2fr);
   align-items: stretch;
-  gap: 36px;
+  gap: 28px;
 }
 
 .daily-orientation__date-part {
@@ -233,14 +250,14 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 24px;
+  gap: 18px;
   min-width: 0;
 }
 
 .daily-orientation__date-divider { background: rgba(172, 88, 71, .28); border-radius: 2px; }
 .daily-orientation__date-number {
   width: 100%;
-  padding: 25px 8px;
+  padding: 18px 8px;
   border-radius: 26px;
   background: #d76747;
   color: #fff;
@@ -248,29 +265,31 @@
   font-size: 78px;
 }
 
-.daily-orientation__date-month { text-align: center; font-size: 68px; }
+.daily-orientation__date-month { text-align: center; font-size: 64px; }
 
 .daily-orientation__date-values--single { grid-template-columns: minmax(0, 1fr); }
-.daily-orientation__card--date-single .daily-orientation__date-number { max-width: 310px; font-size: 100px; }
-.daily-orientation__card--date-single .daily-orientation__date-month { font-size: 88px; }
+.daily-orientation__card--date-single .daily-orientation__date-number { max-width: 310px; font-size: 92px; }
+.daily-orientation__card--date-single .daily-orientation__date-month { font-size: 80px; }
 
-.daily-orientation__season-mark { width: 250px; justify-self: center; color: #df8b16; }
+.daily-orientation__season-background {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: .16;
+  pointer-events: none;
+}
+.daily-orientation__season-mark { width: 620px; height: 620px; color: #df8b16; }
 .daily-orientation__card--season-winter .daily-orientation__season-mark { color: #4b9fd0; }
 .daily-orientation__card--season-spring .daily-orientation__season-mark { color: #65a449; }
 .daily-orientation__card--season-summer .daily-orientation__season-mark { color: #edab22; }
-
-.daily-orientation__season-copy {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 34px;
-}
+.daily-orientation__card--season > :not(.daily-orientation__season-background) { position: relative; z-index: 1; }
 
 .daily-orientation__clock {
-  width: 310px;
-  justify-self: center;
-  grid-row: 1 / span 2;
+  width: 150px;
+  flex: 0 0 auto;
   filter: drop-shadow(0 5px 8px rgba(39, 93, 125, .12));
 }
 
@@ -283,24 +302,32 @@
 .daily-orientation__clock-hand--minute { stroke-width: 8; }
 .daily-orientation__clock-centre { fill: #498bb4; }
 
-.daily-orientation__time-copy {
-  min-width: 0;
+.daily-orientation__time-content {
+  width: 100%;
+  min-height: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 28px;
+  justify-content: center;
+  gap: 22px;
 }
 
-.daily-orientation__time-words { font-size: 62px; text-align: center; }
+.daily-orientation__time-readout {
+  min-width: 0;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.daily-orientation__time-words { font-size: 36px; text-align: center; }
 
 .daily-orientation__digital-time {
-  justify-self: center;
-  padding: 8px 36px;
+  padding: 6px 22px;
   border: 2px solid rgba(50, 126, 166, .28);
   border-radius: 17px;
   background: rgba(255, 255, 255, .38);
   color: var(--orientation-ink);
-  font-size: 56px;
+  font-size: 40px;
   font-weight: 950;
   line-height: 1;
 }
