@@ -47,6 +47,18 @@ for (const slug of LEGAL_SLUGS) {
   });
 }
 
+for (const slug of LEGAL_SLUGS) {
+  test(`GET /sl/${slug} serves the Slovenian version`, async () => {
+    const res = await fetch(`${base}/sl/${slug}`);
+    assert.equal(res.status, 200);
+    const html = await res.text();
+    assert.doesNotMatch(html, /spa shell/);
+    assert.match(html, /<html lang="sl">/);
+    assert.match(html, /Različica dokumenta: draft/);
+    assert.match(html, new RegExp(`href="/${slug}" hreflang="ru"`), "links back to the Russian version");
+  });
+}
+
 test("GET /terms via /api/terms also resolves (bare and /api-prefixed paths both route the same way)", async () => {
   const res = await fetch(`${base}/api/terms`);
   assert.equal(res.status, 200);

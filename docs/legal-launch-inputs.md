@@ -40,10 +40,13 @@ review, not reviewed legal text.
 
 ## 3. Questions for the lawyer / accountant
 
-1. **Language.** ZVPot-1 requires the Slovenian language in dealings with
-   consumers in Slovenia. The docs are Russian only. Is a Slovenian version
-   required if the product is marketed in Russian to a Russian-speaking
-   audience, and is an English version advisable for other EU consumers?
+1. **Language.** ZVPot-1 requires Slovenian in dealings with consumers in
+   Slovenia. Slovenian versions of all five documents now exist at
+   `/sl/<slug>` (`backend/legal/sl/`, machine-assisted translation — needs
+   a native legal proofread). Open: the app UI, checkout consent checkboxes
+   and purchase email are Russian only — is that acceptable when the
+   product is marketed in Russian, or must checkout/email also be offered
+   in Slovenian?
 2. **VAT threshold.** Is it correct to charge Slovenian VAT (22%) on all EU
    B2C sales while cross-border EU B2C sales stay under €10,000/year, and
    register for OSS only once that's exceeded? Who monitors the threshold?

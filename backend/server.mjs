@@ -1237,13 +1237,29 @@ const LEGAL_DOCS = {
   cancellation: "Отмена доступа",
   contact: "Контакты",
 };
+// Slovenian versions live at /sl/<slug> (backend/legal/sl/) -- ZVPot-1
+// requires Slovenian for consumer dealings in Slovenia. Russian stays the
+// default at /<slug>, which is what the in-app checkout links to.
+const LEGAL_DOCS_SL = {
+  terms: "Splošni pogoji uporabe",
+  privacy: "Politika zasebnosti",
+  refunds: "Vračilo kupnine in pravica do odstopa",
+  cancellation: "Preklic dostopa",
+  contact: "Kontakt",
+};
+const LEGAL_STRINGS = {
+  ru: { draft: "<strong>Черновик.</strong> Этот документ ещё не прошёл финальную юридическую проверку.", version: "Версия документа" },
+  sl: { draft: "<strong>Osnutek.</strong> Ta dokument še ni bil dokončno pravno pregledan.", version: "Različica dokumenta" },
+};
 
-function renderLegalPage(slug, title, bodyHtml) {
+function renderLegalPage(slug, title, bodyHtml, lang = "ru") {
+  const t = LEGAL_STRINGS[lang];
   const draftBanner = LEGAL_DOCS_VERSION === "draft"
-    ? `<p class="legal-draft-banner"><strong>Черновик.</strong> Этот документ ещё не прошёл финальную юридическую проверку.</p>`
+    ? `<p class="legal-draft-banner">${t.draft}</p>`
     : "";
+  const langSwitch = `<nav class="legal-lang">${lang === "ru" ? "<strong>Русский</strong>" : `<a href="/${slug}" hreflang="ru">Русский</a>`} · ${lang === "sl" ? "<strong>Slovenščina</strong>" : `<a href="/sl/${slug}" hreflang="sl">Slovenščina</a>`}</nav>`;
   return `<!doctype html>
-<html lang="ru">
+<html lang="${lang}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1256,23 +1272,26 @@ function renderLegalPage(slug, title, bodyHtml) {
   code { background: #f0ece2; padding: 1px 5px; border-radius: 4px; }
   .legal-draft-banner { background: #fff3cd; border: 1px solid #ffe08a; border-radius: 8px; padding: 10px 14px; margin-bottom: 24px; }
   .legal-draft-notice { color: #6b7573; font-size: 14px; }
+  .legal-lang { font-size: 14px; margin-bottom: 16px; }
   .legal-footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e4dccf; font-size: 12px; color: #6b7573; }
 </style>
 </head>
 <body>
+${langSwitch}
 ${draftBanner}
 ${bodyHtml}
-<p class="legal-footer">Версия документа: ${LEGAL_DOCS_VERSION}</p>
+<p class="legal-footer">${t.version}: ${LEGAL_DOCS_VERSION}</p>
 </body>
 </html>`;
 }
 
-async function handleLegalDoc(req, res, slug) {
-  const title = LEGAL_DOCS[slug];
+async function handleLegalDoc(req, res, slug, lang = "ru") {
+  const title = (lang === "sl" ? LEGAL_DOCS_SL : LEGAL_DOCS)[slug];
+  const dir = lang === "sl" ? path.join(LEGAL_DIR, "sl") : LEGAL_DIR;
   try {
-    const bodyHtml = await readFile(path.join(LEGAL_DIR, `${slug}.html`), "utf8");
+    const bodyHtml = await readFile(path.join(dir, `${slug}.html`), "utf8");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
-    res.end(renderLegalPage(slug, title, bodyHtml));
+    res.end(renderLegalPage(slug, title, bodyHtml, lang));
   } catch {
     writeJson(res, 404, { error: "Not found" });
   }
@@ -1632,6 +1651,8 @@ async function router(req, res) {
     // Legal pages
     { const legalSlug = Object.keys(LEGAL_DOCS).find((slug) => p === `/${slug}`);
       if (method === "GET" && legalSlug) return await handleLegalDoc(req, res, legalSlug); }
+    { const legalSlug = Object.keys(LEGAL_DOCS_SL).find((slug) => p === `/sl/${slug}`);
+      if (method === "GET" && legalSlug) return await handleLegalDoc(req, res, legalSlug, "sl"); }
 
     if (!url.pathname.startsWith("/api/") && trySpaFallback(req, res, url.pathname)) return;
 
