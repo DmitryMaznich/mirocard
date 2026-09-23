@@ -158,6 +158,17 @@ Before touching anything in this topic, read `docs/propis.md` first — it has t
 map, the ruling geometry's design decisions (and why), and pitfalls already hit once
 (don't repeat them).
 
+## Плюс и минус (addition_subtraction) design review — in progress
+
+A mode-by-mode design/mechanics review of this topic's teaching ladder is under way
+(started 2026-09-22/23), plus a backlog blocked on `GEMINI_API_KEY` (not available in
+every session/sandbox — see below). **Read `docs/addition-subtraction-design-review.md`
+first** if you're continuing this — it has exactly which modes are done, what's still
+unreviewed, the two backlog items waiting on that API key (hand illustrations for mode 2,
+recorded voice audio to replace browser TTS), and pitfalls already hit once this pass
+(don't repeat them — e.g. the raw `chrome --headless --window-size` CLI flag is silently
+ignored in some sandboxes, use Playwright instead when a screenshot's exact width matters).
+
 ## Important
 
 - Synology/SmartNAS is allowed only as backup storage, not as a backend/runtime target.
