@@ -1,0 +1,249 @@
+# Release evidence — commercial launch prep
+
+This is the evidence record for the branch that became this PR, checked
+against the 13-item Definition of Done from the original task brief. Every
+verdict below is backed by a command actually run in this session (output
+summarized; full output is in this session's transcript) — nothing here is
+asserted without a corresponding test/command run against this branch.
+
+**Verdict up front: this branch is not yet ready to flip on for real paying
+customers.** 10 of 13 items are met (one — item 5 — is met specifically for
+the M0 scope this launch uses, not for a full recurring-subscription
+product). 3 items are genuinely unmet or only partially met, and none of
+them are cosmetic: no payment-provider sandbox run has ever been executed
+against this code, the legal document text is still placeholder/draft by
+design, and there is no off-site backup. Do not remove the "not yet
+recommended for production" status in `docs/commercial-launch-runbook.md`
+until those three are closed.
+
+## Definition of Done — item by item
+
+### 1. No token → no paid catalog/ZIP/UI access — **MET**
+
+`backend/tests/paywall.test.mjs` asserts an unauthenticated request to the
+deck catalog never includes a paid entry's real `url`, and a direct
+unauthenticated request to a paid deck ZIP under `/decks/` 404s (the static
+file no longer lives under the publicly-served directory — see
+`isPubliclyServableDeckAsset()` in `backend/server.mjs`).
+
+### 2. Local mode can't bypass payment — **MET**
+
+`src/features/topics/catalogService.test.js` asserts `isFreeStaticInstall()`
+no longer special-cases local mode as free; `TopicLibraryScreen.jsx`'s local
+mode now redirects to the subscription screen instead of attempting (and
+previously always succeeding at) a claim call. Covered by
+`TopicLibraryScreen`'s existing test suite plus the catalogService test.
+
+### 3. Expired entitlement blocks paid content — **MET**
+
+`backend/tests/paywall.test.mjs` includes a scenario where an account has a
+paid-looking local claim record but the server-side entitlement has since
+expired — `handleClaimDeck`/`handleDownloadDeck` re-check entitlement state
+server-side on every request rather than trusting a prior "paid" grant, and
+the test asserts a `403`.
+
+### 4. Promo gives exactly its period, doesn't burn on abandonment, can't be reused — **MET**
+
+`backend/tests/billing-repository.test.mjs` covers: exact 31-day grant from
+redemption time (not account creation/campaign start), a second redemption
+attempt on the same account returning `already_used`, `maxRedemptions`/
+`expiresAt` enforcement, and that an abandoned discount-code checkout never
+increments `promo_redemptions` (only a webhook-confirmed payment finalizes
+that via `finalizeDiscountRedemption`). Also covers `redeemFreeGrantCode`
+replacing rather than stacking on an active trial (the explicit decision
+documented in `docs/commercial-launch-runbook.md` §2).
+
+### 5. Honest payment model — **MET for M0 scope; M1 not implemented**
+
+M0 (this launch) never says "subscription"/"автосписание" anywhere in the
+UI and never re-charges a card automatically — verified by grepping the
+touched UI files (`SubscriptionScreen.jsx`, `CheckoutReturnScreen.jsx`,
+`landing/*.html`) for renewal-implying language and finding none, plus the
+explicit new disclaimer text next to the purchase button. This is a
+deliberately narrower scope than "real recurring billing" — see
+`docs/commercial-launch-runbook.md` §1 for the M1 architecture, which is
+documented but **not implemented or tested**, per the brief's own
+instruction not to build M1 without a separate sandboxed confirmation step.
+
+### 6. Stripe/Lava sandbox E2E passed and documented — **NOT MET**
+
+`docs/sandbox-e2e-checklist.md` exists and lists every required scenario
+(successful payment, cancellation, 3DS, delayed/duplicate webhook, refund,
+chargeback, expired access, iOS/Android checkout, popup-blocker scenario),
+but **none of it has been executed** — this sandboxed session has no Stripe
+test-mode or Lava Top sandbox credentials and no outbound network path to
+either provider's API (confirmed: outbound HTTPS to external domains is
+blocked by this environment's network policy). This is the single largest
+gap before real money should touch this code. A human with real sandbox
+credentials must run through that checklist and record results before
+launch.
+
+### 7. Transactional/idempotent webhook validating amount/currency/order/provider — **MET**
+
+`backend/lib/billing-orchestrator.mjs`'s `processBillingEvent` validates
+provider/amount/currency against the stored order *before* mutating
+anything, and wraps event-record + order-complete + entitlement-extend +
+promo-finalize in one `withTransaction` (`BEGIN IMMEDIATE`/`COMMIT`/
+`ROLLBACK`, `backend/lib/db.mjs`). `backend/tests/billing-orchestrator.test.mjs`
+covers: duplicate webhook delivery (idempotent by provider+event-ID, not
+contract ID), a simulated mid-transaction crash on retry, refund/chargeback
+handling, out-of-order/late webhook delivery, stacked renewals (the
+max(now, current_end) rule), and provider/amount/currency mismatches being
+rejected rather than silently trusted. `backend/lib/billing-providers/stripe.mjs`'s
+`verifyStripeWebhookSignature` also now enforces a timestamp tolerance
+window, covered in `backend/tests/billing-providers.test.mjs`.
+
+### 8. Legal pages published+versioned, consent saved — **PARTIALLY MET**
+
+The *infrastructure* is fully built and tested: `/terms`, `/privacy`,
+`/refunds`, `/cancellation`, `/contact` are real server-rendered,
+version-stamped routes (`backend/tests/legal.test.mjs`); checkout requires
+three consent checkboxes persisted per-order with a timestamp and the
+`LEGAL_DOCS_VERSION` in effect at that moment
+(`backend/tests/legal-checkout-consent.test.mjs`); checkout is hard-gated
+to `503` while `LEGAL_DOCS_VERSION` is `"draft"` (the shipped default). What
+is **not met**: the actual document *content* is still placeholder/draft
+except `privacy.html` (which has real entity/data-processor content) — per
+the brief's own explicit instruction not to invent legal text, company
+registration details, tax/VAT handling, or a refund policy.
+`docs/legal-launch-inputs.md` lists exactly what a human (product owner or
+lawyer) needs to supply before `LEGAL_DOCS_VERSION` can be set to a real
+value and checkout unblocked. This is deliberately left in the "not yet"
+state — flipping it requires content this session isn't authorized to
+invent, not more code.
+
+### 9. No dev fallback secrets in production — **MET**
+
+`backend/lib/config.mjs`'s `requiredInProduction()` now throws at startup
+if `RAILWAY_ENVIRONMENT` is set and any of `AUTH_SECRET`, `ACCOUNT_SECRET`,
+`MIROCARD_DEPLOY_TOKEN`, `MIROCARD_ADMIN_TOKEN`, `RESEND_API_KEY`,
+`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` is missing, instead of
+silently running on a hardcoded insecure default. Covered by
+`backend/tests/config.test.mjs`.
+
+### 10. Photos/personal data never anonymously accessible — **MET, with a documented scope limit**
+
+`handleGetPhoto` now requires a valid auth token (`backend/tests/photos.test.mjs`
+asserts a `401` for an unauthenticated request that previously succeeded).
+**Scope limit, explicitly not fixed further**: the photo-storage schema
+deduplicates by content hash with no owner column, so any *authenticated*
+account can still view any photo by hash if they somehow obtain the hash —
+fixing that fully would need an owner-scoped storage redesign, which risks
+a data-access regression for legitimate cross-account content-identical
+photos and was judged out of scope for this pass. Documented in code
+comments (`backend/server.mjs`'s `handleGetPhoto`) and in
+`docs/commercial-launch-runbook.md` §6.
+
+### 11. Healthcheck + error alerting + external backup + restore drill — **PARTIALLY MET**
+
+`GET /healthz` (PII-free, DB check, version, git SHA, backup freshness) and
+pluggable `reportError`/`trackEvent` (env-gated, vendor-agnostic) are built
+and tested (`backend/tests/healthz.test.mjs`, `backend/tests/observability.test.mjs`).
+A real crash bug in the existing hourly backup loop (an uncaught exception
+from a bad backup attempt could take down the whole backend process) was
+found and fixed, with a regression test
+(`backend/tests/railway-backup-loop.test.mjs`). What is **not met**: there
+is still no *external/off-site* backup — hourly backups land on the same
+Railway volume as the live database, so a volume-level failure loses both.
+A restore-drill *procedure* is documented in
+`docs/commercial-launch-runbook.md` §5, but **has not actually been
+performed** against a real backup file, because doing so needs Railway
+dashboard/volume access this sandboxed session doesn't have.
+
+### 12. CI fully green on a clean worktree — **NOT MET**
+
+`.github/workflows/ci.yml` exists with `backend-tests` (blocking),
+`frontend-tests`, `lint`, and `build` jobs. On a real green-check run of
+this branch:
+- `backend-tests` is genuinely green: 175/175 backend tests pass, 0
+  vulnerabilities in `npm audit --prefix backend`.
+- `npx eslint backend` (newly linted for the first time — `.mjs` files were
+  previously excluded from lint entirely due to a config gap unrelated to
+  this branch, fixed here) is clean.
+- `npm run build` succeeds.
+- `frontend-tests` (`npx vitest run` at the repo root) is **not fully
+  green**: 1431/1443 tests pass, 5 files / 12 tests fail. These 12 failures
+  were confirmed **pre-existing and unrelated to this branch** — verified
+  by creating a separate temporary worktree at `origin/main` (before any of
+  this branch's changes) and running the identical command, which produced
+  the same 12 failing tests.
+- Full-repo `npx eslint .` (informational, not a blocking CI gate) reports
+  ~195 problems, ~190 of which pre-exist on `origin/main` and are unrelated
+  to this branch's files.
+
+Because a real CI run on this PR would show `frontend-tests` red (for
+reasons outside this branch's own changes), item 12 is marked **not met**
+rather than papering over it — a genuinely green CI badge requires either
+fixing those 12 pre-existing failures (a separate, unscoped piece of work)
+or the repo owner accepting them as known-flaky/pre-existing and adjusting
+CI expectations accordingly.
+
+### 13. Production release reproducible from tag+commit SHA — **PARTIALLY MET**
+
+`scripts/git-sha.mjs` (fixed in this branch to correctly resolve a commit
+SHA from a git *worktree* checkout, not just a plain directory clone — the
+original implementation returned `"unknown"` for a worktree, verified by
+building and grepping the output before/after the fix) makes a running
+deployment's identity independently verifiable: `/healthz` and
+`/api/version` both now return `gitSha`, so any deployed instance can be
+matched back to an exact commit. What is **not met**: there is no formal
+tag-per-release process — deploys remain "push to `main`, Railway
+auto-deploys," as documented in this repo's own `CLAUDE.md`, with no tag
+created per release and no requirement enforced that `main`'s tip is what's
+actually running. The `gitSha` field makes *verification* possible; it does
+not by itself make the release *process* tag-based.
+
+## Test commands run and their results (this session)
+
+```
+$ node --test backend/tests/
+# 175/175 pass
+
+$ npm audit --prefix backend
+# 0 vulnerabilities
+
+$ npx vitest run          # repo root
+# 101 passed, 5 failed (files) | 1431 passed, 12 failed (tests)
+# — confirmed identical failing-test set exists on a clean origin/main
+#   worktree, predating this branch
+
+$ npx eslint backend
+# clean, 0 problems (this is the first time backend/**/*.mjs was ever
+# linted -- eslint.config.js previously had no glob matching .mjs files
+# at all, a pre-existing config gap fixed in this branch)
+
+$ npx eslint .            # repo root, informational only, not CI-blocking
+# ~195 problems; ~190 pre-exist on origin/main, unrelated to this branch
+
+$ npm run build
+# succeeds; dist/index.html contains the real short git SHA (previously
+# "unknown" due to the worktree git-sha bug, fixed and re-verified)
+
+$ npm audit                # repo root
+# 13 vulnerabilities, all in frontend/build dev-tooling (not backend
+# production dependencies); "npm audit fix" was attempted once and crashed
+# with an internal npm error unrelated to this branch's changes -- verified
+# no partial state was written (package.json/package-lock.json stayed
+# clean in git status) and deliberately not retried with --force, which
+# would force an untested breaking sharp upgrade
+```
+
+Full command output is available in this session's transcript; the numbers
+above are the final, re-confirmed values as of the last full validation
+pass on this branch.
+
+## Known residual risks (see also `docs/commercial-launch-runbook.md` §6)
+
+- Lava Top's provider integration has never been exercised against Lava
+  Top's real API — run the launch on the Stripe/card rail only until a
+  sandbox call confirms it.
+- No off-site backup exists for the Railway SQLite volume yet.
+- Account deletion is soft-delete only; no self-service data export exists.
+- Photo access is authenticated but not owner-scoped (documented schema
+  limitation, not newly introduced).
+- Production `/api/version`/`/healthz` could not be curled from this
+  sandboxed session to confirm the *currently live* deployment's state —
+  outbound network to `app.mironium.com` is blocked by this environment's
+  proxy policy. Whoever merges this PR should run that check manually
+  post-deploy, per the release checklist in
+  `docs/commercial-launch-runbook.md` §10.
