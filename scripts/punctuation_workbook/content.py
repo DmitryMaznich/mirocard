@@ -298,3 +298,27 @@ def chain_row(ink, c, items, baseline, inset):
         c.restoreState()
         x += w + WORD_GAP_MM
     return len(items)
+
+
+def ladder_page(ink, c, inset, trace, models, warnings, page_no):
+    """Standard-grid page for lists and sentences (agreed with the user
+    2026-09-24): top rows = one item per row, half-tone dashed to trace
+    (same look as pages 4-5); bottom rows = a solid model, then an empty
+    row under it to write it alone. Whatever rows remain stay blank."""
+    rows = [(t, "trace") for t in trace]
+    for m in models:
+        rows += [(m, "model"), None]
+    for baseline, spec in zip(BASELINES, rows):
+        if not spec:
+            continue
+        text, kind = spec
+        w = ink.sentence_width(text)
+        if w > CONTENT_W_MM:
+            warnings.append(f"p{page_no}: '{text}' is {w:.0f}mm, row is {CONTENT_W_MM:.0f}mm")
+        if kind == "trace":
+            c.saveState()
+            c.setDash(*DASH)
+            ink.draw_text(c, text, inset, baseline, FADE_OPACITIES[0])
+            c.restoreState()
+        else:
+            ink.draw_text(c, text, inset, baseline, MODEL_OPACITY)

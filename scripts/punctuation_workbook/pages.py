@@ -6,7 +6,7 @@ CONTENT holds the pages built so far; any other page is printed as bare
 ruling of its KIND.
 """
 
-from content import chain_row, word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
+from content import ladder_page, chain_row, word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
 
 DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
 KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
@@ -127,6 +127,26 @@ def p5(ink, c, inset, half, warnings, n):
         chain_row(ink, c, [w + "," for w in [starters[r]] + words], baseline, inset)
 
 
+def p6(ink, c, inset, half, warnings, n):
+    # Lists of three: trace eight, then four solid models each with an
+    # empty row to copy into.
+    trace = ["хлеб, сыр, сок", "кот, пёс, мышь", "мама, папа, я", "рыба, рак, кит",
+             "шар, мяч, кукла", "нос, рот, глаз", "суп, каша, чай", "утка, гусь, кот"]
+    models = ["дом, сад, лес", "лук, мак, мёд", "ель, дуб, клён", "зима, весна, лето"]
+    ladder_page(ink, c, inset, trace, models, warnings, n)
+
+
+def p7(ink, c, inset, half, warnings, n):
+    # A list inside a sentence -- the comma's place is obvious from the
+    # list itself. Sentences kept short enough for one row (<= ~113mm).
+    trace = ["Я взял хлеб, сыр и сок.", "Тут кот, пёс и ёж.", "Вот лук, мак и мёд.",
+             "Там лес, луг и сад.", "В лесу ель, дуб и клён.", "Тут утка, гусь и кот.",
+             "Я ем суп, кашу и сыр.", "Там рыба, рак и кит."]
+    models = ["Я вижу дом, сад и лес.", "Мама, папа и я дома.",
+              "Мы ели суп, кашу и сыр.", "У Оли мяч, шар и кот."]
+    ladder_page(ink, c, inset, trace, models, warnings, n)
+
+
 def p20(ink, c, inset, half, warnings, n):
     # Comma + ? / ! in one sentence. Top: tracing (faded), middle: fainter
     # tracing, bottom: one full model with an empty row under it.
@@ -137,4 +157,4 @@ def p20(ink, c, inset, half, warnings, n):
     text_page(ink, c, rows, inset, warnings, n)
 
 
-CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 20: p20}
+CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 20: p20}
