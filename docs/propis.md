@@ -172,6 +172,14 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     build bundles wholesale). With one category left the tab bar hides
     itself (`categories.length > 1`). The punctuation insert stays a
     second file on `notebook_standard`.
+    Deck v1.30.11: the five propis_worksheets notebooks (буквы часть 1/2,
+    соединения, слова часть 1/2), which never had a cover, got one —
+    `scripts/cover_tetrad.py --style=буквы1|буквы2|соединения|слова1|слова2
+    --variant=letters1|letters2|syllables|words1|words2`: left page = the
+    same grid/title block as «Алфавит» with samples from that notebook in
+    captured handwriting (letter groups one per row / syllables / words),
+    right page = ТЕТРАДЬ + subtitle. Merged the same way; their sheet-only
+    sources are `print_sources/прописи_<name>_листы.pdf`.
   - **Content-card thumbnails swapped to a real page-1 render 2026-09-15
     (propis deck v1.27.1, print_materials deck v1.0.35), user request.** All
     9 `content`-category thumbnails used to be the notebook's *cover*

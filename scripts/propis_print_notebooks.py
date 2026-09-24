@@ -29,6 +29,13 @@ NOTEBOOKS = {
     "тетрадь_плотная.pdf": ("cover_алфавит_плотная.pdf", "плотная_pages.pdf"),
     "тетрадь_точки.pdf": ("cover_алфавит_точки.pdf", "точки_pages.pdf"),
     "тетрадь_тексты.pdf": ("cover_алфавит_тексты.pdf", "прописи_тексты.pdf"),
+    # Covers made 2026-09-24 by scripts/cover_tetrad.py (--style/--variant
+    # in the cover file name); sheets are the propis_worksheets builds.
+    "прописи_часть1.pdf": ("cover_буквы1_letters1.pdf", "прописи_часть1_листы.pdf"),
+    "прописи_часть2.pdf": ("cover_буквы2_letters2.pdf", "прописи_часть2_листы.pdf"),
+    "прописи_соединения.pdf": ("cover_соединения_syllables.pdf", "прописи_соединения_листы.pdf"),
+    "прописи_слова_часть1.pdf": ("cover_слова1_words1.pdf", "прописи_слова_часть1_листы.pdf"),
+    "прописи_слова_часть2.pdf": ("cover_слова2_words2.pdf", "прописи_слова_часть2_листы.pdf"),
 }
 
 

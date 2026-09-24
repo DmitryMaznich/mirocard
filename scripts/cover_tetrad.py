@@ -314,7 +314,7 @@ def _alphabet_items(letters_by_label):
     return items
 
 
-def _handwritten_alphabet_rows(letters_by_label, max_w_mm, n_rows):
+def _handwritten_alphabet_rows(letters_by_label, max_w_mm, n_rows, items=None):
     """Greedily wraps the 33 case items across n_rows using each letter's
     real ink width (mirrors _alphabet_rows' row-splitting role, but
     width-aware since real captured strokes aren't monospaced like the
@@ -328,7 +328,7 @@ def _handwritten_alphabet_rows(letters_by_label, max_w_mm, n_rows):
         return w
 
     rows, row, row_w = [], [], 0.0
-    for upper, lower in _alphabet_items(letters_by_label):
+    for upper, lower in (items or _alphabet_items(letters_by_label)):
         w = item_width_mm(upper, lower)
         added = w if not row else PAIR_INTER_GAP_MM + w
         if row and row_w + added > max_w_mm:
@@ -344,9 +344,9 @@ def _handwritten_alphabet_rows(letters_by_label, max_w_mm, n_rows):
     return rows
 
 
-def _draw_alphabet_pairs_handwritten(cv, letters_by_label, ybase, cx, max_w):
+def _draw_alphabet_pairs_handwritten(cv, letters_by_label, ybase, cx, max_w, items=None):
     max_w_mm = max_w / MM
-    rows = _handwritten_alphabet_rows(letters_by_label, max_w_mm, n_rows=5)
+    rows = _handwritten_alphabet_rows(letters_by_label, max_w_mm, n_rows=5, items=items)
 
     cv.saveState()
     cv.scale(MM, MM)
@@ -432,6 +432,86 @@ def left_page_punctuation(cv):
     _logo_footer(cv)
 
 
+# ═════════════════════════════════════════════════════════════════════════════
+# Левая страница — тетради прописей без своей обложки (user, 2026-09-24):
+# буквы части 1/2, соединения, слова 1/2. Та же сетка и заголовок, что у
+# «Алфавита», ниже — образцы из самой тетради настоящими росчерками пера.
+# ═════════════════════════════════════════════════════════════════════════════
+
+PROPIS_COVER_TITLES = {
+    "letters1": "Простые формы",
+    "letters2": "Сложные формы",
+    "syllables": "Соединения",
+    "words1": "Слова",
+    "words2": "Слова",
+}
+
+# Rows 1-5 for the word-shaped variants (drawn with the punctuation
+# workbook's Ink, which joins letters with the captured connectors).
+PROPIS_COVER_LINES = {
+    "syllables": ["ма мо ми ме", "Ла Ло Ли Ле", "ба бо би бе",
+                  "Са Со Си Се", "ша шо ши ше"],
+    "words1": ["мама папа", "лиса оса", "лето поле",
+               "Маша мост", "самолёт пилот"],
+    "words2": ["кот дом рыба", "Вова жук", "снег зима",
+               "Юля книга", "чай и хлеб"],
+}
+
+
+def _group_rows(letters_by_label, notebook, max_w_mm):
+    """Rows of (upper, lower, width) for one letter notebook: each
+    graphomotor group (propis_worksheets/letter_groups.py GROUPS, 1-3 =
+    часть 1, 4-6 = часть 2) starts its own row, wrapping if too wide."""
+    from letter_groups import GROUPS
+    rows = []
+    for g in (GROUPS[:3] if notebook == 1 else GROUPS[3:]):
+        items = [(u if u in letters_by_label else None, l) for l, u in g["letters"]]
+        rows += _handwritten_alphabet_rows(letters_by_label, max_w_mm, 5, items=items)
+    assert len(rows) <= 5, rows
+    return rows
+
+
+def left_page_propis(cv, variant):
+    cv.setFillColorRGB(1, 1, 1)
+    cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
+
+    ybase, cx, max_w, font_max = _propis_grid(cv)
+    cv.setFont(CURSIVE, font_max)
+    cv.setFillColorRGB(0.05, 0.40, 0.08)
+    cv.drawCentredString(cx, ybase(0), PROPIS_COVER_TITLES[variant])
+
+    if variant in ("letters1", "letters2"):
+        letters_by_label = load_letters()
+        rows = _group_rows(letters_by_label, 1 if variant == "letters1" else 2, max_w / MM)
+        # three groups -> rows 1, 3, 5 (a free line between groups)
+        slots = [1, 3, 5] if len(rows) == 3 else list(range(1, 1 + len(rows)))
+        cv.saveState()
+        cv.scale(MM, MM)
+        for slot, row in zip(slots, rows):
+            row_w = sum(w for _, _, w in row) + PAIR_INTER_GAP_MM * (len(row) - 1)
+            x = cx / MM - row_w / 2
+            baseline_mm = ybase(slot) / MM
+            for upper, lower, _ in row:
+                if upper is not None:
+                    x += draw_letter(cv, letters_by_label[upper], x, baseline_mm, 1.0,
+                                     color=HANDWRITTEN_INK_COLOR) + PAIR_INTRA_GAP_MM
+                x += draw_letter(cv, letters_by_label[lower], x, baseline_mm, 1.0,
+                                 color=HANDWRITTEN_INK_COLOR) + PAIR_INTER_GAP_MM
+        cv.restoreState()
+    else:
+        ink = _punctuation_ink()
+        cv.saveState()
+        cv.scale(MM, MM)
+        cv.setStrokeColorRGB(*HANDWRITTEN_INK_COLOR)
+        for j, line in enumerate(PROPIS_COVER_LINES[variant]):
+            w = ink.sentence_width(line)
+            assert w <= max_w / MM, f"«{line}» не влезает ({w:.0f}мм)"
+            ink.draw_text(cv, line, cx / MM - w / 2, ybase(1 + j) / MM, 1.0)
+        cv.restoreState()
+
+    _logo_footer(cv)
+
+
 def _punctuation_pictogram(cv, x0, x1, y0, y1, narrow_h, pitch, y_first):
     """Thumbnail window for the punctuation workbook: its standard ruling
     with the four marks drawn big on the top row."""
@@ -454,6 +534,16 @@ def _punctuation_pictogram(cv, x0, x1, y0, y1, narrow_h, pitch, y_first):
 # Правая страница — бланк ТЕТРАДЬ
 # ═════════════════════════════════════════════════════════════════════════════
 
+COVER_SUBTITLES = {
+    "знаки": "знаки препинания",
+    "буквы1": "прописи · часть 1",
+    "буквы2": "прописи · часть 2",
+    "соединения": "соединения букв",
+    "слова1": "слова · часть 1",
+    "слова2": "слова · часть 2",
+}
+
+
 def right_page(cv, style="плотная"):
     cv.setFillColorRGB(1, 1, 1)
     cv.rect(HALF_W, 0, HALF_W, PAGE_H, fill=1, stroke=0)
@@ -472,9 +562,9 @@ def right_page(cv, style="плотная"):
     # Подзаголовок
     cv.setFont(REG, 10)
     cv.setFillColorRGB(0.25, 0.25, 0.25)
-    if style == "знаки":
+    if style in COVER_SUBTITLES:
         cv.setFont(REG, 15)
-        cv.drawCentredString(rcx_tet, tetrad_y - 24, "знаки препинания")
+        cv.drawCentredString(rcx_tet, tetrad_y - 24, COVER_SUBTITLES[style])
     else:
         cv.drawCentredString(rcx_tet, tetrad_y - 19, "для прописей")
 
@@ -568,6 +658,8 @@ def main():
         left_page_alphabet_handwritten(cv)
     elif variant == "punctuation":
         left_page_punctuation(cv)
+    elif variant in PROPIS_COVER_TITLES:
+        left_page_propis(cv, variant)
     else:
         left_page(cv)
     right_page(cv, style=style)
