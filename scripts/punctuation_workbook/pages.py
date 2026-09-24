@@ -335,20 +335,17 @@ def p21(ink, c, inset, half, warnings, n):
 
 
 def p22(ink, c, inset, half, warnings, n):
-    # "Вставь знак": a solid model sentence, and under it the same sentence
-    # half-tone dashed but with its marks left out (their space kept) -- the
-    # child traces the words and puts every mark in himself. Letters with
-    # commas on the leftover last row.
-    from content import DASH, FADE_OPACITIES as FO
-    sents = ["Ой, какой снег!", "Кто там? Это папа.", "Оля, иди сюда!", "Где мяч? Вот он.",
-             "Тут кот, пёс и ёж.", "Мама, где мой шарф?", "Кто съел кашу? Я!", "Вот лук, мак и мёд."]
-    for k, s in enumerate(sents):
-        ink.draw_text(c, s, inset, BASELINES[2 * k], 1.0)
-        c.saveState()
-        c.setDash(*DASH)
-        ink.draw_text(c, s, inset, BASELINES[2 * k + 1], FO[0], 0.0)
-        c.restoreState()
-    chain_row(ink, c, letters_row(n), BASELINES[-1], inset)
+    # "Списывание на расстоянии" (user, 2026-09-24): after copying line under
+    # line on pages 20-21, the models move away from the writing rows -- all
+    # models at the top, all empty rows below. The child finds a sentence,
+    # holds it (marks included) in memory and writes it further down, so
+    # the mark comes from the hand, not from a stroke right above it. More
+    # marks per sentence than before (3 each).
+    models = ["Оля, ты где? Я тут!", "Ой, снег! Ура, зима!", "Кто там? Папа, ты?",
+              "Где кот? Вон, на окне.", "Кто там? Это я, Оля.", "Где сыр? Вот, на столе."]
+    for k, s in enumerate(models):
+        ink.draw_text(c, s, inset, BASELINES[k], 1.0)
+    # rows 6.. stay empty for writing; a separator row is left blank too
 
 
 TEXTS = [
