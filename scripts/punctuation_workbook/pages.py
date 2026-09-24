@@ -98,13 +98,12 @@ SHORT_WORDS = ["кот", "дом", "сок", "мама", "папа", "лес", "
 def p4(ink, c, inset, half, warnings, n):
     # Agreed with the user 2026-09-24: switch between DIFFERENT letters and
     # the comma, keeping the comma's size and place. Every row: single
-    # letters (random order and case, no ь/ъ), each followed by a comma;
-    # first one solid, the rest half-tone dashed to trace, filled to the
-    # margin. Fixed seed -> the same page on every build.
+    # letters (random order and case, no ь/ъ), each followed by a comma,
+    # all half-tone dashed to trace, filled to the margin. Fixed seed -> the same page on every build.
     import random
     rng = random.Random(4)
     starters = LETTERS[:]
-    rng.shuffle(starters)   # a different solid model opens every row
+    rng.shuffle(starters)   # a different item opens every row
     for r, baseline in enumerate(BASELINES):
         letters = [ch for ch in LETTERS if ch != starters[r]]
         rng.shuffle(letters)
@@ -116,12 +115,12 @@ def p4(ink, c, inset, half, warnings, n):
 
 def p5(ink, c, inset, half, warnings, n):
     # Same as page 4, one step closer to real writing: short words (3-5
-    # letters) each followed by a comma, natural spacing, first word solid,
-    # the rest half-tone dashed.
+    # letters) each followed by a comma, natural spacing, all half-tone
+    # dashed.
     import random
     rng = random.Random(5)
     starters = SHORT_WORDS[:]
-    rng.shuffle(starters)   # a different solid model opens every row
+    rng.shuffle(starters)   # a different item opens every row
     for r, baseline in enumerate(BASELINES):
         words = [w for w in SHORT_WORDS if w != starters[r]]
         rng.shuffle(words)
