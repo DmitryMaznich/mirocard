@@ -185,6 +185,39 @@ def p9(ink, c, inset, half, warnings, n):
     ])
 
 
+def p10(ink, c, inset, half, warnings, n):
+    # Dot vs exclamation mark (both sit their dot on the crossing): alternating
+    # every 4 cells, every 2 cells, then 3-mark groups, then templates.
+    # "Точка и восклицательный знак" is 145mm -- too wide for the title row,
+    # so the mark itself stands in for its name.
+    groups = [(g, {"inner_step": 2, "group_step": 4}) for g in (".!.", "!..", "..!", "!.!")]
+    rhythm_page(ink, c, inset, half, "Точка и !", [
+        (".!", {"inner_step": 4, "group_step": 4}),
+        (".!", {"inner_step": 2, "group_step": 2}),
+        groups,
+        [(g, kw, 2) for g, kw in groups],
+    ])
+
+
+EXCLAMATIONS = ["Да!", "Нет!", "Стой!", "Ура!", "Смотри!", "Ой!", "Ах!", "Беги!", "Иди!",
+                "Мама!", "Папа!", "Сюда!", "Тише!", "Вперёд!", "Браво!", "Эх!", "Лови!",
+                "Держи!", "Верно!", "Привет!"]
+
+
+def p11(ink, c, inset, half, warnings, n):
+    # "!" after a word, as page 5 does for the comma: exclamations at natural
+    # spacing, all half-tone dashed, a different one opening every row.
+    import random
+    rng = random.Random(11)
+    starters = EXCLAMATIONS[:]
+    rng.shuffle(starters)
+    for r, baseline in enumerate(BASELINES):
+        first = starters[r % len(starters)]
+        rest = [w for w in EXCLAMATIONS if w != first]
+        rng.shuffle(rest)
+        chain_row(ink, c, [first] + rest, baseline, inset)
+
+
 def p20(ink, c, inset, half, warnings, n):
     # Comma + ? / ! in one sentence. Top: tracing (faded), middle: fainter
     # tracing, bottom: one full model with an empty row under it.
@@ -195,4 +228,4 @@ def p20(ink, c, inset, half, warnings, n):
     text_page(ink, c, rows, inset, warnings, n)
 
 
-CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 20: p20}
+CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 20: p20}
