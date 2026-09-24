@@ -6,7 +6,7 @@ CONTENT holds the pages built so far; any other page is printed as bare
 ruling of its KIND.
 """
 
-from content import practice_page, text_page, mark_row, ROWS, BASELINES
+from content import practice_page, text_page, mark_row, title_row, ROWS, BASELINES
 
 DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
 KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
@@ -18,7 +18,8 @@ def p1(ink, c, inset, half, warnings, n):
     # the user 2026-09-24): every 4 cells -> every 2 cells -> pairs one cell
     # apart (tapering) -> short rhythm templates (model + 1-2 repeats). The ТЗ's "кот. дом. мама." words
     # moved to page 4 -- words drown in the dense grid.
-    for r, baseline in enumerate(BASELINES):
+    title_row(ink, c, "Точка", inset)
+    for r, baseline in enumerate(BASELINES[1:]):
         if r < 4:
             mark_row(ink, c, ".", baseline, inset, half, group_step=4)
         elif r < 8:
@@ -27,7 +28,7 @@ def p1(ink, c, inset, half, warnings, n):
             if r == 8:
                 full = mark_row(ink, c, "..", baseline, inset, half, inner_step=2, group_step=4)
             else:
-                mark_row(ink, c, "..", baseline, inset, half, max_groups=max(full - (r - 8), 1),
+                mark_row(ink, c, "..", baseline, inset, half, max_groups=max(full - (r - 8), 2),
                          inner_step=2, group_step=4)
         else:
             # Independent rows still show WHICH rhythm to keep: the model plus

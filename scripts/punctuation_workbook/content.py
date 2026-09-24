@@ -191,15 +191,26 @@ def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
     return gi
 
 
-def practice_page(ink, c, rows, inset, half_offset, first_sample_row=None):
+def title_row(ink, c, text, inset):
+    """The mark's name in cursive on the page's first row (user, 2026-09-24:
+    children hear "точка", "запятая"... all the time but never see the word
+    written). One full-strength model, nothing to trace -- just the name."""
+    ink.draw_text(c, text, inset, BASELINES[0], MODEL_OPACITY)
+
+
+def practice_page(ink, c, rows, inset, half_offset, first_sample_row=None, title=None):
     """Top half: full rows. Bottom half: taper -- each row one group fewer
     than the row above (propis_worksheets' "скос"). Rows from
     first_sample_row on: a short rhythm template -- the model plus one
     faded repeat, so the step to keep is visible (a lone model doesn't
     show it; user, 2026-09-24) -- rest blank."""
-    middle = ROWS // 2
+    baselines = BASELINES
+    if title:
+        title_row(ink, c, title, inset)
+        baselines = BASELINES[1:]
+    middle = len(baselines) // 2
     full = None
-    for r, (baseline, spec) in enumerate(zip(BASELINES, rows)):
+    for r, (baseline, spec) in enumerate(zip(baselines, rows)):
         if spec is None:
             continue
         group, kw = (spec, {}) if isinstance(spec, str) else spec
