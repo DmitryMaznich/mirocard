@@ -97,34 +97,35 @@ SHORT_WORDS = ["кот", "дом", "сок", "мама", "папа", "лес", "
 
 def p4(ink, c, inset, half, warnings, n):
     # Agreed with the user 2026-09-24: switch between DIFFERENT letters and
-    # the comma, keeping the comma's size and place. Top half: single
-    # letters (random order and case, no ь/ъ), each followed by a comma.
-    # Bottom half: short words, natural spacing. First item of each row
-    # solid, the rest half-tone dashed to trace, rows filled to the margin.
-    # Fixed seed -> the same page on every build.
+    # the comma, keeping the comma's size and place. Every row: single
+    # letters (random order and case, no ь/ъ), each followed by a comma;
+    # first one solid, the rest half-tone dashed to trace, filled to the
+    # margin. Fixed seed -> the same page on every build.
     import random
     rng = random.Random(4)
+    starters = LETTERS[:]
+    rng.shuffle(starters)   # a different solid model opens every row
     for r, baseline in enumerate(BASELINES):
-        if r < 8:
-            letters = LETTERS[:]
-            rng.shuffle(letters)
-            # ы never starts a word, so it has no real capital -- lowercase only.
-            items = [(ch.upper() if ch != "ы" and rng.random() < 0.5 else ch) + ","
-                     for ch in letters]
-        else:
-            words = SHORT_WORDS[:]
-            rng.shuffle(words)
-            items = [w + "," for w in words]
+        letters = [ch for ch in LETTERS if ch != starters[r]]
+        rng.shuffle(letters)
+        # ы never starts a word, so it has no real capital -- lowercase only.
+        items = [(ch.upper() if ch != "ы" and rng.random() < 0.5 else ch) + ","
+                 for ch in [starters[r]] + letters]
         chain_row(ink, c, items, baseline, inset)
 
 
 def p5(ink, c, inset, half, warnings, n):
-    # A comma between two words -- same three-step ladder as page 4.
-    practice = ["кот, пёс", "чай, сок", "сыр, хлеб", "нос, рот", "лук, мак", "дом, сад"]
-    nomark = ["кит, сом", "мяч, шар", "суп, каша", "лес, луг", "рыба, рак", "кот, пёс"]
-    sample = ["мама, папа", "чай, сок", "сыр, хлеб", "дом, сад", "мяч, шар"]
-    word_page(ink, c, inset, [(w, "practice") for w in practice]
-              + [(w, "nomark") for w in nomark] + [(w, "sample") for w in sample])
+    # Same as page 4, one step closer to real writing: short words (3-5
+    # letters) each followed by a comma, natural spacing, first word solid,
+    # the rest half-tone dashed.
+    import random
+    rng = random.Random(5)
+    starters = SHORT_WORDS[:]
+    rng.shuffle(starters)   # a different solid model opens every row
+    for r, baseline in enumerate(BASELINES):
+        words = [w for w in SHORT_WORDS if w != starters[r]]
+        rng.shuffle(words)
+        chain_row(ink, c, [w + "," for w in [starters[r]] + words], baseline, inset)
 
 
 def p20(ink, c, inset, half, warnings, n):
