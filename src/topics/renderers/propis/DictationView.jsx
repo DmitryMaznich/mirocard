@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import ProgressBar from "@/shared/components/ProgressBar";
 import ReviewScreen from "./DictationReviewScreen";
 import { dictationAudioUrl } from "./dictationAudio";
 import { useDictationPlayer } from "./useDictationPlayer";
@@ -76,17 +77,20 @@ export default function DictationView({ task, onClose }) {
       <button type="button" className="propis-ctrl-btn propis-dictation-close" onClick={onClose} aria-label="Закрыть">✕</button>
 
       <div className="propis-dictation-frame">
-        <div className="propis-dictation-progress">{index + 1} из {total}</div>
+        <div className="propis-dictation-title">Диктант</div>
+        <ProgressBar className="propis-dictation-progressbar" value={index + 1} max={total} />
 
-        <div className={`propis-dictation-diktor-wrap${isPlaying ? " propis-dictation-diktor-wrap--playing" : ""}`}>
+        <div
+          className={`propis-dictation-diktor-wrap${isPlaying ? " propis-dictation-diktor-wrap--playing" : ""}${!isPlaying && !canRepeat ? " propis-dictation-diktor-wrap--exhausted" : ""}`}
+        >
           <span className="propis-dictation-ripple" />
           <span className="propis-dictation-ripple" />
           <span className="propis-dictation-ripple" />
           <button
             type="button"
             className="propis-dictation-diktor"
-            onClick={playCurrent}
-            disabled={isPlaying}
+            onClick={handleRepeat}
+            disabled={isPlaying || !canRepeat}
             aria-label="Слушать ещё раз"
           >
             <span className="propis-dictation-bar" />
@@ -97,14 +101,6 @@ export default function DictationView({ task, onClose }) {
         </div>
 
         <div className="propis-dictation-actions">
-          <button
-            type="button"
-            className="propis-dictation-repeat"
-            onClick={handleRepeat}
-            disabled={!canRepeat || isPlaying}
-          >
-            ↻ Повторить{!unlimitedRepeats ? ` (${Math.max(0, task.repeatLimit - repeatsUsed)})` : ""}
-          </button>
           <button
             type="button"
             className="propis-dictation-next"
