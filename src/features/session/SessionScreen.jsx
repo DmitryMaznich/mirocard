@@ -10,6 +10,7 @@ import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getTopicTitle } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { isPaidTopicLocked } from "@/features/billing/entitlement";
+import { useResolvedProtectedPhotos } from "@/shared/utils/protectedPhoto";
 import SessionHeader from "./SessionHeader";
 import SessionPlanDrawer from "@/features/lessonPlan/SessionPlanDrawer";
 import { formatPlanTongueLabel } from "@/features/lessonPlan/lessonPlanUtils";
@@ -82,7 +83,10 @@ function SessionScreenContent() {
   const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance) ?? true;
   const settings        = useAppStore((s) => s.settings);
   const patchSettings   = useAppStore((s) => s.patchSettings);
-  const activeStudent   = students.find((s) => s.id === activeStudentId) ?? null;
+  const activeStudentRaw = students.find((s) => s.id === activeStudentId) ?? null;
+  // User photos (student, close adults, "Мои люди") are owner-only URLs that
+  // a renderer's plain <img>/SVG <image> can't load; hand renderers blob: URLs.
+  const activeStudent   = useResolvedProtectedPhotos(activeStudentRaw);
 
   const LOCK_HOLD_MS = 5000;
   const lockIntervalRef  = useRef(null);
@@ -130,6 +134,10 @@ function SessionScreenContent() {
     onCorrect, onPrevious, onIncorrect, onMistake, onStreakReset, onAdvance, onQualityAnswer,
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
+  // Same for photos inside the task itself (e.g. sentence_puzzle cards
+  // carrying close-adult photos, "Мои люди" tasks). Installed deck-ZIP
+  // renderers keep working without being republished.
+  const rendererTask = useResolvedProtectedPhotos(currentTask);
 
   const { soundEnabled, toggleSound, playFeedback, playTopicFile, playTopicFiles, isAudioPlaying, isTopicAudioPlaying } = useAudio();
   const pendingAudioAdvanceRef = useRef(null);
@@ -412,7 +420,7 @@ function SessionScreenContent() {
         >
           <Renderer
             key={rendererTaskKey}
-            task={currentTask}
+            task={rendererTask}
             taskRetry={sessionState.taskRetry ?? 0}
             mode={mode}
             sessionStatus={status}

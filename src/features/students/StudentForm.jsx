@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import Button from "@/shared/components/Button";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
+import { resizeStudentPhotoToDataUrl } from "./studentPhoto";
 
 const LANGUAGES = [
   { value: "ru", label: "Русский" },
@@ -24,28 +25,6 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 
-// Crop to a square and send up to 1024 px; the server re-encodes to a
-// bounded WebP (backend/lib/photo-normalizer.mjs). 200 px looked soft on a tablet.
-async function resizeToDataUrl(file, maxSize = 1024) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const s = Math.min(img.width, img.height);
-      const size = Math.min(s, maxSize);
-      const canvas = document.createElement("canvas");
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext("2d");
-      const sx = (img.width  - s) / 2;
-      const sy = (img.height - s) / 2;
-      ctx.drawImage(img, sx, sy, s, s, 0, 0, size, size);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.9));
-    };
-    img.src = url;
-  });
-}
 
 function AdultAvatar({ adult, size = 40 }) {
   if (adult.photo) {
@@ -124,7 +103,7 @@ export default function StudentForm({ initial, onSave, onCancel }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setPhotoLoading(true);
-    const dataUrl = await resizeToDataUrl(file);
+    const dataUrl = await resizeStudentPhotoToDataUrl(file);
     setNewAdultPhoto(dataUrl);
     setPhotoLoading(false);
   }

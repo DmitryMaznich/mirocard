@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { useProtectedPhotoSrc } from "@/shared/utils/protectedPhoto";
 
 export const BODY_W  = 110;
 export const BODY_H  = 70;
@@ -61,6 +62,10 @@ export default function PuzzlePieceSvg({
   colorless = false,
 }) {
   const clipId = useId();
+  // Close-adult photos are owner-only /api/photos/<hash> URLs; an SVG
+  // <image href> can't send the auth header, so resolve to a blob: URL.
+  // While it loads (or if it fails) the piece falls back to the no-photo look.
+  const photoSrc = useProtectedPhotoSrc(photo);
 
   const { left, right } = getPieceConnectors(slotType, structure);
   const path   = buildPiecePath(left, right);
@@ -81,7 +86,7 @@ export default function PuzzlePieceSvg({
       preserveAspectRatio="none"
       style={{ overflow: "visible", display: "block", flexShrink: 0 }}
     >
-      {photo && !isEmpty && (
+      {photoSrc && !isEmpty && (
         <defs>
           <clipPath id={clipId}>
             {slotType === "subject"
@@ -100,12 +105,12 @@ export default function PuzzlePieceSvg({
         strokeDasharray={strokeDash}
       />
 
-      {isEmpty ? null : photo ? (
+      {isEmpty ? null : photoSrc ? (
         <>
           {slotType === "subject" ? (
             <>
               <image
-                href={photo}
+                href={photoSrc}
                 x={cx - BODY_H * 0.30}
                 y={BODY_H * 0.07}
                 width={BODY_H * 0.60}
@@ -122,7 +127,7 @@ export default function PuzzlePieceSvg({
             </>
           ) : (
             <image
-              href={photo}
+              href={photoSrc}
               x={4}
               y={2}
               width={BODY_W - 8}

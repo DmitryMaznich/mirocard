@@ -116,7 +116,7 @@ export default function ChatParamsScreen() {
             <div className="params-info-student">
               <div className="params-info-student__avatar">
                 {student.photoDataUrl
-                  ? <img src={student.photoDataUrl} alt={student.name} />
+                  ? <AuthenticatedImage src={student.photoDataUrl} alt={student.name} />
                   : getInitials(student.name)}
               </div>
               <div className="params-info-student__name">{student.name}</div>

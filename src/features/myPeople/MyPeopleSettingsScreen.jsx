@@ -5,6 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { getInitials } from "@/shared/utils/format";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 
 const TABS = [
   ["family", "Семья и питомцы"],
@@ -104,7 +105,7 @@ function PersonCard({ person, onEdit, onToggle }) {
     <article className={`mp-person-card${person.enabled ? "" : " mp-person-card--disabled"}`}>
       <button type="button" className="mp-person-card__main" onClick={() => onEdit(person.id)}>
         {photo
-          ? <img className="mp-person-card__photo" src={photo} alt="" />
+          ? <AuthenticatedImage className="mp-person-card__photo" src={photo} alt="" />
           : <div className="mp-person-card__photo mp-person-card__photo--fallback">{person.type === "pet" ? "🐾" : getInitials(person.name || "?")}</div>
         }
         <span className="mp-person-card__copy">
@@ -165,7 +166,7 @@ function PersonEditor({ person, activeContext, onChange, onDelete, onClose }) {
 
         <div className="mp-editor__photo-row">
           {person.photos[0]
-            ? <img src={person.photos[0]} className="mp-editor__photo" alt="" />
+            ? <AuthenticatedImage src={person.photos[0]} className="mp-editor__photo" alt="" />
             : <div className="mp-editor__photo mp-editor__photo--empty">{person.type === "pet" ? "🐾" : "📷"}</div>
           }
           <div className="mp-editor__photo-copy">
