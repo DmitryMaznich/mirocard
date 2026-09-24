@@ -42,14 +42,20 @@ export function useAudioSequence() {
 
   useEffect(() => stopAll, [stopAll]);
 
-  const play = useCallback((items) => {
+  const play = useCallback((items, onComplete) => {
     stopAll();
     const myToken = ++tokenRef.current;
     setIsPlaying(true);
 
+    const finish = () => {
+      if (tokenRef.current !== myToken) return;
+      setIsPlaying(false);
+      onComplete?.();
+    };
+
     function playAt(index) {
       if (tokenRef.current !== myToken) return;
-      if (index >= items.length) { setIsPlaying(false); return; }
+      if (index >= items.length) { finish(); return; }
       const { url, tight } = items[index];
       // "tight" on an item means IT wants to be glued to the previous one;
       // that previous clip's own trailing silence is what needs trimming.

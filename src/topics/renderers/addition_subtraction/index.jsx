@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useSpeech } from "@/shared/hooks/useSpeech";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import HelperPanel from "./HelperPanel";
 import NameActionTask from "./NameActionTask";
@@ -13,6 +12,12 @@ import {
 } from "./stickModel";
 import { taskAudioItems, audioKeyUrl } from "./audioNumbers";
 import { useAudioSequence } from "./useAudioSequence";
+import {
+  observeCorrectAudioItems,
+  observeQuestionAudioItems,
+  observeRetryAudioItems,
+  observeStartAudioItems,
+} from "./audioPhrases";
 
 
 const ACTION_OPTIONS_PAST = [
@@ -692,7 +697,7 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
   const [selected, setSelected] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const timersRef = useRef([]);
-  const { speak, cancel } = useSpeech();
+  const { play: playAudio, stop: stopAudio } = useAudioSequence();
 
   const clearSequence = useCallback(() => {
     timersRef.current.forEach((timer) => clearTimeout(timer));
@@ -705,13 +710,13 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
     return timer;
   }, []);
 
-  const say = useCallback((text) => {
-    if (soundEnabled) speak(text, { rate: 0.82 });
-  }, [soundEnabled, speak]);
+  const say = useCallback((items, onComplete) => {
+    if (soundEnabled) playAudio(items, onComplete);
+  }, [playAudio, soundEnabled]);
 
   const startSequence = useCallback(() => {
     clearSequence();
-    cancel();
+    stopAudio();
     setPhase("before");
     setSelected(null);
     setFeedback(null);
@@ -720,23 +725,23 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
     // the initial set, a single change, then the stable result and only after
     // that the two sign choices. The action itself remains unnamed so the
     // child still has to decide whether the quantity grew or shrank.
-    schedule(() => say(`Было ${task.start}.`), 80);
+    schedule(() => say(observeStartAudioItems(task.start)), 80);
     schedule(() => setPhase("changing"), 2000);
     schedule(() => setPhase("after"), 3200);
     schedule(() => {
       setPhase("question");
-      say("Стало больше или меньше?");
+      say(observeQuestionAudioItems());
     }, 5000);
-  }, [cancel, clearSequence, say, schedule, task.start]);
+  }, [clearSequence, say, schedule, stopAudio, task.start]);
 
   useEffect(() => {
     const startTimer = schedule(startSequence, 0);
     return () => {
       clearTimeout(startTimer);
       clearSequence();
-      cancel();
+      stopAudio();
     };
-  }, [cancel, clearSequence, schedule, startSequence]);
+  }, [clearSequence, schedule, startSequence, stopAudio]);
 
   function replay() {
     startSequence();
@@ -749,8 +754,9 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
       setSelected(value);
       setFeedback("correct");
       playFeedback?.("correct");
-      say(value === "more" ? "Правильно. Стало больше." : "Правильно. Стало меньше.");
-      schedule(() => onCorrect(task.conceptId, task.cardId), 750);
+      const complete = () => onCorrect(task.conceptId, task.cardId);
+      if (soundEnabled) say(observeCorrectAudioItems(value), complete);
+      else schedule(complete, 750);
       return;
     }
 
@@ -760,7 +766,7 @@ function ObserveChangeTask({ task, onCorrect, onIncorrect, playFeedback, soundEn
     setSelected(value);
     setFeedback("retry");
     playFeedback?.("incorrect");
-    say("Неправильно. Посмотри ещё раз.");
+    say(observeRetryAudioItems());
     onIncorrect(task.conceptId, task.cardId);
   }
 

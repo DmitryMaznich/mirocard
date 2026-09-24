@@ -2,13 +2,13 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const speech = vi.hoisted(() => ({
-  cancel: vi.fn(),
-  speak: vi.fn(),
+const audio = vi.hoisted(() => ({
+  stop: vi.fn(),
+  play: vi.fn(),
 }));
 
-vi.mock("@/shared/hooks/useSpeech", () => ({
-  useSpeech: () => speech,
+vi.mock("./useAudioSequence", () => ({
+  useAudioSequence: () => audio,
 }));
 
 import AdditionSubtractionRenderer from "./index.jsx";
@@ -39,8 +39,8 @@ describe("operation_name_action", () => {
     if (root) act(() => root.unmount());
     if (container) container.remove();
     vi.useRealTimers();
-    speech.cancel.mockClear();
-    speech.speak.mockClear();
+    audio.stop.mockClear();
+    audio.play.mockClear();
     root = null;
     container = null;
   });
@@ -86,7 +86,9 @@ describe("operation_name_action", () => {
     expect(container.querySelector(".observe-change__answer-area--visible")).not.toBeNull();
     expect(container.querySelector(".name-action__scene--settled")).not.toBeNull();
     expect([...container.querySelectorAll(".name-action__answer--verb")].map((b) => b.textContent.trim())).toEqual(["+Прибавили", "−Убрали"]);
-    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Что сделали?");
+    expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
+      { url: "/audio/addition-subtraction/phrases/what_was_done.mp3", tight: false },
+    ]);
   });
 
   it("confirms with the full было–стало phrase before reporting correct", () => {
@@ -97,9 +99,15 @@ describe("operation_name_action", () => {
 
     click('.name-action__answer--verb[aria-label="Прибавили"]');
 
-    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Правильно. Прибавили. Было два, стало три.");
+    expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
+      { url: "/audio/addition-subtraction/phrases/correct_added.mp3", tight: false },
+      { url: "/audio/addition-subtraction/phrases/was.mp3", tight: false },
+      { url: "/audio/addition-subtraction/n2.mp3", tight: false },
+      { url: "/audio/addition-subtraction/phrases/became.mp3", tight: false },
+      { url: "/audio/addition-subtraction/n3.mp3", tight: false },
+    ]);
     expect(onCorrect).not.toHaveBeenCalled();
-    act(() => { vi.advanceTimersByTime(3200); });
+    audio.play.mock.calls.at(-1)?.[1]?.();
     expect(onCorrect).toHaveBeenCalledWith("plus", "operation_plus");
   });
 
@@ -141,12 +149,21 @@ describe("operation_name_action", () => {
 
     click('.name-action__answer--verb[aria-label="Убрали"]');
     act(() => { vi.advanceTimersByTime(700); });
-    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Сколько убрали?");
+    expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
+      { url: "/audio/addition-subtraction/phrases/how_many_removed.mp3", tight: false },
+    ]);
 
     const buttons = [...container.querySelectorAll(".name-action__count button")];
     act(() => { buttons[1].dispatchEvent(new MouseEvent("click", { bubbles: true })); });
-    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Правильно. Убрали два. Было три, стало один.");
-    act(() => { vi.advanceTimersByTime(3200); });
+    expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
+      { url: "/audio/addition-subtraction/phrases/correct_removed_count.mp3", tight: false },
+      { url: "/audio/addition-subtraction/n2.mp3", tight: false },
+      { url: "/audio/addition-subtraction/phrases/was.mp3", tight: false },
+      { url: "/audio/addition-subtraction/n3.mp3", tight: false },
+      { url: "/audio/addition-subtraction/phrases/became.mp3", tight: false },
+      { url: "/audio/addition-subtraction/n1.mp3", tight: false },
+    ]);
+    audio.play.mock.calls.at(-1)?.[1]?.();
     expect(onCorrect).toHaveBeenCalledWith("minus", "operation_minus");
   });
 
@@ -165,7 +182,7 @@ describe("operation_name_action", () => {
     expect(onIncorrect).toHaveBeenCalledTimes(1);
     act(() => { vi.advanceTimersByTime(QUESTION_AT); });
     click(".name-action__adult-btn--ok");
-    act(() => { vi.advanceTimersByTime(3200); });
+    audio.play.mock.calls.at(-1)?.[1]?.();
     expect(onCorrect).toHaveBeenCalledWith("plus", "operation_plus");
   });
 });
