@@ -144,10 +144,11 @@ def copy_page(ink, c, inset, models, warnings, n):
 
 
 def p6(ink, c, inset, half, warnings, n):
-    # Lists of three.
-    copy_page(ink, c, inset, ["хлеб, сыр, сок", "кот, пёс, мышь", "мама, папа, я",
-                              "рыба, рак, кит", "шар, мяч, кукла", "дом, сад, лес",
-                              "суп, каша, чай", "зима, весна, лето"], warnings, n)
+    # Lists of four (three looked sparse on the row -- user, 2026-09-24).
+    copy_page(ink, c, inset, ["хлеб, сыр, сок, чай", "кот, пёс, мышь, ёж",
+                              "мама, папа, я, Оля", "рыба, рак, кит, сом",
+                              "шар, мяч, кукла, юла", "дом, сад, лес, луг",
+                              "суп, каша, чай, торт", "зима, весна, лето, осень"], warnings, n)
 
 
 def p7(ink, c, inset, half, warnings, n):
