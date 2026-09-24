@@ -1,79 +1,40 @@
-"""Content of each workbook page. One function per page, named pN.
+"""Page plan for the 24-page punctuation workbook.
 
-Every page follows the same top-to-bottom ladder: clear gray tracing ->
-lighter tracing -> partial model -> one black model + empty ruled space ->
-nothing but the ruling.
+KIND decides each page's diagonal grid: "dense" (3mm) for pages drilling
+marks in isolation, "standard" (20mm) for pages with words/sentences.
+CONTENT holds the pages built so far; any other page is printed as bare
+ruling of its KIND.
 """
 
-from layout import BLACK, T1, T2, T3, text_row, marks_row
+from content import practice_page, text_page, ROWS
+
+DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
+KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
 
 
-def p2(pg):
-    pg.title("Запятая", "форма знака")
-    pg.figure([(",", "маленький знак на строке + короткий хвостик вниз")])
-
-    pg.note("Обведи запятые. Хвостик — короткий, чуть влево.")
-    pg.row(marks_row(",,,,,,,", T1, 16.0))
-    pg.row(marks_row(",,,,,,,", T2, 16.0))
-    pg.row(marks_row(",,,,,,,", T3, 16.0))
-
-    pg.note("Допиши хвостики.")
-    pg.row(marks_row(",,,,,,,", T2, 16.0, parts={"head"}))
-    pg.row(marks_row(",,,,,,,", T3, 16.0, parts={"head"}))
-
-    pg.note("Смотри на образец и пиши рядом.")
-    pg.row(marks_row(",", BLACK, 16.0))
-    pg.row(marks_row(",", BLACK, 16.0))
-    pg.row(marks_row(",", BLACK, 16.0))
-
-    pg.note("Напиши по 6 запятых в каждой строке сам.")
-    pg.rows(2)
+def p2(ink, c, inset, half, warnings, n):
+    # Comma alone: a mark every 4 cells, full rows on top, taper below,
+    # model-only rows at the bottom.
+    rows = [","] * ROWS
+    practice_page(ink, c, rows, inset, half, first_sample_row=13)
 
 
-def p3(pg):
-    pg.title("Точка и запятая", "похожие знаки")
-    pg.figure([(".", "точка остаётся на строке"), (",", "запятая идёт вниз")])
-
-    pg.note("Обведи.")
-    pg.row(marks_row(".,.,.,.,", T1, 14.0))
-    pg.row(marks_row(".,,.,..,", T2, 14.0))
-
-    pg.note("Спиши. Смотри, где точка, а где запятая.")
-    pg.row(marks_row(".,,.", BLACK, 7.0))
-    pg.row(marks_row(",.,.", BLACK, 7.0))
-    pg.row(marks_row("..,,", BLACK, 7.0))
-    pg.row(marks_row(",..,", BLACK, 7.0))
-
-    pg.note("Напиши сам, как сказано.")
-    pg.prompt_row("точка, запятая, запятая, точка")
-    pg.prompt_row("запятая, точка, запятая, точка")
-    pg.prompt_row("точка, точка, запятая")
-    pg.prompt_row("запятая, запятая, точка, запятая")
-    pg.prompt_row("точка, запятая, точка, запятая, точка")
+def p3(ink, c, inset, half, warnings, n):
+    # Dot vs comma: alternating pair, then short sequences.
+    rows = ([(".,", {"inner_step": 4, "group_step": 4})] * 4
+            + [".,,."] * 3 + [",.,."] * 3 + ["..,,"] * 3
+            + [".,,.", ",.,.", "..,,", ",..,"])
+    practice_page(ink, c, rows, inset, half, first_sample_row=13)
 
 
-def p20(pg):
-    pg.title("Запятая, вопрос, восклицание", "в одной строке")
-
-    pg.note("Обведи.")
-    pg.row(text_row("Ты взял хлеб, сыр и сок?", T1))
-    pg.row(text_row("Смотри, какой дом!", T1))
-
-    pg.note("Обведи слова. Знаки обведи тщательно.")
-    pg.row(text_row("Кот, ты где?", T2, T1))
-    pg.row(text_row("Папа, иди сюда!", T2, T1))
-
-    pg.note("Обведи слова и поставь знаки сам.")
-    pg.row(text_row("Ты купил сыр, чай и сок?", T3, mark_mode="slot"))
-    pg.row(text_row("Ура, мы идём гулять!", T3, mark_mode="slot"))
-
-    pg.note("Спиши предложение в строку ниже.")
-    pg.row(text_row("Оля, ты дома?", BLACK))
-    pg.row()
-    pg.row(text_row("Стой, тут лужа!", BLACK))
-    pg.row()
-    pg.row(text_row("Мама, кто там?", BLACK))
-    pg.row()
+def p20(ink, c, inset, half, warnings, n):
+    # Comma + ? / ! in one sentence. Top: tracing (faded), middle: fainter
+    # tracing, bottom: one full model with an empty row under it.
+    a = ["Где хлеб, сыр и сок?", "Смотри, какой дом!", "Кот, ты где?", "Папа, иди сюда!"]
+    b = ["Оля, ты дома?", "Стой, тут лужа!", "Мама, кто там?", "Ура, снег идёт!"]
+    rows = ([(s, 0.5) for s in a] + [(s, 0.28) for s in a]
+            + [x for s in b for x in ((s, 1.0), None)] + [None])
+    text_page(ink, c, rows, inset, warnings, n)
 
 
-PAGES = {2: p2, 3: p3, 20: p20}
+CONTENT = {2: p2, 3: p3, 20: p20}
