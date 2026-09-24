@@ -346,6 +346,15 @@ def distance_page(ink, c, inset, models, warnings, n):
         if w > CONTENT_W_MM:
             warnings.append(f"p{n}: '{s}' is {w:.0f}mm")
         ink.draw_text(c, s, inset, BASELINES[k], 1.0)
+    # Rows left over after copying every model once: short words, each
+    # with a random mark (. , ? !), half-tone dashed -- a mixed-mark warm-up
+    # instead of empty ruling (user, 2026-09-24).
+    import random
+    rng = random.Random(n)
+    for baseline in BASELINES[2 * len(models):]:
+        words = SHORT_WORDS[:]
+        rng.shuffle(words)
+        chain_row(ink, c, [w + rng.choice(".,?!") for w in words], baseline, inset)
 
 
 # 22 -> 24: one more sentence to hold per page (6, 7, 8), three marks of
