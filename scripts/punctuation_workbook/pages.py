@@ -219,6 +219,27 @@ def p11(ink, c, inset, half, warnings, n):
         chain_row(ink, c, [first] + rest, baseline, inset)
 
 
+def p12(ink, c, inset, half, warnings, n):
+    # Sentences with "!" -- same copy layout as pages 6-7 (model + empty
+    # row, letters with commas on the last row). Longer ones picked so the
+    # rows aren't half empty.
+    copy_page(ink, c, inset, ["Какой большой кот!", "Какой чудесный день!",
+                              "Какой добрый пёс!", "Тише, тут спят!", "Стой, тут лужа!",
+                              "Мама, иди сюда!", "Смотри, радуга!", "Папа, лови мяч!"], warnings, n)
+
+
+def p13(ink, c, inset, half, warnings, n):
+    # Question mark, same ladder as page 9: single ?, then ?? and ??? with
+    # each ? on the neighbouring diagonal, groups 4 cells apart.
+    single = ("?", {"group_step": 4})
+    double = ("??", {"inner_step": 1, "group_step": 4})
+    triple = ("???", {"inner_step": 1, "group_step": 4})
+    rhythm_page(ink, c, inset, half, "Вопросительный знак", [
+        single, double, [triple],
+        [(*single, 2), (*double, 2), (*triple, 2)],
+    ])
+
+
 def p20(ink, c, inset, half, warnings, n):
     # Comma + ? / ! in one sentence. Top: tracing (faded), middle: fainter
     # tracing, bottom: one full model with an empty row under it.
@@ -229,4 +250,4 @@ def p20(ink, c, inset, half, warnings, n):
     text_page(ink, c, rows, inset, warnings, n)
 
 
-CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 20: p20}
+CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 20: p20}
