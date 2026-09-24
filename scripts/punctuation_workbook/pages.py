@@ -291,17 +291,33 @@ def p17(ink, c, inset, half, warnings, n):
                               "Мы тут. Мы тут?", "Снег идёт. Снег идёт!"], warnings, n)
 
 
+# Sentence skeletons for page 18: the marks where they'd stand in a real
+# sentence, each space an empty grid step where a word would go (word gaps
+# of 3-5 cells, like short and long words). Leading spaces = the first word.
+SKELETONS = [
+    "   ,   ,    .",     # a list:            хлеб, сыр, сок.
+    "    ,    ?",        # address + question: Мама, ты где?
+    "    ,    !",        # address + !:        Папа, смотри!
+    "   ,   ,   ?",      # a list, question:   Кот, пёс, ёж?
+    "     ? !",          # ?! at the end:      Ты что?!
+    "     !!",           # !! at the end:      Ура!!
+]
+
+
 def p18(ink, c, inset, half, warnings, n):
-    # All four marks: . , ? ! in turn every 4 cells, then every 3 (never
-    # closer -- the ?'s hook), then 4-mark groups in different orders, then
-    # templates. Title: the marks themselves.
-    groups = [(g, {"inner_step": 2, "group_step": 4}) for g in (".,?!", "!?,.", ",!.?", "?.!,")]
-    rhythm_page(ink, c, inset, half, ". , ? !", [
-        (".,?!", {"group_step": 4, "cycle": True}),
-        (".,?!", {"group_step": 3, "cycle": True}),
-        groups,
-        [(g, kw, 2) for g, kw in groups],
-    ])
+    # "Sentence skeleton" (user, 2026-09-24) instead of a page-14 look-alike:
+    # the marks in the order and spacing they take in a sentence, words left
+    # as empty cells. Two rows per skeleton (model + fading repeats), then a
+    # model-only row of each for the last four rows.
+    title_row(ink, c, "Знаки в предложении", inset)
+    rows = BASELINES[1:]
+    for r, baseline in enumerate(rows):
+        if r < 2 * len(SKELETONS):
+            g = SKELETONS[r // 2]
+            mark_row(ink, c, g, baseline, inset, half, inner_step=1, group_step=1)
+        else:
+            g = SKELETONS[(r - 2 * len(SKELETONS)) % len(SKELETONS)]
+            mark_row(ink, c, g, baseline, inset, half, max_groups=1, inner_step=1, group_step=1)
 
 
 def p19(ink, c, inset, half, warnings, n):
