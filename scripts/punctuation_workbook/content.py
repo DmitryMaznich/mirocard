@@ -366,3 +366,28 @@ def build_row(ink, c, items, baseline, inset, half_offset, step=4):
         if ch:
             ink.draw_mark(c, ch, cells[k], baseline, op, part)
     return len(items)
+
+
+DOT_STEP_MM = 11.0
+
+
+def dot_row(ink, c, seq, baseline, inset, n_hint_rounds=None, step=DOT_STEP_MM):
+    """Page 18 ("Дострой знак" on the standard grid, user 2026-09-24): the
+    dot is the one part every mark shares (. itself, the comma's head, the
+    dot of ! and ?). The row opens with `seq` written out in full as the
+    model; after it only half-tone dots follow, `step` mm apart on the
+    baseline -- they set the rhythm, and the child grows each one into the
+    next mark of the sequence. n_hint_rounds: how many more rounds of dots
+    to print (None = to the end of the row); the rest of the row is blank."""
+    x = inset + 1.5
+    right = inset + CONTENT_W_MM - 2.0
+    i = 0
+    total = None if n_hint_rounds is None else len(seq) * (1 + n_hint_rounds)
+    while x <= right and (total is None or i < total):
+        ch = seq[i % len(seq)]
+        if i < len(seq):
+            ink.draw_mark(c, ch, x, baseline, MODEL_OPACITY)
+        else:
+            ink.draw_mark(c, ".", x, baseline, FADE_OPACITIES[0])
+        x += step
+        i += 1

@@ -6,9 +6,9 @@ CONTENT holds the pages built so far; any other page is printed as bare
 ruling of its KIND.
 """
 
-from content import build_row, FADE_OPACITIES, ladder_page, chain_row, word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
+from content import dot_row, build_row, FADE_OPACITIES, ladder_page, chain_row, word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
 
-DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
+DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14}   # 18 moved to the standard grid (dots set the rhythm)
 KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
 
 
@@ -292,39 +292,23 @@ def p17(ink, c, inset, half, warnings, n):
 
 
 def p18(ink, c, inset, half, warnings, n):
-    # "Дострой знак" (user asked for a mock-up, 2026-09-24): every mark is a
-    # dot-part on the line plus another part (comma: head + tail, !: stem +
-    # dot, ?: hook + dot). Only one part is printed (half-tone); the child
-    # adds the other. Help shrinks down the page:
-    #   rows 1-4   one mark per row, full model first, then only the DOT
-    #              part given -> add tail / stem / hook
-    #   rows 5-8   one mark per row, full model first, then only the TOP
-    #              part given (tail, stem, hook) -> add the dot / head
-    #   rows 9-12  ! and ? MIXED, no model: only the top part given -> the
-    #              child must recognise each mark from its half
-    #   rows 13-16 a mixed sequence as a full model, rest of the row blank
-    title_row(ink, c, "Дострой знак", inset)
-    HALF = FADE_OPACITIES[0]
-    rows = BASELINES[1:]
-    one_type = [",", "!", "?", ","]
-    # A comma's tail alone is a ~1.7mm wisp -- no usable hint -- so the
-    # "top part given" blocks use ! and ? only.
-    two_type = ["!", "?", "!", "?"]
-    mixed = ["!??!?!!", "?!?!!??", "??!!?!?", "!?!??!!"]
-    templates = ["!,?", "?!,", ",?!", "!?,"]
-    for r, baseline in enumerate(rows):
-        block, i = divmod(r, 4)
-        if block == 0:
-            ch = one_type[i]
-            items = [(ch, "all", 1.0)] + [(ch, "base", HALF)] * 20
-        elif block == 1:
-            ch = two_type[i]
-            items = [(ch, "all", 1.0)] + [(ch, "rest", HALF)] * 20
-        elif block == 2:
-            items = [(ch, "rest", HALF) for ch in mixed[i]] * 3
+    # "Дострой знак" (user, 2026-09-24): only dots are printed -- the part
+    # every mark shares -- and the child grows each dot into the next mark
+    # of the sequence modelled at the start of the row. The dots set the
+    # rhythm (11mm), so the standard grid is enough. Help shrinks down the
+    # page: one mark per row -> two alternating -> all four -> the model
+    # plus a single round of dots, the rest of the row blank.
+    rows = (
+        [","] + ["!"] + ["?"] + [","]
+        + [",!", "?,", "!?", ".,", "?!"]
+        + [",!?.", "?.,!", "!,.?", ".?!,"]
+    )
+    for r, baseline in enumerate(BASELINES):
+        if r < len(rows):
+            dot_row(ink, c, rows[r], baseline, inset)
         else:
-            items = [(ch, "all", 1.0) for ch in templates[i]]
-        build_row(ink, c, items, baseline, inset, half)
+            seq = [",!?.", "!.,?", "?,.!", ".!?,"][(r - len(rows)) % 4]
+            dot_row(ink, c, seq, baseline, inset, n_hint_rounds=1)
 
 
 def p19(ink, c, inset, half, warnings, n):
