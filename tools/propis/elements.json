@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "Н.С. Жукова, «Пропись 1» (комплект из 3 частей), стр. 5–11",
-    "updatedAt": "2026-09-17T18:41:12.941Z"
+    "updatedAt": "2026-09-24T09:20:57.816Z"
   },
   "elements": [
     {
@@ -215,6 +215,91 @@
       ],
       "meta": {
         "capturedAt": "2026-09-17T18:34:55.559Z",
+        "strokeCount": 1
+      }
+    },
+    {
+      "id": "21_zaborchik_vysokiy",
+      "labelRu": "Заборчик высокий",
+      "category": "base_stroke",
+      "repeatMode": "joined",
+      "sourcePage": null,
+      "viewBox": "0 0 69 150",
+      "strokes": [
+        {
+          "d": "M 27.230 10.970 5.260 58.080 4.000 60.800 7.000 60.800 22.440 60.800 23.180 60.800 23.660 60.230 23.660 60.230 24.140 59.650 24.460 58.980 45.100 14.700 45.790 13.230 46.840 11.980 46.840 11.980 47.880 10.730 49.510 10.730 61.650 10.730 64.650 10.730 63.380 13.450 42.670 57.870 41.410 60.590 44.410 60.590 57.770 60.590"
+        }
+      ],
+      "meta": {
+        "capturedAt": "2026-09-22T06:20:46.949Z",
+        "strokeCount": 1
+      }
+    },
+    {
+      "id": "22_zaborchik_peremennyy",
+      "labelRu": "Заборчик переменный",
+      "category": "base_stroke",
+      "repeatMode": "joined",
+      "sourcePage": null,
+      "viewBox": "0 0 81 150",
+      "strokes": [
+        {
+          "d": "M 4.000 61.850 26.740 13.080 27.590 11.270 29.590 11.270 43.130 11.270 45.130 11.270 44.300 13.090 23.300 59.030 22.470 60.850 24.470 60.850 36.880 60.850 38.880 60.850 39.820 59.080 51.010 37.980 51.950 36.220 53.950 36.220 67.470 36.220 69.470 36.220 68.660 38.040 59.290 59.010 58.470 60.830 60.470 60.830 76.120 60.830"
+        }
+      ],
+      "meta": {
+        "capturedAt": "2026-09-22T17:06:46.819Z",
+        "strokeCount": 1
+      }
+    },
+    {
+      "id": "23_palochka_vysokaya",
+      "labelRu": "Палочка высокая",
+      "category": "base_stroke",
+      "repeatMode": "spaced",
+      "sourcePage": null,
+      "viewBox": "0 0 44 150",
+      "strokes": [
+        {
+          "d": "M 39.620 10.620 4.000 87.000"
+        }
+      ],
+      "meta": {
+        "capturedAt": "2026-09-22T17:08:58.423Z",
+        "strokeCount": 1
+      }
+    },
+    {
+      "id": "24_palka_naklon_sredniy",
+      "labelRu": "Палка наклон средний",
+      "category": "base_stroke",
+      "repeatMode": "spaced",
+      "sourcePage": null,
+      "viewBox": "0 0 29 150",
+      "strokes": [
+        {
+          "d": "M 4.000 61.850 24.420 37.520"
+        }
+      ],
+      "meta": {
+        "capturedAt": "2026-09-22T17:10:46.469Z",
+        "strokeCount": 1
+      }
+    },
+    {
+      "id": "25_palka_naklon_vysokaya",
+      "labelRu": "Палка наклон высокая",
+      "category": "base_stroke",
+      "repeatMode": "spaced",
+      "sourcePage": null,
+      "viewBox": "0 0 51 150",
+      "strokes": [
+        {
+          "d": "M 4.000 61.630 46.650 10.810"
+        }
+      ],
+      "meta": {
+        "capturedAt": "2026-09-22T17:12:21.274Z",
         "strokeCount": 1
       }
     }

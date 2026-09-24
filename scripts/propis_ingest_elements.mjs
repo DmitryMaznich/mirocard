@@ -59,7 +59,17 @@ const REGISTRY = {
   "18_poluovaly_spinkami":       { labelRu: "Полуовалы спинками",        category: "half_oval", sourcePage: 11 },
   "19_petelka_s_nosikom":        { labelRu: "Петелька с носиком",        category: "loop", sourcePage: 11 },
   "20_kryuchok_s_petelkoy":      { labelRu: "Крючок с петелькой",        category: "loop", sourcePage: 11 },
+  // Not from the source book -- the user's own additions (captured 2026-09-22), exported
+  // with their Russian name as the label rather than the slug (LABEL_TO_ID below).
+  "21_zaborchik_vysokiy":        { labelRu: "Заборчик высокий",          category: "base_stroke", sourcePage: null, repeatMode: "joined" },
+  "22_zaborchik_peremennyy":     { labelRu: "Заборчик переменный",       category: "base_stroke", sourcePage: null, repeatMode: "joined" },
+  "23_palochka_vysokaya":        { labelRu: "Палочка высокая",           category: "base_stroke", sourcePage: null, repeatMode: "spaced" },
+  "24_palka_naklon_sredniy":     { labelRu: "Палка наклон средний",      category: "base_stroke", sourcePage: null, repeatMode: "spaced" },
+  "25_palka_naklon_vysokaya":    { labelRu: "Палка наклон высокая",      category: "base_stroke", sourcePage: null, repeatMode: "spaced" },
 };
+
+// Exports may label an element by its Russian name instead of its slug.
+const LABEL_TO_ID = Object.fromEntries(Object.entries(REGISTRY).map(([id, r]) => [r.labelRu, id]));
 
 const ELEMENTS_PATH = "tools/propis/elements.json";
 const SOURCE_LABEL = "Н.С. Жукова, «Пропись 1» (комплект из 3 частей), стр. 5–11";
@@ -111,10 +121,11 @@ function main() {
 
   let added = 0, updated = 0, skipped = 0;
   for (const item of captured) {
-    const id = item.label?.trim();
+    const label = item.label?.trim();
+    const id = REGISTRY[label] ? label : LABEL_TO_ID[label];
     const known = REGISTRY[id];
     if (!known) {
-      console.warn(`⚠ Skipping unknown element id "${id}" — not in REGISTRY. Typo? Add it to the script first.`);
+      console.warn(`⚠ Skipping unknown element "${label}" — not in REGISTRY. Typo? Add it to the script first.`);
       skipped += 1;
       continue;
     }
@@ -123,6 +134,9 @@ function main() {
       id,
       labelRu: known.labelRu,
       category: known.category,
+      // repeatMode was added to elements.json by hand after this script was written --
+      // carry it over instead of silently dropping it on re-ingest.
+      repeatMode: known.repeatMode ?? byId.get(id)?.repeatMode,
       sourcePage: known.sourcePage,
       viewBox,
       strokes,
