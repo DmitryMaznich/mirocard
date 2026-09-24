@@ -160,6 +160,18 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     thumbnail-less cover items happen to sort last in the array; changed to
     `if (!live) break;` / `if (!item.thumbnail) continue;` so it no longer
     depends on item order.
+  - **Superseded 2026-09-24 (deck v1.30.10), user request: no more
+    separate covers — each notebook is one print-ready PDF.** The `covers`
+    category and its 4 items are gone; `notebook_standard`/`_плотная`/
+    `_точки`/`propis_worksheets_texts` now each ship one "Тетрадь с
+    обложкой" file (`print/тетрадь_<kind>.pdf`): cover, blank page (the
+    cover's back), then the imposed sheets, with embedded duplex/no-scaling
+    print preferences — same layout as the punctuation workbook. Built by
+    `scripts/propis_print_notebooks.py` from cover-only/sheets-only sources
+    kept in `tools/propis/print_sources/` (outside `print/`, which the deck
+    build bundles wholesale). With one category left the tab bar hides
+    itself (`categories.length > 1`). The punctuation insert stays a
+    second file on `notebook_standard`.
   - **Content-card thumbnails swapped to a real page-1 render 2026-09-15
     (propis deck v1.27.1, print_materials deck v1.0.35), user request.** All
     9 `content`-category thumbnails used to be the notebook's *cover*
