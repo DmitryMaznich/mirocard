@@ -271,3 +271,25 @@ def word_row(ink, c, text, baseline, inset, mode="practice"):
         ink.draw_text(c, text, inset + x, baseline, op, 0.0 if mode == "nomark" else op)
         x += w + COPY_GAP_MM
         i += 1
+
+
+def chain_row(ink, c, items, baseline, inset):
+    """A row of different items, each already carrying its mark ("А,",
+    "кот,"...), at natural writing spacing (one word gap), filling the row
+    to the margin -- no blank tail (user, 2026-09-24). The first item is
+    the solid model; every other one is half-tone and dashed, to trace.
+    Returns how many items fit."""
+    x = 0.0
+    for i, text in enumerate(items):
+        w = ink.sentence_width(text)
+        if x + w > CONTENT_W_MM:
+            return i
+        if i == 0:
+            ink.draw_text(c, text, inset + x, baseline, MODEL_OPACITY)
+        else:
+            c.saveState()
+            c.setDash(*DASH)
+            ink.draw_text(c, text, inset + x, baseline, FADE_OPACITIES[0])
+            c.restoreState()
+        x += w + WORD_GAP_MM
+    return len(items)

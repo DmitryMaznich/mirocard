@@ -6,7 +6,7 @@ CONTENT holds the pages built so far; any other page is printed as bare
 ruling of its KIND.
 """
 
-from content import word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
+from content import chain_row, word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
 
 DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
 KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
@@ -88,15 +88,34 @@ def word_page(ink, c, inset, rows):
             word_row(ink, c, spec[0], baseline, inset, spec[1])
 
 
+LETTERS = [ch for ch in "абвгдеёжзийклмнопрстуфхцчшщыэюя"]
+SHORT_WORDS = ["кот", "дом", "сок", "мама", "папа", "лес", "сад", "мяч", "рыба", "лиса",
+               "нос", "сыр", "суп", "луна", "зима", "гора", "утка", "окно", "стол", "лук",
+               "мак", "жук", "шар", "чай", "каша", "сова", "волк", "роза", "небо", "река",
+               "море", "дуб", "сом", "кит", "лампа", "вода", "книга", "мост", "торт", "кран"]
+
+
 def p4(ink, c, inset, half, warnings, n):
-    # A mark right after a word (. and ,). Top: model + fading copies.
-    # Middle: model, then copies with the mark left out -- the child adds it.
-    # Bottom: model once, the rest of the row is his.
-    practice = ["кот.", "дом.", "мама.", "сок,", "папа,", "лук,"]
-    nomark = ["сыр.", "нос,", "мяч.", "суп,", "кит.", "лес,"]
-    sample = ["кот.", "мама,", "дом.", "папа,", "сок."]
-    word_page(ink, c, inset, [(w, "practice") for w in practice]
-              + [(w, "nomark") for w in nomark] + [(w, "sample") for w in sample])
+    # Agreed with the user 2026-09-24: switch between DIFFERENT letters and
+    # the comma, keeping the comma's size and place. Top half: single
+    # letters (random order and case, no ь/ъ), each followed by a comma.
+    # Bottom half: short words, natural spacing. First item of each row
+    # solid, the rest half-tone dashed to trace, rows filled to the margin.
+    # Fixed seed -> the same page on every build.
+    import random
+    rng = random.Random(4)
+    for r, baseline in enumerate(BASELINES):
+        if r < 8:
+            letters = LETTERS[:]
+            rng.shuffle(letters)
+            # ы never starts a word, so it has no real capital -- lowercase only.
+            items = [(ch.upper() if ch != "ы" and rng.random() < 0.5 else ch) + ","
+                     for ch in letters]
+        else:
+            words = SHORT_WORDS[:]
+            rng.shuffle(words)
+            items = [w + "," for w in words]
+        chain_row(ink, c, items, baseline, inset)
 
 
 def p5(ink, c, inset, half, warnings, n):
