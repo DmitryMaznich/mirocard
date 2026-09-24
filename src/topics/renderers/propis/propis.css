@@ -677,83 +677,10 @@
   margin: 6px 0 0;
 }
 
-/* The list area is styled as an actual ruled notebook page -- same paper/ink colors as
-   "Показ" above (#fffdf8 paper, #bcd8ec thin rule, #c0392b red margin line), not a new
-   palette, because this literally IS meant to read as "what should be in the notebook".
-   --notebook-pitch is the ruled-line spacing; item text uses it as line-height so wrapped
-   lines land on the drawn rules instead of floating independently of them. */
-.propis-dictation-review-list {
-  --notebook-margin: clamp(30px, 9vw, 42px);
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-  background-color: #fffdf8;
-  background-image:
-    linear-gradient(
-      to right,
-      transparent 0,
-      transparent var(--notebook-margin),
-      #c0392b var(--notebook-margin),
-      #c0392b calc(var(--notebook-margin) + 1.5px),
-      transparent calc(var(--notebook-margin) + 1.5px)
-    ),
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent calc(var(--notebook-pitch) - 1px),
-      #bcd8ec calc(var(--notebook-pitch) - 1px),
-      #bcd8ec var(--notebook-pitch)
-    );
-  background-repeat: no-repeat, repeat;
-  background-attachment: local; /* lines must scroll WITH the words, not stay fixed behind them */
-  border-radius: 14px;
-  box-shadow: 0 6px 18px rgba(43, 33, 20, 0.12);
-}
-
-.propis-dictation-review-list--letters,
-.propis-dictation-review-list--words {
-  --notebook-pitch: clamp(34px, 9vw, 44px);
-  line-height: var(--notebook-pitch);
-  padding: 6px 14px 14px calc(var(--notebook-margin) + 14px);
-}
-
-.propis-dictation-review-chip {
-  display: inline-block;
-  margin-right: clamp(10px, 2.6vw, 18px);
-  font-size: clamp(18px, 4.6vw, 24px);
-  font-weight: 700;
-  color: #1d4ed8;
-}
-
-.propis-dictation-review-list--texts {
-  --notebook-pitch: clamp(26px, 6vw, 32px);
-  padding: 10px 16px 16px calc(var(--notebook-margin) + 14px);
-}
-
-.propis-dictation-review-text {
-  position: relative;
-  margin-bottom: clamp(10px, 2.4vw, 16px);
-}
-
-.propis-dictation-review-index {
-  position: absolute;
-  left: calc(-1 * (var(--notebook-margin) + 14px) + 6px);
-  top: 0;
-  width: calc(var(--notebook-margin) - 10px);
-  text-align: right;
-  font-size: 13px;
-  font-weight: 800;
-  color: #c0392b;
-  line-height: var(--notebook-pitch);
-}
-
-.propis-dictation-review-text-body {
-  margin: 0;
-  font-size: clamp(15px, 3.6vw, 17px);
-  line-height: var(--notebook-pitch);
-  font-weight: 600;
-  color: #1d4ed8;
-}
+/* The answer list itself reuses .propis-text-grid-scroll/.propis-text-grid-svg verbatim
+   (defined above, under "Пишем текст с экрана") -- real ruled/diagonal page geometry and
+   real captured cursive ink, the exact same "Тетрадный лист" rendering ReadTextView.jsx
+   uses, not a CSS approximation of ruled paper (see DictationReviewScreen.jsx). */
 
 .propis-dictation-review-footer {
   flex-shrink: 0;
