@@ -191,6 +191,8 @@ def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
         if need >= len(cells) or cells[need] > limit:
             break
         for j, ch in enumerate(group):
+            if ch == " ":   # an empty grid step inside a group
+                continue
             x = cells[ci + inner_step * j] + MARK_OFFSET_CELLS[ch] * cell
             ink.draw_mark(c, ch, x, baseline, opacity_for(gi))
         ci = need + group_step

@@ -172,13 +172,13 @@ def p8(ink, c, inset, half, warnings, n):
 
 
 def p9(ink, c, inset, half, warnings, n):
-    # Exclamation mark as it's really written (user, 2026-09-24): single !,
-    # then !! and !!! with no gaps -- each ! on the neighbouring diagonal
-    # (inner step 1 cell), groups 4 cells apart. The dot sits on the
-    # diagonal/baseline crossing and the stem runs along the diagonal.
-    single = ("!", {"group_step": 4})
-    double = ("!!", {"inner_step": 1, "group_step": 4})
-    triple = ("!!!", {"inner_step": 1, "group_step": 4})
+    # Exclamation mark as it's really written (user, 2026-09-24): !, !!, !!!
+    # with no gaps -- each ! on the neighbouring diagonal -- with a comma
+    # mixed in to break the monotony (user, same day). A space in a group
+    # is an empty grid step, so "!! ," = two !, one empty diagonal, a comma.
+    single = ("!,", {"inner_step": 4, "group_step": 4})
+    double = ("!! ,", {"inner_step": 1, "group_step": 3})
+    triple = ("!!! ,", {"inner_step": 1, "group_step": 3})
     rhythm_page(ink, c, inset, half, "Восклицательный знак", [
         single, double, [triple],
         [(*single, 2), (*double, 2), (*triple, 2)],
