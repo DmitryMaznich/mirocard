@@ -354,7 +354,14 @@ def distance_page(ink, c, inset, models, warnings, n):
     for baseline in BASELINES[2 * len(models):]:
         words = SHORT_WORDS[:]
         rng.shuffle(words)
-        chain_row(ink, c, [w + rng.choice(".,?!") for w in words], baseline, inset)
+        # Capital at the start of the row and after . ? ! -- a real
+        # sentence boundary; lowercase after a comma (user, 2026-09-24).
+        items, cap = [], True
+        for w in words:
+            m = rng.choice(".,?!")
+            items.append((w[0].upper() + w[1:] if cap else w) + m)
+            cap = m != ","
+        chain_row(ink, c, items, baseline, inset)
 
 
 # 22 -> 24: one more sentence to hold per page (6, 7, 8), three marks of
