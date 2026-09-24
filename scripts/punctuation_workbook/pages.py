@@ -229,14 +229,17 @@ def p12(ink, c, inset, half, warnings, n):
 
 
 def p13(ink, c, inset, half, warnings, n):
-    # Question mark, same ladder as page 9: single ?, then ?? and ??? with
-    # each ? on the neighbouring diagonal, groups 4 cells apart.
+    # Question mark: single ?, then ?? and ?! -- inside a group the marks
+    # sit one diagonal apart (6mm), not on neighbouring ones: the ?'s hook
+    # is ~3.3mm wide, wider than a 3mm cell, and ?? on adjacent diagonals
+    # merged into one squiggle (user agreed 2026-09-24). ??? was dropped as
+    # rare; ?! is common in real texts.
     single = ("?", {"group_step": 4})
-    double = ("??", {"inner_step": 1, "group_step": 4})
-    triple = ("???", {"inner_step": 1, "group_step": 4})
+    double = ("??", {"inner_step": 2, "group_step": 4})
+    qexcl = ("?!", {"inner_step": 2, "group_step": 4})
     rhythm_page(ink, c, inset, half, "Вопросительный знак", [
-        single, double, [triple],
-        [(*single, 2), (*double, 2), (*triple, 2)],
+        single, double, [qexcl],
+        [(*single, 2), (*double, 2), (*qexcl, 2)],
     ])
 
 
