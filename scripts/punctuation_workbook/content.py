@@ -191,12 +191,18 @@ def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
     return gi
 
 
+DASH = (0.5, 0.56)   # mm on/off for the title's tracing dashes
+
+
 def title_row(ink, c, text, inset):
     """The mark's name in cursive on the page's first row (user, 2026-09-24:
     children hear "точка", "запятая"... all the time but never see the word
-    written). Just the one word, solid -- dashed/fading tracing variants
-    were tried and rejected as overcomplicated."""
+    written). One dashed copy at full tone to trace -- a solid model, two
+    copies, and a fade-out along the word were all tried and rejected."""
+    c.saveState()
+    c.setDash(*DASH)
     ink.draw_text(c, text, inset, BASELINES[0], MODEL_OPACITY)
+    c.restoreState()
 
 
 def practice_page(ink, c, rows, inset, half_offset, first_sample_row=None, title=None):
