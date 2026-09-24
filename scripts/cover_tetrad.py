@@ -473,21 +473,6 @@ def right_page(cv, style="плотная"):
     if style == "знаки":
         cv.setFont(REG, 15)
         cv.drawCentredString(rcx_tet, tetrad_y - 24, "знаки препинания")
-        # the four marks, big, as the tag line of this special notebook
-        ink = _punctuation_ink()
-        cv.saveState()
-        cv.translate(rcx_tet, tetrad_y + 42)
-        cv.scale(MM * 2.2, MM * 2.2)
-        cv.setStrokeColorRGB(*C_LINE_BASE)
-        cv.setLineWidth(0.3 / 2.2)
-        cv.line(-16, 0, 16, 0)
-        cv.setStrokeColorRGB(*C_LINE_TOP)
-        cv.line(-16, 4, 16, 4)
-        x = -10.5
-        for ch in ".,?!":
-            ink.draw_mark(cv, ch, x, 0, 1.0)
-            x += 7
-        cv.restoreState()
     else:
         cv.drawCentredString(rcx_tet, tetrad_y - 19, "для прописей")
 
