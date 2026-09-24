@@ -16,16 +16,45 @@ export function writeNoContent(response) {
 // Every JSON body is size-capped (previously unbounded: one request could
 // buffer arbitrary memory). Sync batches may legitimately carry several
 // embedded photos, hence the generous default -- see MAX_JSON_BODY_BYTES.
-export async function readJsonBody(request, maxBytes = MAX_JSON_BODY_BYTES) {
+// How much of an over-limit body we still read (and discard) so the client
+// reliably receives our 413. Answering while the client is still uploading
+// and then closing makes the client see ECONNRESET/EPIPE instead of the
+// response. Beyond this cap (clearly abusive) we stop reading and close.
+export const BODY_DRAIN_CAP_BYTES = 64 * 1024 * 1024;
+
+/**
+ * Reads a request body up to maxBytes. Over the limit it keeps reading and
+ * discarding (up to drainCap) and then throws { status: 413 } -- so the
+ * caller can answer 413 on a connection that is still in a clean state.
+ * `closeConnection` on the error tells the caller the body could not be
+ * fully drained and the connection must be closed after responding.
+ */
+export async function readLimitedBody(request, maxBytes, { drainCap = BODY_DRAIN_CAP_BYTES } = {}) {
+  const declared = Number(request.headers?.["content-length"]);
+  if (Number.isFinite(declared) && declared > drainCap) {
+    throw { status: 413, message: "Payload too large", closeConnection: true };
+  }
   const chunks = [];
   let total = 0;
+  let over = false;
   for await (const chunk of request) {
     total += chunk.length;
-    if (total > maxBytes) throw { status: 413, message: "Payload too large" };
+    if (!over && total > maxBytes) {
+      over = true;
+      chunks.length = 0; // don't keep the oversized body in memory
+    }
+    if (over) {
+      if (total > drainCap) throw { status: 413, message: "Payload too large", closeConnection: true };
+      continue;
+    }
     chunks.push(chunk);
   }
-  if (chunks.length === 0) return null;
-  const raw = Buffer.concat(chunks).toString("utf8");
+  if (over) throw { status: 413, message: "Payload too large", closeConnection: false };
+  return Buffer.concat(chunks);
+}
+
+export async function readJsonBody(request, maxBytes = MAX_JSON_BODY_BYTES) {
+  const raw = (await readLimitedBody(request, maxBytes)).toString("utf8");
   return raw ? JSON.parse(raw) : null;
 }
 
@@ -73,14 +102,7 @@ export function applyCors(response, allowedOrigin) {
 }
 
 export async function readRawBody(request, maxBytes = 2 * 1024 * 1024) {
-  const chunks = [];
-  let total = 0;
-  for await (const chunk of request) {
-    total += chunk.length;
-    if (total > maxBytes) throw { status: 413, message: "Payload too large" };
-    chunks.push(chunk);
-  }
-  return Buffer.concat(chunks);
+  return readLimitedBody(request, maxBytes);
 }
 
 export function writeAudio(response, audioBuffer, contentType) {

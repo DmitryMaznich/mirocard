@@ -146,3 +146,62 @@ test("sync: a rejected photo op is reported in `rejected` with 200 (never stalls
   const read = await fetch(`${base}${stored}`, { headers: { Authorization: `Bearer ${token}` } });
   assert.equal(read.status, 200);
 });
+
+// ─── Upload size limits: base64 overhead + a reliable 413 ───────────────────
+import { request as httpRequest } from "node:http";
+import { randomBytes } from "node:crypto";
+
+test("an image just under the byte limit is not refused by the HTTP body limit (base64 is ~4/3 larger)", async () => {
+  const token = await login();
+  // ~1.9 MiB of raw image data -> ~2.5 MiB of base64, over the 2 MiB image limit
+  // used in this file but within the derived HTTP body limit.
+  const nearLimit = await sharp(randomBytes(800 * 800 * 3), { raw: { width: 800, height: 800, channels: 3 } }).png({ compressionLevel: 0 }).toBuffer();
+  assert.ok(nearLimit.length < 2 * 1024 * 1024 && nearLimit.length > 1.5 * 1024 * 1024, `fixture ${nearLimit.length} B`);
+  const dataUrl = `data:image/png;base64,${nearLimit.toString("base64")}`;
+  assert.ok(dataUrl.length > 2 * 1024 * 1024, "body is larger than the image limit");
+  const res = await upload(token, dataUrl);
+  assert.notEqual(res.status, 413, "must be judged on the decoded image, not the base64 body");
+  const body = await res.json();
+  assert.ok(res.status === 200 || body.code === "too_large_output", `${res.status} ${JSON.stringify(body)}`);
+});
+
+function rawPost(path, token, bodyBytes) {
+  return new Promise((resolve, reject) => {
+    const payload = Buffer.concat([Buffer.from('{"dataUrl":"data:image/jpeg;base64,'), Buffer.alloc(bodyBytes, 0x41), Buffer.from('"}')]);
+    const req = httpRequest(`${base}${path}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "Content-Length": payload.length },
+    }, (res) => {
+      const chunks = [];
+      res.on("data", (c) => chunks.push(c));
+      res.on("end", () => resolve({ status: res.statusCode, body: JSON.parse(Buffer.concat(chunks).toString("utf8")) }));
+    });
+    req.on("error", reject); // ECONNRESET / EPIPE would land here and fail the test
+    req.end(payload);
+  });
+}
+
+test("an oversized upload always gets a readable 413 (never ECONNRESET), repeatedly, and the server keeps serving", async () => {
+  const token = await login();
+  // Mixed sizes: small overruns, and bodies far larger than the socket
+  // buffers, so the client is still uploading when the server decides --
+  // the case where answering + closing early produced ECONNRESET.
+  const sizes = [3, 6, 40, 3, 40, 6, 40, 3].map((mib) => mib * 1024 * 1024);
+  for (const [i, size] of sizes.entries()) {
+    const { status, body } = await rawPost("/api/photos", token, size);
+    assert.equal(status, 413, `attempt ${i}`);
+    assert.equal(body.code, "too_large_input");
+    assert.match(body.error, /слишком большое/);
+  }
+  // fetch (keep-alive pool) right after: connection state is clean.
+  const res = await upload(token, await jpegDataUrl(77));
+  assert.equal(res.status, 200);
+});
+
+test("the upload body limit is derived from the image limit with base64 overhead", async () => {
+  const { photoUploadBodyLimit } = await import("../lib/config.mjs");
+  const tenMiB = 10 * 1024 * 1024;
+  const limit = photoUploadBodyLimit(tenMiB);
+  assert.ok(limit > Math.ceil(tenMiB * 4 / 3), `${limit} must exceed the base64 size of a 10 MiB image`);
+  assert.ok(limit < 15 * 1024 * 1024, `${limit} stays close to it`);
+});

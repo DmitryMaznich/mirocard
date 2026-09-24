@@ -145,6 +145,30 @@ identity, photos, offline), §6, §7 (migrations table + idempotency), §8
 `docs/release-evidence.md` items 10/11/13; `docs/backup-restore.md`;
 `CLAUDE.md` backup section.
 
+### 2.7 Review fixes (2026-09-24, before merge)
+Owner review found four issues; all fixed on this branch:
+1. **Photos 401 in the UI** (already live since #18): params screens,
+   «Мои люди» cards/editor/tasks and `sentence_puzzle` rendered
+   `/api/photos/...` with plain `<img>`/SVG `<image>`. Now one loader
+   (`src/shared/utils/protectedPhoto.js`, token via `window.__Mirocard`
+   for deck-ZIP copies), `AuthenticatedImage`, `useTopicFile`, and
+   `SessionScreen` resolving photos inside renderer props. The
+   `sentence_puzzle` ZIP was deliberately NOT rebuilt: its source
+   `topic.json` (1.10.0) and renderer carry an unreleased
+   `listen_write_letters` mode; the props resolution covers installed ZIPs.
+2. **SQLite growth**: unused links are now deleted and orphan bytes
+   physically deleted after the grace period (`pruneUnreferencedPhotoLinks`,
+   `deleteOrphanPhotos`, `collectPhotoGarbage` hourly + startup + quota
+   path); 40-replacement test leaves one row. Legacy pre-migration rows are
+   never auto-deleted.
+3. Student/close-adult client crop 1024 -> **1440 px**
+   (`src/features/students/studentPhoto.js`).
+4. **Upload limits**: HTTP body limit derived from the 10 MiB image limit
+   (+base64/JSON, ~13.75 MiB); over-limit bodies are drained before a JSON
+   413 (old code destroyed the stream mid-body -> RST/ECONNRESET, seen on
+   the owner's machine; not reproducible on Linux loopback, so the
+   mechanism is pinned by `backend/tests/http-body.test.mjs`).
+
 ## 3. Verification commands and results (PR #20, clean worktree)
 
 ```

@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
-  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION, PHOTO_LIMITS, OFFSITE_BACKUP,
+  VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION, PHOTO_LIMITS, PHOTO_UPLOAD_MAX_BODY_BYTES, OFFSITE_BACKUP,
   CORS_ALLOWED_ORIGINS,
 } from "./lib/config.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
@@ -1210,13 +1210,15 @@ async function handleUploadPhoto(req, res) {
   const account = requireAuth(req);
   let body;
   try {
-    const raw = await readRawBody(req, PHOTO_LIMITS.maxInputBytes);
+    // Body limit accounts for base64 + JSON overhead; the decoded image is
+    // limited to PHOTO_LIMITS.maxInputBytes separately (photo-normalizer).
+    const raw = await readRawBody(req, PHOTO_UPLOAD_MAX_BODY_BYTES);
     body = JSON.parse(raw.toString("utf8"));
   } catch (err) {
     if (err?.status === 413) {
-      // We stopped reading mid-body: close the connection so the unread
-      // remainder can't be parsed as the client's next request.
-      res.setHeader("Connection", "close");
+      // readLimitedBody drained the body, so the client reliably reads this
+      // 413; only a body beyond the drain cap forces closing the connection.
+      if (err.closeConnection) res.setHeader("Connection", "close");
       return writeJson(res, 413, { error: `Фото слишком большое (больше ${Math.round(PHOTO_LIMITS.maxInputBytes / 1048576)} МБ). Выберите другое фото.`, code: "too_large_input" });
     }
     return writeJson(res, 400, { error: "Не удалось прочитать фото. Попробуйте выбрать его ещё раз.", code: "malformed" });
@@ -1715,7 +1717,7 @@ async function router(req, res) {
     writeJson(res, 404, { error: "Not found" });
   } catch (err) {
     if (err?.status) {
-      if (err.status === 413) res.setHeader("Connection", "close");
+      if (err.status === 413 && err.closeConnection) res.setHeader("Connection", "close");
       writeJson(res, err.status, { error: err.message });
     } else {
       reportError(err, { method, path: p });

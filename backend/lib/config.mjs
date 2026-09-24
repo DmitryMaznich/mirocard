@@ -146,6 +146,17 @@ export const PHOTO_LIMITS = Object.freeze({
   maxOutputBytes:     readIntEnv("PHOTO_MAX_OUTPUT_BYTES", 650 * KIB),
 });
 
+// POST /photos sends the image as a base64 data: URL inside JSON, so the
+// HTTP body for a maxInputBytes image is ~4/3 larger (10 MiB image ->
+// ~13.3 MiB body), plus the JSON/data-URL wrapper and tolerated base64 line
+// breaks (MIME-style 76-char lines add ~2.7%). The image-size limit itself
+// is enforced on the decoded bytes (photo-normalizer.mjs).
+export function photoUploadBodyLimit(maxInputBytes) {
+  const base64 = 4 * Math.ceil(maxInputBytes / 3);
+  return base64 + Math.ceil(base64 / 76) * 2 + 64 * KIB;
+}
+export const PHOTO_UPLOAD_MAX_BODY_BYTES = photoUploadBodyLimit(PHOTO_LIMITS.maxInputBytes);
+
 export const MAX_PHOTOS_PER_ACCOUNT = readIntEnv("MAX_PHOTOS_PER_ACCOUNT", 12);
 export const MAX_PHOTO_STORAGE_BYTES_PER_ACCOUNT = readIntEnv("MAX_PHOTO_STORAGE_BYTES_PER_ACCOUNT", 6 * MIB);
 // A photo the account no longer references anywhere (replaced/deleted) stops

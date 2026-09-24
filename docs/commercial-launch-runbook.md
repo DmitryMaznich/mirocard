@@ -354,8 +354,22 @@ Do not set `REQUIRE_GIT_SHA=0` in production.
   when this shipped.
 - Quotas per account: `MAX_PHOTOS_PER_ACCOUNT` (12) and
   `MAX_PHOTO_STORAGE_BYTES_PER_ACCOUNT` (6 MiB). Re-uploading an owned photo
-  is free; a photo no longer referenced anywhere stops counting after
-  `PHOTO_UNREFERENCED_GRACE_HOURS` (24). Over quota -> 409 with a message
+  is free. **Physical cleanup** (so quotas really bound SQLite and backups):
+  after `PHOTO_UNREFERENCED_GRACE_HOURS` (24) the account's link to a photo
+  it no longer references is deleted, and the photo bytes are deleted once
+  no account owns or references them. Runs in the quota path, at startup
+  and hourly. Legacy photo rows from before the ownership migration are
+  never auto-deleted.
+- Client: every user-photo display loads with the auth header through
+  `src/shared/utils/protectedPhoto.js` (`AuthenticatedImage`, `useTopicFile`);
+  `SessionScreen` resolves photo URLs inside task/student props for all
+  renderers, so installed deck ZIPs (e.g. `sentence_puzzle`) show photos
+  without being republished. Student/close-adult photos are cropped to
+  <= 1440 px on the client.
+- Upload size: the decoded image is limited to `PHOTO_MAX_INPUT_BYTES`
+  (10 MiB); the HTTP body limit is derived from it (base64 is ~4/3 larger:
+  ~13.75 MiB). An over-limit body is drained before answering, so clients
+  reliably get a JSON `413` instead of a connection reset. Over quota -> 409 with a message
   saying what to delete/replace; in sync, the op is dropped and reported in
   `rejected` (the client shows it; the queue never stalls).
 - **Watch after launch:** 12 photos per account includes instruction-step
@@ -489,14 +503,14 @@ description), not a bug.
 | `MIROCARD_ADMIN_TOKEN` | No (pre-existing var) | **Yes, newly enforced** | `"dev-admin-token-change-me"` | Guards `/admin/*` routes, including the promo-code creation endpoint used in §2. |
 | `RESEND_API_KEY` | No (pre-existing var) | **Yes, newly enforced** | `""` | Transactional email API key. Was previously allowed to silently degrade to console-logging emails in production. |
 | `LAVA_TOP_API_KEY` / `LAVA_TOP_WEBHOOK_SECRET` | No (pre-existing vars) | No — **deliberately exempt** | unset | Left optional because the Lava Top integration is unverified (see §6/§9) — a production deploy without these just 502s the "МИР / СБП" payment option rather than refusing to start over an optional rail. |
-| `PHOTO_MAX_INPUT_BYTES` | Yes | No | `10485760` (10 MiB) | Max `POST /photos` body and max decoded size of one photo. |
+| `PHOTO_MAX_INPUT_BYTES` | Yes | No | `10485760` (10 MiB) | Max decoded size of one photo. The `POST /photos` body limit is derived from it (+ base64/JSON overhead, ~13.75 MiB at the default). |
 | `PHOTO_MAX_INPUT_PIXELS` | Yes | No | `16000000` | Decompression-bomb guard (decoded pixels). |
 | `PHOTO_MAX_LONG_SIDE` / `PHOTO_MIN_LONG_SIDE` | Yes | No | `1440` / `1024` | Output long side; size reduction never goes below the minimum. |
 | `PHOTO_WEBP_QUALITY` / `PHOTO_WEBP_MIN_QUALITY` | Yes | No | `84` / `60` | Start and floor WebP quality. |
 | `PHOTO_TARGET_OUTPUT_BYTES` / `PHOTO_MAX_OUTPUT_BYTES` | Yes | No | `563200` (550 KiB) / `665600` (650 KiB) | Target and hard maximum stored photo size. |
 | `MAX_PHOTOS_PER_ACCOUNT` | Yes | No | `12` | Active photos per account. |
 | `MAX_PHOTO_STORAGE_BYTES_PER_ACCOUNT` | Yes | No | `6291456` (6 MiB) | Active photo bytes per account. |
-| `PHOTO_UNREFERENCED_GRACE_HOURS` | Yes | No | `24` | After this, a photo the account no longer references stops counting toward its quota. |
+| `PHOTO_UNREFERENCED_GRACE_HOURS` | Yes | No | `24` | After this, a photo the account no longer references is unlinked, and its bytes deleted once nobody owns/references them. |
 | `MAX_JSON_BODY_BYTES` | Yes | No | `25165824` (24 MiB) | Cap for any JSON request body (was unbounded). |
 | `BACKUP_KEEP_HOURLY` / `BACKUP_KEEP_DAILY_DAYS` | Yes | No | `24` / `14` | Local snapshot rotation. |
 | `BACKUP_S3_ENDPOINT` / `BACKUP_S3_BUCKET` / `BACKUP_S3_ACCESS_KEY_ID` / `BACKUP_S3_SECRET_ACCESS_KEY` | Yes | No (warning if unset) | unset = off-site disabled | S3-compatible off-site backup target (see §5). |
