@@ -64,6 +64,7 @@ import { parseSnapshotTime } from "./lib/backup/rotation.mjs";
 import { isOffsiteConfigured } from "./lib/backup/s3-client.mjs";
 import {
   getOwnedPhoto, storePhotoDataUrl, resolveSyncOperationPhotos, migrateLegacyDataUrlPhotos, PhotoQuotaError,
+  collectPhotoGarbage,
 } from "./lib/photo-store.mjs";
 import { PhotoRejectedError } from "./lib/photo-normalizer.mjs";
 
@@ -77,6 +78,8 @@ const db = getDb();
 // before serving requests (a concurrent sync write could otherwise race the
 // read-modify-write). Idempotent: only rows still holding data: URLs match.
 await migrateLegacyDataUrlPhotos(db);
+// Unlink + physically delete photos nobody uses any more (see photo-store.mjs).
+collectPhotoGarbage(db);
 
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   configureWebPush(VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT);
@@ -1734,6 +1737,13 @@ if (isMainModule) {
   createServer(router).listen(PORT, () => {
     console.log(`Mirocard2 backend running on port ${PORT}`);
   });
+
+  // Replaced/deleted photos are unlinked and their bytes deleted once the
+  // grace period passes; hourly keeps SQLite (and every backup) bounded even
+  // for accounts that never upload again.
+  setInterval(() => {
+    try { collectPhotoGarbage(db); } catch (err) { reportError(err, { scope: "photo-gc" }); }
+  }, 60 * 60 * 1000).unref();
 
   // Railway has no Windows Task Scheduler for hourly SQLite backups, so the
   // running service does it in-process instead. RAILWAY_ENVIRONMENT is
