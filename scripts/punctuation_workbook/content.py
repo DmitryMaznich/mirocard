@@ -74,17 +74,32 @@ class Ink:
         self._words = {}
 
     # -- punctuation
-    def draw_mark(self, c, ch, anchor_x, baseline, opacity):
+    def draw_mark(self, c, ch, anchor_x, baseline, opacity, part="all"):
+        """part: "all"; "base" = the part sitting on the line (the dot of
+        . ! ?, the comma's head); "rest" = the other part (the stem of !,
+        the hook of ?, the comma's tail). ! and ? are two strokes (stem/hook
+        first, dot last); the comma is one stroke, split at the baseline by
+        clipping."""
         m = self.marks[ch]
         ax = m["anchor"]
 
         def tf(nx, ny):
             return anchor_x + (nx - ax) * SCALE, baseline - (ny - LETTER_BASELINE_UNIT) * SCALE
 
+        strokes = m["card"]["strokes"]
+        if part != "all" and len(strokes) > 1:
+            strokes = strokes[-1:] if part == "base" else strokes[:-1]
         path = c.beginPath()
-        for s in m["card"]["strokes"]:
+        for s in strokes:
             draw_path(path, s["d"], tf)
         c.saveState()
+        if part != "all" and len(m["card"]["strokes"]) == 1 and ch == ",":
+            clip = c.beginPath()
+            if part == "base":
+                clip.rect(anchor_x - 5, baseline - 0.15, 10, 5)
+            else:
+                clip.rect(anchor_x - 5, baseline - 5, 10, 4.85)
+            c.clipPath(clip, stroke=0, fill=0)
         c.setStrokeColorRGB(*INK)
         c.setStrokeAlpha(opacity)
         c.setLineWidth(LINE_W)
@@ -336,3 +351,18 @@ def ladder_page(ink, c, inset, trace, models, warnings, page_no, last_row=None):
             ink.draw_text(c, text, inset, baseline, MODEL_OPACITY)
     if last_row and len(rows) < len(BASELINES):
         chain_row(ink, c, last_row, BASELINES[-1], inset)
+
+
+def build_row(ink, c, items, baseline, inset, half_offset, step=4):
+    """Page 18 ("Дострой знак"): items = [(mark, part, opacity)] placed one
+    per `step` grid points, left to right, each anchored on its crossing.
+    Stops at the blank tail."""
+    limit = inset + CONTENT_W_MM * (1 - TAIL_FRACTION)
+    cells = grid_points(baseline, inset, half_offset, inset + CONTENT_W_MM)
+    for i, (ch, part, op) in enumerate(items):
+        k = i * step
+        if k >= len(cells) or cells[k] > limit:
+            return i
+        if ch:
+            ink.draw_mark(c, ch, cells[k], baseline, op, part)
+    return len(items)

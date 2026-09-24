@@ -6,7 +6,7 @@ CONTENT holds the pages built so far; any other page is printed as bare
 ruling of its KIND.
 """
 
-from content import ladder_page, chain_row, word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
+from content import build_row, FADE_OPACITIES, ladder_page, chain_row, word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
 
 DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
 KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
@@ -291,33 +291,40 @@ def p17(ink, c, inset, half, warnings, n):
                               "Мы тут. Мы тут?", "Снег идёт. Снег идёт!"], warnings, n)
 
 
-# Sentence skeletons for page 18: the marks where they'd stand in a real
-# sentence, each space an empty grid step where a word would go (word gaps
-# of 3-5 cells, like short and long words). Leading spaces = the first word.
-SKELETONS = [
-    "   ,   ,    .",     # a list:            хлеб, сыр, сок.
-    "    ,    ?",        # address + question: Мама, ты где?
-    "    ,    !",        # address + !:        Папа, смотри!
-    "   ,   ,   ?",      # a list, question:   Кот, пёс, ёж?
-    "     ? !",          # ?! at the end:      Ты что?!
-    "     !!",           # !! at the end:      Ура!!
-]
-
-
 def p18(ink, c, inset, half, warnings, n):
-    # "Sentence skeleton" (user, 2026-09-24) instead of a page-14 look-alike:
-    # the marks in the order and spacing they take in a sentence, words left
-    # as empty cells. Two rows per skeleton (model + fading repeats), then a
-    # model-only row of each for the last four rows.
-    title_row(ink, c, "Знаки в предложении", inset)
+    # "Дострой знак" (user asked for a mock-up, 2026-09-24): every mark is a
+    # dot-part on the line plus another part (comma: head + tail, !: stem +
+    # dot, ?: hook + dot). Only one part is printed (half-tone); the child
+    # adds the other. Help shrinks down the page:
+    #   rows 1-4   one mark per row, full model first, then only the DOT
+    #              part given -> add tail / stem / hook
+    #   rows 5-8   one mark per row, full model first, then only the TOP
+    #              part given (tail, stem, hook) -> add the dot / head
+    #   rows 9-12  ! and ? MIXED, no model: only the top part given -> the
+    #              child must recognise each mark from its half
+    #   rows 13-16 a mixed sequence as a full model, rest of the row blank
+    title_row(ink, c, "Дострой знак", inset)
+    HALF = FADE_OPACITIES[0]
     rows = BASELINES[1:]
+    one_type = [",", "!", "?", ","]
+    # A comma's tail alone is a ~1.7mm wisp -- no usable hint -- so the
+    # "top part given" blocks use ! and ? only.
+    two_type = ["!", "?", "!", "?"]
+    mixed = ["!??!?!!", "?!?!!??", "??!!?!?", "!?!??!!"]
+    templates = ["!,?", "?!,", ",?!", "!?,"]
     for r, baseline in enumerate(rows):
-        if r < 2 * len(SKELETONS):
-            g = SKELETONS[r // 2]
-            mark_row(ink, c, g, baseline, inset, half, inner_step=1, group_step=1)
+        block, i = divmod(r, 4)
+        if block == 0:
+            ch = one_type[i]
+            items = [(ch, "all", 1.0)] + [(ch, "base", HALF)] * 20
+        elif block == 1:
+            ch = two_type[i]
+            items = [(ch, "all", 1.0)] + [(ch, "rest", HALF)] * 20
+        elif block == 2:
+            items = [(ch, "rest", HALF) for ch in mixed[i]] * 3
         else:
-            g = SKELETONS[(r - 2 * len(SKELETONS)) % len(SKELETONS)]
-            mark_row(ink, c, g, baseline, inset, half, max_groups=1, inner_step=1, group_step=1)
+            items = [(ch, "all", 1.0) for ch in templates[i]]
+        build_row(ink, c, items, baseline, inset, half)
 
 
 def p19(ink, c, inset, half, warnings, n):
