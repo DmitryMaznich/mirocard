@@ -194,7 +194,9 @@ def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
 def practice_page(ink, c, rows, inset, half_offset, first_sample_row=None):
     """Top half: full rows. Bottom half: taper -- each row one group fewer
     than the row above (propis_worksheets' "скос"). Rows from
-    first_sample_row on: model once, rest blank."""
+    first_sample_row on: a short rhythm template -- the model plus one
+    faded repeat, so the step to keep is visible (a lone model doesn't
+    show it; user, 2026-09-24) -- rest blank."""
     middle = ROWS // 2
     full = None
     for r, (baseline, spec) in enumerate(zip(BASELINES, rows)):
@@ -202,7 +204,7 @@ def practice_page(ink, c, rows, inset, half_offset, first_sample_row=None):
             continue
         group, kw = (spec, {}) if isinstance(spec, str) else spec
         if first_sample_row is not None and r >= first_sample_row:
-            mark_row(ink, c, group, baseline, inset, half_offset, max_groups=1, **kw)
+            mark_row(ink, c, group, baseline, inset, half_offset, max_groups=2, **kw)
         elif r < middle:
             full = mark_row(ink, c, group, baseline, inset, half_offset, **kw)
         else:

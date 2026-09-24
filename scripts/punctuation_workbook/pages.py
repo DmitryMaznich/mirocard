@@ -16,7 +16,7 @@ def p1(ink, c, inset, half, warnings, n):
     # Full stop: size and landing on the line are all there is to it, so the
     # rhythm changes every few rows instead of 17 identical rows (agreed with
     # the user 2026-09-24): every 4 cells -> every 2 cells -> pairs one cell
-    # apart (tapering) -> one model per row. The ТЗ's "кот. дом. мама." words
+    # apart (tapering) -> short rhythm templates (model + 1-2 repeats). The ТЗ's "кот. дом. мама." words
     # moved to page 4 -- words drown in the dense grid.
     for r, baseline in enumerate(BASELINES):
         if r < 4:
@@ -30,7 +30,16 @@ def p1(ink, c, inset, half, warnings, n):
                 mark_row(ink, c, "..", baseline, inset, half, max_groups=max(full - (r - 8), 1),
                          inner_step=2, group_step=4)
         else:
-            mark_row(ink, c, ".", baseline, inset, half, max_groups=1)
+            # Independent rows still show WHICH rhythm to keep: the model plus
+            # just enough faded repeats to make the step visible, cycling
+            # through the three rhythms from above.
+            kind = (r - 12) % 3
+            if kind == 0:
+                mark_row(ink, c, ".", baseline, inset, half, max_groups=2, group_step=4)
+            elif kind == 1:
+                mark_row(ink, c, ".", baseline, inset, half, max_groups=3, group_step=2)
+            else:
+                mark_row(ink, c, "..", baseline, inset, half, max_groups=2, inner_step=2, group_step=4)
 
 
 def p2(ink, c, inset, half, warnings, n):
