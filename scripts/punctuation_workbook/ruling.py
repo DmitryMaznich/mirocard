@@ -94,26 +94,47 @@ def _draw_half(c, x_offset, kind, palette):
 
 
 WATERMARK_TEXT = "Mironium"
-WATERMARK_PT = 9
-WATERMARK_GAP_MM = 14
-WATERMARK_GRAY = 0.80
+WATERMARK_GRAY = 0.82
+WATERMARK_CAP_MM = 9.0          # letter height across the 15mm margin strip
+WATERMARK_SPAN_MM = (22, 204)   # along the page height, clear of the page-number badge
+
+
+def _watermark_font():
+    """Lato Light (thin, OFL) from the repo's tracked assets/fonts; falls
+    back to Helvetica if it's missing."""
+    import os
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    if "WmThin" in pdfmetrics.getRegisteredFontNames():
+        return "WmThin"
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__)))), "assets", "fonts", "Lato-Light.ttf")
+    try:
+        pdfmetrics.registerFont(TTFont("WmThin", path))
+        return "WmThin"
+    except Exception:
+        return "Helvetica"
 
 
 def _margin_watermark(c, x, angle):
-    """Repeats WATERMARK_TEXT along a vertical line at x, rotated `angle`
-    degrees (90: reads bottom-to-top on the left page; -90: top-to-bottom
-    on the right page, so both face outward), over the full page height."""
+    """One big, thin WATERMARK_TEXT stretched along the full height of an
+    outer margin (user, 2026-09-24): rotated `angle` degrees (90: reads
+    bottom-to-top on the left page; -90: top-to-bottom on the right page),
+    font size set by the letter height that fits the margin, then scaled
+    lengthwise to fill WATERMARK_SPAN_MM."""
     from reportlab.pdfbase.pdfmetrics import stringWidth
-    step = stringWidth(WATERMARK_TEXT, "Helvetica-Bold", WATERMARK_PT) + WATERMARK_GAP_MM * mm
+    font = _watermark_font()
+    size = WATERMARK_CAP_MM * mm / 0.72          # Lato cap height ~0.72 em
+    natural = stringWidth(WATERMARK_TEXT, font, size)
+    lo, hi = WATERMARK_SPAN_MM
+    stretch = (hi - lo) * mm / natural
     c.saveState()
-    c.translate(x, PAGE_H / 2)
+    c.translate(x, (lo + hi) / 2 * mm)
     c.rotate(angle)
+    c.scale(stretch, 1)
     c.setFillGray(WATERMARK_GRAY)
-    c.setFont("Helvetica-Bold", WATERMARK_PT)
-    # centred on the page's mid-height, repeated both ways past the edges
-    n = int(PAGE_H / step) // 2 + 2
-    for i in range(-n, n + 1):
-        c.drawCentredString(i * step, -WATERMARK_PT * 0.35, WATERMARK_TEXT)
+    c.setFont(font, size)
+    c.drawCentredString(0, -WATERMARK_CAP_MM * mm / 2, WATERMARK_TEXT)
     c.restoreState()
 
 
