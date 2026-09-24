@@ -471,7 +471,8 @@ def right_page(cv, style="плотная"):
     cv.setFont(REG, 10)
     cv.setFillColorRGB(0.25, 0.25, 0.25)
     if style == "знаки":
-        cv.drawCentredString(rcx_tet, tetrad_y - 19, "для прописей · знаки препинания")
+        cv.setFont(REG, 15)
+        cv.drawCentredString(rcx_tet, tetrad_y - 24, "знаки препинания")
         # the four marks, big, as the tag line of this special notebook
         ink = _punctuation_ink()
         cv.saveState()
