@@ -104,7 +104,14 @@ class Ink:
         if text not in self._words:
             segs = build_word_trajectory(text, self.letters, self.connectors, self.variants)
             minx, maxx = segments_ink_bounds(segs)
-            self._words[text] = (segs, (maxx - minx) * SCALE)
+            # Right edge of the ink in the lower part of the row (below ~2/3
+            # of the x-height): where a following mark actually attaches. The
+            # overall ink box can reach further right on a top flourish (б's
+            # cap), which pushed the comma away -- "дуб ,".
+            low = max(x + s["dx"] for s in segs for st in s["strokes"]
+                      for x, y in sample_path(st["d"])
+                      if y * s["scaleY"] + s["translateY"] > LETTER_BASELINE_UNIT - 16)
+            self._words[text] = (segs, (maxx - minx) * SCALE, (low - minx) * SCALE)
         return self._words[text]
 
     def sentence_width(self, text):
@@ -121,7 +128,8 @@ class Ink:
                 if not first:
                     x += WORD_GAP_MM
                 ops.append(("w", core, x))
-                x += self._word(core)[1]
+                _, width, low = self._word(core)
+                x += low if tail else width
             for ch in tail:
                 ax = x + MARK_GAP_MM[ch]
                 ops.append(("m", ch, ax))
