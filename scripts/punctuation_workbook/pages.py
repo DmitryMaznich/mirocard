@@ -243,6 +243,38 @@ def p13(ink, c, inset, half, warnings, n):
     ])
 
 
+def p14(ink, c, inset, half, warnings, n):
+    # ? and ! together, like page 10 for dot and !: alternating every 4 and
+    # every 2 cells (never adjacent diagonals -- the ?'s hook is wider than a
+    # cell), then 3-mark groups mixing in . and ,, then templates.
+    groups = [(g, {"inner_step": 2, "group_step": 4}) for g in ("?!.", "!?,", ".?!", ",!?")]
+    rhythm_page(ink, c, inset, half, "? и !", [
+        ("?!", {"inner_step": 4, "group_step": 4}),
+        ("?!", {"inner_step": 2, "group_step": 2}),
+        groups,
+        [(g, kw, 2) for g, kw in groups],
+    ])
+
+
+QUESTIONS = ["Кто?", "Где?", "Что?", "Как?", "Когда?", "Куда?", "Зачем?", "Почему?",
+             "Откуда?", "Чей?", "Сколько?", "Да?", "Нет?", "Ты?", "Правда?", "Можно?",
+             "Опять?", "Кому?", "Какой?", "Уже?"]
+
+
+def p15(ink, c, inset, half, warnings, n):
+    # "?" after a word, as page 11 does for "!": all half-tone dashed, a
+    # different word opening every row.
+    import random
+    rng = random.Random(15)
+    starters = QUESTIONS[:]
+    rng.shuffle(starters)
+    for r, baseline in enumerate(BASELINES):
+        first = starters[r % len(starters)]
+        rest = [w for w in QUESTIONS if w != first]
+        rng.shuffle(rest)
+        chain_row(ink, c, [first] + rest, baseline, inset)
+
+
 def p20(ink, c, inset, half, warnings, n):
     # Comma + ? / ! in one sentence. Top: tracing (faded), middle: fainter
     # tracing, bottom: one full model with an empty row under it.
@@ -253,4 +285,4 @@ def p20(ink, c, inset, half, warnings, n):
     text_page(ink, c, rows, inset, warnings, n)
 
 
-CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 20: p20}
+CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 14: p14, 15: p15, 20: p20}
