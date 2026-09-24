@@ -8,7 +8,7 @@ ruling of its KIND.
 
 from content import ladder_page, chain_row, word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
 
-DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
+DENSE_PAGES = {1, 2, 3, 10, 13, 14, 18}   # 8-9 became copy pages (user, 2026-09-24)
 KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
 
 
@@ -147,6 +147,23 @@ def p7(ink, c, inset, half, warnings, n):
     ladder_page(ink, c, inset, trace, models, warnings, n)
 
 
+def p8(ink, c, inset, half, warnings, n):
+    # Spread 8-9 (user, 2026-09-24): both pages like the bottom of page 7 --
+    # a solid model sentence with commas, an empty row under it to copy it,
+    # all the way down. No tracing: the comma is now written unaided.
+    models = ["Тут дуб, ель и клён.", "Там дом, сад и луг.", "Кот, пёс и ёж спят.",
+              "Тут мёд, сыр и хлеб.", "Вот рак, сом и рыба.", "Ира, Оля и Юля тут.",
+              "Тут мама, папа и я.", "У нас сыр, мёд и чай."]
+    ladder_page(ink, c, inset, [], models, warnings, n)
+
+
+def p9(ink, c, inset, half, warnings, n):
+    models = ["Мы ели суп, рис и сыр.", "Там сова, дятел и ёж.", "В лесу ёж, лиса и волк.",
+              "Мама, папа и я гуляли.", "У Димы кот, пёс и ёж.", "Коля, Оля и Аня тут.",
+              "Там гусь, утка и кот.", "Тут лук, мак и сад."]
+    ladder_page(ink, c, inset, [], models, warnings, n)
+
+
 def p20(ink, c, inset, half, warnings, n):
     # Comma + ? / ! in one sentence. Top: tracing (faded), middle: fainter
     # tracing, bottom: one full model with an empty row under it.
@@ -157,4 +174,4 @@ def p20(ink, c, inset, half, warnings, n):
     text_page(ink, c, rows, inset, warnings, n)
 
 
-CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 20: p20}
+CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 20: p20}
