@@ -291,6 +291,27 @@ def p17(ink, c, inset, half, warnings, n):
                               "Мы тут. Мы тут?", "Снег идёт. Снег идёт!"], warnings, n)
 
 
+def p18(ink, c, inset, half, warnings, n):
+    # All four marks: . , ? ! in turn every 4 cells, then every 3 (never
+    # closer -- the ?'s hook), then 4-mark groups in different orders, then
+    # templates. Title: the marks themselves.
+    groups = [(g, {"inner_step": 2, "group_step": 4}) for g in (".,?!", "!?,.", ",!.?", "?.!,")]
+    rhythm_page(ink, c, inset, half, ". , ? !", [
+        (".,?!", {"group_step": 4, "cycle": True}),
+        (".,?!", {"group_step": 3, "cycle": True}),
+        groups,
+        [(g, kw, 2) for g, kw in groups],
+    ])
+
+
+def p19(ink, c, inset, half, warnings, n):
+    # Comma + ? / ! in one sentence (moved here from page 20, agreed with
+    # the user 2026-09-24) -- copy layout.
+    copy_page(ink, c, inset, ["Смотри, какой дом!", "Где хлеб, сыр и сок?",
+                              "Коля, иди обедать!", "Аня, где мой мяч?", "Ах, какая роза!",
+                              "Мама, можно сок?", "Ой, какой ёжик!", "Бабушка, ты где?"], warnings, n)
+
+
 def p20(ink, c, inset, half, warnings, n):
     # Comma + ? / ! in one sentence. Top: tracing (faded), middle: fainter
     # tracing, bottom: one full model with an empty row under it.
@@ -301,4 +322,4 @@ def p20(ink, c, inset, half, warnings, n):
     text_page(ink, c, rows, inset, warnings, n)
 
 
-CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 14: p14, 15: p15, 16: p16, 17: p17, 20: p20}
+CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 14: p14, 15: p15, 16: p16, 17: p17, 18: p18, 19: p19, 20: p20}

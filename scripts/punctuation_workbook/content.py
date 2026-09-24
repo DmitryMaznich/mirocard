@@ -130,6 +130,8 @@ class Ink:
                 ops.append(("w", core, x))
                 _, width, low = self._word(core)
                 x += low if tail else width
+            if not core and not first:
+                x += WORD_GAP_MM   # a mark standing alone as a word (". , ? !")
             for ch in tail:
                 ax = x + MARK_GAP_MM[ch]
                 ops.append(("m", ch, ax))
@@ -174,12 +176,17 @@ MARK_OFFSET_CELLS = {".": 0.0, "!": 0.0, "?": 0.0, ",": 0.0}
 
 
 def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
-             inner_step=2, group_step=4):
+             inner_step=2, group_step=4, cycle=False):
     """One practice row on the dense grid: `group` (e.g. "," or ".,,.") is
     repeated left to right -- marks `inner_step` cells apart inside a
     group, `group_step` cells between the last mark of one group and the
     first of the next -- first group full strength, later ones fading,
-    stopping at the TAIL_FRACTION blank tail (or after max_groups)."""
+    stopping at the TAIL_FRACTION blank tail (or after max_groups).
+    cycle=True: single marks `group_step` cells apart, their character
+    cycling through `group` (".,?!" -> . , ? ! . , ...); the first full
+    round is the model, later rounds fade -- for a long group that would
+    otherwise fit only once per row."""
+    chars = group if cycle else None
     limit = inset + CONTENT_W_MM * (1 - TAIL_FRACTION)
     cells = grid_points(baseline, inset, half_offset, inset + CONTENT_W_MM)
     cell = DIAGONAL_MM["dense"]
@@ -187,14 +194,16 @@ def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
     while True:
         if max_groups is not None and gi >= max_groups:
             break
-        need = ci + inner_step * (len(group) - 1)
+        g = chars[gi % len(chars)] if chars else group
+        need = ci + inner_step * (len(g) - 1)
         if need >= len(cells) or cells[need] > limit:
             break
-        for j, ch in enumerate(group):
+        for j, ch in enumerate(g):
             if ch == " ":   # an empty grid step inside a group
                 continue
             x = cells[ci + inner_step * j] + MARK_OFFSET_CELLS[ch] * cell
-            ink.draw_mark(c, ch, x, baseline, opacity_for(gi))
+            # in a cycle, one full round (. , ? !) is the model, then rounds fade
+            ink.draw_mark(c, ch, x, baseline, opacity_for(gi // len(chars) if chars else gi))
         ci = need + group_step
         gi += 1
     return gi
