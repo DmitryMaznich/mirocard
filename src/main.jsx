@@ -5,6 +5,7 @@ import * as ReactDOM from "react-dom";
 import * as jsxRuntime from "react/jsx-runtime";
 import "./styles.css";
 import App from "./App";
+import { getApiToken } from "./core/api";
 import { TimerProvider } from "./features/timer/TimerContext";
 import { LessonPlanProvider } from "./features/lessonPlan/LessonPlanContext";
 import {
@@ -14,7 +15,10 @@ import {
   PRINT_STYLE,
 } from "./features/session/symmetryDrawPrintHtml.js";
 
-window.__Mirocard = { React, ReactDOM, jsxRuntime };
+// Shared with deck-ZIP renderers (see topics/rendererLoader.js). getApiToken
+// lets a ZIP's bundled copy of shared/utils/protectedPhoto.js load
+// owner-only user photos with the app's real token.
+window.__Mirocard = { ...(window.__Mirocard ?? {}), React, ReactDOM, jsxRuntime, getApiToken };
 if (import.meta.env.DEV) {
   const { useAppStore } = await import("./core/store.js");
   const { getDb, topics } = await import("./core/db.js");

@@ -20,7 +20,7 @@ import {
   isLocalModeProfile,
   isFreeStaticInstall,
 } from "./catalogService";
-import { hasActiveEntitlement } from "@/features/billing/entitlement";
+import { isPaidTopicLocked } from "@/features/billing/entitlement";
 import { CATEGORY_ORDER, getTopicCategory } from "./topicCategories";
 import { getPersonalTopicCaption } from "./topicOrigin";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -197,7 +197,7 @@ export default function TopicLibraryScreen() {
     // (see handleClaimDeck/handleDownloadDeck); this only decides whether
     // the UI still offers to open an already-downloaded copy or shows it
     // locked instead.
-    const entitlementExpired = owned?.source === "paid" && !hasActiveEntitlement(account, subscription);
+    const entitlementExpired = isPaidTopicLocked({ topicId: item.id, ownedTopics: owned ? [owned] : [], account, subscription });
     const personalCaption = item.installedRecord
       ? getPersonalTopicCaption(item.installedRecord.meta, ownedTopics)
       : null;

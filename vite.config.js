@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { gitSha } from "./scripts/git-sha.mjs";
+import { resolveGitSha } from "./scripts/build-info.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -35,7 +35,7 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-    __GIT_SHA__: JSON.stringify(gitSha(__dirname)),
+    __GIT_SHA__: JSON.stringify(resolveGitSha({ repoRoot: __dirname })),
   },
   test: {
     environment: "jsdom",

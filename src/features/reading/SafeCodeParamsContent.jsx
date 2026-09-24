@@ -5,6 +5,7 @@ import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import { getInitials } from "@/shared/utils/format";
 import { getSafeCodeCustomLocations, saveSafeCodeCustomLocations, saveSafeCodeConfig } from "@/core/groupStore";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 
 const MIN_CODE_LENGTH = 2;
 const MAX_CODE_LENGTH = 5;
@@ -144,7 +145,7 @@ export default function SafeCodeParamsContent({ topicId, topicTitle, textTitle, 
           <div className="params-info-student">
             <div className="params-info-student__avatar">
               {student.photoDataUrl
-                ? <img src={student.photoDataUrl} alt={student.name} />
+                ? <AuthenticatedImage src={student.photoDataUrl} alt={student.name} />
                 : getInitials(student.name)
               }
             </div>

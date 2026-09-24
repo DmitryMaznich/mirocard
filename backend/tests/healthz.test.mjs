@@ -35,7 +35,10 @@ test("GET /healthz requires no auth and reports ok with a db check, version and 
   assert.equal(typeof body.version, "string");
   assert.equal(typeof body.gitSha, "string");
   // No PII: nothing account/student-shaped in the response.
-  assert.deepEqual(Object.keys(body).sort(), ["backupAgeMinutes", "db", "gitSha", "status", "version"]);
+  assert.deepEqual(Object.keys(body).sort(), ["backupAgeMinutes", "db", "gitSha", "offsiteBackup", "status", "version"]);
+  // Off-site status is structural only -- never bucket names, keys or credentials.
+  assert.deepEqual(Object.keys(body.offsiteBackup).sort(), ["ageMinutes", "configured", "lastUploadAt"]);
+  assert.equal(typeof body.offsiteBackup.configured, "boolean");
 });
 
 test("GET /healthz reports backupAgeMinutes null when no backup directory exists yet", async () => {

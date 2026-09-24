@@ -34,6 +34,7 @@ import {
   buildRowGuideLines, buildDiagonalLines,
 } from "@/topics/renderers/propis/propisRuling.js";
 import { validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -203,7 +204,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
           <div className="params-info-student">
             <div className="params-info-student__avatar">
               {student.photoDataUrl
-                ? <img src={student.photoDataUrl} alt={student.name} />
+                ? <AuthenticatedImage src={student.photoDataUrl} alt={student.name} />
                 : getInitials(student.name)
               }
             </div>

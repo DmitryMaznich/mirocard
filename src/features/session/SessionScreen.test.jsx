@@ -36,3 +36,30 @@ describe("shouldPreferBundledRenderer", () => {
     expect(shouldPreferBundledRenderer("flashcards")).toBe(false);
   });
 });
+
+describe("SessionScreen paid-topic lock (single choke point for every entry path)", () => {
+  it("shows the expired-access screen instead of starting a lapsed paid topic", async () => {
+    const { act } = await import("react");
+    const { createRoot } = await import("react-dom/client");
+    const { useAppStore } = await import("@/core/store");
+    const { default: SessionScreen } = await import("./SessionScreen");
+    const setScreen = (await import("vitest")).vi.fn();
+    useAppStore.setState({
+      activeTopicId: "paid_x",
+      ownedTopics: [{ topicId: "paid_x", source: "paid" }],
+      account: { featureFlags: [] },
+      subscription: { plan: "monthly", status: "active", currentPeriodEnd: "2000-01-01T00:00:00.000Z" },
+      setScreen,
+    });
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    act(() => root.render(<SessionScreen />));
+    expect(container.textContent).toContain("Доступ закончился");
+    const renew = Array.from(container.querySelectorAll("button")).find((b) => b.textContent === "Продлить доступ");
+    act(() => renew.click());
+    expect(setScreen).toHaveBeenCalledWith("subscription");
+    act(() => root.unmount());
+    container.remove();
+  });
+});

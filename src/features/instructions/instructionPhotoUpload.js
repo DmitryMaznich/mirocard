@@ -1,7 +1,10 @@
 import { api } from "@/core/api";
 
-const MAX_DIMENSION = 640;
-const WEBP_QUALITY = 0.72;
+// The server normalizes every upload to <=1440 px WebP (<=650 KiB), so send
+// a photo at that size instead of pre-shrinking to 640 px, which looked
+// soft full-screen on a tablet.
+const MAX_DIMENSION = 1440;
+const WEBP_QUALITY = 0.85;
 
 async function optimizePhotoToWebp(file) {
   let bitmap;

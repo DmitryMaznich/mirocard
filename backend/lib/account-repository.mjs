@@ -1,4 +1,4 @@
-import { randomUUID, createHash } from "node:crypto";
+import { randomUUID } from "node:crypto";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -11,16 +11,17 @@ function safeJson(value, fallback) {
 
 // ─── Photos ───────────────────────────────────────────────────────────────────
 
-export function extractAndStorePhoto(db, dataUrl) {
-  if (!dataUrl || !dataUrl.startsWith("data:")) return dataUrl;
-  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/s);
-  if (!match) return dataUrl;
-  const [, contentType, data] = match;
-  const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);
-  db.prepare(
-    "INSERT OR IGNORE INTO photos (hash, content_type, data, created_at) VALUES (?, ?, ?, ?)"
-  ).run(hash, contentType, data, now());
-  return `/api/photos/${hash}`;
+// Photos are normalized, stored and owner-linked *before* repository code
+// runs (lib/photo-store.mjs: resolveSyncOperationPhotos / storePhotoDataUrl),
+// because that needs async image decoding. By the time a value reaches here
+// it must already be a /api/photos/<hash> reference. A raw data: URL means
+// a code path skipped normalization: refuse it rather than store unbounded,
+// unvalidated bytes. (processSync logs and skips the operation.)
+export function extractAndStorePhoto(db, value) {
+  if (typeof value === "string" && value.startsWith("data:")) {
+    throw new Error("unnormalized photo data URL reached the repository layer");
+  }
+  return value;
 }
 
 function processCloseAdultPhotos(db, adults) {
@@ -81,34 +82,8 @@ export function getPhoto(db, hash) {
   return db.prepare("SELECT content_type, data FROM photos WHERE hash = ?").get(hash) ?? null;
 }
 
-export function migratePhotoData(db) {
-  const rows = db.prepare(
-    "SELECT id, photo, close_adults FROM students WHERE photo IS NOT NULL OR close_adults IS NOT NULL"
-  ).all();
-  for (const s of rows) {
-    let changed = false;
-    let newPhoto = s.photo;
-    const adults = safeJson(s.close_adults, []);
-
-    if (newPhoto && newPhoto.startsWith("data:")) {
-      newPhoto = extractAndStorePhoto(db, newPhoto);
-      changed = true;
-    }
-
-    const processedAdults = adults.map((a) => {
-      if (a.photo && a.photo.startsWith("data:")) {
-        changed = true;
-        return { ...a, photo: extractAndStorePhoto(db, a.photo) };
-      }
-      return a;
-    });
-
-    if (changed) {
-      db.prepare("UPDATE students SET photo = ?, close_adults = ? WHERE id = ?")
-        .run(newPhoto, JSON.stringify(processedAdults), s.id);
-    }
-  }
-}
+// Legacy inline data: URLs are migrated at startup by
+// migrateLegacyDataUrlPhotos() in lib/photo-store.mjs (async, normalizing).
 
 // ─── Accounts ─────────────────────────────────────────────────────────────────
 
@@ -444,6 +419,9 @@ export function upsertStudent(db, accountId, {
       health_data_consent = excluded.health_data_consent,
       health_data_consent_at = excluded.health_data_consent_at,
       updated_at = excluded.updated_at
+    -- Ids are client-generated: never let one account overwrite another
+    -- account's student that happens to (or is made to) share an id.
+    WHERE students.account_id = excluded.account_id
   `).run(
     id,
     accountId,
@@ -531,10 +509,10 @@ export function getStudents(db, accountId) {
   ).all(accountId);
 }
 
-export function softDeleteStudent(db, studentId) {
+export function softDeleteStudent(db, accountId, studentId) {
   db.prepare(
-    "UPDATE students SET deleted_at = ?, updated_at = ? WHERE id = ?"
-  ).run(now(), now(), studentId);
+    "UPDATE students SET deleted_at = ?, updated_at = ? WHERE id = ? AND account_id = ?"
+  ).run(now(), now(), studentId, accountId);
 }
 
 // ─── Sessions ─────────────────────────────────────────────────────────────────
@@ -586,7 +564,17 @@ export function getAllSessions(db, accountId) {
 
 // ─── Account topics ───────────────────────────────────────────────────────────
 
+// Sources that unlock a deck download (server.mjs isGranted). Only the
+// server may write them: claimAccountTopic (free/paid, entitlement-checked)
+// and grantAccountTopic (admin). This function is reachable from client
+// input (POST /account-topics and the sync op topic.acquire), so a
+// client-supplied granting source is downgraded -- otherwise any account
+// could self-grant a paid deck, or self-assign a non-expiring "grant"
+// while entitled and keep it after the entitlement ends.
+const SERVER_ONLY_TOPIC_SOURCES = new Set(["free", "grant", "paid"]);
+
 export function upsertAccountTopic(db, accountId, { id, topicId, topicVersion, source = "download", licenseToken = null }) {
+  if (SERVER_ONLY_TOPIC_SOURCES.has(source)) source = "download";
   const ts = now();
   db.prepare(`
     INSERT INTO account_topics (id, account_id, topic_id, topic_version, acquired_at, source, license_token)
@@ -595,6 +583,7 @@ export function upsertAccountTopic(db, accountId, { id, topicId, topicVersion, s
       topic_version = excluded.topic_version,
       source = excluded.source,
       license_token = excluded.license_token
+    WHERE account_topics.account_id = excluded.account_id
   `).run(id, accountId, topicId, topicVersion, ts, source, licenseToken);
 }
 
@@ -604,10 +593,10 @@ export function getAccountTopics(db, accountId) {
   ).all(accountId);
 }
 
-export function softDeleteAccountTopic(db, id) {
+export function softDeleteAccountTopic(db, accountId, id) {
   db.prepare(
-    "UPDATE account_topics SET deleted_at = ? WHERE id = ?"
-  ).run(now(), id);
+    "UPDATE account_topics SET deleted_at = ? WHERE id = ? AND account_id = ?"
+  ).run(now(), id, accountId);
 }
 
 export function getAccountTopicByTopicId(db, accountId, topicId) {
@@ -703,6 +692,7 @@ export function upsertStudentTopicLink(db, accountId, {
       video_reward_enabled = excluded.video_reward_enabled,
       reward_threshold = excluded.reward_threshold,
       updated_at = excluded.updated_at
+    WHERE student_topic_links.account_id = excluded.account_id
   `).run(
     id, accountId, studentId, topicId,
     selectionMode, JSON.stringify(selectedConceptIds), repsPerConcept,
@@ -718,7 +708,11 @@ export function getStudentTopicLinks(db, accountId) {
 
 // ─── Concept progress ─────────────────────────────────────────────────────────
 
-export function upsertConceptProgress(db, { studentId, topicId, conceptId, level, lastSeenAt = null }) {
+export function upsertConceptProgress(db, accountId, { studentId, topicId, conceptId, level, lastSeenAt = null }) {
+  // concept_progress has no account column: only write progress for a
+  // student that belongs to the calling account.
+  const owned = db.prepare("SELECT 1 FROM students WHERE id = ? AND account_id = ?").get(studentId, accountId);
+  if (!owned) return;
   db.prepare(`
     INSERT INTO concept_progress (student_id, topic_id, concept_id, level, last_seen_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?)

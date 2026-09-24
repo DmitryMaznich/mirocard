@@ -79,7 +79,16 @@ powershell -ExecutionPolicy Bypass -File scripts\install-backup-tasks.ps1 -Backu
 ```
 
 Use `-Force` to replace existing tasks.
-## Production Runtime DB Backup
+## Production (Railway, current)
+
+Production runs on Railway; the section below describes the **retired**
+home host. For the current setup -- hourly snapshots with 24h + 14-day
+rotation on the Railway volume, the optional S3-compatible off-site copy
+(`BACKUP_S3_*`), and the restore drill with
+`scripts/restore-sqlite-backup.mjs` -- see
+`docs/commercial-launch-runbook.md` §5 "Backups".
+
+## Production Runtime DB Backup (retired home host)
 
 The production backend runs on `192.168.1.163` / `100.72.91.115`, not on the local Codex machine.
 

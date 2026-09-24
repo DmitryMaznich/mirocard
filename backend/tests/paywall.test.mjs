@@ -230,3 +230,33 @@ test("a free deck claim/download never depends on entitlement at all", async () 
   });
   assert.equal(downloadRes.status, 200);
 });
+
+// ─── Client-supplied topic "source" must never grant access ─────────────────
+
+test("sync topic.acquire with source 'grant' does not unlock a paid deck without entitlement", async () => {
+  const { accountId, token } = await registerAndLogin();
+  expireEntitlement(accountId);
+  const syncRes = await fetch(`${base}/api/sync`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ operations: [{ type: "topic.acquire", data: { id: "forged-1", topicId: "paid_deck", topicVersion: "1", source: "grant" } }] }),
+  });
+  assert.equal(syncRes.status, 200);
+  const downloadRes = await fetch(`${base}/api/decks/paid_deck/download`, { headers: { Authorization: `Bearer ${token}` } });
+  assert.equal(downloadRes.status, 403);
+  const claim = await (await fetch(`${base}/api/decks/paid_deck/claim`, { method: "POST", headers: { Authorization: `Bearer ${token}` } })).json();
+  assert.equal(claim.status, "locked");
+});
+
+test("REST topic acquire cannot self-assign a non-expiring 'grant' while entitled, to keep the deck after expiry", async () => {
+  const { accountId, token } = await registerAndLogin();
+  const acquireRes = await fetch(`${base}/api/account-topics`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ topicId: "paid_deck", topicVersion: "1", source: "grant" }),
+  });
+  assert.equal(acquireRes.status, 200, "entitled account may record the topic");
+  expireEntitlement(accountId);
+  const downloadRes = await fetch(`${base}/api/decks/paid_deck/download`, { headers: { Authorization: `Bearer ${token}` } });
+  assert.equal(downloadRes.status, 403);
+});

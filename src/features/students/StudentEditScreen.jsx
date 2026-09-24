@@ -6,6 +6,7 @@ import Button from "@/shared/components/Button";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import { resizeStudentPhotoToDataUrl } from "./studentPhoto";
 
 function generateStudentId() {
   return "student_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
@@ -22,23 +23,6 @@ function normaliseVideos(raw) {
 function normaliseAdults(raw) {
   if (!Array.isArray(raw)) return [];
   return raw.map((a) => ({ id: a.id, name: a.name ?? "", photo: a.photo ?? null }));
-}
-async function resizeToDataUrl(file, maxSize = 400) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const s = Math.min(img.width, img.height);
-      const size = Math.min(s, maxSize);
-      const canvas = document.createElement("canvas");
-      canvas.width = size; canvas.height = size;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
-    };
-    img.src = url;
-  });
 }
 
 const LANGS = [
@@ -64,7 +48,7 @@ function AdultAddForm({ onConfirm, onCancel }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setLoading(true);
-    setPhoto(await resizeToDataUrl(file, 200));
+    setPhoto(await resizeStudentPhotoToDataUrl(file));
     setLoading(false);
   }
 
@@ -153,7 +137,7 @@ export default function StudentEditScreen() {
     const file = e.target.files?.[0];
     if (!file) return;
     setPhotoLoading(true);
-    setPhoto(await resizeToDataUrl(file, 400));
+    setPhoto(await resizeStudentPhotoToDataUrl(file));
     setPhotoLoading(false);
   }
 

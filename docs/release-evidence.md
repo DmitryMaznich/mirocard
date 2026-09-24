@@ -119,34 +119,30 @@ if `RAILWAY_ENVIRONMENT` is set and any of `AUTH_SECRET`, `ACCOUNT_SECRET`,
 silently running on a hardcoded insecure default. Covered by
 `backend/tests/config.test.mjs`.
 
-### 10. Photos/personal data never anonymously accessible — **MET, with a documented scope limit**
+### 10. Photos/personal data never anonymously accessible — **MET**
 
-`handleGetPhoto` now requires a valid auth token (`backend/tests/photos.test.mjs`
-asserts a `401` for an unauthenticated request that previously succeeded).
-**Scope limit, explicitly not fixed further**: the photo-storage schema
-deduplicates by content hash with no owner column, so any *authenticated*
-account can still view any photo by hash if they somehow obtain the hash —
-fixing that fully would need an owner-scoped storage redesign, which risks
-a data-access regression for legitimate cross-account content-identical
-photos and was judged out of scope for this pass. Documented in code
-comments (`backend/server.mjs`'s `handleGetPhoto`) and in
-`docs/commercial-launch-runbook.md` §6.
+Photos are owner-scoped since the photos/ops hardening stage:
+`GET /api/photos/:hash` returns 401 without a token, 200 to an owning
+account and 404 to any other signed-in account
+(`backend/tests/photos.test.mjs`). Ownership lives in `photo_owners`
+over the still de-duplicated `photos` table; a reference alone never
+grants ownership (`backend/tests/photo-store.test.mjs`, incl. a
+forged-reference case). Every stored photo is re-encoded server-side to a
+metadata-free WebP within fixed size limits, and per-account quotas cap
+how much any one account can store. The same stage fixed cross-account
+writes to students/topics/progress by known id
+(`backend/tests/cross-account-writes.test.mjs`).
 
 ### 11. Healthcheck + error alerting + external backup + restore drill — **PARTIALLY MET**
 
-`GET /healthz` (PII-free, DB check, version, git SHA, backup freshness) and
-pluggable `reportError`/`trackEvent` (env-gated, vendor-agnostic) are built
-and tested (`backend/tests/healthz.test.mjs`, `backend/tests/observability.test.mjs`).
-A real crash bug in the existing hourly backup loop (an uncaught exception
-from a bad backup attempt could take down the whole backend process) was
-found and fixed, with a regression test
-(`backend/tests/railway-backup-loop.test.mjs`). What is **not met**: there
-is still no *external/off-site* backup — hourly backups land on the same
-Railway volume as the live database, so a volume-level failure loses both.
-A restore-drill *procedure* is documented in
-`docs/commercial-launch-runbook.md` §5, but **has not actually been
-performed** against a real backup file, because doing so needs Railway
-dashboard/volume access this sandboxed session doesn't have.
+Built and tested: `/healthz` (incl. `offsiteBackup` status), pluggable
+error/event hooks, bounded local rotation (336 -> ~38 snapshots), an
+S3-compatible off-site upload with MD5/SHA-256/size verification, and a
+restore command with `PRAGMA integrity_check`
+(`backend/tests/backup-rotation-offsite.test.mjs`, against a fake S3 that
+verifies signatures and checksums). **Not met until the owner does it:**
+no bucket is configured in production yet, and no restore drill from a
+real off-site copy has been performed (runbook §5).
 
 ### 12. CI fully green on a clean worktree — **MET**
 
@@ -168,20 +164,16 @@ and `build` jobs. Verified on this branch after merging current `origin/main`:
   and the root `npm audit` reports build-tooling vulnerabilities (see
   below). Neither turns the CI run red.
 
-### 13. Production release reproducible from tag+commit SHA — **PARTIALLY MET**
+### 13. Production release reproducible from commit SHA — **MET for identity; no tag-per-release process**
 
-`scripts/git-sha.mjs` (fixed in this branch to correctly resolve a commit
-SHA from a git *worktree* checkout, not just a plain directory clone — the
-original implementation returned `"unknown"` for a worktree, verified by
-building and grepping the output before/after the fix) makes a running
-deployment's identity independently verifiable: `/healthz` and
-`/api/version` both now return `gitSha`, so any deployed instance can be
-matched back to an exact commit. What is **not met**: there is no formal
-tag-per-release process — deploys remain "push to `main`, Railway
-auto-deploys," as documented in this repo's own `CLAUDE.md`, with no tag
-created per release and no requirement enforced that `main`'s tip is what's
-actually running. The `gitSha` field makes *verification* possible; it does
-not by itself make the release *process* tag-based.
+The Docker build now bakes the commit SHA into the image
+(`RAILWAY_GIT_COMMIT_SHA` build arg / `GIT_SHA`) and fails without one,
+so `/api/version` and `/healthz` can no longer report `unknown` from a
+successful build. Verified locally on a `git archive` checkout without
+`.git` (server reported the release commit's SHA from `build-info.json`),
+and by a CI job that builds the real Docker image. Still true: deploys
+are "merge to main", no git tags; the release checklist treats a
+version/SHA mismatch as a failed deploy.
 
 ## Test commands run and their results (this session)
 

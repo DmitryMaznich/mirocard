@@ -6,6 +6,7 @@ import Modal from "@/shared/components/Modal";
 import { getInitials } from "@/shared/utils/format";
 import { getRecipeSettings, saveRecipeSettings, getRecipeOverrideForMode, saveRecipeOverrideForMode, getRawRecipeTxt, pullRecipeKvFromServer } from "@/core/groupStore";
 import { parseRecipeTxt } from "@/topics/renderers/reading/parseRecipeTxt";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 
 export default function InstructionParamsContent({ topicId, textId, filePath, topicTitle, textTitle, student, kind = "instruction", fixedPortions = null }) {
   const isShopping = kind === "shopping_list";
@@ -83,7 +84,7 @@ export default function InstructionParamsContent({ topicId, textId, filePath, to
           <div className="params-info-student">
             <div className="params-info-student__avatar">
               {student.photoDataUrl
-                ? <img src={student.photoDataUrl} alt={student.name} />
+                ? <AuthenticatedImage src={student.photoDataUrl} alt={student.name} />
                 : getInitials(student.name)
               }
             </div>

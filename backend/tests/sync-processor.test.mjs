@@ -86,6 +86,7 @@ test("topic.acquire adds to account_topics", () => {
 test("concept_progress.upsert writes progress", () => {
   const db = makeDb();
   const acc = makeAcc(db);
+  processSync(db, acc.id, [{ type: "student.upsert", data: { id: "s1", name: "Оля" } }]);
   processSync(db, acc.id, [{
     type: "concept_progress.upsert",
     data: { studentId: "s1", topicId: "t1", conceptId: "hat", level: 2 },

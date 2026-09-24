@@ -1,0 +1,12 @@
+# Keep the build context equal to what Railway builds from (a fresh
+# checkout without .git): release identity must come from the
+# RAILWAY_GIT_COMMIT_SHA / GIT_SHA build args, never from local .git.
+.git
+node_modules
+backend/node_modules
+dist
+build-info.json
+runtime
+output
+.env
+backend/.env
