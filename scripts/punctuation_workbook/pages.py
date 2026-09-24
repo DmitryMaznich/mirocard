@@ -12,6 +12,14 @@ DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
 KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
 
 
+def p1(ink, c, inset, half, warnings, n):
+    # Full stop alone: a dot every 4 cells, full rows on top, taper below,
+    # model-only rows at the bottom. (The ТЗ's "кот. дом. мама." words move
+    # to page 4 -- words drown in the dense grid.)
+    rows = ["."] * ROWS
+    practice_page(ink, c, rows, inset, half, first_sample_row=13)
+
+
 def p2(ink, c, inset, half, warnings, n):
     # Comma alone: a mark every 4 cells, full rows on top, taper below,
     # model-only rows at the bottom.
@@ -37,4 +45,4 @@ def p20(ink, c, inset, half, warnings, n):
     text_page(ink, c, rows, inset, warnings, n)
 
 
-CONTENT = {2: p2, 3: p3, 20: p20}
+CONTENT = {1: p1, 2: p2, 3: p3, 20: p20}
