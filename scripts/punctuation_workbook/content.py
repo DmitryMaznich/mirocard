@@ -194,23 +194,34 @@ def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
 DASH = (0.5, 0.56)   # mm on/off for tracing templates (gap +40% per the user)
 
 
+TITLE_FADE_STRIPS = 40
+
+
 def title_row(ink, c, text, inset):
     """The mark's name in cursive on the page's first row (user, 2026-09-24:
     children hear "точка", "запятая"... all the time but never see the word
-    written). Not a lost row -- it's a tracing exercise: dashed copies of
-    the name from the very first one (no solid model), as many as fit
-    before the blank tail (at least one), then the tail to write it alone."""
+    written). Not a lost row -- it's a tracing exercise: ONE dashed copy
+    whose tone fades from full at its first letter to nothing at its last
+    (the child traces what's there and finishes the rest alone), then the
+    blank row to write it again. Done as narrow vertical clip strips, each
+    redrawing the whole word at its own opacity -- the dash pattern is
+    identical in every pass, so the strips line up seamlessly."""
     w = ink.sentence_width(text)
-    limit = CONTENT_W_MM * (1 - TAIL_FRACTION)
-    x = inset
-    c.saveState()
-    c.setDash(*DASH)
-    while True:
-        ink.draw_text(c, text, x, BASELINES[0], MODEL_OPACITY)
-        x += w + 2 * WORD_GAP_MM
-        if x - inset + w > limit:
-            break
-    c.restoreState()
+    baseline = BASELINES[0]
+    for i in range(TITLE_FADE_STRIPS):
+        x0 = inset + w * i / TITLE_FADE_STRIPS
+        x1 = inset + w * (i + 1) / TITLE_FADE_STRIPS
+        if i == 0:
+            x0 -= 5.0   # a capital's slanted stem can reach left of the ink box start
+        if i == TITLE_FADE_STRIPS - 1:
+            x1 += 5.0
+        c.saveState()
+        p = c.beginPath()
+        p.rect(x0, baseline - 6.0, x1 - x0, 16.0)
+        c.clipPath(p, stroke=0, fill=0)
+        c.setDash(*DASH)
+        ink.draw_text(c, text, inset, baseline, 1.0 - (i + 0.5) / TITLE_FADE_STRIPS)
+        c.restoreState()
 
 
 def practice_page(ink, c, rows, inset, half_offset, first_sample_row=None, title=None):
