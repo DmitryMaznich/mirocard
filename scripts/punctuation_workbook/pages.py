@@ -250,7 +250,7 @@ def p14(ink, c, inset, half, warnings, n):
     groups = [(g, {"inner_step": 2, "group_step": 4}) for g in ("?!.", "!?,", ".?!", ",!?")]
     rhythm_page(ink, c, inset, half, "? и !", [
         ("?!", {"inner_step": 4, "group_step": 4}),
-        ("?!", {"inner_step": 2, "group_step": 2}),
+        ("?!", {"inner_step": 3, "group_step": 3}),   # 2 cells read as one squiggle
         groups,
         [(g, kw, 2) for g, kw in groups],
     ])
@@ -275,6 +275,22 @@ def p15(ink, c, inset, half, warnings, n):
         chain_row(ink, c, [first] + rest, baseline, inset)
 
 
+def p16(ink, c, inset, half, warnings, n):
+    # Short questions -- copy layout (model + empty row, letters with
+    # commas on the last row); the longer ones, so rows aren't half empty.
+    copy_page(ink, c, inset, ["Кто там стучит?", "Где лежит книга?", "Почему небо синее?",
+                              "Когда будет обед?", "Ты любишь кашу?", "Куда идёт папа?",
+                              "Что ты рисуешь?", "Кто съел торт?"], warnings, n)
+
+
+def p17(ink, c, inset, half, warnings, n):
+    # One sentence, different ending: . ? ! side by side. Full triples only
+    # fit for one-word sentences; longer ones come as pairs.
+    copy_page(ink, c, inset, ["Да. Да? Да!", "Нет. Нет? Нет!", "Кот. Кот? Кот!",
+                              "Иди. Иди? Иди!", "Это кот. Это кот?", "Он спит. Он спит!",
+                              "Мы тут. Мы тут?", "Снег идёт. Снег идёт!"], warnings, n)
+
+
 def p20(ink, c, inset, half, warnings, n):
     # Comma + ? / ! in one sentence. Top: tracing (faded), middle: fainter
     # tracing, bottom: one full model with an empty row under it.
@@ -285,4 +301,4 @@ def p20(ink, c, inset, half, warnings, n):
     text_page(ink, c, rows, inset, warnings, n)
 
 
-CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 14: p14, 15: p15, 20: p20}
+CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 14: p14, 15: p15, 16: p16, 17: p17, 20: p20}
