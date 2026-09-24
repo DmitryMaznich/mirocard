@@ -2,13 +2,13 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const speech = vi.hoisted(() => ({
-  cancel: vi.fn(),
-  speak: vi.fn(),
+const audio = vi.hoisted(() => ({
+  stop: vi.fn(),
+  play: vi.fn(),
 }));
 
-vi.mock("@/shared/hooks/useSpeech", () => ({
-  useSpeech: () => speech,
+vi.mock("./useAudioSequence", () => ({
+  useAudioSequence: () => audio,
 }));
 
 import AdditionSubtractionRenderer from "./index.jsx";
@@ -35,8 +35,8 @@ describe("operation_observe", () => {
     if (root) act(() => root.unmount());
     if (container) container.remove();
     vi.useRealTimers();
-    speech.cancel.mockClear();
-    speech.speak.mockClear();
+    audio.stop.mockClear();
+    audio.play.mockClear();
     root = null;
     container = null;
   });
@@ -92,12 +92,15 @@ describe("operation_observe", () => {
     mount(addTask, { soundEnabled: true });
 
     act(() => { vi.advanceTimersByTime(80); });
-    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Было 2.");
+    expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
+      { url: "/audio/addition-subtraction/phrases/was.mp3", tight: false },
+      { url: "/audio/addition-subtraction/n2.mp3", tight: false },
+    ]);
 
     act(() => { vi.advanceTimersByTime(4920); });
-    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Стало больше или меньше?");
-    expect(speech.speak.mock.calls.map(([text]) => text)).not.toContain("Прибавили 1.");
-    expect(speech.speak.mock.calls.map(([text]) => text)).not.toContain("Убрали 1.");
+    expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
+      { url: "/audio/addition-subtraction/phrases/more_or_less.mp3", tight: false },
+    ]);
   });
 
   it("records an incorrect answer, marks it, and waits for a tap on repeat instead of auto-replaying", () => {
@@ -112,7 +115,9 @@ describe("operation_observe", () => {
     });
 
     expect(onIncorrect).toHaveBeenCalledWith("plus", "operation_plus");
-    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Неправильно. Посмотри ещё раз.");
+    expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
+      { url: "/audio/addition-subtraction/phrases/wrong_look_again.mp3", tight: false },
+    ]);
     expect(container.querySelector(".observe-change__answer--less").classList.contains("observe-change__answer--wrong")).toBe(true);
     expect(container.querySelector(".observe-change__repeat").classList.contains("observe-change__repeat--attention")).toBe(true);
 
@@ -142,8 +147,10 @@ describe("operation_observe", () => {
 
     expect(onCorrect).not.toHaveBeenCalled();
     expect(container.querySelector(".observe-change__feedback")).toBeNull();
-    expect(speech.speak.mock.calls.at(-1)?.[0]).toBe("Правильно. Стало больше.");
-    act(() => { vi.advanceTimersByTime(750); });
+    expect(audio.play.mock.calls.at(-1)?.[0]).toEqual([
+      { url: "/audio/addition-subtraction/phrases/correct_more.mp3", tight: false },
+    ]);
+    audio.play.mock.calls.at(-1)?.[1]?.();
     expect(onCorrect).toHaveBeenCalledWith("plus", "operation_plus");
   });
 });

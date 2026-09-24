@@ -483,10 +483,21 @@
   box-sizing: border-box;
 }
 
-.propis-dictation-progress {
-  font-size: clamp(14px, 3vw, 16px);
-  font-weight: 700;
-  color: #6b6156;
+.propis-dictation-title {
+  font-family: "Nunito", sans-serif;
+  font-size: clamp(32px, 10vw, 48px);
+  font-weight: 800;
+  color: #2f6f65;
+  text-align: center;
+}
+
+/* Reuses the shared ProgressBar component (src/shared/components/ProgressBar.jsx) --
+   its default fill is already this exact family's teal gradient, so this is the
+   established "app style" bar, not a new invented one. Width/track color are the
+   only things this family overrides. */
+.propis-dictation-progressbar {
+  width: clamp(160px, 46vw, 260px);
+  background: #ece6d8;
 }
 
 .propis-dictation-diktor-wrap {
@@ -547,6 +558,18 @@
   cursor: default;
 }
 
+/* Repeats used up (task.repeatLimit reached): the circle used to just go inert with no
+   visual change, which read as broken -- tapping a still-vivid button and getting nothing.
+   Dim it and drop its shadow so "no more listens" is legible without any playing state. */
+.propis-dictation-diktor-wrap--exhausted .propis-dictation-diktor {
+  background: linear-gradient(160deg, #a9beb9, #8a9d98);
+  box-shadow: none;
+}
+
+.propis-dictation-diktor-wrap--exhausted .propis-dictation-bar {
+  opacity: 0.5;
+}
+
 .propis-dictation-bar {
   width: clamp(7px, 1.9vw, 12px);
   height: 30%;
@@ -578,7 +601,6 @@
   max-width: 320px;
 }
 
-.propis-dictation-repeat,
 .propis-dictation-next {
   appearance: none;
   border: none;
@@ -591,15 +613,6 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.08s ease, opacity 0.15s ease;
-}
-
-.propis-dictation-repeat {
-  background: #eafcf6;
-  color: #2f6f65;
-  border: 2px solid #b7ded8;
-}
-
-.propis-dictation-next {
   background: #4a9b8f;
   color: #fff;
   box-shadow: 0 4px 0 #2f6f65;
@@ -610,7 +623,6 @@
   box-shadow: none;
 }
 
-.propis-dictation-repeat:disabled,
 .propis-dictation-next:disabled {
   opacity: 0.45;
   cursor: default;
@@ -665,67 +677,10 @@
   margin: 6px 0 0;
 }
 
-.propis-dictation-review-list {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-.propis-dictation-review-list--letters,
-.propis-dictation-review-list--words {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-content: flex-start;
-  padding: 4px;
-}
-
-.propis-dictation-review-chip {
-  background: #fff;
-  border: 2px solid #d9d2c6;
-  border-radius: 12px;
-  padding: 10px 16px;
-  font-size: clamp(17px, 4.4vw, 22px);
-  font-weight: 700;
-  color: #2b2b2b;
-}
-
-.propis-dictation-review-list--texts {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 4px;
-}
-
-.propis-dictation-review-text {
-  display: flex;
-  gap: 10px;
-  background: #fff;
-  border: 2px solid #d9d2c6;
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.propis-dictation-review-index {
-  flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: #eafcf6;
-  color: #2f6f65;
-  font-size: 13px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.propis-dictation-review-text-body {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.5;
-  color: #2b2b2b;
-}
+/* The answer list itself reuses .propis-text-grid-scroll/.propis-text-grid-svg verbatim
+   (defined above, under "Пишем текст с экрана") -- real ruled/diagonal page geometry and
+   real captured cursive ink, the exact same "Тетрадный лист" rendering ReadTextView.jsx
+   uses, not a CSS approximation of ruled paper (see DictationReviewScreen.jsx). */
 
 .propis-dictation-review-footer {
   flex-shrink: 0;

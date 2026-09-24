@@ -26,13 +26,20 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
   // buildWordSegments) -- kept as its own card type specifically so it's excluded from
   // `letters`/lettersByLabel and can't accidentally be swept into that machinery.
   const punctuation = withStrokes.filter((c) => c.type === "punctuation");
+  // "о"'s own joint-stroke variants (variantOf set, e.g. "о_middle_ll") exist purely as
+  // internal lookup data for wordEngine.js's buildVariantIndex/buildWordSegments -- their
+  // `label` is an internal id, not a real letter, so they must never be offered as a
+  // standalone "letter" to practice/show/dictate. `letters` itself stays unfiltered (kept
+  // as-is below) because write_words/write_text/read_text/print_page need the variants
+  // present for buildVariantIndex to find them.
+  const standaloneLetters = letters.filter((c) => !c.variantOf);
 
   if (mode.type === "practice") {
-    return [{ type: "practice", items: letters }];
+    return [{ type: "practice", items: standaloneLetters }];
   }
 
   if (mode.type === "show") {
-    return [{ type: "show", items: letters }];
+    return [{ type: "show", items: standaloneLetters }];
   }
 
   if (mode.type === "write_words") {
@@ -103,13 +110,17 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
         })),
       }));
     } else {
-      pool = letters.map((l) => ({ key: letterDictationKey(l), display: l.label }));
+      pool = standaloneLetters.map((l) => ({ key: letterDictationKey(l), display: l.label }));
     }
 
     const itemCount = Math.max(1, Math.min(sessionParams?.itemCount ?? 10, pool.length || 1));
     const items = shuffle(pool).slice(0, itemCount);
 
-    return [{ type: "dictation", level, items, repeatLimit, videoRewardEnabled }];
+    // letters/connectors/punctuation ride along so the end-of-session review screen can
+    // render the answers as real captured cursive ink on real ruled paper (same primitives
+    // as ReadTextView/PrintPageView), not typed UI text -- letters stays the FULL unfiltered
+    // set (including variants) since layoutTextIntoRows's buildVariantIndex needs them.
+    return [{ type: "dictation", level, items, repeatLimit, videoRewardEnabled, letters, connectors, punctuation }];
   }
 
   return [];

@@ -1,5 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useSpeech } from "@/shared/hooks/useSpeech";
+import { useAudioSequence } from "./useAudioSequence";
+import {
+  nameActionCountQuestionAudioItems,
+  nameActionCorrectAudioItems,
+  nameActionRetryAudioItems,
+  nameActionStartAudioItems,
+  nameActionVerbQuestionAudioItems,
+} from "./audioPhrases";
 
 // Mode 2 "Назови действие": a hand brings an object onto the tray or takes
 // one away, and the child names the ACTION (not the resulting state, which
@@ -53,7 +60,7 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
   const sceneRef = useRef(null);
   const railRef = useRef(null);
   const timersRef = useRef([]);
-  const { speak, cancel } = useSpeech();
+  const { play: playAudio, stop: stopAudio } = useAudioSequence();
 
   const clearSequence = useCallback(() => {
     timersRef.current.forEach((timer) => clearTimeout(timer));
@@ -66,9 +73,9 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
     return timer;
   }, []);
 
-  const say = useCallback((text) => {
-    if (soundEnabled) speak(text, { rate: 0.82 });
-  }, [soundEnabled, speak]);
+  const say = useCallback((items, onComplete) => {
+    if (soundEnabled) playAudio(items, onComplete);
+  }, [playAudio, soundEnabled]);
 
   const measureSlot = useCallback((index) => {
     const scene = sceneRef.current;
@@ -127,7 +134,7 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
 
   const startSequence = useCallback(({ keepVerb = false } = {}) => {
     clearSequence();
-    cancel();
+    stopAudio();
     setPhase("demo");
     setFeedback(null);
     setRailCount(task.start);
@@ -135,7 +142,7 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
     setHand((h) => ({ ...h, visible: false, instant: true }));
     if (!keepVerb) setVerbSolved(false);
 
-    schedule(() => say(`Было ${numberWord(task.start)}.`), 80);
+    schedule(() => say(nameActionStartAudioItems(task.start)), 80);
     // Leave the tall hand zone time to open (CSS transition) before the
     // first slot is measured.
     let t = 1500;
@@ -148,31 +155,31 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
     schedule(() => {
       if (keepVerb) {
         setPhase("count");
-        say(VERB_QUESTION[task.operation]);
+        say(nameActionCountQuestionAudioItems(task.operation));
       } else {
         setPhase("verb");
-        say(isVoice ? "Что сделали? Скажи." : "Что сделали?");
+        say(nameActionVerbQuestionAudioItems({ isVoice }));
       }
     }, t + 300);
-  }, [cancel, clearSequence, isVoice, say, schedule, scheduleTrip, task.delta, task.operation, task.start]);
+  }, [clearSequence, isVoice, say, schedule, scheduleTrip, stopAudio, task.delta, task.operation, task.start]);
 
   useEffect(() => {
     const startTimer = schedule(() => startSequence(), 0);
     return () => {
       clearTimeout(startTimer);
       clearSequence();
-      cancel();
+      stopAudio();
     };
-  }, [cancel, clearSequence, schedule, startSequence]);
+  }, [clearSequence, schedule, startSequence, stopAudio]);
 
   function finish() {
     setPhase("done");
     playFeedback?.("correct");
-    const amount = task.countStep ? ` ${numberWord(task.delta)}` : "";
-    say(`Правильно. ${VERB[task.operation]}${amount}. Было ${numberWord(task.start)}, стало ${numberWord(task.result)}.`);
-    // Let the full "было — стало" phrase play before the session moves on
-    // (unmounting cancels speech).
-    schedule(() => onCorrect(task.conceptId, task.cardId), soundEnabled ? 3200 : 900);
+    const complete = () => onCorrect(task.conceptId, task.cardId);
+    // Let every Kore clip finish before the session moves on; otherwise
+    // unmounting would silence the explanation halfway through.
+    if (soundEnabled) say(nameActionCorrectAudioItems(task), complete);
+    else schedule(complete, 900);
   }
 
   function handleVerb(value) {
@@ -182,7 +189,7 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
       // (below) be the child's own decision to replay, not something that
       // sweeps them along on a timer mid-hand-animation.
       setFeedback({ step: "verb", value, kind: "wrong" });
-      say("Посмотри ещё раз.");
+      say(nameActionRetryAudioItems("verb"));
       onIncorrect(task.conceptId, task.cardId);
       return;
     }
@@ -195,7 +202,7 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
       setVerbSolved(true);
       setFeedback(null);
       setPhase("count");
-      say(VERB_QUESTION[task.operation]);
+      say(nameActionCountQuestionAudioItems(task.operation));
     }, 700);
   }
 
@@ -206,7 +213,7 @@ export default function NameActionTask({ task, onCorrect, onIncorrect, playFeedb
       // When the child does tap it, keepVerb:true shows the trips again so
       // they can count them, then asks only "сколько?" — the verb stays named.
       setFeedback({ step: "count", value, kind: "wrong" });
-      say("Посчитай ещё раз.");
+      say(nameActionRetryAudioItems("count"));
       onIncorrect(task.conceptId, task.cardId);
       return;
     }
