@@ -127,41 +127,49 @@ def p5(ink, c, inset, half, warnings, n):
         chain_row(ink, c, [w + "," for w in [starters[r]] + words], baseline, inset)
 
 
+def letters_row(seed):
+    """Random letters, random case, each with a comma -- the page-4 row,
+    reused to fill a copy page's leftover last row."""
+    import random
+    rng = random.Random(seed)
+    letters = LETTERS[:]
+    rng.shuffle(letters)
+    return [(ch.upper() if ch != "ы" and rng.random() < 0.5 else ch) + "," for ch in letters]
+
+
+def copy_page(ink, c, inset, models, warnings, n):
+    """Pages 6-9 (user, 2026-09-24): 8 solid model lines, each with an empty
+    row under it to copy into; the 17th row gets page-4 style letters."""
+    ladder_page(ink, c, inset, [], models, warnings, n, last_row=letters_row(n))
+
+
 def p6(ink, c, inset, half, warnings, n):
-    # Lists of three: trace eight, then four solid models each with an
-    # empty row to copy into.
-    trace = ["хлеб, сыр, сок", "кот, пёс, мышь", "мама, папа, я", "рыба, рак, кит",
-             "шар, мяч, кукла", "нос, рот, глаз", "суп, каша, чай", "утка, гусь, кот"]
-    models = ["дом, сад, лес", "лук, мак, мёд", "ель, дуб, клён", "зима, весна, лето"]
-    ladder_page(ink, c, inset, trace, models, warnings, n)
+    # Lists of three.
+    copy_page(ink, c, inset, ["хлеб, сыр, сок", "кот, пёс, мышь", "мама, папа, я",
+                              "рыба, рак, кит", "шар, мяч, кукла", "дом, сад, лес",
+                              "суп, каша, чай", "зима, весна, лето"], warnings, n)
 
 
 def p7(ink, c, inset, half, warnings, n):
-    # A list inside a sentence -- the comma's place is obvious from the
-    # list itself. Sentences kept short enough for one row (<= ~113mm).
-    trace = ["Я взял хлеб, сыр и сок.", "Тут кот, пёс и ёж.", "Вот лук, мак и мёд.",
-             "Там лес, луг и сад.", "В лесу ель, дуб и клён.", "Тут утка, гусь и кот.",
-             "Я ем суп, кашу и сыр.", "Там рыба, рак и кит."]
-    models = ["Я вижу дом, сад и лес.", "Мама, папа и я дома.",
-              "Мы ели суп, кашу и сыр.", "У Оли мяч, шар и кот."]
-    ladder_page(ink, c, inset, trace, models, warnings, n)
+    # A list inside a sentence (sentences kept to one row, <= ~113mm).
+    copy_page(ink, c, inset, ["Я взял хлеб, сыр и сок.", "Тут кот, пёс и ёж.",
+                              "Вот лук, мак и мёд.", "Там лес, луг и сад.",
+                              "Я ем суп, кашу и сыр.", "Там рыба, рак и кит.",
+                              "Я вижу дом, сад и лес.", "У Оли мяч, шар и кот."], warnings, n)
 
 
 def p8(ink, c, inset, half, warnings, n):
-    # Spread 8-9 (user, 2026-09-24): both pages like the bottom of page 7 --
-    # a solid model sentence with commas, an empty row under it to copy it,
-    # all the way down. No tracing: the comma is now written unaided.
-    models = ["Тут дуб, ель и клён.", "Там дом, сад и луг.", "Кот, пёс и ёж спят.",
-              "Тут мёд, сыр и хлеб.", "Вот рак, сом и рыба.", "Ира, Оля и Юля тут.",
-              "Тут мама, папа и я.", "У нас сыр, мёд и чай."]
-    ladder_page(ink, c, inset, [], models, warnings, n)
+    copy_page(ink, c, inset, ["Тут дуб, ель и клён.", "Там дом, сад и луг.",
+                              "Кот, пёс и ёж спят.", "Тут мёд, сыр и хлеб.",
+                              "Вот рак, сом и рыба.", "Ира, Оля и Юля тут.",
+                              "Тут мама, папа и я.", "У нас сыр, мёд и чай."], warnings, n)
 
 
 def p9(ink, c, inset, half, warnings, n):
-    models = ["Мы ели суп, рис и сыр.", "Там сова, дятел и ёж.", "В лесу ёж, лиса и волк.",
-              "Мама, папа и я гуляли.", "У Димы кот, пёс и ёж.", "Коля, Оля и Аня тут.",
-              "Там гусь, утка и кот.", "Тут лук, мак и сад."]
-    ladder_page(ink, c, inset, [], models, warnings, n)
+    copy_page(ink, c, inset, ["Мы ели суп, рис и сыр.", "Там сова, дятел и ёж.",
+                              "В лесу ёж, лиса и волк.", "Мама, папа и я гуляли.",
+                              "У Димы кот, пёс и ёж.", "Коля, Оля и Аня тут.",
+                              "Там гусь, утка и кот.", "Тут лук, мак и сад."], warnings, n)
 
 
 def p20(ink, c, inset, half, warnings, n):

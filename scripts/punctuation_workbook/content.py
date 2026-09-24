@@ -300,11 +300,13 @@ def chain_row(ink, c, items, baseline, inset):
     return len(items)
 
 
-def ladder_page(ink, c, inset, trace, models, warnings, page_no):
+def ladder_page(ink, c, inset, trace, models, warnings, page_no, last_row=None):
     """Standard-grid page for lists and sentences (agreed with the user
     2026-09-24): top rows = one item per row, half-tone dashed to trace
     (same look as pages 4-5); bottom rows = a solid model, then an empty
-    row under it to write it alone. Whatever rows remain stay blank."""
+    row under it to write it alone. `last_row` (items for chain_row) fills
+    the page's final row, which would otherwise be left over empty (user,
+    2026-09-24: letters with commas there, so the row isn't wasted)."""
     rows = [(t, "trace") for t in trace]
     for m in models:
         rows += [(m, "model"), None]
@@ -322,3 +324,5 @@ def ladder_page(ink, c, inset, trace, models, warnings, page_no):
             c.restoreState()
         else:
             ink.draw_text(c, text, inset, baseline, MODEL_OPACITY)
+    if last_row and len(rows) < len(BASELINES):
+        chain_row(ink, c, last_row, BASELINES[-1], inset)
