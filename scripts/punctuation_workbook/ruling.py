@@ -94,9 +94,11 @@ def _draw_half(c, x_offset, kind, palette):
 
 
 WATERMARK_TEXT = "Mironium"
-WATERMARK_GRAY = 0.82
-WATERMARK_CAP_MM = 9.0          # letter height across the 15mm margin strip
+WATERMARK_GRAY = 0.80
 WATERMARK_SPAN_MM = (22, 204)   # along the page height, clear of the page-number badge
+WATERMARK_SLOTS = 4             # slots along the height; 2 words per column
+WATERMARK_WORD_MM = 36          # word length (along the page height)
+WATERMARK_COLS_MM = (4.6, 10.4) # column centres, from the page's outer edge
 
 
 def _watermark_font():
@@ -116,26 +118,29 @@ def _watermark_font():
         return "Helvetica"
 
 
-def _margin_watermark(c, x, angle):
-    """One big, thin WATERMARK_TEXT stretched along the full height of an
-    outer margin (user, 2026-09-24): rotated `angle` degrees (90: reads
-    bottom-to-top on the left page; -90: top-to-bottom on the right page),
-    font size set by the letter height that fits the margin, then scaled
-    lengthwise to fill WATERMARK_SPAN_MM."""
+def _margin_watermark(c, edge_x, angle, inward):
+    """Vertical WATERMARK_TEXT in two columns down an outer margin, in a
+    checkerboard (user, 2026-09-24): the height is split into
+    WATERMARK_SLOTS slots, column 1 takes the odd slots, column 2 the even
+    ones -- two words per column. `angle` 90 reads bottom-to-top (left
+    page), -90 top-to-bottom (right page); `inward` is +1/-1, the direction
+    from the page edge into the margin."""
     from reportlab.pdfbase.pdfmetrics import stringWidth
     font = _watermark_font()
-    size = WATERMARK_CAP_MM * mm / 0.72          # Lato cap height ~0.72 em
-    natural = stringWidth(WATERMARK_TEXT, font, size)
+    size = WATERMARK_WORD_MM * mm / stringWidth(WATERMARK_TEXT, font, 1)
     lo, hi = WATERMARK_SPAN_MM
-    stretch = (hi - lo) * mm / natural
-    c.saveState()
-    c.translate(x, (lo + hi) / 2 * mm)
-    c.rotate(angle)
-    c.scale(stretch, 1)
-    c.setFillGray(WATERMARK_GRAY)
-    c.setFont(font, size)
-    c.drawCentredString(0, -WATERMARK_CAP_MM * mm / 2, WATERMARK_TEXT)
-    c.restoreState()
+    slot = (hi - lo) / WATERMARK_SLOTS
+    for col, off in enumerate(WATERMARK_COLS_MM):
+        x = edge_x + inward * off * mm
+        for k in range(col, WATERMARK_SLOTS, 2):
+            y = (lo + slot * (k + 0.5)) * mm
+            c.saveState()
+            c.translate(x, y)
+            c.rotate(angle)
+            c.setFillGray(WATERMARK_GRAY)
+            c.setFont(font, size)
+            c.drawCentredString(0, -size * 0.36, WATERMARK_TEXT)
+            c.restoreState()
 
 
 def draw_sheet_ruling(c, left_kind, right_kind, palette="gray"):
@@ -154,8 +159,8 @@ def draw_sheet_ruling(c, left_kind, right_kind, palette="gray"):
     # vertical "Mironium" watermark down each outer margin, full page height
     # (user, 2026-09-24). Drawn before the page-number badge, whose white
     # circle then sits on top of it.
-    _margin_watermark(c, MARGIN_MM / 2 * mm, 90)
-    _margin_watermark(c, PAGE_W - MARGIN_MM / 2 * mm, -90)
+    _margin_watermark(c, 0, 90, +1)
+    _margin_watermark(c, PAGE_W, -90, -1)
 
     # white center divider
     c.setStrokeColorRGB(1, 1, 1)
