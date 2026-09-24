@@ -172,13 +172,13 @@ def p8(ink, c, inset, half, warnings, n):
 
 
 def p9(ink, c, inset, half, warnings, n):
-    # Exclamation mark as it's really written (user, 2026-09-24): !, !!, !!!
-    # with no gaps -- each ! on the neighbouring diagonal -- with a comma
-    # mixed in to break the monotony (user, same day). A space in a group
-    # is an empty grid step, so "!! ," = two !, one empty diagonal, a comma.
-    single = ("!,", {"inner_step": 4, "group_step": 4})
-    double = ("!! ,", {"inner_step": 1, "group_step": 3})
-    triple = ("!!! ,", {"inner_step": 1, "group_step": 3})
+    # Exclamation mark as it's really written (user, 2026-09-24): single !,
+    # then !! and !!! with no gaps -- each ! on the neighbouring diagonal
+    # (inner step 1 cell), groups 4 cells apart. The dot sits on the
+    # diagonal/baseline crossing and the stem runs along the diagonal.
+    single = ("!", {"group_step": 4})
+    double = ("!!", {"inner_step": 1, "group_step": 4})
+    triple = ("!!!", {"inner_step": 1, "group_step": 4})
     rhythm_page(ink, c, inset, half, "Восклицательный знак", [
         single, double, [triple],
         [(*single, 2), (*double, 2), (*triple, 2)],
@@ -186,14 +186,15 @@ def p9(ink, c, inset, half, warnings, n):
 
 
 def p10(ink, c, inset, half, warnings, n):
-    # Dot vs exclamation mark (both sit their dot on the crossing): alternating
-    # every 4 cells, every 2 cells, then 3-mark groups, then templates.
+    # Dot vs exclamation mark, with a comma mixed in to break the monotony
+    # (user, 2026-09-24): the three alternating every 4 cells, every 2
+    # cells, then 3-mark groups in different orders, then templates.
     # "Точка и восклицательный знак" is 145mm -- too wide for the title row,
     # so the mark itself stands in for its name.
-    groups = [(g, {"inner_step": 2, "group_step": 4}) for g in (".!.", "!..", "..!", "!.!")]
+    groups = [(g, {"inner_step": 2, "group_step": 4}) for g in (".!,", "!,.", ",.!", "!.,")]
     rhythm_page(ink, c, inset, half, "Точка и !", [
-        (".!", {"inner_step": 4, "group_step": 4}),
-        (".!", {"inner_step": 2, "group_step": 2}),
+        (".!,", {"inner_step": 4, "group_step": 4}),
+        (".!,", {"inner_step": 2, "group_step": 2}),
         groups,
         [(g, kw, 2) for g, kw in groups],
     ])
