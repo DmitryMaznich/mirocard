@@ -69,7 +69,10 @@ def _draw_half(c, x_offset, kind, palette):
             c.setLineWidth(0.3)
         else:
             y += WIDE_MM * mm
-            c.setLineWidth(1.3)
+            # Baseline as thin as every other line -- unlike propis_ruling.py's 1.3pt.
+            # A captured full stop is ~0.45mm, the same as a 1.3pt line, and sank into
+            # it (confirmed with the user 2026-09-24).
+            c.setLineWidth(0.3)
         if 0 <= y < PAGE_H:
             c.line(x_offset, y, x_offset + 148 * mm, y)
         i += 1
@@ -90,7 +93,7 @@ def _draw_half(c, x_offset, kind, palette):
     c.restoreState()
 
 
-def draw_sheet_ruling(c, left_kind, right_kind, palette="blue"):
+def draw_sheet_ruling(c, left_kind, right_kind, palette="gray"):
     c.setFillColorRGB(1, 1, 1)
     c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
 

@@ -2,8 +2,8 @@
 saddle-stitch booklet on A4-landscape sheets, like every other
 propis_worksheets notebook.
 
-    python build.py                     # blue grid (as other notebooks)
-    python build.py --palette gray      # or black
+    python build.py                     # gray grid (chosen by the user 2026-09-24)
+    python build.py --palette blue      # or black: the other notebooks' grid / max contrast
     python build.py --png 2 3 20        # + 200dpi PNG of these A5 pages
 
 Output: <repo>/output/punctuation_workbook[_<palette>].pdf
@@ -58,12 +58,12 @@ def build(out_path, palette):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--palette", default="blue", choices=["blue", "gray", "black"])
+    ap.add_argument("--palette", default="gray", choices=["blue", "gray", "black"])
     ap.add_argument("--png", nargs="*", type=int, default=None)
     args = ap.parse_args()
 
     os.makedirs(OUT_DIR, exist_ok=True)
-    suffix = "" if args.palette == "blue" else f"_{args.palette}"
+    suffix = "" if args.palette == "gray" else f"_{args.palette}"
     out = os.path.join(OUT_DIR, f"punctuation_workbook{suffix}.pdf")
     warnings, placement = build(out, args.palette)
     for w in warnings:
