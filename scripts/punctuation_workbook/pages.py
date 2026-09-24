@@ -334,4 +334,55 @@ def p21(ink, c, inset, half, warnings, n):
                               "Стой! Там лужа.", "Кто пришёл? Бабушка!"], warnings, n)
 
 
-CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 14: p14, 15: p15, 16: p16, 17: p17, 18: p18, 19: p19, 20: p20, 21: p21}
+def p22(ink, c, inset, half, warnings, n):
+    # "Вставь знак": a solid model sentence, and under it the same sentence
+    # half-tone dashed but with its marks left out (their space kept) -- the
+    # child traces the words and puts every mark in himself. Letters with
+    # commas on the leftover last row.
+    from content import DASH, FADE_OPACITIES as FO
+    sents = ["Ой, какой снег!", "Кто там? Это папа.", "Оля, иди сюда!", "Где мяч? Вот он.",
+             "Тут кот, пёс и ёж.", "Мама, где мой шарф?", "Кто съел кашу? Я!", "Вот лук, мак и мёд."]
+    for k, s in enumerate(sents):
+        ink.draw_text(c, s, inset, BASELINES[2 * k], 1.0)
+        c.saveState()
+        c.setDash(*DASH)
+        ink.draw_text(c, s, inset, BASELINES[2 * k + 1], FO[0], 0.0)
+        c.restoreState()
+    chain_row(ink, c, letters_row(n), BASELINES[-1], inset)
+
+
+TEXTS = [
+    "Вот наш кот. Его зовут Мурзик. Он любит молоко, сыр и рыбу. Ты видел Мурзика?",
+    "Пришла зима. Идёт снег. Дети лепят снеговика. Как весело!",
+]
+
+
+def wrap(ink, text):
+    from content import CONTENT_W_MM
+    lines, cur = [], ""
+    for w in text.split():
+        cand = (cur + " " + w).strip()
+        if ink.sentence_width(cand) <= CONTENT_W_MM - 3:
+            cur = cand
+        else:
+            lines.append(cur)
+            cur = w
+    return lines + [cur]
+
+
+def p23(ink, c, inset, half, warnings, n):
+    # A short connected text: the model wrapped over as many rows as it
+    # needs, then the same number of empty rows to copy it into; a second
+    # text below; letters with commas on any row left over at the end.
+    r = 0
+    for t in TEXTS:
+        lines = wrap(ink, t)
+        for line in lines:
+            ink.draw_text(c, line, inset, BASELINES[r], 1.0)
+            r += 1
+        r += len(lines)          # empty rows to copy into
+    if r < len(BASELINES):
+        chain_row(ink, c, letters_row(n), BASELINES[-1], inset)
+
+
+CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 14: p14, 15: p15, 16: p16, 17: p17, 18: p18, 19: p19, 20: p20, 21: p21, 22: p22, 23: p23}
