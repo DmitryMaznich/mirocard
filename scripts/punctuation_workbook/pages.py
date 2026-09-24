@@ -6,7 +6,7 @@ CONTENT holds the pages built so far; any other page is printed as bare
 ruling of its KIND.
 """
 
-from content import practice_page, text_page, mark_row, title_row, ROWS, BASELINES
+from content import word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
 
 DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
 KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
@@ -81,6 +81,33 @@ def p3(ink, c, inset, half, warnings, n):
     ])
 
 
+def word_page(ink, c, inset, rows):
+    """rows: (text, mode) per ruled row, top to bottom (see word_row)."""
+    for baseline, spec in zip(BASELINES, rows):
+        if spec:
+            word_row(ink, c, spec[0], baseline, inset, spec[1])
+
+
+def p4(ink, c, inset, half, warnings, n):
+    # A mark right after a word (. and ,). Top: model + fading copies.
+    # Middle: model, then copies with the mark left out -- the child adds it.
+    # Bottom: model once, the rest of the row is his.
+    practice = ["кот.", "дом.", "мама.", "сок,", "папа,", "лук,"]
+    nomark = ["сыр.", "нос,", "мяч.", "суп,", "кит.", "лес,"]
+    sample = ["кот.", "мама,", "дом.", "папа,", "сок."]
+    word_page(ink, c, inset, [(w, "practice") for w in practice]
+              + [(w, "nomark") for w in nomark] + [(w, "sample") for w in sample])
+
+
+def p5(ink, c, inset, half, warnings, n):
+    # A comma between two words -- same three-step ladder as page 4.
+    practice = ["кот, пёс", "чай, сок", "сыр, хлеб", "нос, рот", "лук, мак", "дом, сад"]
+    nomark = ["кит, сом", "мяч, шар", "суп, каша", "лес, луг", "рыба, рак", "кот, пёс"]
+    sample = ["мама, папа", "чай, сок", "сыр, хлеб", "дом, сад", "мяч, шар"]
+    word_page(ink, c, inset, [(w, "practice") for w in practice]
+              + [(w, "nomark") for w in nomark] + [(w, "sample") for w in sample])
+
+
 def p20(ink, c, inset, half, warnings, n):
     # Comma + ? / ! in one sentence. Top: tracing (faded), middle: fainter
     # tracing, bottom: one full model with an empty row under it.
@@ -91,4 +118,4 @@ def p20(ink, c, inset, half, warnings, n):
     text_page(ink, c, rows, inset, warnings, n)
 
 
-CONTENT = {1: p1, 2: p2, 3: p3, 20: p20}
+CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 20: p20}

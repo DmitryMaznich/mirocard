@@ -244,3 +244,30 @@ def text_page(ink, c, rows, inset, warnings, page_no):
 
 def page_number(c, n, align):
     draw_page_number_badge(c, n, align)
+
+
+# ---- standard-grid word rows (pages 4-6, 11, 15) -----------------------------
+
+COPY_GAP_MM = 2 * WORD_GAP_MM   # between repeated copies of a word/pair on one row
+
+
+def word_row(ink, c, text, baseline, inset, mode="practice"):
+    """One row of a word (or word pair) with its punctuation, propis-style:
+      "practice": full model, then fading copies up to the blank tail;
+      "nomark":   full model, then fading copies WITHOUT the marks (their
+                  space kept) -- the child traces the words and puts the
+                  marks in himself;
+      "sample":   the model once, rest blank (write it alone).
+    A text too long for a copy before the tail still gets one if two fit
+    in the row with room to spare, so no practice row is model-only."""
+    w = ink.sentence_width(text)
+    limit = CONTENT_W_MM * (1 - TAIL_FRACTION)
+    ink.draw_text(c, text, inset, baseline, MODEL_OPACITY)
+    if mode == "sample":
+        return
+    x, i = w + COPY_GAP_MM, 1
+    while x + w <= limit or (i == 1 and x + w <= CONTENT_W_MM - 5):
+        op = opacity_for(i)
+        ink.draw_text(c, text, inset + x, baseline, op, 0.0 if mode == "nomark" else op)
+        x += w + COPY_GAP_MM
+        i += 1
