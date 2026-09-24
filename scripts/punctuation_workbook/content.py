@@ -166,12 +166,11 @@ def grid_points(baseline, inset, half_offset, x_limit):
     return out
 
 
-# Where a mark sits relative to its grid point (agreed with the user
-# 2026-09-24): . ! ? sit ON the diagonal/baseline crossing -- the dot lands
-# on the crossing and the stem of ! / ? runs along the diagonal (the
-# captured ! stem's slope is the grid's 0.466). The comma sits mid-cell
-# instead, so its tail runs between two diagonals, never hidden under one.
-MARK_OFFSET_CELLS = {".": 0.0, "!": 0.0, "?": 0.0, ",": 0.5}
+# Where a mark sits relative to its grid point: every mark is tied to the
+# grid -- its baseline-touching part (the dot of . ! ?, the head of ,) on
+# a diagonal/baseline crossing (user, 2026-09-24; an earlier version put
+# the comma mid-cell to keep its tail off the diagonal, rejected).
+MARK_OFFSET_CELLS = {".": 0.0, "!": 0.0, "?": 0.0, ",": 0.0}
 
 
 def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
