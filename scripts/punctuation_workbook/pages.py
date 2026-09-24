@@ -320,13 +320,18 @@ def p19(ink, c, inset, half, warnings, n):
 
 
 def p20(ink, c, inset, half, warnings, n):
-    # Comma + ? / ! in one sentence. Top: tracing (faded), middle: fainter
-    # tracing, bottom: one full model with an empty row under it.
-    a = ["Где хлеб, сыр и сок?", "Смотри, какой дом!", "Кот, ты где?", "Папа, иди сюда!"]
-    b = ["Оля, ты дома?", "Стой, тут лужа!", "Мама, кто там?", "Ура, снег идёт!"]
-    rows = ([(s, 0.5) for s in a] + [(s, 0.28) for s in a]
-            + [x for s in b for x in ((s, 1.0), None)] + [None])
-    text_page(ink, c, rows, inset, warnings, n)
+    # Copying, all marks mixed: two short sentences per line (a question
+    # and its answer, an exclamation and what follows), so every line
+    # changes mark at least once. Copy layout: model + empty row.
+    copy_page(ink, c, inset, ["Кто там? Это я.", "Где кот? Вот он!", "Мама, ты где? Я тут.",
+                              "Ура! Снег идёт.", "Что это? Это ёж.", "Ой, дождь! Беги домой.",
+                              "Папа, ты дома? Да.", "Тише! Малыш спит."], warnings, n)
 
 
-CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 14: p14, 15: p15, 16: p16, 17: p17, 18: p18, 19: p19, 20: p20}
+def p21(ink, c, inset, half, warnings, n):
+    copy_page(ink, c, inset, ["Можно сок? Можно.", "Где мяч? Он там.", "Кто это? Это Оля.",
+                              "Ты рад? Очень!", "Аня, ты где? Иди есть!", "Где книга? Вот она.",
+                              "Стой! Там лужа.", "Кто пришёл? Бабушка!"], warnings, n)
+
+
+CONTENT = {1: p1, 2: p2, 3: p3, 4: p4, 5: p5, 6: p6, 7: p7, 8: p8, 9: p9, 10: p10, 11: p11, 12: p12, 13: p13, 14: p14, 15: p15, 16: p16, 17: p17, 18: p18, 19: p19, 20: p20, 21: p21}
