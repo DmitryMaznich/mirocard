@@ -163,7 +163,7 @@ def p8(ink, c, inset, half, warnings, n):
     # Comma, consolidation: new rhythms on the dense grid -- every 3 cells,
     # comma/dot alternating tightly, then 3-mark groups mixing the two.
     groups = [(g, {"inner_step": 2, "group_step": 4}) for g in (",,.", ".,,", ",.,", ",,,")]
-    rhythm_page(ink, c, inset, half, "Запятая", [
+    rhythm_page(ink, c, inset, half, "Запятая и точка", [
         (",", {"group_step": 3}),
         (",.", {"inner_step": 2, "group_step": 2}),
         groups,
@@ -172,14 +172,16 @@ def p8(ink, c, inset, half, warnings, n):
 
 
 def p9(ink, c, inset, half, warnings, n):
-    # Exclamation mark: the stem runs along a diagonal, its dot sits on the
-    # diagonal/baseline crossing (MARK_OFFSET_CELLS). Same ladder as page 1.
-    step4 = ("!", {"group_step": 4})
-    step2 = ("!", {"group_step": 2})
-    pair = ("!!", {"inner_step": 2, "group_step": 4})
+    # Exclamation mark as it's really written (user, 2026-09-24): single !,
+    # then !! and !!! with no gaps -- each ! on the neighbouring diagonal
+    # (inner step 1 cell), groups 4 cells apart. The dot sits on the
+    # diagonal/baseline crossing and the stem runs along the diagonal.
+    single = ("!", {"group_step": 4})
+    double = ("!!", {"inner_step": 1, "group_step": 4})
+    triple = ("!!!", {"inner_step": 1, "group_step": 4})
     rhythm_page(ink, c, inset, half, "Восклицательный знак", [
-        step4, step2, [pair],
-        [(*step4, 2), (*step2, 3), (*pair, 2)],
+        single, double, [triple],
+        [(*single, 2), (*double, 2), (*triple, 2)],
     ])
 
 
