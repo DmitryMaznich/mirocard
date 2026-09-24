@@ -93,6 +93,30 @@ def _draw_half(c, x_offset, kind, palette):
     c.restoreState()
 
 
+WATERMARK_TEXT = "Mironium"
+WATERMARK_PT = 9
+WATERMARK_GAP_MM = 14
+WATERMARK_GRAY = 0.80
+
+
+def _margin_watermark(c, x, angle):
+    """Repeats WATERMARK_TEXT along a vertical line at x, rotated `angle`
+    degrees (90: reads bottom-to-top on the left page; -90: top-to-bottom
+    on the right page, so both face outward), over the full page height."""
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+    step = stringWidth(WATERMARK_TEXT, "Helvetica-Bold", WATERMARK_PT) + WATERMARK_GAP_MM * mm
+    c.saveState()
+    c.translate(x, PAGE_H / 2)
+    c.rotate(angle)
+    c.setFillGray(WATERMARK_GRAY)
+    c.setFont("Helvetica-Bold", WATERMARK_PT)
+    # centred on the page's mid-height, repeated both ways past the edges
+    n = int(PAGE_H / step) // 2 + 2
+    for i in range(-n, n + 1):
+        c.drawCentredString(i * step, -WATERMARK_PT * 0.35, WATERMARK_TEXT)
+    c.restoreState()
+
+
 def draw_sheet_ruling(c, left_kind, right_kind, palette="gray"):
     c.setFillColorRGB(1, 1, 1)
     c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
@@ -105,6 +129,12 @@ def draw_sheet_ruling(c, left_kind, right_kind, palette="gray"):
     c.setLineWidth(0.6)
     c.line(MARGIN_MM * mm, 0, MARGIN_MM * mm, PAGE_H)
     c.line(PAGE_W - MARGIN_MM * mm, 0, PAGE_W - MARGIN_MM * mm, PAGE_H)
+
+    # vertical "Mironium" watermark down each outer margin, full page height
+    # (user, 2026-09-24). Drawn before the page-number badge, whose white
+    # circle then sits on top of it.
+    _margin_watermark(c, MARGIN_MM / 2 * mm, 90)
+    _margin_watermark(c, PAGE_W - MARGIN_MM / 2 * mm, -90)
 
     # white center divider
     c.setStrokeColorRGB(1, 1, 1)
