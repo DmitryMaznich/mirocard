@@ -142,20 +142,28 @@ class Ink:
 
 # ---- dense-grid pages: marks placed in the diagonal cells ------------------
 
-def cell_centers(baseline, inset, half_offset, x_limit):
-    """Local x of every diagonal-cell center on this row's baseline, left
-    to right, from the content inset up to x_limit."""
+def grid_points(baseline, inset, half_offset, x_limit):
+    """Local x of every point where a dense-grid diagonal crosses this
+    row's baseline, left to right, from the content inset up to x_limit."""
     s = DIAGONAL_MM["dense"]
     out = []
     k = int((inset + half_offset) / s) - 80
     while True:
-        cx = diagonal_x_mm(k, baseline, "dense", half_offset) + s / 2
-        if cx > x_limit:
+        x = diagonal_x_mm(k, baseline, "dense", half_offset)
+        if x > x_limit:
             break
-        if cx >= inset + 1.0:
-            out.append(cx)
+        if x >= inset + 1.0:
+            out.append(x)
         k += 1
     return out
+
+
+# Where a mark sits relative to its grid point (agreed with the user
+# 2026-09-24): . ! ? sit ON the diagonal/baseline crossing -- the dot lands
+# on the crossing and the stem of ! / ? runs along the diagonal (the
+# captured ! stem's slope is the grid's 0.466). The comma sits mid-cell
+# instead, so its tail runs between two diagonals, never hidden under one.
+MARK_OFFSET_CELLS = {".": 0.0, "!": 0.0, "?": 0.0, ",": 0.5}
 
 
 def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
@@ -166,7 +174,8 @@ def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
     first of the next -- first group full strength, later ones fading,
     stopping at the TAIL_FRACTION blank tail (or after max_groups)."""
     limit = inset + CONTENT_W_MM * (1 - TAIL_FRACTION)
-    cells = cell_centers(baseline, inset, half_offset, inset + CONTENT_W_MM)
+    cells = grid_points(baseline, inset, half_offset, inset + CONTENT_W_MM)
+    cell = DIAGONAL_MM["dense"]
     ci, gi = 0, 0
     while True:
         if max_groups is not None and gi >= max_groups:
@@ -175,7 +184,8 @@ def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
         if need >= len(cells) or cells[need] > limit:
             break
         for j, ch in enumerate(group):
-            ink.draw_mark(c, ch, cells[ci + inner_step * j], baseline, opacity_for(gi))
+            x = cells[ci + inner_step * j] + MARK_OFFSET_CELLS[ch] * cell
+            ink.draw_mark(c, ch, x, baseline, opacity_for(gi))
         ci = need + group_step
         gi += 1
     return gi
