@@ -116,6 +116,36 @@ def reading_order_pdf(sheets_pdf, placement, out_path):
         w.write(f)
 
 
+PROPIS_DIR = os.path.join(ROOT, "tools", "propis")
+DECK_PRINT = os.path.join(PROPIS_DIR, "print", "прописи_знаки_препинания.pdf")
+DECK_THUMB = os.path.join(PROPIS_DIR, "thumbnails", "propis_worksheets_punctuation.png")
+
+
+def stage_for_deck(print_pdf):
+    """Put the print PDF and its thumbnail where tools/propis/topic.json's
+    `propis_worksheets_punctuation` item expects them, so
+    scripts/build-propis-deck.mjs ships them in the deck zip. Both dirs are
+    gitignored (regenerated, never committed) -- same as every other
+    print material. Thumbnail = first page (the cover) at ~108 dpi, the
+    same way make_print_zip.py makes the others."""
+    import shutil
+    os.makedirs(os.path.dirname(DECK_PRINT), exist_ok=True)
+    shutil.copy(print_pdf, DECK_PRINT)
+    print(DECK_PRINT)
+    try:
+        import pymupdf
+    except ImportError:
+        try:
+            import fitz as pymupdf
+        except ImportError:
+            print("pymupdf not installed -- thumbnail skipped")
+            return
+    os.makedirs(os.path.dirname(DECK_THUMB), exist_ok=True)
+    doc = pymupdf.open(DECK_PRINT)
+    doc[0].get_pixmap(matrix=pymupdf.Matrix(1.5, 1.5)).save(DECK_THUMB)
+    print(DECK_THUMB)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--palette", default="gray", choices=["blue", "gray", "black"])
@@ -134,6 +164,7 @@ def main():
         print_pdf = os.path.join(OUT_DIR, PRINT_PDF)
         assemble_print_pdf(out, build_cover(), print_pdf)
         print(print_pdf)
+        stage_for_deck(print_pdf)
         reading = os.path.join(OUT_DIR, READING_PDF)
         reading_order_pdf(out, placement, reading)
         print(reading)
