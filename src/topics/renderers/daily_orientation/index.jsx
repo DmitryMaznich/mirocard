@@ -5,7 +5,6 @@ import {
   formatDigitalClock,
   formatDisplayDate,
   formatRussianClockTime,
-  getRelativePrompt,
   getSeason,
   getSpokenDate,
   getSpokenSeason,
@@ -24,6 +23,15 @@ const CAROUSEL_ITEMS = [
   { offset: 0, label: "Сегодня" },
   { offset: 1, label: "Завтра" },
 ];
+
+// The adult asks the question out loud in person; the card captions just name
+// what's being shown, so they stay plain nominative labels regardless of the
+// carousel offset (the carousel pill is what shows which day is selected).
+const CAPTION_WEEKDAY = "День недели";
+const CAPTION_DATE_NUMBER = "Число";
+const CAPTION_MONTH = "Месяц";
+const CAPTION_SEASON = "Время года";
+const CAPTION_TIME = "Время";
 
 const DISPLAY_OPTION_KEYS = [
   "showCarousel",
@@ -262,7 +270,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                 {...speakableCardProps(getSpokenWeekday(activeDate, offset))}
               >
                 {soundEnabled && <SpeakerIcon />}
-                <p className="daily-orientation__question">{getRelativePrompt(offset, "day")}</p>
+                <p className="daily-orientation__question">{CAPTION_WEEKDAY}</p>
                 <strong className="daily-orientation__answer">{weekday}</strong>
               </article>
             )}
@@ -276,14 +284,14 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                 <div className={`daily-orientation__date-values${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__date-values--single"}`}>
                   {display.showDayOfMonth && (
                     <div className="daily-orientation__date-part">
-                      <p className="daily-orientation__question daily-orientation__question--date">{getRelativePrompt(offset, "date")}</p>
+                      <p className="daily-orientation__question daily-orientation__question--date">{CAPTION_DATE_NUMBER}</p>
                       <strong className="daily-orientation__date-number">{dayOfMonth}</strong>
                     </div>
                   )}
                   {display.showDayOfMonth && display.showMonth && <div className="daily-orientation__date-divider" aria-hidden="true" />}
                   {display.showMonth && (
                     <div className="daily-orientation__date-part">
-                      <p className="daily-orientation__question daily-orientation__question--date">{getRelativePrompt(offset, "month")}</p>
+                      <p className="daily-orientation__question daily-orientation__question--date">{CAPTION_MONTH}</p>
                       <strong className="daily-orientation__date-month">{month}</strong>
                     </div>
                   )}
@@ -298,7 +306,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
               >
                 <div className="daily-orientation__season-background" aria-hidden="true"><SeasonMark season={season} /></div>
                 {soundEnabled && <SpeakerIcon />}
-                <p className="daily-orientation__question">{getRelativePrompt(offset, "season")}</p>
+                <p className="daily-orientation__question">{CAPTION_SEASON}</p>
                 <strong className="daily-orientation__answer">{season.label}</strong>
               </article>
             )}
@@ -310,7 +318,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                 {...(hideCurrentTime ? {} : speakableCardProps(getSpokenTime(now)))}
               >
                 {soundEnabled && !hideCurrentTime && <SpeakerIcon />}
-                <p className="daily-orientation__question daily-orientation__question--time">Сколько сейчас времени?</p>
+                <p className="daily-orientation__question daily-orientation__question--time">{CAPTION_TIME}</p>
                 <div className="daily-orientation__time-content">
                   {display.showAnalogClock && <AnalogClock now={now} />}
                   {(display.showTimeWords || display.showDigitalTime) && (

@@ -57,27 +57,6 @@ export function getSeason(monthIndex) {
   return { id: "autumn", label: "ОСЕНЬ" };
 }
 
-export function getRelativePrompt(offset, noun) {
-  if (noun === "day") {
-    if (offset < 0) return "Какой вчера был день недели?";
-    if (offset > 0) return "Какой завтра будет день недели?";
-    return "Какой сегодня день недели?";
-  }
-  if (noun === "date") {
-    if (offset < 0) return "Какое число было вчера?";
-    if (offset > 0) return "Какое число будет завтра?";
-    return "Какое сегодня число?";
-  }
-  if (noun === "month") {
-    if (offset < 0) return "Какой месяц был вчера?";
-    if (offset > 0) return "Какой месяц будет завтра?";
-    return "Какой сейчас месяц?";
-  }
-  if (offset < 0) return "Какое вчера было время года?";
-  if (offset > 0) return "Какое завтра будет время года?";
-  return "Какое сейчас время года?";
-}
-
 function buildClockWords(date) {
   const hours = date.getHours();
   const minutes = date.getMinutes();

@@ -3,7 +3,6 @@ import {
   addCalendarDays,
   formatDigitalClock,
   formatRussianClockTime,
-  getRelativePrompt,
   getSeason,
   getSpokenDate,
   getSpokenSeason,
@@ -27,13 +26,6 @@ describe("daily orientation time helpers", () => {
     const afternoon = new Date(2026, 8, 22, 14, 35);
     expect(formatDigitalClock(afternoon)).toBe("14:35");
     expect(formatRussianClockTime(afternoon)).toBe("ЧЕТЫРНАДЦАТЬ ЧАСОВ ТРИДЦАТЬ ПЯТЬ МИНУТ");
-  });
-
-  it("changes the spoken prompt when the carousel moves", () => {
-    expect(getRelativePrompt(-1, "day")).toBe("Какой вчера был день недели?");
-    expect(getRelativePrompt(1, "season")).toBe("Какое завтра будет время года?");
-    expect(getRelativePrompt(0, "date")).toBe("Какое сегодня число?");
-    expect(getRelativePrompt(-1, "month")).toBe("Какой месяц был вчера?");
   });
 
   it("speaks the weekday as a full sentence with correct gender agreement in the past tense", () => {

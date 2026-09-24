@@ -30,10 +30,11 @@ describe("DailyOrientationRenderer", () => {
     expect(container.textContent).toContain("ВТОРНИК");
     expect(container.textContent).toContain("22-е");
     expect(container.textContent).toContain("СЕНТЯБРЬ");
-    expect(container.textContent).toContain("Какой сегодня день недели?");
-    expect(container.textContent).toContain("Какое сегодня число?");
-    expect(container.textContent).toContain("Какой сейчас месяц?");
-    expect(container.textContent).toContain("Сколько сейчас времени?");
+    expect(container.textContent).toContain("День недели");
+    expect(container.textContent).toContain("Число");
+    expect(container.textContent).toContain("Месяц");
+    expect(container.textContent).toContain("Время года");
+    expect(container.textContent).toContain("Время");
     expect(container.querySelectorAll(".daily-orientation__card-title")).toHaveLength(0);
 
     const tomorrow = Array.from(container.querySelectorAll("button"))
@@ -42,9 +43,11 @@ describe("DailyOrientationRenderer", () => {
 
     expect(container.textContent).toContain("СРЕДА");
     expect(container.textContent).toContain("23-е");
-    expect(container.textContent).toContain("Какой завтра будет день недели?");
-    expect(container.textContent).toContain("Какое число будет завтра?");
-    expect(container.textContent).toContain("Какой месяц будет завтра?");
+    // Captions stay plain nominative labels regardless of offset — the carousel
+    // pill is what shows which day is being looked at, not the card captions.
+    expect(container.textContent).toContain("День недели");
+    expect(container.textContent).toContain("Число");
+    expect(container.textContent).toContain("Месяц");
 
     const timeCard = container.querySelector(".daily-orientation__card--time");
     expect(timeCard?.classList.contains("daily-orientation__card--time-hidden")).toBe(true);
@@ -74,9 +77,9 @@ describe("DailyOrientationRenderer", () => {
     expect(container.querySelector(".daily-orientation__carousel")).toBeNull();
     expect(container.querySelector(".daily-orientation__grid")?.classList.contains("daily-orientation__grid--2")).toBe(true);
     expect(container.textContent).toContain("СЕНТЯБРЬ");
-    expect(container.textContent).toContain("Какой сейчас месяц?");
-    expect(container.textContent).not.toContain("Какое сегодня число?");
-    expect(container.textContent).toContain("Сколько сейчас времени?");
+    expect(container.textContent).toContain("Месяц");
+    expect(container.textContent).not.toContain("Число");
+    expect(container.textContent).toContain("Время");
     expect(container.querySelector(".daily-orientation__clock")).not.toBeNull();
     expect(container.querySelector(".daily-orientation__digital-time")).toBeNull();
   });
