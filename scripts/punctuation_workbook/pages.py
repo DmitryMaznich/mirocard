@@ -12,50 +12,73 @@ DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
 KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
 
 
-def p1(ink, c, inset, half, warnings, n):
-    # Full stop: size and landing on the line are all there is to it, so the
-    # rhythm changes every few rows instead of 17 identical rows (agreed with
-    # the user 2026-09-24): every 4 cells -> every 2 cells -> pairs one cell
-    # apart (tapering) -> short rhythm templates (model + 1-2 repeats). The ТЗ's "кот. дом. мама." words
-    # moved to page 4 -- words drown in the dense grid.
-    title_row(ink, c, "Точка", inset)
-    for r, baseline in enumerate(BASELINES[1:]):
-        if r < 4:
-            mark_row(ink, c, ".", baseline, inset, half, group_step=4)
-        elif r < 8:
-            mark_row(ink, c, ".", baseline, inset, half, group_step=2)
-        elif r < 12:
-            if r == 8:
-                full = mark_row(ink, c, "..", baseline, inset, half, inner_step=2, group_step=4)
+def rhythm_page(ink, c, inset, half, title, blocks):
+    """Dense-grid mark page (agreed with the user on page 1, 2026-09-24):
+    a dashed title word on row 1, then four blocks of four rows, each block
+    a different rhythm so the child follows the grid rather than stamping
+    marks mechanically:
+      1. full rows, wide step          2. full rows, narrow step
+      3. groups, tapering (n, n-1, ..., min 2)
+      4. rhythm templates: model + just enough faded repeats to show the
+         step, cycling through the rhythms above.
+    `blocks` = the four (group, kwargs) specs; block 3/4 cycle through a
+    list of specs if given one."""
+    title_row(ink, c, title, inset)
+    rows = BASELINES[1:]
+    wide, narrow, groups, templates = blocks
+    full = None
+    for r, baseline in enumerate(rows):
+        block, i = divmod(r, 4)
+        if block == 0:
+            g, kw = wide
+            mark_row(ink, c, g, baseline, inset, half, **kw)
+        elif block == 1:
+            g, kw = narrow
+            mark_row(ink, c, g, baseline, inset, half, **kw)
+        elif block == 2:
+            g, kw = groups[i % len(groups)]
+            if i == 0:
+                full = mark_row(ink, c, g, baseline, inset, half, **kw)
             else:
-                mark_row(ink, c, "..", baseline, inset, half, max_groups=max(full - (r - 8), 2),
-                         inner_step=2, group_step=4)
+                mark_row(ink, c, g, baseline, inset, half, max_groups=max(full - i, 2), **kw)
         else:
-            # Independent rows still show WHICH rhythm to keep: the model plus
-            # just enough faded repeats to make the step visible, cycling
-            # through the three rhythms from above.
-            kind = (r - 12) % 3
-            if kind == 0:
-                mark_row(ink, c, ".", baseline, inset, half, max_groups=2, group_step=4)
-            elif kind == 1:
-                mark_row(ink, c, ".", baseline, inset, half, max_groups=3, group_step=2)
-            else:
-                mark_row(ink, c, "..", baseline, inset, half, max_groups=2, inner_step=2, group_step=4)
+            g, kw, n = templates[i % len(templates)]
+            mark_row(ink, c, g, baseline, inset, half, max_groups=n, **kw)
+
+
+def p1(ink, c, inset, half, warnings, n):
+    # Full stop. (The ТЗ's "кот. дом. мама." words moved to page 4 -- words
+    # drown in the dense grid.)
+    step4 = (".", {"group_step": 4})
+    step2 = (".", {"group_step": 2})
+    pair = ("..", {"inner_step": 2, "group_step": 4})
+    rhythm_page(ink, c, inset, half, "Точка", [
+        step4, step2, [pair],
+        [(*step4, 2), (*step2, 3), (*pair, 2)],
+    ])
 
 
 def p2(ink, c, inset, half, warnings, n):
-    # Comma alone: a mark every 4 cells, full rows on top, taper below,
-    # model-only rows at the bottom.
-    rows = [","] * ROWS
-    practice_page(ink, c, rows, inset, half, first_sample_row=13)
+    # Comma: same ladder as page 1. Commas sit mid-cell (MARK_OFFSET_CELLS).
+    step4 = (",", {"group_step": 4})
+    step2 = (",", {"group_step": 2})
+    pair = (",,", {"inner_step": 2, "group_step": 4})
+    rhythm_page(ink, c, inset, half, "Запятая", [
+        step4, step2, [pair],
+        [(*step4, 2), (*step2, 3), (*pair, 2)],
+    ])
 
 
 def p3(ink, c, inset, half, warnings, n):
-    # Dot vs comma: alternating pair, then short sequences.
-    rows = ([(".,", {"inner_step": 4, "group_step": 4})] * 4
-            + [".,,."] * 3 + [",.,."] * 3 + ["..,,"] * 3
-            + [".,,.", ",.,.", "..,,", ",..,"])
-    practice_page(ink, c, rows, inset, half, first_sample_row=13)
+    # Dot vs comma: alternating every 4 cells, alternating every 2 cells,
+    # then 4-mark sequences (a different one each row), then templates.
+    seqs = [(s, {"inner_step": 2, "group_step": 4}) for s in (".,,.", ",.,.", "..,,", ",..,")]
+    rhythm_page(ink, c, inset, half, "Точка и запятая", [
+        (".,", {"inner_step": 4, "group_step": 4}),
+        (".,", {"inner_step": 2, "group_step": 2}),
+        seqs,
+        [(g, kw, 2) for g, kw in seqs],
+    ])
 
 
 def p20(ink, c, inset, half, warnings, n):
