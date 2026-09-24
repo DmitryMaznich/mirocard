@@ -8,7 +8,7 @@ ruling of its KIND.
 
 from content import ladder_page, chain_row, word_row, practice_page, text_page, mark_row, title_row, ROWS, BASELINES
 
-DENSE_PAGES = {1, 2, 3, 10, 13, 14, 18}   # 8-9 became copy pages (user, 2026-09-24)
+DENSE_PAGES = {1, 2, 3, 8, 9, 10, 13, 14, 18}
 KIND = {n: ("dense" if n in DENSE_PAGES else "standard") for n in range(1, 25)}
 
 
@@ -160,17 +160,27 @@ def p7(ink, c, inset, half, warnings, n):
 
 
 def p8(ink, c, inset, half, warnings, n):
-    copy_page(ink, c, inset, ["Тут дуб, ель и клён.", "Там дом, сад и луг.",
-                              "Кот, пёс и ёж спят.", "Тут мёд, сыр и хлеб.",
-                              "Вот рак, сом и рыба.", "Ира, Оля и Юля тут.",
-                              "Тут мама, папа и я.", "У нас сыр, мёд и чай."], warnings, n)
+    # Comma, consolidation: new rhythms on the dense grid -- every 3 cells,
+    # comma/dot alternating tightly, then 3-mark groups mixing the two.
+    groups = [(g, {"inner_step": 2, "group_step": 4}) for g in (",,.", ".,,", ",.,", ",,,")]
+    rhythm_page(ink, c, inset, half, "Запятая", [
+        (",", {"group_step": 3}),
+        (",.", {"inner_step": 2, "group_step": 2}),
+        groups,
+        [(g, kw, 2) for g, kw in groups],
+    ])
 
 
 def p9(ink, c, inset, half, warnings, n):
-    copy_page(ink, c, inset, ["Мы ели суп, рис и сыр.", "Там сова, дятел и ёж.",
-                              "В лесу ёж, лиса и волк.", "Мама, папа и я гуляли.",
-                              "У Димы кот, пёс и ёж.", "Коля, Оля и Аня тут.",
-                              "Там гусь, утка и кот.", "Тут лук, мак и сад."], warnings, n)
+    # Exclamation mark: the stem runs along a diagonal, its dot sits on the
+    # diagonal/baseline crossing (MARK_OFFSET_CELLS). Same ladder as page 1.
+    step4 = ("!", {"group_step": 4})
+    step2 = ("!", {"group_step": 2})
+    pair = ("!!", {"inner_step": 2, "group_step": 4})
+    rhythm_page(ink, c, inset, half, "Восклицательный знак", [
+        step4, step2, [pair],
+        [(*step4, 2), (*step2, 3), (*pair, 2)],
+    ])
 
 
 def p20(ink, c, inset, half, warnings, n):
