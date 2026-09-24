@@ -139,6 +139,7 @@
 }
 
 .daily-orientation__card {
+  position: relative;
   box-sizing: border-box;
   min-width: 0;
   min-height: 0;
@@ -147,6 +148,29 @@
   border-radius: 44px;
   box-shadow: 0 7px 22px rgba(55, 50, 39, .08);
   overflow: hidden;
+}
+
+.daily-orientation__card--speakable {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms ease;
+}
+.daily-orientation__card--speakable:active { transform: scale(.985); }
+.daily-orientation__card--speakable:focus-visible { outline: 4px solid #db9f48; outline-offset: -4px; }
+
+.daily-orientation__speaker-icon {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: rgba(7, 61, 79, .1);
+  color: var(--orientation-ink);
+  pointer-events: none;
 }
 
 .daily-orientation__card--weekday {
@@ -274,7 +298,7 @@
 .daily-orientation__card--season-winter .daily-orientation__season-mark { color: #4b9fd0; }
 .daily-orientation__card--season-spring .daily-orientation__season-mark { color: #65a449; }
 .daily-orientation__card--season-summer .daily-orientation__season-mark { color: #edab22; }
-.daily-orientation__card--season > :not(.daily-orientation__season-background) { position: relative; z-index: 1; }
+.daily-orientation__card--season > :not(.daily-orientation__season-background):not(.daily-orientation__speaker-icon) { position: relative; z-index: 1; }
 
 .daily-orientation__clock {
   width: 150px;
@@ -359,5 +383,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .daily-orientation__carousel-item { transition: none; }
+  .daily-orientation__carousel-item,
+  .daily-orientation__card--speakable { transition: none; }
 }

@@ -1,6 +1,23 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { addCalendarDays, formatDigitalClock, formatDisplayDate, formatRussianClockTime, getRelativePrompt, getSeason } from "./timeUtils";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useSpeech } from "@/shared/hooks/useSpeech";
+import {
+  addCalendarDays,
+  formatDigitalClock,
+  formatDisplayDate,
+  formatRussianClockTime,
+  getRelativePrompt,
+  getSeason,
+  getSpokenDate,
+  getSpokenSeason,
+  getSpokenTime,
+  getSpokenWeekday,
+} from "./timeUtils";
 import "./dailyOrientation.css";
+
+// Repeated taps re-trigger the same sentence instantly (useSpeech cancels and
+// restarts); this just keeps a bored/curious tap streak from turning into a
+// stutter of half-finished sentences on the wall display.
+const SPEAK_COOLDOWN_MS = 2000;
 
 const CAROUSEL_ITEMS = [
   { offset: -1, label: "Вчера" },
@@ -104,6 +121,16 @@ function SeasonMark({ season }) {
   return <svg className="daily-orientation__season-mark" viewBox="0 0 160 160" aria-hidden="true"><path d="M78 146c3-53 16-88 56-118-1 48-19 88-56 118Z" fill="currentColor" opacity=".9" /><path d="M78 146C70 99 48 64 20 41c4 47 22 86 58 105Z" fill="currentColor" opacity=".65" /><path d="M78 146c3-47 16-79 56-118M78 146C68 100 45 63 20 41" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" /></svg>;
 }
 
+function SpeakerIcon() {
+  return (
+    <svg className="daily-orientation__speaker-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor" />
+      <path d="M16.5 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function AnalogClock({ now }) {
   const minutes = now.getMinutes();
   const hours = now.getHours() % 12;
@@ -134,11 +161,13 @@ function AnalogClock({ now }) {
   );
 }
 
-export default function DailyOrientationRenderer({ sessionParams }) {
+export default function DailyOrientationRenderer({ sessionParams, soundEnabled }) {
   const now = useCurrentTime();
   const { viewportRef, scale } = useDashboardScale();
+  const { speak } = useSpeech();
   const [offset, setOffset] = useState(0);
   const dragStart = useRef(null);
+  const lastSpokenAtRef = useRef(0);
   const display = resolveDisplayOptions(sessionParams);
   const activeDate = addCalendarDays(now, offset);
   const { weekday, month, dayOfMonth } = formatDisplayDate(activeDate);
@@ -159,6 +188,27 @@ export default function DailyOrientationRenderer({ sessionParams }) {
 
   function selectOffset(nextOffset) {
     setOffset(Math.max(-1, Math.min(1, nextOffset)));
+  }
+
+  const speakCard = useCallback((text) => {
+    const now = Date.now();
+    if (now - lastSpokenAtRef.current < SPEAK_COOLDOWN_MS) return;
+    lastSpokenAtRef.current = now;
+    speak(text);
+  }, [speak]);
+
+  function speakableCardProps(text) {
+    if (!soundEnabled) return {};
+    return {
+      role: "button",
+      tabIndex: 0,
+      onClick: () => speakCard(text),
+      onKeyDown: (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        speakCard(text);
+      },
+    };
   }
 
   function beginSwipe(event) {
@@ -207,14 +257,22 @@ export default function DailyOrientationRenderer({ sessionParams }) {
 
           <section className={`daily-orientation__grid daily-orientation__grid--${visibleCardCount}`} aria-live="polite">
             {display.showWeekday && (
-              <article className="daily-orientation__card daily-orientation__card--weekday">
+              <article
+                className={`daily-orientation__card daily-orientation__card--weekday${soundEnabled ? " daily-orientation__card--speakable" : ""}`}
+                {...speakableCardProps(getSpokenWeekday(activeDate, offset))}
+              >
+                {soundEnabled && <SpeakerIcon />}
                 <p className="daily-orientation__question">{getRelativePrompt(offset, "day")}</p>
                 <strong className="daily-orientation__answer">{weekday}</strong>
               </article>
             )}
 
             {hasDate && (
-              <article className={`daily-orientation__card daily-orientation__card--date${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__card--date-single"}`}>
+              <article
+                className={`daily-orientation__card daily-orientation__card--date${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__card--date-single"}${soundEnabled ? " daily-orientation__card--speakable" : ""}`}
+                {...speakableCardProps(getSpokenDate(activeDate, offset))}
+              >
+                {soundEnabled && <SpeakerIcon />}
                 <div className={`daily-orientation__date-values${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__date-values--single"}`}>
                   {display.showDayOfMonth && (
                     <div className="daily-orientation__date-part">
@@ -234,15 +292,24 @@ export default function DailyOrientationRenderer({ sessionParams }) {
             )}
 
             {display.showSeason && (
-              <article className={`daily-orientation__card daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
+              <article
+                className={`daily-orientation__card daily-orientation__card--season daily-orientation__card--season-${season.id}${soundEnabled ? " daily-orientation__card--speakable" : ""}`}
+                {...speakableCardProps(getSpokenSeason(activeDate, offset))}
+              >
                 <div className="daily-orientation__season-background" aria-hidden="true"><SeasonMark season={season} /></div>
+                {soundEnabled && <SpeakerIcon />}
                 <p className="daily-orientation__question">{getRelativePrompt(offset, "season")}</p>
                 <strong className="daily-orientation__answer">{season.label}</strong>
               </article>
             )}
 
             {hasTime && (
-              <article className={timeCardClassName} aria-hidden={hideCurrentTime}>
+              <article
+                className={`${timeCardClassName}${soundEnabled && !hideCurrentTime ? " daily-orientation__card--speakable" : ""}`}
+                aria-hidden={hideCurrentTime}
+                {...(hideCurrentTime ? {} : speakableCardProps(getSpokenTime(now)))}
+              >
+                {soundEnabled && !hideCurrentTime && <SpeakerIcon />}
                 <p className="daily-orientation__question daily-orientation__question--time">Сколько сейчас времени?</p>
                 <div className="daily-orientation__time-content">
                   {display.showAnalogClock && <AnalogClock now={now} />}

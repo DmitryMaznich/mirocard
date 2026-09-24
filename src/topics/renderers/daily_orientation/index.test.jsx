@@ -15,13 +15,13 @@ describe("DailyOrientationRenderer", () => {
     vi.useRealTimers();
   });
 
-  function mountAt(date, sessionParams) {
+  function mountAt(date, sessionParams, soundEnabled) {
     vi.useFakeTimers();
     vi.setSystemTime(date);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
-    act(() => root.render(<DailyOrientationRenderer sessionParams={sessionParams} />));
+    act(() => root.render(<DailyOrientationRenderer sessionParams={sessionParams} soundEnabled={soundEnabled} />));
   }
 
   it("shows today by default and updates the date fields through the carousel", () => {
@@ -79,5 +79,60 @@ describe("DailyOrientationRenderer", () => {
     expect(container.textContent).toContain("Сколько сейчас времени?");
     expect(container.querySelector(".daily-orientation__clock")).not.toBeNull();
     expect(container.querySelector(".daily-orientation__digital-time")).toBeNull();
+  });
+
+  describe("tap-to-speak", () => {
+    let speakSpy;
+
+    function stubSpeechSynthesis() {
+      speakSpy = vi.fn();
+      vi.stubGlobal("speechSynthesis", { cancel: vi.fn(), speak: speakSpy, getVoices: () => [] });
+      vi.stubGlobal("SpeechSynthesisUtterance", class {
+        constructor(text) { this.text = text; }
+      });
+    }
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("speaks the matching sentence when a card is tapped, respecting the carousel offset", () => {
+      stubSpeechSynthesis();
+      mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
+
+      const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
+      act(() => weekdayCard.click());
+      expect(speakSpy).toHaveBeenCalledTimes(1);
+      expect(speakSpy.mock.calls[0][0].text).toBe("Сегодня вторник.");
+
+      const tomorrow = Array.from(container.querySelectorAll("button"))
+        .find((button) => button.textContent === "Завтра");
+      act(() => tomorrow.click());
+      act(() => { vi.advanceTimersByTime(3000); }); // clear the tap cooldown from the first speak
+
+      act(() => weekdayCard.click());
+      expect(speakSpy).toHaveBeenCalledTimes(2);
+      expect(speakSpy.mock.calls[1][0].text).toBe("Завтра будет среда.");
+    });
+
+    it("does nothing when sound is disabled", () => {
+      stubSpeechSynthesis();
+      mountAt(new Date(2026, 8, 22, 14, 35), undefined, false);
+
+      const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
+      expect(weekdayCard.getAttribute("role")).toBeNull();
+      act(() => weekdayCard.click());
+      expect(speakSpy).not.toHaveBeenCalled();
+    });
+
+    it("ignores a rapid second tap within the cooldown window", () => {
+      stubSpeechSynthesis();
+      mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
+
+      const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
+      act(() => weekdayCard.click());
+      act(() => weekdayCard.click());
+      expect(speakSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });

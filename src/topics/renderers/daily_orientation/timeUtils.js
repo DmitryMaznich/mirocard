@@ -19,6 +19,24 @@ const MINUTE_WORDS = [
   "пятьдесят девять",
 ];
 
+const WEEKDAY_NAMES = ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"];
+const WEEKDAY_PAST_VERB = ["было", "был", "был", "была", "был", "была", "была"];
+
+const DATE_ORDINALS = [
+  "первое", "второе", "третье", "четвёртое", "пятое", "шестое", "седьмое", "восьмое", "девятое", "десятое",
+  "одиннадцатое", "двенадцатое", "тринадцатое", "четырнадцатое", "пятнадцатое", "шестнадцатое", "семнадцатое",
+  "восемнадцатое", "девятнадцатое", "двадцатое", "двадцать первое", "двадцать второе", "двадцать третье",
+  "двадцать четвёртое", "двадцать пятое", "двадцать шестое", "двадцать седьмое", "двадцать восьмое",
+  "двадцать девятое", "тридцатое", "тридцать первое",
+];
+
+const MONTHS_GENITIVE = [
+  "января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря",
+];
+
+const SEASON_WORDS = { winter: "зима", spring: "весна", summer: "лето", autumn: "осень" };
+const SEASON_PAST_VERB = { winter: "была", spring: "была", summer: "было", autumn: "была" };
+
 function russianPlural(value, singular, few, many) {
   const remainder = Math.abs(value) % 100;
   const last = remainder % 10;
@@ -60,10 +78,41 @@ export function getRelativePrompt(offset, noun) {
   return "Какое сейчас время года?";
 }
 
-export function formatRussianClockTime(date) {
+function buildClockWords(date) {
   const hours = date.getHours();
   const minutes = date.getMinutes();
-  return `${HOUR_WORDS[hours]} ${russianPlural(hours, "час", "часа", "часов")} ${MINUTE_WORDS[minutes]} ${russianPlural(minutes, "минута", "минуты", "минут")}`.toUpperCase();
+  return `${HOUR_WORDS[hours]} ${russianPlural(hours, "час", "часа", "часов")} ${MINUTE_WORDS[minutes]} ${russianPlural(minutes, "минута", "минуты", "минут")}`;
+}
+
+export function formatRussianClockTime(date) {
+  return buildClockWords(date).toUpperCase();
+}
+
+export function getSpokenWeekday(date, offset) {
+  const day = date.getDay();
+  const name = WEEKDAY_NAMES[day];
+  if (offset < 0) return `Вчера ${WEEKDAY_PAST_VERB[day]} ${name}.`;
+  if (offset > 0) return `Завтра будет ${name}.`;
+  return `Сегодня ${name}.`;
+}
+
+export function getSpokenDate(date, offset) {
+  const phrase = `${DATE_ORDINALS[date.getDate() - 1]} ${MONTHS_GENITIVE[date.getMonth()]}`;
+  if (offset < 0) return `Вчера было ${phrase}.`;
+  if (offset > 0) return `Завтра будет ${phrase}.`;
+  return `Сегодня ${phrase}.`;
+}
+
+export function getSpokenSeason(date, offset) {
+  const season = getSeason(date.getMonth());
+  const word = SEASON_WORDS[season.id];
+  if (offset < 0) return `Вчера ${SEASON_PAST_VERB[season.id]} ${word}.`;
+  if (offset > 0) return `Завтра будет ${word}.`;
+  return `Сейчас ${word}.`;
+}
+
+export function getSpokenTime(date) {
+  return `Сейчас ${buildClockWords(date)}.`;
 }
 
 export function formatDigitalClock(date) {
