@@ -48,6 +48,8 @@ REG, BOLD = "Helvetica", "Helvetica-Bold"
 for r_path, b_path in [
     ("C:/Windows/Fonts/arial.ttf",   "C:/Windows/Fonts/arialbd.ttf"),
     ("C:/Windows/Fonts/calibri.ttf", "C:/Windows/Fonts/calibrib.ttf"),
+    ("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+     "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"),
     ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
      "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
 ]:
@@ -577,10 +579,20 @@ def main():
     cv.line(HALF_W, 0, HALF_W, PAGE_H)
     cv.setDash([])
 
-    # Метки переплёта
-    cv.setFillColorRGB(0, 0, 0)
-    for fold_y in [PAGE_H * 0.27, PAGE_H * 0.73]:
-        cv.rect(HALF_W - 2.5, fold_y - 5, 5, 10, fill=1, stroke=0)
+    # Метки переплёта — точно те же, что на внутренних листах всех тетрадей
+    # (make_lined_paper_landscape*.py, propis_worksheets/propis_ruling.py,
+    # punctuation_workbook/ruling.py): пара прорезей 1.2×2.5мм через 6мм,
+    # в 45мм от верхнего и нижнего края — чтобы скобы степлера попадали в
+    # одни и те же места на обложке и на листах.
+    staple_spacing = 6 * MM
+    slot_w, slot_h = 1.2 * MM, 2.5 * MM
+    cv.setFillColorRGB(0.23, 0.23, 0.23)
+    cv.setStrokeColorRGB(0.2, 0.2, 0.2)
+    cv.setLineWidth(0.1)
+    for y_staple in [PAGE_H - 45 * MM, 45 * MM]:
+        for dy in (-staple_spacing / 2, staple_spacing / 2):
+            cv.roundRect(HALF_W - slot_w / 2, y_staple + dy - slot_h / 2,
+                         slot_w, slot_h, 0.3 * MM, fill=1, stroke=1)
 
     cv.save()
     print(f"✓  {out}")
