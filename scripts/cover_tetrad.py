@@ -380,6 +380,75 @@ def left_page_alphabet_handwritten(cv):
 
 
 # ═════════════════════════════════════════════════════════════════════════════
+# Левая страница — вариант «знаки препинания» (scripts/punctuation_workbook)
+# ═════════════════════════════════════════════════════════════════════════════
+
+def _punctuation_ink():
+    """The workbook's own Ink: captured cursive letters + the user's
+    captured punctuation marks (tools/propis/topic.json), same strokes the
+    notebook pages draw."""
+    wb = os.path.join(SCRIPTS_DIR, "punctuation_workbook")
+    if wb not in sys.path:
+        sys.path.insert(0, wb)
+    from content import Ink
+    return Ink()
+
+
+PUNCT_COVER_SENTENCES = [
+    "Мама, ты дома?",
+    "Ура! Мы едем в лес.",
+    "Кот, пёс и ёж спят.",
+    "Где мяч? Вот он!",
+]
+
+
+def left_page_punctuation(cv):
+    cv.setFillColorRGB(1, 1, 1)
+    cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
+
+    ybase, cx, _max_w, font_max = _propis_grid(cv)
+
+    cv.setFont(CURSIVE, font_max)
+    cv.setFillColorRGB(0.05, 0.40, 0.08)
+    cv.drawCentredString(cx, ybase(0), "Знаки препинания")
+
+    # Rows 1-4: real handwriting with every mark; the cover grid is the
+    # workbook's own scale (4mm x-height), so the strokes sit on it as-is.
+    ink = _punctuation_ink()
+    cv.saveState()
+    cv.scale(MM, MM)
+    for j, s in enumerate(PUNCT_COVER_SENTENCES):
+        w = ink.sentence_width(s)
+        ink.draw_text(cv, s, cx / MM - w / 2, ybase(1 + j) / MM, 1.0)
+    # Row 5: the four marks on their own, right-aligned like the poem's signature
+    x = L_X1 / MM - 34
+    for ch in ".,?!":
+        ink.draw_mark(cv, ch, x, ybase(5) / MM, 1.0)
+        x += 9
+    cv.restoreState()
+
+    _logo_footer(cv)
+
+
+def _punctuation_pictogram(cv, x0, x1, y0, y1, narrow_h, pitch, y_first):
+    """Thumbnail window for the punctuation workbook: its standard ruling
+    with the four marks drawn big on the top row."""
+    diag_lines(cv, x0, x1, y0, y1, step=7 * MM)
+    propis_rows(cv, x0, x1, y_first, 5, narrow_h=narrow_h, pitch=pitch)
+    ink = _punctuation_ink()
+    k = 0.62                             # marks ~5mm tall in the 14mm window
+    cv.saveState()
+    cv.translate(x0, y_first - 3 * pitch)
+    cv.scale(MM * k, MM * k)
+    cv.setLineWidth(0.4 / k)
+    x = 3.0
+    for ch in ".,?!":
+        ink.draw_mark(cv, ch, x, 0, 1.0)
+        x += 6.0
+    cv.restoreState()
+
+
+# ═════════════════════════════════════════════════════════════════════════════
 # Правая страница — бланк ТЕТРАДЬ
 # ═════════════════════════════════════════════════════════════════════════════
 
@@ -401,7 +470,25 @@ def right_page(cv, style="плотная"):
     # Подзаголовок
     cv.setFont(REG, 10)
     cv.setFillColorRGB(0.25, 0.25, 0.25)
-    cv.drawCentredString(rcx_tet, tetrad_y - 19, "для прописей")
+    if style == "знаки":
+        cv.drawCentredString(rcx_tet, tetrad_y - 19, "для прописей · знаки препинания")
+        # the four marks, big, as the tag line of this special notebook
+        ink = _punctuation_ink()
+        cv.saveState()
+        cv.translate(rcx_tet, tetrad_y + 42)
+        cv.scale(MM * 2.2, MM * 2.2)
+        cv.setStrokeColorRGB(*C_LINE_BASE)
+        cv.setLineWidth(0.3 / 2.2)
+        cv.line(-16, 0, 16, 0)
+        cv.setStrokeColorRGB(*C_LINE_TOP)
+        cv.line(-16, 4, 16, 4)
+        x = -10.5
+        for ch in ".,?!":
+            ink.draw_mark(cv, ch, x, 0, 1.0)
+            x += 7
+        cv.restoreState()
+    else:
+        cv.drawCentredString(rcx_tet, tetrad_y - 19, "для прописей")
 
     # ── Поля ─────────────────────────────────────────────────────────────────
     cv.setFont(REG, 11)
@@ -456,6 +543,8 @@ def right_page(cv, style="плотная"):
     if style == "точки":
         propis_rows(cv, th_x0, th_x1, th_y_first, 5, narrow_h=th_narrow, pitch=th_pitch)
         thumbnail_dots(cv, th_x0, th_x1, th_y0, th_y1, th_narrow, th_pitch, 5)
+    elif style == "знаки":
+        _punctuation_pictogram(cv, th_x0, th_x1, th_y0, th_y1, th_narrow, th_pitch, th_y_first)
     elif style == "тексты":
         _texts_pictogram(cv, th_x0, th_x1, th_y0, th_y1, th_narrow, th_pitch, th_y_first)
     else:
@@ -489,6 +578,8 @@ def main():
 
     if variant == "alphabet":
         left_page_alphabet_handwritten(cv)
+    elif variant == "punctuation":
+        left_page_punctuation(cv)
     else:
         left_page(cv)
     right_page(cv, style=style)
