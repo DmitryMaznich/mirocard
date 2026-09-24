@@ -191,24 +191,25 @@ def mark_row(ink, c, group, baseline, inset, half_offset, max_groups=None,
     return gi
 
 
-DASH = (0.5, 0.4)   # mm on/off for tracing templates
+DASH = (0.5, 0.56)   # mm on/off for tracing templates (gap +40% per the user)
 
 
 def title_row(ink, c, text, inset):
     """The mark's name in cursive on the page's first row (user, 2026-09-24:
     children hear "точка", "запятая"... all the time but never see the word
-    written). Not a lost row -- it's a tracing exercise too: one solid model,
-    then a dashed copy to trace, then the blank tail to write it alone. A
-    name too long for two copies before the tail is dashed only."""
+    written). Not a lost row -- it's a tracing exercise: dashed copies of
+    the name from the very first one (no solid model), as many as fit
+    before the blank tail (at least one), then the tail to write it alone."""
     w = ink.sentence_width(text)
     limit = CONTENT_W_MM * (1 - TAIL_FRACTION)
     x = inset
-    if 2 * w + 2 * WORD_GAP_MM <= limit:
-        ink.draw_text(c, text, x, BASELINES[0], MODEL_OPACITY)
-        x += w + 2 * WORD_GAP_MM
     c.saveState()
     c.setDash(*DASH)
-    ink.draw_text(c, text, x, BASELINES[0], MODEL_OPACITY)
+    while True:
+        ink.draw_text(c, text, x, BASELINES[0], MODEL_OPACITY)
+        x += w + 2 * WORD_GAP_MM
+        if x - inset + w > limit:
+            break
     c.restoreState()
 
 
