@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import {
+  dateClipKeys,
+  monthClipKeys,
+  seasonClipKeys,
+  timeClipKeys,
+  weatherClipKeys,
+  weekdayClipKeys,
+} from "./audioBank.js";
+import { clipsSupported, useClipPlayer } from "./clipPlayer.js";
+import {
   addCalendarDays,
   formatDigitalClock,
   formatDisplayDate,
@@ -485,6 +494,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const now = useCurrentTime();
   const { viewportRef, scale, width: canvasWidth, height: canvasHeight } = useDashboardScale();
   const { speak } = useSpeech();
+  const { play: playClips } = useClipPlayer();
   const [offset, setOffset] = useState(0);
   const [isWeeklyPlanOpen, setIsWeeklyPlanOpen] = useState(false);
   const [isWeatherPickerOpen, setIsWeatherPickerOpen] = useState(false);
@@ -516,12 +526,20 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
     setOffset(Math.max(-1, Math.min(1, nextOffset)));
   }
 
-  const speakCard = useCallback((text) => {
+  // Recorded Kore clips first (see audioBank.js); browser TTS of the same
+  // sentence only if the clips can't play here (no Web Audio, a file missing).
+  const speakCard = useCallback((text, clipKeys) => {
     const now = Date.now();
     if (now - lastSpokenAtRef.current < SPEAK_COOLDOWN_MS) return;
     lastSpokenAtRef.current = now;
-    speak(text);
-  }, [speak]);
+    if (!clipKeys || !clipsSupported()) {
+      speak(text);
+      return;
+    }
+    playClips(clipKeys).then((played) => {
+      if (!played) speak(text);
+    });
+  }, [speak, playClips]);
 
   function beginSwipe(event) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -603,7 +621,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     {soundEnabled && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        speakCard(getSpokenWeekday(activeDate, offset));
+                        speakCard(getSpokenWeekday(activeDate, offset), weekdayClipKeys(activeDate, offset));
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_WEEKDAY}</p>
@@ -616,7 +634,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     {soundEnabled && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        speakCard(getSpokenDate(activeDate, offset));
+                        speakCard(getSpokenDate(activeDate, offset), dateClipKeys(activeDate, offset));
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_DATE_NUMBER}</p>
@@ -629,7 +647,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     {soundEnabled && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        speakCard(getSpokenMonth(activeDate, offset));
+                        speakCard(getSpokenMonth(activeDate, offset), monthClipKeys(activeDate, offset));
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_MONTH}</p>
@@ -657,7 +675,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     {soundEnabled && weatherId && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        speakCard(getSpokenWeather(weatherId));
+                        speakCard(getSpokenWeather(weatherId), weatherClipKeys(weatherId));
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_WEATHER}</p>
@@ -680,7 +698,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     {soundEnabled && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        speakCard(getSpokenSeason(activeDate, offset));
+                        speakCard(getSpokenSeason(activeDate, offset), seasonClipKeys(activeDate, offset));
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_SEASON}</p>
@@ -693,7 +711,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     {soundEnabled && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        speakCard(getSpokenTime(now));
+                        speakCard(getSpokenTime(now), timeClipKeys(now));
                       }} />
                     )}
                     {(display.showAnalogClock || display.showDigitalTime) && (
