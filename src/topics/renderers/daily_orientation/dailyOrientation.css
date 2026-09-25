@@ -450,6 +450,80 @@
   overflow-wrap: anywhere;
 }
 
+/* Child-set, not fetched -- see useTodaysWeather. Sits inside the season
+   card as a secondary control, so it's deliberately quieter than the card's
+   own big answer: a pill, not another huge headline. */
+.daily-orientation__weather-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: .01em;
+  color: var(--orientation-ink);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.daily-orientation__weather-row:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
+
+.daily-orientation__weather-row--unset {
+  border: 2px dashed rgba(7, 61, 79, .35);
+  background: transparent;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--orientation-muted);
+}
+
+.daily-orientation__weather-row--set {
+  border: 2px solid transparent;
+  background: rgba(255, 255, 255, .55);
+}
+
+.daily-orientation__weather-mark { width: 30px; height: 30px; flex: 0 0 auto; color: #df8b16; }
+
+.daily-orientation__weather-picker-title {
+  margin: 0 0 20px;
+  font-size: 32px;
+  font-weight: 900;
+  text-align: center;
+  color: var(--orientation-ink);
+}
+
+.daily-orientation__weather-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(12px, 1.6vw, 24px);
+}
+
+.daily-orientation__weather-option {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: clamp(18px, 2.2vw, 30px) 10px;
+  border: 2px solid transparent;
+  border-radius: clamp(18px, 1.8vw, 28px);
+  background: #f4f1e9;
+  color: var(--orientation-ink);
+  font: inherit;
+  font-weight: 900;
+  font-size: clamp(15px, 1.4vw, 20px);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.daily-orientation__weather-option .daily-orientation__weather-mark { width: clamp(34px, 4vw, 56px); height: clamp(34px, 4vw, 56px); }
+.daily-orientation__weather-option:active { transform: scale(.97); }
+.daily-orientation__weather-option:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
+.daily-orientation__weather-option--active { background: #d8efe7; border-color: #2f8677; }
+
 .daily-orientation__rotate-notice { display: none; }
 
 @media (orientation: portrait) {

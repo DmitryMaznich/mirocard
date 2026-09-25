@@ -1937,6 +1937,7 @@ export default function ParamsScreen() {
     "showDayOfMonth",
     "showMonth",
     "showSeason",
+    "showWeather",
     "showAnalogClock",
     "showTimeWords",
     "showDigitalTime",

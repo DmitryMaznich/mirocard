@@ -5,6 +5,7 @@ import {
   formatDigitalClock,
   formatDisplayDate,
   formatRussianClockTime,
+  getLocalDateKey,
   getSeason,
   getSpokenDate,
   getSpokenSeason,
@@ -22,7 +23,62 @@ const SPEAK_COOLDOWN_MS = 2000;
 // Same idle-return reasoning as the carousel: this is an unattended wall
 // display, so a modal left open by a child who wandered off must not stay
 // open indefinitely.
-const WEEKLY_PLAN_IDLE_CLOSE_MS = 90_000;
+const MODAL_IDLE_CLOSE_MS = 90_000;
+
+const WEATHER_STORAGE_KEY = "daily_orientation_weather";
+
+const WEATHER_OPTIONS = [
+  { id: "sunny", label: "СОЛНЕЧНО" },
+  { id: "cloudy", label: "ОБЛАЧНО" },
+  { id: "rain", label: "ДОЖДЬ" },
+  { id: "snow", label: "СНЕГ" },
+];
+const WEATHER_LABEL_BY_ID = Object.fromEntries(WEATHER_OPTIONS.map((o) => [o.id, o.label]));
+
+function readStoredWeather(dateKey) {
+  try {
+    const raw = window.localStorage.getItem(WEATHER_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.date === dateKey ? parsed.weatherId : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredWeather(dateKey, weatherId) {
+  try {
+    window.localStorage.setItem(WEATHER_STORAGE_KEY, JSON.stringify({ date: dateKey, weatherId }));
+  } catch {
+    // Best-effort only -- a private/blocked storage context just means the
+    // pick won't survive a reload, not a reason to break the tap.
+  }
+}
+
+// The child sets this by looking out the window, not from a live feed, so it
+// can never be wrong the moment it's picked -- but it must still expire at
+// local midnight, or a forgotten pick from Monday would keep confidently
+// claiming to be true on Wednesday. Keying storage to the calendar-day string
+// (not a TTL timer) makes that automatic: a new day means a new key, so
+// yesterday's value is simply never read again.
+//
+// weatherId is read fresh from storage every render (cheap, synchronous)
+// instead of mirrored into its own useState+effect -- dateKey changing is
+// what should make it change, and re-deriving it directly is what React's
+// own guidance recommends over syncing external state through an effect.
+// `version` exists only to force a re-render after a write, since writing to
+// localStorage doesn't itself trigger one.
+function useTodaysWeather(dateKey) {
+  const [, forceRerender] = useState(0);
+  const weatherId = readStoredWeather(dateKey);
+
+  function selectWeather(id) {
+    writeStoredWeather(dateKey, id);
+    forceRerender((v) => v + 1);
+  }
+
+  return { weatherId, selectWeather };
+}
 
 const CAROUSEL_ITEMS = [
   { offset: -1, label: "Вчера" },
@@ -58,6 +114,7 @@ const DISPLAY_OPTION_KEYS = [
   "showDayOfMonth",
   "showMonth",
   "showSeason",
+  "showWeather",
   "showAnalogClock",
   "showTimeWords",
   "showDigitalTime",
@@ -168,37 +225,79 @@ function CloseIcon() {
   );
 }
 
-function WeeklyPlanModal({ today, plan, onClose }) {
+function DailyOrientationModal({ label, onClose, children }) {
   useEffect(() => {
-    const timeoutId = window.setTimeout(onClose, WEEKLY_PLAN_IDLE_CLOSE_MS);
+    const timeoutId = window.setTimeout(onClose, MODAL_IDLE_CLOSE_MS);
     return () => window.clearTimeout(timeoutId);
   }, [onClose]);
 
-  const todayIndex = today.getDay();
-
   return (
     <div className="daily-orientation__modal-backdrop">
-      <div className="daily-orientation__modal" role="dialog" aria-modal="true" aria-label="План на неделю">
+      <div className="daily-orientation__modal" role="dialog" aria-modal="true" aria-label={label}>
         <button type="button" className="daily-orientation__modal-close" onClick={onClose} aria-label="Закрыть">
           <CloseIcon />
         </button>
-        <div className="daily-orientation__week">
-          {WEEK_DAYS.map(({ day, label }) => (
-            <div
-              key={day}
-              className={[
-                "daily-orientation__week-day",
-                day === todayIndex ? "daily-orientation__week-day--today" : "",
-                WEEKEND_DAYS.has(day) ? "daily-orientation__week-day--weekend" : "",
-              ].filter(Boolean).join(" ")}
-            >
-              <span className="daily-orientation__week-day-label">{label}</span>
-              {plan[day] && <p className="daily-orientation__week-day-plan">{plan[day]}</p>}
-            </div>
-          ))}
-        </div>
+        {children}
       </div>
     </div>
+  );
+}
+
+function WeeklyPlanModal({ today, plan, onClose }) {
+  const todayIndex = today.getDay();
+
+  return (
+    <DailyOrientationModal label="План на неделю" onClose={onClose}>
+      <div className="daily-orientation__week">
+        {WEEK_DAYS.map(({ day, label }) => (
+          <div
+            key={day}
+            className={[
+              "daily-orientation__week-day",
+              day === todayIndex ? "daily-orientation__week-day--today" : "",
+              WEEKEND_DAYS.has(day) ? "daily-orientation__week-day--weekend" : "",
+            ].filter(Boolean).join(" ")}
+          >
+            <span className="daily-orientation__week-day-label">{label}</span>
+            {plan[day] && <p className="daily-orientation__week-day-plan">{plan[day]}</p>}
+          </div>
+        ))}
+      </div>
+    </DailyOrientationModal>
+  );
+}
+
+function WeatherMark({ id }) {
+  if (id === "sunny") {
+    return <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="16" cy="16" r="7" fill="currentColor" stroke="none" /><path d="M16 2v4M16 26v4M2 16h4M26 16h4M6.3 6.3l2.8 2.8M22.9 22.9l2.8 2.8M25.7 6.3l-2.8 2.8M9.1 22.9l-2.8 2.8" /></g></svg>;
+  }
+  if (id === "rain") {
+    return <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 17a6 6 0 0 1 .8-11.9A8 8 0 0 1 25 10a5 5 0 0 1-1 9.9H9Z" fill="currentColor" opacity=".85" /><g stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M11 23l-2 4M17 23l-2 4M23 23l-2 4" /></g></svg>;
+  }
+  if (id === "snow") {
+    return <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 17a6 6 0 0 1 .8-11.9A8 8 0 0 1 25 10a5 5 0 0 1-1 9.9H9Z" fill="currentColor" opacity=".85" /><g stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 23v6M12 24.5l-3 1.5M12 24.5l3 1.5M12 27.5l-3 1.5M12 27.5l3 1.5" /><path d="M22 23v6M22 24.5l-3 1.5M22 24.5l3 1.5M22 27.5l-3 1.5M22 27.5l3 1.5" /></g></svg>;
+  }
+  return <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 20a6 6 0 0 1 .8-11.9A8 8 0 0 1 25 13a5 5 0 0 1-1 9.9H9Z" fill="currentColor" /></svg>;
+}
+
+function WeatherPickerModal({ value, onSelect, onClose }) {
+  return (
+    <DailyOrientationModal label="Какая сегодня погода?" onClose={onClose}>
+      <p className="daily-orientation__weather-picker-title">Какая сегодня погода?</p>
+      <div className="daily-orientation__weather-options">
+        {WEATHER_OPTIONS.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            className={`daily-orientation__weather-option${value === option.id ? " daily-orientation__weather-option--active" : ""}`}
+            onClick={() => onSelect(option.id)}
+          >
+            <WeatherMark id={option.id} />
+            <span>{option.label}</span>
+          </button>
+        ))}
+      </div>
+    </DailyOrientationModal>
   );
 }
 
@@ -238,10 +337,12 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const { speak } = useSpeech();
   const [offset, setOffset] = useState(0);
   const [isWeeklyPlanOpen, setIsWeeklyPlanOpen] = useState(false);
+  const [isWeatherPickerOpen, setIsWeatherPickerOpen] = useState(false);
   const dragStart = useRef(null);
   const lastSpokenAtRef = useRef(0);
   const display = resolveDisplayOptions(sessionParams);
   const weeklyPlan = parseWeeklyPlan(sessionParams?.weeklyPlan);
+  const { weatherId, selectWeather } = useTodaysWeather(getLocalDateKey(now));
   const activeDate = addCalendarDays(now, offset);
   const { weekday, month, dayOfMonth } = formatDisplayDate(activeDate);
   const season = getSeason(activeDate.getMonth());
@@ -395,6 +496,25 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                 )}
                 <p className="daily-orientation__question">{CAPTION_SEASON}</p>
                 <strong className="daily-orientation__answer">{season.label}</strong>
+                {display.showWeather && offset === 0 && (
+                  <button
+                    type="button"
+                    className={`daily-orientation__weather-row${weatherId ? " daily-orientation__weather-row--set" : " daily-orientation__weather-row--unset"}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setIsWeatherPickerOpen(true);
+                    }}
+                  >
+                    {weatherId ? (
+                      <>
+                        <WeatherMark id={weatherId} />
+                        <span>{WEATHER_LABEL_BY_ID[weatherId]}</span>
+                      </>
+                    ) : (
+                      <span>Добавить погоду</span>
+                    )}
+                  </button>
+                )}
               </article>
             )}
 
@@ -433,6 +553,13 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
       </div>
       {isWeeklyPlanOpen && (
         <WeeklyPlanModal today={now} plan={weeklyPlan} onClose={() => setIsWeeklyPlanOpen(false)} />
+      )}
+      {isWeatherPickerOpen && (
+        <WeatherPickerModal
+          value={weatherId}
+          onSelect={(id) => { selectWeather(id); setIsWeatherPickerOpen(false); }}
+          onClose={() => setIsWeatherPickerOpen(false)}
+        />
       )}
     </main>
   );

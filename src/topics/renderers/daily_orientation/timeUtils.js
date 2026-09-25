@@ -127,6 +127,17 @@ export function formatDigitalClock(date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
+// Local calendar date as YYYY-MM-DD, deliberately not date.toISOString()
+// (which is UTC and can land on the wrong day near local midnight). Used to
+// key anything that must reset itself at local midnight rather than at a
+// fixed UTC instant (e.g. the child's today-only weather pick).
+export function getLocalDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export function formatDisplayDate(date) {
   const weekday = new Intl.DateTimeFormat("ru-RU", { weekday: "long" }).format(date);
   const month = new Intl.DateTimeFormat("ru-RU", { month: "long" }).format(date);

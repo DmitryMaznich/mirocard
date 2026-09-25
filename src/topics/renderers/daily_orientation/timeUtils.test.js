@@ -3,6 +3,7 @@ import {
   addCalendarDays,
   formatDigitalClock,
   formatRussianClockTime,
+  getLocalDateKey,
   getSeason,
   getSpokenDate,
   getSpokenSeason,
@@ -79,5 +80,10 @@ describe("daily orientation time helpers", () => {
     expect(parseWeeklyPlan("")).toEqual({});
     expect(parseWeeklyPlan("   \n  \n")).toEqual({});
     expect(parseWeeklyPlan(undefined)).toEqual({});
+  });
+
+  it("formats a local calendar-day key that does not depend on time-of-day or timezone shifting", () => {
+    expect(getLocalDateKey(new Date(2026, 8, 5, 23, 59))).toBe("2026-09-05");
+    expect(getLocalDateKey(new Date(2026, 0, 1, 0, 0))).toBe("2026-01-01");
   });
 });

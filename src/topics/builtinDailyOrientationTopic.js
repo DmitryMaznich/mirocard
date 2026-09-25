@@ -60,6 +60,13 @@ export function buildDailyOrientationTopicRecord() {
             default: true,
             section: "Что показывать",
           },
+          showWeather: {
+            type: "boolean",
+            label: { ru: "Погода (отмечает ребёнок)" },
+            default: true,
+            dependsOn: "showSeason",
+            section: "Что показывать",
+          },
           showAnalogClock: {
             type: "boolean",
             label: { ru: "Аналоговые часы" },

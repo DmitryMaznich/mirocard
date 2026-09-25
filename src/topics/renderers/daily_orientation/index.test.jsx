@@ -13,6 +13,7 @@ describe("DailyOrientationRenderer", () => {
     root = null;
     container = null;
     vi.useRealTimers();
+    window.localStorage.clear();
   });
 
   function mountAt(date, sessionParams, soundEnabled) {
@@ -150,6 +151,14 @@ describe("DailyOrientationRenderer", () => {
       expect(speakSpy.mock.calls[0][0].text).toBe("Сегодня вторник.");
       expect(container.querySelector('[role="dialog"]')).toBeNull();
     });
+
+    it("tapping the weather row does not also speak the season", () => {
+      stubSpeechSynthesis();
+      mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
+
+      act(() => container.querySelector(".daily-orientation__weather-row").click());
+      expect(speakSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe("weekly plan modal", () => {
@@ -205,6 +214,58 @@ describe("DailyOrientationRenderer", () => {
 
       act(() => { vi.advanceTimersByTime(90_000); });
       expect(container.querySelector('[role="dialog"]')).toBeNull();
+    });
+  });
+
+  describe("weather picker", () => {
+    it("invites the child to pick today's weather when none has been set yet", () => {
+      mountAt(new Date(2026, 8, 22, 14, 35));
+
+      const weatherRow = container.querySelector(".daily-orientation__weather-row");
+      expect(weatherRow.classList.contains("daily-orientation__weather-row--unset")).toBe(true);
+      expect(weatherRow.textContent).toContain("Добавить погоду");
+    });
+
+    it("opens a picker, shows the pick on the card, and persists it under today's date", () => {
+      mountAt(new Date(2026, 8, 22, 14, 35));
+
+      act(() => container.querySelector(".daily-orientation__weather-row").click());
+      const dialog = container.querySelector('[role="dialog"]');
+      expect(dialog).not.toBeNull();
+
+      const rainOption = Array.from(dialog.querySelectorAll("button"))
+        .find((button) => button.textContent.includes("ДОЖДЬ"));
+      act(() => rainOption.click());
+
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+      const weatherRow = container.querySelector(".daily-orientation__weather-row");
+      expect(weatherRow.classList.contains("daily-orientation__weather-row--set")).toBe(true);
+      expect(weatherRow.textContent).toContain("ДОЖДЬ");
+
+      expect(window.localStorage.getItem("daily_orientation_weather")).toBe(
+        JSON.stringify({ date: "2026-09-22", weatherId: "rain" })
+      );
+    });
+
+    it("does not carry yesterday's stored pick into a new day", () => {
+      window.localStorage.setItem(
+        "daily_orientation_weather",
+        JSON.stringify({ date: "2026-09-21", weatherId: "snow" })
+      );
+      mountAt(new Date(2026, 8, 22, 14, 35));
+
+      const weatherRow = container.querySelector(".daily-orientation__weather-row");
+      expect(weatherRow.classList.contains("daily-orientation__weather-row--unset")).toBe(true);
+      expect(weatherRow.textContent).not.toContain("СНЕГ");
+    });
+
+    it("is hidden while viewing Вчера/Завтра", () => {
+      mountAt(new Date(2026, 8, 22, 14, 35));
+      const tomorrow = Array.from(container.querySelectorAll("button"))
+        .find((button) => button.textContent === "Завтра");
+      act(() => tomorrow.click());
+
+      expect(container.querySelector(".daily-orientation__weather-row")).toBeNull();
     });
   });
 });
