@@ -19,7 +19,7 @@ import { AUDIO_ENTRIES } from "../src/topics/renderers/daily_orientation/audioBa
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(__dirname, "..", "public", "audio", "daily-orientation");
 const arg = (name) => process.argv.find((a) => a.startsWith(`--${name}=`))?.split("=")[1];
-const MODEL = arg("model") ?? "gemini-2.5-flash-preview-tts";
+const MODEL = arg("model") ?? "gemini-3.8-flash-tts";
 const VOICE = arg("voice") ?? "Kore";
 const KEYS = arg("keys")?.split(",").filter(Boolean) ?? null;
 const FORCE = process.argv.includes("--force");
@@ -30,11 +30,28 @@ const MIN_DELAY_MS = 6500;
 // "lead" clips are the start of a sentence that keeps going ("Вчера было…",
 // "двадцать шестое…"); "final" clips end it. Asking for the matching
 // intonation is what keeps the assembled sentence from sounding like a list
-// of separate words.
-const TONE_PROMPTS = {
-  lead: "Прочитай спокойно, чётко и дружелюбно, как для ребёнка. Это начало фразы, которая продолжается дальше, поэтому интонация незавершённая, без понижения в конце. Прочитай только эти слова:",
-  final: "Прочитай спокойно, чётко и дружелюбно, как для ребёнка. Это конец фразы, интонация завершённая, как перед точкой. Прочитай только эти слова:",
+// of separate words. The language is spelled out every time: with only one
+// or two words of input the model otherwise guesses it and reads Russian
+// with a foreign accent (what the 2.5-flash pilot did).
+const STYLE_BASE = "Native Russian speaker, standard Moscow pronunciation, no foreign accent. Calm, clear, warm, unhurried, for a young child.";
+const TONE_STYLES = {
+  lead: `${STYLE_BASE} This is the beginning of a sentence that continues: unfinished, rising-level intonation, no final fall.`,
+  final: `${STYLE_BASE} This is the end of a sentence: finished, falling intonation, as before a full stop.`,
 };
+const TONE_PROMPTS = {
+  lead: "Говори на русском языке, как носитель языка, без акцента. Спокойно, чётко и дружелюбно, как для ребёнка. Это начало фразы, которая продолжается дальше, поэтому интонация незавершённая. Прочитай только эти слова:",
+  final: "Говори на русском языке, как носитель языка, без акцента. Спокойно, чётко и дружелюбно, как для ребёнка. Это конец фразы, интонация завершённая. Прочитай только эти слова:",
+};
+
+function findNestedAudioData(value) {
+  if (!value || typeof value !== "object") return null;
+  if (typeof value.data === "string" && value.data.length > 100 && /^[A-Za-z0-9+/=]+$/.test(value.data)) return value.data;
+  for (const child of Object.values(value)) {
+    const found = findNestedAudioData(child);
+    if (found) return found;
+  }
+  return null;
+}
 
 const apiKey = getGeminiApiKey();
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -55,27 +72,43 @@ function pcmToMp3(pcmBytes) {
 }
 
 async function synthesize({ text, tone }) {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: `${TONE_PROMPTS[tone]} ${text}` }] }],
-        generationConfig: {
-          responseModalities: ["AUDIO"],
-          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } },
-        },
-      }),
-    },
-  );
+  // Gemini 3.8 TTS reads the input text verbatim, so the delivery instruction
+  // goes in speech_metadata instead of being prepended to the text.
+  const usesInteractionsApi = MODEL.startsWith("gemini-3.8-") && MODEL.endsWith("-tts");
+  const response = usesInteractionsApi
+    ? await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({
+          model: MODEL,
+          input: [{
+            type: "user_input",
+            content: [{ type: "text", text, annotations: [{ type: "speech_metadata", style: TONE_STYLES[tone] }] }],
+          }],
+          response_format: { type: "audio", mime_type: "audio/l16", sample_rate: SAMPLE_RATE },
+          generation_config: { speech_config: [{ voice: VOICE, language: "ru-RU" }] },
+        }),
+      })
+    : await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${TONE_PROMPTS[tone]} ${text}` }] }],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: { languageCode: "ru-RU", voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } },
+          },
+        }),
+      });
   if (response.status === 429) {
     const message = JSON.stringify(await response.json().catch(() => ({})));
     if (/PerDay|retry in \d+h/i.test(message)) throw new DailyQuotaExhausted(message.slice(0, 300));
     throw new Error(`rate limited: ${message.slice(0, 300)}`);
   }
   const data = await response.json();
-  const audioData = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+  const audioData = usesInteractionsApi
+    ? data?.output_audio?.data ?? data?.outputAudio?.data ?? findNestedAudioData(data)
+    : data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
   if (!audioData) throw new Error(`Gemini TTS error: ${JSON.stringify(data).slice(0, 500)}`);
   const pcmBytes = Buffer.from(audioData, "base64");
   // Every clip here is 1-3 words; a long result means the model read the
