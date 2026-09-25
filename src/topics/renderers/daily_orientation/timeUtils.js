@@ -1,11 +1,11 @@
-const HOUR_WORDS = [
+export const HOUR_WORDS = [
   "ноль", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять",
   "десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать",
   "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать", "двадцать", "двадцать один",
   "двадцать два", "двадцать три",
 ];
 
-const MINUTE_WORDS = [
+export const MINUTE_WORDS = [
   "ноль", "одна", "две", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять",
   "десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать",
   "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать", "двадцать", "двадцать одна",
@@ -19,10 +19,10 @@ const MINUTE_WORDS = [
   "пятьдесят девять",
 ];
 
-const WEEKDAY_NAMES = ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"];
-const WEEKDAY_PAST_VERB = ["было", "был", "был", "была", "был", "была", "была"];
+export const WEEKDAY_NAMES = ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"];
+export const WEEKDAY_PAST_VERB = ["было", "был", "был", "была", "был", "была", "была"];
 
-const DATE_ORDINALS = [
+export const DATE_ORDINALS = [
   "первое", "второе", "третье", "четвёртое", "пятое", "шестое", "седьмое", "восьмое", "девятое", "десятое",
   "одиннадцатое", "двенадцатое", "тринадцатое", "четырнадцатое", "пятнадцатое", "шестнадцатое", "семнадцатое",
   "восемнадцатое", "девятнадцатое", "двадцатое", "двадцать первое", "двадцать второе", "двадцать третье",
@@ -30,20 +30,20 @@ const DATE_ORDINALS = [
   "двадцать девятое", "тридцатое", "тридцать первое",
 ];
 
-const MONTHS_GENITIVE = [
+export const MONTHS_GENITIVE = [
   "января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря",
 ];
 
 // All Russian month names are masculine, unlike weekdays/seasons -- no
 // per-month past-tense table is needed, "был"/"будет" always apply.
-const MONTHS_NOMINATIVE = [
+export const MONTHS_NOMINATIVE = [
   "январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь",
 ];
 
-const SEASON_WORDS = { winter: "зима", spring: "весна", summer: "лето", autumn: "осень" };
-const SEASON_PAST_VERB = { winter: "была", spring: "была", summer: "было", autumn: "была" };
+export const SEASON_WORDS = { winter: "зима", spring: "весна", summer: "лето", autumn: "осень" };
+export const SEASON_PAST_VERB = { winter: "была", spring: "была", summer: "было", autumn: "была" };
 
-function russianPlural(value, singular, few, many) {
+export function russianPlural(value, singular, few, many) {
   const remainder = Math.abs(value) % 100;
   const last = remainder % 10;
   if (remainder > 10 && remainder < 20) return many;
