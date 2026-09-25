@@ -525,7 +525,18 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
 
   function beginSwipe(event) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
-    dragStart.current = { x: event.clientX, pointerId: event.pointerId };
+    dragStart.current = { x: event.clientX, pointerId: event.pointerId, captured: false };
+  }
+
+  // Capture only once the pointer is clearly travelling sideways. Capturing
+  // on pointerdown (as this used to) makes the browser retarget the follow-up
+  // click to the <nav> itself, so a plain tap on Вчера/Завтра never reached
+  // its button -- only a swipe could change the day.
+  function trackSwipe(event) {
+    const start = dragStart.current;
+    if (!start || start.captured || start.pointerId !== event.pointerId) return;
+    if (Math.abs(event.clientX - start.x) < 12) return;
+    start.captured = true;
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
 
@@ -547,12 +558,19 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
               className="daily-orientation__carousel"
               aria-label="Выберите: вчера, сегодня или завтра"
               onPointerDown={beginSwipe}
+              onPointerMove={trackSwipe}
               onPointerUp={endSwipe}
               onPointerCancel={() => { dragStart.current = null; }}
             >
-              {CAROUSEL_ITEMS.map((item, index) => (
-                <span className="daily-orientation__carousel-slot" key={item.offset}>
-                  {index === 1 && <Chevron direction="left" />}
+              {/* Every slot renders its chevrons and only the selected one
+                  shows them (visibility, not mounting), so the brackets move
+                  with the selection without the three labels shifting. */}
+              {CAROUSEL_ITEMS.map((item) => (
+                <span
+                  className={`daily-orientation__carousel-slot${offset === item.offset ? " daily-orientation__carousel-slot--active" : ""}`}
+                  key={item.offset}
+                >
+                  <Chevron direction="left" />
                   <button
                     type="button"
                     className={`daily-orientation__carousel-item${offset === item.offset ? " daily-orientation__carousel-item--active" : ""}`}
@@ -561,7 +579,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                   >
                     {item.label}
                   </button>
-                  {index === 1 && <Chevron direction="right" />}
+                  <Chevron direction="right" />
                 </span>
               ))}
             </nav>

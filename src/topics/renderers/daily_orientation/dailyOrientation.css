@@ -56,7 +56,7 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   justify-items: center;
-  width: 1240px;
+  width: 1400px;
   margin: 0 auto;
   touch-action: pan-y;
   user-select: none;
@@ -83,6 +83,10 @@
   letter-spacing: .01em;
   text-transform: uppercase;
   cursor: pointer;
+  /* Inactive days sit ~19% smaller than the selected one (.88 vs 1.08).
+     Done with transform, not font-size, so switching days animates without
+     reflowing the three slots. */
+  transform: scale(.88);
   transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
@@ -98,7 +102,7 @@
   outline-offset: 4px;
 }
 
-.daily-orientation__carousel-item:active { transform: scale(.97); }
+.daily-orientation__carousel-item:active { transform: scale(.85); }
 .daily-orientation__carousel-item--active:active { transform: scale(1.035); }
 
 .daily-orientation__chevron {
@@ -110,6 +114,19 @@
   stroke-width: 3.6;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+/* The brackets mark whichever day is selected, not a fixed "today" slot. */
+.daily-orientation__carousel-slot .daily-orientation__chevron {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 160ms ease, visibility 0s linear 160ms;
+}
+.daily-orientation__carousel-slot--active .daily-orientation__chevron {
+  visibility: visible;
+  opacity: 1;
+  stroke: var(--orientation-ink);
+  transition: opacity 160ms ease;
 }
 
 .daily-orientation__grid {
@@ -588,5 +605,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .daily-orientation__carousel-item,
+  .daily-orientation__carousel-slot .daily-orientation__chevron,
   .daily-orientation__card--speakable { transition: none; }
 }
