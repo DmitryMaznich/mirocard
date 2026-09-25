@@ -31,10 +31,11 @@
   overflow: hidden;
 }
 
-/* The dashboard is designed once at 1600x1000, then uniformly scaled by
-   ResizeObserver. This preserves the relationship between the four cards on
-   every landscape tablet instead of letting a narrow display collapse them
-   into a portrait or scrolling layout. */
+/* The dashboard is designed at 1600x1000 and uniformly scaled by
+   ResizeObserver; width/height set inline by useDashboardScale stretch it
+   past that to the screen's own aspect ratio, so the cards fill a wider (or
+   taller) landscape screen instead of leaving empty bands. The values below
+   are only the pre-measurement fallback. */
 .daily-orientation__canvas {
   box-sizing: border-box;
   flex: 0 0 auto;
@@ -43,7 +44,7 @@
   display: flex;
   flex-direction: column;
   gap: 38px;
-  padding: 64px;
+  padding: 64px 50px;
   transform-origin: center center;
   will-change: transform;
 }
@@ -114,7 +115,7 @@
 .daily-orientation__grid {
   flex: 1;
   min-height: 0;
-  width: 1500px;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;

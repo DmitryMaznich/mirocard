@@ -150,9 +150,14 @@ function resolveDisplayOptions(sessionParams = {}) {
     : { ...options, showWeekday: true };
 }
 
+// Text and icons are sized once for a 1600x1000 design and scaled uniformly
+// (so type never gets squashed), but the canvas itself then grows to cover
+// the whole screen: on a screen wider than 16:10 the extra width goes into
+// the canvas, and every card in a row widens by its own flex share instead of
+// leaving empty bands at the sides (and likewise extra height on a 4:3 one).
 function useDashboardScale() {
   const viewportRef = useRef(null);
-  const [scale, setScale] = useState(1);
+  const [layout, setLayout] = useState({ scale: 1, width: DESIGN_WIDTH, height: DESIGN_HEIGHT });
 
   useLayoutEffect(() => {
     const viewport = viewportRef.current;
@@ -161,8 +166,19 @@ function useDashboardScale() {
     function updateScale() {
       const { width, height } = viewport.getBoundingClientRect();
       if (!width || !height) return;
-      const nextScale = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT);
-      setScale((current) => (Math.abs(current - nextScale) < 0.001 ? current : nextScale));
+      const scale = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT);
+      const next = {
+        scale,
+        width: Math.max(DESIGN_WIDTH, Math.floor(width / scale)),
+        height: Math.max(DESIGN_HEIGHT, Math.floor(height / scale)),
+      };
+      setLayout((current) => (
+        Math.abs(current.scale - next.scale) < 0.001
+        && current.width === next.width
+        && current.height === next.height
+          ? current
+          : next
+      ));
     }
 
     updateScale();
@@ -175,7 +191,7 @@ function useDashboardScale() {
     };
   }, []);
 
-  return { viewportRef, scale };
+  return { viewportRef, ...layout };
 }
 
 function useCurrentTime() {
@@ -467,7 +483,7 @@ function DigitalClock({ now }) {
 
 export default function DailyOrientationRenderer({ sessionParams, soundEnabled }) {
   const now = useCurrentTime();
-  const { viewportRef, scale } = useDashboardScale();
+  const { viewportRef, scale, width: canvasWidth, height: canvasHeight } = useDashboardScale();
   const { speak } = useSpeech();
   const [offset, setOffset] = useState(0);
   const [isWeeklyPlanOpen, setIsWeeklyPlanOpen] = useState(false);
@@ -525,7 +541,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   return (
     <main className="daily-orientation" aria-label="Экран ориентации во времени">
       <div className="daily-orientation__viewport" ref={viewportRef}>
-        <div className={`daily-orientation__canvas${display.showCarousel ? "" : " daily-orientation__canvas--without-carousel"}`} style={{ transform: `scale(${scale})` }}>
+        <div className={`daily-orientation__canvas${display.showCarousel ? "" : " daily-orientation__canvas--without-carousel"}`} style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px`, transform: `scale(${scale})` }}>
           {display.showCarousel && (
             <nav
               className="daily-orientation__carousel"
