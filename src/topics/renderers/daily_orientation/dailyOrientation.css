@@ -453,6 +453,17 @@
 /* Child-set, not fetched -- see useTodaysWeather. Sits inside the season
    card as a secondary control, so it's deliberately quieter than the card's
    own big answer: a pill, not another huge headline. */
+.daily-orientation__weather-block {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.daily-orientation__question--weather { font-size: 22px; }
+
 .daily-orientation__weather-row {
   position: relative;
   z-index: 1;
@@ -485,7 +496,7 @@
   background: rgba(255, 255, 255, .55);
 }
 
-.daily-orientation__weather-mark { width: 30px; height: 30px; flex: 0 0 auto; color: #df8b16; }
+.daily-orientation__weather-mark { width: 30px; height: 30px; flex: 0 0 auto; }
 
 .daily-orientation__weather-picker-title {
   margin: 0 0 20px;
@@ -497,7 +508,7 @@
 
 .daily-orientation__weather-options {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: clamp(12px, 1.6vw, 24px);
 }
 

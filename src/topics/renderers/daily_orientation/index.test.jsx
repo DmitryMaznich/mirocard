@@ -218,12 +218,25 @@ describe("DailyOrientationRenderer", () => {
   });
 
   describe("weather picker", () => {
-    it("invites the child to pick today's weather when none has been set yet", () => {
+    it("invites the child to pick today's weather when none has been set yet, under its own caption", () => {
       mountAt(new Date(2026, 8, 22, 14, 35));
+
+      const seasonCard = container.querySelector(".daily-orientation__card--season");
+      expect(seasonCard.textContent).toContain("Погода");
 
       const weatherRow = container.querySelector(".daily-orientation__weather-row");
       expect(weatherRow.classList.contains("daily-orientation__weather-row--unset")).toBe(true);
-      expect(weatherRow.textContent).toContain("Добавить погоду");
+      expect(weatherRow.textContent).toContain("Добавить");
+    });
+
+    it("offers fog alongside the other options", () => {
+      mountAt(new Date(2026, 8, 22, 14, 35));
+      act(() => container.querySelector(".daily-orientation__weather-row").click());
+
+      const dialog = container.querySelector('[role="dialog"]');
+      const fogOption = Array.from(dialog.querySelectorAll("button"))
+        .find((button) => button.textContent.includes("ТУМАН"));
+      expect(fogOption).not.toBeUndefined();
     });
 
     it("opens a picker, shows the pick on the card, and persists it under today's date", () => {

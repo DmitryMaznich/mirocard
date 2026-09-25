@@ -32,6 +32,7 @@ const WEATHER_OPTIONS = [
   { id: "cloudy", label: "ОБЛАЧНО" },
   { id: "rain", label: "ДОЖДЬ" },
   { id: "snow", label: "СНЕГ" },
+  { id: "fog", label: "ТУМАН" },
 ];
 const WEATHER_LABEL_BY_ID = Object.fromEntries(WEATHER_OPTIONS.map((o) => [o.id, o.label]));
 
@@ -106,6 +107,7 @@ const CAPTION_WEEKDAY = "День недели";
 const CAPTION_DATE_NUMBER = "Число";
 const CAPTION_MONTH = "Месяц";
 const CAPTION_SEASON = "Время года";
+const CAPTION_WEATHER = "Погода";
 const CAPTION_TIME = "Время";
 
 const DISPLAY_OPTION_KEYS = [
@@ -267,17 +269,60 @@ function WeeklyPlanModal({ today, plan, onClose }) {
   );
 }
 
+// Deliberately real-world colours (not currentColor like the rest of this
+// topic's icons) -- weather is the one place where the colour itself is part
+// of the meaning (yellow sun, blue rain, grey fog), so tinting it to match
+// whatever the surrounding card's ink colour is would make it harder, not
+// easier, to read at a glance.
 function WeatherMark({ id }) {
   if (id === "sunny") {
-    return <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="16" cy="16" r="7" fill="currentColor" stroke="none" /><path d="M16 2v4M16 26v4M2 16h4M26 16h4M6.3 6.3l2.8 2.8M22.9 22.9l2.8 2.8M25.7 6.3l-2.8 2.8M9.1 22.9l-2.8 2.8" /></g></svg>;
+    return (
+      <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <g stroke="#f59e0b" strokeWidth="2.4" strokeLinecap="round">
+          <path d="M16 2v4M16 26v4M2 16h4M26 16h4M6.3 6.3l2.8 2.8M22.9 22.9l2.8 2.8M25.7 6.3l-2.8 2.8M9.1 22.9l-2.8 2.8" />
+        </g>
+        <circle cx="16" cy="16" r="7.5" fill="#fbbf24" stroke="#f59e0b" strokeWidth="1.5" />
+      </svg>
+    );
+  }
+  if (id === "cloudy") {
+    return (
+      <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M9 22a6.5 6.5 0 0 1 .8-12.9A8.5 8.5 0 0 1 26 11a5.5 5.5 0 0 1-1 11H9Z" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="1.4" />
+      </svg>
+    );
   }
   if (id === "rain") {
-    return <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 17a6 6 0 0 1 .8-11.9A8 8 0 0 1 25 10a5 5 0 0 1-1 9.9H9Z" fill="currentColor" opacity=".85" /><g stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M11 23l-2 4M17 23l-2 4M23 23l-2 4" /></g></svg>;
+    return (
+      <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M9 17a6 6 0 0 1 .8-11.9A8 8 0 0 1 25 10a5 5 0 0 1-1 9.9H9Z" fill="#9fb4c7" stroke="#7891a8" strokeWidth="1.4" />
+        <g stroke="#3b82f6" strokeWidth="2.2" strokeLinecap="round">
+          <path d="M11 23l-2 4M17 23l-2 4M23 23l-2 4" />
+        </g>
+      </svg>
+    );
   }
   if (id === "snow") {
-    return <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 17a6 6 0 0 1 .8-11.9A8 8 0 0 1 25 10a5 5 0 0 1-1 9.9H9Z" fill="currentColor" opacity=".85" /><g stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 23v6M12 24.5l-3 1.5M12 24.5l3 1.5M12 27.5l-3 1.5M12 27.5l3 1.5" /><path d="M22 23v6M22 24.5l-3 1.5M22 24.5l3 1.5M22 27.5l-3 1.5M22 27.5l3 1.5" /></g></svg>;
+    return (
+      <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M9 17a6 6 0 0 1 .8-11.9A8 8 0 0 1 25 10a5 5 0 0 1-1 9.9H9Z" fill="#c7d2dd" stroke="#94a3b8" strokeWidth="1.4" />
+        <g stroke="#60a5fa" strokeWidth="2.2" strokeLinecap="round">
+          <path d="M12 23v6M12 24.5l-3 1.5M12 24.5l3 1.5M12 27.5l-3 1.5M12 27.5l3 1.5" />
+          <path d="M22 23v6M22 24.5l-3 1.5M22 24.5l3 1.5M22 27.5l-3 1.5M22 27.5l3 1.5" />
+        </g>
+      </svg>
+    );
   }
-  return <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 20a6 6 0 0 1 .8-11.9A8 8 0 0 1 25 13a5 5 0 0 1-1 9.9H9Z" fill="currentColor" /></svg>;
+  // fog
+  return (
+    <svg className="daily-orientation__weather-mark" viewBox="0 0 32 32" aria-hidden="true">
+      <g stroke="#94a3b8" strokeWidth="2.6" strokeLinecap="round">
+        <path d="M5 11h22" opacity=".55" />
+        <path d="M3 17h26" />
+        <path d="M6 23h20" opacity=".55" />
+      </g>
+    </svg>
+  );
 }
 
 function WeatherPickerModal({ value, onSelect, onClose }) {
@@ -497,23 +542,26 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                 <p className="daily-orientation__question">{CAPTION_SEASON}</p>
                 <strong className="daily-orientation__answer">{season.label}</strong>
                 {display.showWeather && offset === 0 && (
-                  <button
-                    type="button"
-                    className={`daily-orientation__weather-row${weatherId ? " daily-orientation__weather-row--set" : " daily-orientation__weather-row--unset"}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setIsWeatherPickerOpen(true);
-                    }}
-                  >
-                    {weatherId ? (
-                      <>
-                        <WeatherMark id={weatherId} />
-                        <span>{WEATHER_LABEL_BY_ID[weatherId]}</span>
-                      </>
-                    ) : (
-                      <span>Добавить погоду</span>
-                    )}
-                  </button>
+                  <div className="daily-orientation__weather-block">
+                    <p className="daily-orientation__question daily-orientation__question--weather">{CAPTION_WEATHER}</p>
+                    <button
+                      type="button"
+                      className={`daily-orientation__weather-row${weatherId ? " daily-orientation__weather-row--set" : " daily-orientation__weather-row--unset"}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setIsWeatherPickerOpen(true);
+                      }}
+                    >
+                      {weatherId ? (
+                        <>
+                          <WeatherMark id={weatherId} />
+                          <span>{WEATHER_LABEL_BY_ID[weatherId]}</span>
+                        </>
+                      ) : (
+                        <span>Добавить</span>
+                      )}
+                    </button>
+                  </div>
                 )}
               </article>
             )}
