@@ -457,12 +457,12 @@
   position: relative;
   z-index: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
-.daily-orientation__question--weather { font-size: 22px; }
+.daily-orientation__question--weather { margin: 0; font-size: 22px; }
 
 .daily-orientation__weather-row {
   position: relative;

@@ -27,12 +27,16 @@ const MODAL_IDLE_CLOSE_MS = 90_000;
 
 const WEATHER_STORAGE_KEY = "daily_orientation_weather";
 
+// Feminine adjectives agreeing with "погода" ("погода дождливая", not
+// "погода — дождь"): дождь/снег/туман name the precipitation/phenomenon
+// itself, not a description of the weather, so they're wrong here even
+// though they're the obvious first word that comes to mind for each icon.
 const WEATHER_OPTIONS = [
-  { id: "sunny", label: "СОЛНЕЧНО" },
-  { id: "cloudy", label: "ОБЛАЧНО" },
-  { id: "rain", label: "ДОЖДЬ" },
-  { id: "snow", label: "СНЕГ" },
-  { id: "fog", label: "ТУМАН" },
+  { id: "sunny", label: "СОЛНЕЧНАЯ" },
+  { id: "cloudy", label: "ПАСМУРНАЯ" },
+  { id: "rain", label: "ДОЖДЛИВАЯ" },
+  { id: "snow", label: "СНЕЖНАЯ" },
+  { id: "fog", label: "ТУМАННАЯ" },
 ];
 const WEATHER_LABEL_BY_ID = Object.fromEntries(WEATHER_OPTIONS.map((o) => [o.id, o.label]));
 

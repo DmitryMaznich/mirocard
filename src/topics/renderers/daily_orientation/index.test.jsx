@@ -235,8 +235,26 @@ describe("DailyOrientationRenderer", () => {
 
       const dialog = container.querySelector('[role="dialog"]');
       const fogOption = Array.from(dialog.querySelectorAll("button"))
-        .find((button) => button.textContent.includes("ТУМАН"));
+        .find((button) => button.textContent.includes("ТУМАННАЯ"));
       expect(fogOption).not.toBeUndefined();
+    });
+
+    // Weather agrees in gender with "погода" (feminine): "погода дождливая",
+    // never a bare noun like "погода — дождь" (rain is the precipitation, not
+    // a description of the weather) -- see feedback that shipped this fix.
+    it("labels each option as a feminine adjective agreeing with погода, not the precipitation noun", () => {
+      mountAt(new Date(2026, 8, 22, 14, 35));
+      act(() => container.querySelector(".daily-orientation__weather-row").click());
+
+      const optionTexts = Array.from(container.querySelectorAll(".daily-orientation__weather-option"))
+        .map((button) => button.textContent);
+      expect(optionTexts).toEqual([
+        "СОЛНЕЧНАЯ",
+        "ПАСМУРНАЯ",
+        "ДОЖДЛИВАЯ",
+        "СНЕЖНАЯ",
+        "ТУМАННАЯ",
+      ]);
     });
 
     it("opens a picker, shows the pick on the card, and persists it under today's date", () => {
@@ -247,13 +265,13 @@ describe("DailyOrientationRenderer", () => {
       expect(dialog).not.toBeNull();
 
       const rainOption = Array.from(dialog.querySelectorAll("button"))
-        .find((button) => button.textContent.includes("ДОЖДЬ"));
+        .find((button) => button.textContent.includes("ДОЖДЛИВАЯ"));
       act(() => rainOption.click());
 
       expect(container.querySelector('[role="dialog"]')).toBeNull();
       const weatherRow = container.querySelector(".daily-orientation__weather-row");
       expect(weatherRow.classList.contains("daily-orientation__weather-row--set")).toBe(true);
-      expect(weatherRow.textContent).toContain("ДОЖДЬ");
+      expect(weatherRow.textContent).toContain("ДОЖДЛИВАЯ");
 
       expect(window.localStorage.getItem("daily_orientation_weather")).toBe(
         JSON.stringify({ date: "2026-09-22", weatherId: "rain" })
@@ -269,7 +287,7 @@ describe("DailyOrientationRenderer", () => {
 
       const weatherRow = container.querySelector(".daily-orientation__weather-row");
       expect(weatherRow.classList.contains("daily-orientation__weather-row--unset")).toBe(true);
-      expect(weatherRow.textContent).not.toContain("СНЕГ");
+      expect(weatherRow.textContent).not.toContain("СНЕЖНАЯ");
     });
 
     it("is hidden while viewing Вчера/Завтра", () => {
