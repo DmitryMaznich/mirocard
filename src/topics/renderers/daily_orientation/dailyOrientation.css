@@ -5,6 +5,12 @@
   --orientation-terracotta: #fff0ec;
   --orientation-amber: #fff7dc;
   --orientation-blue: #e6f4ff;
+  /* Hour/minute colour pair shared by the clock hands, the digital digits and
+     the time-in-words halves -- see AnalogClock in index.jsx. */
+  --orientation-hour: #c2410c;
+  --orientation-minute: #1d4ed8;
+  --orientation-clock-ink: #16425c;
+  --orientation-clock-rim: #3f7ea3;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -110,32 +116,51 @@
   min-height: 0;
   width: 1500px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 34px;
 }
 
-.daily-orientation__grid--1 {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr);
+/* Each row mixes one full-width card with a narrow+wide pair (or is left
+   full of only-full-width cards) rather than a uniform column grid, so the
+   flex-grow ratios below -- not grid tracks -- are what encode "Число:Месяц
+   is a 2:3 split of the same footprint Weekday alone takes up". Using flex
+   here (not CSS Grid columns) means hiding one sibling via a settings toggle
+   just redistributes its row automatically, no JS column-span bookkeeping. */
+.daily-orientation__row {
+  display: flex;
+  gap: 34px;
+  flex: 1;
+  min-height: 0;
 }
 
-.daily-orientation__grid--2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: minmax(0, 1fr);
+.daily-orientation__card--big { flex: 5 1 0; }
+.daily-orientation__card--narrow { flex: 2 1 0; }
+.daily-orientation__card--wide { flex: 3 1 0; }
+
+/* A --wide card is 30% of canvas width, not the 50% a long month name
+   ("СЕНТЯБРЬ", "ФЕВРАЛЬ") used to have when Месяц shared the full Дата card
+   with Число -- at the generic 90px .answer size those words wrap mid-word.
+   Trims side padding and drops the font below the old 64px .date-month size
+   (that rule assumed the full card padding of a much wider card) so the
+   longest month names still fit on one line. */
+.daily-orientation__card--wide .daily-orientation__answer { font-size: 58px; }
+.daily-orientation__card--narrow.daily-orientation__card--stacked,
+.daily-orientation__card--wide.daily-orientation__card--stacked {
+  padding-left: 28px;
+  padding-right: 28px;
 }
 
-.daily-orientation__grid--3 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-}
-
-.daily-orientation__grid--3 > :first-child { grid-column: 1 / -1; }
-
-.daily-orientation__grid--4 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
+/* Caption pinned near the card's top edge, answer centred in the space left
+   below it -- so every card's caption sits at the same height regardless of
+   how tall its own answer happens to be. */
+.daily-orientation__card--stacked {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: center;
+  justify-items: center;
+  row-gap: 18px;
+  padding-top: 46px;
 }
 
 .daily-orientation__card {
@@ -182,52 +207,41 @@
 .daily-orientation__speaker-icon svg { width: 100%; height: 100%; }
 .daily-orientation__speaker-icon:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
 
-.daily-orientation__card--weekday {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  background: var(--orientation-sage);
+.daily-orientation__card--weekday { background: var(--orientation-sage); }
+.daily-orientation__card--date { background: var(--orientation-terracotta); }
+.daily-orientation__card--season { background: var(--orientation-amber); }
+
+/* Neutral rather than one of the four fact-card hues on purpose: this is the
+   one card that's an input (the child sets it), not a read-only fact, and
+   this same neutral is already the "you can act on this" tone used by the
+   weekly-plan day cells and the weather picker's own option buttons. */
+.daily-orientation__card--weather { background: #f4f1e9; }
+.daily-orientation__card--weather-hidden {
+  visibility: hidden;
+  pointer-events: none;
 }
 
-.daily-orientation__card--date {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 18px;
-  background: var(--orientation-terracotta);
-}
-
-.daily-orientation__card--season {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  background: var(--orientation-amber);
-}
-
+/* Dial column (analog clock with the digital clock under it) on the left,
+   caption + time-in-words on the right. Both columns always stay in this
+   order, so the child's eye learns one route: clock -> numbers -> words. */
 .daily-orientation__card--time {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  justify-items: center;
-  gap: 10px;
-  padding-top: 32px;
-  padding-bottom: 32px;
+  justify-content: center;
+  gap: 40px;
+  padding: 26px 64px 26px 36px;
   background: var(--orientation-blue);
 }
 
-.daily-orientation__card--time-without-clock,
-.daily-orientation__card--time-clock-only {
-  grid-template-rows: auto minmax(0, 1fr);
-}
+/* Without words the readout column only holds the caption, so it moves on
+   top of the (now horizontal) clock + digital pair, like the other cards. */
+.daily-orientation__card--time-no-words { flex-direction: column-reverse; gap: 8px; padding: 26px 54px; }
+.daily-orientation__card--time-no-words .daily-orientation__time-readout { flex: 0 0 auto; align-self: center; overflow: visible; }
+.daily-orientation__card--time-no-words .daily-orientation__time-dial { flex-direction: row; gap: 36px; }
+.daily-orientation__card--time-no-clock .daily-orientation__digital-time { font-size: 64px; padding: 8px 24px 10px; }
+.daily-orientation__card--time-no-dial { padding: 54px; }
+.daily-orientation__card--time-no-dial .daily-orientation__time-readout { align-items: center; text-align: center; }
 
-.daily-orientation__card--time-clock-only .daily-orientation__time-content { justify-content: center; }
-.daily-orientation__card--time-without-clock .daily-orientation__time-content { justify-content: center; }
 .daily-orientation__card--time-hidden {
   visibility: hidden;
   pointer-events: none;
@@ -241,16 +255,10 @@
 }
 
 .daily-orientation__question { font-size: 47px; text-align: center; }
-.daily-orientation__question--date {
-  font-size: 35px;
-  line-height: 1.08;
-}
-.daily-orientation__question--time { font-size: 39px; }
+.daily-orientation__question--time { font-size: 42px; }
 
 .daily-orientation__answer,
-.daily-orientation__date-number,
-.daily-orientation__date-month,
-.daily-orientation__time-words {
+.daily-orientation__date-number {
   display: block;
   color: var(--orientation-ink);
   font-weight: 950;
@@ -260,38 +268,15 @@
 }
 
 .daily-orientation__answer { font-size: 90px; text-align: center; }
-.daily-orientation__date-values {
-  display: grid;
-  grid-template-columns: minmax(0, .8fr) 2px minmax(0, 1.2fr);
-  align-items: stretch;
-  gap: 28px;
-}
 
-.daily-orientation__date-part {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 18px;
-  min-width: 0;
-}
-
-.daily-orientation__date-divider { background: rgba(172, 88, 71, .28); border-radius: 2px; }
 .daily-orientation__date-number {
-  width: 100%;
-  padding: 18px 8px;
+  padding: 18px 20px;
   border-radius: 26px;
   background: #d76747;
   color: #fff;
   text-align: center;
   font-size: 78px;
 }
-
-.daily-orientation__date-month { text-align: center; font-size: 64px; }
-
-.daily-orientation__date-values--single { grid-template-columns: minmax(0, 1fr); }
-.daily-orientation__card--date-single .daily-orientation__date-number { max-width: 310px; font-size: 92px; }
-.daily-orientation__card--date-single .daily-orientation__date-month { font-size: 80px; }
 
 .daily-orientation__season-background {
   position: absolute;
@@ -303,56 +288,93 @@
   opacity: .16;
   pointer-events: none;
 }
-.daily-orientation__season-mark { width: 620px; height: 620px; color: #df8b16; }
+/* Sized for --wide (30% of canvas width) now that season is no longer the
+   full 50%-wide card it used to be -- the old 620px watermark would blow
+   straight through a card this much narrower. */
+.daily-orientation__season-mark { width: 380px; height: 380px; color: #df8b16; }
 .daily-orientation__card--season-winter .daily-orientation__season-mark { color: #4b9fd0; }
 .daily-orientation__card--season-spring .daily-orientation__season-mark { color: #65a449; }
 .daily-orientation__card--season-summer .daily-orientation__season-mark { color: #edab22; }
 .daily-orientation__card--season > :not(.daily-orientation__season-background):not(.daily-orientation__speaker-icon) { position: relative; z-index: 1; }
 
-.daily-orientation__clock {
-  width: 150px;
+.daily-orientation__time-dial {
   flex: 0 0 auto;
-  filter: drop-shadow(0 5px 8px rgba(39, 93, 125, .12));
-}
-
-.daily-orientation__clock-rim { fill: #498bb4; }
-.daily-orientation__clock-face { fill: #fffdf8; }
-.daily-orientation__clock-tick { stroke: #16425c; stroke-width: 4; stroke-linecap: round; }
-.daily-orientation__clock-number { fill: #16425c; font-family: "Nunito", sans-serif; font-size: 17px; font-weight: 900; text-anchor: middle; }
-.daily-orientation__clock-hand { stroke: #0c4a66; stroke-linecap: round; }
-.daily-orientation__clock-hand--hour { stroke-width: 11; }
-.daily-orientation__clock-hand--minute { stroke-width: 8; }
-.daily-orientation__clock-centre { fill: #498bb4; }
-
-.daily-orientation__time-content {
-  width: 100%;
-  min-height: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 22px;
+  gap: 12px;
 }
+
+.daily-orientation__clock {
+  display: block;
+  width: 226px;
+  height: 226px;
+  filter: drop-shadow(0 6px 10px rgba(22, 66, 92, .16));
+}
+
+.daily-orientation__clock-rim { fill: var(--orientation-clock-rim); }
+.daily-orientation__clock-face { fill: #fffdf8; }
+.daily-orientation__clock-elapsed { fill: var(--orientation-minute); opacity: .1; }
+.daily-orientation__clock-tick { stroke: #9fb3c2; stroke-width: 1.8; stroke-linecap: round; }
+.daily-orientation__clock-tick--major { stroke: var(--orientation-clock-ink); stroke-width: 4; }
+.daily-orientation__clock-number {
+  fill: var(--orientation-clock-ink);
+  font-family: "Nunito", sans-serif;
+  font-size: 27px;
+  font-weight: 900;
+  font-variant-numeric: lining-nums;
+  text-anchor: middle;
+}
+.daily-orientation__clock-hand { stroke-linecap: round; }
+.daily-orientation__clock-hand--hour { stroke: var(--orientation-hour); stroke-width: 13; }
+.daily-orientation__clock-hand--minute { stroke: var(--orientation-minute); stroke-width: 7.5; }
+.daily-orientation__clock-centre { fill: var(--orientation-clock-ink); }
+.daily-orientation__clock-centre-dot { fill: #fffdf8; }
 
 .daily-orientation__time-readout {
+  flex: 1 1 0;
+  align-self: stretch;
   min-width: 0;
-  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 14px;
 }
 
-.daily-orientation__time-words { font-size: 36px; text-align: center; }
+.daily-orientation__time-words {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -.005em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.daily-orientation__time-words-hour { color: var(--orientation-hour); }
+.daily-orientation__time-words-minute { color: var(--orientation-minute); }
 
 .daily-orientation__digital-time {
-  padding: 6px 22px;
-  border: 2px solid rgba(50, 126, 166, .28);
-  border-radius: 17px;
-  background: rgba(255, 255, 255, .38);
-  color: var(--orientation-ink);
-  font-size: 40px;
-  font-weight: 950;
+  display: flex;
+  align-items: baseline;
+  padding: 4px 18px 6px;
+  border: 3px solid rgba(22, 66, 92, .14);
+  border-radius: 16px;
+  background: #fffdf8;
+  font-size: 46px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
+.daily-orientation__digital-hours { color: var(--orientation-hour); }
+.daily-orientation__digital-minutes { color: var(--orientation-minute); }
+.daily-orientation__digital-colon { color: var(--orientation-clock-ink); padding: 0 2px; transform: translateY(-.06em); }
+.daily-orientation__card--time-no-words .daily-orientation__digital-time { font-size: 72px; padding: 8px 26px 10px; }
 
 /* Rendered as a sibling of .daily-orientation__viewport, outside the scaled
    1600x1000 canvas, so it needs its own responsive sizing (clamp) rather than
@@ -450,50 +472,41 @@
   overflow-wrap: anywhere;
 }
 
-/* Child-set, not fetched -- see useTodaysWeather. Sits inside the season
-   card as a secondary control, so it's deliberately quieter than the card's
-   own big answer: a pill, not another huge headline. */
-.daily-orientation__weather-block {
-  position: relative;
-  z-index: 1;
+/* Child-set, not fetched -- see useTodaysWeather. Its own full card now
+   (used to be a small pill inside the season card), styled like one of the
+   picker modal's own option buttons -- a big square pictogram with its word
+   under it -- since that's the vocabulary the child already learned there. */
+.daily-orientation__weather-display {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
 }
 
-.daily-orientation__question--weather { margin: 0; font-size: 22px; }
-
-.daily-orientation__weather-row {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 20px;
-  border-radius: 999px;
-  font: inherit;
-  font-weight: 900;
-  font-size: 22px;
-  letter-spacing: .01em;
-  color: var(--orientation-ink);
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-.daily-orientation__weather-row:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
-
-.daily-orientation__weather-row--unset {
-  border: 2px dashed rgba(7, 61, 79, .35);
-  background: transparent;
+.daily-orientation__weather-display--unset {
+  border: 3px dashed rgba(7, 61, 79, .3);
+  border-radius: 28px;
+  padding: 20px;
   font-weight: 800;
-  font-size: 20px;
+  font-size: 26px;
   color: var(--orientation-muted);
 }
 
-.daily-orientation__weather-row--set {
-  border: 2px solid transparent;
-  background: rgba(255, 255, 255, .55);
+.daily-orientation__weather-display--set {
+  font-weight: 900;
+  font-size: 28px;
+  letter-spacing: .01em;
+  color: var(--orientation-ink);
+  text-align: center;
+}
+
+.daily-orientation__weather-display .daily-orientation__weather-mark {
+  width: 120px;
+  height: 120px;
 }
 
 .daily-orientation__weather-mark { width: 30px; height: 30px; flex: 0 0 auto; }

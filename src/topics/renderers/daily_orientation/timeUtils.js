@@ -34,6 +34,12 @@ const MONTHS_GENITIVE = [
   "января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря",
 ];
 
+// All Russian month names are masculine, unlike weekdays/seasons -- no
+// per-month past-tense table is needed, "был"/"будет" always apply.
+const MONTHS_NOMINATIVE = [
+  "январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь",
+];
+
 const SEASON_WORDS = { winter: "зима", spring: "весна", summer: "лето", autumn: "осень" };
 const SEASON_PAST_VERB = { winter: "была", spring: "была", summer: "было", autumn: "была" };
 
@@ -57,10 +63,25 @@ export function getSeason(monthIndex) {
   return { id: "autumn", label: "ОСЕНЬ" };
 }
 
-function buildClockWords(date) {
+// Split into the hour half and the minute half so the time card can colour
+// each half to match its own clock hand and digital-clock digits. On the hour
+// the minute half is "ровно" -- "десять часов ноль минут" is technically
+// correct but nobody says it, and it's the version a child will hear from
+// adults.
+export function getClockWordParts(date) {
   const hours = date.getHours();
   const minutes = date.getMinutes();
-  return `${HOUR_WORDS[hours]} ${russianPlural(hours, "час", "часа", "часов")} ${MINUTE_WORDS[minutes]} ${russianPlural(minutes, "минута", "минуты", "минут")}`;
+  return {
+    hour: `${HOUR_WORDS[hours]} ${russianPlural(hours, "час", "часа", "часов")}`,
+    minute: minutes === 0
+      ? "ровно"
+      : `${MINUTE_WORDS[minutes]} ${russianPlural(minutes, "минута", "минуты", "минут")}`,
+  };
+}
+
+function buildClockWords(date) {
+  const { hour, minute } = getClockWordParts(date);
+  return `${hour} ${minute}`;
 }
 
 export function formatRussianClockTime(date) {
@@ -80,6 +101,13 @@ export function getSpokenDate(date, offset) {
   if (offset < 0) return `Вчера было ${phrase}.`;
   if (offset > 0) return `Завтра будет ${phrase}.`;
   return `Сегодня ${phrase}.`;
+}
+
+export function getSpokenMonth(date, offset) {
+  const name = MONTHS_NOMINATIVE[date.getMonth()];
+  if (offset < 0) return `Вчера был ${name}.`;
+  if (offset > 0) return `Завтра будет ${name}.`;
+  return `Сейчас ${name}.`;
 }
 
 export function getSpokenSeason(date, offset) {

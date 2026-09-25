@@ -3,9 +3,11 @@ import {
   addCalendarDays,
   formatDigitalClock,
   formatRussianClockTime,
+  getClockWordParts,
   getLocalDateKey,
   getSeason,
   getSpokenDate,
+  getSpokenMonth,
   getSpokenSeason,
   getSpokenTime,
   getSpokenWeekday,
@@ -30,6 +32,12 @@ describe("daily orientation time helpers", () => {
     expect(formatRussianClockTime(afternoon)).toBe("ЧЕТЫРНАДЦАТЬ ЧАСОВ ТРИДЦАТЬ ПЯТЬ МИНУТ");
   });
 
+  it("splits the words into an hour half and a minute half, saying \"ровно\" on the hour", () => {
+    expect(getClockWordParts(new Date(2026, 8, 22, 21, 1))).toEqual({ hour: "двадцать один час", minute: "одна минута" });
+    expect(getClockWordParts(new Date(2026, 8, 22, 10, 0))).toEqual({ hour: "десять часов", minute: "ровно" });
+    expect(getSpokenTime(new Date(2026, 8, 22, 10, 0))).toBe("Сейчас десять часов ровно.");
+  });
+
   it("speaks the weekday as a full sentence with correct gender agreement in the past tense", () => {
     expect(getSpokenWeekday(new Date(2026, 8, 22), 0)).toBe("Сегодня вторник.");
     expect(getSpokenWeekday(new Date(2026, 8, 23), -1)).toBe("Вчера была среда.");
@@ -42,6 +50,12 @@ describe("daily orientation time helpers", () => {
     expect(getSpokenDate(new Date(2026, 0, 1), 0)).toBe("Сегодня первое января.");
     expect(getSpokenDate(new Date(2026, 8, 24), -1)).toBe("Вчера было двадцать четвёртое сентября.");
     expect(getSpokenDate(new Date(2026, 8, 24), 1)).toBe("Завтра будет двадцать четвёртое сентября.");
+  });
+
+  it("speaks the month on its own, as a name (all Russian month names are masculine, so no gender table is needed)", () => {
+    expect(getSpokenMonth(new Date(2026, 8, 24), 0)).toBe("Сейчас сентябрь.");
+    expect(getSpokenMonth(new Date(2026, 8, 24), -1)).toBe("Вчера был сентябрь.");
+    expect(getSpokenMonth(new Date(2026, 8, 24), 1)).toBe("Завтра будет сентябрь.");
   });
 
   it("speaks the season with correct gender agreement in the past tense", () => {

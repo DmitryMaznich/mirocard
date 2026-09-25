@@ -5,9 +5,11 @@ import {
   formatDigitalClock,
   formatDisplayDate,
   formatRussianClockTime,
+  getClockWordParts,
   getLocalDateKey,
   getSeason,
   getSpokenDate,
+  getSpokenMonth,
   getSpokenSeason,
   getSpokenTime,
   getSpokenWeekday,
@@ -39,6 +41,10 @@ const WEATHER_OPTIONS = [
   { id: "fog", label: "ТУМАННАЯ" },
 ];
 const WEATHER_LABEL_BY_ID = Object.fromEntries(WEATHER_OPTIONS.map((o) => [o.id, o.label]));
+
+function getSpokenWeather(weatherId) {
+  return `Погода ${WEATHER_LABEL_BY_ID[weatherId].toLowerCase()}.`;
+}
 
 function readStoredWeather(dateKey) {
   try {
@@ -350,33 +356,112 @@ function WeatherPickerModal({ value, onSelect, onClose }) {
   );
 }
 
+// A teaching clock, not a decorative one: every minute has a tick (every
+// fifth one heavier), the hour hand is short+thick and the minute hand
+// long+thin, and each hand has its own colour that the digital clock's digits
+// and the spoken-words halves reuse (--orientation-hour / --orientation-minute)
+// -- so "the red hand is the 10, the blue hand is the 35" is readable straight
+// off the card. The pale wedge from 12 to the minute hand shows how much of
+// the hour has already gone by.
+const CLOCK_C = 120;
+
+function clockPoint(angleDeg, radius) {
+  const angle = angleDeg * Math.PI / 180;
+  return [CLOCK_C + Math.sin(angle) * radius, CLOCK_C - Math.cos(angle) * radius];
+}
+
 function AnalogClock({ now }) {
   const minutes = now.getMinutes();
   const hours = now.getHours() % 12;
   const minuteRotation = minutes * 6;
   const hourRotation = hours * 30 + minutes * 0.5;
+  const [wedgeX, wedgeY] = clockPoint(minuteRotation, 100);
+  const wedgePath = minutes === 0
+    ? null
+    : `M${CLOCK_C} ${CLOCK_C}V${CLOCK_C - 100}A100 100 0 ${minuteRotation > 180 ? 1 : 0} 1 ${wedgeX} ${wedgeY}Z`;
   return (
-    <svg className="daily-orientation__clock" viewBox="0 0 200 200" role="img" aria-label={`Аналоговые часы: ${formatDigitalClock(now)}`}>
-      <circle cx="100" cy="100" r="92" className="daily-orientation__clock-rim" />
-      <circle cx="100" cy="100" r="79" className="daily-orientation__clock-face" />
-      {Array.from({ length: 12 }, (_, index) => {
-        const angle = index * 30 * Math.PI / 180;
-        const x1 = 100 + Math.sin(angle) * 67;
-        const y1 = 100 - Math.cos(angle) * 67;
-        const x2 = 100 + Math.sin(angle) * 74;
-        const y2 = 100 - Math.cos(angle) * 74;
-        return <line key={index} x1={x1} y1={y1} x2={x2} y2={y2} className="daily-orientation__clock-tick" />;
+    <svg className="daily-orientation__clock" viewBox="0 0 240 240" role="img" aria-label={`Аналоговые часы: ${formatDigitalClock(now)}`}>
+      <circle cx={CLOCK_C} cy={CLOCK_C} r="116" className="daily-orientation__clock-rim" />
+      <circle cx={CLOCK_C} cy={CLOCK_C} r="106" className="daily-orientation__clock-face" />
+      {wedgePath && <path d={wedgePath} className="daily-orientation__clock-elapsed" />}
+      {Array.from({ length: 60 }, (_, index) => {
+        const isMajor = index % 5 === 0;
+        const [x1, y1] = clockPoint(index * 6, isMajor ? 88 : 94);
+        const [x2, y2] = clockPoint(index * 6, 101);
+        return (
+          <line
+            key={index}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            className={`daily-orientation__clock-tick${isMajor ? " daily-orientation__clock-tick--major" : ""}`}
+          />
+        );
       })}
       {Array.from({ length: 12 }, (_, index) => {
-        const angle = index * 30 * Math.PI / 180;
-        const x = 100 + Math.sin(angle) * 52;
-        const y = 100 - Math.cos(angle) * 52 + 6;
-        return <text key={index} x={x} y={y} className="daily-orientation__clock-number">{index === 0 ? 12 : index}</text>;
+        const [x, y] = clockPoint(index * 30, 70);
+        return (
+          <text key={index} x={x} y={y} dy="0.35em" className="daily-orientation__clock-number">
+            {index === 0 ? 12 : index}
+          </text>
+        );
       })}
-      <line x1="100" y1="100" x2="100" y2="53" className="daily-orientation__clock-hand daily-orientation__clock-hand--hour" transform={`rotate(${hourRotation} 100 100)`} />
-      <line x1="100" y1="100" x2="100" y2="31" className="daily-orientation__clock-hand daily-orientation__clock-hand--minute" transform={`rotate(${minuteRotation} 100 100)`} />
-      <circle cx="100" cy="100" r="9" className="daily-orientation__clock-centre" />
+      <line x1={CLOCK_C} y1={CLOCK_C + 12} x2={CLOCK_C} y2={CLOCK_C - 50} className="daily-orientation__clock-hand daily-orientation__clock-hand--hour" transform={`rotate(${hourRotation} ${CLOCK_C} ${CLOCK_C})`} />
+      <line x1={CLOCK_C} y1={CLOCK_C + 16} x2={CLOCK_C} y2={CLOCK_C - 92} className="daily-orientation__clock-hand daily-orientation__clock-hand--minute" transform={`rotate(${minuteRotation} ${CLOCK_C} ${CLOCK_C})`} />
+      <circle cx={CLOCK_C} cy={CLOCK_C} r="10" className="daily-orientation__clock-centre" />
+      <circle cx={CLOCK_C} cy={CLOCK_C} r="3.5" className="daily-orientation__clock-centre-dot" />
     </svg>
+  );
+}
+
+// "Десять часов ровно" and "двадцать три часа пятьдесят девять минут" have to
+// share one fixed-size box, so the words start big and step down only as far
+// as that particular time needs. Measured in the unscaled 1600x1000 canvas
+// (offset/scroll sizes ignore the canvas transform), so it doesn't depend on
+// the device's scale factor.
+const TIME_WORDS_MAX_FONT = 52;
+const TIME_WORDS_MIN_FONT = 30;
+
+function useFitTimeWords(text) {
+  const containerRef = useRef(null);
+  const wordsRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const words = wordsRef.current;
+    if (!container || !words) return undefined;
+
+    function fit() {
+      let size = TIME_WORDS_MAX_FONT;
+      words.style.fontSize = `${size}px`;
+      while (
+        size > TIME_WORDS_MIN_FONT
+        && (container.scrollHeight > container.clientHeight || words.scrollWidth > words.clientWidth)
+      ) {
+        size -= 2;
+        words.style.fontSize = `${size}px`;
+      }
+    }
+
+    fit();
+    let cancelled = false;
+    document.fonts?.ready.then(() => { if (!cancelled) fit(); });
+    return () => { cancelled = true; };
+  }, [text]);
+
+  return { containerRef, wordsRef };
+}
+
+function DigitalClock({ now }) {
+  const hours = String(now.getHours()).padStart(2, "0");
+  const minutes = String(now.getMinutes()).padStart(2, "0");
+  return (
+    <output className="daily-orientation__digital-time" aria-label={`Цифровое время: ${formatDigitalClock(now)}`}>
+      <span className="daily-orientation__digital-hours">{hours}</span>
+      <span className="daily-orientation__digital-colon">:</span>
+      <span className="daily-orientation__digital-minutes">{minutes}</span>
+    </output>
   );
 }
 
@@ -395,19 +480,21 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const activeDate = addCalendarDays(now, offset);
   const { weekday, month, dayOfMonth } = formatDisplayDate(activeDate);
   const season = getSeason(activeDate.getMonth());
-  const hasDate = display.showDayOfMonth || display.showMonth;
   const hasTime = display.showAnalogClock || display.showTimeWords || display.showDigitalTime;
   const hideCurrentTime = offset !== 0;
-  const visibleCardCount = [display.showWeekday, hasDate, display.showSeason, hasTime].filter(Boolean).length;
+  const timeWords = getClockWordParts(now);
+  const timeWordsFit = useFitTimeWords(`${timeWords.hour} ${timeWords.minute}`);
   const timeCardClassName = [
     "daily-orientation__card",
+    "daily-orientation__card--big",
     "daily-orientation__card--time",
-    !display.showAnalogClock ? "daily-orientation__card--time-without-clock" : "",
-    display.showAnalogClock && !display.showTimeWords && !display.showDigitalTime
-      ? "daily-orientation__card--time-clock-only"
-      : "",
+    !display.showAnalogClock && !display.showDigitalTime ? "daily-orientation__card--time-no-dial" : "",
+    !display.showTimeWords ? "daily-orientation__card--time-no-words" : "",
+    !display.showAnalogClock && display.showDigitalTime ? "daily-orientation__card--time-no-clock" : "",
     hideCurrentTime ? "daily-orientation__card--time-hidden" : "",
   ].filter(Boolean).join(" ");
+  const showTopRow = display.showWeekday || display.showDayOfMonth || display.showMonth;
+  const showBottomRow = display.showWeather || display.showSeason || hasTime;
 
   function selectOffset(nextOffset) {
     setOffset(Math.max(-1, Math.min(1, nextOffset)));
@@ -419,20 +506,6 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
     lastSpokenAtRef.current = now;
     speak(text);
   }, [speak]);
-
-  function speakableCardProps(text) {
-    if (!soundEnabled) return {};
-    return {
-      role: "button",
-      tabIndex: 0,
-      onClick: () => speakCard(text),
-      onKeyDown: (event) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        event.preventDefault();
-        speakCard(text);
-      },
-    };
-  }
 
   function beginSwipe(event) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -478,84 +551,83 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
             </nav>
           )}
 
-          <section className={`daily-orientation__grid daily-orientation__grid--${visibleCardCount}`} aria-live="polite">
-            {display.showWeekday && (
-              <article
-                className="daily-orientation__card daily-orientation__card--weekday daily-orientation__card--speakable"
-                role="button"
-                tabIndex={0}
-                onClick={() => setIsWeeklyPlanOpen(true)}
-                onKeyDown={(event) => {
-                  if (event.key !== "Enter" && event.key !== " ") return;
-                  event.preventDefault();
-                  setIsWeeklyPlanOpen(true);
-                }}
-              >
-                {soundEnabled && (
-                  <SpeakerButton onClick={(event) => {
-                    event.stopPropagation();
-                    speakCard(getSpokenWeekday(activeDate, offset));
-                  }} />
-                )}
-                <p className="daily-orientation__question">{CAPTION_WEEKDAY}</p>
-                <strong className="daily-orientation__answer">{weekday}</strong>
-              </article>
-            )}
-
-            {hasDate && (
-              <article
-                className={`daily-orientation__card daily-orientation__card--date${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__card--date-single"}${soundEnabled ? " daily-orientation__card--speakable" : ""}`}
-                {...speakableCardProps(getSpokenDate(activeDate, offset))}
-              >
-                {soundEnabled && (
-                  <SpeakerButton onClick={(event) => {
-                    event.stopPropagation();
-                    speakCard(getSpokenDate(activeDate, offset));
-                  }} />
-                )}
-                <div className={`daily-orientation__date-values${display.showDayOfMonth && display.showMonth ? "" : " daily-orientation__date-values--single"}`}>
-                  {display.showDayOfMonth && (
-                    <div className="daily-orientation__date-part">
-                      <p className="daily-orientation__question daily-orientation__question--date">{CAPTION_DATE_NUMBER}</p>
-                      <strong className="daily-orientation__date-number">{dayOfMonth}</strong>
-                    </div>
-                  )}
-                  {display.showDayOfMonth && display.showMonth && <div className="daily-orientation__date-divider" aria-hidden="true" />}
-                  {display.showMonth && (
-                    <div className="daily-orientation__date-part">
-                      <p className="daily-orientation__question daily-orientation__question--date">{CAPTION_MONTH}</p>
-                      <strong className="daily-orientation__date-month">{month}</strong>
-                    </div>
-                  )}
-                </div>
-              </article>
-            )}
-
-            {display.showSeason && (
-              <article
-                className={`daily-orientation__card daily-orientation__card--season daily-orientation__card--season-${season.id}${soundEnabled ? " daily-orientation__card--speakable" : ""}`}
-                {...speakableCardProps(getSpokenSeason(activeDate, offset))}
-              >
-                <div className="daily-orientation__season-background" aria-hidden="true"><SeasonMark season={season} /></div>
-                {soundEnabled && (
-                  <SpeakerButton onClick={(event) => {
-                    event.stopPropagation();
-                    speakCard(getSpokenSeason(activeDate, offset));
-                  }} />
-                )}
-                <p className="daily-orientation__question">{CAPTION_SEASON}</p>
-                <strong className="daily-orientation__answer">{season.label}</strong>
-                {display.showWeather && offset === 0 && (
-                  <div className="daily-orientation__weather-block">
-                    <p className="daily-orientation__question daily-orientation__question--weather">{CAPTION_WEATHER}</p>
-                    <button
-                      type="button"
-                      className={`daily-orientation__weather-row${weatherId ? " daily-orientation__weather-row--set" : " daily-orientation__weather-row--unset"}`}
-                      onClick={(event) => {
+          <div className="daily-orientation__grid" aria-live="polite">
+            {showTopRow && (
+              <div className="daily-orientation__row">
+                {display.showWeekday && (
+                  <article
+                    className="daily-orientation__card daily-orientation__card--big daily-orientation__card--stacked daily-orientation__card--weekday daily-orientation__card--speakable"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setIsWeeklyPlanOpen(true)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" && event.key !== " ") return;
+                      event.preventDefault();
+                      setIsWeeklyPlanOpen(true);
+                    }}
+                  >
+                    {soundEnabled && (
+                      <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        setIsWeatherPickerOpen(true);
-                      }}
-                    >
+                        speakCard(getSpokenWeekday(activeDate, offset));
+                      }} />
+                    )}
+                    <p className="daily-orientation__question">{CAPTION_WEEKDAY}</p>
+                    <strong className="daily-orientation__answer">{weekday}</strong>
+                  </article>
+                )}
+
+                {display.showDayOfMonth && (
+                  <article className="daily-orientation__card daily-orientation__card--narrow daily-orientation__card--stacked daily-orientation__card--date">
+                    {soundEnabled && (
+                      <SpeakerButton onClick={(event) => {
+                        event.stopPropagation();
+                        speakCard(getSpokenDate(activeDate, offset));
+                      }} />
+                    )}
+                    <p className="daily-orientation__question">{CAPTION_DATE_NUMBER}</p>
+                    <strong className="daily-orientation__date-number">{dayOfMonth}</strong>
+                  </article>
+                )}
+
+                {display.showMonth && (
+                  <article className="daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--date">
+                    {soundEnabled && (
+                      <SpeakerButton onClick={(event) => {
+                        event.stopPropagation();
+                        speakCard(getSpokenMonth(activeDate, offset));
+                      }} />
+                    )}
+                    <p className="daily-orientation__question">{CAPTION_MONTH}</p>
+                    <strong className="daily-orientation__answer">{month}</strong>
+                  </article>
+                )}
+              </div>
+            )}
+
+            {showBottomRow && (
+              <div className="daily-orientation__row">
+                {display.showWeather && (
+                  <article
+                    className={`daily-orientation__card daily-orientation__card--narrow daily-orientation__card--stacked daily-orientation__card--weather daily-orientation__card--speakable${hideCurrentTime ? " daily-orientation__card--weather-hidden" : ""}`}
+                    role="button"
+                    tabIndex={hideCurrentTime ? -1 : 0}
+                    aria-hidden={hideCurrentTime}
+                    onClick={() => setIsWeatherPickerOpen(true)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" && event.key !== " ") return;
+                      event.preventDefault();
+                      setIsWeatherPickerOpen(true);
+                    }}
+                  >
+                    {soundEnabled && weatherId && !hideCurrentTime && (
+                      <SpeakerButton onClick={(event) => {
+                        event.stopPropagation();
+                        speakCard(getSpokenWeather(weatherId));
+                      }} />
+                    )}
+                    <p className="daily-orientation__question">{CAPTION_WEATHER}</p>
+                    <div className={`daily-orientation__weather-display${weatherId ? " daily-orientation__weather-display--set" : " daily-orientation__weather-display--unset"}`}>
                       {weatherId ? (
                         <>
                           <WeatherMark id={weatherId} />
@@ -564,39 +636,52 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                       ) : (
                         <span>Добавить</span>
                       )}
-                    </button>
-                  </div>
+                    </div>
+                  </article>
                 )}
-              </article>
-            )}
 
-            {hasTime && (
-              <article
-                className={`${timeCardClassName}${soundEnabled && !hideCurrentTime ? " daily-orientation__card--speakable" : ""}`}
-                aria-hidden={hideCurrentTime}
-                {...(hideCurrentTime ? {} : speakableCardProps(getSpokenTime(now)))}
-              >
-                {soundEnabled && !hideCurrentTime && (
-                  <SpeakerButton onClick={(event) => {
-                    event.stopPropagation();
-                    speakCard(getSpokenTime(now));
-                  }} />
+                {display.showSeason && (
+                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
+                    <div className="daily-orientation__season-background" aria-hidden="true"><SeasonMark season={season} /></div>
+                    {soundEnabled && (
+                      <SpeakerButton onClick={(event) => {
+                        event.stopPropagation();
+                        speakCard(getSpokenSeason(activeDate, offset));
+                      }} />
+                    )}
+                    <p className="daily-orientation__question">{CAPTION_SEASON}</p>
+                    <strong className="daily-orientation__answer">{season.label}</strong>
+                  </article>
                 )}
-                <p className="daily-orientation__question daily-orientation__question--time">{CAPTION_TIME}</p>
-                <div className="daily-orientation__time-content">
-                  {display.showAnalogClock && <AnalogClock now={now} />}
-                  {(display.showTimeWords || display.showDigitalTime) && (
-                    <div className="daily-orientation__time-readout">
-                      {display.showTimeWords && <strong className="daily-orientation__time-words">{formatRussianClockTime(now)}</strong>}
-                      {display.showDigitalTime && (
-                        <output className="daily-orientation__digital-time" aria-label={`Цифровое время: ${formatDigitalClock(now)}`}>{formatDigitalClock(now)}</output>
+
+                {hasTime && (
+                  <article className={timeCardClassName} aria-hidden={hideCurrentTime}>
+                    {soundEnabled && !hideCurrentTime && (
+                      <SpeakerButton onClick={(event) => {
+                        event.stopPropagation();
+                        speakCard(getSpokenTime(now));
+                      }} />
+                    )}
+                    {(display.showAnalogClock || display.showDigitalTime) && (
+                      <div className="daily-orientation__time-dial">
+                        {display.showAnalogClock && <AnalogClock now={now} />}
+                        {display.showDigitalTime && <DigitalClock now={now} />}
+                      </div>
+                    )}
+                    <div className="daily-orientation__time-readout" ref={timeWordsFit.containerRef}>
+                      <p className="daily-orientation__question daily-orientation__question--time">{CAPTION_TIME}</p>
+                      {display.showTimeWords && (
+                        <strong className="daily-orientation__time-words" ref={timeWordsFit.wordsRef} aria-label={formatRussianClockTime(now)}>
+                          <span className="daily-orientation__time-words-hour">{timeWords.hour}</span>
+                          <span className="daily-orientation__time-words-minute">{timeWords.minute}</span>
+                        </strong>
                       )}
                     </div>
-                  )}
-                </div>
-              </article>
+                  </article>
+                )}
+              </div>
             )}
-          </section>
+          </div>
         </div>
       </div>
       <div className="daily-orientation__rotate-notice" role="status">

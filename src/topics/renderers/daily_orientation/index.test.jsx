@@ -25,7 +25,12 @@ describe("DailyOrientationRenderer", () => {
     act(() => root.render(<DailyOrientationRenderer sessionParams={sessionParams} soundEnabled={soundEnabled} />));
   }
 
-  it("shows today by default and updates the date fields through the carousel", () => {
+  function dateCards() {
+    // [Число, Месяц] in DOM order -- both share daily-orientation__card--date.
+    return Array.from(container.querySelectorAll(".daily-orientation__card--date"));
+  }
+
+  it("shows today by default as six separate cards and updates through the carousel", () => {
     mountAt(new Date(2026, 8, 22, 14, 35));
 
     expect(container.textContent).toContain("ВТОРНИК");
@@ -35,8 +40,9 @@ describe("DailyOrientationRenderer", () => {
     expect(container.textContent).toContain("Число");
     expect(container.textContent).toContain("Месяц");
     expect(container.textContent).toContain("Время года");
+    expect(container.textContent).toContain("Погода");
     expect(container.textContent).toContain("Время");
-    expect(container.querySelectorAll(".daily-orientation__card-title")).toHaveLength(0);
+    expect(container.querySelectorAll(".daily-orientation__card")).toHaveLength(6);
 
     const tomorrow = Array.from(container.querySelectorAll("button"))
       .find((button) => button.textContent === "Завтра");
@@ -53,7 +59,6 @@ describe("DailyOrientationRenderer", () => {
     const timeCard = container.querySelector(".daily-orientation__card--time");
     expect(timeCard?.classList.contains("daily-orientation__card--time-hidden")).toBe(true);
     expect(timeCard?.getAttribute("aria-hidden")).toBe("true");
-    expect(container.querySelectorAll(".daily-orientation__card")).toHaveLength(4);
 
     const today = Array.from(container.querySelectorAll("button"))
       .find((button) => button.textContent === "Сегодня");
@@ -63,20 +68,21 @@ describe("DailyOrientationRenderer", () => {
     expect(timeCard?.getAttribute("aria-hidden")).toBe("false");
   });
 
-  it("renders only the selected orientation blocks and closes gaps in the grid", () => {
+  it("renders only the selected orientation cards", () => {
     mountAt(new Date(2026, 8, 22, 14, 35), {
       showCarousel: false,
       showWeekday: false,
       showDayOfMonth: false,
       showMonth: true,
       showSeason: false,
+      showWeather: false,
       showAnalogClock: true,
       showTimeWords: false,
       showDigitalTime: false,
     });
 
     expect(container.querySelector(".daily-orientation__carousel")).toBeNull();
-    expect(container.querySelector(".daily-orientation__grid")?.classList.contains("daily-orientation__grid--2")).toBe(true);
+    expect(container.querySelectorAll(".daily-orientation__card")).toHaveLength(2);
     expect(container.textContent).toContain("СЕНТЯБРЬ");
     expect(container.textContent).toContain("Месяц");
     expect(container.textContent).not.toContain("Число");
@@ -85,7 +91,7 @@ describe("DailyOrientationRenderer", () => {
     expect(container.querySelector(".daily-orientation__digital-time")).toBeNull();
   });
 
-  describe("tap-to-speak", () => {
+  describe("tap-to-speak (via the speaker icon only -- whole cards no longer speak)", () => {
     let speakSpy;
 
     function stubSpeechSynthesis() {
@@ -100,12 +106,12 @@ describe("DailyOrientationRenderer", () => {
       vi.unstubAllGlobals();
     });
 
-    it("speaks the matching sentence when a card is tapped, respecting the carousel offset", () => {
+    it("speaks the matching sentence via each card's icon, respecting the carousel offset", () => {
       stubSpeechSynthesis();
       mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
 
-      const seasonCard = container.querySelector(".daily-orientation__card--season");
-      act(() => seasonCard.click());
+      const seasonIcon = container.querySelector(".daily-orientation__card--season .daily-orientation__speaker-icon");
+      act(() => seasonIcon.click());
       expect(speakSpy).toHaveBeenCalledTimes(1);
       expect(speakSpy.mock.calls[0][0].text).toBe("Сейчас осень.");
 
@@ -114,28 +120,51 @@ describe("DailyOrientationRenderer", () => {
       act(() => tomorrow.click());
       act(() => { vi.advanceTimersByTime(3000); }); // clear the tap cooldown from the first speak
 
-      act(() => seasonCard.click());
+      act(() => seasonIcon.click());
       expect(speakSpy).toHaveBeenCalledTimes(2);
       expect(speakSpy.mock.calls[1][0].text).toBe("Завтра будет осень.");
     });
 
-    it("does nothing when sound is disabled", () => {
-      stubSpeechSynthesis();
-      mountAt(new Date(2026, 8, 22, 14, 35), undefined, false);
-
-      const dateCard = container.querySelector(".daily-orientation__card--date");
-      expect(dateCard.getAttribute("role")).toBeNull();
-      act(() => dateCard.click());
-      expect(speakSpy).not.toHaveBeenCalled();
-    });
-
-    it("ignores a rapid second tap within the cooldown window", () => {
+    it("speaks only the month on the Месяц card's icon", () => {
       stubSpeechSynthesis();
       mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
 
-      const dateCard = container.querySelector(".daily-orientation__card--date");
-      act(() => dateCard.click());
-      act(() => dateCard.click());
+      const [, monthCard] = dateCards();
+      act(() => monthCard.querySelector(".daily-orientation__speaker-icon").click());
+
+      expect(speakSpy).toHaveBeenCalledTimes(1);
+      expect(speakSpy.mock.calls[0][0].text).toBe("Сейчас сентябрь.");
+    });
+
+    it("speaks the full date on the Число card's icon", () => {
+      stubSpeechSynthesis();
+      mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
+
+      const [numberCard] = dateCards();
+      act(() => numberCard.querySelector(".daily-orientation__speaker-icon").click());
+
+      expect(speakSpy).toHaveBeenCalledTimes(1);
+      expect(speakSpy.mock.calls[0][0].text).toBe("Сегодня двадцать второе сентября.");
+    });
+
+    it("cards no longer speak on a whole-card tap, and render no icon when sound is disabled", () => {
+      stubSpeechSynthesis();
+      mountAt(new Date(2026, 8, 22, 14, 35), undefined, false);
+
+      const [numberCard] = dateCards();
+      expect(numberCard.querySelector(".daily-orientation__speaker-icon")).toBeNull();
+      act(() => numberCard.click());
+      expect(speakSpy).not.toHaveBeenCalled();
+    });
+
+    it("ignores a rapid second tap on the same icon within the cooldown window", () => {
+      stubSpeechSynthesis();
+      mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
+
+      const [numberCard] = dateCards();
+      const icon = numberCard.querySelector(".daily-orientation__speaker-icon");
+      act(() => icon.click());
+      act(() => icon.click());
       expect(speakSpy).toHaveBeenCalledTimes(1);
     });
 
@@ -152,12 +181,25 @@ describe("DailyOrientationRenderer", () => {
       expect(container.querySelector('[role="dialog"]')).toBeNull();
     });
 
-    it("tapping the weather row does not also speak the season", () => {
+    it("speaks the weather via its icon without also opening the picker, only once a pick exists", () => {
       stubSpeechSynthesis();
       mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
 
-      act(() => container.querySelector(".daily-orientation__weather-row").click());
-      expect(speakSpy).not.toHaveBeenCalled();
+      const weatherCard = container.querySelector(".daily-orientation__card--weather");
+      expect(weatherCard.querySelector(".daily-orientation__speaker-icon")).toBeNull();
+
+      act(() => weatherCard.click());
+      const rainOption = Array.from(container.querySelectorAll(".daily-orientation__weather-option"))
+        .find((button) => button.textContent.includes("ДОЖДЛИВАЯ"));
+      act(() => rainOption.click());
+
+      const icon = weatherCard.querySelector(".daily-orientation__speaker-icon");
+      expect(icon).not.toBeNull();
+      act(() => icon.click());
+
+      expect(speakSpy).toHaveBeenCalledTimes(1);
+      expect(speakSpy.mock.calls[0][0].text).toBe("Погода дождливая.");
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
     });
   });
 
@@ -218,20 +260,20 @@ describe("DailyOrientationRenderer", () => {
   });
 
   describe("weather picker", () => {
-    it("invites the child to pick today's weather when none has been set yet, under its own caption", () => {
+    it("is its own card, invites a pick when unset, under its own caption", () => {
       mountAt(new Date(2026, 8, 22, 14, 35));
 
-      const seasonCard = container.querySelector(".daily-orientation__card--season");
-      expect(seasonCard.textContent).toContain("Погода");
+      const weatherCard = container.querySelector(".daily-orientation__card--weather");
+      expect(weatherCard.textContent).toContain("Погода");
 
-      const weatherRow = container.querySelector(".daily-orientation__weather-row");
-      expect(weatherRow.classList.contains("daily-orientation__weather-row--unset")).toBe(true);
-      expect(weatherRow.textContent).toContain("Добавить");
+      const display = weatherCard.querySelector(".daily-orientation__weather-display");
+      expect(display.classList.contains("daily-orientation__weather-display--unset")).toBe(true);
+      expect(display.textContent).toContain("Добавить");
     });
 
     it("offers fog alongside the other options", () => {
       mountAt(new Date(2026, 8, 22, 14, 35));
-      act(() => container.querySelector(".daily-orientation__weather-row").click());
+      act(() => container.querySelector(".daily-orientation__card--weather").click());
 
       const dialog = container.querySelector('[role="dialog"]');
       const fogOption = Array.from(dialog.querySelectorAll("button"))
@@ -244,7 +286,7 @@ describe("DailyOrientationRenderer", () => {
     // a description of the weather) -- see feedback that shipped this fix.
     it("labels each option as a feminine adjective agreeing with погода, not the precipitation noun", () => {
       mountAt(new Date(2026, 8, 22, 14, 35));
-      act(() => container.querySelector(".daily-orientation__weather-row").click());
+      act(() => container.querySelector(".daily-orientation__card--weather").click());
 
       const optionTexts = Array.from(container.querySelectorAll(".daily-orientation__weather-option"))
         .map((button) => button.textContent);
@@ -260,7 +302,8 @@ describe("DailyOrientationRenderer", () => {
     it("opens a picker, shows the pick on the card, and persists it under today's date", () => {
       mountAt(new Date(2026, 8, 22, 14, 35));
 
-      act(() => container.querySelector(".daily-orientation__weather-row").click());
+      const weatherCard = container.querySelector(".daily-orientation__card--weather");
+      act(() => weatherCard.click());
       const dialog = container.querySelector('[role="dialog"]');
       expect(dialog).not.toBeNull();
 
@@ -269,9 +312,9 @@ describe("DailyOrientationRenderer", () => {
       act(() => rainOption.click());
 
       expect(container.querySelector('[role="dialog"]')).toBeNull();
-      const weatherRow = container.querySelector(".daily-orientation__weather-row");
-      expect(weatherRow.classList.contains("daily-orientation__weather-row--set")).toBe(true);
-      expect(weatherRow.textContent).toContain("ДОЖДЛИВАЯ");
+      const display = weatherCard.querySelector(".daily-orientation__weather-display");
+      expect(display.classList.contains("daily-orientation__weather-display--set")).toBe(true);
+      expect(display.textContent).toContain("ДОЖДЛИВАЯ");
 
       expect(window.localStorage.getItem("daily_orientation_weather")).toBe(
         JSON.stringify({ date: "2026-09-22", weatherId: "rain" })
@@ -285,18 +328,22 @@ describe("DailyOrientationRenderer", () => {
       );
       mountAt(new Date(2026, 8, 22, 14, 35));
 
-      const weatherRow = container.querySelector(".daily-orientation__weather-row");
-      expect(weatherRow.classList.contains("daily-orientation__weather-row--unset")).toBe(true);
-      expect(weatherRow.textContent).not.toContain("СНЕЖНАЯ");
+      const display = container.querySelector(".daily-orientation__weather-display");
+      expect(display.classList.contains("daily-orientation__weather-display--unset")).toBe(true);
+      expect(display.textContent).not.toContain("СНЕЖНАЯ");
     });
 
-    it("is hidden while viewing Вчера/Завтра", () => {
+    it("is hidden (not removed) while viewing Вчера/Завтра, like the time card", () => {
       mountAt(new Date(2026, 8, 22, 14, 35));
+      const weatherCard = container.querySelector(".daily-orientation__card--weather");
+      expect(weatherCard.getAttribute("aria-hidden")).toBe("false");
+
       const tomorrow = Array.from(container.querySelectorAll("button"))
         .find((button) => button.textContent === "Завтра");
       act(() => tomorrow.click());
 
-      expect(container.querySelector(".daily-orientation__weather-row")).toBeNull();
+      expect(weatherCard.getAttribute("aria-hidden")).toBe("true");
+      expect(weatherCard.classList.contains("daily-orientation__card--weather-hidden")).toBe(true);
     });
   });
 });
