@@ -8,6 +8,7 @@ import {
   getSpokenSeason,
   getSpokenTime,
   getSpokenWeekday,
+  parseWeeklyPlan,
 } from "./timeUtils";
 
 describe("daily orientation time helpers", () => {
@@ -50,5 +51,33 @@ describe("daily orientation time helpers", () => {
 
   it("speaks the current time as a full sentence", () => {
     expect(getSpokenTime(new Date(2026, 8, 22, 14, 35))).toBe("Сейчас четырнадцать часов тридцать пять минут.");
+  });
+
+  it("parses a weekly plan text into a map keyed by day-of-week index, skipping empty or unrecognized lines", () => {
+    const text = [
+      "Пн: Школа",
+      "вт:Школа",
+      "Ср: Школа",
+      "Чт: Школа",
+      "Пт: Школа",
+      "Сб: Поездка в парк",
+      "Вс: ",
+      "просто текст без дня",
+    ].join("\n");
+
+    expect(parseWeeklyPlan(text)).toEqual({
+      1: "Школа",
+      2: "Школа",
+      3: "Школа",
+      4: "Школа",
+      5: "Школа",
+      6: "Поездка в парк",
+    });
+  });
+
+  it("returns an empty plan for empty or whitespace-only text", () => {
+    expect(parseWeeklyPlan("")).toEqual({});
+    expect(parseWeeklyPlan("   \n  \n")).toEqual({});
+    expect(parseWeeklyPlan(undefined)).toEqual({});
   });
 });

@@ -1073,6 +1073,26 @@ function TextListParam({ label, predefined, value, maxLength, onChange }) {
   );
 }
 
+// Plain multi-line free text, no predefined/custom split or per-line add-remove
+// controls — just a label, an optional hint, and a textarea. Used where a topic
+// needs one editable text blob (e.g. daily_orientation's weekly plan) rather
+// than a structured list.
+function FreeTextParam({ label, hint, value, onChange, rows = 4, placeholder }) {
+  return (
+    <div className="param-row param-row--block">
+      <div className="param-label">{label}</div>
+      {hint && <div className="param-hint">{hint}</div>}
+      <textarea
+        className="param-sentence-textarea"
+        rows={rows}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+    </div>
+  );
+}
+
 function TextUploadParam({ label, maxLength, value, onChange }) {
   const fileRef = useRef(null);
   const [error, setError] = useState(null);
@@ -2260,6 +2280,19 @@ export default function ParamsScreen() {
                 maxLength={def.maxLength}
                 value={params[key] ?? ""}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+              />
+            );
+          }
+          if (def.type === "free_text") {
+            return (
+              <FreeTextParam
+                key={key}
+                label={def.label?.ru ?? key}
+                hint={def.hint?.ru}
+                value={params[key] ?? def.default ?? ""}
+                onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
+                rows={def.rows}
+                placeholder={def.placeholder?.ru}
               />
             );
           }

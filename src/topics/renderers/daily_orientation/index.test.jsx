@@ -103,28 +103,28 @@ describe("DailyOrientationRenderer", () => {
       stubSpeechSynthesis();
       mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
 
-      const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
-      act(() => weekdayCard.click());
+      const seasonCard = container.querySelector(".daily-orientation__card--season");
+      act(() => seasonCard.click());
       expect(speakSpy).toHaveBeenCalledTimes(1);
-      expect(speakSpy.mock.calls[0][0].text).toBe("Сегодня вторник.");
+      expect(speakSpy.mock.calls[0][0].text).toBe("Сейчас осень.");
 
       const tomorrow = Array.from(container.querySelectorAll("button"))
         .find((button) => button.textContent === "Завтра");
       act(() => tomorrow.click());
       act(() => { vi.advanceTimersByTime(3000); }); // clear the tap cooldown from the first speak
 
-      act(() => weekdayCard.click());
+      act(() => seasonCard.click());
       expect(speakSpy).toHaveBeenCalledTimes(2);
-      expect(speakSpy.mock.calls[1][0].text).toBe("Завтра будет среда.");
+      expect(speakSpy.mock.calls[1][0].text).toBe("Завтра будет осень.");
     });
 
     it("does nothing when sound is disabled", () => {
       stubSpeechSynthesis();
       mountAt(new Date(2026, 8, 22, 14, 35), undefined, false);
 
-      const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
-      expect(weekdayCard.getAttribute("role")).toBeNull();
-      act(() => weekdayCard.click());
+      const dateCard = container.querySelector(".daily-orientation__card--date");
+      expect(dateCard.getAttribute("role")).toBeNull();
+      act(() => dateCard.click());
       expect(speakSpy).not.toHaveBeenCalled();
     });
 
@@ -132,10 +132,79 @@ describe("DailyOrientationRenderer", () => {
       stubSpeechSynthesis();
       mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
 
+      const dateCard = container.querySelector(".daily-orientation__card--date");
+      act(() => dateCard.click());
+      act(() => dateCard.click());
+      expect(speakSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("speaks via the icon on the weekday card without also opening the weekly plan modal", () => {
+      stubSpeechSynthesis();
+      mountAt(new Date(2026, 8, 22, 14, 35), undefined, true);
+
+      const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
+      const icon = weekdayCard.querySelector(".daily-orientation__speaker-icon");
+      act(() => icon.click());
+
+      expect(speakSpy).toHaveBeenCalledTimes(1);
+      expect(speakSpy.mock.calls[0][0].text).toBe("Сегодня вторник.");
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+    });
+  });
+
+  describe("weekly plan modal", () => {
+    it("opens when the weekday card is tapped, even with sound disabled", () => {
+      mountAt(new Date(2026, 8, 22, 14, 35), undefined, false);
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+
       const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
       act(() => weekdayCard.click());
+
+      expect(container.querySelector('[role="dialog"]')).not.toBeNull();
+    });
+
+    it("highlights today, marks weekends, and shows plan text only for days that have one", () => {
+      mountAt(new Date(2026, 8, 22, 14, 35), {
+        weeklyPlan: "Пн: Школа\nВт: Школа\nСр: Школа\nЧт: Школа\nПт: Школа\nСб: Поездка в парк",
+      });
+
+      const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
       act(() => weekdayCard.click());
-      expect(speakSpy).toHaveBeenCalledTimes(1);
+
+      const days = Array.from(container.querySelectorAll(".daily-orientation__week-day"));
+      expect(days).toHaveLength(7);
+
+      const tuesday = days.find((d) => d.textContent.startsWith("ВТ"));
+      expect(tuesday.classList.contains("daily-orientation__week-day--today")).toBe(true);
+      expect(tuesday.textContent).toContain("Школа");
+
+      const saturday = days.find((d) => d.textContent.startsWith("СБ"));
+      expect(saturday.classList.contains("daily-orientation__week-day--weekend")).toBe(true);
+      expect(saturday.textContent).toContain("Поездка в парк");
+
+      const sunday = days.find((d) => d.textContent.startsWith("ВС"));
+      expect(sunday.classList.contains("daily-orientation__week-day--weekend")).toBe(true);
+      expect(sunday.querySelector(".daily-orientation__week-day-plan")).toBeNull();
+    });
+
+    it("closes via the close button", () => {
+      mountAt(new Date(2026, 8, 22, 14, 35));
+      const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
+      act(() => weekdayCard.click());
+      expect(container.querySelector('[role="dialog"]')).not.toBeNull();
+
+      act(() => container.querySelector(".daily-orientation__modal-close").click());
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+    });
+
+    it("auto-closes after being left open and idle", () => {
+      mountAt(new Date(2026, 8, 22, 14, 35));
+      const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
+      act(() => weekdayCard.click());
+      expect(container.querySelector('[role="dialog"]')).not.toBeNull();
+
+      act(() => { vi.advanceTimersByTime(90_000); });
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
     });
   });
 });

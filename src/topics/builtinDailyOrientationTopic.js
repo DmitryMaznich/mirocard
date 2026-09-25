@@ -78,6 +78,17 @@ export function buildDailyOrientationTopicRecord() {
             default: true,
             section: "Что показывать",
           },
+          weeklyPlan: {
+            type: "free_text",
+            label: { ru: "План на неделю" },
+            hint: {
+              ru: "По строке на день: «Пн: Школа». Пустая или отсутствующая строка — день просто не показывается в окне недели (открывается тапом по карточке «День недели»).",
+            },
+            default: "",
+            rows: 8,
+            placeholder: { ru: "Пн: Школа\nВт: Школа\nСр: Школа\nЧт: Школа\nПт: Школа\nСб: Поездка в парк\nВс: " },
+            section: "План на неделю",
+          },
         },
         ui: {
           title: { ru: "Экран на сегодня" },

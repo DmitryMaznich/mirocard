@@ -94,6 +94,35 @@ export function getSpokenTime(date) {
   return `Сейчас ${buildClockWords(date)}.`;
 }
 
+// Keyed to Date#getDay() (0=Sunday..6=Saturday) so callers can look a day's
+// plan up directly by an actual date without a separate Monday-first mapping.
+const WEEKDAY_PLAN_PREFIXES = [
+  { prefix: "пн", day: 1 },
+  { prefix: "вт", day: 2 },
+  { prefix: "ср", day: 3 },
+  { prefix: "чт", day: 4 },
+  { prefix: "пт", day: 5 },
+  { prefix: "сб", day: 6 },
+  { prefix: "вс", day: 0 },
+];
+
+export function parseWeeklyPlan(text) {
+  const plan = {};
+  if (!text) return plan;
+  for (const rawLine of text.split("\n")) {
+    const line = rawLine.trim();
+    const colonIndex = line.indexOf(":");
+    if (colonIndex === -1) continue;
+    const key = line.slice(0, colonIndex).trim().toLowerCase();
+    const content = line.slice(colonIndex + 1).trim();
+    if (!content) continue;
+    const match = WEEKDAY_PLAN_PREFIXES.find((entry) => entry.prefix === key);
+    if (!match) continue;
+    plan[match.day] = content;
+  }
+  return plan;
+}
+
 export function formatDigitalClock(date) {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
