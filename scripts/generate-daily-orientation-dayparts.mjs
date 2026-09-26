@@ -68,12 +68,13 @@ const TARGETS = [
   {
     id: "evening",
     label: "вечер",
-    // Bath time, not dinner: a meal says nothing about which part of the day
-    // it is, a bath before bed is the typical evening-only routine.
-    prompt: `${STYLE} EVENING: the child figure sits in a simple bathtub, ` +
-      "head and shoulders above the rim, a few round soap bubbles floating " +
-      "above the water. In the top corner, a small half-sun setting below a " +
-      "horizon line, no rays.",
+    // Washing before bed, not dinner: a meal says nothing about which part of
+    // the day it is. A shower (the family's own evening routine) rather than
+    // a bath.
+    prompt: `${STYLE} EVENING: the child figure standing under a simple ` +
+      "shower head mounted on the wall, a few straight lines of water falling " +
+      "from it onto the child, standing on a flat floor line. In the top " +
+      "corner, a small half-sun setting below a horizon line, no rays.",
   },
   {
     id: "night",
