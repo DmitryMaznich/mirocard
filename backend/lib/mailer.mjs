@@ -1,4 +1,4 @@
-import { RESEND_API_KEY, SMTP_FROM, APP_BASE_URL, LEGAL_DOCS_VERSION } from "./config.mjs";
+import { RESEND_API_KEY, RESEND_API_URL, SMTP_FROM, APP_BASE_URL, LEGAL_DOCS_VERSION } from "./config.mjs";
 
 async function sendEmail({ to, subject, text, html }) {
   if (!RESEND_API_KEY) {
@@ -6,7 +6,7 @@ async function sendEmail({ to, subject, text, html }) {
     return;
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
+  const res = await fetch(RESEND_API_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${RESEND_API_KEY}`,
@@ -23,7 +23,9 @@ async function sendEmail({ to, subject, text, html }) {
     // status code alone is normally enough to tell "bad request" from
     // "Resend is down" from "rate limited".
     const body = await res.text().catch(() => "");
-    throw new Error(`Resend API error ${res.status}: ${body.slice(0, 200)}`);
+    const err = new Error(`Resend API error ${res.status}: ${body.slice(0, 200)}`);
+    err.resendStatus = res.status;
+    throw err;
   }
 }
 

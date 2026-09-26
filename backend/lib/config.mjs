@@ -60,6 +60,8 @@ export const SERVE_STATIC = readEnv("SERVE_STATIC") === "1";
 // dev, a genuine outage (nobody gets their verification/reset/purchase
 // email) if it happened unnoticed in production, hence required here.
 export const RESEND_API_KEY = requiredInProduction("RESEND_API_KEY", "");
+// Overridable only so test runs can point at a local fake (scripts/test-env/fake-resend.mjs).
+export const RESEND_API_URL = readEnv("RESEND_API_URL") || "https://api.resend.com/emails";
 export const SMTP_FROM      = readEnv("SMTP_FROM") || "Mironium <noreply@mironium.com>";
 export const APP_BASE_URL   = readEnv("APP_BASE_URL") || "http://localhost:5174";
 
