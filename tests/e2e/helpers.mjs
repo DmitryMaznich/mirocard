@@ -98,9 +98,16 @@ export async function openDeck(page, deckTitle) {
   await page.getByRole("button", { name: /^(1 Тема|.* Тема )/ }).first().click();
   await page.getByRole("button", { name: "Всё", exact: true }).click();
   const card = page.getByRole("article").filter({ hasText: deckTitle }).first();
-  await card.getByRole("button", { name: /По подписке|Открыть/ }).first().waitFor({ timeout: 15_000 });
-  const claim = card.getByRole("button", { name: "По подписке" });
-  if (await claim.count()) await claim.click();
+  // Badge states (TopicTile.jsx): lock "По подписке" = not yet claimed; ↓ "Установить" =
+  // owned but not on this device; "Открыть"/"Активна" = installed.
+  await card.getByRole("button", { name: /По подписке|Установить|Открыть|Активна/ }).first().waitFor({ timeout: 15_000 });
+  for (const name of ["По подписке", "Установить"]) {
+    const b = card.getByRole("button", { name });
+    if (await b.count()) { await b.click(); break; }
+  }
+  // "Установить" asks "Установить тему?" first.
+  const confirm = page.getByRole("dialog").getByRole("button", { name: "Установить" });
+  if (await confirm.isVisible({ timeout: 2000 }).catch(() => false)) await confirm.click();
   await card.getByRole("button", { name: "Открыть" }).click({ timeout: 30_000 });
 }
 
