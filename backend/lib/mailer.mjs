@@ -2,6 +2,9 @@ import { RESEND_API_KEY, RESEND_API_URL, SMTP_FROM, APP_BASE_URL, LEGAL_DOCS_VER
 import { EmailBudgetExceeded } from "./email-budget.mjs";
 
 // Daily send budget (see email-budget.mjs); wired up by server.mjs.
+// Purchase confirmations carry the legally required post-payment notice and
+// are rare, so they are counted but never held back.
+const BUDGET_EXEMPT_KINDS = new Set(["purchase_confirmation"]);
 let budget = null;
 export function setEmailBudget(b) { budget = b; }
 
@@ -10,7 +13,7 @@ async function sendEmail({ to, subject, text, html, kind }) {
     console.log("[mailer] (dev) email:", subject, "→", to);
     return;
   }
-  if (budget && !budget.canSend()) throw new EmailBudgetExceeded();
+  if (budget && !BUDGET_EXEMPT_KINDS.has(kind) && !budget.canSend()) throw new EmailBudgetExceeded();
 
   const res = await fetch(RESEND_API_URL, {
     method: "POST",

@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { randomUUID, createHash } from "node:crypto";
+import { randomUUID, createHash, randomBytes } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync, createReadStream, statSync, readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION,
-  CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, GOOGLE_CLIENT_ID, GOOGLE_JWKS_URL,
+  CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, GOOGLE_CLIENT_ID, GOOGLE_JWKS_URL, APP_BASE_URL,
 } from "./lib/config.mjs";
 import { verifyGoogleIdToken } from "./lib/google-auth.mjs";
 import { createOneTimeCode, consumeOneTimeCode } from "./lib/one-time-codes.mjs";
@@ -441,9 +441,25 @@ async function handleVerifyEmail(req, res) {
 const GOOGLE_ERROR_CODES = new Set(["malformed", "bad_signature", "bad_issuer", "bad_audience", "expired", "email_unverified", "unknown_key"]);
 const GOOGLE_SIGNUP_TTL_MS = 30 * 60 * 1000;
 
-function googleRedirect(res, params) {
-  res.writeHead(303, { Location: `/?${new URLSearchParams(params)}` });
+function googleRedirect(res, params, headers = {}) {
+  res.writeHead(303, { Location: `/?${new URLSearchParams(params)}`, ...headers });
   res.end();
+}
+
+// Binds a one-time code to the browser that actually went through Google, so a
+// ?google_code= link sent to someone else can't sign them into another account.
+const GOOGLE_NONCE_COOKIE = "mc_google_nonce";
+function newGoogleNonce() {
+  const raw = randomBytes(24).toString("base64url");
+  const secure = APP_BASE_URL.startsWith("https:") ? "; Secure" : "";
+  return {
+    hash: hashToken(raw),
+    cookie: `${GOOGLE_NONCE_COOKIE}=${raw}; HttpOnly; SameSite=Lax; Path=/api/auth/google; Max-Age=1800${secure}`,
+  };
+}
+function nonceMatches(req, payload) {
+  const raw = parseCookies(req)[GOOGLE_NONCE_COOKIE];
+  return Boolean(raw && payload?.nonceHash && hashToken(raw) === payload.nonceHash);
 }
 
 function findAccountByGoogleSubject(sub) {
@@ -480,25 +496,31 @@ async function handleGoogleCallback(req, res) {
 
   let account = findAccountByGoogleSubject(id.sub);
   if (!account) {
-    // Google verified this address, so an existing account with it is the same person.
+    // Google verified this address, so an *active* account with it is the same
+    // person. A *pending* one was never verified — anyone could have registered
+    // it with their own password — so it goes through the signup step instead
+    // (see handleGoogleCompleteSignup), never straight in.
     const byEmail = findAccountByEmailAny(db, id.email);
-    if (byEmail && byEmail.status !== "deleted") {
-      if (byEmail.status === "pending") activateAccount(db, byEmail.id);
+    if (byEmail?.status === "active") {
       linkGoogle(byEmail.id, id);
       account = byEmail;
     }
   }
+  const nonce = newGoogleNonce();
+  const cookie = { "Set-Cookie": nonce.cookie };
   if (account) {
     trackEvent("login_completed", { method: "google" });
-    return googleRedirect(res, { google_code: createOneTimeCode(db, { kind: "google_login", payload: { accountId: account.id } }) });
+    const code = createOneTimeCode(db, { kind: "google_login", payload: { accountId: account.id, nonceHash: nonce.hash } });
+    return googleRedirect(res, { google_code: code }, cookie);
   }
-  return googleRedirect(res, { google_code: createOneTimeCode(db, { kind: "google_signup", payload: id, ttlMs: GOOGLE_SIGNUP_TTL_MS }) });
+  const code = createOneTimeCode(db, { kind: "google_signup", payload: { ...id, nonceHash: nonce.hash }, ttlMs: GOOGLE_SIGNUP_TTL_MS });
+  return googleRedirect(res, { google_code: code }, cookie);
 }
 
 async function handleGoogleExchange(req, res) {
   const body = await readJsonBody(req);
   const hit = consumeOneTimeCode(db, body?.code, null);
-  if (!hit || !["google_login", "google_signup"].includes(hit.kind)) {
+  if (!hit || !["google_login", "google_signup"].includes(hit.kind) || !nonceMatches(req, hit.payload)) {
     return writeJson(res, 400, { error: "invalid_or_expired_code" });
   }
   if (hit.kind === "google_login") {
@@ -506,11 +528,31 @@ async function handleGoogleExchange(req, res) {
     return writeJson(res, 200, loginPayload(hit.payload.accountId));
   }
   // New person: the exchanged code is spent; hand out one for complete-signup.
-  const signupCode = createOneTimeCode(db, { kind: "google_signup_confirm", payload: hit.payload, ttlMs: GOOGLE_SIGNUP_TTL_MS });
+  const { nonceHash: _nonce, ...identity } = hit.payload;
+  const signupCode = createOneTimeCode(db, { kind: "google_signup_confirm", payload: identity, ttlMs: GOOGLE_SIGNUP_TTL_MS });
   writeJson(res, 200, {
     needsProfile: true, signupCode, email: hit.payload.email,
     firstName: hit.payload.givenName, lastName: hit.payload.familyName,
   });
+}
+
+function takeOverPendingAccount(account, { id, role, referralSource, marketingOptIn }) {
+  const ts = new Date().toISOString();
+  const firstName = id.givenName || id.email.split("@")[0];
+  db.prepare(`
+    UPDATE accounts
+       SET password_hash = '', first_name = ?, last_name = ?, display_name = ?, role = ?, referral_source = ?,
+           consent_personal_data_at = ?, updated_at = ?
+     WHERE id = ?
+  `).run(firstName, id.familyName, [firstName, id.familyName].filter(Boolean).join(" "), role, referralSource, ts, ts, account.id);
+  for (const table of ["auth_tokens", "password_reset_tokens", "email_verification_tokens"]) {
+    db.prepare(`DELETE FROM ${table} WHERE account_id = ?`).run(account.id);
+  }
+  clearLegacyPasswordHashes(account.email);
+  activateAccount(db, account.id);
+  grantTrialSubscription(db, account.id);
+  setMarketingConsent(db, account.id, { optIn: marketingOptIn, source: "google_signup" });
+  trackEvent("registration_completed", { role, referralSource, method: "google" });
 }
 
 async function handleGoogleCompleteSignup(req, res) {
@@ -543,7 +585,10 @@ async function handleGoogleCompleteSignup(req, res) {
     setMarketingConsent(db, account.id, { optIn: body?.marketingOptIn === true, source: "google_signup" });
     trackEvent("registration_completed", { role, referralSource, method: "google" });
   } else if (account.status === "pending") {
-    activateAccount(db, account.id);
+    // Never verified, so everything on it may come from someone else who typed
+    // this address: the owner's answers replace it and the old password,
+    // sessions and emailed links stop working.
+    takeOverPendingAccount(account, { id, role, referralSource, marketingOptIn: body?.marketingOptIn === true });
   }
   linkGoogle(account.id, id);
   writeJson(res, 201, loginPayload(account.id));

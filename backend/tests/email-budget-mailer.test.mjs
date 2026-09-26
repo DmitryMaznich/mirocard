@@ -36,3 +36,13 @@ test("mailer records only successful sends and refuses when exhausted", async ()
   await assert.rejects(mailer.sendPasswordResetEmail("a@example.test", "t"), (e) => e.code === "email_budget_exhausted");
   assert.equal(calls, 3, "exhausted budget does not call Resend");
 });
+
+test("purchase confirmations are never held back by the daily budget", async () => {
+  const budget = createEmailBudget(initDb(":memory:"), { dailyCap: 1, signupCap: 1 });
+  mailer.setEmailBudget(budget);
+  status = 200;
+  await mailer.sendEmailVerificationEmail("a@example.test", "t");
+  assert.equal(budget.canSend(), false);
+  await mailer.sendPurchaseConfirmationEmail("a@example.test", { plan: "monthly", amountMinor: 500, currency: "EUR", endsAt: new Date().toISOString() });
+  assert.equal(budget.used(), 2, "still counted");
+});
