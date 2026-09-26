@@ -178,6 +178,9 @@ function reportEmailFailure(kind, err) {
   trackEvent("email_send_failed", { kind, status });
 }
 
+// Answers to "Как узнали о Mironium?" -- shared by email and Google signup.
+const REFERRAL_SOURCES = ["instagram", "friend", "developer", "other"];
+
 function rateLimited(res) {
   writeJson(res, 429, { error: "Too many requests, try again later" });
 }
@@ -287,7 +290,7 @@ async function handleRegister(req, res) {
   if (password.length < 8) return writeJson(res, 400, { error: "Password must be at least 8 characters" });
   if (!firstName) return writeJson(res, 400, { error: "First name is required" });
   if (!["parent", "specialist"].includes(role)) return writeJson(res, 400, { error: "Invalid role" });
-  if (!["friend", "developer", "other"].includes(referralSource)) return writeJson(res, 400, { error: "Invalid referral source" });
+  if (!REFERRAL_SOURCES.includes(referralSource)) return writeJson(res, 400, { error: "Invalid referral source" });
   if (!consentPersonalData) return writeJson(res, 400, { error: "Consent to personal data processing is required" });
   if (findAccountByEmailAny(db, email)) return writeJson(res, 409, { error: "Email already registered" });
 
@@ -561,7 +564,7 @@ async function handleGoogleCompleteSignup(req, res) {
   const referralSource = String(body?.referralSource || "");
   // Validate before consuming the code, so a rejected attempt can be retried.
   if (!["parent", "specialist"].includes(role)) return writeJson(res, 400, { error: "Invalid role" });
-  if (!["friend", "developer", "other"].includes(referralSource)) return writeJson(res, 400, { error: "Invalid referral source" });
+  if (!REFERRAL_SOURCES.includes(referralSource)) return writeJson(res, 400, { error: "Invalid referral source" });
   if (body?.consentPersonalData !== true) return writeJson(res, 400, { error: "Consent to personal data processing is required" });
 
   const hit = consumeOneTimeCode(db, body?.signupCode, "google_signup_confirm");

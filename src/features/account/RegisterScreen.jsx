@@ -131,6 +131,7 @@ export default function RegisterScreen() {
           required
         >
           <option value="" disabled>Как узнали о Mironium? *</option>
+          <option value="instagram">Instagram</option>
           <option value="friend">Рекомендация друзей</option>
           <option value="developer">Приглашение разработчика</option>
           <option value="other">Другое</option>

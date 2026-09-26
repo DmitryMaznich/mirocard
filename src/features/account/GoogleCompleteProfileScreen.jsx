@@ -87,6 +87,7 @@ export default function GoogleCompleteProfileScreen() {
         </select>
         <select className="auth-input" value={referralSource} onChange={(e) => setReferralSource(e.target.value)} required>
           <option value="" disabled>Как узнали о Mironium? *</option>
+          <option value="instagram">Instagram</option>
           <option value="friend">Рекомендация друзей</option>
           <option value="developer">Приглашение разработчика</option>
           <option value="other">Другое</option>
