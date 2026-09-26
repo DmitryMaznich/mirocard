@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
-const GIS_SRC = "https://accounts.google.com/gsi/client";
+// hl=ru: without it Google labels the button in the browser's language
+// (seen as Slovenian on a local check), ignoring renderButton's locale.
+const GIS_SRC = "https://accounts.google.com/gsi/client?hl=ru";
 
 function loadGis() {
   if (window.google?.accounts?.id) return Promise.resolve();
