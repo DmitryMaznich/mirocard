@@ -32,6 +32,25 @@ describe("SubscriptionScreen", () => {
     act(() => { container.querySelector(".subscription-cta").click(); });
   }
 
+  it("while checkout is off (legal docs draft) says «оплата скоро» instead of leading to payment; promo still offered", async () => {
+    vi.spyOn(apiModule.api, "get").mockResolvedValue({ emailSignupOpen: true, google: null, checkoutEnabled: false });
+    mount();
+    await act(async () => {});
+    const cta = container.querySelector(".subscription-cta");
+    expect(cta.textContent).toBe("Оплата скоро появится");
+    expect(cta.disabled).toBe(true);
+    expect(container.textContent).toMatch(/промокод/i);
+  });
+
+  it("keeps the normal payment button when checkout is on", async () => {
+    vi.spyOn(apiModule.api, "get").mockResolvedValue({ emailSignupOpen: true, google: null, checkoutEnabled: true });
+    mount();
+    await act(async () => {});
+    const cta = container.querySelector(".subscription-cta");
+    expect(cta.textContent).toBe("Перейти к оплате — € 89,90");
+    expect(cta.disabled).toBe(false);
+  });
+
   it("pre-selects the plan from pendingCheckoutPlan", () => {
     mount();
     const selected = container.querySelector(".plan--selected .plan__name");

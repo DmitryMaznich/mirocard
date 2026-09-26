@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -68,6 +68,18 @@ export default function SubscriptionScreen() {
   // method, promo-discounted total and the legal consents only appear on
   // "pay", after the user deliberately moves on to paying.
   const [step, setStep] = useState("choose");
+  // While the server refuses checkout (legal docs still "draft"), don't walk a
+  // parent through the whole form into a 503 -- say payment is coming and
+  // leave the promo code as the way in. Fails open: an unreachable status
+  // endpoint keeps the normal button (the server still guards checkout).
+  const [checkoutEnabled, setCheckoutEnabled] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    api.get("/auth/signup-status")
+      .then((s) => { if (alive && s?.checkoutEnabled === false) setCheckoutEnabled(false); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   const plan = PLANS.find((p) => p.id === planId);
   const discounted = promoResult?.ok && promoResult.kind !== "free_grant" ? promoResult.discountedAmountMinor : null;
@@ -286,9 +298,18 @@ export default function SubscriptionScreen() {
 
       {!unlimited && (
         <div className="subscription-footer">
-          <button type="button" className="btn btn-primary subscription-cta" onClick={() => setStep("pay")}>
-            Перейти к оплате — {priceText}
-          </button>
+          {checkoutEnabled ? (
+            <button type="button" className="btn btn-primary subscription-cta" onClick={() => setStep("pay")}>
+              Перейти к оплате — {priceText}
+            </button>
+          ) : (
+            <>
+              <p className="subscription-summary__note">Оплата картой появится совсем скоро. Если у вас есть промокод — введите его выше.</p>
+              <button type="button" className="btn btn-primary subscription-cta" disabled>
+                Оплата скоро появится
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

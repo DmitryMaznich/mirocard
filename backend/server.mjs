@@ -601,6 +601,9 @@ async function handleSignupStatus(req, res) {
   writeJson(res, 200, {
     emailSignupOpen: emailBudget.canStartSignup(),
     google: GOOGLE_CLIENT_ID ? { clientId: GOOGLE_CLIENT_ID } : null,
+    // Same gate as handleBillingCheckout: lets the subscription screen say
+    // "оплата скоро" instead of sending people into a guaranteed 503.
+    checkoutEnabled: LEGAL_DOCS_VERSION !== "draft",
   });
 }
 

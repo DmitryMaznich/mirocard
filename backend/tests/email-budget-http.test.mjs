@@ -53,7 +53,7 @@ const settle = () => new Promise((r) => setTimeout(r, 150));
 
 test("signup-status reports open email signup and the Google client id", async () => {
   const s = await (await fetch(urlOf(app, "/api/auth/signup-status"))).json();
-  assert.deepEqual(s, { emailSignupOpen: true, google: { clientId: "test-client.apps.googleusercontent.com" } });
+  assert.deepEqual(s, { emailSignupOpen: true, google: { clientId: "test-client.apps.googleusercontent.com" }, checkoutEnabled: false });
 });
 
 test("email signup pauses at the signup cap without creating an account", async () => {
