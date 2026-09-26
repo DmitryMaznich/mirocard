@@ -4,6 +4,8 @@ import {
   formatDigitalClock,
   formatRussianClockTime,
   getClockWordParts,
+  getDaypartId,
+  getSpokenDaypart,
   getLocalDateKey,
   getSeason,
   getSpokenDate,
@@ -99,5 +101,21 @@ describe("daily orientation time helpers", () => {
   it("formats a local calendar-day key that does not depend on time-of-day or timezone shifting", () => {
     expect(getLocalDateKey(new Date(2026, 8, 5, 23, 59))).toBe("2026-09-05");
     expect(getLocalDateKey(new Date(2026, 0, 1, 0, 0))).toBe("2026-01-01");
+  });
+
+  it("splits the day by the child's wake/bed hours at the edges and noon/18:00 in the middle", () => {
+    const at = (h, m = 0) => new Date(2026, 8, 25, h, m);
+    expect(getDaypartId(at(6, 59))).toBe("night");
+    expect(getDaypartId(at(7, 0))).toBe("morning");
+    expect(getDaypartId(at(11, 59))).toBe("morning");
+    expect(getDaypartId(at(12, 0))).toBe("day");
+    expect(getDaypartId(at(17, 59))).toBe("day");
+    expect(getDaypartId(at(18, 0))).toBe("evening");
+    expect(getDaypartId(at(20, 59))).toBe("evening");
+    expect(getDaypartId(at(21, 0))).toBe("night");
+    expect(getDaypartId(at(0, 30))).toBe("night");
+    expect(getDaypartId(at(6, 30), 6, 22)).toBe("morning");
+    expect(getDaypartId(at(21, 30), 6, 22)).toBe("evening");
+    expect(getSpokenDaypart("evening")).toBe("Сейчас вечер.");
   });
 });

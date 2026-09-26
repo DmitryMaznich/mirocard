@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import {
   dateClipKeys,
+  daypartClipKeys,
   monthClipKeys,
   seasonClipKeys,
   timeClipKeys,
@@ -14,10 +15,15 @@ import {
   formatDigitalClock,
   formatDisplayDate,
   formatRussianClockTime,
+  DAYPARTS,
+  DEFAULT_BED_HOUR,
+  DEFAULT_WAKE_HOUR,
   getClockWordParts,
+  getDaypartId,
   getLocalDateKey,
   getSeason,
   getSpokenDate,
+  getSpokenDaypart,
   getSpokenMonth,
   getSpokenSeason,
   getSpokenTime,
@@ -127,6 +133,7 @@ const CAPTION_DATE_NUMBER = "Число";
 const CAPTION_MONTH = "Месяц";
 const CAPTION_SEASON = "Время года";
 const CAPTION_WEATHER = "Погода";
+const CAPTION_DAYPART = "Время суток";
 const CAPTION_TIME = "Время";
 
 const DISPLAY_OPTION_KEYS = [
@@ -135,6 +142,7 @@ const DISPLAY_OPTION_KEYS = [
   "showDayOfMonth",
   "showMonth",
   "showSeason",
+  "showDaypart",
   "showWeather",
   "showAnalogClock",
   "showTimeWords",
@@ -478,6 +486,64 @@ function useFitTimeWords(text) {
   return { containerRef, wordsRef };
 }
 
+// One-line answer word that shrinks to fit its card instead of breaking
+// mid-word: with four cards in the calendar row, "ПОНЕДЕЛЬНИК" or "СЕНТЯБРЬ"
+// at the CSS size would overflow a narrower card. Starts from the element's
+// own CSS font-size every time the text changes (so a short word goes back
+// to full size), measured in the unscaled canvas like useFitTimeWords.
+const FIT_TEXT_MIN_FONT = 28;
+
+function FitText({ className, children }) {
+  const ref = useRef(null);
+
+  useLayoutEffect(() => {
+    const element = ref.current;
+    if (!element) return undefined;
+
+    function fit() {
+      element.style.fontSize = "";
+      let size = parseFloat(window.getComputedStyle(element).fontSize) || 0;
+      while (size > FIT_TEXT_MIN_FONT && element.scrollWidth > element.clientWidth) {
+        size -= 2;
+        element.style.fontSize = `${size}px`;
+      }
+    }
+
+    fit();
+    let cancelled = false;
+    document.fonts?.ready.then(() => { if (!cancelled) fit(); });
+    return () => { cancelled = true; };
+  }, [children]);
+
+  return <strong className={`${className} daily-orientation__fit-text`} ref={ref}>{children}</strong>;
+}
+
+function DaypartCard({ daypartId, hidden, speakerButton }) {
+  return (
+    <article
+      className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--daypart daily-orientation__card--daypart-${daypartId}${hidden ? " daily-orientation__card--daypart-hidden" : ""}`}
+      aria-hidden={hidden}
+    >
+      <img className="daily-orientation__daypart-picture" src={`/daily-orientation/daypart_${daypartId}.webp`} alt="" draggable="false" />
+      {speakerButton}
+      <p className="daily-orientation__question daily-orientation__daypart-caption">{CAPTION_DAYPART}</p>
+      {/* The whole cycle, current part emphasised: shows both "what now" and
+          what comes before/after, the same idea as вчера→сегодня→завтра. */}
+      <ol className="daily-orientation__daypart-strip">
+        {DAYPARTS.map((part) => (
+          <li
+            key={part.id}
+            className={`daily-orientation__daypart-step${part.id === daypartId ? " daily-orientation__daypart-step--current" : ""}`}
+            aria-current={part.id === daypartId ? "true" : undefined}
+          >
+            {part.label}
+          </li>
+        ))}
+      </ol>
+    </article>
+  );
+}
+
 function DigitalClock({ now }) {
   const hours = String(now.getHours()).padStart(2, "0");
   const minutes = String(now.getMinutes()).padStart(2, "0");
@@ -519,8 +585,14 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
     !display.showAnalogClock && display.showDigitalTime ? "daily-orientation__card--time-no-clock" : "",
     hideCurrentTime ? "daily-orientation__card--time-hidden" : "",
   ].filter(Boolean).join(" ");
-  const showTopRow = display.showWeekday || display.showDayOfMonth || display.showMonth;
-  const showBottomRow = display.showWeather || display.showSeason || hasTime;
+  const wakeHour = Number(sessionParams?.wakeHour ?? DEFAULT_WAKE_HOUR);
+  const bedHour = Number(sessionParams?.bedHour ?? DEFAULT_BED_HOUR);
+  const daypartId = getDaypartId(now, wakeHour, bedHour);
+  // Calendar row (slow-changing: day, date, month, season) over a "right
+  // now" row (part of day, weather, clock) -- the simpler Время суток sits
+  // next to the harder clock it helps explain.
+  const showTopRow = display.showWeekday || display.showDayOfMonth || display.showMonth || display.showSeason;
+  const showBottomRow = display.showDaypart || display.showWeather || hasTime;
 
   function selectOffset(nextOffset) {
     setOffset(Math.max(-1, Math.min(1, nextOffset)));
@@ -625,7 +697,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_WEEKDAY}</p>
-                    <strong className="daily-orientation__answer">{weekday}</strong>
+                    <FitText className="daily-orientation__answer">{weekday}</FitText>
                   </article>
                 )}
 
@@ -638,7 +710,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_DATE_NUMBER}</p>
-                    <strong className="daily-orientation__date-number">{dayOfMonth}</strong>
+                    <FitText className="daily-orientation__date-number">{dayOfMonth}</FitText>
                   </article>
                 )}
 
@@ -651,7 +723,21 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_MONTH}</p>
-                    <strong className="daily-orientation__answer">{month}</strong>
+                    <FitText className="daily-orientation__answer">{month}</FitText>
+                  </article>
+                )}
+
+                {display.showSeason && (
+                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
+                    <div className="daily-orientation__season-background" aria-hidden="true"><SeasonMark season={season} /></div>
+                    {soundEnabled && (
+                      <SpeakerButton onClick={(event) => {
+                        event.stopPropagation();
+                        speakCard(getSpokenSeason(activeDate, offset), seasonClipKeys(activeDate, offset));
+                      }} />
+                    )}
+                    <p className="daily-orientation__question">{CAPTION_SEASON}</p>
+                    <FitText className="daily-orientation__answer">{season.label}</FitText>
                   </article>
                 )}
               </div>
@@ -659,6 +745,19 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
 
             {showBottomRow && (
               <div className="daily-orientation__row">
+                {display.showDaypart && (
+                  <DaypartCard
+                    daypartId={daypartId}
+                    hidden={hideCurrentTime}
+                    speakerButton={soundEnabled && !hideCurrentTime && (
+                      <SpeakerButton onClick={(event) => {
+                        event.stopPropagation();
+                        speakCard(getSpokenDaypart(daypartId), daypartClipKeys(daypartId));
+                      }} />
+                    )}
+                  />
+                )}
+
                 {display.showWeather && (
                   <article
                     className={`daily-orientation__card daily-orientation__card--narrow daily-orientation__card--stacked daily-orientation__card--weather daily-orientation__card--speakable${hideCurrentTime ? " daily-orientation__card--weather-hidden" : ""}`}
@@ -689,20 +788,6 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                         <span>Добавить</span>
                       )}
                     </div>
-                  </article>
-                )}
-
-                {display.showSeason && (
-                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
-                    <div className="daily-orientation__season-background" aria-hidden="true"><SeasonMark season={season} /></div>
-                    {soundEnabled && (
-                      <SpeakerButton onClick={(event) => {
-                        event.stopPropagation();
-                        speakCard(getSpokenSeason(activeDate, offset), seasonClipKeys(activeDate, offset));
-                      }} />
-                    )}
-                    <p className="daily-orientation__question">{CAPTION_SEASON}</p>
-                    <strong className="daily-orientation__answer">{season.label}</strong>
                   </article>
                 )}
 

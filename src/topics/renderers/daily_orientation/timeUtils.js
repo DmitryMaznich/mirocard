@@ -63,6 +63,33 @@ export function getSeason(monthIndex) {
   return { id: "autumn", label: "ОСЕНЬ" };
 }
 
+// Parts of the day follow the child's own routine at the edges -- "ночь" is
+// when they sleep, not a fixed 23:00 -- and fixed noon/18:00 in the middle,
+// since those line up with lunch and dinner for most families anyway.
+export const DAYPARTS = [
+  { id: "morning", label: "УТРО" },
+  { id: "day", label: "ДЕНЬ" },
+  { id: "evening", label: "ВЕЧЕР" },
+  { id: "night", label: "НОЧЬ" },
+];
+export const DEFAULT_WAKE_HOUR = 7;
+export const DEFAULT_BED_HOUR = 21;
+const DAY_START_HOUR = 12;
+const EVENING_START_HOUR = 18;
+
+export function getDaypartId(date, wakeHour = DEFAULT_WAKE_HOUR, bedHour = DEFAULT_BED_HOUR) {
+  const hour = date.getHours();
+  if (hour >= bedHour || hour < wakeHour) return "night";
+  if (hour < DAY_START_HOUR) return "morning";
+  if (hour < EVENING_START_HOUR) return "day";
+  return "evening";
+}
+
+export function getSpokenDaypart(daypartId) {
+  const label = DAYPARTS.find((part) => part.id === daypartId)?.label ?? "";
+  return `Сейчас ${label.toLowerCase()}.`;
+}
+
 // Split into the hour half and the minute half so the time card can colour
 // each half to match its own clock hand and digital-clock digits. On the hour
 // the minute half is "ровно" -- "десять часов ноль минут" is technically

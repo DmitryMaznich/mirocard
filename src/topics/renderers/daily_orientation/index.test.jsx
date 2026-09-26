@@ -30,7 +30,7 @@ describe("DailyOrientationRenderer", () => {
     return Array.from(container.querySelectorAll(".daily-orientation__card--date"));
   }
 
-  it("shows today by default as six separate cards and updates through the carousel", () => {
+  it("shows today by default as seven separate cards and updates through the carousel", () => {
     mountAt(new Date(2026, 8, 22, 14, 35));
 
     expect(container.textContent).toContain("ВТОРНИК");
@@ -41,8 +41,9 @@ describe("DailyOrientationRenderer", () => {
     expect(container.textContent).toContain("Месяц");
     expect(container.textContent).toContain("Время года");
     expect(container.textContent).toContain("Погода");
+    expect(container.textContent).toContain("Время суток");
     expect(container.textContent).toContain("Время");
-    expect(container.querySelectorAll(".daily-orientation__card")).toHaveLength(6);
+    expect(container.querySelectorAll(".daily-orientation__card")).toHaveLength(7);
 
     const tomorrow = Array.from(container.querySelectorAll("button"))
       .find((button) => button.textContent === "Завтра");
@@ -75,6 +76,7 @@ describe("DailyOrientationRenderer", () => {
       showDayOfMonth: false,
       showMonth: true,
       showSeason: false,
+      showDaypart: false,
       showWeather: false,
       showAnalogClock: true,
       showTimeWords: false,
@@ -89,6 +91,25 @@ describe("DailyOrientationRenderer", () => {
     expect(container.textContent).toContain("Время");
     expect(container.querySelector(".daily-orientation__clock")).not.toBeNull();
     expect(container.querySelector(".daily-orientation__digital-time")).toBeNull();
+  });
+
+  it("marks the current part of the day by the child's own wake/bed hours, today only", () => {
+    const currentStep = () => container.querySelector(".daily-orientation__daypart-step--current")?.textContent;
+
+    mountAt(new Date(2026, 8, 22, 14, 35));
+    expect(currentStep()).toBe("ДЕНЬ");
+    expect(container.querySelectorAll(".daily-orientation__daypart-step")).toHaveLength(4);
+    expect(container.querySelector(".daily-orientation__daypart-picture")?.getAttribute("src"))
+      .toBe("/daily-orientation/daypart_day.webp");
+
+    const tomorrow = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "Завтра");
+    act(() => tomorrow.click());
+    expect(container.querySelector(".daily-orientation__card--daypart")?.getAttribute("aria-hidden")).toBe("true");
+
+    act(() => root.unmount());
+    container.remove();
+    mountAt(new Date(2026, 8, 22, 21, 30), { bedHour: 22 });
+    expect(currentStep()).toBe("ВЕЧЕР");
   });
 
   describe("tap-to-speak (via the speaker icon only -- whole cards no longer speak)", () => {

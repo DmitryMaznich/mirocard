@@ -7,10 +7,10 @@ export function buildDailyOrientationTopicRecord() {
       title: { ru: "Сегодня" },
       builtin: true,
       about: {
-        description: "Постоянный визуальный ориентир для коротких разговоров о дне, дате, месяце, времени года и текущем времени.",
+        description: "Постоянный визуальный ориентир для коротких разговоров о дне, дате, месяце, времени года, времени суток и текущем времени.",
         goals: [
           "Связать понятия «вчера», «сегодня» и «завтра» с реальными датами.",
-          "Поддерживать совместное называние дня недели, числа, месяца, времени года и времени.",
+          "Поддерживать совместное называние дня недели, числа, месяца, времени года, времени суток и времени.",
         ],
         finalGoal: "Ребёнок пользуется экраном как понятной визуальной опорой и отвечает доступным ему способом: словом, жестом, указанием или AAC.",
         flow: [
@@ -60,6 +60,12 @@ export function buildDailyOrientationTopicRecord() {
             default: true,
             section: "Что показывать",
           },
+          showDaypart: {
+            type: "boolean",
+            label: { ru: "Время суток" },
+            default: true,
+            section: "Что показывать",
+          },
           showWeather: {
             type: "boolean",
             label: { ru: "Погода (отмечает ребёнок)" },
@@ -84,6 +90,25 @@ export function buildDailyOrientationTopicRecord() {
             label: { ru: "Цифровое время" },
             default: true,
             section: "Что показывать",
+          },
+          // Where "ночь" ends and begins for this child -- see getDaypartId.
+          wakeHour: {
+            type: "enum",
+            label: { ru: "Подъём (начало утра)" },
+            values: [5, 6, 7, 8, 9],
+            labels: { ru: { 5: "5:00", 6: "6:00", 7: "7:00", 8: "8:00", 9: "9:00" } },
+            default: 7,
+            compact: true,
+            section: "Режим дня",
+          },
+          bedHour: {
+            type: "enum",
+            label: { ru: "Отбой (начало ночи)" },
+            values: [19, 20, 21, 22, 23],
+            labels: { ru: { 19: "19:00", 20: "20:00", 21: "21:00", 22: "22:00", 23: "23:00" } },
+            default: 21,
+            compact: true,
+            section: "Режим дня",
           },
           weeklyPlan: {
             type: "free_text",
