@@ -167,7 +167,7 @@ test("chaos: испорченный токен → понятный путь к�
 
 test("chaos: локальный режим, потом регистрация — фиксируем судьбу прогресса", async ({ page }) => {
   await asDistinctClient(page);
-  await page.goto("/");
+  await page.goto("/?local=1"); // hidden from ordinary visitors (N9)
   await page.getByRole("button", { name: "Без аккаунта (локальный режим)" }).click();
   await expect(page.locator(".home-header")).toBeVisible({ timeout: 20_000 });
   await addFirstStudent(page, "Локальный");

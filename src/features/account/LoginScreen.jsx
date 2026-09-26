@@ -126,9 +126,14 @@ export default function LoginScreen() {
       <button className="auth-link" onClick={() => setScreen("register")}>
         Нет аккаунта? Зарегистрироваться
       </button>
-      <button className="auth-link auth-link--local" onClick={handleLocalMode}>
-        Без аккаунта (локальный режим)
-      </button>
+      {/* Hidden from ordinary visitors: work done in local mode silently
+          vanishes once they register (launch testing finding N9). Kept
+          reachable via ?local=1 for the owner/dev. */}
+      {new URLSearchParams(window.location.search).has("local") && (
+        <button className="auth-link auth-link--local" onClick={handleLocalMode}>
+          Без аккаунта (локальный режим)
+        </button>
+      )}
     </div>
   );
 }
