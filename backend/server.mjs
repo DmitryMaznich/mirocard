@@ -143,6 +143,16 @@ const checkPromoLimit     = createRateLimiter({ max: 20, windowMs: HOUR_MS });  
 const checkCheckoutLimit  = createRateLimiter({ max: 20, windowMs: HOUR_MS });        // per account
 const checkWebhookLimit   = createRateLimiter({ max: 600, windowMs: 60 * 1000 });     // per provider, coarse flood guard
 
+// Email is the only way into a new account (login is blocked until the
+// address is verified), so a failed send must be visible, not just logged.
+// The Resend error message can echo the recipient, so it is not forwarded.
+function reportEmailFailure(kind, err) {
+  const status = err?.resendStatus ?? null;
+  console.error(err);
+  reportError(new Error(`email send failed (${kind}, status ${status ?? "network"})`), { scope: "email", kind, status });
+  trackEvent("email_send_failed", { kind, status });
+}
+
 function rateLimited(res) {
   writeJson(res, 429, { error: "Too many requests, try again later" });
 }
@@ -276,7 +286,7 @@ async function handleRegister(req, res) {
 
   const rawToken = randomUUID();
   createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
-  sendEmailVerificationEmail(account.email, rawToken).catch(console.error);
+  sendEmailVerificationEmail(account.email, rawToken).catch((err) => reportEmailFailure("verification", err));
 
   writeJson(res, 201, { message: "Check your email" });
 }
@@ -339,7 +349,7 @@ async function handleForgotPassword(req, res) {
   if (account) {
     const rawToken = randomUUID();
     createPasswordResetToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
-    sendPasswordResetEmail(account.email, rawToken).catch(console.error);
+    sendPasswordResetEmail(account.email, rawToken).catch((err) => reportEmailFailure("password_reset", err));
   }
 
   writeJson(res, 200, { ok: true });
@@ -407,7 +417,7 @@ async function handleResendVerification(req, res) {
     // token that's only a few minutes old.
     const rawToken = randomUUID();
     createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
-    sendEmailVerificationEmail(account.email, rawToken).catch(console.error);
+    sendEmailVerificationEmail(account.email, rawToken).catch((err) => reportEmailFailure("verification", err));
   }
 
   writeJson(res, 200, { message: "ok" });
@@ -1008,7 +1018,7 @@ function handleWebhookOutcome(result) {
     endsAt: sub?.currentPeriodEnd,
     locale: consent?.locale ?? "ru",
     legalDocsVersion: consent?.legal_docs_version,
-  }).catch(console.error);
+  }).catch((err) => reportEmailFailure("purchase_confirmation", err));
 }
 
 async function handleGetSubscription(req, res) {
@@ -1071,7 +1081,7 @@ async function handleRedeemCode(req, res) {
   if (result.ok) {
     incrementRevision(db, account.id);
     const sub = getActiveSubscriptionForAccount(db, account.id);
-    sendPromoGrantEmail(account.email, { code: String(body.code).trim().toUpperCase(), endsAt: sub?.currentPeriodEnd }).catch(console.error);
+    sendPromoGrantEmail(account.email, { code: String(body.code).trim().toUpperCase(), endsAt: sub?.currentPeriodEnd }).catch((err) => reportEmailFailure("promo_grant", err));
   }
   writeJson(res, result.ok ? 200 : 400, result);
 }
