@@ -23,7 +23,8 @@
     "deploy:safe": "git push origin main",
     "build:renderer": "vite build --config vite.config.renderer.mjs --configLoader native",
     "test:env": "node scripts/test-env/run-prod-like.mjs",
-    "test:harness": "node --test tests/harness/*.test.mjs"
+    "test:harness": "node --test tests/harness/*.test.mjs",
+    "test:e2e": "playwright test -c tests/e2e/playwright.config.mjs"
   },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
