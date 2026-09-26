@@ -24,7 +24,9 @@
     "build:renderer": "vite build --config vite.config.renderer.mjs --configLoader native",
     "test:env": "node scripts/test-env/run-prod-like.mjs",
     "test:harness": "node --test tests/harness/*.test.mjs",
-    "test:e2e": "playwright test -c tests/e2e/playwright.config.mjs"
+    "test:e2e": "playwright test -c tests/e2e/playwright.config.mjs",
+    "test:load": "node scripts/load/signup-burst.mjs",
+    "test:microbench": "node scripts/load/microbench.mjs"
   },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",
