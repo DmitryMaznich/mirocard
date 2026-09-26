@@ -25,6 +25,13 @@ import {
 
 export const AUDIO_BASE_URL = "/audio/daily-orientation";
 
+export const DAYPART_WORDS = {
+  morning: "утро",
+  day: "день",
+  evening: "вечер",
+  night: "ночь",
+};
+
 export const WEATHER_WORDS = {
   sunny: "солнечная",
   cloudy: "пасмурная",
@@ -56,6 +63,7 @@ export const AUDIO_ENTRIES = [
   ...DATE_ORDINALS.map((text, index) => ({ key: `ordinal_${index + 1}`, text, tone: "lead" })),
   ...Object.entries(SEASON_WORDS).map(([id, text]) => ({ key: `season_${id}`, text, tone: "final" })),
   ...Object.entries(WEATHER_WORDS).map(([id, text]) => ({ key: `weather_${id}`, text, tone: "final" })),
+  ...Object.entries(DAYPART_WORDS).map(([id, text]) => ({ key: `daypart_${id}`, text, tone: "final" })),
   ...HOUR_WORDS.map((word, hours) => ({
     key: hourKey(hours),
     text: `${word} ${russianPlural(hours, "час", "часа", "часов")}`,
@@ -99,6 +107,10 @@ export function seasonClipKeys(date, offset) {
 
 export function weatherClipKeys(weatherId) {
   return ["lead_weather", `weather_${weatherId}`];
+}
+
+export function daypartClipKeys(daypartId) {
+  return ["lead_now", `daypart_${daypartId}`];
 }
 
 export function timeClipKeys(date) {

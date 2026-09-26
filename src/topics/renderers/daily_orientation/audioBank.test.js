@@ -3,8 +3,10 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   AUDIO_ENTRIES,
+  DAYPART_WORDS,
   WEATHER_WORDS,
   dateClipKeys,
+  daypartClipKeys,
   monthClipKeys,
   seasonClipKeys,
   timeClipKeys,
@@ -35,6 +37,7 @@ describe("daily orientation clip bank", () => {
       timeClipKeys(new Date(2028, 0, 1, Math.floor(minutes / 60), minutes % 60)).forEach((key) => requested.add(key));
     }
     Object.keys(WEATHER_WORDS).forEach((id) => weatherClipKeys(id).forEach((key) => requested.add(key)));
+    Object.keys(DAYPART_WORDS).forEach((id) => daypartClipKeys(id).forEach((key) => requested.add(key)));
 
     expect([...requested].filter((key) => !BANK_KEYS.has(key))).toEqual([]);
     expect([...BANK_KEYS].filter((key) => !requested.has(key))).toEqual([]);
