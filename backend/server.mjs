@@ -8,8 +8,9 @@ import { fileURLToPath } from "node:url";
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION,
-  CORS_ALLOWED_ORIGINS,
+  CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, GOOGLE_CLIENT_ID,
 } from "./lib/config.mjs";
+import { createEmailBudget } from "./lib/email-budget.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
 import { getDb } from "./lib/db.mjs";
 import {
@@ -40,6 +41,7 @@ import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBe
 import { createRateLimiter } from "./lib/rate-limit.mjs";
 import {
   sendPasswordResetEmail, sendEmailVerificationEmail, sendPromoGrantEmail, sendPurchaseConfirmationEmail,
+  setEmailBudget,
 } from "./lib/mailer.mjs";
 import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
@@ -67,6 +69,21 @@ import { reportError, trackEvent } from "./lib/observability.mjs";
 const BACKEND_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 const db = getDb();
+
+// Free Resend plan: count our own sends and pause email signups before the
+// quota runs out (see lib/email-budget.mjs, docs/superpowers/specs/2026-09-26-*).
+const emailBudget = createEmailBudget(db, { dailyCap: EMAIL_DAILY_CAP, signupCap: EMAIL_SIGNUP_CAP });
+setEmailBudget(emailBudget);
+
+let lastBudgetAlertAt = 0;
+function signupPaused() {
+  if (emailBudget.canStartSignup()) return false;
+  if (Date.now() - lastBudgetAlertAt > 12 * 60 * 60 * 1000) {
+    lastBudgetAlertAt = Date.now();
+    reportError(new Error("email signup paused: daily budget reached"), { scope: "email_budget", used: emailBudget.used() });
+  }
+  return true;
+}
 
 migratePhotoData(db);
 
@@ -147,6 +164,11 @@ const checkWebhookLimit   = createRateLimiter({ max: 600, windowMs: 60 * 1000 })
 // address is verified), so a failed send must be visible, not just logged.
 // The Resend error message can echo the recipient, so it is not forwarded.
 function reportEmailFailure(kind, err) {
+  // Budget refusals are an expected state; signupPaused() already alerted.
+  if (err?.code === "email_budget_exhausted") {
+    trackEvent("email_send_failed", { kind, status: "budget" });
+    return;
+  }
   const status = err?.resendStatus ?? null;
   console.error(err);
   reportError(new Error(`email send failed (${kind}, status ${status ?? "network"})`), { scope: "email", kind, status });
@@ -246,6 +268,9 @@ function serializeStudent(row) {
 
 async function handleRegister(req, res) {
   if (!checkRegisterLimit(getClientIp(req))) return rateLimited(res);
+  // Before any account is created: an account whose verification email can't
+  // be sent would be stuck in "pending".
+  if (signupPaused()) return writeJson(res, 503, { error: "signup_paused_email_budget" });
   const body = await readJsonBody(req);
   const email = sanitizeEmail(body?.email);
   const password = String(body?.password || "");
@@ -344,6 +369,7 @@ async function handleForgotPassword(req, res) {
   const email = sanitizeEmail(body?.email);
 
   if (!checkForgotPwLimit(email || getClientIp(req))) return rateLimited(res);
+  if (!emailBudget.canSend()) return writeJson(res, 503, { error: "email_budget_exhausted" });
 
   const account = email ? findAccountByEmail(db, email) : null;
   if (account) {
@@ -401,6 +427,13 @@ async function handleVerifyEmail(req, res) {
   });
 }
 
+async function handleSignupStatus(req, res) {
+  writeJson(res, 200, {
+    emailSignupOpen: emailBudget.canStartSignup(),
+    google: GOOGLE_CLIENT_ID ? { clientId: GOOGLE_CLIENT_ID } : null,
+  });
+}
+
 async function handleResendVerification(req, res) {
   const body = await readJsonBody(req);
   const email = sanitizeEmail(body?.email);
@@ -408,6 +441,7 @@ async function handleResendVerification(req, res) {
   if (!email || !checkResendLimit(email)) {
     return writeJson(res, 200, { message: "ok" });
   }
+  if (!emailBudget.canSend()) return writeJson(res, 503, { error: "email_budget_exhausted" });
 
   const account = findAccountByEmailAny(db, email);
   if (account?.status === "pending") {
@@ -1591,6 +1625,7 @@ async function router(req, res) {
     if (method === "POST"   && p === "/auth/reset-password")      return await handleResetPassword(req, res);
     if (method === "GET"    && p === "/auth/verify-email")        return await handleVerifyEmail(req, res);
     if (method === "POST"   && p === "/auth/resend-verification") return await handleResendVerification(req, res);
+    if (method === "GET"    && p === "/auth/signup-status")        return await handleSignupStatus(req, res);
 
     // Account
     if (method === "POST"   && p === "/heartbeat")                 return await handleHeartbeat(req, res);
