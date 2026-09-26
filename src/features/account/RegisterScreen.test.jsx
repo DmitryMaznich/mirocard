@@ -41,6 +41,39 @@ describe("RegisterScreen", () => {
     expect(container.textContent).toMatch(/через Google/);
   });
 
+  it("news checkbox is unchecked by default and its value is sent with the signup", async () => {
+    vi.spyOn(apiModule.api, "get").mockResolvedValue({ emailSignupOpen: true, google: null });
+    const post = vi.spyOn(apiModule.api, "post").mockResolvedValue({});
+    await mount();
+    const box = container.querySelector("input[name=marketingOptIn]");
+    expect(box).not.toBeNull();
+    expect(box.checked).toBe(false);
+
+    const setInput = (el, v) => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(el, v);
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    const setSelect = (el, v) => {
+      Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value").set.call(el, v);
+      el.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    await act(async () => {
+      setInput(container.querySelector("input[type=email]"), "n@example.test");
+      setInput(container.querySelector("input[placeholder='Имя *']"), "Нина");
+      const [role, ref] = container.querySelectorAll("select");
+      setSelect(role, "parent");
+      setSelect(ref, "other");
+      setInput(container.querySelector("input[placeholder^='Пароль']"), "correct horse battery");
+    });
+    await act(async () => { container.querySelector(".auth-consent input[type=checkbox]").click(); });
+    await act(async () => {
+      container.querySelector("form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+      await Promise.resolve();
+    });
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post.mock.calls[0][1].marketingOptIn).toBe(false);
+  });
+
   it("keeps the form if the status request fails", async () => {
     vi.spyOn(apiModule.api, "get").mockRejectedValue(new Error("offline"));
     await mount();

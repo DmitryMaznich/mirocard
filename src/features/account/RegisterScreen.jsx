@@ -5,6 +5,7 @@ import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import PrivacyContent from "@/features/help/PrivacyContent";
 import { fetchSignupStatus, SIGNUP_PAUSED_TEXT, SIGNUP_PAUSED_WITH_GOOGLE_TEXT } from "./signupStatus";
+import { MARKETING_CONSENT_TEXT } from "./marketingConsent";
 
 export default function RegisterScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
@@ -18,6 +19,7 @@ export default function RegisterScreen() {
   const [password,      setPassword]      = useState("");
   const [showPass,      setShowPass]      = useState(false);
   const [consent,       setConsent]       = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [showPrivacy,   setShowPrivacy]   = useState(false);
   const [error,         setError]         = useState("");
   const [loading,       setLoading]       = useState(false);
@@ -52,6 +54,7 @@ export default function RegisterScreen() {
         role,
         referralSource,
         consentPersonalData: true,
+        marketingOptIn,
       });
       setPendingVerificationEmail(email);
       setScreen("verify_email_sent");
@@ -158,6 +161,15 @@ export default function RegisterScreen() {
               обработку персональных данных
             </button>
           </span>
+        </label>
+        <label className="auth-consent">
+          <input
+            type="checkbox"
+            name="marketingOptIn"
+            checked={marketingOptIn}
+            onChange={(e) => setMarketingOptIn(e.target.checked)}
+          />
+          <span>{MARKETING_CONSENT_TEXT}</span>
         </label>
         {error && <div className="form-error">{error}</div>}
         <Button type="submit" disabled={loading} fullWidth>
