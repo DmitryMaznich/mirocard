@@ -21,6 +21,26 @@ export async function readJsonBody(request) {
   return raw ? JSON.parse(raw) : null;
 }
 
+// Google Identity Services posts its redirect-mode callback as a form.
+export async function readFormBody(request) {
+  let raw = "";
+  for await (const chunk of request) {
+    raw += chunk;
+    if (raw.length > 64 * 1024) throw { status: 413, message: "Body too large" };
+  }
+  return Object.fromEntries(new URLSearchParams(raw));
+}
+
+export function parseCookies(request) {
+  const out = {};
+  for (const part of String(request.headers.cookie || "").split(";")) {
+    const i = part.indexOf("=");
+    if (i < 1) continue;
+    try { out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim()); } catch { /* skip malformed */ }
+  }
+  return out;
+}
+
 export function getBearerToken(request) {
   const header = request.headers.authorization || "";
   const [scheme, token] = header.split(" ");

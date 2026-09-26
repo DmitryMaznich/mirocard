@@ -8,8 +8,10 @@ import { fileURLToPath } from "node:url";
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION,
-  CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, GOOGLE_CLIENT_ID,
+  CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, GOOGLE_CLIENT_ID, GOOGLE_JWKS_URL,
 } from "./lib/config.mjs";
+import { verifyGoogleIdToken } from "./lib/google-auth.mjs";
+import { createOneTimeCode, consumeOneTimeCode } from "./lib/one-time-codes.mjs";
 import { createEmailBudget } from "./lib/email-budget.mjs";
 import { setMarketingConsent } from "./lib/marketing-consent.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
@@ -38,7 +40,7 @@ import {
 import {
   createPasswordHash, verifyPasswordHash,
 } from "./lib/security.mjs";
-import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBearerToken, getClientIp, applyCors } from "./lib/http.mjs";
+import { writeJson, writeNoContent, readJsonBody, readRawBody, readFormBody, parseCookies, writeAudio, getBearerToken, getClientIp, applyCors } from "./lib/http.mjs";
 import { createRateLimiter } from "./lib/rate-limit.mjs";
 import {
   sendPasswordResetEmail, sendEmailVerificationEmail, sendPromoGrantEmail, sendPurchaseConfirmationEmail,
@@ -428,6 +430,123 @@ async function handleVerifyEmail(req, res) {
     settings,
     token,
   });
+}
+
+// ─── Google sign-in ──────────────────────────────────────────────────────────
+// Redirect mode: Google posts the ID token to /auth/google/callback, we answer
+// with a short-lived one-time code in the URL, and the SPA exchanges it. A new
+// person gets the "one more step" screen; the account is created only after
+// personal-data consent (complete-signup). Google verifies the email, so none
+// of this spends the daily email budget.
+const GOOGLE_ERROR_CODES = new Set(["malformed", "bad_signature", "bad_issuer", "bad_audience", "expired", "email_unverified", "unknown_key"]);
+const GOOGLE_SIGNUP_TTL_MS = 30 * 60 * 1000;
+
+function googleRedirect(res, params) {
+  res.writeHead(303, { Location: `/?${new URLSearchParams(params)}` });
+  res.end();
+}
+
+function findAccountByGoogleSubject(sub) {
+  return db.prepare(`
+    SELECT a.* FROM account_identities i JOIN accounts a ON a.id = i.account_id
+     WHERE i.provider = 'google' AND i.subject = ? AND a.status != 'deleted'
+  `).get(sub) ?? null;
+}
+
+function linkGoogle(accountId, { sub, email }) {
+  db.prepare("INSERT OR IGNORE INTO account_identities (provider, subject, account_id, email, created_at) VALUES ('google', ?, ?, ?, ?)")
+    .run(sub, accountId, email, new Date().toISOString());
+}
+
+function loginPayload(accountId) {
+  const account = findAccountById(db, accountId);
+  return { account: serializeAccount(account), settings: getAccountSettings(db, accountId), token: makeToken(accountId) };
+}
+
+async function handleGoogleCallback(req, res) {
+  if (!GOOGLE_CLIENT_ID) return googleRedirect(res, { google_error: "disabled" });
+  const form = await readFormBody(req);
+  // Google's double-submit cookie: the same random value in the body and in a cookie on our origin.
+  if (!form.g_csrf_token || form.g_csrf_token !== parseCookies(req).g_csrf_token) {
+    return googleRedirect(res, { google_error: "csrf" });
+  }
+
+  let id;
+  try {
+    id = await verifyGoogleIdToken(form.credential, { clientId: GOOGLE_CLIENT_ID, jwksUrl: GOOGLE_JWKS_URL });
+  } catch (e) {
+    return googleRedirect(res, { google_error: GOOGLE_ERROR_CODES.has(e.code) ? e.code : "failed" });
+  }
+
+  let account = findAccountByGoogleSubject(id.sub);
+  if (!account) {
+    // Google verified this address, so an existing account with it is the same person.
+    const byEmail = findAccountByEmailAny(db, id.email);
+    if (byEmail && byEmail.status !== "deleted") {
+      if (byEmail.status === "pending") activateAccount(db, byEmail.id);
+      linkGoogle(byEmail.id, id);
+      account = byEmail;
+    }
+  }
+  if (account) {
+    trackEvent("login_completed", { method: "google" });
+    return googleRedirect(res, { google_code: createOneTimeCode(db, { kind: "google_login", payload: { accountId: account.id } }) });
+  }
+  return googleRedirect(res, { google_code: createOneTimeCode(db, { kind: "google_signup", payload: id, ttlMs: GOOGLE_SIGNUP_TTL_MS }) });
+}
+
+async function handleGoogleExchange(req, res) {
+  const body = await readJsonBody(req);
+  const hit = consumeOneTimeCode(db, body?.code, null);
+  if (!hit || !["google_login", "google_signup"].includes(hit.kind)) {
+    return writeJson(res, 400, { error: "invalid_or_expired_code" });
+  }
+  if (hit.kind === "google_login") {
+    if (!findAccountById(db, hit.payload.accountId)) return writeJson(res, 400, { error: "invalid_or_expired_code" });
+    return writeJson(res, 200, loginPayload(hit.payload.accountId));
+  }
+  // New person: the exchanged code is spent; hand out one for complete-signup.
+  const signupCode = createOneTimeCode(db, { kind: "google_signup_confirm", payload: hit.payload, ttlMs: GOOGLE_SIGNUP_TTL_MS });
+  writeJson(res, 200, {
+    needsProfile: true, signupCode, email: hit.payload.email,
+    firstName: hit.payload.givenName, lastName: hit.payload.familyName,
+  });
+}
+
+async function handleGoogleCompleteSignup(req, res) {
+  const body = await readJsonBody(req);
+  const role = String(body?.role || "");
+  const referralSource = String(body?.referralSource || "");
+  // Validate before consuming the code, so a rejected attempt can be retried.
+  if (!["parent", "specialist"].includes(role)) return writeJson(res, 400, { error: "Invalid role" });
+  if (!["friend", "developer", "other"].includes(referralSource)) return writeJson(res, 400, { error: "Invalid referral source" });
+  if (body?.consentPersonalData !== true) return writeJson(res, 400, { error: "Consent to personal data processing is required" });
+
+  const hit = consumeOneTimeCode(db, body?.signupCode, "google_signup_confirm");
+  if (!hit) return writeJson(res, 400, { error: "invalid_or_expired_code" });
+  const id = hit.payload;
+
+  let account = findAccountByEmailAny(db, id.email);
+  if (account?.status === "deleted") return writeJson(res, 409, { error: "Account is deleted" });
+  if (!account) {
+    account = createAccount(db, {
+      email: id.email,
+      passwordHash: "", // Google-only: verifyPasswordHash("") is always false
+      firstName: id.givenName || id.email.split("@")[0],
+      lastName: id.familyName,
+      role,
+      referralSource,
+      consentPersonalDataAt: new Date().toISOString(),
+    });
+    activateAccount(db, account.id);
+    grantTrialSubscription(db, account.id);
+    setMarketingConsent(db, account.id, { optIn: body?.marketingOptIn === true, source: "google_signup" });
+    trackEvent("registration_completed", { role, referralSource, method: "google" });
+  } else if (account.status === "pending") {
+    activateAccount(db, account.id);
+  }
+  linkGoogle(account.id, id);
+  writeJson(res, 201, loginPayload(account.id));
 }
 
 async function handleSignupStatus(req, res) {
@@ -1636,6 +1755,9 @@ async function router(req, res) {
     if (method === "GET"    && p === "/auth/verify-email")        return await handleVerifyEmail(req, res);
     if (method === "POST"   && p === "/auth/resend-verification") return await handleResendVerification(req, res);
     if (method === "GET"    && p === "/auth/signup-status")        return await handleSignupStatus(req, res);
+    if (method === "POST"   && p === "/auth/google/callback")        return await handleGoogleCallback(req, res);
+    if (method === "POST"   && p === "/auth/google/exchange")        return await handleGoogleExchange(req, res);
+    if (method === "POST"   && p === "/auth/google/complete-signup") return await handleGoogleCompleteSignup(req, res);
 
     // Account
     if (method === "POST"   && p === "/heartbeat")                 return await handleHeartbeat(req, res);

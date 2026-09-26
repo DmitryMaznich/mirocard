@@ -69,6 +69,8 @@ export const EMAIL_SIGNUP_CAP = Number(readEnv("EMAIL_SIGNUP_CAP") || 80);
 
 // Public OAuth client id (not a secret). Empty -> the Google button is hidden.
 export const GOOGLE_CLIENT_ID = readEnv("GOOGLE_CLIENT_ID");
+// Overridable only for tests (local JWKS with test keys).
+export const GOOGLE_JWKS_URL = readEnv("GOOGLE_JWKS_URL") || "https://www.googleapis.com/oauth2/v3/certs";
 export const SMTP_FROM      = readEnv("SMTP_FROM") || "Mironium <noreply@mironium.com>";
 export const APP_BASE_URL   = readEnv("APP_BASE_URL") || "http://localhost:5174";
 

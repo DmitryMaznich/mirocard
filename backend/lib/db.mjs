@@ -175,6 +175,24 @@ export function initDb(dbPath = DB_PATH) {
     );
     CREATE INDEX IF NOT EXISTS idx_email_send_log_sent_at ON email_send_log(sent_at);
 
+    -- External sign-in identities (Google). One account may have several.
+    CREATE TABLE IF NOT EXISTS account_identities (
+      provider   TEXT NOT NULL,
+      subject    TEXT NOT NULL,
+      account_id TEXT NOT NULL REFERENCES accounts(id),
+      email      TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (provider, subject)
+    );
+
+    CREATE TABLE IF NOT EXISTS one_time_codes (
+      code_hash  TEXT PRIMARY KEY,
+      kind       TEXT NOT NULL,
+      payload    TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      used_at    INTEGER
+    );
+
   `);
 
   const studentColumns = db.prepare("PRAGMA table_info(students)").all();
