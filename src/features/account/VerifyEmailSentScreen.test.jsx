@@ -79,4 +79,16 @@ describe("VerifyEmailSentScreen", () => {
     expect(resendButton()).not.toBeNull();
     expect(resendButton().disabled).toBe(false);
   });
+
+  it("tells the user to try tomorrow when the daily email budget is spent", async () => {
+    vi.spyOn(apiModule.api, "post").mockRejectedValue(new apiModule.ApiError("email_budget_exhausted", 503));
+    mount();
+
+    await act(async () => {
+      resendButton().click();
+      await Promise.resolve();
+    });
+
+    expect(container.textContent).toMatch(/завтра/);
+  });
 });

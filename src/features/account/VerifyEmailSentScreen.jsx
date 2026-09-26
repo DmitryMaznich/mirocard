@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
+import { EMAIL_BUDGET_EXHAUSTED_TEXT } from "./signupStatus";
 
 const RESEND_COOLDOWN_MS = 60_000;
 
@@ -12,6 +13,7 @@ export default function VerifyEmailSentScreen() {
   const setResendAvailableAt = useAppStore((s) => s.setVerificationResendAvailableAt);
 
   const [loading, setLoading] = useState(false);
+  const [budgetError, setBudgetError] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
   const cooldownActive = now < resendAvailableAt;
@@ -32,8 +34,9 @@ export default function VerifyEmailSentScreen() {
       await api.post("/auth/resend-verification", { email });
       setResendAvailableAt(Date.now() + RESEND_COOLDOWN_MS);
       setNow(Date.now());
-    } catch {
-      // silent — server always returns 200
+    } catch (err) {
+      // Otherwise silent — the server answers 200 whether or not the account exists.
+      if (err?.status === 503) setBudgetError(true);
     } finally {
       setLoading(false);
     }
@@ -52,6 +55,7 @@ export default function VerifyEmailSentScreen() {
         <p style={{ textAlign: "center", fontSize: "0.88rem", color: "#888" }}>
           Обычно письмо приходит в течение 1–2 минут. Не пришло? Проверьте папку «Спам».
         </p>
+        {budgetError && <p className="auth-notice">{EMAIL_BUDGET_EXHAUSTED_TEXT}</p>}
         <Button onClick={handleResend} disabled={loading || cooldownActive} fullWidth variant="secondary">
           {loading ? "Отправляем…" : cooldownActive ? "Письмо отправлено, ждём…" : "Отправить повторно"}
         </Button>
