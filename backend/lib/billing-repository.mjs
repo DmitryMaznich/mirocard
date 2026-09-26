@@ -103,7 +103,9 @@ export function revokeEntitlementsForOrder(db, orderId) {
 // that an account can hold many entitlement rows over its lifetime) is
 // defensive only: registration should never call this twice for the same
 // account.
-export function grantTrialSubscription(db, accountId, { trialDays = 7 } = {}) {
+// 30 days: launch decision 2026-09-26 -- the trial must outlast the time it takes to
+// switch checkout on (see docs/testing/launch-readiness-report.md, N2).
+export function grantTrialSubscription(db, accountId, { trialDays = 30 } = {}) {
   const already = db.prepare("SELECT 1 FROM entitlements WHERE account_id = ? AND source = 'trial'").get(accountId);
   if (already) return;
   const ts = now();

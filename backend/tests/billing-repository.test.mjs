@@ -203,7 +203,7 @@ test("redeemFreeGrantCode activates entitlement immediately without a payment pr
 test("redeemFreeGrantCode replaces an active trial rather than stacking on top of it", () => {
   const db = makeDb();
   const acc = makeAccount(db);
-  grantTrialSubscription(db, acc.id); // ~7 days left
+  grantTrialSubscription(db, acc.id); // ~30 days left
   createPromoCode(db, {
     code: "INSTAGRAM31", kind: "free_grant", value: null, currency: null,
     appliesToPlan: null, grantDurationDays: 31, maxRedemptions: null,
@@ -257,7 +257,7 @@ test("finalizeDiscountRedemption is a no-op when code is null", () => {
   finalizeDiscountRedemption(db, null, acc.id); // must not throw
 });
 
-test("grantTrialSubscription activates entitlement for 7 days by default", () => {
+test("grantTrialSubscription activates entitlement for 30 days by default (launch decision 2026-09-26)", () => {
   const db = makeDb();
   const acc = makeAccount(db);
   grantTrialSubscription(db, acc.id);
@@ -266,7 +266,7 @@ test("grantTrialSubscription activates entitlement for 7 days by default", () =>
   const sub = getActiveSubscriptionForAccount(db, acc.id);
   assert.equal(sub.plan, "trial");
   const daysLeft = (new Date(sub.currentPeriodEnd) - Date.now()) / 86400000;
-  assert.ok(daysLeft > 6.9 && daysLeft <= 7, `expected ~7 days left, got ${daysLeft}`);
+  assert.ok(daysLeft > 29.9 && daysLeft <= 30, `expected ~30 days left, got ${daysLeft}`);
 });
 
 test("grantTrialSubscription accepts a custom trial length", () => {
