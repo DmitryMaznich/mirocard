@@ -243,6 +243,9 @@
   min-width: 0;
   white-space: nowrap;
   overflow-wrap: normal;
+  /* Makes it a scroll container: WebKit (every iPad browser) only reports
+     overflowing scrollWidth reliably for those, and FitText relies on it. */
+  overflow: hidden;
 }
 
 /* Время суток: styled like its neighbours (pastel card, caption on top) so
@@ -438,6 +441,7 @@
   letter-spacing: -.005em;
   text-transform: uppercase;
   text-wrap: balance;
+  overflow: hidden; /* scrollWidth reliability in WebKit, see __fit-text */
 }
 .daily-orientation__time-words-hour { color: var(--orientation-hour); }
 .daily-orientation__time-words-minute { color: var(--orientation-minute); }
@@ -673,3 +677,24 @@
   .daily-orientation__carousel-slot .daily-orientation__chevron,
   .daily-orientation__card--speakable { transition: none; }
 }
+
+/* Font-load-proof sizing for one-line answers and the time words: the CSS
+   itself caps each word to its box as box width / (letters x --fit-em),
+   .76 being a safe upper bound for Nunito 900-950 Cyrillic capitals (widest
+   measured: ЗИМА .733) and .78 for the time words' 900 weight (.731). This holds whatever font is currently rendering -- the JS
+   fit (FitText / useFitTimeWords) only has to handle what CSS can't, and a
+   late web-font swap on iPad can no longer push a word out of its card. */
+.daily-orientation__card--stacked,
+.daily-orientation__time-readout {
+  container-type: inline-size;
+}
+.daily-orientation__answer { --fit-max: 90px; }
+.daily-orientation__card--wide .daily-orientation__answer { --fit-max: 58px; }
+.daily-orientation__date-number { --fit-max: 78px; --fit-pad: 16px; --fit-em: .72; }
+.daily-orientation__card .daily-orientation__fit-text {
+  font-size: min(var(--fit-max), calc((100cqi - var(--fit-pad, 0px)) / (var(--fit-chars, 8) * var(--fit-em, .76))));
+}
+.daily-orientation__card .daily-orientation__time-words {
+  font-size: min(52px, calc(100cqi / (var(--fit-chars, 10) * 0.78)));
+}
+
