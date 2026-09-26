@@ -168,6 +168,13 @@ export function initDb(dbPath = DB_PATH) {
       created_at  TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS email_send_log (
+      id      INTEGER PRIMARY KEY AUTOINCREMENT,
+      kind    TEXT NOT NULL,
+      sent_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_email_send_log_sent_at ON email_send_log(sent_at);
+
   `);
 
   const studentColumns = db.prepare("PRAGMA table_info(students)").all();

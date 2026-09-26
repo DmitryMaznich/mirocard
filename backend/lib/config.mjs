@@ -62,6 +62,10 @@ export const SERVE_STATIC = readEnv("SERVE_STATIC") === "1";
 export const RESEND_API_KEY = requiredInProduction("RESEND_API_KEY", "");
 // Overridable only so test runs can point at a local fake (scripts/test-env/fake-resend.mjs).
 export const RESEND_API_URL = readEnv("RESEND_API_URL") || "https://api.resend.com/emails";
+// Resend free plan quota guard (see backend/lib/email-budget.mjs). Signup cap
+// is lower so already-registered people can still get resend/reset emails.
+export const EMAIL_DAILY_CAP  = Number(readEnv("EMAIL_DAILY_CAP") || 90);
+export const EMAIL_SIGNUP_CAP = Number(readEnv("EMAIL_SIGNUP_CAP") || 80);
 export const SMTP_FROM      = readEnv("SMTP_FROM") || "Mironium <noreply@mironium.com>";
 export const APP_BASE_URL   = readEnv("APP_BASE_URL") || "http://localhost:5174";
 

@@ -1,10 +1,16 @@
 import { RESEND_API_KEY, RESEND_API_URL, SMTP_FROM, APP_BASE_URL, LEGAL_DOCS_VERSION } from "./config.mjs";
+import { EmailBudgetExceeded } from "./email-budget.mjs";
 
-async function sendEmail({ to, subject, text, html }) {
+// Daily send budget (see email-budget.mjs); wired up by server.mjs.
+let budget = null;
+export function setEmailBudget(b) { budget = b; }
+
+async function sendEmail({ to, subject, text, html, kind }) {
   if (!RESEND_API_KEY) {
     console.log("[mailer] (dev) email:", subject, "→", to);
     return;
   }
+  if (budget && !budget.canSend()) throw new EmailBudgetExceeded();
 
   const res = await fetch(RESEND_API_URL, {
     method: "POST",
@@ -27,12 +33,14 @@ async function sendEmail({ to, subject, text, html }) {
     err.resendStatus = res.status;
     throw err;
   }
+  budget?.record(kind);
 }
 
 export async function sendPasswordResetEmail(email, resetToken) {
   const resetUrl = `${APP_BASE_URL}/reset?token=${resetToken}`;
 
   await sendEmail({
+    kind: "password_reset",
     to: email,
     subject: "Сброс пароля Mironium",
     text: `Для сброса пароля перейдите по ссылке (действует 1 час):\n\n${resetUrl}\n\nЕсли вы не запрашивали сброс, проигнорируйте это письмо.`,
@@ -44,6 +52,7 @@ export async function sendEmailVerificationEmail(email, rawToken) {
   const verifyUrl = `${APP_BASE_URL}/verify-email?token=${rawToken}`;
 
   await sendEmail({
+    kind: "verification",
     to: email,
     subject: "Подтвердите email — Mironium",
     text: `Добро пожаловать в Mironium!\n\nДля подтверждения email перейдите по ссылке (действует 24 часа):\n\n${verifyUrl}\n\nЕсли вы не регистрировались — проигнорируйте это письмо.`,
@@ -62,6 +71,7 @@ function formatRuDate(iso) {
 export async function sendPromoGrantEmail(email, { code, endsAt }) {
   const until = formatRuDate(endsAt);
   await sendEmail({
+    kind: "promo_grant",
     to: email,
     subject: `Промокод ${code} активирован — Mironium`,
     text: `Промокод ${code} активирован.\n\nДоступ ко всем занятиям Mironium открыт до ${until}.\n\nОплата не потребуется — карта не привязывается, автоматических списаний нет. После ${until} доступ к платным темам будет ограничен, продлить можно будет вручную в приложении.`,
@@ -86,6 +96,7 @@ export async function sendEntitlementReminderEmail(email, { kind, endsAt, plan }
     expired: `Доступ (${planLabel}) закончился ${until}. Платные темы теперь недоступны. Вы можете продлить доступ в любой момент в приложении.`,
   };
   await sendEmail({
+    kind: "entitlement_reminder",
     to: email,
     subject: subjectByKind[kind] ?? subjectByKind.expired,
     text: bodyByKind[kind] ?? bodyByKind.expired,
@@ -138,6 +149,7 @@ export async function sendPurchaseConfirmationEmail(email, { plan, amountMinor, 
   const termsUrl = `${APP_BASE_URL}${t.pathPrefix}/terms`;
   const refundsUrl = `${APP_BASE_URL}${t.pathPrefix}/refunds`;
   await sendEmail({
+    kind: "purchase_confirmation",
     to: email,
     subject: t.subject,
     text: `${t.thanks}\n\n${t.seller}\n${t.plan}: ${planLabel}\n${t.amount}: ${amount}\n${t.until}: ${until}\n\n${t.oneTime(until)}\n\n${t.withdrawal}\n\n${t.terms} (${t.version} ${legalDocsVersion}): ${termsUrl}\n${t.refunds}: ${refundsUrl}`,
