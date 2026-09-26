@@ -1,7 +1,8 @@
 import { expect } from "@playwright/test";
 
-export const APP = "http://127.0.0.1:4310";
-export const MAIL = "http://127.0.0.1:4311";
+// E2E_APP_PORT/E2E_MAIL_PORT let a second environment run next to one already up.
+export const APP = `http://127.0.0.1:${process.env.E2E_APP_PORT || 4310}`;
+export const MAIL = `http://127.0.0.1:${process.env.E2E_MAIL_PORT || 4311}`;
 export const PASSWORD = "correct horse battery";
 
 // The app allows 10 registrations/hour per client IP, and every test comes from
@@ -45,7 +46,9 @@ export async function registerViaUi(page, { email, password = PASSWORD, firstNam
   await page.locator("select").nth(0).selectOption(role);
   await page.locator("select").nth(1).selectOption("other");
   await page.getByPlaceholder("Пароль (минимум 8 символов) *").fill(password);
-  await page.locator(".auth-consent input[type=checkbox]").check();
+  // Only the required personal-data consent; the news opt-in (name=marketingOptIn)
+  // must stay unchecked by default -- that is what opt-in means.
+  await page.locator(".auth-consent input[type=checkbox]:not([name=marketingOptIn])").check();
   await page.getByRole("button", { name: "Создать аккаунт" }).click();
 }
 

@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const APP_PORT = process.env.E2E_APP_PORT || "4310";
+const MAIL_PORT = process.env.E2E_MAIL_PORT || "4311";
+
 export default defineConfig({
   testDir: ".",
   outputDir: "../../output/test-results",
@@ -8,16 +11,16 @@ export default defineConfig({
   workers: 1,
   reporter: [["list"], ["html", { outputFolder: "../../output/e2e-report", open: "never" }]],
   use: {
-    baseURL: "http://127.0.0.1:4310",
+    baseURL: `http://127.0.0.1:${APP_PORT}`,
     headless: process.env.HEADLESS === "1",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
   webServer: {
-    command: "node scripts/test-env/run-prod-like.mjs",
+    command: `node scripts/test-env/run-prod-like.mjs --app-port ${APP_PORT} --mail-port ${MAIL_PORT}`,
     cwd: "../..",
-    url: "http://127.0.0.1:4310/api/healthz",
+    url: `http://127.0.0.1:${APP_PORT}/api/healthz`,
     reuseExistingServer: true,
     timeout: 180_000,
   },
