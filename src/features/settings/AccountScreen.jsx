@@ -8,12 +8,22 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import DangerZone from "./DangerZone";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { PLAN_LABELS, formatPeriodEnd, isUnlimitedPlan } from "@/features/billing/planLabels";
+import { saveMarketingConsent } from "@/features/account/marketingConsent";
 
 export default function AccountScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
   const logout    = useAppStore((s) => s.logout);
   const subscription = useAppStore((s) => s.subscription);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const account = useAppStore((s) => s.account);
+  const [savingMarketing, setSavingMarketing] = useState(false);
+
+  async function handleMarketingToggle(e) {
+    const optIn = e.target.checked;
+    setSavingMarketing(true);
+    try { await saveMarketingConsent(optIn, "settings"); } catch { /* store unchanged → toggle snaps back */ }
+    finally { setSavingMarketing(false); }
+  }
 
   async function handleLogout() {
     try { await api.post("/auth/logout"); } catch {
@@ -49,6 +59,22 @@ export default function AccountScreen() {
             </button>
           </div>
         </div>
+
+        {account?.id && (
+          <div className="settings-section">
+            <div className="settings-section-title">Письма</div>
+            <label className="settings-row">
+              <span className="settings-row__label">Письма о новых темах</span>
+              <input
+                type="checkbox"
+                name="marketingOptIn"
+                checked={!!account.marketingOptIn}
+                disabled={savingMarketing}
+                onChange={handleMarketingToggle}
+              />
+            </label>
+          </div>
+        )}
 
         <div className="settings-section">
           <div className="settings-section-title">Безопасность</div>

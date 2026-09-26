@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { randomUUID, createHash } from "node:crypto";
+import { randomUUID, createHash, randomBytes } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync, createReadStream, statSync, readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -8,8 +8,12 @@ import { fileURLToPath } from "node:url";
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION,
-  CORS_ALLOWED_ORIGINS,
+  CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, GOOGLE_CLIENT_ID, GOOGLE_JWKS_URL, APP_BASE_URL,
 } from "./lib/config.mjs";
+import { verifyGoogleIdToken } from "./lib/google-auth.mjs";
+import { createOneTimeCode, consumeOneTimeCode } from "./lib/one-time-codes.mjs";
+import { createEmailBudget } from "./lib/email-budget.mjs";
+import { setMarketingConsent } from "./lib/marketing-consent.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
 import { getDb } from "./lib/db.mjs";
 import {
@@ -36,10 +40,11 @@ import {
 import {
   createPasswordHash, verifyPasswordHash,
 } from "./lib/security.mjs";
-import { writeJson, writeNoContent, readJsonBody, readRawBody, writeAudio, getBearerToken, getClientIp, applyCors } from "./lib/http.mjs";
+import { writeJson, writeNoContent, readJsonBody, readRawBody, readFormBody, parseCookies, writeAudio, getBearerToken, getClientIp, applyCors } from "./lib/http.mjs";
 import { createRateLimiter } from "./lib/rate-limit.mjs";
 import {
   sendPasswordResetEmail, sendEmailVerificationEmail, sendPromoGrantEmail, sendPurchaseConfirmationEmail,
+  setEmailBudget,
 } from "./lib/mailer.mjs";
 import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
@@ -67,6 +72,21 @@ import { reportError, trackEvent } from "./lib/observability.mjs";
 const BACKEND_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 const db = getDb();
+
+// Free Resend plan: count our own sends and pause email signups before the
+// quota runs out (see lib/email-budget.mjs, docs/superpowers/specs/2026-09-26-*).
+const emailBudget = createEmailBudget(db, { dailyCap: EMAIL_DAILY_CAP, signupCap: EMAIL_SIGNUP_CAP });
+setEmailBudget(emailBudget);
+
+let lastBudgetAlertAt = 0;
+function signupPaused() {
+  if (emailBudget.canStartSignup()) return false;
+  if (Date.now() - lastBudgetAlertAt > 12 * 60 * 60 * 1000) {
+    lastBudgetAlertAt = Date.now();
+    reportError(new Error("email signup paused: daily budget reached"), { scope: "email_budget", used: emailBudget.used() });
+  }
+  return true;
+}
 
 migratePhotoData(db);
 
@@ -147,6 +167,11 @@ const checkWebhookLimit   = createRateLimiter({ max: 600, windowMs: 60 * 1000 })
 // address is verified), so a failed send must be visible, not just logged.
 // The Resend error message can echo the recipient, so it is not forwarded.
 function reportEmailFailure(kind, err) {
+  // Budget refusals are an expected state; signupPaused() already alerted.
+  if (err?.code === "email_budget_exhausted") {
+    trackEvent("email_send_failed", { kind, status: "budget" });
+    return;
+  }
   const status = err?.resendStatus ?? null;
   console.error(err);
   reportError(new Error(`email send failed (${kind}, status ${status ?? "network"})`), { scope: "email", kind, status });
@@ -246,6 +271,9 @@ function serializeStudent(row) {
 
 async function handleRegister(req, res) {
   if (!checkRegisterLimit(getClientIp(req))) return rateLimited(res);
+  // Before any account is created: an account whose verification email can't
+  // be sent would be stuck in "pending".
+  if (signupPaused()) return writeJson(res, 503, { error: "signup_paused_email_budget" });
   const body = await readJsonBody(req);
   const email = sanitizeEmail(body?.email);
   const password = String(body?.password || "");
@@ -282,7 +310,9 @@ async function handleRegister(req, res) {
   }
 
   grantTrialSubscription(db, account.id);
-  trackEvent("registration_completed", { role, referralSource });
+  // Always recorded: the signup form asked, so the one-time prompt is answered.
+  setMarketingConsent(db, account.id, { optIn: body?.marketingOptIn === true, source: "register" });
+  trackEvent("registration_completed", { role, referralSource, method: "email" });
 
   const rawToken = randomUUID();
   createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
@@ -344,6 +374,7 @@ async function handleForgotPassword(req, res) {
   const email = sanitizeEmail(body?.email);
 
   if (!checkForgotPwLimit(email || getClientIp(req))) return rateLimited(res);
+  if (!emailBudget.canSend()) return writeJson(res, 503, { error: "email_budget_exhausted" });
 
   const account = email ? findAccountByEmail(db, email) : null;
   if (account) {
@@ -401,6 +432,175 @@ async function handleVerifyEmail(req, res) {
   });
 }
 
+// ─── Google sign-in ──────────────────────────────────────────────────────────
+// Redirect mode: Google posts the ID token to /auth/google/callback, we answer
+// with a short-lived one-time code in the URL, and the SPA exchanges it. A new
+// person gets the "one more step" screen; the account is created only after
+// personal-data consent (complete-signup). Google verifies the email, so none
+// of this spends the daily email budget.
+const GOOGLE_ERROR_CODES = new Set(["malformed", "bad_signature", "bad_issuer", "bad_audience", "expired", "email_unverified", "unknown_key"]);
+const GOOGLE_SIGNUP_TTL_MS = 30 * 60 * 1000;
+
+function googleRedirect(res, params, headers = {}) {
+  res.writeHead(303, { Location: `/?${new URLSearchParams(params)}`, ...headers });
+  res.end();
+}
+
+// Binds a one-time code to the browser that actually went through Google, so a
+// ?google_code= link sent to someone else can't sign them into another account.
+const GOOGLE_NONCE_COOKIE = "mc_google_nonce";
+function newGoogleNonce() {
+  const raw = randomBytes(24).toString("base64url");
+  const secure = APP_BASE_URL.startsWith("https:") ? "; Secure" : "";
+  return {
+    hash: hashToken(raw),
+    cookie: `${GOOGLE_NONCE_COOKIE}=${raw}; HttpOnly; SameSite=Lax; Path=/api/auth/google; Max-Age=1800${secure}`,
+  };
+}
+function nonceMatches(req, payload) {
+  const raw = parseCookies(req)[GOOGLE_NONCE_COOKIE];
+  return Boolean(raw && payload?.nonceHash && hashToken(raw) === payload.nonceHash);
+}
+
+function findAccountByGoogleSubject(sub) {
+  return db.prepare(`
+    SELECT a.* FROM account_identities i JOIN accounts a ON a.id = i.account_id
+     WHERE i.provider = 'google' AND i.subject = ? AND a.status != 'deleted'
+  `).get(sub) ?? null;
+}
+
+function linkGoogle(accountId, { sub, email }) {
+  db.prepare("INSERT OR IGNORE INTO account_identities (provider, subject, account_id, email, created_at) VALUES ('google', ?, ?, ?, ?)")
+    .run(sub, accountId, email, new Date().toISOString());
+}
+
+function loginPayload(accountId) {
+  const account = findAccountById(db, accountId);
+  return { account: serializeAccount(account), settings: getAccountSettings(db, accountId), token: makeToken(accountId) };
+}
+
+async function handleGoogleCallback(req, res) {
+  if (!GOOGLE_CLIENT_ID) return googleRedirect(res, { google_error: "disabled" });
+  const form = await readFormBody(req);
+  // Google's double-submit cookie: the same random value in the body and in a cookie on our origin.
+  if (!form.g_csrf_token || form.g_csrf_token !== parseCookies(req).g_csrf_token) {
+    return googleRedirect(res, { google_error: "csrf" });
+  }
+
+  let id;
+  try {
+    id = await verifyGoogleIdToken(form.credential, { clientId: GOOGLE_CLIENT_ID, jwksUrl: GOOGLE_JWKS_URL });
+  } catch (e) {
+    return googleRedirect(res, { google_error: GOOGLE_ERROR_CODES.has(e.code) ? e.code : "failed" });
+  }
+
+  let account = findAccountByGoogleSubject(id.sub);
+  if (!account) {
+    // Google verified this address, so an *active* account with it is the same
+    // person. A *pending* one was never verified — anyone could have registered
+    // it with their own password — so it goes through the signup step instead
+    // (see handleGoogleCompleteSignup), never straight in.
+    const byEmail = findAccountByEmailAny(db, id.email);
+    if (byEmail?.status === "active") {
+      linkGoogle(byEmail.id, id);
+      account = byEmail;
+    }
+  }
+  const nonce = newGoogleNonce();
+  const cookie = { "Set-Cookie": nonce.cookie };
+  if (account) {
+    trackEvent("login_completed", { method: "google" });
+    const code = createOneTimeCode(db, { kind: "google_login", payload: { accountId: account.id, nonceHash: nonce.hash } });
+    return googleRedirect(res, { google_code: code }, cookie);
+  }
+  const code = createOneTimeCode(db, { kind: "google_signup", payload: { ...id, nonceHash: nonce.hash }, ttlMs: GOOGLE_SIGNUP_TTL_MS });
+  return googleRedirect(res, { google_code: code }, cookie);
+}
+
+async function handleGoogleExchange(req, res) {
+  const body = await readJsonBody(req);
+  const hit = consumeOneTimeCode(db, body?.code, null);
+  if (!hit || !["google_login", "google_signup"].includes(hit.kind) || !nonceMatches(req, hit.payload)) {
+    return writeJson(res, 400, { error: "invalid_or_expired_code" });
+  }
+  if (hit.kind === "google_login") {
+    if (!findAccountById(db, hit.payload.accountId)) return writeJson(res, 400, { error: "invalid_or_expired_code" });
+    return writeJson(res, 200, loginPayload(hit.payload.accountId));
+  }
+  // New person: the exchanged code is spent; hand out one for complete-signup.
+  const { nonceHash: _nonce, ...identity } = hit.payload;
+  const signupCode = createOneTimeCode(db, { kind: "google_signup_confirm", payload: identity, ttlMs: GOOGLE_SIGNUP_TTL_MS });
+  writeJson(res, 200, {
+    needsProfile: true, signupCode, email: hit.payload.email,
+    firstName: hit.payload.givenName, lastName: hit.payload.familyName,
+  });
+}
+
+function takeOverPendingAccount(account, { id, role, referralSource, marketingOptIn }) {
+  const ts = new Date().toISOString();
+  const firstName = id.givenName || id.email.split("@")[0];
+  db.prepare(`
+    UPDATE accounts
+       SET password_hash = '', first_name = ?, last_name = ?, display_name = ?, role = ?, referral_source = ?,
+           consent_personal_data_at = ?, updated_at = ?
+     WHERE id = ?
+  `).run(firstName, id.familyName, [firstName, id.familyName].filter(Boolean).join(" "), role, referralSource, ts, ts, account.id);
+  for (const table of ["auth_tokens", "password_reset_tokens", "email_verification_tokens"]) {
+    db.prepare(`DELETE FROM ${table} WHERE account_id = ?`).run(account.id);
+  }
+  clearLegacyPasswordHashes(account.email);
+  activateAccount(db, account.id);
+  grantTrialSubscription(db, account.id);
+  setMarketingConsent(db, account.id, { optIn: marketingOptIn, source: "google_signup" });
+  trackEvent("registration_completed", { role, referralSource, method: "google" });
+}
+
+async function handleGoogleCompleteSignup(req, res) {
+  const body = await readJsonBody(req);
+  const role = String(body?.role || "");
+  const referralSource = String(body?.referralSource || "");
+  // Validate before consuming the code, so a rejected attempt can be retried.
+  if (!["parent", "specialist"].includes(role)) return writeJson(res, 400, { error: "Invalid role" });
+  if (!["friend", "developer", "other"].includes(referralSource)) return writeJson(res, 400, { error: "Invalid referral source" });
+  if (body?.consentPersonalData !== true) return writeJson(res, 400, { error: "Consent to personal data processing is required" });
+
+  const hit = consumeOneTimeCode(db, body?.signupCode, "google_signup_confirm");
+  if (!hit) return writeJson(res, 400, { error: "invalid_or_expired_code" });
+  const id = hit.payload;
+
+  let account = findAccountByEmailAny(db, id.email);
+  if (account?.status === "deleted") return writeJson(res, 409, { error: "Account is deleted" });
+  if (!account) {
+    account = createAccount(db, {
+      email: id.email,
+      passwordHash: "", // Google-only: verifyPasswordHash("") is always false
+      firstName: id.givenName || id.email.split("@")[0],
+      lastName: id.familyName,
+      role,
+      referralSource,
+      consentPersonalDataAt: new Date().toISOString(),
+    });
+    activateAccount(db, account.id);
+    grantTrialSubscription(db, account.id);
+    setMarketingConsent(db, account.id, { optIn: body?.marketingOptIn === true, source: "google_signup" });
+    trackEvent("registration_completed", { role, referralSource, method: "google" });
+  } else if (account.status === "pending") {
+    // Never verified, so everything on it may come from someone else who typed
+    // this address: the owner's answers replace it and the old password,
+    // sessions and emailed links stop working.
+    takeOverPendingAccount(account, { id, role, referralSource, marketingOptIn: body?.marketingOptIn === true });
+  }
+  linkGoogle(account.id, id);
+  writeJson(res, 201, loginPayload(account.id));
+}
+
+async function handleSignupStatus(req, res) {
+  writeJson(res, 200, {
+    emailSignupOpen: emailBudget.canStartSignup(),
+    google: GOOGLE_CLIENT_ID ? { clientId: GOOGLE_CLIENT_ID } : null,
+  });
+}
+
 async function handleResendVerification(req, res) {
   const body = await readJsonBody(req);
   const email = sanitizeEmail(body?.email);
@@ -408,6 +608,7 @@ async function handleResendVerification(req, res) {
   if (!email || !checkResendLimit(email)) {
     return writeJson(res, 200, { message: "ok" });
   }
+  if (!emailBudget.canSend()) return writeJson(res, 503, { error: "email_budget_exhausted" });
 
   const account = findAccountByEmailAny(db, email);
   if (account?.status === "pending") {
@@ -424,6 +625,13 @@ async function handleResendVerification(req, res) {
 }
 
 // ─── Account handlers ──────────────────────────────────────────────────────────
+
+async function handlePatchMarketing(req, res) {
+  const account = requireAuth(req);
+  const body = await readJsonBody(req);
+  setMarketingConsent(db, account.id, { optIn: body?.optIn === true, source: String(body?.source || "") });
+  writeJson(res, 200, { account: serializeAccount(findAccountById(db, account.id)) });
+}
 
 async function handlePatchAccount(req, res) {
   const account = requireAuth(req);
@@ -1591,6 +1799,10 @@ async function router(req, res) {
     if (method === "POST"   && p === "/auth/reset-password")      return await handleResetPassword(req, res);
     if (method === "GET"    && p === "/auth/verify-email")        return await handleVerifyEmail(req, res);
     if (method === "POST"   && p === "/auth/resend-verification") return await handleResendVerification(req, res);
+    if (method === "GET"    && p === "/auth/signup-status")        return await handleSignupStatus(req, res);
+    if (method === "POST"   && p === "/auth/google/callback")        return await handleGoogleCallback(req, res);
+    if (method === "POST"   && p === "/auth/google/exchange")        return await handleGoogleExchange(req, res);
+    if (method === "POST"   && p === "/auth/google/complete-signup") return await handleGoogleCompleteSignup(req, res);
 
     // Account
     if (method === "POST"   && p === "/heartbeat")                 return await handleHeartbeat(req, res);
@@ -1599,6 +1811,7 @@ async function router(req, res) {
     if (method === "PATCH"  && p === "/account")                  return await handlePatchAccount(req, res);
     if (method === "POST"   && p === "/account/change-password")  return await handleChangePassword(req, res);
     if (method === "DELETE" && p === "/account")                  return await handleDeleteAccount(req, res);
+    if (method === "PATCH"  && p === "/account/marketing")        return await handlePatchMarketing(req, res);
     if (method === "PATCH"  && p === "/account/settings")         return await handlePatchSettings(req, res);
 
     // Students

@@ -62,6 +62,15 @@ export const SERVE_STATIC = readEnv("SERVE_STATIC") === "1";
 export const RESEND_API_KEY = requiredInProduction("RESEND_API_KEY", "");
 // Overridable only so test runs can point at a local fake (scripts/test-env/fake-resend.mjs).
 export const RESEND_API_URL = readEnv("RESEND_API_URL") || "https://api.resend.com/emails";
+// Resend free plan quota guard (see backend/lib/email-budget.mjs). Signup cap
+// is lower so already-registered people can still get resend/reset emails.
+export const EMAIL_DAILY_CAP  = Number(readEnv("EMAIL_DAILY_CAP") || 90);
+export const EMAIL_SIGNUP_CAP = Number(readEnv("EMAIL_SIGNUP_CAP") || 80);
+
+// Public OAuth client id (not a secret). Empty -> the Google button is hidden.
+export const GOOGLE_CLIENT_ID = readEnv("GOOGLE_CLIENT_ID");
+// Overridable only for tests (local JWKS with test keys).
+export const GOOGLE_JWKS_URL = readEnv("GOOGLE_JWKS_URL") || "https://www.googleapis.com/oauth2/v3/certs";
 export const SMTP_FROM      = readEnv("SMTP_FROM") || "Mironium <noreply@mironium.com>";
 export const APP_BASE_URL   = readEnv("APP_BASE_URL") || "http://localhost:5174";
 

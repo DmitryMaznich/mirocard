@@ -27,6 +27,7 @@ import "@/features/planner/planner.css";
 import InstructionsTab from "@/features/instructions/InstructionsTab";
 import LessonPlanTab from "@/features/lessonPlan/LessonPlanTab";
 import HomeMenuSheet from "./HomeMenuSheet";
+import MarketingPromptCard from "./MarketingPromptCard";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -976,6 +977,7 @@ export default function HomeScreen() {
 
       <div className="home-main">
         <div className="home-tab-content">
+          <MarketingPromptCard />
           {activeTab === 'instructions' && hasInstructionsAccess ? (
             <InstructionsTab setScreen={setScreen} />
           ) : activeTab === 'lesson_plan' && hasLessonPlanAccess ? (

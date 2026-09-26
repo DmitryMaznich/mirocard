@@ -11152,6 +11152,54 @@ button {
   width: 100%;
   max-width: 380px;
 }
+/* Google sign-in block above the email form (GoogleSignInButton renders Google's own button inside). */
+.auth-google {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 380px;
+}
+.google-signin {
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  color: #9a8f82;
+  font-size: 0.85rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2d6ca;
+}
+.auth-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #263131;
+  text-align: center;
+}
+.auth-subtitle {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  color: #5f6b69;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.auth-notice--standalone {
+  width: 100%;
+  max-width: 380px;
+  box-sizing: border-box;
+}
 .auth-input {
   height: 52px;
   padding: 0 16px;
@@ -11197,6 +11245,18 @@ button {
   border: 1px solid rgba(192, 64, 64, 0.15);
   border-radius: 10px;
   font-weight: 600;
+}
+/* Informational, not an error: e.g. the daily email budget is spent. */
+.auth-notice {
+  margin: 0;
+  color: #2f5b57;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  padding: 12px 14px;
+  background: rgba(74, 155, 143, 0.08);
+  border: 1px solid rgba(74, 155, 143, 0.2);
+  border-radius: 12px;
+  text-align: center;
 }
 .form-success {
   color: #2f5b57;
@@ -14357,6 +14417,52 @@ kbd {
     opacity: 1;
     transform: scale(1.05);
   }
+}
+
+/* ── One-time "news emails?" question (MarketingPromptCard) ─────────── */
+/* In normal flow above the tab content, same shell as .home-section. */
+.marketing-prompt {
+  position: relative;
+  flex-shrink: 0;
+  margin: 10px 14px 12px;
+  background: rgba(250, 247, 242, 0.94);
+  border: 1px solid #e7dccf;
+  border-radius: 24px;
+  box-shadow: 0 8px 24px rgba(71, 61, 48, 0.06);
+  padding: 16px 44px 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.marketing-prompt__text {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #3f3a33;
+}
+.marketing-prompt__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.marketing-prompt__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #9a8f82;
+  font-size: 1rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.marketing-prompt__close:active {
+  background: rgba(203, 185, 163, 0.2);
 }
 
 /* ── Home section card ───────────────────────────────────────────── */

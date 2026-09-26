@@ -456,17 +456,49 @@ function AnalogClock({ now }) {
 const TIME_WORDS_MAX_FONT = 52;
 const TIME_WORDS_MIN_FONT = 30;
 
+// Runs a fit function now and again whenever the result could have gone
+// stale: a web font finishing loading (the app loads Nunito lazily, so the
+// first measurement can be taken with the fallback font -- on iPad that's the
+// narrower Helvetica, so words sized to fit it overflowed once Nunito
+// arrived) or the measured box changing size.
+function useRefit(fit, observedRef, deps) {
+  useLayoutEffect(() => {
+    fit();
+    let frame = 0;
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(fit);
+    };
+    const fonts = typeof document === "undefined" ? null : document.fonts;
+    fonts?.ready.then(schedule);
+    fonts?.addEventListener?.("loadingdone", schedule);
+    const observer = typeof ResizeObserver === "undefined" || !observedRef.current
+      ? null
+      : new ResizeObserver(schedule);
+    observer?.observe(observedRef.current);
+    return () => {
+      cancelAnimationFrame(frame);
+      fonts?.removeEventListener?.("loadingdone", schedule);
+      observer?.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+}
+
 function useFitTimeWords(text) {
   const containerRef = useRef(null);
   const wordsRef = useRef(null);
 
-  useLayoutEffect(() => {
+  useRefit(() => {
     const container = containerRef.current;
     const words = wordsRef.current;
-    if (!container || !words) return undefined;
-
-    function fit() {
-      let size = TIME_WORDS_MAX_FONT;
+    if (!container || !words) return;
+    {
+      // Start from the CSS size, which already caps the longest word to the
+      // column width (see .daily-orientation__time-words), then only shrink
+      // further if all the lines together are too tall.
+      words.style.fontSize = "";
+      let size = Math.min(TIME_WORDS_MAX_FONT, parseFloat(window.getComputedStyle(words).fontSize) || TIME_WORDS_MAX_FONT);
       words.style.fontSize = `${size}px`;
       while (
         size > TIME_WORDS_MIN_FONT
@@ -476,12 +508,7 @@ function useFitTimeWords(text) {
         words.style.fontSize = `${size}px`;
       }
     }
-
-    fit();
-    let cancelled = false;
-    document.fonts?.ready.then(() => { if (!cancelled) fit(); });
-    return () => { cancelled = true; };
-  }, [text]);
+  }, containerRef, [text]);
 
   return { containerRef, wordsRef };
 }
@@ -496,11 +523,10 @@ const FIT_TEXT_MIN_FONT = 28;
 function FitText({ className, children }) {
   const ref = useRef(null);
 
-  useLayoutEffect(() => {
+  useRefit(() => {
     const element = ref.current;
-    if (!element) return undefined;
-
-    function fit() {
+    if (!element) return;
+    {
       element.style.fontSize = "";
       let size = parseFloat(window.getComputedStyle(element).fontSize) || 0;
       while (size > FIT_TEXT_MIN_FONT && element.scrollWidth > element.clientWidth) {
@@ -508,14 +534,17 @@ function FitText({ className, children }) {
         element.style.fontSize = `${size}px`;
       }
     }
+  }, ref, [children]);
 
-    fit();
-    let cancelled = false;
-    document.fonts?.ready.then(() => { if (!cancelled) fit(); });
-    return () => { cancelled = true; };
-  }, [children]);
-
-  return <strong className={`${className} daily-orientation__fit-text`} ref={ref}>{children}</strong>;
+  return (
+    <strong
+      className={`${className} daily-orientation__fit-text`}
+      ref={ref}
+      style={{ "--fit-chars": String(children).length }}
+    >
+      {children}
+    </strong>
+  );
 }
 
 function DaypartCard({ daypartId, hidden, speakerButton }) {
@@ -542,6 +571,10 @@ function DaypartCard({ daypartId, hidden, speakerButton }) {
       </ol>
     </article>
   );
+}
+
+function longestWordLength(text) {
+  return Math.max(...text.split(/\s+/).map((word) => word.length));
 }
 
 function DigitalClock({ now }) {
@@ -808,7 +841,12 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     <div className="daily-orientation__time-readout" ref={timeWordsFit.containerRef}>
                       <p className="daily-orientation__question daily-orientation__question--time">{CAPTION_TIME}</p>
                       {display.showTimeWords && (
-                        <strong className="daily-orientation__time-words" ref={timeWordsFit.wordsRef} aria-label={formatRussianClockTime(now)}>
+                        <strong
+                          className="daily-orientation__time-words"
+                          ref={timeWordsFit.wordsRef}
+                          aria-label={formatRussianClockTime(now)}
+                          style={{ "--fit-chars": longestWordLength(`${timeWords.hour} ${timeWords.minute}`) }}
+                        >
                           <span className="daily-orientation__time-words-hour">{timeWords.hour}</span>
                           <span className="daily-orientation__time-words-minute">{timeWords.minute}</span>
                         </strong>

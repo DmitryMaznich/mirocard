@@ -57,6 +57,11 @@ export const useAppStore = create((set) => ({
   setPendingVerificationEmail: (email) => set({ pendingVerificationEmail: email }),
   verifyEmailToken: null,
   setVerifyEmailToken: (token) => set({ verifyEmailToken: token }),
+  // Google sign-in of a new person, waiting for the "one more step" screen:
+  // { signupCode, email, firstName, lastName } from /auth/google/exchange.
+  googleSignup: null,
+  // One-shot message for the login screen (e.g. a failed Google sign-in).
+  authNotice: null,
   // Timestamp (ms) before which "Отправить повторно" stays disabled. Lives
   // in the store rather than component state so bouncing away from this
   // screen and back (e.g. via the login screen's email_not_verified path)

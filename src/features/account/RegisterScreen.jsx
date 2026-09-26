@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import PrivacyContent from "@/features/help/PrivacyContent";
+import { fetchSignupStatus, SIGNUP_PAUSED_TEXT, SIGNUP_PAUSED_WITH_GOOGLE_TEXT } from "./signupStatus";
+import { MARKETING_CONSENT_TEXT } from "./marketingConsent";
+import GoogleSignInButton from "./GoogleSignInButton";
 
 export default function RegisterScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
@@ -17,9 +20,19 @@ export default function RegisterScreen() {
   const [password,      setPassword]      = useState("");
   const [showPass,      setShowPass]      = useState(false);
   const [consent,       setConsent]       = useState(false);
+  const [marketingOptIn, setMarketingOptIn] = useState(false);
   const [showPrivacy,   setShowPrivacy]   = useState(false);
   const [error,         setError]         = useState("");
   const [loading,       setLoading]       = useState(false);
+  const [status,        setStatus]        = useState(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetchSignupStatus().then((s) => { if (alive) setStatus(s); });
+    return () => { alive = false; };
+  }, []);
+
+  const emailSignupClosed = status?.emailSignupOpen === false;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -42,11 +55,14 @@ export default function RegisterScreen() {
         role,
         referralSource,
         consentPersonalData: true,
+        marketingOptIn,
       });
       setPendingVerificationEmail(email);
       setScreen("verify_email_sent");
     } catch (err) {
-      if (err.status === 409) {
+      if (err.status === 503 && err.message === "signup_paused_email_budget") {
+        setStatus((s) => ({ ...(s ?? { google: null }), emailSignupOpen: false }));
+      } else if (err.status === 409) {
         setError("Этот email уже зарегистрирован");
       } else {
         setError(err.message || "Ошибка регистрации. Попробуйте ещё раз.");
@@ -59,6 +75,17 @@ export default function RegisterScreen() {
   return (
     <div className="auth-screen">
       <div className="auth-logo">Mironium</div>
+      {status?.google && (
+        <div className="auth-google">
+          <GoogleSignInButton clientId={status.google.clientId} text="signup_with" />
+          {!emailSignupClosed && <div className="auth-divider"><span>или по почте</span></div>}
+        </div>
+      )}
+      {emailSignupClosed ? (
+        <div className="auth-form">
+          <p className="auth-notice">{status.google ? SIGNUP_PAUSED_WITH_GOOGLE_TEXT : SIGNUP_PAUSED_TEXT}</p>
+        </div>
+      ) : (
       <form className="auth-form" onSubmit={handleSubmit}>
         <input
           className="auth-input"
@@ -142,11 +169,21 @@ export default function RegisterScreen() {
             </button>
           </span>
         </label>
+        <label className="auth-consent">
+          <input
+            type="checkbox"
+            name="marketingOptIn"
+            checked={marketingOptIn}
+            onChange={(e) => setMarketingOptIn(e.target.checked)}
+          />
+          <span>{MARKETING_CONSENT_TEXT}</span>
+        </label>
         {error && <div className="form-error">{error}</div>}
         <Button type="submit" disabled={loading} fullWidth>
           {loading ? "Создаём аккаунт…" : "Создать аккаунт"}
         </Button>
       </form>
+      )}
       <button className="auth-link" onClick={() => setScreen("login")}>
         Уже есть аккаунт? Войти
       </button>

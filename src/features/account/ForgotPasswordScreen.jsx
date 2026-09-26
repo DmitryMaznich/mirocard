@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
+import { EMAIL_BUDGET_EXHAUSTED_TEXT } from "./signupStatus";
 
 export default function ForgotPasswordScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
@@ -9,20 +10,26 @@ export default function ForgotPasswordScreen() {
   const [email,   setEmail]   = useState("");
   const [loading, setLoading] = useState(false);
   const [sent,    setSent]    = useState(false);
+  const [budgetError, setBudgetError] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
+    setBudgetError(false);
+    let exhausted = false;
     try {
       // The backend always returns {ok:true} whether or not the email is
       // registered — it never reveals which, so the UI can't either.
       await api.post("/auth/forgot-password", { email });
-    } catch {
+    } catch (err) {
       // Best-effort either way — don't leak network/server errors into a
-      // signal about whether the account exists.
+      // signal about whether the account exists. The one exception is the
+      // global daily email budget: it says nothing about any account.
+      exhausted = err?.status === 503;
     } finally {
       setLoading(false);
-      setSent(true);
+      if (exhausted) setBudgetError(true);
+      else setSent(true);
     }
   }
 
@@ -62,6 +69,7 @@ export default function ForgotPasswordScreen() {
           autoFocus
           autoComplete="email"
         />
+        {budgetError && <p className="auth-notice">{EMAIL_BUDGET_EXHAUSTED_TEXT}</p>}
         <Button type="submit" disabled={loading} fullWidth>
           {loading ? "Отправляем…" : "Отправить ссылку"}
         </Button>

@@ -168,6 +168,31 @@ export function initDb(dbPath = DB_PATH) {
       created_at  TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS email_send_log (
+      id      INTEGER PRIMARY KEY AUTOINCREMENT,
+      kind    TEXT NOT NULL,
+      sent_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_email_send_log_sent_at ON email_send_log(sent_at);
+
+    -- External sign-in identities (Google). One account may have several.
+    CREATE TABLE IF NOT EXISTS account_identities (
+      provider   TEXT NOT NULL,
+      subject    TEXT NOT NULL,
+      account_id TEXT NOT NULL REFERENCES accounts(id),
+      email      TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (provider, subject)
+    );
+
+    CREATE TABLE IF NOT EXISTS one_time_codes (
+      code_hash  TEXT PRIMARY KEY,
+      kind       TEXT NOT NULL,
+      payload    TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      used_at    INTEGER
+    );
+
   `);
 
   const studentColumns = db.prepare("PRAGMA table_info(students)").all();
@@ -287,6 +312,25 @@ export function initDb(dbPath = DB_PATH) {
   if (!accountColumns.includes("feature_flags")) {
     db.exec("ALTER TABLE accounts ADD COLUMN feature_flags TEXT NOT NULL DEFAULT '[]'");
   }
+  // Opt-in "what's new" emails (lib/marketing-consent.mjs). prompt_answered_at
+  // stops the one-time in-app question from coming back once answered.
+  if (!accountColumns.includes("marketing_opt_in")) {
+    db.exec("ALTER TABLE accounts ADD COLUMN marketing_opt_in INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!accountColumns.includes("marketing_prompt_answered_at")) {
+    db.exec("ALTER TABLE accounts ADD COLUMN marketing_prompt_answered_at TEXT");
+  }
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS marketing_consent_events (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      account_id   TEXT NOT NULL REFERENCES accounts(id),
+      action       TEXT NOT NULL CHECK (action IN ('grant','withdraw')),
+      text_version TEXT NOT NULL,
+      source       TEXT NOT NULL,
+      created_at   TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_marketing_consent_events_account ON marketing_consent_events(account_id);
+  `);
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS analysis_cache (
