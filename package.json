@@ -21,7 +21,9 @@
     "deploy:prod": "git push origin main",
     "deploy:verify": "node scripts/verify-railway-deploy.mjs",
     "deploy:safe": "git push origin main",
-    "build:renderer": "vite build --config vite.config.renderer.mjs --configLoader native"
+    "build:renderer": "vite build --config vite.config.renderer.mjs --configLoader native",
+    "test:env": "node scripts/test-env/run-prod-like.mjs",
+    "test:harness": "node --test tests/harness/*.test.mjs"
   },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",
