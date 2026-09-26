@@ -6,6 +6,7 @@ import Modal from "@/shared/components/Modal";
 import PrivacyContent from "@/features/help/PrivacyContent";
 import { fetchSignupStatus, SIGNUP_PAUSED_TEXT, SIGNUP_PAUSED_WITH_GOOGLE_TEXT } from "./signupStatus";
 import { MARKETING_CONSENT_TEXT } from "./marketingConsent";
+import GoogleSignInButton from "./GoogleSignInButton";
 
 export default function RegisterScreen() {
   const setScreen = useAppStore((s) => s.setScreen);
@@ -74,6 +75,12 @@ export default function RegisterScreen() {
   return (
     <div className="auth-screen">
       <div className="auth-logo">Mironium</div>
+      {status?.google && (
+        <div className="auth-google">
+          <GoogleSignInButton clientId={status.google.clientId} text="signup_with" />
+          {!emailSignupClosed && <div className="auth-divider"><span>или по почте</span></div>}
+        </div>
+      )}
       {emailSignupClosed ? (
         <div className="auth-form">
           <p className="auth-notice">{status.google ? SIGNUP_PAUSED_WITH_GOOGLE_TEXT : SIGNUP_PAUSED_TEXT}</p>

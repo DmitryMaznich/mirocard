@@ -11152,6 +11152,54 @@ button {
   width: 100%;
   max-width: 380px;
 }
+/* Google sign-in block above the email form (GoogleSignInButton renders Google's own button inside). */
+.auth-google {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 380px;
+}
+.google-signin {
+  min-height: 44px;
+  display: flex;
+  justify-content: center;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  color: #9a8f82;
+  font-size: 0.85rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2d6ca;
+}
+.auth-title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #263131;
+  text-align: center;
+}
+.auth-subtitle {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  color: #5f6b69;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.auth-notice--standalone {
+  width: 100%;
+  max-width: 380px;
+  box-sizing: border-box;
+}
 .auth-input {
   height: 52px;
   padding: 0 16px;

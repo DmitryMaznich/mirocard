@@ -41,6 +41,12 @@ describe("RegisterScreen", () => {
     expect(container.textContent).toMatch(/через Google/);
   });
 
+  it("offers Google next to the form, and alone when email signup is closed", async () => {
+    vi.spyOn(apiModule.api, "get").mockResolvedValue({ emailSignupOpen: false, google: { clientId: "cid" } });
+    await mount();
+    expect(container.querySelector(".google-signin")).not.toBeNull();
+  });
+
   it("news checkbox is unchecked by default and its value is sent with the signup", async () => {
     vi.spyOn(apiModule.api, "get").mockResolvedValue({ emailSignupOpen: true, google: null });
     const post = vi.spyOn(apiModule.api, "post").mockResolvedValue({});

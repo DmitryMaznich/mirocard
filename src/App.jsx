@@ -16,6 +16,8 @@ import LoginScreen from "@/features/account/LoginScreen";
 import RegisterScreen from "@/features/account/RegisterScreen";
 import VerifyEmailSentScreen from "@/features/account/VerifyEmailSentScreen";
 import VerifyEmailScreen from "@/features/account/VerifyEmailScreen";
+import GoogleCompleteProfileScreen from "@/features/account/GoogleCompleteProfileScreen";
+import { handleGoogleCode } from "@/features/account/googleSignIn";
 import ForgotPasswordScreen from "@/features/account/ForgotPasswordScreen";
 import ResetPasswordScreen from "@/features/account/ResetPasswordScreen";
 import HomeScreen from "@/features/home/HomeScreen";
@@ -77,6 +79,7 @@ const SCREENS = {
   register: RegisterScreen,
   verify_email_sent: VerifyEmailSentScreen,
   verify_email: VerifyEmailScreen,
+  google_complete_profile: GoogleCompleteProfileScreen,
   forgot_password: ForgotPasswordScreen,
   reset_password: ResetPasswordScreen,
   home: HomeScreen,
@@ -189,6 +192,24 @@ export default function App() {
       setVerifyEmailToken(verifyToken);
       window.history.replaceState({}, "", "/");
       setScreen("verify_email");
+      return;
+    }
+
+    // Google sign-in lands back here as /?google_code=… (or ?google_error=…)
+    // from the backend callback; the code is single-use, so drop it from the URL first.
+    const googleCode = urlParams.get("google_code");
+    const googleError = urlParams.get("google_error");
+    if (googleCode || googleError) {
+      window.history.replaceState({}, "", "/");
+      if (googleError) {
+        useAppStore.setState({ authNotice: "Не получилось войти через Google. Попробуйте ещё раз или войдите по почте." });
+        setScreen("login");
+        return;
+      }
+      handleGoogleCode(googleCode).catch(() => {
+        useAppStore.setState({ authNotice: "Ссылка входа через Google устарела. Нажмите «Войти через Google» ещё раз." });
+        setScreen("login");
+      });
       return;
     }
 
