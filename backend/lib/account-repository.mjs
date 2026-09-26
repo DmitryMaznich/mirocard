@@ -180,6 +180,8 @@ export function serializeAccount(row) {
     createdAt: row.created_at,
     lastSeenAt: row.last_seen_at ?? null,
     openCount: row.open_count ?? 0,
+    marketingOptIn: !!row.marketing_opt_in,
+    marketingPromptAnswered: !!row.marketing_prompt_answered_at,
   };
 }
 

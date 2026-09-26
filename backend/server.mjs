@@ -11,6 +11,7 @@ import {
   CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, GOOGLE_CLIENT_ID,
 } from "./lib/config.mjs";
 import { createEmailBudget } from "./lib/email-budget.mjs";
+import { setMarketingConsent } from "./lib/marketing-consent.mjs";
 import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
 import { getDb } from "./lib/db.mjs";
 import {
@@ -307,7 +308,9 @@ async function handleRegister(req, res) {
   }
 
   grantTrialSubscription(db, account.id);
-  trackEvent("registration_completed", { role, referralSource });
+  // Always recorded: the signup form asked, so the one-time prompt is answered.
+  setMarketingConsent(db, account.id, { optIn: body?.marketingOptIn === true, source: "register" });
+  trackEvent("registration_completed", { role, referralSource, method: "email" });
 
   const rawToken = randomUUID();
   createEmailVerificationToken(db, { tokenHash: hashToken(rawToken), accountId: account.id });
@@ -458,6 +461,13 @@ async function handleResendVerification(req, res) {
 }
 
 // ─── Account handlers ──────────────────────────────────────────────────────────
+
+async function handlePatchMarketing(req, res) {
+  const account = requireAuth(req);
+  const body = await readJsonBody(req);
+  setMarketingConsent(db, account.id, { optIn: body?.optIn === true, source: String(body?.source || "") });
+  writeJson(res, 200, { account: serializeAccount(findAccountById(db, account.id)) });
+}
 
 async function handlePatchAccount(req, res) {
   const account = requireAuth(req);
@@ -1634,6 +1644,7 @@ async function router(req, res) {
     if (method === "PATCH"  && p === "/account")                  return await handlePatchAccount(req, res);
     if (method === "POST"   && p === "/account/change-password")  return await handleChangePassword(req, res);
     if (method === "DELETE" && p === "/account")                  return await handleDeleteAccount(req, res);
+    if (method === "PATCH"  && p === "/account/marketing")        return await handlePatchMarketing(req, res);
     if (method === "PATCH"  && p === "/account/settings")         return await handlePatchSettings(req, res);
 
     // Students
