@@ -212,6 +212,7 @@ export default function TopicLibraryScreen() {
         access={item.entry?.access ?? "free"}
         claimSource={owned?.source ?? null}
         entitlementExpired={entitlementExpired}
+        hasAccess={hasActiveEntitlement(account, subscription)}
         onLockedTap={() => setScreen("subscription")}
         personalCaption={personalCaption}
         onInstall={installCatalogEntry}

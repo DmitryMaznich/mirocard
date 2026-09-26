@@ -41,6 +41,11 @@ export default function TopicTile({
   // app itself must stop offering to open it -- same locked treatment as
   // never having claimed it, prompting a resubscribe instead.
   entitlementExpired = false,
+  // True while the account holds any active entitlement (trial, promo,
+  // subscription). A paid deck is then free to take, so it must not wear the
+  // lock -- newcomers read a wall of locks as "everything is paid" (launch
+  // testing finding N3). Claiming still goes through the backend as before.
+  hasAccess = false,
   onInstall,
   onSelect,
   onMenu,
@@ -60,7 +65,7 @@ export default function TopicTile({
   if (entitlementExpired) {
     status = "request";
   } else if (!installedRecord) {
-    status = isPending ? "pending" : (!isGranted && access === "paid" ? "request" : "install");
+    status = isPending ? "pending" : (!isGranted && access === "paid" && !hasAccess ? "request" : "install");
   } else if (entry && installedRecord.meta.version !== entry.version) {
     status = "update";
   } else if (isActive) {

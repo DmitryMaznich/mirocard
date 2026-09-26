@@ -98,6 +98,18 @@ describe("TopicTile — mounted through the real component", () => {
     expect(onInstall).toHaveBeenCalled();
   });
 
+  it("paid tier during an active trial/promo: no lock -- offered as a normal install", () => {
+    mount({ entry: { id: "verbs_v2", version: "1.2.0" }, access: "paid", claimSource: null, hasAccess: true });
+    const badge = container.querySelector(".topic-tile-row__badge");
+    expect(badge.getAttribute("aria-label")).toBe("Установить");
+    expect(container.querySelector(".topic-tile-row__badge--get")).toBeTruthy();
+  });
+
+  it("paid tier without any access keeps the lock", () => {
+    mount({ entry: { id: "verbs_v2", version: "1.2.0" }, access: "paid", claimSource: null, hasAccess: false });
+    expect(container.querySelector(".topic-tile-row__badge").getAttribute("aria-label")).toBe("По подписке");
+  });
+
   it("request already sent: badge is disabled and does nothing on tap", () => {
     const onInstall = vi.fn();
     mount({ entry: { id: "propis", version: "1.0.0" }, access: "paid", claimSource: "request", onInstall });
