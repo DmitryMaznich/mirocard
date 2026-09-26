@@ -2,7 +2,7 @@
 // (node backend/server.mjs, SERVE_STATIC=1) on a throwaway database,
 // with email going to the local fake instead of Resend.
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -43,6 +43,9 @@ const app = spawn(process.execPath, ["backend/server.mjs"], {
   },
 });
 console.log(`[test-env] app ${appUrl}  mail ${mail.url}  data ${dataDir}`);
+// Tests that must bend server state no API exposes (e.g. an expired trial) find the DB here.
+mkdirSync("output", { recursive: true });
+writeFileSync("output/test-env.json", JSON.stringify({ appUrl, mailUrl: mail.url, dataDir }));
 
 let stopping = false;
 async function stop(code = 0) {
