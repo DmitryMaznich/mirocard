@@ -521,12 +521,12 @@ function FitText({ className, children }) {
 function DaypartCard({ daypartId, hidden, speakerButton }) {
   return (
     <article
-      className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--daypart daily-orientation__card--daypart-${daypartId}${hidden ? " daily-orientation__card--daypart-hidden" : ""}`}
+      className={`daily-orientation__card daily-orientation__card--daypart daily-orientation__card--daypart-${daypartId}${hidden ? " daily-orientation__card--daypart-hidden" : ""}`}
       aria-hidden={hidden}
     >
-      <img className="daily-orientation__daypart-picture" src={`/daily-orientation/daypart_${daypartId}.webp`} alt="" draggable="false" />
       {speakerButton}
-      <p className="daily-orientation__question daily-orientation__daypart-caption">{CAPTION_DAYPART}</p>
+      <p className="daily-orientation__question">{CAPTION_DAYPART}</p>
+      <img className="daily-orientation__daypart-picture" src={`/daily-orientation/daypart_${daypartId}.webp`} alt="" draggable="false" />
       {/* The whole cycle, current part emphasised: shows both "what now" and
           what comes before/after, the same idea as вчера→сегодня→завтра. */}
       <ol className="daily-orientation__daypart-strip">

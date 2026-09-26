@@ -26,50 +26,50 @@ const OUTPUT_SIZE = 512;
 const IDS = process.argv.find((a) => a.startsWith("--ids="))?.split("=")[1]?.split(",") ?? null;
 const ADAPT_ONLY = process.argv.includes("--adapt-only");
 
-// Same child in all four so the set reads as one story of one day, and the
-// same flat style so no picture stands out as "the odd one" on the wall
-// display. No text: the card prints the word itself.
+// v2 style: calm single-colour pictograms (AAC / ISO 7001 public-sign
+// language), not a coloured cartoon scene -- the first full-colour set pulled
+// the eye away from every other card on the screen. One ink colour matching
+// the screen's text (#073d4f) on white; white is keyed out to transparency in
+// the adapt step so the card's own pastel shows through.
 const STYLE =
-  "Flat vector illustration for a children's picture schedule card. Simple " +
-  "rounded shapes, soft friendly colours, clean dark outlines, no gradients " +
-  "or texture, no small details, readable at small size. One small child " +
-  "(about 5 years old, short brown hair, round friendly face, gender-neutral) " +
-  "is the clear main subject, shown large, centred. FULL-BLEED: the scene's " +
-  "background colour and objects run all the way to all four edges of the " +
-  "image and are cut off by the image edge -- do NOT draw the picture as a " +
-  "card, sticker, icon tile or framed picture; no outline around the image, " +
-  "no rounded corners, no white margin, no drop shadow. Absolutely no text, " +
-  "letters or numbers anywhere. Square 1:1.";
+  "Minimalist pictogram in the style of an AAC communication symbol or an ISO " +
+  "7001 public information sign: smooth solid single-colour silhouettes, flat " +
+  "fill, dark teal-navy colour (#073d4f) only, on a plain pure white background. " +
+  "A simple child figure made of a round head and rounded body shapes, no face, " +
+  "no eyes, no hair detail, no clothing detail, no outlines inside shapes, no " +
+  "shading, no gradients, no second colour. Few, large, simple shapes, calm and " +
+  "clear, readable at small size. Everything centred with generous white margin " +
+  "on all sides, nothing touching the edges. No text, letters or numbers. " +
+  "No border, no frame. Square 1:1.";
 
 const TARGETS = [
   {
     id: "morning",
     label: "утро",
-    prompt: `${STYLE} MORNING: the child in a yellow t-shirt washes their face ` +
-      "at a bathroom sink, water splashing, a towel nearby. Through a window " +
-      "behind them, a soft pink-and-peach sunrise with the sun just above the horizon.",
+    prompt: `${STYLE} MORNING: the child figure leaning over a simple washbasin, ` +
+      "washing their face with both hands, a few water drop shapes. In the top " +
+      "corner, a small half-sun rising over a horizon line with short rays.",
   },
   {
     id: "day",
     label: "день",
-    prompt: `${STYLE} DAYTIME: the child in a yellow t-shirt plays outside on ` +
-      "green grass with a ball, a bright blue sky with a big round yellow sun " +
-      "high up and one or two white clouds.",
+    prompt: `${STYLE} DAYTIME: the child figure running and kicking a ball ` +
+      "(simple circle) on a flat ground line. In the top corner, a small full " +
+      "round sun with short rays.",
   },
   {
     id: "evening",
     label: "вечер",
-    prompt: `${STYLE} EVENING: the child in a yellow t-shirt sits at a table ` +
-      "eating dinner from a plate with a spoon, a warm lamp glowing. Through a " +
-      "window behind them, an orange-and-purple sunset with the sun half below the horizon.",
+    prompt: `${STYLE} EVENING: the child figure sitting at a simple table, ` +
+      "eating from a plate with a spoon. In the top corner, a small half-sun " +
+      "setting below a horizon line, no rays.",
   },
   {
     id: "night",
     label: "ночь",
-    prompt: `${STYLE} NIGHT: the child in light blue pyjamas sleeps peacefully ` +
-      "in bed under a blanket, eyes closed, head on a pillow. Through a window, a " +
-      "dark navy night sky with a crescent moon and a few stars. The room is dim but " +
-      "the child is still clearly visible.",
+    prompt: `${STYLE} NIGHT: the child figure lying asleep in a simple bed ` +
+      "under a blanket, head on a pillow. In the top corner, a small crescent " +
+      "moon and two small stars.",
   },
 ].filter((target) => !IDS || IDS.includes(target.id));
 
@@ -101,29 +101,38 @@ if (!ADAPT_ONLY) {
   }
 }
 
-// Adapt: despite the prompt the model sometimes draws its own rounded card
-// frame (white corners, a dark outline just inside the edge -- the first
-// morning/evening drafts both did), which trim() can't remove because the
-// corners aren't a uniform edge. So cut a fixed 5% inset off every side,
-// then export a small square WebP (the card rounds its own corners and shows
-// it at ~220px CSS; 512px covers 2x screens).
-const INSET = 0.05;
+// Adapt: key the white background out to transparency (alpha from how far
+// each pixel is from white) and recolour every remaining pixel to the exact
+// ink colour, so antialiased edges stay smooth and the card's own pastel
+// background shows through. Then trim to the figure, pad back to a centred
+// square and export a small WebP.
+const INK = { r: 7, g: 61, b: 79 };
+const OUTPUT_PADDING = 0.06;
+
 for (const target of TARGETS) {
   const rawPath = join(DRAFT_DIR, `${target.id}.raw.png`);
   if (!existsSync(rawPath)) continue;
-  const { width, height } = await sharp(rawPath).metadata();
-  const side = Math.min(width, height);
-  const cropSide = Math.round(side * (1 - 2 * INSET));
+  const { data, info } = await sharp(rawPath).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const rgba = Buffer.alloc(info.width * info.height * 4);
+  for (let i = 0, o = 0; i < data.length; i += 3, o += 4) {
+    const darkness = 255 - Math.min(data[i], data[i + 1], data[i + 2]);
+    const alpha = darkness < 24 ? 0 : Math.min(255, Math.round(((darkness - 24) / (255 - 24 - 60)) * 255));
+    rgba[o] = INK.r; rgba[o + 1] = INK.g; rgba[o + 2] = INK.b; rgba[o + 3] = alpha;
+  }
+  const keyed = await sharp(rgba, { raw: { width: info.width, height: info.height, channels: 4 } })
+    .png()
+    .toBuffer();
+  const trimmed = await sharp(keyed).trim({ threshold: 1 }).toBuffer();
+  const meta = await sharp(trimmed).metadata();
+  const inner = Math.round(OUTPUT_SIZE * (1 - 2 * OUTPUT_PADDING));
+  const scale = inner / Math.max(meta.width, meta.height);
+  const w = Math.round(meta.width * scale);
+  const h = Math.round(meta.height * scale);
+  const resized = await sharp(trimmed).resize(w, h).toBuffer();
   const outPath = join(OUT_DIR, `daypart_${target.id}.webp`);
-  await sharp(rawPath)
-    .extract({
-      left: Math.round((width - cropSide) / 2),
-      top: Math.round((height - cropSide) / 2),
-      width: cropSide,
-      height: cropSide,
-    })
-    .resize(OUTPUT_SIZE, OUTPUT_SIZE, { fit: "cover", position: "centre" })
-    .webp({ quality: 82 })
+  await sharp({ create: { width: OUTPUT_SIZE, height: OUTPUT_SIZE, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite([{ input: resized, left: Math.round((OUTPUT_SIZE - w) / 2), top: Math.round((OUTPUT_SIZE - h) / 2) }])
+    .webp({ quality: 90, alphaQuality: 100 })
     .toFile(outPath);
   console.log(`  adapt ${target.id} -> ${outPath}`);
 }
