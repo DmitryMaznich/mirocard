@@ -11,7 +11,7 @@
 //   node scripts/generate-daily-orientation-dayparts.mjs              # generate + adapt all
 //   node scripts/generate-daily-orientation-dayparts.mjs --ids=night  # regenerate one
 //   node scripts/generate-daily-orientation-dayparts.mjs --adapt-only # re-run the sharp step
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -25,6 +25,10 @@ const MODEL = "gemini-3.1-flash-image";
 const OUTPUT_SIZE = 512;
 const IDS = process.argv.find((a) => a.startsWith("--ids="))?.split("=")[1]?.split(",") ?? null;
 const ADAPT_ONLY = process.argv.includes("--adapt-only");
+// --variant=b writes <id>.b.raw.png so several candidates can be compared;
+// --pick=b copies that candidate over <id>.raw.png before adapting.
+const VARIANT = process.argv.find((a) => a.startsWith("--variant="))?.split("=")[1] ?? null;
+const PICK = process.argv.find((a) => a.startsWith("--pick="))?.split("=")[1] ?? null;
 
 // v2 style: calm single-colour pictograms (AAC / ISO 7001 public-sign
 // language), not a coloured cartoon scene -- the first full-colour set pulled
@@ -46,8 +50,12 @@ const TARGETS = [
   {
     id: "morning",
     label: "утро",
-    prompt: `${STYLE} MORNING: the child figure leaning over a simple washbasin, ` +
-      "washing their face with both hands, a few water drop shapes. In the top " +
+    // Waking up, not washing/eating: those happen at other times of day too,
+    // and sitting up in bed pairs visually with the night picture (same bed,
+    // asleep vs awake).
+    prompt: `${STYLE} MORNING: the child figure has just woken up and sits ` +
+      "upright in a simple bed with the blanket over the legs, both arms " +
+      "stretched straight up above the head in a big wake-up stretch. In the top " +
       "corner, a small half-sun rising over a horizon line with short rays.",
   },
   {
@@ -60,9 +68,12 @@ const TARGETS = [
   {
     id: "evening",
     label: "вечер",
-    prompt: `${STYLE} EVENING: the child figure sitting at a simple table, ` +
-      "eating from a plate with a spoon. In the top corner, a small half-sun " +
-      "setting below a horizon line, no rays.",
+    // Bath time, not dinner: a meal says nothing about which part of the day
+    // it is, a bath before bed is the typical evening-only routine.
+    prompt: `${STYLE} EVENING: the child figure sits in a simple bathtub, ` +
+      "head and shoulders above the rim, a few round soap bubbles floating " +
+      "above the water. In the top corner, a small half-sun setting below a " +
+      "horizon line, no rays.",
   },
   {
     id: "night",
@@ -96,7 +107,7 @@ if (!ADAPT_ONLY) {
     const image = (body?.candidates?.[0]?.content?.parts ?? []).find((p) => p.inlineData?.mimeType?.startsWith("image/"));
     if (!image) { console.log("NO IMAGE"); continue; }
     const buffer = Buffer.from(image.inlineData.data, "base64");
-    writeFileSync(join(DRAFT_DIR, `${target.id}.raw.png`), buffer);
+    writeFileSync(join(DRAFT_DIR, `${target.id}${VARIANT ? `.${VARIANT}` : ""}.raw.png`), buffer);
     console.log(`${buffer.length} bytes`);
   }
 }
@@ -109,8 +120,11 @@ if (!ADAPT_ONLY) {
 const INK = { r: 7, g: 61, b: 79 };
 const OUTPUT_PADDING = 0.06;
 
+if (VARIANT && !ADAPT_ONLY) process.exit(0); // candidates only; adapt after --pick
+
 for (const target of TARGETS) {
   const rawPath = join(DRAFT_DIR, `${target.id}.raw.png`);
+  if (PICK) copyFileSync(join(DRAFT_DIR, `${target.id}.${PICK}.raw.png`), rawPath);
   if (!existsSync(rawPath)) continue;
   const { data, info } = await sharp(rawPath).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const rgba = Buffer.alloc(info.width * info.height * 4);
