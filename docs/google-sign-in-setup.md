@@ -28,7 +28,10 @@
    - Application type: **Web application**, имя `Mironium web`.
    - **Authorized JavaScript origins**: `https://app.mironium.com` и
      `http://localhost:5174` (для локальной проверки).
-   - Authorized redirect URIs — **не нужны** для этого способа входа.
+   - **Authorized redirect URIs**: `https://app.mironium.com/api/auth/google/callback` —
+     **обязательно**: кнопка работает в режиме `ux_mode: "redirect"`, и Google отправляет
+     результат входа POST-запросом на этот адрес (`login_uri` в `GoogleSignInButton.jsx`).
+     Без него Google покажет ошибку `redirect_uri_mismatch`.
    - Create → скопировать **Client ID** (вида `1234…apps.googleusercontent.com`).
      Client secret не нужен — нигде его не сохраняйте.
 
