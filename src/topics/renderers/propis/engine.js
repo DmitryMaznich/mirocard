@@ -1,11 +1,42 @@
 import { shuffle } from "@/shared/utils/shuffle";
 import {
   letterDictationKey,
+  isUpperCaseLetterCard,
+  letterSoundDictationKey,
   wordDictationKey,
   textDictationKey,
   textSentenceDictationKey,
   splitIntoSentences,
 } from "./dictationAudio";
+
+// Plain shuffle can put "А" right next to "а" (same letter, different pool entries for case)
+// or, in principle, any two items that read as "the same thing twice in a row" -- reported
+// as a real dictation session confusion, 2026-09-24. Picks a random itemCount-sized subset
+// same as before, then arranges it so no two ADJACENT items share `keyFn`'s value: bucket by
+// key, sort buckets largest-first, round-robin across all buckets each pass. Standard
+// rearrangement-problem shape, correct whenever the largest bucket is at most half the total
+// (always true here -- a letter has at most 2 case variants, so no bucket can ever exceed 2).
+function shuffleNoAdjacentRepeats(pool, itemCount, keyFn) {
+  const picked = shuffle(pool).slice(0, itemCount);
+  const buckets = new Map();
+  for (const item of picked) {
+    const k = keyFn(item);
+    if (!buckets.has(k)) buckets.set(k, []);
+    buckets.get(k).push(item);
+  }
+  const bucketList = shuffle([...buckets.values()]).sort((a, b) => b.length - a.length);
+  const result = [];
+  let remaining = picked.length;
+  while (remaining > 0) {
+    for (const bucket of bucketList) {
+      if (bucket.length) {
+        result.push(bucket.shift());
+        remaining -= 1;
+      }
+    }
+  }
+  return result;
+}
 
 export function generateTasks(mode, cards, sessionSize, sessionParams) {
   const allCards = Array.isArray(cards) ? cards : (cards?.cards ?? []);
@@ -110,11 +141,22 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
         })),
       }));
     } else {
-      pool = standaloneLetters.map((l) => ({ key: letterDictationKey(l), display: l.label }));
+      // isUpper/soundKey let DictationView play "заглавная"/"строчная" (case word, shared
+      // across every letter) then the letter's own sound as two clips back to back -- see
+      // dictationAudio.js's caseWordDictationKey/letterSoundDictationKey.
+      pool = standaloneLetters.map((l) => ({
+        key: letterDictationKey(l),
+        display: l.label,
+        isUpper: isUpperCaseLetterCard(l),
+        soundKey: letterSoundDictationKey(l),
+      }));
     }
 
     const itemCount = Math.max(1, Math.min(sessionParams?.itemCount ?? 10, pool.length || 1));
-    const items = shuffle(pool).slice(0, itemCount);
+    // .toLowerCase() specifically so "А" and "а" (separate pool entries, same base letter)
+    // never land back to back -- the concern that prompted this (see the function's own
+    // comment above); a no-op for words/texts, whose entries never collide after lowercasing.
+    const items = shuffleNoAdjacentRepeats(pool, itemCount, (item) => (item.display ?? "").toLowerCase());
 
     // letters/connectors/punctuation ride along so the end-of-session review screen can
     // render the answers as real captured cursive ink on real ruled paper (same primitives

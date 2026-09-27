@@ -13,12 +13,16 @@
 // Content is read straight from tools/propis/topic.json -- the same source
 // dictationAudio.js's key functions and engine.js's dictation branch use, so
 // there's no separate content list to keep in sync:
-//   - letters: every `cards[]` entry with type "letter" and captured strokes
-//     (73 total -- uppercase/lowercase are separate cards, each with its own
-//     clip). The SPOKEN TEXT is "заглавная <letter>" / "строчная <letter>",
-//     not the bare character -- a lone Cyrillic letter with nothing else
-//     around it makes Gemini TTS read garbage, not a clean letter name
-//     (reported 2026-09-17, this script originally sent card.label alone).
+//   - letters: 35 clips total, not one per up/lo card (2026-09-24 rework --
+//     the original "заглавная <letter>"/"строчная <letter>" scheme baked the
+//     case word into all 66 case-card clips, re-synthesizing the identical
+//     word over and over). 2 case-word clips ("заглавная"/"строчная" alone) +
+//     33 letter clips, one per BASE letter (case-independent -- "К"/"к" are
+//     the same phoneme). DictationView.jsx plays the case clip then the
+//     letter clip back to back. A letter's own clip is its actual SOUND, not
+//     its alphabet NAME (buildConsonantSoundPrompt) -- consonants especially
+//     need this distinction ("к" is /k/, not "ка"); ъ/ь have no sound at all,
+//     so their clip is just their name instead ("твёрдый/мягкий знак").
 //   - words: every `words[]` entry (249), spoken as-is.
 //   - texts: every `texts[]` entry (24), split into sentences the same way
 //     engine.js does (dictationAudio.js's splitIntoSentences) -- one clip per
@@ -32,8 +36,8 @@ import { fileURLToPath } from "node:url";
 import { Mp3Encoder } from "@breezystack/lamejs";
 import { getGeminiApiKey } from "./lib/gemini-key.mjs";
 import {
-  letterDictationKey,
-  isUpperCaseLetterCard,
+  caseWordDictationKey,
+  letterSoundDictationKey,
   wordDictationKey,
   textSentenceDictationKey,
   splitIntoSentences,
@@ -80,14 +84,14 @@ function pcmToMp3(pcmBytes, sampleRate = SAMPLE_RATE) {
 
 class DailyQuotaExhausted extends Error {}
 
-async function synthesizeOnce(text) {
+async function synthesizeOnce(prompt) {
   const resp = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: `Прочитай спокойно, чётко и дружелюбно, как для ребёнка: ${text}` }] }],
+        contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           responseModalities: ["AUDIO"],
           speechConfig: {
@@ -117,10 +121,10 @@ async function synthesizeOnce(text) {
   return pcmToMp3(Buffer.from(part.data, "base64"));
 }
 
-async function synthesize(text) {
+async function synthesize(prompt) {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      return await synthesizeOnce(text);
+      return await synthesizeOnce(prompt);
     } catch (err) {
       if (err instanceof DailyQuotaExhausted) throw err;
       if (!err.retryable || attempt === MAX_RETRIES) throw err;
@@ -135,37 +139,66 @@ if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });
 
 const topic = JSON.parse(readFileSync(TOPIC_JSON_PATH, "utf8"));
 
+function buildDefaultPrompt(text) {
+  return `Прочитай спокойно, чётко и дружелюбно, как для ребёнка: ${text}`;
+}
+
+// A consonant's NAME ("бэ", "ка", "ша"...) is not its SOUND (/b/, /k/, /sh/) -- dictation
+// needs the sound (the "звуковой метод" every Russian child learns to read with). Tried
+// asking Gemini for it explicitly (an instructional prompt spelling out the б/бэ, к/ка
+// contrast); backfired 2026-09-27 on roughly half the consonants -- Gemini treated the
+// instruction as a request to EXPLAIN the concept rather than vocalize, and refused with
+// "Model tried to generate text, but it should only be used for TTS". The plain "read this"
+// framing already used for vowels/case-words turns out to read a bare consonant as its
+// SOUND anyway (confirmed by ear, 2026-09-27, comparing "к" and "К!" through this exact
+// prompt) -- no special-casing needed, every base letter goes through buildDefaultPrompt.
+
+// ъ/ь have no sound of their own at all ("строчная ь" reliably errored out of Gemini TTS,
+// finishReason "OTHER", 3/3 attempts, 2026-09-19) -- say the actual name instead, same as a
+// person reading it aloud would.
+const SIGN_NAMES = { "ъ": "твёрдый знак", "ь": "мягкий знак" };
+
 function buildEntries() {
   const entries = [];
   if (!ONLY || ONLY === "letters") {
+    // "заглавная"/"строчная" are each their own single clip now, played immediately before
+    // whichever letter's own clip follows (DictationView.jsx) -- not re-synthesized into
+    // every one of 33 letters' own clips the way the previous "заглавная <letter>" scheme
+    // did (66 case-baked clips for what's really only 35 distinct sounds: 33 letters + these
+    // 2 words -- reported 2026-09-24: "слитные фразы... 66 файлов вместо 35").
+    entries.push(
+      { id: caseWordDictationKey(true), text: "заглавная", prompt: buildDefaultPrompt("заглавная") },
+      { id: caseWordDictationKey(false), text: "строчная", prompt: buildDefaultPrompt("строчная") }
+    );
+
     // Excludes joint-stroke variants (variantOf set, e.g. "о_middle_ll") -- those aren't
     // standalone dictation items, their `label` is an internal id, not a spoken letter.
-    const letters = topic.cards.filter((c) => c.type === "letter" && !c.variantOf && Array.isArray(c.strokes) && c.strokes.length > 0);
-    for (const card of letters) {
-      // Bare `card.label` (a single character like "а") was the actual bug reported
-      // 2026-09-17: Gemini TTS handed a lone Cyrillic letter with no other words around
-      // it produces garbage, not a clean letter-name reading. The spoken text needs the
-      // case word said out loud -- "заглавная А" / "строчная а" -- matching the user's
-      // original design call (dictationAudio.js's own header comment already said this;
-      // this script just wasn't actually building that phrase before).
-      const caseWord = isUpperCaseLetterCard(card) ? "заглавная" : "строчная";
-      // "ь" has no sound of its own -- "строчная ь" reliably errored out of Gemini TTS
-      // (finishReason "OTHER", 3/3 attempts, 2026-09-19), unlike every other letter incl.
-      // "ъ". Say its actual name instead, same as a person would read it aloud.
-      const text = card.label === "ь" ? "мягкий знак" : `${caseWord} ${card.label}`;
-      entries.push({ id: letterDictationKey(card), text });
+    const letterCards = topic.cards.filter((c) => c.type === "letter" && !c.variantOf && Array.isArray(c.strokes) && c.strokes.length > 0);
+    // One clip per BASE letter, not per up/lo card -- "К" and "к" are the same phoneme, only
+    // the written shape differs (dictationAudio.js's letterSoundDictationKey). Dedup by
+    // lowercase label; which of the two cards (upper/lower) survives into the map doesn't
+    // matter, only the label is used below.
+    const byBaseLetter = new Map();
+    for (const card of letterCards) {
+      const base = card.label.toLowerCase();
+      if (!byBaseLetter.has(base)) byBaseLetter.set(base, card);
+    }
+    for (const [base, card] of byBaseLetter) {
+      const id = letterSoundDictationKey(card);
+      const text = SIGN_NAMES[base] ?? base;
+      entries.push({ id, text, prompt: buildDefaultPrompt(text) });
     }
   }
   if (!ONLY || ONLY === "words") {
     for (const w of topic.words) {
-      entries.push({ id: wordDictationKey(w), text: w.word });
+      entries.push({ id: wordDictationKey(w), text: w.word, prompt: buildDefaultPrompt(w.word) });
     }
   }
   if (!ONLY || ONLY === "texts") {
     for (const t of topic.texts) {
       const sentences = splitIntoSentences(t.text);
       sentences.forEach((sentence, i) => {
-        entries.push({ id: textSentenceDictationKey(t, i), text: sentence });
+        entries.push({ id: textSentenceDictationKey(t, i), text: sentence, prompt: buildDefaultPrompt(sentence) });
       });
     }
   }
@@ -187,7 +220,7 @@ for (const entry of entries) {
   }
   process.stdout.write(`  gen   ${entry.id}  "${entry.text}"... `);
   try {
-    const mp3 = await synthesize(entry.text);
+    const mp3 = await synthesize(entry.prompt);
     writeFileSync(outPath, mp3);
     console.log(`${mp3.length} bytes`);
     generated++;

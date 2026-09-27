@@ -601,6 +601,21 @@
   max-width: 320px;
 }
 
+/* On a phone the centered .propis-dictation-frame already puts this button close to the
+   diktor circle -- fine, there's little vertical space to get lost in. On a tablet that same
+   centered group leaves the button floating alone in the middle of a much taller screen,
+   nowhere near where a child expects a "next" action to be -- user's explicit report
+   (2026-09-24): "если планшет нужно чтобы была внизу, чтобы ребенок не путался". Pin it to
+   the real screen bottom instead, same breakpoint ReadTextView.jsx's own tablet check uses. */
+@media (min-width: 700px) {
+  .propis-dictation-actions {
+    position: fixed;
+    left: 50%;
+    bottom: calc(28px + var(--app-safe-bottom, 0px));
+    transform: translateX(-50%);
+  }
+}
+
 .propis-dictation-next {
   appearance: none;
   border: none;

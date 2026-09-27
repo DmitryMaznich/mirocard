@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ProgressBar from "@/shared/components/ProgressBar";
 import ReviewScreen from "./DictationReviewScreen";
-import { dictationAudioUrl } from "./dictationAudio";
+import { dictationAudioUrl, caseWordDictationKey } from "./dictationAudio";
 import { useDictationPlayer } from "./useDictationPlayer";
 
 // Gap after each sentence within a text, so the child has time to write it before the next
 // one starts -- user's explicit call (2026-09-17): sentence by sentence, with a pause, not
 // the whole text read in one breath.
 const SENTENCE_PAUSE_MS = 2500;
+// Shorter gap between "заглавная"/"строчная" and the letter's own sound -- long enough that
+// the two clips read as two separate words, not so long the pause feels like a second item.
+const CASE_WORD_PAUSE_MS = 500;
 
 export default function DictationView({ task, onClose }) {
   const items = task?.items ?? [];
@@ -20,13 +23,20 @@ export default function DictationView({ task, onClose }) {
 
   const item = items[index];
 
-  // A single clip for letters/words; one clip per sentence (with a pause after each) for
-  // texts -- item.sentences only exists on text-level items (see engine.js's dictation
-  // branch), so this doubles as the level check without threading `task.level` through here.
+  // Three shapes: one clip per sentence (with a pause after each) for texts (item.sentences
+  // only exists on text-level items); two clips -- case word, then the letter's own sound --
+  // for letters (item.soundKey only exists there, see engine.js's dictation branch); a
+  // single clip for words.
   const playbackItems = useMemo(() => {
     if (!item) return [];
     if (item.sentences?.length) {
       return item.sentences.map((s) => ({ url: dictationAudioUrl(s.key), pauseAfterMs: SENTENCE_PAUSE_MS }));
+    }
+    if (item.soundKey) {
+      return [
+        { url: dictationAudioUrl(caseWordDictationKey(item.isUpper)), pauseAfterMs: CASE_WORD_PAUSE_MS },
+        { url: dictationAudioUrl(item.soundKey) },
+      ];
     }
     return [{ url: dictationAudioUrl(item.key) }];
   }, [item]);
