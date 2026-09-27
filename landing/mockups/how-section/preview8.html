@@ -43,6 +43,8 @@
 .tour-dot{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;opacity:.25}
 .tour-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--copy)}
 .tour-dot:hover::before{background:var(--ink)}
+
+.tour-cta{display:flex;justify-content:center;padding:24px 16px 72px}
 .tour-dot:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
 .tour-dot--1{animation:tourDotActive 35s linear infinite;animation-delay:0s}
 .tour-dot--2{animation:tourDotActive 35s linear infinite;animation-delay:-28s}
@@ -553,6 +555,10 @@
   <button type="button" class="tour-dot tour-dot--3" aria-label="Шаг 3: настройки занятия"></button>
   <button type="button" class="tour-dot tour-dot--4" aria-label="Шаг 4: ребёнок решает сам"></button>
   <button type="button" class="tour-dot tour-dot--5" aria-label="Шаг 5: видео-награда"></button>
+</div>
+
+<div class="tour-cta">
+  <a class="button" href="https://app.mironium.com">Открыть приложение</a>
 </div>
 
 </main>
