@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../proposal-v3.css">
+<style>
+.tour-section{padding:64px 0;background:var(--paper);overflow:hidden}
+.tour-section:first-of-type{padding-top:72px}
+.tour-section:nth-of-type(even){background:var(--cream)}
+.tour-section__intro{max-width:600px;margin:0 auto;text-align:center}
+.tour-section__intro h2{font:700 clamp(30px,3.4vw,44px)/1.12 var(--font-display);letter-spacing:-.02em;margin-top:14px}
+.tour-section__lead{margin-top:14px;font-size:16px;line-height:1.6;color:var(--copy)}
+
+/* ============ shared "phone + timed callouts" component, reused by every block ============ */
+.tourblk{position:relative;margin:28px auto 0}
+
+.tourblk__phone{position:absolute;left:0;top:20px;width:230px;border-radius:32px;background:var(--ink);padding:9px;box-shadow:0 24px 48px -18px rgba(28,54,52,.38),0 2px 0 rgba(28,54,52,.06)}
+.tourblk__phone__notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:70px;height:18px;background:var(--ink);border-radius:0 0 12px 12px;z-index:2}
+.tourblk__phone__notch::after{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:30px;height:3px;border-radius:2px;background:#3c5654}
+.tourblk__phone__screen{position:relative;width:100%;border-radius:24px;overflow:hidden;background:#fff}
+.tourblk__phone__screen img{display:block;width:100%;height:auto}
+
+/* a real, single continuous screenshot that scrolls in place — header stays put,
+   only the body underneath it moves, exactly like a real scroll gesture */
+.tourblk__scroll-window{position:relative;width:100%;overflow:hidden}
+.tourblk__scroll-body{display:block;width:100%;height:auto;will-change:transform}
+
+.tourblk__wing{stroke-linecap:round;fill:none}
+.tourblk__callout{position:absolute;left:340px;width:400px;opacity:0}
+.tourblk__callout h3{font:800 19px/1.25 var(--font-display);color:var(--ink);margin-bottom:6px}
+.tourblk__callout p{margin-top:6px;font-size:15px;line-height:1.55;color:var(--copy)}
+
+.tourblk__arrows{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.tourblk__arrows--mobile{display:none}
+.tourblk__arrow{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:400;stroke-dashoffset:400;opacity:0}
+.tourblk__arrow--1{stroke:var(--mint)}
+.tourblk__arrow--2{stroke:var(--coral)}
+.tourblk__arrow--3{stroke:var(--deep)}
+.tourblk__arrowhead{opacity:0}
+
+@media(prefers-reduced-motion:reduce){
+  .tourblk *{animation:none!important;opacity:1!important;transform:none!important;stroke-dashoffset:0!important}
+}
+
+/* ============ block "setup": 3 beats + a real scroll of one continuous screenshot.
+   the callout box stays in ONE place; only its text and its arrow change per beat. ============ */
+.tourblk--setup{width:780px;height:500px}
+.tourblk--setup .tourblk__callout--1,
+.tourblk--setup .tourblk__callout--2,
+.tourblk--setup .tourblk__callout--3{top:180px}
+
+.tourblk--setup .tourblk__scroll-window{height:424px;--scroll-travel:-245px}
+.tourblk--setup .tourblk__scroll-body{animation:setupScroll 7s ease-in-out infinite}
+@keyframes setupScroll{0%,32%{transform:translateY(0)}38%,100%{transform:translateY(var(--scroll-travel))}}
+
+.tourblk--setup .tourblk__callout--1{animation:setupCard1 7s ease-in-out infinite}
+.tourblk--setup .tourblk__callout--2{animation:setupCard2 7s ease-in-out infinite}
+.tourblk--setup .tourblk__callout--3{animation:setupCard3 7s ease-in-out infinite}
+@keyframes setupCard1{0%,4%{opacity:0;transform:translateY(6px)}10%,30%{opacity:1;transform:translateY(0)}34%,100%{opacity:0;transform:translateY(6px)}}
+@keyframes setupCard2{0%,38%{opacity:0;transform:translateY(6px)}44%,64%{opacity:1;transform:translateY(0)}68%,100%{opacity:0;transform:translateY(6px)}}
+@keyframes setupCard3{0%,68%{opacity:0;transform:translateY(6px)}74%,96%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+
+.tourblk--setup .tourblk__arrow--1{animation:setupLine1 7s ease-in-out infinite}
+.tourblk--setup .tourblk__arrow--2{animation:setupLine2 7s ease-in-out infinite}
+.tourblk--setup .tourblk__arrow--3{animation:setupLine3 7s ease-in-out infinite}
+@keyframes setupLine1{0%,3%{opacity:0;stroke-dashoffset:400}9%{opacity:1}15%{stroke-dashoffset:0}30%{opacity:1;stroke-dashoffset:0}34%,100%{opacity:0}}
+@keyframes setupLine2{0%,38%{opacity:0;stroke-dashoffset:400}44%{opacity:1}50%{stroke-dashoffset:0}64%{opacity:1;stroke-dashoffset:0}68%,100%{opacity:0}}
+@keyframes setupLine3{0%,68%{opacity:0;stroke-dashoffset:400}74%{opacity:1}80%{stroke-dashoffset:0}96%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+
+.tourblk--setup .tourblk__arrowhead--1{animation:setupHead1 7s ease-in-out infinite}
+.tourblk--setup .tourblk__arrowhead--2{animation:setupHead2 7s ease-in-out infinite}
+.tourblk--setup .tourblk__arrowhead--3{animation:setupHead3 7s ease-in-out infinite}
+@keyframes setupHead1{0%,13%{opacity:0}15%,30%{opacity:1}34%,100%{opacity:0}}
+@keyframes setupHead2{0%,48%{opacity:0}50%,64%{opacity:1}68%,100%{opacity:0}}
+@keyframes setupHead3{0%,78%{opacity:0}80%,96%{opacity:1}100%{opacity:0}}
+
+/* ============ block "picker": the topic+mode screen (already approved) ============ */
+.tourblk--picker{width:780px;height:520px}
+.tourblk--picker .tourblk__callout--1{top:76px}
+.tourblk--picker .tourblk__callout--2{top:190px}
+
+.tourblk--picker .tourblk__callout--1{animation:pickerCard1 7s ease-in-out infinite}
+.tourblk--picker .tourblk__callout--2{animation:pickerCard2 7s ease-in-out infinite}
+@keyframes pickerCard1{0%,3%{opacity:0;transform:translateY(6px)}10%,97%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+@keyframes pickerCard2{0%,50%{opacity:0;transform:translateY(6px)}56%,98%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+
+.tourblk--picker .tourblk__arrow--1{animation:pickerLine1 7s ease-in-out infinite}
+.tourblk--picker .tourblk__arrow--2{animation:pickerLine2 7s ease-in-out infinite}
+@keyframes pickerLine1{0%,3%{opacity:0;stroke-dashoffset:280}9%{opacity:1}15.5%{stroke-dashoffset:0}97%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+@keyframes pickerLine2{0%,50%{opacity:0;stroke-dashoffset:280}57%{opacity:1}63.5%{stroke-dashoffset:0}98%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+
+.tourblk--picker .tourblk__arrowhead--1{animation:pickerHead1 7s ease-in-out infinite}
+.tourblk--picker .tourblk__arrowhead--2{animation:pickerHead2 7s ease-in-out infinite}
+@keyframes pickerHead1{0%,14%{opacity:0}15.5%,97%{opacity:1}100%{opacity:0}}
+@keyframes pickerHead2{0%,50%,62%{opacity:0}63.5%,98%{opacity:1}100%{opacity:0}}
+
+/* ============ block "params": difficulty + video-reward settings ============ */
+.tourblk--params{width:780px;height:520px}
+.tourblk--params .tourblk__callout--1{top:76px}
+.tourblk--params .tourblk__callout--2{top:190px}
+
+.tourblk--params .tourblk__callout--1{animation:paramsCard1 7s ease-in-out infinite}
+.tourblk--params .tourblk__callout--2{animation:paramsCard2 7s ease-in-out infinite}
+@keyframes paramsCard1{0%,3%{opacity:0;transform:translateY(6px)}10%,97%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+@keyframes paramsCard2{0%,50%{opacity:0;transform:translateY(6px)}56%,98%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+
+.tourblk--params .tourblk__arrow--1{animation:paramsLine1 7s ease-in-out infinite}
+.tourblk--params .tourblk__arrow--2{animation:paramsLine2 7s ease-in-out infinite}
+@keyframes paramsLine1{0%,3%{opacity:0;stroke-dashoffset:400}9%{opacity:1}15.5%{stroke-dashoffset:0}97%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+@keyframes paramsLine2{0%,50%{opacity:0;stroke-dashoffset:400}57%{opacity:1}63.5%{stroke-dashoffset:0}98%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+
+.tourblk--params .tourblk__arrowhead--1{animation:paramsHead1 7s ease-in-out infinite}
+.tourblk--params .tourblk__arrowhead--2{animation:paramsHead2 7s ease-in-out infinite}
+@keyframes paramsHead1{0%,14%{opacity:0}15.5%,97%{opacity:1}100%{opacity:0}}
+@keyframes paramsHead2{0%,50%,62%{opacity:0}63.5%,98%{opacity:1}100%{opacity:0}}
+
+/* ============ block "session": the child actually solving a real example ============ */
+.tourblk--session{width:780px;height:520px}
+.tourblk--session .tourblk__callout--1{top:76px}
+.tourblk--session .tourblk__callout--2{top:190px}
+
+.tourblk--session .tourblk__callout--1{animation:sessionCard1 7s ease-in-out infinite}
+.tourblk--session .tourblk__callout--2{animation:sessionCard2 7s ease-in-out infinite}
+@keyframes sessionCard1{0%,3%{opacity:0;transform:translateY(6px)}10%,97%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+@keyframes sessionCard2{0%,50%{opacity:0;transform:translateY(6px)}56%,98%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+
+.tourblk--session .tourblk__arrow--1{animation:sessionLine1 7s ease-in-out infinite}
+.tourblk--session .tourblk__arrow--2{animation:sessionLine2 7s ease-in-out infinite}
+@keyframes sessionLine1{0%,3%{opacity:0;stroke-dashoffset:400}9%{opacity:1}15.5%{stroke-dashoffset:0}97%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+@keyframes sessionLine2{0%,50%{opacity:0;stroke-dashoffset:400}57%{opacity:1}63.5%{stroke-dashoffset:0}98%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+
+.tourblk--session .tourblk__arrowhead--1{animation:sessionHead1 7s ease-in-out infinite}
+.tourblk--session .tourblk__arrowhead--2{animation:sessionHead2 7s ease-in-out infinite}
+@keyframes sessionHead1{0%,14%{opacity:0}15.5%,97%{opacity:1}100%{opacity:0}}
+@keyframes sessionHead2{0%,50%,62%{opacity:0}63.5%,98%{opacity:1}100%{opacity:0}}
+
+/* ============ block "reward": short session, ends on watch-video screen ============ */
+.tourblk--reward{width:780px;height:520px}
+.tourblk--reward .tourblk__callout--1{top:76px}
+.tourblk--reward .tourblk__callout--2{top:190px}
+
+.tourblk--reward .tourblk__callout--1{animation:rewardCard1 7s ease-in-out infinite}
+.tourblk--reward .tourblk__callout--2{animation:rewardCard2 7s ease-in-out infinite}
+@keyframes rewardCard1{0%,3%{opacity:0;transform:translateY(6px)}10%,97%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+@keyframes rewardCard2{0%,50%{opacity:0;transform:translateY(6px)}56%,98%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+
+.tourblk--reward .tourblk__arrow--1{animation:rewardLine1 7s ease-in-out infinite}
+.tourblk--reward .tourblk__arrow--2{animation:rewardLine2 7s ease-in-out infinite}
+@keyframes rewardLine1{0%,3%{opacity:0;stroke-dashoffset:400}9%{opacity:1}15.5%{stroke-dashoffset:0}97%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+@keyframes rewardLine2{0%,50%{opacity:0;stroke-dashoffset:400}57%{opacity:1}63.5%{stroke-dashoffset:0}98%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+
+.tourblk--reward .tourblk__arrowhead--1{animation:rewardHead1 7s ease-in-out infinite}
+.tourblk--reward .tourblk__arrowhead--2{animation:rewardHead2 7s ease-in-out infinite}
+@keyframes rewardHead1{0%,14%{opacity:0}15.5%,97%{opacity:1}100%{opacity:0}}
+@keyframes rewardHead2{0%,50%,62%{opacity:0}63.5%,98%{opacity:1}100%{opacity:0}}
+
+@media(max-width:820px){
+  .tourblk{width:300px}
+  .tourblk__phone{left:0;top:0;width:130px;padding:6px;border-radius:20px}
+  .tourblk__phone__notch{width:44px;height:11px;top:6px;border-radius:0 0 9px 9px}
+  .tourblk__phone__notch::after{width:20px}
+  .tourblk__phone__screen{border-radius:14px}
+
+  .tourblk__arrows--desktop{display:none}
+  .tourblk__arrows--mobile{display:block}
+
+  .tourblk__callout{left:144px;width:156px;text-align:left}
+  .tourblk__callout h3{font-size:15px;margin-bottom:4px}
+  .tourblk__callout p{font-size:12.5px;line-height:1.48;margin-top:4px}
+
+  .tourblk--picker{height:364px}
+  .tourblk--picker .tourblk__callout--1{top:4px}
+  .tourblk--picker .tourblk__callout--2{top:146px}
+
+  .tourblk--params{height:364px}
+  .tourblk--params .tourblk__callout--1{top:4px}
+  .tourblk--params .tourblk__callout--2{top:146px}
+
+  .tourblk--session{height:364px}
+  .tourblk--session .tourblk__callout--1{top:4px}
+  .tourblk--session .tourblk__callout--2{top:146px}
+
+  .tourblk--reward{height:364px}
+  .tourblk--reward .tourblk__callout--1{top:4px}
+  .tourblk--reward .tourblk__callout--2{top:146px}
+
+  .tourblk--setup{height:340px}
+  .tourblk--setup .tourblk__callout--1,
+  .tourblk--setup .tourblk__callout--2,
+  .tourblk--setup .tourblk__callout--3{top:90px}
+  .tourblk--setup .tourblk__scroll-window{height:236px;--scroll-travel:-136px}
+}
+</style>
+<title>How-section rehearsal v9 — 5-part scenario</title>
+</head>
+<body class="v3">
+<main>
+
+<section class="tour-section" id="setup">
+  <div class="wrap tour-section__intro">
+    <p class="eyebrow">Как это работает · 1 из 5</p>
+    <h2>Заполните профиль ребёнка.</h2>
+    <p class="tour-section__lead">Данных немного, но это важно, так как эти данные используются в темах. Имя, фото, кто рядом — и какое видео станет наградой за занятие.</p>
+  </div>
+
+  <div class="wrap">
+  <div class="tourblk tourblk--setup">
+    <div class="tourblk__phone">
+      <div class="tourblk__phone__notch"></div>
+      <div class="tourblk__phone__screen">
+        <img src="assets/setup-header.png" alt="" width="390" height="64">
+        <div class="tourblk__scroll-window">
+          <img class="tourblk__scroll-body" src="assets/setup-body-full.png" alt="Экран настройки ученика: имя и фото, пол, близкие взрослые, видео-награды — один непрерывный экран, который прокручивается" width="390" height="1231">
+        </div>
+      </div>
+    </div>
+
+    <svg class="tourblk__arrows tourblk__arrows--desktop" viewBox="0 0 780 500" aria-hidden="true">
+      <path class="tourblk__arrow tourblk__arrow--1" d="M336,204 C220,160 100,150 41.6,95.3"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--1">
+        <path class="tourblk__wing" d="M41.6,95.3 L51.9,97.4" stroke="var(--mint)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M41.6,95.3 L44.4,105.5" stroke="var(--mint)" stroke-width="2.5"/>
+      </g>
+
+      <path class="tourblk__arrow tourblk__arrow--2" d="M336,204 C220,210 100,290 41.6,280.7"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--2">
+        <path class="tourblk__wing" d="M41.6,280.7 L51.4,276.7" stroke="var(--coral)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M41.6,280.7 L49.6,287.5" stroke="var(--coral)" stroke-width="2.5"/>
+      </g>
+
+      <path class="tourblk__arrow tourblk__arrow--3" d="M336,204 C260,240 140,360 63.4,378.5"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--3">
+        <path class="tourblk__wing" d="M63.4,378.5 L70.9,371.0" stroke="var(--deep)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M63.4,378.5 L73.4,381.7" stroke="var(--deep)" stroke-width="2.5"/>
+      </g>
+    </svg>
+
+    <svg class="tourblk__arrows tourblk__arrows--mobile" viewBox="0 0 300 340" aria-hidden="true">
+      <path class="tourblk__arrow tourblk__arrow--1" d="M144,108 C100,60 50,80 24.2,42.9"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--1">
+        <path class="tourblk__wing" d="M24.2,42.9 L30.6,45.8" stroke="var(--mint)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M24.2,42.9 L24.7,49.9" stroke="var(--mint)" stroke-width="2.2"/>
+      </g>
+      <path class="tourblk__arrow tourblk__arrow--2" d="M144,108 C100,95 50,160 24.2,146.1"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--2">
+        <path class="tourblk__wing" d="M24.2,146.1 L31.2,145.8" stroke="var(--coral)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M24.2,146.1 L27.8,152.1" stroke="var(--coral)" stroke-width="2.2"/>
+      </g>
+      <path class="tourblk__arrow tourblk__arrow--3" d="M144,108 C110,115 55,198 36.3,200.6"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--3">
+        <path class="tourblk__wing" d="M36.3,200.6 L41.7,196.2" stroke="var(--deep)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M36.3,200.6 L42.7,203.3" stroke="var(--deep)" stroke-width="2.2"/>
+      </g>
+    </svg>
+
+    <div class="tourblk__callout tourblk__callout--1">
+      <h3>Имя, фото и пол</h3>
+      <p>Персонализирует обращения в приложении — как назвать ребёнка и как к нему обращаться в заданиях.</p>
+    </div>
+    <div class="tourblk__callout tourblk__callout--2">
+      <h3>Близкие взрослые</h3>
+      <p>Мама, папа, бабушка — эти люди появятся в теме «Мои люди», ребёнок учится узнавать своих.</p>
+    </div>
+    <div class="tourblk__callout tourblk__callout--3">
+      <h3>Видео-награда</h3>
+      <p>Ссылка на любимое видео ребёнка — то самое, которое станет наградой за пройденное занятие.</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<section class="tour-section" id="how">
+  <div class="wrap tour-section__intro">
+    <p class="eyebrow">Как это работает · 2 из 5</p>
+    <h2>Выберите тему и тип упражнения (режим).</h2>
+  </div>
+
+  <div class="wrap">
+  <div class="tourblk tourblk--picker">
+    <div class="tourblk__phone">
+      <div class="tourblk__phone__notch"></div>
+      <div class="tourblk__phone__screen">
+        <img src="assets/column-addition-picker.png" alt="Главный экран приложения Mironium: выбрана тема «Сложение и вычитание в столбик» и режим «Столбик — Тренажёр»" width="390" height="844">
+      </div>
+    </div>
+
+    <svg class="tourblk__arrows tourblk__arrows--desktop" viewBox="0 0 780 520" aria-hidden="true">
+      <path class="tourblk__arrow tourblk__arrow--1" d="M336,128 C270,108 225,116.8 190.5,132.5"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--1">
+        <path class="tourblk__wing" d="M190.5,132.5 L196.7,122.0" stroke="var(--mint)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M190.5,132.5 L202.5,134.7" stroke="var(--mint)" stroke-width="2.5"/>
+      </g>
+
+      <path class="tourblk__arrow tourblk__arrow--2" d="M336,245 C264,262 215,309.6 190.5,179.9"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--2">
+        <path class="tourblk__wing" d="M190.5,179.9 L199.2,188.4" stroke="var(--coral)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M190.5,179.9 L185.5,191.0" stroke="var(--coral)" stroke-width="2.5"/>
+      </g>
+    </svg>
+
+    <svg class="tourblk__arrows tourblk__arrows--mobile" viewBox="0 0 300 364" aria-hidden="true">
+      <path class="tourblk__arrow tourblk__arrow--1" d="M144,22 C126,30 114.5,49.3 107.0,63.6"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--1">
+        <path class="tourblk__wing" d="M107.0,63.6 L105.8,54.0" stroke="var(--mint)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M107.0,63.6 L115.6,59.1" stroke="var(--mint)" stroke-width="2.2"/>
+      </g>
+
+      <path class="tourblk__arrow tourblk__arrow--2" d="M144,164 C110,143 90.5,146.5 107.0,90.0"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--2">
+        <path class="tourblk__wing" d="M107.0,90.0 L110.0,99.2" stroke="var(--coral)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M107.0,90.0 L99.5,96.1" stroke="var(--coral)" stroke-width="2.2"/>
+      </g>
+    </svg>
+
+    <div class="tourblk__callout tourblk__callout--1">
+      <h3>Тема</h3>
+      <p>Тема — это не одно упражнение, а подборка разных заданий и режимов, объединённых одной целью: развить конкретный навык.</p>
+    </div>
+    <div class="tourblk__callout tourblk__callout--2">
+      <h3>Режим</h3>
+      <p>У этой темы 7 режимов — от знакомства с числом на пальцах до решения примера в столбик со всеми правилами переноса через разряд.</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<section class="tour-section" id="params">
+  <div class="wrap tour-section__intro">
+    <p class="eyebrow">Как это работает · 3 из 5</p>
+    <h2>Настройте параметры и уровень сложности упражнения и запустите занятие.</h2>
+  </div>
+
+  <div class="wrap">
+  <div class="tourblk tourblk--params">
+    <div class="tourblk__phone">
+      <div class="tourblk__phone__notch"></div>
+      <div class="tourblk__phone__screen">
+        <img src="assets/column-addition-params.png" alt="Экран настройки режима «Столбик — Тренажёр»: операция, перенос через разряд, разрядность и видео-награда" width="390" height="844">
+      </div>
+    </div>
+
+    <svg class="tourblk__arrows tourblk__arrows--desktop" viewBox="0 0 780 520" aria-hidden="true">
+      <path class="tourblk__arrow tourblk__arrow--1" d="M336,100 C240,100 150,150 78.7,206.7"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--1">
+        <path class="tourblk__wing" d="M78.7,206.7 L82.2,195.0" stroke="var(--mint)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M78.7,206.7 L90.9,206.0" stroke="var(--mint)" stroke-width="2.5"/>
+      </g>
+
+      <path class="tourblk__arrow tourblk__arrow--2" d="M336,190 C260,220 230,320 192.3,392.4"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--2">
+        <path class="tourblk__wing" d="M192.3,392.4 L190.7,380.3" stroke="var(--coral)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M192.3,392.4 L203.1,386.8" stroke="var(--coral)" stroke-width="2.5"/>
+      </g>
+    </svg>
+
+    <svg class="tourblk__arrows tourblk__arrows--mobile" viewBox="0 0 300 364" aria-hidden="true">
+      <path class="tourblk__arrow tourblk__arrow--1" d="M144,22 C100,30 65,70 44.8,104.9"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--1">
+        <path class="tourblk__wing" d="M44.8,104.9 L44.0,95.2" stroke="var(--mint)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M44.8,104.9 L53.6,100.7" stroke="var(--mint)" stroke-width="2.2"/>
+      </g>
+
+      <path class="tourblk__arrow tourblk__arrow--2" d="M144,164 C120,180 115,210 108.0,208.3"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--2">
+        <path class="tourblk__wing" d="M108.0,208.3 L117.1,204.8" stroke="var(--coral)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M108.0,208.3 L114.5,215.5" stroke="var(--coral)" stroke-width="2.2"/>
+      </g>
+    </svg>
+
+    <div class="tourblk__callout tourblk__callout--1">
+      <h3>Сложность</h3>
+      <p>Выбираете, что именно тренировать — например, только двузначные числа или сразу с переносом через разряд.</p>
+    </div>
+    <div class="tourblk__callout tourblk__callout--2">
+      <h3>Видео-награда</h3>
+      <p>За серию правильных ответов подряд ребёнок получает бонусное видео — реальная механика поощрения, встроенная прямо в занятие.</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<section class="tour-section" id="session">
+  <div class="wrap tour-section__intro">
+    <p class="eyebrow">Как это работает · 4 из 5</p>
+    <h2>Дальше — ребёнок решает сам.</h2>
+    <p class="tour-section__lead">Не готовый ответ, а настоящий пример — тот самый, что вы только что настроили. Каждую цифру нужно ввести самому, по порядку действий.</p>
+  </div>
+
+  <div class="wrap">
+  <div class="tourblk tourblk--session">
+    <div class="tourblk__phone">
+      <div class="tourblk__phone__notch"></div>
+      <div class="tourblk__phone__screen">
+        <img src="assets/column-addition-session.png" alt="Экран занятия: пример «27 + 52», ребёнок вводит цифры по разрядам на клавиатуре" width="390" height="844">
+      </div>
+    </div>
+
+    <svg class="tourblk__arrows tourblk__arrows--desktop" viewBox="0 0 780 520" aria-hidden="true">
+      <path class="tourblk__arrow tourblk__arrow--1" d="M336,100 C250,90 170,120 115.1,168.9"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--1">
+        <path class="tourblk__wing" d="M115.1,168.9 L117.9,157.0" stroke="var(--mint)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M115.1,168.9 L127.2,167.5" stroke="var(--mint)" stroke-width="2.5"/>
+      </g>
+
+      <path class="tourblk__arrow tourblk__arrow--2" d="M336,190 C260,230 180,320 115.0,379.6"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--2">
+        <path class="tourblk__wing" d="M115.0,379.6 L117.6,367.7" stroke="var(--coral)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M115.0,379.6 L127.1,378.0" stroke="var(--coral)" stroke-width="2.5"/>
+      </g>
+    </svg>
+
+    <svg class="tourblk__arrows tourblk__arrows--mobile" viewBox="0 0 300 364" aria-hidden="true">
+      <path class="tourblk__arrow tourblk__arrow--1" d="M144,22 C100,20 80,55 65.1,83.9"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--1">
+        <path class="tourblk__wing" d="M65.1,83.9 L63.9,74.3" stroke="var(--mint)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M65.1,83.9 L73.7,79.3" stroke="var(--mint)" stroke-width="2.2"/>
+      </g>
+
+      <path class="tourblk__arrow tourblk__arrow--2" d="M144,164 C110,180 85,195 65.0,201.2"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--2">
+        <path class="tourblk__wing" d="M65.0,201.2 L71.0,193.6" stroke="var(--coral)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M65.0,201.2 L74.3,204.1" stroke="var(--coral)" stroke-width="2.2"/>
+      </g>
+    </svg>
+
+    <div class="tourblk__callout tourblk__callout--1">
+      <h3>Настоящий пример</h3>
+      <p>Пример подобран автоматически под выбранные настройки — с той сложностью и переносом через разряд, что вы указали.</p>
+    </div>
+    <div class="tourblk__callout tourblk__callout--2">
+      <h3>Решает сам</h3>
+      <p>Ребёнок вводит цифры по разрядам, а приложение проверяет каждый шаг — ошибка в порядке действий тоже будет замечена.</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+<section class="tour-section" id="reward">
+  <div class="wrap tour-section__intro">
+    <p class="eyebrow">Как это работает · 5 из 5</p>
+    <h2>А в конце — любимое видео.</h2>
+    <p class="tour-section__lead">Короткое занятие, серия правильных ответов — и ребёнок сам доходит до экрана «Смотреть видео».</p>
+  </div>
+
+  <div class="wrap">
+  <div class="tourblk tourblk--reward">
+    <div class="tourblk__phone">
+      <div class="tourblk__phone__notch"></div>
+      <div class="tourblk__phone__screen">
+        <img src="assets/reward-state.png" alt="Настоящий экран награды после занятия: 5 звёзд, «Молодец! 5 правильных подряд!» и кнопка «Смотреть видео»" width="390" height="844">
+      </div>
+    </div>
+
+    <svg class="tourblk__arrows tourblk__arrows--desktop" viewBox="0 0 780 520" aria-hidden="true">
+      <path class="tourblk__arrow tourblk__arrow--1" d="M336,100 C260,130 160,160 115.0,205.1"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--1">
+        <path class="tourblk__wing" d="M115.0,205.1 L122.1,197.3" stroke="var(--mint)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M115.0,205.1 L125.2,207.8" stroke="var(--mint)" stroke-width="2.5"/>
+      </g>
+
+      <path class="tourblk__arrow tourblk__arrow--2" d="M336,190 C280,170 180,290 115.0,276.4"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--2">
+        <path class="tourblk__wing" d="M115.0,276.4 L124.6,272.0" stroke="var(--coral)" stroke-width="2.5"/>
+        <path class="tourblk__wing" d="M115.0,276.4 L123.3,282.9" stroke="var(--coral)" stroke-width="2.5"/>
+      </g>
+    </svg>
+
+    <svg class="tourblk__arrows tourblk__arrows--mobile" viewBox="0 0 300 364" aria-hidden="true">
+      <path class="tourblk__arrow tourblk__arrow--1" d="M144,22 C120,45 90,75 65.0,104.0"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--1">
+        <path class="tourblk__wing" d="M65.0,104.0 L69.9,99.0" stroke="var(--mint)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M65.0,104.0 L71.7,106.0" stroke="var(--mint)" stroke-width="2.2"/>
+      </g>
+
+      <path class="tourblk__arrow tourblk__arrow--2" d="M144,164 C120,148 90,165 65.0,143.7"/>
+      <g class="tourblk__arrowhead tourblk__arrowhead--2">
+        <path class="tourblk__wing" d="M65.0,143.7 L71.9,142.4" stroke="var(--coral)" stroke-width="2.2"/>
+        <path class="tourblk__wing" d="M65.0,143.7 L69.4,149.1" stroke="var(--coral)" stroke-width="2.2"/>
+      </g>
+    </svg>
+
+    <div class="tourblk__callout tourblk__callout--1">
+      <h3>Серия набрана</h3>
+      <p>5 правильных ответов подряд — и приложение засчитывает награду. Полоска звёзд видна прямо по ходу занятия.</p>
+    </div>
+    <div class="tourblk__callout tourblk__callout--2">
+      <h3>Смотреть видео</h3>
+      <p>Ребёнок нажимает сам — и получает то самое видео, которое вы указали в настройках ученика в самом начале.</p>
+    </div>
+  </div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>
