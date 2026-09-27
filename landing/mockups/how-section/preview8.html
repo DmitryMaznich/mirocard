@@ -39,8 +39,11 @@
   .tour-section:nth-of-type(1){opacity:1}
 }
 
-.tour-dots{display:flex;justify-content:center;gap:10px;padding:20px 0 0;position:relative;z-index:1}
-.tour-dot{width:8px;height:8px;border-radius:50%;background:var(--copy);opacity:.25}
+.tour-dots{display:flex;justify-content:center;gap:2px;padding:12px 0 0;position:relative;z-index:1}
+.tour-dot{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;opacity:.25}
+.tour-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--copy)}
+.tour-dot:hover::before{background:var(--ink)}
+.tour-dot:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
 .tour-dot--1{animation:tourDotActive 35s linear infinite;animation-delay:0s}
 .tour-dot--2{animation:tourDotActive 35s linear infinite;animation-delay:-28s}
 .tour-dot--3{animation:tourDotActive 35s linear infinite;animation-delay:-21s}
@@ -249,7 +252,7 @@
 
 <section class="tour-section" id="setup">
   <div class="wrap tour-section__intro">
-    <p class="eyebrow">Как это работает · 1 из 5</p>
+    <p class="eyebrow">Как это работает</p>
     <h2>Заполните профиль ребёнка.</h2>
     <p class="tour-section__lead">Данных немного, но это важно, так как эти данные используются в темах. Имя, фото, кто рядом — и какое видео станет наградой за занятие.</p>
   </div>
@@ -322,7 +325,7 @@
 
 <section class="tour-section" id="how">
   <div class="wrap tour-section__intro">
-    <p class="eyebrow">Как это работает · 2 из 5</p>
+    <p class="eyebrow">Как это работает</p>
     <h2>Выберите тему и тип упражнения (режим).</h2>
   </div>
 
@@ -377,7 +380,7 @@
 
 <section class="tour-section" id="params">
   <div class="wrap tour-section__intro">
-    <p class="eyebrow">Как это работает · 3 из 5</p>
+    <p class="eyebrow">Как это работает</p>
     <h2>Настройте параметры и уровень сложности упражнения и запустите занятие.</h2>
   </div>
 
@@ -432,7 +435,7 @@
 
 <section class="tour-section" id="session">
   <div class="wrap tour-section__intro">
-    <p class="eyebrow">Как это работает · 4 из 5</p>
+    <p class="eyebrow">Как это работает</p>
     <h2>Дальше — ребёнок решает сам.</h2>
     <p class="tour-section__lead">Не готовый ответ, а настоящий пример — тот самый, что вы только что настроили. Каждую цифру нужно ввести самому, по порядку действий.</p>
   </div>
@@ -488,7 +491,7 @@
 
 <section class="tour-section" id="reward">
   <div class="wrap tour-section__intro">
-    <p class="eyebrow">Как это работает · 5 из 5</p>
+    <p class="eyebrow">Как это работает</p>
     <h2>А в конце — любимое видео.</h2>
     <p class="tour-section__lead">Короткое занятие, серия правильных ответов — и ребёнок сам доходит до экрана «Смотреть видео».</p>
   </div>
@@ -544,14 +547,39 @@
 
 </div>
 
-<div class="tour-dots" aria-hidden="true">
-  <span class="tour-dot tour-dot--1"></span>
-  <span class="tour-dot tour-dot--2"></span>
-  <span class="tour-dot tour-dot--3"></span>
-  <span class="tour-dot tour-dot--4"></span>
-  <span class="tour-dot tour-dot--5"></span>
+<div class="tour-dots">
+  <button type="button" class="tour-dot tour-dot--1" aria-label="Шаг 1: профиль ребёнка"></button>
+  <button type="button" class="tour-dot tour-dot--2" aria-label="Шаг 2: тема и режим"></button>
+  <button type="button" class="tour-dot tour-dot--3" aria-label="Шаг 3: настройки занятия"></button>
+  <button type="button" class="tour-dot tour-dot--4" aria-label="Шаг 4: ребёнок решает сам"></button>
+  <button type="button" class="tour-dot tour-dot--5" aria-label="Шаг 5: видео-награда"></button>
 </div>
 
 </main>
+<script>
+(() => {
+  const SLIDE_MS = 7000;
+  // 180ms into a slot: the previous slide has just finished fading out (20.5% of 35s),
+  // so jumping never flashes a third, unrelated slide.
+  const SETTLE_MS = 180;
+  const slides = [...document.querySelectorAll('.tour-section')];
+  const dots = [...document.querySelectorAll('.tour-dot')];
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+  dots.forEach((dot, i) => dot.addEventListener('click', () => {
+    if (reduceMotion.matches) {
+      slides.forEach((s, j) => { s.style.opacity = j === i ? 1 : 0; });
+      dots.forEach((d, j) => {
+        d.style.opacity = j === i ? 1 : .25;
+        d.style.transform = j === i ? 'scale(1.35)' : '';
+      });
+      return;
+    }
+    // every slide, dot and callout beat runs on the same 35s/7s grid, so moving them
+    // all to one shared time lands slide i at the start of its own slot.
+    document.getAnimations().forEach(a => { a.currentTime = i * SLIDE_MS + SETTLE_MS; });
+  }));
+})();
+</script>
 </body>
 </html>
