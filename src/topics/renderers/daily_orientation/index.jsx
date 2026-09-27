@@ -453,8 +453,8 @@ function AnalogClock({ now }) {
 // as that particular time needs. Measured in the unscaled 1600x1000 canvas
 // (offset/scroll sizes ignore the canvas transform), so it doesn't depend on
 // the device's scale factor.
-const TIME_WORDS_MAX_FONT = 52;
-const TIME_WORDS_MIN_FONT = 30;
+const TIME_WORDS_MAX_FONT = 64;
+const TIME_WORDS_MIN_FONT = 24;
 
 // Runs a fit function now and again whenever the result could have gone
 // stale: a web font finishing loading (the app loads Nunito lazily, so the
@@ -489,25 +489,31 @@ function useFitTimeWords(text) {
   const containerRef = useRef(null);
   const wordsRef = useRef(null);
 
+  // Re-run on every minute change (text), web-font load and resize: find the
+  // LARGEST size at which every word fits the column's width and all lines
+  // fit its height -- so "ДЕСЯТЬ ЧАСОВ РОВНО" fills the card and
+  // "ЧЕТЫРНАДЦАТЬ ЧАСОВ ТРИДЦАТЬ ПЯТЬ МИНУТ" steps down just as far as it
+  // must. The CSS size on .daily-orientation__time-words is only the
+  // no-JS fallback; this inline size overrides it.
   useRefit(() => {
     const container = containerRef.current;
     const words = wordsRef.current;
     if (!container || !words) return;
-    {
-      // Start from the CSS size, which already caps the longest word to the
-      // column width (see .daily-orientation__time-words), then only shrink
-      // further if all the lines together are too tall.
-      words.style.fontSize = "";
-      let size = Math.min(TIME_WORDS_MAX_FONT, parseFloat(window.getComputedStyle(words).fontSize) || TIME_WORDS_MAX_FONT);
+    const fits = (size) => {
       words.style.fontSize = `${size}px`;
-      while (
-        size > TIME_WORDS_MIN_FONT
-        && (container.scrollHeight > container.clientHeight || words.scrollWidth > words.clientWidth)
-      ) {
-        size -= 2;
-        words.style.fontSize = `${size}px`;
-      }
+      // Height is checked on the column only: the words box itself always
+      // "overflows" by a few px vertically (Д/Ц descend below the line box).
+      return container.scrollHeight <= container.clientHeight && words.scrollWidth <= words.clientWidth;
+    };
+    let low = TIME_WORDS_MIN_FONT;
+    let high = TIME_WORDS_MAX_FONT;
+    if (fits(high)) return;
+    while (high - low > 1) {
+      const mid = Math.floor((low + high) / 2);
+      if (fits(mid)) low = mid;
+      else high = mid;
     }
+    words.style.fontSize = `${low}px`;
   }, containerRef, [text]);
 
   return { containerRef, wordsRef };

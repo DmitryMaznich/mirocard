@@ -442,6 +442,13 @@
   text-transform: uppercase;
   text-wrap: balance;
   overflow: hidden; /* scrollWidth reliability in WebKit, see __fit-text */
+  /* overflow:hidden would otherwise let this flex item shrink to the
+     column's height and clip its own last line, invisible to the fit's
+     column-height check. */
+  flex-shrink: 0;
+  /* Room for Д/Ц descenders on the last line, which overflow:hidden would
+     otherwise clip. */
+  padding-bottom: .15em;
 }
 .daily-orientation__time-words-hour { color: var(--orientation-hour); }
 .daily-orientation__time-words-minute { color: var(--orientation-minute); }
