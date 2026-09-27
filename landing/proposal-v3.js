@@ -14,16 +14,42 @@
     });
   }, { threshold: 0.15 });
   targets.forEach(function(el){ io.observe(el); });
+})();
 
-  var steps = document.querySelector('.steps');
-  if(steps){
-    var stepsIO = new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        steps.classList.toggle('is-playing', entry.isIntersecting);
-      });
-    }, { threshold: 0.3 });
-    stepsIO.observe(steps);
+(function(){
+  /* How it works carousel. Slides, dots and every callout beat share one clock
+     (35s cycle, 7s per step), so jumping means moving all of them to one time. */
+  var tour = document.querySelector('.how-tour');
+  if(!tour) return;
+  var SLIDE_MS = 7000;
+  // 180ms into a slot the previous slide has just finished fading out, so a jump
+  // never flashes an unrelated third slide.
+  var SETTLE_MS = 180;
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var slides = Array.prototype.slice.call(tour.querySelectorAll('.tour-section'));
+  var dots = Array.prototype.slice.call(tour.querySelectorAll('.tour-dot'));
+
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){ tour.classList.toggle('is-playing', entry.isIntersecting); });
+    }, { threshold: 0.3 }).observe(tour);
+  } else {
+    tour.classList.add('is-playing');
   }
+
+  dots.forEach(function(dot, i){
+    dot.addEventListener('click', function(){
+      if(reduceMotion.matches){
+        slides.forEach(function(s, j){ s.style.opacity = j === i ? 1 : 0; });
+        dots.forEach(function(d, j){
+          d.style.opacity = j === i ? 1 : .25;
+          d.style.transform = j === i ? 'scale(1.35)' : '';
+        });
+        return;
+      }
+      tour.getAnimations({ subtree: true }).forEach(function(a){ a.currentTime = i * SLIDE_MS + SETTLE_MS; });
+    });
+  });
 })();
 
 (function(){

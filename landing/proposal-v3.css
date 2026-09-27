@@ -123,114 +123,253 @@ summary::-webkit-details-marker{display:none}
 .ready__pass-copy p{margin-top:6px;font-size:13px;line-height:1.5;color:rgba(255,255,255,.82)}
 @media(prefers-reduced-motion:reduce){.ready__pass-photo img{transition:none}}
 
-.steps-section{padding:96px 0 0}
-.steps-section__intro{max-width:620px;margin:0 auto;text-align:center}
-.steps-section__intro h2{font:700 clamp(30px,3.4vw,44px)/1.12 var(--font-display);letter-spacing:-.02em}
-.steps{display:grid;grid-template-columns:200px 1fr 200px 1fr 200px 83px;grid-template-rows:auto auto;align-items:center;column-gap:0;row-gap:22px;padding:56px 0 96px}
-.step__icon{position:relative;grid-row:1;justify-self:center;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;color:var(--ink)}
-.step__icon--1{grid-column:1}
-.step__icon--2{grid-column:3}
-.step__icon--3{grid-column:5}
-.step__icon svg:not(.step__icon__ring){width:34px;height:34px}
-.step__icon__ring{position:absolute;inset:0;width:100%;height:100%;color:#c9ab80}
-.step__num{position:absolute;border-radius:50%;color:var(--ink);font:700 22px var(--font-display);display:grid;place-items:center;box-shadow:0 3px 6px rgba(28,54,52,.2)}
-.step__num--mint{background:#aee0c4;width:47px;height:47px;top:-2px;left:-21px}
-.step__num--sky{background:#a8cdec;width:48px;height:48px;top:-2px;left:-21px}
-.step__num--sun{background:var(--sun);width:47px;height:47px;top:3px;left:-13px}
-.step__label{grid-row:2;text-align:center;width:240px;max-width:240px;justify-self:center}
-.step__label--1{grid-column:1}
-.step__label--2{grid-column:3}
-.step__label--3{grid-column:5}
-.step__label h3{font:700 19px var(--font-display);margin-bottom:6px}
-.step__label p{font-size:14px;color:var(--copy);line-height:1.5}
-.step__connector{grid-row:1;align-self:center;color:#c9ab80;display:block;overflow:visible}
-.step__connector--1{grid-column:2;width:calc(100% + 104px);height:64px;margin:0 -52px}
-.step__connector--2{grid-column:4;width:calc(100% + 104px);height:39px;margin:0 -52px}
-.step__connector--3{grid-column:6;width:83px;height:37px;margin-left:-58px}
+/* How it works: a 5-step carousel of real app screens with timed callouts.
+   Everything inside .how-tour runs on one shared clock (35s cycle, 7s per step)
+   and stays paused until the section scrolls into view. */
+.how-tour{background:var(--paper)}
+.how-tour:not(.is-playing) *{animation-play-state:paused}
 
-.step__icon__ring{transform-origin:center;opacity:0;transform:scale(.85);animation-play-state:paused}
-.step__connector{clip-path:inset(-20px 100% -20px 0);animation-play-state:paused}
-.step__num{opacity:0;transform:scale(.7);animation-play-state:paused}
-.steps.is-playing .step__icon__ring,
-.steps.is-playing .step__connector,
-.steps.is-playing .step__num{animation-play-state:running}
-.step__icon__ring--1{animation:ringPop1 14s var(--ease-out) infinite}
-.step__icon__ring--2{animation:ringPop2 14s var(--ease-out) infinite}
-.step__icon__ring--3{animation:ringPop3 14s var(--ease-out) infinite}
-.step__connector--1{animation:connectorDraw1 14s linear infinite}
-.step__connector--2{animation:connectorDraw2 14s linear infinite}
-.step__connector--3{animation:connectorDraw3 14s linear infinite}
-.step__num--mint{animation:numPulse1 14s var(--ease-in-out) infinite}
-.step__num--sky{animation:numPulse2 14s var(--ease-in-out) infinite}
-.step__num--sun{animation:numPulse3 14s var(--ease-in-out) infinite}
+/* ============ carousel: one slide visible at a time, auto-advancing ============
+   Each slide already runs its OWN 7s internal beat animation (callouts/arrows) --
+   the carousel reuses that exact 7s as its own slide duration (5 slides x 7s = 35s
+   per full cycle) so a slide's internal beats are never caught mid-cycle when it
+   becomes visible: at 35s and a 7s-per-slide grid, every slide's own animation-delay
+   already lines it up to restart its beats at 0% the instant it fades in.
+   All 5 sections share one grid cell (CSS grid "stack" trick) so the carousel's
+   height is simply the tallest slide's own height -- no manual height guessing. */
+.tour-carousel{display:grid}
+.tour-carousel>.tour-section{grid-area:1/1}
 
-@keyframes ringPop1{
-  0%{opacity:0;transform:scale(.85)}
-  6%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}
-  91%,100%{opacity:0;transform:scale(.9)}
+.tour-section{
+  padding:96px 0 32px;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;
+  opacity:0;animation:tourCarouselShow 35s linear infinite;
 }
-@keyframes ringPop2{
-  0%,18%{opacity:0;transform:scale(.85)}
-  24%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}
-  91%,100%{opacity:0;transform:scale(.9)}
+.tour-section:nth-of-type(1){animation-delay:0s}
+.tour-section:nth-of-type(2){animation-delay:-28s}
+.tour-section:nth-of-type(3){animation-delay:-21s}
+.tour-section:nth-of-type(4){animation-delay:-14s}
+.tour-section:nth-of-type(5){animation-delay:-7s}
+@keyframes tourCarouselShow{
+  0%,0.5%{opacity:0}
+  1.5%,19%{opacity:1}
+  20.5%,100%{opacity:0}
 }
-@keyframes ringPop3{
-  0%,36%{opacity:0;transform:scale(.85)}
-  42%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}
-  91%,100%{opacity:0;transform:scale(.9)}
+@media(prefers-reduced-motion:reduce){
+  .tour-section{animation:none;opacity:0}
+  .tour-section:nth-of-type(1){opacity:1}
 }
-@keyframes connectorDraw1{
-  0%,8%{clip-path:inset(-20px 100% -20px 0)}
-  16%,87%{clip-path:inset(-20px 0 -20px 0);animation-timing-function:var(--ease-in)}
-  91%,100%{clip-path:inset(-20px 100% -20px 0)}
+
+.tour-dots{display:flex;justify-content:center;gap:2px;padding:12px 0 0;position:relative;z-index:1}
+.tour-dot{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;opacity:.25}
+.tour-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--copy)}
+.tour-dot:hover::before{background:var(--ink)}
+
+.tour-cta{display:flex;justify-content:center;padding:24px 16px 104px}
+.tour-dot:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.tour-dot--1{animation:tourDotActive 35s linear infinite;animation-delay:0s}
+.tour-dot--2{animation:tourDotActive 35s linear infinite;animation-delay:-28s}
+.tour-dot--3{animation:tourDotActive 35s linear infinite;animation-delay:-21s}
+.tour-dot--4{animation:tourDotActive 35s linear infinite;animation-delay:-14s}
+.tour-dot--5{animation:tourDotActive 35s linear infinite;animation-delay:-7s}
+@keyframes tourDotActive{
+  0%,0.5%{opacity:.25;transform:scale(1)}
+  1.5%,19%{opacity:1;transform:scale(1.35)}
+  20.5%,100%{opacity:.25;transform:scale(1)}
 }
-@keyframes connectorDraw2{
-  0%,26%{clip-path:inset(-20px 100% -20px 0)}
-  34%,87%{clip-path:inset(-20px 0 -20px 0);animation-timing-function:var(--ease-in)}
-  91%,100%{clip-path:inset(-20px 100% -20px 0)}
+@media(prefers-reduced-motion:reduce){
+  .tour-dot{animation:none;opacity:.25}
+  .tour-dot--1{opacity:1;transform:scale(1.35)}
 }
-@keyframes connectorDraw3{
-  0%,44%{clip-path:inset(-20px 100% -20px 0)}
-  52%,87%{clip-path:inset(-20px 0 -20px 0);animation-timing-function:var(--ease-in)}
-  91%,100%{clip-path:inset(-20px 100% -20px 0)}
+
+.tour-section__intro{max-width:600px;margin:0 auto;text-align:center}
+.tour-section__intro h2{font:700 clamp(30px,3.4vw,44px)/1.12 var(--font-display);letter-spacing:-.02em;margin-top:14px}
+.tour-section__lead{margin-top:14px;font-size:16px;line-height:1.6;color:var(--copy)}
+
+/* ============ shared "phone + timed callouts" component, reused by every block ============ */
+.tourblk{position:relative;margin:28px auto 0}
+
+.tourblk__phone{position:absolute;left:0;top:20px;width:230px;border-radius:32px;background:var(--ink);padding:9px;box-shadow:0 24px 48px -18px rgba(28,54,52,.38),0 2px 0 rgba(28,54,52,.06)}
+.tourblk__phone__notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:70px;height:18px;background:var(--ink);border-radius:0 0 12px 12px;z-index:2}
+.tourblk__phone__notch::after{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:30px;height:3px;border-radius:2px;background:#3c5654}
+.tourblk__phone__screen{position:relative;width:100%;border-radius:24px;overflow:hidden;background:#fff}
+.tourblk__phone__screen img{display:block;width:100%;height:auto}
+
+/* a real, single continuous screenshot that scrolls in place — header stays put,
+   only the body underneath it moves, exactly like a real scroll gesture */
+.tourblk__scroll-window{position:relative;width:100%;overflow:hidden}
+.tourblk__scroll-body{display:block;width:100%;height:auto;will-change:transform}
+
+.tourblk__wing{stroke-linecap:round;fill:none}
+.tourblk__callout{position:absolute;left:340px;width:400px;opacity:0}
+.tourblk__callout h3{font:800 19px/1.25 var(--font-display);color:var(--ink);margin-bottom:6px}
+.tourblk__callout p{margin-top:6px;font-size:15px;line-height:1.55;color:var(--copy)}
+
+.tourblk__arrows{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.tourblk__arrows--mobile{display:none}
+.tourblk__arrow{fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:400;stroke-dashoffset:400;opacity:0}
+.tourblk__arrow--1{stroke:var(--mint)}
+.tourblk__arrow--2{stroke:var(--coral)}
+.tourblk__arrow--3{stroke:var(--deep)}
+.tourblk__arrowhead{opacity:0}
+
+@media(prefers-reduced-motion:reduce){
+  .tourblk *{animation:none!important;opacity:1!important;transform:none!important;stroke-dashoffset:0!important}
+  .tourblk--setup .tourblk__callout--2,.tourblk--setup .tourblk__callout--3,
+  .tourblk--setup .tourblk__arrow--2,.tourblk--setup .tourblk__arrow--3,
+  .tourblk--setup .tourblk__arrowhead--2,.tourblk--setup .tourblk__arrowhead--3{opacity:0!important}
 }
-@keyframes numPulse1{
-  0%{opacity:0;transform:scale(.7)}
-  4%{transform:scale(1.15)}
-  6%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}
-  91%,100%{opacity:0;transform:scale(.85)}
+
+/* ============ block "setup": 3 beats + a real scroll of one continuous screenshot.
+   the callout box stays in ONE place; only its text and its arrow change per beat. ============ */
+.tourblk--setup{width:780px;height:500px}
+.tourblk--setup .tourblk__callout--1,
+.tourblk--setup .tourblk__callout--2,
+.tourblk--setup .tourblk__callout--3{top:180px}
+
+.tourblk--setup .tourblk__scroll-window{height:424px;--scroll-travel:-245px}
+.tourblk--setup .tourblk__scroll-body{animation:setupScroll 7s ease-in-out infinite}
+@keyframes setupScroll{0%,32%{transform:translateY(0)}38%,100%{transform:translateY(var(--scroll-travel))}}
+
+.tourblk--setup .tourblk__callout--1{animation:setupCard1 7s ease-in-out infinite}
+.tourblk--setup .tourblk__callout--2{animation:setupCard2 7s ease-in-out infinite}
+.tourblk--setup .tourblk__callout--3{animation:setupCard3 7s ease-in-out infinite}
+@keyframes setupCard1{0%,4%{opacity:0;transform:translateY(6px)}10%,30%{opacity:1;transform:translateY(0)}34%,100%{opacity:0;transform:translateY(6px)}}
+@keyframes setupCard2{0%,38%{opacity:0;transform:translateY(6px)}44%,64%{opacity:1;transform:translateY(0)}68%,100%{opacity:0;transform:translateY(6px)}}
+@keyframes setupCard3{0%,68%{opacity:0;transform:translateY(6px)}74%,96%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+
+.tourblk--setup .tourblk__arrow--1{animation:setupLine1 7s ease-in-out infinite}
+.tourblk--setup .tourblk__arrow--2{animation:setupLine2 7s ease-in-out infinite}
+.tourblk--setup .tourblk__arrow--3{animation:setupLine3 7s ease-in-out infinite}
+@keyframes setupLine1{0%,3%{opacity:0;stroke-dashoffset:400}9%{opacity:1}15%{stroke-dashoffset:0}30%{opacity:1;stroke-dashoffset:0}34%,100%{opacity:0}}
+@keyframes setupLine2{0%,38%{opacity:0;stroke-dashoffset:400}44%{opacity:1}50%{stroke-dashoffset:0}64%{opacity:1;stroke-dashoffset:0}68%,100%{opacity:0}}
+@keyframes setupLine3{0%,68%{opacity:0;stroke-dashoffset:400}74%{opacity:1}80%{stroke-dashoffset:0}96%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+
+.tourblk--setup .tourblk__arrowhead--1{animation:setupHead1 7s ease-in-out infinite}
+.tourblk--setup .tourblk__arrowhead--2{animation:setupHead2 7s ease-in-out infinite}
+.tourblk--setup .tourblk__arrowhead--3{animation:setupHead3 7s ease-in-out infinite}
+@keyframes setupHead1{0%,13%{opacity:0}15%,30%{opacity:1}34%,100%{opacity:0}}
+@keyframes setupHead2{0%,48%{opacity:0}50%,64%{opacity:1}68%,100%{opacity:0}}
+@keyframes setupHead3{0%,78%{opacity:0}80%,96%{opacity:1}100%{opacity:0}}
+
+/* ============ block "picker": the topic+mode screen (already approved) ============ */
+.tourblk--picker{width:780px;height:520px}
+.tourblk--picker .tourblk__callout--1{top:76px}
+.tourblk--picker .tourblk__callout--2{top:190px}
+
+.tourblk--picker .tourblk__callout--1{animation:pickerCard1 7s ease-in-out infinite}
+.tourblk--picker .tourblk__callout--2{animation:pickerCard2 7s ease-in-out infinite}
+@keyframes pickerCard1{0%,3%{opacity:0;transform:translateY(6px)}10%,97%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+@keyframes pickerCard2{0%,50%{opacity:0;transform:translateY(6px)}56%,98%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+
+.tourblk--picker .tourblk__arrow--1{animation:pickerLine1 7s ease-in-out infinite}
+.tourblk--picker .tourblk__arrow--2{animation:pickerLine2 7s ease-in-out infinite}
+@keyframes pickerLine1{0%,3%{opacity:0;stroke-dashoffset:280}9%{opacity:1}15.5%{stroke-dashoffset:0}97%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+@keyframes pickerLine2{0%,50%{opacity:0;stroke-dashoffset:280}57%{opacity:1}63.5%{stroke-dashoffset:0}98%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+
+.tourblk--picker .tourblk__arrowhead--1{animation:pickerHead1 7s ease-in-out infinite}
+.tourblk--picker .tourblk__arrowhead--2{animation:pickerHead2 7s ease-in-out infinite}
+@keyframes pickerHead1{0%,14%{opacity:0}15.5%,97%{opacity:1}100%{opacity:0}}
+@keyframes pickerHead2{0%,50%,62%{opacity:0}63.5%,98%{opacity:1}100%{opacity:0}}
+
+/* ============ block "params": difficulty + video-reward settings ============ */
+.tourblk--params{width:780px;height:520px}
+.tourblk--params .tourblk__callout--1{top:76px}
+.tourblk--params .tourblk__callout--2{top:190px}
+
+.tourblk--params .tourblk__callout--1{animation:paramsCard1 7s ease-in-out infinite}
+.tourblk--params .tourblk__callout--2{animation:paramsCard2 7s ease-in-out infinite}
+@keyframes paramsCard1{0%,3%{opacity:0;transform:translateY(6px)}10%,97%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+@keyframes paramsCard2{0%,50%{opacity:0;transform:translateY(6px)}56%,98%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+
+.tourblk--params .tourblk__arrow--1{animation:paramsLine1 7s ease-in-out infinite}
+.tourblk--params .tourblk__arrow--2{animation:paramsLine2 7s ease-in-out infinite}
+@keyframes paramsLine1{0%,3%{opacity:0;stroke-dashoffset:400}9%{opacity:1}15.5%{stroke-dashoffset:0}97%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+@keyframes paramsLine2{0%,50%{opacity:0;stroke-dashoffset:400}57%{opacity:1}63.5%{stroke-dashoffset:0}98%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+
+.tourblk--params .tourblk__arrowhead--1{animation:paramsHead1 7s ease-in-out infinite}
+.tourblk--params .tourblk__arrowhead--2{animation:paramsHead2 7s ease-in-out infinite}
+@keyframes paramsHead1{0%,14%{opacity:0}15.5%,97%{opacity:1}100%{opacity:0}}
+@keyframes paramsHead2{0%,50%,62%{opacity:0}63.5%,98%{opacity:1}100%{opacity:0}}
+
+/* ============ block "session": the child actually solving a real example ============ */
+.tourblk--session{width:780px;height:520px}
+.tourblk--session .tourblk__callout--1{top:76px}
+.tourblk--session .tourblk__callout--2{top:190px}
+
+.tourblk--session .tourblk__callout--1{animation:sessionCard1 7s ease-in-out infinite}
+.tourblk--session .tourblk__callout--2{animation:sessionCard2 7s ease-in-out infinite}
+@keyframes sessionCard1{0%,3%{opacity:0;transform:translateY(6px)}10%,97%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+@keyframes sessionCard2{0%,50%{opacity:0;transform:translateY(6px)}56%,98%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+
+.tourblk--session .tourblk__arrow--1{animation:sessionLine1 7s ease-in-out infinite}
+.tourblk--session .tourblk__arrow--2{animation:sessionLine2 7s ease-in-out infinite}
+@keyframes sessionLine1{0%,3%{opacity:0;stroke-dashoffset:400}9%{opacity:1}15.5%{stroke-dashoffset:0}97%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+@keyframes sessionLine2{0%,50%{opacity:0;stroke-dashoffset:400}57%{opacity:1}63.5%{stroke-dashoffset:0}98%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+
+.tourblk--session .tourblk__arrowhead--1{animation:sessionHead1 7s ease-in-out infinite}
+.tourblk--session .tourblk__arrowhead--2{animation:sessionHead2 7s ease-in-out infinite}
+@keyframes sessionHead1{0%,14%{opacity:0}15.5%,97%{opacity:1}100%{opacity:0}}
+@keyframes sessionHead2{0%,50%,62%{opacity:0}63.5%,98%{opacity:1}100%{opacity:0}}
+
+/* ============ block "reward": short session, ends on watch-video screen ============ */
+.tourblk--reward{width:780px;height:520px}
+.tourblk--reward .tourblk__callout--1{top:76px}
+.tourblk--reward .tourblk__callout--2{top:190px}
+
+.tourblk--reward .tourblk__callout--1{animation:rewardCard1 7s ease-in-out infinite}
+.tourblk--reward .tourblk__callout--2{animation:rewardCard2 7s ease-in-out infinite}
+@keyframes rewardCard1{0%,3%{opacity:0;transform:translateY(6px)}10%,97%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+@keyframes rewardCard2{0%,50%{opacity:0;transform:translateY(6px)}56%,98%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(6px)}}
+
+.tourblk--reward .tourblk__arrow--1{animation:rewardLine1 7s ease-in-out infinite}
+.tourblk--reward .tourblk__arrow--2{animation:rewardLine2 7s ease-in-out infinite}
+@keyframes rewardLine1{0%,3%{opacity:0;stroke-dashoffset:400}9%{opacity:1}15.5%{stroke-dashoffset:0}97%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+@keyframes rewardLine2{0%,50%{opacity:0;stroke-dashoffset:400}57%{opacity:1}63.5%{stroke-dashoffset:0}98%{opacity:1;stroke-dashoffset:0}100%{opacity:0}}
+
+.tourblk--reward .tourblk__arrowhead--1{animation:rewardHead1 7s ease-in-out infinite}
+.tourblk--reward .tourblk__arrowhead--2{animation:rewardHead2 7s ease-in-out infinite}
+@keyframes rewardHead1{0%,14%{opacity:0}15.5%,97%{opacity:1}100%{opacity:0}}
+@keyframes rewardHead2{0%,50%,62%{opacity:0}63.5%,98%{opacity:1}100%{opacity:0}}
+
+@media(max-width:820px){
+  .tour-section{padding:64px 0 24px}
+  .tour-cta{padding-bottom:72px}
+  .tourblk{width:300px}
+  .tourblk__phone{left:0;top:0;width:130px;padding:6px;border-radius:20px}
+  .tourblk__phone__notch{width:44px;height:11px;top:6px;border-radius:0 0 9px 9px}
+  .tourblk__phone__notch::after{width:20px}
+  .tourblk__phone__screen{border-radius:14px}
+
+  .tourblk__arrows--desktop{display:none}
+  .tourblk__arrows--mobile{display:block}
+
+  .tourblk__callout{left:144px;width:156px;text-align:left}
+  .tourblk__callout h3{font-size:15px;margin-bottom:4px}
+  .tourblk__callout p{font-size:12.5px;line-height:1.48;margin-top:4px}
+
+  .tourblk--picker{height:364px}
+  .tourblk--picker .tourblk__callout--1{top:4px}
+  .tourblk--picker .tourblk__callout--2{top:146px}
+
+  .tourblk--params{height:364px}
+  .tourblk--params .tourblk__callout--1{top:4px}
+  .tourblk--params .tourblk__callout--2{top:146px}
+
+  .tourblk--session{height:364px}
+  .tourblk--session .tourblk__callout--1{top:4px}
+  .tourblk--session .tourblk__callout--2{top:146px}
+
+  .tourblk--reward{height:364px}
+  .tourblk--reward .tourblk__callout--1{top:4px}
+  .tourblk--reward .tourblk__callout--2{top:146px}
+
+  .tourblk--setup{height:340px}
+  .tourblk--setup .tourblk__callout--1,
+  .tourblk--setup .tourblk__callout--2,
+  .tourblk--setup .tourblk__callout--3{top:90px}
+  .tourblk--setup .tourblk__scroll-window{height:236px;--scroll-travel:-136px}
 }
-@keyframes numPulse2{
-  0%,18%{opacity:0;transform:scale(.7)}
-  22%{transform:scale(1.15)}
-  24%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}
-  91%,100%{opacity:0;transform:scale(.85)}
-}
-@keyframes numPulse3{
-  0%,36%{opacity:0;transform:scale(.7)}
-  40%{transform:scale(1.15)}
-  42%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}
-  91%,100%{opacity:0;transform:scale(.85)}
-}
-/* Step explanations reveal in sync with the animated sequence. */
-.step__label{opacity:0;transform:translateY(10px);animation-play-state:paused}
-.steps.is-playing .step__label{animation-play-state:running}
-.step__label--1{animation:labelReveal1 14s var(--ease-out) infinite}
-.step__label--2{animation:labelReveal2 14s var(--ease-out) infinite}
-.step__label--3{animation:labelReveal3 14s var(--ease-out) infinite}
-@keyframes labelReveal1{0%,7%{opacity:0;transform:translateY(10px)}13%,87%{opacity:1;transform:translateY(0);animation-timing-function:var(--ease-in)}91%,100%{opacity:0;transform:translateY(6px)}}
-@keyframes labelReveal2{0%,25%{opacity:0;transform:translateY(10px)}31%,87%{opacity:1;transform:translateY(0);animation-timing-function:var(--ease-in)}91%,100%{opacity:0;transform:translateY(6px)}}
-@keyframes labelReveal3{0%,43%{opacity:0;transform:translateY(10px)}49%,87%{opacity:1;transform:translateY(0);animation-timing-function:var(--ease-in)}91%,100%{opacity:0;transform:translateY(6px)}}
-@media(prefers-reduced-motion:reduce){.step__label,.step__illustration{animation:none;opacity:1;transform:none}}
-.step__illustration{position:absolute;inset:7px;width:82px!important;height:82px!important;z-index:1;opacity:0;transform:scale(.78);filter:drop-shadow(0 5px 5px rgba(28,54,52,.10));animation-play-state:paused}
-.steps.is-playing .step__illustration{animation-play-state:running}
-.step__icon--1 .step__illustration{animation:illustrationReveal1 14s var(--ease-out) infinite}
-.step__icon--2 .step__illustration{animation:illustrationReveal2 14s var(--ease-out) infinite}
-.step__icon--3 .step__illustration{animation:illustrationReveal3 14s var(--ease-out) infinite}
-@keyframes illustrationReveal1{0%,4%{opacity:0;transform:scale(.78)}10%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}91%,100%{opacity:0;transform:scale(.86)}}
-@keyframes illustrationReveal2{0%,22%{opacity:0;transform:scale(.78)}28%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}91%,100%{opacity:0;transform:scale(.86)}}
-@keyframes illustrationReveal3{0%,40%{opacity:0;transform:scale(.78)}46%,87%{opacity:1;transform:scale(1);animation-timing-function:var(--ease-in)}91%,100%{opacity:0;transform:scale(.86)}}
-.step__num{z-index:2}
 
 /* Custom topics: two audiences, one shared premise. */
 .custom-topics{padding:0 0 104px}
@@ -377,7 +516,6 @@ summary::-webkit-details-marker{display:none}
 @media(max-width:780px){.footer-contacts{width:calc(100% - 52px);display:grid;grid-template-columns:1fr}.footer-contacts__item{min-width:0}.footer-contacts__item:hover{background:transparent}}
 /* How-it-works green introduction. */
 .quote-band__eyebrow{margin:0 0 10px;font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.72)}
-.steps-section__intro h2{margin-top:0}
 /* Independent-living skills route. */
 .life-skills{padding:104px 0;background:#e7f0e8;overflow:hidden}
 .life-skills__grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:50px;align-items:center}
@@ -463,9 +601,6 @@ summary::-webkit-details-marker{display:none}
 @media(prefers-reduced-motion:reduce){
   .hero__copy>*{animation:none;opacity:1;transform:none}
   .reveal{opacity:1;transform:none;transition:none}
-  .step__icon__ring{animation:none;opacity:1;transform:scale(1)}
-  .step__connector{animation:none;clip-path:inset(-20px 0 -20px 0)}
-  .step__num{animation:none;opacity:1;transform:scale(1)}
 }
 
 @media(max-width:780px){
@@ -502,17 +637,6 @@ summary::-webkit-details-marker{display:none}
   .ready__pass-notch--b{left:auto;right:-11px}
   .ready__pass-item:first-child .ready__pass-photo{border-radius:10px 10px 0 0}
   .ready__pass-item:last-child .ready__pass-photo{border-radius:0 0 10px 10px}
-  .steps-section{padding-top:64px}
-  .steps{grid-template-columns:1fr;row-gap:32px;padding:40px 0 64px}
-  .step__icon,.step__label{grid-column:1;grid-row:auto}
-  .step__icon--1{order:1}
-  .step__label--1{order:2}
-  .step__icon--2{order:3}
-  .step__label--2{order:4}
-  .step__icon--3{order:5}
-  .step__label--3{order:6}
-  .step__label{width:auto;max-width:none}
-  .step__connector{display:none}
   .custom-topics{padding:0 0 72px}
   .custom-topics__grid{grid-template-columns:1fr;gap:20px;margin-top:36px}
   .topics{padding:64px 0}
