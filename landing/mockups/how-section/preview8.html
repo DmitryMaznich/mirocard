@@ -8,9 +8,54 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../proposal-v3.css">
 <style>
-.tour-section{padding:64px 0;background:var(--paper);overflow:hidden}
-.tour-section:first-of-type{padding-top:72px}
-.tour-section:nth-of-type(even){background:var(--cream)}
+/* ============ carousel: one slide visible at a time, auto-advancing ============
+   Each slide already runs its OWN 7s internal beat animation (callouts/arrows) --
+   the carousel reuses that exact 7s as its own slide duration (5 slides x 7s = 35s
+   per full cycle) so a slide's internal beats are never caught mid-cycle when it
+   becomes visible: at 35s and a 7s-per-slide grid, every slide's own animation-delay
+   already lines it up to restart its beats at 0% the instant it fades in.
+   All 5 sections share one grid cell (CSS grid "stack" trick) so the carousel's
+   height is simply the tallest slide's own height -- no manual height guessing. */
+.tour-carousel{display:grid}
+.tour-carousel>.tour-section{grid-area:1/1}
+
+.tour-section{
+  padding:64px 0;background:var(--paper);overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;
+  opacity:0;animation:tourCarouselShow 35s linear infinite;
+}
+.tour-section:nth-of-type(1){animation-delay:0s}
+.tour-section:nth-of-type(2){animation-delay:-28s}
+.tour-section:nth-of-type(3){animation-delay:-21s}
+.tour-section:nth-of-type(4){animation-delay:-14s}
+.tour-section:nth-of-type(5){animation-delay:-7s}
+@keyframes tourCarouselShow{
+  0%,0.5%{opacity:0}
+  1.5%,19%{opacity:1}
+  20.5%,100%{opacity:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .tour-section{animation:none;opacity:0}
+  .tour-section:nth-of-type(1){opacity:1}
+}
+
+.tour-dots{display:flex;justify-content:center;gap:10px;padding:20px 0 0;position:relative;z-index:1}
+.tour-dot{width:8px;height:8px;border-radius:50%;background:var(--copy);opacity:.25}
+.tour-dot--1{animation:tourDotActive 35s linear infinite;animation-delay:0s}
+.tour-dot--2{animation:tourDotActive 35s linear infinite;animation-delay:-28s}
+.tour-dot--3{animation:tourDotActive 35s linear infinite;animation-delay:-21s}
+.tour-dot--4{animation:tourDotActive 35s linear infinite;animation-delay:-14s}
+.tour-dot--5{animation:tourDotActive 35s linear infinite;animation-delay:-7s}
+@keyframes tourDotActive{
+  0%,0.5%{opacity:.25;transform:scale(1)}
+  1.5%,19%{opacity:1;transform:scale(1.35)}
+  20.5%,100%{opacity:.25;transform:scale(1)}
+}
+@media(prefers-reduced-motion:reduce){
+  .tour-dot{animation:none;opacity:.25}
+  .tour-dot--1{opacity:1;transform:scale(1.35)}
+}
+
 .tour-section__intro{max-width:600px;margin:0 auto;text-align:center}
 .tour-section__intro h2{font:700 clamp(30px,3.4vw,44px)/1.12 var(--font-display);letter-spacing:-.02em;margin-top:14px}
 .tour-section__lead{margin-top:14px;font-size:16px;line-height:1.6;color:var(--copy)}
@@ -199,6 +244,8 @@
 </head>
 <body class="v3">
 <main>
+
+<div class="tour-carousel">
 
 <section class="tour-section" id="setup">
   <div class="wrap tour-section__intro">
@@ -494,6 +541,16 @@
   </div>
   </div>
 </section>
+
+</div>
+
+<div class="tour-dots" aria-hidden="true">
+  <span class="tour-dot tour-dot--1"></span>
+  <span class="tour-dot tour-dot--2"></span>
+  <span class="tour-dot tour-dot--3"></span>
+  <span class="tour-dot tour-dot--4"></span>
+  <span class="tour-dot tour-dot--5"></span>
+</div>
 
 </main>
 </body>
