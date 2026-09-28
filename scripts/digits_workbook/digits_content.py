@@ -78,7 +78,10 @@ def draw_digit(c, card, cell_x, baseline, cells_h=1, cells_w=None, opacity=1.0,
         k, base_unit = h / (y1 - y0), y1
     else:
         k, base_unit = h / (LETTER_BASELINE_UNIT - DIGIT_TOP_UNIT), LETTER_BASELINE_UNIT
-    ox = cell_x + cells_w * CELL_MM - (x1 - x0) * k
+    if card["type"] == "digit":
+        ox = cell_x + cells_w * CELL_MM - (x1 - x0) * k
+    else:   # signs: centred in the cell (the right-line rule is for digits)
+        ox = cell_x + (cells_w * CELL_MM - (x1 - x0) * k) / 2
 
     def tf(nx, ny):
         return ox + (nx - x0) * k, baseline - (ny - base_unit) * k
@@ -155,3 +158,26 @@ def seq_row(c, cards, items, is_left, t, step=2):
         draw_digit(c, cards[ch], col_x(is_left, i * step), y,
                    opacity=1.0 if style == "solid" else FADE[0],
                    dashed=style == "dashed", start_dot=True)
+
+
+def units_row(c, cards, units, is_left, t, gap=1, dots="solid"):
+    """School cell layout: each character in its own cell, the characters of
+    one unit (a number "12", an example "2+3=5") in consecutive cells,
+    `gap` empty cells between units. units = [(text, "solid"|"dashed"|None)],
+    None = the unit's cells left empty for the child to write in.
+    dots: where start-of-stroke dots go -- "all", "solid" (models only;
+    the digits are known by now, dots on every copy turn a row of
+    examples into confetti), or "none"."""
+    width = sum(len(u) for u, _ in units) + gap * (len(units) - 1)
+    assert width <= COLS, f"row {t}: {units} is {width} cells, row has {COLS}"
+    y = row_y(t)
+    col = 0
+    for text, style in units:
+        for ch in text:
+            if style is not None:
+                draw_digit(c, cards[ch], col_x(is_left, col), y,
+                           opacity=1.0 if style == "solid" else FADE[0],
+                           dashed=style == "dashed",
+                           start_dot=dots == "all" or (dots == "solid" and style == "solid"))
+            col += 1
+        col += gap
