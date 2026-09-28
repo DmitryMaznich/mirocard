@@ -57,6 +57,9 @@ def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     out = os.path.join(OUT_DIR, "digits_workbook.pdf")
     placement = build(out)
+    from digits_pages import WARNINGS
+    for w in WARNINGS:
+        print("WARNING:", w)
     print(out)
     if args.png is not None:
         import pymupdf

@@ -224,3 +224,63 @@ CONTENT.update({
     19: lambda c, cards, is_left: examples_page(c, cards, MIXED10, is_left),
     20: lambda c, cards, is_left: examples_page(c, cards, TWO_DIGIT, is_left, per_row=2),
 })
+
+
+# ---- 21-24: digits in handwritten text (standard propis ruling) -------------
+# Plan agreed 2026-09-28. No "ё" inside words: the captured joins drop its dots.
+from digits_text import ladder_text_page, distance_text_page  # noqa: E402
+
+WARNINGS = []
+
+
+def p21(c, cards, is_left):
+    """Number + noun (the noun's form follows the number, as in real writing)."""
+    ladder_text_page(c, cards, is_left, [
+        "1 кот, 2 кота, 5 котов",
+        "1 мяч, 3 мяча, 6 мячей",
+        "1 дом, 4 дома, 7 домов",
+        "1 рыба, 2 рыбы, 10 рыб",
+        "1 сок, 3 сока, 9 соков",
+    ], [
+        "1 жук, 2 жука, 5 жуков",
+        "1 лиса, 4 лисы, 8 лис",
+        "1 кит, 2 кита, 6 китов",
+        "1 мак, 3 мака, 5 маков",
+        "1 слон, 2 слона, 7 слонов",
+        "1 утка, 4 утки, 9 уток",
+    ], WARNINGS, 21)
+
+
+def p22(c, cards, is_left):
+    """How many / how old -- sentences, with the full stop."""
+    ladder_text_page(c, cards, is_left, [
+        "Мне 7 лет.", "У меня 2 руки.", "У кота 4 лапы.",
+        "В неделе 7 дней.", "У паука 8 лап.",
+    ], [
+        "У меня 10 пальцев.", "Мне 5 лет, а Оле 3.", "У стула 4 ножки.",
+        "В году 12 месяцев.", "У жука 6 лап.", "В классе 20 детей.",
+    ], WARNINGS, 22)
+
+
+def p23(c, cards, is_left):
+    """Dates and time."""
+    ladder_text_page(c, cards, is_left, [
+        "1 мая, 8 марта", "9 мая, 1 июня", "31 декабря",
+        "в 7 утра, в 9 вечера", "в 8 утра, в 2 часа",
+    ], [
+        "Сегодня 1 сентября.", "Урок в 9 утра.", "Обед в 1 час.",
+        "Сон в 9 вечера.", "Новый год 1 января.", "8 марта праздник.",
+    ], WARNINGS, 23)
+
+
+def p24(c, cards, is_left):
+    """Copying at a distance, as on the punctuation workbook's last pages."""
+    distance_text_page(c, cards, is_left, [
+        "На столе 3 яблока.", "У Маши 2 кошки.", "Мы едем в 8 утра.",
+        "В классе 20 детей.", "У папы 5 рыб.", "В саду 4 утки.", "Мне 7 лет!",
+    ], [
+        "2 кота, 3 мяча, 5 рыб", "4 дома, 6 слонов, 8 лис", "1 кит, 9 уток, 10 шаров",
+    ], WARNINGS, 24)
+
+
+CONTENT.update({21: p21, 22: p22, 23: p23, 24: p24})
