@@ -493,7 +493,7 @@
           </label>
         </div>
         <div class="toggle-row">
-          <label class="guide-toggle-label" title="Каждый прямой участок штриха довыравнивается по ближайшему направлению сетки (горизонталь, тонкая или жирная диагональ) — снимает дрожание руки/стилуса на прямых линиях. Диагональные участки дополнительно прилипают к самой ближайшей наклонной линии, если идут вдоль неё">
+          <label class="guide-toggle-label" title="Участки штриха, идущие почти вдоль стандартного наклона (65°), выпрямляются и прилипают к ближайшей наклонной линии сетки. Всё остальное (горизонтали, дуги, соединительный наклон 50°) остаётся как нарисовано">
             <input type="checkbox" id="snapToGridChk" />
             Выравнивать по сетке
           </label>
@@ -1140,54 +1140,87 @@
     d += " L " + last.x.toFixed(2) + " " + last.y.toFixed(2);
     return d;
   }
+  // Only the standard 65° slant snaps (user, 2026-09-28: "примагничивание только к наклонным
+  // на стандартный угол, к остальным примагничивать не нужно" -- for digits, whose strokes mix
+  // slanted straights with arcs and horizontals). A segment within SNAP_TOLERANCE_DEG of the
+  // 65° family (either direction) is forced onto it and pulled onto the nearest thin slant
+  // line; every other segment keeps the hand's own vector and is drawn as a curve (fitSpline),
+  // so horizontals, the 50° connector direction and arcs are left exactly as drawn.
+  // SNAP_ANGLES_RAD/bestSnapIndex above are kept as-is; indices 2/3 are the 65° family.
+  const SNAP_TOLERANCE_DEG = 15;
+  const SNAP_JITTER_LEN = 4; // viewBox units (x-height = 26)
+  function isStandardSlant(angleRad) {
+    const tol = SNAP_TOLERANCE_DEG * Math.PI / 180;
+    return [2, 3].find(i => Math.abs(normalizeAngle(angleRad - SNAP_ANGLES_RAD[i])) <= tol);
+  }
   function snapAndFilletPath(pts, radius) {
     if (pts.length < 2) return fitSpline(pts);
-    // Pass 1: snap each ORIGINAL segment's own direction+length to the nearest grid-line
-    // family, but chain the RESULT from the previous SNAPPED point (not the original one) --
-    // this keeps the whole stroke connected with no gaps, since each new vertex is built
-    // from where the chain actually ended up, not from where the hand happened to be. For a
-    // diagonal family, also nudge the new point sideways onto the nearest actual grid LINE
-    // (snapPointToGridLine) -- since that nudge only ever moves the point along x at fixed
-    // y, and the next point is built from THIS (already nudged) point by construction, the
-    // nudge propagates through the rest of the chain for free: it's a no-op on every point
-    // after the first in an unbroken diagonal run (x0 is invariant along a line of that
-    // exact slope), so in effect only the run's first point gets pulled onto the grid line
-    // and everything downstream just continues from there, still perfectly connected.
-    const snappedPts = [pts[0]];
-    const snapIdx = [];
+    // Pass 1: chain every segment from the previous (possibly moved) point, so the stroke
+    // stays connected. Snapped segments: direction forced to 65°, and the first point of each
+    // snapped run is pulled sideways onto the nearest grid line -- the curve before it just
+    // ends there instead (its last point IS that point), so no gap opens. Along an exact-65°
+    // run the nudge is a no-op on every later point (x0 is invariant), as before.
+    // Classify first. A short free piece (hand jitter, a near-duplicate point) sitting between
+    // two snapped segments of the same direction joins them, so one intended straight line
+    // isn't chopped into separately-filleted bits.
+    const cls = [];
     for (let i = 1; i < pts.length; i++) {
       const dx = pts[i].x - pts[i - 1].x, dy = pts[i].y - pts[i - 1].y;
-      const len = Math.hypot(dx, dy);
-      const idx = bestSnapIndex(Math.atan2(dy, dx));
-      snapIdx.push(idx);
-      const a = SNAP_ANGLES_RAD[idx];
-      const prev = snappedPts[snappedPts.length - 1];
-      const next = { x: prev.x + Math.cos(a) * len, y: prev.y + Math.sin(a) * len };
-      snappedPts.push(snapPointToGridLine(next, idx));
+      const idx = isStandardSlant(Math.atan2(dy, dx));
+      cls.push({ dx, dy, idx, len: Math.hypot(dx, dy) });
     }
-    // The stroke's very own first point never goes through the loop above (it's the anchor
-    // everything else chains from), so if the stroke OPENS on a diagonal it's still the raw,
-    // un-nudged hand position at this point -- nudge it too. Safe to do after the fact,
-    // unlike every other point: nothing precedes it in the chain to disconnect from, and
-    // nearestGridX0 resolves to the same target line independently of which point asked, so
-    // this can't drag it onto a different line than the rest of the run already snapped to.
-    if (snapIdx.length) snappedPts[0] = snapPointToGridLine(snappedPts[0], snapIdx[0]);
-    // Pass 2: merge consecutive segments that snapped to the SAME grid family into one --
-    // RDP can over-segment a hand-drawn "should be one straight line" stroke into several
-    // small collinear-ish pieces wherever wobble happens to cross its own epsilon; without
-    // this they'd stay as separate tiny segments with an unwanted rounded corner between
-    // them instead of reading as the single clean line the artist actually intended.
-    const merged = [snappedPts[0]];
-    const mergedIdx = [];
-    for (let i = 0; i < snapIdx.length; i++) {
-      if (mergedIdx.length > 0 && mergedIdx[mergedIdx.length - 1] === snapIdx[i]) {
-        merged[merged.length - 1] = snappedPts[i + 1];
-      } else {
-        merged.push(snappedPts[i + 1]);
-        mergedIdx.push(snapIdx[i]);
+    for (let i = 0; i < cls.length; i++) {
+      if (cls[i].idx !== undefined || cls[i].len >= SNAP_JITTER_LEN) continue;
+      let a = i - 1, b = i + 1;
+      while (a >= 0 && cls[a].idx === undefined && cls[a].len < SNAP_JITTER_LEN) a--;
+      while (b < cls.length && cls[b].idx === undefined && cls[b].len < SNAP_JITTER_LEN) b++;
+      if (a >= 0 && b < cls.length && cls[a].idx !== undefined && cls[a].idx === cls[b].idx) {
+        cls[i].absorbed = cls[a].idx;
       }
     }
-    return filletPolylinePath(merged, radius);
+    const out = [{ ...pts[0] }];
+    const segIdx = []; // snap index (2/3) or -1 for a free segment
+    for (const c of cls) {
+      const { dx, dy } = c;
+      const idx = c.idx !== undefined ? c.idx : c.absorbed;
+      const prev = out[out.length - 1];
+      if (idx === undefined) {
+        out.push({ x: prev.x + dx, y: prev.y + dy });
+        segIdx.push(-1);
+        continue;
+      }
+      if (segIdx.length === 0 || segIdx[segIdx.length - 1] === -1) {
+        out[out.length - 1] = snapPointToGridLine(prev, idx);
+      }
+      const from = out[out.length - 1];
+      // an absorbed jitter piece contributes its length projected on the slant (may be ~0)
+      const a = SNAP_ANGLES_RAD[idx];
+      const len = c.idx !== undefined ? c.len : dx * Math.cos(a) + dy * Math.sin(a);
+      out.push(snapPointToGridLine({ x: from.x + Math.cos(a) * len, y: from.y + Math.sin(a) * len }, idx));
+      segIdx.push(idx);
+    }
+    // Pass 2: merge consecutive snapped segments of the same direction into one line (RDP
+    // can split one intended straight into collinear pieces).
+    const pointsM = [out[0]], idxM = [];
+    for (let i = 0; i < segIdx.length; i++) {
+      const last = idxM[idxM.length - 1];
+      if (segIdx[i] !== -1 && last === segIdx[i]) pointsM[pointsM.length - 1] = out[i + 1];
+      else { pointsM.push(out[i + 1]); idxM.push(segIdx[i]); }
+    }
+    // Pass 3: emit runs -- snapped runs as straight lines with filleted corners, free runs
+    // as a spline through their own points.
+    let d = "M " + pointsM[0].x.toFixed(2) + " " + pointsM[0].y.toFixed(2);
+    let i = 0;
+    while (i < idxM.length) {
+      const snapped = idxM[i] !== -1;
+      let j = i;
+      while (j < idxM.length && (idxM[j] !== -1) === snapped) j++;
+      const run = pointsM.slice(i, j + 1);
+      const piece = snapped ? filletPolylinePath(run, radius) : fitSpline(run);
+      d += piece.replace(/^M\s*[-\d.]+\s+[-\d.]+/, "");
+      i = j;
+    }
+    return d;
   }
   function buildPathD(simplified) {
     return snapToGridChk.checked ? snapAndFilletPath(simplified, Number(snapRoundingInput.value)) : fitSpline(simplified);
