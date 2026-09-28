@@ -143,3 +143,15 @@ def practice_row(c, cards, seq, is_left, t, cells_h=1, step=2, n_trace=6,
 
 def page_number(c, n, align):
     draw_page_number_badge(c, n, align)
+
+
+def seq_row(c, cards, items, is_left, t, step=2):
+    """A row of explicit slots: items = [(char, "solid"|"dashed"|None)],
+    None = an empty slot the child fills in."""
+    y = row_y(t)
+    for i, (ch, style) in enumerate(items):
+        if style is None:
+            continue
+        draw_digit(c, cards[ch], col_x(is_left, i * step), y,
+                   opacity=1.0 if style == "solid" else FADE[0],
+                   dashed=style == "dashed", start_dot=True)

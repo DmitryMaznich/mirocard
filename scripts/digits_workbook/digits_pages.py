@@ -10,7 +10,7 @@
 The combination/example split inside 11-20 is not decided yet.
 """
 
-from digits_content import practice_row
+from digits_content import practice_row, seq_row, COLS
 
 TEXT_PAGES = range(21, 25)
 KIND = {n: ("standard" if n in TEXT_PAGES else "cells") for n in range(1, 25)}
@@ -50,10 +50,24 @@ def digit_page(c, cards, d, is_left):
         else:
             practice_row(c, cards, d, is_left, t, model_only=True)
     if review:
-        seq = done + d
-        practice_row(c, cards, seq, is_left, review[0], n_trace=len(seq))
-        practice_row(c, cards, seq, is_left, review[1], model_only=True)
+        review_rows(c, cards, done + d, is_left, *review)
+
+
+def review_rows(c, cards, seq, is_left, t1, t2):
+    """Every digit so far, in order -- never cut mid-sequence:
+      row 1: the sequence half-tone dashed, repeated whole while it fits;
+      row 2: short sequence (fits twice): solid once, then room to copy it;
+             longer: every other digit solid, the gaps left for the child
+             to fill in ("1 _ 3 _ 5 _ 7") -- recalling the order."""
+    slots = COLS // 2
+    reps = max(slots // len(seq), 1)
+    seq_row(c, cards, [(ch, "dashed") for ch in seq * reps], is_left, t1)
+    if 2 * len(seq) <= slots:
+        seq_row(c, cards, [(ch, "solid") for ch in seq], is_left, t2)
+    else:
+        seq_row(c, cards, [(ch, "solid" if i % 2 == 0 else None)
+                           for i, ch in enumerate(seq)], is_left, t2)
 
 
 CONTENT = {i + 1: (lambda c, cards, is_left, d=d: digit_page(c, cards, d, is_left))
-           for i, d in enumerate(ORDER[:1])}
+           for i, d in enumerate(ORDER)}
