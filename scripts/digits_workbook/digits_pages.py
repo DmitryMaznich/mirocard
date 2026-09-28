@@ -18,27 +18,41 @@ KIND = {n: ("standard" if n in TEXT_PAGES else "cells") for n in range(1, 25)}
 ORDER = "1234567890"
 
 
+# Vertical budget (42 cells of 5mm; user, 2026-09-28: use the page fully, no
+# empty rows, one empty cell between rows stays): big rows 2 cells tall,
+# standard rows 1 cell, one-cell gap after each. Top of the first big digit
+# on line 3 (15mm from the top edge, clear of the printer's unprintable
+# strip); last baseline on line 40 (10mm up: the footer is at 3mm, the page
+# badge sits in the margin). That's 2 big + 16 standard rows.
+BIG_ROWS = (5, 8)
+STD_ROWS = tuple(range(10, 41, 2))   # 16 rows
+
+
 def digit_page(c, cards, d, is_left):
-    """One digit, top to bottom (grid line index t = baseline):
-      two big rows (2 cells tall): model + dashed copies to trace;
-      four standard rows (digit, empty cell): model + 6 copies, rest free;
-      three rows tapering the copies (4, 2, 1) -- propis "скос";
-      then the model alone, the child writes the row by himself;
-      last two rows: review of every digit so far (from page 2 on)."""
+    """One digit, top to bottom:
+      2 big rows (2 cells tall): model + 5, then + 3 dashed copies to trace;
+      4 standard rows (digit, empty cell): model + 6 copies, rest free;
+      3 rows tapering the copies (4, 2, 1) -- propis "скос";
+      model alone on the remaining rows (the child writes the row himself);
+      from page 2 on, the last 2 rows review every digit so far."""
     done = ORDER[:ORDER.index(d)]
-    practice_row(c, cards, d, is_left, 5, cells_h=2, step=3, n_trace=5)
-    practice_row(c, cards, d, is_left, 8, cells_h=2, step=3, n_trace=3)
-    for t in (11, 13, 15, 17):
-        practice_row(c, cards, d, is_left, t)
-    for t, n in ((19, 4), (21, 2), (23, 1)):
-        practice_row(c, cards, d, is_left, t, n_trace=n)
-    model_rows = (25, 27, 29, 31, 33, 35, 37) if not done else (25, 27, 29, 31, 33)
-    for t in model_rows:
-        practice_row(c, cards, d, is_left, t, model_only=True)
-    if done:
+    practice_row(c, cards, d, is_left, BIG_ROWS[0], cells_h=2, step=3, n_trace=5)
+    practice_row(c, cards, d, is_left, BIG_ROWS[1], cells_h=2, step=3, n_trace=3)
+    rows = list(STD_ROWS)
+    review = rows[-2:] if done else []
+    if review:
+        rows = rows[:-2]
+    for i, t in enumerate(rows):
+        if i < 4:
+            practice_row(c, cards, d, is_left, t)
+        elif i < 7:
+            practice_row(c, cards, d, is_left, t, n_trace=(4, 2, 1)[i - 4])
+        else:
+            practice_row(c, cards, d, is_left, t, model_only=True)
+    if review:
         seq = done + d
-        practice_row(c, cards, seq, is_left, 35, n_trace=len(seq))
-        practice_row(c, cards, seq, is_left, 37, model_only=True)
+        practice_row(c, cards, seq, is_left, review[0], n_trace=len(seq))
+        practice_row(c, cards, seq, is_left, review[1], model_only=True)
 
 
 CONTENT = {i + 1: (lambda c, cards, is_left, d=d: digit_page(c, cards, d, is_left))
