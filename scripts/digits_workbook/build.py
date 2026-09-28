@@ -3,12 +3,16 @@ booklet on A4-landscape sheets, like the punctuation workbook
 (../punctuation_workbook/build.py), whose ruling it reuses ("cells" kind
 added for the first half).
 
-    python build.py              # output/digits_workbook.pdf
+    python build.py              # output/digits_workbook.pdf (sheets only)
+                                 # + Цифры_A4_для_печати_книжкой.pdf: cover,
+                                 #   blank back, sheets, print preferences
     python build.py --png 1 2    # + 200dpi PNG of these A5 pages
 """
 
 import argparse
 import os
+import subprocess
+import sys
 
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import mm
@@ -50,6 +54,16 @@ def build(out_path):
     return placement
 
 
+PRINT_PDF = "Цифры_A4_для_печати_книжкой.pdf"
+
+
+def build_cover():
+    """Cover from the shared propis cover script (digits variant)."""
+    subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "cover_tetrad.py"),
+                    "--style=цифры", "--variant=digits"], cwd=ROOT, check=True)
+    return os.path.join(ROOT, "cover_цифры_digits.pdf")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--png", nargs="*", type=int, default=None)
@@ -61,6 +75,11 @@ def main():
     for w in WARNINGS:
         print("WARNING:", w)
     print(out)
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    from propis_print_notebooks import merge   # cover + blank back + sheets + print prefs
+    print_pdf = os.path.join(OUT_DIR, PRINT_PDF)
+    merge(build_cover(), out, print_pdf)
+    print(print_pdf)
     if args.png is not None:
         import pymupdf
         doc = pymupdf.open(out)

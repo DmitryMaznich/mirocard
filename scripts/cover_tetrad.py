@@ -512,6 +512,77 @@ def left_page_propis(cv, variant):
     _logo_footer(cv)
 
 
+# ═════════════════════════════════════════════════════════════════════════════
+# Левая страница — вариант «цифры» (scripts/digits_workbook)
+# ═════════════════════════════════════════════════════════════════════════════
+
+DIGITS_COVER_LINES = [
+    "1 2 3 4 5 6 7 8 9 0",
+    "10 11 12 13 14 15",
+    "2 + 3 = 5",
+    "7 − 4 = 3",
+    "У кота 4 лапы.",
+]
+
+
+def _digits_ink():
+    """The digits workbook's DigitInk: captured letters + the user's
+    captured digits and signs (tools/propis/topic.json), at letter scale."""
+    wb = os.path.join(SCRIPTS_DIR, "digits_workbook")
+    if wb not in sys.path:
+        sys.path.insert(0, wb)
+    from digits_content import load_cards
+    from digits_text import ink_for
+    return load_cards(), ink_for(load_cards())
+
+
+def left_page_digits(cv):
+    cv.setFillColorRGB(1, 1, 1)
+    cv.rect(0, 0, HALF_W, PAGE_H, fill=1, stroke=0)
+
+    ybase, cx, max_w, font_max = _propis_grid(cv)
+    cv.setFont(CURSIVE, font_max)
+    cv.setFillColorRGB(0.05, 0.40, 0.08)
+    cv.drawCentredString(cx, ybase(0), "Цифры")
+
+    _, ink = _digits_ink()
+    cv.saveState()
+    cv.scale(MM, MM)
+    for j, line in enumerate(DIGITS_COVER_LINES):
+        w = ink.sentence_width(line)
+        assert w <= max_w / MM, f"«{line}» не влезает ({w:.0f}мм)"
+        ink.draw_text(cv, line, cx / MM - w / 2, ybase(1 + j) / MM, 1.0)
+    cv.restoreState()
+
+    _logo_footer(cv)
+
+
+def _digits_pictogram(cv, x0, x1, y0, y1):
+    """Thumbnail window for the digits workbook: a cell grid with 1 2 3."""
+    cards, _ = _digits_ink()
+    step = (y1 - y0) / 5
+    cv.setStrokeColorRGB(*C_DIAG)
+    cv.setLineWidth(0.3)
+    x = x0
+    while x <= x1 + 0.01:
+        cv.line(x, y0, x, y1)
+        x += step
+    y = y0
+    while y <= y1 + 0.01:
+        cv.line(x0, y, x1, y)
+        y += step
+    from digits_content import draw_digit
+    cv.saveState()
+    cv.scale(MM, MM)
+    cell = step / MM
+    # draw_digit works in 5mm cells; scale the canvas so one cell = `step`
+    k = cell / 5.0
+    cv.scale(k, k)
+    for i, d in enumerate("123"):
+        draw_digit(cv, cards[d], (x0 / MM) / k + 5.0 * (1 + 2 * i), (y0 / MM) / k + 5.0 * 3)
+    cv.restoreState()
+
+
 def _punctuation_pictogram(cv, x0, x1, y0, y1, narrow_h, pitch, y_first):
     """Thumbnail window for the punctuation workbook: its standard ruling
     with the four marks drawn big on the top row."""
@@ -536,6 +607,7 @@ def _punctuation_pictogram(cv, x0, x1, y0, y1, narrow_h, pitch, y_first):
 
 COVER_SUBTITLES = {
     "знаки": "знаки препинания",
+    "цифры": "цифры",
     "буквы1": "прописи · часть 1",
     "буквы2": "прописи · часть 2",
     "соединения": "соединения букв",
@@ -623,6 +695,8 @@ def right_page(cv, style="плотная"):
         thumbnail_dots(cv, th_x0, th_x1, th_y0, th_y1, th_narrow, th_pitch, 5)
     elif style == "знаки":
         _punctuation_pictogram(cv, th_x0, th_x1, th_y0, th_y1, th_narrow, th_pitch, th_y_first)
+    elif style == "цифры":
+        _digits_pictogram(cv, th_x0, th_x1, th_y0, th_y1)
     elif style == "тексты":
         _texts_pictogram(cv, th_x0, th_x1, th_y0, th_y1, th_narrow, th_pitch, th_y_first)
     else:
@@ -658,6 +732,8 @@ def main():
         left_page_alphabet_handwritten(cv)
     elif variant == "punctuation":
         left_page_punctuation(cv)
+    elif variant == "digits":
+        left_page_digits(cv)
     elif variant in PROPIS_COVER_TITLES:
         left_page_propis(cv, variant)
     else:

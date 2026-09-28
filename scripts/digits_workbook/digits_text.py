@@ -29,7 +29,7 @@ class DigitInk(Ink):
             if core:
                 if not first:
                     x += WORD_GAP_MM
-                if core.isdigit():
+                if all(ch in self.digit_cards for ch in core):   # a number or a sign
                     ops.append(("n", core, x))
                     x += self._number_width(core)
                 else:
