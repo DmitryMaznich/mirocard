@@ -160,14 +160,14 @@ def seq_row(c, cards, items, is_left, t, step=2):
                    dashed=style == "dashed", start_dot=True)
 
 
-def units_row(c, cards, units, is_left, t, gap=1, dots="solid"):
+def units_row(c, cards, units, is_left, t, gap=1, dots="none"):
     """School cell layout: each character in its own cell, the characters of
     one unit (a number "12", an example "2+3=5") in consecutive cells,
     `gap` empty cells between units. units = [(text, "solid"|"dashed"|None)],
     None = the unit's cells left empty for the child to write in.
-    dots: where start-of-stroke dots go -- "all", "solid" (models only;
-    the digits are known by now, dots on every copy turn a row of
-    examples into confetti), or "none"."""
+    dots: where start-of-stroke dots go -- "all", "solid" (models only),
+    or "none" (default: dots belong only where a symbol is being LEARNED --
+    digit pages 1-10 and the sign rows of page 16; user, 2026-09-28)."""
     width = sum(len(u) for u, _ in units) + gap * (len(units) - 1)
     assert width <= COLS, f"row {t}: {units} is {width} cells, row has {COLS}"
     y = row_y(t)

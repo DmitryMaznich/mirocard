@@ -180,7 +180,8 @@ def p16(c, cards, is_left):
     for k, sign in enumerate("+−="):
         rows = r[4 * k: 4 * k + 4]
         for t, n in zip(rows, (6, 2, 1, 0)):
-            units_row(c, cards, [(sign, "solid")] + [(sign, "dashed")] * n, is_left, t, gap=1)
+            units_row(c, cards, [(sign, "solid")] + [(sign, "dashed")] * n, is_left, t,
+                      gap=1, dots="all")   # the signs are new here: show where to start
     exprs = ["1+1", "2+1", "3−1", "2−1", "1+2", "3+1", "4−1"]
     for t, e in zip(r[12:], exprs):
         units_row(c, cards, [(e, "solid"), (e, "dashed"), (e, "dashed"), (e, None)], is_left, t, gap=3)
@@ -198,7 +199,7 @@ def examples_page(c, cards, examples, is_left, per_row=3):
             units = [(e, "solid"), (e, "dashed" if i < half else None), (e, None)]
         else:
             units = [(e, "solid"), (e, "dashed" if i < half else None)]
-        units_row(c, cards, units, is_left, t, gap=3, dots="none")
+        units_row(c, cards, units, is_left, t, gap=3)
 
 
 PLUS5 = ["1+1=2", "1+2=3", "2+1=3", "1+3=4", "3+1=4", "2+2=4", "1+4=5", "4+1=5", "2+3=5", "3+2=5"]
