@@ -59,6 +59,9 @@ def diagonal_x_mm(k, y_mm, kind, half_offset_mm):
 
 def _draw_half(c, x_offset, kind, palette):
     col = PALETTES[palette]
+    if kind == "cells":
+        _draw_cells(c, x_offset, palette)
+        return
     # horizontals (identical loop to propis_ruling.py)
     c.setStrokeColorRGB(*col["h"])
     y = VERTICAL_SHIFT_MM * mm
@@ -90,6 +93,35 @@ def _draw_half(c, x_offset, kind, palette):
         if x + PAGE_H * SLANT >= x_offset and x <= x_offset + 148 * mm:
             c.line(x, 0, x + PAGE_H * SLANT, PAGE_H)
         x += step
+    c.restoreState()
+
+
+CELL_MM = 5.0
+CELL_GRAY = 0.70
+CELL_WIDTH = 0.3  # points
+
+
+def _draw_cells(c, x_offset, palette):
+    """"Клетка" half for the digits workbook (scripts/digits_workbook):
+    5mm squares, anchored on the red margin (left page: x=MARGIN, right
+    page: x=PAGE_W-MARGIN) and on the page's bottom edge (210 = 42 cells),
+    so a cell column always starts exactly at the margin line."""
+    c.saveState()
+    c.setStrokeGray(CELL_GRAY)
+    c.setLineWidth(CELL_WIDTH)
+    x0, x1 = x_offset, x_offset + 148 * mm
+    step = CELL_MM * mm
+    anchor = MARGIN_MM * mm if x_offset == 0 else PAGE_W - MARGIN_MM * mm
+    k = math.floor((x0 - anchor) / step)
+    while anchor + k * step <= x1:
+        x = anchor + k * step
+        if x >= x0:
+            c.line(x, 0, x, PAGE_H)
+        k += 1
+    y = 0.0
+    while y <= PAGE_H + 0.01:
+        c.line(x0, y, x1, y)
+        y += step
     c.restoreState()
 
 
