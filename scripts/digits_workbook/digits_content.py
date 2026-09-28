@@ -66,16 +66,22 @@ def draw_digit(c, card, cell_x, baseline, cells_h=1, cells_w=None, opacity=1.0,
                dashed=False, start_dot=False):
     """One digit/sign, `cells_h` cells tall, in a box `cells_w` cells wide
     (default = cells_h) whose left edge is cell_x. The ink's rightmost
-    point sits exactly on the box's right grid line (user, 2026-09-28),
-    at every size."""
+    point sits exactly on the box's right grid line, and a digit's
+    lowest/highest points touch the bottom/top lines (user, 2026-09-28),
+    at every size -- scaled from its own true ink height. Math signs keep
+    the digits' common scale and baseline instead (a "−" stretched to a
+    full cell would be a vertical smear)."""
     cells_w = cells_w or cells_h
     h = cells_h * CELL_MM
-    k = h / (LETTER_BASELINE_UNIT - DIGIT_TOP_UNIT)
-    x0, x1, _, _ = ink_box(card)
+    x0, x1, y0, y1 = ink_box(card)
+    if card["type"] == "digit":
+        k, base_unit = h / (y1 - y0), y1
+    else:
+        k, base_unit = h / (LETTER_BASELINE_UNIT - DIGIT_TOP_UNIT), LETTER_BASELINE_UNIT
     ox = cell_x + cells_w * CELL_MM - (x1 - x0) * k
 
     def tf(nx, ny):
-        return ox + (nx - x0) * k, baseline - (ny - LETTER_BASELINE_UNIT) * k
+        return ox + (nx - x0) * k, baseline - (ny - base_unit) * k
 
     path = c.beginPath()
     for s in card["strokes"]:
