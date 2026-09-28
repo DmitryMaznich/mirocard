@@ -5,6 +5,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import process from "node:process";
 import { describe, it, expect } from "vitest";
 import PrivacyContent from "./PrivacyContent.jsx";
 
