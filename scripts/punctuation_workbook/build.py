@@ -10,7 +10,7 @@ Output (<repo>/output/):
     punctuation_workbook[_<palette>].pdf        the 12 imposed sheets only
     Знаки_препинания_A4_для_печати_книжкой.pdf  cover + blank back + sheets,
                                                 with print preferences embedded
-    Знаки_препинания_A5_по_порядку.pdf          pages 1-24 in reading order
+    Знаки_препинания_A5_по_порядку.pdf          front cover, pages 1-24, back cover
 """
 
 import argparse
@@ -98,20 +98,33 @@ def assemble_print_pdf(sheets_pdf, cover_pdf, out_path):
         w.write(f)
 
 
-def reading_order_pdf(sheets_pdf, placement, out_path):
-    """Pages 1..N as single A5 pages, cropped out of the imposed sheets."""
+def _add_half(w, src_page, is_left):
+    """Append one A5 half (left or right) of an A4-landscape page."""
+    page = w.add_page(src_page)
+    box = page.mediabox
+    half = float(box.width) / 2
+    x0 = 0 if is_left else half
+    for b in (page.mediabox, page.cropbox):
+        b.lower_left = (x0, 0)
+        b.upper_right = (x0 + half, float(box.height))
+
+
+def reading_order_pdf(sheets_pdf, placement, out_path, cover_pdf=None):
+    """Pages 1..N as single A5 pages, cropped out of the imposed sheets,
+    wrapped in the cover: its right half (the front) first, its left half
+    (the back) last -- the cover spread is laid out back|front like a real
+    folded booklet."""
     from pypdf import PdfReader, PdfWriter
     src = PdfReader(sheets_pdf)
+    cover = PdfReader(cover_pdf).pages[0] if cover_pdf else None
     w = PdfWriter()
+    if cover is not None:
+        _add_half(w, cover, is_left=False)
     for n in range(1, N_PAGES + 1):
         idx, is_left = placement[n]
-        page = w.add_page(src.pages[idx])
-        box = page.mediabox
-        half = float(box.width) / 2
-        x0 = 0 if is_left else half
-        for b in (page.mediabox, page.cropbox):
-            b.lower_left = (x0, 0)
-            b.upper_right = (x0 + half, float(box.height))
+        _add_half(w, src.pages[idx], is_left)
+    if cover is not None:
+        _add_half(w, cover, is_left=True)
     with open(out_path, "wb") as f:
         w.write(f)
 
@@ -162,11 +175,12 @@ def main():
 
     if args.palette == "gray":   # the final files are built from the chosen grid only
         print_pdf = os.path.join(OUT_DIR, PRINT_PDF)
-        assemble_print_pdf(out, build_cover(), print_pdf)
+        cover_pdf = build_cover()
+        assemble_print_pdf(out, cover_pdf, print_pdf)
         print(print_pdf)
         stage_for_deck(print_pdf)
         reading = os.path.join(OUT_DIR, READING_PDF)
-        reading_order_pdf(out, placement, reading)
+        reading_order_pdf(out, placement, reading, cover_pdf)
         print(reading)
 
     if args.png is not None:
