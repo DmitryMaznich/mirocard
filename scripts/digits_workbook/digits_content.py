@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(SCRIPTS, "punctuation_workbook"))
 
 from page import draw_page_number_badge, MARGIN_MM  # noqa: E402
 from render import TOPIC_JSON, LETTER_BASELINE_UNIT  # noqa: E402
-from svg_path import draw_path  # noqa: E402
+from svg_path import draw_path, path_bounds  # noqa: E402
 from ruling import CELL_MM, PAGE_H, HALF_W, PAGE_W  # noqa: E402
 from reportlab.lib.units import mm  # noqa: E402
 
@@ -47,12 +47,10 @@ def _nums(d):
 
 
 def ink_box(card):
-    xs, ys = [], []
-    for s in card["strokes"]:
-        n = _nums(s["d"])
-        xs += n[0::2]
-        ys += n[1::2]
-    return min(xs), max(xs), min(ys), max(ys)
+    """True ink bounds (curves sampled, not their control points)."""
+    b = [path_bounds(s["d"], samples_per_curve=80) for s in card["strokes"]]
+    return (min(v[0] for v in b), max(v[1] for v in b),
+            min(v[2] for v in b), max(v[3] for v in b))
 
 
 def row_y(t):
@@ -66,13 +64,15 @@ def col_x(is_left, col):
 
 def draw_digit(c, card, cell_x, baseline, cells_h=1, cells_w=None, opacity=1.0,
                dashed=False, start_dot=False):
-    """One digit/sign, `cells_h` cells tall, ink box centred in a box
-    `cells_w` cells wide (default = cells_h) whose left edge is cell_x."""
+    """One digit/sign, `cells_h` cells tall, in a box `cells_w` cells wide
+    (default = cells_h) whose left edge is cell_x. The ink's rightmost
+    point sits exactly on the box's right grid line (user, 2026-09-28),
+    at every size."""
     cells_w = cells_w or cells_h
     h = cells_h * CELL_MM
     k = h / (LETTER_BASELINE_UNIT - DIGIT_TOP_UNIT)
     x0, x1, _, _ = ink_box(card)
-    ox = cell_x + (cells_w * CELL_MM - (x1 - x0) * k) / 2
+    ox = cell_x + cells_w * CELL_MM - (x1 - x0) * k
 
     def tf(nx, ny):
         return ox + (nx - x0) * k, baseline - (ny - LETTER_BASELINE_UNIT) * k
