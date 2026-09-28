@@ -1,31 +1,45 @@
-"""Page plan for the digits workbook (planned with the user 2026-09-28):
-pages 1-12 on a 5mm "клетка" grid (digits, numbers, + − =), pages 13-24 on
-the standard propis ruling (digits inside handwritten text). Digit order
-follows the hand's motion, not 0-9: straight lines (1 4 7), ovals (0 6 9),
-arcs (2 3 5 8)."""
+"""Page plan for the digits workbook (agreed with the user 2026-09-28):
+
+    1-9    one digit per page, in order 1..9
+    10     0 (after 9, right before 10 -- as in 1st-grade maths textbooks;
+           "zero = nothing" is abstract, and 0 vs the letter О)
+    11-20  combinations, then examples with + − = (all on the "клетка" grid:
+           maths is written in cells, never on the slanted propis ruling)
+    21-24  digits inside handwritten text, on the standard propis ruling
+
+The combination/example split inside 11-20 is not decided yet.
+"""
 
 from digits_content import practice_row
 
-KIND = {n: ("cells" if n <= 12 else "standard") for n in range(1, 25)}
+TEXT_PAGES = range(21, 25)
+KIND = {n: ("standard" if n in TEXT_PAGES else "cells") for n in range(1, 25)}
+
+ORDER = "1234567890"
 
 
-def digit_block(c, cards, d, is_left, t):
-    """4 rows for one digit: big (2 cells) model + tracing, two standard
-    rows (digit, empty cell), and model-only to write alone."""
-    practice_row(c, cards, d, is_left, t, cells_h=2, step=3, n_trace=5)
-    practice_row(c, cards, d, is_left, t + 3)
-    practice_row(c, cards, d, is_left, t + 5)
-    practice_row(c, cards, d, is_left, t + 7, model_only=True)
+def digit_page(c, cards, d, is_left):
+    """One digit, top to bottom (grid line index t = baseline):
+      two big rows (2 cells tall): model + dashed copies to trace;
+      four standard rows (digit, empty cell): model + 6 copies, rest free;
+      three rows tapering the copies (4, 2, 1) -- propis "скос";
+      then the model alone, the child writes the row by himself;
+      last two rows: review of every digit so far (from page 2 on)."""
+    done = ORDER[:ORDER.index(d)]
+    practice_row(c, cards, d, is_left, 5, cells_h=2, step=3, n_trace=5)
+    practice_row(c, cards, d, is_left, 8, cells_h=2, step=3, n_trace=3)
+    for t in (11, 13, 15, 17):
+        practice_row(c, cards, d, is_left, t)
+    for t, n in ((19, 4), (21, 2), (23, 1)):
+        practice_row(c, cards, d, is_left, t, n_trace=n)
+    model_rows = (25, 27, 29, 31, 33, 35, 37) if not done else (25, 27, 29, 31, 33)
+    for t in model_rows:
+        practice_row(c, cards, d, is_left, t, model_only=True)
+    if done:
+        seq = done + d
+        practice_row(c, cards, seq, is_left, 35, n_trace=len(seq))
+        practice_row(c, cards, seq, is_left, 37, model_only=True)
 
 
-def p1(c, cards, is_left):
-    digit_block(c, cards, "1", is_left, 5)
-    digit_block(c, cards, "4", is_left, 17)
-    # both together: alternate, then write alone
-    practice_row(c, cards, "14", is_left, 29, n_trace=6)
-    practice_row(c, cards, "41", is_left, 31, n_trace=6)
-    practice_row(c, cards, "14", is_left, 33, model_only=True)
-    practice_row(c, cards, "41", is_left, 35, model_only=True)
-
-
-CONTENT = {1: p1}
+CONTENT = {i + 1: (lambda c, cards, is_left, d=d: digit_page(c, cards, d, is_left))
+           for i, d in enumerate(ORDER[:1])}
