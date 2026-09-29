@@ -1331,7 +1331,24 @@
     }
 
     const instruction = mode?.ui?.instruction ?? "Дорисуй вторую половину фигуры";
-    const repeatStart = targetPaths[0]?.[0] ?? targetDots[0] ?? targetCircles[0] ?? null;
+    // Start-point support scales with the figure's level: a starter figure
+    // marks where every contour begins, a reinforce figure only the first one,
+    // and a challenge figure none - finding the anchor is part of that skill.
+    // Each mark appears twice, in the sample and in the work panel, so the
+    // child pairs "this corner here" with "that dot there" instead of guessing.
+    const repeatStarts = useMemo(() => {
+      if (!isRepeat || shape.difficulty === "challenge") return [];
+      const firstOnly = [sourcePaths[0]?.[0] ?? sourceDots[0] ?? sourceCircles[0]];
+      const candidates = shape.difficulty === "starter" && sourcePaths.length ? sourcePaths.map((path) => path[0]) : firstOnly;
+      const seen = new Set();
+      return candidates.filter((point) => {
+        if (!point) return false;
+        const key = `${point.col}:${point.row}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).map((point) => ({ sample: { col: point.col, row: point.row }, work: { col: point.col + workOrigin, row: point.row } }));
+    }, [isRepeat, shape.difficulty, sourcePaths, sourceDots, sourceCircles, workOrigin]);
     const coveredSegments = new Set(result?.coveredIndexes ?? []);
     const coveredDots = new Set(result?.coveredDotIndexes ?? []);
     const coveredCircles = new Set(result?.coveredCircleIndexes ?? []);
@@ -1385,10 +1402,20 @@
           fixedTargetPaths.map((path, index) => h("path", { key: `fixed-target-${index}`, className: "symmetry-draw__fixed-target", d: pathToD(path) })),
           fixedTargetDots.map((point, index) => h("circle", { key: `fixed-target-dot-${index}`, className: "symmetry-draw__fixed-target-dot", cx: point.col, cy: point.row, r: "0.06" })),
           fixedTargetCircles.map((circle, index) => h("circle", { key: `fixed-target-circle-${index}`, className: "symmetry-draw__fixed-target-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 })),
-          isRepeat && repeatStart ? h("g", { className: "symmetry-draw__repeat-start", "aria-hidden": "true" },
-            h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".23" }),
-            h("circle", { cx: repeatStart.col, cy: repeatStart.row, r: ".11" }, h("animate", { attributeName: "r", values: ".11;.17;.11", dur: "1.15s", repeatCount: "indefinite" })),
-          ) : null,
+          // Only the first start in the work panel pulses - that is where to put
+          // the pencil. Every other mark (and the whole sample) stays still.
+          repeatStarts.map(({ sample, work }, index) => h("g", { key: `repeat-start-${index}`, "aria-hidden": "true" },
+            h("g", { className: "symmetry-draw__repeat-start symmetry-draw__repeat-start--sample" },
+              h("circle", { cx: sample.col, cy: sample.row, r: ".23" }),
+              h("circle", { cx: sample.col, cy: sample.row, r: ".11" }),
+            ),
+            h("g", { className: "symmetry-draw__repeat-start" },
+              h("circle", { cx: work.col, cy: work.row, r: ".23" }),
+              h("circle", { cx: work.col, cy: work.row, r: ".11" },
+                index === 0 ? h("animate", { attributeName: "r", values: ".11;.17;.11", dur: "1.15s", repeatCount: "indefinite" }) : null,
+              ),
+            ),
+          )),
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-glow-${index}`, className: "symmetry-draw__stroke-glow", d: pathToD(path) }) : null),
           drawnPaths.map((path, index) => path.length > 1 ? h("path", { key: `drawn-${index}`, className: "symmetry-draw__stroke", d: pathToD(path) }) : null),
           drawnPaths.map((path, index) => path.length === 1 ? h("circle", { key: `drawn-dot-${index}`, className: "symmetry-draw__stroke-dot", cx: path[0].col, cy: path[0].row, r: "0.055" }) : null),
