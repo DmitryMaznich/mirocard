@@ -123,6 +123,9 @@
 /* Grid: hairline lines regardless of viewBox scale (non-scaling-stroke), soft
    powder-blue dots at every intersection. */
 .symmetry-draw__line { stroke: #bdd7f0; stroke-width: 1; vector-effect: non-scaling-stroke; }
+/* Every fifth line: a shade darker, like a drawing exercise book - a
+   counting aid, not a frame, so it stays well below the figure's ink. */
+.symmetry-draw__line--major { stroke: #86acd8; stroke-width: 1.7; }
 .symmetry-draw__point { fill: var(--sd-point); pointer-events: none; }
 .symmetry-draw__coordinate { fill: #5f7896; font: 700 0.22px/1 Nunito, sans-serif; pointer-events: none; }
 
@@ -410,6 +413,7 @@
 .dictation__grid { display: block; width: 100%; height: auto; touch-action: none; user-select: none; cursor: crosshair; }
 .dictation__paper { fill: #fffef8; }
 .dictation__grid-line { stroke: #9fc4e8; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.dictation__grid-line--major { stroke: #6f9dd0; stroke-width: 1.7; }
 .dictation__grid-dot { fill: #9fc3e8; pointer-events: none; }
 .dictation__coordinate { fill: #5f7896; font: 700 0.22px/1 Nunito, sans-serif; pointer-events: none; }
 .dictation__fixed, .dictation__preview, .dictation__guide { fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
@@ -464,6 +468,7 @@
 .coordinate-practice__grid { display: block; width: 100%; height: auto; touch-action: none; user-select: none; cursor: crosshair; }
 .coordinate-practice__paper { fill: #fffef8; }
 .coordinate-practice__grid-line { stroke: #8ab7e3; stroke-width: 1.15; vector-effect: non-scaling-stroke; }
+.coordinate-practice__grid-line--major { stroke: #5f93cc; stroke-width: 1.9; }
 .coordinate-practice__node { fill: #8fbce6; pointer-events: none; }
 .coordinate-practice__label { fill: #4d6d91; font: 800 .34px/1 Nunito, sans-serif; pointer-events: none; }
 .coordinate-practice__target { fill: #ffbf29; stroke: #d88500; stroke-width: .06; }

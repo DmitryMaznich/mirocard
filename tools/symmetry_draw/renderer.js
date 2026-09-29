@@ -169,6 +169,19 @@
     return best;
   }
 
+  // Every fifth grid line is drawn a shade darker (like a drawing exercise
+  // book) so a child can count "one five and two more" instead of cell by
+  // cell. Border lines are left alone; they already frame the field.
+  function isMajorLine(offset, max) {
+    return offset > 0 && offset < max && offset % 5 === 0;
+  }
+
+  // Minor lines first, emphasised ones last so no crossing minor line paints
+  // over them.
+  function orderGridLines(lines) {
+    return [...lines.filter((line) => !line.props.className.endsWith("--major")), ...lines.filter((line) => line.props.className.endsWith("--major"))];
+  }
+
   function pathToD(points) {
     return points.map((point, index) => `${index ? "L" : "M"} ${point.col} ${point.row}`).join(" ");
   }
@@ -456,13 +469,13 @@
     const dots = [];
     const coordinates = [];
     for (let col = 0; col <= columns; col += 1) {
-      grid.push(h("line", { key: `v-${col}`, className: "dictation__grid-line", x1: col, y1: 0, x2: col, y2: rows }));
+      grid.push(h("line", { key: `v-${col}`, className: `dictation__grid-line${isMajorLine(col, columns) ? " dictation__grid-line--major" : ""}`, x1: col, y1: 0, x2: col, y2: rows }));
       const colActive = col === nearestCol;
       coordinates.push(h("text", { key: `col-${col}`, className: `dictation__coordinate${colActive ? " dictation__coordinate--active" : ""}`, x: col, y: "-0.31", textAnchor: "middle" }, isCoordinate ? columnLabel(col) : col + 1));
       for (let row = 0; row <= rows; row += 1) dots.push(h("circle", { key: `p-${col}-${row}`, className: "dictation__grid-dot", cx: col, cy: row, r: "0.05" }));
     }
     for (let row = 0; row <= rows; row += 1) {
-      grid.push(h("line", { key: `h-${row}`, className: "dictation__grid-line", x1: 0, y1: row, x2: columns, y2: row }));
+      grid.push(h("line", { key: `h-${row}`, className: `dictation__grid-line${isMajorLine(row, rows) ? " dictation__grid-line--major" : ""}`, x1: 0, y1: row, x2: columns, y2: row }));
       const rowActive = row === nearestRow;
       coordinates.push(h("text", { key: `row-${row}`, className: `dictation__coordinate${rowActive ? " dictation__coordinate--active" : ""}`, x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1));
     }
@@ -559,7 +572,7 @@
         h("div", { className: "dictation-card__tape", "aria-hidden": "true" }),
         h("svg", { ref: svgRef, className: "dictation__grid", viewBox: `-0.55 -0.78 ${columns + 1.1} ${rows + 1.58}`, onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture, onPointerLeave: finishGesture },
           h("rect", { className: "dictation__paper", x: "-0.5", y: "-0.72", width: columns + 1, height: rows + 1.45, rx: "0.12" }),
-          grid,
+          orderGridLines(grid),
           coordinates,
           dots,
           decorations,
@@ -673,15 +686,16 @@
       if (next.letter != null) resolve({ col: next.letter, row: next.number });
     }
 
+    const gridLines = [];
     const grid = [];
     const labels = [];
     for (let col = 0; col <= columns; col += 1) {
-      grid.push(h("line", { key: `v-${col}`, className: "coordinate-practice__grid-line", x1: col, y1: 0, x2: col, y2: rows }));
+      gridLines.push(h("line", { key: `v-${col}`, className: `coordinate-practice__grid-line${isMajorLine(col, columns) ? " coordinate-practice__grid-line--major" : ""}`, x1: col, y1: 0, x2: col, y2: rows }));
       labels.push(h("text", { key: `c-${col}`, className: "coordinate-practice__label", x: col, y: "-0.34", textAnchor: "middle" }, columnLabel(col)));
       for (let row = 0; row <= rows; row += 1) grid.push(h("circle", { key: `p-${col}-${row}`, className: "coordinate-practice__node", cx: col, cy: row, r: ".06" }));
     }
     for (let row = 0; row <= rows; row += 1) {
-      grid.push(h("line", { key: `h-${row}`, className: "coordinate-practice__grid-line", x1: 0, y1: row, x2: columns, y2: row }));
+      gridLines.push(h("line", { key: `h-${row}`, className: `coordinate-practice__grid-line${isMajorLine(row, rows) ? " coordinate-practice__grid-line--major" : ""}`, x1: 0, y1: row, x2: columns, y2: row }));
       labels.push(h("text", { key: `r-${row}`, className: "coordinate-practice__label", x: "-0.35", y: row + 0.1, textAnchor: "middle" }, row + 1));
     }
 
@@ -710,6 +724,7 @@
           },
         },
           h("rect", { className: "coordinate-practice__paper", x: "-0.52", y: "-0.72", width: columns + 1.04, height: rows + 1.44, rx: ".14" }),
+          orderGridLines(gridLines),
           grid,
           labels,
           !isName && selectedPoint ? h("g", {
@@ -1314,20 +1329,23 @@
     const gridLines = [];
     const nodes = [];
     const paper = [];
-    const addGrid = (origin, width, keyPrefix, panelClass = "") => {
+    // Mirror counts outward from the axis (that is how the child measures a
+    // reflection); a repeat panel counts from its own left edge.
+    const addGrid = (origin, width, keyPrefix, panelClass = "", majorFrom = 0) => {
       paper.push(h("rect", { key: `${keyPrefix}-paper`, className: `symmetry-draw__paper ${panelClass}`.trim(), x: origin - .5, y: "-.72", width: width + 1, height: rows + 1.45, rx: "0.12" }));
       for (let col = 0; col <= width; col += 1) {
         const x = origin + col;
-        gridLines.push(h("line", { key: `${keyPrefix}-v-${col}`, className: "symmetry-draw__line", x1: x, y1: 0, x2: x, y2: rows }));
+        const colMajor = col > 0 && col < width && col !== majorFrom && Math.abs(col - majorFrom) % 5 === 0;
+        gridLines.push(h("line", { key: `${keyPrefix}-v-${col}`, className: `symmetry-draw__line${colMajor ? " symmetry-draw__line--major" : ""}`, x1: x, y1: 0, x2: x, y2: rows }));
         for (let row = 0; row <= rows; row += 1) nodes.push(h("circle", { key: `${keyPrefix}-p-${col}-${row}`, className: "symmetry-draw__point", cx: x, cy: row, r: "0.05" }));
       }
-      for (let row = 0; row <= rows; row += 1) gridLines.push(h("line", { key: `${keyPrefix}-h-${row}`, className: "symmetry-draw__line", x1: origin, y1: row, x2: origin + width, y2: row }));
+      for (let row = 0; row <= rows; row += 1) gridLines.push(h("line", { key: `${keyPrefix}-h-${row}`, className: `symmetry-draw__line${isMajorLine(row, rows) ? " symmetry-draw__line--major" : ""}`, x1: origin, y1: row, x2: origin + width, y2: row }));
     };
     if (isRepeat) {
       addGrid(0, axisCol, "sample", "symmetry-draw__paper--sample");
       addGrid(workOrigin, axisCol, "work", "symmetry-draw__paper--work");
     } else {
-      addGrid(0, columns, "grid");
+      addGrid(0, columns, "grid", "", axisCol);
     }
 
     const instruction = mode?.ui?.instruction ?? "Дорисуй вторую половину фигуры";
@@ -1384,7 +1402,7 @@
           onPointerLeave: stopDrawing,
         },
           paper,
-          gridLines,
+          orderGridLines(gridLines),
           !isRepeat ? Array.from({ length: columns + 1 }, (_, col) => h("text", { key: `col-${col}`, className: "symmetry-draw__coordinate", x: col, y: "-0.31", textAnchor: "middle" }, col + 1)) : null,
           !isRepeat ? Array.from({ length: rows + 1 }, (_, row) => h("text", { key: `row-${row}`, className: "symmetry-draw__coordinate", x: "-0.33", y: row + 0.08, textAnchor: "middle" }, row + 1)) : null,
           nodes,
