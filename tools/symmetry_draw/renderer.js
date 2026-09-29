@@ -505,7 +505,7 @@
     const stepDisplay = Math.min(stepIndex + 1, stepsTotal);
     const progressPercent = stepsTotal ? Math.round(((finished ? stepsTotal : stepIndex) / stepsTotal) * 100) : 0;
 
-    return h("div", { className: "dictation-card" },
+    return h("div", { className: "dictation-card", style: { "--sd-aspect": (columns + 1.1) / (rows + 1.58) } },
       h("div", { className: "dictation-card__head" },
         h("div", { className: "dictation-card__head-text" },
           h("div", { className: "dictation-card__title" }, shape.label),
@@ -567,7 +567,7 @@
       // the session screen has left after the header/command). The canvas is
       // sized from it in CSS via container units + --sd-aspect, so the whole
       // sheet always fits on screen instead of being capped by a vh guess.
-      h("div", { className: "dictation__stage", style: { "--sd-aspect": (columns + 1.1) / (rows + 1.58) } },
+      h("div", { className: "dictation__stage" },
       h("div", { key: `canvas-${mistakeSeq}`, className: `dictation__canvas${notice ? " dictation__canvas--wrong" : ""}` },
         h("div", { className: "dictation-card__tape", "aria-hidden": "true" }),
         h("svg", { ref: svgRef, className: "dictation__grid", viewBox: `-0.55 -0.78 ${columns + 1.1} ${rows + 1.58}`, onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture, onPointerLeave: finishGesture },
@@ -1374,7 +1374,7 @@
     const viewWidth = canvasColumns + 1.1;
     const viewHeight = rows + 1.58;
 
-    return h("section", { className: `symmetry-draw${isRepeat ? " symmetry-draw--repeat" : ""}`, "aria-label": shape.label ?? "Симметричный рисунок" },
+    return h("section", { className: `symmetry-draw${isRepeat ? " symmetry-draw--repeat" : ""}`, style: { "--sd-aspect": viewWidth / viewHeight }, "aria-label": shape.label ?? "Симметричный рисунок" },
       h("div", { className: "symmetry-draw__head" },
         h("div", { className: "symmetry-draw__head-text" },
           h("div", { className: "symmetry-draw__title" }, shape.label ?? "Фигура"),
@@ -1384,7 +1384,7 @@
       ),
       // Same fit-to-stage sizing as the dictation canvas: CSS derives the
       // sheet's width from the stage's height and this aspect ratio.
-      h("div", { className: "symmetry-draw__stage", style: { "--sd-aspect": viewWidth / viewHeight } },
+      h("div", { className: "symmetry-draw__stage" },
       h("div", { className: "symmetry-draw__canvas" },
         h("span", { className: "symmetry-draw__tape", "aria-hidden": "true" }),
         isRepeat ? h("div", { className: "symmetry-draw__repeat-labels", "aria-hidden": "true" },
