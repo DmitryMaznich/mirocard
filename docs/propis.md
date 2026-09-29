@@ -1,8 +1,11 @@
 # Прописи (propis) topic
 
 Handwriting-practice topic. Fully independent from `letter_writing` ("Написание
-букв") — no shared code or data with it, by explicit design decision. Don't touch
-`letter_writing` while working on this.
+букв", printed block letters, not developed) — no shared code or data with it, by
+explicit design decision. Don't touch `letter_writing` while working on this.
+
+**Since 2026-09-29 this topic also contains the former "Письменные буквы"
+(`written_letters`) topic** — see "Merged in: letter recognition" below.
 
 ## Status
 
@@ -960,6 +963,75 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
   standalone Python (`scripts/propis_worksheets/`), reusing propis's own
   captured strokes and ruling geometry but generating real print-ready PDFs
   (not an in-app view). See its own section below.
+
+## Merged in: letter recognition (from "Письменные буквы", 2026-09-29)
+
+User decision: "Письменные буквы" (recognising cursive letters) and "Прописи"
+(writing them) read as one subject to a parent, so they are one topic now, with
+"Прописи" as the base. The existing propis modes were not touched (only
+"Печатные материалы" moved to the end of the mode list).
+
+- **Modes** (deck v1.31.0), prepended to `tools/propis/topic.json`'s `modes`:
+  - `letters_recognize` "Узнай букву" — former "Найди рукописную" + "Найди
+    печатную" folded into one mode, `direction` param
+    (`print_to_written` / `written_to_print` / `mix`).
+  - `letters_case` "Строчная и заглавная" — former "Строчная или заглавная?"
+    (`variant: "sort"`) + "Найди пару" (`variant: "pair"`, with its old
+    `show_case`/`second_step` params). Custom params UI:
+    `letters/LettersCaseParams.jsx` (ParamsScreen's `isLettersCase`).
+  - `letters_alphabet` "Мои буквы" — unchanged reference screen.
+  - All three are `evaluation: "auto"`, so ParamsScreen's `isPropis` flag
+    (hides the video-reward toggle, skips the PIN) is now scoped to
+    `evaluation === "none"` modes — the recognition modes keep the video reward
+    they had in the old topic.
+- **One letter model.** The old topic drew filled outlines from a cursive font
+  (`written_letters/letterPaths.js`, deleted); those letters differed visibly from
+  the Жукова ink used everywhere else (А, З, з...). `letters/LetterGlyph.jsx` now
+  strokes this topic's own captured cards (`topicRecord.cards`, provided via
+  `LetterGlyphProvider` in `index.jsx`). Both systems share the native 100×150
+  box with x-height 62–88, so the old views' ruling math was reused as-is;
+  captured letters are narrower than the font's 100-unit advance, so each glyph
+  is centred in its box (`SortCaseView` packs by real ink width instead).
+  Pen width `GLYPH_STROKE_W = 3.4` native units (`letters/glyphs.js`), tuned by
+  side-by-side screenshot against the old font — propis's `STROKE_W` (2) is for
+  tetrad-row scale and reads as a hairline in these small cards.
+- **Task generation** is the old engine moved verbatim
+  (`letters/lettersEngine.js`, keyed by the old task types) over
+  `letters/letterData.js` (case pairing + similarity tags for distractors);
+  `engine.js` maps the three mode types onto it.
+- **Lost in the move:** the old topic's generic concept picker (choosing a
+  subset of letters). The propis card pool isn't one-card-per-letter, so the
+  modes use `hideConceptPicker`. Belongs with the backlog item "letters in
+  букварь order / only learned letters" below.
+- **Old topic hidden, not deleted** — same two flags as `print_materials`:
+  `meta.hidden` in `public/decks/written_letters/topic.json` (deck v1.0.5) and
+  `"hidden": true` on its `catalog.json` entry. `renderers/written_letters/` is
+  now a stub (engine returns one `moved` task, renderer shows "Упражнения
+  «Письменные буквы» теперь находятся в теме «Прописи»") so a device that still
+  has the deck can't crash if it reaches a session somehow.
+
+### Backlog — speech therapist's suggestions (not done yet, come back to these)
+
+1. **Reference copybook.** Letters follow Н.С. Жукова; many schools use Горецкий
+   or Илюхина, whose letters/joins differ. Decide whether a second letter set is
+   needed.
+2. **Distractors by visual similarity.** "Узнай букву" picks distractors via
+   `distractorEngine` + coarse shape tags; a speech therapist wants optically
+   confusable pairs specifically (б–д, и–у, ш–щ, п–т, л–м, з–э) — the core of
+   optical dysgraphia.
+3. **"Строчная или заглавная?" may deserve its own mode** again — letters whose
+   upper/lower forms differ a lot (Д/д, Б/б, Т/т, Е/е) are a separate difficulty.
+   Now it's a `variant` of "Строчная и заглавная".
+4. **Letters in букварь order** (а, у, о, и, ы, м, с…) and restricting every mode
+   to letters already learned ("Мои буквы" as the source of truth).
+5. **Letter elements mode** (палочки, крючки, петли) before letters —
+   `tools/propis/elements.json` already has the Жукова elements.
+6. **Letter joins** (верхнее/нижнее/среднее соединение) as a separate step.
+7. **"How is this letter written" step** between recognition and writing text —
+   show only (direction, stroke order, start point), not on-screen finger
+   tracing, which trains little. `PropisPracticeView` (dormant) is a start.
+8. **Checking the paper result**: a checklist/hints for the adult on what to look
+   at in the child's notebook.
 
 ## File map
 

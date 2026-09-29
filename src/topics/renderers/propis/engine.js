@@ -8,6 +8,8 @@ import {
   textSentenceDictationKey,
   splitIntoSentences,
 } from "./dictationAudio";
+import { generateLetterTasks } from "./letters/lettersEngine.js";
+import { LETTER_DATA } from "./letters/letterData.js";
 
 // Plain shuffle can put "А" right next to "а" (same letter, different pool entries for case)
 // or, in principle, any two items that read as "the same thing twice in a row" -- reported
@@ -64,6 +66,33 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
   // as-is below) because write_words/write_text/read_text/print_page need the variants
   // present for buildVariantIndex to find them.
   const standaloneLetters = letters.filter((c) => !c.variantOf);
+
+  // Letter-recognition modes, merged in from the former "Письменные буквы" topic (2026-09-29).
+  // Pairing/similarity data comes from LETTER_DATA; the ink itself is drawn from this topic's
+  // own cards at render time (LetterGlyphProvider in index.jsx), so no strokes ride on tasks.
+  if (mode.type === "letters_recognize") {
+    const direction = sessionParams?.direction ?? "print_to_written";
+    if (direction === "mix") {
+      return shuffle([
+        ...generateLetterTasks("match_print_to_written", LETTER_DATA),
+        ...generateLetterTasks("match_written_to_print", LETTER_DATA),
+      ]);
+    }
+    return generateLetterTasks(
+      direction === "written_to_print" ? "match_written_to_print" : "match_print_to_written",
+      LETTER_DATA,
+    );
+  }
+
+  if (mode.type === "letters_case") {
+    return (sessionParams?.variant ?? "sort") === "pair"
+      ? generateLetterTasks("match_pair", LETTER_DATA, sessionSize, sessionParams ?? {})
+      : generateLetterTasks("sort_case", LETTER_DATA);
+  }
+
+  if (mode.type === "letters_alphabet") {
+    return generateLetterTasks("alphabet_pairs", LETTER_DATA, sessionSize, sessionParams ?? {});
+  }
 
   if (mode.type === "practice") {
     return [{ type: "practice", items: standaloneLetters }];

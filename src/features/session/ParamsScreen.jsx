@@ -24,7 +24,8 @@ import StoveHeatModal from "@/shared/components/StoveHeatModal";
 import { GLOBAL_MAX_PORTIONS, scalePortionQty } from "@/features/planner/recipeParser.js";
 import { getBuiltinRecipeRawText } from "@/topics/builtinRecipesTopic.js";
 import { extractAdjustableTemplates, computeAdjustableDefault, formatCompact, stepPortionsMultiplier, formatPortionsPhrase } from "@/topics/renderers/reading/parseRecipeTxt.js";
-import WrittenLettersPairParams from "@/topics/renderers/written_letters/WrittenLettersPairParams";
+import LettersCaseParams from "@/topics/renderers/propis/letters/LettersCaseParams";
+import { LetterGlyphProvider } from "@/topics/renderers/propis/letters/LetterGlyph";
 import SymmetryDrawPrintParams from "@/features/session/SymmetryDrawPrintParams";
 import { sessionSettingsChanged, clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot } from "@/features/session/activeSession";
 import { shouldRequestSessionStartPin } from "@/features/session/sessionStartGate";
@@ -1642,8 +1643,9 @@ export default function ParamsScreen() {
   const isComparison          = topicRecord?.meta.renderer === "comparison";
   const isReadingInstruction  = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
   const isReadingSafeCode     = isReading && activeText?.kind === "safe_code";
-  const isWrittenLettersPair  = topicRecord?.meta.renderer === "written_letters" && activeModeId === "match_pair";
-  const isAlphabetPairs       = topicRecord?.meta.renderer === "written_letters" && activeModeId === "alphabet_pairs";
+  // Letter-recognition modes merged into propis from "Письменные буквы" (2026-09-29).
+  const isLettersCase         = topicRecord?.meta.renderer === "propis" && mode?.type === "letters_case";
+  const isAlphabetPairs       = topicRecord?.meta.renderer === "propis" && mode?.type === "letters_alphabet";
   // Coordinate dictations need their own printable layout, so the print panel is
   // available for the directions variant only.
   const isSymmetryDrawPrint   = activeTopicId === "symmetry_draw" && ["mirror_draw", "repeat_draw"].includes(mode?.type);
@@ -1815,7 +1817,9 @@ export default function ParamsScreen() {
   // mode-scoped param (mode.params.videoRewardEnabled) rendered through the generic
   // renderParam() path below -- that path isn't gated by isPropis at all, so it already
   // surfaces correctly without touching this flag (confirmed via a live dev-preview render).
-  const isPropis = topicRecord?.meta.renderer === "propis";
+  // Scoped to the evaluation:"none" modes: the letter-recognition modes merged in from
+  // "Письменные буквы" (2026-09-29) are auto-evaluated and keep the video reward they had there.
+  const isPropis = topicRecord?.meta.renderer === "propis" && mode?.evaluation === "none";
 
   const allModes = topicRecord?.modes ?? [];
   // Shared reading is deliberately not a rewarded exercise. The separate
@@ -2037,8 +2041,10 @@ export default function ParamsScreen() {
         return null;
       })}
     </>
-  ) : isWrittenLettersPair ? (
-    <WrittenLettersPairParams params={params} onChange={setParams} />
+  ) : isLettersCase ? (
+    <LetterGlyphProvider cards={topicRecord.cards}>
+      <LettersCaseParams params={params} onChange={setParams} />
+    </LetterGlyphProvider>
   ) : isComparison ? (
     <ComparisonParams params={params} onChange={setParams} />
   ) : isGraphicDictation ? (

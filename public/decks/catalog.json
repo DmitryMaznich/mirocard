@@ -231,7 +231,7 @@
     },
     {
       "id": "written_letters",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "title": {
         "ru": "Письменные буквы",
         "en": "Written Letters"
@@ -240,9 +240,10 @@
         "ru": "33 буквы русского алфавита в рукописном написании. Четыре режима: строчная/заглавная, найди рукописную, найди печатную, найди пару.",
         "en": "33 Russian alphabet letters in cursive. Four modes: uppercase/lowercase sort, find cursive, find print, find the pair."
       },
-      "url": "./decks/written_letters_v1.0.4.zip",
-      "zipUrl": "written_letters_v1.0.4.zip",
+      "url": "./decks/written_letters_v1.0.5.zip",
+      "zipUrl": "written_letters_v1.0.5.zip",
       "status": "release",
+      "hidden": true,
       "access": "paid"
     },
     {
@@ -262,16 +263,16 @@
     },
     {
       "id": "propis",
-      "version": "1.30.9",
+      "version": "1.31.0",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
       },
       "description": {
-        "ru": "Тренажёр рукописного письма: клавиатура алфавита внизу, крупный зацикленный образец написания выбранной буквы сверху.",
-        "en": "Handwriting practice: an alphabet keyboard at the bottom, a large looping handwriting animation for the selected letter above."
+        "ru": "Письменные буквы от узнавания до письма: узнай букву, строчная и заглавная, пишем и переписываем текст в тетрадь, тетрадный лист, диктант, печатные прописи.",
+        "en": "Cursive letters from recognition to writing: recognize the letter, upper and lower case, write and copy text into a notebook, notebook page, dictation, printable copybooks."
       },
-      "url": "./decks/propis_v1.30.9.zip",
+      "url": "./decks/propis_v1.31.0.zip",
       "status": "beta",
       "access": "paid"
     },

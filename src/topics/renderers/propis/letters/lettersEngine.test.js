@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateTasks } from "./engine";
+import { generateLetterTasks as generateTasks } from "./lettersEngine";
 
 const CARDS = [
   { id: "letter_а", conceptId: "letter_а", primary: true,

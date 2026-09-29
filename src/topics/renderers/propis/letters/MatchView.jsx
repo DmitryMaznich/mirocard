@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import HandwrittenLetter from "./HandwrittenLetter";
+import LetterGlyph from "./LetterGlyph";
 import PrintedLetter     from "./PrintedLetter";
 
 const STIMULUS_SIZE = 100;
@@ -20,7 +20,7 @@ function Stimulus({ task }) {
   return (
     <div className="wl-stimulus">
       <div className="wl-letter-card wl-letter-card--lines">
-        <HandwrittenLetter letter={task.stimulus.letter} size={STIMULUS_SIZE} />
+        <LetterGlyph letter={task.stimulus.letter} size={STIMULUS_SIZE} />
       </div>
     </div>
   );
@@ -37,7 +37,7 @@ function Option({ opt, state, onTap, taskType }) {
   // match_written_to_print → printed options; others → handwritten (SVG has propis lines built-in)
   const inner = taskType === "match_written_to_print"
     ? <PrintedLetter letter={opt.printed} size={OPTION_SIZE} />
-    : <HandwrittenLetter letter={opt.letter} size={OPTION_SIZE} />;
+    : <LetterGlyph letter={opt.letter} size={OPTION_SIZE} />;
 
   return (
     <button className={cls} onClick={onTap} type="button">

@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback, useLayoutEffect, useMemo } from "react";
-import HandwrittenLetter from "./HandwrittenLetter";
+import LetterGlyph from "./LetterGlyph";
 import { shuffle } from "@/shared/utils/shuffle";
 
-// Propis constants — mirror HandwrittenLetter.jsx
+// Propis constants — mirror LetterGlyph.jsx
 const VBW = 100;
 const VBH = 150;
 const L2  = 62;
@@ -158,11 +158,11 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
       {/* Stimulus + drop zone */}
       <div className="wl-pair-row">
         <div ref={stimRef}>
-          <HandwrittenLetter letter={task.stimulus.letter} size={STIM_SIZE} bare />
+          <LetterGlyph letter={task.stimulus.letter} size={STIM_SIZE} bare />
         </div>
         <div ref={dropRef} className={dropCls} style={{ width: STIM_SIZE, height: STIM_H }}>
           {dropped
-            ? <HandwrittenLetter letter={dropped.letter} size={STIM_SIZE} bare />
+            ? <LetterGlyph letter={dropped.letter} size={STIM_SIZE} bare />
             : <span className="wl-pair-dropzone__hint">?</span>
           }
         </div>
@@ -185,7 +185,7 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
                     ].filter(Boolean).join(" ")}
                     onPointerDown={(e) => handlePointerDown(e, opt)}
                   >
-                    <HandwrittenLetter letter={opt.letter} size={CHIP_SIZE} bare />
+                    <LetterGlyph letter={opt.letter} size={CHIP_SIZE} bare />
                   </div>
                 );
               })}
@@ -222,7 +222,7 @@ export default function MatchPairView({ task, onAdvance, onCorrect, onMistake })
           style={{ left: dragPos.x, top: dragPos.y }}
           aria-hidden
         >
-          <HandwrittenLetter letter={dragPos.opt.letter} size={CHIP_SIZE} bare />
+          <LetterGlyph letter={dragPos.opt.letter} size={CHIP_SIZE} bare />
         </div>
       )}
     </div>

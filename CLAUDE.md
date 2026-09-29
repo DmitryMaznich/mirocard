@@ -154,6 +154,11 @@ Handwriting-practice topic under active development (`src/topics/renderers/propi
 that topic while working on this one. Mode 1 ("Учим буквы") is shipped; mode 2 (PDF
 export for print) is not started.
 
+Since 2026-09-29 it also holds the former "Письменные буквы" (`written_letters`) modes
+(`src/topics/renderers/propis/letters/`, drawn with propis's own captured letters, not a
+font); the old topic is hidden and its renderer is a stub. A speech therapist's backlog for
+these modes is in `docs/propis.md`.
+
 Before touching anything in this topic, read `docs/propis.md` first — it has the file
 map, the ruling geometry's design decisions (and why), and pitfalls already hit once
 (don't repeat them).

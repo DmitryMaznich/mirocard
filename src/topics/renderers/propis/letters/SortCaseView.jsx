@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
-import HandwrittenLetter from "./HandwrittenLetter";
-import { LETTER_PATHS } from "./letterPaths.js";
+import LetterGlyph, { GlyphStrokes } from "./LetterGlyph";
+import { useGlyphs, C_BG, C_LINE_OUTER, C_LINE_TOP, C_LINE_BASE } from "./glyphs.js";
 
 const ZONE_DEFS = [
   { id: "upper", label: "Заглавные", color: "#6366f1" },
@@ -9,13 +9,11 @@ const ZONE_DEFS = [
 
 const CARD_SIZE = 160;
 
-// Propis constants — match HandwrittenLetter.jsx
-const L1 = 10, L2 = 62, L3 = 88, L4 = 140, VBH = 150;
-const C_BG         = "#fefef6";
-const C_LINE_OUTER = "#b8d8e8";
-const C_LINE_TOP   = "#6ab4cc";
-const C_LINE_BASE  = "#2a82a0";
-const C_FONT       = "#1d4ed8";
+// Propis constants — match LetterGlyph.jsx
+const L2 = 62, L3 = 88, L4 = 140, VBH = 150;
+// Captured letters are narrower than the old font's fixed 100-unit advance, so chips are
+// packed by their own ink width plus a little air, like letters written side by side.
+const CHIP_GAP = 14;
 
 // Zone layout — FIXED viewBox, never changes as letters accumulate
 // 6 cols × 6 rows = 36 slots: enough for 30 uppercase and 33 lowercase
@@ -37,15 +35,16 @@ const SLANT_TAN     = Math.tan(65 * Math.PI / 180);  // ≈ 2.145
 const SLANT_SPACING = 80;  // horizontal gap between slant lines in SVG units
 
 // Wrap chips into rows — positions within fixed grid, does NOT affect zone size
-function wrapChips(chips) {
+function wrapChips(chips, glyphs) {
   const rows = [];
-  let row = [], cumX = 0;
+  let row = [], cumX = CHIP_GAP;
   for (const chip of chips) {
-    const w = LETTER_PATHS[chip.letter]?.vbW ?? SLOT_W;
+    const g = glyphs[chip.letter];
+    const w = g ? g.width + CHIP_GAP : SLOT_W;
     if (cumX + w > ROW_W && row.length > 0) {
       rows.push(row);
       row = [];
-      cumX = 0;
+      cumX = CHIP_GAP;
     }
     row.push({ chip, x: cumX });
     cumX += w;
@@ -55,7 +54,8 @@ function wrapChips(chips) {
 }
 
 function ZonePaper({ chips, isActive, zoneRef, label, color }) {
-  const rows = wrapChips(chips);
+  const glyphs = useGlyphs();
+  const rows = wrapChips(chips, glyphs);
   // Unique clipPath id per zone (label is unique: "Заглавные" / "Строчные")
   const clipId = `wlzc-${label === "Заглавные" ? "up" : "lo"}`;
 
@@ -102,19 +102,14 @@ function ZonePaper({ chips, isActive, zoneRef, label, color }) {
             );
           })}
           {rows.map((row, r) =>
-            row.map(({ chip, x }) => {
-              const d = LETTER_PATHS[chip.letter];
-              if (!d) return null;
-              return (
-                <path
-                  key={`${r}-${x}`}
-                  d={d.path}
-                  fill={C_FONT}
-                  fillRule="nonzero"
-                  transform={`translate(${x}, ${r * ROW_PITCH})`}
-                />
-              );
-            })
+            row.map(({ chip, x }) => (
+              <GlyphStrokes
+                key={`${r}-${x}`}
+                glyph={glyphs[chip.letter]}
+                x={x}
+                y={r * ROW_PITCH}
+              />
+            ))
           )}
         </g>
       </svg>
@@ -204,7 +199,7 @@ export default function SortCaseView({ task, onAdvance, onCorrect, onMistake }) 
           style={{ visibility: dragPos ? "hidden" : "visible" }}
           onPointerDown={handlePointerDown}
         >
-          <HandwrittenLetter letter={letter} size={CARD_SIZE} />
+          <LetterGlyph letter={letter} size={CARD_SIZE} />
         </div>
       </div>
 
@@ -226,7 +221,7 @@ export default function SortCaseView({ task, onAdvance, onCorrect, onMistake }) 
           className="wl-drag-card wl-drag-card--floating wl-letter-card wl-letter-card--lines"
           style={{ left: dragPos.x, top: dragPos.y }}
         >
-          <HandwrittenLetter letter={letter} size={CARD_SIZE} />
+          <LetterGlyph letter={letter} size={CARD_SIZE} />
         </div>
       )}
     </div>

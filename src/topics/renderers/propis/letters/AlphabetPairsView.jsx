@@ -1,5 +1,5 @@
 import { useRef, useLayoutEffect } from "react";
-import HandwrittenLetter from "./HandwrittenLetter";
+import LetterGlyph from "./LetterGlyph";
 
 const VBW = 100;
 const VBH = 150;
@@ -60,8 +60,8 @@ export default function AlphabetPairsView({ task }) {
             ref={i === 0 ? firstRef : undefined}
             className="wl-alpha-item"
           >
-            <HandwrittenLetter letter={pair.upper} size={LETTER_SIZE} bare />
-            <HandwrittenLetter letter={pair.lower} size={LETTER_SIZE} bare />
+            <LetterGlyph letter={pair.upper} size={LETTER_SIZE} bare />
+            <LetterGlyph letter={pair.lower} size={LETTER_SIZE} bare />
             {i < pairs.length - 1 && (
               <span className="wl-alpha-comma" style={{ marginBottom: COMMA_MB }}>
                 ,

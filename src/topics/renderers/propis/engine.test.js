@@ -109,3 +109,36 @@ describe("generateTasks — unknown mode", () => {
     expect(generateTasks({ type: "nope" }, [LETTER_CARD])).toEqual([]);
   });
 });
+
+describe("generateTasks — letter-recognition modes (merged from «Письменные буквы»)", () => {
+  it("letters_recognize maps direction onto the matching task type", () => {
+    const toWritten = generateTasks({ type: "letters_recognize" }, [], 500, {});
+    expect(toWritten.length).toBeGreaterThan(0);
+    expect(new Set(toWritten.map((t) => t.type))).toEqual(new Set(["match_print_to_written"]));
+
+    const toPrint = generateTasks({ type: "letters_recognize" }, [], 500, { direction: "written_to_print" });
+    expect(new Set(toPrint.map((t) => t.type))).toEqual(new Set(["match_written_to_print"]));
+
+    const mix = generateTasks({ type: "letters_recognize" }, [], 500, { direction: "mix" });
+    expect(new Set(mix.map((t) => t.type))).toEqual(new Set(["match_print_to_written", "match_written_to_print"]));
+    expect(mix).toHaveLength(toWritten.length + toPrint.length);
+  });
+
+  it("letters_case switches between sorting and case pairs", () => {
+    const sort = generateTasks({ type: "letters_case" }, [], 500, {});
+    expect(sort.every((t) => t.type === "sort_case")).toBe(true);
+    // 30 letters with both cases + ъ, ы, ь lowercase only
+    expect(sort).toHaveLength(30 * 2 + 3);
+
+    const pair = generateTasks({ type: "letters_case" }, [], 500, { variant: "pair", second_step: true });
+    expect(pair.every((t) => t.type === "match_pair" && t.secondStep)).toBe(true);
+    expect(pair).toHaveLength(30);
+  });
+
+  it("letters_alphabet returns the single alphabet screen", () => {
+    const tasks = generateTasks({ type: "letters_alphabet" }, [], 500, {});
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].type).toBe("alphabet_pairs");
+    expect(tasks[0].pairs).toHaveLength(30);
+  });
+});
