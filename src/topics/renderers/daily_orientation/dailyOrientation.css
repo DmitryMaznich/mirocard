@@ -366,8 +366,8 @@
 
 /* Время года: a full-bleed illustration on the top two thirds, muted to
    ~55% so it stays calm next to the other cards, and the season's name on a
-   plain band below in that season's tint. The caption sits on the picture at
-   the same height as every other card's caption. */
+   plain band below in that season's tint, with a small "Время года" above
+   the name (not on the picture, where it only repeated what it shows). */
 .daily-orientation__card.daily-orientation__card--season.daily-orientation__card--stacked {
   /* beats the --wide side padding and --stacked top padding */
   display: flex;
@@ -389,16 +389,19 @@
   -webkit-user-drag: none;
 }
 .daily-orientation__season-caption {
-  position: absolute;
-  top: 46px;
-  left: 16px;
-  right: 16px;
-  z-index: 1;
+  margin: 0;
+  color: var(--orientation-muted);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
 }
 .daily-orientation__season-band {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
+  flex-direction: column;
+  gap: 4px;
   align-items: center;
   justify-content: center;
   padding: 0 28px;

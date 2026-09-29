@@ -750,8 +750,10 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
 
                 {display.showSeason && (
                   <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id} daily-orientation__card--speakable`} {...conceptCardProps("season")}>
-                    {/* Illustration on the top two thirds, muted, the season's
-                        name on a plain band underneath. */}
+                    {/* Illustration on the top two thirds, muted; the band
+                        underneath carries a small "Время года" over the
+                        season's name (the caption on the picture itself read
+                        as clutter). */}
                     <div className="daily-orientation__season-picture" aria-hidden="true">
                       <img src={`/daily-orientation/season_${season.id}.webp`} alt="" draggable="false" />
                     </div>
@@ -761,8 +763,8 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                         speakCard(getSpokenSeason(activeDate, offset), seasonClipKeys(activeDate, offset));
                       }} />
                     )}
-                    <p className="daily-orientation__question daily-orientation__season-caption">{CAPTION_SEASON}</p>
                     <div className="daily-orientation__season-band">
+                      <p className="daily-orientation__season-caption">{CAPTION_SEASON}</p>
                       <FitText className="daily-orientation__answer">{season.label}</FitText>
                     </div>
                   </article>
