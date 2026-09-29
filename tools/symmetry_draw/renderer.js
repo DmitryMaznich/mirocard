@@ -1302,6 +1302,8 @@
       onMistake?.(task.conceptId, shape.id);
       setResult({
         percent,
+        covered: coverage.covered,
+        total: coverage.total,
         complete: false,
         coveredIndexes: coverage.coveredIndexes,
         coveredDotIndexes: coverage.coveredDotIndexes,
@@ -1416,11 +1418,18 @@
         h("button", { type: "button", className: `symmetry-draw__button symmetry-draw__button--hint${showHint ? " symmetry-draw__button--hint-on" : ""}`, onClick: () => { setShowHint((shown) => !shown); setHintUsed(true); }, disabled: resolved }, showHint ? "✦ Скрыть" : "✦ Подсказка"),
         h("button", { type: "button", className: "symmetry-draw__button symmetry-draw__button--primary", onClick: checkDrawing, disabled: resolved }, "Готово"),
       ),
+      // An unfinished drawing is a checkpoint, not a failure: a warm "try"
+      // banner that counts what already matches and points at the orange
+      // dashes on the grid (the parts still missing), instead of a red "0%".
       h("div", { className: "symmetry-draw__result-wrap" },
         result
-          ? h("div", { className: `symmetry-draw__result${result.complete ? " symmetry-draw__result--good" : " symmetry-draw__result--bad"}`, "aria-live": "polite" },
-              h("span", { className: "symmetry-draw__result-percent" }, `${result.percent}%`),
-              h("span", { className: "symmetry-draw__result-text" }, result.complete ? "Совпало! Отличная работа." : "Похоже, ещё не совпадает. Попробуй ещё раз."),
+          ? h("div", { className: `symmetry-draw__result${result.complete ? " symmetry-draw__result--good" : " symmetry-draw__result--try"}`, "aria-live": "polite" },
+              result.complete
+                ? h("span", { className: "symmetry-draw__result-percent" }, "Совпало!")
+                : h("span", { className: "symmetry-draw__result-percent" }, `${result.covered} из ${result.total}`),
+              h("span", { className: "symmetry-draw__result-text" }, result.complete
+                ? "Отличная работа."
+                : result.covered > 0 ? "уже совпало. Дорисуй оранжевый пунктир." : "Пока не совпало. Дорисуй по оранжевому пунктиру."),
             )
           : null,
       ),
