@@ -34,7 +34,9 @@ describe("DailyOrientationRenderer", () => {
     mountAt(new Date(2026, 8, 22, 14, 35));
 
     expect(container.textContent).toContain("ВТОРНИК");
-    expect(container.textContent).toContain("22-е");
+    // Plain number on the card -- no "-е" for the child to read as a letter.
+    expect(container.querySelector(".daily-orientation__date-number")?.textContent).toBe("22");
+    expect(container.textContent).not.toContain("22-е");
     expect(container.textContent).toContain("СЕНТЯБРЬ");
     expect(container.textContent).toContain("День недели");
     expect(container.textContent).toContain("Число");
@@ -50,7 +52,7 @@ describe("DailyOrientationRenderer", () => {
     act(() => tomorrow.click());
 
     expect(container.textContent).toContain("СРЕДА");
-    expect(container.textContent).toContain("23-е");
+    expect(container.querySelector(".daily-orientation__date-number")?.textContent).toBe("23");
     // Captions stay plain nominative labels regardless of offset — the carousel
     // pill is what shows which day is being looked at, not the card captions.
     expect(container.textContent).toContain("День недели");
@@ -235,28 +237,31 @@ describe("DailyOrientationRenderer", () => {
       expect(container.querySelector('[role="dialog"]')).not.toBeNull();
     });
 
-    it("highlights today, marks weekends, and shows plan text only for days that have one", () => {
+    it("shows the whole week with full day names, today outlined, weekends marked and each day's plan", () => {
       mountAt(new Date(2026, 8, 22, 14, 35), {
         weeklyPlan: "Пн: Школа\nВт: Школа\nСр: Школа\nЧт: Школа\nПт: Школа\nСб: Поездка в парк",
       });
 
-      const weekdayCard = container.querySelector(".daily-orientation__card--weekday");
-      act(() => weekdayCard.click());
+      act(() => container.querySelector(".daily-orientation__card--weekday").click());
 
-      const days = Array.from(container.querySelectorAll(".daily-orientation__week-day"));
-      expect(days).toHaveLength(7);
+      const days = Array.from(container.querySelectorAll(".dom-week__day"));
+      expect(days.map((d) => d.querySelector(".dom-week__name").textContent)).toEqual([
+        "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье",
+      ]);
+      // short forms only as a caption under the full name
+      expect(days[0].querySelector(".dom-week__short").textContent).toBe("пн");
 
-      const tuesday = days.find((d) => d.textContent.startsWith("ВТ"));
-      expect(tuesday.classList.contains("daily-orientation__week-day--today")).toBe(true);
+      const tuesday = days[1];
+      expect(tuesday.classList.contains("dom-week__day--active")).toBe(true);
+      expect(tuesday.querySelector(".dom-week__tag").textContent).toBe("сегодня");
+      expect(days[0].querySelector(".dom-week__tag").textContent).toBe("вчера");
+      expect(days[2].querySelector(".dom-week__tag").textContent).toBe("завтра");
       expect(tuesday.textContent).toContain("Школа");
 
-      const saturday = days.find((d) => d.textContent.startsWith("СБ"));
-      expect(saturday.classList.contains("daily-orientation__week-day--weekend")).toBe(true);
-      expect(saturday.textContent).toContain("Поездка в парк");
-
-      const sunday = days.find((d) => d.textContent.startsWith("ВС"));
-      expect(sunday.classList.contains("daily-orientation__week-day--weekend")).toBe(true);
-      expect(sunday.querySelector(".daily-orientation__week-day-plan")).toBeNull();
+      expect(days[5].classList.contains("dom-week__day--weekend")).toBe(true);
+      expect(days[5].textContent).toContain("Поездка в парк");
+      expect(days[6].classList.contains("dom-week__day--weekend")).toBe(true);
+      expect(days[6].querySelector(".dom-week__plan")).toBeNull();
     });
 
     it("closes via the close button", () => {
@@ -266,6 +271,13 @@ describe("DailyOrientationRenderer", () => {
       expect(container.querySelector('[role="dialog"]')).not.toBeNull();
 
       act(() => container.querySelector(".daily-orientation__modal-close").click());
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+    });
+
+    it("closes when the backdrop around it is tapped", () => {
+      mountAt(new Date(2026, 8, 22, 14, 35));
+      act(() => container.querySelector(".daily-orientation__card--weekday").click());
+      act(() => container.querySelector(".daily-orientation__modal-backdrop").click());
       expect(container.querySelector('[role="dialog"]')).toBeNull();
     });
 
@@ -365,6 +377,72 @@ describe("DailyOrientationRenderer", () => {
 
       expect(weatherCard.getAttribute("aria-hidden")).toBe("true");
       expect(weatherCard.classList.contains("daily-orientation__card--weather-hidden")).toBe(true);
+    });
+  });
+
+  describe("concept modals", () => {
+    function openFrom(selector) {
+      act(() => container.querySelector(selector).click());
+      return container.querySelector('[role="dialog"]');
+    }
+
+    it("Число: month calendar with the day circled and «29 сентября» linked to «сентябрь»", () => {
+      mountAt(new Date(2026, 8, 29, 10, 0));
+      const dialog = openFrom(".daily-orientation__card--narrow.daily-orientation__card--date");
+      expect(dialog.querySelector(".dom-title").textContent).toBe("Сентябрь 2026");
+      expect(dialog.querySelectorAll(".dom-calendar__cell:not(.dom-calendar__cell--blank)")).toHaveLength(30);
+      expect(dialog.querySelector(".dom-calendar__cell--active").textContent).toBe("29");
+      expect(dialog.querySelector(".dom-date-say__phrase").textContent).toBe("Сегодня 29 сентября");
+      // the one letter that changes is marked in both forms
+      expect(Array.from(dialog.querySelectorAll(".dom-date-say__bridge mark")).map((m) => m.textContent)).toEqual(["ь", "я"]);
+    });
+
+    it("Число follows the carousel: tomorrow's date and «Завтра будет»", () => {
+      mountAt(new Date(2026, 8, 30, 10, 0));
+      const tomorrow = Array.from(container.querySelectorAll("button")).find((b) => b.textContent === "Завтра");
+      act(() => tomorrow.click());
+      const dialog = openFrom(".daily-orientation__card--narrow.daily-orientation__card--date");
+      expect(dialog.querySelector(".dom-title").textContent).toBe("Октябрь 2026");
+      expect(dialog.querySelector(".dom-date-say__phrase").textContent).toBe("Завтра будет 1 октября");
+    });
+
+    it("Месяц: twelve months grouped by season, each with its number of days", () => {
+      mountAt(new Date(2028, 1, 10, 10, 0)); // leap February
+      const dialog = openFrom(".daily-orientation__card--wide.daily-orientation__card--date");
+      const months = Array.from(dialog.querySelectorAll(".dom-months__month"));
+      expect(months).toHaveLength(12);
+      expect(months[0].textContent).toBe("Декабрь31 день");
+      const february = dialog.querySelector(".dom-months__month--active");
+      expect(february.textContent).toBe("Февраль29 дней");
+    });
+
+    it("Время года: the four seasons as a cycle with the current one marked", () => {
+      mountAt(new Date(2026, 8, 29, 10, 0));
+      const dialog = openFrom(".daily-orientation__card--season");
+      expect(Array.from(dialog.querySelectorAll(".dom-cycle__name")).map((n) => n.textContent)).toEqual(["Зима", "Весна", "Лето", "Осень"]);
+      expect(dialog.querySelector(".dom-cycle__item--active .dom-cycle__name").textContent).toBe("Осень");
+      expect(dialog.querySelector(".dom-cycle__month--active").textContent).toBe("сентябрь");
+    });
+
+    it("Время суток: the four parts with the child's own hours, and no modal for вчера/завтра", () => {
+      mountAt(new Date(2026, 8, 29, 20, 0), { wakeHour: 6, bedHour: 22 });
+      const dialog = openFrom(".daily-orientation__card--daypart");
+      expect(dialog.querySelector(".dom-cycle__item--active .dom-cycle__name").textContent).toBe("Вечер");
+      expect(dialog.textContent).toContain("6:00 – 12:00");
+      expect(dialog.textContent).toContain("22:00 – 6:00");
+      act(() => container.querySelector(".daily-orientation__modal-close").click());
+
+      const yesterday = Array.from(container.querySelectorAll("button")).find((b) => b.textContent === "Вчера");
+      act(() => yesterday.click());
+      act(() => container.querySelector(".daily-orientation__card--daypart").click());
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
+    });
+
+    it("the speaker button speaks without opening the modal", () => {
+      mountAt(new Date(2026, 8, 29, 10, 0), undefined, true);
+      const speaker = container.querySelector(".daily-orientation__card--season .daily-orientation__speaker-icon");
+      act(() => speaker.click());
+      expect(container.querySelector('[role="dialog"]')).toBeNull();
     });
   });
 });

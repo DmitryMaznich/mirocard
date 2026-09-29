@@ -30,6 +30,8 @@ import {
   getSpokenWeekday,
   parseWeeklyPlan,
 } from "./timeUtils";
+import { SeasonMark } from "./SeasonMark.jsx";
+import { DateContent, DaypartContent, MonthContent, SeasonContent, WeekContent } from "./ConceptModals.jsx";
 import "./dailyOrientation.css";
 
 // Repeated taps re-trigger the same sentence instantly (useSpeech cancels and
@@ -114,16 +116,6 @@ const CAROUSEL_ITEMS = [
 
 // Monday-first display order, keyed to Date#getDay() (0=Sunday..6=Saturday)
 // so it lines up directly with parseWeeklyPlan's keys.
-const WEEK_DAYS = [
-  { day: 1, label: "ПН" },
-  { day: 2, label: "ВТ" },
-  { day: 3, label: "СР" },
-  { day: 4, label: "ЧТ" },
-  { day: 5, label: "ПТ" },
-  { day: 6, label: "СБ" },
-  { day: 0, label: "ВС" },
-];
-const WEEKEND_DAYS = new Set([0, 6]);
 
 // The adult asks the question out loud in person; the card captions just name
 // what's being shown, so they stay plain nominative labels regardless of the
@@ -237,18 +229,6 @@ function Chevron({ direction }) {
   );
 }
 
-function SeasonMark({ season }) {
-  if (season.id === "winter") {
-    return <svg className="daily-orientation__season-mark" viewBox="0 0 160 160" aria-hidden="true"><g stroke="currentColor" strokeWidth="10" strokeLinecap="round"><path d="M80 20v120M28 50l104 60M28 110l104-60" /><path d="m80 20-14 14M80 20l14 14M80 140l-14-14M80 140l14-14" /></g></svg>;
-  }
-  if (season.id === "spring") {
-    return <svg className="daily-orientation__season-mark" viewBox="0 0 160 160" aria-hidden="true"><path d="M80 140V75" stroke="currentColor" strokeWidth="10" strokeLinecap="round" /><path d="M80 108c-38 0-46-35-43-48 31 3 43 21 43 48ZM80 88c3-32 20-45 43-48 3 22-6 48-43 48Z" fill="currentColor" opacity=".78" /><circle cx="80" cy="55" r="22" fill="currentColor" /></svg>;
-  }
-  if (season.id === "summer") {
-    return <svg className="daily-orientation__season-mark" viewBox="0 0 160 160" aria-hidden="true"><g fill="none" stroke="currentColor" strokeWidth="10" strokeLinecap="round"><circle cx="80" cy="80" r="30" fill="currentColor" opacity=".8" /><path d="M80 14v18M80 128v18M14 80h18M128 80h18M33 33l13 13M114 114l13 13M127 33l-13 13M46 114l-13 13" /></g></svg>;
-  }
-  return <svg className="daily-orientation__season-mark" viewBox="0 0 160 160" aria-hidden="true"><path d="M78 146c3-53 16-88 56-118-1 48-19 88-56 118Z" fill="currentColor" opacity=".9" /><path d="M78 146C70 99 48 64 20 41c4 47 22 86 58 105Z" fill="currentColor" opacity=".65" /><path d="M78 146c3-47 16-79 56-118M78 146C68 100 45 63 20 41" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" /></svg>;
-}
 
 function SpeakerButton({ onClick }) {
   return (
@@ -270,6 +250,14 @@ function CloseIcon() {
   );
 }
 
+const CONCEPT_MODAL_LABELS = {
+  week: "Дни недели",
+  date: "Календарь месяца",
+  month: "Месяцы",
+  season: "Времена года",
+  daypart: "Время суток",
+};
+
 function DailyOrientationModal({ label, onClose, children }) {
   useEffect(() => {
     const timeoutId = window.setTimeout(onClose, MODAL_IDLE_CLOSE_MS);
@@ -277,7 +265,10 @@ function DailyOrientationModal({ label, onClose, children }) {
   }, [onClose]);
 
   return (
-    <div className="daily-orientation__modal-backdrop">
+    <div
+      className="daily-orientation__modal-backdrop"
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
+    >
       <div className="daily-orientation__modal" role="dialog" aria-modal="true" aria-label={label}>
         <button type="button" className="daily-orientation__modal-close" onClick={onClose} aria-label="Закрыть">
           <CloseIcon />
@@ -288,29 +279,6 @@ function DailyOrientationModal({ label, onClose, children }) {
   );
 }
 
-function WeeklyPlanModal({ today, plan, onClose }) {
-  const todayIndex = today.getDay();
-
-  return (
-    <DailyOrientationModal label="План на неделю" onClose={onClose}>
-      <div className="daily-orientation__week">
-        {WEEK_DAYS.map(({ day, label }) => (
-          <div
-            key={day}
-            className={[
-              "daily-orientation__week-day",
-              day === todayIndex ? "daily-orientation__week-day--today" : "",
-              WEEKEND_DAYS.has(day) ? "daily-orientation__week-day--weekend" : "",
-            ].filter(Boolean).join(" ")}
-          >
-            <span className="daily-orientation__week-day-label">{label}</span>
-            {plan[day] && <p className="daily-orientation__week-day-plan">{plan[day]}</p>}
-          </div>
-        ))}
-      </div>
-    </DailyOrientationModal>
-  );
-}
 
 // Deliberately real-world colours (not currentColor like the rest of this
 // topic's icons) -- weather is the one place where the colour itself is part
@@ -553,11 +521,12 @@ function FitText({ className, children }) {
   );
 }
 
-function DaypartCard({ daypartId, hidden, speakerButton }) {
+function DaypartCard({ daypartId, hidden, speakerButton, cardProps }) {
   return (
     <article
-      className={`daily-orientation__card daily-orientation__card--daypart daily-orientation__card--daypart-${daypartId}${hidden ? " daily-orientation__card--daypart-hidden" : ""}`}
+      className={`daily-orientation__card daily-orientation__card--daypart daily-orientation__card--daypart-${daypartId} daily-orientation__card--speakable${hidden ? " daily-orientation__card--daypart-hidden" : ""}`}
       aria-hidden={hidden}
+      {...(hidden ? {} : cardProps)}
     >
       {speakerButton}
       <p className="daily-orientation__question">{CAPTION_DAYPART}</p>
@@ -601,7 +570,8 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const { speak } = useSpeech();
   const { play: playClips } = useClipPlayer();
   const [offset, setOffset] = useState(0);
-  const [isWeeklyPlanOpen, setIsWeeklyPlanOpen] = useState(false);
+  // Which concept modal is open: "week" | "date" | "month" | "season" | "daypart" | null.
+  const [openConcept, setOpenConcept] = useState(null);
   const [isWeatherPickerOpen, setIsWeatherPickerOpen] = useState(false);
   const dragStart = useRef(null);
   const lastSpokenAtRef = useRef(0);
@@ -609,7 +579,11 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const weeklyPlan = parseWeeklyPlan(sessionParams?.weeklyPlan);
   const { weatherId, selectWeather } = useTodaysWeather(getLocalDateKey(now));
   const activeDate = addCalendarDays(now, offset);
-  const { weekday, month, dayOfMonth } = formatDisplayDate(activeDate);
+  const { weekday, month } = formatDisplayDate(activeDate);
+  // Plain number on the card, no "-е": a child reads the "е" as a letter.
+  // The ordinal is heard (the speaker says "двадцать девятое") and the
+  // written "29 сентября" form lives in the Число modal.
+  const dayOfMonth = String(activeDate.getDate());
   const season = getSeason(activeDate.getMonth());
   const hasTime = display.showAnalogClock || display.showTimeWords || display.showDigitalTime;
   const hideCurrentTime = offset !== 0;
@@ -632,6 +606,22 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   // next to the harder clock it helps explain.
   const showTopRow = display.showWeekday || display.showDayOfMonth || display.showMonth || display.showSeason;
   const showBottomRow = display.showDaypart || display.showWeather || hasTime;
+
+  // Tap anywhere on a card (but its speaker button) to open that concept's
+  // modal. Same props for every card so they all behave alike.
+  function conceptCardProps(concept) {
+    return {
+      role: "button",
+      tabIndex: 0,
+      onClick: () => setOpenConcept(concept),
+      onKeyDown: (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        setOpenConcept(concept);
+      },
+    };
+  }
+  const closeConcept = useCallback(() => setOpenConcept(null), []);
 
   function selectOffset(nextOffset) {
     setOffset(Math.max(-1, Math.min(1, nextOffset)));
@@ -720,14 +710,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                 {display.showWeekday && (
                   <article
                     className="daily-orientation__card daily-orientation__card--big daily-orientation__card--stacked daily-orientation__card--weekday daily-orientation__card--speakable"
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setIsWeeklyPlanOpen(true)}
-                    onKeyDown={(event) => {
-                      if (event.key !== "Enter" && event.key !== " ") return;
-                      event.preventDefault();
-                      setIsWeeklyPlanOpen(true);
-                    }}
+                    {...conceptCardProps("week")}
                   >
                     {soundEnabled && (
                       <SpeakerButton onClick={(event) => {
@@ -741,7 +724,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                 )}
 
                 {display.showDayOfMonth && (
-                  <article className="daily-orientation__card daily-orientation__card--narrow daily-orientation__card--stacked daily-orientation__card--date">
+                  <article className="daily-orientation__card daily-orientation__card--narrow daily-orientation__card--stacked daily-orientation__card--date daily-orientation__card--speakable" {...conceptCardProps("date")}>
                     {soundEnabled && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
@@ -754,7 +737,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                 )}
 
                 {display.showMonth && (
-                  <article className="daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--date">
+                  <article className="daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--date daily-orientation__card--speakable" {...conceptCardProps("month")}>
                     {soundEnabled && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
@@ -767,7 +750,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                 )}
 
                 {display.showSeason && (
-                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id}`}>
+                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id} daily-orientation__card--speakable`} {...conceptCardProps("season")}>
                     <div className="daily-orientation__season-background" aria-hidden="true"><SeasonMark season={season} /></div>
                     {soundEnabled && (
                       <SpeakerButton onClick={(event) => {
@@ -788,6 +771,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                   <DaypartCard
                     daypartId={daypartId}
                     hidden={hideCurrentTime}
+                    cardProps={conceptCardProps("daypart")}
                     speakerButton={soundEnabled && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
@@ -869,8 +853,14 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
         <svg viewBox="0 0 120 120" aria-hidden="true"><rect x="28" y="20" width="64" height="80" rx="10" /><path d="M99 60a39 39 0 0 1-35 38M21 60a39 39 0 0 1 35-38" /><path d="m91 88 7 10 10-7M29 32l-7-10-10 7" /></svg>
         <p>Поверните планшет горизонтально</p>
       </div>
-      {isWeeklyPlanOpen && (
-        <WeeklyPlanModal today={now} plan={weeklyPlan} onClose={() => setIsWeeklyPlanOpen(false)} />
+      {openConcept && (
+        <DailyOrientationModal label={CONCEPT_MODAL_LABELS[openConcept]} onClose={closeConcept}>
+          {openConcept === "week" && <WeekContent activeDate={activeDate} today={now} plan={weeklyPlan} />}
+          {openConcept === "date" && <DateContent activeDate={activeDate} offset={offset} today={now} />}
+          {openConcept === "month" && <MonthContent activeDate={activeDate} />}
+          {openConcept === "season" && <SeasonContent activeDate={activeDate} />}
+          {openConcept === "daypart" && <DaypartContent daypartId={daypartId} wakeHour={wakeHour} bedHour={bedHour} />}
+        </DailyOrientationModal>
       )}
       {isWeatherPickerOpen && (
         <WeatherPickerModal

@@ -1,0 +1,301 @@
+/* Concept modals (ConceptModals.jsx). They live outside the scaled 1600x1000
+   canvas, so sizes use clamp()/vw like the rest of the modal CSS in
+   dailyOrientation.css. One shared grammar: the full cycle in order, the
+   current item outlined in the screen's ink and slightly lifted. */
+.dom {
+  --dom-ink: #073d4f;
+  --dom-muted: #647d85;
+  --dom-active: #2f8677;
+  --dom-date: #d76747;
+  --dom-plate: #f4f1e9;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.8vw, 26px);
+  color: var(--dom-ink);
+}
+
+.dom-title {
+  margin: 0;
+  padding-right: clamp(48px, 5vw, 70px); /* clear of the close button */
+  font-size: clamp(24px, 2.6vw, 38px);
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+/* shared "current item" treatment */
+.dom-week__day--active,
+.dom-months__month--active,
+.dom-cycle__item--active {
+  box-shadow: 0 0 0 3px var(--dom-active), 0 8px 20px rgba(7, 61, 79, .14);
+}
+
+/* ── День недели ─────────────────────────────────────────────────── */
+.dom-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(6px, .9vw, 14px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dom-week__day {
+  container-type: inline-size;
+  min-width: 0;
+  min-height: clamp(150px, 20vw, 280px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(4px, .6vw, 10px);
+  padding: clamp(10px, 1.2vw, 18px) clamp(4px, .6vw, 10px);
+  border-radius: clamp(14px, 1.6vw, 24px);
+  background: var(--dom-plate);
+  text-align: center;
+}
+.dom-week__day--weekend { background: #fbe1d4; }
+.dom-week__day--active { background: #d8efe7; transform: translateY(-4px); }
+.dom-week__tag {
+  min-height: 1.2em;
+  font-size: clamp(11px, 1.05vw, 16px);
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--dom-active);
+}
+/* Fits the longest name (Понедельник, Воскресенье: 11 letters) in its column */
+.dom-week__name {
+  max-width: 100%;
+  font-size: min(clamp(14px, 1.9vw, 28px), calc(100cqi / 7.6));
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.dom-week__day--weekend .dom-week__name { color: #9c4424; }
+.dom-week__short {
+  font-size: clamp(11px, 1vw, 15px);
+  font-weight: 700;
+  color: var(--dom-muted);
+  opacity: .8;
+}
+.dom-week__plan {
+  margin-top: auto;
+  width: 100%;
+  padding: clamp(6px, .7vw, 10px) clamp(4px, .5vw, 8px);
+  border-radius: clamp(8px, 1vw, 14px);
+  background: rgba(255, 255, 255, .75);
+  font-size: clamp(12px, 1.25vw, 18px);
+  font-weight: 700;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+/* ── Число ────────────────────────────────────────────────────────── */
+.dom--date {
+  flex-direction: row;
+  align-items: stretch;
+  gap: clamp(18px, 2.4vw, 40px);
+}
+.dom-calendar { flex: 1.25 1 0; min-width: 0; display: flex; flex-direction: column; gap: clamp(10px, 1.2vw, 18px); }
+.dom-calendar__grid {
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(3px, .45vw, 7px);
+}
+.dom-calendar__head {
+  padding-bottom: 2px;
+  /* one column = 1/7 of the grid; "понедельник" (11 letters, lowercase 800) must fit */
+  font-size: min(clamp(10px, .95vw, 14px), calc(100cqi / 7 / 7.4));
+  font-weight: 800;
+  text-align: center;
+  color: var(--dom-muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.dom-calendar__head--weekend { color: #b8532f; }
+.dom-calendar__cell {
+  aspect-ratio: 1.25;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: clamp(8px, .9vw, 12px);
+  background: var(--dom-plate);
+  font-size: clamp(15px, 1.6vw, 24px);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.dom-calendar__cell--blank { background: transparent; }
+.dom-calendar__cell--weekend { background: #fbe1d4; color: #9c4424; }
+.dom-calendar__cell--past { opacity: .45; }
+.dom-calendar__cell--active {
+  opacity: 1;
+  background: var(--dom-date);
+  color: #fff;
+  box-shadow: 0 0 0 3px #fff, 0 0 0 6px var(--dom-date);
+  font-size: clamp(18px, 2vw, 30px);
+  font-weight: 950;
+}
+
+.dom-date-say {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(12px, 1.6vw, 24px);
+  padding: clamp(16px, 2vw, 32px);
+  border-radius: clamp(16px, 1.8vw, 28px);
+  background: #fff7f3;
+}
+.dom-date-say__caption {
+  margin: 0;
+  font-size: clamp(12px, 1.1vw, 16px);
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--dom-muted);
+}
+.dom-date-say__phrase {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 46px);
+  font-weight: 900;
+  line-height: 1.15;
+}
+.dom-date-say__lead { color: var(--dom-muted); font-weight: 800; }
+.dom-date-say__number { color: var(--dom-date); }
+.dom-date-say mark {
+  padding: 0 .06em;
+  border-radius: .15em;
+  background: #ffe08a;
+  color: inherit;
+}
+.dom-date-say__bridge {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1vw, 16px);
+}
+.dom-date-say__form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: clamp(8px, 1vw, 14px) clamp(12px, 1.4vw, 20px);
+  border-radius: clamp(12px, 1.2vw, 18px);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(55, 50, 39, .08);
+}
+.dom-date-say__form-label {
+  font-size: clamp(11px, .95vw, 14px);
+  font-weight: 800;
+  color: var(--dom-muted);
+}
+.dom-date-say__form-word {
+  font-size: clamp(18px, 2vw, 30px);
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+/* ── Месяц ────────────────────────────────────────────────────────── */
+.dom-months {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(8px, 1.1vw, 16px);
+}
+.dom-months__season {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, .8vw, 12px);
+  padding: clamp(10px, 1.2vw, 18px);
+  border-radius: clamp(14px, 1.6vw, 24px);
+  background: var(--season-bg);
+}
+.dom-months__season-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: clamp(16px, 1.7vw, 26px);
+  font-weight: 900;
+  color: var(--season-ink);
+}
+.dom-months__season-mark { width: clamp(22px, 2.4vw, 36px); height: clamp(22px, 2.4vw, 36px); flex: 0 0 auto; }
+.dom-months__list { display: flex; flex-direction: column; gap: clamp(5px, .6vw, 9px); margin: 0; padding: 0; list-style: none; }
+.dom-months__month {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: clamp(8px, .9vw, 14px) clamp(10px, 1.1vw, 16px);
+  border-radius: clamp(10px, 1.1vw, 16px);
+  background: rgba(255, 255, 255, .8);
+}
+.dom-months__month--active { background: #fff; }
+.dom-months__month-name { font-size: clamp(15px, 1.6vw, 24px); font-weight: 900; }
+.dom-months__month-days { font-size: clamp(12px, 1.1vw, 16px); font-weight: 700; color: var(--dom-muted); }
+
+/* ── Время года / Время суток: a cycle ────────────────────────────── */
+.dom-cycle {
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dom-cycle__slot { flex: 1 1 0; min-width: 0; display: flex; align-items: center; }
+.dom-cycle__item {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, .8vw, 12px);
+  padding: clamp(12px, 1.5vw, 24px) clamp(8px, 1vw, 16px);
+  border-radius: clamp(16px, 1.8vw, 28px);
+  background: var(--season-bg, var(--dom-plate));
+  text-align: center;
+}
+.dom-cycle__item--active { transform: translateY(-4px); }
+.dom-cycle__mark { width: clamp(56px, 7vw, 110px); height: clamp(56px, 7vw, 110px); color: var(--season-ink); }
+.dom-cycle__picture { width: clamp(64px, 8vw, 120px); height: clamp(64px, 8vw, 120px); object-fit: contain; }
+.dom-cycle__name { font-size: clamp(18px, 2.1vw, 32px); font-weight: 900; color: var(--dom-ink); }
+.dom-cycle__months {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: clamp(12px, 1.2vw, 18px);
+  font-weight: 700;
+  color: var(--dom-muted);
+}
+.dom-cycle__month--active { color: var(--dom-ink); font-weight: 900; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.dom-cycle-arrow {
+  flex: 0 0 auto;
+  width: clamp(18px, 2vw, 30px);
+  height: clamp(18px, 2vw, 30px);
+  margin: 0 clamp(2px, .4vw, 6px);
+  fill: none;
+  stroke: var(--dom-muted);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dom-cycle__note {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(13px, 1.3vw, 19px);
+  font-weight: 700;
+  color: var(--dom-muted);
+}
+
+/* Season tones: pale plate + a deeper ink for the silhouette (the card's
+   own season-mark colours). */
+.dom-season-tone--winter { --season-bg: #e6f1fa; --season-ink: #4b9fd0; }
+.dom-season-tone--spring { --season-bg: #ecf6e6; --season-ink: #65a449; }
+.dom-season-tone--summer { --season-bg: #fff6d8; --season-ink: #e0a01f; }
+.dom-season-tone--autumn { --season-bg: #fdeede; --season-ink: #df8b16; }
+.dom-daypart-tone--morning { --season-bg: #fff0e6; }
+.dom-daypart-tone--day { --season-bg: #e6f4ff; }
+.dom-daypart-tone--evening { --season-bg: #f1eafa; }
+.dom-daypart-tone--night { --season-bg: #e8ebf5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dom-week__day--active,
+  .dom-cycle__item--active { transform: none; }
+}

@@ -202,3 +202,47 @@ export function formatDisplayDate(date) {
     dayOfMonth: `${date.getDate()}-е`,
   };
 }
+
+// ── Helpers for the concept modals (ConceptModals.jsx) ──────────────
+
+// Monday-first, keyed by Date#getDay() like WEEKDAY_NAMES. Full names are
+// the primary label everywhere; the short form is only a secondary caption.
+export const WEEK_MONDAY_FIRST = [1, 2, 3, 4, 5, 6, 0].map((day) => ({
+  day,
+  name: WEEKDAY_NAMES[day],
+  short: ["вс", "пн", "вт", "ср", "чт", "пт", "сб"][day],
+  weekend: day === 0 || day === 6,
+}));
+
+// Months of each season, in the order they come (winter spans the new year).
+export const SEASON_ORDER = ["winter", "spring", "summer", "autumn"];
+export const SEASON_MONTHS = {
+  winter: [11, 0, 1],
+  spring: [2, 3, 4],
+  summer: [5, 6, 7],
+  autumn: [8, 9, 10],
+};
+
+export function daysInMonth(year, monthIndex) {
+  return new Date(year, monthIndex + 1, 0).getDate();
+}
+
+export function daysWord(count) {
+  return `${count} ${russianPlural(count, "день", "дня", "дней")}`;
+}
+
+// "сентябрь" / "сентября" -> { stem: "сентябр", nominativeEnding: "ь",
+// genitiveEnding: "я" }: what changes when the month follows a number
+// ("29 сентября"), so the modal can highlight exactly that part.
+export function monthEndingChange(monthIndex) {
+  const nominative = MONTHS_NOMINATIVE[monthIndex];
+  const genitive = MONTHS_GENITIVE[monthIndex];
+  let common = 0;
+  while (common < nominative.length && nominative[common] === genitive[common]) common++;
+  return {
+    stem: nominative.slice(0, common),
+    nominativeEnding: nominative.slice(common),
+    genitiveEnding: genitive.slice(common),
+  };
+}
+
