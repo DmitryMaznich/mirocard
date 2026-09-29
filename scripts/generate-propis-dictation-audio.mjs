@@ -20,9 +20,15 @@
 //     33 letter clips, one per BASE letter (case-independent -- "К"/"к" are
 //     the same phoneme). DictationView.jsx plays the case clip then the
 //     letter clip back to back. A letter's own clip is its actual SOUND, not
-//     its alphabet NAME (buildConsonantSoundPrompt) -- consonants especially
-//     need this distinction ("к" is /k/, not "ка"); ъ/ь have no sound at all,
-//     so their clip is just their name instead ("твёрдый/мягкий знак").
+//     its alphabet NAME (buildLetterPrompt + SUSTAINED_TEXT) -- consonants
+//     especially need this distinction ("к" is /k/, not "ка"); ъ/ь have no
+//     sound at all, so their clip is just their name instead ("твёрдый/мягкий
+//     знак"). 2026-09-27: also dropped the "дружелюбно... как для ребёнка"
+//     framing for every letter clip specifically -- fine for words/texts, but
+//     it was coaxing an expressive/sung-song read exactly where these clips
+//     (used by a child on the autism spectrum) need a flat, consistent
+//     reference sound instead. Still an open problem for the voiceless stops
+//     (п/к/т) -- see buildLetterPrompt's own comment.
 //   - words: every `words[]` entry (249), spoken as-is.
 //   - texts: every `texts[]` entry (24), split into sentences the same way
 //     engine.js does (dictationAudio.js's splitIntoSentences) -- one clip per
@@ -152,6 +158,30 @@ function buildDefaultPrompt(text) {
 // framing already used for vowels/case-words turns out to read a bare consonant as its
 // SOUND anyway (confirmed by ear, 2026-09-27, comparing "к" and "К!" through this exact
 // prompt) -- no special-casing needed, every base letter goes through buildDefaultPrompt.
+//
+// That "no special-casing" call didn't survive contact with the full batch, though: user
+// report the same day, listening to all 33, found 20 unusable -- most of the voiceless
+// stops (п/к/т, unlike their voiced pairs б/г/д which came out fine -- there's simply
+// nothing to voice once you strip the vowel off a voiceless stop, so TTS falls back to the
+// named letter more often), the sibilants/affricates (с/ш/щ/ц/ч/ж), and several vowels.
+// The vowel complaint was different in kind: "тянутся [и] слишком игривое произношение"
+// (stretched out, sung-song) -- buildDefaultPrompt's own "дружелюбно... как для ребёнка"
+// framing was almost certainly the cause, coaxing an expressive/cutesy read exactly where a
+// flat reference phoneme is needed. This matters more than usual here: these clips are for
+// a child on the autism spectrum, where a consistent, unembellished reference sound is the
+// whole point -- not just a nice-to-have. buildLetterPrompt drops that framing entirely for
+// every letter-related clip (case words, signs, vowels, consonants alike).
+function buildLetterPrompt(text) {
+  return `Прочитай нейтрально, коротко и чётко, без интонации и эмоций: ${text}`;
+}
+
+// Sibilants/affricates can be sustained/repeated the way a plosive can't -- "ссс"/"шшш"/
+// "жжж" is the ordinary Russian written convention for depicting the raw hiss/buzz (same
+// device as English "shh"/"zzz"), not a name-reading trap the way a bare single character
+// is. All 6 of these were in the user's 20-bad list; untested candidates for the voiceless
+// stops (п/к/т, no natural sustain) are still pending the small listen-first batch planned
+// for the next quota window -- don't extend this table to them without that.
+const SUSTAINED_TEXT = { "с": "ссс", "ш": "шшш", "щ": "щщщ", "ц": "ццц", "ч": "ччч", "ж": "жжж" };
 
 // ъ/ь have no sound of their own at all ("строчная ь" reliably errored out of Gemini TTS,
 // finishReason "OTHER", 3/3 attempts, 2026-09-19) -- say the actual name instead, same as a
@@ -167,8 +197,8 @@ function buildEntries() {
     // did (66 case-baked clips for what's really only 35 distinct sounds: 33 letters + these
     // 2 words -- reported 2026-09-24: "слитные фразы... 66 файлов вместо 35").
     entries.push(
-      { id: caseWordDictationKey(true), text: "заглавная", prompt: buildDefaultPrompt("заглавная") },
-      { id: caseWordDictationKey(false), text: "строчная", prompt: buildDefaultPrompt("строчная") }
+      { id: caseWordDictationKey(true), text: "заглавная", prompt: buildLetterPrompt("заглавная") },
+      { id: caseWordDictationKey(false), text: "строчная", prompt: buildLetterPrompt("строчная") }
     );
 
     // Excludes joint-stroke variants (variantOf set, e.g. "о_middle_ll") -- those aren't
@@ -185,8 +215,8 @@ function buildEntries() {
     }
     for (const [base, card] of byBaseLetter) {
       const id = letterSoundDictationKey(card);
-      const text = SIGN_NAMES[base] ?? base;
-      entries.push({ id, text, prompt: buildDefaultPrompt(text) });
+      const text = SIGN_NAMES[base] ?? SUSTAINED_TEXT[base] ?? base;
+      entries.push({ id, text, prompt: buildLetterPrompt(text) });
     }
   }
   if (!ONLY || ONLY === "words") {
