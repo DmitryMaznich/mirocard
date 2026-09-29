@@ -70,7 +70,6 @@ export function buildDailyOrientationTopicRecord() {
             type: "boolean",
             label: { ru: "Погода (отмечает ребёнок)" },
             default: true,
-            dependsOn: "showSeason",
             section: "Что показывать",
           },
           showAnalogClock: {

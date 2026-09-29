@@ -35,6 +35,7 @@ import {
   buildRowGuideLines, buildDiagonalLines,
 } from "@/topics/renderers/propis/propisRuling.js";
 import { validateStoryQuizText } from "@/topics/renderers/reading/storyQuiz";
+import DailyOrientationSettings from "@/features/session/DailyOrientationSettings";
 
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
@@ -2153,6 +2154,9 @@ export default function ParamsScreen() {
         </div>
       )}
       {(() => {
+        if (isDailyOrientation) {
+          return <DailyOrientationSettings params={params} setParams={setParams} />;
+        }
         function renderParam(key, def) {
           if (def.type === "concept_selector") return null;
           if (def.showWhen) {
