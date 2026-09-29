@@ -65,12 +65,15 @@ def review_rows(c, cards, seq, is_left, t1, t2):
       row 1: the sequence half-tone dashed, repeated whole while it fits;
       row 2: short sequence (fits twice): solid once, then room to copy it;
              longer: every other digit solid, the gaps left for the child
-             to fill in ("1 _ 3 _ 5 _ 7") -- recalling the order."""
+             to fill in ("1 _ 3 _ 5 _ 7") -- recalling the order.
+    Wherever the child writes, only the start dot is printed."""
     slots = COLS // 2
     reps = max(slots // len(seq), 1)
     seq_row(c, cards, [(ch, "dashed") for ch in seq * reps], is_left, t1)
     if 2 * len(seq) <= slots:
-        seq_row(c, cards, [(ch, "solid") for ch in seq], is_left, t2)
+        # the model once, then the copy area marked by start dots only
+        rest = [(seq[i % len(seq)], None) for i in range(slots - len(seq))]
+        seq_row(c, cards, [(ch, "solid") for ch in seq] + rest, is_left, t2)
     else:
         seq_row(c, cards, [(ch, "solid" if i % 2 == 0 else None)
                            for i, ch in enumerate(seq)], is_left, t2)

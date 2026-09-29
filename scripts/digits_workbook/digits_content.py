@@ -17,7 +17,7 @@ SCRIPTS = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(SCRIPTS, "propis_worksheets"))
 sys.path.insert(0, os.path.join(SCRIPTS, "punctuation_workbook"))
 
-from page import draw_page_number_badge, MARGIN_MM  # noqa: E402
+from page import PAGE_W_MM  # noqa: E402
 from render import TOPIC_JSON, LETTER_BASELINE_UNIT  # noqa: E402
 from svg_path import draw_path, path_bounds  # noqa: E402
 from ruling import CELL_MM, PAGE_H, HALF_W, PAGE_W  # noqa: E402
@@ -28,12 +28,17 @@ START = (0.85, 0.15, 0.15)       # start-of-stroke dot, same red as the margins
 FADE = [0.5, 0.5, 0.5, 0.28, 0.28, 0.28]  # tracing copies, fading as in the punctuation workbook
 DASH = (0.5, 0.56)               # mm on/off
 DIGIT_TOP_UNIT = 39.5            # captured digits' top (native units); base = 88
-COLS = 24                        # cells per row (one cell kept free by the margin)
+# Red margin 10mm = 2 cells (user, 2026-09-29: narrower than the other
+# notebooks' 15mm); build.py passes it to the shared ruling.
+MARGIN_MM = 10.0
+COLS = 26                        # cells per row (one cell kept free by the margin)
+DOT_ONLY_OPACITY = 0.6           # a start dot standing alone marks the rhythm, lighter
 
 PAGE_H_MM = PAGE_H / mm
 LEFT_X0 = MARGIN_MM + CELL_MM                     # left page: margin, one free cell
 RIGHT_MARGIN_LOCAL = (PAGE_W - MARGIN_MM * mm - HALF_W) / mm
 RIGHT_X0 = RIGHT_MARGIN_LOCAL - (COLS + 1) * CELL_MM
+assert RIGHT_X0 >= 3.0 and LEFT_X0 + COLS * CELL_MM <= HALF_W / mm - 3.0
 
 
 def load_cards():
@@ -63,7 +68,7 @@ def col_x(is_left, col):
 
 
 def draw_digit(c, card, cell_x, baseline, cells_h=1, cells_w=None, opacity=1.0,
-               dashed=False, start_dot=False):
+               dashed=False, start_dot=False, ink=True):
     """One digit/sign, `cells_h` cells tall, in a box `cells_w` cells wide
     (default = cells_h) whose left edge is cell_x. The ink's rightmost
     point sits exactly on the box's right grid line, and a digit's
@@ -86,6 +91,9 @@ def draw_digit(c, card, cell_x, baseline, cells_h=1, cells_w=None, opacity=1.0,
     def tf(nx, ny):
         return ox + (nx - x0) * k, baseline - (ny - base_unit) * k
 
+    if not ink:   # the start dot alone, where the child writes the digit himself
+        _start_dots(c, card, tf, cells_h, DOT_ONLY_OPACITY)
+        return
     path = c.beginPath()
     for s in card["strokes"]:
         draw_path(path, s["d"], tf)
@@ -101,30 +109,36 @@ def draw_digit(c, card, cell_x, baseline, cells_h=1, cells_w=None, opacity=1.0,
     c.restoreState()
 
     if start_dot:
-        # filled dot = where the first stroke starts; ring = the next strokes
-        r = 0.38 * cells_h ** 0.5
-        c.saveState()
-        c.setFillColorRGB(*START)
-        c.setStrokeColorRGB(*START)
-        c.setFillAlpha(opacity)
-        c.setStrokeAlpha(opacity)
-        c.setLineWidth(0.18)
-        for i, s in enumerate(card["strokes"]):
-            n = _nums(s["d"])
-            x, y = tf(n[0], n[1])
-            if i == 0:
-                c.circle(x, y, r, stroke=0, fill=1)
-            elif cells_h > 1:   # too cramped to read at 1 cell
-                c.circle(x, y, r * 0.8, stroke=1, fill=0)
-        c.restoreState()
+        _start_dots(c, card, tf, cells_h, opacity)
+
+
+def _start_dots(c, card, tf, cells_h, opacity):
+    """Filled dot = where the first stroke starts; ring = the next strokes."""
+    r = 0.38 * cells_h ** 0.5
+    c.saveState()
+    c.setFillColorRGB(*START)
+    c.setStrokeColorRGB(*START)
+    c.setFillAlpha(opacity)
+    c.setStrokeAlpha(opacity)
+    c.setLineWidth(0.18)
+    for i, s in enumerate(card["strokes"]):
+        n = _nums(s["d"])
+        x, y = tf(n[0], n[1])
+        if i == 0:
+            c.circle(x, y, r, stroke=0, fill=1)
+        elif cells_h > 1:   # too cramped to read at 1 cell
+            c.circle(x, y, r * 0.8, stroke=1, fill=0)
+    c.restoreState()
 
 
 def practice_row(c, cards, seq, is_left, t, cells_h=1, step=2, n_trace=6,
                  model_only=False):
     """One row of the ladder: the solid model(s) with start dots, then
-    n_trace half-tone dashed copies (fading), rest of the row empty to
-    write alone. `seq` = the item(s) cycled along the row ("1", "14"...);
-    `step` = columns from one item to the next."""
+    n_trace half-tone dashed copies (fading), then the rest of the row to
+    write alone -- marked only by the start dots (user, 2026-09-29: the
+    dots give the rhythm, lighter on the eye than more copies).
+    `seq` = the item(s) cycled along the row ("1", "14"...); `step` =
+    columns from one item to the next."""
     y = row_y(t)
     col, i = 0, 0
     slots = COLS // step
@@ -133,19 +147,30 @@ def practice_row(c, cards, seq, is_left, t, cells_h=1, step=2, n_trace=6,
         ch = seq[i % len(seq)]
         if i < n_model:
             op, dashed = 1.0, False
-        elif model_only:
-            break
-        elif i - n_model < n_trace:
+        elif not model_only and i - n_model < n_trace:
             op, dashed = FADE[min(i - n_model, len(FADE) - 1)], True
         else:
-            break
+            if col + (cells_h if step > 1 else 1) > COLS:
+                break
+            draw_digit(c, cards[ch], col_x(is_left, col), y, cells_h=cells_h, ink=False)
+            col += step
+            continue
         draw_digit(c, cards[ch], col_x(is_left, col), y, cells_h=cells_h,
                    opacity=op, dashed=dashed, start_dot=True)
         col += step
 
 
 def page_number(c, n, align):
-    draw_page_number_badge(c, n, align)
+    """The propis badge (page.py), re-centred in this notebook's narrower
+    margin."""
+    cx = MARGIN_MM / 2 if align == "left" else PAGE_W_MM - MARGIN_MM / 2
+    c.saveState()
+    c.setFillColorRGB(1, 1, 1)
+    c.circle(cx, 10.0, 3.6, stroke=0, fill=1)
+    c.setFont("Helvetica", 7 / 2.83465)
+    c.setFillColorRGB(0.45, 0.45, 0.45)
+    c.drawCentredString(cx, 9.0, str(n))
+    c.restoreState()
 
 
 def seq_row(c, cards, items, is_left, t, step=2):
@@ -153,7 +178,8 @@ def seq_row(c, cards, items, is_left, t, step=2):
     None = an empty slot the child fills in."""
     y = row_y(t)
     for i, (ch, style) in enumerate(items):
-        if style is None:
+        if style is None:   # the child writes it: start dot only
+            draw_digit(c, cards[ch], col_x(is_left, i * step), y, ink=False)
             continue
         draw_digit(c, cards[ch], col_x(is_left, i * step), y,
                    opacity=1.0 if style == "solid" else FADE[0],

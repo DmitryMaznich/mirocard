@@ -11,6 +11,9 @@ from render import draw_letter, letter_ink_bounds, SCALE  # noqa: E402
 
 DIGIT_GAP_MM = 0.9   # between the digits of one number ("10", "31")
 
+from digits_content import MARGIN_MM  # noqa: E402
+TEXT_LEFT_INSET_MM = MARGIN_MM + 2.0   # hug this notebook's narrower red margin
+
 
 class DigitInk(Ink):
     def __init__(self, cards):
@@ -84,7 +87,7 @@ def ladder_text_page(c, cards, is_left, trace, models, warnings, n):
     """Same ladder as the punctuation workbook's copy pages: top rows
     half-tone dashed to trace, then each model with an empty row under it."""
     ink = ink_for(cards)
-    inset = LEFT_INSET_MM if is_left else CENTER_INSET_MM
+    inset = TEXT_LEFT_INSET_MM if is_left else CENTER_INSET_MM
     rows = [(t, "trace") for t in trace]
     for m in models:
         rows += [(m, "model"), None]
@@ -99,7 +102,7 @@ def distance_text_page(c, cards, is_left, models, fill, warnings, n):
     left over after one copy of each are filled with number+word phrases,
     half-tone dashed (no empty rows)."""
     ink = ink_for(cards)
-    inset = LEFT_INSET_MM if is_left else CENTER_INSET_MM
+    inset = TEXT_LEFT_INSET_MM if is_left else CENTER_INSET_MM
     for k, s in enumerate(models):
         _row(ink, c, s, BASELINES[k], inset, "model", warnings, n)
     for baseline, text in zip(BASELINES[2 * len(models):], fill):

@@ -18,7 +18,7 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 
-from digits_content import HERE, load_cards, page_number
+from digits_content import HERE, MARGIN_MM, load_cards, page_number
 from digits_pages import CONTENT, KIND
 from ruling import draw_sheet_ruling, HALF_W
 from booklet import _imposition_order  # noqa: E402  (digits_content put ../propis_worksheets on sys.path)
@@ -38,7 +38,7 @@ def build(out_path):
     for front, back in _imposition_order(N_PAGES):
         for left, right in (front, back):
             ln, rn = left + 1, right + 1
-            draw_sheet_ruling(c, KIND[ln], KIND[rn], "gray")
+            draw_sheet_ruling(c, KIND[ln], KIND[rn], "gray", margin_mm=MARGIN_MM)
             for n, is_left in ((ln, True), (rn, False)):
                 c.saveState()
                 c.translate(0 if is_left else HALF_W, 0)
