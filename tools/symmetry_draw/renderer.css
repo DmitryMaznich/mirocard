@@ -797,6 +797,14 @@
   .session-renderer-wrap:has(> .symmetry-draw),
   .session-renderer-wrap:has(> .dictation-card) { container-type: size; }
 
+  /* Height is what bounds most figures in landscape. The shared header
+     keeps a permanent 58px clearance for the 96px right/wrong badge that
+     grows out of it for a second or two after an answer; on this topic's
+     screens that strip goes back to the field and the badge briefly
+     overlaps the sheet's top edge instead. Scoped with :has so it never
+     leaks into other topics even though this stylesheet stays loaded. */
+  .session-screen:has(.symmetry-draw, .dictation-card, .coordinate-practice, .navigator, .navigator-learning) .session-header-wrap { margin-bottom: 16px; }
+
   /* Mirror / repeat */
   .symmetry-draw {
     --sd-pad-x: clamp(12px, 2.4vw, 28px);
