@@ -64,6 +64,26 @@ def build_cover():
     return os.path.join(ROOT, "cover_цифры_digits.pdf")
 
 
+PROPIS_DIR = os.path.join(ROOT, "tools", "propis")
+DECK_PRINT = os.path.join(PROPIS_DIR, "print", "прописи_цифры.pdf")
+DECK_THUMB = os.path.join(PROPIS_DIR, "thumbnails", "propis_worksheets_digits.png")
+
+
+def stage_for_deck(print_pdf):
+    """Where tools/propis/topic.json's `propis_worksheets_digits` item
+    expects its PDF and thumbnail (both dirs gitignored, shipped in the
+    deck zip by scripts/build-propis-deck.mjs). Thumbnail = the cover page,
+    as for the punctuation workbook."""
+    import shutil
+    import pymupdf
+    os.makedirs(os.path.dirname(DECK_PRINT), exist_ok=True)
+    shutil.copy(print_pdf, DECK_PRINT)
+    os.makedirs(os.path.dirname(DECK_THUMB), exist_ok=True)
+    pymupdf.open(DECK_PRINT)[0].get_pixmap(matrix=pymupdf.Matrix(1.5, 1.5)).save(DECK_THUMB)
+    print(DECK_PRINT)
+    print(DECK_THUMB)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--png", nargs="*", type=int, default=None)
@@ -80,6 +100,7 @@ def main():
     print_pdf = os.path.join(OUT_DIR, PRINT_PDF)
     merge(build_cover(), out, print_pdf)
     print(print_pdf)
+    stage_for_deck(print_pdf)
     if args.png is not None:
         import pymupdf
         doc = pymupdf.open(out)

@@ -180,6 +180,11 @@ Handwriting-practice topic. Fully independent from `letter_writing` ("Напис
     captured handwriting (letter groups one per row / syllables / words),
     right page = ТЕТРАДЬ + subtitle. Merged the same way; their sheet-only
     sources are `print_sources/прописи_<name>_листы.pdf`.
+    Deck v1.30.16: `propis_worksheets_digits` — the digits workbook
+    (`scripts/digits_workbook/`, captured cards of type `digit`/`math`):
+    `python scripts/digits_workbook/build.py` builds the sheets, the cover
+    (`cover_tetrad.py --style=цифры --variant=digits`), the merged print PDF
+    and stages it + the cover thumbnail into `tools/propis/print|thumbnails`.
   - **Content-card thumbnails swapped to a real page-1 render 2026-09-15
     (propis deck v1.27.1, print_materials deck v1.0.35), user request.** All
     9 `content`-category thumbnails used to be the notebook's *cover*
