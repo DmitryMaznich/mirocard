@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import {
   DATA_DIR, PORT, DEPLOY_TOKEN, DEPLOY_FRONTEND_DIR, ADMIN_TOKEN,
   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT, SERVE_STATIC, LEGAL_DOCS_VERSION,
-  CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, GOOGLE_CLIENT_ID, GOOGLE_JWKS_URL, APP_BASE_URL,
+  CORS_ALLOWED_ORIGINS, EMAIL_DAILY_CAP, EMAIL_SIGNUP_CAP, EMAIL_MATERIALS_CAP, GOOGLE_CLIENT_ID, GOOGLE_JWKS_URL, APP_BASE_URL,
 } from "./lib/config.mjs";
 import { verifyGoogleIdToken } from "./lib/google-auth.mjs";
 import { createOneTimeCode, consumeOneTimeCode } from "./lib/one-time-codes.mjs";
@@ -36,6 +36,7 @@ import {
   getPhoto, migratePhotoData, extractAndStorePhoto,
   getAccountKvByPrefixes,
   incrementRevision,
+  createMaterialsLead, findMaterialsLeadByToken,
 } from "./lib/account-repository.mjs";
 import {
   createPasswordHash, verifyPasswordHash,
@@ -44,7 +45,7 @@ import { writeJson, writeNoContent, readJsonBody, readRawBody, readFormBody, par
 import { createRateLimiter } from "./lib/rate-limit.mjs";
 import {
   sendPasswordResetEmail, sendEmailVerificationEmail, sendPromoGrantEmail, sendPurchaseConfirmationEmail,
-  setEmailBudget,
+  sendMaterialsLinkEmail, setEmailBudget,
 } from "./lib/mailer.mjs";
 import { buildBootstrap } from "./lib/snapshot-builder.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
@@ -162,6 +163,8 @@ const checkForgotPwLimit  = createRateLimiter({ max: 5,  windowMs: HOUR_MS });  
 const checkPromoLimit     = createRateLimiter({ max: 20, windowMs: HOUR_MS });        // per account
 const checkCheckoutLimit  = createRateLimiter({ max: 20, windowMs: HOUR_MS });        // per account
 const checkWebhookLimit   = createRateLimiter({ max: 600, windowMs: 60 * 1000 });     // per provider, coarse flood guard
+const checkMaterialsEmailLimit = createRateLimiter({ max: 5,  windowMs: HOUR_MS });   // per recipient email
+const checkMaterialsIpLimit    = createRateLimiter({ max: 15, windowMs: HOUR_MS });   // per IP: no spraying other people's inboxes
 
 // Email is the only way into a new account (login is blocked until the
 // address is verified), so a failed send must be visible, not just logged.
@@ -1004,6 +1007,71 @@ async function handleDownloadDeck(req, res) {
   createReadStream(zipPath).pipe(res);
 }
 
+// ─── Materials (free PDF library on the landing page) ──────────────────────────
+// The landing asks for an email, we mail a 30-day download link. The PDFs and
+// their catalog live in backend/materials/.
+
+const MATERIALS_DIR = path.join(BACKEND_DIR, "materials");
+
+function loadMaterialsCatalog() {
+  return JSON.parse(readFileSync(path.join(MATERIALS_DIR, "catalog.json"), "utf8")).materials ?? [];
+}
+
+function getMaterialEntry(materialId) {
+  return loadMaterialsCatalog().find((m) => m.id === materialId) ?? null;
+}
+
+async function handleGetMaterialsCatalog(req, res) {
+  const materials = loadMaterialsCatalog().map(({ id, title, description, category }) => (
+    { id, title, description, category }
+  ));
+  writeJson(res, 200, { materials });
+}
+
+async function handleRequestMaterial(req, res) {
+  const body = await readJsonBody(req);
+  const email = sanitizeEmail(body?.email);
+  const materialId = String(body?.materialId || "");
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return writeJson(res, 400, { error: "Valid email is required" });
+
+  const material = getMaterialEntry(materialId);
+  if (!material) return writeJson(res, 404, { error: "Material not found" });
+
+  if (!checkMaterialsIpLimit(getClientIp(req)) || !checkMaterialsEmailLimit(email)) return rateLimited(res);
+  if (emailBudget.used() >= EMAIL_MATERIALS_CAP) return writeJson(res, 503, { error: "email_budget_exhausted" });
+
+  const rawToken = randomUUID();
+  createMaterialsLead(db, { email, materialId, tokenHash: hashToken(rawToken) });
+  sendMaterialsLinkEmail(email, material, rawToken).catch((err) => reportEmailFailure("materials_link", err));
+
+  writeJson(res, 200, { ok: true });
+}
+
+async function handleDownloadMaterial(req, res) {
+  const url = new URL(req.url, "http://localhost");
+  const rawToken = url.searchParams.get("token") || "";
+  if (!rawToken) return writeJson(res, 400, { error: "Missing token" });
+
+  const lead = findMaterialsLeadByToken(db, hashToken(rawToken));
+  if (!lead) return writeJson(res, 400, { error: "invalid_or_expired_token" });
+
+  const material = getMaterialEntry(lead.material_id);
+  if (!material) return writeJson(res, 404, { error: "Material not found" });
+
+  const filePath = path.join(MATERIALS_DIR, material.file);
+  if (!existsSync(filePath)) return writeJson(res, 404, { error: "File not found" });
+
+  const stat = statSync(filePath);
+  res.writeHead(200, {
+    "Content-Type": "application/pdf",
+    "Content-Length": stat.size,
+    "Content-Disposition": `inline; filename="${path.basename(filePath)}"`,
+    "Cache-Control": "private, max-age=3600",
+  });
+  createReadStream(filePath).pipe(res);
+}
+
 // ─── Admin ────────────────────────────────────────────────────────────────────
 
 async function handleAdminSetFlags(req, res) {
@@ -1842,6 +1910,11 @@ async function router(req, res) {
     if (method === "GET"    && p === "/decks/catalog")                             return await handleGetDecksCatalog(req, res);
     if (method === "POST"   && /^\/decks\/[^/]+\/claim$/.test(p))                 return await handleClaimDeck(req, res);
     if (method === "GET"    && /^\/decks\/[^/]+\/download$/.test(p))              return await handleDownloadDeck(req, res);
+
+    // Materials (free PDF library, landing page)
+    if (method === "GET"    && p === "/materials/catalog")                        return await handleGetMaterialsCatalog(req, res);
+    if (method === "POST"   && p === "/materials/request")                        return await handleRequestMaterial(req, res);
+    if (method === "GET"    && p === "/materials/download")                       return await handleDownloadMaterial(req, res);
     if (method === "GET"    && p === "/admin/accounts")                            return await handleAdminListAccounts(req, res);
     { const m = p.match(/^\/admin\/accounts\/([^/]+)\/sessions$/);
       if (method === "GET" && m) return await handleAdminGetAccountSessions(req, res, m[1]); }

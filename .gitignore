@@ -65,6 +65,8 @@ scripts/*.svg
 *.jpg
 *.docx
 *.pdf
+# Free landing materials are served by the backend, so they must ship with it.
+!backend/materials/*.pdf
 
 # User asset photos
 *.png

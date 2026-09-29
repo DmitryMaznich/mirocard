@@ -1,0 +1,137 @@
+{
+  "materials": [
+    {
+      "id": "vegetables",
+      "title": "Где растут овощи?",
+      "description": "Яркий плакат-инфографика: на кусте, на земле, под землёй. Учим названия 12 овощей и откуда они берутся.",
+      "category": "speech",
+      "file": "vegetables.pdf"
+    },
+    {
+      "id": "verb-cards",
+      "title": "Карточки действий — глаголы в картинках",
+      "description": "16 карточек с бытовыми действиями: чистит зубы, ест, читает, поёт, спит. Для развития глагольного словаря и первых фраз.",
+      "category": "speech",
+      "file": "verb-cards.pdf"
+    },
+    {
+      "id": "story-hedgehog",
+      "title": "История по картинкам — Ёжик",
+      "description": "Рассказ с пиктограммами вместо слов. Ребёнок «читает» историю по символам — развивает связную речь и понимание текста.",
+      "category": "speech",
+      "file": "story-hedgehog.pdf"
+    },
+    {
+      "id": "russian-alphabet",
+      "title": "Русский алфавит — таблица и упражнения",
+      "description": "9 страниц: полная таблица алфавита и упражнение «Вставь пропущенные буквы». Хорошее начало для знакомства с грамотой.",
+      "category": "literacy",
+      "file": "russian-alphabet.pdf"
+    },
+    {
+      "id": "russian-letters",
+      "title": "Прописи русских букв",
+      "description": "Все буквы русского алфавита — каждая буква на отдельной строке для тренировки написания. Клетчатая основа.",
+      "category": "literacy",
+      "file": "russian-letters.pdf"
+    },
+    {
+      "id": "slovenian-letters",
+      "title": "Прописи словенских букв",
+      "description": "Буквы словенского алфавита для тренировки написания — включая č, š, ž. Для детей, изучающих оба языка.",
+      "category": "literacy",
+      "file": "slovenian-letters.pdf"
+    },
+    {
+      "id": "fruit-tasks-short",
+      "title": "Задачи с фруктами — компактный лист",
+      "description": "6 задач на сложение и вычитание с картинками фруктов. Компактный формат для первого знакомства с арифметикой.",
+      "category": "math",
+      "file": "fruit-tasks-short.pdf"
+    },
+    {
+      "id": "fruit-tasks-full",
+      "title": "Задачи с фруктами — полный формат",
+      "description": "Развёрнутые задачи на сложение и вычитание: читаем задачу, заполняем поля, записываем пример. Учим переходить от слов к числам.",
+      "category": "math",
+      "file": "fruit-tasks-full.pdf"
+    },
+    {
+      "id": "digit-practice",
+      "title": "Прописи цифр 0–9",
+      "description": "Числа от 0 до 26 в строчку для обведения и самостоятельного написания. Клетчатая основа помогает держать ровный размер.",
+      "category": "math",
+      "file": "digit-practice.pdf"
+    },
+    {
+      "id": "slozhenie-s-domino-1-2",
+      "title": "Сложение с домино. Уровень 1 и 2",
+      "description": "Два листа с заданиями на сложение: считай точки на домино и записывай пример. Уровни сложности 1 и 2.",
+      "category": "math",
+      "file": "slozhenie-s-domino-1-2.pdf"
+    },
+    {
+      "id": "read-match-1-2-syllable-words",
+      "title": "Читаю слова и нахожу картинку",
+      "description": "6 листов с односложными, двусложными и трёхсложными словами: ребёнок читает слово и соединяет его с нужной картинкой.",
+      "category": "literacy",
+      "file": "read-match-1-2-syllable-words.pdf"
+    },
+    {
+      "id": "najdi-kartinku-otmet-slovo",
+      "title": "Найди картинку и отметь слово",
+      "description": "3 листа с тематическими словарями (животные, еда, транспорт): ребёнок находит картинку и отмечает нужное слово.",
+      "category": "literacy",
+      "file": "najdi-kartinku-otmet-slovo.pdf"
+    },
+    {
+      "id": "sravni-chisla-znaki",
+      "title": "Сравни числа: больше или меньше",
+      "description": "Рабочий лист на сравнение чисел: посчитай предметы и расставь знаки > и <. Развивает числовое мышление.",
+      "category": "math",
+      "file": "sravni-chisla-znaki.pdf"
+    },
+    {
+      "id": "short-reading-texts-4stories",
+      "title": "Короткие тексты для чтения: 4 истории",
+      "description": "Четыре простых текста для начального чтения. Развивают навык чтения и понимания коротких предложений.",
+      "category": "literacy",
+      "file": "short-reading-texts-4stories.pdf"
+    },
+    {
+      "id": "vpishi-bukvy-temy-byta",
+      "title": "Впиши буквы: одежда, посуда, мебель, игрушки",
+      "description": "4 рабочих листа: вписать пропущенные буквы в слова по картинкам. Развивает грамотность и словарный запас.",
+      "category": "literacy",
+      "file": "vpishi-bukvy-temy-byta.pdf"
+    },
+    {
+      "id": "sostav-chisla-dopolnyayu",
+      "title": "Состав числа — дополняю до 10",
+      "description": "Найди недостающее число и запиши пару. Тренировка состава чисел от 1 до 10.",
+      "category": "math",
+      "file": "sostav-chisla-dopolnyayu.pdf"
+    },
+    {
+      "id": "sostav-chisla-1-10-slozhenie",
+      "title": "Состав числа 1–10 — записываю сложение",
+      "description": "Читаю пары чисел и записываю примеры сложения. Формирует понимание состава через запись.",
+      "category": "math",
+      "file": "sostav-chisla-1-10-slozhenie.pdf"
+    },
+    {
+      "id": "sostav-chisla-1-10",
+      "title": "Состав числа 1–10 — вспоминаю пары",
+      "description": "Вспомни все пары чисел и запиши примеры сложения от 1 до 10. Тренировка по памяти.",
+      "category": "math",
+      "file": "sostav-chisla-1-10.pdf"
+    },
+    {
+      "id": "numbers-1-100-missing",
+      "title": "Таблица чисел 1–100: вставь пропущенные",
+      "description": "Три упражнения на заполнение числовой таблицы до 100. Помогают освоить порядок чисел и счёт в пределах сотни.",
+      "category": "math",
+      "file": "numbers-1-100-missing.pdf"
+    }
+  ]
+}

@@ -66,6 +66,9 @@ export const RESEND_API_URL = readEnv("RESEND_API_URL") || "https://api.resend.c
 // is lower so already-registered people can still get resend/reset emails.
 export const EMAIL_DAILY_CAP  = Number(readEnv("EMAIL_DAILY_CAP") || 90);
 export const EMAIL_SIGNUP_CAP = Number(readEnv("EMAIL_SIGNUP_CAP") || 80);
+// Free landing PDFs share the same daily quota; they stop well below the signup
+// cap so a burst of downloads can never lock new users out of verification.
+export const EMAIL_MATERIALS_CAP = Number(readEnv("EMAIL_MATERIALS_CAP") || 50);
 
 // Public OAuth client id (not a secret). Empty -> the Google button is hidden.
 export const GOOGLE_CLIENT_ID = readEnv("GOOGLE_CLIENT_ID");
@@ -120,7 +123,8 @@ export const LAVA_TOP_WEBHOOK_SECRET  = readEnv("LAVA_TOP_WEBHOOK_SECRET");
 // env var doesn't accidentally open this back up to "*". Set
 // CORS_ALLOWED_ORIGINS explicitly in Railway if the real production origin
 // differs.
-export const CORS_ALLOWED_ORIGINS = (readEnv("CORS_ALLOWED_ORIGINS") || "https://app.mironium.com,http://localhost:5174,http://localhost:4173")
+// The landing (mironium.com) calls the materials API cross-origin.
+export const CORS_ALLOWED_ORIGINS = (readEnv("CORS_ALLOWED_ORIGINS") || "https://app.mironium.com,https://www.mironium.com,https://mironium.com,http://localhost:5174,http://localhost:4173")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);

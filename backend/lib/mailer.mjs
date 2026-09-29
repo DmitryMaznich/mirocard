@@ -51,6 +51,18 @@ export async function sendPasswordResetEmail(email, resetToken) {
   });
 }
 
+export async function sendMaterialsLinkEmail(email, material, rawToken) {
+  const downloadUrl = `${APP_BASE_URL}/api/materials/download?token=${rawToken}`;
+
+  await sendEmail({
+    kind: "materials_link",
+    to: email,
+    subject: `«${material.title}» — Mironium`,
+    text: `Ваш файл «${material.title}» готов:\n\n${downloadUrl}\n\nСсылка действует 30 дней, можно открывать несколько раз.`,
+    html: `<p>Ваш файл «${material.title}» готов:</p><p><a href="${downloadUrl}">Скачать PDF</a></p><p>Ссылка действует 30 дней, можно открывать несколько раз.</p>`,
+  });
+}
+
 export async function sendEmailVerificationEmail(email, rawToken) {
   const verifyUrl = `${APP_BASE_URL}/verify-email?token=${rawToken}`;
 
