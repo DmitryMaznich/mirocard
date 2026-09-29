@@ -493,7 +493,6 @@
     const progressPercent = stepsTotal ? Math.round(((finished ? stepsTotal : stepIndex) / stepsTotal) * 100) : 0;
 
     return h("div", { className: "dictation-card" },
-      h("div", { className: "dictation-card__tape", "aria-hidden": "true" }),
       h("div", { className: "dictation-card__head" },
         h("div", { className: "dictation-card__head-text" },
           h("div", { className: "dictation-card__title" }, shape.label),
@@ -551,7 +550,13 @@
           h(SpeakerGlyph, { key: "icon", speaking: isTopicAudioPlaying }),
         ]) : null,
       ),
+      // The stage is the box the grid has to fit into (its height is whatever
+      // the session screen has left after the header/command). The canvas is
+      // sized from it in CSS via container units + --sd-aspect, so the whole
+      // sheet always fits on screen instead of being capped by a vh guess.
+      h("div", { className: "dictation__stage", style: { "--sd-aspect": (columns + 1.1) / (rows + 1.58) } },
       h("div", { key: `canvas-${mistakeSeq}`, className: `dictation__canvas${notice ? " dictation__canvas--wrong" : ""}` },
+        h("div", { className: "dictation-card__tape", "aria-hidden": "true" }),
         h("svg", { ref: svgRef, className: "dictation__grid", viewBox: `-0.55 -0.78 ${columns + 1.1} ${rows + 1.58}`, onPointerDown: startGesture, onPointerMove: moveGesture, onPointerUp: finishGesture, onPointerCancel: finishGesture, onPointerLeave: finishGesture },
           h("rect", { className: "dictation__paper", x: "-0.5", y: "-0.72", width: columns + 1, height: rows + 1.45, rx: "0.12" }),
           grid,
@@ -580,6 +585,7 @@
             h("text", { x: 0, y: 0.08, textAnchor: "middle" }, tapCoordText),
           ) : null,
         ),
+      ),
         !finished ? h("button", {
           type: "button",
           className: "dictation__hint-fab",
@@ -589,10 +595,15 @@
           title: "Показать конечную точку",
         }, "💡") : null,
       ),
-      !finished
-        ? (showTargetHint ? h("p", { className: "dictation__hint-text" }, "Жёлтая точка — конец линии.") : null)
-        : h("p", { className: "dictation__done" }, `Готово: ${shape.label}`),
-      notice ? h("p", { key: `notice-${mistakeSeq}`, className: "dictation__notice dictation__notice--error", "aria-live": "polite" }, notice) : null,
+      // One reserved slot for the hint/done/error lines: the grid is sized to
+      // the space left over, so text appearing here must not resize it
+      // mid-figure.
+      h("div", { className: "dictation__feedback" },
+        !finished
+          ? (showTargetHint ? h("p", { className: "dictation__hint-text" }, "Жёлтая точка — конец линии.") : null)
+          : h("p", { className: "dictation__done" }, `Готово: ${shape.label}`),
+        notice ? h("p", { key: `notice-${mistakeSeq}`, className: "dictation__notice dictation__notice--error", "aria-live": "polite" }, notice) : null,
+      ),
       ),
     );
   }
@@ -685,6 +696,7 @@
               h("span", { key: "number", className: "coordinate-practice__token coordinate-practice__token--number" }, targetLabel.number),
             ],
       ),
+      h("div", { className: "coordinate-practice__stage", style: { "--sd-aspect": (columns + 1.16) / (rows + 1.58) } },
       h("div", { className: "coordinate-practice__canvas" },
         h("svg", {
           ref: svgRef,
@@ -718,6 +730,7 @@
             h("animate", { attributeName: "r", values: ".19;.29;.19", dur: "1.15s", repeatCount: "indefinite" }),
           ) : null,
         ),
+      ),
       ),
       isName ? h("div", { className: "coordinate-practice__answers", "aria-label": "Выбери координаты" },
         h("div", { className: "coordinate-practice__answer-row" }, Array.from({ length: columns + 1 }, (_, col) => h("button", {
@@ -1321,8 +1334,10 @@
     const coveredDots = new Set(result?.coveredDotIndexes ?? []);
     const coveredCircles = new Set(result?.coveredCircleIndexes ?? []);
 
+    const viewWidth = canvasColumns + 1.1;
+    const viewHeight = rows + 1.58;
+
     return h("section", { className: `symmetry-draw${isRepeat ? " symmetry-draw--repeat" : ""}`, "aria-label": shape.label ?? "Симметричный рисунок" },
-      h("span", { className: "symmetry-draw__tape", "aria-hidden": "true" }),
       h("div", { className: "symmetry-draw__head" },
         h("div", { className: "symmetry-draw__head-text" },
           h("div", { className: "symmetry-draw__title" }, shape.label ?? "Фигура"),
@@ -1330,7 +1345,11 @@
         ),
         h("span", { className: `symmetry-draw__mirror-chip${isRepeat ? " symmetry-draw__mirror-chip--repeat" : ""}` }, isRepeat ? "↔ сделай так же" : "↔ зеркало"),
       ),
+      // Same fit-to-stage sizing as the dictation canvas: CSS derives the
+      // sheet's width from the stage's height and this aspect ratio.
+      h("div", { className: "symmetry-draw__stage", style: { "--sd-aspect": viewWidth / viewHeight } },
       h("div", { className: "symmetry-draw__canvas" },
+        h("span", { className: "symmetry-draw__tape", "aria-hidden": "true" }),
         isRepeat ? h("div", { className: "symmetry-draw__repeat-labels", "aria-hidden": "true" },
           h("span", { className: "symmetry-draw__repeat-label symmetry-draw__repeat-label--sample" }, "Смотри"),
           h("span", { className: "symmetry-draw__repeat-label symmetry-draw__repeat-label--work" }, "Нарисуй так же"),
@@ -1338,7 +1357,7 @@
         h("svg", {
           ref: svgRef,
           className: "symmetry-draw__grid",
-          viewBox: `-0.55 -0.78 ${canvasColumns + 1.1} ${rows + 1.58}`,
+          viewBox: `-0.55 -0.78 ${viewWidth} ${viewHeight}`,
           onPointerDown: startDrawing,
           onPointerMove: continueDrawing,
           onPointerUp: stopDrawing,
@@ -1390,6 +1409,7 @@
           showHint ? targetCircles.map((circle, index) => h("circle", { key: `hint-circle-${index}`, className: "symmetry-draw__hint-circle", cx: circle.col, cy: circle.row, r: circle.diameter / 2 })) : null,
           showHint ? hintPoints.map((point, index) => h("circle", { key: `hint-point-${index}`, className: "symmetry-draw__hint-point", cx: point.col, cy: point.row, r: "0.17" })) : null,
         ),
+      ),
       ),
       h("div", { className: "symmetry-draw__controls" },
         h("button", { type: "button", className: "symmetry-draw__button", onClick: () => { setDrawnPaths([]); setResult(null); }, disabled: !drawnPaths.length || resolved }, "Очистить"),

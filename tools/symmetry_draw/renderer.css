@@ -17,19 +17,29 @@
   --sd-bad-tint: #fef2f2;
   --sd-info-tint: #eef4ff;
   --sd-info-ink: #2c4b8a;
+  --sd-sheet-pad: 6px;
+  --sd-sheet-extra-v: 0px;
   position: relative;
+  /* Fills the session screen below the header (the renderer's parent is a
+     flex column) so the grid can be sized to the space that is actually left,
+     instead of a vh guess that overflowed on a landscape tablet. */
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 1020px;
   min-width: 0;
   margin: 0 auto;
-  padding: clamp(4px, 1.2vw, 12px) clamp(8px, 2vw, 20px) 0;
+  padding: clamp(4px, 1.2vw, 12px) clamp(8px, 2vw, 20px) calc(8px + var(--app-safe-bottom, 0px));
 }
+.symmetry-draw--repeat { --sd-sheet-extra-v: 34px; }
 
 /* The card reads as a sheet of paper on a desk - rounded, lifted with a real
    shadow, a small washi-tape corner - rather than a flat full-bleed SVG. */
 .symmetry-draw__tape {
   position: absolute;
-  top: 2px;
+  top: -7px;
   left: clamp(18px, 4vw, 34px);
   width: 46px;
   height: 18px;
@@ -65,23 +75,42 @@
 }
 .symmetry-draw__mirror-chip--repeat { color: var(--sd-repeat); background: rgba(13, 148, 136, 0.1); border-color: rgba(13, 148, 136, 0.22); }
 
-.symmetry-draw__repeat-labels { display: grid; grid-template-columns: 1fr 1fr; gap: 6%; padding: 8px 8% 1px; }
+.symmetry-draw__repeat-labels { display: grid; grid-template-columns: 1fr 1fr; gap: 6%; height: 34px; padding: 6px 8% 2px; }
 .symmetry-draw__repeat-label { display: inline-flex; justify-content: center; align-items: center; min-height: 26px; border-radius: 9px 9px 3px 3px; font: 800 clamp(11px, 1.9vw, 13px)/1 Nunito, sans-serif; letter-spacing: .025em; }
 .symmetry-draw__repeat-label--sample { color: #1e3faa; background: #edf3ff; }
 .symmetry-draw__repeat-label--work { color: #087d76; background: #e9f8f4; }
 
+/* The stage is the box left over for the drawing; the sheet inside it is as
+   large as fits both its width and height (--sd-aspect = viewBox w/h, set
+   inline by the renderer). Older browsers without container units keep the
+   plain width:100% + vh cap. */
+.symmetry-draw__stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 14px;
+  justify-content: center;
+  container-type: size;
+}
 .symmetry-draw__canvas {
+  position: relative;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
-  padding: 4px clamp(4px, 1.2vw, 10px) 0;
+  width: 100%;
+  width: min(100cqw, (100cqh - 2 * var(--sd-sheet-pad) - var(--sd-sheet-extra-v)) * var(--sd-aspect, 1.2) + 2 * var(--sd-sheet-pad));
+  padding: var(--sd-sheet-pad);
   background:
     radial-gradient(circle at 92% 4%, rgba(37, 99, 235, 0.05), transparent 45%),
     var(--sd-paper);
   border-radius: 18px;
   box-shadow: inset 0 0 0 1px rgba(30, 50, 90, 0.06);
 }
-.symmetry-draw__grid { display: block; width: 100%; max-width: 100%; height: auto; max-height: min(64vh, 660px); touch-action: none; user-select: none; cursor: crosshair; }
+.symmetry-draw__grid { display: block; width: 100%; max-width: 100%; height: auto; touch-action: none; user-select: none; cursor: crosshair; }
+@supports not (width: 1cqh) {
+  .symmetry-draw__grid { max-height: min(64vh, 660px); }
+}
 .symmetry-draw__paper { fill: transparent; }
 .symmetry-draw__paper--sample { fill: #f6f9ff; stroke: #cadcf6; stroke-width: .035; }
 .symmetry-draw__paper--work { fill: #fbfffd; stroke: #9fd8ce; stroke-width: .05; }
@@ -131,7 +160,7 @@
 .symmetry-draw__hint-line, .symmetry-draw__hint-circle { stroke: var(--sd-hint); stroke-width: 0.035; stroke-dasharray: 0.02 0.1; }
 .symmetry-draw__hint-point { fill: var(--sd-hint); pointer-events: none; }
 
-.symmetry-draw__controls { display: flex; width: 100%; min-width: 0; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; }
+.symmetry-draw__controls { flex: 0 0 auto; display: flex; width: 100%; min-width: 0; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 10px 0 0; }
 
 /* Same tactile formula as the rest of the app's buttons: flat fill + a bottom
    "lip" that collapses on press, instead of a flat bordered rectangle. */
@@ -153,7 +182,7 @@
 .symmetry-draw__button--primary { color: #fff; background: var(--sd-accent); box-shadow: 0 3px 0 var(--sd-accent-deep); }
 .symmetry-draw__button--primary:active:not(:disabled) { box-shadow: 0 0 0 var(--sd-accent-deep); }
 
-.symmetry-draw__result-wrap { min-height: 52px; display: flex; align-items: center; justify-content: center; margin: 10px 0 0; }
+.symmetry-draw__result-wrap { flex: 0 0 auto; min-height: 52px; display: flex; align-items: center; justify-content: center; margin: 10px 0 0; }
 
 /* Big, unmissable pass/fail banner - a percentage the child can read at a
    glance, colored with the app's universal correct/wrong convention, rather
@@ -177,23 +206,28 @@
 @keyframes answerFeedbackIn { from { opacity: 0; stroke-width: .04; } to { opacity: .92; stroke-width: .13; } }
 
 @media (max-width: 560px) {
-  .symmetry-draw { width: 100%; padding: 4px 4px 0; }
+  .symmetry-draw { width: 100%; padding: 4px 4px calc(4px + var(--app-safe-bottom, 0px)); }
   .symmetry-draw__head { gap: 6px; padding: 8px 6px 2px; }
   .symmetry-draw__mirror-chip { padding: 4px 6px; font-size: 10px; }
-  .symmetry-draw__repeat-labels { gap: 4%; padding: 6px 5% 0; }
+  .symmetry-draw--repeat { --sd-sheet-extra-v: 30px; }
+  .symmetry-draw__repeat-labels { gap: 4%; height: 30px; padding: 5px 5% 2px; }
   .symmetry-draw__repeat-label { min-height: 23px; font-size: 10px; }
-  .symmetry-draw__grid { max-height: 56vh; }
   .symmetry-draw__controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 6px; }
   .symmetry-draw__button { width: 100%; min-width: 0; min-height: 36px; padding: 6px 3px; font-size: clamp(11px, 3.2vw, 13px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .symmetry-draw__result { flex-direction: column; align-items: center; gap: 2px; text-align: center; padding: 8px 14px; }
 }
 /* ── Graphic dictation ───────────────────────────────────────────── */
 .dictation {
-  width: min(100%, 900px);
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   margin: 0 auto;
-  padding: clamp(8px, 1.8vw, 18px);
+  padding: clamp(6px, 1.4vw, 14px) 0 0;
   color: #1e3a6e;
 }
+.dictation__command { flex: 0 0 auto; }
 .dictation__command {
   display: flex;
   align-items: center;
@@ -284,7 +318,17 @@
 }
 .dictation__repeat:hover { background: #f3f7fd; }
 .dictation__repeat:disabled { opacity: .48; cursor: not-allowed; }
-.dictation__canvas { position: relative; padding: 6px; border-radius: 16px; background: #fffef8; box-shadow: inset 0 0 0 1px rgba(30, 58, 110, .08); }
+.dictation__stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  container-type: size;
+}
+.dictation__canvas { position: relative; width: 100%; width: min(100cqw, (100cqh - 12px) * var(--sd-aspect, 1.2) + 12px); padding: 6px; border-radius: 16px; background: #fffef8; box-shadow: inset 0 0 0 1px rgba(30, 58, 110, .08); }
 .dictation__canvas--wrong { animation: dictationCanvasShake .4s ease-in-out; box-shadow: inset 0 0 0 2px #ef4444; }
 @keyframes dictationCanvasShake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
 
@@ -292,10 +336,11 @@
 .dictation-card {
   --dc-paper: #fffdf6; --dc-grid: #d8e6f5; --dc-ink: #1e3a6e; --dc-accent: #2563eb; --dc-accent-deep: #173d91;
   position: relative; width: min(100%, 940px); margin: 0 auto;
-  padding: clamp(4px, 1.2vw, 12px) clamp(8px, 2vw, 20px) 0;
+  flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
+  padding: clamp(4px, 1.2vw, 12px) clamp(8px, 2vw, 20px) calc(6px + var(--app-safe-bottom, 0px));
 }
 .dictation-card__tape {
-  position: absolute; top: 2px; left: clamp(18px, 4vw, 34px); width: 46px; height: 18px;
+  position: absolute; top: -7px; left: clamp(18px, 4vw, 34px); width: 46px; height: 18px;
   background: rgba(37, 99, 235, .16); border: 1px solid rgba(37, 99, 235, .22); transform: rotate(-7deg); border-radius: 2px; z-index: 1;
 }
 .dictation-card__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px clamp(10px, 2.4vw, 18px) 2px; width: 100%; min-width: 0; }
@@ -316,7 +361,7 @@
   font-size: 20px; box-shadow: 0 4px 12px rgba(37, 99, 235, .32); cursor: pointer; z-index: 2;
 }
 .dictation__hint-fab[aria-pressed="true"] { background: #173d91; }
-.dictation__hint-text { color: #536b89; font: 700 14px/1.3 Nunito, sans-serif; text-align: center; margin: 8px 0 0; }
+.dictation__hint-text { color: #536b89; font: 700 14px/1.3 Nunito, sans-serif; text-align: center; margin: 6px 0 0; }
 
 /* ── Speaker glyph: shared by the small replay button and the big
      "voice-only" listening icon, so both states use one visual language. ── */
@@ -350,7 +395,11 @@
   .dictation__speaker-icon--speaking .dictation__speaker-arc { opacity: .9; }
   .dictation__listen-caption--speaking .dictation__dot { opacity: .9; }
 }
-.dictation__grid { display: block; width: 100%; max-height: min(60vh, 620px); touch-action: none; user-select: none; cursor: crosshair; }
+@supports not (width: 1cqh) {
+  .dictation__grid { max-height: min(60vh, 620px); }
+}
+.dictation__feedback { flex: 0 0 auto; min-height: 30px; }
+.dictation__grid { display: block; width: 100%; height: auto; touch-action: none; user-select: none; cursor: crosshair; }
 .dictation__paper { fill: #fffef8; }
 .dictation__grid-line { stroke: #9fc4e8; stroke-width: 1; vector-effect: non-scaling-stroke; }
 .dictation__grid-dot { fill: #9fc3e8; pointer-events: none; }
@@ -364,7 +413,7 @@
 .dictation__target { fill: #f4c95d; stroke: #9a6b11; stroke-width: .05; pointer-events: none; }
 .dictation__guide { stroke: #9c86e8; stroke-width: .045; stroke-dasharray: .1 .12; }
 .dictation__guide--demo { animation: dictationDemo 1.2s linear infinite; }
-.dictation__notice, .dictation__done { margin: 9px 0 0; text-align: center; font: 700 16px/1.35 Nunito, sans-serif; }
+.dictation__notice, .dictation__done { margin: 6px 0 0; text-align: center; font: 700 16px/1.35 Nunito, sans-serif; }
 .dictation__notice--error { color: #ef4444; }
 .dictation__done { color: #2f7a54; }
 @keyframes dictationDemo { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
@@ -394,13 +443,17 @@
 .dictation__coordinate-token--number { background: #347ad3; border: 2px solid #1e5da9; }
 
 /* ── Coordinate training: one large point, two deliberately separate axes ── */
-.coordinate-practice { width: min(100%, 670px); margin: 0 auto; padding: 8px; }
-.coordinate-practice__instruction { min-height: 58px; display: flex; align-items: center; justify-content: center; gap: 9px; color: #243b65; text-align: center; font: 800 clamp(21px, 3.7vw, 30px)/1.1 Nunito, sans-serif; }
+.coordinate-practice { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; width: min(100%, 900px); margin: 0 auto; padding: 8px 8px calc(8px + var(--app-safe-bottom, 0px)); }
+.coordinate-practice__stage { flex: 1 1 auto; min-height: 0; min-width: 0; display: flex; align-items: flex-start; justify-content: center; container-type: size; }
+.coordinate-practice__instruction { flex: 0 0 auto; min-height: 58px; display: flex; align-items: center; justify-content: center; gap: 9px; color: #243b65; text-align: center; font: 800 clamp(21px, 3.7vw, 30px)/1.1 Nunito, sans-serif; }
 .coordinate-practice__token { min-width: 42px; height: 42px; display: inline-grid; place-items: center; border-radius: 12px; color: #fff; font: 900 clamp(25px, 4vw, 34px)/1 Arial, sans-serif; box-shadow: 0 2px 5px rgba(22,55,98,.22); }
 .coordinate-practice__token--letter { background: #168f92; border: 2px solid #087477; }
 .coordinate-practice__token--number { background: #347ad3; border: 2px solid #1e5da9; }
-.coordinate-practice__canvas { padding: 7px; border-radius: 18px; background: #fffef8; box-shadow: inset 0 0 0 1px rgba(30,58,110,.1); }
-.coordinate-practice__grid { display: block; width: 100%; max-height: min(54vh, 590px); touch-action: none; user-select: none; cursor: crosshair; }
+.coordinate-practice__canvas { width: 100%; width: min(100cqw, (100cqh - 14px) * var(--sd-aspect, 1) + 14px); padding: 7px; border-radius: 18px; background: #fffef8; box-shadow: inset 0 0 0 1px rgba(30,58,110,.1); }
+@supports not (width: 1cqh) {
+  .coordinate-practice__grid { max-height: min(54vh, 590px); }
+}
+.coordinate-practice__grid { display: block; width: 100%; height: auto; touch-action: none; user-select: none; cursor: crosshair; }
 .coordinate-practice__paper { fill: #fffef8; }
 .coordinate-practice__grid-line { stroke: #8ab7e3; stroke-width: 1.15; vector-effect: non-scaling-stroke; }
 .coordinate-practice__node { fill: #8fbce6; pointer-events: none; }
@@ -416,7 +469,7 @@
 .coordinate-practice__selection--bad .coordinate-practice__selection-ripple { stroke: #e45252; }
 .coordinate-practice__selection--bad .coordinate-practice__selection-halo { fill: rgba(239, 91, 91, .22); stroke: #c83f40; }
 .coordinate-practice__selection--bad .coordinate-practice__selection-core { fill: #ed5a5a; }
-.coordinate-practice__answers { display: grid; gap: 8px; margin: 12px auto 0; width: min(100%, 520px); }
+.coordinate-practice__answers { flex: 0 0 auto; display: grid; gap: 8px; margin: 12px auto 0; width: min(100%, 520px); }
 .coordinate-practice__answer-row { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
 .coordinate-practice__answer { min-width: 0; min-height: 42px; border: 2px solid #a8c7e6; border-radius: 10px; background: #f7fbff; color: #264f7f; font: 900 clamp(17px, 3.6vw, 23px)/1 Arial, sans-serif; }
 .coordinate-practice__answer--letter { color: #087477; border-color: #8ccfca; }
@@ -425,7 +478,7 @@
 .coordinate-practice__answer--number.is-selected { background: #347ad3; border-color: #1e5da9; }
 .coordinate-practice--good .coordinate-practice__canvas { box-shadow: inset 0 0 0 3px #32a66b; }
 .coordinate-practice--bad .coordinate-practice__canvas { animation: coordinateShake .35s ease-in-out; box-shadow: inset 0 0 0 3px #e85d5d; }
-.coordinate-practice__notice { min-height: 25px; margin: 8px 0 0; text-align: center; color: #2f7a54; font: 800 17px/1.35 Nunito, sans-serif; }
+.coordinate-practice__notice { flex: 0 0 auto; min-height: 25px; margin: 8px 0 0; text-align: center; color: #2f7a54; font: 800 17px/1.35 Nunito, sans-serif; }
 .coordinate-practice--bad .coordinate-practice__notice { color: #c63838; }
 @keyframes coordinateShake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
@@ -439,7 +492,7 @@
 .dictation__tap-badge rect { fill: #1e3a6e; }
 .dictation__tap-badge text { fill: #fff; font: 800 0.26px/1 Nunito, sans-serif; }
 @media (max-width: 560px) {
-  .dictation { width: 100%; min-width: 0; padding: 4px; }
+  .dictation { width: 100%; min-width: 0; padding: 4px 0 0; }
   .dictation__command {
     display: grid;
     grid-template-columns: 52px minmax(0, 1fr) 44px;
@@ -469,15 +522,18 @@
   .dictation__text { font-size: clamp(18px, 6vw, 24px); }
   .dictation__repeat { grid-column: auto; width: 44px; min-width: 44px; height: 44px; min-height: 44px; font-size: 24px; }
   .dictation__speaker-icon { width: 22px; height: 22px; }
-  .dictation__grid { max-height: 54vh; }
   .dictation__hint-fab { width: 36px; height: 36px; font-size: 17px; }
   .dictation-card__head { padding: 8px 10px 2px; }
 }
 
 /* ── Navigator ─────────────────────────────────────────────────── */
 .navigator {
-  width: min(100%, 1004px);
-  margin: 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(calc(100% - 2 * clamp(8px, 2vw, 20px)), 1004px);
+  margin: 0 auto calc(8px + var(--app-safe-bottom, 0px));
   overflow: hidden;
   border: 1px solid #cbd9e8;
   border-radius: 18px;
@@ -586,22 +642,36 @@
 .navigator__timer--waiting i { background: #76a7d8; box-shadow: none; }
 .navigator__timer--waiting .navigator__timer-clock { color: #4e7fb3; }
 @keyframes navigatorTimerUrgent { to { filter: brightness(1.12) drop-shadow(0 0 7px rgba(222, 75, 51, .85)); } }
+.navigator__instruction, .navigator__timer, .navigator__hint, .navigator__mastery { flex: 0 0 auto; }
+/* The board is the leftover box; the square arrow field is as large as fits
+   both of its sides (cq units resolve against the board's content box). */
 .navigator__board {
   position: relative;
-  padding: clamp(26px, 4vw, 48px) clamp(20px, 5vw, 64px) clamp(18px, 3vw, 36px);
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+  padding: clamp(14px, 3vw, 36px) clamp(14px, 4vw, 48px);
 }
 .navigator__svg {
   display: block;
   width: 100%;
-  max-height: min(60vh, 630px);
+  width: min(100cqw, 100cqh);
+  height: auto;
   touch-action: none;
   user-select: none;
 }
 .navigator__route { color: #2d67b4; }
+.navigator--grid-route .navigator__svg { overflow: visible; }
 .navigator__grid line { stroke: #8ebce3; stroke-width: 1.25; vector-effect: non-scaling-stroke; pointer-events: none; }
 .navigator__grid circle { fill: #78aee0; pointer-events: none; }
-.navigator--grid-route .navigator__board { padding: clamp(18px, 3vw, 32px) clamp(20px, 9vw, 118px) clamp(16px, 3vw, 30px); }
-.navigator--grid-route .navigator__svg { max-height: min(56vh, 560px); }
+.navigator--grid-route .navigator__board { padding: clamp(14px, 3vw, 32px) clamp(14px, 4vw, 48px); }
+@supports not (width: 1cqh) {
+  .navigator__svg { max-height: min(60vh, 630px); }
+  .navigator--grid-route .navigator__svg { max-height: min(56vh, 560px); }
+}
 .navigator--grid-route .navigator__input-start { fill: #f2c75b; stroke: #9a6b11; stroke-width: .09; }
 .navigator__arrow {
   fill: currentColor;
@@ -634,15 +704,21 @@
 .navigator__pause-overlay { position: absolute; inset: 0; display: grid; place-items: center; color: #263d56; font: 900 clamp(24px, 5vw, 38px)/1 Nunito, sans-serif; text-shadow: 0 2px 0 #fff; pointer-events: none; }
 
 /* ── Navigator learning: tap-through cards and short recognition drills ── */
-.navigator-learning { width: min(100%, 700px); margin: 0 auto; padding: clamp(18px, 4vw, 42px); text-align: center; }
+.navigator-learning { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; width: min(100%, 700px); margin: 0 auto; padding: clamp(10px, 3vw, 32px) clamp(12px, 4vw, 42px) calc(clamp(10px, 3vw, 32px) + var(--app-safe-bottom, 0px)); text-align: center; }
+.navigator-learning > * { flex: 0 0 auto; }
 .navigator-learning__eyebrow { margin-bottom: 14px; color: #58708d; font: 800 clamp(14px, 2.5vw, 18px)/1 Nunito, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
-.navigator-learning__card { display: grid; place-items: center; gap: 18px; min-height: min(62vh, 580px); padding: clamp(22px, 5vw, 54px); border: 2px solid #c7dbef; border-radius: 28px; background: radial-gradient(circle at 50% 42%, #f8fcff, #eaf3fc); box-shadow: 0 7px 0 #d6e4f1, inset 0 1px 0 #fff; }
+/* The card takes whatever height is left (container), and the arrow inside
+   scales to it - a fixed vh min-height pushed the dots/choices off a
+   landscape tablet. */
+.navigator-learning > .navigator-learning__card { flex: 1 1 auto; min-height: 0; container-type: size; }
+.navigator-learning__card { display: grid; place-items: center; align-content: center; gap: clamp(8px, 3cqh, 18px); max-height: 640px; padding: clamp(22px, 5vw, 54px); border: 2px solid #c7dbef; border-radius: 28px; background: radial-gradient(circle at 50% 42%, #f8fcff, #eaf3fc); box-shadow: 0 7px 0 #d6e4f1, inset 0 1px 0 #fff; }
 .navigator-learning__card--tap { width: 100%; color: inherit; font: inherit; cursor: pointer; transition: transform .15s, box-shadow .15s; }
 .navigator-learning__card--tap:hover { transform: translateY(-2px); box-shadow: 0 9px 0 #d6e4f1, inset 0 1px 0 #fff; }
 .navigator-learning__card--tap:active { transform: translateY(4px); box-shadow: 0 3px 0 #d6e4f1, inset 0 1px 0 #fff; }
 .navigator-learning__card--tap:focus-visible, .navigator-learning__choice:focus-visible { outline: 4px solid #f0ae3d; outline-offset: 4px; }
-.navigator-learning__card--quiz { min-height: min(43vh, 390px); }
-.navigator-learning__arrow { width: min(68vw, 360px); height: min(48vh, 340px); color: #2d67b4; filter: drop-shadow(0 7px 0 rgba(32,83,151,.16)); animation: navigatorLearningPop .38s ease-out both; }
+.navigator-learning > .navigator-learning__card--quiz { max-height: 440px; }
+.navigator-learning__card--quiz .navigator-learning__arrow { height: clamp(64px, calc(100cqh - 8px), 320px); }
+.navigator-learning__arrow { width: min(68vw, 360px); height: min(48vh, 340px); height: clamp(64px, calc(100cqh - 120px), 340px); color: #2d67b4; filter: drop-shadow(0 7px 0 rgba(32,83,151,.16)); animation: navigatorLearningPop .38s ease-out both; }
 .navigator-learning__arrow path { fill: currentColor; }
 .navigator-learning__word { color: #1f3152; font: 900 clamp(34px, 7vw, 58px)/1 Georgia, serif; animation: navigatorLearningPop .38s ease-out both; }
 .navigator-learning__tap-hint { color: #58708d; font: 800 clamp(14px, 2.5vw, 18px)/1 Nunito, sans-serif; }
@@ -671,8 +747,145 @@
   .navigator__star { width: 29px; height: 29px; font-size: 27px; }
   .navigator__command { font-size: clamp(22px, 7vw, 31px); }
   .navigator__listen { min-height: 44px; padding: 8px 11px; font-size: clamp(17px, 5.5vw, 24px); }
-  .navigator__board { padding: 18px 9px 12px; }
-  .navigator__svg { max-height: 58vh; }
+  .navigator__board { padding: 14px 9px 12px; }
   .navigator-learning__choices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .navigator-learning__card--quiz { min-height: min(37vh, 330px); }
+}
+
+/* ── Landscape (tablet on its side, desktop, phone on its side) ───────────
+   Stacking header + grid + buttons vertically wasted the width and pushed
+   the buttons below the screen edge. In landscape every mode becomes two
+   columns: the drawing field takes the full height on the left, the task
+   text and the buttons sit in a rail on the right - within thumb reach
+   while the tablet is held with both hands. */
+@media (min-aspect-ratio: 5/4) and (min-width: 700px) {
+  /* Mirror / repeat */
+  .symmetry-draw {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(216px, 24vw, 280px);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas: "stage head" "stage result" "stage controls";
+    column-gap: clamp(14px, 2.2vw, 28px);
+    max-width: 1400px;
+    padding: 6px clamp(12px, 2.4vw, 28px) calc(10px + var(--app-safe-bottom, 0px));
+  }
+  .symmetry-draw__stage { grid-area: stage; align-items: center; padding-top: 0; }
+  .symmetry-draw__head { grid-area: head; flex-direction: column; align-items: flex-start; gap: 10px; padding: 8px 0 0; }
+  .symmetry-draw__title { font-size: clamp(18px, 2vw, 22px); }
+  .symmetry-draw__instruction { margin-top: 4px; font-size: 12.5px; line-height: 1.3; }
+  .symmetry-draw__result-wrap { grid-area: result; align-items: flex-end; min-height: 0; margin: 0 0 12px; }
+  .symmetry-draw__result { flex-direction: column; align-items: center; gap: 4px; width: 100%; text-align: center; }
+  .symmetry-draw__controls { grid-area: controls; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+  .symmetry-draw__button { min-height: 50px; padding: 8px 4px; white-space: nowrap; }
+  .symmetry-draw__button--primary { grid-column: 1 / -1; min-height: 60px; font-size: 18px; }
+
+  /* Graphic / coordinate dictation: section.dictation dissolves so its
+     children (command, stage, feedback) join the card's grid directly. */
+  .dictation-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(236px, 26vw, 320px);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-areas: "stage head" "stage progress" "stage command" "stage feedback";
+    column-gap: clamp(14px, 2.2vw, 28px);
+    width: min(100%, 1400px);
+    padding: 6px clamp(12px, 2.4vw, 28px) calc(10px + var(--app-safe-bottom, 0px));
+  }
+  .dictation { display: contents; }
+  .dictation-card__head { grid-area: head; flex-direction: column; align-items: flex-start; gap: 8px; padding: 8px 0 8px; }
+  .dictation-card__title { font-size: clamp(18px, 2vw, 22px); }
+  .dictation-card__progress-track { grid-area: progress; margin: 0 0 12px; }
+  .dictation__stage { grid-area: stage; align-items: center; }
+  .dictation__feedback { grid-area: feedback; }
+  .dictation__command {
+    grid-area: command;
+    position: relative;
+    flex-direction: column;
+    gap: 12px;
+    min-height: 0;
+    margin: 0;
+    padding: 18px 14px;
+    text-align: center;
+  }
+  .dictation__arrow-wrap { width: clamp(76px, 9vw, 104px); height: clamp(76px, 9vw, 104px); }
+  .dictation__arrow { width: 80%; height: 80%; font-size: clamp(54px, 6.5vw, 76px); }
+  .dictation__command-copy { flex: 0 0 auto; width: 100%; }
+  .dictation__text { font-size: clamp(22px, 2.6vw, 30px); }
+  .dictation__text--listen { flex-direction: column; }
+  .dictation--coordinate .dictation__text { flex-wrap: wrap; }
+  .dictation__repeat { order: 3; margin: 0; }
+  .dictation__feedback .dictation__notice, .dictation__feedback .dictation__done, .dictation__feedback .dictation__hint-text { margin-top: 12px; }
+
+  /* Coordinates practice */
+  .coordinate-practice {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(236px, 28vw, 340px);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas: "stage instruction" "stage answers" "stage notice";
+    column-gap: clamp(14px, 2.2vw, 28px);
+    width: min(100%, 1300px);
+    padding: 6px clamp(12px, 2.4vw, 28px) calc(10px + var(--app-safe-bottom, 0px));
+  }
+  .coordinate-practice__stage { grid-area: stage; align-items: center; }
+  .coordinate-practice__instruction { grid-area: instruction; flex-wrap: wrap; padding: 12px 0; }
+  .coordinate-practice__answers { grid-area: answers; width: 100%; margin: 0; gap: 14px; }
+  .coordinate-practice__answer-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .coordinate-practice__answer { min-height: 52px; }
+  .coordinate-practice__notice { grid-area: notice; }
+
+  /* Navigator: arrows field left, command + timer in the rail */
+  .navigator {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(240px, 28vw, 340px);
+    grid-template-rows: auto auto auto auto minmax(0, 1fr);
+    grid-template-areas: "board instruction" "board timer" "board hint" "board mastery" "board .";
+    width: min(calc(100% - 2 * clamp(12px, 2.4vw, 28px)), 1400px);
+  }
+  .navigator__board { grid-area: board; border-right: 1px solid #e1eaf4; }
+  .navigator__instruction { grid-area: instruction; grid-template-columns: 36px minmax(0, 1fr); min-height: 0; padding: 22px 18px 18px; column-gap: 10px; }
+  .navigator__command { font-size: clamp(24px, 2.8vw, 34px); text-align: left; }
+  .navigator__listen { font-size: clamp(17px, 2vw, 22px); }
+  .navigator__audio-fallback { text-align: left; }
+  .navigator__timer { grid-area: timer; }
+  .navigator__hint { grid-area: hint; margin: 14px 16px 0; }
+  .navigator__mastery { grid-area: mastery; margin: 14px 16px 0; }
+
+  /* Navigator learning: quiz card left, answers stacked on the right */
+  .navigator-learning:has(.navigator-learning__choices) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(240px, 30vw, 340px);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    grid-template-areas: "eyebrow eyebrow" "card choices" "card hint" "card feedback";
+    column-gap: clamp(14px, 2.4vw, 32px);
+    width: min(100%, 1100px);
+  }
+  .navigator-learning:has(.navigator-learning__choices) .navigator-learning__eyebrow { grid-area: eyebrow; }
+  .navigator-learning:has(.navigator-learning__choices) .navigator-learning__card { grid-area: card; max-height: none; }
+  .navigator-learning__choices { grid-area: choices; grid-template-columns: 1fr; margin-top: 0; }
+  .navigator-learning__choices--arrows { grid-template-columns: 1fr 1fr; }
+  .navigator-learning__choice { min-height: 64px; }
+  .navigator-learning__hint { grid-area: hint; }
+  .navigator-learning__feedback { grid-area: feedback; }
+}
+
+/* Short landscape (a phone on its side): tighten the rail so it still fits. */
+@media (min-aspect-ratio: 5/4) and (min-width: 700px) and (max-height: 520px) {
+  .symmetry-draw__button { min-height: 40px; }
+  .symmetry-draw__button--primary { min-height: 46px; font-size: 16px; }
+  .symmetry-draw__head { gap: 6px; padding-top: 4px; }
+  .dictation__command { gap: 6px; padding: 10px; }
+  .dictation__arrow-wrap { width: 56px; height: 56px; }
+  .dictation__arrow { font-size: 40px; }
+  .dictation__text { font-size: 20px; }
+  .symmetry-draw__instruction, .symmetry-draw__mirror-chip { display: none; }
+  .symmetry-draw__result { padding: 6px 10px; gap: 0; }
+  .symmetry-draw__result-percent { font-size: 22px; }
+  .symmetry-draw__result-text { font-size: 12px; }
+  .coordinate-practice__instruction { min-height: 0; padding: 4px 0 8px; font-size: 20px; }
+  .coordinate-practice__answers { gap: 6px; }
+  .coordinate-practice__answer-row { gap: 5px; }
+  .coordinate-practice__answer { min-height: 36px; }
+  .navigator__instruction { padding: 10px 12px; }
+  .navigator-learning { padding-top: 4px; }
+  .navigator-learning__eyebrow { margin-bottom: 6px; }
+  .navigator-learning__choices { gap: 6px; }
+  .navigator-learning__choice { min-height: 44px; padding: 6px; }
 }
