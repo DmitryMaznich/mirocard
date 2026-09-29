@@ -30,7 +30,6 @@ import {
   getSpokenWeekday,
   parseWeeklyPlan,
 } from "./timeUtils";
-import { SeasonMark } from "./SeasonMark.jsx";
 import { DateContent, DaypartContent, MonthContent, SeasonContent, WeekContent } from "./ConceptModals.jsx";
 import "./dailyOrientation.css";
 
@@ -751,15 +750,21 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
 
                 {display.showSeason && (
                   <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id} daily-orientation__card--speakable`} {...conceptCardProps("season")}>
-                    <div className="daily-orientation__season-background" aria-hidden="true"><SeasonMark season={season} /></div>
+                    {/* Illustration on the top two thirds, muted, the season's
+                        name on a plain band underneath. */}
+                    <div className="daily-orientation__season-picture" aria-hidden="true">
+                      <img src={`/daily-orientation/season_${season.id}.webp`} alt="" draggable="false" />
+                    </div>
                     {soundEnabled && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenSeason(activeDate, offset), seasonClipKeys(activeDate, offset));
                       }} />
                     )}
-                    <p className="daily-orientation__question">{CAPTION_SEASON}</p>
-                    <FitText className="daily-orientation__answer">{season.label}</FitText>
+                    <p className="daily-orientation__question daily-orientation__season-caption">{CAPTION_SEASON}</p>
+                    <div className="daily-orientation__season-band">
+                      <FitText className="daily-orientation__answer">{season.label}</FitText>
+                    </div>
                   </article>
                 )}
               </div>

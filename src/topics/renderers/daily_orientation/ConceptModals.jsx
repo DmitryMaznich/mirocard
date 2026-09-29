@@ -1,4 +1,3 @@
-import { SeasonMark } from "./SeasonMark.jsx";
 import {
   DAYPARTS,
   MONTHS_NOMINATIVE,
@@ -22,6 +21,10 @@ import "./conceptModals.css";
 
 const SEASON_LABELS = { winter: "Зима", spring: "Весна", summer: "Лето", autumn: "Осень" };
 const DAYPART_NAMES = { morning: "Утро", day: "День", evening: "Вечер", night: "Ночь" };
+
+function seasonPicture(seasonId) {
+  return `/daily-orientation/season_${seasonId}.webp`;
+}
 
 function capitalize(word) {
   return word.charAt(0).toUpperCase() + word.slice(1);
@@ -171,7 +174,7 @@ export function MonthContent({ activeDate }) {
         {SEASON_ORDER.map((seasonId) => (
           <section key={seasonId} className={`dom-months__season dom-season-tone--${seasonId}`}>
             <h3 className="dom-months__season-name">
-              <SeasonMark season={{ id: seasonId }} className="dom-months__season-mark" />
+              <img className="dom-months__season-thumb" src={seasonPicture(seasonId)} alt="" draggable="false" />
               {SEASON_LABELS[seasonId]}
             </h3>
             <ol className="dom-months__list">
@@ -213,7 +216,7 @@ export function SeasonContent({ activeDate }) {
               className={`dom-cycle__item dom-season-tone--${seasonId}${seasonId === current ? " dom-cycle__item--active" : ""}`}
               aria-current={seasonId === current ? "true" : undefined}
             >
-              <SeasonMark season={{ id: seasonId }} className="dom-cycle__mark" />
+              <img className="dom-cycle__season-picture" src={seasonPicture(seasonId)} alt="" draggable="false" />
               <span className="dom-cycle__name">{SEASON_LABELS[seasonId]}</span>
               <span className="dom-cycle__months">
                 {SEASON_MONTHS[seasonId].map((monthIndex) => (

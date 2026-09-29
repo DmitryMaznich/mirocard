@@ -217,7 +217,14 @@
   font-weight: 900;
   color: var(--season-ink);
 }
-.dom-months__season-mark { width: clamp(22px, 2.4vw, 36px); height: clamp(22px, 2.4vw, 36px); flex: 0 0 auto; }
+.dom-months__season-thumb {
+  width: clamp(26px, 2.8vw, 42px);
+  height: clamp(26px, 2.8vw, 42px);
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+  opacity: .85;
+}
 .dom-months__list { display: flex; flex-direction: column; gap: clamp(5px, .6vw, 9px); margin: 0; padding: 0; list-style: none; }
 .dom-months__month {
   display: flex;
@@ -253,7 +260,17 @@
   text-align: center;
 }
 .dom-cycle__item--active { transform: translateY(-4px); }
-.dom-cycle__mark { width: clamp(56px, 7vw, 110px); height: clamp(56px, 7vw, 110px); color: var(--season-ink); }
+/* Same illustration as the card: full-bleed across the top of the item,
+   muted the same way. */
+.dom-cycle__season-picture {
+  width: calc(100% + 2 * clamp(8px, 1vw, 16px));
+  margin: calc(-1 * clamp(12px, 1.5vw, 24px)) calc(-1 * clamp(8px, 1vw, 16px)) 0;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  opacity: .6;
+  border-radius: clamp(16px, 1.8vw, 28px) clamp(16px, 1.8vw, 28px) 0 0;
+}
+.dom-cycle__item { overflow: hidden; }
 .dom-cycle__picture { width: clamp(64px, 8vw, 120px); height: clamp(64px, 8vw, 120px); object-fit: contain; }
 .dom-cycle__name { font-size: clamp(18px, 2.1vw, 32px); font-weight: 900; color: var(--dom-ink); }
 .dom-cycle__months {
