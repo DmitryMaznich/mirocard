@@ -30,7 +30,7 @@ const HANDLERS = {
     upsertStudentMyPeople(db, accountId, { studentId: data.studentId, people: data.people, updatedAt: data.updatedAt }),
 
   "student.delete": (db, accountId, data) =>
-    softDeleteStudent(db, data.id),
+    softDeleteStudent(db, accountId, data.id),
 
   "session.append": (db, accountId, data) =>
     appendSession(db, accountId, data),
@@ -39,13 +39,13 @@ const HANDLERS = {
     upsertAccountTopic(db, accountId, data),
 
   "topic.delete": (db, accountId, data) =>
-    softDeleteAccountTopic(db, data.id),
+    softDeleteAccountTopic(db, accountId, data.id),
 
   "student_topic_link.upsert": (db, accountId, data) =>
     upsertStudentTopicLink(db, accountId, data),
 
   "concept_progress.upsert": (db, accountId, data) =>
-    upsertConceptProgress(db, data),
+    upsertConceptProgress(db, accountId, data),
 
   "kv.upsert": (db, accountId, data) =>
     upsertAccountKv(db, accountId, data.key, data.value),

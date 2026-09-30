@@ -9,6 +9,20 @@ function safeJson(value, fallback) {
   catch { return fallback; }
 }
 
+// Every write reached from a client (sync ops, REST) names rows by ids the
+// client sent. Scope each one to the caller's account, or one account could
+// rename, delete or rewrite another account's students and settings just by
+// knowing (or guessing) an id.
+//
+// Child records (sessions, progress, topic links) are refused only when their
+// student is someone else's. A student this server hasn't seen yet is let
+// through as before: the client can sync a lesson before the student record
+// itself arrives, and dropping it then would lose real data.
+function studentOwnedByAnother(db, accountId, studentId) {
+  const row = db.prepare("SELECT account_id FROM students WHERE id = ?").get(studentId);
+  return Boolean(row && row.account_id !== accountId);
+}
+
 // ─── Photos ───────────────────────────────────────────────────────────────────
 
 export function extractAndStorePhoto(db, dataUrl) {
@@ -451,6 +465,7 @@ export function upsertStudent(db, accountId, {
       health_data_consent = excluded.health_data_consent,
       health_data_consent_at = excluded.health_data_consent_at,
       updated_at = excluded.updated_at
+    WHERE students.account_id = excluded.account_id
   `).run(
     id,
     accountId,
@@ -538,15 +553,16 @@ export function getStudents(db, accountId) {
   ).all(accountId);
 }
 
-export function softDeleteStudent(db, studentId) {
+export function softDeleteStudent(db, accountId, studentId) {
   db.prepare(
-    "UPDATE students SET deleted_at = ?, updated_at = ? WHERE id = ?"
-  ).run(now(), now(), studentId);
+    "UPDATE students SET deleted_at = ?, updated_at = ? WHERE id = ? AND account_id = ?"
+  ).run(now(), now(), studentId, accountId);
 }
 
 // ─── Sessions ─────────────────────────────────────────────────────────────────
 
 export function appendSession(db, accountId, session) {
+  if (studentOwnedByAnother(db, accountId, session.studentId ?? session.student_id)) return;
   const mistakesRaw   = session.mistakes;
   const cardEventsRaw = session.cardEvents ?? session.card_events;
   db.prepare(`
@@ -602,6 +618,7 @@ export function upsertAccountTopic(db, accountId, { id, topicId, topicVersion, s
       topic_version = excluded.topic_version,
       source = excluded.source,
       license_token = excluded.license_token
+    WHERE account_topics.account_id = excluded.account_id
   `).run(id, accountId, topicId, topicVersion, ts, source, licenseToken);
 }
 
@@ -611,10 +628,10 @@ export function getAccountTopics(db, accountId) {
   ).all(accountId);
 }
 
-export function softDeleteAccountTopic(db, id) {
+export function softDeleteAccountTopic(db, accountId, id) {
   db.prepare(
-    "UPDATE account_topics SET deleted_at = ? WHERE id = ?"
-  ).run(now(), id);
+    "UPDATE account_topics SET deleted_at = ? WHERE id = ? AND account_id = ?"
+  ).run(now(), id, accountId);
 }
 
 export function getAccountTopicByTopicId(db, accountId, topicId) {
@@ -696,6 +713,7 @@ export function upsertStudentTopicLink(db, accountId, {
   selectionMode = "auto", selectedConceptIds = [], repsPerConcept = 1,
   params = {}, videoRewardEnabled = true, rewardThreshold = 90,
 }) {
+  if (studentOwnedByAnother(db, accountId, studentId)) return;
   const ts = now();
   db.prepare(`
     INSERT INTO student_topic_links
@@ -710,6 +728,7 @@ export function upsertStudentTopicLink(db, accountId, {
       video_reward_enabled = excluded.video_reward_enabled,
       reward_threshold = excluded.reward_threshold,
       updated_at = excluded.updated_at
+    WHERE student_topic_links.account_id = excluded.account_id
   `).run(
     id, accountId, studentId, topicId,
     selectionMode, JSON.stringify(selectedConceptIds), repsPerConcept,
@@ -725,7 +744,8 @@ export function getStudentTopicLinks(db, accountId) {
 
 // ─── Concept progress ─────────────────────────────────────────────────────────
 
-export function upsertConceptProgress(db, { studentId, topicId, conceptId, level, lastSeenAt = null }) {
+export function upsertConceptProgress(db, accountId, { studentId, topicId, conceptId, level, lastSeenAt = null }) {
+  if (studentOwnedByAnother(db, accountId, studentId)) return;
   db.prepare(`
     INSERT INTO concept_progress (student_id, topic_id, concept_id, level, last_seen_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?)

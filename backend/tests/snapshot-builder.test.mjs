@@ -17,7 +17,7 @@ test("buildBootstrap returns expected shape", () => {
     correctCount: 8, incorrectCount: 2, percentCorrect: 80,
     mistakes: [{ conceptId: "hat", cardId: "hat_1" }],
   });
-  upsertConceptProgress(db, { studentId: "s1", topicId: "clothes", conceptId: "hat", level: 2 });
+  upsertConceptProgress(db, acc.id, { studentId: "s1", topicId: "clothes", conceptId: "hat", level: 2 });
   upsertAccountTopic(db, acc.id, { id: "ot1", topicId: "clothes", topicVersion: "2.0.0" });
 
   const snap = buildBootstrap(db, acc.id, 0);
