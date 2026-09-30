@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { authErrorMessage } from "./authErrors";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { getDb } from "@/core/db";
@@ -45,7 +46,7 @@ export default function LoginScreen() {
         setShowResendHint(true);
         setError("Email не подтверждён. Проверьте почту или запросите новое письмо.");
       } else {
-        setError(err.message || "Ошибка входа. Проверьте email и пароль.");
+        setError(authErrorMessage(err, "Ошибка входа. Проверьте email и пароль."));
       }
     } finally {
       setLoading(false);

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { authErrorMessage } from "./authErrors";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import Button from "@/shared/components/Button";
@@ -65,7 +66,7 @@ export default function RegisterScreen() {
       } else if (err.status === 409) {
         setError("Этот email уже зарегистрирован");
       } else {
-        setError(err.message || "Ошибка регистрации. Попробуйте ещё раз.");
+        setError(authErrorMessage(err, "Ошибка регистрации. Попробуйте ещё раз."));
       }
     } finally {
       setLoading(false);

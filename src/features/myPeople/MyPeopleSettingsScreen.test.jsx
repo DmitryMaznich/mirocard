@@ -76,7 +76,7 @@ describe("MyPeopleSettingsScreen persistence", () => {
       setter.call(relation, "бабушка");
       relation.dispatchEvent(new Event("input", { bubbles: true }));
     });
-    const done = [...container.querySelectorAll("button")].find((button) => button.textContent === "Готово");
+    const done = [...container.querySelectorAll(".mp-editor__actions button")].find((button) => button.textContent === "Готово");
     await click(done);
 
     expect(pushedPeople()).toEqual([expect.objectContaining({ id: "anna", relation: "бабушка" })]);
@@ -178,5 +178,20 @@ describe("MyPeopleSettingsScreen persistence", () => {
     await click(button("Удалить карточку"));
     await click(button("Удалить"));
     expect(pushedPeople()[0]).toEqual(expect.objectContaining({ id: "anna", photos: [], deletedAt: expect.any(String) }));
+  });
+
+  it("goes back to where it was opened from", async () => {
+    useAppStore.setState({ myPeopleReturnScreen: "modes" });
+    await mount();
+    await click(container.querySelector(".back-btn"));
+    expect(useAppStore.getState().screen).toBe("modes");
+    expect(useAppStore.getState().myPeopleReturnScreen).toBeNull();
+  });
+
+  it("goes back to the student card by default", async () => {
+    useAppStore.setState({ myPeopleReturnScreen: null });
+    await mount();
+    await click(container.querySelector(".back-btn"));
+    expect(useAppStore.getState().screen).toBe("student_edit");
   });
 });

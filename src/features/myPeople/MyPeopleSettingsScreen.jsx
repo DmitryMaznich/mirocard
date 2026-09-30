@@ -7,7 +7,7 @@ import Button from "@/shared/components/Button";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { PHOTO_ACCEPT, PhotoPrepareError, squarePhotoDataUrl } from "@/shared/utils/squarePhoto";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { getInitials } from "@/shared/utils/format";
+import { getInitials, pluralRu } from "@/shared/utils/format";
 
 const TABS = [
   ["family", "Семья и питомцы"],
@@ -304,7 +304,6 @@ export default function MyPeopleSettingsScreen() {
   const [profile, setProfile] = useState(() => normaliseProfile(student?.myPeopleProfile));
   const [people, setPeople] = useState(() => normalisePeople(student?.myPeople));
   const [editingId, setEditingId] = useState(null);
-  const [saving, setSaving] = useState(false);
   const peopleRef = useRef(people);
   const profileRef = useRef(profile);
   const persistChain = useRef(Promise.resolve());
@@ -375,7 +374,13 @@ export default function MyPeopleSettingsScreen() {
     // The profile tabs have no per-field commit point; keep their edits too.
     const profileDirty = JSON.stringify(profile) !== JSON.stringify(normaliseProfile(student?.myPeopleProfile));
     if (profileDirty) await persist({ withProfile: true });
-    setScreen("student_edit");
+    leave();
+  }
+  function leave() {
+    const state = useAppStore.getState();
+    const target = state.myPeopleReturnScreen ?? "student_edit";
+    state.setMyPeopleReturnScreen(null);
+    setScreen(target);
   }
   function updateProfile(patch) {
     profileRef.current = { ...profileRef.current, ...patch };
@@ -451,13 +456,7 @@ export default function MyPeopleSettingsScreen() {
     updateProfile({ blockOrder: current });
   }
 
-  async function save() {
-    if (!student) return;
-    setSaving(true);
-    await persist({ withProfile: true });
-    setSaving(false);
-    setScreen("student_edit");
-  }
+
 
   if (!student) {
     return <div className="screen-center">Сначала сохраните ученика.</div>;
@@ -468,7 +467,6 @@ export default function MyPeopleSettingsScreen() {
       <div className="screen-header">
         <button className="back-btn" onClick={goBack}><BackArrowIcon /></button>
         <h1 className="screen-title">Мои люди</h1>
-        <button className="se-save-btn" onClick={save} disabled={saving}>{saving ? "…" : "Сохранить"}</button>
       </div>
       <section className="mp-intro">
         <span className="mp-intro__icon" aria-hidden="true">◎</span>
@@ -476,14 +474,17 @@ export default function MyPeopleSettingsScreen() {
           <strong>Индивидуальная тема {student.name}</strong>
           <span>Семья, дом, школа — с фотографиями, именами и связями.</span>
         </div>
-        <span className="mp-intro__sync">Встроена в Мирониум</span>
+        {/* Cards save as they're edited and the back arrow keeps the profile tabs,
+            so there is no separate save button (a "Сохранить" in the header
+            implied nothing was saved until it was pressed). */}
+        <span className="mp-intro__sync">Изменения сохраняются сразу</span>
       </section>
       <nav className="mp-tabs" aria-label="Разделы темы">
         {TABS.map(([id, label], index) => {
           const cardCount = peopleByContext[id] || 0;
           const introduction = introductionsByContext[id];
           const hint = id in CONTEXT_LABELS
-            ? `${cardCount} ${cardCount === 1 ? "карточка" : "карточек"}${cardCount && introduction.total ? ` · Знакомство: ${introduction.introduced} из ${introduction.total}` : ""}`
+            ? `${cardCount} ${pluralRu(cardCount, "карточка", "карточки", "карточек")}${cardCount && introduction.total ? ` · Знакомство: ${introduction.introduced} из ${introduction.total}` : ""}`
             : id === "personal" ? "Фамилия и адрес" : "Режимы занятия";
           return (
             <button key={id} type="button" className={tab === id ? "mp-tab mp-tab--active" : "mp-tab"} onClick={() => { setTab(id); closeEditor(); }}>

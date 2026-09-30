@@ -7,7 +7,7 @@ import { getModeGoal } from "@/shared/utils/methodology";
 import ModeIcon from "@/shared/components/ModeIcon";
 import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { formatDate, getTopicTitle } from "@/shared/utils/format";
+import { formatDate, getTopicTitle, pluralRu } from "@/shared/utils/format";
 import { hasEnoughAboutMeFacts } from "@/topics/renderers/my_people/engine";
 
 function LastResultBadge({ session }) {
@@ -109,9 +109,11 @@ export default function ModePickerScreen() {
       const rightIndex = order.indexOf(rightBlock);
       // Personal answers remain a small independent block above the staged
       // people groups; Mix is always pinned by the profile editor as last.
-      const normalisedLeft = leftIndex < 0 ? -1 : leftIndex;
-      const normalisedRight = rightIndex < 0 ? -1 : rightIndex;
-      return normalisedLeft - normalisedRight;
+      // "Кто это?" asks the child to name people unaided, only for people
+      // already introduced -- it closes the ladder after Mix rather than
+      // sitting next to "Обо мне" (both used to fall into the -1 bucket).
+      const rank = (modeId, index) => (modeId === "who_is_this" ? order.length : index < 0 ? -1 : index);
+      return rank(left.id, leftIndex) - rank(right.id, rightIndex);
     })
     : rawModes;
 
@@ -168,6 +170,7 @@ export default function ModePickerScreen() {
 
   function openMyPeopleSetup() {
     if (activeStudentId) setEditingStudentId(activeStudentId);
+    useAppStore.getState().setMyPeopleReturnScreen("modes");
     setScreen("my_people_settings");
   }
 
@@ -188,6 +191,23 @@ export default function ModePickerScreen() {
       </div>
 
       <ul className="mode-list">
+        {isMyPeople && activeStudent && (
+          // The people themselves are edited on the student card; without
+          // this row the only way there from a working topic was
+          // Меню → Ученики → ✎ → «Настроить тему».
+          <li className="mode-item-row">
+            <button type="button" className="mode-item mode-item--flex my-people-setup-row" onClick={openMyPeopleSetup}>
+              <span className="my-people-setup-row__icon" aria-hidden="true">👥</span>
+              <span className="mode-item__body">
+                <span className="mode-item__title">Люди и фото</span>
+                <span className="mode-item__desc">
+                  {people.length ? `В теме ${people.length} ${pluralRu(people.length, "человек", "человека", "человек")} — добавить или изменить` : "Добавьте близких с фотографиями"}
+                </span>
+              </span>
+              <span className="my-people-setup-row__arrow" aria-hidden="true">›</span>
+            </button>
+          </li>
+        )}
         {modes.map((mode) => {
           const lastSession = getLastModeSession(sessions, activeStudentId, activeTopicId, mode.id, isReading ? activeTextId : null);
           return (

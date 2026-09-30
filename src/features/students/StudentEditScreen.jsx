@@ -362,7 +362,7 @@ export default function StudentEditScreen() {
           <div className="settings-section se-my-people-card">
             <div className="settings-section-title">Мои люди</div>
             <p>Семья, люди дома, школа и личные ответы для индивидуальной темы.</p>
-            <button type="button" className="se-add-row" onClick={() => setScreen("my_people_settings")}>
+            <button type="button" className="se-add-row" onClick={() => { useAppStore.getState().setMyPeopleReturnScreen("student_edit"); setScreen("my_people_settings"); }}>
               {initial.myPeople?.some((person) => !person.deletedAt) ? "Настроить тему" : "Заполнить тему"}
             </button>
           </div>

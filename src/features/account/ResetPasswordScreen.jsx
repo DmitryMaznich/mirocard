@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { authErrorMessage } from "./authErrors";
 import { useAppStore } from "@/core/store";
 import { api, setApiToken, ApiError } from "@/core/api";
 import { getDb } from "@/core/db";
@@ -54,7 +55,7 @@ export default function ResetPasswordScreen() {
       if (err instanceof ApiError && err.status === 400) {
         setInvalidOrExpired(true);
       } else {
-        setError(err.message || "Не удалось сохранить новый пароль. Попробуйте ещё раз.");
+        setError(authErrorMessage(err, "Не удалось сохранить новый пароль. Попробуйте ещё раз."));
       }
     } finally {
       setLoading(false);

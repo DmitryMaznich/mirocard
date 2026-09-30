@@ -12054,6 +12054,15 @@ button {
      fits inside the margin-bottom reserved on .session-header-wrap above.
      (Placed after the base .session-plan-tongue rule — same specificity,
      so source order decides, and this needs to win.) */
+  /* The resting tongue, half-embedded, covered the bottom of the
+     breadcrumb on a phone too (e.g. "Семья и питомцы: имена"). Poke up
+     only ~4px here; the downward part fits the reserved margin. Placed
+     before the --correct/--incorrect rule below so that one still wins. */
+  .session-plan-tongue {
+    transform:
+      translate(-50%, calc(80% + var(--tongue-pull) * 9px))
+      scaleY(calc(1 + var(--tongue-pull) * 0.22));
+  }
   .session-plan-tongue--correct,
   .session-plan-tongue--incorrect {
     transform: translate(-50%, 90%);
@@ -22607,6 +22616,10 @@ body { background: #eef0ef; }
   text-transform: uppercase;
 }
 .mp-section-head--stacked { margin-bottom: 2px; }
+.my-people-setup-row { width: 100%; align-items: center; border: 0; font: inherit; text-align: left; color: inherit; cursor: pointer; }
+.my-people-setup-row .mode-item__title, .my-people-setup-row .mode-item__desc { display: block; }
+.my-people-setup-row__icon { flex: 0 0 auto; font-size: 1.6rem; }
+.my-people-setup-row__arrow { flex: 0 0 auto; margin-left: auto; color: #9aa8a4; font-size: 1.55rem; line-height: 1; }
 .mp-limit-hint { margin: -6px 0 12px; color: #8a5a00; font-size: .8rem; font-weight: 700; }
 .mp-add-compact:disabled { opacity: .45; cursor: not-allowed; }
 .mp-add-compact {
@@ -22633,10 +22646,10 @@ body { background: #eef0ef; }
 }
 .mp-person-card__main { gap: 11px; }
 .mp-person-card__photo { width: 58px; height: 58px; border-radius: 16px; background: #d9ebe5; }
-.mp-person-card__copy { gap: 4px; }
+.mp-person-card__copy { flex: 1; gap: 4px; }
 .mp-person-card__title-row { display: flex; min-width: 0; align-items: center; gap: 6px; }
-.mp-person-card__copy strong { max-width: 52%; color: #263131; font-size: .95rem; font-weight: 900; }
-.mp-person-card__copy em { overflow: hidden; max-width: 46%; border-radius: 999px; padding: 3px 7px; background: #e4f1ed; color: #28746b; font-size: .67rem; font-style: normal; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.mp-person-card__copy strong { flex: 0 1 auto; min-width: 0; max-width: 60%; color: #263131; font-size: .95rem; font-weight: 900; }
+.mp-person-card__copy em { flex: 0 1 auto; min-width: 0; overflow: hidden; border-radius: 999px; padding: 3px 7px; background: #e4f1ed; color: #28746b; font-size: .67rem; font-style: normal; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .mp-person-card__meta { overflow: hidden; color: #788681 !important; font-size: .72rem !important; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
 .mp-person-card__arrow { padding: 0 2px; color: #9aa8a4; font-size: 1.55rem; line-height: 1; }
 .mp-switch span { width: 38px; height: 23px; }
@@ -22744,7 +22757,8 @@ body { background: #eef0ef; }
   .mp-intro__icon { width: 33px; height: 33px; border-radius: 11px; font-size: 1.28rem; }
   .mp-intro strong { font-size: .88rem; }
   .mp-intro > div > span { font-size: .7rem; }
-  .mp-intro__sync { display: none; }
+  .mp-intro { flex-wrap: wrap; }
+  .mp-intro__sync { flex-basis: 100%; margin-left: 44px; font-size: .66rem; }
 
   .mp-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
   .mp-tab { min-height: 58px; gap: 7px; padding: 8px; border-radius: 14px; }

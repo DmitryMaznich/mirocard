@@ -118,6 +118,10 @@ export const useAppStore = create((set) => ({
   // students-list destination".
   studentEditReturnScreen: null,
   setStudentEditReturnScreen: (studentEditReturnScreen) => set({ studentEditReturnScreen }),
+  // Where "Мои люди" settings go back to: the mode list when opened from
+  // there, otherwise the student card it has always returned to.
+  myPeopleReturnScreen: null,
+  setMyPeopleReturnScreen: (myPeopleReturnScreen) => set({ myPeopleReturnScreen }),
 
   students: [],
   setStudents: (students) => set({ students }),

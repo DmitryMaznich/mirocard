@@ -109,3 +109,13 @@ export function formatRewardTime(seconds) {
   const s = seconds % 60;
   return m > 0 ? `${m}:${String(s).padStart(2, "0")}` : `${s}с`;
 }
+
+// Russian plural form for a count: pluralRu(1, "карточка", "карточки", "карточек").
+export function pluralRu(count, one, few, many) {
+  const n = Math.abs(count) % 100;
+  const last = n % 10;
+  if (n >= 11 && n <= 14) return many;
+  if (last === 1) return one;
+  if (last >= 2 && last <= 4) return few;
+  return many;
+}
