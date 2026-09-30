@@ -65,6 +65,18 @@ function normalisePeople(people) {
   })) : [];
 }
 
+// Drafts that never got a name or a photo are not worth keeping; the
+// isDraft marker is editor-only state.
+function serialisePeople(people, updatedAt) {
+  return people
+    .filter((person) => !person.isDraft || person.name.trim() || person.photos.length)
+    .map((person) => {
+      const savedPerson = { ...person };
+      delete savedPerson.isDraft;
+      return { ...savedPerson, updatedAt: savedPerson.updatedAt ?? updatedAt };
+    });
+}
+
 // A person can fill an entire task card. Keep a retina-quality source rather
 // than the tiny thumbnail-sized copy used in early prototypes.
 const PERSON_PHOTO_MAX_SIZE = 1600;
@@ -128,7 +140,7 @@ function PersonCard({ person, onEdit, onToggle }) {
   );
 }
 
-function PersonEditor({ person, activeContext, onChange, onDelete, onClose }) {
+function PersonEditor({ person, activeContext, onChange, onPhotoAdded, onDelete, onClose }) {
   const photoRef = useRef(null);
   const [uploading, setUploading] = useState(false);
 
@@ -137,7 +149,10 @@ function PersonEditor({ person, activeContext, onChange, onDelete, onClose }) {
     if (!file) return;
     setUploading(true);
     const photo = await resizeToDataUrl(file);
-    onChange({ ...person, photos: [...person.photos, photo] });
+    // The photo is the expensive part to redo -- save it right away rather
+    // than waiting for "Готово", so a killed PWA or a backgrounded tab can't
+    // take it with it.
+    onPhotoAdded({ ...person, photos: [...person.photos, photo] });
     setUploading(false);
     event.target.value = "";
   }
@@ -240,6 +255,10 @@ export default function MyPeopleSettingsScreen() {
   const [people, setPeople] = useState(() => normalisePeople(student?.myPeople));
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const peopleRef = useRef(people);
+  const profileRef = useRef(profile);
+  const persistChain = useRef(Promise.resolve());
+  const editorSnapshot = useRef(null);
 
   const editing = editingId ? people.find((person) => person.id === editingId) ?? null : null;
   const visiblePeople = useMemo(() => people.filter((person) => !person.deletedAt && person.contexts.includes(tab)), [people, tab]);
@@ -258,37 +277,106 @@ export default function MyPeopleSettingsScreen() {
     }),
   ), [people]);
 
-  function goBack() { setScreen("student_edit"); }
-  function updateProfile(patch) { setProfile((current) => ({ ...current, ...patch })); }
+  // Every change to a card is written to IndexedDB and queued for sync as
+  // soon as it's committed (photo added, editor closed, card toggled or
+  // deleted). Before this, nothing left the screen's React state until the
+  // header "Сохранить" -- the back arrow, an iOS PWA eviction or a reload
+  // silently threw away every photo and caption entered so far.
+  function persist({ withProfile = false } = {}) {
+    const run = async () => {
+      const current = useAppStore.getState().students;
+      const base = current.find((item) => item.id === student?.id);
+      if (!base) return;
+      const updatedAt = new Date().toISOString();
+      const nextPeople = serialisePeople(peopleRef.current, updatedAt);
+      const updated = { ...base, myPeople: nextPeople, myPeopleUpdatedAt: updatedAt };
+      let nextProfile = null;
+      if (withProfile) {
+        nextProfile = { ...profileRef.current, updatedAt };
+        updated.myPeopleProfile = nextProfile;
+        updated.myPeopleProfileUpdatedAt = updatedAt;
+      }
+      const nextStudents = current.map((item) => item.id === base.id ? updated : item);
+      setStudents(nextStudents);
+      const db = await getDb();
+      await kv.set(db, "students", nextStudents);
+      await Promise.all([
+        nextProfile && pushOp("student.my_people_profile.upsert", { studentId: base.id, profile: nextProfile, updatedAt }),
+        pushOp("student.my_people.upsert", { studentId: base.id, people: nextPeople, updatedAt }),
+      ]);
+    };
+    persistChain.current = persistChain.current.then(run, run);
+    return persistChain.current;
+  }
+
+  function openEditor(id) {
+    editorSnapshot.current = JSON.stringify(peopleRef.current.find((person) => person.id === id) ?? null);
+    setEditingId(id);
+  }
+
+  function commitPeople(updater) {
+    peopleRef.current = updater(peopleRef.current);
+    setPeople(peopleRef.current);
+  }
+
+  async function goBack() {
+    // The profile tabs have no per-field commit point; keep their edits too.
+    const profileDirty = JSON.stringify(profile) !== JSON.stringify(normaliseProfile(student?.myPeopleProfile));
+    if (profileDirty) await persist({ withProfile: true });
+    setScreen("student_edit");
+  }
+  function updateProfile(patch) {
+    profileRef.current = { ...profileRef.current, ...patch };
+    setProfile(profileRef.current);
+  }
   function updatePerson(nextPerson) {
     const now = new Date().toISOString();
     const stamped = { ...nextPerson, updatedAt: now, createdAt: nextPerson.createdAt ?? now };
-    setPeople((current) => current.map((person) => person.id === stamped.id ? stamped : person));
+    commitPeople((current) => current.map((person) => person.id === stamped.id ? stamped : person));
+  }
+  function addPhotoAndPersist(nextPerson) {
+    updatePerson(nextPerson);
+    persist();
   }
   function addPerson() {
     const person = {
       id: makeId(), type: "person", name: "", relation: "", contexts: tab in CONTEXT_LABELS ? [tab] : ["family"],
       photos: [], introducedAxes: [], enabled: true, createdAt: null, updatedAt: null, deletedAt: null, isDraft: true,
     };
-    setPeople((current) => [...current, person]);
-    setEditingId(person.id);
+    commitPeople((current) => [...current, person]);
+    openEditor(person.id);
   }
   function deletePerson(id) {
     const now = new Date().toISOString();
-    setPeople((current) => current.map((person) => person.id === id ? { ...person, deletedAt: now, updatedAt: now } : person));
+    commitPeople((current) => current.map((person) => person.id === id ? { ...person, deletedAt: now, updatedAt: now } : person));
     setEditingId(null);
+    persist();
   }
   function togglePerson(id) {
-    const person = people.find((item) => item.id === id);
-    if (person) updatePerson({ ...person, enabled: !person.enabled });
+    const person = peopleRef.current.find((item) => item.id === id);
+    if (!person) return;
+    updatePerson({ ...person, enabled: !person.enabled });
+    persist();
   }
-
   function closeEditor() {
-    const person = people.find((item) => item.id === editingId);
-    if (person?.isDraft && !person.name.trim() && !person.photos.length) {
-      setPeople((current) => current.filter((item) => item.id !== person.id));
-    }
+    const person = peopleRef.current.find((item) => item.id === editingId);
     setEditingId(null);
+    if (!person) return;
+    if (person.isDraft && !person.name.trim() && !person.photos.length) {
+      commitPeople((current) => current.filter((item) => item.id !== person.id));
+      return;
+    }
+    // Once closed with content, the card is saved -- no longer a draft.
+    if (person.isDraft) {
+      commitPeople((current) => current.map((item) => {
+        if (item.id !== person.id) return item;
+        const saved = { ...item };
+        delete saved.isDraft;
+        return saved;
+      }));
+    }
+    // An untouched card has nothing new to send.
+    if (JSON.stringify(person) !== editorSnapshot.current) persist();
   }
   function moveBlock(id, delta) {
     const current = profile.blockOrder.filter((item) => item !== id);
@@ -303,32 +391,9 @@ export default function MyPeopleSettingsScreen() {
   async function save() {
     if (!student) return;
     setSaving(true);
-    const updatedAt = new Date().toISOString();
-    const nextProfile = { ...profile, updatedAt };
-    const nextPeople = people
-      .filter((person) => !person.isDraft || person.name.trim() || person.photos.length)
-      .map((person) => {
-        const savedPerson = { ...person };
-        delete savedPerson.isDraft;
-        return { ...savedPerson, updatedAt: savedPerson.updatedAt ?? updatedAt };
-      });
-    const updated = {
-      ...student,
-      myPeopleProfile: nextProfile,
-      myPeopleProfileUpdatedAt: updatedAt,
-      myPeople: nextPeople,
-      myPeopleUpdatedAt: updatedAt,
-    };
-    const nextStudents = students.map((item) => item.id === student.id ? updated : item);
-    const db = await getDb();
-    await kv.set(db, "students", nextStudents);
-    setStudents(nextStudents);
-    await Promise.all([
-      pushOp("student.my_people_profile.upsert", { studentId: student.id, profile: nextProfile, updatedAt }),
-      pushOp("student.my_people.upsert", { studentId: student.id, people: nextPeople, updatedAt }),
-    ]);
+    await persist({ withProfile: true });
     setSaving(false);
-    goBack();
+    setScreen("student_edit");
   }
 
   if (!student) {
@@ -358,7 +423,7 @@ export default function MyPeopleSettingsScreen() {
             ? `${cardCount} ${cardCount === 1 ? "карточка" : "карточек"}${cardCount && introduction.total ? ` · Знакомство: ${introduction.introduced} из ${introduction.total}` : ""}`
             : id === "personal" ? "Фамилия и адрес" : "Режимы занятия";
           return (
-            <button key={id} type="button" className={tab === id ? "mp-tab mp-tab--active" : "mp-tab"} onClick={() => { setTab(id); setEditingId(null); }}>
+            <button key={id} type="button" className={tab === id ? "mp-tab mp-tab--active" : "mp-tab"} onClick={() => { setTab(id); closeEditor(); }}>
               <span className="mp-tab__number">{String(index + 1).padStart(2, "0")}</span>
               <span><strong>{label}</strong><small>{hint}</small></span>
             </button>
@@ -380,11 +445,11 @@ export default function MyPeopleSettingsScreen() {
             <div className="mp-people-layout">
               <div className="mp-people-list">
                 {visiblePeople.length
-                  ? visiblePeople.map((person) => <PersonCard key={person.id} person={person} onEdit={setEditingId} onToggle={togglePerson} />)
+                  ? visiblePeople.map((person) => <PersonCard key={person.id} person={person} onEdit={openEditor} onToggle={togglePerson} />)
                   : <div className="mp-empty"><span className="mp-empty__art" aria-hidden="true">＋</span><strong>Здесь пока никого нет</strong><span>{tab === "family" ? "Добавьте первого близкого человека или питомца." : "Добавьте человека, который встречается с ребёнком в этом окружении."}</span><button type="button" onClick={addPerson}>Добавить карточку</button></div>
                 }
               </div>
-              {editing && <PersonEditor person={editing} activeContext={tab} onChange={updatePerson} onDelete={() => deletePerson(editing.id)} onClose={closeEditor} />}
+              {editing && <PersonEditor person={editing} activeContext={tab} onChange={updatePerson} onPhotoAdded={addPhotoAndPersist} onDelete={() => deletePerson(editing.id)} onClose={closeEditor} />}
             </div>
           </>
         )}
