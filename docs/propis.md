@@ -3454,3 +3454,10 @@ checkboxes). A point within `range` of an EARLIER segment of the same stroke who
 backward direction. Same-direction overlap ignores the last `RETRACE_MIN_ARC` (8) of path length (no
 snapping onto its own tail); U-turns only `RETRACE_MIN_ARC_BACK` (1). Loops crossing at an angle and
 smooth arcs are untouched (verified in Node). Only within one stroke (pen not lifted). Tool-only change.
+
+**Retrace snap: smooth release, 2026-09-30.** User: even at range 0.5 the line jerks where it leaves
+the retraced path. Cause: snapped points sit exactly on the line, the first free point returned to
+its real position at once (up to the hysteresis-sized offset, 1.5×range). Now `retraceSnap` keeps the
+last correction and fades it out (smoothstep) over `RETRACE_RELEASE_ARC` (6) units of path after the
+last snapped point. Entry is NOT ramped on purpose: earlier points are the reference the return
+snaps to, so moving them would reopen the gap. Max correction jump at release: 0.45 → 0.055 (Node).

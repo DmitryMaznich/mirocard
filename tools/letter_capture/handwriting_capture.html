@@ -1311,6 +1311,7 @@
   const RETRACE_ANGLE_DEG = 20;
   const RETRACE_MIN_ARC = 8;       // same-direction overlap: ignore the immediate tail
   const RETRACE_MIN_ARC_BACK = 1;  // U-turn (opposite direction): may snap right at the tip
+  const RETRACE_RELEASE_ARC = 6;   // path length over which the correction fades out after leaving the line
   function retraceSnap(pts, range) {
     const n = pts.length;
     if (n < 6 || range <= 0) return pts;
@@ -1318,6 +1319,10 @@
     const arc = [0];
     const sinEnter = Math.sin(RETRACE_ANGLE_DEG * Math.PI / 180);
     let holding = false;
+    // Last snap correction (snapped - original) and path length travelled since, used to fade
+    // the correction out smoothly after the pen leaves the retraced line instead of letting
+    // the first free point jump back by the full (hysteresis-sized) offset.
+    let lastCorr = null, sSince = 0;
     for (let i = 1; i < n; i++) {
       // Forward-looking direction (where the pen is going), so the first points right after
       // a U-turn already read as "moving back along the line"; only the last points of the
@@ -1350,7 +1355,20 @@
         }
       }
       holding = !!best;
-      out.push(best || pts[i]);
+      if (best) {
+        lastCorr = { x: best.x - pts[i].x, y: best.y - pts[i].y };
+        sSince = 0;
+        out.push(best);
+      } else {
+        sSince += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+        if (lastCorr && sSince < RETRACE_RELEASE_ARC) {
+          const u = 1 - sSince / RETRACE_RELEASE_ARC;
+          const w = u * u * (3 - 2 * u);
+          out.push({ x: pts[i].x + lastCorr.x * w, y: pts[i].y + lastCorr.y * w });
+        } else {
+          out.push(pts[i]);
+        }
+      }
       arc.push(arc[i - 1] + Math.hypot(out[i].x - out[i - 1].x, out[i].y - out[i - 1].y));
     }
     return out;
