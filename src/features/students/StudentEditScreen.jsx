@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
+import { PHOTO_ACCEPT, PhotoPrepareError, squarePhotoDataUrl } from "@/shared/utils/squarePhoto";
 import Button from "@/shared/components/Button";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
@@ -23,22 +24,8 @@ function normaliseAdults(raw) {
   if (!Array.isArray(raw)) return [];
   return raw.map((a) => ({ id: a.id, name: a.name ?? "", photo: a.photo ?? null }));
 }
-async function resizeToDataUrl(file, maxSize = 400) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      const s = Math.min(img.width, img.height);
-      const size = Math.min(s, maxSize);
-      const canvas = document.createElement("canvas");
-      canvas.width = size; canvas.height = size;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL("image/jpeg", 0.85));
-    };
-    img.src = url;
-  });
+function photoErrorMessage(error) {
+  return error instanceof PhotoPrepareError ? error.message : "Не получилось добавить фото. Попробуйте ещё раз.";
 }
 
 const LANGS = [
@@ -57,15 +44,23 @@ function AdultAddForm({ onConfirm, onCancel }) {
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [photoError, setPhotoError] = useState("");
   const photoRef  = useRef(null);
   const cameraRef = useRef(null);
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = "";
     setLoading(true);
-    setPhoto(await resizeToDataUrl(file, 200));
-    setLoading(false);
+    setPhotoError("");
+    try {
+      setPhoto(await squarePhotoDataUrl(file, { maxSize: 200, quality: 0.85 }));
+    } catch (error) {
+      setPhotoError(photoErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
   }
 
   function confirm() {
@@ -96,9 +91,10 @@ function AdultAddForm({ onConfirm, onCancel }) {
           onKeyDown={(e) => e.key === "Enter" && confirm()}
           autoFocus
         />
-        <input ref={cameraRef} type="file" accept="image/*" capture="user" style={{ display: "none" }} onChange={handleFile} />
-        <input ref={photoRef}  type="file" accept="image/*"               style={{ display: "none" }} onChange={handleFile} />
+        <input ref={cameraRef} type="file" accept={PHOTO_ACCEPT} capture="user" style={{ display: "none" }} onChange={handleFile} />
+        <input ref={photoRef}  type="file" accept={PHOTO_ACCEPT}               style={{ display: "none" }} onChange={handleFile} />
       </div>
+      {photoError && <div className="se-name-error" role="alert">{photoError}</div>}
       <div className="se-adult-add-form__actions">
         <Button variant="secondary" onClick={onCancel}>Отмена</Button>
         <Button variant="primary" onClick={confirm} disabled={!name.trim()}>Добавить</Button>
@@ -126,6 +122,7 @@ export default function StudentEditScreen() {
   const [sex,          setSex]          = useState(initial?.sex ?? "");
   const [photo,        setPhoto]        = useState(initial?.photo ?? null);
   const [photoLoading, setPhotoLoading] = useState(false);
+  const [photoError, setPhotoError] = useState("");
   const [videos,       setVideos]       = useState(() => normaliseVideos(initial?.rewardVideos));
   const [videoInput,   setVideoInput]   = useState("");
   const [videoError,   setVideoError]   = useState("");
@@ -152,9 +149,16 @@ export default function StudentEditScreen() {
   async function handleStudentPhoto(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = "";
     setPhotoLoading(true);
-    setPhoto(await resizeToDataUrl(file, 400));
-    setPhotoLoading(false);
+    setPhotoError("");
+    try {
+      setPhoto(await squarePhotoDataUrl(file, { maxSize: 400, quality: 0.85 }));
+    } catch (error) {
+      setPhotoError(photoErrorMessage(error));
+    } finally {
+      setPhotoLoading(false);
+    }
   }
 
   async function handleSave() {
@@ -290,12 +294,13 @@ export default function StudentEditScreen() {
             <input
               ref={studentPhotoRef}
               type="file"
-              accept="image/*"
+              accept={PHOTO_ACCEPT}
               style={{ display: "none" }}
               onChange={handleStudentPhoto}
             />
           </div>
           {nameError && <div className="se-name-error">{nameError}</div>}
+          {photoError && <div className="se-name-error" role="alert">{photoError}</div>}
           <textarea
             className="se-comment-input"
             value={comment}

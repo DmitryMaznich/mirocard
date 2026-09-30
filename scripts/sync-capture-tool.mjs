@@ -1,4 +1,4 @@
-import { copyFileSync, cpSync } from "node:fs";
+import { copyFileSync, cpSync, mkdirSync } from "node:fs";
 import { buildFiguresGallery } from "../tools/symmetry_draw/build-figures-gallery.mjs";
 
 buildFiguresGallery();
@@ -21,3 +21,14 @@ cpSync("tools/symmetry_draw/figures", "public/symmetry_draw/figures", {
   force: true,
 });
 console.log("✓ synced tools/symmetry_draw/figures -> public/symmetry_draw/figures");
+
+// HEIC -> JPEG converter for photo uploads outside Safari. It's ~3 MB of
+// inlined libheif wasm, and vite-plugin-singlefile would inline even a
+// dynamic import() into index.html for every user, so it's served as a
+// separate static file instead and loaded by <script> only when a HEIC
+// photo actually needs converting (src/shared/utils/squarePhoto.js).
+// Shipped unmodified alongside its licence (LGPL-3.0).
+mkdirSync("public/vendor", { recursive: true });
+copyFileSync("node_modules/heic-to/dist/iife/heic-to.js", "public/vendor/heic-to.js");
+copyFileSync("node_modules/heic-to/LICENSE", "public/vendor/heic-to.LICENSE.txt");
+console.log("✓ synced heic-to -> public/vendor/heic-to.js");

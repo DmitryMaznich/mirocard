@@ -131,3 +131,7 @@ public/decks/_audio_src/
 
 # Playwright artifacts (launch testing)
 test-results*/
+
+# Build-time copy of node_modules/heic-to (scripts/sync-capture-tool.mjs)
+public/vendor/heic-to.js
+public/vendor/heic-to.LICENSE.txt

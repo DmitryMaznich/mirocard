@@ -4,6 +4,7 @@ import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
 import Button from "@/shared/components/Button";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
+import { PHOTO_ACCEPT, PhotoPrepareError, squarePhotoDataUrl } from "@/shared/utils/squarePhoto";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { getInitials } from "@/shared/utils/format";
 
@@ -82,33 +83,6 @@ function serialisePeople(people, updatedAt) {
 const PERSON_PHOTO_MAX_SIZE = 1600;
 const PERSON_PHOTO_JPEG_QUALITY = 0.92;
 
-async function resizeToDataUrl(file, maxSize = PERSON_PHOTO_MAX_SIZE) {
-  return new Promise((resolve) => {
-    const image = new Image();
-    const source = URL.createObjectURL(file);
-    image.onload = () => {
-      const side = Math.min(image.width, image.height);
-      const target = Math.min(side, maxSize);
-      const canvas = document.createElement("canvas");
-      canvas.width = target;
-      canvas.height = target;
-      canvas.getContext("2d").drawImage(
-        image,
-        (image.width - side) / 2,
-        (image.height - side) / 2,
-        side,
-        side,
-        0,
-        0,
-        target,
-        target,
-      );
-      URL.revokeObjectURL(source);
-      resolve(canvas.toDataURL("image/jpeg", PERSON_PHOTO_JPEG_QUALITY));
-    };
-    image.src = source;
-  });
-}
 
 function PersonCard({ person, onEdit, onToggle }) {
   const photo = person.photos[0] ?? null;
@@ -143,18 +117,26 @@ function PersonCard({ person, onEdit, onToggle }) {
 function PersonEditor({ person, activeContext, onChange, onPhotoAdded, onDelete, onClose }) {
   const photoRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState("");
 
   async function addPhoto(event) {
     const file = event.target.files?.[0];
     if (!file) return;
-    setUploading(true);
-    const photo = await resizeToDataUrl(file);
-    // The photo is the expensive part to redo -- save it right away rather
-    // than waiting for "Готово", so a killed PWA or a backgrounded tab can't
-    // take it with it.
-    onPhotoAdded({ ...person, photos: [...person.photos, photo] });
-    setUploading(false);
     event.target.value = "";
+    setUploading(true);
+    setPhotoError("");
+    try {
+      const photo = await squarePhotoDataUrl(file, { maxSize: PERSON_PHOTO_MAX_SIZE, quality: PERSON_PHOTO_JPEG_QUALITY });
+      // The photo is the expensive part to redo -- save it right away rather
+      // than waiting for "Готово", so a killed PWA or a backgrounded tab can't
+      // take it with it. Only the id goes up: a HEIC conversion takes a few
+      // seconds, and this render's `person` may be stale by then.
+      onPhotoAdded(person.id, photo);
+    } catch (error) {
+      setPhotoError(error instanceof PhotoPrepareError ? error.message : "Не получилось добавить фото. Попробуйте ещё раз.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   function update(patch) { onChange({ ...person, ...patch }); }
@@ -190,8 +172,9 @@ function PersonEditor({ person, activeContext, onChange, onPhotoAdded, onDelete,
             <Button variant="secondary" onClick={() => photoRef.current?.click()} disabled={uploading}>
               {uploading ? "Готовим фото…" : person.photos.length ? "+ Ещё фото" : "Выбрать фото"}
             </Button>
+            {photoError && <span className="mp-editor__photo-error" role="alert">{photoError}</span>}
           </div>
-          <input ref={photoRef} type="file" accept="image/*" onChange={addPhoto} hidden />
+          <input ref={photoRef} type="file" accept={PHOTO_ACCEPT} onChange={addPhoto} hidden />
         </div>
 
         <div className="mp-editor__fields">
@@ -334,8 +317,10 @@ export default function MyPeopleSettingsScreen() {
     const stamped = { ...nextPerson, updatedAt: now, createdAt: nextPerson.createdAt ?? now };
     commitPeople((current) => current.map((person) => person.id === stamped.id ? stamped : person));
   }
-  function addPhotoAndPersist(nextPerson) {
-    updatePerson(nextPerson);
+  function addPhotoAndPersist(personId, photo) {
+    const person = peopleRef.current.find((item) => item.id === personId);
+    if (!person) return;
+    updatePerson({ ...person, photos: [...person.photos, photo] });
     persist();
   }
   function addPerson() {

@@ -22681,6 +22681,7 @@ body { background: #eef0ef; }
 .mp-editor__photo-copy strong { color: #29423e; font-size: .86rem; font-weight: 900; }
 .mp-editor__photo-copy span { color: #6d827c; font-size: .72rem; line-height: 1.28; }
 .mp-editor__photo-copy .btn { width: fit-content; min-height: 33px; margin-top: 4px; padding: 6px 10px; font-size: .74rem; }
+.mp-editor__photo-copy .mp-editor__photo-error { color: #b3261e; font-weight: 700; }
 .mp-editor__fields { display: grid; grid-template-columns: minmax(120px, .72fr) minmax(0, 1fr); gap: 10px; }
 .mp-field { margin: 0; }
 .mp-field--wide { grid-column: 1 / -1; }
