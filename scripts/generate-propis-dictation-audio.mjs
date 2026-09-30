@@ -1,5 +1,5 @@
-// Synthesizes one .mp3 per "Диктант" dictation item (letters, words, text
-// sentences) via Gemini's native TTS. Output feeds dictationAudioUrl() in
+// Synthesizes one .mp3 per "Диктант" dictation item (words, text sentences) via
+// Gemini's native TTS. Output feeds dictationAudioUrl() in
 // src/topics/renderers/propis/dictationAudio.js -- these are static assets
 // shipped with the app itself (like addition_subtraction's number words),
 // NOT part of propis's deck zip, so nothing here touches build-propis-deck.mjs.
@@ -10,40 +10,34 @@
 // daily-CreateVoice-quota detection that stops the run cleanly instead of
 // retrying into a wall.
 //
+// letters are NOT generated here (see buildEntries' own comment) -- after
+// several rounds of prompt engineering (case-baked phrases, explicit
+// "say the sound not the name" instructions, neutral tone, sustained spelling
+// for sibilants) still couldn't get Gemini TTS to reliably read a letter's own
+// SOUND rather than its alphabet NAME or a stretched/sung-song vowel, the 33
+// letters + 2 case words ("заглавная"/"строчная") were replaced 2026-09-30
+// with real human recordings (LetterSoundSource/*.m4a, converted by hand to
+// public/audio/propis-dictation/{case_upper,case_lower,sound_<letter>}.mp3) --
+// same fix real speech-therapy materials use for isolated phonemes, and the
+// only thing that actually gave a consistent, correct reference sound for a
+// child on the autism spectrum.
+//
 // Content is read straight from tools/propis/topic.json -- the same source
 // dictationAudio.js's key functions and engine.js's dictation branch use, so
 // there's no separate content list to keep in sync:
-//   - letters: 35 clips total, not one per up/lo card (2026-09-24 rework --
-//     the original "заглавная <letter>"/"строчная <letter>" scheme baked the
-//     case word into all 66 case-card clips, re-synthesizing the identical
-//     word over and over). 2 case-word clips ("заглавная"/"строчная" alone) +
-//     33 letter clips, one per BASE letter (case-independent -- "К"/"к" are
-//     the same phoneme). DictationView.jsx plays the case clip then the
-//     letter clip back to back. A letter's own clip is its actual SOUND, not
-//     its alphabet NAME (buildLetterPrompt + SUSTAINED_TEXT) -- consonants
-//     especially need this distinction ("к" is /k/, not "ка"); ъ/ь have no
-//     sound at all, so their clip is just their name instead ("твёрдый/мягкий
-//     знак"). 2026-09-27: also dropped the "дружелюбно... как для ребёнка"
-//     framing for every letter clip specifically -- fine for words/texts, but
-//     it was coaxing an expressive/sung-song read exactly where these clips
-//     (used by a child on the autism spectrum) need a flat, consistent
-//     reference sound instead. Still an open problem for the voiceless stops
-//     (п/к/т) -- see buildLetterPrompt's own comment.
 //   - words: every `words[]` entry (249), spoken as-is.
 //   - texts: every `texts[]` entry (24), split into sentences the same way
 //     engine.js does (dictationAudio.js's splitIntoSentences) -- one clip per
 //     SENTENCE, not per whole text, matching the session view's sentence-by-
 //     sentence playback with pauses between them.
 //
-// Usage: node scripts/generate-propis-dictation-audio.mjs [--force] [--voice=Kore] [--only=letters|words|texts]
+// Usage: node scripts/generate-propis-dictation-audio.mjs [--force] [--voice=Kore] [--only=words|texts]
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Mp3Encoder } from "@breezystack/lamejs";
 import { getGeminiApiKey } from "./lib/gemini-key.mjs";
 import {
-  caseWordDictationKey,
-  letterSoundDictationKey,
   wordDictationKey,
   textSentenceDictationKey,
   splitIntoSentences,
@@ -149,75 +143,17 @@ function buildDefaultPrompt(text) {
   return `Прочитай спокойно, чётко и дружелюбно, как для ребёнка: ${text}`;
 }
 
-// A consonant's NAME ("бэ", "ка", "ша"...) is not its SOUND (/b/, /k/, /sh/) -- dictation
-// needs the sound (the "звуковой метод" every Russian child learns to read with). Tried
-// asking Gemini for it explicitly (an instructional prompt spelling out the б/бэ, к/ка
-// contrast); backfired 2026-09-27 on roughly half the consonants -- Gemini treated the
-// instruction as a request to EXPLAIN the concept rather than vocalize, and refused with
-// "Model tried to generate text, but it should only be used for TTS". The plain "read this"
-// framing already used for vowels/case-words turns out to read a bare consonant as its
-// SOUND anyway (confirmed by ear, 2026-09-27, comparing "к" and "К!" through this exact
-// prompt) -- no special-casing needed, every base letter goes through buildDefaultPrompt.
-//
-// That "no special-casing" call didn't survive contact with the full batch, though: user
-// report the same day, listening to all 33, found 20 unusable -- most of the voiceless
-// stops (п/к/т, unlike their voiced pairs б/г/д which came out fine -- there's simply
-// nothing to voice once you strip the vowel off a voiceless stop, so TTS falls back to the
-// named letter more often), the sibilants/affricates (с/ш/щ/ц/ч/ж), and several vowels.
-// The vowel complaint was different in kind: "тянутся [и] слишком игривое произношение"
-// (stretched out, sung-song) -- buildDefaultPrompt's own "дружелюбно... как для ребёнка"
-// framing was almost certainly the cause, coaxing an expressive/cutesy read exactly where a
-// flat reference phoneme is needed. This matters more than usual here: these clips are for
-// a child on the autism spectrum, where a consistent, unembellished reference sound is the
-// whole point -- not just a nice-to-have. buildLetterPrompt drops that framing entirely for
-// every letter-related clip (case words, signs, vowels, consonants alike).
-function buildLetterPrompt(text) {
-  return `Прочитай нейтрально, коротко и чётко, без интонации и эмоций: ${text}`;
-}
-
-// Sibilants/affricates can be sustained/repeated the way a plosive can't -- "ссс"/"шшш"/
-// "жжж" is the ordinary Russian written convention for depicting the raw hiss/buzz (same
-// device as English "shh"/"zzz"), not a name-reading trap the way a bare single character
-// is. All 6 of these were in the user's 20-bad list; untested candidates for the voiceless
-// stops (п/к/т, no natural sustain) are still pending the small listen-first batch planned
-// for the next quota window -- don't extend this table to them without that.
-const SUSTAINED_TEXT = { "с": "ссс", "ш": "шшш", "щ": "щщщ", "ц": "ццц", "ч": "ччч", "ж": "жжж" };
-
-// ъ/ь have no sound of their own at all ("строчная ь" reliably errored out of Gemini TTS,
-// finishReason "OTHER", 3/3 attempts, 2026-09-19) -- say the actual name instead, same as a
-// person reading it aloud would.
-const SIGN_NAMES = { "ъ": "твёрдый знак", "ь": "мягкий знак" };
-
 function buildEntries() {
   const entries = [];
-  if (!ONLY || ONLY === "letters") {
-    // "заглавная"/"строчная" are each their own single clip now, played immediately before
-    // whichever letter's own clip follows (DictationView.jsx) -- not re-synthesized into
-    // every one of 33 letters' own clips the way the previous "заглавная <letter>" scheme
-    // did (66 case-baked clips for what's really only 35 distinct sounds: 33 letters + these
-    // 2 words -- reported 2026-09-24: "слитные фразы... 66 файлов вместо 35").
-    entries.push(
-      { id: caseWordDictationKey(true), text: "заглавная", prompt: buildLetterPrompt("заглавная") },
-      { id: caseWordDictationKey(false), text: "строчная", prompt: buildLetterPrompt("строчная") }
-    );
-
-    // Excludes joint-stroke variants (variantOf set, e.g. "о_middle_ll") -- those aren't
-    // standalone dictation items, their `label` is an internal id, not a spoken letter.
-    const letterCards = topic.cards.filter((c) => c.type === "letter" && !c.variantOf && Array.isArray(c.strokes) && c.strokes.length > 0);
-    // One clip per BASE letter, not per up/lo card -- "К" and "к" are the same phoneme, only
-    // the written shape differs (dictationAudio.js's letterSoundDictationKey). Dedup by
-    // lowercase label; which of the two cards (upper/lower) survives into the map doesn't
-    // matter, only the label is used below.
-    const byBaseLetter = new Map();
-    for (const card of letterCards) {
-      const base = card.label.toLowerCase();
-      if (!byBaseLetter.has(base)) byBaseLetter.set(base, card);
-    }
-    for (const [base, card] of byBaseLetter) {
-      const id = letterSoundDictationKey(card);
-      const text = SIGN_NAMES[base] ?? SUSTAINED_TEXT[base] ?? base;
-      entries.push({ id, text, prompt: buildLetterPrompt(text) });
-    }
+  if (ONLY === "letters") {
+    // Retired 2026-09-30 -- see this file's own header comment for the full history of why
+    // TTS couldn't do this reliably. The 33 letters + 2 case words are now real human
+    // recordings (LetterSoundSource/*.m4a, converted to public/audio/propis-dictation/
+    // {case_upper,case_lower,sound_<letter>}.mp3 by hand -- not by this script). Letting
+    // `--only=letters` silently regenerate over them via TTS would be a real regression, so
+    // this refuses instead of running.
+    console.log("letters are human-recorded now (see LetterSoundSource/), not TTS -- nothing to do here. Use --only=words or --only=texts.");
+    return entries;
   }
   if (!ONLY || ONLY === "words") {
     for (const w of topic.words) {
