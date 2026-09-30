@@ -6,7 +6,7 @@
 export function getTopicOrigin(meta, ownedTopics) {
   if (meta.origin === "imported") return "imported";
   const owned = (ownedTopics ?? []).find((o) => o.topicId === meta.id);
-  if (owned?.source === "grant") return "grant";
+  if (owned?.source === "grant" || owned?.source === "assigned") return "grant";
   return null;
 }
 

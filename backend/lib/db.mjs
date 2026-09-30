@@ -96,6 +96,21 @@ export function initDb(dbPath = DB_PATH) {
       deleted_at     TEXT
     );
 
+    -- An assignment answers only "may this account see this restricted
+    -- catalog topic?". It is deliberately separate from account_topics,
+    -- which records a downloaded/installed copy. A beta or individual
+    -- assignment never bypasses the account's normal paid-access check.
+    CREATE TABLE IF NOT EXISTS account_topic_assignments (
+      account_id  TEXT NOT NULL REFERENCES accounts(id),
+      topic_id    TEXT NOT NULL,
+      assigned_as TEXT NOT NULL,
+      assigned_at TEXT NOT NULL,
+      revoked_at  TEXT,
+      PRIMARY KEY (account_id, topic_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_account_topic_assignments_active
+      ON account_topic_assignments(account_id, topic_id, revoked_at);
+
     CREATE TABLE IF NOT EXISTS student_topic_links (
       id                   TEXT PRIMARY KEY,
       account_id           TEXT NOT NULL REFERENCES accounts(id),

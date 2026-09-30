@@ -17,6 +17,7 @@ test("initDb creates all required tables", () => {
     "accounts",
     "account_settings",
     "account_topics",
+    "account_topic_assignments",
     "auth_tokens",
     "concept_progress",
     "password_reset_tokens",

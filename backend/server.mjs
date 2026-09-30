@@ -28,7 +28,8 @@ import {
   upsertStudent, getStudents, softDeleteStudent,
   appendSession, getSessions,
   upsertAccountTopic, getAccountTopics, softDeleteAccountTopic,
-  getAccountTopicByTopicId, claimAccountTopic, grantAccountTopic, setAccountFeatureFlags,
+  getAccountTopicByTopicId, claimAccountTopic, setAccountFeatureFlags,
+  assignAccountTopic, getAssignedAccountTopicIds, revokeAccountTopicAssignment,
   listAllAccounts, revokeAccountTopic, touchAccountSeen, recordHeartbeat,
   upsertStudentTopicLink, getStudentTopicLinks,
   upsertConceptProgress,
@@ -136,7 +137,19 @@ function getCatalogEntry(topicId) {
 }
 
 function isGranted(source) {
-  return ["free", "grant", "paid"].includes(source);
+  return ["free", "grant", "paid", "assigned"].includes(source);
+}
+
+function getTopicPublication(entry) {
+  if (entry.hidden || entry.status === "hidden") return "hidden";
+  return entry.status ?? "release";
+}
+
+function isCatalogEntryVisible(entry, assignedTopicIds) {
+  const publication = getTopicPublication(entry);
+  if (publication === "release") return true;
+  if (publication === "hidden") return false;
+  return assignedTopicIds.has(entry.id);
 }
 
 // ─── Resend verification rate limit ─────────────────────────────────────────
@@ -900,20 +913,16 @@ async function handleGetDecksCatalog(req, res) {
   // that URL is a direct, unauthenticated path to the ZIP (see
   // handleDownloadDeck / trySpaFallback), so paid downloads must always go
   // through the entitlement-checked /decks/:id/download endpoint instead.
-  let flags = new Set();
+  let assignedTopicIds = new Set();
   try {
     const account = requireAuth(req);
-    flags = new Set(JSON.parse(account.feature_flags ?? "[]"));
+    assignedTopicIds = new Set(getAssignedAccountTopicIds(db, account.id));
   } catch {
-    // anonymous caller — treated as having no feature flags
+    // anonymous caller — sees the public release catalog only
   }
   const catalog = loadCatalog();
   const decks = (catalog.decks ?? [])
-    .filter((d) => {
-      const status = d.status ?? "release";
-      if (status === "release") return true;
-      return flags.has(status);
-    })
+    .filter((d) => isCatalogEntryVisible(d, assignedTopicIds))
     .map((d) => {
       if ((d.access ?? "free") === "free") return d;
       const { url, ...rest } = d;
@@ -933,6 +942,10 @@ async function handleClaimDeck(req, res) {
 
   const entry = getCatalogEntry(topicId);
   if (!entry) return writeJson(res, 404, { error: "Deck not found in catalog" });
+  const assignedTopicIds = new Set(getAssignedAccountTopicIds(db, account.id));
+  if (!isCatalogEntryVisible(entry, assignedTopicIds)) {
+    return writeJson(res, 404, { error: "Deck not available for this account" });
+  }
 
   const access = entry.access ?? "free";
   const existing = getAccountTopicByTopicId(db, account.id, topicId);
@@ -941,9 +954,9 @@ async function handleClaimDeck(req, res) {
     // A previous "paid" claim only stays granted while the entitlement that
     // earned it is still active -- otherwise this would keep telling the
     // client "granted" forever even after the subscription/trial/promo
-    // period that justified it has expired. Free and admin-granted claims
-    // never expire this way.
-    if (existing.source !== "paid" || hasActiveEntitlement(db, account.id)) {
+    // period that justified it has expired. Any paid catalog deck, including
+    // a beta or individual assignment, follows the same subscription rule.
+    if (access === "free" || hasActiveEntitlement(db, account.id)) {
       return writeJson(res, 200, { status: "granted", topicId });
     }
     return writeJson(res, 200, { status: "locked", topicId });
@@ -961,7 +974,8 @@ async function handleClaimDeck(req, res) {
   // needs to subscribe. Replaces the older manual-approval "request" flow,
   // which was never exercised by any live catalog entry.
   if (hasActiveEntitlement(db, account.id)) {
-    claimAccountTopic(db, account.id, { topicId, topicVersion: entry.version, source: "paid" });
+    const source = getTopicPublication(entry) === "individual" ? "assigned" : "paid";
+    claimAccountTopic(db, account.id, { topicId, topicVersion: entry.version, source });
     return writeJson(res, 200, { status: "granted", topicId });
   }
   return writeJson(res, 200, { status: "locked", topicId });
@@ -974,18 +988,19 @@ async function handleDownloadDeck(req, res) {
 
   const entry = getCatalogEntry(topicId);
   if (!entry) return writeJson(res, 404, { error: "Deck not found" });
+  const assignedTopicIds = new Set(getAssignedAccountTopicIds(db, account.id));
+  if (!isCatalogEntryVisible(entry, assignedTopicIds)) {
+    return writeJson(res, 403, { error: "Deck not available for this account" });
+  }
 
   const row = getAccountTopicByTopicId(db, account.id, topicId);
   if (!row || !isGranted(row.source)) {
     return writeJson(res, 403, { error: "No access to this deck" });
   }
-  // A "paid" claim is only a download right for as long as the entitlement
-  // that earned it stays active -- checked again here, not just at claim
-  // time, so a lapsed subscription/trial/promo can't keep re-downloading a
-  // paid deck indefinitely off a claim row made while it was still active.
-  // Free and admin-granted ("grant") claims are intentionally exempt: they
-  // were never tied to a subscription period in the first place.
-  if (row.source === "paid" && !hasActiveEntitlement(db, account.id)) {
+  // A paid catalog deck is downloadable only while the entitlement is
+  // active. Assignment affects visibility; it never becomes a separate,
+  // permanent entitlement to a beta or individual topic.
+  if ((entry.access ?? "free") !== "free" && !hasActiveEntitlement(db, account.id)) {
     return writeJson(res, 403, { error: "Entitlement expired" });
   }
 
@@ -1096,9 +1111,13 @@ async function handleAdminGrant(req, res) {
   if (!account) return writeJson(res, 404, { error: "Account not found" });
 
   const entry = getCatalogEntry(body.topicId);
-  const version = entry?.version ?? "unknown";
-  grantAccountTopic(db, account.id, { topicId: body.topicId, topicVersion: version });
-  writeJson(res, 200, { ok: true, email: account.email, topicId: body.topicId });
+  if (!entry) return writeJson(res, 404, { error: "Deck not found in catalog" });
+  const publication = getTopicPublication(entry);
+  if (!["beta", "individual"].includes(publication)) {
+    return writeJson(res, 409, { error: "Only beta or individual topics can be assigned" });
+  }
+  assignAccountTopic(db, account.id, { topicId: entry.id, assignedAs: publication });
+  writeJson(res, 200, { ok: true, email: account.email, topicId: entry.id, publication });
 }
 
 async function handleAdminVerifyAccount(req, res) {
@@ -1141,6 +1160,7 @@ async function handleAdminRevoke(req, res) {
   }
   const account = findAccountByEmailAny(db, body.email);
   if (!account) return writeJson(res, 404, { error: "Account not found" });
+  revokeAccountTopicAssignment(db, account.id, body.topicId);
   revokeAccountTopic(db, account.id, body.topicId);
   writeJson(res, 200, { ok: true });
 }

@@ -24,6 +24,8 @@ mkdirSync(decksDir, { recursive: true });
 writeFileSync(path.join(frontendDir, "index.html"), "<html>spa shell</html>");
 writeFileSync(path.join(decksDir, "free_deck_v1.zip"), "FREE-ZIP-BYTES");
 writeFileSync(path.join(decksDir, "paid_deck_v1.zip"), "PAID-ZIP-BYTES");
+writeFileSync(path.join(decksDir, "beta_deck_v1.zip"), "BETA-ZIP-BYTES");
+writeFileSync(path.join(decksDir, "personal_deck_v1.zip"), "PERSONAL-ZIP-BYTES");
 
 const catalog = {
   decks: [
@@ -34,6 +36,14 @@ const catalog = {
     {
       id: "paid_deck", version: "1", status: "release", access: "paid",
       url: "./decks/paid_deck_v1.zip", title: { ru: "Платная" },
+    },
+    {
+      id: "beta_deck", version: "1", status: "beta", access: "paid",
+      url: "./decks/beta_deck_v1.zip", title: { ru: "Бета" },
+    },
+    {
+      id: "personal_deck", version: "1", status: "individual", access: "paid",
+      url: "./decks/personal_deck_v1.zip", title: { ru: "Личная" },
     },
   ],
 };
@@ -84,7 +94,7 @@ async function registerAndLogin({ allAccess = false } = {}) {
   });
   assert.equal(loginRes.status, 200);
   const { token } = await loginRes.json();
-  return { accountId: account.id, token };
+  return { accountId: account.id, email, token };
 }
 
 function expireEntitlement(accountId) {
@@ -229,4 +239,68 @@ test("a free deck claim/download never depends on entitlement at all", async () 
     headers: { Authorization: `Bearer ${token}` },
   });
   assert.equal(downloadRes.status, 200);
+});
+
+test("beta and individual decks require an assignment as well as active access", async () => {
+  const { accountId, email, token } = await registerAndLogin();
+  const auth = { Authorization: `Bearer ${token}` };
+
+  const initialCatalog = await fetch(`${base}/api/decks/catalog`, { headers: auth });
+  const initialIds = (await initialCatalog.json()).decks.map((deck) => deck.id);
+  assert.ok(!initialIds.includes("beta_deck"));
+  assert.ok(!initialIds.includes("personal_deck"));
+
+  for (const topicId of ["beta_deck", "personal_deck"]) {
+    const claim = await fetch(`${base}/api/decks/${topicId}/claim`, {
+      method: "POST", headers: auth,
+    });
+    assert.equal(claim.status, 404, `${topicId} must not be directly claimable before assignment`);
+  }
+
+  for (const topicId of ["beta_deck", "personal_deck"]) {
+    const grant = await fetch(`${base}/api/admin/grant`, {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer test-admin-token",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, topicId }),
+    });
+    assert.equal(grant.status, 200);
+  }
+
+  const assignedCatalog = await fetch(`${base}/api/decks/catalog`, { headers: auth });
+  const assignedIds = (await assignedCatalog.json()).decks.map((deck) => deck.id);
+  assert.ok(assignedIds.includes("beta_deck"));
+  assert.ok(assignedIds.includes("personal_deck"));
+
+  for (const [topicId, bytes] of [["beta_deck", "BETA-ZIP-BYTES"], ["personal_deck", "PERSONAL-ZIP-BYTES"]]) {
+    const claim = await fetch(`${base}/api/decks/${topicId}/claim`, {
+      method: "POST", headers: auth,
+    });
+    assert.equal((await claim.json()).status, "granted");
+    const download = await fetch(`${base}/api/decks/${topicId}/download`, { headers: auth });
+    assert.equal(download.status, 200);
+    assert.equal(await download.text(), bytes);
+  }
+
+  expireEntitlement(accountId);
+  const lockedClaim = await fetch(`${base}/api/decks/personal_deck/claim`, {
+    method: "POST", headers: auth,
+  });
+  assert.equal((await lockedClaim.json()).status, "locked");
+  const lockedDownload = await fetch(`${base}/api/decks/personal_deck/download`, { headers: auth });
+  assert.equal(lockedDownload.status, 403);
+
+  const revoke = await fetch(`${base}/api/admin/revoke`, {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer test-admin-token",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, topicId: "beta_deck" }),
+  });
+  assert.equal(revoke.status, 200);
+  const revokedDownload = await fetch(`${base}/api/decks/beta_deck/download`, { headers: auth });
+  assert.equal(revokedDownload.status, 403);
 });
