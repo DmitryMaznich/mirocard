@@ -3432,3 +3432,12 @@ interior extremes move in y only. Runs after the grid snap (before fillet) in
 `snapAndFilletPath`, and on the simplified points before `fitSpline` when grid snap is off.
 `RULING_YS` duplicates `drawRuling`'s values by hand, like the other snap constants. Tool-only
 change: no version bump, no deck-zip rebuild.
+
+**Fix: bump in round hooks from the vertical-extreme snap, 2026-09-30.** User: the bottom hook of
+"И" couldn't be drawn smoothly, a sharp bump appeared. Cause: `snapEndsToRuling` moved only the
+extreme RDP vertex in y, but between free segments that vertex is just the control point of the
+max-radius fillet (the curve passes at 0.125·prev + 0.75·vertex + 0.125·next), so it both missed
+the line and dragged a bump. Now, for an extreme between two free segments, the curve's own
+extreme is snapped (only if within range) and the shift is spread over the vertex and its free
+interior neighbours (half each). Extremes at sharp corners between snapped lines keep the
+old y-only snap. `snapAndFilletPath` passes `segFree` for this. Tool-only change.
