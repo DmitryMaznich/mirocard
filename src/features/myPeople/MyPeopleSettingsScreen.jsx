@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
+import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import Button from "@/shared/components/Button";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
@@ -83,6 +84,21 @@ function serialisePeople(people, updatedAt) {
 const PERSON_PHOTO_MAX_SIZE = 1600;
 const PERSON_PHOTO_JPEG_QUALITY = 0.92;
 
+// Upload each photo on its own as soon as it's ready and keep only the short
+// /api/photos reference on the card. Otherwise every save of the list would
+// carry all photos as base64 in one sync op -- megabytes that on a slow
+// mobile uplink can outlast the 30 s request timeout on every retry and hold
+// up everything queued behind it. Offline, the data URL stays and travels
+// with the regular sync op as before; the server resolves it then.
+async function storePhoto(dataUrl) {
+  try {
+    const { url } = await api.post("/photos", { dataUrl });
+    return typeof url === "string" && url.startsWith("/api/photos/") ? url : dataUrl;
+  } catch {
+    return dataUrl;
+  }
+}
+
 
 function PersonCard({ person, onEdit, onToggle }) {
   const photo = person.photos[0] ?? null;
@@ -126,7 +142,7 @@ function PersonEditor({ person, activeContext, onChange, onPhotoAdded, onDelete,
     setUploading(true);
     setPhotoError("");
     try {
-      const photo = await squarePhotoDataUrl(file, { maxSize: PERSON_PHOTO_MAX_SIZE, quality: PERSON_PHOTO_JPEG_QUALITY });
+      const photo = await storePhoto(await squarePhotoDataUrl(file, { maxSize: PERSON_PHOTO_MAX_SIZE, quality: PERSON_PHOTO_JPEG_QUALITY }));
       // The photo is the expensive part to redo -- save it right away rather
       // than waiting for "Готово", so a killed PWA or a backgrounded tab can't
       // take it with it. Only the id goes up: a HEIC conversion takes a few

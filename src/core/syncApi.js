@@ -50,16 +50,30 @@ async function enqueue(type, data) {
   await req2p(db.transaction(SQ, "readwrite").objectStore(SQ).add({ type, data })).catch(() => {});
 }
 
+// Statuses where retrying the same op later can succeed: the session needs
+// re-auth (401/403), a timeout (408) or rate limit (429). Anything else in
+// 4xx means the server looked at this exact payload and refused it; keeping
+// it at the head of the queue would block every op behind it forever.
+const RETRYABLE_CLIENT_STATUSES = new Set([401, 403, 408, 429]);
+
+export function isPermanentSyncRejection(error) {
+  const status = error?.status;
+  return typeof status === "number" && status >= 400 && status < 500 && !RETRYABLE_CLIENT_STATUSES.has(status);
+}
+
 export async function flushQueue() {
   const db = await getDb();
   const entries = await cursorAll(db).catch(() => []);
   for (const { key, type, data } of entries) {
     try {
       await api.post("/sync", { operations: [{ type, data }] });
-      await req2p(db.transaction(SQ, "readwrite").objectStore(SQ).delete(key)).catch(() => {});
-    } catch {
-      break; // stop on first failure, retry next time
+    } catch (error) {
+      // Network errors, timeouts and 5xx: stop and retry the whole queue
+      // next time, in order.
+      if (!isPermanentSyncRejection(error)) break;
+      console.error(`[sync] dropping ${type} rejected with ${error.status}: ${error.message}`);
     }
+    await req2p(db.transaction(SQ, "readwrite").objectStore(SQ).delete(key)).catch(() => {});
   }
 }
 

@@ -10,8 +10,16 @@ const database = vi.hoisted(() => ({
 }));
 const sync = vi.hoisted(() => ({ pushOp: vi.fn(() => Promise.resolve()) }));
 
+const network = vi.hoisted(() => ({ post: vi.fn() }));
+
 vi.mock("@/core/db", () => database);
 vi.mock("@/core/syncApi", () => sync);
+vi.mock("@/core/api", () => ({ api: { post: network.post }, getApiToken: () => "tok" }));
+vi.mock("@/shared/utils/squarePhoto", () => ({
+  PHOTO_ACCEPT: "image/*",
+  PhotoPrepareError: class extends Error {},
+  squarePhotoDataUrl: vi.fn(() => Promise.resolve("data:image/jpeg;base64,NEW")),
+}));
 
 let root = null;
 let container = null;
@@ -43,6 +51,7 @@ describe("MyPeopleSettingsScreen persistence", () => {
   beforeEach(() => {
     database.kv.set.mockClear();
     sync.pushOp.mockClear();
+    network.post.mockReset();
     vi.stubGlobal("fetch", vi.fn(() => new Promise(() => {})));
     useAppStore.setState({
       screen: "my_people_settings",
@@ -89,5 +98,30 @@ describe("MyPeopleSettingsScreen persistence", () => {
     await click(container.querySelector('[aria-label="Закрыть"]'));
 
     expect(sync.pushOp).not.toHaveBeenCalled();
+  });
+
+  async function pickPhoto() {
+    await click(container.querySelector(".mp-person-card__main"));
+    const input = container.querySelector('input[type="file"]');
+    Object.defineProperty(input, "files", { value: [new File(["x"], "p.jpg", { type: "image/jpeg" })], configurable: true });
+    await act(async () => { input.dispatchEvent(new Event("change", { bubbles: true })); });
+    await act(async () => { await Promise.resolve(); });
+  }
+
+  it("uploads a new photo on its own and keeps only the short reference on the card", async () => {
+    network.post.mockResolvedValue({ url: "/api/photos/new" });
+    await mount();
+    await pickPhoto();
+
+    expect(network.post).toHaveBeenCalledWith("/photos", { dataUrl: "data:image/jpeg;base64,NEW" });
+    expect(pushedPeople()[0].photos).toEqual(["/api/photos/abc", "/api/photos/new"]);
+  });
+
+  it("keeps the photo locally when the upload fails, so the regular sync carries it", async () => {
+    network.post.mockRejectedValue(new TypeError("Failed to fetch"));
+    await mount();
+    await pickPhoto();
+
+    expect(pushedPeople()[0].photos).toEqual(["/api/photos/abc", "data:image/jpeg;base64,NEW"]);
   });
 });
