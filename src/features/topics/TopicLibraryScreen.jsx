@@ -94,7 +94,10 @@ export default function TopicLibraryScreen() {
         setScreen("subscription");
         return;
       }
-      upsertOwnedTopic({ topicId: entry.id, source: result.status === "granted" ? "free" : "request" });
+      const source = result.status !== "granted" ? "request"
+        : entry.access === "free" ? "free"
+          : entry.status === "individual" ? "assigned" : "paid";
+      upsertOwnedTopic({ topicId: entry.id, source });
       if (result.status !== "granted") return; // pending — don't download yet
     }
     const record = await fetchCatalogTopic(entry, buildInfo.version, force);
@@ -129,21 +132,24 @@ export default function TopicLibraryScreen() {
   // Library always shows only what the current user owns — so topics from a previous
   // user logged in on the same device don't bleed through.
   // Builtin topics are always visible. Local mode (no account) shows everything.
-  const hasAdminGrants = account != null && (ownedTopics ?? []).some((o) => o.source === "grant");
   const isLocalMode = isLocalModeProfile(account, token);
   const ownedById = Object.fromEntries((ownedTopics ?? []).map((o) => [o.topicId, o]));
   const ownedNonPendingIds = new Set(
     (ownedTopics ?? []).filter((o) => o.source !== "request").map((o) => o.topicId)
   );
 
+  // The API already returns only public releases plus topics explicitly
+  // assigned to this account. Reconcile cached downloaded copies against it
+  // so an unassigned beta/individual deck cannot reappear from IndexedDB.
+  const visibleDecks = catalog ? catalog.decks.filter((e) => !e.hidden) : [];
+  const visibleCatalogDeckIds = new Set(visibleDecks.map((entry) => entry.id));
   const visibleRecords = (account && !isLocalMode
     ? topicRecords.filter((r) => r.meta.builtin || ownedNonPendingIds.has(r.meta.id))
     : topicRecords
-  ).filter((r) => !r.meta.hidden);
-
-  const visibleDecks = catalog
-    ? catalog.decks.filter((e) => !e.hidden && (!hasAdminGrants || ownedNonPendingIds.has(e.id)))
-    : [];
+  ).filter((r) => !r.meta.hidden && (
+    !account || isLocalMode || catalog === null || r.meta.builtin || r.meta.origin === "imported"
+      || visibleCatalogDeckIds.has(r.meta.id)
+  ));
 
   const activeRecord = visibleRecords.find((r) => r.meta.id === activeTopicId);
 
@@ -197,7 +203,8 @@ export default function TopicLibraryScreen() {
     // (see handleClaimDeck/handleDownloadDeck); this only decides whether
     // the UI still offers to open an already-downloaded copy or shows it
     // locked instead.
-    const entitlementExpired = owned?.source === "paid" && !hasActiveEntitlement(account, subscription);
+    const entitlementExpired = ["paid", "assigned", "grant"].includes(owned?.source)
+      && !hasActiveEntitlement(account, subscription);
     const personalCaption = item.installedRecord
       ? getPersonalTopicCaption(item.installedRecord.meta, ownedTopics)
       : null;

@@ -126,6 +126,9 @@ import {
   getAccountTopicByTopicId,
   claimAccountTopic,
   grantAccountTopic,
+  assignAccountTopic,
+  getAssignedAccountTopicIds,
+  revokeAccountTopicAssignment,
   setAccountFeatureFlags,
   upsertConceptProgress,
   getConceptProgress,
@@ -432,6 +435,23 @@ test("grantAccountTopic creates new row if none exists", () => {
   const row = getAccountTopicByTopicId(db, acc.id, "deck_d");
   assert.ok(row);
   assert.equal(row.source, "grant");
+});
+
+test("topic assignments are per-topic, revocable, and preserve legacy grants", () => {
+  const db = makeDb();
+  const acc = makeAccount(db);
+  assignAccountTopic(db, acc.id, { topicId: "beta_deck", assignedAs: "beta" });
+  assignAccountTopic(db, acc.id, { topicId: "personal_deck", assignedAs: "individual" });
+  grantAccountTopic(db, acc.id, { topicId: "legacy_personal", topicVersion: "1" });
+
+  assert.deepEqual(getAssignedAccountTopicIds(db, acc.id).sort(), [
+    "beta_deck", "legacy_personal", "personal_deck",
+  ]);
+
+  revokeAccountTopicAssignment(db, acc.id, "beta_deck");
+  assert.deepEqual(getAssignedAccountTopicIds(db, acc.id).sort(), [
+    "legacy_personal", "personal_deck",
+  ]);
 });
 
 test("setAccountFeatureFlags updates account flags", () => {

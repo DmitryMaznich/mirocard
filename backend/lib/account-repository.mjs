@@ -646,6 +646,42 @@ export function grantAccountTopic(db, accountId, { topicId, topicVersion }) {
   }
 }
 
+// Restricted catalog visibility is a relationship between an account and a
+// topic, not ownership of a downloaded ZIP. `assigned_as` records why it was
+// opened (currently "beta" or "individual") for audit and future admin UI.
+export function assignAccountTopic(db, accountId, { topicId, assignedAs }) {
+  const ts = now();
+  db.prepare(`
+    INSERT INTO account_topic_assignments (account_id, topic_id, assigned_as, assigned_at, revoked_at)
+    VALUES (?, ?, ?, ?, NULL)
+    ON CONFLICT(account_id, topic_id) DO UPDATE SET
+      assigned_as = excluded.assigned_as,
+      assigned_at = excluded.assigned_at,
+      revoked_at = NULL
+  `).run(accountId, topicId, assignedAs, ts);
+}
+
+export function getAssignedAccountTopicIds(db, accountId) {
+  // `source = 'grant'` is the legacy form of a one-user topic assignment.
+  // Keep those accounts working under the subscription-gated model while the
+  // old rows naturally age out or are explicitly re-assigned.
+  return db.prepare(`
+    SELECT topic_id FROM account_topic_assignments
+    WHERE account_id = ? AND revoked_at IS NULL
+    UNION
+    SELECT topic_id FROM account_topics
+    WHERE account_id = ? AND source = 'grant' AND deleted_at IS NULL
+  `).all(accountId, accountId).map((row) => row.topic_id);
+}
+
+export function revokeAccountTopicAssignment(db, accountId, topicId) {
+  db.prepare(`
+    UPDATE account_topic_assignments
+    SET revoked_at = ?
+    WHERE account_id = ? AND topic_id = ? AND revoked_at IS NULL
+  `).run(now(), accountId, topicId);
+}
+
 export function setAccountFeatureFlags(db, accountId, flags) {
   db.prepare("UPDATE accounts SET feature_flags = ? WHERE id = ?")
     .run(JSON.stringify(flags), accountId);
@@ -664,6 +700,9 @@ export function listAllAccounts(db) {
     ownedTopics: db.prepare(
       "SELECT topic_id, source, acquired_at FROM account_topics WHERE account_id = ? AND deleted_at IS NULL"
     ).all(a.id).map((t) => ({ topicId: t.topic_id, source: t.source, acquiredAt: t.acquired_at })),
+    topicAssignments: db.prepare(
+      "SELECT topic_id, assigned_as, assigned_at FROM account_topic_assignments WHERE account_id = ? AND revoked_at IS NULL"
+    ).all(a.id).map((t) => ({ topicId: t.topic_id, assignedAs: t.assigned_as, assignedAt: t.assigned_at })),
     sessions7d: db.prepare(
       "SELECT COUNT(*) as c FROM sessions WHERE account_id = ? AND completed_at >= ?"
     ).get(a.id, sevenDaysAgo)?.c ?? 0,

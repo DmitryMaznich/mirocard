@@ -153,7 +153,7 @@ export default function TopicTile({
         <div className="topic-tile-row__title">{title}</div>
         <div className="topic-tile-row__eyebrow">
           <span>{versionText}</span>
-          {statusBadge && <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>{statusBadge.label}</span>}
+          {statusBadge && !personalCaption && <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>{statusBadge.label}</span>}
           {personalCaption && <span className="topic-tile-row__tag topic-tile-row__tag--personal" title={personalCaption}>Личная</span>}
           {loading && <span className="topic-tile-row__loading">Загружаем…</span>}
         </div>

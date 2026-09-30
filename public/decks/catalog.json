@@ -12,7 +12,7 @@
         "en": "Four poems plus a ten-poem character-traits book: shared reading, illustration, comprehension questions, and poem assembly."
       },
       "url": "./decks/reading_dad_poems_v1.0.24.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -87,7 +87,7 @@
         "en": "15 clothing items × 5 variations each. Audio pronunciation included."
       },
       "url": "./decks/clothes_basic_v1.1.0.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -102,7 +102,7 @@
         "en": "25 verbs × 5 variations each. Audio pronunciation included."
       },
       "url": "./decks/verbs_v2_v1.2.0.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -117,7 +117,7 @@
         "en": "28 types of transport. Audio pronunciation included."
       },
       "url": "./decks/transport_photo_v1.1.0.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -177,7 +177,7 @@
         "en": "Assemble sentences from word cards. Color-coded roles. Listen-and-build mode."
       },
       "url": "./decks/sentence_puzzle_v1.9.19.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -215,6 +215,7 @@
       },
       "renderer": "word_formation",
       "file": "word_formation_soup_v1.0.50.zip",
+      "status": "release",
       "access": "paid"
     },
     {
@@ -227,6 +228,7 @@
         "en": "Sounds and Letters"
       },
       "renderer": "phonetic_analysis",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -242,8 +244,7 @@
       },
       "url": "./decks/written_letters_v1.0.5.zip",
       "zipUrl": "written_letters_v1.0.5.zip",
-      "status": "release",
-      "hidden": true,
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -258,7 +259,7 @@
         "en": "33 uppercase Russian letters. Worksheet: letters on lined paper, tap to see stroke-by-stroke animation."
       },
       "url": "./decks/letter_writing_v1.1.0.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -273,7 +274,7 @@
         "en": "Cursive letters from recognition to writing: recognize the letter, upper and lower case, write and copy text into a notebook, notebook page, dictation, printable copybooks."
       },
       "url": "./decks/propis_v1.31.2.zip",
-      "status": "beta",
+      "status": "release",
       "access": "paid"
     },
     {
@@ -303,22 +304,7 @@
         "en": "33 Russian letters on a magnetic board. Build words and sentences by dragging letters. Vowels in red, consonants in blue."
       },
       "url": "./decks/magnetic_alphabet_v1.7.1.zip",
-      "status": "release",
-      "access": "paid"
-    },
-    {
-      "id": "coffee",
-      "version": "1.0.0",
-      "title": {
-        "ru": "Приготовление кофе",
-        "en": "Coffee Making"
-      },
-      "description": {
-        "ru": "27 карточек в трёх сетах: Способы приготовления, Оборудование и инвентарь, Детали машины Vetrano 2B.",
-        "en": "27 cards in three sets: Brewing Methods, Equipment and Tools, Vetrano 2B Machine Parts."
-      },
-      "url": "./decks/coffee_v1.0.0.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -331,7 +317,7 @@
         "ru": "10 пар признаков: большой/маленький, высокий/низкий, длинный/короткий, широкий/узкий, полный/пустой, чистый/грязный, горячий/холодный, целый/сломанный, новый/старый, мокрый/сухой. 6 режимов: знакомство, сравнение, выбор, сортировка, найди все, найди пару."
       },
       "url": "./decks/opposites_v2.12.0.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -341,7 +327,7 @@
         "ru": "Сначала — потом"
       },
       "url": "./decks/first_then_v1.1.9.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -399,6 +385,7 @@
         "ru": "Тетради и рабочие листы для печати"
       },
       "url": "./decks/print_materials_v1.0.36.zip",
+      "status": "hidden",
       "hidden": true,
       "access": "paid"
     }

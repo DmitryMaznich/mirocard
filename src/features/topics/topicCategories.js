@@ -23,7 +23,6 @@ export const CATALOG_CATEGORIES = {
   word_formation_soup:      "Словарный запас",
   first_then:               "Практика",
   shopping_list:            "Практика",
-  coffee:                   "Практика",
   chat_with_mom:            "Практика",
   my_people:                "Практика",
   daily_orientation:        "Практика",
@@ -38,6 +37,7 @@ export function getTopicCategory(topicId) {
 
 export const STATUS_BADGES = {
   beta:         { label: "БЕТА",  className: "topic-tile__badge--beta" },
+  individual:   { label: "ЛИЧНАЯ", className: "topic-tile__badge--individual" },
   experimental: { label: "ЭКСП.", className: "topic-tile__badge--experimental" },
 };
 
