@@ -85,3 +85,18 @@ test("re-uploading an orphaned photo restarts its grace period", () => {
   assert.ok(getPhoto(db, hashOf(url)));
   assert.ok(db.prepare("SELECT created_at FROM photos WHERE hash = ?").get(hashOf(url)).created_at > OLD);
 });
+
+test("dry run reports what it would delete and deletes nothing", () => {
+  const { db, accountId } = setup();
+  const kept = store(db, "KEPT");
+  for (const filler of ["A", "B", "C"]) upsertAccountKv(db, accountId, `k${filler}`, { url: store(db, filler) });
+  upsertAccountKv(db, accountId, "kept", { url: kept });
+  const orphan = store(db, "ORPHAN");
+
+  const result = pruneOrphanPhotos(db, { now: NOW, dryRun: true });
+
+  assert.equal(result.orphans, 1);
+  assert.ok(result.orphanBytes > 0);
+  assert.equal(result.deleted, 0);
+  assert.ok(getPhoto(db, hashOf(orphan)));
+});

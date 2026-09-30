@@ -40,17 +40,32 @@ export function collectReferencedPhotoHashes(db) {
   return referenced;
 }
 
-export function pruneOrphanPhotos(db, { now = new Date(), graceDays = 30, maxDeleteFraction = 0.5 } = {}) {
+export function pruneOrphanPhotos(db, { now = new Date(), graceDays = 30, maxDeleteFraction = 0.5, dryRun = false } = {}) {
   const referenced = collectReferencedPhotoHashes(db);
   const cutoff = new Date(now.getTime() - graceDays * 24 * 60 * 60 * 1000).toISOString();
   const photos = db.prepare("SELECT hash, created_at FROM photos").all();
   const orphans = photos.filter((photo) => !referenced.has(photo.hash) && photo.created_at < cutoff);
+  const unreferencedYoung = photos.filter((photo) => !referenced.has(photo.hash) && photo.created_at >= cutoff).length;
+  const orphanBytes = orphans.length
+    ? db.prepare(`SELECT COALESCE(SUM(LENGTH(data)), 0) AS n FROM photos WHERE hash IN (${orphans.map(() => "?").join(",")})`)
+      .get(...orphans.map((photo) => photo.hash)).n * 0.75
+    : 0;
 
-  const result = { total: photos.length, referenced: referenced.size, orphans: orphans.length, deleted: 0, aborted: false };
+  const result = {
+    total: photos.length,
+    referenced: referenced.size,
+    orphans: orphans.length,
+    orphanBytes: Math.round(orphanBytes),
+    unreferencedYoung,
+    deleted: 0,
+    aborted: false,
+    dryRun,
+  };
   if (orphans.length > 10 && orphans.length > photos.length * maxDeleteFraction) {
     result.aborted = true;
     return result;
   }
+  if (dryRun) return result;
 
   const remove = db.prepare("DELETE FROM photos WHERE hash = ?");
   db.exec("BEGIN");
@@ -66,14 +81,21 @@ export function pruneOrphanPhotos(db, { now = new Date(), graceDays = 30, maxDel
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export function startPhotoGcLoop(db, { firstRunDelayMs = 15 * 60 * 1000, log = console } = {}) {
+// Count-only unless PHOTO_GC_DELETE=1 is set on the service: the first runs
+// in production only report what they would delete, so the numbers can be
+// checked before anything is removed. Flipping the variable needs no deploy.
+export function startPhotoGcLoop(db, { dryRun = process.env.PHOTO_GC_DELETE !== "1", firstRunDelayMs = dryRun ? 60 * 1000 : 15 * 60 * 1000, log = console } = {}) {
   function run() {
     try {
-      const result = pruneOrphanPhotos(db);
+      const result = pruneOrphanPhotos(db, { dryRun });
+      const mb = (result.orphanBytes / 1024 / 1024).toFixed(1);
+      const summary = `${result.total} stored, ${result.referenced} referenced, ${result.orphans} orphaned past grace (${mb} MB), ${result.unreferencedYoung} unreferenced within grace`;
       if (result.aborted) {
-        log.error(`[photo-gc] aborted: ${result.orphans} of ${result.total} photos look orphaned -- too many, not deleting`);
+        log.error(`[photo-gc] aborted, too many look orphaned -- not deleting: ${summary}`);
+      } else if (dryRun) {
+        log.log(`[photo-gc] DRY RUN, nothing deleted (set PHOTO_GC_DELETE=1 to enable): ${summary}`);
       } else {
-        log.log(`[photo-gc] ${result.deleted} orphaned photos deleted (${result.total} stored, ${result.referenced} referenced)`);
+        log.log(`[photo-gc] ${result.deleted} deleted: ${summary}`);
       }
     } catch (err) {
       // Never let a GC failure take the service down.
