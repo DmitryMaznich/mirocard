@@ -508,6 +508,17 @@
             <span id="snapToleranceLabel">10</span>
           </label>
         </div>
+        <div class="toggle-row">
+          <label class="guide-toggle-label" title="Концы штриха и его верхние/нижние точки (вершины по вертикали) притягиваются к ближайшей горизонтальной линии подложки, если лежат рядом с ней. Штрих при этом укорачивается или удлиняется вдоль своего направления. Работает и без «Выравнивать по сетке»">
+            <input type="checkbox" id="snapEndsChk" checked />
+            Концы и вершины — к горизонталям
+          </label>
+          <label class="guide-toggle-label img-guide-slider-label" title="Максимальное расстояние до горизонтали (в единицах холста; расстояние между соседними линиями 6,5–26), на котором срабатывает притягивание">
+            Дальность
+            <input type="range" id="snapEndsRangeInput" min="0.5" max="5" step="0.5" value="2.5" />
+            <span id="snapEndsRangeLabel">2.5</span>
+          </label>
+        </div>
 
         <div class="stats">
           <span>Штрихов: <b id="statStrokes">0</b></span>
@@ -705,6 +716,9 @@
   const snapRoundingLabel = document.getElementById("snapRoundingLabel");
   const snapToleranceInput = document.getElementById("snapToleranceInput");
   const snapToleranceLabel = document.getElementById("snapToleranceLabel");
+  const snapEndsChk = document.getElementById("snapEndsChk");
+  const snapEndsRangeInput = document.getElementById("snapEndsRangeInput");
+  const snapEndsRangeLabel = document.getElementById("snapEndsRangeLabel");
   const typeSelect = document.getElementById("typeSelect");
   const addToSetBtn = document.getElementById("addToSetBtn");
   const labelInput = document.getElementById("labelInput");
@@ -1157,6 +1171,47 @@
   // (2) it belongs to a straight run (consecutive segments that want the SAME direction) at
   // least SNAP_MIN_RUN long. Everything else stays as the hand drew it ("free") and its
   // corners are rounded at the maximum radius, so curves stay curves.
+  // Pulls stroke endpoints and vertical extremes (local top/bottom vertices) onto the nearest
+  // horizontal ruling line when within `tol` units ("концы ... подтягивались к ближайшей
+  // горизонтальной линии... если нужно, делала меньше, если нужно, делала выше").
+  // An endpoint SLIDES along its adjacent segment to reach the line (so a snapped diagonal
+  // stays on its grid line and just gets shorter/longer); when that segment is too flat to
+  // reach a line reliably, or for an interior extreme, only y moves.
+  const RULING_YS = [L1, (L1 + L2) / 2, L2, (NARROW_MID + L2) / 2, NARROW_MID, (NARROW_MID + L3) / 2, L3, 110, L4];
+  function nearestRulingY(y, tol) {
+    let best = null, bestD = tol;
+    for (const ly of RULING_YS) {
+      const d = Math.abs(ly - y);
+      if (d <= bestD) { bestD = d; best = ly; }
+    }
+    return best;
+  }
+  function snapEndsToRuling(points, tol) {
+    if (points.length < 2 || tol <= 0) return points;
+    const out = points.map(p => ({ x: p.x, y: p.y }));
+    const last = out.length - 1;
+    const slideEnd = (i, neighbor) => {
+      const target = nearestRulingY(out[i].y, tol);
+      if (target === null) return;
+      const vx = out[i].x - out[neighbor].x, vy = out[i].y - out[neighbor].y;
+      const len = Math.hypot(vx, vy);
+      if (len > 0 && Math.abs(vy) > 0.35 * len) {
+        const t = (target - out[neighbor].y) / vy;
+        if (t > 0.2) { out[i] = { x: out[neighbor].x + vx * t, y: target }; return; }
+      }
+      out[i] = { x: out[i].x, y: target };
+    };
+    slideEnd(0, 1);
+    slideEnd(last, last - 1);
+    for (let i = 1; i < last; i++) {
+      const up = out[i].y < out[i - 1].y && out[i].y < out[i + 1].y;
+      const down = out[i].y > out[i - 1].y && out[i].y > out[i + 1].y;
+      if (!up && !down) continue;
+      const target = nearestRulingY(out[i].y, tol);
+      if (target !== null) out[i] = { x: out[i].x, y: target };
+    }
+    return out;
+  }
   const SNAP_MIN_RUN = 14;
   function snapAndFilletPath(pts, radius, tolDeg) {
     if (pts.length < 2) return fitSpline(pts);
@@ -1206,12 +1261,14 @@
     }
     const cornerFree = [];
     for (let i = 1; i < mergedIdx.length; i++) cornerFree.push(mergedIdx[i - 1] < 0 || mergedIdx[i] < 0);
-    return filletPolylinePath(merged, radius, cornerFree);
+    const finalPts = snapEndsChk.checked ? snapEndsToRuling(merged, Number(snapEndsRangeInput.value)) : merged;
+    return filletPolylinePath(finalPts, radius, cornerFree);
   }
   function buildPathD(simplified) {
-    return snapToGridChk.checked ? snapAndFilletPath(simplified, Number(snapRoundingInput.value), Number(snapToleranceInput.value)) : fitSpline(simplified);
+    return snapToGridChk.checked ? snapAndFilletPath(simplified, Number(snapRoundingInput.value), Number(snapToleranceInput.value)) : fitSpline(snapEndsChk.checked ? snapEndsToRuling(simplified, Number(snapEndsRangeInput.value)) : simplified);
   }
   snapRoundingInput.addEventListener("input", () => { snapRoundingLabel.textContent = snapRoundingInput.value; });
+  snapEndsRangeInput.addEventListener("input", () => { snapEndsRangeLabel.textContent = snapEndsRangeInput.value; });
   snapToleranceInput.addEventListener("input", () => { snapToleranceLabel.textContent = snapToleranceInput.value; });
 
   // Cuts a finished stroke's point list exactly at y=targetY, discarding whichever side

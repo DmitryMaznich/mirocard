@@ -3420,3 +3420,15 @@ of a grid direction; (2) a run of consecutive segments wanting the same directio
 filleted at the max radius (half of each adjacent segment) so short RDP pieces of a curve read as
 a smooth curve. Straight + curved in one stroke (hook on a stick) works. Note: tolerance 0 still
 keeps rounding but snaps nothing. Tool-only change: no version bump, no deck-zip rebuild.
+
+**Endpoints/vertical extremes snap to horizontal ruling lines, 2026-09-30.** User: hard to draw
+"И" with both top ends on the same level. New checkbox `#snapEndsChk` (default on) + slider
+`#snapEndsRangeInput` (0.5–5, default 2.5 units). `snapEndsToRuling()` in
+`tools/letter_capture/handwriting_capture.html` moves stroke endpoints and interior local
+y-extrema to the nearest of the 9 horizontals (`RULING_YS`: L1, TOP_MID, L2, 3½, NARROW_MID, 4½,
+L3, BOT_MID, L4) when within range. An endpoint slides ALONG its adjacent segment (stroke gets
+shorter/longer, a snapped diagonal stays on its grid line); flat segments (|dy| < 0.35·len) and
+interior extremes move in y only. Runs after the grid snap (before fillet) in
+`snapAndFilletPath`, and on the simplified points before `fitSpline` when grid snap is off.
+`RULING_YS` duplicates `drawRuling`'s values by hand, like the other snap constants. Tool-only
+change: no version bump, no deck-zip rebuild.
