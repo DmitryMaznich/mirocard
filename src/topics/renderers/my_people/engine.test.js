@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMyPeopleTopicRecord } from "@/topics/builtinMyPeopleTopic";
-import { generateTasks } from "./engine";
+import { ageFromBirthDate, generateTasks, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
 
 const student = {
   id: "student_1",
@@ -15,21 +15,21 @@ const student = {
 };
 
 describe("my_people album engine", () => {
-  it("uses 4, 6, or 8 portraits and keeps every mode in a renewable loop", () => {
+  it("uses 2, 4, 6, or 8 portraits and keeps every mode in a renewable loop", () => {
     const topic = buildMyPeopleTopicRecord();
     const familyNames = topic.modes.find((mode) => mode.id === "family_names");
     const aboutMe = topic.modes.find((mode) => mode.id === "about_me");
     const whoIsThis = topic.modes.find((mode) => mode.id === "who_is_this");
 
-    expect(familyNames.params.peopleCount.values).toEqual([4, 6, 8]);
+    expect(familyNames.params.peopleCount.values).toEqual([2, 4, 6, 8]);
     expect(topic.modes.every((mode) => mode.loop && mode.regenerateOnLoop)).toBe(true);
     expect(aboutMe).toEqual(expect.objectContaining({ type: "about_me", evaluation: "adult" }));
     expect(whoIsThis).toEqual(expect.objectContaining({ type: "person_naming", evaluation: "adult", hideConceptPicker: true }));
   });
 
-  it("does not generate an about-me block with fewer than two included facts", () => {
+  it("does not generate an introduce-yourself block with fewer than two included facts", () => {
     const tasks = generateTasks(
-      { id: "about_me", type: "about_me" },
+      { id: "introduce_self", type: "about_me" },
       {
         id: "student_about_me",
         name: "Лиза",
@@ -45,9 +45,9 @@ describe("my_people album engine", () => {
     expect(tasks).toEqual([]);
   });
 
-  it("builds situational about-me cards from included profile facts only", () => {
+  it("builds situational introduce-yourself cards from included profile facts only", () => {
     const tasks = generateTasks(
-      { id: "about_me", type: "about_me" },
+      { id: "introduce_self", type: "about_me" },
       {
         id: "student_about_me",
         name: "Лиза",
@@ -85,9 +85,9 @@ describe("my_people album engine", () => {
     expect(content).not.toContain("Скрытая семья");
   });
 
-  it("never puts an address into an about-me card", () => {
+  it("never puts an address into an introduce-yourself card", () => {
     const tasks = generateTasks(
-      { id: "about_me", type: "about_me" },
+      { id: "introduce_self", type: "about_me" },
       {
         id: "student_about_me",
         name: "Лиза",
@@ -304,5 +304,76 @@ describe("my_people introductions per lesson", () => {
 
     expect(intros(tasks).sort()).toEqual(["p2", "p3", "p4", "p5"]);
     expect(albumPeople(tasks).some((id) => ["p0", "p1", "p2", "p3", "p4", "p5"].includes(id))).toBe(false);
+  });
+});
+
+describe("«Обо мне»: short questions", () => {
+  const now = new Date("2026-09-30T12:00:00Z");
+  const child = {
+    id: "kid",
+    name: "Миша",
+    sex: "m",
+    photo: "/api/photos/misha",
+    myPeopleProfile: { includeSelfName: true, birthDate: "2021-10-15", familyName: "Петров", includeFamilyName: true, city: "Любляна", includeCity: false },
+    myPeople: [
+      { id: "anna", type: "person", name: "Анна", relation: "Мама", contexts: ["family"], photos: ["/api/photos/anna"], enabled: true },
+      { id: "masha", type: "person", name: "Маша", relation: "сестра", contexts: ["family"], photos: ["/api/photos/masha"], enabled: true },
+      { id: "katya", type: "person", name: "Катя", relation: "сестра", contexts: ["family"], photos: ["/api/photos/katya"], enabled: true },
+      { id: "cat", type: "pet", name: "Барсик", relation: "брат", contexts: ["family"], photos: ["/api/photos/cat"], enabled: true },
+      { id: "off", type: "person", name: "Иван", relation: "папа", contexts: ["family"], photos: ["/api/photos/ivan"], enabled: false },
+    ],
+  };
+
+  it("asks only what the adult entered, in the teaching order", () => {
+    const questions = getAboutMeQuestions(child, now);
+    expect(questions.map((q) => [q.question, q.answer])).toEqual([
+      ["Как тебя зовут?", "Миша"],
+      ["Ты мальчик или девочка?", "Мальчик"],
+      ["Сколько тебе лет?", "4 года"],
+      ["Как зовут маму?", "Анна"],
+      ["Как зовут сестру?", "Маша или Катя"],
+      ["Как твоя фамилия?", "Петров"],
+    ]);
+    // A switched-off person, a pet and an unticked city produce no question.
+    expect(JSON.stringify(questions)).not.toMatch(/Иван|Барсик|Любляна/);
+  });
+
+  it("uses the right photo as the hint", () => {
+    const byId = Object.fromEntries(getAboutMeQuestions(child, now).map((q) => [q.id, q.cueImage]));
+    expect(byId.name).toBe("/api/photos/misha");
+    expect(byId["rel:мама"]).toBe("/api/photos/anna");
+    expect(byId.age).toBeNull();
+  });
+
+  it("counts age from the birth date, not from the year alone", () => {
+    expect(ageFromBirthDate("2021-09-30", now)).toBe(5);
+    expect(ageFromBirthDate("2021-10-01", now)).toBe(4);
+    expect(ageFromBirthDate("", now)).toBeNull();
+    expect(ageFromBirthDate("2026-09-01", now)).toBeNull();
+  });
+
+  it("keeps the ladder order in the first round, caps each round, mixes later rounds", () => {
+    const first = generateTasks({ id: "about_me", type: "about_me" }, child);
+    expect(first.map((task) => task.prompt)).toEqual(getAboutMeQuestions(child).map((q) => q.question).slice(0, MAX_ABOUT_ME_QUESTIONS_PER_ROUND));
+    expect(first.every((task) => task.type === "about_me_question" && task.conceptId.startsWith("about_q:"))).toBe(true);
+    const later = generateTasks({ id: "about_me", type: "about_me" }, child, {}, new Map(), {}, 3);
+    expect(later).toHaveLength(first.length);
+  });
+
+  it("is available with just a name and a sex, no people needed", () => {
+    expect(hasEnoughAboutMeQuestions({ name: "Лиза", sex: "f", myPeopleProfile: {} })).toBe(true);
+    expect(hasEnoughAboutMeQuestions({ name: "Лиза", myPeopleProfile: {} })).toBe(false);
+  });
+});
+
+describe("albums of two", () => {
+  it("never leaves a single-person page at size 2", () => {
+    const five = {
+      id: "s",
+      myPeople: ["a", "b", "c", "d", "e"].map((id) => ({ id, name: id.toUpperCase(), relation: "друг", contexts: ["family"], photos: [`/api/photos/${id}`], introducedAxes: ["name"], enabled: true })),
+    };
+    const tasks = generateTasks({ id: "family_names", type: "people_album" }, five, { peopleCount: 2 });
+    const sizes = tasks.map((task) => task.entries.length).sort();
+    expect(sizes).toEqual([2, 3]);
   });
 });

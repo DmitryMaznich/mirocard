@@ -8,7 +8,7 @@ import ModeIcon from "@/shared/components/ModeIcon";
 import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { formatDate, getTopicTitle, pluralRu } from "@/shared/utils/format";
-import { hasEnoughAboutMeFacts } from "@/topics/renderers/my_people/engine";
+import { hasEnoughAboutMeFacts, hasEnoughAboutMeQuestions } from "@/topics/renderers/my_people/engine";
 
 function LastResultBadge({ session }) {
   if (!session) return <span className="mode-badge mode-badge--none">Не проходили</span>;
@@ -86,7 +86,8 @@ export default function ModePickerScreen() {
 
   function myPeopleModeAvailable(mode) {
     if (!isMyPeople) return true;
-    if (mode.id === "about_me") return hasEnoughAboutMeFacts(activeStudent);
+    if (mode.id === "about_me") return hasEnoughAboutMeQuestions(activeStudent);
+    if (mode.id === "introduce_self") return hasEnoughAboutMeFacts(activeStudent);
     const context = mode.id.split("_")[0];
     const group = ["family", "home", "school"].includes(context) ? context : null;
     const needsRelation = mode.id.endsWith("_relations");
@@ -112,7 +113,12 @@ export default function ModePickerScreen() {
       // "Кто это?" asks the child to name people unaided, only for people
       // already introduced -- it closes the ladder after Mix rather than
       // sitting next to "Обо мне" (both used to fall into the -1 bucket).
-      const rank = (modeId, index) => (modeId === "who_is_this" ? order.length : index < 0 ? -1 : index);
+      // «Представься» (the advanced, situational level) comes last of all.
+      const rank = (modeId, index) => (
+        modeId === "introduce_self" ? order.length + 1
+          : modeId === "who_is_this" ? order.length
+            : index < 0 ? -1 : index
+      );
       return rank(left.id, leftIndex) - rank(right.id, rightIndex);
     })
     : rawModes;

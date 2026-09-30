@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
+import { hasEnoughAboutMeFacts, hasEnoughAboutMeQuestions } from "@/topics/renderers/my_people/engine";
 import { useTimer } from "@/features/timer/TimerContext";
 import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -1856,7 +1857,11 @@ export default function ParamsScreen() {
     ? myPeople.filter((person) => person.contexts?.includes(myPeopleContext))
     : myPeople
   ).filter((person) => !mode.id.endsWith("_relations") || person.relation?.trim());
-  const myPeopleReady = !isMyPeople || myPeopleTargets.length >= 2;
+  // The personal-answer modes don't need people with photos at all.
+  const myPeopleReady = !isMyPeople
+    || (mode.id === "about_me" ? hasEnoughAboutMeQuestions(student)
+      : mode.id === "introduce_self" ? hasEnoughAboutMeFacts(student)
+        : myPeopleTargets.length >= 2);
 
   // Concept range filter — only in "Считаем на пальцах" mode
   const fcountCards    = activeModeId === "fingers_count"

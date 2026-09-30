@@ -1,9 +1,12 @@
 import { shuffle } from "@/shared/utils/shuffle";
+import { pluralRu } from "@/shared/utils/format";
 
 const CONTEXT_BY_PREFIX = { family: "family", home: "home", school: "school" };
 const MIN_ALBUM_SIZE = 2;
 const MAX_ALBUM_SIZE = 8;
-const ALBUM_SIZES = [4, 6, 8];
+// 2 is the usual starting field for a child with ASD: choosing between two
+// photos before three or four.
+const ALBUM_SIZES = [2, 4, 6, 8];
 // New people introduced per axis per lesson -- across all its rounds, not per
 // round. With a full list (up to 20 cards) the first lesson would otherwise
 // open with an introduction screen for every single person.
@@ -26,6 +29,88 @@ export function getAboutMeFacts(student) {
 
 export function hasEnoughAboutMeFacts(student) {
   return getAboutMeFacts(student).length >= 2;
+}
+
+// ── «Обо мне»: short, fixed questions ──────────────────────────────────
+// One direct question, one short answer, always the same wording -- the
+// "personal information" skill as taught to preschoolers with ASD. Every
+// question is built from data the adult already entered (student card,
+// «Мои люди», «Личные данные») and appears only when that data exists.
+// Order is the usual teaching ladder: self, then close family, then the
+// wider circle, then surname and city.
+const RELATION_QUESTIONS = [
+  ["мама", "маму"], ["папа", "папу"],
+  ["бабушка", "бабушку"], ["дедушка", "дедушку"],
+  ["брат", "брата"], ["сестра", "сестру"],
+  ["няня", "няню"],
+  ["воспитательница", "воспитательницу"], ["воспитатель", "воспитателя"],
+  ["учительница", "учительницу"], ["учитель", "учителя"],
+];
+export const MAX_ABOUT_ME_QUESTIONS_PER_ROUND = 6;
+
+export function ageFromBirthDate(birthDate, now = new Date()) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(birthDate ?? ""));
+  if (!match) return null;
+  const [year, month, day] = match.slice(1).map(Number);
+  let age = now.getFullYear() - year;
+  if (now.getMonth() + 1 < month || (now.getMonth() + 1 === month && now.getDate() < day)) age -= 1;
+  return age >= 1 && age <= 25 ? age : null;
+}
+
+export function getAboutMeQuestions(student, now = new Date()) {
+  const profile = student?.myPeopleProfile ?? {};
+  const questions = [];
+  const add = (id, question, answer, cueImage = null) => {
+    if (String(answer ?? "").trim()) questions.push({ id, question, answer: String(answer).trim(), cueImage });
+  };
+
+  if (profile.includeSelfName !== false) add("name", "Как тебя зовут?", student?.name, student?.photo ?? null);
+  if (student?.sex === "m" || student?.sex === "f") {
+    add("gender", "Ты мальчик или девочка?", student.sex === "m" ? "Мальчик" : "Девочка", student?.photo ?? null);
+  }
+  const age = ageFromBirthDate(profile.birthDate, now);
+  if (age) add("age", "Сколько тебе лет?", `${age} ${pluralRu(age, "год", "года", "лет")}`);
+
+  const people = (student?.myPeople ?? []).filter((person) => isActive(person) && person.type !== "pet");
+  for (const [relation, accusative] of RELATION_QUESTIONS) {
+    const matches = people.filter((person) => person.relation?.trim().toLowerCase() === relation);
+    if (!matches.length) continue;
+    // Two sisters: either name is right, and the adult judges.
+    add(`rel:${relation}`, `Как зовут ${accusative}?`, matches.map((person) => person.name.trim()).join(" или "), matches[0].photos.find(Boolean));
+  }
+
+  if (profile.includeFamilyName && profile.familyName) add("family_name", "Как твоя фамилия?", profile.familyName);
+  if (profile.includeCity && profile.city) add("city", "Где ты живёшь?", profile.city);
+  return questions;
+}
+
+export function hasEnoughAboutMeQuestions(student) {
+  return getAboutMeQuestions(student).length >= 2;
+}
+
+export function aboutMeQuestionLabel(conceptId, student) {
+  const id = String(conceptId).slice("about_q:".length);
+  return getAboutMeQuestions(student).find((question) => question.id === id)?.question ?? "Вопрос обо мне";
+}
+
+function aboutMeQuestionTasks(student, round) {
+  const questions = getAboutMeQuestions(student);
+  // First round keeps the ladder order; later rounds mix it so the answer
+  // follows the question, not its position in a memorised chain.
+  const ordered = round > 0 ? shuffle(questions) : questions;
+  return ordered.slice(0, MAX_ABOUT_ME_QUESTIONS_PER_ROUND).map((question) => {
+    const conceptId = `about_q:${question.id}`;
+    return {
+      type: "about_me_question",
+      conceptId,
+      targetConceptId: conceptId,
+      progressConceptIds: [conceptId],
+      prompt: question.question,
+      promptSpeech: question.question,
+      answer: question.answer,
+      cueImage: question.cueImage,
+    };
+  });
 }
 
 function isActive(person) {
@@ -59,8 +144,13 @@ function toGroups(people, size) {
   if (groups.length > 1 && groups.at(-1).length === 1) {
     const lastFullGroup = groups.at(-2);
     const combined = [...lastFullGroup, groups.at(-1)[0]];
-    const firstSize = Math.floor(combined.length / 2);
-    groups.splice(-2, 2, combined.slice(0, firstSize), combined.slice(firstSize));
+    // At size 2 splitting 3 would recreate a 1-person page; keep one page of 3.
+    if (combined.length <= 3) {
+      groups.splice(-2, 2, combined);
+    } else {
+      const firstSize = Math.floor(combined.length / 2);
+      groups.splice(-2, 2, combined.slice(0, firstSize), combined.slice(firstSize));
+    }
   }
   return groups;
 }
@@ -263,9 +353,12 @@ function personNamingTasks(people, mode, photoPlanner) {
 
 // sessionIntroduced: { name?: Set<personId>, relation?: Set<personId> } of
 // people already introduced in earlier rounds of the current lesson.
-export function generateTasks(mode, student, params = {}, previousImages = new Map(), sessionIntroduced = {}) {
+export function generateTasks(mode, student, params = {}, previousImages = new Map(), sessionIntroduced = {}, round = 0) {
   if (!mode || !student) return [];
-  if (mode.id === "about_me") return aboutMeTasks(student);
+  if (mode.id === "about_me") return aboutMeQuestionTasks(student, round);
+  // The open "introduce yourself in a situation" cards: an advanced level
+  // for a child who already answers the short questions reliably.
+  if (mode.id === "introduce_self") return aboutMeTasks(student);
 
   const people = peopleForMode(mode, student);
   const photoPlanner = createPhotoPlanner(previousImages);

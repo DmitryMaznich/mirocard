@@ -38,6 +38,7 @@ function normaliseProfile(profile) {
   return {
     familyName: "",
     familyLabel: "",
+    birthDate: "",
     city: "",
     address: "",
     includeSelfName: true,
@@ -528,6 +529,11 @@ export default function MyPeopleSettingsScreen() {
               <p className="mp-form-card__lead">Фамилия ребёнка и название семьи — разные ответы в задании.</p>
               <label className="mp-field"><span>Фамилия ребёнка</span><input value={profile.familyName} onChange={(event) => updateProfile({ familyName: event.target.value })} /></label>
               <label className="mp-field"><span>Как называть семью</span><input value={profile.familyLabel} onChange={(event) => updateProfile({ familyLabel: event.target.value })} placeholder="Например, семья Петровых" /></label>
+              <label className="mp-field">
+                <span>Дата рождения</span>
+                <input type="date" value={profile.birthDate} max={new Date().toISOString().slice(0, 10)} onChange={(event) => updateProfile({ birthDate: event.target.value })} />
+                <small className="mp-field__hint">Для вопроса «Сколько тебе лет?» — возраст считается сам.</small>
+              </label>
             </div>
             <div className="mp-form-card">
               <h3>Где я живу</h3>

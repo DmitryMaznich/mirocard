@@ -478,7 +478,8 @@ export function useSessionEngine() {
       if (task.type !== "person_intro") continue;
       (sessionIntroduced[task.axis] ??= new Set()).add(task.personId);
     }
-    const tasks = generateTasks ? generateTasks(state.mode, activeStudent, sessionParams, previousImages, sessionIntroduced) : [];
+    const round = (state.myPeopleRound ?? 0) + 1;
+    const tasks = generateTasks ? generateTasks(state.mode, activeStudent, sessionParams, previousImages, sessionIntroduced, round) : [];
     if (!tasks.length) return next;
     const roundConceptIds = tasks.flatMap((task) => task.progressConceptIds ?? [task.targetConceptId ?? task.conceptId]);
     return {
@@ -486,6 +487,7 @@ export function useSessionEngine() {
       tasks,
       taskIndex: 0,
       conceptIds: [...new Set([...(state.conceptIds ?? []), ...roundConceptIds])],
+      myPeopleRound: round,
       myPeopleIntroduced: Object.fromEntries(Object.entries(sessionIntroduced).map(([axis, ids]) => [axis, [...ids]])),
     };
   }, [activeStudent, sessionParams]);

@@ -339,6 +339,7 @@ function QualityAnswerTask({
   onQuality,
   className,
   ariaLabel,
+  answerShown = false,
   children,
 }) {
   const { speak } = useSpeech();
@@ -372,7 +373,7 @@ function QualityAnswerTask({
   return (
     <div className={`session-body ${className}`} aria-label={ariaLabel}>
       {children({ repeatPrompt })}
-      <div className={`about-me-task__answer${answered ? " about-me-task__answer--shown" : ""}`} aria-live="polite">
+      <div className={`about-me-task__answer${answered || answerShown ? " about-me-task__answer--shown" : ""}`} aria-live="polite">
         {task.answer}
       </div>
       <div className="qa-row">
@@ -413,6 +414,52 @@ function AboutMeSituationTask(props) {
   );
 }
 
+// A short personal question with a prompt ladder the adult steps through
+// only as needed: the question alone → the photo (mum's photo for "Как
+// зовут маму?") → the answer, shown and spoken for the child to echo. The
+// adult then scores it as usual; any hint means "С подсказкой".
+function AboutMeQuestionTask(props) {
+  const { speak } = useSpeech();
+  const [hint, setHint] = useState({ taskId: null, level: 0 });
+  const level = hint.taskId === props.task.conceptId ? hint.level : 0;
+  const imageUrl = useTopicFile(props.topicId, level >= 1 ? props.task.cueImage : null);
+
+  function showPhoto() { setHint({ taskId: props.task.conceptId, level: Math.max(level, 1) }); }
+  function showAnswer() {
+    setHint({ taskId: props.task.conceptId, level: 2 });
+    if (props.soundEnabled) speak(props.task.answer);
+  }
+
+  return (
+    <QualityAnswerTask {...props} className="about-me-task about-me-question" ariaLabel="Вопрос обо мне" answerShown={level >= 2}>
+      {({ repeatPrompt }) => (
+        <>
+          <span className="about-me-task__eyebrow">Обо мне</span>
+          <div className="about-me-task__prompt-row">
+            <div className="about-me-task__prompt about-me-question__prompt">{props.task.prompt}</div>
+            <button type="button" className="about-me-task__repeat" onClick={repeatPrompt} aria-label="Повторить вопрос">🔊</button>
+          </div>
+          {level >= 1 && props.task.cueImage && (
+            <div className="person-naming__photo-wrap about-me-question__photo">
+              {imageUrl
+                ? <img className="person-naming__photo" src={imageUrl} alt="" />
+                : <span className="person-naming__photo person-naming__photo--loading" aria-hidden="true" />}
+            </div>
+          )}
+          <div className="about-me-question__hints">
+            {props.task.cueImage && level < 1 && (
+              <button type="button" className="about-me-question__hint-btn" onClick={showPhoto}>Показать фото</button>
+            )}
+            {level < 2 && (
+              <button type="button" className="about-me-question__hint-btn" onClick={showAnswer}>Показать ответ</button>
+            )}
+          </div>
+        </>
+      )}
+    </QualityAnswerTask>
+  );
+}
+
 function PersonNamingTask(props) {
   const imageUrl = useTopicFile(props.topicId, props.task.image);
 
@@ -443,6 +490,8 @@ export default function MyPeopleRenderer(props) {
       return <PeopleAlbumTask {...props} />;
     case "person_intro":
       return <PersonIntroTask {...props} />;
+    case "about_me_question":
+      return <AboutMeQuestionTask {...props} />;
     case "about_me_situation":
       return <AboutMeSituationTask {...props} />;
     case "person_naming":

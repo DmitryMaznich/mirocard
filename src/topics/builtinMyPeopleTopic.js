@@ -5,7 +5,7 @@ const peopleCountParam = {
   peopleCount: {
     type: "enum",
     label: { ru: "Людей в альбоме" },
-    values: [4, 6, 8],
+    values: [2, 4, 6, 8],
     default: 4,
   },
 };
@@ -21,18 +21,35 @@ const mode = (id, title, instruction) => ({
   ui: { title: { ru: title }, instruction: { ru: instruction } },
 });
 
+// Short fixed questions (name, age, mum's name...). The child answers out
+// loud, with a gesture, or through AAC; the adult records the response
+// quality using the session's standard controls.
 const aboutMeMode = {
   id: "about_me",
   type: "about_me",
-  // The child answers out loud, with a gesture, or through AAC; the adult
-  // records the response quality using the session's standard controls.
   evaluation: "adult",
   loop: true,
   regenerateOnLoop: true,
   hideConceptPicker: true,
   ui: {
     title: { ru: "Обо мне" },
-    instruction: { ru: "Ответьте в жизненной ситуации, взрослый отметит качество" },
+    instruction: { ru: "Простые вопросы: как тебя зовут, сколько лет, как зовут маму" },
+  },
+};
+
+// The former «Обо мне»: introducing yourself in an imagined situation. Kept
+// as an advanced level -- it needs pretend play and a multi-fact answer,
+// which is out of reach until the short questions are solid.
+const introduceSelfMode = {
+  id: "introduce_self",
+  type: "about_me",
+  evaluation: "adult",
+  loop: true,
+  regenerateOnLoop: true,
+  hideConceptPicker: true,
+  ui: {
+    title: { ru: "Представься" },
+    instruction: { ru: "Продвинутый уровень: рассказать о себе в ситуации" },
   },
 };
 
@@ -56,7 +73,7 @@ export function buildMyPeopleTopicRecord() {
     meta: {
       id: "my_people",
       renderer: "my_people",
-      version: "1.1.0",
+      version: "1.2.0",
       title: { ru: "Мои люди" },
       avatar: "media/avatar_my_people.svg",
       builtin: true,
@@ -86,6 +103,7 @@ export function buildMyPeopleTopicRecord() {
       mode("school_relations", "Школа: кто это", "Подберите связь с ребёнком"),
       mode("mix", "Все люди", "Сначала имена, затем кто эти люди"),
       whoIsThisMode,
+      introduceSelfMode,
     ],
     // A metadata card makes generic navigation and legacy selection links safe;
     // the engine deliberately ignores it and uses the pupil's own records.

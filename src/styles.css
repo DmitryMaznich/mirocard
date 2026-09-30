@@ -22620,6 +22620,7 @@ body { background: #eef0ef; }
 .my-people-setup-row .mode-item__title, .my-people-setup-row .mode-item__desc { display: block; }
 .my-people-setup-row__icon { flex: 0 0 auto; font-size: 1.6rem; }
 .my-people-setup-row__arrow { flex: 0 0 auto; margin-left: auto; color: #9aa8a4; font-size: 1.55rem; line-height: 1; }
+.mp-field__hint { display: block; margin-top: 4px; color: #71807d; font-size: .72rem; font-weight: 600; }
 .mp-limit-hint { margin: -6px 0 12px; color: #8a5a00; font-size: .8rem; font-weight: 700; }
 .mp-add-compact:disabled { opacity: .45; cursor: not-allowed; }
 .mp-add-compact {

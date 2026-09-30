@@ -505,3 +505,37 @@
   .people-album-photos--three-columns .people-album-photo__label { font-size: 12px; }
   .people-album-answer { min-height: 43px; font-size: 15px; }
 }
+
+/* ── «Обо мне»: вопрос + лесенка подсказок ───────────────────────────── */
+.about-me-question__prompt {
+  font-size: clamp(26px, 6vw, 36px);
+}
+
+.about-me-question__photo {
+  width: min(56vw, 260px, 30vh);
+  width: min(56vw, 260px, 30dvh);
+}
+
+.about-me-question__hints {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.about-me-question__hint-btn {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1.5px solid #cfe3dd;
+  border-radius: 14px;
+  color: #28746b;
+  background: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.about-me-question__hint-btn:active { transform: scale(.98); }
