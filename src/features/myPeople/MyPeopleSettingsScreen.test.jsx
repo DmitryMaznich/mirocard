@@ -148,4 +148,35 @@ describe("MyPeopleSettingsScreen persistence", () => {
     expect(container.querySelector(".mp-editor__photo-copy button")).toBeNull();
     expect(container.textContent).toMatch(/5 фото · это максимум/);
   });
+
+  it("removes a photo only on the second tap", async () => {
+    useAppStore.setState({ students: [{ id: "student_1", name: "Миша", myPeople: [{ ...anna, photos: ["/api/photos/a", "/api/photos/b"] }], myPeopleProfile: {} }] });
+    await mount();
+    await click(container.querySelector(".mp-person-card__main"));
+    const remove = () => container.querySelectorAll(".mp-editor__thumb-remove")[1];
+
+    await click(remove());
+    expect(sync.pushOp).not.toHaveBeenCalled();
+    expect(remove().textContent).toBe("Удалить?");
+
+    await click(remove());
+    expect(pushedPeople()[0].photos).toEqual(["/api/photos/a"]);
+  });
+
+  it("asks before deleting a card", async () => {
+    await mount();
+    await click(container.querySelector(".mp-person-card__main"));
+    const button = (name) => [...container.querySelectorAll("button")].find((b) => b.textContent === name);
+
+    await click(button("Удалить карточку"));
+    expect(sync.pushOp).not.toHaveBeenCalled();
+    expect(container.textContent).toMatch(/Удалить карточку «Анна» вместе с фото\?/);
+
+    await click(button("Отмена"));
+    expect(button("Удалить карточку")).toBeTruthy();
+
+    await click(button("Удалить карточку"));
+    await click(button("Удалить"));
+    expect(pushedPeople()[0]).toEqual(expect.objectContaining({ id: "anna", photos: [], deletedAt: expect.any(String) }));
+  });
 });

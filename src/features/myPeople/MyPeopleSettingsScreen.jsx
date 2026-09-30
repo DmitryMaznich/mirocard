@@ -138,10 +138,20 @@ function PersonCard({ person, canEnable, onEdit, onToggle }) {
   );
 }
 
-function PersonEditor({ person, activeContext, canEnable, onChange, onPhotoAdded, onDelete, onClose }) {
+function PersonEditor({ person, activeContext, canEnable, onChange, onPhotoAdded, onPhotoRemoved, onDelete, onClose }) {
   const photoRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  // Both removals are two-step: the first tap only arms them. A single stray
+  // tap must not throw away a photo or a whole card (with all its photos).
+  const [armedPhoto, setArmedPhoto] = useState(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  function tapRemovePhoto(photo) {
+    if (armedPhoto !== photo) { setArmedPhoto(photo); return; }
+    setArmedPhoto(null);
+    onPhotoRemoved(person.id, photo);
+  }
 
   async function addPhoto(event) {
     const file = event.target.files?.[0];
@@ -186,10 +196,9 @@ function PersonEditor({ person, activeContext, canEnable, onChange, onPhotoAdded
         </div>
 
         <div className="mp-editor__photo-row">
-          {person.photos[0]
-            ? <AuthenticatedImage src={person.photos[0]} className="mp-editor__photo" alt="" />
-            : <div className="mp-editor__photo mp-editor__photo--empty">{person.type === "pet" ? "🐾" : "📷"}</div>
-          }
+          {/* With photos, the strip below shows them all; the placeholder only
+              stands in while there are none yet. */}
+          {!person.photos.length && <div className="mp-editor__photo mp-editor__photo--empty">{person.type === "pet" ? "🐾" : "📷"}</div>}
           <div className="mp-editor__photo-copy">
             <strong>{person.photos.length ? "Фотографии добавлены" : "Добавьте фотографию"}</strong>
             <span>{!person.photos.length
@@ -206,6 +215,23 @@ function PersonEditor({ person, activeContext, canEnable, onChange, onPhotoAdded
           </div>
           <input ref={photoRef} type="file" accept={PHOTO_ACCEPT} onChange={addPhoto} hidden />
         </div>
+        {person.photos.length > 0 && (
+          <ul className="mp-editor__photos" aria-label="Фотографии">
+            {person.photos.map((photo, index) => (
+              <li key={photo} className={`mp-editor__thumb${armedPhoto === photo ? " mp-editor__thumb--armed" : ""}`}>
+                <AuthenticatedImage src={photo} alt="" />
+                <button
+                  type="button"
+                  className="mp-editor__thumb-remove"
+                  onClick={() => tapRemovePhoto(photo)}
+                  aria-label={armedPhoto === photo ? `Точно удалить фото ${index + 1}` : `Удалить фото ${index + 1}`}
+                >
+                  {armedPhoto === photo ? "Удалить?" : "✕"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <div className="mp-editor__fields">
           <label className="mp-field mp-field--type">
@@ -248,10 +274,21 @@ function PersonEditor({ person, activeContext, canEnable, onChange, onPhotoAdded
           <span><strong>Включать в тему</strong><small>{person.enabled || canEnable ? "Человек будет появляться в заданиях и в миксе." : ACTIVE_LIMIT_HINT}</small></span>
         </label>
 
-        <div className="mp-editor__actions">
-          {person.createdAt && <Button variant="danger" onClick={onDelete}>Удалить</Button>}
-          <Button variant="primary" onClick={onClose} disabled={!person.name.trim() || !person.relation.trim() || person.contexts.length === 0}>Готово</Button>
-        </div>
+        {confirmingDelete ? (
+          <div className="mp-editor__actions mp-editor__actions--confirm" role="alertdialog" aria-label="Подтверждение удаления">
+            <span className="mp-editor__confirm-text">
+              {/* Quoted, not declined: "Удалить Анна" reads wrong, and names can't be declined reliably. */}
+              Удалить {person.name.trim() ? `карточку «${person.name.trim()}»` : "эту карточку"}{person.photos.length ? " вместе с фото" : ""}?
+            </span>
+            <Button variant="secondary" onClick={() => setConfirmingDelete(false)}>Отмена</Button>
+            <Button variant="danger" onClick={onDelete}>Удалить</Button>
+          </div>
+        ) : (
+          <div className="mp-editor__actions">
+            {person.createdAt && <button type="button" className="mp-editor__delete" onClick={() => setConfirmingDelete(true)}>Удалить карточку</button>}
+            <Button variant="primary" onClick={onClose} disabled={!person.name.trim() || !person.relation.trim() || person.contexts.length === 0}>Готово</Button>
+          </div>
+        )}
       </section>
     </div>
   );
@@ -348,6 +385,12 @@ export default function MyPeopleSettingsScreen() {
     const now = new Date().toISOString();
     const stamped = { ...nextPerson, updatedAt: now, createdAt: nextPerson.createdAt ?? now };
     commitPeople((current) => current.map((person) => person.id === stamped.id ? stamped : person));
+  }
+  function removePhotoAndPersist(personId, photo) {
+    const person = peopleRef.current.find((item) => item.id === personId);
+    if (!person) return;
+    updatePerson({ ...person, photos: person.photos.filter((item) => item !== photo) });
+    persist();
   }
   function addPhotoAndPersist(personId, photo) {
     const person = peopleRef.current.find((item) => item.id === personId);
@@ -470,7 +513,7 @@ export default function MyPeopleSettingsScreen() {
                   : <div className="mp-empty"><span className="mp-empty__art" aria-hidden="true">＋</span><strong>Здесь пока никого нет</strong><span>{tab === "family" ? "Добавьте первого близкого человека или питомца." : "Добавьте человека, который встречается с ребёнком в этом окружении."}</span><button type="button" onClick={addPerson} disabled={!canEnableMore}>Добавить карточку</button></div>
                 }
               </div>
-              {editing && <PersonEditor person={editing} activeContext={tab} canEnable={canEnableMore} onChange={updatePerson} onPhotoAdded={addPhotoAndPersist} onDelete={() => deletePerson(editing.id)} onClose={closeEditor} />}
+              {editing && <PersonEditor person={editing} activeContext={tab} canEnable={canEnableMore} onChange={updatePerson} onPhotoAdded={addPhotoAndPersist} onPhotoRemoved={removePhotoAndPersist} onDelete={() => deletePerson(editing.id)} onClose={closeEditor} />}
             </div>
           </>
         )}

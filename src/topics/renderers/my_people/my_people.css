@@ -60,15 +60,24 @@
   text-align: center;
 }
 
+/* Flex rather than grid so an odd last row is centred instead of leaving
+   one photo hanging in the left column (3 people → 2 + 1). */
 .people-album-photos {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  --album-cols: 2;
+  --album-gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--album-gap);
 }
 
 .people-album-photos--three-columns {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 9px;
+  --album-cols: 3;
+  --album-gap: 9px;
+}
+
+.people-album-photos > .people-album-photo {
+  flex: 0 0 calc((100% - (var(--album-cols) - 1) * var(--album-gap)) / var(--album-cols));
 }
 
 .people-album-photo {
@@ -107,11 +116,14 @@
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14), 0 8px 20px rgba(40, 84, 76, 0.13);
 }
 
+/* Square, like every stored person photo (cropped square on upload): a 4:5
+   cell cut faces at the sides and made the grid tall enough that the whole
+   album was scaled down to fit a phone. */
 .people-album-photo > img,
 .people-album-photo__loading {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 1;
   border-radius: 15px;
   object-fit: cover;
   background: linear-gradient(135deg, #e9f3f0, #d6e7e3);
@@ -208,13 +220,17 @@
   box-shadow: 0 1px 3px rgba(74, 155, 143, 0.3);
 }
 
+/* Centred wrap, like the photos: an odd last answer sits in the middle
+   instead of hanging under the left column. */
 .people-album-answers {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 9px;
 }
 
 .people-album-answer {
+  min-width: 7.5em;
   min-height: 47px;
   padding: 9px 8px;
   border: 1px solid #d6e7e2;
@@ -298,8 +314,13 @@
   text-transform: uppercase;
 }
 
+/* flex-shrink: 0 -- as a flex item the frame used to be squeezed vertically
+   on short screens, cropping the top and bottom of the (square) photo. The
+   height cap keeps name + button on screen instead. */
 .person-intro__photo-wrap {
-  width: min(72vw, 340px);
+  flex-shrink: 0;
+  width: min(72vw, 340px, 42vh);
+  width: min(72vw, 340px, 42dvh);
   overflow: hidden;
   border: 7px solid #f1f8f5;
   border-radius: 28px;
@@ -435,8 +456,9 @@
 }
 
 .person-naming__photo-wrap {
-  width: 90%;
-  max-width: 520px;
+  flex-shrink: 0;
+  width: min(90%, 520px, 50vh);
+  width: min(90%, 520px, 50dvh);
   overflow: hidden;
   border: 7px solid #f1f8f5;
   border-radius: 28px;
@@ -473,10 +495,10 @@
 
 @media (max-width: 560px) {
   .people-album { padding: 10px 12px 18px; gap: 12px; }
-  .people-album-photos { gap: 9px; }
+  .people-album-photos { --album-gap: 9px; }
   .people-album__question { font-size: 25px; }
   .person-intro { justify-content: flex-start; padding-top: 20px; }
-  .person-intro__photo-wrap { width: min(78vw, 340px); }
+  .person-intro__photo-wrap { width: min(78vw, 340px, 42vh); width: min(78vw, 340px, 42dvh); }
 }
 
 @media (max-width: 370px) {

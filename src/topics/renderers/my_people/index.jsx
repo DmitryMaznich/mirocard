@@ -202,7 +202,10 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
 
   const chosenAnswer = answersById[selectedAnswerId];
   const completedCount = Object.keys(matches).length;
-  const columnClass = task.entries.length >= 5 ? " people-album-photos--three-columns" : "";
+  // Three people sit in one row rather than 2 + 1: two rows made the album
+  // tall enough to be scaled down to fit a phone, shrinking the answer
+  // buttons along with it.
+  const columnClass = task.entries.length === 3 || task.entries.length >= 5 ? " people-album-photos--three-columns" : "";
   const dragHint = dragging
     ? `Перенеси «${dragging.label}» на нужную фотографию`
     : chosenAnswer
