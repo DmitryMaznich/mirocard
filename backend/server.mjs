@@ -2002,6 +2002,10 @@ if (isMainModule) {
       .then(({ startBackupLoop }) => startBackupLoop({ dataDir: DATA_DIR }))
       .catch((err) => console.error("[backup] failed to start backup loop:", err));
 
+    import("./lib/photo-gc.mjs")
+      .then(({ startPhotoGcLoop }) => startPhotoGcLoop(db))
+      .catch((err) => console.error("[photo-gc] failed to start:", err));
+
     import("../scripts/entitlement-reminder-loop.mjs")
       .then(({ startReminderLoop }) => startReminderLoop())
       .catch((err) => console.error("[entitlement-reminder] failed to start reminder loop:", err));

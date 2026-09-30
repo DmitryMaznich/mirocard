@@ -79,10 +79,11 @@ function serialisePeople(people, updatedAt) {
     });
 }
 
-// A person can fill an entire task card. Keep a retina-quality source rather
-// than the tiny thumbnail-sized copy used in early prototypes.
-const PERSON_PHOTO_MAX_SIZE = 1600;
-const PERSON_PHOTO_JPEG_QUALITY = 0.92;
+// The largest place a person's photo is shown is ~520 CSS px wide (the naming
+// card in my_people.css), so 1024 px covers it on a 2x screen. Going higher
+// only made every upload, sync and cold load slower for no visible gain.
+const PERSON_PHOTO_MAX_SIZE = 1024;
+const PERSON_PHOTO_JPEG_QUALITY = 0.85;
 
 // Upload each photo on its own as soon as it's ready and keep only the short
 // /api/photos reference on the card. Otherwise every save of the list would
@@ -349,7 +350,8 @@ export default function MyPeopleSettingsScreen() {
   }
   function deletePerson(id) {
     const now = new Date().toISOString();
-    commitPeople((current) => current.map((person) => person.id === id ? { ...person, deletedAt: now, updatedAt: now } : person));
+    // Drop the photos with the card so the server can prune them (photo-gc).
+    commitPeople((current) => current.map((person) => person.id === id ? { ...person, photos: [], deletedAt: now, updatedAt: now } : person));
     setEditingId(null);
     persist();
   }

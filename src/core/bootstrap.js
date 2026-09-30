@@ -375,8 +375,31 @@ const USER_IDB_KEYS = [
   "ownedTopics", "lastContext", "activeSession", "settings",
 ];
 
+// public/sw.js serves /api/photos/* cache-first, keyed by URL alone, so a
+// photo cached for one account would still be served on this device to
+// whoever signs in next. Every path that drops an account's local data
+// (logout, a different account logging in, account deletion) comes through
+// clearUserIdbData, so the photo cache goes with it.
+export async function clearCachedPhotos() {
+  if (typeof caches === "undefined") return;
+  try {
+    for (const name of await caches.keys()) {
+      const cache = await caches.open(name);
+      for (const request of await cache.keys()) {
+        if (new URL(request.url).pathname.startsWith("/api/photos/")) await cache.delete(request);
+      }
+    }
+  } catch {
+    // Cache Storage can be unavailable (private mode, storage pressure);
+    // logging out must not fail because of it.
+  }
+}
+
 export async function clearUserIdbData(db) {
-  await Promise.all(USER_IDB_KEYS.map((key) => kv.del(db, key)));
+  await Promise.all([
+    ...USER_IDB_KEYS.map((key) => kv.del(db, key)),
+    clearCachedPhotos(),
+  ]);
 }
 
 export async function persistBootstrap(db, raw) {

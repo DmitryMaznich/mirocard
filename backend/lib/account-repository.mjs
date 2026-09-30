@@ -17,8 +17,11 @@ export function extractAndStorePhoto(db, dataUrl) {
   if (!match) return dataUrl;
   const [, contentType, data] = match;
   const hash = createHash("sha256").update(data).digest("hex").slice(0, 32);
+  // created_at doubles as "last uploaded": a re-upload of an orphaned photo
+  // must restart photo-gc's grace period, or it could be pruned before the
+  // sync op that references it again arrives.
   db.prepare(
-    "INSERT OR IGNORE INTO photos (hash, content_type, data, created_at) VALUES (?, ?, ?, ?)"
+    "INSERT INTO photos (hash, content_type, data, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(hash) DO UPDATE SET created_at = excluded.created_at"
   ).run(hash, contentType, data, now());
   return `/api/photos/${hash}`;
 }
@@ -39,7 +42,9 @@ function processMyPeoplePhotos(db, people) {
   if (!Array.isArray(people)) return [];
   return people.map((person) => ({
     ...person,
-    photos: (Array.isArray(person.photos) ? person.photos : [])
+    // A deleted person's tombstone must not keep its photos alive: the
+    // parent removed them, and photo-gc only prunes unreferenced ones.
+    photos: person.deletedAt ? [] : (Array.isArray(person.photos) ? person.photos : [])
       .filter(Boolean)
       .map((photo) => extractAndStorePhoto(db, photo)),
   }));
