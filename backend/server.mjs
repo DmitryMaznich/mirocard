@@ -145,7 +145,21 @@ function getTopicPublication(entry) {
   return entry.status ?? "release";
 }
 
-function isCatalogEntryVisible(entry, assignedTopicIds) {
+function accountHasFeatureFlag(account, flag) {
+  try {
+    const flags = JSON.parse(account?.feature_flags ?? "[]");
+    return Array.isArray(flags) && flags.includes(flag);
+  } catch {
+    return false;
+  }
+}
+
+function isCatalogEntryVisible(entry, assignedTopicIds, hasCatalogAllAccess = false) {
+  // This is deliberately an owner/developer escape hatch, separate from
+  // `all_access` (the commercial entitlement). It makes every catalog entry
+  // inspectable, including internal hidden entries, without turning that
+  // broad visibility into the ordinary user model.
+  if (hasCatalogAllAccess) return true;
   const publication = getTopicPublication(entry);
   if (publication === "release") return true;
   if (publication === "hidden") return false;
@@ -914,15 +928,17 @@ async function handleGetDecksCatalog(req, res) {
   // handleDownloadDeck / trySpaFallback), so paid downloads must always go
   // through the entitlement-checked /decks/:id/download endpoint instead.
   let assignedTopicIds = new Set();
+  let hasCatalogAllAccess = false;
   try {
     const account = requireAuth(req);
     assignedTopicIds = new Set(getAssignedAccountTopicIds(db, account.id));
+    hasCatalogAllAccess = accountHasFeatureFlag(account, "catalog_all_access");
   } catch {
     // anonymous caller — sees the public release catalog only
   }
   const catalog = loadCatalog();
   const decks = (catalog.decks ?? [])
-    .filter((d) => isCatalogEntryVisible(d, assignedTopicIds))
+    .filter((d) => isCatalogEntryVisible(d, assignedTopicIds, hasCatalogAllAccess))
     .map((d) => {
       if ((d.access ?? "free") === "free") return d;
       const { url, ...rest } = d;
@@ -943,7 +959,8 @@ async function handleClaimDeck(req, res) {
   const entry = getCatalogEntry(topicId);
   if (!entry) return writeJson(res, 404, { error: "Deck not found in catalog" });
   const assignedTopicIds = new Set(getAssignedAccountTopicIds(db, account.id));
-  if (!isCatalogEntryVisible(entry, assignedTopicIds)) {
+  const hasCatalogAllAccess = accountHasFeatureFlag(account, "catalog_all_access");
+  if (!isCatalogEntryVisible(entry, assignedTopicIds, hasCatalogAllAccess)) {
     return writeJson(res, 404, { error: "Deck not available for this account" });
   }
 
@@ -989,7 +1006,8 @@ async function handleDownloadDeck(req, res) {
   const entry = getCatalogEntry(topicId);
   if (!entry) return writeJson(res, 404, { error: "Deck not found" });
   const assignedTopicIds = new Set(getAssignedAccountTopicIds(db, account.id));
-  if (!isCatalogEntryVisible(entry, assignedTopicIds)) {
+  const hasCatalogAllAccess = accountHasFeatureFlag(account, "catalog_all_access");
+  if (!isCatalogEntryVisible(entry, assignedTopicIds, hasCatalogAllAccess)) {
     return writeJson(res, 403, { error: "Deck not available for this account" });
   }
 

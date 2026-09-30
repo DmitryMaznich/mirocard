@@ -38,6 +38,7 @@ export function getTopicCategory(topicId) {
 export const STATUS_BADGES = {
   beta:         { label: "БЕТА",  className: "topic-tile__badge--beta" },
   individual:   { label: "ЛИЧНАЯ", className: "topic-tile__badge--individual" },
+  hidden:       { label: "СКРЫТА", className: "topic-tile__badge--hidden" },
   experimental: { label: "ЭКСП.", className: "topic-tile__badge--experimental" },
 };
 
