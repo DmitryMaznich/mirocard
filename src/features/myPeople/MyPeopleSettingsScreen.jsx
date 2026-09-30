@@ -82,6 +82,13 @@ function serialisePeople(people, updatedAt) {
 // The largest place a person's photo is shown is ~520 CSS px wide (the naming
 // card in my_people.css), so 1024 px covers it on a 2x screen. Going higher
 // only made every upload, sync and cold load slower for no visible gain.
+// Product limits (2026-09-30): past ~20 people the topic stops being "the
+// child's own circle" and the lessons get long; more than 5 photos of one
+// person adds upload weight without helping recognition.
+const MAX_ACTIVE_PEOPLE = 20;
+const MAX_PHOTOS_PER_PERSON = 5;
+const ACTIVE_LIMIT_HINT = `Не больше ${MAX_ACTIVE_PEOPLE} человек в теме. Выключите кого-то, чтобы добавить нового.`;
+
 const PERSON_PHOTO_MAX_SIZE = 1024;
 const PERSON_PHOTO_JPEG_QUALITY = 0.85;
 
@@ -101,7 +108,7 @@ async function storePhoto(dataUrl) {
 }
 
 
-function PersonCard({ person, onEdit, onToggle }) {
+function PersonCard({ person, canEnable, onEdit, onToggle }) {
   const photo = person.photos[0] ?? null;
   const places = person.contexts.map((context) => CONTEXT_LABELS[context]).filter(Boolean).join(" · ");
   return (
@@ -123,15 +130,15 @@ function PersonCard({ person, onEdit, onToggle }) {
         </span>
         <span className="mp-person-card__arrow" aria-hidden="true">›</span>
       </button>
-      <label className="mp-switch" title="Включать в тему">
-        <input type="checkbox" checked={person.enabled} onChange={() => onToggle(person.id)} />
+      <label className="mp-switch" title={person.enabled || canEnable ? "Включать в тему" : ACTIVE_LIMIT_HINT}>
+        <input type="checkbox" checked={person.enabled} disabled={!person.enabled && !canEnable} onChange={() => onToggle(person.id)} />
         <span />
       </label>
     </article>
   );
 }
 
-function PersonEditor({ person, activeContext, onChange, onPhotoAdded, onDelete, onClose }) {
+function PersonEditor({ person, activeContext, canEnable, onChange, onPhotoAdded, onDelete, onClose }) {
   const photoRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState("");
@@ -185,10 +192,16 @@ function PersonEditor({ person, activeContext, onChange, onPhotoAdded, onDelete,
           }
           <div className="mp-editor__photo-copy">
             <strong>{person.photos.length ? "Фотографии добавлены" : "Добавьте фотографию"}</strong>
-            <span>{person.photos.length ? `${person.photos.length} ${person.photos.length === 1 ? "фото" : "фото"} · можно добавить ещё` : "На фото человек должен быть хорошо виден."}</span>
-            <Button variant="secondary" onClick={() => photoRef.current?.click()} disabled={uploading}>
-              {uploading ? "Готовим фото…" : person.photos.length ? "+ Ещё фото" : "Выбрать фото"}
-            </Button>
+            <span>{!person.photos.length
+              ? "На фото человек должен быть хорошо виден."
+              : person.photos.length >= MAX_PHOTOS_PER_PERSON
+                ? `${person.photos.length} фото · это максимум`
+                : `${person.photos.length} фото · можно добавить ещё`}</span>
+            {person.photos.length < MAX_PHOTOS_PER_PERSON && (
+              <Button variant="secondary" onClick={() => photoRef.current?.click()} disabled={uploading}>
+                {uploading ? "Готовим фото…" : person.photos.length ? "+ Ещё фото" : "Выбрать фото"}
+              </Button>
+            )}
             {photoError && <span className="mp-editor__photo-error" role="alert">{photoError}</span>}
           </div>
           <input ref={photoRef} type="file" accept={PHOTO_ACCEPT} onChange={addPhoto} hidden />
@@ -231,8 +244,8 @@ function PersonEditor({ person, activeContext, onChange, onPhotoAdded, onDelete,
         </fieldset>
 
         <label className="mp-check-row">
-          <input type="checkbox" checked={person.enabled} onChange={(event) => update({ enabled: event.target.checked })} />
-          <span><strong>Включать в тему</strong><small>Человек будет появляться в заданиях и в миксе.</small></span>
+          <input type="checkbox" checked={person.enabled} disabled={!person.enabled && !canEnable} onChange={(event) => update({ enabled: event.target.checked })} />
+          <span><strong>Включать в тему</strong><small>{person.enabled || canEnable ? "Человек будет появляться в заданиях и в миксе." : ACTIVE_LIMIT_HINT}</small></span>
         </label>
 
         <div className="mp-editor__actions">
@@ -261,6 +274,8 @@ export default function MyPeopleSettingsScreen() {
   const editorSnapshot = useRef(null);
 
   const editing = editingId ? people.find((person) => person.id === editingId) ?? null : null;
+  const activeCount = people.filter((person) => !person.deletedAt && person.enabled).length;
+  const canEnableMore = activeCount < MAX_ACTIVE_PEOPLE;
   const visiblePeople = useMemo(() => people.filter((person) => !person.deletedAt && person.contexts.includes(tab)), [people, tab]);
   const peopleByContext = useMemo(() => Object.fromEntries(
     Object.keys(CONTEXT_LABELS).map((context) => [context, people.filter((person) => !person.deletedAt && person.contexts.includes(context)).length]),
@@ -336,11 +351,12 @@ export default function MyPeopleSettingsScreen() {
   }
   function addPhotoAndPersist(personId, photo) {
     const person = peopleRef.current.find((item) => item.id === personId);
-    if (!person) return;
+    if (!person || person.photos.length >= MAX_PHOTOS_PER_PERSON) return;
     updatePerson({ ...person, photos: [...person.photos, photo] });
     persist();
   }
   function addPerson() {
+    if (!canEnableMore) return;
     const person = {
       id: makeId(), type: "person", name: "", relation: "", contexts: tab in CONTEXT_LABELS ? [tab] : ["family"],
       photos: [], introducedAxes: [], enabled: true, createdAt: null, updatedAt: null, deletedAt: null, isDraft: true,
@@ -358,6 +374,7 @@ export default function MyPeopleSettingsScreen() {
   function togglePerson(id) {
     const person = peopleRef.current.find((item) => item.id === id);
     if (!person) return;
+    if (!person.enabled && !canEnableMore) return;
     updatePerson({ ...person, enabled: !person.enabled });
     persist();
   }
@@ -443,16 +460,17 @@ export default function MyPeopleSettingsScreen() {
                 <h2>{TABS.find(([id]) => id === tab)?.[1]}</h2>
                 <p>{tab === "family" ? "Начните с 2–4 самых близких людей или питомцев." : "Добавьте тех, с кем ребёнок регулярно встречается."}</p>
               </div>
-              <button type="button" className="mp-add-compact" onClick={addPerson}>+ Добавить</button>
+              <button type="button" className="mp-add-compact" onClick={addPerson} disabled={!canEnableMore}>+ Добавить</button>
             </div>
+            {!canEnableMore && <p className="mp-limit-hint" role="status">{ACTIVE_LIMIT_HINT}</p>}
             <div className="mp-people-layout">
               <div className="mp-people-list">
                 {visiblePeople.length
-                  ? visiblePeople.map((person) => <PersonCard key={person.id} person={person} onEdit={openEditor} onToggle={togglePerson} />)
-                  : <div className="mp-empty"><span className="mp-empty__art" aria-hidden="true">＋</span><strong>Здесь пока никого нет</strong><span>{tab === "family" ? "Добавьте первого близкого человека или питомца." : "Добавьте человека, который встречается с ребёнком в этом окружении."}</span><button type="button" onClick={addPerson}>Добавить карточку</button></div>
+                  ? visiblePeople.map((person) => <PersonCard key={person.id} person={person} canEnable={canEnableMore} onEdit={openEditor} onToggle={togglePerson} />)
+                  : <div className="mp-empty"><span className="mp-empty__art" aria-hidden="true">＋</span><strong>Здесь пока никого нет</strong><span>{tab === "family" ? "Добавьте первого близкого человека или питомца." : "Добавьте человека, который встречается с ребёнком в этом окружении."}</span><button type="button" onClick={addPerson} disabled={!canEnableMore}>Добавить карточку</button></div>
                 }
               </div>
-              {editing && <PersonEditor person={editing} activeContext={tab} onChange={updatePerson} onPhotoAdded={addPhotoAndPersist} onDelete={() => deletePerson(editing.id)} onClose={closeEditor} />}
+              {editing && <PersonEditor person={editing} activeContext={tab} canEnable={canEnableMore} onChange={updatePerson} onPhotoAdded={addPhotoAndPersist} onDelete={() => deletePerson(editing.id)} onClose={closeEditor} />}
             </div>
           </>
         )}

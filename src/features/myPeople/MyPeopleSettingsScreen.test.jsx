@@ -124,4 +124,28 @@ describe("MyPeopleSettingsScreen persistence", () => {
 
     expect(pushedPeople()[0].photos).toEqual(["/api/photos/abc", "data:image/jpeg;base64,NEW"]);
   });
+
+  it("stops adding and switching on people at 20 active cards", async () => {
+    const crowd = Array.from({ length: 20 }, (_, index) => ({ ...anna, id: `p${index}`, name: `Имя ${index}` }));
+    const spare = { ...anna, id: "spare", name: "Запасной", enabled: false };
+    useAppStore.setState({ students: [{ id: "student_1", name: "Миша", myPeople: [...crowd, spare], myPeopleProfile: {} }] });
+    await mount();
+
+    expect(container.querySelector(".mp-add-compact").disabled).toBe(true);
+    expect(container.querySelector(".mp-limit-hint").textContent).toMatch(/Не больше 20/);
+    const spareSwitch = [...container.querySelectorAll(".mp-person-card")]
+      .find((card) => card.textContent.includes("Запасной"))
+      .querySelector(".mp-switch input");
+    expect(spareSwitch.disabled).toBe(true);
+  });
+
+  it("hides the add-photo button at five photos", async () => {
+    useAppStore.setState({ students: [{ id: "student_1", name: "Миша", myPeople: [{ ...anna, photos: ["a", "b", "c", "d", "e"].map((h) => `/api/photos/${h}`) }], myPeopleProfile: {} }] });
+    await mount();
+    await click(container.querySelector(".mp-person-card__main"));
+
+    expect(container.querySelector('input[type="file"]')).not.toBeNull();
+    expect(container.querySelector(".mp-editor__photo-copy button")).toBeNull();
+    expect(container.textContent).toMatch(/5 фото · это максимум/);
+  });
 });

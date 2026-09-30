@@ -258,3 +258,51 @@ describe("my_people album engine", () => {
     expect(relationPhoto).not.toBe(namePhoto);
   });
 });
+
+describe("my_people introductions per lesson", () => {
+  const familyNames = { id: "family_names" };
+  const bigFamily = {
+    id: "student_big",
+    myPeople: Array.from({ length: 10 }, (_, index) => ({
+      id: `p${index}`,
+      name: `Имя ${index}`,
+      relation: `родня ${index}`,
+      contexts: ["family"],
+      photos: [`/api/photos/p${index}`],
+      introducedAxes: [],
+      enabled: true,
+      // Created in reverse id order, to prove creation time decides the queue.
+      createdAt: `2026-09-${String(20 - index).padStart(2, "0")}T10:00:00.000Z`,
+    })),
+  };
+  const intros = (tasks) => tasks.filter((task) => task.type === "person_intro").map((task) => task.personId);
+  const albumPeople = (tasks) => tasks.filter((task) => task.type !== "person_intro").flatMap((task) => task.entries.map((entry) => entry.personId));
+
+  it("introduces at most four new people, the earliest-added first", () => {
+    const tasks = generateTasks(familyNames, bigFamily, { peopleCount: 4 });
+
+    expect(intros(tasks).sort()).toEqual(["p6", "p7", "p8", "p9"]);
+    expect(new Set(albumPeople(tasks))).toEqual(new Set(["p6", "p7", "p8", "p9"]));
+  });
+
+  it("does not introduce anyone new in later rounds of the same lesson", () => {
+    const sessionIntroduced = { name: new Set(["p6", "p7", "p8", "p9"]) };
+    const tasks = generateTasks(familyNames, bigFamily, { peopleCount: 4 }, new Map(), sessionIntroduced);
+
+    expect(intros(tasks)).toEqual([]);
+    expect(new Set(albumPeople(tasks))).toEqual(new Set(["p6", "p7", "p8", "p9"]));
+  });
+
+  it("introduces the next four in the next lesson", () => {
+    const afterFirstLesson = {
+      ...bigFamily,
+      myPeople: bigFamily.myPeople.map((person) => (
+        ["p6", "p7", "p8", "p9"].includes(person.id) ? { ...person, introducedAxes: ["name"] } : person
+      )),
+    };
+    const tasks = generateTasks(familyNames, afterFirstLesson, { peopleCount: 4 });
+
+    expect(intros(tasks).sort()).toEqual(["p2", "p3", "p4", "p5"]);
+    expect(albumPeople(tasks).some((id) => ["p0", "p1", "p2", "p3", "p4", "p5"].includes(id))).toBe(false);
+  });
+});

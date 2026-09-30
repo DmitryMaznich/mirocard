@@ -4,6 +4,10 @@ const CONTEXT_BY_PREFIX = { family: "family", home: "home", school: "school" };
 const MIN_ALBUM_SIZE = 2;
 const MAX_ALBUM_SIZE = 8;
 const ALBUM_SIZES = [4, 6, 8];
+// New people introduced per axis per lesson -- across all its rounds, not per
+// round. With a full list (up to 20 cards) the first lesson would otherwise
+// open with an introduction screen for every single person.
+export const MAX_NEW_PER_SESSION = 4;
 
 const ABOUT_ME_FACTS = [
   { id: "self_name", enabledKey: "includeSelfName", value: (student) => student?.name },
@@ -134,8 +138,17 @@ function introTaskForPerson(person, axis, modeId, photoPlanner, preferDifferentP
   };
 }
 
-function hasIntroducedAxis(person, axis) {
-  return Array.isArray(person.introducedAxes) && person.introducedAxes.includes(axis);
+function hasIntroducedAxis(person, axis, sessionIntroduced) {
+  // Also trust this session's own introductions: the student record may not
+  // have caught up with markPersonAxisIntroduced by the next round.
+  return (Array.isArray(person.introducedAxes) && person.introducedAxes.includes(axis))
+    || Boolean(sessionIntroduced?.[axis]?.has(person.id));
+}
+
+// The adult adds the closest people first (the settings screen asks for
+// that), so the queue follows the order cards were created in.
+function byCreation(a, b) {
+  return String(a.createdAt ?? "").localeCompare(String(b.createdAt ?? ""));
 }
 
 function albumTasks(people, axis, mode, params, photoPlanner, preferDifferentPhoto = false) {
@@ -145,19 +158,21 @@ function albumTasks(people, axis, mode, params, photoPlanner, preferDifferentPho
   return groups.map((group) => taskForGroup(group, axis, mode.id, photoPlanner, preferDifferentPhoto));
 }
 
-function tasksForAxis(people, axis, mode, params, photoPlanner, preferDifferentPhoto = false) {
+function tasksForAxis(people, axis, mode, params, photoPlanner, preferDifferentPhoto = false, sessionIntroduced = {}) {
   const suitablePeople = axis === "relation" ? people.filter((person) => person.relation?.trim()) : people;
-  const newPeople = suitablePeople.filter((person) => !hasIntroducedAxis(person, axis));
-  const introducedPeople = suitablePeople.filter((person) => hasIntroducedAxis(person, axis));
+  const newPeople = suitablePeople.filter((person) => !hasIntroducedAxis(person, axis, sessionIntroduced)).sort(byCreation);
+  const introducedPeople = suitablePeople.filter((person) => hasIntroducedAxis(person, axis, sessionIntroduced));
+  const budget = Math.max(0, MAX_NEW_PER_SESSION - (sessionIntroduced[axis]?.size ?? 0));
+  const newToday = newPeople.slice(0, budget);
 
   // Do not let staged learning make the lesson impossible: when there are
-  // fewer than two already introduced people, keep the existing album intact
-  // after the introductions. Otherwise the newly introduced people enter the
-  // album on the next renewable round.
-  const peopleForAlbum = introducedPeople.length >= MIN_ALBUM_SIZE ? introducedPeople : suitablePeople;
+  // fewer than two already introduced people, the album also takes today's
+  // newcomers. Otherwise they enter the album on the next renewable round.
+  // People still waiting for their introduction never appear in it.
+  const peopleForAlbum = introducedPeople.length >= MIN_ALBUM_SIZE ? introducedPeople : [...introducedPeople, ...newToday];
 
   return [
-    ...shuffle(newPeople).map((person) => introTaskForPerson(person, axis, mode.id, photoPlanner, preferDifferentPhoto)),
+    ...shuffle(newToday).map((person) => introTaskForPerson(person, axis, mode.id, photoPlanner, preferDifferentPhoto)),
     ...albumTasks(peopleForAlbum, axis, mode, params, photoPlanner, preferDifferentPhoto),
   ];
 }
@@ -246,7 +261,9 @@ function personNamingTasks(people, mode, photoPlanner) {
   });
 }
 
-export function generateTasks(mode, student, params = {}, previousImages = new Map()) {
+// sessionIntroduced: { name?: Set<personId>, relation?: Set<personId> } of
+// people already introduced in earlier rounds of the current lesson.
+export function generateTasks(mode, student, params = {}, previousImages = new Map(), sessionIntroduced = {}) {
   if (!mode || !student) return [];
   if (mode.id === "about_me") return aboutMeTasks(student);
 
@@ -261,10 +278,10 @@ export function generateTasks(mode, student, params = {}, previousImages = new M
     // first, then relationships. Each axis has its own introductions before
     // its association album and, when available, uses another photo.
     return [
-      ...tasksForAxis(people, "name", mode, params, photoPlanner),
-      ...tasksForAxis(people, "relation", mode, params, photoPlanner, true),
+      ...tasksForAxis(people, "name", mode, params, photoPlanner, false, sessionIntroduced),
+      ...tasksForAxis(people, "relation", mode, params, photoPlanner, true, sessionIntroduced),
     ];
   }
 
-  return tasksForAxis(people, axisForMode(mode), mode, params, photoPlanner);
+  return tasksForAxis(people, axisForMode(mode), mode, params, photoPlanner, false, sessionIntroduced);
 }

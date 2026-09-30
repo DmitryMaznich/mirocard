@@ -470,7 +470,15 @@ export function useSessionEngine() {
         entry.image,
       ])),
     );
-    const tasks = generateTasks ? generateTasks(state.mode, activeStudent, sessionParams, previousImages) : [];
+    // Introductions are capped per lesson, not per round (engine's
+    // MAX_NEW_PER_SESSION): carry who was already introduced forward.
+    const sessionIntroduced = {};
+    for (const [axis, ids] of Object.entries(state.myPeopleIntroduced ?? {})) sessionIntroduced[axis] = new Set(ids);
+    for (const task of state.tasks) {
+      if (task.type !== "person_intro") continue;
+      (sessionIntroduced[task.axis] ??= new Set()).add(task.personId);
+    }
+    const tasks = generateTasks ? generateTasks(state.mode, activeStudent, sessionParams, previousImages, sessionIntroduced) : [];
     if (!tasks.length) return next;
     const roundConceptIds = tasks.flatMap((task) => task.progressConceptIds ?? [task.targetConceptId ?? task.conceptId]);
     return {
@@ -478,6 +486,7 @@ export function useSessionEngine() {
       tasks,
       taskIndex: 0,
       conceptIds: [...new Set([...(state.conceptIds ?? []), ...roundConceptIds])],
+      myPeopleIntroduced: Object.fromEntries(Object.entries(sessionIntroduced).map(([axis, ids]) => [axis, [...ids]])),
     };
   }, [activeStudent, sessionParams]);
 

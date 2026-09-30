@@ -22607,6 +22607,8 @@ body { background: #eef0ef; }
   text-transform: uppercase;
 }
 .mp-section-head--stacked { margin-bottom: 2px; }
+.mp-limit-hint { margin: -6px 0 12px; color: #8a5a00; font-size: .8rem; font-weight: 700; }
+.mp-add-compact:disabled { opacity: .45; cursor: not-allowed; }
 .mp-add-compact {
   min-height: 38px;
   flex: 0 0 auto;
