@@ -513,6 +513,15 @@
             <input type="checkbox" id="snapEndsChk" checked />
             Концы и вершины — к горизонталям
           </label>
+          <label class="guide-toggle-label" title="Когда перо возвращается по уже нарисованному участку того же штриха, возврат точно ложится на первый проход — линия не утолщается и не раздваивается">
+            <input type="checkbox" id="retraceChk" checked />
+            Возврат по линии без утолщения
+          </label>
+          <label class="guide-toggle-label img-guide-slider-label" title="Максимальное расстояние до уже нарисованной линии (в единицах холста; толщина пера — 3), на котором возврат прилипает к ней. Меньше — прилипают только очень точные возвраты">
+            Дальность возврата
+            <input type="range" id="retraceRangeInput" min="0.5" max="4" step="0.5" value="2" />
+            <span id="retraceRangeLabel">2</span>
+          </label>
           <label class="guide-toggle-label img-guide-slider-label" title="Максимальное расстояние до горизонтали (в единицах холста; расстояние между соседними линиями 6,5–26), на котором срабатывает притягивание">
             Дальность
             <input type="range" id="snapEndsRangeInput" min="0.5" max="5" step="0.5" value="2.5" />
@@ -716,6 +725,9 @@
   const snapRoundingLabel = document.getElementById("snapRoundingLabel");
   const snapToleranceInput = document.getElementById("snapToleranceInput");
   const snapToleranceLabel = document.getElementById("snapToleranceLabel");
+  const retraceChk = document.getElementById("retraceChk");
+  const retraceRangeInput = document.getElementById("retraceRangeInput");
+  const retraceRangeLabel = document.getElementById("retraceRangeLabel");
   const snapEndsChk = document.getElementById("snapEndsChk");
   const snapEndsRangeInput = document.getElementById("snapEndsRangeInput");
   const snapEndsRangeLabel = document.getElementById("snapEndsRangeLabel");
@@ -1286,10 +1298,71 @@
     const finalPts = snapEndsChk.checked ? snapEndsToRuling(merged, Number(snapEndsRangeInput.value), segFree) : merged;
     return filletPolylinePath(finalPts, radius, cornerFree);
   }
+  // ---- retrace snap (2026-09-30, "возврат пера по части уже нарисованной линии... чтобы линия
+  // в этих местах не утолщалась") ----
+  // Runs on the DENSE filtered points, before RDP. A point that lies within `range` of an
+  // EARLIER part of the same stroke and moves roughly parallel (or anti-parallel) to it is
+  // replaced by its projection onto that earlier part (using the already-snapped output as
+  // reference, so a third pass collapses onto the first too). The second pass then coincides
+  // with the first instead of running offset beside it, which is what made the line thick.
+  // Earlier parts within RETRACE_MIN_ARC of arc length behind the point are ignored, so a
+  // smooth curve never snaps onto its own immediate tail. Once snapped, a point keeps
+  // sticking a bit farther out (hysteresis) so the return doesn't chatter on and off.
+  const RETRACE_ANGLE_DEG = 20;
+  const RETRACE_MIN_ARC = 8;       // same-direction overlap: ignore the immediate tail
+  const RETRACE_MIN_ARC_BACK = 1;  // U-turn (opposite direction): may snap right at the tip
+  function retraceSnap(pts, range) {
+    const n = pts.length;
+    if (n < 6 || range <= 0) return pts;
+    const out = [pts[0]];
+    const arc = [0];
+    const sinEnter = Math.sin(RETRACE_ANGLE_DEG * Math.PI / 180);
+    let holding = false;
+    for (let i = 1; i < n; i++) {
+      // Forward-looking direction (where the pen is going), so the first points right after
+      // a U-turn already read as "moving back along the line"; only the last points of the
+      // stroke fall back to the backward direction.
+      const fwd = i + 3 <= n - 1;
+      const a = fwd ? pts[i] : pts[Math.max(0, i - 3)], b = fwd ? pts[i + 3] : pts[i];
+      const dirX = b.x - a.x, dirY = b.y - a.y;
+      const dirLen = Math.hypot(dirX, dirY);
+      const maxDist = holding ? range * 1.5 : range;
+      const maxSin = holding ? Math.min(1, sinEnter * 1.5) : sinEnter;
+      let best = null, bestD = maxDist;
+      if (dirLen > 1e-6) {
+        for (let j = 0; j + 1 < out.length; j++) {
+          // only segments that end far enough (in path length) behind point i; U-turns
+          // (opposite direction) need much less than same-direction overlaps
+          if (arc[j + 1] > arc[i - 1] - RETRACE_MIN_ARC_BACK) break;
+          const p = out[j], q = out[j + 1];
+          const sx = q.x - p.x, sy = q.y - p.y;
+          if (dirX * sx + dirY * sy >= 0 && arc[j + 1] > arc[i - 1] - RETRACE_MIN_ARC) continue;
+          const sl2 = sx * sx + sy * sy;
+          if (sl2 < 1e-9) continue;
+          let t = ((pts[i].x - p.x) * sx + (pts[i].y - p.y) * sy) / sl2;
+          t = Math.max(0, Math.min(1, t));
+          const px = p.x + sx * t, py = p.y + sy * t;
+          const d = Math.hypot(pts[i].x - px, pts[i].y - py);
+          if (d >= bestD) continue;
+          const sinAng = Math.abs(dirX * sy - dirY * sx) / (dirLen * Math.sqrt(sl2));
+          if (sinAng > maxSin) continue;
+          bestD = d; best = { x: px, y: py };
+        }
+      }
+      holding = !!best;
+      out.push(best || pts[i]);
+      arc.push(arc[i - 1] + Math.hypot(out[i].x - out[i - 1].x, out[i].y - out[i - 1].y));
+    }
+    return out;
+  }
+  function prepFiltered(pts) {
+    return retraceChk.checked ? retraceSnap(pts, Number(retraceRangeInput.value)) : pts;
+  }
   function buildPathD(simplified) {
     return snapToGridChk.checked ? snapAndFilletPath(simplified, Number(snapRoundingInput.value), Number(snapToleranceInput.value)) : fitSpline(snapEndsChk.checked ? snapEndsToRuling(simplified, Number(snapEndsRangeInput.value)) : simplified);
   }
   snapRoundingInput.addEventListener("input", () => { snapRoundingLabel.textContent = snapRoundingInput.value; });
+  retraceRangeInput.addEventListener("input", () => { retraceRangeLabel.textContent = retraceRangeInput.value; });
   snapEndsRangeInput.addEventListener("input", () => { snapEndsRangeLabel.textContent = snapEndsRangeInput.value; });
   snapToleranceInput.addEventListener("input", () => { snapToleranceLabel.textContent = snapToleranceInput.value; });
 
@@ -1385,7 +1458,7 @@
     requestAnimationFrame(() => {
       rafPending = false;
       if (!drawing || !currentFiltered || !currentPathEl) return;
-      const simplified = rdp(currentFiltered, RDP_EPSILON);
+      const simplified = rdp(prepFiltered(currentFiltered), RDP_EPSILON);
       currentPathEl.setAttribute("d", buildPathD(simplified));
     });
   }
@@ -1455,7 +1528,7 @@
     let trimmed = currentFiltered;
     if (trimStartChk.checked) trimmed = trimToLine(trimmed, NARROW_MID, "start");
     if (trimEndChk.checked) trimmed = trimToLine(trimmed, NARROW_MID, "end");
-    const simplified = rdp(trimmed, RDP_EPSILON);
+    const simplified = rdp(prepFiltered(trimmed), RDP_EPSILON);
     const d = buildPathD(simplified);
     strokes.push({ raw: currentRaw, smoothD: d, simplifiedCount: simplified.length });
     currentRaw = null;

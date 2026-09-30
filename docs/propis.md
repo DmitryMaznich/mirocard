@@ -3441,3 +3441,16 @@ the line and dragged a bump. Now, for an extreme between two free segments, the 
 extreme is snapped (only if within range) and the shift is spread over the vertex and its free
 interior neighbours (half each). Extremes at sharp corners between snapped lines keep the
 old y-only snap. `snapAndFilletPath` passes `segFree` for this. Tool-only change.
+
+**Retrace snap (return along an already-drawn line), 2026-09-30.** User: a pen return over part of
+the same line is hard to do exactly with a stylus; offset passes read as a thicker line (pen width
+is 3 units). New checkbox `#retraceChk` (default on) + slider `#retraceRangeInput` (0.5–4, default 2).
+`retraceSnap()` in `tools/letter_capture/handwriting_capture.html` runs on the DENSE filtered points
+before RDP (`prepFiltered()` at both call sites: live preview and `endStroke`, after the trim
+checkboxes). A point within `range` of an EARLIER segment of the same stroke whose direction is within
+`RETRACE_ANGLE_DEG` (20°) of parallel/antiparallel is replaced by its projection on that segment
+(reference = already-snapped output, so a 3rd pass collapses onto the 1st). Direction is forward-looking
+(i → i+3) so the first points after a U-turn already count as "going back"; only the last points use the
+backward direction. Same-direction overlap ignores the last `RETRACE_MIN_ARC` (8) of path length (no
+snapping onto its own tail); U-turns only `RETRACE_MIN_ARC_BACK` (1). Loops crossing at an angle and
+smooth arcs are untouched (verified in Node). Only within one stroke (pen not lifted). Tool-only change.
