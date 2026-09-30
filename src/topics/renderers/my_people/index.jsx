@@ -6,12 +6,29 @@ import { markPersonAxisIntroduced } from "@/features/myPeople/myPeoplePersistenc
 import { isCorrectAssociation } from "./matching";
 import "./my_people.css";
 
+// Three grades are all an adult needs here: the child knows it, needs a
+// small hint, or doesn't know it yet. (A fourth "Легко!" step only made the
+// adult split hairs mid-lesson.) Red / yellow / green, labelled in words.
 const QUALITY_BUTTONS = [
-  { value: "fail", label: "Не ответил", mod: "fail" },
+  { value: "fail", label: "Не знает", mod: "fail" },
   { value: "prompted", label: "С подсказкой", mod: "prompted" },
-  { value: "correct", label: "Правильно", mod: "correct" },
-  { value: "easy", label: "Легко!", mod: "easy" },
+  { value: "correct", label: "Знает", mod: "correct" },
 ];
+
+// "Hear it again". Drawn as a plain speaker, not a filled teal tile: in the
+// same colour as «Дальше» and the answer buttons it read as one more thing
+// to press to move on.
+function SpeakerButton({ onClick, label, className = "" }) {
+  return (
+    <button type="button" className={`people-speaker ${className}`} onClick={onClick} aria-label={label}>
+      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z" fill="currentColor" fillOpacity=".14" />
+        <path d="M15.5 9a4.2 4.2 0 0 1 0 6" />
+        <path d="M18.3 6.4a8 8 0 0 1 0 11.2" />
+      </svg>
+    </button>
+  );
+}
 
 function usePeopleAlbumScale(task) {
   const viewportRef = useRef(null);
@@ -222,7 +239,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
       >
       <div className="people-album__prompt">
         <div className="people-album__question">{task.prompt}</div>
-        <button type="button" className="people-album__repeat" onClick={repeatPrompt} aria-label="Повторить задание">🔊</button>
+        <SpeakerButton onClick={repeatPrompt} label="Повторить задание" />
       </div>
       <div className="people-album__hint">
         {dragHint}
@@ -321,7 +338,7 @@ function PersonIntroTask({ task, topicId, student, soundEnabled, onAdvance, onCa
       </div>
       <div className="person-intro__label-row">
         <div className="person-intro__label">{task.label}</div>
-        <button type="button" className="person-intro__repeat" onClick={repeatPrompt} aria-label="Повторить">🔊</button>
+        <SpeakerButton onClick={repeatPrompt} label="Повторить" />
       </div>
       <p className="person-intro__hint">Посмотри на фотографию и послушай.</p>
       <button type="button" className="person-intro__next" onClick={confirmIntroduction} disabled={confirmed}>
@@ -376,22 +393,19 @@ function QualityAnswerTask({
       <div className={`about-me-task__answer${answered || answerShown ? " about-me-task__answer--shown" : ""}`} aria-live="polite">
         {task.answer}
       </div>
-      <div className="qa-row">
-        {QUALITY_BUTTONS.map((button, index) => (
+      <div className="people-grade-row">
+        {QUALITY_BUTTONS.map((button) => (
           <button
             key={button.value}
             type="button"
-            className={`qa-btn qa-btn--${button.mod}`}
+            className={`people-grade people-grade--${button.mod}`}
             disabled={answered}
             onClick={() => markAnswer(button.value)}
           >
-            {index + 1}
+            {button.label}
           </button>
         ))}
       </div>
-      <p className="qa-legend">
-        {QUALITY_BUTTONS.map((button, index) => `${index + 1} — ${button.label}`).join("   ")}
-      </p>
     </div>
   );
 }
@@ -405,7 +419,7 @@ function AboutMeSituationTask(props) {
           <div className="about-me-task__situation">{props.task.situation}</div>
           <div className="about-me-task__prompt-row">
             <div className="about-me-task__prompt">{props.task.prompt}</div>
-            <button type="button" className="about-me-task__repeat" onClick={repeatPrompt} aria-label="Повторить ситуацию">🔊</button>
+            <SpeakerButton onClick={repeatPrompt} label="Повторить ситуацию" />
           </div>
           <p className="about-me-task__hint">Можно ответить голосом, жестом или с помощью AAC.</p>
         </>
@@ -437,7 +451,7 @@ function AboutMeQuestionTask(props) {
           <span className="about-me-task__eyebrow">Обо мне</span>
           <div className="about-me-task__prompt-row">
             <div className="about-me-task__prompt about-me-question__prompt">{props.task.prompt}</div>
-            <button type="button" className="about-me-task__repeat" onClick={repeatPrompt} aria-label="Повторить вопрос">🔊</button>
+            <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
           </div>
           {level >= 1 && props.task.cueImage && (
             <div className="person-naming__photo-wrap about-me-question__photo">
@@ -476,7 +490,7 @@ function PersonNamingTask(props) {
           </div>
           <div className="about-me-task__prompt-row">
             <div className="about-me-task__prompt">{props.task.prompt}</div>
-            <button type="button" className="about-me-task__repeat" onClick={repeatPrompt} aria-label="Повторить вопрос">🔊</button>
+            <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
           </div>
         </>
       )}

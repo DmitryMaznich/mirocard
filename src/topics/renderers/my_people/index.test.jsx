@@ -110,7 +110,7 @@ describe("person intro renderer", () => {
 
     expect(container.querySelector(".person-intro__photo")).not.toBeNull();
     expect(container.textContent).toContain("Анна");
-    expect(container.querySelector(".person-intro__repeat")?.getAttribute("aria-label")).toBe("Повторить");
+    expect(container.querySelector(".people-speaker")?.getAttribute("aria-label")).toBe("Повторить");
 
     act(() => {
       container.querySelector(".person-intro__next").click();
