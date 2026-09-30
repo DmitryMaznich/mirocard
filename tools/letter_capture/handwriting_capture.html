@@ -502,6 +502,22 @@
             <input type="range" id="snapRoundingInput" min="0" max="15" step="0.5" value="3" />
             <span id="snapRoundingLabel">3</span>
           </label>
+          <label class="guide-toggle-label img-guide-slider-label" title="Насколько может отклоняться участок от линии сетки, чтобы к ней притянуться (в градусах). Меньше — мягче: кривые остаются кривыми, притягиваются только почти ровные линии. 0 — привязка отключена, работает только сглаживание и скругление">
+            Допуск привязки, °
+            <input type="range" id="snapToleranceInput" min="0" max="30" step="1" value="10" />
+            <span id="snapToleranceLabel">10</span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <label class="guide-toggle-label" title="Концы штриха и его верхние/нижние точки (вершины по вертикали) притягиваются к ближайшей горизонтальной линии подложки, если лежат рядом с ней. Штрих при этом укорачивается или удлиняется вдоль своего направления. Работает и без «Выравнивать по сетке»">
+            <input type="checkbox" id="snapEndsChk" checked />
+            Концы и вершины — к горизонталям
+          </label>
+          <label class="guide-toggle-label img-guide-slider-label" title="Максимальное расстояние до горизонтали (в единицах холста; расстояние между соседними линиями 6,5–26), на котором срабатывает притягивание">
+            Дальность
+            <input type="range" id="snapEndsRangeInput" min="0.5" max="5" step="0.5" value="2.5" />
+            <span id="snapEndsRangeLabel">2.5</span>
+          </label>
         </div>
 
         <div class="stats">
@@ -698,6 +714,11 @@
   const snapToGridChk = document.getElementById("snapToGridChk");
   const snapRoundingInput = document.getElementById("snapRoundingInput");
   const snapRoundingLabel = document.getElementById("snapRoundingLabel");
+  const snapToleranceInput = document.getElementById("snapToleranceInput");
+  const snapToleranceLabel = document.getElementById("snapToleranceLabel");
+  const snapEndsChk = document.getElementById("snapEndsChk");
+  const snapEndsRangeInput = document.getElementById("snapEndsRangeInput");
+  const snapEndsRangeLabel = document.getElementById("snapEndsRangeLabel");
   const typeSelect = document.getElementById("typeSelect");
   const addToSetBtn = document.getElementById("addToSetBtn");
   const labelInput = document.getElementById("labelInput");
@@ -1120,9 +1141,13 @@
   // tangent to both straight segments at the trim points automatically, with no separate
   // tangent computation needed (unlike fitSpline's own Catmull-Rom-style tangents above,
   // which exist precisely because THAT curve has no straight sections to be tangent to).
-  function filletPolylinePath(points, radius) {
+  // cornerFree[i-1] (optional, aligned with interior corner i) marks a corner that touches a
+  // free (non-snapped) segment: it is rounded at the maximum radius (half of each adjacent
+  // segment), which turns the short RDP pieces of a hand-drawn curve into a smooth curve
+  // instead of a polyline with small fixed-radius bevels.
+  function filletPolylinePath(points, radius, cornerFree) {
     if (points.length < 2) return "M " + (points[0] ? points[0].x.toFixed(2) + " " + points[0].y.toFixed(2) : "0 0");
-    if (radius <= 0 || points.length === 2) {
+    if ((radius <= 0 && !cornerFree) || points.length === 2) {
       return "M " + points.map(p => p.x.toFixed(2) + " " + p.y.toFixed(2)).join(" L ");
     }
     let d = "M " + points[0].x.toFixed(2) + " " + points[0].y.toFixed(2);
@@ -1130,7 +1155,8 @@
       const prev = points[i - 1], corner = points[i], next = points[i + 1];
       const dIn = Math.hypot(corner.x - prev.x, corner.y - prev.y);
       const dOut = Math.hypot(next.x - corner.x, next.y - corner.y);
-      const t = Math.min(radius, dIn / 2, dOut / 2);
+      const free = cornerFree && cornerFree[i - 1];
+      const t = Math.min(free ? Infinity : radius, dIn / 2, dOut / 2);
       const a = { x: corner.x - (corner.x - prev.x) / dIn * t, y: corner.y - (corner.y - prev.y) / dIn * t };
       const b = { x: corner.x + (next.x - corner.x) / dOut * t, y: corner.y + (next.y - corner.y) / dOut * t };
       d += " L " + a.x.toFixed(2) + " " + a.y.toFixed(2);
@@ -1140,59 +1166,110 @@
     d += " L " + last.x.toFixed(2) + " " + last.y.toFixed(2);
     return d;
   }
-  function snapAndFilletPath(pts, radius) {
-    if (pts.length < 2) return fitSpline(pts);
-    // Pass 1: snap each ORIGINAL segment's own direction+length to the nearest grid-line
-    // family, but chain the RESULT from the previous SNAPPED point (not the original one) --
-    // this keeps the whole stroke connected with no gaps, since each new vertex is built
-    // from where the chain actually ended up, not from where the hand happened to be. For a
-    // diagonal family, also nudge the new point sideways onto the nearest actual grid LINE
-    // (snapPointToGridLine) -- since that nudge only ever moves the point along x at fixed
-    // y, and the next point is built from THIS (already nudged) point by construction, the
-    // nudge propagates through the rest of the chain for free: it's a no-op on every point
-    // after the first in an unbroken diagonal run (x0 is invariant along a line of that
-    // exact slope), so in effect only the run's first point gets pulled onto the grid line
-    // and everything downstream just continues from there, still perfectly connected.
-    const snappedPts = [pts[0]];
-    const snapIdx = [];
-    for (let i = 1; i < pts.length; i++) {
-      const dx = pts[i].x - pts[i - 1].x, dy = pts[i].y - pts[i - 1].y;
-      const len = Math.hypot(dx, dy);
-      const idx = bestSnapIndex(Math.atan2(dy, dx));
-      snapIdx.push(idx);
-      const a = SNAP_ANGLES_RAD[idx];
-      const prev = snappedPts[snappedPts.length - 1];
-      const next = { x: prev.x + Math.cos(a) * len, y: prev.y + Math.sin(a) * len };
-      snappedPts.push(snapPointToGridLine(next, idx));
+  // Soft snap (2026-09-30, "привязка такая цепкая, тяжело нарисовать закруглённые элементы"):
+  // a segment is only pulled onto a grid direction if (1) it is within `tolDeg` of it and
+  // (2) it belongs to a straight run (consecutive segments that want the SAME direction) at
+  // least SNAP_MIN_RUN long. Everything else stays as the hand drew it ("free") and its
+  // corners are rounded at the maximum radius, so curves stay curves.
+  // Pulls stroke endpoints and vertical extremes (local top/bottom vertices) onto the nearest
+  // horizontal ruling line when within `tol` units ("концы ... подтягивались к ближайшей
+  // горизонтальной линии... если нужно, делала меньше, если нужно, делала выше").
+  // An endpoint SLIDES along its adjacent segment to reach the line (so a snapped diagonal
+  // stays on its grid line and just gets shorter/longer); when that segment is too flat to
+  // reach a line reliably, or for an interior extreme, only y moves.
+  const RULING_YS = [L1, (L1 + L2) / 2, L2, (NARROW_MID + L2) / 2, NARROW_MID, (NARROW_MID + L3) / 2, L3, 110, L4];
+  function nearestRulingY(y, tol) {
+    let best = null, bestD = tol;
+    for (const ly of RULING_YS) {
+      const d = Math.abs(ly - y);
+      if (d <= bestD) { bestD = d; best = ly; }
     }
-    // The stroke's very own first point never goes through the loop above (it's the anchor
-    // everything else chains from), so if the stroke OPENS on a diagonal it's still the raw,
-    // un-nudged hand position at this point -- nudge it too. Safe to do after the fact,
-    // unlike every other point: nothing precedes it in the chain to disconnect from, and
-    // nearestGridX0 resolves to the same target line independently of which point asked, so
-    // this can't drag it onto a different line than the rest of the run already snapped to.
-    if (snapIdx.length) snappedPts[0] = snapPointToGridLine(snappedPts[0], snapIdx[0]);
-    // Pass 2: merge consecutive segments that snapped to the SAME grid family into one --
-    // RDP can over-segment a hand-drawn "should be one straight line" stroke into several
-    // small collinear-ish pieces wherever wobble happens to cross its own epsilon; without
-    // this they'd stay as separate tiny segments with an unwanted rounded corner between
-    // them instead of reading as the single clean line the artist actually intended.
-    const merged = [snappedPts[0]];
-    const mergedIdx = [];
-    for (let i = 0; i < snapIdx.length; i++) {
-      if (mergedIdx.length > 0 && mergedIdx[mergedIdx.length - 1] === snapIdx[i]) {
-        merged[merged.length - 1] = snappedPts[i + 1];
+    return best;
+  }
+  function snapEndsToRuling(points, tol) {
+    if (points.length < 2 || tol <= 0) return points;
+    const out = points.map(p => ({ x: p.x, y: p.y }));
+    const last = out.length - 1;
+    const slideEnd = (i, neighbor) => {
+      const target = nearestRulingY(out[i].y, tol);
+      if (target === null) return;
+      const vx = out[i].x - out[neighbor].x, vy = out[i].y - out[neighbor].y;
+      const len = Math.hypot(vx, vy);
+      if (len > 0 && Math.abs(vy) > 0.35 * len) {
+        const t = (target - out[neighbor].y) / vy;
+        if (t > 0.2) { out[i] = { x: out[neighbor].x + vx * t, y: target }; return; }
+      }
+      out[i] = { x: out[i].x, y: target };
+    };
+    slideEnd(0, 1);
+    slideEnd(last, last - 1);
+    for (let i = 1; i < last; i++) {
+      const up = out[i].y < out[i - 1].y && out[i].y < out[i + 1].y;
+      const down = out[i].y > out[i - 1].y && out[i].y > out[i + 1].y;
+      if (!up && !down) continue;
+      const target = nearestRulingY(out[i].y, tol);
+      if (target !== null) out[i] = { x: out[i].x, y: target };
+    }
+    return out;
+  }
+  const SNAP_MIN_RUN = 14;
+  function snapAndFilletPath(pts, radius, tolDeg) {
+    if (pts.length < 2) return fitSpline(pts);
+    const n = pts.length - 1;
+    const segLen = [], want = [];
+    const tolRad = tolDeg * Math.PI / 180;
+    for (let i = 0; i < n; i++) {
+      const dx = pts[i + 1].x - pts[i].x, dy = pts[i + 1].y - pts[i].y;
+      segLen.push(Math.hypot(dx, dy));
+      const idx = bestSnapIndex(Math.atan2(dy, dx));
+      const diff = Math.abs(normalizeAngle(Math.atan2(dy, dx) - SNAP_ANGLES_RAD[idx]));
+      want.push(diff <= tolRad ? idx : -1);
+    }
+    // Demote short runs of the same direction to free.
+    for (let i = 0; i < n;) {
+      let j = i, total = 0;
+      while (j < n && want[j] === want[i]) { total += segLen[j]; j++; }
+      if (want[i] >= 0 && total < SNAP_MIN_RUN) for (let k = i; k < j; k++) want[k] = -1;
+      i = j;
+    }
+    // Pass 1: chain from the previous OUTPUT point so the stroke stays connected. Snapped
+    // segments get direction+length from the grid family (plus the diagonal-line nudge);
+    // free segments keep their own original delta.
+    const out = [pts[0]];
+    for (let i = 0; i < n; i++) {
+      const prev = out[out.length - 1];
+      if (want[i] < 0) {
+        out.push({ x: prev.x + pts[i + 1].x - pts[i].x, y: prev.y + pts[i + 1].y - pts[i].y });
       } else {
-        merged.push(snappedPts[i + 1]);
-        mergedIdx.push(snapIdx[i]);
+        const a = SNAP_ANGLES_RAD[want[i]];
+        out.push(snapPointToGridLine({ x: prev.x + Math.cos(a) * segLen[i], y: prev.y + Math.sin(a) * segLen[i] }, want[i]));
       }
     }
-    return filletPolylinePath(merged, radius);
+    // The first point is the chain anchor; nudge it only when the stroke opens on a snapped
+    // diagonal (nothing precedes it to disconnect from).
+    if (want[0] >= 0) out[0] = snapPointToGridLine(out[0], want[0]);
+    // Pass 2: merge consecutive segments snapped to the SAME family; free segments stay as is.
+    const merged = [out[0]];
+    const mergedIdx = [];
+    for (let i = 0; i < n; i++) {
+      if (want[i] >= 0 && mergedIdx.length > 0 && mergedIdx[mergedIdx.length - 1] === want[i]) {
+        merged[merged.length - 1] = out[i + 1];
+      } else {
+        merged.push(out[i + 1]);
+        mergedIdx.push(want[i]);
+      }
+    }
+    const cornerFree = [];
+    for (let i = 1; i < mergedIdx.length; i++) cornerFree.push(mergedIdx[i - 1] < 0 || mergedIdx[i] < 0);
+    const finalPts = snapEndsChk.checked ? snapEndsToRuling(merged, Number(snapEndsRangeInput.value)) : merged;
+    return filletPolylinePath(finalPts, radius, cornerFree);
   }
   function buildPathD(simplified) {
-    return snapToGridChk.checked ? snapAndFilletPath(simplified, Number(snapRoundingInput.value)) : fitSpline(simplified);
+    return snapToGridChk.checked ? snapAndFilletPath(simplified, Number(snapRoundingInput.value), Number(snapToleranceInput.value)) : fitSpline(snapEndsChk.checked ? snapEndsToRuling(simplified, Number(snapEndsRangeInput.value)) : simplified);
   }
   snapRoundingInput.addEventListener("input", () => { snapRoundingLabel.textContent = snapRoundingInput.value; });
+  snapEndsRangeInput.addEventListener("input", () => { snapEndsRangeLabel.textContent = snapEndsRangeInput.value; });
+  snapToleranceInput.addEventListener("input", () => { snapToleranceLabel.textContent = snapToleranceInput.value; });
 
   // Cuts a finished stroke's point list exactly at y=targetY, discarding whichever side
   // trimStartChk/trimEndChk asked to drop — for a connector meant to end (or begin) exactly

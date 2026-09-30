@@ -115,7 +115,9 @@ export default function ModePickerScreen() {
       // sitting next to "Обо мне" (both used to fall into the -1 bucket).
       // «Представься» (the advanced, situational level) comes last of all.
       const rank = (modeId, index) => (
-        modeId === "introduce_self" ? order.length + 1
+        // «Покажи» is the first people step, before the circle blocks.
+        modeId === "show_me" ? -0.5
+          : modeId === "introduce_self" ? order.length + 1
           : modeId === "who_is_this" ? order.length
             : index < 0 ? -1 : index
       );

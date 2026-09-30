@@ -21,6 +21,29 @@ const mode = (id, title, instruction) => ({
   ui: { title: { ru: title }, instruction: { ru: instruction } },
 });
 
+// «Покажи»: "Где мама?" -- tap the right photo. The receptive step that
+// comes before naming, and the one that needs no reading.
+const showMeMode = {
+  id: "show_me",
+  type: "person_point",
+  evaluation: "auto",
+  loop: true,
+  regenerateOnLoop: true,
+  hideConceptPicker: true,
+  params: {
+    fieldSize: {
+      type: "enum",
+      label: { ru: "Фото на экране" },
+      values: [2, 3, 4],
+      default: 2,
+    },
+  },
+  ui: {
+    title: { ru: "Покажи" },
+    instruction: { ru: "«Где мама?» — ребёнок показывает нужное фото" },
+  },
+};
+
 // Short fixed questions (name, age, mum's name...). The child answers out
 // loud, with a gesture, or through AAC; the adult records the response
 // quality using the session's standard controls.
@@ -64,7 +87,7 @@ const whoIsThisMode = {
   hideConceptPicker: true,
   ui: {
     title: { ru: "Кто это?" },
-    instruction: { ru: "Назовите человека на фотографии или его связь с вами" },
+    instruction: { ru: "Ребёнок называет человека по фотографии, взрослый отмечает ответ" },
   },
 };
 
@@ -73,7 +96,7 @@ export function buildMyPeopleTopicRecord() {
     meta: {
       id: "my_people",
       renderer: "my_people",
-      version: "1.2.0",
+      version: "1.3.0",
       title: { ru: "Мои люди" },
       avatar: "media/avatar_my_people.svg",
       builtin: true,
@@ -95,12 +118,13 @@ export function buildMyPeopleTopicRecord() {
     },
     modes: [
       aboutMeMode,
-      mode("family_names", "Семья и питомцы: имена", "Подберите имена к фотографиям"),
-      mode("family_relations", "Семья и питомцы: кто это", "Подберите связь с ребёнком"),
-      mode("home_names", "Люди дома: имена", "Подберите имена к фотографиям"),
-      mode("home_relations", "Люди дома: кто это", "Подберите связь с ребёнком"),
-      mode("school_names", "Школа: имена", "Подберите имена к фотографиям"),
-      mode("school_relations", "Школа: кто это", "Подберите связь с ребёнком"),
+      showMeMode,
+      mode("family_names", "Семья и питомцы: имена", "Подписать фото именами: перетащить имя на фото (нужно уметь читать)"),
+      mode("family_relations", "Семья и питомцы: кто это", "Подписать фото словами «мама», «папа»…: перетащить слово на фото (нужно уметь читать)"),
+      mode("home_names", "Люди дома: имена", "Подписать фото именами: перетащить имя на фото (нужно уметь читать)"),
+      mode("home_relations", "Люди дома: кто это", "Подписать фото словами «мама», «папа»…: перетащить слово на фото (нужно уметь читать)"),
+      mode("school_names", "Школа: имена", "Подписать фото именами: перетащить имя на фото (нужно уметь читать)"),
+      mode("school_relations", "Школа: кто это", "Подписать фото словами «мама», «папа»…: перетащить слово на фото (нужно уметь читать)"),
       mode("mix", "Все люди", "Сначала имена, затем кто эти люди"),
       whoIsThisMode,
       introduceSelfMode,

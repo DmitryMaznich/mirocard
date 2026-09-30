@@ -6,12 +6,29 @@ import { markPersonAxisIntroduced } from "@/features/myPeople/myPeoplePersistenc
 import { isCorrectAssociation } from "./matching";
 import "./my_people.css";
 
+// Three grades are all an adult needs here: the child knows it, needs a
+// small hint, or doesn't know it yet. (A fourth "Легко!" step only made the
+// adult split hairs mid-lesson.) Red / yellow / green, labelled in words.
 const QUALITY_BUTTONS = [
-  { value: "fail", label: "Не ответил", mod: "fail" },
+  { value: "fail", label: "Не знает", mod: "fail" },
   { value: "prompted", label: "С подсказкой", mod: "prompted" },
-  { value: "correct", label: "Правильно", mod: "correct" },
-  { value: "easy", label: "Легко!", mod: "easy" },
+  { value: "correct", label: "Знает", mod: "correct" },
 ];
+
+// "Hear it again". Drawn as a plain speaker, not a filled teal tile: in the
+// same colour as «Дальше» and the answer buttons it read as one more thing
+// to press to move on.
+function SpeakerButton({ onClick, label, className = "" }) {
+  return (
+    <button type="button" className={`people-speaker ${className}`} onClick={onClick} aria-label={label}>
+      <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 9.5h3.2L12 5.5v13l-4.8-4H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z" fill="currentColor" fillOpacity=".14" />
+        <path d="M15.5 9a4.2 4.2 0 0 1 0 6" />
+        <path d="M18.3 6.4a8 8 0 0 1 0 11.2" />
+      </svg>
+    </button>
+  );
+}
 
 function usePeopleAlbumScale(task) {
   const viewportRef = useRef(null);
@@ -132,6 +149,8 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
 
     const nextMatches = { ...matches, [entry.personId]: { answerId: answer.id, label: answer.label } };
     setMatches(nextMatches);
+    // A hit is confirmed in words, the way an adult would: "Это мама."
+    if (soundEnabled) speak(`Это ${answer.label}.`);
     if (Object.keys(nextMatches).length === task.entries.length) {
       setTimeout(() => onCorrect(task.conceptId, "people_album", { scoreCount: task.entries.length }), 520);
     }
@@ -150,6 +169,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     if ((event.pointerType === "mouse" && event.button !== 0) || usedAnswerIds.has(answer.id)) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
+    if (soundEnabled) speak(answer.label);
     const nextDrag = {
       answerId: answer.id,
       label: answer.label,
@@ -197,7 +217,9 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
   function chooseAnswerWithKeyboard(event, answer) {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
-    if (!usedAnswerIds.has(answer.id)) setSelectedAnswerId(answer.id);
+    if (usedAnswerIds.has(answer.id)) return;
+    setSelectedAnswerId(answer.id);
+    if (soundEnabled) speak(answer.label);
   }
 
   const chosenAnswer = answersById[selectedAnswerId];
@@ -222,7 +244,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
       >
       <div className="people-album__prompt">
         <div className="people-album__question">{task.prompt}</div>
-        <button type="button" className="people-album__repeat" onClick={repeatPrompt} aria-label="Повторить задание">🔊</button>
+        <SpeakerButton onClick={repeatPrompt} label="Повторить задание" />
       </div>
       <div className="people-album__hint">
         {dragHint}
@@ -321,7 +343,7 @@ function PersonIntroTask({ task, topicId, student, soundEnabled, onAdvance, onCa
       </div>
       <div className="person-intro__label-row">
         <div className="person-intro__label">{task.label}</div>
-        <button type="button" className="person-intro__repeat" onClick={repeatPrompt} aria-label="Повторить">🔊</button>
+        <SpeakerButton onClick={repeatPrompt} label="Повторить" />
       </div>
       <p className="person-intro__hint">Посмотри на фотографию и послушай.</p>
       <button type="button" className="person-intro__next" onClick={confirmIntroduction} disabled={confirmed}>
@@ -376,22 +398,19 @@ function QualityAnswerTask({
       <div className={`about-me-task__answer${answered || answerShown ? " about-me-task__answer--shown" : ""}`} aria-live="polite">
         {task.answer}
       </div>
-      <div className="qa-row">
-        {QUALITY_BUTTONS.map((button, index) => (
+      <div className="people-grade-row">
+        {QUALITY_BUTTONS.map((button) => (
           <button
             key={button.value}
             type="button"
-            className={`qa-btn qa-btn--${button.mod}`}
+            className={`people-grade people-grade--${button.mod}`}
             disabled={answered}
             onClick={() => markAnswer(button.value)}
           >
-            {index + 1}
+            {button.label}
           </button>
         ))}
       </div>
-      <p className="qa-legend">
-        {QUALITY_BUTTONS.map((button, index) => `${index + 1} — ${button.label}`).join("   ")}
-      </p>
     </div>
   );
 }
@@ -405,7 +424,7 @@ function AboutMeSituationTask(props) {
           <div className="about-me-task__situation">{props.task.situation}</div>
           <div className="about-me-task__prompt-row">
             <div className="about-me-task__prompt">{props.task.prompt}</div>
-            <button type="button" className="about-me-task__repeat" onClick={repeatPrompt} aria-label="Повторить ситуацию">🔊</button>
+            <SpeakerButton onClick={repeatPrompt} label="Повторить ситуацию" />
           </div>
           <p className="about-me-task__hint">Можно ответить голосом, жестом или с помощью AAC.</p>
         </>
@@ -437,7 +456,7 @@ function AboutMeQuestionTask(props) {
           <span className="about-me-task__eyebrow">Обо мне</span>
           <div className="about-me-task__prompt-row">
             <div className="about-me-task__prompt about-me-question__prompt">{props.task.prompt}</div>
-            <button type="button" className="about-me-task__repeat" onClick={repeatPrompt} aria-label="Повторить вопрос">🔊</button>
+            <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
           </div>
           {level >= 1 && props.task.cueImage && (
             <div className="person-naming__photo-wrap about-me-question__photo">
@@ -460,6 +479,85 @@ function AboutMeQuestionTask(props) {
   );
 }
 
+function PointPhoto({ choice, topicId, state, disabled, onChoose }) {
+  const url = useTopicFile(topicId, choice.image);
+  return (
+    <button
+      type="button"
+      className={`people-point-photo${state ? ` people-point-photo--${state}` : ""}`}
+      onClick={() => onChoose(choice)}
+      disabled={disabled}
+      aria-label="Фотография"
+    >
+      {url
+        ? <img src={url} alt="" draggable={false} />
+        : <span className="people-point-photo__loading" aria-hidden="true" />}
+    </button>
+  );
+}
+
+// «Покажи»: "Где мама?" → tap the photo. Errorless on a miss: the wrong
+// photo fades, the right one is lit up and named ("Вот мама"), and only it
+// stays tappable -- the child finishes the trial correctly instead of
+// guessing again. The miss is still recorded.
+function PersonPointTask({ task, topicId, soundEnabled, onCorrect, onStreakReset, onCardShown }) {
+  const { speak } = useSpeech();
+  const [trial, setTrial] = useState({ taskId: null, missedId: null, done: false });
+  const current = trial.taskId === task.conceptId ? trial : { taskId: task.conceptId, missedId: null, done: false };
+
+  useEffect(() => {
+    onCardShown?.(null, task.conceptId);
+    if (soundEnabled) speak(task.promptSpeech);
+  }, [task, soundEnabled, speak, onCardShown]);
+
+  function repeatPrompt() {
+    if (soundEnabled) speak(task.promptSpeech);
+  }
+
+  function choose(choice) {
+    if (current.done) return;
+    if (choice.personId === task.personId) {
+      setTrial({ ...current, done: true });
+      if (soundEnabled) speak(`Да, это ${task.word}!`);
+      onCorrect?.(task.conceptId, task.personId, { autoAdvance: true, autoAdvanceDelayMs: 1400 });
+      return;
+    }
+    if (current.missedId) return;
+    setTrial({ ...current, missedId: choice.personId });
+    onStreakReset?.(task.conceptId, task.personId);
+    if (soundEnabled) speak(`Вот ${task.word}.`);
+  }
+
+  const columns = task.choices.length === 4 ? " people-point__photos--grid" : "";
+  return (
+    <div className="session-body people-point" aria-label="Покажи человека">
+      <div className="people-point__prompt">
+        <div className="people-point__question">{task.prompt}</div>
+        <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
+      </div>
+      <div className={`people-point__photos${columns}`}>
+        {task.choices.map((choice) => {
+          const isTarget = choice.personId === task.personId;
+          const state = current.done && isTarget ? "correct"
+            : current.missedId && isTarget ? "hint"
+              : current.missedId === choice.personId || (current.missedId && !isTarget) ? "faded"
+                : "";
+          return (
+            <PointPhoto
+              key={choice.personId}
+              choice={choice}
+              topicId={topicId}
+              state={state}
+              disabled={current.done || (Boolean(current.missedId) && !isTarget)}
+              onChoose={choose}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function PersonNamingTask(props) {
   const imageUrl = useTopicFile(props.topicId, props.task.image);
 
@@ -476,7 +574,7 @@ function PersonNamingTask(props) {
           </div>
           <div className="about-me-task__prompt-row">
             <div className="about-me-task__prompt">{props.task.prompt}</div>
-            <button type="button" className="about-me-task__repeat" onClick={repeatPrompt} aria-label="Повторить вопрос">🔊</button>
+            <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
           </div>
         </>
       )}
@@ -490,6 +588,8 @@ export default function MyPeopleRenderer(props) {
       return <PeopleAlbumTask {...props} />;
     case "person_intro":
       return <PersonIntroTask {...props} />;
+    case "person_point":
+      return <PersonPointTask {...props} />;
     case "about_me_question":
       return <AboutMeQuestionTask {...props} />;
     case "about_me_situation":

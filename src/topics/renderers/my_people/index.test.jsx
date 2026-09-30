@@ -44,7 +44,7 @@ describe("people album renderer", () => {
             type: "people_album",
             conceptId: "album:family_names:anna_boris_mila",
             axis: "name",
-            prompt: "Подбери имена",
+            prompt: "Подпиши имена",
             answerTitle: "Имена",
             entries: [
               { personId: "anna", image: "", label: "Анна" },
@@ -110,12 +110,75 @@ describe("person intro renderer", () => {
 
     expect(container.querySelector(".person-intro__photo")).not.toBeNull();
     expect(container.textContent).toContain("Анна");
-    expect(container.querySelector(".person-intro__repeat")?.getAttribute("aria-label")).toBe("Повторить");
+    expect(container.querySelector(".people-speaker")?.getAttribute("aria-label")).toBe("Повторить");
 
     act(() => {
       container.querySelector(".person-intro__next").click();
     });
     expect(persistence.markPersonAxisIntroduced).toHaveBeenCalledWith("student_1", "anna", "name");
     expect(onAdvance).toHaveBeenCalledOnce();
+  });
+});
+
+describe("«Покажи» renderer", () => {
+  let container;
+  let root;
+
+  afterEach(() => {
+    root?.unmount();
+    container?.remove();
+    root = null;
+    container = null;
+  });
+
+  const task = {
+    type: "person_point",
+    conceptId: "point:anna",
+    personId: "anna",
+    word: "мама",
+    prompt: "Где мама?",
+    promptSpeech: "Где мама?",
+    choices: [
+      { personId: "pavel", image: "data:image/png;base64,AAA" },
+      { personId: "anna", image: "data:image/png;base64,BBB" },
+    ],
+  };
+
+  function mount(props) {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => { root.render(<MyPeopleRenderer task={task} topicId="my_people" soundEnabled={false} {...props} />); });
+    return [...container.querySelectorAll(".people-point-photo")];
+  }
+
+  it("asks with the child's word and counts a first-try tap as correct", () => {
+    const onCorrect = vi.fn();
+    const onStreakReset = vi.fn();
+    const [, mama] = mount({ onCorrect, onStreakReset });
+
+    expect(container.textContent).toContain("Где мама?");
+    act(() => mama.click());
+
+    expect(onCorrect).toHaveBeenCalledWith("point:anna", "anna", expect.objectContaining({ autoAdvance: true }));
+    expect(onStreakReset).not.toHaveBeenCalled();
+    expect(mama.className).toContain("people-point-photo--correct");
+  });
+
+  it("after a miss lights the right photo and leaves only it tappable", () => {
+    const onCorrect = vi.fn();
+    const onStreakReset = vi.fn();
+    const [papa, mama] = mount({ onCorrect, onStreakReset });
+
+    act(() => papa.click());
+    expect(onStreakReset).toHaveBeenCalledTimes(1);
+    expect(mama.className).toContain("people-point-photo--hint");
+    expect(papa.disabled).toBe(true);
+
+    act(() => papa.click());
+    expect(onStreakReset).toHaveBeenCalledTimes(1);
+
+    act(() => mama.click());
+    expect(onCorrect).toHaveBeenCalledTimes(1);
   });
 });

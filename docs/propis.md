@@ -3408,3 +3408,27 @@ session is slow for iterating on visuals. Faster loop:
 3. `npx vite --host 0.0.0.0 --port 8080`, open `/dev-propis.html`, screenshot
    (Playwright works headless for this).
 4. **Delete both throwaway files before committing** — never commit them.
+
+**Soft snap in Мастерская траекторий, 2026-09-30.** User: привязка к линиям слишком цепкая —
+закруглённое не нарисовать, а без привязки не нарисовать прямое. Cause: `bestSnapIndex` always
+picked the nearest of 6 directions with no threshold, so every curve segment got forced onto
+0°/65°/50°. Fix in `snapAndFilletPath(pts, radius, tolDeg)` (`tools/letter_capture/handwriting_capture.html`):
+(1) a segment snaps only if within `tolDeg` (new slider `#snapToleranceInput`, default 10°, 0–30)
+of a grid direction; (2) a run of consecutive segments wanting the same direction is demoted to
+"free" if its total length < `SNAP_MIN_RUN` (14 units). Free segments keep their own delta
+(chained from the previous output point, so no gaps), and corners touching a free segment are
+filleted at the max radius (half of each adjacent segment) so short RDP pieces of a curve read as
+a smooth curve. Straight + curved in one stroke (hook on a stick) works. Note: tolerance 0 still
+keeps rounding but snaps nothing. Tool-only change: no version bump, no deck-zip rebuild.
+
+**Endpoints/vertical extremes snap to horizontal ruling lines, 2026-09-30.** User: hard to draw
+"И" with both top ends on the same level. New checkbox `#snapEndsChk` (default on) + slider
+`#snapEndsRangeInput` (0.5–5, default 2.5 units). `snapEndsToRuling()` in
+`tools/letter_capture/handwriting_capture.html` moves stroke endpoints and interior local
+y-extrema to the nearest of the 9 horizontals (`RULING_YS`: L1, TOP_MID, L2, 3½, NARROW_MID, 4½,
+L3, BOT_MID, L4) when within range. An endpoint slides ALONG its adjacent segment (stroke gets
+shorter/longer, a snapped diagonal stays on its grid line); flat segments (|dy| < 0.35·len) and
+interior extremes move in y only. Runs after the grid snap (before fillet) in
+`snapAndFilletPath`, and on the simplified points before `fitSpline` when grid snap is off.
+`RULING_YS` duplicates `drawRuling`'s values by hand, like the other snap constants. Tool-only
+change: no version bump, no deck-zip rebuild.
