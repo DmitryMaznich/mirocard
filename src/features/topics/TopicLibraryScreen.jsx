@@ -138,10 +138,15 @@ export default function TopicLibraryScreen() {
     (ownedTopics ?? []).filter((o) => o.source !== "request").map((o) => o.topicId)
   );
 
-  // The API already returns only public releases plus topics explicitly
-  // assigned to this account. Reconcile cached downloaded copies against it
-  // so an unassigned beta/individual deck cannot reappear from IndexedDB.
-  const visibleDecks = catalog ? catalog.decks.filter((e) => !e.hidden) : [];
+  // The API returns public releases plus topics explicitly assigned to this
+  // account. A developer with catalog_all_access receives every entry,
+  // including internal hidden ones. Reconcile cached copies against this
+  // response so an unassigned beta/individual deck cannot reappear from
+  // IndexedDB.
+  const hasCatalogAllAccess = (account?.featureFlags ?? []).includes("catalog_all_access");
+  const visibleDecks = catalog
+    ? catalog.decks.filter((entry) => hasCatalogAllAccess || !entry.hidden)
+    : [];
   const visibleCatalogDeckIds = new Set(visibleDecks.map((entry) => entry.id));
   const visibleRecords = (account && !isLocalMode
     ? topicRecords.filter((r) => r.meta.builtin || ownedNonPendingIds.has(r.meta.id))

@@ -26,6 +26,7 @@ writeFileSync(path.join(decksDir, "free_deck_v1.zip"), "FREE-ZIP-BYTES");
 writeFileSync(path.join(decksDir, "paid_deck_v1.zip"), "PAID-ZIP-BYTES");
 writeFileSync(path.join(decksDir, "beta_deck_v1.zip"), "BETA-ZIP-BYTES");
 writeFileSync(path.join(decksDir, "personal_deck_v1.zip"), "PERSONAL-ZIP-BYTES");
+writeFileSync(path.join(decksDir, "hidden_deck_v1.zip"), "HIDDEN-ZIP-BYTES");
 
 const catalog = {
   decks: [
@@ -44,6 +45,10 @@ const catalog = {
     {
       id: "personal_deck", version: "1", status: "individual", access: "paid",
       url: "./decks/personal_deck_v1.zip", title: { ru: "Личная" },
+    },
+    {
+      id: "hidden_deck", version: "1", status: "hidden", access: "paid",
+      url: "./decks/hidden_deck_v1.zip", title: { ru: "Скрытая" }, hidden: true,
     },
   ],
 };
@@ -68,7 +73,7 @@ const base = `http://127.0.0.1:${server.address().port}`;
 test.after(() => server.close());
 
 let registerSeq = 0;
-async function registerAndLogin({ allAccess = false } = {}) {
+async function registerAndLogin({ allAccess = false, catalogAllAccess = false } = {}) {
   registerSeq += 1;
   const email = `paywall-test-${registerSeq}@example.test`;
   const password = "correct horse battery staple";
@@ -85,7 +90,11 @@ async function registerAndLogin({ allAccess = false } = {}) {
 
   const account = findAccountByEmailAny(db, email);
   activateAccount(db, account.id);
-  if (allAccess) setAccountFeatureFlags(db, account.id, ["all_access"]);
+  const flags = [
+    ...(allAccess ? ["all_access"] : []),
+    ...(catalogAllAccess ? ["catalog_all_access"] : []),
+  ];
+  if (flags.length > 0) setAccountFeatureFlags(db, account.id, flags);
 
   const loginRes = await fetch(`${base}/api/auth/login`, {
     method: "POST",
@@ -303,4 +312,29 @@ test("beta and individual decks require an assignment as well as active access",
   assert.equal(revoke.status, 200);
   const revokedDownload = await fetch(`${base}/api/decks/beta_deck/download`, { headers: auth });
   assert.equal(revokedDownload.status, 403);
+});
+
+test("catalog_all_access lets a developer inspect and use every catalog publication", async () => {
+  const { token } = await registerAndLogin({ allAccess: true, catalogAllAccess: true });
+  const auth = { Authorization: `Bearer ${token}` };
+
+  const catalogRes = await fetch(`${base}/api/decks/catalog`, { headers: auth });
+  const ids = (await catalogRes.json()).decks.map((deck) => deck.id);
+  assert.ok(ids.includes("beta_deck"));
+  assert.ok(ids.includes("personal_deck"));
+  assert.ok(ids.includes("hidden_deck"));
+
+  for (const [topicId, bytes] of [
+    ["beta_deck", "BETA-ZIP-BYTES"],
+    ["personal_deck", "PERSONAL-ZIP-BYTES"],
+    ["hidden_deck", "HIDDEN-ZIP-BYTES"],
+  ]) {
+    const claim = await fetch(`${base}/api/decks/${topicId}/claim`, {
+      method: "POST", headers: auth,
+    });
+    assert.equal((await claim.json()).status, "granted");
+    const download = await fetch(`${base}/api/decks/${topicId}/download`, { headers: auth });
+    assert.equal(download.status, 200);
+    assert.equal(await download.text(), bytes);
+  }
 });
