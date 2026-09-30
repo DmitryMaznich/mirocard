@@ -372,10 +372,12 @@
   background: #fef2f2; color: #991b1b;
   box-shadow: 0 4px 0 #dc2626, 0 8px 18px rgba(239,68,68,0.18);
 }
-/* On-demand hint: "Нужна подсказка?" doesn't open a separate screen — it
-   turns each answer tile in place into its own tiny worked example (see
-   .apply-hint-tile below), the actual task above stays visible and
-   untouched throughout. */
+/* On-demand hint, shared between both compare_apply task types: for
+   GenerateStage ("Выбери число") it turns each answer tile in place into
+   its own tiny worked example (see .apply-hint-tile below); for OrderStage
+   ("Расставь по порядку") it reveals the draggable number line (see
+   .apply-order-scale below). Neither opens a separate screen — the actual
+   task above stays visible and untouched throughout. */
 .apply-hint-btn {
   position: relative; z-index: 1;
   display: inline-flex; align-items: center; gap: 6px;
@@ -521,6 +523,47 @@
   position: relative; z-index: 1;
   width: 100%; text-align: center;
   font-size: clamp(14px, 2.2vw, 18px); font-weight: 600; color: #93a5c4;
+}
+
+/* "Расставь по порядку" hint: a hand-draggable number line spanning the
+   level's whole min–max range (not the task's own drawn numbers — see the
+   comment on OrderScaleHint in CompareApply.jsx). Deliberately plain: no
+   tick marks or tray-number callouts, since the point is just a felt sense
+   of "this direction = bigger", not a tool for solving the task. */
+.apply-order-scale {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  width: 100%; max-width: min(94vw, 480px);
+  margin-top: 2px;
+}
+.apply-order-scale-value {
+  font-size: clamp(32px, 10vw, 56px); font-weight: 900; color: #2563eb; line-height: 1;
+}
+.apply-order-scale-track {
+  position: relative; width: 100%; height: 14px; border-radius: 999px;
+  background: #e2e8f0; touch-action: none; cursor: pointer;
+}
+.apply-order-scale-fill {
+  position: absolute; top: 0; left: 0; height: 100%; border-radius: 999px;
+  background: #93c5fd; pointer-events: none;
+}
+/* Tracks the pointer 1:1 while dragging — no transition on `left`, or the
+   thumb would visibly lag behind a fast drag. Only the "picked up" state
+   (scale + shadow lift) animates, since that toggles just twice per drag
+   rather than continuously. */
+.apply-order-scale-thumb {
+  position: absolute; top: 50%; width: 34px; height: 34px; border-radius: 50%;
+  background: #2563eb; box-shadow: 0 4px 0 #1d4ed8, 0 4px 10px rgba(37,99,235,0.35);
+  transform: translate(-50%, -50%); pointer-events: none;
+  transition: box-shadow 0.1s, transform 0.1s;
+}
+.apply-order-scale-track--active .apply-order-scale-thumb {
+  box-shadow: 0 2px 0 #1d4ed8, 0 4px 14px rgba(37,99,235,0.45);
+  transform: translate(-50%, -50%) scale(1.12);
+}
+.apply-order-scale-ends {
+  display: flex; justify-content: space-between; width: 100%;
+  font-size: clamp(13px, 2vw, 16px); font-weight: 700; color: #93a5c4;
 }
 
 /* ── CompareRealLife ("Сравни в жизни") ──────────────────────────── */
@@ -671,4 +714,36 @@
      button row off the bottom of the screen. */
   .cfn-multi-row     { min-height: 24px; max-height: 100px; }
   .cfn-multi-divider { max-width: min(720px, 94vw); }
+
+  /* "Расставь по порядку"'s scale hint, sized down for a short landscape
+     viewport — its portrait sizing (clamp ceilings driven by vw, which
+     stays generous on a WIDE-but-short landscape phone) measured out to
+     genuinely overflowing the card on an 844×390 phone with 5 tiles: the
+     scale alone added ~110px on top of an already-full screen. Trimmed to
+     what a landscape phone actually has spare, not what looks nice on a
+     tall one. */
+  .apply-order-scale       { gap: 4px; margin-top: 0; }
+  .apply-order-scale-value { font-size: clamp(18px, 4.5vw, 22px); }
+  .apply-order-scale-track { height: 8px; }
+  .apply-order-scale-thumb { width: 24px; height: 24px; }
+  .apply-order-scale-ends  { font-size: clamp(11px, 2vw, 13px); }
+
+  /* Even with the scale trimmed above, a 5-tile order task still overflows
+     a short landscape phone (~390px tall): .apply-order-slots/-tray size
+     their boxes/fonts as a %-of-column via `cqi` (see slotSizeStyle in
+     CompareApply.jsx), and the column width is driven by this grid's own
+     max-width — normally generous (min(94vw,720px)) because portrait
+     phones have width to spare but landscape ones don't. Narrowing the
+     grid here shrinks every column's cqi basis, and therefore every box/
+     font computed from it, proportionally — without touching the inline
+     JS sizing formula at all. */
+  .apply-order-slots,
+  .apply-order-tray { max-width: min(70vw, 460px); }
+  .apply-order-tray { min-height: 56px; }
+  /* Still only a few px of margin on the shortest real landscape phone
+     (iPhone SE, 667×375) once the hint is open — the toggle button itself
+     is the one remaining oversized element (sized for a roomy portrait
+     screen), so trim it here too rather than shrinking the grid further
+     and risking tap targets. */
+  .apply-hint-btn { font-size: clamp(15px, 3.2vw, 18px); padding: 4px 8px; }
 }

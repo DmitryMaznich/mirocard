@@ -205,7 +205,11 @@ function generateApplyGenerateTask(min, max, op, value, includeEqual) {
 // order — ascending (small→big) by default, or reversed for `direction:
 // "desc"` — CompareApply.jsx reads `direction` to flip which end of the
 // staircase (smallest box vs. largest box) is `sorted[0]`, so a box's
-// size always matches the number that belongs in it either way.
+// size always matches the number that belongs in it either way. min/max
+// are the level's own full range (not just the spread of the count drawn
+// numbers) — CompareApply.jsx's scale hint drags across this whole range,
+// so a "1" task still feels like a small step near the low end of "1–10"
+// rather than being one extreme of its own private 2-number span.
 function generateApplyOrderTask(min, max, count, direction) {
   const nums = new Set();
   while (nums.size < count) {
@@ -213,7 +217,7 @@ function generateApplyOrderTask(min, max, count, direction) {
   }
   const ascending = [...nums].sort((a, b) => a - b);
   const sorted = direction === "desc" ? ascending.reverse() : ascending;
-  return { taskType: "order", numbers: shuffle([...nums]), sorted, direction: direction === "desc" ? "desc" : "asc" };
+  return { taskType: "order", numbers: shuffle([...nums]), sorted, direction: direction === "desc" ? "desc" : "asc", min, max };
 }
 
 // compare_real_life draws from a fixed bank of pre-illustrated scenes
