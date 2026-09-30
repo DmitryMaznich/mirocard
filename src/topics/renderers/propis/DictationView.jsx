@@ -10,7 +10,10 @@ import { useDictationPlayer } from "./useDictationPlayer";
 const SENTENCE_PAUSE_MS = 2500;
 // Shorter gap between "заглавная"/"строчная" and the letter's own sound -- long enough that
 // the two clips read as two separate words, not so long the pause feels like a second item.
-const CASE_WORD_PAUSE_MS = 500;
+// Halved from 500ms (user's explicit call, 2026-09-30) once both clips became real human
+// recordings -- unlike the old TTS case-word clip, these have consistent, tight leading/
+// trailing silence, so a shorter gap still reads cleanly as two words, not run-together.
+const CASE_WORD_PAUSE_MS = 250;
 
 export default function DictationView({ task, onClose }) {
   const items = task?.items ?? [];
