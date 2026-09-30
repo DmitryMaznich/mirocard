@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getDb, topics } from "@/core/db";
+import { getApiToken } from "@/core/api";
 import { RECIPES_TOPIC_ID, RECIPES_MEDIA_BASE_URL } from "@/topics/builtinRecipesTopic";
 
 export function useTopicFile(topicId, filePath) {
@@ -16,15 +17,38 @@ export function useTopicFile(topicId, filePath) {
       return;
     }
 
-    // Individualised topics can point directly at a photo stored in the
-    // account photo store.  These are already safe browser URLs (or a local
-    // data URL before their first sync) rather than files inside a deck ZIP.
+    let objectUrl = null;
+    let cancelled = false;
+
+    // Individualised topics ("Мои люди") point directly at the account photo
+    // store.  GET /api/photos/:hash requires a Bearer token, which a plain
+    // <img src> can never send -- rendering the URL directly 401s and the
+    // photo silently vanishes as soon as a sync swaps the local data: URL for
+    // the stored reference.  Fetch it with auth and hand back a blob: URL.
+    if (filePath.startsWith("/api/photos/")) {
+      const token = getApiToken();
+      fetch(filePath, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined)
+        .then((res) => (res.ok ? res.blob() : Promise.reject(new Error(`HTTP ${res.status}`))))
+        .then((blob) => {
+          if (cancelled) return;
+          objectUrl = URL.createObjectURL(blob);
+          setUrl(objectUrl);
+        })
+        .catch(() => {});
+      return () => {
+        cancelled = true;
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        setUrl(null);
+      };
+    }
+
+    // Local data URLs (before their first sync), bundled assets and absolute
+    // URLs are already safe browser URLs rather than files inside a deck ZIP.
     if (/^(?:data:|blob:|https?:\/\/|\/api\/)/.test(filePath)) {
       setUrl(filePath);
       return;
     }
 
-    let objectUrl = null;
     getDb()
       .then((db) => topics.getFile(db, topicId, filePath))
       .then((blob) => {
