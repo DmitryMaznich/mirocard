@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { aboutMeQuestionLabel } from "@/topics/renderers/my_people/engine";
+import { aboutMeQuestionLabel, mainWord } from "@/topics/renderers/my_people/engine";
 import { useAppStore } from "@/core/store";
 import { formatDate, getTopicTitle } from "@/shared/utils/format";
 import { computeProgressAfterSession } from "./useConceptProgress";
@@ -78,6 +78,10 @@ export default function SessionSummary() {
   function myPeopleLabel(conceptId) {
     if (String(conceptId).startsWith("about_q:")) return aboutMeQuestionLabel(conceptId, sessionStudent);
     if (String(conceptId).startsWith("about_me:")) return "Представься";
+    if (String(conceptId).startsWith("point:")) {
+      const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === String(conceptId).slice("point:".length));
+      return person ? `Где ${mainWord(person)}?` : "Покажи";
+    }
     if (String(conceptId).startsWith("album:")) {
       return String(conceptId).includes(":relation:") ? "Кто эти люди для меня" : "Имена знакомых людей";
     }

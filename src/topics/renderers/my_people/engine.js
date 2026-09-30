@@ -113,6 +113,56 @@ function aboutMeQuestionTasks(student, round) {
   });
 }
 
+// ── «Покажи»: receptive identification ─────────────────────────────────
+// A voice asks "Где мама?" and the child taps the photo among 2–4 -- the
+// first step of the skill, before naming, and it needs no reading.
+//
+// The word used is how the child calls the person: the kin word for close
+// family (mama, not "Анна"), the name for everyone else and for pets. Until
+// cards get an explicit "main word" field this is decided here.
+const KIN_WORDS = new Set(["мама", "папа", "бабушка", "дедушка", "брат", "сестра", "тётя", "тетя", "дядя"]);
+const POINT_FIELD_SIZES = [2, 3, 4];
+export const MAX_POINT_TRIALS_PER_ROUND = 8;
+
+export function mainWord(person) {
+  const relation = person?.relation?.trim().toLowerCase();
+  if (person?.type !== "pet" && relation && KIN_WORDS.has(relation)) return relation;
+  return person?.name?.trim() ?? "";
+}
+
+function pointTasks(people, params, photoPlanner) {
+  if (people.length < 2) return [];
+  const introduced = people.filter((person) => person.introducedAxes?.length);
+  // Ask about people the child has already met; before anyone is introduced
+  // (the introductions live in the album modes), use everyone.
+  const targets = introduced.length >= 2 ? introduced : people;
+  const requested = Number(params?.fieldSize);
+  const fieldSize = Math.min(POINT_FIELD_SIZES.includes(requested) ? requested : 2, people.length);
+
+  return shuffle(targets).slice(0, MAX_POINT_TRIALS_PER_ROUND).map((target) => {
+    const word = mainWord(target);
+    // Two people answering to the same word (two "Маша") would make the
+    // question ambiguous, so they never share a screen.
+    const distractors = shuffle(people.filter((person) => person.id !== target.id && mainWord(person).toLowerCase() !== word.toLowerCase()))
+      .slice(0, fieldSize - 1);
+    const conceptId = `point:${target.id}`;
+    return {
+      type: "person_point",
+      conceptId,
+      targetConceptId: conceptId,
+      progressConceptIds: [conceptId],
+      personId: target.id,
+      word,
+      prompt: `Где ${word}?`,
+      promptSpeech: `Где ${word}?`,
+      choices: shuffle([target, ...distractors]).map((person) => ({
+        personId: person.id,
+        image: photoPlanner.imageFor(person, "point"),
+      })),
+    };
+  }).filter((task) => task.choices.length >= 2);
+}
+
 function isActive(person) {
   return !person?.deletedAt && person?.enabled !== false && person?.name?.trim() && person?.photos?.some(Boolean);
 }
@@ -364,6 +414,7 @@ export function generateTasks(mode, student, params = {}, previousImages = new M
   const photoPlanner = createPhotoPlanner(previousImages);
 
   if (mode.id === "who_is_this") return personNamingTasks(people, mode, photoPlanner);
+  if (mode.id === "show_me") return pointTasks(people, params, photoPlanner);
   if (people.length < MIN_ALBUM_SIZE) return [];
 
   if (mode.id === "mix") {

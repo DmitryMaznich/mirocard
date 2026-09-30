@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMyPeopleTopicRecord } from "@/topics/builtinMyPeopleTopic";
-import { ageFromBirthDate, generateTasks, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
+import { ageFromBirthDate, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
 
 const student = {
   id: "student_1",
@@ -375,5 +375,55 @@ describe("albums of two", () => {
     const tasks = generateTasks({ id: "family_names", type: "people_album" }, five, { peopleCount: 2 });
     const sizes = tasks.map((task) => task.entries.length).sort();
     expect(sizes).toEqual([2, 3]);
+  });
+});
+
+describe("«Покажи»", () => {
+  const person = (id, name, relation, extra = {}) => ({
+    id, name, relation, type: "person", contexts: ["family"], photos: [`/api/photos/${id}`], introducedAxes: ["name"], enabled: true, ...extra,
+  });
+  const family = {
+    id: "s",
+    myPeople: [
+      person("anna", "Анна", "Мама"),
+      person("pavel", "Павел", "папа"),
+      person("elena", "Елена Петровна", "воспитательница"),
+      person("cat", "Барсик", "брат", { type: "pet" }),
+      person("masha1", "Маша", "подруга"),
+      person("masha2", "Маша", "соседка"),
+    ],
+  };
+
+  it("uses the kin word for close family and the name for everyone else and pets", () => {
+    expect(mainWord(family.myPeople[0])).toBe("мама");
+    expect(mainWord(family.myPeople[2])).toBe("Елена Петровна");
+    expect(mainWord(family.myPeople[3])).toBe("Барсик");
+  });
+
+  it("asks «Где …?» with the requested number of photos, target always among them", () => {
+    const tasks = generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 3 });
+    expect(tasks.length).toBe(Math.min(family.myPeople.length, MAX_POINT_TRIALS_PER_ROUND));
+    for (const task of tasks) {
+      expect(task.prompt).toBe(`Где ${task.word}?`);
+      expect(task.choices).toHaveLength(3);
+      expect(task.choices.map((choice) => choice.personId)).toContain(task.personId);
+    }
+    expect(generateTasks({ id: "show_me", type: "person_point" }, family, {})[0].choices).toHaveLength(2);
+  });
+
+  it("never puts two people with the same word on one screen", () => {
+    for (let i = 0; i < 20; i += 1) {
+      const tasks = generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 4 });
+      for (const task of tasks.filter((t) => t.word === "Маша")) {
+        const ids = task.choices.map((choice) => choice.personId);
+        expect(ids.includes("masha1") && ids.includes("masha2")).toBe(false);
+      }
+    }
+  });
+
+  it("asks only about people already introduced when there are enough", () => {
+    const partly = { ...family, myPeople: family.myPeople.map((p, i) => (i < 2 ? p : { ...p, introducedAxes: [] })) };
+    const targets = generateTasks({ id: "show_me", type: "person_point" }, partly, {}).map((task) => task.personId).sort();
+    expect(targets).toEqual(["anna", "pavel"]);
   });
 });

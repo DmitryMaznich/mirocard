@@ -474,6 +474,85 @@ function AboutMeQuestionTask(props) {
   );
 }
 
+function PointPhoto({ choice, topicId, state, disabled, onChoose }) {
+  const url = useTopicFile(topicId, choice.image);
+  return (
+    <button
+      type="button"
+      className={`people-point-photo${state ? ` people-point-photo--${state}` : ""}`}
+      onClick={() => onChoose(choice)}
+      disabled={disabled}
+      aria-label="Фотография"
+    >
+      {url
+        ? <img src={url} alt="" draggable={false} />
+        : <span className="people-point-photo__loading" aria-hidden="true" />}
+    </button>
+  );
+}
+
+// «Покажи»: "Где мама?" → tap the photo. Errorless on a miss: the wrong
+// photo fades, the right one is lit up and named ("Вот мама"), and only it
+// stays tappable -- the child finishes the trial correctly instead of
+// guessing again. The miss is still recorded.
+function PersonPointTask({ task, topicId, soundEnabled, onCorrect, onStreakReset, onCardShown }) {
+  const { speak } = useSpeech();
+  const [trial, setTrial] = useState({ taskId: null, missedId: null, done: false });
+  const current = trial.taskId === task.conceptId ? trial : { taskId: task.conceptId, missedId: null, done: false };
+
+  useEffect(() => {
+    onCardShown?.(null, task.conceptId);
+    if (soundEnabled) speak(task.promptSpeech);
+  }, [task, soundEnabled, speak, onCardShown]);
+
+  function repeatPrompt() {
+    if (soundEnabled) speak(task.promptSpeech);
+  }
+
+  function choose(choice) {
+    if (current.done) return;
+    if (choice.personId === task.personId) {
+      setTrial({ ...current, done: true });
+      if (soundEnabled) speak(`Да, это ${task.word}!`);
+      onCorrect?.(task.conceptId, task.personId, { autoAdvance: true, autoAdvanceDelayMs: 1400 });
+      return;
+    }
+    if (current.missedId) return;
+    setTrial({ ...current, missedId: choice.personId });
+    onStreakReset?.(task.conceptId, task.personId);
+    if (soundEnabled) speak(`Вот ${task.word}.`);
+  }
+
+  const columns = task.choices.length === 4 ? " people-point__photos--grid" : "";
+  return (
+    <div className="session-body people-point" aria-label="Покажи человека">
+      <div className="people-point__prompt">
+        <div className="people-point__question">{task.prompt}</div>
+        <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
+      </div>
+      <div className={`people-point__photos${columns}`}>
+        {task.choices.map((choice) => {
+          const isTarget = choice.personId === task.personId;
+          const state = current.done && isTarget ? "correct"
+            : current.missedId && isTarget ? "hint"
+              : current.missedId === choice.personId || (current.missedId && !isTarget) ? "faded"
+                : "";
+          return (
+            <PointPhoto
+              key={choice.personId}
+              choice={choice}
+              topicId={topicId}
+              state={state}
+              disabled={current.done || (Boolean(current.missedId) && !isTarget)}
+              onChoose={choose}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function PersonNamingTask(props) {
   const imageUrl = useTopicFile(props.topicId, props.task.image);
 
@@ -504,6 +583,8 @@ export default function MyPeopleRenderer(props) {
       return <PeopleAlbumTask {...props} />;
     case "person_intro":
       return <PersonIntroTask {...props} />;
+    case "person_point":
+      return <PersonPointTask {...props} />;
     case "about_me_question":
       return <AboutMeQuestionTask {...props} />;
     case "about_me_situation":
