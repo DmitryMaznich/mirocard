@@ -113,7 +113,7 @@ describe("my_people album engine", () => {
     const tasks = generateTasks({ id: "family_names", type: "people_album" }, student, { peopleCount: 4 });
 
     expect(tasks).toHaveLength(1);
-    expect(tasks[0]).toEqual(expect.objectContaining({ type: "people_album", axis: "name", prompt: "Подбери имена" }));
+    expect(tasks[0]).toEqual(expect.objectContaining({ type: "people_album", axis: "name", prompt: "Подпиши имена" }));
     expect(tasks[0].entries).toHaveLength(3);
     expect(tasks[0].answers.map((answer) => answer.label).sort()).toEqual(["Анна", "Ольга", "Павел"]);
     expect(tasks[0].entries.map((entry) => entry.conceptId)).toEqual(expect.arrayContaining(["anna:name", "pavel:name", "olga:name"]));
@@ -425,5 +425,19 @@ describe("«Покажи»", () => {
     const partly = { ...family, myPeople: family.myPeople.map((p, i) => (i < 2 ? p : { ...p, introducedAxes: [] })) };
     const targets = generateTasks({ id: "show_me", type: "person_point" }, partly, {}).map((task) => task.personId).sort();
     expect(targets).toEqual(["anna", "pavel"]);
+  });
+});
+
+describe("texts the child hears", () => {
+  const two = { id: "s", myPeople: ["a", "b"].map((id) => ({ id, name: id.toUpperCase(), relation: id === "a" ? "мама" : "папа", contexts: ["family"], photos: [`/api/photos/${id}`], introducedAxes: ["name", "relation"], enabled: true })) };
+  it("never describes the screen and never mixes «меня» with «тебя»", () => {
+    const tasks = [
+      ...generateTasks({ id: "family_names" }, two, {}),
+      ...generateTasks({ id: "family_relations" }, two, {}),
+      ...generateTasks({ id: "who_is_this" }, two, {}),
+    ];
+    const spoken = tasks.map((t) => `${t.prompt} ${t.promptSpeech}`).join(" | ");
+    expect(spoken).not.toMatch(/Выбери|Перетащи|для меня|для тебя|Подбери/);
+    expect(tasks.filter((t) => t.type === "person_naming").every((t) => t.prompt === "Кто это?")).toBe(true);
   });
 });

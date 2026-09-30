@@ -242,7 +242,7 @@ function taskForGroup(group, axis, modeId, photoPlanner, preferDifferentPhoto) {
     image: photoPlanner.imageFor(person, axis, preferDifferentPhoto),
     label: axis === "relation" ? person.relation.trim() : person.name.trim(),
   }));
-  const axisText = axis === "name" ? "имена" : "кто это для меня";
+  const axisText = axis === "name" ? "имена" : "кто это";
   const ids = entries.map((entry) => entry.personId).sort().join("_");
   return {
     type: "people_album",
@@ -250,10 +250,11 @@ function taskForGroup(group, axis, modeId, photoPlanner, preferDifferentPhoto) {
     targetConceptId: `album:${modeId}:${axis}:${ids}`,
     progressConceptIds: entries.map((entry) => entry.conceptId),
     axis,
-    prompt: axis === "name" ? "Подбери имена" : "Кто это для меня?",
-    promptSpeech: axis === "name"
-      ? "Подбери имена. Выбери имя, затем фотографию."
-      : "Кто эти люди для тебя? Выбери слово, затем фотографию.",
+    // Spoken text is what a person would say to the child ("Подпиши
+    // имена"), never a description of the screen ("выбери имя, затем
+    // фотографию"), and it never mixes "меня" and "тебя".
+    prompt: axis === "name" ? "Подпиши имена" : "Подпиши: кто это",
+    promptSpeech: axis === "name" ? "Подпиши имена." : "Подпиши: кто это.",
     answerTitle: axisText[0].toUpperCase() + axisText.slice(1),
     entries,
     answers: shuffle(entries.map((entry) => ({ id: `answer:${entry.personId}`, personId: entry.personId, label: entry.label }))),
@@ -273,7 +274,7 @@ function introTaskForPerson(person, axis, modeId, photoPlanner, preferDifferentP
     axis,
     image: photoPlanner.imageFor(person, axis, preferDifferentPhoto),
     label,
-    prompt: axis === "name" ? "Это" : "Кто это для меня?",
+    prompt: "Это",
     promptSpeech: `Это ${label}.`,
   };
 }
@@ -384,7 +385,9 @@ function personNamingTasks(people, mode, photoPlanner) {
     // Each person contributes at most one open-answer card per round. When
     // both axes were introduced, vary which one the child is asked to name.
     const axis = axes[Math.floor(Math.random() * axes.length)];
-    const prompt = axis === "name" ? "Кто это?" : "Кто это для тебя?";
+    // One question for both: a child who reaches for the kin word ("мама")
+    // and one who says the name are both answering "Кто это?".
+    const prompt = "Кто это?";
     const conceptId = `person_naming:${person.id}:${axis}`;
     return [{
       type: "person_naming",

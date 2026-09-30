@@ -44,7 +44,7 @@ describe("people album renderer", () => {
             type: "people_album",
             conceptId: "album:family_names:anna_boris_mila",
             axis: "name",
-            prompt: "Подбери имена",
+            prompt: "Подпиши имена",
             answerTitle: "Имена",
             entries: [
               { personId: "anna", image: "", label: "Анна" },

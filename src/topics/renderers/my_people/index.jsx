@@ -149,6 +149,8 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
 
     const nextMatches = { ...matches, [entry.personId]: { answerId: answer.id, label: answer.label } };
     setMatches(nextMatches);
+    // A hit is confirmed in words, the way an adult would: "Это мама."
+    if (soundEnabled) speak(`Это ${answer.label}.`);
     if (Object.keys(nextMatches).length === task.entries.length) {
       setTimeout(() => onCorrect(task.conceptId, "people_album", { scoreCount: task.entries.length }), 520);
     }
@@ -167,6 +169,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     if ((event.pointerType === "mouse" && event.button !== 0) || usedAnswerIds.has(answer.id)) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
+    if (soundEnabled) speak(answer.label);
     const nextDrag = {
       answerId: answer.id,
       label: answer.label,
@@ -214,7 +217,9 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
   function chooseAnswerWithKeyboard(event, answer) {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
-    if (!usedAnswerIds.has(answer.id)) setSelectedAnswerId(answer.id);
+    if (usedAnswerIds.has(answer.id)) return;
+    setSelectedAnswerId(answer.id);
+    if (soundEnabled) speak(answer.label);
   }
 
   const chosenAnswer = answersById[selectedAnswerId];
