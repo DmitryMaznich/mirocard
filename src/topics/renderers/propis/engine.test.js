@@ -87,6 +87,7 @@ describe("generateTasks — read_lines", () => {
       elements: [],
       wideRows: false,
       wideGlyphs: [],
+      wideElementRepeat: {},
     }]);
   });
 

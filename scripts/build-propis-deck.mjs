@@ -30,6 +30,7 @@ if (existsSync(WIDE_PATH)) {
   const wideData = JSON.parse(readFileSync(WIDE_PATH, "utf-8"));
   topic.wide = wideData.glyphs;
   topic.wideSheets = wideData.sheets ?? {};
+  topic.wideElementRepeat = wideData.elementRepeat ?? {};
 }
 const VERSION = topic.meta.version;
 const ZIP_PATH = `public/decks/propis_v${VERSION}.zip`;

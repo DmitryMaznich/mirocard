@@ -141,7 +141,7 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     // "Широкая строка" (методика, часть 1): lines are typed text (glyph labels / words), drawn
     // from the wide-zone captures in `wide` (tools/propis/wide.json) on wide-band-only ruling.
     const wideRows = Boolean(sessionParams?.wideRows);
-    return [{ type: "print_page", letters, connectors, punctuation, lines, useElements, elements: elementBank, wideRows, wideGlyphs: wideBank }];
+    return [{ type: "print_page", letters, connectors, punctuation, lines, useElements, elements: elementBank, wideRows, wideGlyphs: wideBank, wideElementRepeat: Array.isArray(cards) ? {} : (cards?.wideElementRepeat ?? {}) }];
   }
 
   if (mode.type === "browse") {

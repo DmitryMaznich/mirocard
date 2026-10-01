@@ -166,7 +166,7 @@ it("tap on a wide row plays the pen animation", () => {
   expect(host.querySelectorAll("[data-pr-anim]").length).toBe(5);
 });
 
-describe("element repeat pitch", () => {
+describe("repeat pitch (cells between the starts of copies, from the workbook photos)", () => {
   const S = 30;
   const t = Math.tan((25 * Math.PI) / 180);
   const snap = (_row, x, y) => Math.round((x + y * t) / S) * S - y * t;
@@ -174,19 +174,13 @@ describe("element repeat pitch", () => {
     const { placed } = layoutWideLinesIntoRows([word], map, snap);
     return placed[0].segments[0].strokes.map((s) => getPathEndpoints(s.d).start[0]);
   };
-  it("copies of a narrow element start two cells apart (one empty cell between)", () => {
-    for (const word of ["5 5", "6 6", "| |"]) {
-      const [a, b] = startsOf(word);
-      expect(b - a).toBeCloseTo(2 * S, 3);
-    }
-  });
-  it("a wider element moves on to the next whole cell", () => {
-    const [a, b] = startsOf("г1 г1");
-    expect((b - a) % S).toBeCloseTo(0, 3);
-    expect(b - a).toBeGreaterThanOrEqual(3 * S - 0.01);
-  });
-  it("letters keep their own spacing", () => {
-    const [a, b] = startsOf("и и");
-    expect(b - a).toBeGreaterThan(0);
-  });
+  const table = { "5 5": 2, "6 6": 2, "8 8": 2, "| |": 1, "г1 г1": 3, "п1 п1": 3, "и и": 3, "й й": 3, "н н": 3, "к к": 3, "ш ш": 4, "т т": 4 };
+  for (const [word, cells] of Object.entries(table)) {
+    it(`"${word}" copies start ${cells} cell(s) apart`, () => {
+      const starts = startsOf(word); // both copies have the same strokes, so the 2nd copy starts at the middle
+      const half = starts.length / 2;
+      expect(Number.isInteger(half)).toBe(true);
+      expect((starts[half] - starts[0]) / S).toBeCloseTo(cells, 3);
+    });
+  }
 });

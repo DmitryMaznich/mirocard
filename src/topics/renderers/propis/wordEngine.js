@@ -1090,11 +1090,15 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     let prevExit = null;
     let prevExitStroke = -1;
     let firstGlyph = true;
-    let prevToken = null; // { isElement, startX, width } of the previous token
+    let prevToken = null; // { isElement, isWord, startX, startY, width, repeatCells } of the previous token
     for (const token of line.split(/\s+/).filter(Boolean)) {
       const labels = wideTokenToLabels(token, glyphsByLabel);
       prevExit = null;
       const isElement = labels.length === 1 && glyphsByLabel.get(labels[0])?.kind === "element";
+      // how far the NEXT token starts from this one's start, in sheet cells (wide.json `repeatCells`, measured
+      // off the workbook photos); a token without one takes the next whole cell past its ink + ~0.4 cell
+      const repeatCells = glyphsByLabel.get(token)?.repeatCells ?? (labels.length === 1 ? glyphsByLabel.get(labels[0])?.repeatCells : undefined);
+      let tokenStartY = null;
       let tokenStartX = null;
       let tokenMinX = Infinity;
       let tokenMaxX = -Infinity;
@@ -1105,11 +1109,9 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN
-          : prevToken?.isElement && isElement
-            // Repeated drill elements: the next copy starts WIDE_ELEMENT_PITCH cells after the previous
-            // one's start (the workbook photos: copies two cells apart, one cell left empty between
-            // them); an element wider than that moves to the next whole cell.
-            ? prevToken.startX + Math.max(2, Math.ceil(prevToken.width / TEXT_ROW_WIDE_DIAGONAL_SPACING + 0.05)) * TEXT_ROW_WIDE_DIAGONAL_SPACING
+          : prevToken
+            // next token: a whole number of cells after the previous token's start, along the slant lines
+            ? prevToken.startX + (prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / TEXT_ROW_WIDE_DIAGONAL_SPACING + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) * TEXT_ROW_WIDE_DIAGONAL_SPACING - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
             : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP - local.minX + local.start[0]);
         const startX = snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
@@ -1144,11 +1146,11 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         prevExit = [local.end[0] + dx, local.end[1]];
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         cursorX = local.maxX + dx;
-        if (tokenStartX === null) tokenStartX = startX;
+        if (tokenStartX === null) { tokenStartX = startX; tokenStartY = local.start[1]; }
         tokenMinX = Math.min(tokenMinX, local.minX + dx);
         tokenMaxX = Math.max(tokenMaxX, local.maxX + dx);
       }
-      if (tokenStartX !== null) prevToken = { isElement, startX: tokenStartX, width: tokenMaxX - tokenMinX };
+      if (tokenStartX !== null) prevToken = { isElement, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells };
     }
     const animStrokes = [];
     strokes.forEach((st, i) => {

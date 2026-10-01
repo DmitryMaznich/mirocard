@@ -530,7 +530,7 @@ export default function PrintPageView({ task, onClose }) {
     const map = new Map();
     // elements.json entries captured on the wide zone ride along by id (same capture grid, so
     // they get the same grid stretch); wide.json glyphs win and also register their aliases.
-    for (const el of task?.elements ?? []) map.set(el.id, { label: el.id, kind: "element", strokes: el.strokes, stretch: WIDE_GRID_STRETCH });
+    for (const el of task?.elements ?? []) map.set(el.id, { label: el.id, kind: "element", strokes: el.strokes, stretch: WIDE_GRID_STRETCH, repeatCells: task?.wideElementRepeat?.[el.id] });
     for (const item of task?.wideGlyphs ?? []) {
       map.set(item.label, item);
       for (const alias of item.aliases ?? []) map.set(alias, item);
