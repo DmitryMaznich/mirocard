@@ -1,6 +1,7 @@
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD, stretchKeepSlantPathD, shiftPathEndXD } from "./pathGeometry.js";
 import {
   GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
+  TEXT_ROW_WIDE_DIAGONAL_SPACING,
 } from "./propisRuling.js";
 
 // Points within this margin of a letter's closest approach to the baseline are treated as
@@ -1089,9 +1090,14 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     let prevExit = null;
     let prevExitStroke = -1;
     let firstGlyph = true;
+    let prevToken = null; // { isElement, startX, width } of the previous token
     for (const token of line.split(/\s+/).filter(Boolean)) {
       const labels = wideTokenToLabels(token, glyphsByLabel);
       prevExit = null;
+      const isElement = labels.length === 1 && glyphsByLabel.get(labels[0])?.kind === "element";
+      let tokenStartX = null;
+      let tokenMinX = Infinity;
+      let tokenMaxX = -Infinity;
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
@@ -1099,7 +1105,12 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN
-          : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP - local.minX + local.start[0]);
+          : prevToken?.isElement && isElement
+            // Repeated drill elements: the next copy starts WIDE_ELEMENT_PITCH cells after the previous
+            // one's start (the workbook photos: copies two cells apart, one cell left empty between
+            // them); an element wider than that moves to the next whole cell.
+            ? prevToken.startX + Math.max(2, Math.ceil(prevToken.width / TEXT_ROW_WIDE_DIAGONAL_SPACING + 0.05)) * TEXT_ROW_WIDE_DIAGONAL_SPACING
+            : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP - local.minX + local.start[0]);
         const startX = snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
         const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
@@ -1133,7 +1144,11 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         prevExit = [local.end[0] + dx, local.end[1]];
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         cursorX = local.maxX + dx;
+        if (tokenStartX === null) tokenStartX = startX;
+        tokenMinX = Math.min(tokenMinX, local.minX + dx);
+        tokenMaxX = Math.max(tokenMaxX, local.maxX + dx);
       }
+      if (tokenStartX !== null) prevToken = { isElement, startX: tokenStartX, width: tokenMaxX - tokenMinX };
     }
     const animStrokes = [];
     strokes.forEach((st, i) => {

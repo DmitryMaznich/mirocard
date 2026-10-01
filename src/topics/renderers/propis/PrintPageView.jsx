@@ -83,8 +83,11 @@ const REPEAT_OPACITY = 0.5;
 // sits near its own left (outer) edge and its content hugs that same side; a right-slot
 // page's margin line sits near its own right (outer) edge instead, and its content hugs the
 // OPPOSITE (inner/center-divider) side.
-function slotGeometry(pageIndex) {
+// "Широкая строка" sheets have no margin: no red line, rows start one cell in from the page's left edge.
+const WIDE_CONTENT_INSET_MM = 5;
+function slotGeometry(pageIndex, compact = false) {
   const isLeftSlot = pageIndex % 2 === 0;
+  if (compact) return { isLeftSlot, marginXUnits: null, contentXUnits: mmToNativeUnits(WIDE_CONTENT_INSET_MM) };
   return {
     isLeftSlot,
     marginXUnits: mmToNativeUnits(isLeftSlot ? PRINT_MARGIN_MM : PRINT_PAGE_W_MM - PRINT_MARGIN_MM),
@@ -163,7 +166,7 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 // differ, since the standard 20mm spacing is too sparse for a single narrow element's own
 // ink to ever cross a slant guide at all.
 function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, wideRows = false }) {
-  const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex);
+  const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
   const diagonalLines = wideRows ? SHEET_DIAGONAL_LINES_WIDE : useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   const contentRow = (r) => (wideRows ? r + 1 : r);
@@ -215,7 +218,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
           />
         </g>
       ))}
-      <line x1={marginXUnits} y1={0} x2={marginXUnits} y2={PAGE_H_UNITS} stroke={MARGIN_COLOR} strokeWidth={MARGIN_LINE_W} />
+      {marginXUnits !== null && <line x1={marginXUnits} y1={0} x2={marginXUnits} y2={PAGE_H_UNITS} stroke={MARGIN_COLOR} strokeWidth={MARGIN_LINE_W} />}
       {page.map((p, i) => {
         // Element rows ("Элементы букв") are a print-only worksheet target with no
         // interactivity at all (2026-09-18, revised after the user decided a screen demo/
@@ -483,7 +486,7 @@ function usePinchZoom(wrapRef, contentRef) {
 function wideSnapX(rowIndex, x, y) {
   const pageIndex = Math.floor(rowIndex / WIDE_ROWS_PER_PAGE);
   const rowOnPage = rowIndex % WIDE_ROWS_PER_PAGE;
-  const { isLeftSlot, contentXUnits } = slotGeometry(pageIndex);
+  const { isLeftSlot, contentXUnits } = slotGeometry(pageIndex, true);
   const shift = isLeftSlot ? 0 : -PAGE_W_UNITS;
   const yPage = rowOriginY(rowOnPage + 1) + y;
   return nearestDiagonalX(contentXUnits + x, yPage, TEXT_ROW_WIDE_DIAGONAL_SPACING, shift) - contentXUnits;
@@ -527,7 +530,7 @@ export default function PrintPageView({ task, onClose }) {
     const map = new Map();
     // elements.json entries captured on the wide zone ride along by id (same capture grid, so
     // they get the same grid stretch); wide.json glyphs win and also register their aliases.
-    for (const el of task?.elements ?? []) map.set(el.id, { label: el.id, strokes: el.strokes, stretch: WIDE_GRID_STRETCH });
+    for (const el of task?.elements ?? []) map.set(el.id, { label: el.id, kind: "element", strokes: el.strokes, stretch: WIDE_GRID_STRETCH });
     for (const item of task?.wideGlyphs ?? []) {
       map.set(item.label, item);
       for (const alias of item.aliases ?? []) map.set(alias, item);

@@ -165,3 +165,28 @@ it("tap on a wide row plays the pen animation", () => {
   act(() => host.querySelector(".propis-text-word-hit").dispatchEvent(new MouseEvent("click", { bubbles: true })));
   expect(host.querySelectorAll("[data-pr-anim]").length).toBe(5);
 });
+
+describe("element repeat pitch", () => {
+  const S = 30;
+  const t = Math.tan((25 * Math.PI) / 180);
+  const snap = (_row, x, y) => Math.round((x + y * t) / S) * S - y * t;
+  const startsOf = (word) => {
+    const { placed } = layoutWideLinesIntoRows([word], map, snap);
+    return placed[0].segments[0].strokes.map((s) => getPathEndpoints(s.d).start[0]);
+  };
+  it("copies of a narrow element start two cells apart (one empty cell between)", () => {
+    for (const word of ["5 5", "6 6", "| |"]) {
+      const [a, b] = startsOf(word);
+      expect(b - a).toBeCloseTo(2 * S, 3);
+    }
+  });
+  it("a wider element moves on to the next whole cell", () => {
+    const [a, b] = startsOf("г1 г1");
+    expect((b - a) % S).toBeCloseTo(0, 3);
+    expect(b - a).toBeGreaterThanOrEqual(3 * S - 0.01);
+  });
+  it("letters keep their own spacing", () => {
+    const [a, b] = startsOf("и и");
+    expect(b - a).toBeGreaterThan(0);
+  });
+});
