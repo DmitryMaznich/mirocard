@@ -3506,3 +3506,15 @@ the arc 0.32→0.10 / 0.71→0.13, the 153° kink at wobble 1.0 gone; spline mod
 line through the arc band is unchanged. Known behaviour: a straight stroke that hugs an arc's steep side
 within `range` for ≥35% of the arc length (e.g. a 45° diagonal along the ∩'s right side, ~6 units) DOES
 snap onto the arc; lower the range if that's unwanted. Tool-only change.
+
+**Gotcha: workshop snap-to-grid exports used L/Q commands, 2026-10-01.** Every propis path helper
+(`pathGeometry.js`: `samplePath`, `transformPathD`, `getPathEndpoints`...) understands ONLY `M` and `C`;
+`TOKEN_RE = /[MC]|numbers/` silently drops other letters. A capture made with "Выравнивать по сетке"
+(`snapAndFilletPath`, which emits `L` lines and `Q` fillets) therefore came out of ingestion as a
+polyline through the Q control points, with no error. Fixed in two places: `normalizeToCubic()`
+(`pathGeometry.js`, tested) is applied by `scripts/propis_ingest_elements.mjs` to any stroke containing
+L/Q, and the capture tool's `buildPathD` now runs its output through `pathToCubic()`, so new exports
+are M/C only. Old exports with L/Q still ingest correctly. NOT checked: any letter/connector data
+captured with grid-snap ON before this fix may already be mangled in the repo/decks.
+Also: `06_kryuchok_vpravo` replaced from the 2026-10-01 capture (label `6` in the export, mapped by
+hand; unknown labels are skipped by the script, so rename the label to the slug before running).

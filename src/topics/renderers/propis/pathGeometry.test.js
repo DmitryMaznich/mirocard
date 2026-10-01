@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, normalizeToCubic } from "./pathGeometry.js";
 
 // Real captured stroke, first M-only-then-C path from tools/propis/topic.json ("Б", stroke 0)
 const REAL_STROKE_D =
@@ -149,5 +149,30 @@ describe("getMidpointTangent", () => {
 
   it("returns null for a degenerate single-point stroke", () => {
     expect(getMidpointTangent("M 5 5")).toBeNull();
+  });
+});
+
+describe("normalizeToCubic", () => {
+  // Real snap-to-grid export from the workshop (L and Q commands)
+  const LQ = "M 137.35 10.00 L 116.38 54.96 Q 116.12 55.52 116.15 56.14 L 125.79 57.03 L 144.61 36.00";
+  it("produces only M and C commands", () => {
+    const out = normalizeToCubic(LQ);
+    expect(out.match(/[A-Za-z]/g).every((c) => c === "M" || c === "C")).toBe(true);
+  });
+  it("keeps the endpoints", () => {
+    const { start, end } = getPathEndpoints(normalizeToCubic(LQ));
+    expect(start).toEqual([137.35, 10]);
+    expect(end).toEqual([144.61, 36]);
+  });
+  it("keeps the curve shape: a quadratic samples identically after conversion", () => {
+    const q = "M 0 0 Q 10 20 20 0";
+    const pts = samplePath(normalizeToCubic(q), 50);
+    const mid = pts[Math.floor(pts.length / 2)];
+    expect(mid[0]).toBeCloseTo(10, 0); // Q midpoint at t=0.5: (10, 10)
+    expect(mid[1]).toBeCloseTo(10, 0);
+  });
+  it("leaves M/C-only data equivalent", () => {
+    const out = normalizeToCubic("M 1 2 C 3 4 5 6 7 8");
+    expect(out).toBe("M 1 2 C 3 4 5 6 7 8");
   });
 });

@@ -1614,13 +1614,45 @@
     const keep = rdpKeepIdx(prep.pts, RDP_EPSILON);
     return { simplified: keep.map(i => prep.pts[i]), pinned: keep.map(i => prep.pinned[i]) };
   }
+  // Everything downstream (propis path helpers, ingestion, print) understands only M and C. The
+  // grid-snap pipeline builds L (lines) and Q (fillets), so convert before the path leaves the
+  // tool (exact: line -> cubic with controls at 1/3 and 2/3, quadratic -> degree-elevated cubic).
+  function pathToCubic(d) {
+    const tokens = d.match(/[MLQC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+    const f = v => +v.toFixed(3);
+    const pair = a => f(a[0]) + " " + f(a[1]);
+    const parts = [];
+    let i = 0, cmd = null, cur = null;
+    const num = () => parseFloat(tokens[i++]);
+    while (i < tokens.length) {
+      const t = tokens[i];
+      if (t === "M" || t === "L" || t === "Q" || t === "C") { cmd = t; i++; continue; }
+      if (cmd === "M") { cur = [num(), num()]; parts.push("M " + pair(cur)); cmd = "L"; }
+      else if (cmd === "L") {
+        const p = [num(), num()];
+        parts.push("C " + pair([cur[0] + (p[0] - cur[0]) / 3, cur[1] + (p[1] - cur[1]) / 3]) + " " +
+          pair([cur[0] + 2 * (p[0] - cur[0]) / 3, cur[1] + 2 * (p[1] - cur[1]) / 3]) + " " + pair(p));
+        cur = p;
+      } else if (cmd === "Q") {
+        const q = [num(), num()], p = [num(), num()];
+        parts.push("C " + pair([cur[0] + 2 / 3 * (q[0] - cur[0]), cur[1] + 2 / 3 * (q[1] - cur[1])]) + " " +
+          pair([p[0] + 2 / 3 * (q[0] - p[0]), p[1] + 2 / 3 * (q[1] - p[1])]) + " " + pair(p));
+        cur = p;
+      } else if (cmd === "C") {
+        const a = [num(), num()], b = [num(), num()], p = [num(), num()];
+        parts.push("C " + pair(a) + " " + pair(b) + " " + pair(p));
+        cur = p;
+      } else i++;
+    }
+    return parts.join(" ");
+  }
   function prepSplinePoints(simplified, pinned) {
     let pts = snapEndsChk.checked ? snapEndsToRuling(simplified, Number(snapEndsRangeInput.value), null, pinned) : simplified;
     if (retraceChk.checked) pts = retraceSegments(pts, Number(retraceRangeInput.value), pinned);
     return pts;
   }
   function buildPathD(simplified, pinned) {
-    return snapToGridChk.checked ? snapAndFilletPath(simplified, Number(snapRoundingInput.value), Number(snapToleranceInput.value), pinned) : fitSpline(prepSplinePoints(simplified, pinned));
+    return snapToGridChk.checked ? pathToCubic(snapAndFilletPath(simplified, Number(snapRoundingInput.value), Number(snapToleranceInput.value), pinned)) : fitSpline(prepSplinePoints(simplified, pinned));
   }
   snapRoundingInput.addEventListener("input", () => { snapRoundingLabel.textContent = snapRoundingInput.value; });
   arcSnapRangeInput.addEventListener("input", () => { arcSnapRangeLabel.textContent = arcSnapRangeInput.value; });

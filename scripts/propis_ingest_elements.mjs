@@ -13,7 +13,7 @@
 // «Прописи», 3 части), стр. 5–11 — see the reference sheet cut from that PDF this session.
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { samplePath, transformPathD } from "../src/topics/renderers/propis/pathGeometry.js";
+import { samplePath, transformPathD, normalizeToCubic } from "../src/topics/renderers/propis/pathGeometry.js";
 
 const VB_H = 150; // matches handwriting_capture.html's VB_H / propis's shared row height
 const PAD = 4; // horizontal breathing room so stroke-width doesn't clip at the viewBox edge
@@ -129,7 +129,10 @@ function main() {
       skipped += 1;
       continue;
     }
-    const { strokes, viewBox } = normalize(item.strokes);
+    // Captures made with the workshop's grid-snap option arrive with L/Q commands, which every
+    // propis path helper silently mangles -- convert to M/C first (see pathGeometry.js).
+    const cleanStrokes = item.strokes.map((s) => ({ ...s, d: /[LQ]/.test(s.d) ? normalizeToCubic(s.d) : s.d }));
+    const { strokes, viewBox } = normalize(cleanStrokes);
     const record = {
       id,
       labelRu: known.labelRu,
