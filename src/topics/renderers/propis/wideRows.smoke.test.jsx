@@ -295,3 +295,40 @@ describe("narrow rows (half-size glyphs)", () => {
     }
   });
 });
+
+describe("synthesised letters л, м, я", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 30;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  it("exist, lie in the wide band, and start on the slant grid", () => {
+    for (const label of ["л", "м", "я"]) {
+      const { placed } = layoutWideLinesIntoRows([label], map, snap, false);
+      const seg = placed[0].segments[0];
+      const ys = seg.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1]));
+      expect(Math.min(...ys)).toBeGreaterThan(14);
+      expect(Math.max(...ys)).toBeLessThan(66);
+      expect(ys.every(Number.isFinite)).toBe(true);
+      const [x, y] = seg.startPoints[0];
+      const n = (x + y * T) / S;
+      expect(Math.abs(n - Math.round(n))).toBeLessThan(0.02);
+    }
+  });
+  it("the stems of л lie exactly on slant lines (entry and descent are a whole number of cells apart)", () => {
+    const { placed } = layoutWideLinesIntoRows(["л"], map, snap, false);
+    const pts = samplePath(placed[0].segments[0].strokes[0].d, 100);
+    const lineIdx = (p) => (p[0] + p[1] * T) / S;
+    const entry = pts.filter((p) => p[1] > 40 && p[1] < 52 && p[0] < pts[0][0] + 1);
+    expect(entry.length).toBeGreaterThan(0);
+    const base = lineIdx(pts[0]);
+    // descent: the sampled points at the right half going down from the apex
+    const apexIdx = pts.reduce((m, p, i) => (p[1] < pts[m][1] ? i : m), 0);
+    const desc = pts.slice(apexIdx + 3, apexIdx + 40).filter((p) => p[1] > 24 && p[1] < 50);
+    for (const p of desc) expect(Math.abs(lineIdx(p) - base - 1)).toBeLessThan(0.03);
+  });
+  it("the ready sheet for л, м, я is 16 rows and every token resolves", () => {
+    const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page3;
+    expect(raw).toHaveLength(16);
+    const { placed } = layoutWideLinesIntoRows(raw, map, snap);
+    for (const row of placed) expect(row.segments.length).toBe(1);
+  });
+});

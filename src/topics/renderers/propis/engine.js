@@ -133,7 +133,8 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     // Ready-made workbook sheets ("Широкая строка" -> "Листы методики, часть 1"): replaces the
     // typed lines with the transcribed original pages (wide.json `sheets`).
     const narrowRows = Boolean(sessionParams?.narrowRows);
-    const sheetLines = sessionParams?.wideRows && sessionParams?.wideSheet ? cards?.wideSheets?.part1
+    const sheetLines = sessionParams?.wideRows && sessionParams?.wideSheet2 ? cards?.wideSheets?.page3
+      : sessionParams?.wideRows && sessionParams?.wideSheet ? cards?.wideSheets?.part1
       : narrowRows && sessionParams?.narrowSheet ? cards?.wideSheets?.part2 : null;
     if (Array.isArray(sheetLines)) lines = sheetLines;
     // "Элементы букв" (2026-09-17): when on, each line's string is an ELEMENT ID (picked from
