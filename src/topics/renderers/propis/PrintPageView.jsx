@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, paginateRows } from "./wordEngine.js";
+import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, WIDE_GRID_STRETCH, paginateRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
   INK_COLOR, NATIVE_L3, TEXT_ROW_WIDE_DIAGONAL_SPACING,
@@ -521,7 +521,13 @@ export default function PrintPageView({ task, onClose }) {
   const text = lines.join("\n");
   const wideGlyphsByLabel = useMemo(() => {
     const map = new Map();
-    for (const item of task?.wideGlyphs ?? []) map.set(item.label, item);
+    // elements.json entries captured on the wide zone ride along by id (same capture grid, so
+    // they get the same grid stretch); wide.json glyphs win and also register their aliases.
+    for (const el of task?.elements ?? []) map.set(el.id, { label: el.id, strokes: el.strokes, stretch: WIDE_GRID_STRETCH });
+    for (const item of task?.wideGlyphs ?? []) {
+      map.set(item.label, item);
+      for (const alias of item.aliases ?? []) map.set(alias, item);
+    }
     return map;
   }, [task]);
 

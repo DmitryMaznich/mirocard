@@ -94,3 +94,16 @@ describe("grid snapping", () => {
     }
   });
 });
+
+describe("wideSheet preset", () => {
+  it("replaces typed lines with the transcribed workbook pages (32 rows = 2 pages of 16)", () => {
+    const topicRecord = {
+      cards: [], wide,
+      wideSheets: JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets,
+      elements: JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements,
+    };
+    const [task] = generateTasks({ type: "read_lines" }, topicRecord, 1, { wideRows: true, wideSheet: true, lines: ["ignored"] });
+    expect(task.lines).toHaveLength(32);
+    expect(task.lines).not.toContain("ignored");
+  });
+});

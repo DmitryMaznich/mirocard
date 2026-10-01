@@ -129,7 +129,11 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     // pre-joined) so PrintPageView can paginate it itself (paginateRows, wordEngine.js).
     // Blank lines are dropped -- the constructor lets a parent leave half-filled draft rows
     // without them showing up on the child's screen.
-    const lines = (sessionParams?.lines ?? []).map((l) => l.trim()).filter(Boolean);
+    let lines = (sessionParams?.lines ?? []).map((l) => l.trim()).filter(Boolean);
+    // Ready-made workbook sheets ("Широкая строка" -> "Листы методики, часть 1"): replaces the
+    // typed lines with the transcribed original pages (wide.json `sheets`).
+    const sheetLines = sessionParams?.wideRows && sessionParams?.wideSheet ? cards?.wideSheets?.part1 : null;
+    if (Array.isArray(sheetLines)) lines = sheetLines;
     // "Элементы букв" (2026-09-17): when on, each line's string is an ELEMENT ID (picked from
     // ElementPickerModal in ParamsScreen.jsx, not typed) instead of text -- PrintPageView.jsx
     // needs the element bank to resolve those ids into strokes, same as letters/connectors.

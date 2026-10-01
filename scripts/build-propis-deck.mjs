@@ -27,7 +27,9 @@ if (existsSync(ELEMENTS_PATH)) {
 }
 // "Широкая строка" glyphs (методика, часть 1) -- own file for the same reason as elements.json.
 if (existsSync(WIDE_PATH)) {
-  topic.wide = JSON.parse(readFileSync(WIDE_PATH, "utf-8")).glyphs;
+  const wideData = JSON.parse(readFileSync(WIDE_PATH, "utf-8"));
+  topic.wide = wideData.glyphs;
+  topic.wideSheets = wideData.sheets ?? {};
 }
 const VERSION = topic.meta.version;
 const ZIP_PATH = `public/decks/propis_v${VERSION}.zip`;

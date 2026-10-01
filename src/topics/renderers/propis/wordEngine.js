@@ -992,6 +992,8 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel, rowWidthUnits
 const WIDE_CAPTURE_BASELINE = 62;
 const WIDE_CAPTURE_SPAN = 52;
 export const WIDE_ZONE_UNITS = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET;
+// One capture-grid step (18 units = 3mm) -> one sheet-grid step (5mm): see wide.json's note.
+export const WIDE_GRID_STRETCH = 1.806;
 export const WIDE_SCALE = WIDE_ZONE_UNITS / WIDE_CAPTURE_SPAN;
 const WIDE_BASELINE_Y = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
 const WIDE_JOIN_TAN = Math.tan(((90 - 65) * Math.PI) / 180);
@@ -1035,6 +1037,25 @@ function wideGlyphLocal(glyph) {
 // slant grid with each downstroke one cell from the next, and WIDE_LETTER_STRETCH (below) maps
 // that capture cell onto the sheet's cell, so landing the start on a line puts every
 // downstroke of the glyph on a line too.
+// Glyph labels a token spells: "a+b" joins whole labels (needed for long element ids); a plain
+// label is one glyph; anything else is read as letters, greedy longest-match so a multi-char
+// label ("г1") still wins over its first character. Unknown characters are skipped.
+export function wideTokenToLabels(token, glyphsByLabel) {
+  if (token.includes("+")) return token.split("+").filter((l) => glyphsByLabel.has(l));
+  if (glyphsByLabel.has(token)) return [token];
+  const out = [];
+  let i = 0;
+  while (i < token.length) {
+    let hit = null;
+    for (let len = Math.min(token.length - i, 4); len >= 1; len -= 1) {
+      const cand = token.slice(i, i + len);
+      if (glyphsByLabel.has(cand)) { hit = cand; break; }
+    }
+    if (hit) { out.push(hit); i += hit.length; } else i += 1;
+  }
+  return out;
+}
+
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x) {
   const placed = lines.map((line, rowIndex) => {
     const strokes = [];
@@ -1044,7 +1065,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     let prevExit = null;
     let firstGlyph = true;
     for (const token of line.split(/\s+/).filter(Boolean)) {
-      const labels = glyphsByLabel.has(token) ? [token] : [...token];
+      const labels = wideTokenToLabels(token, glyphsByLabel);
       prevExit = null;
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
