@@ -46,7 +46,7 @@ it("renders a wide-rows page (dumps SVG when WIDE_DUMP is set)", () => {
   if (!window.matchMedia) window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
   const [task] = generateTasks({ type: "read_lines" }, { cards: [], wide }, 1, {
     wideRows: true,
-    lines: ["5", "6 6", "7 7", "8 8", "и и", "иии иии", "й й", "ш ш", "н н", "ини", "нии", "т т", "тип", "к к", "книги", "нитки"],
+    lines: ["5", "6 6", "7 7", "8 8", "и и", "иии иии", "й й", "ш ш", "н н", "ини", "нии", "т т", "тит", "к к", "книи", "ниткии"],
   });
   expect(task.wideRows).toBe(true);
   const host = document.createElement("div");

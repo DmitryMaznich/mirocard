@@ -117,6 +117,13 @@ export const TEXT_ROW_DIAGONAL_SPACING = (DIAGONAL_MM * UNIT_H) / LINE_MM;
 export const ELEMENT_DIAGONAL_MM = 3;
 export const TEXT_ROW_ELEMENT_DIAGONAL_SPACING = (ELEMENT_DIAGONAL_MM * UNIT_H) / LINE_MM;
 
+// "Широкая строка" (методика) sheets: slants 5mm apart inside an 8mm wide band, i.e. the
+// 5:8 cell measured off the original workbook photos (2026-10-01: band 64px / blank strip 32px /
+// slant spacing 40px horizontally at ~65deg -- 96px = one 12mm cycle, so 8mm / 4mm / 5mm).
+// NOT ELEMENT_DIAGONAL_MM (3mm): that grid is for element drills and made this cell 3:8.
+export const WIDE_ROW_DIAGONAL_MM = 5;
+export const TEXT_ROW_WIDE_DIAGONAL_SPACING = (WIDE_ROW_DIAGONAL_MM * UNIT_H) / LINE_MM;
+
 // mm -> this file's native units, same scale every other constant above uses
 // (150 units per 25mm). Exported so callers building print-page geometry (only
 // PrintPageView.jsx today) don't hand-roll the conversion.

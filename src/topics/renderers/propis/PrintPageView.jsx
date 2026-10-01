@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, paginateRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
-  INK_COLOR, NATIVE_L3,
+  INK_COLOR, NATIVE_L3, TEXT_ROW_WIDE_DIAGONAL_SPACING,
   TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
   ANGLE_FROM_HORIZONTAL_DEG,
   buildDiagonalLines, mmToNativeUnits,
@@ -108,6 +108,7 @@ const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, 
 // 20mm spacing doesn't work for these: most elements are narrower than one 20mm gap, so a
 // whole крючок/заборчик could render with no slant guide crossing it at all.
 const SHEET_DIAGONAL_LINES_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
+const SHEET_DIAGONAL_LINES_WIDE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_WIDE_DIAGONAL_SPACING);
 const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
 // "Широкая строка": the ordinary 17-row cycle, but ruling row 0 is only the TOP edge of the first
 // wide band (its own bold baseline) -- content rows start at ruling row 1, so 16 per page, and
@@ -164,7 +165,7 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, wideRows = false }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
-  const diagonalLines = useElements || wideRows ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
+  const diagonalLines = wideRows ? SHEET_DIAGONAL_LINES_WIDE : useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   const contentRow = (r) => (wideRows ? r + 1 : r);
   const bandClipId = `wide-bands-${pageIndex}`;
   const diagonalEls = diagonalLines.map((l, i) => (
@@ -234,7 +235,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
           ? nearestDiagonalX(
               contentXUnits + p.x + startPoint[0],
               rowOriginY(contentRow(p.rowIndex)) + startPoint[1],
-              TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
+              wideRows ? TEXT_ROW_WIDE_DIAGONAL_SPACING : TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
               diagonalShiftX
             ) - (contentXUnits + p.x + startPoint[0])
           : 0;
