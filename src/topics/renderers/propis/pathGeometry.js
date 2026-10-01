@@ -1,13 +1,6 @@
 // Minimal SVG path helpers for propis stroke data — only M (moveto) and C (cubic bezier)
 // commands ever appear in captured strokes (see handwriting_capture.html's pipeline
 // comment: EMA -> RDP -> Hermite -> cubic Bézier -> strokes:[{d}]).
-//
-// EXCEPTION found 2026-10-01: captures made with the workshop's "Выравнивать по сетке" option
-// (snapAndFilletPath) used to be exported with L (line) and Q (quadratic) commands. Every
-// helper below would silently DROP those letters and read the numbers as if they were cubic /
-// moveto data, turning the curves into polylines through their control points. Run such data
-// through normalizeToCubic() first (the ingestion script does; the capture tool itself now
-// exports M/C only).
 
 const TOKEN_RE = /[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g;
 
@@ -212,59 +205,4 @@ export function transformPathD(d, { scaleX = 1, scaleY = 1, translateX = 0, tran
   }
 
   return out;
-}
-
-// Converts a path made of absolute M / L / Q / C commands into M + C only (exact: a line
-// becomes a cubic with control points at 1/3 and 2/3, a quadratic is degree-elevated), so the
-// M/C-only helpers above can read it. M/C-only input comes back reformatted but equivalent.
-export function normalizeToCubic(d) {
-  const tokens = d.match(/[MLQC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
-  const f = (v) => +v.toFixed(3);
-  let i = 0;
-  let cmd = null;
-  let cur = null;
-  const parts = [];
-  const num = () => parseFloat(tokens[i++]);
-  while (i < tokens.length) {
-    const t = tokens[i];
-    if (t === "M" || t === "L" || t === "Q" || t === "C") {
-      cmd = t;
-      i += 1;
-      continue;
-    }
-    if (cmd === "M") {
-      const x = num(), y = num();
-      if (!cur) parts.push("M " + f(x) + " " + f(y));
-      else parts.push(lineAsCubic(cur, [x, y])); // extra pairs after M are implicit lineto
-      cur = [x, y];
-      if (parts.length > 1) cmd = "L";
-    } else if (cmd === "L") {
-      const p = [num(), num()];
-      parts.push(lineAsCubic(cur, p));
-      cur = p;
-    } else if (cmd === "Q") {
-      const q = [num(), num()];
-      const p = [num(), num()];
-      const c1 = [cur[0] + (2 / 3) * (q[0] - cur[0]), cur[1] + (2 / 3) * (q[1] - cur[1])];
-      const c2 = [p[0] + (2 / 3) * (q[0] - p[0]), p[1] + (2 / 3) * (q[1] - p[1])];
-      parts.push("C " + [c1, c2, p].map((pt) => f(pt[0]) + " " + f(pt[1])).join(" "));
-      cur = p;
-    } else if (cmd === "C") {
-      const c1 = [num(), num()];
-      const c2 = [num(), num()];
-      const p = [num(), num()];
-      parts.push("C " + [c1, c2, p].map((pt) => f(pt[0]) + " " + f(pt[1])).join(" "));
-      cur = p;
-    } else {
-      i += 1;
-    }
-  }
-  return parts.join(" ");
-}
-
-function lineAsCubic(a, b) {
-  const f = (v) => +v.toFixed(3);
-  const c1 = [a[0] + (b[0] - a[0]) / 3, a[1] + (b[1] - a[1]) / 3];
-  const c2 = [a[0] + (2 * (b[0] - a[0])) / 3, a[1] + (2 * (b[1] - a[1])) / 3];
-  return "C " + [c1, c2, b].map((pt) => f(pt[0]) + " " + f(pt[1])).join(" ");
 }
