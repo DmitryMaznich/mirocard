@@ -52,7 +52,34 @@ export async function claimDeck(topicId) {
   return api.post(`/decks/${topicId}/claim`, {});
 }
 
-export async function fetchCatalogTopic(entry, appVersion) {
+// Reads the body as a stream so the UI can show real download progress.
+// Reports a 0..1 fraction, or null when the total size is unknown (no
+// Content-Length, or a Content-Encoding makes the header's byte count differ
+// from the decoded bytes the stream yields).
+async function readBodyWithProgress(res, onProgress) {
+  const total = Number(res.headers.get("Content-Length"));
+  const encoded = Boolean(res.headers.get("Content-Encoding"));
+  if (!onProgress || !res.body?.getReader || !total || encoded) {
+    onProgress?.(null);
+    return res.arrayBuffer();
+  }
+  const reader = res.body.getReader();
+  const chunks = [];
+  let received = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    onProgress(Math.min(received / total, 1));
+  }
+  const out = new Uint8Array(received);
+  let offset = 0;
+  for (const chunk of chunks) { out.set(chunk, offset); offset += chunk.length; }
+  return out.buffer;
+}
+
+export async function fetchCatalogTopic(entry, appVersion, { onProgress } = {}) {
   const access = entry.access ?? "free";
   const token = getApiToken();
 
@@ -89,7 +116,7 @@ export async function fetchCatalogTopic(entry, appVersion) {
     throw new Error(message);
   }
 
-  const buf = await res.arrayBuffer();
+  const buf = await readBodyWithProgress(res, onProgress);
   const db = await getDb();
   const record = await importTopic(db, buf, appVersion);
   clearRendererCache(record.meta.id);

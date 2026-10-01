@@ -59,7 +59,7 @@ export default function TopicLibraryScreen() {
     if (catalog === null) loadCatalog();
   }, [catalog, loadCatalog]);
 
-  const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
+  const installCatalogEntry = useCallback(async (entry, { onProgress } = {}) => {
     const owned = (ownedTopics ?? []).find((o) => o.topicId === entry.id);
     const isGranted = owned != null && owned.source !== "request";
     const isFreeStaticDeck = isFreeStaticInstall(entry);
@@ -100,7 +100,7 @@ export default function TopicLibraryScreen() {
       upsertOwnedTopic({ topicId: entry.id, source });
       if (result.status !== "granted") return; // pending — don't download yet
     }
-    const record = await fetchCatalogTopic(entry, buildInfo.version, force);
+    const record = await fetchCatalogTopic(entry, buildInfo.version, { onProgress });
     upsertTopicRecord(record);
 
     // Keep the account library in sync when possible, without turning a free
