@@ -234,20 +234,10 @@ it("a row of one repeated token is multiplied across the row; every copy start i
   expect(seg.startPoints).toHaveLength(seg.strokes.length);
   expect(placed[1].segments[0].startPoints.length).toBeGreaterThan(1); // page-1 word is multiplied too
   expect(placed[1].segments[0].startPoints.length).toBeGreaterThan(1); // page-1 word is multiplied too
-  expect(placed[2].segments[0].strokes).toHaveLength(4);
+  expect(placed[2].segments[0].strokes.length).toBeGreaterThan(4); // alternating unit "7 |" is multiplied
 });
 
-it("dashed copies fade out along the row and are gone by mid-page", () => {
-  const { placed } = layoutWideLinesIntoRows([...Array(16).fill("5"), "и и"], map);
-  const st = placed[16].segments[0].strokes;
-  expect(st[0].opacity).toBeUndefined();
-  const ops = st.slice(1).map((s) => s.opacity);
-  for (let i = 1; i < ops.length; i++) expect(ops[i]).toBeLessThanOrEqual(ops[i - 1]);
-  expect(ops[0]).toBeLessThan(1);
-  expect(ops.at(-1)).toBe(0);
-});
-
-it("first page: copies after the first are all dashed at one constant intensity, single words are multiplied", () => {
+it("copies after the first are all dashed at one constant intensity, single words are multiplied", () => {
   const { placed } = layoutWideLinesIntoRows(["и и", "ини", "7"], map);
   const ops = placed[0].segments[0].strokes.slice(1).map((s) => s.opacity);
   expect(new Set(ops).size).toBe(1);

@@ -1155,11 +1155,8 @@ function wideTokenToLabelsRaw(token, glyphsByLabel) {
 // Right edge (row-local units) the "multiplied" copies of a repeated token may reach: page 891 wide,
 // 30 units (5 mm) of inset on each side.
 const WIDE_ROW_MAX_X = 831;
-// Dashed copies fade out copy by copy and are gone by the page's middle (row-local x: 445.5 - 30 inset), leaving only their start dots.
-const WIDE_FADE_END_X = 415;
-// First sheet page (the first 16 rows): copies after the first are NOT faded, all dashed at one constant intensity
-// (about what the third copy had under the fade), and single words are multiplied too.
-const WIDE_FLAT_PAGE_ROWS = 16;
+// Every page: copies after the first are dashed at one constant intensity, and single words / alternating
+// patterns are multiplied across the row.
 const WIDE_FLAT_COPY_OPACITY = 0.6;
 
 // A row made of one token repeated ("5 5", "и и") is multiplied across the whole row: as many copies as fit.
@@ -1167,23 +1164,31 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       const toks = line.split(/\s+/).filter(Boolean);
-      const flatWord = rowIndex < WIDE_FLAT_PAGE_ROWS && toks.length === 1 && wideTokenToLabels(toks[0], glyphsByLabel).length > 1;
-      if (!flatWord && (toks.length < 2 || toks.some((t) => t !== toks[0]))) return line;
-      let best = toks.length;
-      for (let n = toks.length; n <= 60; n++) {
-        const probe = layoutWideLinesIntoRows([Array(n).fill(toks[0]).join(" ")], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false);
+      // the repeating unit: one spelled-out word, or the shortest token group the whole row is made of ("7 | 7 |" -> "7 |")
+      const isWord = toks.length === 1 && !glyphsByLabel.has(toks[0]) && wideTokenToLabels(toks[0], glyphsByLabel).length > 1;
+      let unit = null;
+      if (isWord) unit = toks;
+      else if (toks.length >= 2) {
+        for (let p = 1; p <= toks.length / 2; p++) {
+          if (toks.length % p === 0 && toks.every((t, i) => t === toks[i % p])) { unit = toks.slice(0, p); break; }
+        }
+      }
+      if (!unit) return line;
+      const rowOf = (n) => Array(n).fill(unit).flat().join(" ");
+      let best = Math.max(1, toks.length / unit.length);
+      for (let n = best; n <= 60; n++) {
+        const probe = layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false);
         const w = probe.placed[0].segments[0]?.width ?? 0;
         if (w > WIDE_ROW_MAX_X) break;
         best = n;
       }
-      return Array(best).fill(toks[0]).join(" ");
+      return rowOf(best);
     });
   }
   const placed = lines.map((line, rowIndex) => {
-    // A single closed-pattern element (the fence rows: one stroke that ends at the height it started) on the first
-    // page is copied to the end of the row END TO START, with no gaps, so tracing it all gives one unbroken line.
+    // A single closed-pattern element (the fence rows: one stroke that ends at the height it started) is copied to the end of the row END TO START, with no gaps, so tracing it all gives one unbroken line.
     const chainToks = line.split(/\s+/).filter(Boolean);
-    const chainGlyph = rowIndex < WIDE_FLAT_PAGE_ROWS && chainToks.length === 1 ? glyphsByLabel.get(wideTokenToLabels(chainToks[0], glyphsByLabel)[0]) : null;
+    const chainGlyph = chainToks.length === 1 ? glyphsByLabel.get(wideTokenToLabels(chainToks[0], glyphsByLabel)[0]) : null;
     if (chainGlyph && chainGlyph.kind === "element" && chainGlyph.strokes.length === 1 && wideTokenToLabels(chainToks[0], glyphsByLabel).length === 1) {
       const local = wideGlyphLocal(chainGlyph);
       if (Math.abs(local.end[1] - local.start[1]) < 1) {
@@ -1221,7 +1226,6 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     let prevExit = null;
     let prevExitStroke = -1;
     let firstGlyph = true;
-    let rowFirstX = null;
     const tokenSeen = new Map(); // token text -> how many times already placed on this row
     let prevToken = null; // { isElement, isWord, startX, startY, width, repeatCells } of the previous token
     for (const token of line.split(/\s+/).filter(Boolean)) {
@@ -1252,9 +1256,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
             : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP - local.minX + local.start[0]);
         const startX = snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
-        if (rowFirstX === null) rowFirstX = startX;
-        const fade = dashed ? (rowIndex < WIDE_FLAT_PAGE_ROWS ? WIDE_FLAT_COPY_OPACITY : Math.max(0, 1 - ((tokenStartX ?? startX) - rowFirstX) / Math.max(1, WIDE_FADE_END_X - rowFirstX))) : 1;
-        const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }), ...(dashed ? { dashed: true, opacity: Math.round(fade * 100) / 100 } : {}) }));
+                const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) }));
         if (prevExit) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
           // letter's first stroke, where that stroke crosses the tail's own height. The tail's
@@ -1273,7 +1275,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           // every token's first glyph gets its red start dot(s); only the very first one also gets direction arrows
           for (const s of moved) {
             startPoints.push(getPathEndpoints(s.d).start);
-            if (!firstGlyph || isWordToken) continue; // arrows: first copy of an element / letter only, never on words
+            if (dashed || isWordToken) continue; // arrows: first copy of each element / letter only, never on words
             directionArrows.push(...longArrowsFor(s.d));
           }
           firstGlyph = false;
