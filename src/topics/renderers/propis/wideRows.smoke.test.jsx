@@ -236,3 +236,13 @@ it("a row of one repeated token is multiplied across the row; every copy start i
   expect(placed[1].segments[0].startPoints).toHaveLength(1);
   expect(placed[2].segments[0].strokes).toHaveLength(4);
 });
+
+it("dashed copies fade out along the row and are gone by mid-page", () => {
+  const { placed } = layoutWideLinesIntoRows(["и и"], map);
+  const st = placed[0].segments[0].strokes;
+  expect(st[0].opacity).toBeUndefined();
+  const ops = st.slice(1).map((s) => s.opacity);
+  for (let i = 1; i < ops.length; i++) expect(ops[i]).toBeLessThanOrEqual(ops[i - 1]);
+  expect(ops[0]).toBeLessThan(1);
+  expect(ops.at(-1)).toBe(0);
+});

@@ -294,7 +294,10 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
                   {isActive && seg.trajectory ? (
                     <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" />
                   ) : seg.strokes.map((s, ssi) => (
-                    <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} />
+                    // dashed copies fade out along the row (wordEngine WIDE_FADE_END_X); a fully faded one keeps only its start dot
+                    s.opacity !== undefined && s.opacity <= 0.02 ? null : (
+                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} opacity={s.opacity} />
+                    )
                   ))}
                   {!isActive && seg.startPoints?.map((pt, pi) => (
                     <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={START_DOT_COLOR} />

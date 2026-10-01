@@ -1078,6 +1078,8 @@ function wideTokenToLabelsRaw(token, glyphsByLabel) {
 // Right edge (row-local units) the "multiplied" copies of a repeated token may reach: page 891 wide,
 // 30 units (5 mm) of inset on each side.
 const WIDE_ROW_MAX_X = 831;
+// Dashed copies fade out copy by copy and are gone by the page's middle (row-local x: 445.5 - 30 inset), leaving only their start dots.
+const WIDE_FADE_END_X = 415;
 
 // A row made of one token repeated ("5 5", "и и") is multiplied across the whole row: as many copies as fit.
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true) {
@@ -1109,6 +1111,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     let prevExit = null;
     let prevExitStroke = -1;
     let firstGlyph = true;
+    let rowFirstX = null;
     const tokenSeen = new Map(); // token text -> how many times already placed on this row
     let prevToken = null; // { isElement, isWord, startX, startY, width, repeatCells } of the previous token
     for (const token of line.split(/\s+/).filter(Boolean)) {
@@ -1138,7 +1141,9 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
             : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP - local.minX + local.start[0]);
         const startX = snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
-        const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }), ...(dashed ? { dashed: true } : {}) }));
+        if (rowFirstX === null) rowFirstX = startX;
+        const fade = dashed ? Math.max(0, 1 - ((tokenStartX ?? startX) - rowFirstX) / Math.max(1, WIDE_FADE_END_X - rowFirstX)) : 1;
+        const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }), ...(dashed ? { dashed: true, opacity: Math.round(fade * 100) / 100 } : {}) }));
         if (prevExit) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
           // letter's first stroke, where that stroke crosses the tail's own height. The tail's
