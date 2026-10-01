@@ -803,6 +803,9 @@ const ARROW_SIDE_OFFSET = 6;
 // 12.5% to 87.5% of the stroke's length (~75%) and ending in an open V head.
 const LONG_ARROW_FROM = 0.125;
 const LONG_ARROW_TO = 0.875;
+// a stroke cut into several pieces by corners (zigzag/fence): one arrow per piece, but only the middle 50% of it
+const LONG_ARROW_FROM_MULTI = 0.25;
+const LONG_ARROW_TO_MULTI = 0.75;
 const LONG_ARROW_HEAD = 5;
 // A stroke is cut at its sharp corners (> LONG_ARROW_CORNER_DEG within a few units), and every piece long enough
 // gets its own arrow -- a zigzag stroke would otherwise get one tangled arrow.
@@ -828,12 +831,13 @@ function longArrowsFor(d) {
   const out = [];
   for (let c = 0; c + 1 < cuts.length; c++) {
     const piece = pts.slice(cuts[c], cuts[c + 1] + 1);
-    const arrow = longArrowOnPolyline(piece);
+    const multi = cuts.length > 2;
+    const arrow = longArrowOnPolyline(piece, multi ? LONG_ARROW_FROM_MULTI : LONG_ARROW_FROM, multi ? LONG_ARROW_TO_MULTI : LONG_ARROW_TO);
     if (arrow) out.push(arrow);
   }
   return out;
 }
-function longArrowOnPolyline(pts) {
+function longArrowOnPolyline(pts, fromT, toT) {
   if (pts.length < 2) return null;
   const cum = [0];
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
@@ -851,7 +855,7 @@ function longArrowOnPolyline(pts) {
   const line = [];
   let last = null;
   for (let k = 0; k <= N; k++) {
-    const { q, t } = at(total * (LONG_ARROW_FROM + (LONG_ARROW_TO - LONG_ARROW_FROM) * (k / N)));
+    const { q, t } = at(total * (fromT + (toT - fromT) * (k / N)));
     // same side as the old triangle arrows: (sin, -cos) of the travel direction
     line.push([q[0] + t[1] * ARROW_SIDE_OFFSET, q[1] - t[0] * ARROW_SIDE_OFFSET]);
     last = t;
