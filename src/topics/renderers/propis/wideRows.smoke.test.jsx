@@ -265,3 +265,17 @@ it("direction arrows only on the first copy of an element or letter, none on wor
   expect(placed[2].segments[0].directionArrows).toHaveLength(0);
   expect(placed[3].segments[0].directionArrows).toHaveLength(0);
 });
+
+it("page-1 fence rows are copied end to start to the row's end with no gaps", () => {
+  const { placed } = layoutWideLinesIntoRows(["заборчик"], map);
+  const seg = placed[0].segments[0];
+  expect(seg.strokes.length).toBeGreaterThan(3);
+  for (let i = 1; i < seg.strokes.length; i++) {
+    const prevEnd = getPathEndpoints(seg.strokes[i - 1].d).end;
+    const start = getPathEndpoints(seg.strokes[i].d).start;
+    expect(start[0]).toBeCloseTo(prevEnd[0], 1);
+    expect(start[1]).toBeCloseTo(prevEnd[1], 1);
+  }
+  expect(seg.strokes.map((s) => !!s.dashed)).toEqual(seg.strokes.map((_, i) => i > 0));
+  expect(seg.startPoints).toHaveLength(seg.strokes.length);
+});

@@ -1180,6 +1180,34 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     });
   }
   const placed = lines.map((line, rowIndex) => {
+    // A single closed-pattern element (the fence rows: one stroke that ends at the height it started) on the first
+    // page is copied to the end of the row END TO START, with no gaps, so tracing it all gives one unbroken line.
+    const chainToks = line.split(/\s+/).filter(Boolean);
+    const chainGlyph = rowIndex < WIDE_FLAT_PAGE_ROWS && chainToks.length === 1 ? glyphsByLabel.get(wideTokenToLabels(chainToks[0], glyphsByLabel)[0]) : null;
+    if (chainGlyph && chainGlyph.kind === "element" && chainGlyph.strokes.length === 1 && wideTokenToLabels(chainToks[0], glyphsByLabel).length === 1) {
+      const local = wideGlyphLocal(chainGlyph);
+      if (Math.abs(local.end[1] - local.start[1]) < 1) {
+        const startX = snapX(rowIndex, WIDE_LEFT_PAD - local.minX + local.start[0], local.start[1]);
+        const dx0 = startX - local.start[0];
+        const pitch = Math.max(1, Math.round((local.end[0] - local.start[0]) / TEXT_ROW_WIDE_DIAGONAL_SPACING)) * TEXT_ROW_WIDE_DIAGONAL_SPACING;
+        const strokes = [];
+        const startPoints = [];
+        for (let k = 0; startX + (k + 1) * pitch <= WIDE_ROW_MAX_X; k++) {
+          const dx = dx0 + k * pitch;
+          let d = transformPathD(local.strokes[0].d, { translateX: dx });
+          // the copy's last point lands exactly where the next copy starts
+          d = shiftPathEndXD(d, startX + (k + 1) * pitch - (local.end[0] + dx));
+          strokes.push({ d, ...(k > 0 ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) });
+          startPoints.push(getPathEndpoints(d).start);
+        }
+        if (strokes.length) {
+          const directionArrows = longArrowsFor(strokes[0].d);
+          const animStrokes = strokes.map((st, i) => (i ? { ...st, continuous: true } : st));
+          const width = Math.max(...strokes.flatMap((st) => samplePath(st.d).map((q) => q[0])));
+          return { word: line, rowIndex, x: 0, segments: [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [], trajectory: { strokes: animStrokes } }] };
+        }
+      }
+    }
     const strokes = [];
     // Pen order for the tap-to-animate view: same strokes, plus a `transition` after every joined
     // letter -- the pen going from the contact point back UP the next letter's own stem to that
