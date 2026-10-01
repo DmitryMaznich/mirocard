@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
+import { getStoragePersistenceStatus, requestStoragePersistence, STORAGE_PERSISTENCE_EVENT } from "@/core/storagePersistence";
 import { api } from "@/core/api";
 import PinGateModal from "@/shared/components/PinGateModal";
 import ZoneSettingsSection from "./ZoneSettingsSection";
@@ -15,6 +16,24 @@ export default function SettingsScreen() {
   const adultPinHash      = settings.adultPinHash ?? null;
   const physicalKeyboard  = settings.physicalKeyboard ?? false;
   const [pinResetMode, setPinResetMode] = useState(null); // null | "verify-old" | "set-new"
+  const [storageStatus, setStorageStatus] = useState("checking");
+
+  useEffect(() => {
+    let active = true;
+    let changed = false;
+    const onStatusChanged = (event) => {
+      changed = true;
+      setStorageStatus(event.detail);
+    };
+    window.addEventListener(STORAGE_PERSISTENCE_EVENT, onStatusChanged);
+    getStoragePersistenceStatus().then((status) => {
+      if (active && !changed) setStorageStatus(status);
+    });
+    return () => {
+      active = false;
+      window.removeEventListener(STORAGE_PERSISTENCE_EVENT, onStatusChanged);
+    };
+  }, []);
 
   const adultConfirmAdvance = settings.adultConfirmAdvance ?? true;
   const tapToAdvance     = settings.tapToAdvance ?? true;
@@ -38,6 +57,11 @@ export default function SettingsScreen() {
   async function handleSetNewPin(hash) {
     await handlePatchSettings({ adultPinHash: hash });
     api.patch("/account/settings", { adultPinHash: hash }).catch(() => {});
+  }
+
+  async function handleStorageRequest() {
+    setStorageStatus("checking");
+    setStorageStatus(await requestStoragePersistence({ force: true }));
   }
 
   function handleSetNewSuccess() {
@@ -125,6 +149,25 @@ export default function SettingsScreen() {
               style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
             />
           </div>
+        </div>
+
+        <div className="settings-section">
+          <div className="settings-section-title">Данные на этом устройстве</div>
+          <div className="settings-row">
+            <span className="settings-row__label">
+              Защита локальных данных: {storageStatus === "granted" ? "включена"
+                : storageStatus === "not_granted" ? "не включена"
+                  : storageStatus === "unsupported" ? "недоступна в этом браузере"
+                    : storageStatus === "error" ? "не удалось проверить" : "проверяем…"}
+            </span>
+            {(storageStatus === "not_granted" || storageStatus === "error") && (
+              <button className="link-btn" onClick={handleStorageRequest}>Включить</button>
+            )}
+          </div>
+          <p className="settings-row__label">
+            Если браузер разрешит, это снизит риск автоматической потери локальных тем, текстов и настроек.
+            Это не резервная копия: удаление данных сайта удалит их и при включённой защите.
+          </p>
         </div>
 
         <ZoneSettingsSection />
