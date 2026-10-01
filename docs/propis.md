@@ -3475,3 +3475,15 @@ and ≥50% overlap, has EVERY original vertex of its span moved perpendicularly 
 `segFree` is intentionally NOT used (a vertical stick is "free" for the grid snap). No hysteresis,
 no ramps. Node full-pipeline test (noise 0.3, return offset 0.6, 20 seeds): worst gap between passes
 1.59 → 0.69 at range 2, no new sharp turns. Returns along ARCS are not caught (known limitation).
+
+**Rounding-arc guides on the ruling, 2026-10-01.** User (screenshot of two hand-drawn arcs: ∩ touching
+the top line, ∪ the bottom line): "одинаковые закругления" -- dashed thin green arcs in the grid so
+the same rounding can be repeated. In `drawRuling()` (`tools/letter_capture/handwriting_capture.html`),
+`arcPath(T, up, x0)` builds one cubic-Bézier arc per grid cell: ∩ (up=true) touches lines L1 and L2
+from below, ∪ touches L2 and L3 from above (lines 1–3 / 3–5 in the labels). Ends sit on the slant
+lines at `ARC_DEPTH`=4.2 from the touched line: ∩ from a bold 50° line to the nearest-to-9-units thin
+65° line on its right (starts along 50°, comes down steeply, apex 62% along); ∪ is its point mirror
+(thin 65° on the left, bold 50° on the right, apex 38%). Width is whatever the grid's phase gives at
+that height (bold and thin lines drift apart: 0.3728·(L3−y)). Style `.rule-arc`, group `#arcGuides`,
+toggle `#arcGuidesChk` (default on). Chosen from the screenshot: the view showed the band L1–L2 at
+~10.8 px/unit (arc span ≈ 8.8 units ≈ one cell). Arcs are NOT snap targets yet. Tool-only change.

@@ -199,6 +199,7 @@
   /* Distinct from .rule-red-h on purpose — marks the letter-start reference height
      (NARROW_UPPER_QUARTER/NARROW_LOWER_QUARTER), a different kind of guide than the
      ascender/descender mid-band lines even though both are dashed horizontals. */
+  .rule-arc { fill: none; stroke: rgba(46, 163, 89, 0.75); stroke-width: 0.3; stroke-dasharray: 1.4 1.1; stroke-linecap: round; }
   .rule-green-h { stroke: rgba(46, 163, 89, 0.6); stroke-width: 0.4; stroke-dasharray: 2 1.4; }
   .rule-label { fill: var(--ink-soft); font-size: 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; }
   .guide-text { fill: rgba(20, 30, 50, 0.12); }
@@ -490,6 +491,12 @@
           <label class="guide-toggle-label" title="При завершении штриха обрежет его конец ровно по линии 4, вместо того чтобы оставить как рука довела">
             <input type="checkbox" id="trimEndChk" />
             Обрезать конец штриха по линии 4
+          </label>
+        </div>
+        <div class="toggle-row">
+          <label class="guide-toggle-label" title="Пунктирные зелёные дуги-подсказки на сетке: одинаковые закругления сверху (касаются линий 1 и 3) и снизу (касаются линий 3 и 5), по одной в каждой клетке сетки">
+            <input type="checkbox" id="arcGuidesChk" checked />
+            Дуги закруглений на сетке
           </label>
         </div>
         <div class="toggle-row">
@@ -932,6 +939,56 @@
     // vertical/slant intersections, kept in a distinct color from the red mid-band lines
     parts.push('<line class="rule-green-h" x1="0" y1="' + NARROW_UPPER_QUARTER + '" x2="' + CANVAS_W + '" y2="' + NARROW_UPPER_QUARTER + '"/>');
     parts.push('<line class="rule-green-h" x1="0" y1="' + NARROW_LOWER_QUARTER + '" x2="' + CANVAS_W + '" y2="' + NARROW_LOWER_QUARTER + '"/>');
+    // Dashed green "rounding" guides (2026-10-01, "одинаковые закругления"): one identical arc per
+    // grid cell. Top arcs (∩) touch L1 and L2 from below, bottom arcs (∪) touch L2 and L3 from
+    // above. Ends sit on the slant lines at depth ARC_DEPTH from the touched line, one grid cell
+    // (~ARC_TARGET_W) apart: a ∩ runs from a bold 50° line to the thin 65° line on its right,
+    // a ∪ from a thin 65° line to the bold 50° line on its right. Width comes out of the grid's
+    // own phase (bold and thin lines drift apart with height), so the nearest-to-target thin line
+    // is picked per height. The ∩ starts along the 50° line and comes down steeply; the ∪ is its
+    // point-mirror (leaves steeply, ends along the 50° line).
+    const ARC_DEPTH = 4.2;
+    const ARC_TARGET_W = 9;
+    const tanThin = Math.tan(ANGLE_DEG * Math.PI / 180), tanBold = Math.tan(ANGLE_DEG_BOLD * Math.PI / 180);
+    const cosB = Math.cos(ANGLE_DEG_BOLD * Math.PI / 180), sinB = Math.sin(ANGLE_DEG_BOLD * Math.PI / 180);
+    const f2 = v => v.toFixed(2);
+    const arcPath = (T, up, x0) => {
+      const y = up ? T + ARC_DEPTH : T - ARC_DEPTH;
+      const boldX = x0 + (L3 - y) / tanBold;
+      const thinBase = (L3 - y) / tanThin;
+      let A, B;
+      // nearest-to-target thin line: ∩ -> to the RIGHT of the bold end, ∪ -> to the LEFT of it
+      const m = Math.round((up ? boldX + ARC_TARGET_W - x0 - thinBase : boldX - ARC_TARGET_W - x0 - thinBase) / SPACING);
+      const thinX = x0 + m * SPACING + thinBase;
+      if (up) { A = { x: boldX, y }; B = { x: thinX, y }; } else { A = { x: thinX, y }; B = { x: boldX, y }; }
+      if (B.x - A.x < 2) return null;
+      let c1, c2, c3, c4, P;
+      if (up) {
+        P = { x: A.x + 0.62 * (B.x - A.x), y: T };
+        const k = 0.5 * Math.hypot(P.x - A.x, P.y - A.y);
+        c1 = { x: A.x + k * cosB, y: A.y - k * sinB };
+        c2 = { x: P.x - 0.45 * (P.x - A.x), y: T };
+        c3 = { x: P.x + 0.45 * (B.x - P.x), y: T };
+        c4 = { x: B.x, y: B.y - 0.5 * (B.y - T) };
+      } else {
+        P = { x: A.x + 0.38 * (B.x - A.x), y: T };
+        c1 = { x: A.x, y: A.y + 0.5 * (T - A.y) };
+        c2 = { x: P.x - 0.45 * (P.x - A.x), y: T };
+        c3 = { x: P.x + 0.45 * (B.x - P.x), y: T };
+        const k = 0.5 * Math.hypot(B.x - P.x, B.y - P.y);
+        c4 = { x: B.x - k * cosB, y: B.y + k * sinB };
+      }
+      return 'M ' + f2(A.x) + ' ' + f2(A.y) + ' C ' + f2(c1.x) + ' ' + f2(c1.y) + ' ' + f2(c2.x) + ' ' + f2(c2.y) + ' ' + f2(P.x) + ' ' + f2(P.y) +
+        ' C ' + f2(c3.x) + ' ' + f2(c3.y) + ' ' + f2(c4.x) + ' ' + f2(c4.y) + ' ' + f2(B.x) + ' ' + f2(B.y);
+    };
+    parts.push('<g id="arcGuides">');
+    for (let x0 = loopFrom; x0 < loopTo; x0 += SPACING) {
+      [[L1, true], [L2, true], [L2, false], [L3, false]].forEach(([T, up]) => {
+        const d = arcPath(T, up, x0);
+        if (d) parts.push('<path class="rule-arc" d="' + d + '"/>');
+      });
+    }
+    parts.push('</g>');
     // Fixed labels, one per line, NEVER derived from array position — the numbers 1-7 here
     // are load-bearing: fromLineSelect/toLineSelect (the connector "от линии"/"до линии"
     // dropdowns) and the production classifyLine()/GUIDE_LINES numbering both hard-code this
@@ -1389,6 +1446,10 @@
   }
   snapRoundingInput.addEventListener("input", () => { snapRoundingLabel.textContent = snapRoundingInput.value; });
   retraceRangeInput.addEventListener("input", () => { retraceRangeLabel.textContent = retraceRangeInput.value; });
+  const arcGuidesChk = document.getElementById("arcGuidesChk");
+  function applyArcGuides() { const g = document.getElementById("arcGuides"); if (g) g.style.display = arcGuidesChk.checked ? "" : "none"; }
+  arcGuidesChk.addEventListener("change", applyArcGuides);
+  applyArcGuides();
   snapEndsRangeInput.addEventListener("input", () => { snapEndsRangeLabel.textContent = snapEndsRangeInput.value; });
   snapToleranceInput.addEventListener("input", () => { snapToleranceLabel.textContent = snapToleranceInput.value; });
 
