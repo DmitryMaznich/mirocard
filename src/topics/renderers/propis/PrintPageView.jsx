@@ -25,6 +25,8 @@ const ROW_Y_SHIFT = NATIVE_L3 - mmToNativeUnits(PRINT_FIRST_BASELINE_MM);
 const rowOriginY = (row) => row * TEXT_ROW_PITCH - ROW_Y_SHIFT;
 
 const GUIDE_COLOR = "#6fa3e0";
+const WIDE_GUIDE_COLOR = "#555555"; // wide-row method sheets: dark grey grid + dashed mid line
+const START_DOT_COLOR = "#dc2626";
 const MARGIN_COLOR = "#c0392b"; // "красная линия полей" — a real notebook's red margin rule
 const GUIDE_DIAG_W = 0.25;
 const GUIDE_THIN_W = 0.4;
@@ -177,6 +179,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
   const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
+  const guideColor = wideRows ? WIDE_GUIDE_COLOR : GUIDE_COLOR;
   const contentRow = (r) => (wideRows ? r + 1 : r);
   const diagonalEls = wideRows ? null : diagonalLines.map((l, i) => (
     <line
@@ -199,7 +202,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
               key={k}
               x1={wideLineX(k, NATIVE_L3 - TEXT_ROW_PITCH)} y1={wideBandTop(row)}
               x2={wideLineX(k, WIDE_BAND_BOTTOM_LOCAL)} y2={wideBandTop(row) + wideBandHeight}
-              stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W}
+              stroke={guideColor} strokeWidth={GUIDE_DIAG_W}
             />
           ))}
         </g>
@@ -210,20 +213,20 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
             <line
               x1="0" y1={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
               x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
-              stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH}
+              stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH}
             />
           )}
           {!(wideRows && row === 0) && (
             <line
               x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
               x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
-              stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W}
+              stroke={guideColor} strokeWidth={GUIDE_THIN_W}
             />
           )}
           <line
             x1="0" y1={rowOriginY(row) + NATIVE_L3}
             x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3}
-            stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W}
+            stroke={guideColor} strokeWidth={GUIDE_BOLD_W}
           />
         </g>
       ))}
@@ -294,7 +297,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
                     <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   ))}
                   {!isActive && seg.startPoints?.map((pt, pi) => (
-                    <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} />
+                    <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={START_DOT_COLOR} />
                   ))}
                   {!isActive && seg.directionArrows?.map((a, ai) => a && (
                     <g key={ai} transform={`translate(${a.point[0]} ${a.point[1]}) rotate(${a.angleDeg})`}>
@@ -310,7 +313,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
                         />
                       ))}
                       {copy.startPoints?.map((pt, pi) => (
-                        <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} opacity={REPEAT_OPACITY} />
+                        <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={START_DOT_COLOR} opacity={REPEAT_OPACITY} />
                       ))}
                     </g>
                   ))}
