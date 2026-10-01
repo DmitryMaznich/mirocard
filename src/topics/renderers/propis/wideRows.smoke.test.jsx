@@ -433,3 +433,18 @@ it("a joined а / с is entered from the left of its oval: the pen runs clockwis
     expect(Math.hypot(endT[0] - stN[0], endT[1] - stN[1])).toBeLessThan(0.6);
   }
 });
+
+it("sheet 6 (э, х, ж) resolves: every row is one segment and the synthesized letters stay inside the band", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 30;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page6;
+  expect(raw).toHaveLength(9);
+  for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
+  for (const w of ["э", "х", "ж"]) {
+    const seg = layoutWideLinesIntoRows([w], map, snap, false).placed[0].segments[0];
+    const ys = seg.strokes.flatMap((s) => samplePath(s.d, 80).map((p) => p[1]));
+    expect(Math.min(...ys)).toBeGreaterThan(14);
+    expect(Math.max(...ys)).toBeLessThan(66);
+  }
+});
