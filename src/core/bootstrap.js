@@ -1,4 +1,5 @@
 import { kv } from "@/core/db";
+import { mergeRewardVideoViews } from "@/shared/utils/rewardVideoViews";
 import { useAppStore } from "@/core/store";
 import { listTopicRecords, installFirstPartyDeckIfNeeded } from "@/topics/topicLoader";
 import { normalizeActiveSessionSnapshot } from "@/features/session/activeSession";
@@ -143,6 +144,7 @@ export function mergeStudentRecords(local, server) {
       sex:            student.sex   ?? current.sex   ?? null,
       rewardVideos:          resolvedVideos,
       rewardVideosUpdatedAt: resolvedVideosTs,
+      rewardVideoViews: mergeRewardVideoViews(current.rewardVideoViews, student.rewardVideoViews),
       closeAdults:           closeAdults,
       closeAdultsUpdatedAt:  adultsWinner.closeAdultsUpdatedAt ?? null,
       myPeopleProfile,

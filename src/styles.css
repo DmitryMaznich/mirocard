@@ -18250,6 +18250,13 @@ select.account-card__input {
   line-height: 1;
 }
 .se-video-icon { color: #4a9b8f; font-size: 0.78rem; flex-shrink: 0; }
+.reward-video-view-count {
+  display: block;
+  margin-top: 3px;
+  color: #687878;
+  font-size: 0.75rem;
+  font-weight: 400;
+}
 
 /* Add row (adults "+" button) */
 .se-add-row {

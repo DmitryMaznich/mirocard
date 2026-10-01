@@ -289,6 +289,7 @@ function serializeStudent(row) {
     comment: row.comment,
     primaryLanguage: row.primary_language,
     rewardVideos: safeJson(row.reward_videos, []),
+    rewardVideoViews: safeJson(row.reward_video_views, {}),
     rewardVideosUpdatedAt: row.reward_videos_updated_at ?? null,
     closeAdults:  safeJson(row.close_adults, []),
     closeAdultsUpdatedAt: row.close_adults_updated_at ?? null,

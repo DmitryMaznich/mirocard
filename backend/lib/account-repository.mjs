@@ -1,4 +1,15 @@
 import { randomUUID, createHash } from "node:crypto";
+import { mergeRewardVideoViews } from "../../src/shared/utils/rewardVideoViews.js";
+
+export function recordStudentVideoViews(db, accountId, { studentId, views }) {
+  const student = db.prepare(
+    "SELECT reward_video_views FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
+  ).get(studentId, accountId);
+  if (!student) return;
+  const merged = mergeRewardVideoViews(safeJson(student.reward_video_views, {}), views);
+  db.prepare("UPDATE students SET reward_video_views = ? WHERE id = ? AND account_id = ?")
+    .run(JSON.stringify(merged), studentId, accountId);
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
