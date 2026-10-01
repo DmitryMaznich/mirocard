@@ -247,3 +247,25 @@ export function toCubicPathD(d) {
   }
   return out.join(" ");
 }
+
+// Widens a path horizontally by `stretch` while keeping straight strokes at their original slant:
+// a plain x-scale would flatten the 65-degree strokes, so the stretch is followed by a shear about
+// the baseline (x' = a*x - (a-1)*tan(slantFromVertical)*(yBase - y)). Straight "/" strokes keep
+// their angle exactly; arches/loops get wider, which is what a wider letter looks like.
+// Expects the M + C form (see toCubicPathD).
+export function stretchKeepSlantPathD(d, stretch, slantFromVerticalDeg, yBase) {
+  if (stretch === 1) return d;
+  const t = Math.tan((slantFromVerticalDeg * Math.PI) / 180);
+  const tokens = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const out = [];
+  let i = 0;
+  while (i < tokens.length) {
+    const tk = tokens[i];
+    if (tk === "M" || tk === "C") { out.push(tk); i += 1; continue; }
+    const x = parseFloat(tokens[i]);
+    const y = parseFloat(tokens[i + 1]);
+    out.push(Number((stretch * x - (stretch - 1) * t * (yBase - y)).toFixed(3)), Number(y.toFixed(3)));
+    i += 2;
+  }
+  return out.join(" ");
+}

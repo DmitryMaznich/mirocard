@@ -62,3 +62,16 @@ it("renders a wide-rows page (dumps SVG when WIDE_DUMP is set)", () => {
     writeFileSync(process.env.WIDE_DUMP, markup);
   }
 });
+
+describe("stretchKeepSlantPathD", () => {
+  it("widens ink but keeps a straight 65deg stroke at 65deg", async () => {
+    const { stretchKeepSlantPathD } = await import("./pathGeometry.js");
+    const t = Math.tan((25 * Math.PI) / 180);
+    // stroke "/" from (100,62) up to (100 + 40*t, 22)
+    const d = toCubicPathD(`M 100 62 L ${100 + 40 * t} 22`);
+    const w = stretchKeepSlantPathD(d, 1.5, 25, 62);
+    const e = getPathEndpoints(w);
+    expect(e.start[0]).toBeCloseTo(150, 1); // x scaled on the baseline
+    expect((e.end[0] - e.start[0]) / (e.start[1] - e.end[1])).toBeCloseTo(t, 2); // same slant
+  });
+});

@@ -1,4 +1,4 @@
-import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD, stretchKeepSlantPathD } from "./pathGeometry.js";
 import {
   GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
 } from "./propisRuling.js";
@@ -1010,7 +1010,11 @@ function wideTransform(d, originX) {
 }
 
 function wideGlyphLocal(glyph) {
-  const cubic = glyph.strokes.map((s) => toCubicPathD(s.d));
+  // Per-glyph horizontal stretch (wide.json `stretch`, default 1): the captured letters are
+  // narrower than the workbook's (measured ~1.5x on п/т), widened with the slant kept at 65deg.
+  const stretch = glyph.stretch ?? 1;
+  const cubic = glyph.strokes.map((s) =>
+    stretchKeepSlantPathD(toCubicPathD(s.d), stretch, 90 - 65, WIDE_CAPTURE_BASELINE));
   const originX = getPathEndpoints(cubic[0]).start[0];
   const strokes = cubic.map((d) => ({ d: wideTransform(d, originX) }));
   const start = getPathEndpoints(strokes[0].d).start;
