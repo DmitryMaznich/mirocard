@@ -132,7 +132,9 @@ for (const label of labels) {
   const suffix = segs.slice(lastPiece.i + 1); // what follows the last straight piece (a curl: kept as captured)
   if (!suffix.length) lastPiece.kind = "tail";
   const firstPiece = pieces[0];
-  const prefix = segs.slice(0, firstPiece.i); // M (+ anything before the first straight piece: kept as captured)
+  let prefix = segs.slice(0, firstPiece.i); // M (+ anything before the first straight piece: kept as captured)
+  // a sub-3-unit wiggle before the stem (the pen touching down) is not a bar: the stroke simply starts on the stem
+  if (prefix.length > 1 && firstPiece.kind === "stem" && len(sub(firstPiece.from, S)) < 3) prefix = prefix.slice(0, 1);
   const report = [];
   // ---- the straight line each piece must lie on
   const stems = pieces.filter((pc) => pc.kind === "stem");
@@ -218,6 +220,27 @@ for (const label of labels) {
       const pt = onLine(pc.n ?? next.n, pc.to[1]);
       out.push("L", f2(pt[0]), f2(pt[1]));
       next.start = pt;
+      continue;
+    }
+    if (pc.kind === "retrace" && next.kind === "retrace") {
+      // crossbar between two stems: keep the captured bar, only slide its two ends (<~2 units) onto the two
+      // stems' grid lines -- a gentle shear along the bar, so its flat run and its rounded ends survive
+      const A0 = pc.to;
+      const B0 = next.from;
+      const A = onLine(pc.n, A0[1]);
+      const B = onLine(next.n, B0[1]);
+      const dxA = A[0] - A0[0];
+      const dxB = B[0] - B0[0];
+      const span = B0[0] - A0[0];
+      const moveX = (x) => x + dxA + (dxB - dxA) * Math.min(1, Math.max(0, (x - A0[0]) / span));
+      out.push("L", f2(A[0]), f2(A[1]));
+      segs.slice(pc.i + 1, next.i).forEach((q) => {
+        const pts = q.pts.slice();
+        for (let m = 0; m < pts.length; m += 2) pts[m] = moveX(pts[m]);
+        out.push(...fmt({ cmd: q.cmd, pts }));
+      });
+      console.log(`${label}: crossbar kept as captured, ends slid by ${dxA.toFixed(2)} / ${dxB.toFixed(2)}`);
+      next.start = B;
       continue;
     }
     const rg = { from: pc.i + 1, to: next.i - 1 };
