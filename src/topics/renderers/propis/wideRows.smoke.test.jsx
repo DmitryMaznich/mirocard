@@ -116,7 +116,7 @@ describe("letter joins", () => {
     const t = Math.tan((25 * Math.PI) / 180);
     const snap = (_row, x, y) => Math.round((x + y * t) / S) * S - y * t;
     const { placed } = layoutWideLinesIntoRows(["ини", "нитки", "книги", "шипит"], map, snap);
-    const glyphStrokes = { и: 1, н: 1, т: 1, к: 2, г: 1, ш: 1, п: 1 };
+    const glyphStrokes = { и: 1, н: 1, т: 1, к: 2, г: 1, ш: 3, п: 1 };
     placed.forEach((row, r) => {
       const strokes = row.segments[0].strokes;
       const word = ["ини", "нитки", "книги", "шипит"][r];

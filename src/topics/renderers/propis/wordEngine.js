@@ -1054,6 +1054,11 @@ function wideGlyphLocal(glyph) {
 // label is one glyph; anything else is read as letters, greedy longest-match so a multi-char
 // label ("г1") still wins over its first character. Unknown characters are skipped.
 export function wideTokenToLabels(token, glyphsByLabel) {
+  const flat = (labels) => labels.flatMap((l) => glyphsByLabel.get(l)?.compose ?? [l]);
+  return flat(wideTokenToLabelsRaw(token, glyphsByLabel));
+}
+
+function wideTokenToLabelsRaw(token, glyphsByLabel) {
   if (token.includes("+")) return token.split("+").filter((l) => glyphsByLabel.has(l));
   if (glyphsByLabel.has(token)) return [token];
   const out = [];
