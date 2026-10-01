@@ -809,15 +809,15 @@ const LONG_ARROW_TO_MULTI = 0.75;
 const LONG_ARROW_HEAD = 5;
 // A stroke is cut at its sharp corners (> LONG_ARROW_CORNER_DEG within a few units), and every piece long enough
 // gets its own arrow -- a zigzag stroke would otherwise get one tangled arrow.
-const LONG_ARROW_CORNER_DEG = 55;
-const LONG_ARROW_MIN_PIECE = 14;
+const LONG_ARROW_CORNER_DEG = 60;
+const LONG_ARROW_MIN_PIECE = 20;
 function longArrowsFor(d, scale = 1) {
   const pts = samplePath(d, 40);
   if (pts.length < 2) return [];
   const cum = [0];
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
   const cuts = [0];
-  const WIN = 3;
+  const WIN = 6;
   for (let i = 1; i < pts.length - 1; i++) {
     let a = i; while (a > 0 && cum[i] - cum[a] < WIN) a--;
     let b = i; while (b < pts.length - 1 && cum[b] - cum[i] < WIN) b++;
