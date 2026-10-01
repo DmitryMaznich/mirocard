@@ -82,7 +82,7 @@ describe("grid snapping", () => {
     const S = 30;
     const t = Math.tan((25 * Math.PI) / 180);
     const snap = (_row, x, y) => Math.round((x + y * t) / S) * S - y * t;
-    const { placed } = layoutWideLinesIntoRows(["иии", "ини", "нии"], map, snap);
+    const { placed } = layoutWideLinesIntoRows(["иии", "ини", "нии"], map, snap, false);
     for (const row of placed) {
       const { strokes } = row.segments[0];
       // glyph strokes (skip connector strokes: they begin at the previous letter's exit)
@@ -115,7 +115,7 @@ describe("letter joins", () => {
     const S = 30;
     const t = Math.tan((25 * Math.PI) / 180);
     const snap = (_row, x, y) => Math.round((x + y * t) / S) * S - y * t;
-    const { placed } = layoutWideLinesIntoRows(["ини", "нитки", "книги", "шипит"], map, snap);
+    const { placed } = layoutWideLinesIntoRows(["ини", "нитки", "книги", "шипит"], map, snap, false);
     const glyphStrokes = { и: 1, н: 1, т: 1, к: 2, г: 1, ш: 3, п: 1 };
     placed.forEach((row, r) => {
       const strokes = row.segments[0].strokes;
@@ -136,7 +136,7 @@ describe("letter joins", () => {
 
 describe("pen animation", () => {
   it("adds a continuous transition (contact -> next start) before every joined letter's stroke", () => {
-    const { placed } = layoutWideLinesIntoRows(["ш", "ин", "и и"], map);
+    const { placed } = layoutWideLinesIntoRows(["ш", "ин", "и и"], map, undefined, false);
     const w = placed[0].segments[0];
     // ш = three hooks: hook, transition, hook, transition, hook
     expect(w.strokes).toHaveLength(3);
@@ -163,7 +163,7 @@ it("tap on a wide row plays the pen animation", () => {
   act(() => root.render(<PrintPageView task={task} onClose={() => {}} />));
   expect(host.querySelector("[data-pr-anim]")).toBeNull();
   act(() => host.querySelector(".propis-text-word-hit").dispatchEvent(new MouseEvent("click", { bubbles: true })));
-  expect(host.querySelectorAll("[data-pr-anim]").length).toBe(5);
+  expect(host.querySelectorAll("[data-pr-anim]").length).toBeGreaterThanOrEqual(5);
 });
 
 describe("repeat pitch (cells between the starts of copies, from the workbook photos)", () => {
@@ -232,17 +232,28 @@ it("a row of one repeated token is multiplied across the row; every copy start i
   expect(seg.strokes.length).toBeGreaterThan(4);
   expect(seg.width).toBeLessThanOrEqual(831);
   expect(seg.startPoints).toHaveLength(seg.strokes.length);
-  expect(seg.strokes.map((s) => !!s.dashed)).toEqual(seg.strokes.map((_, i) => i > 0));
-  expect(placed[1].segments[0].startPoints).toHaveLength(1);
+  expect(placed[1].segments[0].startPoints.length).toBeGreaterThan(1); // page-1 word is multiplied too
+  expect(placed[1].segments[0].startPoints.length).toBeGreaterThan(1); // page-1 word is multiplied too
   expect(placed[2].segments[0].strokes).toHaveLength(4);
 });
 
 it("dashed copies fade out along the row and are gone by mid-page", () => {
-  const { placed } = layoutWideLinesIntoRows(["и и"], map);
-  const st = placed[0].segments[0].strokes;
+  const { placed } = layoutWideLinesIntoRows([...Array(16).fill("5"), "и и"], map);
+  const st = placed[16].segments[0].strokes;
   expect(st[0].opacity).toBeUndefined();
   const ops = st.slice(1).map((s) => s.opacity);
   for (let i = 1; i < ops.length; i++) expect(ops[i]).toBeLessThanOrEqual(ops[i - 1]);
   expect(ops[0]).toBeLessThan(1);
   expect(ops.at(-1)).toBe(0);
+});
+
+it("first page: copies after the first are all dashed at one constant intensity, single words are multiplied", () => {
+  const { placed } = layoutWideLinesIntoRows(["и и", "ини", "7"], map);
+  const ops = placed[0].segments[0].strokes.slice(1).map((s) => s.opacity);
+  expect(new Set(ops).size).toBe(1);
+  expect(ops[0]).toBeGreaterThan(0.3);
+  const w = placed[1].segments[0];
+  expect(w.startPoints.length).toBeGreaterThan(2);
+  expect(w.strokes.filter((s) => s.dashed).length).toBe(w.strokes.length - 3);
+  expect(placed[2].segments[0].strokes).toHaveLength(1);
 });

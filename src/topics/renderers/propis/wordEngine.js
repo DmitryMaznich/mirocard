@@ -1080,13 +1080,18 @@ function wideTokenToLabelsRaw(token, glyphsByLabel) {
 const WIDE_ROW_MAX_X = 831;
 // Dashed copies fade out copy by copy and are gone by the page's middle (row-local x: 445.5 - 30 inset), leaving only their start dots.
 const WIDE_FADE_END_X = 415;
+// First sheet page (the first 16 rows): copies after the first are NOT faded, all dashed at one constant intensity
+// (about what the third copy had under the fade), and single words are multiplied too.
+const WIDE_FLAT_PAGE_ROWS = 16;
+const WIDE_FLAT_COPY_OPACITY = 0.6;
 
 // A row made of one token repeated ("5 5", "и и") is multiplied across the whole row: as many copies as fit.
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true) {
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       const toks = line.split(/\s+/).filter(Boolean);
-      if (toks.length < 2 || toks.some((t) => t !== toks[0])) return line;
+      const flatWord = rowIndex < WIDE_FLAT_PAGE_ROWS && toks.length === 1 && wideTokenToLabels(toks[0], glyphsByLabel).length > 1;
+      if (!flatWord && (toks.length < 2 || toks.some((t) => t !== toks[0]))) return line;
       let best = toks.length;
       for (let n = toks.length; n <= 60; n++) {
         const probe = layoutWideLinesIntoRows([Array(n).fill(toks[0]).join(" ")], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false);
@@ -1142,7 +1147,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         const startX = snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
         if (rowFirstX === null) rowFirstX = startX;
-        const fade = dashed ? Math.max(0, 1 - ((tokenStartX ?? startX) - rowFirstX) / Math.max(1, WIDE_FADE_END_X - rowFirstX)) : 1;
+        const fade = dashed ? (rowIndex < WIDE_FLAT_PAGE_ROWS ? WIDE_FLAT_COPY_OPACITY : Math.max(0, 1 - ((tokenStartX ?? startX) - rowFirstX) / Math.max(1, WIDE_FADE_END_X - rowFirstX))) : 1;
         const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }), ...(dashed ? { dashed: true, opacity: Math.round(fade * 100) / 100 } : {}) }));
         if (prevExit) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
