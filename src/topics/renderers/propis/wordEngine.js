@@ -1,4 +1,4 @@
-import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD } from "./pathGeometry.js";
 import {
   GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
 } from "./propisRuling.js";
@@ -980,6 +980,103 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel, rowWidthUnits
   });
   const rowCount = Math.max(lines.length, 1);
   return { placed, rowCount };
+}
+
+// "Широкая строка" (методика, часть 1) -- read_lines' `wideRows` option. Glyphs are captured on
+// the capture tool's WIDE zone (wide.json: baseline y=62, top y=10, mid y=36 -- the 52-unit L1..L2
+// span) and drawn here on THIS page's own wide band (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET = 48
+// units: previous row's baseline down to this row's thin line), standing on the thin line. Pure
+// affine: uniform scale about the baseline + translate, so slant and shapes are untouched.
+// Each line is space-separated tokens; a token is one glyph label (и, й, ш, н, т, к, 5, 6, 7,
+// 8, г1, п1) or a word of single-character letter labels joined into one continuous stroke.
+const WIDE_CAPTURE_BASELINE = 62;
+const WIDE_CAPTURE_SPAN = 52;
+export const WIDE_ZONE_UNITS = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET;
+export const WIDE_SCALE = WIDE_ZONE_UNITS / WIDE_CAPTURE_SPAN;
+const WIDE_BASELINE_Y = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
+const WIDE_JOIN_TAN = Math.tan(((90 - 65) * Math.PI) / 180);
+const WIDE_TOKEN_GAP = 36;
+const WIDE_LEFT_PAD = 6;
+
+function wideTransform(d, originX) {
+  // origin (stroke start of the glyph) -> x=0 of the glyph's local frame, then scale about the
+  // capture baseline and drop onto this page's thin line.
+  return transformPathD(d, {
+    scaleX: WIDE_SCALE,
+    scaleY: WIDE_SCALE,
+    translateX: -originX * WIDE_SCALE,
+    translateY: WIDE_BASELINE_Y - WIDE_CAPTURE_BASELINE * WIDE_SCALE,
+  });
+}
+
+function wideGlyphLocal(glyph) {
+  const cubic = glyph.strokes.map((s) => toCubicPathD(s.d));
+  const originX = getPathEndpoints(cubic[0]).start[0];
+  const strokes = cubic.map((d) => ({ d: wideTransform(d, originX) }));
+  const start = getPathEndpoints(strokes[0].d).start;
+  // Exit = end of the stroke that reaches furthest right ("й": the main stroke, not the breve;
+  // "к": the second stroke) -- the real continuation point of the pen.
+  let end = getPathEndpoints(strokes[0].d).end;
+  for (const s of strokes) {
+    const e = getPathEndpoints(s.d).end;
+    if (e[0] > end[0]) end = e;
+  }
+  const xs = strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]));
+  return { strokes, start, end, minX: Math.min(...xs), maxX: Math.max(...xs) };
+}
+
+export function layoutWideLinesIntoRows(lines, glyphsByLabel) {
+  const placed = lines.map((line, rowIndex) => {
+    const strokes = [];
+    const startPoints = [];
+    const directionArrows = [];
+    let cursorX = null;
+    let prevExit = null;
+    let firstGlyph = true;
+    for (const token of line.split(/\s+/).filter(Boolean)) {
+      const labels = glyphsByLabel.has(token) ? [token] : [...token];
+      prevExit = null;
+      for (const label of labels) {
+        const glyph = glyphsByLabel.get(label);
+        if (!glyph) continue;
+        const local = wideGlyphLocal(glyph);
+        let dx;
+        if (prevExit) {
+          // Joined letter: pen continues from the previous exit along the 65-degree slant up
+          // to this glyph's start (a plain straight connector, not a captured one).
+          dx = prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.start[0];
+          strokes.push({ d: toCubicPathD(`M ${prevExit[0]} ${prevExit[1]} L ${local.start[0] + dx} ${local.start[1]}`) });
+        } else {
+          dx = (cursorX === null ? WIDE_LEFT_PAD : cursorX + WIDE_TOKEN_GAP) - local.minX;
+        }
+        const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
+        strokes.push(...moved);
+        if (firstGlyph) {
+          for (const s of moved) {
+            startPoints.push(getPathEndpoints(s.d).start);
+            const t = getMidpointTangent(s.d);
+            if (!t) { directionArrows.push(null); continue; }
+            const rad = (t.angleDeg * Math.PI) / 180;
+            directionArrows.push({
+              point: [t.point[0] + Math.sin(rad) * ARROW_SIDE_OFFSET, t.point[1] - Math.cos(rad) * ARROW_SIDE_OFFSET],
+              angleDeg: t.angleDeg,
+            });
+          }
+          firstGlyph = false;
+        }
+        prevExit = [local.end[0] + dx, local.end[1]];
+        cursorX = local.maxX + dx;
+      }
+    }
+    const width = strokes.length ? Math.max(...strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]))) : 0;
+    // `type: "element"` on purpose: PrintPageView already renders those as static ink with start
+    // dots + direction arrows (no tap/animation) and snaps their start onto the dense slant grid.
+    const segments = strokes.length
+      ? [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [] }]
+      : [];
+    return { word: line, rowIndex, x: 0, segments };
+  });
+  return { placed, rowCount: Math.max(lines.length, 1) };
 }
 
 // Groups a layoutTextIntoRows() result into fixed-size print pages -- PrintPageView.jsx's

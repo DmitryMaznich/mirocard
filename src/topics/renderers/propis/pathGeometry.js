@@ -206,3 +206,44 @@ export function transformPathD(d, { scaleX = 1, scaleY = 1, translateX = 0, tran
 
   return out;
 }
+
+// Converts an absolute-coordinate path made of M / L / Q / C commands into the M + C-only form
+// every helper above (and wordEngine.js) assumes. Needed for the "Широкая строка" captures
+// (tools/propis/wide.json), which the capture tool exported with straight (L) and quadratic (Q)
+// segments. L becomes a degenerate cubic (control points at 1/3 and 2/3); Q is an exact
+// degree elevation, so the drawn curve is identical.
+export function toCubicPathD(d) {
+  const tokens = d.match(/[MLQC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const f = (n) => Number(n.toFixed(3));
+  let out = [];
+  let cmd = null;
+  let cx = 0;
+  let cy = 0;
+  let i = 0;
+  while (i < tokens.length) {
+    const t = tokens[i];
+    if (/[MLQC]/.test(t)) { cmd = t; i += 1; continue; }
+    if (cmd === "M") {
+      cx = parseFloat(tokens[i]); cy = parseFloat(tokens[i + 1]); i += 2;
+      out.push("M", f(cx), f(cy));
+      cmd = "L"; // a coordinate pair after M is an implicit lineto
+    } else if (cmd === "L") {
+      const x = parseFloat(tokens[i]); const y = parseFloat(tokens[i + 1]); i += 2;
+      out.push("C", f(cx + (x - cx) / 3), f(cy + (y - cy) / 3), f(cx + (2 * (x - cx)) / 3), f(cy + (2 * (y - cy)) / 3), f(x), f(y));
+      cx = x; cy = y;
+    } else if (cmd === "Q") {
+      const qx = parseFloat(tokens[i]); const qy = parseFloat(tokens[i + 1]);
+      const x = parseFloat(tokens[i + 2]); const y = parseFloat(tokens[i + 3]); i += 4;
+      out.push("C",
+        f(cx + (2 * (qx - cx)) / 3), f(cy + (2 * (qy - cy)) / 3),
+        f(x + (2 * (qx - x)) / 3), f(y + (2 * (qy - y)) / 3),
+        f(x), f(y));
+      cx = x; cy = y;
+    } else if (cmd === "C") {
+      const v = tokens.slice(i, i + 6).map(parseFloat); i += 6;
+      out.push("C", ...v.map(f));
+      cx = v[4]; cy = v[5];
+    } else { i += 1; }
+  }
+  return out.join(" ");
+}

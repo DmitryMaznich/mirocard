@@ -85,6 +85,8 @@ describe("generateTasks — read_lines", () => {
       lines: ["мама", "папа"],
       useElements: false,
       elements: [],
+      wideRows: false,
+      wideGlyphs: [],
     }]);
   });
 

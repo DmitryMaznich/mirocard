@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { layoutTextIntoRows, layoutElementLinesIntoRows, paginateRows } from "./wordEngine.js";
+import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, paginateRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
   INK_COLOR, NATIVE_L3,
@@ -109,6 +109,14 @@ const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, 
 // whole крючок/заборчик could render with no slant guide crossing it at all.
 const SHEET_DIAGONAL_LINES_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
 const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
+// "Широкая строка": the ordinary 17-row cycle, but ruling row 0 is only the TOP edge of the first
+// wide band (its own bold baseline) -- content rows start at ruling row 1, so 16 per page, and
+// the first band doesn't sit cut off against the physical page edge.
+const WIDE_ROWS_PER_PAGE = PRINT_ROWS_PER_PAGE - 1;
+// Slants are drawn only inside each wide band (previous baseline down to this row's thin line);
+// the narrow strip below stays blank, as in the original workbook.
+const wideBandTop = (row) => rowOriginY(row) + NATIVE_L3 - TEXT_ROW_PITCH;
+const wideBandHeight = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET;
 const DIAGONAL_TAN = Math.tan(((90 - ANGLE_FROM_HORIZONTAL_DEG) * Math.PI) / 180);
 
 // Where line n of the dense diagonal grid (see SHEET_DIAGONAL_LINES_DENSE) actually renders
@@ -153,10 +161,19 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 // instead of the standard set (see its own comment) -- that one axis genuinely does need to
 // differ, since the standard 20mm spacing is too sparse for a single narrow element's own
 // ink to ever cross a slant guide at all.
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }) {
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, wideRows = false }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
-  const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
+  const diagonalLines = useElements || wideRows ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
+  const contentRow = (r) => (wideRows ? r + 1 : r);
+  const bandClipId = `wide-bands-${pageIndex}`;
+  const diagonalEls = diagonalLines.map((l, i) => (
+    <line
+      key={`d${i}`}
+      x1={l.x1 + diagonalShiftX} y1={0} x2={l.x2 + diagonalShiftX} y2={PAGE_H_UNITS}
+      stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W}
+    />
+  ));
   return (
     <svg
       className="propis-print-page-svg"
@@ -164,27 +181,32 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
-      {diagonalLines.map((l, i) => (
-        <line
-          key={`d${i}`}
-          x1={l.x1 + diagonalShiftX} y1={0} x2={l.x2 + diagonalShiftX} y2={PAGE_H_UNITS}
-          stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W}
-        />
-      ))}
+      {wideRows ? (
+        <>
+          <clipPath id={bandClipId}>
+            {ROW_INDICES.slice(1).map((row) => (
+              <rect key={row} x="0" y={wideBandTop(row)} width={PAGE_W_UNITS} height={wideBandHeight} />
+            ))}
+          </clipPath>
+          <g clipPath={`url(#${bandClipId})`}>{diagonalEls}</g>
+        </>
+      ) : diagonalEls}
       {ROW_INDICES.map((row) => (
         <g key={`g${row}`}>
-          {useElements && (
+          {(useElements || wideRows) && !(wideRows && row === 0) && (
             <line
               x1="0" y1={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
               x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
               stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH}
             />
           )}
-          <line
-            x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
-            x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
-            stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W}
-          />
+          {!(wideRows && row === 0) && (
+            <line
+              x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
+              x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
+              stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W}
+            />
+          )}
           <line
             x1="0" y1={rowOriginY(row) + NATIVE_L3}
             x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3}
@@ -211,13 +233,13 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements }
         const elementSnapDx = startPoint
           ? nearestDiagonalX(
               contentXUnits + p.x + startPoint[0],
-              rowOriginY(p.rowIndex) + startPoint[1],
+              rowOriginY(contentRow(p.rowIndex)) + startPoint[1],
               TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
               diagonalShiftX
             ) - (contentXUnits + p.x + startPoint[0])
           : 0;
         return (
-          <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowOriginY(p.rowIndex)})`}>
+          <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowOriginY(contentRow(p.rowIndex))})`}>
             {onToggleActive && !isElementRow && (
               <rect
                 className="propis-text-word-hit"
@@ -481,16 +503,24 @@ export default function PrintPageView({ task, onClose }) {
   }, [task]);
 
   const lines = task?.lines ?? [];
-  const useElements = Boolean(task?.useElements);
+  const wideRows = Boolean(task?.wideRows);
+  const useElements = Boolean(task?.useElements) && !wideRows;
   const text = lines.join("\n");
+  const wideGlyphsByLabel = useMemo(() => {
+    const map = new Map();
+    for (const item of task?.wideGlyphs ?? []) map.set(item.label, item);
+    return map;
+  }, [task]);
 
   const layout = useMemo(
-    () => useElements
+    () => wideRows
+      ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel)
+      : useElements
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
-    [useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
+    [wideRows, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
-  const pages = useMemo(() => paginateRows(layout, PRINT_ROWS_PER_PAGE), [layout]);
+  const pages = useMemo(() => paginateRows(layout, wideRows ? WIDE_ROWS_PER_PAGE : PRINT_ROWS_PER_PAGE), [layout, wideRows]);
 
   const [pageIndex, setPageIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -526,6 +556,7 @@ export default function PrintPageView({ task, onClose }) {
                   activeIndex={activeIndex}
                   onToggleActive={(i) => setActiveIndex((cur) => (cur === i ? null : i))}
                   useElements={useElements}
+                  wideRows={wideRows}
                 />
               </div>
               {isZoomed && (
@@ -584,8 +615,8 @@ export default function PrintPageView({ task, onClose }) {
               <div className="propis-print-all" aria-hidden="true">
                 {Array.from({ length: pages.length / 2 }, (_, sheetIndex) => (
                   <div key={sheetIndex} className="propis-print-all__sheet">
-                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} />
-                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} />
+                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} wideRows={wideRows} />
+                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} wideRows={wideRows} />
                   </div>
                 ))}
               </div>,

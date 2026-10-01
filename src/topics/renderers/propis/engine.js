@@ -51,6 +51,7 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
   // into the deck separately from `cards` (build-propis-deck.mjs merges tools/propis/elements.json
   // into topic.json's own `elements` key), same reasoning as words/texts above.
   const elementBank = Array.isArray(cards) ? [] : (cards?.elements ?? []);
+  const wideBank = Array.isArray(cards) ? [] : (cards?.wide ?? []);
   const withStrokes = allCards.filter((c) => Array.isArray(c.strokes) && c.strokes.length > 0);
   const letters = withStrokes.filter((c) => c.type === "letter");
   const connectors = withStrokes.filter((c) => c.type === "connector");
@@ -133,7 +134,10 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     // ElementPickerModal in ParamsScreen.jsx, not typed) instead of text -- PrintPageView.jsx
     // needs the element bank to resolve those ids into strokes, same as letters/connectors.
     const useElements = Boolean(sessionParams?.useElements);
-    return [{ type: "print_page", letters, connectors, punctuation, lines, useElements, elements: elementBank }];
+    // "Широкая строка" (методика, часть 1): lines are typed text (glyph labels / words), drawn
+    // from the wide-zone captures in `wide` (tools/propis/wide.json) on wide-band-only ruling.
+    const wideRows = Boolean(sessionParams?.wideRows);
+    return [{ type: "print_page", letters, connectors, punctuation, lines, useElements, elements: elementBank, wideRows, wideGlyphs: wideBank }];
   }
 
   if (mode.type === "browse") {

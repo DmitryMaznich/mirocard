@@ -5,6 +5,7 @@ import { join } from "node:path";
 const TOPIC_DIR = "tools/propis";
 const TOPIC_PATH = `${TOPIC_DIR}/topic.json`;
 const ELEMENTS_PATH = `${TOPIC_DIR}/elements.json`;
+const WIDE_PATH = `${TOPIC_DIR}/wide.json`;
 const CATALOG_PATH = "public/decks/catalog.json";
 // Ready-made print PDFs (print/) + their card thumbnails (thumbnails/), migrated in from the
 // standalone print_materials topic (2026-09-15) for the new "print_materials"/"browse" mode.
@@ -23,6 +24,10 @@ const topic = JSON.parse(readFileSync(TOPIC_PATH, "utf-8"));
 if (existsSync(ELEMENTS_PATH)) {
   const { elements } = JSON.parse(readFileSync(ELEMENTS_PATH, "utf-8"));
   topic.elements = elements;
+}
+// "Широкая строка" glyphs (методика, часть 1) -- own file for the same reason as elements.json.
+if (existsSync(WIDE_PATH)) {
+  topic.wide = JSON.parse(readFileSync(WIDE_PATH, "utf-8")).glyphs;
 }
 const VERSION = topic.meta.version;
 const ZIP_PATH = `public/decks/propis_v${VERSION}.zip`;
