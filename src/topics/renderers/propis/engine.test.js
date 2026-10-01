@@ -86,6 +86,7 @@ describe("generateTasks — read_lines", () => {
       useElements: false,
       elements: [],
       wideRows: false,
+      narrowRows: false,
       wideGlyphs: [],
       wideElementRepeat: {},
     }]);

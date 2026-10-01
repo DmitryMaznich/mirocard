@@ -122,6 +122,19 @@ const WIDE_SLANT_TAN = Math.tan(((90 - ANGLE_FROM_HORIZONTAL_DEG) * Math.PI) / 1
 const WIDE_BAND_BOTTOM_LOCAL = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
 const wideLineX = (k, yLocal) => WIDE_GRID_FIRST_X + k * TEXT_ROW_WIDE_DIAGONAL_SPACING + (WIDE_BAND_BOTTOM_LOCAL - yLocal) * WIDE_SLANT_TAN;
 const WIDE_LINE_COUNT = Math.ceil((PAGE_W_UNITS + (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * WIDE_SLANT_TAN) / TEXT_ROW_WIDE_DIAGONAL_SPACING) + 2;
+// "Узкая строка" (методика, часть 2): the same captured glyphs at half size. Band = 24 units (4 mm) standing on the
+// baseline (row-local y = 64), thin line on top, dashed middle, bold baseline; a dashed guide in the middle of the gap
+// between bands (ascender / descender limit); a short bold bar at the left edge of each band. The 65deg slants (cell
+// 15 units) run through the WHOLE page, not only inside the bands.
+const NARROW_SCALE = 0.5;
+const NARROW_CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * NARROW_SCALE;
+const NARROW_BAND_H = (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * NARROW_SCALE;
+const NARROW_GUIDE_LOCAL = NATIVE_L3 - TEXT_ROW_PITCH; // 16: dashed limit line above the band
+const NARROW_FIRST_X = 15;
+const NARROW_START_DOT_R = 2;
+const NARROW_BAR_W = 1.4;
+const narrowYRef = () => rowOriginY(1) + WIDE_BAND_BOTTOM_LOCAL;
+const narrowLineX = (k, yAbs) => NARROW_FIRST_X + k * NARROW_CELL + (narrowYRef() - yAbs) * WIDE_SLANT_TAN;
 const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
 // "Широкая строка": the ordinary 17-row cycle, but ruling row 0 is only the TOP edge of the first
 // wide band (its own bold baseline) -- content rows start at ruling row 1, so 16 per page, and
@@ -175,7 +188,7 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 // instead of the standard set (see its own comment) -- that one axis genuinely does need to
 // differ, since the standard 20mm spacing is too sparse for a single narrow element's own
 // ink to ever cross a slant guide at all.
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, wideRows = false }) {
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, wideRows = false, narrowRows = false }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
   const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
@@ -195,7 +208,37 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
-      {wideRows ? ROW_INDICES.slice(1).map((row) => (
+      {narrowRows && (() => {
+        const kLo = Math.floor((-NARROW_FIRST_X - narrowYRef() * WIDE_SLANT_TAN) / NARROW_CELL);
+        const kHi = Math.ceil((PAGE_W_UNITS - NARROW_FIRST_X - (narrowYRef() - PAGE_H_UNITS) * WIDE_SLANT_TAN) / NARROW_CELL);
+        const ks = Array.from({ length: kHi - kLo + 1 }, (_, i) => kLo + i);
+        return (
+          <g data-narrow-grid="1">
+            {ks.map((k) => (
+              <line key={k} x1={narrowLineX(k, 0)} y1={0} x2={narrowLineX(k, PAGE_H_UNITS)} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
+            ))}
+            {ROW_INDICES.slice(1).map((row) => {
+              const top = rowOriginY(row) + WIDE_BAND_BOTTOM_LOCAL - NARROW_BAND_H;
+              const bottom = rowOriginY(row) + WIDE_BAND_BOTTOM_LOCAL;
+              const guideY = rowOriginY(row) + NARROW_GUIDE_LOCAL;
+              return (
+                <g key={row} data-narrow-band={row}>
+                  <line x1="0" y1={guideY} x2={PAGE_W_UNITS} y2={guideY} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />
+                  <line x1="0" y1={top} x2={PAGE_W_UNITS} y2={top} stroke={guideColor} strokeWidth={GUIDE_THIN_W} />
+                  <line x1="0" y1={(top + bottom) / 2} x2={PAGE_W_UNITS} y2={(top + bottom) / 2} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />
+                  <line x1="0" y1={bottom} x2={PAGE_W_UNITS} y2={bottom} stroke={guideColor} strokeWidth={GUIDE_BOLD_W} />
+                  <line x1={NARROW_BAR_W / 2} y1={top} x2={NARROW_BAR_W / 2} y2={bottom} stroke={guideColor} strokeWidth={NARROW_BAR_W} />
+                </g>
+              );
+            })}
+            {(() => {
+              const lastY = rowOriginY(ROW_INDICES.length - 1) + WIDE_BAND_BOTTOM_LOCAL + NARROW_BAND_H;
+              return <line x1="0" y1={lastY} x2={PAGE_W_UNITS} y2={lastY} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />;
+            })()}
+          </g>
+        );
+      })()}
+      {wideRows && !narrowRows ? ROW_INDICES.slice(1).map((row) => (
         <g key={`band${row}`} data-wide-band={row}>
           {Array.from({ length: WIDE_LINE_COUNT }, (_, k) => k - 1).map((k) => (
             <line
@@ -207,7 +250,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
           ))}
         </g>
       )) : diagonalEls}
-      {ROW_INDICES.map((row) => (
+      {!narrowRows && ROW_INDICES.map((row) => (
         <g key={`g${row}`}>
           {(useElements || wideRows) && !(wideRows && row === 0) && (
             <line
@@ -300,7 +343,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
                     )
                   ))}
                   {!isActive && seg.startPoints?.map((pt, pi) => (
-                    <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={START_DOT_COLOR} />
+                    <circle key={pi} cx={pt[0]} cy={pt[1]} r={narrowRows ? NARROW_START_DOT_R : ELEMENT_START_DOT_R} fill={START_DOT_COLOR} />
                   ))}
                   {!isActive && seg.directionArrows?.map((a, ai) => a && a.long && (
                     <g key={ai} fill="none" stroke={ARROW_COLOR} strokeWidth={1.1} strokeLinecap="round" strokeLinejoin="round">
@@ -322,7 +365,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
                         />
                       ))}
                       {copy.startPoints?.map((pt, pi) => (
-                        <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={START_DOT_COLOR} opacity={REPEAT_OPACITY} />
+                        <circle key={pi} cx={pt[0]} cy={pt[1]} r={narrowRows ? NARROW_START_DOT_R : ELEMENT_START_DOT_R} fill={START_DOT_COLOR} opacity={REPEAT_OPACITY} />
                       ))}
                     </g>
                   ))}
@@ -504,6 +547,13 @@ function usePinchZoom(wrapRef, contentRef) {
 // Row-local x of the nearest slant-grid line at (x, y) for a "Широкая строка" content row. The
 // ruling phase depends on the physical page slot and the row's own Y, both derivable from the row
 // index alone (WIDE_ROWS_PER_PAGE rows per page), so the layout can snap without knowing pages.
+function narrowSnapX(rowIndex, x, y) {
+  const { contentXUnits } = slotGeometry(0, true);
+  const yAbs = rowOriginY(rowIndex + 1) + y;
+  const k = Math.round((contentXUnits + x - narrowLineX(0, yAbs)) / NARROW_CELL);
+  return narrowLineX(k, yAbs) - contentXUnits;
+}
+
 function wideSnapX(rowIndex, x, y) {
   const { contentXUnits } = slotGeometry(0, true);
   // slant line k at local height y (see wideLineX): nearest line to the point, row-local x back out
@@ -544,6 +594,7 @@ export default function PrintPageView({ task, onClose }) {
 
   const lines = task?.lines ?? [];
   const wideRows = Boolean(task?.wideRows);
+  const narrowRows = wideRows && Boolean(task?.narrowRows);
   const useElements = Boolean(task?.useElements) && !wideRows;
   const text = lines.join("\n");
   const wideGlyphsByLabel = useMemo(() => {
@@ -560,11 +611,11 @@ export default function PrintPageView({ task, onClose }) {
 
   const layout = useMemo(
     () => wideRows
-      ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, wideSnapX)
+      ? (narrowRows ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, narrowSnapX, true, NARROW_SCALE) : layoutWideLinesIntoRows(lines, wideGlyphsByLabel, wideSnapX))
       : useElements
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
-    [wideRows, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
+    [wideRows, narrowRows, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
   const pages = useMemo(() => paginateRows(layout, wideRows ? WIDE_ROWS_PER_PAGE : PRINT_ROWS_PER_PAGE), [layout, wideRows]);
 
@@ -603,6 +654,7 @@ export default function PrintPageView({ task, onClose }) {
                   onToggleActive={(i) => setActiveIndex((cur) => (cur === i ? null : i))}
                   useElements={useElements}
                   wideRows={wideRows}
+                  narrowRows={narrowRows}
                 />
               </div>
               {isZoomed && (
@@ -661,8 +713,8 @@ export default function PrintPageView({ task, onClose }) {
               <div className="propis-print-all" aria-hidden="true">
                 {Array.from({ length: pages.length / 2 }, (_, sheetIndex) => (
                   <div key={sheetIndex} className="propis-print-all__sheet">
-                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} wideRows={wideRows} />
-                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} wideRows={wideRows} />
+                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} />
+                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} />
                   </div>
                 ))}
               </div>,

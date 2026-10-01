@@ -132,7 +132,9 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     let lines = (sessionParams?.lines ?? []).map((l) => l.trim()).filter(Boolean);
     // Ready-made workbook sheets ("Широкая строка" -> "Листы методики, часть 1"): replaces the
     // typed lines with the transcribed original pages (wide.json `sheets`).
-    const sheetLines = sessionParams?.wideRows && sessionParams?.wideSheet ? cards?.wideSheets?.part1 : null;
+    const narrowRows = Boolean(sessionParams?.narrowRows);
+    const sheetLines = sessionParams?.wideRows && sessionParams?.wideSheet ? cards?.wideSheets?.part1
+      : narrowRows && sessionParams?.narrowSheet ? cards?.wideSheets?.part2 : null;
     if (Array.isArray(sheetLines)) lines = sheetLines;
     // "Элементы букв" (2026-09-17): when on, each line's string is an ELEMENT ID (picked from
     // ElementPickerModal in ParamsScreen.jsx, not typed) instead of text -- PrintPageView.jsx
@@ -140,8 +142,8 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
     const useElements = Boolean(sessionParams?.useElements);
     // "Широкая строка" (методика, часть 1): lines are typed text (glyph labels / words), drawn
     // from the wide-zone captures in `wide` (tools/propis/wide.json) on wide-band-only ruling.
-    const wideRows = Boolean(sessionParams?.wideRows);
-    return [{ type: "print_page", letters, connectors, punctuation, lines, useElements, elements: elementBank, wideRows, wideGlyphs: wideBank, wideElementRepeat: Array.isArray(cards) ? {} : (cards?.wideElementRepeat ?? {}) }];
+    const wideRows = Boolean(sessionParams?.wideRows) || narrowRows; // narrow rows use the same captured glyphs, drawn at half size
+    return [{ type: "print_page", letters, connectors, punctuation, lines, useElements, elements: elementBank, wideRows, narrowRows, wideGlyphs: wideBank, wideElementRepeat: Array.isArray(cards) ? {} : (cards?.wideElementRepeat ?? {}) }];
   }
 
   if (mode.type === "browse") {

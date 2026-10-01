@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import PrintPageView from "./PrintPageView.jsx";
 import { generateTasks } from "./engine.js";
 import { layoutWideLinesIntoRows, WIDE_SCALE, WIDE_ZONE_UNITS } from "./wordEngine.js";
-import { toCubicPathD, getPathEndpoints } from "./pathGeometry.js";
+import { toCubicPathD, getPathEndpoints, samplePath } from "./pathGeometry.js";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs;
@@ -268,4 +268,30 @@ it("page-1 fence rows are copied end to start to the row's end with no gaps", ()
   }
   expect(seg.strokes.map((s) => !!s.dashed)).toEqual(seg.strokes.map((_, i) => i > 0));
   expect(seg.startPoints).toHaveLength(seg.strokes.length);
+});
+
+describe("narrow rows (half-size glyphs)", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const cell = 15;
+  const snap = (_r, x, y) => Math.round((x + y * T) / cell) * cell - y * T;
+  it("draws glyphs at half height on the same baseline; р's stem drops one band below it", () => {
+    const wide = layoutWideLinesIntoRows(["п"], map, undefined, false).placed[0].segments[0];
+    const narrow = layoutWideLinesIntoRows(["п"], map, undefined, false, 0.5).placed[0].segments[0];
+    const ys = (seg) => seg.strokes.flatMap((s) => samplePath(s.d).map((p) => p[1]));
+    const wideH = 64 - Math.min(...ys(wide));
+    const narrowH = 64 - Math.min(...ys(narrow));
+    expect(narrowH).toBeCloseTo(wideH / 2, 0);
+    expect(Math.max(...ys(narrow))).toBeLessThanOrEqual(64.5);
+    const r = layoutWideLinesIntoRows(["р"], map, undefined, false, 0.5).placed[0].segments[0];
+    expect(Math.max(...ys(r))).toBeCloseTo(64 + 24, 0);
+  });
+  it("starts of every copy land on the half-size slant grid", () => {
+    const { placed } = layoutWideLinesIntoRows(["р р", "ри"], map, snap, true, 0.5);
+    for (const row of placed) {
+      for (const [x, y] of row.segments[0].startPoints) {
+        const n = (x + y * T) / cell;
+        expect(Math.abs(n - Math.round(n))).toBeLessThan(0.02);
+      }
+    }
+  });
 });

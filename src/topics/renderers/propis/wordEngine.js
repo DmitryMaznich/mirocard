@@ -811,7 +811,7 @@ const LONG_ARROW_HEAD = 5;
 // gets its own arrow -- a zigzag stroke would otherwise get one tangled arrow.
 const LONG_ARROW_CORNER_DEG = 55;
 const LONG_ARROW_MIN_PIECE = 14;
-function longArrowsFor(d) {
+function longArrowsFor(d, scale = 1) {
   const pts = samplePath(d, 40);
   if (pts.length < 2) return [];
   const cum = [0];
@@ -832,17 +832,17 @@ function longArrowsFor(d) {
   for (let c = 0; c + 1 < cuts.length; c++) {
     const piece = pts.slice(cuts[c], cuts[c + 1] + 1);
     const multi = cuts.length > 2;
-    const arrow = longArrowOnPolyline(piece, multi ? LONG_ARROW_FROM_MULTI : LONG_ARROW_FROM, multi ? LONG_ARROW_TO_MULTI : LONG_ARROW_TO);
+    const arrow = longArrowOnPolyline(piece, scale, multi ? LONG_ARROW_FROM_MULTI : LONG_ARROW_FROM, multi ? LONG_ARROW_TO_MULTI : LONG_ARROW_TO);
     if (arrow) out.push(arrow);
   }
   return out;
 }
-function longArrowOnPolyline(pts, fromT, toT) {
+function longArrowOnPolyline(pts, scale, fromT, toT) {
   if (pts.length < 2) return null;
   const cum = [0];
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
   const total = cum[cum.length - 1];
-  if (total < LONG_ARROW_MIN_PIECE) return null;
+  if (total < LONG_ARROW_MIN_PIECE * scale) return null;
   const at = (len) => {
     let i = 1;
     while (i < pts.length - 1 && cum[i] < len) i++;
@@ -857,7 +857,7 @@ function longArrowOnPolyline(pts, fromT, toT) {
   for (let k = 0; k <= N; k++) {
     const { q, t } = at(total * (fromT + (toT - fromT) * (k / N)));
     // same side as the old triangle arrows: (sin, -cos) of the travel direction
-    line.push([q[0] + t[1] * ARROW_SIDE_OFFSET, q[1] - t[0] * ARROW_SIDE_OFFSET]);
+    line.push([q[0] + t[1] * ARROW_SIDE_OFFSET * scale, q[1] - t[0] * ARROW_SIDE_OFFSET * scale]);
     last = t;
   }
   const f = (n) => Number(n.toFixed(2));
@@ -866,7 +866,7 @@ function longArrowOnPolyline(pts, fromT, toT) {
     const a = (sign * 28 * Math.PI) / 180;
     const c = Math.cos(a), sn = Math.sin(a);
     const bx = -last[0], by = -last[1];
-    return [tip[0] + (bx * c - by * sn) * LONG_ARROW_HEAD, tip[1] + (bx * sn + by * c) * LONG_ARROW_HEAD];
+    return [tip[0] + (bx * c - by * sn) * LONG_ARROW_HEAD * scale, tip[1] + (bx * sn + by * c) * LONG_ARROW_HEAD * scale];
   };
   const h1 = back(1), h2 = back(-1);
   return {
@@ -1101,14 +1101,15 @@ function wideTransform(d, originX) {
   });
 }
 
-function wideGlyphLocal(glyph) {
+function wideGlyphLocal(glyph, scale = 1) {
   // Per-glyph horizontal stretch (wide.json `stretch`, default 1): the captured letters are
   // narrower than the workbook's (measured ~1.5x on п/т), widened with the slant kept at 65deg.
   const stretch = glyph.stretch ?? 1;
   const cubic = glyph.strokes.map((s) =>
     stretchKeepSlantPathD(toCubicPathD(s.d), stretch, 90 - 65, WIDE_CAPTURE_BASELINE));
   const originX = getPathEndpoints(cubic[0]).start[0];
-  const strokes = cubic.map((d) => ({ d: wideTransform(d, originX) }));
+  // narrow rows: the same glyph scaled about its baseline (slants keep their angle, cell shrinks with it)
+  const strokes = cubic.map((d) => ({ d: scale === 1 ? wideTransform(d, originX) : transformPathD(wideTransform(d, originX), { scaleX: scale, scaleY: scale, translateY: WIDE_BASELINE_Y * (1 - scale) }) }));
   const start = getPathEndpoints(strokes[0].d).start;
   // Exit = end of the stroke that reaches furthest right ("й": the main stroke, not the breve;
   // "к": the second stroke) -- the real continuation point of the pen.
@@ -1160,7 +1161,8 @@ const WIDE_ROW_MAX_X = 831;
 const WIDE_FLAT_COPY_OPACITY = 0.6;
 
 // A row made of one token repeated ("5 5", "и и") is multiplied across the whole row: as many copies as fit.
-export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true) {
+export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1) {
+  const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       const toks = line.split(/\s+/).filter(Boolean);
@@ -1177,7 +1179,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       const rowOf = (n) => Array(n).fill(unit).flat().join(" ");
       let best = Math.max(1, toks.length / unit.length);
       for (let n = best; n <= 60; n++) {
-        const probe = layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false);
+        const probe = layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false, scale);
         const w = probe.placed[0].segments[0]?.width ?? 0;
         if (w > WIDE_ROW_MAX_X) break;
         best = n;
@@ -1190,11 +1192,11 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     const chainToks = line.split(/\s+/).filter(Boolean);
     const chainGlyph = chainToks.length === 1 ? glyphsByLabel.get(wideTokenToLabels(chainToks[0], glyphsByLabel)[0]) : null;
     if (chainGlyph && chainGlyph.kind === "element" && chainGlyph.strokes.length === 1 && wideTokenToLabels(chainToks[0], glyphsByLabel).length === 1) {
-      const local = wideGlyphLocal(chainGlyph);
+      const local = wideGlyphLocal(chainGlyph, scale);
       if (Math.abs(local.end[1] - local.start[1]) < 1) {
         const startX = snapX(rowIndex, WIDE_LEFT_PAD - local.minX + local.start[0], local.start[1]);
         const dx0 = startX - local.start[0];
-        const pitch = Math.max(1, Math.round((local.end[0] - local.start[0]) / TEXT_ROW_WIDE_DIAGONAL_SPACING)) * TEXT_ROW_WIDE_DIAGONAL_SPACING;
+        const pitch = Math.max(1, Math.round((local.end[0] - local.start[0]) / CELL)) * CELL;
         const strokes = [];
         const startPoints = [];
         for (let k = 0; startX + (k + 1) * pitch <= WIDE_ROW_MAX_X; k++) {
@@ -1206,7 +1208,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           startPoints.push(getPathEndpoints(d).start);
         }
         if (strokes.length) {
-          const directionArrows = longArrowsFor(strokes[0].d);
+          const directionArrows = longArrowsFor(strokes[0].d, scale);
           const animStrokes = strokes.map((st, i) => (i ? { ...st, continuous: true } : st));
           const width = Math.max(...strokes.flatMap((st) => samplePath(st.d).map((q) => q[0])));
           return { word: line, rowIndex, x: 0, segments: [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [], trajectory: { strokes: animStrokes } }] };
@@ -1246,14 +1248,14 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
-        const local = wideGlyphLocal(glyph);
+        const local = wideGlyphLocal(glyph, scale);
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN
           : prevToken
             // next token: a whole number of cells after the previous token's start, along the slant lines
-            ? prevToken.startX + (prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / TEXT_ROW_WIDE_DIAGONAL_SPACING + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) * TEXT_ROW_WIDE_DIAGONAL_SPACING - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
-            : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP - local.minX + local.start[0]);
+            ? prevToken.startX + (prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
+            : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
         const startX = snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) }));
@@ -1264,7 +1266,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           // there, so nothing sticks out past the contact point and the next letter then runs
           // its own captured path from its start point (it retraces the stem above the contact).
           const contactX = pathXAtY(moved[0].d, prevExit[1]);
-          if (contactX !== null && Math.abs(contactX - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE) {
+          if (contactX !== null && Math.abs(contactX - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) {
             strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
           }
         }
@@ -1276,7 +1278,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           for (const s of moved) {
             startPoints.push(getPathEndpoints(s.d).start);
             if (dashed || isWordToken) continue; // arrows: first copy of each element / letter only, never on words
-            directionArrows.push(...longArrowsFor(s.d));
+            directionArrows.push(...longArrowsFor(s.d, scale));
           }
           firstGlyph = false;
         }
