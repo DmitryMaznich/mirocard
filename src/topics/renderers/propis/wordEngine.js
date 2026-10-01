@@ -1088,6 +1088,34 @@ function pathXAtY(d, y) {
   }
   return null;
 }
+// Makes the last straight piece of a cubic path lie exactly on a given line: its end moves to the line at its own
+// height, its start moves horizontally onto the line (dragging the previous curve's end and last control point along),
+// so the exit rise and the next letter's first rise become ONE straight line. Returns null when the start has to
+// move further than maxShift (then the caller keeps the plain nudge).
+function alignLastPieceD(d, lineX, maxShift) {
+  const segs = [];
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  for (let i = 0; i < toks.length;) {
+    const c = toks[i];
+    const n = c === "M" ? 2 : 6;
+    segs.push({ c, v: toks.slice(i + 1, i + 1 + n).map(parseFloat) });
+    i += 1 + n;
+  }
+  if (segs.length < 3 || segs[segs.length - 1].c !== "C") return null;
+  const last = segs[segs.length - 1];
+  const prev = segs[segs.length - 2];
+  const pa = prev.c === "M" ? prev.v : prev.v.slice(-2);
+  const end = last.v.slice(-2);
+  const paNew = [lineX(pa[1]), pa[1]];
+  const endNew = [lineX(end[1]), end[1]];
+  if (Math.abs(paNew[0] - pa[0]) > maxShift) return null;
+  const dxs = paNew[0] - pa[0];
+  if (prev.c === "C") { prev.v[2] += dxs; prev.v[4] += dxs; } else prev.v[0] += dxs;
+  last.v = [paNew[0] + (endNew[0] - paNew[0]) / 3, pa[1] + (end[1] - pa[1]) / 3, paNew[0] + ((endNew[0] - paNew[0]) * 2) / 3, pa[1] + ((end[1] - pa[1]) * 2) / 3, endNew[0], endNew[1]];
+  const f = (x) => Number(x.toFixed(3));
+  return segs.map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
+}
+
 function pathXsAtY(d, y) {
   const pts = samplePath(d, 40);
   const xs = [];
@@ -1312,7 +1340,20 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           const st0 = getPathEndpoints(moved[0].d).start;
           if (st0[1] > prevExit[1]) candidates.push(st0[0] + (st0[1] - prevExit[1]) * WIDE_JOIN_TAN);
           const contactX = candidates.length ? candidates.reduce((b, c) => (Math.abs(c - prevExit[0]) < Math.abs(b - prevExit[0]) ? c : b)) : null;
-          if (contactX !== null && Math.abs(contactX - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) {
+          // next stroke opens with a straight rise (г): the tail and that rise must be ONE straight line
+          let aligned = false;
+          const sampled = samplePath(moved[0].d, 30);
+          const rp = sampled.find((q) => Math.hypot(q[0] - st0[0], q[1] - st0[1]) > 6);
+          if (rp && rp[0] > st0[0] && rp[1] < st0[1] && Math.abs(st0[1] - prevExit[1]) < 8 * scale) {
+            const slope = (rp[0] - st0[0]) / (st0[1] - rp[1]); // dx per unit of rise
+            const rising = Math.atan2(st0[1] - rp[1], rp[0] - st0[0]) * (180 / Math.PI);
+            if (rising > 30 && rising < 70) {
+              const lineX = (y) => st0[0] + (st0[1] - y) * slope;
+              const d2 = alignLastPieceD(strokes[prevExitStroke].d, lineX, 9 * scale);
+              if (d2) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d2 }; aligned = true; }
+            }
+          }
+          if (!aligned && contactX !== null && Math.abs(contactX - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) {
             strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
           }
         }

@@ -345,3 +345,25 @@ it("a free exit tail ends exactly on a slant line; a tail into a lower-starting 
   const slantOffset = (tailEnd[0] + tailEnd[1] * T) - (nextStart[0] + nextStart[1] * T);
   expect(Math.abs(slantOffset)).toBeLessThan(0.3);
 });
+
+it("a letter's exit tail and the rise of a following г are one straight line", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 30;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  for (const w of ["иг", "нг", "лг", "мг", "яг", "пг"]) {
+    const seg = layoutWideLinesIntoRows([w], map, snap, false).placed[0].segments[0];
+    const tail = seg.strokes[0];
+    const next = seg.strokes[1];
+    const [sx, sy] = getPathEndpoints(next.d).start;
+    const np = samplePath(next.d, 60);
+    const rp = np.find((q) => Math.hypot(q[0] - sx, q[1] - sy) > 12);
+    const ux = rp[0] - sx, uy = rp[1] - sy, ul = Math.hypot(ux, uy);
+    const all = samplePath(tail.d, 80);
+    const tp = all.slice(-Math.floor(all.length * 0.08)).filter((q) => q[1] < 54);
+    expect(tp.length).toBeGreaterThan(3);
+    for (const q of tp) {
+      const dist = Math.abs((q[0] - sx) * (uy / ul) - (q[1] - sy) * (ux / ul));
+      expect(dist).toBeLessThan(0.6);
+    }
+  }
+});
