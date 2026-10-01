@@ -1077,6 +1077,12 @@ function wideTokenToLabelsRaw(token, glyphsByLabel) {
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x) {
   const placed = lines.map((line, rowIndex) => {
     const strokes = [];
+    // Pen order for the tap-to-animate view: same strokes, plus a `transition` after every joined
+    // letter -- the pen going from the contact point back UP the next letter's own stem to that
+    // letter's captured start point (retraces ink that is already drawn, so the static page
+    // doesn't need it), flagged `continuous` together with the stroke it feeds so the pen
+    // doesn't lift between them.
+    const joins = new Map(); // first stroke index of a joined letter -> index of the stroke it continues from
     const startPoints = [];
     const directionArrows = [];
     let cursorX = null;
@@ -1110,6 +1116,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         }
         const firstMovedIndex = strokes.length;
         strokes.push(...moved);
+        if (prevExit) joins.set(firstMovedIndex, prevExitStroke);
         if (firstGlyph) {
           for (const s of moved) {
             startPoints.push(getPathEndpoints(s.d).start);
@@ -1128,11 +1135,19 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         cursorX = local.maxX + dx;
       }
     }
+    const animStrokes = [];
+    strokes.forEach((st, i) => {
+      if (!joins.has(i)) { animStrokes.push(st); return; }
+      const contact = getPathEndpoints(strokes[joins.get(i)].d).end;
+      const start = getPathEndpoints(st.d).start;
+      animStrokes.push({ d: toCubicPathD(`M ${contact[0]} ${contact[1]} L ${start[0]} ${start[1]}`), continuous: true });
+      animStrokes.push({ ...st, continuous: true });
+    });
     const width = strokes.length ? Math.max(...strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]))) : 0;
     // `type: "element"` on purpose: PrintPageView already renders those as static ink with start
     // dots + direction arrows (no tap/animation).
     const segments = strokes.length
-      ? [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [] }]
+      ? [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [], trajectory: { strokes: animStrokes } }]
       : [];
     return { word: line, rowIndex, x: 0, segments };
   });

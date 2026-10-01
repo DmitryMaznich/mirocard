@@ -133,3 +133,35 @@ describe("letter joins", () => {
     }
   });
 });
+
+describe("pen animation", () => {
+  it("adds a continuous transition (contact -> next start) before every joined letter's stroke", () => {
+    const { placed } = layoutWideLinesIntoRows(["ш", "ин", "и и"], map);
+    const w = placed[0].segments[0];
+    // ш = three hooks: hook, transition, hook, transition, hook
+    expect(w.strokes).toHaveLength(3);
+    expect(w.trajectory.strokes).toHaveLength(5);
+    expect(w.trajectory.strokes.map((s) => !!s.continuous)).toEqual([false, true, true, true, true]);
+    const [h1, tr, h2] = w.trajectory.strokes;
+    expect(getPathEndpoints(tr.d).start[0]).toBeCloseTo(getPathEndpoints(h1.d).end[0], 2);
+    expect(getPathEndpoints(tr.d).end[0]).toBeCloseTo(getPathEndpoints(h2.d).start[0], 2);
+    // separate tokens ("и и"): the pen lifts, no transition between them
+    expect(placed[2].segments[0].trajectory.strokes.every((s) => !s.continuous)).toBe(true);
+  });
+});
+
+it("tap on a wide row plays the pen animation", () => {
+  // jsdom has no SVG path measuring -- stubs are enough, only the DOM structure is asserted.
+  SVGElement.prototype.getTotalLength ??= () => 100;
+  SVGElement.prototype.getPointAtLength ??= () => ({ x: 0, y: 0 });
+  globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
+  window.matchMedia ??= () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+  const [task] = generateTasks({ type: "read_lines" }, { cards: [], wide }, 1, { wideRows: true, lines: ["ш"] });
+  const host = document.createElement("div");
+  document.body.appendChild(host);
+  root = createRoot(host);
+  act(() => root.render(<PrintPageView task={task} onClose={() => {}} />));
+  expect(host.querySelector("[data-pr-anim]")).toBeNull();
+  act(() => host.querySelector(".propis-text-word-hit").dispatchEvent(new MouseEvent("click", { bubbles: true })));
+  expect(host.querySelectorAll("[data-pr-anim]").length).toBe(5);
+});

@@ -224,7 +224,9 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
         // листа с элементами [не нужен]"): no tap-to-animate, so no hit-rect and no active
         // state either, unlike a cursive/text row which keeps both.
         const isElementRow = p.segments.some((seg) => seg.type === "element");
-        const isActive = onToggleActive && !isElementRow ? i === activeIndex : false;
+        // "Широкая строка" rows are tappable too: tap plays the pen animation (seg.trajectory).
+        const tappable = onToggleActive && (!isElementRow || wideRows);
+        const isActive = tappable ? i === activeIndex : false;
         // Snap the element's own start point onto the nearest dense-diagonal grid line (see
         // nearestDiagonalX's own comment) -- shifts the WHOLE row (primary + every repeat
         // copy, all rendered inside this same <g>) by a rigid delta, so nothing about the
@@ -241,7 +243,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
           : 0;
         return (
           <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowOriginY(contentRow(p.rowIndex))})`}>
-            {onToggleActive && !isElementRow && (
+            {tappable && (
               <rect
                 className="propis-text-word-hit"
                 x={-4} y={NATIVE_L3 - TEXT_ROW_PITCH / 2} width={p.segments.reduce((s, seg) => s + seg.width, 0) + 8} height={TEXT_ROW_PITCH}
@@ -274,13 +276,15 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
                 // (01_pryamaya_liniya's two separate lines, 03_zaborchik_ploskie's four) is
                 // several disconnected pen-lifts, each needing its own "start here" mark.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
-                  {seg.strokes.map((s, ssi) => (
+                  {isActive && seg.trajectory ? (
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" />
+                  ) : seg.strokes.map((s, ssi) => (
                     <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   ))}
-                  {seg.startPoints?.map((pt, pi) => (
+                  {!isActive && seg.startPoints?.map((pt, pi) => (
                     <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={INK_COLOR} />
                   ))}
-                  {seg.directionArrows?.map((a, ai) => a && (
+                  {!isActive && seg.directionArrows?.map((a, ai) => a && (
                     <g key={ai} transform={`translate(${a.point[0]} ${a.point[1]}) rotate(${a.angleDeg})`}>
                       <path d={ARROW_PATH} fill={ARROW_COLOR} />
                     </g>
