@@ -1203,6 +1203,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       const dashed = (tokenSeen.get(token) ?? 0) >= 1;
       tokenSeen.set(token, (tokenSeen.get(token) ?? 0) + 1);
       const isElement = labels.length === 1 && glyphsByLabel.get(labels[0])?.kind === "element";
+      const isWordToken = !glyphsByLabel.has(token) && labels.length > 1; // a spelled-out word, not a letter/element (ш, ии are glyphs)
       // how far the NEXT token starts from this one's start, in sheet cells (wide.json `repeatCells`, measured
       // off the workbook photos); a token without one takes the next whole cell past its ink + ~0.4 cell
       const repeatCells = glyphsByLabel.get(token)?.repeatCells ?? (labels.length === 1 ? glyphsByLabel.get(labels[0])?.repeatCells : undefined);
@@ -1244,7 +1245,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           // every token's first glyph gets its red start dot(s); only the very first one also gets direction arrows
           for (const s of moved) {
             startPoints.push(getPathEndpoints(s.d).start);
-            if (!firstGlyph) continue;
+            if (!firstGlyph || isWordToken) continue; // arrows: first copy of an element / letter only, never on words
             directionArrows.push(...longArrowsFor(s.d));
           }
           firstGlyph = false;

@@ -257,3 +257,11 @@ it("first page: copies after the first are all dashed at one constant intensity,
   expect(w.strokes.filter((s) => s.dashed).length).toBe(w.strokes.length - 3);
   expect(placed[2].segments[0].strokes).toHaveLength(1);
 });
+
+it("direction arrows only on the first copy of an element or letter, none on words", () => {
+  const { placed } = layoutWideLinesIntoRows(["и и", "ш ш", "ини", "инш"], map, undefined, false);
+  expect(placed[0].segments[0].directionArrows.length).toBeGreaterThan(0);
+  expect(placed[1].segments[0].directionArrows.length).toBeGreaterThan(0);
+  expect(placed[2].segments[0].directionArrows).toHaveLength(0);
+  expect(placed[3].segments[0].directionArrows).toHaveLength(0);
+});
