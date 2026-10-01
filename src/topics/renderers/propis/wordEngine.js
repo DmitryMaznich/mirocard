@@ -1075,7 +1075,26 @@ function wideTokenToLabelsRaw(token, glyphsByLabel) {
   return out;
 }
 
-export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x) {
+// Right edge (row-local units) the "multiplied" copies of a repeated token may reach: page 891 wide,
+// 30 units (5 mm) of inset on each side.
+const WIDE_ROW_MAX_X = 831;
+
+// A row made of one token repeated ("5 5", "и и") is multiplied across the whole row: as many copies as fit.
+export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true) {
+  if (multiply) {
+    lines = lines.map((line, rowIndex) => {
+      const toks = line.split(/\s+/).filter(Boolean);
+      if (toks.length < 2 || toks.some((t) => t !== toks[0])) return line;
+      let best = toks.length;
+      for (let n = toks.length; n <= 60; n++) {
+        const probe = layoutWideLinesIntoRows([Array(n).fill(toks[0]).join(" ")], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false);
+        const w = probe.placed[0].segments[0]?.width ?? 0;
+        if (w > WIDE_ROW_MAX_X) break;
+        best = n;
+      }
+      return Array(best).fill(toks[0]).join(" ");
+    });
+  }
   const placed = lines.map((line, rowIndex) => {
     const strokes = [];
     // Pen order for the tap-to-animate view: same strokes, plus a `transition` after every joined
@@ -1095,8 +1114,8 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     for (const token of line.split(/\s+/).filter(Boolean)) {
       const labels = wideTokenToLabels(token, glyphsByLabel);
       prevExit = null;
-      // the second copy of the same token on a row is a dashed trace-over guide
-      const dashed = tokenSeen.get(token) === 1;
+      // every copy after the first of the same token on a row is a dashed trace-over guide
+      const dashed = (tokenSeen.get(token) ?? 0) >= 1;
       tokenSeen.set(token, (tokenSeen.get(token) ?? 0) + 1);
       const isElement = labels.length === 1 && glyphsByLabel.get(labels[0])?.kind === "element";
       // how far the NEXT token starts from this one's start, in sheet cells (wide.json `repeatCells`, measured
@@ -1134,9 +1153,11 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         const firstMovedIndex = strokes.length;
         strokes.push(...moved);
         if (prevExit) joins.set(firstMovedIndex, prevExitStroke);
-        if (firstGlyph) {
+        if (tokenStartX === null) {
+          // every token's first glyph gets its red start dot(s); only the very first one also gets direction arrows
           for (const s of moved) {
             startPoints.push(getPathEndpoints(s.d).start);
+            if (!firstGlyph) continue;
             const t = getMidpointTangent(s.d);
             if (!t) { directionArrows.push(null); continue; }
             const rad = (t.angleDeg * Math.PI) / 180;

@@ -33,7 +33,7 @@ describe("layoutWideLinesIntoRows", () => {
     }
   });
   it("joins letters of a word into one row and spaces tokens", () => {
-    const { placed } = layoutWideLinesIntoRows(["ини", "и и"], map);
+    const { placed } = layoutWideLinesIntoRows(["ини", "и и"], map, undefined, false);
     expect(placed[0].segments[0].strokes).toHaveLength(3); // и+н+и, no connector strokes
     expect(placed[1].segments[0].width).toBeGreaterThan(placed[0].segments[0].width * 0.3);
   });
@@ -171,7 +171,7 @@ describe("repeat pitch (cells between the starts of copies, from the workbook ph
   const t = Math.tan((25 * Math.PI) / 180);
   const snap = (_row, x, y) => Math.round((x + y * t) / S) * S - y * t;
   const startsOf = (word) => {
-    const { placed } = layoutWideLinesIntoRows([word], map, snap);
+    const { placed } = layoutWideLinesIntoRows([word], map, snap, false);
     return placed[0].segments[0].strokes.map((s) => getPathEndpoints(s.d).start[0]);
   };
   const table = { "5 5": 2, "6 6": 2, "8 8": 2, "| |": 1, "г1 г1": 3, "п1 п1": 3, "и и": 3, "й й": 3, "н н": 3, "к к": 3, "ш ш": 4, "т т": 4 };
@@ -219,9 +219,20 @@ describe("per-band slant grid", () => {
 });
 
 it("the second copy of a token on a row is dashed, the first stays solid", () => {
-  const { placed } = layoutWideLinesIntoRows(["и и", "6 8 6 8", "ши"], map);
+  const { placed } = layoutWideLinesIntoRows(["и и", "6 8 6 8", "ши"], map, undefined, false);
   const flags = (r) => placed[r].segments[0].strokes.map((s) => !!s.dashed);
   expect(flags(0)).toEqual([false, true]);
   expect(flags(1)).toEqual([false, false, true, true]);
   expect(flags(2).some(Boolean)).toBe(false);
+});
+
+it("a row of one repeated token is multiplied across the row; every copy start is marked, copies after the first are dashed", () => {
+  const { placed } = layoutWideLinesIntoRows(["и и", "ини", "7 | 7 |"], map);
+  const seg = placed[0].segments[0];
+  expect(seg.strokes.length).toBeGreaterThan(4);
+  expect(seg.width).toBeLessThanOrEqual(831);
+  expect(seg.startPoints).toHaveLength(seg.strokes.length);
+  expect(seg.strokes.map((s) => !!s.dashed)).toEqual(seg.strokes.map((_, i) => i > 0));
+  expect(placed[1].segments[0].startPoints).toHaveLength(1);
+  expect(placed[2].segments[0].strokes).toHaveLength(4);
 });
