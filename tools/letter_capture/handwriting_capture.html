@@ -494,6 +494,17 @@
           </label>
         </div>
         <div class="toggle-row">
+          <label class="guide-toggle-label" title="Участок штриха, идущий вдоль пунктирной зелёной дуги на сетке, прилипает к ней точно (как к прямым линиям). Штрих, который просто пересекает дугу, не прилипает">
+            <input type="checkbox" id="arcSnapChk" checked />
+            Прилипание к дугам
+          </label>
+          <label class="guide-toggle-label img-guide-slider-label" title="Максимальное расстояние до дуги (в единицах холста), на котором штрих прилипает к ней. Меньше — мягче">
+            Дальность дуг
+            <input type="range" id="arcSnapRangeInput" min="0.5" max="3" step="0.5" value="1.5" />
+            <span id="arcSnapRangeLabel">1.5</span>
+          </label>
+        </div>
+        <div class="toggle-row">
           <label class="guide-toggle-label" title="Пунктирные зелёные дуги-подсказки на сетке: одинаковые закругления сверху (касаются линий 1 и 3) и снизу (касаются линий 3 и 5), по одной в каждой клетке сетки">
             <input type="checkbox" id="arcGuidesChk" checked />
             Дуги закруглений на сетке
@@ -732,6 +743,9 @@
   const snapRoundingLabel = document.getElementById("snapRoundingLabel");
   const snapToleranceInput = document.getElementById("snapToleranceInput");
   const snapToleranceLabel = document.getElementById("snapToleranceLabel");
+  const arcSnapChk = document.getElementById("arcSnapChk");
+  const arcSnapRangeInput = document.getElementById("arcSnapRangeInput");
+  const arcSnapRangeLabel = document.getElementById("arcSnapRangeLabel");
   const retraceChk = document.getElementById("retraceChk");
   const retraceRangeInput = document.getElementById("retraceRangeInput");
   const retraceRangeLabel = document.getElementById("retraceRangeLabel");
@@ -878,6 +892,9 @@
 
   // ---- ruled "propis" backdrop: L1..L4 working-line band + slanted pitch lines
   //      + red height/width guides (mid-band lines, vertical pitch lines) ----
+  // Rounding-arc guides, filled by drawRuling() below and used by arcSnapPoints(): each entry is
+  // the arc sampled densely (x, y, cumulative length s) plus its bounding box and length.
+  const ARC_CURVES = [];
   (function drawRuling() {
     const ANGLE_DEG = 65; // matches make_lined_paper_landscape_standard.py (65° from horizontal / 25° from vertical)
     // 9 native units (1.5mm), not the earlier 8 (1.333mm) -- 2026-09-18, confirmed with the
@@ -978,14 +995,30 @@
         const k = 0.5 * Math.hypot(B.x - P.x, B.y - P.y);
         c4 = { x: B.x - k * cosB, y: B.y + k * sinB };
       }
-      return 'M ' + f2(A.x) + ' ' + f2(A.y) + ' C ' + f2(c1.x) + ' ' + f2(c1.y) + ' ' + f2(c2.x) + ' ' + f2(c2.y) + ' ' + f2(P.x) + ' ' + f2(P.y) +
-        ' C ' + f2(c3.x) + ' ' + f2(c3.y) + ' ' + f2(c4.x) + ' ' + f2(c4.y) + ' ' + f2(B.x) + ' ' + f2(B.y);
+      return { A, c1, c2, P, c3, c4, B, d: 'M ' + f2(A.x) + ' ' + f2(A.y) + ' C ' + f2(c1.x) + ' ' + f2(c1.y) + ' ' + f2(c2.x) + ' ' + f2(c2.y) + ' ' + f2(P.x) + ' ' + f2(P.y) +
+        ' C ' + f2(c3.x) + ' ' + f2(c3.y) + ' ' + f2(c4.x) + ' ' + f2(c4.y) + ' ' + f2(B.x) + ' ' + f2(B.y) };
+    };
+    const cubicPt = (a, b, c, d, u) => {
+      const v = 1 - u;
+      return { x: v * v * v * a.x + 3 * v * v * u * b.x + 3 * v * u * u * c.x + u * u * u * d.x,
+               y: v * v * v * a.y + 3 * v * v * u * b.y + 3 * v * u * u * c.y + u * u * u * d.y };
+    };
+    const makeArcCurve = o => {
+      const S = [];
+      const N = 20;
+      for (let k = 0; k <= N; k++) S.push(cubicPt(o.A, o.c1, o.c2, o.P, k / N));
+      for (let k = 1; k <= N; k++) S.push(cubicPt(o.P, o.c3, o.c4, o.B, k / N));
+      let len = 0;
+      S[0].s = 0;
+      for (let k = 1; k < S.length; k++) { len += Math.hypot(S[k].x - S[k - 1].x, S[k].y - S[k - 1].y); S[k].s = len; }
+      const xs = S.map(q => q.x), ys = S.map(q => q.y);
+      return { samples: S, len, minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
     };
     parts.push('<g id="arcGuides">');
     for (let x0 = loopFrom; x0 < loopTo; x0 += SPACING) {
       [[L1, true], [L2, true], [L2, false], [L3, false]].forEach(([T, up]) => {
-        const d = arcPath(T, up, x0);
-        if (d) parts.push('<path class="rule-arc" d="' + d + '"/>');
+        const o = arcPath(T, up, x0);
+        if (o) { parts.push('<path class="rule-arc" d="' + o.d + '"/>'); ARC_CURVES.push(makeArcCurve(o)); }
       });
     }
     parts.push('</g>');
@@ -1260,12 +1293,13 @@
   // at 0.125*prev + 0.75*vertex + 0.125*next, not through the vertex -- so moving just that
   // vertex to the line pulled a sharp bump into round hooks. For those we snap the curve's
   // own extreme and spread the shift over the vertex and its free neighbours (half each).
-  function snapEndsToRuling(points, tol, segFree) {
+  function snapEndsToRuling(points, tol, segFree, pinned) {
     if (points.length < 2 || tol <= 0) return points;
     const out = points.map(p => ({ x: p.x, y: p.y }));
     const orig = points;
     const last = out.length - 1;
     const slideEnd = (i, neighbor) => {
+      if (pinned && pinned[i]) return;
       const target = nearestRulingY(out[i].y, tol);
       if (target === null) return;
       const vx = out[i].x - out[neighbor].x, vy = out[i].y - out[neighbor].y;
@@ -1282,6 +1316,7 @@
       const up = orig[i].y < orig[i - 1].y && orig[i].y < orig[i + 1].y;
       const down = orig[i].y > orig[i - 1].y && orig[i].y > orig[i + 1].y;
       if (!up && !down) continue;
+      if (pinned && (pinned[i] || pinned[i - 1] || pinned[i + 1])) continue;
       const curved = segFree && segFree[i - 1] && segFree[i];
       if (!curved) {
         const target = nearestRulingY(orig[i].y, tol);
@@ -1292,8 +1327,8 @@
       const target = nearestRulingY(curveY, tol);
       if (target === null) continue;
       // A neighbour moves only if it is interior and both its own segments are free.
-      const movesP = i - 1 > 0 && segFree[i - 2];
-      const movesN = i + 1 < last && segFree[i + 1];
+      const movesP = i - 1 > 0 && segFree[i - 2] && !(pinned && pinned[i - 1]);
+      const movesN = i + 1 < last && segFree[i + 1] && !(pinned && pinned[i + 1]);
       const factor = 0.75 + 0.125 * ((movesP ? 0.5 : 0) + (movesN ? 0.5 : 0)) ;
       const dy = (target - curveY) / factor;
       out[i] = { x: out[i].x, y: out[i].y + dy };
@@ -1303,7 +1338,7 @@
     return out;
   }
   const SNAP_MIN_RUN = 14;
-  function snapAndFilletPath(pts, radius, tolDeg) {
+  function snapAndFilletPath(pts, radius, tolDeg, pinned) {
     if (pts.length < 2) return fitSpline(pts);
     const n = pts.length - 1;
     const segLen = [], want = [];
@@ -1315,6 +1350,9 @@
       const diff = Math.abs(normalizeAngle(Math.atan2(dy, dx) - SNAP_ANGLES_RAD[idx]));
       want.push(diff <= tolRad ? idx : -1);
     }
+    // A segment with both ends pinned (on a guide arc) stays exactly as it is.
+    const hasPins = !!(pinned && pinned.some(Boolean));
+    if (hasPins) for (let i = 0; i < n; i++) if (pinned[i] && pinned[i + 1]) want[i] = -1;
     // Demote short runs of the same direction to free.
     for (let i = 0; i < n;) {
       let j = i, total = 0;
@@ -1325,35 +1363,65 @@
     // Pass 1: chain from the previous OUTPUT point so the stroke stays connected. Snapped
     // segments get direction+length from the grid family (plus the diagonal-line nudge);
     // free segments keep their own original delta.
-    const out = [pts[0]];
-    for (let i = 0; i < n; i++) {
-      const prev = out[out.length - 1];
-      if (want[i] < 0) {
-        out.push({ x: prev.x + pts[i + 1].x - pts[i].x, y: prev.y + pts[i + 1].y - pts[i].y });
-      } else {
-        const a = SNAP_ANGLES_RAD[want[i]];
-        out.push(snapPointToGridLine({ x: prev.x + Math.cos(a) * segLen[i], y: prev.y + Math.sin(a) * segLen[i] }, want[i]));
+    let out;
+    if (!hasPins) {
+      out = [pts[0]];
+      for (let i = 0; i < n; i++) {
+        const prev = out[out.length - 1];
+        if (want[i] < 0) {
+          out.push({ x: prev.x + pts[i + 1].x - pts[i].x, y: prev.y + pts[i + 1].y - pts[i].y });
+        } else {
+          const a = SNAP_ANGLES_RAD[want[i]];
+          out.push(snapPointToGridLine({ x: prev.x + Math.cos(a) * segLen[i], y: prev.y + Math.sin(a) * segLen[i] }, want[i]));
+        }
+      }
+      // The first point is the chain anchor; nudge it only when the stroke opens on a snapped
+      // diagonal (nothing precedes it to disconnect from).
+      if (want[0] >= 0) out[0] = snapPointToGridLine(out[0], want[0]);
+    } else {
+      // Pinned (arc) vertices are absolute anchors: build FORWARD from the first one and
+      // BACKWARD (reversed chain) before it, so the grid-snap chain never drifts the arc off its
+      // guide. A segment between two pinned vertices is untouched (want = -1 above).
+      out = new Array(pts.length);
+      const f = pinned.indexOf(true);
+      out[f] = pts[f];
+      for (let i = f; i < n; i++) {
+        if (pinned[i + 1]) { out[i + 1] = pts[i + 1]; continue; }
+        const prev = out[i];
+        if (want[i] < 0) out[i + 1] = { x: prev.x + pts[i + 1].x - pts[i].x, y: prev.y + pts[i + 1].y - pts[i].y };
+        else {
+          const a = SNAP_ANGLES_RAD[want[i]];
+          out[i + 1] = snapPointToGridLine({ x: prev.x + Math.cos(a) * segLen[i], y: prev.y + Math.sin(a) * segLen[i] }, want[i]);
+        }
+      }
+      for (let i = f - 1; i >= 0; i--) {
+        const nx = out[i + 1];
+        if (want[i] < 0) out[i] = { x: nx.x - (pts[i + 1].x - pts[i].x), y: nx.y - (pts[i + 1].y - pts[i].y) };
+        else {
+          const a = SNAP_ANGLES_RAD[want[i]];
+          out[i] = snapPointToGridLine({ x: nx.x - Math.cos(a) * segLen[i], y: nx.y - Math.sin(a) * segLen[i] }, want[i]);
+        }
       }
     }
-    // The first point is the chain anchor; nudge it only when the stroke opens on a snapped
-    // diagonal (nothing precedes it to disconnect from).
-    if (want[0] >= 0) out[0] = snapPointToGridLine(out[0], want[0]);
     // Pass 2: merge consecutive segments snapped to the SAME family; free segments stay as is.
     const merged = [out[0]];
     const mergedIdx = [];
+    const mergedPinned = [hasPins ? !!pinned[0] : false];
     for (let i = 0; i < n; i++) {
       if (want[i] >= 0 && mergedIdx.length > 0 && mergedIdx[mergedIdx.length - 1] === want[i]) {
         merged[merged.length - 1] = out[i + 1];
+        mergedPinned[mergedPinned.length - 1] = hasPins ? !!pinned[i + 1] : false;
       } else {
         merged.push(out[i + 1]);
         mergedIdx.push(want[i]);
+        mergedPinned.push(hasPins ? !!pinned[i + 1] : false);
       }
     }
     const cornerFree = [];
     for (let i = 1; i < mergedIdx.length; i++) cornerFree.push(mergedIdx[i - 1] < 0 || mergedIdx[i] < 0);
     const segFree = mergedIdx.map(k => k < 0);
-    let finalPts = snapEndsChk.checked ? snapEndsToRuling(merged, Number(snapEndsRangeInput.value), segFree) : merged;
-    if (retraceChk.checked) finalPts = retraceSegments(finalPts, Number(retraceRangeInput.value));
+    let finalPts = snapEndsChk.checked ? snapEndsToRuling(merged, Number(snapEndsRangeInput.value), segFree, hasPins ? mergedPinned : null) : merged;
+    if (retraceChk.checked) finalPts = retraceSegments(finalPts, Number(retraceRangeInput.value), hasPins ? mergedPinned : null);
     return filletPolylinePath(finalPts, radius, cornerFree);
   }
   // ---- retrace snap, segment level (2026-10-01; replaces the per-point version) ----
@@ -1393,7 +1461,7 @@
     keep.forEach((k, i) => { if (k) idx.push(i); });
     return idx;
   }
-  function retraceSegments(points, range) {
+  function retraceSegments(points, range, pinned) {
     const n = points.length;
     if (n < 3 || range <= 0) return points;
     const out = points.map(p => ({ x: p.x, y: p.y }));
@@ -1430,21 +1498,132 @@
       if (!best) continue;
       // move every original vertex of B's span perpendicularly onto A's line
       for (let v = ci[k]; v <= ci[k + 1]; v++) {
+        if (pinned && pinned[v]) continue;
         const d = (out[v].x - best.A0.x) * best.uy - (out[v].y - best.A0.y) * best.ux;
         out[v] = { x: out[v].x - d * best.uy, y: out[v].y + d * best.ux };
       }
     }
     return out;
   }
-  function prepSplinePoints(simplified) {
-    let pts = snapEndsChk.checked ? snapEndsToRuling(simplified, Number(snapEndsRangeInput.value)) : simplified;
-    if (retraceChk.checked) pts = retraceSegments(pts, Number(retraceRangeInput.value));
+  // ---- arc snap (2026-10-01): "прилипание к этим дугам, так же, как к прямым линиям" ----
+  // Runs on the DENSE filtered points, before RDP. A run of consecutive points that stays within
+  // `range` of one guide arc and moves ALONG it (stroke direction within ARC_ANGLE_DEG of the arc
+  // tangent) is replaced by the arc's exact samples between the run's first and last projections.
+  // Runs must be long enough (>= ARC_MIN_RUN and >= ARC_MIN_RUN_FRAC of the arc) so a line that
+  // merely crosses an arc doesn't snap, and must really progress along the arc (not hover).
+  // Returns {pts, pinned}: pinned[i] marks the replaced points -- snapAndFilletPath keeps them
+  // exactly where they are and builds the rest of the stroke outward from them, so the grid-snap
+  // chain cannot drift the arc off its guide. pinned is null when nothing snapped.
+  const ARC_ANGLE_DEG = 40;
+  const ARC_DIR_WINDOW = 2;
+  const ARC_GAP_MAX = 2;
+  const ARC_MIN_RUN = 3;
+  const ARC_MIN_RUN_FRAC = 0.35;
+  function arcSnapPoints(pts, range) {
+    const n = pts.length;
+    if (!arcSnapChk.checked || range <= 0 || n < 4 || !ARC_CURVES.length) return { pts, pinned: null };
+    const sinMax = Math.sin(ARC_ANGLE_DEG * Math.PI / 180);
+    const cum = [0];
+    for (let i = 1; i < n; i++) cum.push(cum[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+    const cands = [];
+    for (const arc of ARC_CURVES) {
+      const S = arc.samples;
+      let any = false;
+      for (let i = 0; i < n; i++) {
+        const p = pts[i];
+        if (p.x >= arc.minX - range && p.x <= arc.maxX + range && p.y >= arc.minY - range && p.y <= arc.maxY + range) { any = true; break; }
+      }
+      if (!any) continue;
+      const near = new Array(n).fill(-1);
+      for (let i = 0; i < n; i++) {
+        const p = pts[i];
+        if (p.x < arc.minX - range || p.x > arc.maxX + range || p.y < arc.minY - range || p.y > arc.maxY + range) continue;
+        let bd = Infinity, bj = -1;
+        for (let j = 0; j < S.length; j++) {
+          const d = Math.hypot(p.x - S[j].x, p.y - S[j].y);
+          if (d < bd) { bd = d; bj = j; }
+        }
+        if (bd > range) continue;
+        // direction over a +-ARC_DIR_WINDOW window of PATH LENGTH (a few noisy neighbouring
+        // points give an unstable direction), compared with the arc tangent over the same span
+        let ia = i, ib = i;
+        while (ia > 0 && cum[i] - cum[ia] < ARC_DIR_WINDOW) ia--;
+        while (ib < n - 1 && cum[ib] - cum[i] < ARC_DIR_WINDOW) ib++;
+        const a = pts[ia], b = pts[ib];
+        const sx = b.x - a.x, sy = b.y - a.y;
+        let ja = bj, jb = bj;
+        while (ja > 0 && S[bj].s - S[ja].s < ARC_DIR_WINDOW) ja--;
+        while (jb < S.length - 1 && S[jb].s - S[bj].s < ARC_DIR_WINDOW) jb++;
+        const ta = S[ja], tb = S[jb];
+        const tx = tb.x - ta.x, ty = tb.y - ta.y;
+        const ls = Math.hypot(sx, sy), lt = Math.hypot(tx, ty);
+        if (ls < 1e-9 || lt < 1e-9) continue;
+        if (Math.abs(sx * ty - sy * tx) / (ls * lt) > sinMax) continue;
+        near[i] = bj;
+      }
+      // bridge short gaps (1-2 points) between two matching points: one noisy point must not
+      // split a run in two
+      for (let i = 1; i < n - 1; i++) {
+        if (near[i] >= 0 || near[i - 1] < 0) continue;
+        for (let g = 1; g <= ARC_GAP_MAX && i + g < n; g++) {
+          if (near[i + g] >= 0) { for (let q = i; q < i + g; q++) near[q] = near[i - 1]; break; }
+        }
+      }
+      for (let i = 0; i < n;) {
+        if (near[i] < 0) { i++; continue; }
+        let k = i;
+        while (k + 1 < n && near[k + 1] >= 0) k++;
+        const runLen = cum[k] - cum[i];
+        const j0 = near[i], j1 = near[k];
+        const sSpan = Math.abs(S[j1].s - S[j0].s);
+        if (runLen >= Math.max(ARC_MIN_RUN, ARC_MIN_RUN_FRAC * arc.len) && sSpan >= 0.6 * runLen) {
+          cands.push({ i0: i, i1: k, j0, j1, runLen });
+        }
+        i = k + 1;
+      }
+      // keep arc reference on the candidates just added
+      for (let c = cands.length - 1; c >= 0 && !cands[c].arc; c--) cands[c].arc = arc;
+    }
+    if (!cands.length) return { pts, pinned: null };
+    cands.sort((a, b) => b.runLen - a.runLen);
+    const taken = [];
+    for (const c of cands) {
+      if (taken.some(t => c.i0 <= t.i1 && c.i1 >= t.i0)) continue;
+      taken.push(c);
+    }
+    taken.sort((a, b) => a.i0 - b.i0);
+    const outPts = [], pinned = [];
+    let i = 0;
+    for (const c of taken) {
+      for (; i < c.i0; i++) { outPts.push(pts[i]); pinned.push(false); }
+      const S = c.arc.samples;
+      const step = c.j1 >= c.j0 ? 1 : -1;
+      for (let j = c.j0; ; j += step) {
+        outPts.push({ x: S[j].x, y: S[j].y }); pinned.push(true);
+        if (j === c.j1) break;
+      }
+      i = c.i1 + 1;
+    }
+    for (; i < n; i++) { outPts.push(pts[i]); pinned.push(false); }
+    return { pts: outPts, pinned };
+  }
+  // dense filtered points -> RDP vertices (+ pinned flags when an arc snapped)
+  function simplifyForPath(pts) {
+    const prep = arcSnapPoints(pts, Number(arcSnapRangeInput.value));
+    if (!prep.pinned) return { simplified: rdp(pts, RDP_EPSILON), pinned: null };
+    const keep = rdpKeepIdx(prep.pts, RDP_EPSILON);
+    return { simplified: keep.map(i => prep.pts[i]), pinned: keep.map(i => prep.pinned[i]) };
+  }
+  function prepSplinePoints(simplified, pinned) {
+    let pts = snapEndsChk.checked ? snapEndsToRuling(simplified, Number(snapEndsRangeInput.value), null, pinned) : simplified;
+    if (retraceChk.checked) pts = retraceSegments(pts, Number(retraceRangeInput.value), pinned);
     return pts;
   }
-  function buildPathD(simplified) {
-    return snapToGridChk.checked ? snapAndFilletPath(simplified, Number(snapRoundingInput.value), Number(snapToleranceInput.value)) : fitSpline(prepSplinePoints(simplified));
+  function buildPathD(simplified, pinned) {
+    return snapToGridChk.checked ? snapAndFilletPath(simplified, Number(snapRoundingInput.value), Number(snapToleranceInput.value), pinned) : fitSpline(prepSplinePoints(simplified, pinned));
   }
   snapRoundingInput.addEventListener("input", () => { snapRoundingLabel.textContent = snapRoundingInput.value; });
+  arcSnapRangeInput.addEventListener("input", () => { arcSnapRangeLabel.textContent = arcSnapRangeInput.value; });
   retraceRangeInput.addEventListener("input", () => { retraceRangeLabel.textContent = retraceRangeInput.value; });
   const arcGuidesChk = document.getElementById("arcGuidesChk");
   function applyArcGuides() { const g = document.getElementById("arcGuides"); if (g) g.style.display = arcGuidesChk.checked ? "" : "none"; }
@@ -1545,8 +1724,8 @@
     requestAnimationFrame(() => {
       rafPending = false;
       if (!drawing || !currentFiltered || !currentPathEl) return;
-      const simplified = rdp(currentFiltered, RDP_EPSILON);
-      currentPathEl.setAttribute("d", buildPathD(simplified));
+      const sp = simplifyForPath(currentFiltered);
+      currentPathEl.setAttribute("d", buildPathD(sp.simplified, sp.pinned));
     });
   }
 
@@ -1615,8 +1794,9 @@
     let trimmed = currentFiltered;
     if (trimStartChk.checked) trimmed = trimToLine(trimmed, NARROW_MID, "start");
     if (trimEndChk.checked) trimmed = trimToLine(trimmed, NARROW_MID, "end");
-    const simplified = rdp(trimmed, RDP_EPSILON);
-    const d = buildPathD(simplified);
+    const sp = simplifyForPath(trimmed);
+    const simplified = sp.simplified;
+    const d = buildPathD(simplified, sp.pinned);
     strokes.push({ raw: currentRaw, smoothD: d, simplifiedCount: simplified.length });
     currentRaw = null;
     currentFiltered = null;

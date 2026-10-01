@@ -3487,3 +3487,22 @@ lines at `ARC_DEPTH`=4.2 from the touched line: ∩ from a bold 50° line to the
 that height (bold and thin lines drift apart: 0.3728·(L3−y)). Style `.rule-arc`, group `#arcGuides`,
 toggle `#arcGuidesChk` (default on). Chosen from the screenshot: the view showed the band L1–L2 at
 ~10.8 px/unit (arc span ≈ 8.8 units ≈ one cell). Arcs are NOT snap targets yet. Tool-only change.
+
+**Arc snap (stroke sticks to the rounding-arc guides), 2026-10-01.** User: make the strokes snap to the
+dashed arcs "так же, как к прямым линиям". Arc geometry is now shared: `drawRuling()` fills
+`ARC_CURVES` (each arc sampled into 41 points with cumulative length, bbox, length) via
+`makeArcCurve`. `arcSnapPoints(pts, range)` (checkbox `#arcSnapChk`, slider `#arcSnapRangeInput`
+0.5–3, default 1.5) runs on the DENSE filtered points before RDP: a run of consecutive points within
+`range` of one arc, moving ALONG it (direction over a ±2-unit PATH window within 40° of the arc
+tangent over the same span; gaps of ≤2 points bridged), at least max(3, 35% of the arc) long and really
+progressing along it (arc-length span ≥ 0.6·run), is replaced by the arc's exact samples between the
+run's first/last projections. Overlapping candidates: longest wins. `simplifyForPath()` then keeps
+`pinned[]` through RDP (`rdpKeepIdx`). In `snapAndFilletPath` pinned vertices are ABSOLUTE anchors:
+the chain is built forward from the first pinned vertex and BACKWARD (reversed chain) before it, so
+the grid-snap chain can't drift the arc off its guide; a segment with both ends pinned is untouched;
+`snapEndsToRuling` and `retraceSegments` skip pinned vertices. Spline mode (grid snap off) just gets the
+arc samples. Real-page Playwright test (mouse strokes along a ∩ arc, wobble 0.5/1.0): mean distance to
+the arc 0.32→0.10 / 0.71→0.13, the 153° kink at wobble 1.0 gone; spline mode 0.57→0.10; a horizontal
+line through the arc band is unchanged. Known behaviour: a straight stroke that hugs an arc's steep side
+within `range` for ≥35% of the arc length (e.g. a 45° diagonal along the ∩'s right side, ~6 units) DOES
+snap onto the arc; lower the range if that's unwanted. Tool-only change.
