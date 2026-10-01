@@ -811,9 +811,11 @@ const LONG_ARROW_HEAD = 5;
 // gets its own arrow -- a zigzag stroke would otherwise get one tangled arrow.
 const LONG_ARROW_CORNER_DEG = 60;
 const LONG_ARROW_MIN_PIECE = 20;
-function longArrowsFor(d, scale = 1) {
+function longArrowsFor(d, scale = 1, span = null) {
   const pts = samplePath(d, 40);
   if (pts.length < 2) return [];
+  // glyph-specific: ONE arrow along a given stretch (fractions of the stroke's length), e.g. an oval's first side
+  if (span) { const a = longArrowOnPolyline(pts, scale, span[0], span[1]); return a ? [a] : []; }
   const cum = [0];
   for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
   const cuts = [0];
@@ -1398,7 +1400,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           for (const s of moved) {
             startPoints.push(getPathEndpoints(s.d).start);
             if (dashed || isWordToken) continue; // arrows: first copy of each element / letter only, never on words
-            directionArrows.push(...longArrowsFor(s.d, scale));
+            directionArrows.push(...longArrowsFor(s.d, scale, glyph.arrowSpan ?? null));
           }
           firstGlyph = false;
         }

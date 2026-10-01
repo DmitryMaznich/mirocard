@@ -379,3 +379,19 @@ it("letters touch the band's top and bottom lines (sheet y 16 and 64); р keeps 
   const r = layoutWideLinesIntoRows(["р"], map, undefined, false).placed[0].segments[0];
   expect(Math.max(...r.strokes.flatMap((s) => samplePath(s.d, 80).map((p) => p[1])))).toBeGreaterThan(100);
 });
+
+it("о exists, fills the band, starts on the slant grid; the ready sheet for о has 16 rows that all resolve", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 30;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  const seg = layoutWideLinesIntoRows(["о"], map, snap, false).placed[0].segments[0];
+  const ys = seg.strokes.flatMap((s) => samplePath(s.d, 80).map((p) => p[1]));
+  expect(Math.min(...ys)).toBeCloseTo(16, 0);
+  expect(Math.max(...ys)).toBeCloseTo(64, 0);
+  const [x, y] = seg.startPoints[0];
+  const n = (x + y * T) / S;
+  expect(Math.abs(n - Math.round(n))).toBeLessThan(0.02);
+  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page4;
+  expect(raw).toHaveLength(16);
+  for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
+});
