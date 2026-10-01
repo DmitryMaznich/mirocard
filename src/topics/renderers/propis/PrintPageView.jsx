@@ -111,7 +111,15 @@ const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, 
 // 20mm spacing doesn't work for these: most elements are narrower than one 20mm gap, so a
 // whole крючок/заборчик could render with no slant guide crossing it at all.
 const SHEET_DIAGONAL_LINES_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
-const SHEET_DIAGONAL_LINES_WIDE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_WIDE_DIAGONAL_SPACING);
+// "Широкая строка": every wide band carries its OWN slant grid, phased on the band's bottom line, so the
+// first slant meets the bottom (and the top) horizontal at the same distance from the page's left edge in
+// every row (a page-long grid would shift by 3.6 units per row). Distance of that first crossing:
+const WIDE_GRID_FIRST_X = 15; // units (2.5mm) from the left edge, on the band's bottom line
+const WIDE_SLANT_TAN = Math.tan(((90 - ANGLE_FROM_HORIZONTAL_DEG) * Math.PI) / 180);
+// slant line k of a band at height y (row-local coordinates: the band's bottom line is y = NATIVE_L3 - TEXT_ROW_THIN_OFFSET)
+const WIDE_BAND_BOTTOM_LOCAL = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
+const wideLineX = (k, yLocal) => WIDE_GRID_FIRST_X + k * TEXT_ROW_WIDE_DIAGONAL_SPACING + (WIDE_BAND_BOTTOM_LOCAL - yLocal) * WIDE_SLANT_TAN;
+const WIDE_LINE_COUNT = Math.ceil((PAGE_W_UNITS + (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * WIDE_SLANT_TAN) / TEXT_ROW_WIDE_DIAGONAL_SPACING) + 2;
 const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
 // "Широкая строка": the ordinary 17-row cycle, but ruling row 0 is only the TOP edge of the first
 // wide band (its own bold baseline) -- content rows start at ruling row 1, so 16 per page, and
@@ -168,10 +176,9 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, wideRows = false }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
-  const diagonalLines = wideRows ? SHEET_DIAGONAL_LINES_WIDE : useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
+  const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   const contentRow = (r) => (wideRows ? r + 1 : r);
-  const bandClipId = `wide-bands-${pageIndex}`;
-  const diagonalEls = diagonalLines.map((l, i) => (
+  const diagonalEls = wideRows ? null : diagonalLines.map((l, i) => (
     <line
       key={`d${i}`}
       x1={l.x1 + diagonalShiftX} y1={0} x2={l.x2 + diagonalShiftX} y2={PAGE_H_UNITS}
@@ -185,16 +192,18 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
-      {wideRows ? (
-        <>
-          <clipPath id={bandClipId}>
-            {ROW_INDICES.slice(1).map((row) => (
-              <rect key={row} x="0" y={wideBandTop(row)} width={PAGE_W_UNITS} height={wideBandHeight} />
-            ))}
-          </clipPath>
-          <g clipPath={`url(#${bandClipId})`}>{diagonalEls}</g>
-        </>
-      ) : diagonalEls}
+      {wideRows ? ROW_INDICES.slice(1).map((row) => (
+        <g key={`band${row}`} data-wide-band={row}>
+          {Array.from({ length: WIDE_LINE_COUNT }, (_, k) => k - 1).map((k) => (
+            <line
+              key={k}
+              x1={wideLineX(k, NATIVE_L3 - TEXT_ROW_PITCH)} y1={wideBandTop(row)}
+              x2={wideLineX(k, WIDE_BAND_BOTTOM_LOCAL)} y2={wideBandTop(row) + wideBandHeight}
+              stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W}
+            />
+          ))}
+        </g>
+      )) : diagonalEls}
       {ROW_INDICES.map((row) => (
         <g key={`g${row}`}>
           {(useElements || wideRows) && !(wideRows && row === 0) && (
@@ -484,12 +493,11 @@ function usePinchZoom(wrapRef, contentRef) {
 // ruling phase depends on the physical page slot and the row's own Y, both derivable from the row
 // index alone (WIDE_ROWS_PER_PAGE rows per page), so the layout can snap without knowing pages.
 function wideSnapX(rowIndex, x, y) {
-  const pageIndex = Math.floor(rowIndex / WIDE_ROWS_PER_PAGE);
-  const rowOnPage = rowIndex % WIDE_ROWS_PER_PAGE;
-  const { isLeftSlot, contentXUnits } = slotGeometry(pageIndex, true);
-  const shift = isLeftSlot ? 0 : -PAGE_W_UNITS;
-  const yPage = rowOriginY(rowOnPage + 1) + y;
-  return nearestDiagonalX(contentXUnits + x, yPage, TEXT_ROW_WIDE_DIAGONAL_SPACING, shift) - contentXUnits;
+  const { contentXUnits } = slotGeometry(0, true);
+  // slant line k at local height y (see wideLineX): nearest line to the point, row-local x back out
+  const k = Math.round((contentXUnits + x - wideLineX(0, y)) / TEXT_ROW_WIDE_DIAGONAL_SPACING);
+  void rowIndex; // every row has the same phase, so the row index no longer matters
+  return wideLineX(k, y) - contentXUnits;
 }
 
 export default function PrintPageView({ task, onClose }) {

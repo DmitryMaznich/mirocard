@@ -56,7 +56,7 @@ it("renders a wide-rows page (dumps SVG when WIDE_DUMP is set)", () => {
   act(() => root.render(<PrintPageView task={task} onClose={() => {}} />));
   const svg = host.querySelector("svg.propis-print-page-svg");
   expect(svg).toBeTruthy();
-  expect(svg.querySelector("clipPath")).toBeTruthy();
+  expect(svg.querySelector("g[data-wide-band]")).toBeTruthy();
   expect(host.querySelectorAll("svg.propis-print-page-svg path").length).toBeGreaterThan(10);
   if (process.env.WIDE_DUMP) {
     const markup = svg.outerHTML.replace('class="propis-paper"', 'fill="#fffdf8"');
@@ -183,4 +183,37 @@ describe("repeat pitch (cells between the starts of copies, from the workbook ph
       expect((starts[half] - starts[0]) / S).toBeCloseTo(cells, 3);
     });
   }
+});
+
+describe("per-band slant grid", () => {
+  it("first slant meets each band's bottom/top line at the same x in every row; glyph starts sit on those slants", () => {
+    globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
+    window.matchMedia ??= () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+    const [task] = generateTasks({ type: "read_lines" }, { cards: [], wide }, 1, { wideRows: true, lines: ["5 5", "6 6", "ш ш", "н н", "и и", "ини", "к к", "т т"] });
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    root = createRoot(host);
+    act(() => root.render(<PrintPageView task={task} onClose={() => {}} />));
+    const svg = host.querySelector("svg.propis-print-page-svg");
+    const bands = [...svg.querySelectorAll("g[data-wide-band]")];
+    expect(bands.length).toBe(16);
+    const firstX = (band, attr) => Math.min(...[...band.querySelectorAll("line")].map((l) => +l.getAttribute(attr)).filter((x) => x >= 0));
+    const bottoms = bands.map((b) => firstX(b, "x2"));
+    const tops = bands.map((b) => firstX(b, "x1"));
+    for (const x of bottoms) expect(x).toBeCloseTo(bottoms[0], 3);
+    for (const x of tops) expect(x).toBeCloseTo(tops[0], 3);
+    expect(bottoms[0]).toBeLessThan(30); // within one cell of the left edge
+    // every row's first stroke starts on a slant of ITS band
+    const S = 30;
+    const tan = Math.tan((25 * Math.PI) / 180);
+    const rows = [...svg.querySelectorAll(":scope > g[transform^='translate']")];
+    expect(rows.length).toBe(8);
+    for (const g of rows) {
+      const [, tx, ty] = g.getAttribute("transform").match(/translate\(([\d.-]+) ([\d.-]+)\)/).map(Number);
+      const d = g.querySelector("path").getAttribute("d");
+      const [x, y] = d.match(/-?\d+\.?\d*/g).map(Number);
+      const rel = (tx + x - bottoms[0] - (64 - y) * tan) / S; // slants run at bottoms[0] + k*S + (64 - y)*tan (row-local y)
+      expect(Math.abs(rel - Math.round(rel))).toBeLessThan(0.02);
+    }
+  });
 });
