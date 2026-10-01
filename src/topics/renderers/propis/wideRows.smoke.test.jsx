@@ -329,3 +329,19 @@ it("letter exit rises end above the dashed middle line", () => {
     expect(end[1]).toBeLessThan(dashY - 1 * scale);
   }
 });
+
+it("a free exit tail ends exactly on a slant line; a tail into a lower-starting letter is cut by that letter's slant", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 30;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  const free = layoutWideLinesIntoRows(["л"], map, snap, false).placed[0].segments[0];
+  const [ex, ey] = getPathEndpoints(free.strokes[0].d).end;
+  const n = (ex + ey * T) / S;
+  expect(Math.abs(n - Math.round(n))).toBeLessThan(0.02);
+  const joined = layoutWideLinesIntoRows(["ил"], map, snap, false).placed[0].segments[0];
+  const tailEnd = getPathEndpoints(joined.strokes[0].d).end;
+  const nextStart = getPathEndpoints(joined.strokes[1].d).start;
+  expect(tailEnd[1]).toBeLessThan(nextStart[1]);
+  const slantOffset = (tailEnd[0] + tailEnd[1] * T) - (nextStart[0] + nextStart[1] * T);
+  expect(Math.abs(slantOffset)).toBeLessThan(0.3);
+});

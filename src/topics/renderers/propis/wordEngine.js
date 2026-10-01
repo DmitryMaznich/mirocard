@@ -1088,6 +1088,16 @@ function pathXAtY(d, y) {
   }
   return null;
 }
+function pathXsAtY(d, y) {
+  const pts = samplePath(d, 40);
+  const xs = [];
+  for (let i = 1; i < pts.length; i += 1) {
+    const [x0, y0] = pts[i - 1];
+    const [x1, y1] = pts[i];
+    if ((y0 - y) * (y1 - y) <= 0 && y0 !== y1) xs.push(x0 + ((x1 - x0) * (y - y0)) / (y1 - y0));
+  }
+  return xs;
+}
 const WIDE_LEFT_PAD = 6;
 
 function wideTransform(d, originX) {
@@ -1296,7 +1306,12 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           // end is nudged (by the sub-grid slack left after snapping the start) to land exactly
           // there, so nothing sticks out past the contact point and the next letter then runs
           // its own captured path from its start point (it retraces the stem above the contact).
-          const contactX = pathXAtY(moved[0].d, prevExit[1]);
+          // candidates: every place the next stroke crosses the tail's height, plus (when the stroke starts lower than
+          // that) the slant line of its start point carried on above it; the nearest one to the tail's end wins
+          const candidates = pathXsAtY(moved[0].d, prevExit[1]);
+          const st0 = getPathEndpoints(moved[0].d).start;
+          if (st0[1] > prevExit[1]) candidates.push(st0[0] + (st0[1] - prevExit[1]) * WIDE_JOIN_TAN);
+          const contactX = candidates.length ? candidates.reduce((b, c) => (Math.abs(c - prevExit[0]) < Math.abs(b - prevExit[0]) ? c : b)) : null;
           if (contactX !== null && Math.abs(contactX - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) {
             strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
           }
@@ -1319,6 +1334,11 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         if (tokenStartX === null) { tokenStartX = startX; tokenStartY = local.start[1]; }
         tokenMinX = Math.min(tokenMinX, local.minX + dx);
         tokenMaxX = Math.max(tokenMaxX, local.maxX + dx);
+      }
+      // a free tail (end of a word / before a space) is cut by the nearest slant line as well
+      if (prevExit && prevExitStroke >= 0) {
+        const snapped = snapX(rowIndex, prevExit[0], prevExit[1]);
+        if (Math.abs(snapped - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, snapped - prevExit[0]) };
       }
       if (tokenStartX !== null) prevToken = { isElement, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells };
     }
