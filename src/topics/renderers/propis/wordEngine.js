@@ -1,4 +1,4 @@
-import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD, stretchKeepSlantPathD, shiftPathEndXD, aimClosingRiseD, aimOpeningRiseD } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD, stretchKeepSlantPathD, shiftPathEndXD } from "./pathGeometry.js";
 import {
   GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
 } from "./propisRuling.js";
@@ -1012,18 +1012,6 @@ function pathXAtY(d, y) {
 }
 const WIDE_LEFT_PAD = 6;
 
-// The workshop's auxiliary slant (handwriting_capture.html ANGLE_DEG_BOLD) and where it lands on
-// the sheet: an affine map (grid stretch `a` + slant-keeping shear, see stretchKeepSlantPathD)
-// turns the 50deg capture line into a shallower one, e.g. ~41deg for a = 1.806.
-const WIDE_AUX_ANGLE_CAPTURE_DEG = 50;
-// A rise "from mid-height" starts at or below this capture y (the dashed mid line is y = 36).
-const WIDE_OPENING_RISE_MAX_Y = 40;
-export function wideAuxAngleDeg(stretch = 1) {
-  const slantFromVertical = Math.tan(((90 - 65) * Math.PI) / 180);
-  const dx = stretch / Math.tan((WIDE_AUX_ANGLE_CAPTURE_DEG * Math.PI) / 180) - (stretch - 1) * slantFromVertical;
-  return (Math.atan2(1, dx) * 180) / Math.PI;
-}
-
 function wideTransform(d, originX) {
   // origin (stroke start of the glyph) -> x=0 of the glyph's local frame, then scale about the
   // capture baseline and drop onto this page's thin line.
@@ -1043,12 +1031,7 @@ function wideGlyphLocal(glyph) {
     stretchKeepSlantPathD(toCubicPathD(s.d), stretch, 90 - 65, WIDE_CAPTURE_BASELINE));
   const originX = getPathEndpoints(cubic[0]).start[0];
   const strokes = cubic.map((d) => ({ d: wideTransform(d, originX) }));
-  // Closing rise of the exit stroke and the opening rise (from mid-height) of the first stroke run
-  // exactly along the workshop's auxiliary slant -- so a tail and a rise that continues it join into
-  // one straight line.
-  const auxDeg = wideAuxAngleDeg(stretch);
-  const openingMaxY = WIDE_BASELINE_Y - (WIDE_CAPTURE_BASELINE - WIDE_OPENING_RISE_MAX_Y) * WIDE_SCALE;
-  strokes[0] = { d: aimOpeningRiseD(strokes[0].d, auxDeg, openingMaxY) };
+  const start = getPathEndpoints(strokes[0].d).start;
   // Exit = end of the stroke that reaches furthest right ("й": the main stroke, not the breve;
   // "к": the second stroke) -- the real continuation point of the pen.
   let end = getPathEndpoints(strokes[0].d).end;
@@ -1057,10 +1040,8 @@ function wideGlyphLocal(glyph) {
     const e = getPathEndpoints(s.d).end;
     if (e[0] > end[0]) { end = e; exitStrokeIndex = si; }
   });
-  strokes[exitStrokeIndex] = { d: aimClosingRiseD(strokes[exitStrokeIndex].d, auxDeg) };
-  end = getPathEndpoints(strokes[exitStrokeIndex].d).end;
   const xs = strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]));
-  return { strokes, start: getPathEndpoints(strokes[0].d).start, end, exitStrokeIndex, auxDeg, minX: Math.min(...xs), maxX: Math.max(...xs) };
+  return { strokes, start, end, exitStrokeIndex, minX: Math.min(...xs), maxX: Math.max(...xs) };
 }
 
 // `snapX(rowIndex, x, y)` -> x of the nearest slant-grid line at row-local point (x, y), supplied by
@@ -1107,7 +1088,6 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     let cursorX = null;
     let prevExit = null;
     let prevExitStroke = -1;
-    let prevAuxDeg = 50;
     let firstGlyph = true;
     for (const token of line.split(/\s+/).filter(Boolean)) {
       const labels = wideTokenToLabels(token, glyphsByLabel);
@@ -1129,18 +1109,9 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           // end is nudged (by the sub-grid slack left after snapping the start) to land exactly
           // there, so nothing sticks out past the contact point and the next letter then runs
           // its own captured path from its start point (it retraces the stem above the contact).
-          const nextStart = getPathEndpoints(moved[0].d).start;
-          // A rise that starts at the tail's own height (from mid-height) is entered at its start
-          // point; anything else is entered where its first stroke crosses the tail's height.
-          const target = Math.abs(nextStart[1] - prevExit[1]) < 2.5
-            ? nextStart
-            : (() => { const x = pathXAtY(moved[0].d, prevExit[1]); return x === null ? null : [x, prevExit[1]]; })();
-          if (target && Math.hypot(target[0] - prevExit[0], target[1] - prevExit[1]) < WIDE_MAX_CONTACT_NUDGE) {
-            const prevPath = strokes[prevExitStroke].d;
-            // Tail stays exactly on the auxiliary slant while its end moves onto the contact point
-            // (and a rise that continues it starts at that very point: one straight line).
-            const aimed = aimClosingRiseD(prevPath, prevAuxDeg, target);
-            strokes[prevExitStroke] = { d: aimed !== prevPath ? aimed : shiftPathEndXD(prevPath, target[0] - prevExit[0]) };
+          const contactX = pathXAtY(moved[0].d, prevExit[1]);
+          if (contactX !== null && Math.abs(contactX - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE) {
+            strokes[prevExitStroke] = { d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
           }
         }
         const firstMovedIndex = strokes.length;
@@ -1161,7 +1132,6 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         }
         prevExit = [local.end[0] + dx, local.end[1]];
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
-        prevAuxDeg = local.auxDeg;
         cursorX = local.maxX + dx;
       }
     }
