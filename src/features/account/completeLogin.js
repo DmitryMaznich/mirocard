@@ -80,6 +80,7 @@ export async function completeLogin({ account, token }) {
   const payload = {
     token,
     account,
+    subscription: bootstrap.subscription ?? null,
     settings: bootstrap.settings,
     students,
     ownedTopics: bootstrap.ownedTopics,

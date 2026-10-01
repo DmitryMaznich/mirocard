@@ -39,6 +39,7 @@ export default function ResetPasswordScreen() {
       const payload = {
         token: authToken,
         account,
+        subscription: bootstrap.subscription ?? null,
         settings: settings ?? bootstrap.settings,
         students: bootstrap.students,
         ownedTopics: bootstrap.ownedTopics,

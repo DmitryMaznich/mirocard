@@ -3,11 +3,12 @@ import { useAppStore } from "@/core/store";
 import * as apiModule from "@/core/api";
 import { getDb, kv } from "@/core/db";
 import { completeLogin } from "./completeLogin";
+import { hasActiveEntitlement } from "@/features/billing/entitlement";
 
-function mockServer({ students = [{ id: "s-server", name: "С сервера" }] } = {}) {
+function mockServer({ students = [{ id: "s-server", name: "С сервера" }], subscription = null } = {}) {
   vi.spyOn(apiModule.api, "get").mockImplementation(async (path) => {
     if (path === "/account/bootstrap") {
-      return { students, ownedTopics: [], studentTopicLinks: [], conceptProgress: [], settings: {} };
+      return { students, ownedTopics: [], studentTopicLinks: [], conceptProgress: [], settings: {}, subscription };
     }
     if (path.startsWith("/sessions")) return [];
     throw new Error(`unexpected GET ${path}`);
@@ -40,6 +41,24 @@ describe("completeLogin", () => {
     mockServer({ students: [] });
     await completeLogin({ account: { id: "a2", email: "y@example.test" }, token: "t2" });
     expect(useAppStore.getState().students.map((s) => s.id)).toEqual([]);
+  });
+
+  it("makes the trial available immediately after login without a page reload", async () => {
+    const subscription = { plan: "trial", status: "active", currentPeriodEnd: "2099-01-01T00:00:00.000Z" };
+    mockServer({ subscription });
+    await completeLogin({ account: { id: "trial-account" }, token: "trial-token" });
+    const state = useAppStore.getState();
+    expect(state.subscription).toEqual(subscription);
+    expect(hasActiveEntitlement(state.account, state.subscription)).toBe(true);
+  });
+
+  it("clears the previous account's access when the next account has no subscription", async () => {
+    useAppStore.setState({ subscription: { plan: "annual", status: "active", currentPeriodEnd: "2099-01-01T00:00:00.000Z" } });
+    mockServer({ subscription: null });
+    await completeLogin({ account: { id: "no-access-account" }, token: "no-access-token" });
+    const state = useAppStore.getState();
+    expect(state.subscription).toBeNull();
+    expect(hasActiveEntitlement(state.account, state.subscription)).toBe(false);
   });
 
   it("uploads the same account's offline students before loading the server copy", async () => {
