@@ -3461,3 +3461,17 @@ its real position at once (up to the hysteresis-sized offset, 1.5×range). Now `
 last correction and fades it out (smoothstep) over `RETRACE_RELEASE_ARC` (6) units of path after the
 last snapped point. Entry is NOT ramped on purpose: earlier points are the reference the return
 snaps to, so moving them would reopen the gap. Max correction jump at release: 0.45 → 0.055 (Node).
+
+**Retrace snap redesigned at segment level, 2026-10-01.** User: the per-point version (2026-09-30)
+still gave jerks, bumps and sharp turns (worse above range 0.5). Causes found: (1) per-point decisions
+with direction taken from ~1.5 units of noisy points flickered; (2) RDP and grid snap ran AFTER it
+and pulled the two passes apart again; (3) large range grabbed unrelated segments. Replaced by
+`retraceSegments(points, range)` (+ `rdpKeepIdx`, `prepSplinePoints`), run at the END of
+`snapAndFilletPath` (after grid snap and end snap, before the fillet) and on the simplified vertices
+before `fitSpline` in spline mode. Detection uses a COARSE RDP copy (eps 0.5: noise cuts one stick
+into many <5-unit pieces, coarse collapses them); a long segment B (≥5) that turns back
+(anti-parallel, ≤12°) along an earlier long segment A, with both ends of B within `range` of A's line
+and ≥50% overlap, has EVERY original vertex of its span moved perpendicularly onto A's line.
+`segFree` is intentionally NOT used (a vertical stick is "free" for the grid snap). No hysteresis,
+no ramps. Node full-pipeline test (noise 0.3, return offset 0.6, 20 seeds): worst gap between passes
+1.59 → 0.69 at range 2, no new sharp turns. Returns along ARCS are not caught (known limitation).
