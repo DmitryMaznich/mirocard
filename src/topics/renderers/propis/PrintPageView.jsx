@@ -230,7 +230,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
         // copy, all rendered inside this same <g>) by a rigid delta, so nothing about the
         // element's own internal geometry (buildRepeatChain's spacing/chaining) changes, only
         // where the row as a whole sits on the page.
-        const startPoint = isElementRow ? p.segments[0].startPoints?.[0] : null;
+        const startPoint = isElementRow && !wideRows ? p.segments[0].startPoints?.[0] : null;
         const elementSnapDx = startPoint
           ? nearestDiagonalX(
               contentXUnits + p.x + startPoint[0],
@@ -473,6 +473,18 @@ function usePinchZoom(wrapRef, contentRef) {
 // Added 2026-09-13 specifically so "Печать" produces a REAL PDF matching this screen
 // mm-for-mm (window.print() + @page CSS sized to the exact physical page, see propis.css's
 // print rules) — not just a similar-looking on-screen approximation.
+// Row-local x of the nearest slant-grid line at (x, y) for a "Широкая строка" content row. The
+// ruling phase depends on the physical page slot and the row's own Y, both derivable from the row
+// index alone (WIDE_ROWS_PER_PAGE rows per page), so the layout can snap without knowing pages.
+function wideSnapX(rowIndex, x, y) {
+  const pageIndex = Math.floor(rowIndex / WIDE_ROWS_PER_PAGE);
+  const rowOnPage = rowIndex % WIDE_ROWS_PER_PAGE;
+  const { isLeftSlot, contentXUnits } = slotGeometry(pageIndex);
+  const shift = isLeftSlot ? 0 : -PAGE_W_UNITS;
+  const yPage = rowOriginY(rowOnPage + 1) + y;
+  return nearestDiagonalX(contentXUnits + x, yPage, TEXT_ROW_WIDE_DIAGONAL_SPACING, shift) - contentXUnits;
+}
+
 export default function PrintPageView({ task, onClose }) {
   const lettersByLabel = useMemo(() => {
     const map = new Map();
@@ -515,7 +527,7 @@ export default function PrintPageView({ task, onClose }) {
 
   const layout = useMemo(
     () => wideRows
-      ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel)
+      ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, wideSnapX)
       : useElements
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),

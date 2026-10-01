@@ -75,3 +75,22 @@ describe("stretchKeepSlantPathD", () => {
     expect((e.end[0] - e.start[0]) / (e.start[1] - e.end[1])).toBeCloseTo(t, 2); // same slant
   });
 });
+
+describe("grid snapping", () => {
+  it("puts every letter's start point on a slant-grid line, not just the row's first", () => {
+    const S = 30;
+    const t = Math.tan((25 * Math.PI) / 180);
+    const snap = (_row, x, y) => Math.round((x + y * t) / S) * S - y * t;
+    const { placed } = layoutWideLinesIntoRows(["иии", "ини", "нии"], map, snap);
+    for (const row of placed) {
+      const { strokes } = row.segments[0];
+      // glyph strokes (skip connector strokes: they begin at the previous letter's exit)
+      const starts = strokes.map((s) => getPathEndpoints(s.d).start);
+      const onGrid = starts.filter(([x, y]) => {
+        const v = (((x + y * t) % S) + S) % S;
+        return Math.min(v, S - v) < 0.01;
+      });
+      expect(onGrid.length).toBeGreaterThanOrEqual(3);
+    }
+  });
+});

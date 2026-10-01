@@ -1029,7 +1029,13 @@ function wideGlyphLocal(glyph) {
   return { strokes, start, end, minX: Math.min(...xs), maxX: Math.max(...xs) };
 }
 
-export function layoutWideLinesIntoRows(lines, glyphsByLabel) {
+// `snapX(rowIndex, x, y)` -> x of the nearest slant-grid line at row-local point (x, y), supplied by
+// PrintPageView (the only place that knows the page slot / ruling phase). EVERY glyph's start
+// point is put on a grid line, not just the row's first one -- the letters were captured on the
+// slant grid with each downstroke one cell from the next, and WIDE_LETTER_STRETCH (below) maps
+// that capture cell onto the sheet's cell, so landing the start on a line puts every
+// downstroke of the glyph on a line too.
+export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x) {
   const placed = lines.map((line, rowIndex) => {
     const strokes = [];
     const startPoints = [];
@@ -1044,14 +1050,14 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel) {
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
         const local = wideGlyphLocal(glyph);
-        let dx;
+        // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
+        const wantStartX = prevExit
+          ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN
+          : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP - local.minX + local.start[0]);
+        const startX = snapX(rowIndex, wantStartX, local.start[1]);
+        const dx = startX - local.start[0];
         if (prevExit) {
-          // Joined letter: pen continues from the previous exit along the 65-degree slant up
-          // to this glyph's start (a plain straight connector, not a captured one).
-          dx = prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.start[0];
-          strokes.push({ d: toCubicPathD(`M ${prevExit[0]} ${prevExit[1]} L ${local.start[0] + dx} ${local.start[1]}`) });
-        } else {
-          dx = (cursorX === null ? WIDE_LEFT_PAD : cursorX + WIDE_TOKEN_GAP) - local.minX;
+          strokes.push({ d: toCubicPathD(`M ${prevExit[0]} ${prevExit[1]} L ${startX} ${local.start[1]}`) });
         }
         const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
         strokes.push(...moved);
@@ -1074,7 +1080,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel) {
     }
     const width = strokes.length ? Math.max(...strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]))) : 0;
     // `type: "element"` on purpose: PrintPageView already renders those as static ink with start
-    // dots + direction arrows (no tap/animation) and snaps their start onto the dense slant grid.
+    // dots + direction arrows (no tap/animation).
     const segments = strokes.length
       ? [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [] }]
       : [];
