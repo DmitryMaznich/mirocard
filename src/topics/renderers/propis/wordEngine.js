@@ -1334,6 +1334,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     // doesn't need it), flagged `continuous` together with the stroke it feeds so the pen
     // doesn't lift between them.
     const joins = new Map(); // first stroke index of a joined letter -> index of the stroke it continues from
+    const joinLeftAt = new Set(); // first stroke indexes of joined glyphs that are entered from the left of their oval (а, с)
     const startPoints = [];
     const directionArrows = [];
     let cursorX = null;
@@ -1402,7 +1403,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         }
         const firstMovedIndex = strokes.length;
         strokes.push(...moved);
-        if (prevExit) joins.set(firstMovedIndex, prevExitStroke);
+        if (prevExit) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
         if (tokenStartX === null) {
           // every token's first glyph gets its red start dot(s); only the very first one also gets direction arrows
           for (const s of moved) {
@@ -1431,7 +1432,22 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       if (!joins.has(i)) { animStrokes.push(st); return; }
       const contact = getPathEndpoints(strokes[joins.get(i)].d).end;
       const start = getPathEndpoints(st.d).start;
-      animStrokes.push({ d: toCubicPathD(`M ${contact[0]} ${contact[1]} L ${start[0]} ${start[1]}`), continuous: true });
+      let transition = `M ${contact[0]} ${contact[1]} L ${start[0]} ${start[1]}`;
+      if (joinLeftAt.has(i)) {
+        // entered from the left of an oval: from the contact the pen runs CLOCKWISE round the oval -- the writing path
+        // from its start to the contact, backwards -- to the letter's start point, and only then writes it as usual
+        const pts = samplePath(st.d, 80);
+        const limit = Math.max(2, Math.floor(pts.length * 0.7));
+        let j = 0, best = Infinity;
+        for (let k = 0; k < limit; k += 1) {
+          const dd = Math.hypot(pts[k][0] - contact[0], pts[k][1] - contact[1]);
+          if (dd < best) { best = dd; j = k; }
+        }
+        const back = [];
+        for (let k = j; k >= 0; k -= 1) back.push(pts[k]);
+        transition = `M ${contact[0]} ${contact[1]} ` + back.map((q) => `L ${q[0].toFixed(2)} ${q[1].toFixed(2)}`).join(" ");
+      }
+      animStrokes.push({ d: toCubicPathD(transition), continuous: true });
       animStrokes.push({ ...st, continuous: true });
     });
     const width = strokes.length ? Math.max(...strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]))) : 0;

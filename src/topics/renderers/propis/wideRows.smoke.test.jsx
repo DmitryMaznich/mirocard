@@ -415,3 +415,21 @@ it("а, ю, с exist; а and с are entered from their left side (no overlap wit
   expect(raw).toHaveLength(15);
   for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
 });
+
+it("a joined а / с is entered from the left of its oval: the pen runs clockwise round the oval to the start before writing", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 30;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  for (const w of ["на", "ас"]) {
+    const seg = layoutWideLinesIntoRows([w], map, snap, false).placed[0].segments[0];
+    const anim = seg.trajectory.strokes;
+    const t = anim.find((s, i) => i > 0 && s.continuous && anim[i + 1]?.continuous && s !== anim[anim.length - 1]);
+    expect(t).toBeTruthy();
+    expect((t.d.match(/C/g) ?? []).length).toBeGreaterThan(10);   // a curve round the oval, not a straight hop
+    // it ends at the start of the next letter's own stroke
+    const next = anim[anim.indexOf(t) + 1];
+    const endT = getPathEndpoints(t.d).end;
+    const stN = getPathEndpoints(next.d).start;
+    expect(Math.hypot(endT[0] - stN[0], endT[1] - stN[1])).toBeLessThan(0.6);
+  }
+});
