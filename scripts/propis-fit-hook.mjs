@@ -114,7 +114,8 @@ const data = JSON.parse(readFileSync(PATH, "utf-8"));
 for (const label of labels) {
   const g = data.glyphs.find((x) => x.label === label);
   if (!g) throw new Error(`no glyph ${label}`);
-  const segs = parse(g.strokes[0].d);
+  for (const [strokeIndex, stroke] of g.strokes.entries()) {
+  const segs = parse(stroke.d);
   const chord = (i) => len(sub(endOf(segs[i]), endOf(segs[i - 1])));
   const S = endOf(segs[0]);
   // long straight pieces and what they are
@@ -126,67 +127,112 @@ for (const label of labels) {
     const rise = (Math.atan2(from[1] - to[1], to[0] - from[0]) * 180) / Math.PI;
     pieces.push({ i, from, to, kind: to[1] > from[1] ? "stem" : rise >= 58 ? "retrace" : "rise" });
   });
-  pieces[pieces.length - 1].kind = "tail";
+  if (!pieces.length) continue; // a dot / breve: nothing to fit
+  const lastPiece = pieces[pieces.length - 1];
+  const suffix = segs.slice(lastPiece.i + 1); // what follows the last straight piece (a curl: kept as captured)
+  if (!suffix.length) lastPiece.kind = "tail";
+  const firstPiece = pieces[0];
+  const prefix = segs.slice(0, firstPiece.i); // M (+ anything before the first straight piece: kept as captured)
   const report = [];
   // ---- the straight line each piece must lie on
-  let stemLine = null;
-  const first = pieces[0];
-  const sShift = first.kind === "rise" ? [onLine(nearestLine(S[0], S[1]), S[1])[0] - S[0], 0] : [0, 0];
-  const E = pieces[pieces.length - 1].to;
-  const nEnd = nearestLine(E[0], E[1]);
-  const eShift = [onLine(nEnd, E[1])[0] - E[0], 0];
+  const stems = pieces.filter((pc) => pc.kind === "stem");
+  stems.forEach((pc) => {
+    pc.n = nearestLine((pc.from[0] + pc.to[0]) / 2, (pc.from[1] + pc.to[1]) / 2);
+    pc.line = { p: onLine(pc.n, pc.from[1]), d: STEM_DIR };
+    report.push(`stem on line ${pc.n}`);
+  });
+  const sShift = firstPiece.kind === "rise" && prefix.length === 1 ? [onLine(nearestLine(S[0], S[1]), S[1])[0] - S[0], 0] : [0, 0];
+  const tail = lastPiece.kind === "tail" ? lastPiece : null;
+  const E = tail ? tail.to : null;
+  const nEnd = tail ? nearestLine(E[0], E[1]) : null;
+  const eShift = tail ? [onLine(nEnd, E[1])[0] - E[0], 0] : [0, 0];
   pieces.forEach((pc, k) => {
-    if (pc.kind === "stem") {
-      stemLine = nearestLine((pc.from[0] + pc.to[0]) / 2, (pc.from[1] + pc.to[1]) / 2);
-      pc.line = { p: onLine(stemLine, pc.from[1]), d: STEM_DIR };
-      pc.n = stemLine;
-      report.push(`stem on line ${stemLine}`);
-    } else if (pc.kind === "retrace") {
-      pc.line = { p: onLine(stemLine, pc.from[1]), d: [-STEM_DIR[0], -STEM_DIR[1]] };
-    } else if (pc.kind === "rise") {
-      pc.line = { p: add(pc.from, k === 0 ? sShift : [0, 0]), d: unit(sub(pc.to, pc.from)) };
-    } else {
-      pc.line = { p: add(pc.from, eShift), d: unit(sub(pc.to, pc.from)) };
+    const prev = pieces[k - 1];
+    const next = pieces[k + 1];
+    let shift = [0, 0];
+    if (pc.kind === "retrace") {
+      // an up-stroke along a slant line: the stem that follows it retraces it, else it retraces the stem before it
+      const mate = next?.kind === "stem" ? next : prev?.kind === "stem" ? prev : null;
+      if (!mate) throw new Error(`${label}: a slant up-stroke with no stem next to it`);
+      pc.n = mate.n;
+      pc.line = { p: onLine(mate.n, pc.from[1]), d: [-STEM_DIR[0], -STEM_DIR[1]] };
+    } else if (pc.kind === "rise" || pc.kind === "tail") {
+      if (k === 0 && pc.kind === "rise") shift = sShift;
+      if (pc.kind === "tail") shift = eShift;
+      pc.line = { p: add(pc.from, shift), d: unit(sub(pc.to, pc.from)) };
     }
     // where the capture's piece began / ended, put onto its (possibly moved) line
-    const along = (q) => add(pc.line.p, [pc.line.d[0] * dot(sub(q, pc.line.p), pc.line.d), pc.line.d[1] * dot(sub(q, pc.line.p), pc.line.d)]);
-    pc.origFrom = along(add(pc.from, k === 0 && pc.kind === "rise" ? sShift : pc.kind === "tail" ? eShift : [0, 0]));
-    pc.origTo = along(add(pc.to, k === 0 && pc.kind === "rise" ? sShift : pc.kind === "tail" ? eShift : [0, 0]));
+    const along = (q) => { const t = dot(sub(q, pc.line.p), pc.line.d); return [pc.line.p[0] + pc.line.d[0] * t, pc.line.p[1] + pc.line.d[1] * t]; };
+    pc.origFrom = along(add(pc.from, shift));
+    pc.origTo = along(add(pc.to, shift));
   });
-  if (nEnd === stemLine) throw new Error(`${label}: closing rise would end on the stem's own grid line`);
-  if (first.kind === "rise") report.push(`start on grid line ${nearestLine(S[0], S[1])}`);
-  report.push(`end on grid line ${nEnd}`);
+  if (tail && nEnd === stems[stems.length - 1].n) throw new Error(`${label}: closing rise would end on the stem's own grid line`);
+  if (firstPiece.kind === "rise" && prefix.length === 1) report.push(`start on grid line ${nearestLine(S[0], S[1])}`);
+  if (tail) report.push(`end on grid line ${nEnd}`);
   // ---- fit the joins and assemble
   const out = [];
-  let start = first.kind === "rise" ? first.line.p : onLine(first.n, S[1]);
-  out.push("M", f2(start[0]), f2(start[1]));
+  const fmt = (q) => [q.cmd, ...q.pts.map(f2)];
+  let start;
+  if (prefix.length === 1) {
+    start = firstPiece.kind === "rise" ? firstPiece.line.p : onLine(firstPiece.n, S[1]);
+    out.push("M", f2(start[0]), f2(start[1]));
+  } else {
+    // something precedes the first straight piece (a bar): keep the bar as captured, but replace its last
+    // few units -- the turn down into the stem -- by one tangent cubic that lands on the stem's grid line
+    if (firstPiece.kind !== "stem") throw new Error(`${label}: unsupported prefix`);
+    start = onLine(firstPiece.n, firstPiece.from[1]);
+    // walk back along the bar to a point at least TURN units before the stem
+    const TURN = 7;
+    let cut = prefix.length - 1;
+    while (cut > 1 && len(sub(firstPiece.from, endOf(prefix[cut]))) < TURN) cut -= 1;
+    const A = endOf(prefix[cut]);
+    let bi = cut - 1;
+    while (bi > 0 && len(sub(A, endOf(prefix[bi]))) < 1) bi -= 1; // the capture repeats points; need a real predecessor
+    const tA = unit(sub(A, endOf(prefix[bi])));
+    prefix.slice(0, cut + 1).forEach((q) => out.push(...fmt(q)));
+    const chordAB = len(sub(start, A));
+    let blend = null;
+    for (let h1 = 0.1; h1 <= 1.2; h1 += 0.05) {
+      for (let h2 = 0.1; h2 <= 1.2; h2 += 0.05) {
+        const p1 = [A[0] + tA[0] * h1 * chordAB, A[1] + tA[1] * h1 * chordAB];
+        const p2 = [start[0] - STEM_DIR[0] * h2 * chordAB, start[1] - STEM_DIR[1] * h2 * chordAB];
+        const st = stats(A, p1, p2, start, "max");
+        if (!blend || st.peak < blend.peak) blend = { peak: st.peak, p1, p2 };
+      }
+    }
+    out.push("C", ...[...blend.p1, ...blend.p2, ...start].map(f2));
+    console.log(`${label}: bar -> stem turn, tightest radius ${(1 / blend.peak).toFixed(1)}`);
+    report.push(`bar joins the stem on line ${firstPiece.n}`);
+  }
+  firstPiece.start = start;
   for (let k = 0; k < pieces.length; k += 1) {
     const pc = pieces[k];
     const next = pieces[k + 1];
-    if (!next) { const E2 = onLine(nEnd, E[1]); out.push("L", f2(E2[0]), f2(E2[1])); break; }
-    if (pc.kind === "stem" && next.kind === "retrace") {
-      const bottom = onLine(pc.n, pc.to[1]); // reversal: straight down, straight back up the same line
-      out.push("L", f2(bottom[0]), f2(bottom[1]));
-      next.start = bottom;
+    if (!next) {
+      if (tail) { const E2 = onLine(nEnd, E[1]); out.push("L", f2(E2[0]), f2(E2[1])); }
+      else { out.push("L", f2(pc.to[0]), f2(pc.to[1])); suffix.forEach((q) => out.push(...fmt(q))); }
+      break;
+    }
+    if ((pc.kind === "stem" && next.kind === "retrace") || (pc.kind === "retrace" && next.kind === "stem")) {
+      // reversal along one and the same slant line: down and straight back up (or up and straight back down)
+      const pt = onLine(pc.n ?? next.n, pc.to[1]);
+      out.push("L", f2(pt[0]), f2(pt[1]));
+      next.start = pt;
       continue;
     }
     const rg = { from: pc.i + 1, to: next.i - 1 };
-    const kindName = pc.kind === "retrace" ? "bend" : pc.kind === "rise" ? "top" : "bottom";
+    const kindName = pc.kind === "retrace" || (pc.kind === "rise" && next.kind === "retrace") ? "bend" : pc.kind === "rise" ? "top" : "bottom";
     const mode = kindName === "top" ? "min" : kindName === "bottom" ? "max" : null;
     const target = mode === "min" ? Math.min(...sampleYs(segs, rg.from, rg.to)) : mode === "max" ? Math.max(...sampleYs(segs, rg.from, rg.to)) : 0;
-    const startOfPc = pc.start ?? start;
     const arc = fitArc(label, kindName, pc.line, next.line, mode, target, pc.origTo, next.origFrom,
-      (V) => dot(sub(V, startOfPc), pc.line.d) - 6, () => Infinity);
+      (V) => dot(sub(V, pc.start), pc.line.d) - 3, () => Infinity);
+    if (dot(sub(arc.A, pc.start), pc.line.d) < 2) throw new Error(`${label}: no straight piece left before the ${kindName} arc`);
     out.push("L", f2(arc.A[0]), f2(arc.A[1]), "C", ...[...arc.p1, ...arc.p2, ...arc.B].map(f2));
     next.start = arc.B;
-    start = arc.B;
   }
-  // every straight piece must still be straight for a while
-  pieces.forEach((pc, k) => {
-    void k;
-  });
-  console.log(`${label}: ${report.join(", ")}`);
-  g.strokes[0].d = out.join(" ");
+  console.log(`${label}${g.strokes.length > 1 ? ` (stroke ${strokeIndex + 1})` : ""}: ${report.join(", ")}`);
+  stroke.d = out.join(" ");
   g.gridFitted = true;
+  }
 }
 writeFileSync(PATH, JSON.stringify(data, null, 2));
