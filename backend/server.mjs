@@ -14,7 +14,6 @@ import { verifyGoogleIdToken } from "./lib/google-auth.mjs";
 import { createOneTimeCode, consumeOneTimeCode } from "./lib/one-time-codes.mjs";
 import { createEmailBudget } from "./lib/email-budget.mjs";
 import { setMarketingConsent } from "./lib/marketing-consent.mjs";
-import { generateAnalysis, getCachedAnalysis, deleteCachedAnalysis } from "./lib/analysis.mjs";
 import { getDb } from "./lib/db.mjs";
 import {
   createAccount, findAccountByEmail, findAccountByEmailAny, findAccountById,
@@ -846,39 +845,6 @@ async function handleAppendSession(req, res) {
   }
   appendSession(db, account.id, body);
   writeJson(res, 201, { ok: true });
-}
-
-// ─── Analysis handlers ────────────────────────────────────────────────────────
-
-async function handleGetTopicAnalysis(req, res) {
-  requireAuth(req);
-  const url = new URL(req.url, "http://x");
-  const studentId = url.searchParams.get("studentId");
-  const topicId   = url.searchParams.get("topicId");
-  if (!studentId || !topicId) return writeJson(res, 400, { error: "studentId, topicId required" });
-  const cached = getCachedAnalysis(db, studentId, topicId);
-  if (!cached) return writeJson(res, 404, { error: "not found" });
-  writeJson(res, 200, { ...JSON.parse(cached.result_json), generated_at: cached.generated_at });
-}
-
-async function handlePostTopicAnalysis(req, res) {
-  requireAuth(req);
-  const body = await readJsonBody(req);
-  if (!body?.studentId || !body?.topicId) {
-    return writeJson(res, 400, { error: "studentId, topicId required" });
-  }
-  const result = await generateAnalysis(db, body.studentId, body.topicId);
-  if (!result) return writeJson(res, 404, { error: "no sessions found" });
-  writeJson(res, 200, result);
-}
-
-async function handleDeleteTopicAnalysis(req, res) {
-  requireAuth(req);
-  const url = new URL(req.url, "http://x");
-  const studentId = url.searchParams.get("studentId");
-  const topicId   = url.searchParams.get("topicId");
-  deleteCachedAnalysis(db, studentId, topicId);
-  writeJson(res, 200, { ok: true });
 }
 
 // ─── Topic handlers ───────────────────────────────────────────────────────────
@@ -1936,10 +1902,10 @@ async function router(req, res) {
     if (method === "GET"    && p === "/sessions")                 return await handleGetSessions(req, res);
     if (method === "POST"   && p === "/sessions")                 return await handleAppendSession(req, res);
 
-    // Analysis
-    if (method === "GET"    && p === "/analysis/topic")           return await handleGetTopicAnalysis(req, res);
-    if (method === "POST"   && p === "/analysis/topic")           return await handlePostTopicAnalysis(req, res);
-    if (method === "DELETE" && p === "/analysis/topic")           return await handleDeleteTopicAnalysis(req, res);
+    // AI analysis is unavailable throughout the beta, including to older
+    // clients. Do not import the AI module or expose cached reports. Before
+    // reintroducing it, implement account ownership checks and spend limits.
+    if (p === "/analysis/topic") return writeJson(res, 410, { error: "ai_analysis_disabled" });
 
     // Topics
     if (method === "GET"    && p === "/account-topics")           return await handleGetTopics(req, res);
