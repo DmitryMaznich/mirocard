@@ -1101,6 +1101,28 @@ function wideTransform(d, originX) {
   });
 }
 
+// Moves the end of a cubic path up to height targetY by sliding its last control point and end point along the
+// end tangent (no-op when it already ends at or above targetY, or does not rise at its end).
+function liftEndToD(d, targetY) {
+  const tokens = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  let lastC = -1;
+  for (let i = 0; i < tokens.length; i += 1) if (tokens[i] === "C") lastC = i;
+  if (lastC < 0) return d;
+  const n = tokens.map((t) => (t === "M" || t === "C" ? t : parseFloat(t)));
+  const c2 = [n[lastC + 3], n[lastC + 4]];
+  const end = [n[lastC + 5], n[lastC + 6]];
+  if (end[1] <= targetY) return d;
+  const dir = [end[0] - c2[0], end[1] - c2[1]];
+  const len = Math.hypot(dir[0], dir[1]);
+  if (len < 1e-6 || dir[1] >= -1e-6) return d;
+  const t = (end[1] - targetY) / (-dir[1] / len);
+  const shift = [(dir[0] / len) * t, (dir[1] / len) * t];
+  if (Math.hypot(shift[0], shift[1]) > 8) return d;
+  n[lastC + 3] = Number((c2[0] + shift[0]).toFixed(3)); n[lastC + 4] = Number((c2[1] + shift[1]).toFixed(3));
+  n[lastC + 5] = Number((end[0] + shift[0]).toFixed(3)); n[lastC + 6] = Number((end[1] + shift[1]).toFixed(3));
+  return n.join(" ");
+}
+
 function wideGlyphLocal(glyph, scale = 1) {
   // Per-glyph horizontal stretch (wide.json `stretch`, default 1): the captured letters are
   // narrower than the workbook's (measured ~1.5x on п/т), widened with the slant kept at 65deg.
@@ -1110,6 +1132,15 @@ function wideGlyphLocal(glyph, scale = 1) {
   const originX = getPathEndpoints(cubic[0]).start[0];
   // narrow rows: the same glyph scaled about its baseline (slants keep their angle, cell shrinks with it)
   const strokes = cubic.map((d) => ({ d: scale === 1 ? wideTransform(d, originX) : transformPathD(wideTransform(d, originX), { scaleX: scale, scaleY: scale, translateY: WIDE_BASELINE_Y * (1 - scale) }) }));
+  // Letters' exit rises must end ABOVE the dashed middle line (as in the workbook), never on or under it:
+  // the last cubic of the exit stroke is carried further along its own end tangent up to that height.
+  if (/^[\u0400-\u04FF]/.test(glyph.label ?? "")) {
+    const dashY = WIDE_BASELINE_Y - (WIDE_ZONE_UNITS / 2) * scale;
+    const targetY = dashY - 2.2 * scale;
+    let bi = 0, bx = -Infinity;
+    strokes.forEach((st, si) => { const e = getPathEndpoints(st.d).end; if (e[0] > bx) { bx = e[0]; bi = si; } });
+    strokes[bi] = { d: liftEndToD(strokes[bi].d, targetY) };
+  }
   const start = getPathEndpoints(strokes[0].d).start;
   // Exit = end of the stroke that reaches furthest right ("й": the main stroke, not the breve;
   // "к": the second stroke) -- the real continuation point of the pen.

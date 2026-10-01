@@ -320,3 +320,12 @@ describe("captured letters л, м, я", () => {
     for (const row of placed) expect(row.segments.length).toBe(1);
   });
 });
+
+it("letter exit rises end above the dashed middle line", () => {
+  for (const [label, scale] of [["л", 1], ["м", 1], ["и", 1], ["л", 0.5]]) {
+    const seg = layoutWideLinesIntoRows([label], map, undefined, false, scale).placed[0].segments[0];
+    const end = seg.strokes.map((s) => getPathEndpoints(s.d).end).sort((a, b) => b[0] - a[0])[0];
+    const dashY = 64 - 24 * scale;
+    expect(end[1]).toBeLessThan(dashY - 1 * scale);
+  }
+});
