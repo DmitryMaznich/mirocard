@@ -302,7 +302,13 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
                   {!isActive && seg.startPoints?.map((pt, pi) => (
                     <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={START_DOT_COLOR} />
                   ))}
-                  {!isActive && seg.directionArrows?.map((a, ai) => a && (
+                  {!isActive && seg.directionArrows?.map((a, ai) => a && a.long && (
+                    <g key={ai} fill="none" stroke={ARROW_COLOR} strokeWidth={1.1} strokeLinecap="round" strokeLinejoin="round">
+                      <path d={a.d} />
+                      <path d={a.head} />
+                    </g>
+                  ))}
+                  {!isActive && seg.directionArrows?.map((a, ai) => a && !a.long && (
                     <g key={ai} transform={`translate(${a.point[0]} ${a.point[1]}) rotate(${a.angleDeg})`}>
                       <path d={ARROW_PATH} fill={ARROW_COLOR} />
                     </g>

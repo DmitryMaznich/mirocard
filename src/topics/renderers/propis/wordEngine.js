@@ -799,6 +799,79 @@ function isNarrowElement(element) {
 // read as unrelated to the line next to it.
 const ARROW_SIDE_OFFSET = 6;
 
+// Wide-row direction arrow: a long thin arrow with a tail drawn beside the stroke, following its curve, from
+// 12.5% to 87.5% of the stroke's length (~75%) and ending in an open V head.
+const LONG_ARROW_FROM = 0.125;
+const LONG_ARROW_TO = 0.875;
+const LONG_ARROW_HEAD = 5;
+// A stroke is cut at its sharp corners (> LONG_ARROW_CORNER_DEG within a few units), and every piece long enough
+// gets its own arrow -- a zigzag stroke would otherwise get one tangled arrow.
+const LONG_ARROW_CORNER_DEG = 55;
+const LONG_ARROW_MIN_PIECE = 14;
+function longArrowsFor(d) {
+  const pts = samplePath(d, 40);
+  if (pts.length < 2) return [];
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const cuts = [0];
+  const WIN = 3;
+  for (let i = 1; i < pts.length - 1; i++) {
+    let a = i; while (a > 0 && cum[i] - cum[a] < WIN) a--;
+    let b = i; while (b < pts.length - 1 && cum[b] - cum[i] < WIN) b++;
+    if (a === i || b === i) continue;
+    const v1 = [pts[i][0] - pts[a][0], pts[i][1] - pts[a][1]];
+    const v2 = [pts[b][0] - pts[i][0], pts[b][1] - pts[i][1]];
+    const ang = Math.abs((Math.atan2(v1[0] * v2[1] - v1[1] * v2[0], v1[0] * v2[0] + v1[1] * v2[1]) * 180) / Math.PI);
+    if (ang > LONG_ARROW_CORNER_DEG && cum[i] - cum[cuts[cuts.length - 1]] > WIN * 2) cuts.push(i);
+  }
+  cuts.push(pts.length - 1);
+  const out = [];
+  for (let c = 0; c + 1 < cuts.length; c++) {
+    const piece = pts.slice(cuts[c], cuts[c + 1] + 1);
+    const arrow = longArrowOnPolyline(piece);
+    if (arrow) out.push(arrow);
+  }
+  return out;
+}
+function longArrowOnPolyline(pts) {
+  if (pts.length < 2) return null;
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const total = cum[cum.length - 1];
+  if (total < LONG_ARROW_MIN_PIECE) return null;
+  const at = (len) => {
+    let i = 1;
+    while (i < pts.length - 1 && cum[i] < len) i++;
+    const f = (len - cum[i - 1]) / Math.max(1e-9, cum[i] - cum[i - 1]);
+    const q = [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * f, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * f];
+    const l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]) || 1;
+    return { q, t: [(pts[i][0] - pts[i - 1][0]) / l, (pts[i][1] - pts[i - 1][1]) / l] };
+  };
+  const N = 24;
+  const line = [];
+  let last = null;
+  for (let k = 0; k <= N; k++) {
+    const { q, t } = at(total * (LONG_ARROW_FROM + (LONG_ARROW_TO - LONG_ARROW_FROM) * (k / N)));
+    // same side as the old triangle arrows: (sin, -cos) of the travel direction
+    line.push([q[0] + t[1] * ARROW_SIDE_OFFSET, q[1] - t[0] * ARROW_SIDE_OFFSET]);
+    last = t;
+  }
+  const f = (n) => Number(n.toFixed(2));
+  const tip = line[line.length - 1];
+  const back = (sign) => {
+    const a = (sign * 28 * Math.PI) / 180;
+    const c = Math.cos(a), sn = Math.sin(a);
+    const bx = -last[0], by = -last[1];
+    return [tip[0] + (bx * c - by * sn) * LONG_ARROW_HEAD, tip[1] + (bx * sn + by * c) * LONG_ARROW_HEAD];
+  };
+  const h1 = back(1), h2 = back(-1);
+  return {
+    long: true,
+    d: "M " + line.map((p) => `${f(p[0])} ${f(p[1])}`).join(" L "),
+    head: `M ${f(h1[0])} ${f(h1[1])} L ${f(tip[0])} ${f(tip[1])} L ${f(h2[0])} ${f(h2[1])}`,
+  };
+}
+
 // Minimum horizontal gap (native units) between consecutive "spaced" copies of an element,
 // BEFORE rounding up to the grid (see buildRepeatStrokes' own comment) -- not derived from
 // any per-element measurement (real captured ink widths for the spaced family range ~10-31
@@ -1168,13 +1241,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           for (const s of moved) {
             startPoints.push(getPathEndpoints(s.d).start);
             if (!firstGlyph) continue;
-            const t = getMidpointTangent(s.d);
-            if (!t) { directionArrows.push(null); continue; }
-            const rad = (t.angleDeg * Math.PI) / 180;
-            directionArrows.push({
-              point: [t.point[0] + Math.sin(rad) * ARROW_SIDE_OFFSET, t.point[1] - Math.cos(rad) * ARROW_SIDE_OFFSET],
-              angleDeg: t.angleDeg,
-            });
+            directionArrows.push(...longArrowsFor(s.d));
           }
           firstGlyph = false;
         }
