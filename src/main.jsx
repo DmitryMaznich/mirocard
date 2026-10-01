@@ -70,8 +70,15 @@ function bootMainApp() {
 
   if ("serviceWorker" in navigator) {
     let refreshing = false;
+    let hasController = Boolean(navigator.serviceWorker.controller);
 
     navigator.serviceWorker.addEventListener("controllerchange", () => {
+      // The first installation claims this page without changing its app version.
+      // Reloading here loses auth tokens already consumed from the URL.
+      if (!hasController) {
+        hasController = true;
+        return;
+      }
       if (refreshing) return;
       refreshing = true;
       window.location.reload();
