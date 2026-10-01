@@ -367,3 +367,15 @@ it("a letter's exit tail and the rise of a following г are one straight line", 
     }
   }
 });
+
+it("letters touch the band's top and bottom lines (sheet y 16 and 64); р keeps its descender", () => {
+  for (const label of ["и", "й", "ш0", "н", "г", "п", "т", "к", "л", "м", "я"]) {
+    const seg = layoutWideLinesIntoRows([label], map, undefined, false).placed[0].segments[0];
+    const body = seg.strokes.map((s) => samplePath(s.d, 80).map((p) => p[1])).filter((ys) => Math.min(...ys) > 12);
+    expect(Math.min(...body.map((ys) => Math.min(...ys)))).toBeCloseTo(16, 0);
+    expect(Math.max(...body.map((ys) => Math.max(...ys)))).toBeGreaterThan(63.6);
+    expect(Math.max(...body.map((ys) => Math.max(...ys)))).toBeLessThan(64.5);
+  }
+  const r = layoutWideLinesIntoRows(["р"], map, undefined, false).placed[0].segments[0];
+  expect(Math.max(...r.strokes.flatMap((s) => samplePath(s.d, 80).map((p) => p[1])))).toBeGreaterThan(100);
+});

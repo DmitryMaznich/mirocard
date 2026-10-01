@@ -1139,6 +1139,39 @@ function wideTransform(d, originX) {
   });
 }
 
+// Letters' tops and bottoms must sit ON the band's lines (capture frame: top y=10, baseline y=62). The hand-captured
+// outlines stop 0-3 units short, so the whole letter is stretched vertically to fill [10, 62] -- but along the slant
+// (x slides with y, x' = x + (y - y') * tan25), so every point stays on its own grid line and the stems stay on the grid.
+// Only small corrections are made (otherwise the glyph is left alone); descenders (р) and elements are not touched.
+const WIDE_CAPTURE_TOP = 10;
+function mapCubicPoints(d, fn) {
+  const t = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const out = [];
+  for (let i = 0; i < t.length;) {
+    if (t[i] === "M" || t[i] === "C") { out.push(t[i]); i += 1; continue; }
+    const [x, y] = fn(parseFloat(t[i]), parseFloat(t[i + 1]));
+    out.push(Number(x.toFixed(3)), Number(y.toFixed(3)));
+    i += 2;
+  }
+  return out.join(" ");
+}
+function normalizeLetterExtremes(glyph) {
+  const cubic = glyph.strokes.map((s) => toCubicPathD(s.d));
+  if (!/^[\u0400-\u04FF]/.test(glyph.label ?? "") || glyph.descender || glyph.label === "р") return cubic;
+  let top = Infinity, bottom = -Infinity;
+  for (const d of cubic) {
+    const ys = samplePath(d, 60).map((q) => q[1]);
+    const lo = Math.min(...ys), hi = Math.max(...ys);
+    if (lo < 8) continue; // accents / breves above the band do not count
+    top = Math.min(top, lo); bottom = Math.max(bottom, hi);
+  }
+  if (!Number.isFinite(top) || Math.abs(top - WIDE_CAPTURE_TOP) > 4 || Math.abs(bottom - WIDE_CAPTURE_BASELINE) > 6) return cubic;
+  const a = (WIDE_CAPTURE_BASELINE - WIDE_CAPTURE_TOP) / (bottom - top);
+  const b = WIDE_CAPTURE_TOP - top * a;
+  const tan = Math.tan((25 * Math.PI) / 180);
+  return cubic.map((d) => mapCubicPoints(d, (x, y) => { const y2 = a * y + b; return [x + (y - y2) * tan, y2]; }));
+}
+
 // Moves the end of a cubic path up to height targetY by sliding its last control point and end point along the
 // end tangent (no-op when it already ends at or above targetY, or does not rise at its end).
 function liftEndToD(d, targetY) {
@@ -1165,8 +1198,8 @@ function wideGlyphLocal(glyph, scale = 1) {
   // Per-glyph horizontal stretch (wide.json `stretch`, default 1): the captured letters are
   // narrower than the workbook's (measured ~1.5x on п/т), widened with the slant kept at 65deg.
   const stretch = glyph.stretch ?? 1;
-  const cubic = glyph.strokes.map((s) =>
-    stretchKeepSlantPathD(toCubicPathD(s.d), stretch, 90 - 65, WIDE_CAPTURE_BASELINE));
+  const cubic = normalizeLetterExtremes(glyph).map((d) =>
+    stretchKeepSlantPathD(d, stretch, 90 - 65, WIDE_CAPTURE_BASELINE));
   const originX = getPathEndpoints(cubic[0]).start[0];
   // narrow rows: the same glyph scaled about its baseline (slants keep their angle, cell shrinks with it)
   const strokes = cubic.map((d) => ({ d: scale === 1 ? wideTransform(d, originX) : transformPathD(wideTransform(d, originX), { scaleX: scale, scaleY: scale, translateY: WIDE_BASELINE_Y * (1 - scale) }) }));
