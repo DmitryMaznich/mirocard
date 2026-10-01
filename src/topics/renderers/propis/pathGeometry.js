@@ -269,3 +269,17 @@ export function stretchKeepSlantPathD(d, stretch, slantFromVerticalDeg, yBase) {
   }
   return out.join(" ");
 }
+
+// Shifts the END of an M + C path horizontally by dx: the last cubic's end point moves by dx and
+// its second control point moves with it, so the final approach keeps its direction. Used to land
+// a letter's exit tail exactly on the next letter's stroke (a sub-millimetre nudge, never a redraw).
+export function shiftPathEndXD(d, dx) {
+  const tokens = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  let lastC = -1;
+  for (let i = 0; i < tokens.length; i += 1) if (tokens[i] === "C") lastC = i;
+  if (lastC < 0) return d;
+  const n = tokens.map((t) => (t === "M" || t === "C" ? t : parseFloat(t)));
+  n[lastC + 3] = Number((n[lastC + 3] + dx).toFixed(3)); // control point 2, x
+  n[lastC + 5] = Number((n[lastC + 5] + dx).toFixed(3)); // end point, x
+  return n.join(" ");
+}

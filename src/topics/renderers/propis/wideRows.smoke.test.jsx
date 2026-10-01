@@ -10,6 +10,7 @@ import { toCubicPathD, getPathEndpoints } from "./pathGeometry.js";
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).glyphs;
 const map = new Map(wide.map((g) => [g.label, g]));
+for (const g of wide) for (const a of g.aliases ?? []) map.set(a, g);
 
 describe("toCubicPathD", () => {
   it("turns L/Q into M+C only and keeps endpoints", () => {
@@ -33,7 +34,7 @@ describe("layoutWideLinesIntoRows", () => {
   });
   it("joins letters of a word into one row and spaces tokens", () => {
     const { placed } = layoutWideLinesIntoRows(["ини", "и и"], map);
-    expect(placed[0].segments[0].strokes.length).toBeGreaterThan(3);
+    expect(placed[0].segments[0].strokes).toHaveLength(3); // и+н+и, no connector strokes
     expect(placed[1].segments[0].width).toBeGreaterThan(placed[0].segments[0].width * 0.3);
   });
 });
@@ -105,5 +106,30 @@ describe("wideSheet preset", () => {
     const [task] = generateTasks({ type: "read_lines" }, topicRecord, 1, { wideRows: true, wideSheet: true, lines: ["ignored"] });
     expect(task.lines).toHaveLength(32);
     expect(task.lines).not.toContain("ignored");
+  });
+});
+
+describe("letter joins", () => {
+  it("lands each tail exactly on the next letter's stroke, with no connector stroke", async () => {
+    const { samplePath } = await import("./pathGeometry.js");
+    const S = 30;
+    const t = Math.tan((25 * Math.PI) / 180);
+    const snap = (_row, x, y) => Math.round((x + y * t) / S) * S - y * t;
+    const { placed } = layoutWideLinesIntoRows(["ини", "нитки", "книги", "шипит"], map, snap);
+    const glyphStrokes = { и: 1, н: 1, т: 1, к: 2, г: 1, ш: 1, п: 1 };
+    placed.forEach((row, r) => {
+      const strokes = row.segments[0].strokes;
+      const word = ["ини", "нитки", "книги", "шипит"][r];
+      const want = [...word].reduce((n, ch) => n + glyphStrokes[ch], 0);
+      expect(strokes).toHaveLength(want); // nothing but the captured strokes: no connectors
+    });
+    // contact check on "ини": end of stroke 0 sits on stroke 1's path at the same height
+    const [st] = placed[0].segments;
+    for (let i = 0; i + 1 < st.strokes.length; i += 1) {
+      const end = getPathEndpoints(st.strokes[i].d).end;
+      const next = samplePath(st.strokes[i + 1].d, 60);
+      const dist = Math.min(...next.map(([x, y]) => Math.hypot(x - end[0], y - end[1])));
+      expect(dist).toBeLessThan(0.6);
+    }
   });
 });

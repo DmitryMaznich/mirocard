@@ -1,4 +1,4 @@
-import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD, stretchKeepSlantPathD } from "./pathGeometry.js";
+import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD, stretchKeepSlantPathD, shiftPathEndXD } from "./pathGeometry.js";
 import {
   GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
 } from "./propisRuling.js";
@@ -998,6 +998,18 @@ export const WIDE_SCALE = WIDE_ZONE_UNITS / WIDE_CAPTURE_SPAN;
 const WIDE_BASELINE_Y = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
 const WIDE_JOIN_TAN = Math.tan(((90 - 65) * Math.PI) / 180);
 const WIDE_TOKEN_GAP = 36;
+// Largest sideways nudge (native units) allowed when landing a tail on the next letter's stroke.
+const WIDE_MAX_CONTACT_NUDGE = 6;
+// x where a path first reaches height y (linear between samples), or null if it never does.
+function pathXAtY(d, y) {
+  const pts = samplePath(d, 40);
+  for (let i = 1; i < pts.length; i += 1) {
+    const [x0, y0] = pts[i - 1];
+    const [x1, y1] = pts[i];
+    if ((y0 - y) * (y1 - y) <= 0 && y0 !== y1) return x0 + ((x1 - x0) * (y - y0)) / (y1 - y0);
+  }
+  return null;
+}
 const WIDE_LEFT_PAD = 6;
 
 function wideTransform(d, originX) {
@@ -1023,12 +1035,13 @@ function wideGlyphLocal(glyph) {
   // Exit = end of the stroke that reaches furthest right ("й": the main stroke, not the breve;
   // "к": the second stroke) -- the real continuation point of the pen.
   let end = getPathEndpoints(strokes[0].d).end;
-  for (const s of strokes) {
+  let exitStrokeIndex = 0;
+  strokes.forEach((s, si) => {
     const e = getPathEndpoints(s.d).end;
-    if (e[0] > end[0]) end = e;
-  }
+    if (e[0] > end[0]) { end = e; exitStrokeIndex = si; }
+  });
   const xs = strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]));
-  return { strokes, start, end, minX: Math.min(...xs), maxX: Math.max(...xs) };
+  return { strokes, start, end, exitStrokeIndex, minX: Math.min(...xs), maxX: Math.max(...xs) };
 }
 
 // `snapX(rowIndex, x, y)` -> x of the nearest slant-grid line at row-local point (x, y), supplied by
@@ -1063,6 +1076,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     const directionArrows = [];
     let cursorX = null;
     let prevExit = null;
+    let prevExitStroke = -1;
     let firstGlyph = true;
     for (const token of line.split(/\s+/).filter(Boolean)) {
       const labels = wideTokenToLabels(token, glyphsByLabel);
@@ -1077,10 +1091,19 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP - local.minX + local.start[0]);
         const startX = snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
-        if (prevExit) {
-          strokes.push({ d: toCubicPathD(`M ${prevExit[0]} ${prevExit[1]} L ${startX} ${local.start[1]}`) });
-        }
         const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
+        if (prevExit) {
+          // No connector stroke in this method: the previous letter's tail ends ON the next
+          // letter's first stroke, where that stroke crosses the tail's own height. The tail's
+          // end is nudged (by the sub-grid slack left after snapping the start) to land exactly
+          // there, so nothing sticks out past the contact point and the next letter then runs
+          // its own captured path from its start point (it retraces the stem above the contact).
+          const contactX = pathXAtY(moved[0].d, prevExit[1]);
+          if (contactX !== null && Math.abs(contactX - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE) {
+            strokes[prevExitStroke] = { d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
+          }
+        }
+        const firstMovedIndex = strokes.length;
         strokes.push(...moved);
         if (firstGlyph) {
           for (const s of moved) {
@@ -1096,6 +1119,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           firstGlyph = false;
         }
         prevExit = [local.end[0] + dx, local.end[1]];
+        prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         cursorX = local.maxX + dx;
       }
     }
