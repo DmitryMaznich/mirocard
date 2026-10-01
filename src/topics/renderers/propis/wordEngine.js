@@ -1224,7 +1224,15 @@ function wideGlyphLocal(glyph, scale = 1) {
     if (e[0] > end[0]) { end = e; exitStrokeIndex = si; }
   });
   const xs = strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]));
-  return { strokes, start, end, exitStrokeIndex, minX: Math.min(...xs), maxX: Math.max(...xs) };
+  // Glyphs that are entered from the LEFT side of their body (а, с): where the previous tail meets them is the
+  // leftmost crossing of the first stroke with the dashed middle line, not the start point.
+  let contactDx = 0;
+  if (glyph.joinLeft) {
+    const dashY = WIDE_BASELINE_Y - (WIDE_ZONE_UNITS / 2) * scale;
+    const crossings = pathXsAtY(strokes[0].d, dashY);
+    if (crossings.length) contactDx = Math.min(...crossings) - start[0];
+  }
+  return { strokes, start, end, exitStrokeIndex, contactDx, minX: Math.min(...xs), maxX: Math.max(...xs) };
 }
 
 // `snapX(rowIndex, x, y)` -> x of the nearest slant-grid line at row-local point (x, y), supplied by
@@ -1355,7 +1363,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         const local = wideGlyphLocal(glyph, scale);
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = prevExit
-          ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN
+          ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx
           : prevToken
             // next token: a whole number of cells after the previous token's start, along the slant lines
             ? prevToken.startX + (prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN

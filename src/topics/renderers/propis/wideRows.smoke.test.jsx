@@ -395,3 +395,23 @@ it("о exists, fills the band, starts on the slant grid; the ready sheet for о 
   expect(raw).toHaveLength(16);
   for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
 });
+
+it("а, ю, с exist; а and с are entered from their left side (no overlap with the previous letter); page-5 rows all resolve", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 30;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  for (const w of ["а", "ю", "с"]) {
+    const seg = layoutWideLinesIntoRows([w], map, snap, false).placed[0].segments[0];
+    const ys = seg.strokes.flatMap((s) => samplePath(s.d, 80).map((p) => p[1]));
+    expect(Math.min(...ys)).toBeGreaterThan(14);
+    expect(Math.max(...ys)).toBeLessThan(66);
+  }
+  // the next letter's body must not cross back over the previous letter's start: its leftmost x is right of н's start
+  const na = layoutWideLinesIntoRows(["на"], map, snap, false).placed[0].segments[0];
+  const nStart = getPathEndpoints(na.strokes[0].d).start[0];
+  const aMinX = Math.min(...samplePath(na.strokes[1].d, 80).map((p) => p[0]));
+  expect(aMinX).toBeGreaterThan(nStart + 20);
+  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page5;
+  expect(raw).toHaveLength(15);
+  for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
+});
