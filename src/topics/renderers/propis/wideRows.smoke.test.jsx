@@ -217,3 +217,11 @@ describe("per-band slant grid", () => {
     }
   });
 });
+
+it("the second copy of a token on a row is dashed, the first stays solid", () => {
+  const { placed } = layoutWideLinesIntoRows(["и и", "6 8 6 8", "ши"], map);
+  const flags = (r) => placed[r].segments[0].strokes.map((s) => !!s.dashed);
+  expect(flags(0)).toEqual([false, true]);
+  expect(flags(1)).toEqual([false, false, true, true]);
+  expect(flags(2).some(Boolean)).toBe(false);
+});

@@ -1090,10 +1090,14 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     let prevExit = null;
     let prevExitStroke = -1;
     let firstGlyph = true;
+    const tokenSeen = new Map(); // token text -> how many times already placed on this row
     let prevToken = null; // { isElement, isWord, startX, startY, width, repeatCells } of the previous token
     for (const token of line.split(/\s+/).filter(Boolean)) {
       const labels = wideTokenToLabels(token, glyphsByLabel);
       prevExit = null;
+      // the second copy of the same token on a row is a dashed trace-over guide
+      const dashed = tokenSeen.get(token) === 1;
+      tokenSeen.set(token, (tokenSeen.get(token) ?? 0) + 1);
       const isElement = labels.length === 1 && glyphsByLabel.get(labels[0])?.kind === "element";
       // how far the NEXT token starts from this one's start, in sheet cells (wide.json `repeatCells`, measured
       // off the workbook photos); a token without one takes the next whole cell past its ink + ~0.4 cell
@@ -1115,7 +1119,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
             : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP - local.minX + local.start[0]);
         const startX = snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
-        const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }) }));
+        const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }), ...(dashed ? { dashed: true } : {}) }));
         if (prevExit) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
           // letter's first stroke, where that stroke crosses the tail's own height. The tail's
@@ -1124,7 +1128,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           // its own captured path from its start point (it retraces the stem above the contact).
           const contactX = pathXAtY(moved[0].d, prevExit[1]);
           if (contactX !== null && Math.abs(contactX - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE) {
-            strokes[prevExitStroke] = { d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
+            strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
           }
         }
         const firstMovedIndex = strokes.length;

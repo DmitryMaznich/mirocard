@@ -294,7 +294,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
                   {isActive && seg.trajectory ? (
                     <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" />
                   ) : seg.strokes.map((s, ssi) => (
-                    <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} />
                   ))}
                   {!isActive && seg.startPoints?.map((pt, pi) => (
                     <circle key={pi} cx={pt[0]} cy={pt[1]} r={ELEMENT_START_DOT_R} fill={START_DOT_COLOR} />
