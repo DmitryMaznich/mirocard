@@ -165,3 +165,62 @@ it("tap on a wide row plays the pen animation", () => {
   act(() => host.querySelector(".propis-text-word-hit").dispatchEvent(new MouseEvent("click", { bubbles: true })));
   expect(host.querySelectorAll("[data-pr-anim]").length).toBe(5);
 });
+
+describe("auxiliary slant", () => {
+  // last / first straight piece of a path as [from, to]
+  const pieces = (d) => {
+    const n = d.match(/-?\d*\.?\d+/g).map(parseFloat);
+    const pts = [[n[0], n[1]]];
+    for (let i = 2; i + 5 < n.length + 0; i += 6) pts.push([n[i + 4], n[i + 5]]);
+    return pts;
+  };
+  const riseDeg = (a, b) => (Math.atan2(a[1] - b[1], b[0] - a[0]) * 180) / Math.PI;
+  const WIDE_STRETCH = 1.806;
+  const aux = async () => (await import("./wordEngine.js")).wideAuxAngleDeg(WIDE_STRETCH);
+
+  it("maps the workshop's 50deg line to ~41deg on the stretched sheet", async () => {
+    expect(await aux()).toBeGreaterThan(40);
+    expect(await aux()).toBeLessThan(42.5);
+    const { wideAuxAngleDeg } = await import("./wordEngine.js");
+    expect(wideAuxAngleDeg(1)).toBeCloseTo(50, 5);
+  });
+
+  it("every closing rise runs exactly along it", async () => {
+    const want = await aux();
+    for (const word of ["и", "н", "т", "к", "6", "г1", "п1"]) {
+      const { placed } = layoutWideLinesIntoRows([word], map);
+      const seg = placed[0].segments[0];
+      const exit = seg.strokes.reduce((best, s) => (getPathEndpoints(s.d).end[0] > getPathEndpoints(best.d).end[0] ? s : best));
+      const pts = pieces(exit.d);
+      expect(riseDeg(pts[pts.length - 2], pts[pts.length - 1]), word).toBeCloseTo(want, 1);
+    }
+  });
+
+  it("a rise from mid-height (7) continues a hook's tail as one straight line", async () => {
+    const want = await aux();
+    const { placed } = layoutWideLinesIntoRows(["6+7"], map);
+    const { strokes } = placed[0].segments[0];
+    const tail = pieces(strokes[0].d);
+    const head = pieces(strokes[1].d);
+    const E = tail[tail.length - 1];
+    expect(Math.hypot(E[0] - head[0][0], E[1] - head[0][1])).toBeLessThan(0.05);
+    expect(riseDeg(tail[tail.length - 2], E)).toBeCloseTo(want, 1);
+    expect(riseDeg(head[0], head[1])).toBeCloseTo(want, 1);
+  });
+
+  it("a rise from mid-height (г) continues the previous letter's tail as one straight line", async () => {
+    const want = await aux();
+    const { placed } = layoutWideLinesIntoRows(["иг"], map);
+    const { strokes } = placed[0].segments[0];
+    const tail = pieces(strokes[0].d);
+    const head = pieces(strokes[1].d);
+    const E = tail[tail.length - 1];
+    const S = head[0];
+    expect(Math.hypot(E[0] - S[0], E[1] - S[1])).toBeLessThan(0.05); // same point
+    expect(riseDeg(tail[tail.length - 2], E)).toBeCloseTo(want, 1);
+    expect(riseDeg(S, head[1])).toBeCloseTo(want, 1);
+    // collinear: tail start, E, head end
+    const cross = (E[0] - tail[tail.length - 2][0]) * (head[1][1] - E[1]) - (E[1] - tail[tail.length - 2][1]) * (head[1][0] - E[0]);
+    expect(Math.abs(cross)).toBeLessThan(0.5);
+  });
+});
