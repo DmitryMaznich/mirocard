@@ -1118,6 +1118,29 @@ function alignLastPieceD(d, lineX, maxShift) {
   return segs.map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
 }
 
+// A letter that starts HIGH above where the previous tail ends (э, х, ж: start ~1/4 below the top line, tails end just
+// over the dashed middle) is reached by bending the tail itself: its last cubic keeps its own launch, but now ends AT the
+// next letter's start, arriving along that letter's opening direction -- one line of changing angle, no hop up.
+function retargetTailEndD(d, target, dirUnit, pull = 0.4) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  const segs = [];
+  for (let i = 0; i < toks.length;) {
+    const c = toks[i];
+    const n = c === "M" ? 2 : 6;
+    segs.push({ c, v: toks.slice(i + 1, i + 1 + n).map(parseFloat) });
+    i += 1 + n;
+  }
+  if (segs.length < 2 || segs[segs.length - 1].c !== "C") return null;
+  const last = segs[segs.length - 1];
+  const prev = segs[segs.length - 2];
+  const p0 = prev.c === "M" ? prev.v : prev.v.slice(-2);
+  const chord = Math.hypot(target[0] - p0[0], target[1] - p0[1]);
+  if (chord < 8 || target[0] < p0[0] + 2) return null;
+  last.v = [last.v[0], last.v[1], target[0] - dirUnit[0] * chord * pull, target[1] - dirUnit[1] * chord * pull, target[0], target[1]];
+  const f = (x) => Number(x.toFixed(3));
+  return segs.map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
+}
+
 function pathXsAtY(d, y) {
   const pts = samplePath(d, 40);
   const xs = [];
@@ -1372,6 +1395,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         const startX = snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) }));
+        let highJoined = false;
         if (prevExit) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
           // letter's first stroke, where that stroke crosses the tail's own height. The tail's
@@ -1380,15 +1404,25 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           // its own captured path from its start point (it retraces the stem above the contact).
           // candidates: every place the next stroke crosses the tail's height, plus (when the stroke starts lower than
           // that) the slant line of its start point carried on above it; the nearest one to the tail's end wins
-          const candidates = pathXsAtY(moved[0].d, prevExit[1]);
+          const st0h = getPathEndpoints(moved[0].d).start;
+          const riseToStart = prevExit[1] - st0h[1];
+          if (!glyph.joinLeft && riseToStart > 5 * scale && riseToStart < 16 * scale) {
+            const q = samplePath(moved[0].d, 40).find((p) => Math.hypot(p[0] - st0h[0], p[1] - st0h[1]) > 4 * scale);
+            if (q) {
+              const dl = Math.hypot(q[0] - st0h[0], q[1] - st0h[1]);
+              const d3 = retargetTailEndD(strokes[prevExitStroke].d, st0h, [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]);
+              if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
+            }
+          }
+          const candidates = highJoined ? [] : pathXsAtY(moved[0].d, prevExit[1]);
           const st0 = getPathEndpoints(moved[0].d).start;
-          if (st0[1] > prevExit[1]) candidates.push(st0[0] + (st0[1] - prevExit[1]) * WIDE_JOIN_TAN);
+          if (!highJoined && st0[1] > prevExit[1]) candidates.push(st0[0] + (st0[1] - prevExit[1]) * WIDE_JOIN_TAN);
           const contactX = candidates.length ? candidates.reduce((b, c) => (Math.abs(c - prevExit[0]) < Math.abs(b - prevExit[0]) ? c : b)) : null;
           // next stroke opens with a straight rise (г): the tail and that rise must be ONE straight line
           let aligned = false;
           const sampled = samplePath(moved[0].d, 30);
           const rp = sampled.find((q) => Math.hypot(q[0] - st0[0], q[1] - st0[1]) > 6);
-          if (rp && rp[0] > st0[0] && rp[1] < st0[1] && Math.abs(st0[1] - prevExit[1]) < 8 * scale) {
+          if (!highJoined && rp && rp[0] > st0[0] && rp[1] < st0[1] && Math.abs(st0[1] - prevExit[1]) < 8 * scale) {
             const slope = (rp[0] - st0[0]) / (st0[1] - rp[1]); // dx per unit of rise
             const rising = Math.atan2(st0[1] - rp[1], rp[0] - st0[0]) * (180 / Math.PI);
             if (rising > 30 && rising < 70) {

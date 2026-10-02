@@ -448,3 +448,20 @@ it("sheet 6 (э, х, ж) resolves: every row is one segment and the synthesized 
     expect(Math.max(...ys)).toBeLessThan(66);
   }
 });
+
+it("a letter that starts high (э, х, ж) is reached by bending the previous tail: it ends exactly at that start, with no hop", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 30;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  for (const w of ["оэ", "нх", "кж", "аж"]) {
+    const seg = layoutWideLinesIntoRows([w], map, snap, false).placed[0].segments[0];
+    const anim = seg.trajectory.strokes;
+    const t = anim.find((s, i) => i > 0 && s.continuous);
+    expect(t).toBeTruthy();
+    const [a, b] = [getPathEndpoints(t.d).start, getPathEndpoints(t.d).end];
+    expect(Math.hypot(a[0] - b[0], a[1] - b[1])).toBeLessThan(0.6); // the transition from the tail to the next start is zero-length
+  }
+  // letters that start on the top line keep their straight joins
+  const seg = layoutWideLinesIntoRows(["ни"], map, snap, false).placed[0].segments[0];
+  expect(seg.strokes).toHaveLength(2);
+});
