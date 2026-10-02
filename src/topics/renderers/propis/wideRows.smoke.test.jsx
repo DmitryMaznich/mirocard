@@ -556,6 +556,15 @@ it("sheet 14 (capitals И Ш Ц Щ У Ч, narrow rows) resolves, one segment per
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
 
+it("sheet 15 (capitals Г П Т Р Л А, narrow rows) resolves, one segment per row", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 15;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page15;
+  expect(raw).toHaveLength(12);
+  for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
+});
+
 it("row marks: #d adds two copy-start dots to the right, #c removes all dots", () => {
   const { placed } = layoutWideLinesIntoRows(["И#d", "И#c", "И"], map, undefined, false, 0.5);
   const dots = placed.map((r) => r.segments[0].startPoints.length);
