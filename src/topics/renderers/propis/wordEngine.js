@@ -1423,6 +1423,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
         if (pendingTail) {
+          delete pendingTail.always;
           strokes.push(pendingTail);
           prevExit = getPathEndpoints(pendingTail.d).end;
           prevExitStroke = strokes.length - 1;
@@ -1495,7 +1496,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         prevExit = [local.end[0] + dx, local.end[1]];
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         if (local.tail) {
-          pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) };
+          pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), always: !!glyph.tailAlways, ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) };
           prevExit = null;
           prevExitStroke = -1;
         }
@@ -1503,6 +1504,13 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         if (tokenStartX === null) { tokenStartX = startX; tokenStartY = local.start[1]; }
         tokenMinX = Math.min(tokenMinX, local.minX + dx);
         tokenMaxX = Math.max(tokenMaxX, local.maxX + dx);
+      }
+      // tailAlways glyphs (П, Т: the connector is drawn after the bar) keep their tail when nothing follows
+      if (pendingTail?.always) {
+        delete pendingTail.always;
+        strokes.push(pendingTail);
+        prevExit = getPathEndpoints(pendingTail.d).end;
+        prevExitStroke = strokes.length - 1;
       }
       // a free tail (end of a word / before a space) is cut by the nearest slant line as well
       if (prevExit && prevExitStroke >= 0) {
