@@ -1324,8 +1324,13 @@ const WIDE_ROW_MAX_X = 831;
 const WIDE_FLAT_COPY_OPACITY = 0.6;
 
 // A row made of one token repeated ("5 5", "и и") is multiplied across the whole row: as many copies as fit.
+// Row marks (sheet "capitals" page): "И#d" = the letter plus two extra red dots to its right where the next copies start
+// (the methodology's marked row), "И#c" = the clean row (no dots at all).
+const WIDE_MARK_COPY_CELLS = 6;
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1) {
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
+  const marks = lines.map((l) => (/#([dc])$/.exec(l) ?? [])[1] ?? null);
+  lines = lines.map((l) => l.replace(/#[dc]$/, ""));
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       const toks = line.split(/\s+/).filter(Boolean);
@@ -1520,6 +1525,13 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       ? [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [], trajectory: { strokes: animStrokes } }]
       : [];
     return { word: line, rowIndex, x: 0, segments };
+  });
+  placed.forEach((row, i) => {
+    const seg = row.segments[0];
+    if (!seg || !marks[i]) return;
+    if (marks[i] === "c") { seg.startPoints = []; return; }
+    const base = seg.startPoints?.[0];
+    if (base) seg.startPoints = [base, ...[1, 2].map((k) => [base[0] + WIDE_MARK_COPY_CELLS * CELL * k, base[1]])];
   });
   return { placed, rowCount: Math.max(lines.length, 1) };
 }

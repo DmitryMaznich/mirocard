@@ -556,3 +556,12 @@ it("sheet 14 (capitals И Ш Ц Щ У Ч, narrow rows) resolves, one segment per
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
 
+it("row marks: #d adds two copy-start dots to the right, #c removes all dots", () => {
+  const { placed } = layoutWideLinesIntoRows(["И#d", "И#c", "И"], map, undefined, false, 0.5);
+  const dots = placed.map((r) => r.segments[0].startPoints.length);
+  expect(dots).toEqual([3, 0, 1]);
+  const sp = placed[0].segments[0].startPoints;
+  expect(sp[1][0]).toBeGreaterThan(sp[0][0] + 20);
+  expect(sp[2][0] - sp[1][0]).toBeCloseTo(sp[1][0] - sp[0][0], 3);
+});
+
