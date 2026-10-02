@@ -1121,7 +1121,7 @@ function alignLastPieceD(d, lineX, maxShift) {
 // A letter that starts HIGH above where the previous tail ends (э, х, ж: start ~1/4 below the top line, tails end just
 // over the dashed middle) is reached by bending the tail itself: its last cubic keeps its own launch, but now ends AT the
 // next letter's start, arriving along that letter's opening direction -- one line of changing angle, no hop up.
-const EARLY = 0.7;
+const FLAT_RUN = 0.28; // how far the connection first follows the letter's bottom (fraction of the chord)
 function retargetTailEndD(d, target, dirUnit, pull = 0.3) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const segs = [];
@@ -1137,15 +1137,23 @@ function retargetTailEndD(d, target, dirUnit, pull = 0.3) {
   const p0 = prev.c === "M" ? prev.v : prev.v.slice(-2);
   const chord = Math.hypot(target[0] - p0[0], target[1] - p0[1]);
   if (chord < 8 || target[0] < p0[0] + 2) return null;
-  // the bend starts EARLY: the launch direction is mostly turned toward the target right away (EARLY of the way from the
-  // tail's own launch to the straight chord), so the rest of the connection runs nearly straight
+  // The connection leaves the letter at its own launch point and runs a little way along the letter's bottom (almost
+// merging with its path), then leaves it and goes STRAIGHT to the next start.
   const lv = [last.v[0] - p0[0], last.v[1] - p0[1]];
   const ll = Math.hypot(lv[0], lv[1]) || 1;
+  const uL = [lv[0] / ll, lv[1] / ll];
+  const run = chord * FLAT_RUN;
   const cd = [(target[0] - p0[0]) / chord, (target[1] - p0[1]) / chord];
-  const mix = [(lv[0] / ll) * (1 - EARLY) + cd[0] * EARLY, (lv[1] / ll) * (1 - EARLY) + cd[1] * EARLY];
-  const ml = Math.hypot(mix[0], mix[1]) || 1;
-  const c1 = [p0[0] + (mix[0] / ml) * chord * 0.33, p0[1] + (mix[1] / ml) * chord * 0.33];
-  last.v = [c1[0], c1[1], target[0] - dirUnit[0] * chord * pull, target[1] - dirUnit[1] * chord * pull, target[0], target[1]];
+  const dm = [uL[0] * 0.7 + cd[0] * 0.3, uL[1] * 0.7 + cd[1] * 0.3];
+  const dml = Math.hypot(dm[0], dm[1]) || 1;
+  const D = [p0[0] + (dm[0] / dml) * run, p0[1] + (dm[1] / dml) * run];
+  const tl = Math.hypot(target[0] - D[0], target[1] - D[1]) || 1;
+  const uT = [(target[0] - D[0]) / tl, (target[1] - D[1]) / tl];
+  const um = [uL[0] + uT[0], uL[1] + uT[1]];
+  const uml = Math.hypot(um[0], um[1]) || 1;
+  const k = run * 0.35;
+  last.v = [p0[0] + uL[0] * k, p0[1] + uL[1] * k, D[0] - (um[0] / uml) * k, D[1] - (um[1] / uml) * k, D[0], D[1]];
+  segs.push({ c: "C", v: [D[0] + (um[0] / uml) * tl * 0.15, D[1] + (um[1] / uml) * tl * 0.15, target[0] - uT[0] * tl / 3, target[1] - uT[1] * tl / 3, target[0], target[1]] });
   const f = (x) => Number(x.toFixed(3));
   return segs.map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
 }
