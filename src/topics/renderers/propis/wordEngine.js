@@ -1153,7 +1153,10 @@ function retargetTailEndD(d, target, dirUnit, pull = 0.3) {
   const uml = Math.hypot(um[0], um[1]) || 1;
   const k = run * 0.35;
   last.v = [p0[0] + uL[0] * k, p0[1] + uL[1] * k, D[0] - (um[0] / uml) * k, D[1] - (um[1] / uml) * k, D[0], D[1]];
-  segs.push({ c: "C", v: [D[0] + (um[0] / uml) * tl * 0.15, D[1] + (um[1] / uml) * tl * 0.15, target[0] - uT[0] * tl / 3, target[1] - uT[1] * tl / 3, target[0], target[1]] });
+  // a gentle final bend: the last third eases into the opening direction of the next letter instead of arriving dead straight
+  const ua = [uT[0] * 0.5 + dirUnit[0] * 0.5, uT[1] * 0.5 + dirUnit[1] * 0.5];
+  const ual = Math.hypot(ua[0], ua[1]) || 1;
+  segs.push({ c: "C", v: [D[0] + (um[0] / uml) * tl * 0.15, D[1] + (um[1] / uml) * tl * 0.15, target[0] - (ua[0] / ual) * tl * 0.4, target[1] - (ua[1] / ual) * tl * 0.4, target[0], target[1]] });
   const f = (x) => Number(x.toFixed(3));
   return segs.map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
 }
