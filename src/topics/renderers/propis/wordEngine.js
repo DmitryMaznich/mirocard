@@ -1202,7 +1202,7 @@ function mapCubicPoints(d, fn) {
 }
 function normalizeLetterExtremes(glyph) {
   const cubic = glyph.strokes.map((s) => toCubicPathD(s.d));
-  if (!/^[\u0400-\u04FF]/.test(glyph.label ?? "") || glyph.descender || glyph.label === "р") return cubic;
+  if (!/^[\u0400-\u04FF]/.test(glyph.label ?? "") || glyph.descender || glyph.label === "р" || glyph.noNormalize) return cubic;
   let top = Infinity, bottom = -Infinity;
   for (const d of cubic) {
     const ys = samplePath(d, 60).map((q) => q[1]);
