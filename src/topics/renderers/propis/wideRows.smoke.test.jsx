@@ -565,6 +565,13 @@ it("sheet 15 (capitals Г П Т Р Л А, narrow rows) resolves, one segment per
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
 
+it("Г/Р: the stem connector (tailStroke) appears only when a letter follows", () => {
+  const strokeCount = (word) => layoutWideLinesIntoRows([word], map, undefined, true, 0.5).placed[0].segments[0].strokes.length;
+  expect(strokeCount("Г")).toBe(2);
+  expect(strokeCount("Гм")).toBeGreaterThan(strokeCount("Г") + 1);
+  expect(strokeCount("Р")).toBe(2);
+});
+
 it("row marks: #d adds two copy-start dots to the right, #c removes all dots", () => {
   const { placed } = layoutWideLinesIntoRows(["И#d", "И#c", "И"], map, undefined, false, 0.5);
   const dots = placed.map((r) => r.segments[0].startPoints.length);

@@ -1248,6 +1248,10 @@ function wideGlyphLocal(glyph, scale = 1) {
   const originX = getPathEndpoints(cubic[0]).start[0];
   // narrow rows: the same glyph scaled about its baseline (slants keep their angle, cell shrinks with it)
   const strokes = cubic.map((d) => ({ d: scale === 1 ? wideTransform(d, originX) : transformPathD(wideTransform(d, originX), { scaleX: scale, scaleY: scale, translateY: WIDE_BASELINE_Y * (1 - scale) }) }));
+  // `tailStroke`: a connector that exists only when another letter follows in the word (Г, Р: it leaves the
+  // lowest point of the stem). Split off here so the standalone glyph is unchanged; the layout appends it on demand.
+  let tail = null;
+  if (Number.isInteger(glyph.tailStroke) && strokes[glyph.tailStroke]) tail = strokes.splice(glyph.tailStroke, 1)[0];
   // Letters' exit rises must end ABOVE the dashed middle line (as in the workbook), never on or under it:
   // the last cubic of the exit stroke is carried further along its own end tangent up to that height.
   if (/^[\u0400-\u04FF]/.test(glyph.label ?? "") && !glyph.noLiftExit) {
@@ -1280,7 +1284,7 @@ function wideGlyphLocal(glyph, scale = 1) {
     const crossings = pathXsAtY(strokes[0].d, dashY);
     if (crossings.length) contactDx = Math.min(...crossings) - start[0];
   }
-  return { strokes, start, end, exitStrokeIndex, contactDx, minX: Math.min(...xs), maxX: Math.max(...xs) };
+  return { strokes, tail, start, end, exitStrokeIndex, contactDx, minX: Math.min(...xs), maxX: Math.max(...xs) };
 }
 
 // `snapX(rowIndex, x, y)` -> x of the nearest slant-grid line at row-local point (x, y), supplied by
@@ -1414,9 +1418,16 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       let tokenStartX = null;
       let tokenMinX = Infinity;
       let tokenMaxX = -Infinity;
+      let pendingTail = null; // connector of the previous glyph (glyph.tailStroke), drawn only once a letter follows it
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
+        if (pendingTail) {
+          strokes.push(pendingTail);
+          prevExit = getPathEndpoints(pendingTail.d).end;
+          prevExitStroke = strokes.length - 1;
+          pendingTail = null;
+        }
         const local = wideGlyphLocal(glyph, scale);
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = prevExit
@@ -1483,6 +1494,11 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         }
         prevExit = [local.end[0] + dx, local.end[1]];
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
+        if (local.tail) {
+          pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) };
+          prevExit = null;
+          prevExitStroke = -1;
+        }
         cursorX = local.maxX + dx;
         if (tokenStartX === null) { tokenStartX = startX; tokenStartY = local.start[1]; }
         tokenMinX = Math.min(tokenMinX, local.minX + dx);
