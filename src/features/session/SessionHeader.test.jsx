@@ -1,6 +1,6 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import SessionHeader from "./SessionHeader";
 
 describe("SessionHeader", () => {
@@ -34,10 +34,7 @@ describe("SessionHeader", () => {
           incorrectCount={0}
           evaluation="auto"
           onClose={() => {}}
-          tongueLabel="План занятия"
-          isDrawerOpen={false}
-          onSetDrawerOpen={() => {}}
-          hasUndonePlanItems={false}
+          onOpenModeSettings={() => {}}
           answerStatus="task_active"
         />,
       );
@@ -45,5 +42,31 @@ describe("SessionHeader", () => {
 
     expect(container.querySelectorAll(".star-bar-star")).toHaveLength(5);
     expect(container.querySelectorAll(".star-bar-star--lit")).toHaveLength(2);
+  });
+
+  it.each([
+    ["task_active", null],
+    ["answer_correct", "😊"],
+    ["answer_incorrect", "😢"],
+  ])("opens mode settings during %s", (answerStatus, emoji) => {
+    const onOpenModeSettings = vi.fn();
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root.render(
+        <SessionHeader
+          answerStatus={answerStatus}
+          onOpenModeSettings={onOpenModeSettings}
+        />,
+      );
+    });
+
+    const button = container.querySelector(".session-plan-tongue");
+    expect(button.getAttribute("aria-label")).toContain("настройки режима");
+    expect(button.hasAttribute("aria-expanded")).toBe(false);
+    expect(button.querySelector(".session-plan-tongue__emoji")?.textContent ?? null).toBe(emoji);
+    act(() => button.click());
+    expect(onOpenModeSettings).toHaveBeenCalledTimes(1);
   });
 });

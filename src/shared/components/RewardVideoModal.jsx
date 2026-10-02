@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
 import { formatRewardTime } from "@/shared/utils/format";
+import { recordRewardVideoView } from "@/core/rewardVideoViews";
 
 const REWARD_SECONDS = 120;
 
@@ -18,6 +19,14 @@ export default function RewardVideoModal({
 }) {
   const [videoUrl, setVideoUrl] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const viewRecordedRef = useRef(false);
+
+  useEffect(() => {
+    if (!videoUrl || viewRecordedRef.current) return;
+    viewRecordedRef.current = true;
+    const videoId = videoUrl.split("/embed/")[1].split("?")[0];
+    recordRewardVideoView(studentId, videoId).catch((error) => console.error("Не удалось сохранить показ видео", error));
+  }, [videoUrl, studentId]);
 
   // Some callers (e.g. column_addition's "Контрольная работа") pass an
   // inline onDismiss that's a new function on every one of their renders.

@@ -3,6 +3,8 @@ import { useTimer } from "./TimerContext";
 import { getMinuteLabel } from "./timerFormat";
 import { makeYoutubeEmbedUrl } from "@/shared/utils/format";
 import { normalizeRewardVideoIds, pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
+import { useAppStore } from "@/core/store";
+import { recordRewardVideoView } from "@/core/rewardVideoViews";
 
 function analogTimerMinuteToPoint(min, radius) {
   const clockwiseDeg = ((360 - min * 6) % 360 + 360) % 360;
@@ -74,6 +76,14 @@ export default function AnalogTimer({ rewardVideos = [], clockOnly = false }) {
   const lastMinuteRef = useRef(0);
   const rewardIntervalRef = useRef(null);
   const normalizedRewardVideos = normalizeRewardVideoIds(rewardVideos);
+  const studentId = useAppStore((s) => s.activeStudentId);
+  const recordedPlaybackRef = useRef(null);
+
+  useEffect(() => {
+    if (!successVideoUrl || listenState !== "success" || recordedPlaybackRef.current === rewardPlaybackNonce) return;
+    recordedPlaybackRef.current = rewardPlaybackNonce;
+    recordRewardVideoView(studentId, successVideoUrl).catch((error) => console.error("Не удалось сохранить показ видео", error));
+  }, [successVideoUrl, listenState, rewardPlaybackNonce, studentId]);
 
   useEffect(() => { setTimeLeft(secondsLeft); }, [secondsLeft, setTimeLeft]);
   useEffect(() => { setIsRunning(running); }, [running, setIsRunning]);

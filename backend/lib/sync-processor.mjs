@@ -1,6 +1,7 @@
 import {
   upsertStudent, softDeleteStudent, upsertStudentPhoto,
   upsertStudentVideos, upsertStudentAdults,
+  recordStudentVideoViews,
   upsertStudentMyPeopleProfile, upsertStudentMyPeople,
   appendSession,
   upsertAccountTopic, softDeleteAccountTopic,
@@ -11,6 +12,8 @@ import {
 } from "./account-repository.mjs";
 
 const HANDLERS = {
+  "student.video_view.record": (db, accountId, data) =>
+    recordStudentVideoViews(db, accountId, data),
   "student.upsert": (db, accountId, data) =>
     upsertStudent(db, accountId, data),
 

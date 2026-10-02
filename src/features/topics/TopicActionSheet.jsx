@@ -1,7 +1,7 @@
 import { FIRST_PARTY_DECK_IDS } from "@/topics/builtinTopics";
 import { getTopicTitle } from "@/shared/utils/format";
 
-export default function TopicActionSheet({ record, onClose, onInfo, onAnalytics, onDelete }) {
+export default function TopicActionSheet({ record, onClose, onInfo, onDelete }) {
   const isBuiltin    = Boolean(record.meta.builtin);
   const isFirstParty = FIRST_PARTY_DECK_IDS.has(record.meta.id);
   const isDeletable  = !isBuiltin && !isFirstParty;
@@ -20,14 +20,6 @@ export default function TopicActionSheet({ record, onClose, onInfo, onAnalytics,
         >
           О теме
         </button>
-        {!isBuiltin && (
-          <button
-            className="action-sheet__item"
-            onClick={() => { onAnalytics(record); onClose(); }}
-          >
-            Аналитика
-          </button>
-        )}
         {isDeletable && (
           <button
             className="action-sheet__item action-sheet__item--danger"

@@ -1,10 +1,6 @@
-import { useRef, useState } from "react";
 import StarBar from "@/shared/components/StarBar";
 import { useOnlineStatus } from "@/shared/hooks/useOnlineStatus";
 import { getTonguePillState } from "./tonguePillState";
-
-const PULL_THRESHOLD = 14; // px of vertical drag before it commits to opening/closing
-const PULL_MAX = 26;       // px of drag travel used for the live stretch, then it's clamped
 
 // A classic dot+arcs wifi glyph, not an emoji — renders identically across
 // platforms/fonts, which matters since this is the one status cue still
@@ -18,62 +14,6 @@ function NetworkStatusIcon({ online }) {
       {!online && <path d="M2.5 2.5l15 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />}
     </svg>
   );
-}
-
-function useTonguePull(isDrawerOpen, onSetDrawerOpen) {
-  const [pullProgress, setPullProgress] = useState(0);
-  const dragRef = useRef(null); // { startY, pointerId }
-  const suppressClickRef = useRef(false);
-
-  function directionalDelta(clientY, startY) {
-    const deltaY = clientY - startY;
-    // Closed: dragging DOWN reveals the panel. Open: dragging UP retracts it.
-    return isDrawerOpen ? -deltaY : deltaY;
-  }
-
-  function handlePointerDown(e) {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    dragRef.current = { startY: e.clientY, pointerId: e.pointerId };
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-  }
-
-  function handlePointerMove(e) {
-    const drag = dragRef.current;
-    if (!drag || drag.pointerId !== e.pointerId) return;
-    const directional = directionalDelta(e.clientY, drag.startY);
-    if (!isDrawerOpen) {
-      setPullProgress(Math.max(0, Math.min(PULL_MAX, directional)) / PULL_MAX);
-    }
-  }
-
-  function endDrag(e) {
-    const drag = dragRef.current;
-    dragRef.current = null;
-    setPullProgress(0);
-    if (!drag) return;
-    const directional = directionalDelta(e.clientY, drag.startY);
-    if (directional > PULL_THRESHOLD) {
-      suppressClickRef.current = true; // the drag already decided it — the trailing click is a no-op
-      onSetDrawerOpen(!isDrawerOpen);
-    }
-  }
-
-  function handleClick() {
-    if (suppressClickRef.current) {
-      suppressClickRef.current = false;
-      return;
-    }
-    onSetDrawerOpen(!isDrawerOpen);
-  }
-
-  return {
-    pullProgress,
-    onPointerDown: handlePointerDown,
-    onPointerMove: handlePointerMove,
-    onPointerUp: endDrag,
-    onPointerCancel: endDrag,
-    onClick: handleClick,
-  };
 }
 
 export default function SessionHeader({
@@ -90,20 +30,16 @@ export default function SessionHeader({
   incorrectCount,
   evaluation,
   onClose,
-  tongueLabel,
-  isDrawerOpen,
-  onSetDrawerOpen,
-  hasUndonePlanItems,
+  onOpenModeSettings,
   answerStatus,
 }) {
-  const tonguePull = useTonguePull(isDrawerOpen, onSetDrawerOpen);
   const isOnline = useOnlineStatus();
 
-  const pillState = getTonguePillState({ isDrawerOpen, answerStatus, hasUndonePlanItems });
+  const pillState = getTonguePillState({ answerStatus });
   const pillAriaLabel =
-    pillState.mode === "correct" ? "Правильно, открыть меню"
-    : pillState.mode === "incorrect" ? "Неправильно, открыть меню"
-    : tongueLabel;
+    pillState.mode === "correct" ? "Правильно, открыть настройки режима"
+    : pillState.mode === "incorrect" ? "Неправильно, открыть настройки режима"
+    : "Открыть настройки режима";
 
   const rightCluster = (
     <div className="session-topbar-right">
@@ -154,15 +90,9 @@ export default function SessionHeader({
       )}
       <button
         type="button"
-        className={`session-plan-tongue${pillState.mode === "open" ? " session-plan-tongue--open" : ""}${pillState.mode === "correct" ? " session-plan-tongue--correct" : ""}${pillState.mode === "incorrect" ? " session-plan-tongue--incorrect" : ""}${pillState.pulse ? " session-plan-tongue--pulse" : ""}`}
-        style={{ "--tongue-pull": tonguePull.pullProgress }}
-        onPointerDown={tonguePull.onPointerDown}
-        onPointerMove={tonguePull.onPointerMove}
-        onPointerUp={tonguePull.onPointerUp}
-        onPointerCancel={tonguePull.onPointerCancel}
-        onClick={tonguePull.onClick}
+        className={`session-plan-tongue${pillState.mode === "correct" ? " session-plan-tongue--correct" : ""}${pillState.mode === "incorrect" ? " session-plan-tongue--incorrect" : ""}`}
+        onClick={onOpenModeSettings}
         aria-label={pillAriaLabel}
-        aria-expanded={isDrawerOpen}
       >
         {pillState.mode === "correct" || pillState.mode === "incorrect" ? (
           <span className="session-plan-tongue__emoji" aria-hidden="true">
