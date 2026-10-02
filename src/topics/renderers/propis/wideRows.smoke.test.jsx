@@ -529,3 +529,12 @@ it("sheet 11 (д, з, narrow rows) resolves, one segment per row", () => {
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
 });
 
+it("sheet 12 (в, narrow rows) resolves, one segment per row", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 15;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page12;
+  expect(raw).toHaveLength(8);
+  for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
+});
+
