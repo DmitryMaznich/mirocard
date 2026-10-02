@@ -1406,7 +1406,8 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         if (prevExit) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
         if (tokenStartX === null) {
           // every token's first glyph gets its red start dot(s); only the very first one also gets direction arrows
-          for (const s of moved) {
+          for (const [si, s] of moved.entries()) {
+            if (glyph.noDotStrokes?.includes(si)) continue; // pen-lifts that need no "start here" mark (э's bar and exit tail)
             startPoints.push(getPathEndpoints(s.d).start);
             if (dashed || isWordToken) continue; // arrows: first copy of each element / letter only, never on words
             directionArrows.push(...longArrowsFor(s.d, scale, glyph.arrowSpan ?? null));
