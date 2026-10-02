@@ -465,3 +465,21 @@ it("a letter that starts high (э, х, ж) is reached by bending the previous ta
   const seg = layoutWideLinesIntoRows(["ни"], map, snap, false).placed[0].segments[0];
   expect(seg.strokes).toHaveLength(2);
 });
+
+it("sheet 7 (ч, ь, ы, ъ) resolves: one segment per row, ы is ь + a stem", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 30;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page7;
+  expect(raw).toHaveLength(15);
+  for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
+  const seg = layoutWideLinesIntoRows(["ы"], map, snap, false).placed[0].segments[0];
+  expect(seg.strokes).toHaveLength(2);
+  for (const w of ["ч", "ь", "ъ"]) {
+    const s1 = layoutWideLinesIntoRows([w], map, snap, false).placed[0].segments[0];
+    const ys = s1.strokes.flatMap((s) => samplePath(s.d, 80).map((p) => p[1]));
+    expect(Math.min(...ys)).toBeGreaterThan(14);
+    expect(Math.max(...ys)).toBeLessThan(66);
+  }
+});
+
