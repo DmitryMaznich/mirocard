@@ -3506,3 +3506,11 @@ the arc 0.32→0.10 / 0.71→0.13, the 153° kink at wobble 1.0 gone; spline mod
 line through the arc band is unchanged. Known behaviour: a straight stroke that hugs an arc's steep side
 within `range` for ≥35% of the arc length (e.g. a 45° diagonal along the ∩'s right side, ~6 units) DOES
 snap onto the arc; lower the range if that's unwanted. Tool-only change.
+
+**Extra center guide in the lower wide band, 2026-10-02.** User noticed the red dashed "6" is not
+centered in the lower wide band (lines 5–7) while "2" is in the upper one. It is deliberate
+(`BOT_MID = 110`, `NATIVE_BOT_MID = 110` in `propisRuling.js`, pinned by its test; real descenders end
+near y≈110, not at the geometric center 114), and line 6 is shared with the app (`GUIDE_LINES`), so it
+was NOT moved. Added a thin, unnumbered, lighter red dashed line at (L3+L4)/2 = 114 to the workshop
+ruling (`.rule-red-h-center`, `drawRuling()`), a visual aid only: not a snap target, not in `RULING_YS`,
+not part of the 1–7 scheme. Whether line 6 itself should move to 114 is left open. Tool-only change.

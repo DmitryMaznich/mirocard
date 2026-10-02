@@ -200,6 +200,7 @@
      (NARROW_UPPER_QUARTER/NARROW_LOWER_QUARTER), a different kind of guide than the
      ascender/descender mid-band lines even though both are dashed horizontals. */
   .rule-arc { fill: none; stroke: rgba(46, 163, 89, 0.75); stroke-width: 0.3; stroke-dasharray: 1.4 1.1; stroke-linecap: round; }
+  .rule-red-h-center { stroke: var(--nb-red); stroke-width: 0.25; stroke-dasharray: 1.2 1.6; opacity: 0.7; }
   .rule-green-h { stroke: rgba(46, 163, 89, 0.6); stroke-width: 0.4; stroke-dasharray: 2 1.4; }
   .rule-label { fill: var(--ink-soft); font-size: 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-weight: 700; }
   .guide-text { fill: rgba(20, 30, 50, 0.12); }
@@ -952,6 +953,11 @@
     parts.push('<line class="rule-red-h" x1="0" y1="' + TOP_MID + '" x2="' + CANVAS_W + '" y2="' + TOP_MID + '"/>');
     parts.push('<line class="rule-red-h" x1="0" y1="' + BOT_MID + '" x2="' + CANVAS_W + '" y2="' + BOT_MID + '"/>');
     parts.push('<line class="rule-red-h" x1="0" y1="' + NARROW_MID + '" x2="' + CANVAS_W + '" y2="' + NARROW_MID + '"/>');
+    // Visual aid only (2026-10-02): the geometric center of the lower wide band (L3..L4 = 114).
+    // BOT_MID (110, line 6) is deliberately NOT the center -- see its comment above, and
+    // propisRuling.js's NATIVE_BOT_MID -- so this extra thin, unnumbered line sits next to it
+    // for the artist to judge symmetry by eye. NOT a snap target and NOT part of the 1-7 scheme.
+    parts.push('<line class="rule-red-h-center" x1="0" y1="' + ((L3 + L4) / 2) + '" x2="' + CANVAS_W + '" y2="' + ((L3 + L4) / 2) + '"/>');
     // green height guides — the letter-start reference discovered via the (now removed)
     // vertical/slant intersections, kept in a distinct color from the red mid-band lines
     parts.push('<line class="rule-green-h" x1="0" y1="' + NARROW_UPPER_QUARTER + '" x2="' + CANVAS_W + '" y2="' + NARROW_UPPER_QUARTER + '"/>');
