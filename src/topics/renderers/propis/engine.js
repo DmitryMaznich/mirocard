@@ -139,6 +139,7 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
       : sessionParams?.wideRows && sessionParams?.wideSheet3 ? cards?.wideSheets?.page4
       : sessionParams?.wideRows && sessionParams?.wideSheet2 ? cards?.wideSheets?.page3
       : sessionParams?.wideRows && sessionParams?.wideSheet ? cards?.wideSheets?.part1
+      : narrowRows && sessionParams?.narrowSheet4 ? cards?.wideSheets?.page10
       : narrowRows && sessionParams?.narrowSheet3 ? cards?.wideSheets?.page9
       : narrowRows && sessionParams?.narrowSheet2 ? cards?.wideSheets?.page8
       : narrowRows && sessionParams?.narrowSheet ? cards?.wideSheets?.part2 : null;

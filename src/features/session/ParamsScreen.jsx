@@ -2359,7 +2359,7 @@ export default function ParamsScreen() {
   const hasTextListParam = Object.values(mode?.params ?? {}).some((d) => d.type === "text_list");
   const textListEmpty = hasTextListParam && (params.texts ?? []).length === 0;
   const hasLineListParam = Object.values(mode?.params ?? {}).some((d) => d.type === "line_list");
-  const lineListEmpty = hasLineListParam && !(params.wideRows && (params.wideSheet || params.wideSheet2 || params.wideSheet3 || params.wideSheet4 || params.wideSheet5 || params.wideSheet6)) && !(params.narrowRows && (params.narrowSheet || params.narrowSheet2 || params.narrowSheet3)) && !(params.lines ?? []).some((l) => l.trim());
+  const lineListEmpty = hasLineListParam && !(params.wideRows && (params.wideSheet || params.wideSheet2 || params.wideSheet3 || params.wideSheet4 || params.wideSheet5 || params.wideSheet6)) && !(params.narrowRows && (params.narrowSheet || params.narrowSheet2 || params.narrowSheet3 || params.narrowSheet4)) && !(params.lines ?? []).some((l) => l.trim());
   const poolEmpty = isReading && activeText?.kind === "sentence_pool" && Array.isArray(params.selectedLineIds) && params.selectedLineIds.length === 0;
   const storyQuizValidation = mode?.type === "story_quiz"
     ? validateStoryQuizText(

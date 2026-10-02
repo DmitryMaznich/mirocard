@@ -508,3 +508,15 @@ it("sheet 9 (ф, narrow rows) resolves: one segment per row, ф reaches the desc
   expect(Math.max(...ys)).toBeGreaterThan(80);   // the stem goes down to the descender dashed line
 });
 
+it("sheet 10 (у, narrow rows) resolves and у descends below the baseline", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 15;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page10;
+  expect(raw).toHaveLength(7);
+  for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
+  const seg = layoutWideLinesIntoRows(["у"], map, snap, false, 0.5).placed[0].segments[0];
+  const ys = seg.strokes.flatMap((s) => samplePath(s.d, 80).map((p) => p[1]));
+  expect(Math.max(...ys)).toBeGreaterThan(70);
+});
+
