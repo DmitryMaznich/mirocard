@@ -1310,6 +1310,9 @@ function wideTokenToLabelsRaw(token, glyphsByLabel) {
 
 // Right edge (row-local units) the "multiplied" copies of a repeated token may reach: page 891 wide,
 // 30 units (5 mm) of inset on each side.
+// Direction arrows on the first copy of a letter/element are switched off for now (2026-10-02, by the methodologist's
+// decision: the start dots are enough); flip to bring them back.
+const WIDE_DIRECTION_ARROWS = false;
 const WIDE_ROW_MAX_X = 831;
 // Every page: copies after the first are dashed at one constant intensity, and single words / alternating
 // patterns are multiplied across the row.
@@ -1363,7 +1366,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           startPoints.push(getPathEndpoints(d).start);
         }
         if (strokes.length) {
-          const directionArrows = longArrowsFor(strokes[0].d, scale);
+          const directionArrows = WIDE_DIRECTION_ARROWS ? longArrowsFor(strokes[0].d, scale) : [];
           const animStrokes = strokes.map((st, i) => (i ? { ...st, continuous: true } : st));
           const width = Math.max(...strokes.flatMap((st) => samplePath(st.d).map((q) => q[0])));
           return { word: line, rowIndex, x: 0, segments: [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [], trajectory: { strokes: animStrokes } }] };
@@ -1463,7 +1466,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           for (const [si, s] of moved.entries()) {
             if (glyph.noDotStrokes?.includes(si)) continue; // pen-lifts that need no "start here" mark (э's bar and exit tail)
             startPoints.push(getPathEndpoints(s.d).start);
-            if (dashed || isWordToken) continue; // arrows: first copy of each element / letter only, never on words
+            if (!WIDE_DIRECTION_ARROWS || dashed || isWordToken) continue; // arrows: first copy of each element / letter only, never on words
             directionArrows.push(...longArrowsFor(s.d, scale, glyph.arrowSpan ?? null));
           }
           firstGlyph = false;

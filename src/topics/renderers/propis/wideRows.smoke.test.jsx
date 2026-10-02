@@ -248,12 +248,10 @@ it("copies after the first are all dashed at one constant intensity, single word
   expect(placed[2].segments[0].strokes).toHaveLength(1);
 });
 
-it("direction arrows only on the first copy of an element or letter, none on words", () => {
-  const { placed } = layoutWideLinesIntoRows(["и и", "ш ш", "ини", "инш"], map, undefined, false);
-  expect(placed[0].segments[0].directionArrows.length).toBeGreaterThan(0);
-  expect(placed[1].segments[0].directionArrows.length).toBeGreaterThan(0);
-  expect(placed[2].segments[0].directionArrows).toHaveLength(0);
-  expect(placed[3].segments[0].directionArrows).toHaveLength(0);
+it("direction arrows are switched off on every wide row (start dots only)", () => {
+  const { placed } = layoutWideLinesIntoRows(["и и", "ш ш", "ини", "инш", "5 5"], map, undefined, false);
+  for (const row of placed) expect(row.segments[0].directionArrows).toHaveLength(0);
+  for (const row of placed) expect(row.segments[0].startPoints.length).toBeGreaterThan(0);
 });
 
 it("page-1 fence rows are copied end to start to the row's end with no gaps", () => {
