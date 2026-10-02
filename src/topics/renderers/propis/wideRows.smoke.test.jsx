@@ -359,7 +359,9 @@ it("a letter's exit tail and the rise of a following г are one straight line", 
     const rp = np.find((q) => Math.hypot(q[0] - sx, q[1] - sy) > 12);
     const ux = rp[0] - sx, uy = rp[1] - sy, ul = Math.hypot(ux, uy);
     const all = samplePath(tail.d, 80);
-    const tp = all.slice(-Math.floor(all.length * 0.08)).filter((q) => q[1] < 54);
+    const te = getPathEndpoints(tail.d).end;
+    // the last ~12 units of the tail (by distance, so a long multi-segment stroke does not drag its whole body in)
+    const tp = all.filter((q) => Math.hypot(q[0] - te[0], q[1] - te[1]) < 12 && q[1] < 54);
     expect(tp.length).toBeGreaterThan(3);
     for (const q of tp) {
       const dist = Math.abs((q[0] - sx) * (uy / ul) - (q[1] - sy) * (ux / ul));
