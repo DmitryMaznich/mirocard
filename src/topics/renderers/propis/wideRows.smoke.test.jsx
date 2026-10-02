@@ -495,3 +495,16 @@ it("sheet 8 (б, narrow rows) resolves: one segment per row, б reaches the asce
   expect(Math.min(...ys)).toBeLessThan(18);   // up at the ascender dashed line (one band over the band top)
 });
 
+it("sheet 9 (ф, narrow rows) resolves: one segment per row, ф reaches the descender line", () => {
+  const T = Math.tan((25 * Math.PI) / 180);
+  const S = 15;
+  const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
+  const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page9;
+  expect(raw).toHaveLength(8);
+  for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
+  const seg = layoutWideLinesIntoRows(["ф"], map, snap, false, 0.5).placed[0].segments[0];
+  expect(seg.strokes).toHaveLength(3);
+  const ys = seg.strokes.flatMap((s) => samplePath(s.d, 80).map((p) => p[1]));
+  expect(Math.max(...ys)).toBeGreaterThan(80);   // the stem goes down to the descender dashed line
+});
+
