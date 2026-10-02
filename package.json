@@ -1,7 +1,7 @@
 {
   "name": "mirocard2",
   "private": true,
-  "version": "1.0.2374",
+  "version": "1.0.2375",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"
