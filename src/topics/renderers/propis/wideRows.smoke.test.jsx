@@ -439,9 +439,9 @@ it("sheet 6 (э, х, ж) resolves: every row is one segment and the synthesized 
   const S = 30;
   const snap = (_r, x, y) => Math.round((x + y * T) / S) * S - y * T;
   const raw = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8")).sheets.page6;
-  expect(raw).toHaveLength(9);
+  expect(raw).toHaveLength(15);
   for (const row of layoutWideLinesIntoRows(raw, map, snap).placed) expect(row.segments.length).toBe(1);
-  for (const w of ["э", "х", "ж"]) {
+  for (const w of ["э", "х", "ж", "е"]) {
     const seg = layoutWideLinesIntoRows([w], map, snap, false).placed[0].segments[0];
     const ys = seg.strokes.flatMap((s) => samplePath(s.d, 80).map((p) => p[1]));
     expect(Math.min(...ys)).toBeGreaterThan(14);
