@@ -1255,6 +1255,7 @@ function wideGlyphLocal(glyph, scale = 1) {
     const targetY = dashY - 2.2 * scale;
     let bi = 0, bx = -Infinity;
     strokes.forEach((st, si) => { const e = getPathEndpoints(st.d).end; if (e[0] > bx) { bx = e[0]; bi = si; } });
+    if (Number.isInteger(glyph.exitStroke) && strokes[glyph.exitStroke]) bi = glyph.exitStroke; // б: the exit is its own stroke, not the flag
     strokes[bi] = { d: liftEndToD(strokes[bi].d, targetY) };
   }
   const start = getPathEndpoints(strokes[0].d).start;
@@ -1266,6 +1267,10 @@ function wideGlyphLocal(glyph, scale = 1) {
     const e = getPathEndpoints(s.d).end;
     if (e[0] > end[0]) { end = e; exitStrokeIndex = si; }
   });
+  if (Number.isInteger(glyph.exitStroke) && strokes[glyph.exitStroke]) {
+    exitStrokeIndex = glyph.exitStroke;
+    end = getPathEndpoints(strokes[exitStrokeIndex].d).end;
+  }
   const xs = strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]));
   // Glyphs that are entered from the LEFT side of their body (а, с): where the previous tail meets them is the
   // leftmost crossing of the first stroke with the dashed middle line, not the start point.
