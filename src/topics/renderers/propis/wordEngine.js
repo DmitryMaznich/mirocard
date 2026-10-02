@@ -1250,7 +1250,7 @@ function wideGlyphLocal(glyph, scale = 1) {
   const strokes = cubic.map((d) => ({ d: scale === 1 ? wideTransform(d, originX) : transformPathD(wideTransform(d, originX), { scaleX: scale, scaleY: scale, translateY: WIDE_BASELINE_Y * (1 - scale) }) }));
   // Letters' exit rises must end ABOVE the dashed middle line (as in the workbook), never on or under it:
   // the last cubic of the exit stroke is carried further along its own end tangent up to that height.
-  if (/^[\u0400-\u04FF]/.test(glyph.label ?? "")) {
+  if (/^[\u0400-\u04FF]/.test(glyph.label ?? "") && !glyph.noLiftExit) {
     const dashY = WIDE_BASELINE_Y - (WIDE_ZONE_UNITS / 2) * scale;
     const targetY = dashY - 2.2 * scale;
     let bi = 0, bx = -Infinity;
