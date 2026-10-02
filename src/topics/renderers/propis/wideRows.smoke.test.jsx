@@ -503,7 +503,7 @@ it("sheet 9 (ф, narrow rows) resolves: one segment per row, ф reaches the desc
   expect(raw).toHaveLength(8);
   for (const row of layoutWideLinesIntoRows(raw, map, snap, true, 0.5).placed) expect(row.segments.length).toBe(1);
   const seg = layoutWideLinesIntoRows(["ф"], map, snap, false, 0.5).placed[0].segments[0];
-  expect(seg.strokes).toHaveLength(3);
+  expect(seg.strokes).toHaveLength(1);   // one stroke: left oval, stem down and up, mirrored right oval, exit
   const ys = seg.strokes.flatMap((s) => samplePath(s.d, 80).map((p) => p[1]));
   expect(Math.max(...ys)).toBeGreaterThan(80);   // the stem goes down to the descender dashed line
 });
