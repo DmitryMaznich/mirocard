@@ -1121,7 +1121,7 @@ function alignLastPieceD(d, lineX, maxShift) {
 // A letter that starts HIGH above where the previous tail ends (э, х, ж: start ~1/4 below the top line, tails end just
 // over the dashed middle) is reached by bending the tail itself: its last cubic keeps its own launch, but now ends AT the
 // next letter's start, arriving along that letter's opening direction -- one line of changing angle, no hop up.
-const FLAT_RUN = 0.28; // how far the connection first follows the letter's bottom (fraction of the chord)
+const FLAT_RUN = 0.14; // how far the connection first follows the letter's bottom (fraction of the chord)
 function retargetTailEndD(d, target, dirUnit, pull = 0.3) {
   const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const segs = [];
