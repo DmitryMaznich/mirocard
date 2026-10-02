@@ -264,7 +264,7 @@
     },
     {
       "id": "propis",
-      "version": "1.32.106",
+      "version": "1.32.107",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
@@ -273,7 +273,7 @@
         "ru": "Письменные буквы от узнавания до письма: узнай букву, строчная и заглавная, пишем и переписываем текст в тетрадь, тетрадный лист, диктант, печатные прописи.",
         "en": "Cursive letters from recognition to writing: recognize the letter, upper and lower case, write and copy text into a notebook, notebook page, dictation, printable copybooks."
       },
-      "url": "./decks/propis_v1.32.106.zip",
+      "url": "./decks/propis_v1.32.107.zip",
       "status": "release",
       "access": "paid"
     },
