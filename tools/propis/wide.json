@@ -826,7 +826,13 @@
       "ascender": true,
       "exitStroke": 1,
       "sourceLabel": "Л (левая стойка П: от закругления прямо к вершине на следующей наклонной + правая стойка П)",
-      "noLiftExit": true
+      "noLiftExit": true,
+      "noDotStrokes": [
+        1
+      ],
+      "continuousStrokes": [
+        1
+      ]
     },
     {
       "label": "А",
@@ -848,7 +854,15 @@
       "exitStroke": 2,
       "noLiftExit": true,
       "sourceLabel": "А (левая часть Л + прямая правая стойка + петля из карточки А)",
-      "noNormalize": true
+      "noNormalize": true,
+      "noDotStrokes": [
+        1,
+        2
+      ],
+      "continuousStrokes": [
+        1,
+        2
+      ]
     }
   ],
   "sheets": {

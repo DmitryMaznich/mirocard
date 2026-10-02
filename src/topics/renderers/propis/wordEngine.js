@@ -1439,7 +1439,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
             : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
         const startX = snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
-                const moved = local.strokes.map((s) => ({ d: transformPathD(s.d, { translateX: dx }), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) }));
+                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) }));
         let highJoined = false;
         if (prevExit) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
