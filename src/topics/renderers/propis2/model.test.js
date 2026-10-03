@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -121,5 +121,37 @@ describe("propis2 model", () => {
     const narrow = setToLines(newSet("n", { ruling: "narrow", pageIds: [a.id] }), byId, map);
     const wide = setToLines(newSet("w", { ruling: "wide", pageIds: [a.id] }), byId, map);
     expect(narrow).toEqual(wide); // a text row is the same line; only the wrapping (passage) would differ
+  });
+
+  it("drag and drop: a tile on a filled row replaces it, keeps its mark; below the page it fills the gap with blank rows", () => {
+    const page = newPage("Д", { rows: [newRow({ text: "Н", mark: "d" }), newRow({ text: "Ю" })] });
+    const a = dropTile(page, map, 0, { kind: "text", text: "К" });
+    expect(pageToLines(a.page, map)).toEqual(["К#d", "Ю"]);
+    expect(a.page.rows[0].id).toBe(page.rows[0].id);
+    expect(a.rowId).toBe(page.rows[0].id);
+    const b = dropTile(page, map, 4, { kind: "element", text: "г1" });
+    expect(pageToLines(b.page, map)).toEqual(["Н#d", "Ю", "", "", "г1"]);
+    expect(b.page.rows.find((r) => r.id === b.rowId).kind).toBe("element");
+  });
+
+  it("drag and drop onto an empty page and onto rows the engine added (writeAfter)", () => {
+    const empty = newPage("П");
+    const first = dropTile(empty, map, 0, { kind: "text", text: "а" });
+    expect(first.page.rows).toHaveLength(1);
+    expect(pageToLines(first.page, map)).toEqual(["а"]);
+
+    const wa = { ...newPage("W", { rows: [newRow({ text: "а" }), newRow({ text: "б" })] }), writeAfter: true };
+    expect(lineOwners(wa, map)).toEqual([0, null, 1, null]);
+    const mid = dropTile(wa, map, 1, { kind: "text", text: "в" }); // the auto blank under "а": a new row goes there
+    expect(pageToLines(mid.page, map)).toEqual(["а", "", "в", "", "б", ""]);
+    const end = dropTile(wa, map, 9, { kind: "text", text: "г" }); // below: just appended, no gap filling
+    expect(pageToLines(end.page, map).filter(Boolean)).toEqual(["а", "б", "г"]);
+  });
+
+  it("tap on a tile appends below the last row and drops rows without text", () => {
+    const page = newPage("Т", { rows: [newRow({ text: "а" }), newRow({ text: "" })] });
+    const r = appendTile(page, map, { kind: "text", text: "б" });
+    expect(r.page.rows.map((x) => x.text)).toEqual(["а", "б"]);
+    expect(pageToLines(r.page, map)).toEqual(["а", "б"]);
   });
 });

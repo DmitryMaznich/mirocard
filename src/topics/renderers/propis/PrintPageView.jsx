@@ -144,6 +144,17 @@ const WIDE_ROWS_PER_PAGE = PRINT_ROWS_PER_PAGE - 1;
 // the narrow strip below stays blank, as in the original workbook.
 const wideBandTop = (row) => rowOriginY(row) + NATIVE_L3 - TEXT_ROW_PITCH;
 const wideBandHeight = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET;
+
+// «Прописи 2» editor: which content row (0-based, on one page) a point at svg-y `y` belongs to; -1 outside
+// the ruled rows. A row owns the strip from its previous baseline down to its own baseline (the same
+// for the narrow and wide rulings: both stand on the same 72-unit pitch).
+export function rowAtSvgY(y) {
+  const top = rowOriginY(1) + NATIVE_L3 - TEXT_ROW_PITCH;
+  const r = Math.floor((y - top) / TEXT_ROW_PITCH);
+  return r >= 0 && r < WIDE_ROWS_PER_PAGE ? r : -1;
+}
+const overlayRect = (r) => ({ y: rowOriginY(r + 1) + NATIVE_L3 - TEXT_ROW_PITCH, h: TEXT_ROW_PITCH });
+const OVERLAY_FILL = { select: "rgba(37,99,235,.10)", drop: "rgba(22,163,74,.22)", warn: "rgba(220,38,38,.12)" };
 const DIAGONAL_TAN = Math.tan(((90 - ANGLE_FROM_HORIZONTAL_DEG) * Math.PI) / 180);
 
 // Where line n of the dense diagonal grid (see SHEET_DIAGONAL_LINES_DENSE) actually renders
@@ -191,7 +202,7 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 // `onFragmentTap` (optional, «Прописи 2»): tap reports the row and the tap's x inside it instead of toggling the
 // inline animation. `crop` (optional): show only a window of the page (the show panel's single row).
 // `speedFactor` slows/speeds the pen animation.
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, useElements, wideRows = false, narrowRows = false }) {
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, useElements, wideRows = false, narrowRows = false }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
   const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
@@ -394,6 +405,10 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
           </g>
         );
       })}
+      {overlays?.map((o, k) => {
+        const { y, h } = overlayRect(o.row);
+        return <rect key={`ov${k}`} x="0" y={y} width={PAGE_W_UNITS} height={h} fill={OVERLAY_FILL[o.tone] ?? OVERLAY_FILL.select} pointerEvents="none" data-overlay={o.tone} />;
+      })}
     </svg>
   );
 }
@@ -579,7 +594,7 @@ function wideSnapX(rowIndex, x, y) {
 
 // Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
 // no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, speedFactor = 1 }) {
+export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, speedFactor = 1, overlays = null, onPageIndexChange = null }) {
   const lettersByLabel = useMemo(() => {
     const map = new Map();
     for (const item of task?.letters ?? []) map.set(item.label ?? item.id, item);
@@ -637,6 +652,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   const pages = useMemo(() => paginateRows(layout, wideRows ? WIDE_ROWS_PER_PAGE : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) }), [layout, wideRows, task?.exactPages]);
 
   const [pageIndex, setPageIndex] = useState(0);
+  useEffect(() => { onPageIndexChange?.(pageIndex); }, [pageIndex, onPageIndexChange]);
   const [activeIndex, setActiveIndex] = useState(focus ? 0 : null);
   useEffect(() => setActiveIndex(focus ? 0 : null), [pageIndex, focus]);
   // pages.length only shrinks if the task itself changes (new session) — clamp defensively
@@ -679,6 +695,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               onToggleActive={focus ? () => {} : null}
               crop={focusCrop}
               speedFactor={speedFactor}
+              overlays={overlays?.filter((o) => Math.floor(o.row / WIDE_ROWS_PER_PAGE) === shownIndex).map((o) => ({ ...o, row: o.row % WIDE_ROWS_PER_PAGE }))}
               useElements={useElements}
               wideRows={wideRows}
               narrowRows={narrowRows}

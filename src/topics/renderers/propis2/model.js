@@ -97,6 +97,70 @@ export function pageToLines(page, glyphMap) {
   return out;
 }
 
+// For every engine line of the page (the same list pageToLines builds) the index in page.rows of the row
+// it came from, or null for a blank row the engine adds itself (writeAfter). The on-screen/paper row
+// number of a model row is therefore its position in this list; the drag-and-drop editor maps a
+// drop on a physical row back to a model row through it.
+export function lineOwners(page, glyphMap) {
+  const out = [];
+  (page?.rows ?? []).forEach((row, i) => {
+    if (row.kind === "blank") { out.push(i); return; }
+    if (row.kind === "passage") {
+      const n = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling).length : String(row.text ?? "").trim() ? 1 : 0;
+      for (let k = 0; k < n; k += 1) { out.push(i); if (page?.writeAfter) out.push(null); }
+      return;
+    }
+    if (!rowToLine(row)) return;
+    out.push(i);
+    if (page?.writeAfter) out.push(null);
+  });
+  return out;
+}
+
+const isEmptyRow = (r) => r.kind !== "blank" && !String(r.text ?? "").trim();
+
+// A tile from the carousel -> row content. element tiles carry the glyph id, letters the glyph label.
+export const tileToRowPatch = (tile) => ({ kind: tile.kind === "element" ? "element" : "text", text: tile.text });
+
+// Drop a tile on physical row `absRow` (0-based over the whole page):
+//  - on a row with content: that row takes the tile (it keeps its sample/dots/clean mark);
+//  - on a blank row the page has: the row becomes the tile;
+//  - on a row the engine added itself (writeAfter): a new row goes in right before it;
+//  - below the last row: blank rows fill the gap, then the tile row.
+// Rows that hold no text yet are dropped first (they print nothing), so rows and lines line up.
+// Returns { page, rowId } so the caller can select the row that just got the tile.
+export function dropTile(page, glyphMap, absRow, tile) {
+  const base = { ...page, rows: page.rows.filter((r) => !isEmptyRow(r)) };
+  const owners = lineOwners(base, glyphMap);
+  const patch = tileToRowPatch(tile);
+  let rows = base.rows;
+  let rowId;
+  const owner = absRow >= 0 && absRow < owners.length ? owners[absRow] : undefined;
+  if (owner != null) {
+    const old = rows[owner];
+    rowId = old.id;
+    rows = rows.map((r, i) => (i === owner ? { ...r, ...patch, mark: r.kind === "blank" || r.kind === "passage" ? "" : r.mark } : r));
+  } else if (owner === null) {
+    const prev = owners.slice(0, absRow).reverse().find((o) => o != null);
+    const row = newRow(patch);
+    rowId = row.id;
+    const at = prev == null ? 0 : prev + 1;
+    rows = [...rows.slice(0, at), row, ...rows.slice(at)];
+  } else {
+    const gap = page.writeAfter ? 0 : Math.max(0, absRow - owners.length);
+    const row = newRow(patch);
+    rowId = row.id;
+    rows = [...rows, ...Array.from({ length: gap }, () => newRow({ kind: "blank" })), row];
+  }
+  return { page: { ...page, rows: rows.length ? rows : [newRow(patch)] }, rowId };
+}
+
+// Tap on a tile: it goes to the first free place, i.e. below the last row.
+export function appendTile(page, glyphMap, tile) {
+  const base = { ...page, rows: page.rows.filter((r) => !isEmptyRow(r)) };
+  return dropTile(base, glyphMap, lineOwners(base, glyphMap).length, tile);
+}
+
 // A new editable page from the rows marked "для повторения" (whole rows only in this version).
 export function pageFromMarked(sourcePage, title) {
   const rows = (sourcePage?.rows ?? []).filter((r) => r.marked).map((r) => ({ ...r, id: newId("r"), marked: false }));
