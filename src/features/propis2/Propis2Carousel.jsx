@@ -66,18 +66,23 @@ export function buildTiles(topicRecord) {
   return out;
 }
 
-export function TileGlyph({ tile, size = 56 }) {
+export function TileGlyph({ tile, size = 56, bare = false }) {
   // word / text chips and anything without strokes: plain text
   if (!tile.strokes.length || !tile.frame) return <span className="propis2-chip-text" style={{ maxWidth: size * 3 }}>{tile.caption ?? tile.text}</span>;
-  const { x, y, w, h } = tile.frame;
-  const sw = 1.6; // ink width in row units
+  // bare (a category icon): just the ink, framed tightly in a square; otherwise the shared frame with the row lines
+  const b = tile.box;
+  const side = b ? Math.max(b.maxX - b.minX, b.maxY - b.minY) + 8 : 0;
+  const { x, y, w, h } = bare && b
+    ? { x: (b.minX + b.maxX) / 2 - side / 2, y: (b.minY + b.maxY) / 2 - side / 2, w: side, h: side }
+    : tile.frame;
+  const sw = bare ? Math.max(2, side / 14) : 1.6; // ink width in row units
   return (
-    <svg className="propis2-tile-glyph" width={size} height={Math.round((size * h) / w)} viewBox={`${x} ${y} ${w} ${h}`} aria-hidden="true">
-      <g stroke="#8a8f98" strokeWidth="0.6" fill="none">
+    <svg className="propis2-tile-glyph" width={size} height={bare ? size : Math.round((size * h) / w)} viewBox={`${x} ${y} ${w} ${h}`} aria-hidden="true">
+      {!bare && <g stroke="#8a8f98" strokeWidth="0.6" fill="none">
         <line x1={x} x2={x + w} y1={ROW_TOP} y2={ROW_TOP} />
         <line x1={x} x2={x + w} y1={ROW_MID} y2={ROW_MID} strokeDasharray="2 1.4" />
         <line x1={x} x2={x + w} y1={ROW_BASE} y2={ROW_BASE} strokeWidth="1.2" stroke="#555" />
-      </g>
+      </g>}
       {tile.strokes.map((d, i) => <path key={i} d={d} fill="none" stroke="#1d4ed8" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />)}
     </svg>
   );
@@ -93,12 +98,16 @@ export default function Propis2Carousel({ topicRecord, onTap, ruling = "narrow" 
   const tabs = CAROUSEL_TABS.filter((t) => !(wide && t.id === "upper"));
   const tab = tabs.some((t) => t.id === pickedTab) ? pickedTab : "lower";
   const items = (tiles[tab] ?? []).filter((t) => !wide || tab === "elements" || t.inRow);
+  // the tab icons are the handwriting itself: an element, «а», «А», «?»
+  const iconTile = { elements: tiles.elements[0], lower: tiles.lower.find((t) => t.text === "а"), upper: tiles.upper.find((t) => t.text === "А"), marks: tiles.marks.find((t) => t.text === "?") ?? tiles.marks[0] };
 
   return (
     <div className="propis2-carousel" data-testid="propis2-carousel">
       <div className="propis2-carousel-tabs" role="tablist">
         {tabs.map((t) => (
-          <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={`propis2-carousel-tab${tab === t.id ? " is-on" : ""}`} onClick={() => setTab(t.id)}>{t.label}</button>
+          <button key={t.id} type="button" role="tab" aria-label={t.label} aria-selected={tab === t.id} className={`propis2-carousel-tab${tab === t.id ? " is-on" : ""}`} onClick={() => setTab(t.id)}>
+            {iconTile[t.id] && <TileGlyph tile={iconTile[t.id]} size={26} bare />}
+          </button>
         ))}
       </div>
       <div className="propis2-carousel-list">

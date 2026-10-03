@@ -51,104 +51,105 @@
   .propis2-preview-col { flex: 1 1 48%; position: sticky; top: 8px; padding: 16px 16px 16px 0; }
 }
 
-/* ---- constructor: page canvas on top, settings line, tabs + horizontal carousel below ---- */
-.propis2-editor2 { display: flex; flex-direction: column; height: 100dvh; min-height: 0; overflow-x: hidden; }
-.propis2-editor2 .screen-header { gap: 10px; flex-wrap: nowrap; }
-.propis2-editor2 .screen-header .btn { flex: 0 0 auto; height: auto; padding: 8px 14px; font-size: .9rem; }
-.propis2-title-input { flex: 1 1 auto; min-width: 0; font-size: 1.05rem; font-weight: 700; border: 1px solid transparent; background: rgba(255,255,255,.12); color: #fff; border-radius: 8px; padding: 6px 10px; }
-.propis2-seg { display: inline-flex; border-radius: 10px; overflow: hidden; border: 1px solid #c9c2b0; background: #fff; flex: 0 0 auto; }
-.propis2-seg button { border: none; background: transparent; padding: 7px 11px; font-size: .9rem; cursor: pointer; color: #1f2937; }
-.propis2-seg button.is-on { background: #1d4ed8; color: #fff; }
-.propis2-settings { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 6px 12px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; background: #f4efe3; border-bottom: 1px solid #ddd5c0; }
-.propis2-settings::-webkit-scrollbar { display: none; }
-.propis2-settings .btn { flex: 0 0 auto; height: auto; padding: 6px 12px; font-size: .85rem; }
-.propis2-writeafter { display: inline-flex; align-items: center; gap: 6px; font-size: .9rem; flex: 0 0 auto; }
-.propis2-page-col { flex: 1 1 auto; min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 6px 4px; display: flex; justify-content: center; align-items: flex-start; background: #cabfa9; }
-.propis2-page-box { max-width: 100%; }
-.propis2-page-box .propis2-preview { width: 100%; background: transparent; }
-.propis2-page-col .propis-print-page-svg { max-height: none; width: 100%; }
-.propis2-dock { flex: 0 0 auto; border-top: 1px solid #ddd5c0; background: #fffdf8; padding: 6px 10px calc(6px + var(--app-safe-bottom, 0px)); padding-left: calc(10px + var(--app-safe-left, 0px)); padding-right: calc(10px + var(--app-safe-right, 0px)); display: flex; flex-direction: column; gap: 6px; }
-.propis2-dock-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.propis2-dock-row input[type="text"], .propis2-dock-row input:not([type]), .propis2-dock-row textarea { flex: 1 1 160px; min-width: 120px; font-size: 1rem; padding: 6px 10px; border: 1px solid #c9c2b0; border-radius: 8px; }
-.propis2-dock-row .propis2-warn { flex: 1 1 100%; }
-.propis2-tabs { display: flex; gap: 4px; }
-.propis2-tab { flex: 1 1 0; border: none; border-bottom: 3px solid transparent; background: transparent; padding: 8px 4px; font-size: .95rem; font-weight: 600; cursor: pointer; color: #6b7280; }
-.propis2-tab.is-on { color: #1d4ed8; border-bottom-color: #1d4ed8; }
-.propis2-typed { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 104px; }
-.propis2-typed input, .propis2-typed textarea { flex: 1 1 180px; min-width: 140px; font-size: 1rem; padding: 8px 10px; border: 1px solid #c9c2b0; border-radius: 8px; font-family: inherit; }
-.propis2-typed .btn { flex: 0 0 auto; height: auto; padding: 8px 14px; font-size: .9rem; }
-.propis2-chip-text { display: inline-block; font-size: 1.1rem; font-weight: 600; color: #1d4ed8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 46px; }
-.propis2-carousel { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.propis2-carousel-tabs { display: flex; gap: 6px; }
-.propis2-carousel-tab { border: 1px solid #d3cbb6; background: #fff; border-radius: 999px; padding: 4px 12px; font-size: .8rem; cursor: pointer; }
-.propis2-carousel-tab.is-on { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
-.propis2-carousel-list { display: flex; flex-direction: row; gap: 8px; overflow-x: auto; overscroll-behavior: contain; padding: 2px 0 4px; scrollbar-width: none; touch-action: pan-x; }
-.propis2-carousel-list::-webkit-scrollbar { display: none; }
-.propis2-tile { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: #fff; border: 1px solid #d9d2bf; border-radius: 10px; padding: 4px; cursor: grab; touch-action: pan-x; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; box-shadow: 0 2px 0 rgba(0,0,0,.06); }
-.propis2-tile:active { cursor: grabbing; transform: scale(.97); }
-.propis2-tile--typed { touch-action: none; border-color: #16a34a; }
-.propis2-tile-glyph { display: block; pointer-events: none; }
-.propis2-tile-caption { font-size: .72rem; color: #6b7280; pointer-events: none; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.propis2-ghost { position: fixed; z-index: 800; pointer-events: none; transform: translate(-50%, -50%); background: rgba(255,255,255,.92); border: 2px solid #16a34a; border-radius: 14px; padding: 4px; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-@media (max-width: 640px) {
-  .propis2-editor2 .screen-header { padding-left: 8px; padding-right: 8px; gap: 6px; }
-  .propis2-title-input { font-size: .95rem; padding: 5px 8px; }
-  .propis2-seg button { padding: 6px 8px; font-size: .8rem; }
-  .propis2-row-tools button { padding: 4px 8px; }
-  .propis2-typed { min-height: 88px; }
+/* ===== constructor «Прописи 2»: icons only, one calm family (cream paper, teal accent, blue ink) ===== */
+.propis2-editor2 {
+  --p2-bg: #fdfcf9; --p2-surface: #fff; --p2-strip: #f6f1e4; --p2-line: #e3dccb; --p2-board: #cfc4ad;
+  --p2-ink: #28323c; --p2-muted: #8b93a1; --p2-teal: #4a9b8f; --p2-teal-dark: #2a6b60; --p2-teal-soft: #e5f2ef;
+  --p2-blue: #1d4ed8; --p2-red: #dc2626; --p2-red-soft: #fef2f2;
+  --dock-h: clamp(270px, 37dvh, 390px);
+  display: flex; flex-direction: column; height: 100dvh; min-height: 0; overflow: hidden; background: var(--p2-bg); color: var(--p2-ink);
 }
 
-/* layout areas: portrait = settings / page / dock stacked; landscape tablet = page left, tools right */
-.propis2-main { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "settings" "page" "dock"; }
+/* header: back, title, show-to-the-student */
+.propis2-editor2 .screen-header { gap: 10px; flex-wrap: nowrap; align-items: center; }
+.propis2-title-input { flex: 1 1 auto; min-width: 0; font-size: 1.05rem; font-weight: 800; border: 1px solid transparent; background: rgba(255,255,255,.14); color: #fff; border-radius: 12px; padding: 8px 12px; font-family: inherit; }
+.propis2-title-input:focus { outline: 2px solid rgba(255,255,255,.55); background: rgba(255,255,255,.2); }
+.p2-show { flex: 0 0 auto; width: 48px; height: 48px; border: none; border-radius: 50%; background: var(--p2-teal); color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 3px 0 var(--p2-teal-dark); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.p2-show svg { width: 30px; height: 30px; }
+.p2-show:active { transform: translateY(3px); box-shadow: none; }
+
+/* icon buttons (the only kind of control) and segmented groups of them */
+.p2-ib { position: relative; flex: 0 0 auto; width: 44px; height: 44px; padding: 0; border: none; border-radius: 12px; background: transparent; color: var(--p2-ink); display: grid; place-items: center; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: background .12s, color .12s, box-shadow .12s, transform .08s; }
+.p2-ib svg { width: 26px; height: 26px; }
+.p2-ib:hover:not(:disabled):not(.is-on) { background: var(--p2-teal-soft); }
+.p2-ib:active:not(:disabled) { transform: translateY(2px); }
+.p2-ib.is-on { background: var(--p2-teal); color: #fff; box-shadow: 0 2px 0 var(--p2-teal-dark); }
+.p2-ib:disabled { opacity: .3; cursor: default; }
+.p2-ib:focus-visible { outline: 2px solid var(--p2-blue); outline-offset: 1px; }
+.p2-ib--plain { background: var(--p2-surface); border: 1px solid var(--p2-line); box-shadow: 0 2px 0 var(--p2-line); }
+.p2-ib--primary { background: var(--p2-teal); color: #fff; box-shadow: 0 3px 0 var(--p2-teal-dark); }
+.p2-ib--primary:disabled { background: #b8d4cf; box-shadow: none; opacity: 1; }
+.p2-ib--danger { color: var(--p2-red); }
+.p2-badge { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--p2-red); color: #fff; font-size: .72rem; font-weight: 800; display: grid; place-items: center; }
+.p2-seg { display: inline-flex; flex: 0 0 auto; gap: 2px; padding: 3px; background: var(--p2-surface); border: 1px solid var(--p2-line); border-radius: 16px; box-shadow: 0 2px 0 var(--p2-line); }
+
+/* the strip of paper settings above the canvas */
+.propis2-settings { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 8px 12px; min-height: 62px; background: var(--p2-strip); border-bottom: 1px solid var(--p2-line); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.propis2-settings::-webkit-scrollbar { display: none; }
+
+/* layout areas: portrait = settings / canvas / panel; phone = the same with a half-page canvas; landscape tablet = canvas | settings + panel */
+.propis2-main { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) var(--dock-h); grid-template-areas: "settings" "page" "dock"; }
 .propis2-main > .propis2-settings { grid-area: settings; }
 .propis2-main > .propis2-page-col { grid-area: page; }
 .propis2-main > .propis2-dock { grid-area: dock; }
-.propis2-editor2--side .propis2-main { grid-template-columns: minmax(0, 1fr) minmax(360px, 420px); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "page settings" "page dock"; }
-.propis2-editor2--side .propis2-settings { flex-wrap: wrap; white-space: normal; overflow: visible; border-left: 1px solid #ddd5c0; padding: 10px 12px; }
-.propis2-editor2--side .propis2-dock { border-top: none; border-left: 1px solid #ddd5c0; overflow-y: auto; min-height: 0; padding-top: 10px; }
-.propis2-editor2--side .propis2-page-col { align-items: center; }
-.propis2-carousel--grid { min-height: 0; }
-.propis2-carousel--grid .propis2-carousel-tabs { flex-wrap: wrap; }
-.propis2-carousel--grid .propis2-carousel-list { flex-wrap: wrap; overflow-x: hidden; overflow-y: auto; max-height: calc(100dvh - 330px); touch-action: pan-y; align-content: flex-start; }
-.propis2-carousel--grid .propis2-tile { touch-action: pan-y; }
-.propis2-typed { min-height: 0; }
+.propis2-page-col { min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 8px 6px; display: flex; justify-content: center; align-items: flex-start; background: var(--p2-board); }
+.propis2-page-box { max-width: 100%; }
+.propis2-page-box .propis2-preview { width: 100%; background: transparent; }
+.propis2-page-col .propis-print-page-svg { max-height: none; width: 100%; border-radius: 3px; }
 
-/* phone: full toolsets above and below, the canvas shows about half a page and scrolls */
-.propis2-editor2--phone .propis2-main { grid-template-rows: auto auto minmax(0, 1fr); }
-.propis2-editor2--phone .propis2-settings { flex-wrap: wrap; white-space: normal; overflow: visible; gap: 6px 8px; padding: 6px 8px; }
-.propis2-editor2--phone .propis2-page-col { height: min(72vw, 44dvh); }
-.propis2-editor2--phone .propis2-dock { overflow-y: auto; min-height: 0; }
+/* the bottom panel: fixed size, only its insides scroll */
+.propis2-dock { height: var(--dock-h); display: flex; flex-direction: column; gap: 6px; padding: 8px 12px calc(8px + var(--app-safe-bottom, 0px)); padding-left: calc(12px + var(--app-safe-left, 0px)); padding-right: calc(12px + var(--app-safe-right, 0px)); background: var(--p2-surface); border-radius: 20px 20px 0 0; box-shadow: 0 -4px 18px rgba(40, 50, 60, .12); overflow: hidden; z-index: 1; }
+.propis2-dock-bar { flex: 0 0 auto; height: 116px; overflow-y: auto; display: flex; flex-direction: column; justify-content: center; gap: 6px; scrollbar-width: thin; }
+.propis2-dock-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.p2-field { flex: 1 1 200px; min-width: 150px; display: flex; align-items: center; gap: 6px; background: var(--p2-bg); border: 1px solid var(--p2-line); border-radius: 14px; padding: 2px 4px 2px 12px; }
+.p2-field input, .p2-field textarea { flex: 1 1 auto; min-width: 0; border: none; background: transparent; font: 700 1.25rem/1.2 inherit; font-family: inherit; color: var(--p2-blue); padding: 8px 0; outline: none; resize: none; }
+.p2-blank { display: grid; place-items: center; flex: 1; color: var(--p2-muted); height: 44px; }
+.p2-hint { display: grid; place-items: center; color: var(--p2-muted); height: 100%; }
+.p2-warn { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 8px; border-radius: 12px; background: var(--p2-red-soft); color: #b91c1c; flex: 0 0 auto; }
+.p2-warn svg { width: 22px; height: 22px; }
+.p2-warn b { font-size: 1.15rem; font-weight: 800; }
+.p2-warn--summary { align-self: flex-start; }
+.p2-cut { width: 34px; height: 10px; border-radius: 3px; background: linear-gradient(90deg, #b91c1c 0 55%, transparent 100%); -webkit-mask: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px); mask: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 6px); }
 
-/* symbol picker: a multi-line grid with a vertical scroll (no dragging: select a row, tap a symbol) */
-.propis2-carousel-list { flex-wrap: wrap; overflow-x: hidden; overflow-y: auto; max-height: min(300px, 34dvh); touch-action: pan-y; align-content: flex-start; padding: 2px 0 6px; }
-.propis2-tile { cursor: pointer; touch-action: pan-y; }
-.propis2-tile:active { transform: scale(.96); }
-.propis2-editor2--phone .propis2-carousel { flex: 1 1 auto; min-height: 0; }
-.propis2-editor2--phone .propis2-carousel-list { max-height: none; flex: 1 1 auto; min-height: 0; }
-.propis2-editor2--phone .propis2-dock { display: flex; }
-.propis2-seg button:disabled { opacity: .35; cursor: default; }
-.propis2-writeafter.is-disabled { opacity: .35; }
-.propis2-backspace { border: 1px solid #c9c2b0; background: #fff; border-radius: 8px; padding: 6px 10px; font-size: 1rem; cursor: pointer; }
-.propis2-backspace:disabled { opacity: .35; cursor: default; }
-
-/* fixed zones: the settings strip, the canvas and the bottom panel keep their size whatever is selected or typed; only the
-   insides of the bottom panel scroll (its bar for the selected row, its tile grid). */
-.propis2-main { --dock-h: clamp(260px, 36dvh, 380px); grid-template-rows: auto minmax(0, 1fr) var(--dock-h); }
-.propis2-dock { height: var(--dock-h); overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
-.propis2-dock-bar { flex: 0 0 auto; height: 108px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-.propis2-dock-bar > .propis2-hint { margin: 0; }
-.propis2-tabs { flex: 0 0 auto; }
+/* tabs: symbol / word / text */
+.propis2-tabs { flex: 0 0 auto; display: flex; gap: 6px; border-bottom: 1px solid var(--p2-line); }
+.propis2-tab { flex: 1 1 0; height: 48px; display: grid; place-items: center; border: none; border-bottom: 3px solid transparent; background: transparent; color: var(--p2-muted); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.propis2-tab svg { width: 28px; height: 28px; }
+.propis2-tab.is-on { color: var(--p2-teal-dark); border-bottom-color: var(--p2-teal); }
+.p2-tab-glyph { display: grid; place-items: center; color: inherit; }
+.p2-tab-glyph svg path { stroke: currentColor; }
 .propis2-dock-body { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
-.propis2-dock-body > .propis2-carousel { flex: 1 1 auto; min-height: 0; }
-.propis2-dock-body .propis2-carousel-list { flex: 1 1 auto; max-height: none; min-height: 0; }
-.propis2-dock-body > .propis2-typed { overflow-y: auto; align-content: flex-start; }
-.propis2-settings { flex-wrap: nowrap; white-space: nowrap; overflow-x: auto; overflow-y: hidden; min-height: 46px; }
-/* phone: canvas fixed (half a page), the panel takes the rest of the screen */
+.propis2-typed { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; padding-top: 6px; overflow-y: auto; }
+.propis2-typed input, .propis2-typed textarea { flex: 1 1 200px; min-width: 150px; font: 700 1.25rem/1.2 inherit; font-family: inherit; color: var(--p2-blue); padding: 10px 12px; border: 1px solid var(--p2-line); border-radius: 14px; background: var(--p2-bg); outline: none; }
+.propis2-typed input:focus, .propis2-typed textarea:focus, .p2-field:focus-within { border-color: var(--p2-teal); }
+
+/* symbol picker: categories as handwriting icons, a scrolling grid of tiles */
+.propis2-carousel { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; padding-top: 6px; }
+.propis2-carousel-tabs { flex: 0 0 auto; display: flex; gap: 8px; }
+.propis2-carousel-tab { width: 54px; height: 42px; display: grid; place-items: center; border: 1px solid var(--p2-line); border-radius: 12px; background: var(--p2-surface); color: var(--p2-muted); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.propis2-carousel-tab .propis2-tile-glyph path { stroke: currentColor; }
+.propis2-carousel-tab.is-on { background: var(--p2-teal-soft); border-color: var(--p2-teal); color: var(--p2-teal-dark); }
+.propis2-carousel-list { flex: 1 1 auto; min-height: 0; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; touch-action: pan-y; padding: 2px 2px 8px; scrollbar-width: thin; }
+.propis2-tile { flex: 0 0 auto; display: grid; place-items: center; padding: 4px; background: var(--p2-surface); border: 1px solid var(--p2-line); border-radius: 12px; box-shadow: 0 2px 0 var(--p2-line); cursor: pointer; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; transition: transform .08s, box-shadow .08s; }
+.propis2-tile:active { transform: translateY(2px); box-shadow: none; }
+.propis2-tile-glyph { display: block; pointer-events: none; }
+.propis2-chip-text { display: inline-block; font-weight: 800; color: var(--p2-blue); }
+
+/* phone: the canvas shows about half a page and scrolls; the panel takes the rest of the screen */
 .propis2-editor2--phone .propis2-main { grid-template-rows: auto auto minmax(0, 1fr); }
-.propis2-editor2--phone .propis2-settings { flex-wrap: wrap; white-space: normal; overflow: visible; min-height: 0; }
-.propis2-editor2--phone .propis2-dock { height: auto; min-height: 0; }
-.propis2-editor2--phone .propis2-dock-bar { height: 104px; }
-/* landscape tablet: page on the left, settings and the panel stacked on the right; the panel takes the rest */
-.propis2-editor2--side .propis2-main { grid-template-rows: auto minmax(0, 1fr); }
-.propis2-editor2--side .propis2-settings { flex-wrap: wrap; white-space: normal; overflow: visible; }
-.propis2-editor2--side .propis2-dock { height: auto; min-height: 0; overflow: hidden; }
+.propis2-editor2--phone .propis2-settings { flex-wrap: wrap; overflow: visible; min-height: 0; padding: 6px 8px; gap: 6px 8px; }
+.propis2-editor2--phone .propis2-page-col { height: min(72vw, 40dvh); }
+.propis2-editor2--phone .propis2-dock { height: auto; min-height: 0; padding-top: 6px; }
+.propis2-editor2--phone .propis2-dock-bar { height: 110px; }
+.propis2-editor2--phone .p2-ib { width: 42px; height: 42px; }
+.propis2-editor2--phone .p2-ib svg { width: 24px; height: 24px; }
+.propis2-editor2--phone .propis2-editor2 .screen-header, .propis2-editor2--phone .screen-header { padding-left: 8px; padding-right: 8px; gap: 8px; }
+
+/* landscape tablet: the canvas takes the whole height on the left, the tools sit on the right */
+.propis2-editor2--side .propis2-main { grid-template-columns: minmax(0, 1fr) minmax(380px, 440px); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "page settings" "page dock"; }
+.propis2-editor2--side .propis2-settings { flex-wrap: wrap; overflow: visible; border-left: 1px solid var(--p2-line); min-height: 0; padding: 10px 12px; }
+.propis2-editor2--side .propis2-dock { height: auto; min-height: 0; border-radius: 0; box-shadow: none; border-left: 1px solid var(--p2-line); }
+.propis2-editor2--side .propis2-page-col { align-items: center; }
+.propis2-editor2--side .p2-ib { width: 48px; height: 48px; }
+.propis2-editor2--side .propis2-dock-bar { height: 124px; }
+@media (min-width: 700px) { .propis2-editor2 .p2-ib { width: 48px; height: 48px; } .propis2-editor2 .p2-ib svg { width: 28px; height: 28px; } }

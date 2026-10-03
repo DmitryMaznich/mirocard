@@ -29,6 +29,8 @@ function deckRecord() {
   return { ...topic, id: topic.meta.id, installedAt: "test" };
 }
 
+// controls of the constructor are icons: they are found by aria-label
+const byLabel = (host, name, exact = false) => [...host.querySelectorAll("button")].find((b) => { const t = b.getAttribute("aria-label") ?? b.textContent; return exact ? t === name : t.includes(name); });
 const tick = (ms = 20) => new Promise((r) => setTimeout(r, ms));
 const freshDb = () => openDb("p2home-" + Date.now() + Math.random());
 
@@ -73,7 +75,7 @@ describe("Прописи 2 (zip topic)", () => {
         await tick();
       });
     };
-    const btn = (host, text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
+    const btn = (host, text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
 
     let { host, root } = await render();
     expect(host.querySelector('[data-testid="propis2-library"]')).not.toBeNull();
@@ -82,10 +84,10 @@ describe("Прописи 2 (zip topic)", () => {
     await click(btn(host, "Новая страница"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await type(host.querySelector('[aria-label="Название страницы"]'), "Мои буквы");
-    await click([...host.querySelectorAll('[role="tab"]')].find((t) => t.textContent === "Слово"));
+    await click([...host.querySelectorAll('[role="tab"]')].find((t) => (t.getAttribute("aria-label") ?? t.textContent) === "Слово"));
     await type(host.querySelector('[aria-label="Слово или слог"]'), "кот@");
     await click(btn(host, "+ Строка"));
-    expect(host.querySelector("[role=alert]")?.textContent).toContain("«@»");
+    expect(host.querySelector("[role=alert]")?.textContent).toContain("@");
     await type(host.querySelector('[aria-label="Текст строки"]'), "кот");
     expect(host.querySelector("[role=alert]")).toBeNull();
 
@@ -130,10 +132,10 @@ describe("Прописи 2 (zip topic)", () => {
         await tick();
       });
     };
-    const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
 
     await click(btn("Новая страница"));
-    const tab = (name) => [...host.querySelectorAll('[role="tab"]')].find((t) => t.textContent === name);
+    const tab = (name) => [...host.querySelectorAll('[role="tab"]')].find((t) => (t.getAttribute("aria-label") ?? t.textContent) === name);
     await click(tab("Слово"));
     await setValue(host.querySelector('[aria-label="Слово или слог"]'), "а");
     await click(btn("+ Строка"));
@@ -150,7 +152,7 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('textarea[aria-label="Текст строки"]')).not.toBeNull();
     await click(tab("Слово"));
     await click(btn("+ Пустая"));
-    expect(host.textContent).toContain("Пустая строка — место для письма");
+    expect(host.querySelector('[aria-label="Пустая строка — место для письма"]')).not.toBeNull();
 
     await click(btn("Из отмеченного"));
     expect(host.querySelector('[aria-label="Название страницы"]').value).toContain("повторение");
@@ -174,7 +176,7 @@ describe("Прописи 2 (zip topic)", () => {
     // a page long enough for two screens: pick the ready sheet (12 rows) and add more rows
     const select = host.querySelector('[aria-label="Готовый набор"]');
     await act(async () => { select.value = "part1"; select.dispatchEvent(new Event("change", { bubbles: true })); await tick(); });
-    await click(btn("Показать ученику"));
+    await click(byLabel(host, "Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
     expect(host.querySelector('[data-testid="propis2-panel"]')).toBeNull();
 
@@ -218,13 +220,13 @@ describe("Прописи 2 (zip topic)", () => {
         await tick();
       });
     };
-    const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
 
     // two pages
     for (const [title, text] of [["Страница А", "а"], ["Страница Б", "б"]]) {
       await click(btn("Новая страница"));
       await setValue(host.querySelector('[aria-label="Название страницы"]'), title);
-      await click([...host.querySelectorAll('[role="tab"]')].find((t) => t.textContent === "Слово"));
+      await click([...host.querySelectorAll('[role="tab"]')].find((t) => (t.getAttribute("aria-label") ?? t.textContent) === "Слово"));
       await setValue(host.querySelector('[aria-label="Слово или слог"]'), text);
       await click(btn("+ Строка"));
       await click(host.querySelector(".back-btn"));
@@ -270,8 +272,8 @@ describe("Прописи 2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
-    const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent === text);
-    await click([...host.querySelectorAll("button")].find((b) => b.textContent.includes("Новая страница")));
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent) === text);
+    await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая страница")));
     const preview = () => host.querySelector('[data-testid="propis2-preview"]');
     const ink = () => preview().querySelectorAll("svg path").length;
     const tile = (c) => host.querySelector(`[data-tile="${c}"]`);
@@ -291,7 +293,7 @@ describe("Прописи 2 (zip topic)", () => {
     await click(host.querySelector('[aria-label="Стереть последний символ"]'));
     expect(input().value).toBe("ко");
     // an element takes the row over
-    await click([...host.querySelectorAll('[role="tab"]')].find((t) => t.textContent === "Элементы"));
+    await click([...host.querySelectorAll('[role="tab"]')].find((t) => (t.getAttribute("aria-label") ?? t.textContent) === "Элементы"));
     await click(host.querySelectorAll(".propis2-tile")[0]);
     expect(host.querySelector('[aria-label="Вид строки"]')).not.toBeNull();
 
@@ -327,7 +329,7 @@ describe("Прописи 2 (zip topic)", () => {
     expect(slant().every((b) => !b.disabled)).toBe(true);
 
     // wide ruling: no capitals tab
-    const tabs = () => [...host.querySelectorAll('[data-testid="propis2-carousel"] [role="tab"]')].map((t) => t.textContent);
+    const tabs = () => [...host.querySelectorAll('[data-testid="propis2-carousel"] [role="tab"]')].map((t) => t.getAttribute("aria-label"));
     expect(tabs()).toContain("Заглавные");
     await click(btn("Широкая"));
     expect(tabs()).not.toContain("Заглавные");
@@ -342,7 +344,7 @@ describe("Прописи 2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el, init = {}) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true, ...init })); await tick(60); }); };
-    await click([...host.querySelectorAll("button")].find((b) => b.textContent.includes("Новая страница")));
+    await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая страница")));
     const preview = () => host.querySelector('[data-testid="propis2-preview"]');
     const svg = preview().querySelector("svg.propis-print-page-svg");
     const vbH = Number(svg.getAttribute("viewBox").split(/\s+/)[3]);

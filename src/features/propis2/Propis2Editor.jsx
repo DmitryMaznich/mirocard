@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
 import { PRINT_PAGE_H_MM, PRINT_PAGE_W_MM } from "@/topics/renderers/propis/propisRuling.js";
 import { GRIDS, GRID_KINDS, ROWS_PER_PAGE, ROW_MARKS, RULINGS, analyzePage, appendTile, duplicateRow, lineOwners, moveRow, newRow, pageGridKind, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
-import Propis2Carousel from "./Propis2Carousel";
+import Propis2Carousel, { TileGlyph, buildTiles } from "./Propis2Carousel";
 import Propis2Preview from "./Propis2Preview";
+import * as I from "./Propis2Icons";
 
 // The page constructor. The page canvas, with settings above it and the tools below it (tabs «Символ», «Слово», «Текст»).
 // No dragging: select a row (tap it on the page) and tap a symbol, it goes into that row; with no row selected a tapped
@@ -34,11 +34,26 @@ function useMedia(query) {
   return on;
 }
 
+// What the constructor shows are pictograms; the name of each control is its aria-label only.
+const PAPER_ICONS = { propis: I.IconPaperPropis, square: I.IconPaperSquare, ruled: I.IconPaperRuled };
+const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
+const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense };
+const MARK_ICONS = { "": I.IconMarkSample, d: I.IconMarkDots, c: I.IconMarkClean };
+
 const TABS = [
-  { id: "symbol", label: "Символ" },
-  { id: "word", label: "Слово" },
-  { id: "text", label: "Текст" },
+  { id: "symbol", label: "Символ", Icon: null },
+  { id: "word", label: "Слово", Icon: I.IconTabWord },
+  { id: "text", label: "Текст", Icon: I.IconTabText },
 ];
+
+// A round/square icon button: 44px target, pressed state, the name only as aria-label.
+function IconBtn({ label, on, onClick, disabled, children, className = "", ...rest }) {
+  return (
+    <button type="button" className={`p2-ib${on ? " is-on" : ""} ${className}`} aria-label={label} aria-pressed={on === undefined ? undefined : Boolean(on)} disabled={disabled} onClick={onClick} {...rest}>
+      {children}
+    </button>
+  );
+}
 
 export default function Propis2Editor({ page, topicRecord, onChange, onBack, onShow, onFromMarked }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
@@ -49,6 +64,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const [draftWord, setDraftWord] = useState("");
   const [draftText, setDraftText] = useState("");
   const [pageW, setPageW] = useState(0);
+  const symbolIcon = useMemo(() => { const t = buildTiles(topicRecord).lower.find((x) => x.text === "а"); return t ? <TileGlyph tile={t} size={28} bare /> : "а"; }, [topicRecord]);
   const side = useMedia(SIDE_QUERY);
   const phone = useMedia(PHONE_QUERY) && !side;
   const sideRef = useRef(side);
@@ -149,38 +165,31 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
 
   return (
     <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}${phone ? " propis2-editor2--phone" : ""}`} data-testid="propis2-editor">
-      <div className="screen-header">
-        <button className="back-btn" onClick={onBack}><BackArrowIcon /></button>
+      <div className="screen-header p2-header">
+        <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
         <input className="propis2-title-input" value={page.title} onChange={(e) => onChange({ ...page, title: e.target.value })} aria-label="Название страницы" />
-        <Button onClick={onShow}>Показать ученику</Button>
+        <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>
 
       <div className="propis2-main">
         <div className="propis2-settings" role="group" aria-label="Настройки страницы">
-          <div className="propis2-seg" role="group" aria-label="Тип сетки">
-            {GRID_KINDS.map((g) => (
-              <button key={g.id} type="button" aria-pressed={gridKind === g.id} className={gridKind === g.id ? "is-on" : ""} onClick={() => onChange({ ...page, gridKind: g.id })}>{g.label}</button>
-            ))}
+          <div className="p2-seg" role="group" aria-label="Тип сетки">
+            {GRID_KINDS.map((g) => { const Icon = PAPER_ICONS[g.id]; return <IconBtn key={g.id} label={g.label} on={gridKind === g.id} onClick={() => onChange({ ...page, gridKind: g.id })}><Icon /></IconBtn>; })}
           </div>
-          <div className="propis2-seg" role="group" aria-label="Разлиновка">
-            {RULINGS.map((r) => (
-              <button key={r.id} type="button" aria-pressed={page.ruling === r.id} className={page.ruling === r.id ? "is-on" : ""} onClick={() => onChange({ ...page, ruling: r.id })} title={r.label}>{r.short ?? r.label}</button>
-            ))}
+          <div className="p2-seg" role="group" aria-label="Разлиновка">
+            {RULINGS.map((r) => { const Icon = RULING_ICONS[r.id]; return <IconBtn key={r.id} label={r.short ?? r.label} on={page.ruling === r.id} onClick={() => onChange({ ...page, ruling: r.id })}><Icon /></IconBtn>; })}
           </div>
-          <div className="propis2-seg" role="group" aria-label="Косая линейка">
-            {GRIDS.map((g) => (
-              <button key={g.id} type="button" disabled={!propisGrid} aria-pressed={(page.grid ?? "regular") === g.id} className={(page.grid ?? "regular") === g.id ? "is-on" : ""} onClick={() => onChange({ ...page, grid: g.id })} title={g.label}>{g.short}</button>
-            ))}
+          <div className="p2-seg" role="group" aria-label="Косая линейка">
+            {GRIDS.map((g) => { const Icon = SLANT_ICONS[g.id]; return <IconBtn key={g.id} label={g.short} on={(page.grid ?? "regular") === g.id} disabled={!propisGrid} onClick={() => onChange({ ...page, grid: g.id })}><Icon /></IconBtn>; })}
           </div>
-          <label className={`propis2-writeafter${propisGrid ? "" : " is-disabled"}`}>
-            <input type="checkbox" disabled={!propisGrid} checked={page.midDash !== false} onChange={(e) => onChange({ ...page, midDash: e.target.checked })} aria-label="Пунктир в серединных линиях" />
-            пунктир
-          </label>
-          <label className="propis2-writeafter">
-            <input type="checkbox" checked={Boolean(page.writeAfter)} onChange={(e) => onChange({ ...page, writeAfter: e.target.checked })} aria-label="Строка для письма после каждой строки" />
-            писать под каждой строкой
-          </label>
-          <Button onClick={onFromMarked} disabled={markedCount === 0}>Из отмеченного{markedCount ? ` (${markedCount})` : ""}</Button>
+          <div className="p2-seg" role="group" aria-label="Дополнительно">
+            <IconBtn label="Пунктир в серединных линиях" on={page.midDash !== false} disabled={!propisGrid} onClick={() => onChange({ ...page, midDash: page.midDash === false })} data-kind="dash"><I.IconDash /></IconBtn>
+            <IconBtn label="Строка для письма после каждой строки" on={Boolean(page.writeAfter)} onClick={() => onChange({ ...page, writeAfter: !page.writeAfter })} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
+          </div>
+          <IconBtn label="Из отмеченного" onClick={onFromMarked} disabled={markedCount === 0} className="p2-ib--plain">
+            <I.IconFromMarked />
+            {markedCount > 0 && <span className="p2-badge">{markedCount}</span>}
+          </IconBtn>
         </div>
 
         <div className="propis2-page-col" ref={wrapRef} onClick={onPageClick}>
@@ -191,73 +200,73 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
 
         <div className="propis2-dock">
           <div className="propis2-dock-bar">
-          {selected ? (
-            <div className="propis2-dock-row" data-testid="propis2-row-panel">
-              {selected.kind === "blank" ? (
-                <span className="propis2-blank-note">Пустая строка — место для письма</span>
-              ) : selected.kind === "passage" ? (
-                <textarea value={selected.text} rows={2} onChange={(e) => patchSelected({ text: e.target.value })} placeholder="Текст — будет разбит на строки по ширине листа" aria-label="Текст строки" />
-              ) : (
-                <input value={selected.text} onChange={(e) => patchSelected({ text: e.target.value })} placeholder="нажмите на символы ниже или наберите" aria-label="Текст строки" />
-              )}
-              {selected.kind === "text" && (
-                <button type="button" className="propis2-backspace" onClick={() => patchSelected({ text: Array.from(selected.text).slice(0, -1).join("") })} disabled={!selected.text} aria-label="Стереть последний символ">⌫</button>
-              )}
-              {(selected.kind === "text" || selected.kind === "element") && (
-                <div className="propis2-seg" role="group" aria-label="Вид строки">
-                  {ROW_MARKS.map((m) => (
-                    <button key={m.id} type="button" aria-pressed={selected.mark === m.id} className={selected.mark === m.id ? "is-on" : ""} onClick={() => patchSelected({ mark: m.id })} title={m.label}>{m.short ?? m.label}</button>
-                  ))}
+            {selected ? (
+              <div className="propis2-dock-row" data-testid="propis2-row-panel">
+                <div className="p2-field">
+                  {selected.kind === "blank" ? (
+                    <span className="p2-blank" aria-label="Пустая строка — место для письма"><I.IconAddBlank /></span>
+                  ) : selected.kind === "passage" ? (
+                    <textarea value={selected.text} rows={1} onChange={(e) => patchSelected({ text: e.target.value })} aria-label="Текст строки" />
+                  ) : (
+                    <input value={selected.text} onChange={(e) => patchSelected({ text: e.target.value })} aria-label="Текст строки" />
+                  )}
+                  {selected.kind === "text" && (
+                    <IconBtn label="Стереть последний символ" onClick={() => patchSelected({ text: Array.from(selected.text).slice(0, -1).join("") })} disabled={!selected.text}><I.IconBackspace /></IconBtn>
+                  )}
                 </div>
-              )}
-              <label className="propis2-mark" title="Отметить строку для повторения">
-                <input type="checkbox" checked={Boolean(selected.marked)} onChange={(e) => patchSelected({ marked: e.target.checked })} aria-label="Повторить строку" /> повторить
-              </label>
-              <span className="propis2-row-tools">
-                <button type="button" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={selectedIndex === 0} aria-label="Выше">↑</button>
-                <button type="button" onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={selectedIndex === page.rows.length - 1} aria-label="Ниже">↓</button>
-                <button type="button" onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }} aria-label="Дублировать">⧉</button>
-                <button type="button" onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }} aria-label="Удалить строку">✕</button>
-              </span>
-              {selectedInfo?.unsupported.length > 0 && (
-                <div className="propis2-warn" role="alert">Нет начертания для: {selectedInfo.unsupported.map((c) => `«${c}»`).join(" ")} — эти символы не попадут на страницу.</div>
-              )}
-              {selectedInfo?.outside?.length > 0 && (
-                <div className="propis2-warn" role="alert">На широкой строке нельзя: {selectedInfo.outside.map((c) => `«${c}»`).join(" ")} — эти знаки выходят за строку. Переключите на узкую или замените.</div>
-              )}
-              {selectedInfo?.overflow && (
-                <div className="propis2-warn" role="alert">Строка не помещается по ширине — её конец будет обрезан. Сократите или разбейте на две строки.</div>
-              )}
-            </div>
-          ) : (
-            <p className="propis2-hint">Нажмите на строку страницы и затем на символ: он попадёт в эту строку. Без выбранной строки символ начнёт новую.</p>
-          )}
-          {analysis.problems > 0 && <div className="propis2-warn propis2-warn--summary">Строк с проблемами: {analysis.problems} (подсвечены красным)</div>}
+                {(selected.kind === "text" || selected.kind === "element") && (
+                  <div className="p2-seg" role="group" aria-label="Вид строки">
+                    {ROW_MARKS.map((m) => { const Icon = MARK_ICONS[m.id]; return <IconBtn key={m.id} label={m.short ?? m.label} on={selected.mark === m.id} onClick={() => patchSelected({ mark: m.id })}><Icon /></IconBtn>; })}
+                  </div>
+                )}
+                <div className="p2-seg" role="group" aria-label="Строка">
+                  <IconBtn label="Повторить строку" on={Boolean(selected.marked)} onClick={() => patchSelected({ marked: !selected.marked })}><I.IconRepeat /></IconBtn>
+                  <IconBtn label="Выше" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={selectedIndex === 0}><I.IconUp /></IconBtn>
+                  <IconBtn label="Ниже" onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
+                  <IconBtn label="Дублировать" onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
+                  <IconBtn label="Удалить строку" className="p2-ib--danger" onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
+                </div>
+                {selectedInfo?.unsupported.length > 0 && (
+                  <div className="p2-warn" role="alert" aria-label={`Нет начертания: ${selectedInfo.unsupported.join(" ")}`}><I.IconWarn />{selectedInfo.unsupported.map((c) => <b key={c}>{c}</b>)}</div>
+                )}
+                {selectedInfo?.outside?.length > 0 && (
+                  <div className="p2-warn" role="alert" aria-label={`На широкой строке нельзя: ${selectedInfo.outside.join(" ")}`}><I.IconWarn /><I.IconRowWide />{selectedInfo.outside.map((c) => <b key={c}>{c}</b>)}</div>
+                )}
+                {selectedInfo?.overflow && (
+                  <div className="p2-warn" role="alert" aria-label="Строка не помещается по ширине"><I.IconWarn /><span className="p2-cut" aria-hidden="true" /></div>
+                )}
+              </div>
+            ) : (
+              <div className="p2-hint" aria-label="Нажмите на строку, затем на символ"><I.IconTapHint /></div>
+            )}
+            {analysis.problems > 0 && <div className="p2-warn p2-warn--summary" role="status" aria-label={`Строк с проблемами: ${analysis.problems}`}><I.IconWarn /><b>{analysis.problems}</b></div>}
           </div>
 
           <div className="propis2-tabs" role="tablist" aria-label="Что поставить на страницу">
             {TABS.map((t) => (
-              <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={`propis2-tab${tab === t.id ? " is-on" : ""}`} onClick={() => setTab(t.id)}>{t.label}</button>
+              <button key={t.id} type="button" role="tab" aria-label={t.label} aria-selected={tab === t.id} className={`propis2-tab${tab === t.id ? " is-on" : ""}`} onClick={() => setTab(t.id)}>
+                {t.id === "symbol" ? <span className="p2-tab-glyph" aria-hidden="true">{symbolIcon}</span> : <t.Icon />}
+              </button>
             ))}
           </div>
 
           <div className="propis2-dock-body">
-          {tab === "symbol" && <Propis2Carousel topicRecord={topicRecord} onTap={tapTile} ruling={page.ruling} />}
+            {tab === "symbol" && <Propis2Carousel topicRecord={topicRecord} onTap={tapTile} ruling={page.ruling} />}
 
-          {tab === "word" && (
-            <div className="propis2-typed" data-testid="propis2-tab-word">
-              <input value={draftWord} onChange={(e) => setDraftWord(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addTyped("text", draftWord, setDraftWord); }} placeholder="слог или слово: ма, мама, шар…" aria-label="Слово или слог" />
-              <Button onClick={() => addTyped("text", draftWord, setDraftWord)} disabled={!draftWord.trim()}>+ Строка</Button>
-              <Button onClick={() => addRow({ kind: "blank" })}>+ Пустая строка</Button>
-            </div>
-          )}
+            {tab === "word" && (
+              <div className="propis2-typed" data-testid="propis2-tab-word">
+                <input value={draftWord} onChange={(e) => setDraftWord(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addTyped("text", draftWord, setDraftWord); }} aria-label="Слово или слог" />
+                <IconBtn label="+ Строка" onClick={() => addTyped("text", draftWord, setDraftWord)} disabled={!draftWord.trim()} className="p2-ib--primary"><I.IconAddRow /></IconBtn>
+                <IconBtn label="+ Пустая строка" onClick={() => addRow({ kind: "blank" })}><I.IconAddBlank /></IconBtn>
+              </div>
+            )}
 
-          {tab === "text" && (
-            <div className="propis2-typed" data-testid="propis2-tab-text">
-              <textarea value={draftText} rows={2} onChange={(e) => setDraftText(e.target.value)} placeholder="Текст целиком: он разобьётся по строкам листа" aria-label="Текст для страницы" />
-              <Button onClick={() => addTyped("passage", draftText, setDraftText)} disabled={!draftText.trim()}>+ Текст</Button>
-            </div>
-          )}
+            {tab === "text" && (
+              <div className="propis2-typed" data-testid="propis2-tab-text">
+                <textarea value={draftText} rows={2} onChange={(e) => setDraftText(e.target.value)} aria-label="Текст для страницы" />
+                <IconBtn label="+ Текст" onClick={() => addTyped("passage", draftText, setDraftText)} disabled={!draftText.trim()} className="p2-ib--primary"><I.IconAddText /></IconBtn>
+              </div>
+            )}
           </div>
         </div>
       </div>
