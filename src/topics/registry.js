@@ -17,6 +17,7 @@ import PhoneticAnalysisRenderer      from "./renderers/phonetic_analysis/index.j
 import WordAgreementRenderer        from "./renderers/word_agreement/index.jsx";
 import SpatialPrepositionsRenderer  from "./renderers/spatial_prepositions/index.jsx";
 import PropisRenderer               from "./renderers/propis/index.jsx";
+import Propis2Renderer              from "./renderers/propis2/index.jsx";
 import MyPeopleRenderer             from "./renderers/my_people/index.jsx";
 import DailyOrientationRenderer     from "./renderers/daily_orientation/index.jsx";
 
@@ -40,6 +41,7 @@ export const RENDERER_REGISTRY = {
   word_agreement:        WordAgreementRenderer,
   spatial_prepositions:  SpatialPrepositionsRenderer,
   propis:                PropisRenderer,
+  propis2:               Propis2Renderer,
   my_people:             MyPeopleRenderer,
   daily_orientation:     DailyOrientationRenderer,
 };

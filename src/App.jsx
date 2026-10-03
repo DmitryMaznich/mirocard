@@ -29,6 +29,7 @@ import TextPickerScreen from "@/features/reading/TextPickerScreen";
 import AllTextsScreen from "@/features/reading/AllTextsScreen";
 import ModePickerScreen from "@/features/home/ModePickerScreen";
 import ParamsScreen from "@/features/session/ParamsScreen";
+import Propis2Home from "@/features/propis2/Propis2Home";
 import ConceptPickerScreen from "@/features/session/ConceptPickerScreen";
 import SessionScreen from "@/features/session/SessionScreen";
 import SessionSummary from "@/features/session/SessionSummary";
@@ -73,6 +74,15 @@ class ErrorBoundary extends Component {
   }
 }
 
+// «Прописи 2» owns its home screen (the page constructor); every other topic keeps the generic
+// settings screen.
+function ParamsRoute() {
+  const activeTopicId = useAppStore((s) => s.activeTopicId);
+  const topicRecords = useAppStore((s) => s.topicRecords);
+  const renderer = topicRecords.find((r) => r.meta.id === activeTopicId)?.meta.renderer;
+  return renderer === "propis2" ? <Propis2Home /> : <ParamsScreen />;
+}
+
 const SCREENS = {
   boot: BootScreen,
   login: LoginScreen,
@@ -90,7 +100,7 @@ const SCREENS = {
   texts: TextPickerScreen,
   all_texts: AllTextsScreen,
   modes: ModePickerScreen,
-  params: ParamsScreen,
+  params: ParamsRoute,
   concepts: ConceptPickerScreen,
   session: SessionScreen,
   summary: SessionSummary,

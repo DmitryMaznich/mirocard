@@ -1,6 +1,7 @@
 import { buildRecipesTopicRecord } from "./builtinRecipesTopic.js";
 import { buildMyPeopleTopicRecord } from "./builtinMyPeopleTopic.js";
 import { buildDailyOrientationTopicRecord } from "./builtinDailyOrientationTopic.js";
+import { buildPropis2TopicRecord } from "./builtinPropis2Topic.js";
 
 export const BUILTIN_TOPICS = [
   buildDailyOrientationTopicRecord(),
@@ -42,6 +43,7 @@ export const BUILTIN_TOPICS = [
   },
   buildMyPeopleTopicRecord(),
   buildRecipesTopicRecord(),
+  buildPropis2TopicRecord(),
 ];
 
 export const BUILTIN_TOPIC_IDS = new Set(BUILTIN_TOPICS.map((t) => t.meta.id));

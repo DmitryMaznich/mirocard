@@ -1,0 +1,9 @@
+.propis2-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; max-width: 720px; margin: 0 auto; width: 100%; }
+.propis2-field { display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+.propis2-field--inline { flex-direction: row; align-items: center; gap: 8px; font-weight: 500; }
+.propis2-rows { list-style: decimal inside; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.propis2-rows li { display: flex; gap: 8px; align-items: center; }
+.propis2-rows input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid #d8d2c4; border-radius: 8px; font: inherit; }
+.propis2-rows button { border: none; background: transparent; font-size: 1rem; cursor: pointer; padding: 6px 10px; }
+.propis2-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.propis2-view { position: fixed; inset: 0; z-index: 50; background: #fffdf8; }

@@ -4,6 +4,7 @@
 export const CATALOG_CATEGORIES = {
   letter_writing:           "Чтение",
   propis:                   "Чтение",
+  propis2:                  "Чтение",
   reading_dad_poems:        "Чтение",
   reading_dad_instructions: "Чтение",
   sentence_puzzle:          "Чтение",
