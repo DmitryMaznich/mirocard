@@ -165,3 +165,15 @@ export function analyzePage(page, glyphMap) {
     problems: rows.filter((r) => r.unsupported.length || r.overflow).length,
   };
 }
+
+// The word under a tap: `rowWord` is the placed row's text (words separated by spaces, possibly the
+// same word repeated across the line), `localX` the tap position in the row's own units. Word k is
+// where the line written up to word k has not yet reached the tap.
+export function pickFragment(rowWord, localX, glyphMap, ruling = "narrow") {
+  const words = String(rowWord ?? "").split(/\s+/).filter(Boolean);
+  if (words.length <= 1) return words[0] ?? "";
+  for (let k = 0; k < words.length; k += 1) {
+    if (lineWidth(words.slice(0, k + 1).join(" "), glyphMap, ruling) >= localX - 6) return words[k];
+  }
+  return words[words.length - 1];
+}

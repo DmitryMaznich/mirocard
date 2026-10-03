@@ -13,6 +13,8 @@ import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
+SVGElement.prototype.getTotalLength ??= () => 100;
+SVGElement.prototype.getPointAtLength ??= () => ({ x: 0, y: 0 });
 window.matchMedia ??= () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
 
 // The installed record as the deck builder makes it (topic.json + merged tools/propis data).
@@ -151,4 +153,46 @@ describe("Прописи 2 (zip topic)", () => {
     await act(async () => { root.unmount(); await tick(500); });
     host.remove();
   });
+
+  it("tap on a row opens the show panel (repeat, slow, close) and closing keeps the page you were on", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
+
+    // a page long enough for two screens: pick the ready sheet (12 rows) and add more rows
+    const select = host.querySelector('[aria-label="Готовый набор"]');
+    await act(async () => { select.value = "part1"; select.dispatchEvent(new Event("change", { bubbles: true })); await tick(); });
+    await click(btn("Показать как ученику"));
+    expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
+    expect(host.querySelector('[data-testid="propis2-panel"]')).toBeNull();
+
+    const counterBefore = host.querySelector(".propis-text-nav__counter").textContent;
+    await click(host.querySelector('[aria-label="Следующая страница"]'));
+    const counterAfter = host.querySelector(".propis-text-nav__counter").textContent;
+    expect(counterAfter).not.toBe(counterBefore);
+
+    await click(host.querySelector(".propis-text-word-hit"));
+    const panel = host.querySelector('[data-testid="propis2-panel"]');
+    expect(panel).not.toBeNull();
+    expect(panel.querySelector("svg")).not.toBeNull();
+    // only one animation at a time: the page behind shows no inline animation
+    expect(host.querySelectorAll('[data-testid="propis2-view"] > .propis-practice-stage [data-pr-anim]')).toHaveLength(0);
+
+    const slow = btn("Медленно");
+    await click(slow);
+    expect(btn("Обычная скорость")).toBeTruthy();
+    await click(btn("Повтор"));
+    expect(host.querySelector('[data-testid="propis2-panel"]')).not.toBeNull();
+
+    await click(btn("Закрыть"));
+    expect(host.querySelector('[data-testid="propis2-panel"]')).toBeNull();
+    expect(host.querySelector(".propis-text-nav__counter").textContent).toBe(counterAfter);
+
+    await act(async () => { root.unmount(); await tick(100); });
+    host.remove();
+  }, 40000);
 });

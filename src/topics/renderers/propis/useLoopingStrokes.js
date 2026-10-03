@@ -15,7 +15,9 @@ import { SPEED, easeInOut } from "./propisRuling.js";
 // LoopingLetterCell (one letter's own strokes) and WordAnimatedCard (a whole word's
 // already-assembled stroke list) — the two differ only in how they position/scale their
 // own <g>, not in how the draw animation itself runs.
-export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, loopPauseMs = 1400 } = {}) {
+export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, loopPauseMs = 1400, speedFactor = 1 } = {}) {
+  const speedRef = useRef(speedFactor);
+  speedRef.current = speedFactor; // read per stroke, so "slow" applies without restarting
   const rafRef = useRef(null);
   const timersRef = useRef([]);
   const lensRef = useRef([]);
@@ -81,7 +83,7 @@ export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, lo
     const el = g.querySelector(`[data-pr-anim="${idx}"]`);
     if (!el) { onDone(); return; }
     const len = lensRef.current[idx];
-    const dur = (len / SPEED) * 1000;
+    const dur = (len / (SPEED * (speedRef.current || 1))) * 1000;
     const t0 = performance.now();
 
     function frame(now) {

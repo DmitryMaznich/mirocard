@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, pageToLines, rowToLine, wrapPassage } from "./model.js";
+import { analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, pageToLines, pickFragment, rowToLine, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -88,5 +88,14 @@ describe("propis2 model", () => {
     expect(next.rows.map((r) => r.id).some((id) => src.rows.some((r) => r.id === id))).toBe(false);
     expect(src.rows.filter((r) => r.marked)).toHaveLength(2);
     expect(pageFromMarked(newPage("пусто"))).toBeNull();
+  });
+
+  it("picks the tapped word of a row (first word for a single word or an unmeasured tap)", () => {
+    expect(pickFragment("кот", 500, map)).toBe("кот");
+    expect(pickFragment("кот кот кот", 0, map)).toBe("кот");
+    const line = "мама мыла раму";
+    expect(pickFragment(line, 0, map)).toBe("мама");
+    expect(pickFragment(line, 100000, map)).toBe("раму");
+    expect(pickFragment("", 5, map)).toBe("");
   });
 });

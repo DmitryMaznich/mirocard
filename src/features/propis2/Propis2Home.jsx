@@ -3,10 +3,11 @@ import { useAppStore } from "@/core/store";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
-import { newId, newPage, pageFromLines, pageFromMarked, pageToLines } from "@/topics/renderers/propis2/model.js";
+import { newId, newPage, pageFromLines, pageFromMarked, pageToLines, pickFragment } from "@/topics/renderers/propis2/model.js";
 import { emptyLibrary, loadLibrary, removePage, saveLibrary, upsertPage } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
+import Propis2ShowPanel from "./Propis2ShowPanel";
 import "./propis2.css";
 
 // Home screen of «Прописи 2»: library -> editor -> student view. Pages live in IndexedDB on this
@@ -18,6 +19,7 @@ export default function Propis2Home({ db }) {
   const [library, setLibrary] = useState(emptyLibrary);
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState({ name: "library" });
+  const [fragment, setFragment] = useState(null);
   const saveTimer = useRef(null);
   const latest = useRef(library);
   latest.current = library;
@@ -50,7 +52,14 @@ export default function Propis2Home({ db }) {
     const task = buildPageTask({ topicRecord, lines: pageToLines(page, glyphMap), narrowRows: page.ruling === "narrow" });
     return (
       <div className="propis2-view" data-testid="propis2-view">
-        <PrintPageView task={task} onClose={() => setView({ name: view.from ?? "library", pageId: view.pageId })} />
+        <PrintPageView
+          task={task}
+          onClose={() => { setFragment(null); setView({ name: view.from ?? "library", pageId: view.pageId }); }}
+          onFragmentTap={({ row, localX }) => setFragment(pickFragment(row.word, localX, glyphMap, page.ruling))}
+        />
+        {fragment && (
+          <Propis2ShowPanel fragment={fragment} topicRecord={topicRecord} ruling={page.ruling} onClose={() => setFragment(null)} />
+        )}
       </div>
     );
   }

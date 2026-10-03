@@ -33,10 +33,10 @@ const TIP_PATHS = {
 // moving pen-tip dot. No <svg>/viewBox of its own — the caller positions it (a plain <g>
 // inside its own coordinate space): WordAnimatedCard.jsx wraps it in a per-word <svg>,
 // WriteTextView.jsx wraps it in a <g transform> inside its shared multi-row grid <svg>.
-export default function AnimatedStrokes({ trajectory, delayMs = 200, loopPauseMs = 1400, tipSize = "normal" }) {
+export default function AnimatedStrokes({ trajectory, delayMs = 200, loopPauseMs = 1400, tipSize = "normal", speedFactor = 1 }) {
   const gRef = useRef(null);
   const dependencyKey = trajectory.strokes.map((s) => s.d).join("|");
-  useLoopingStrokes(gRef, dependencyKey, { delayMs, loopPauseMs });
+  useLoopingStrokes(gRef, dependencyKey, { delayMs, loopPauseMs, speedFactor });
 
   return (
     <g ref={gRef}>

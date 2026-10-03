@@ -188,7 +188,10 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 // instead of the standard set (see its own comment) -- that one axis genuinely does need to
 // differ, since the standard 20mm spacing is too sparse for a single narrow element's own
 // ink to ever cross a slant guide at all.
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, wideRows = false, narrowRows = false }) {
+// `onFragmentTap` (optional, «Прописи 2»): tap reports the row and the tap's x inside it instead of toggling the
+// inline animation. `crop` (optional): show only a window of the page (the show panel's single row).
+// `speedFactor` slows/speeds the pen animation.
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, useElements, wideRows = false, narrowRows = false }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
   const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
@@ -204,7 +207,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
   return (
     <svg
       className="propis-print-page-svg"
-      viewBox={`0 0 ${PAGE_W_UNITS} ${PAGE_H_UNITS}`}
+      viewBox={crop ? `${crop.x} ${crop.y} ${crop.w} ${crop.h}` : `0 0 ${PAGE_W_UNITS} ${PAGE_H_UNITS}`}
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
@@ -283,7 +286,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
         // state either, unlike a cursive/text row which keeps both.
         const isElementRow = p.segments.some((seg) => seg.type === "element");
         // "Широкая строка" rows are tappable too: tap plays the pen animation (seg.trajectory).
-        const tappable = onToggleActive && (!isElementRow || wideRows);
+        const tappable = (onToggleActive || onFragmentTap) && (!isElementRow || wideRows);
         const isActive = tappable ? i === activeIndex : false;
         // Snap the element's own start point onto the nearest dense-diagonal grid line (see
         // nearestDiagonalX's own comment) -- shifts the WHOLE row (primary + every repeat
@@ -305,14 +308,26 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
               <rect
                 className="propis-text-word-hit"
                 x={-4} y={NATIVE_L3 - TEXT_ROW_PITCH / 2} width={p.segments.reduce((s, seg) => s + seg.width, 0) + 8} height={TEXT_ROW_PITCH}
-                onClick={() => onToggleActive(i)}
+                onClick={(e) => {
+                  if (!onFragmentTap) { onToggleActive(i); return; }
+                  // tap x in the row's own units (the rect sits inside the row's translated <g>)
+                  const svg = e.currentTarget.ownerSVGElement;
+                  const ctm = e.currentTarget.getScreenCTM?.();
+                  let localX = 0;
+                  if (svg?.createSVGPoint && ctm) {
+                    const pt = svg.createSVGPoint();
+                    pt.x = e.clientX; pt.y = e.clientY;
+                    localX = pt.matrixTransform(ctm.inverse()).x;
+                  }
+                  onFragmentTap({ row: p, index: i, localX });
+                }}
               />
             )}
             {p.segments.map((seg, si) =>
               seg.type === "cursive" ? (
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} />
                   ) : (
                     seg.trajectory.strokes.map((s, ssi) => (
                       <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -335,7 +350,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, useElements, 
                 // several disconnected pen-lifts, each needing its own "start here" mark.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive && seg.trajectory ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} />
                   ) : seg.strokes.map((s, ssi) => (
                     // dashed copies fade out along the row (wordEngine WIDE_FADE_END_X); a fully faded one keeps only its start dot
                     s.opacity !== undefined && s.opacity <= 0.02 ? null : (
@@ -562,7 +577,9 @@ function wideSnapX(rowIndex, x, y) {
   return wideLineX(k, y) - contentXUnits;
 }
 
-export default function PrintPageView({ task, onClose }) {
+// Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
+// no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
+export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, speedFactor = 1 }) {
   const lettersByLabel = useMemo(() => {
     const map = new Map();
     for (const item of task?.letters ?? []) map.set(item.label ?? item.id, item);
@@ -620,8 +637,8 @@ export default function PrintPageView({ task, onClose }) {
   const pages = useMemo(() => paginateRows(layout, wideRows ? WIDE_ROWS_PER_PAGE : PRINT_ROWS_PER_PAGE), [layout, wideRows]);
 
   const [pageIndex, setPageIndex] = useState(0);
-  const [activeIndex, setActiveIndex] = useState(null);
-  useEffect(() => setActiveIndex(null), [pageIndex]);
+  const [activeIndex, setActiveIndex] = useState(focus ? 0 : null);
+  useEffect(() => setActiveIndex(focus ? 0 : null), [pageIndex, focus]);
   // pages.length only shrinks if the task itself changes (new session) — clamp defensively
   // rather than let a stale pageIndex point past the end.
   useEffect(() => { if (pageIndex > pages.length - 1) setPageIndex(0); }, [pages.length, pageIndex]);
@@ -633,6 +650,42 @@ export default function PrintPageView({ task, onClose }) {
 
   const canPrev = pageIndex > 0;
   const canNext = pageIndex < pages.length - 1;
+
+  // `focus`: a window on the first row only (the show panel): ruling lines of that row, the sample, room for
+  // ascenders/descenders and a margin to the right of the sample.
+  const focusCrop = (() => {
+    if (!focus) return null;
+    const first = (pages[0] ?? [])[0];
+    if (!first) return null;
+    const { contentXUnits } = slotGeometry(0, wideRows);
+    const row = wideRows ? first.rowIndex + 1 : first.rowIndex;
+    const widthUnits = first.segments.reduce((sum, seg) => sum + seg.width, 0);
+    const w = Math.max(360, contentXUnits + first.x + widthUnits + 80);
+    if (narrowRows) return { x: 0, y: rowOriginY(row) + NARROW_GUIDE_LOCAL - 30, w, h: WIDE_BAND_BOTTOM_LOCAL - NARROW_GUIDE_LOCAL + 75 };
+    return { x: 0, y: wideBandTop(row) - 30, w, h: wideBandHeight + 75 };
+  })();
+
+  if (bare) {
+    return (
+      <div className="propis-practice-stage propis-practice-stage--bare">
+        <div className="propis-print-frame">
+          <div className="propis-print-page-wrap">
+            <PrintPage
+              page={pages[0] ?? []}
+              pageIndex={0}
+              activeIndex={focus ? 0 : activeIndex}
+              onToggleActive={() => {}}
+              crop={focusCrop}
+              speedFactor={speedFactor}
+              useElements={useElements}
+              wideRows={wideRows}
+              narrowRows={narrowRows}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="propis-practice-stage">
@@ -652,6 +705,8 @@ export default function PrintPageView({ task, onClose }) {
                   pageIndex={pageIndex}
                   activeIndex={activeIndex}
                   onToggleActive={(i) => setActiveIndex((cur) => (cur === i ? null : i))}
+                  onFragmentTap={onFragmentTap}
+                  speedFactor={speedFactor}
                   useElements={useElements}
                   wideRows={wideRows}
                   narrowRows={narrowRows}
