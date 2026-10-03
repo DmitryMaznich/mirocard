@@ -30,6 +30,7 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     useElements,
     elements: topicRecord?.elements ?? [],
     wideRows: true,
+    exactPages: true,
     narrowRows,
     wideGlyphs: topicRecord?.wide ?? [],
     wideElementRepeat: topicRecord?.wideElementRepeat ?? {},

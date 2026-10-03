@@ -1574,9 +1574,11 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
 // a "sheet" is the real unit, not a single page; content that doesn't fill even the first
 // page still gets a second, blank one (just the ruling + margin), and content needing a 3rd
 // page always gets a 4th too, rather than leaving an odd sheet half-used.
-export function paginateRows(layout, rowsPerPage) {
-  const neededPages = Math.max(2, Math.ceil(layout.rowCount / rowsPerPage));
-  const pageCount = neededPages % 2 === 0 ? neededPages : neededPages + 1;
+export function paginateRows(layout, rowsPerPage, { exact = false } = {}) {
+  // v1 default: at least 2 pages, always even (double-sided print). `exact` (Прописи 2): just what's needed.
+  const needed = Math.ceil(layout.rowCount / rowsPerPage);
+  const neededPages = exact ? Math.max(1, needed) : Math.max(2, needed);
+  const pageCount = exact || neededPages % 2 === 0 ? neededPages : neededPages + 1;
   const pages = Array.from({ length: pageCount }, () => []);
   for (const p of layout.placed) {
     const pageIndex = Math.floor(p.rowIndex / rowsPerPage);

@@ -327,7 +327,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
               seg.type === "cursive" ? (
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize={crop ? "normal" : "large"} speedFactor={speedFactor} />
                   ) : (
                     seg.trajectory.strokes.map((s, ssi) => (
                       <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -350,7 +350,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
                 // several disconnected pen-lifts, each needing its own "start here" mark.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive && seg.trajectory ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize={crop ? "normal" : "large"} speedFactor={speedFactor} />
                   ) : seg.strokes.map((s, ssi) => (
                     // dashed copies fade out along the row (wordEngine WIDE_FADE_END_X); a fully faded one keeps only its start dot
                     s.opacity !== undefined && s.opacity <= 0.02 ? null : (
@@ -634,7 +634,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
     [wideRows, narrowRows, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
-  const pages = useMemo(() => paginateRows(layout, wideRows ? WIDE_ROWS_PER_PAGE : PRINT_ROWS_PER_PAGE), [layout, wideRows]);
+  const pages = useMemo(() => paginateRows(layout, wideRows ? WIDE_ROWS_PER_PAGE : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) }), [layout, wideRows, task?.exactPages]);
 
   const [pageIndex, setPageIndex] = useState(0);
   const [activeIndex, setActiveIndex] = useState(focus ? 0 : null);
@@ -660,7 +660,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
     const { contentXUnits } = slotGeometry(0, wideRows);
     const row = wideRows ? first.rowIndex + 1 : first.rowIndex;
     const widthUnits = first.segments.reduce((sum, seg) => sum + seg.width, 0);
-    const w = Math.max(360, contentXUnits + first.x + widthUnits + 80);
+    const w = Math.max(260, contentXUnits + first.x + widthUnits + 80);
     if (narrowRows) return { x: 0, y: rowOriginY(row) + NARROW_GUIDE_LOCAL - 30, w, h: WIDE_BAND_BOTTOM_LOCAL - NARROW_GUIDE_LOCAL + 75 };
     return { x: 0, y: wideBandTop(row) - 30, w, h: wideBandHeight + 75 };
   })();
