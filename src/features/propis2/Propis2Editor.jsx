@@ -298,7 +298,6 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
             {draftWord.trim() && (
               <button type="button" className="propis2-tile propis2-tile--typed" onPointerDown={(e) => startDrag(typedTile("text", draftWord), e)} onDragStart={(e) => e.preventDefault()} aria-label="Перетащите слово на строку">
                 <TileGlyph tile={typedTile("text", draftWord)} size={52} />
-                <span className="propis2-tile-caption">перетащите</span>
               </button>
             )}
             <Button onClick={() => addRow({ kind: "blank" })}>+ Пустая строка</Button>
@@ -312,7 +311,6 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
             {draftText.trim() && (
               <button type="button" className="propis2-tile propis2-tile--typed" onPointerDown={(e) => startDrag(typedTile("passage", draftText), e)} onDragStart={(e) => e.preventDefault()} aria-label="Перетащите текст на строку">
                 <TileGlyph tile={typedTile("passage", draftText)} size={52} />
-                <span className="propis2-tile-caption">перетащите</span>
               </button>
             )}
           </div>
