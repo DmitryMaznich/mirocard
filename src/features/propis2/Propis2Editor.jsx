@@ -3,6 +3,7 @@ import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { ROW_KINDS, ROW_MARKS, RULINGS, analyzePage, duplicateRow, moveRow, newRow } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap, listElementChoices } from "@/topics/renderers/propis2/pageTask.js";
+import Propis2Preview from "./Propis2Preview";
 
 // The page constructor: title, ruling, rows (kind / text-or-element / mark), live warnings.
 // The page is saved by the parent on every change (autosave); nothing is ever dropped silently.
@@ -11,6 +12,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const elementChoices = useMemo(() => listElementChoices(topicRecord), [topicRecord]);
   const analysis = useMemo(() => analyzePage(page, glyphMap), [page, glyphMap]);
   const focusRef = useRef(null);
+  const [previewOpen, setPreviewOpen] = useState(true);
   const [focusIndex, setFocusIndex] = useState(null);
 
   useEffect(() => {
@@ -30,6 +32,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
         <button className="back-btn" onClick={onBack}><BackArrowIcon /></button>
         <h1 className="screen-title">Страница</h1>
       </div>
+      <div className="propis2-editor-layout">
       <div className="propis2-body">
         <label className="propis2-field">
           Название
@@ -100,7 +103,14 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           <Button onClick={addRow}>+ Строка</Button>
           <Button onClick={onShow}>Показать как ученику</Button>
           <Button onClick={onFromMarked} disabled={markedCount === 0}>Страница из отмеченного{markedCount ? ` (${markedCount})` : ""}</Button>
+          <Button onClick={() => setPreviewOpen((v) => !v)} aria-pressed={previewOpen}>{previewOpen ? "Скрыть предпросмотр" : "Показать предпросмотр"}</Button>
         </div>
+      </div>
+      {previewOpen && (
+        <aside className="propis2-preview-col">
+          <Propis2Preview page={page} topicRecord={topicRecord} />
+        </aside>
+      )}
       </div>
     </div>
   );

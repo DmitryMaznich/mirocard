@@ -37,3 +37,16 @@
 .propis2-panel-stage .propis-print-page-wrap { padding: 0; background: transparent; overflow: visible; touch-action: auto; }
 .propis2-panel-stage .propis-print-page-svg { aspect-ratio: auto; width: 100%; height: auto; max-height: 55vh; box-shadow: none; border: 1px solid #e6e0d2; border-radius: 8px; }
 .propis2-h2 { font-size: 1.05rem; margin: 8px 0 0; }
+.propis2-editor-layout { display: flex; flex-direction: column; gap: 12px; }
+.propis2-editor-layout .propis2-body { max-width: none; }
+.propis2-preview-col { padding: 0 16px 16px; }
+.propis2-preview { border-radius: 12px; overflow: hidden; background: #cabfa9; }
+.propis2-preview .propis-practice-stage { position: static; inset: auto; height: auto; background: transparent; touch-action: auto; }
+.propis2-preview .propis-print-frame { height: auto; background: transparent; }
+.propis2-preview .propis-print-page-wrap { padding: 8px; background: transparent; overflow: visible; touch-action: auto; }
+.propis2-preview .propis-print-page-svg { max-height: 78vh; }
+@media (min-width: 900px) {
+  .propis2-editor-layout { flex-direction: row; align-items: flex-start; }
+  .propis2-editor-layout .propis2-body { flex: 1 1 52%; min-width: 0; }
+  .propis2-preview-col { flex: 1 1 48%; position: sticky; top: 8px; padding: 16px 16px 16px 0; }
+}

@@ -666,15 +666,17 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   })();
 
   if (bare) {
+    // `bare` without `focus` is the editor's live preview: the page as printed, with a small page switcher.
+    const shownIndex = focus ? 0 : Math.min(pageIndex, Math.max(0, pages.length - 1));
     return (
       <div className="propis-practice-stage propis-practice-stage--bare">
         <div className="propis-print-frame">
           <div className="propis-print-page-wrap">
             <PrintPage
-              page={pages[0] ?? []}
-              pageIndex={0}
-              activeIndex={focus ? 0 : activeIndex}
-              onToggleActive={() => {}}
+              page={pages[shownIndex] ?? []}
+              pageIndex={shownIndex}
+              activeIndex={focus ? 0 : null}
+              onToggleActive={focus ? () => {} : null}
               crop={focusCrop}
               speedFactor={speedFactor}
               useElements={useElements}
@@ -682,6 +684,13 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               narrowRows={narrowRows}
             />
           </div>
+          {!focus && pages.length > 1 && (
+            <div className="propis-text-nav">
+              <button type="button" className="propis-ctrl-btn" onClick={() => setPageIndex((i) => Math.max(0, i - 1))} disabled={shownIndex === 0} aria-label="Предыдущая страница предпросмотра">‹</button>
+              <span className="propis-text-nav__counter">Страница {shownIndex + 1} из {pages.length}</span>
+              <button type="button" className="propis-ctrl-btn" onClick={() => setPageIndex((i) => Math.min(pages.length - 1, i + 1))} disabled={shownIndex >= pages.length - 1} aria-label="Следующая страница предпросмотра">›</button>
+            </div>
+          )}
         </div>
       </div>
     );

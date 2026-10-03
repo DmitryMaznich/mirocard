@@ -252,4 +252,32 @@ describe("Прописи 2 (zip topic)", () => {
     await act(async () => { root.unmount(); await tick(500); });
     host.remove();
   }, 40000);
+
+  it("editor shows a live preview that follows the typing and can be hidden", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
+    await click(btn("Новая страница"));
+    const preview = () => host.querySelector('[data-testid="propis2-preview"]');
+    expect(preview()).not.toBeNull();
+    const ink = () => preview().querySelectorAll("svg path").length;
+    const before = ink();
+    await act(async () => {
+      const input = host.querySelector('[aria-label="Содержимое строки 1"]');
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(input, "кот");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await tick(50);
+    });
+    expect(ink()).toBeGreaterThan(before);
+    await click(btn("Скрыть предпросмотр"));
+    expect(preview()).toBeNull();
+    await click(btn("Показать предпросмотр"));
+    expect(preview()).not.toBeNull();
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  }, 40000);
 });
