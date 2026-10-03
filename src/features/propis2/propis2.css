@@ -26,7 +26,7 @@
 .propis2-blank-note { color: #6b7385; align-self: center; }
 .propis2-mark { display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; margin-right: 8px; }
 .propis2-hint { color: #6b7385; font-size: .85rem; margin: 0; }
-.propis2-panel { position: absolute; inset: 0; z-index: 60; background: rgba(20, 24, 33, .45); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.propis2-panel { position: absolute; inset: 0; z-index: 700; /* above v1 .propis-practice-stage (500) */ background: rgba(20, 24, 33, .45); display: flex; align-items: center; justify-content: center; padding: 16px; }
 .propis2-panel-card { background: #fffdf8; border-radius: 16px; width: min(960px, 100%); max-height: 100%; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px calc(14px + var(--app-safe-bottom, 0px)); box-shadow: 0 10px 40px rgba(0,0,0,.25); }
 .propis2-panel-head { display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; }
 .propis2-panel-x { border: none; background: transparent; font-size: 1.3rem; cursor: pointer; padding: 6px 10px; }
