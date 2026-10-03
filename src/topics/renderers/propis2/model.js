@@ -12,10 +12,11 @@ export const RULINGS = [
 ];
 
 // Slant grid, as printed in copybooks: "regular" (редкая, стандартная: a line every 20 mm) and "dense"
-// (частая: every 5 mm). The methodology grid the glyphs snap to is not drawn on these pages.
+// (частая: the step is the distance between the two tops of «и» on the ruling — the methodology cell, 2.5 mm
+// on the narrow row, 5 mm on the wide one).
 export const GRIDS = [
   { id: "regular", label: "Редкая косая линейка (через 20 мм)", short: "Редкая" },
-  { id: "dense", label: "Частая косая линейка (через 5 мм)", short: "Частая" },
+  { id: "dense", label: "Частая косая линейка (шаг — расстояние между вершинами «и»)", short: "Частая" },
 ];
 
 export const ROW_KINDS = [

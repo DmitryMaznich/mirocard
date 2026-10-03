@@ -208,15 +208,21 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   const guideColor = wideRows ? WIDE_GUIDE_COLOR : GUIDE_COLOR;
   const contentRow = (r) => (wideRows ? r + 1 : r);
-  // «Прописи 2»: a plain slant grid replaces the methodology grid (which stays internal: letters still snap to
-  // it, it is just not drawn). Two kinds only: "regular" (a line every 20 mm) and "dense" (every 5 mm).
-  const simpleStep = simpleGrid ? mmToNativeUnits(simpleGrid === "dense" ? 5 : 20) : 0;
+  // «Прописи 2»: a plain slant grid replaces the methodology grid in what is drawn. "dense" (частая) is the
+  // methodology cell itself: the distance between the two tops of the letter «и» on that ruling (2.5 mm on the
+  // narrow row, 5 mm on the wide one), so the letters stand on its lines. "regular" (редкая, стандартная) is a
+  // line every 20 mm: every 8th line of the narrow cell, every 4th of the wide one. Narrow lines are continuous
+  // across rows and exactly on the letters' grid; on the wide ruling the engine restarts the grid in every row,
+  // so the continuous lines match it on the first row only.
+  const simpleCell = narrowRows ? NARROW_CELL : TEXT_ROW_WIDE_DIAGONAL_SPACING;
+  const simpleStep = simpleGrid ? simpleCell * (simpleGrid === "dense" ? 1 : narrowRows ? 8 : 4) : 0;
   const simpleEls = (() => {
     if (!simpleStep) return null;
-    const yRef = narrowYRef();
-    const x = (k, y) => 15 + k * simpleStep + (yRef - y) * WIDE_SLANT_TAN;
-    const kLo = Math.floor((-15 - yRef * WIDE_SLANT_TAN) / simpleStep);
-    const kHi = Math.ceil((PAGE_W_UNITS - 15 - (yRef - PAGE_H_UNITS) * WIDE_SLANT_TAN) / simpleStep);
+    const first = narrowRows ? NARROW_FIRST_X : WIDE_GRID_FIRST_X;
+    const yRef = rowOriginY(1) + WIDE_BAND_BOTTOM_LOCAL;
+    const x = (k, y) => first + k * simpleStep + (yRef - y) * WIDE_SLANT_TAN;
+    const kLo = Math.floor((-first - yRef * WIDE_SLANT_TAN) / simpleStep);
+    const kHi = Math.ceil((PAGE_W_UNITS - first - (yRef - PAGE_H_UNITS) * WIDE_SLANT_TAN) / simpleStep);
     return (
       <g data-simple-grid={simpleGrid}>
         {Array.from({ length: kHi - kLo + 1 }, (_, i) => kLo + i).map((k) => (
