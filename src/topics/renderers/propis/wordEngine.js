@@ -1334,9 +1334,13 @@ const WIDE_MARK_COPY_CELLS = 6;
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1) {
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
   const marks = lines.map((l) => (/#([dc])$/.exec(l) ?? [])[1] ?? null);
-  lines = lines.map((l) => l.replace(/#[dc]$/, ""));
+  // "#1" = write the row exactly once (no multiplying across the line): running text that was wrapped
+  // into rows ends on a one-word row, which must not be repeated to fill the line.
+  const once = lines.map((l) => /#1$/.test(l));
+  lines = lines.map((l) => l.replace(/#[dc1]$/, ""));
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
+      if (once[rowIndex]) return line;
       const toks = line.split(/\s+/).filter(Boolean);
       // the repeating unit: one spelled-out word, or the shortest token group the whole row is made of ("7 | 7 |" -> "7 |")
       const isWord = toks.length === 1 && !glyphsByLabel.has(toks[0]) && wideTokenToLabels(toks[0], glyphsByLabel).length > 1;

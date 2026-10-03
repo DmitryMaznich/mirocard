@@ -6,7 +6,7 @@ import { buildGlyphMap, listElementChoices } from "@/topics/renderers/propis2/pa
 
 // The page constructor: title, ruling, rows (kind / text-or-element / mark), live warnings.
 // The page is saved by the parent on every change (autosave); nothing is ever dropped silently.
-export default function Propis2Editor({ page, topicRecord, onChange, onBack, onShow }) {
+export default function Propis2Editor({ page, topicRecord, onChange, onBack, onShow, onFromMarked }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const elementChoices = useMemo(() => listElementChoices(topicRecord), [topicRecord]);
   const analysis = useMemo(() => analyzePage(page, glyphMap), [page, glyphMap]);
@@ -21,6 +21,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
 
   const setRows = (rows) => onChange({ ...page, rows: rows.length ? rows : [newRow()] });
   const patchRow = (i, patch) => setRows(page.rows.map((r, k) => (k === i ? { ...r, ...patch } : r)));
+  const markedCount = page.rows.filter((r) => r.marked).length;
   const addRow = () => { setRows([...page.rows, newRow()]); setFocusIndex(page.rows.length); };
 
   return (
@@ -41,6 +42,11 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           </select>
         </label>
 
+        <label className="propis2-field propis2-field--inline">
+          <input type="checkbox" checked={Boolean(page.writeAfter)} onChange={(e) => onChange({ ...page, writeAfter: e.target.checked })} aria-label="Строка для письма после каждой строки" />
+          Пустая строка для письма после каждой строки
+        </label>
+
         <ol className="propis2-rows" ref={focusRef}>
           {page.rows.map((row, i) => {
             const a = analysis.rows[i];
@@ -50,7 +56,11 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
                   <select value={row.kind} onChange={(e) => patchRow(i, { kind: e.target.value, text: "" })} aria-label={`Тип строки ${i + 1}`}>
                     {ROW_KINDS.map((k) => <option key={k.id} value={k.id}>{k.label}</option>)}
                   </select>
-                  {row.kind === "element" ? (
+                  {row.kind === "blank" ? (
+                    <span className="propis2-blank-note">Пустая строка — место для письма</span>
+                  ) : row.kind === "passage" ? (
+                    <textarea value={row.text} rows={3} onChange={(e) => patchRow(i, { text: e.target.value })} placeholder="текст — будет разбит на строки по ширине листа" aria-label={`Содержимое строки ${i + 1}`} />
+                  ) : row.kind === "element" ? (
                     <select value={row.text} onChange={(e) => patchRow(i, { text: e.target.value })} aria-label={`Элемент строки ${i + 1}`}>
                       <option value="">— выберите элемент —</option>
                       {elementChoices.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
@@ -58,11 +68,16 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
                   ) : (
                     <input value={row.text} onChange={(e) => patchRow(i, { text: e.target.value })} placeholder="буква, слог, слово…" aria-label={`Содержимое строки ${i + 1}`} />
                   )}
-                  <select value={row.mark} onChange={(e) => patchRow(i, { mark: e.target.value })} aria-label={`Вид строки ${i + 1}`}>
-                    {ROW_MARKS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
-                  </select>
+                  {(row.kind === "text" || row.kind === "element") && (
+                    <select value={row.mark} onChange={(e) => patchRow(i, { mark: e.target.value })} aria-label={`Вид строки ${i + 1}`}>
+                      {ROW_MARKS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+                    </select>
+                  )}
                 </div>
                 <div className="propis2-row-tools">
+                  <label className="propis2-mark" title="Отметить строку для повторения">
+                    <input type="checkbox" checked={Boolean(row.marked)} onChange={(e) => patchRow(i, { marked: e.target.checked })} aria-label={`Повторить строку ${i + 1}`} /> повторить
+                  </label>
                   <button type="button" onClick={() => setRows(moveRow(page.rows, i, -1))} disabled={i === 0} aria-label="Выше">↑</button>
                   <button type="button" onClick={() => setRows(moveRow(page.rows, i, 1))} disabled={i === page.rows.length - 1} aria-label="Ниже">↓</button>
                   <button type="button" onClick={() => setRows(duplicateRow(page.rows, i))} aria-label="Дублировать">⧉</button>
@@ -79,10 +94,12 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           })}
         </ol>
 
+        <p className="propis2-hint">Для повторения отмечаются целые строки (в этой версии — без выбора отдельных фрагментов).</p>
         {analysis.problems > 0 && <div className="propis2-warn propis2-warn--summary">Строк с проблемами: {analysis.problems}</div>}
         <div className="propis2-actions">
           <Button onClick={addRow}>+ Строка</Button>
           <Button onClick={onShow}>Показать как ученику</Button>
+          <Button onClick={onFromMarked} disabled={markedCount === 0}>Страница из отмеченного{markedCount ? ` (${markedCount})` : ""}</Button>
         </div>
       </div>
     </div>

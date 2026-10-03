@@ -18,7 +18,9 @@ export function listElementChoices(topicRecord) {
 // The task object PrintPageView renders (same shape propis/engine.js builds for "read_lines").
 // Wide-row layout only needs the wide glyph bank from the installed deck, no captured-letter cards.
 export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false }) {
-  const clean = (lines ?? []).map((l) => String(l).trim()).filter(Boolean);
+  // Empty strings are blank writing rows and must stay (the engine draws them as empty ruled rows).
+  const clean = (lines ?? []).map((l) => String(l).trim());
+  while (clean.length && clean[clean.length - 1] === "") clean.pop();
   return {
     type: "print_page",
     letters: [],

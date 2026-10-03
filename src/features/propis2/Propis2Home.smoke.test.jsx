@@ -109,4 +109,46 @@ describe("Прописи 2 (zip topic)", () => {
     await act(async () => { root.unmount(); await tick(500); });
     host.remove();
   });
+
+  it("marking rows and creating a repetition page from them; passage and blank rows are accepted", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
+    const setValue = async (el, value, proto = HTMLInputElement.prototype) => {
+      await act(async () => {
+        Object.getOwnPropertyDescriptor(proto, "value").set.call(el, value);
+        el.dispatchEvent(new Event(el.tagName === "SELECT" ? "change" : "input", { bubbles: true }));
+        await tick();
+      });
+    };
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
+
+    await click(btn("Новая страница"));
+    await setValue(host.querySelector('[aria-label="Содержимое строки 1"]'), "а");
+    await click(btn("+ Строка"));
+    await setValue(host.querySelector('[aria-label="Содержимое строки 2"]'), "б");
+    expect(btn("Страница из отмеченного").disabled).toBe(true);
+    await click(host.querySelector('[aria-label="Повторить строку 1"]'));
+    expect(btn("Страница из отмеченного").disabled).toBe(false);
+
+    // a passage row and a blank row are selectable kinds
+    await click(btn("+ Строка"));
+    await setValue(host.querySelector('[aria-label="Тип строки 3"]'), "passage", HTMLSelectElement.prototype);
+    expect(host.querySelector('textarea[aria-label="Содержимое строки 3"]')).not.toBeNull();
+    await setValue(host.querySelector('[aria-label="Тип строки 3"]'), "blank", HTMLSelectElement.prototype);
+    expect(host.textContent).toContain("Пустая строка — место для письма");
+
+    await click(btn("Страница из отмеченного"));
+    expect(host.querySelectorAll(".propis2-rows li")).toHaveLength(1);
+    expect(host.querySelector('[aria-label="Содержимое строки 1"]').value).toBe("а");
+    expect(host.querySelector('[aria-label="Название страницы"]').value).toContain("повторение");
+
+    await click(host.querySelector(".back-btn"));
+    expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(2);
+    await act(async () => { root.unmount(); await tick(500); });
+    host.remove();
+  });
 });

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
-import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
+import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
-import { newId, newPage, pageFromLines, pageToLines } from "@/topics/renderers/propis2/model.js";
+import { newId, newPage, pageFromLines, pageFromMarked, pageToLines } from "@/topics/renderers/propis2/model.js";
 import { emptyLibrary, loadLibrary, removePage, saveLibrary, upsertPage } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
@@ -39,6 +39,7 @@ export default function Propis2Home({ db }) {
 
   const sheets = topicRecord?.wideSheets ?? {};
   const elementLabels = useMemo(() => new Set([...(topicRecord?.elements ?? []).map((e) => e.id), ...(topicRecord?.wide ?? []).filter((g) => g.kind === "element").map((g) => g.label)]), [topicRecord]);
+  const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const page = view.pageId ? library.pages.find((p) => p.id === view.pageId) : null;
 
   const createPage = (p) => { persist(upsertPage(library, p)); setView({ name: "editor", pageId: p.id }); };
@@ -46,7 +47,7 @@ export default function Propis2Home({ db }) {
   if (!loaded) return <div className="screen propis2-home" data-testid="propis2-loading" />;
 
   if (view.name === "show" && page) {
-    const task = buildPageTask({ topicRecord, lines: pageToLines(page), narrowRows: page.ruling === "narrow" });
+    const task = buildPageTask({ topicRecord, lines: pageToLines(page, glyphMap), narrowRows: page.ruling === "narrow" });
     return (
       <div className="propis2-view" data-testid="propis2-view">
         <PrintPageView task={task} onClose={() => setView({ name: view.from ?? "library", pageId: view.pageId })} />
@@ -62,6 +63,10 @@ export default function Propis2Home({ db }) {
         onChange={(next) => persist(upsertPage(library, next))}
         onBack={() => setView({ name: "library" })}
         onShow={() => setView({ name: "show", pageId: page.id, from: "editor" })}
+        onFromMarked={() => {
+          const next = pageFromMarked(page);
+          if (next) createPage(next);
+        }}
       />
     );
   }

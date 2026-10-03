@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageToLines, rowToLine } from "./model.js";
+import { analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, pageToLines, rowToLine, wrapPassage } from "./model.js";
+import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
 function record() {
@@ -52,5 +53,40 @@ describe("propis2 model", () => {
     expect(analyzeRow(newRow({ text: "молоко молоко молоко молоко молоко молоко" }), map, "narrow").overflow).toBe(true);
     const page = newPage("p", { rows: [newRow({ text: "кот" }), newRow({ text: "кот!" })] });
     expect(analyzePage(page, map).problems).toBe(1);
+  });
+
+  it("wraps running text into rows that fit, writes each wrapped line once, drops nothing", () => {
+    const text = "мама мыла раму папа читал книгу кот спит на окне";
+    const lines = wrapPassage(text, map, "narrow");
+    expect(lines.length).toBeGreaterThan(1);
+    expect(lines.join(" ")).toBe(text);
+    for (const l of lines) expect(analyzeRow(newRow({ text: l }), map, "narrow").overflow).toBe(false);
+    const page = newPage("t", { rows: [newRow({ kind: "passage", text })] });
+    const out = pageToLines(page, map);
+    expect(out.every((l) => l.endsWith("#1"))).toBe(true);
+    expect(out.map((l) => l.replace(/#1$/, "")).join(" ")).toBe(text);
+    // a single wrapped word is not multiplied across the row
+    const { placed } = layoutWideLinesIntoRows(["кот#1", "кот"], map, undefined, true, 0.5);
+    expect(placed[0].word.split(/\s+/).length).toBe(1);
+    expect(placed[1].word.split(/\s+/).length).toBeGreaterThan(1);
+  });
+
+  it("blank rows and the write-after option become empty ruled rows, numbered the same everywhere", () => {
+    const rows = [newRow({ text: "Н", mark: "d" }), newRow({ kind: "blank" }), newRow({ text: "кот" })];
+    expect(pageToLines(newPage("a", { rows }), map)).toEqual(["Н#d", "", "кот"]);
+    expect(pageToLines(newPage("a", { rows, writeAfter: true }), map)).toEqual(["Н#d", "", "", "кот", ""]);
+    const { placed } = layoutWideLinesIntoRows(["кот", "", "кот"], map, undefined, true, 0.5);
+    expect(placed.map((p) => p.segments.length)).toEqual([1, 0, 1]);
+  });
+
+  it("builds a new editable page from the rows marked for repetition (copies, source untouched)", () => {
+    const src = newPage("Урок", { rows: [newRow({ text: "а", marked: true }), newRow({ text: "б" }), newRow({ text: "в", marked: true })] });
+    const next = pageFromMarked(src);
+    expect(next.title).toBe("Урок: повторение");
+    expect(next.rows.map((r) => r.text)).toEqual(["а", "в"]);
+    expect(next.rows.every((r) => !r.marked)).toBe(true);
+    expect(next.rows.map((r) => r.id).some((id) => src.rows.some((r) => r.id === id))).toBe(false);
+    expect(src.rows.filter((r) => r.marked)).toHaveLength(2);
+    expect(pageFromMarked(newPage("пусто"))).toBeNull();
   });
 });
