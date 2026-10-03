@@ -3,7 +3,7 @@ import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
 import { PRINT_PAGE_H_MM, PRINT_PAGE_W_MM } from "@/topics/renderers/propis/propisRuling.js";
-import { GRIDS, GRID_KINDS, ROWS_PER_PAGE, ROW_MARKS, RULINGS, analyzePage, appendTile, duplicateRow, lineOwners, moveRow, newRow, pageGridKind, tapSymbol } from "@/topics/renderers/propis2/model.js";
+import { GRIDS, GRID_KINDS, ROWS_PER_PAGE, ROW_MARKS, RULINGS, analyzePage, appendTile, duplicateRow, lineOwners, moveRow, newRow, pageGridKind, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import Propis2Carousel from "./Propis2Carousel";
 import Propis2Preview from "./Propis2Preview";
@@ -105,11 +105,14 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
     return local < 0 ? -1 : pageIndexRef.current * ROWS_PER_PAGE + local;
   };
 
-  // Tap on the page: select the row under the finger (or clear the selection).
+  // Tap on the page: select the row under the finger; an empty place on the sheet gets a new, empty row (so any ruled
+  // row can be tapped and filled); a tap outside the ruled rows clears the selection.
   const onPageClick = (e) => {
     const abs = rowAtPoint(e.clientX, e.clientY);
-    const owner = abs >= 0 ? owners[abs] : null;
-    setSelectedId(owner != null ? page.rows[owner]?.id ?? null : null);
+    if (abs < 0) { setSelectedId(null); return; }
+    const result = selectRowAt(page, glyphMap, abs);
+    if (result.page !== page) onChange(result.page);
+    setSelectedId(result.rowId);
   };
 
   const applyResult = (result) => {
@@ -178,7 +181,6 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
             писать под каждой строкой
           </label>
           <Button onClick={onFromMarked} disabled={markedCount === 0}>Из отмеченного{markedCount ? ` (${markedCount})` : ""}</Button>
-          {analysis.problems > 0 && <span className="propis2-warn propis2-warn--summary">Строк с проблемами: {analysis.problems}</span>}
         </div>
 
         <div className="propis2-page-col" ref={wrapRef} onClick={onPageClick}>
@@ -188,6 +190,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
         </div>
 
         <div className="propis2-dock">
+          <div className="propis2-dock-bar">
           {selected ? (
             <div className="propis2-dock-row" data-testid="propis2-row-panel">
               {selected.kind === "blank" ? (
@@ -229,6 +232,8 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           ) : (
             <p className="propis2-hint">Нажмите на строку страницы и затем на символ: он попадёт в эту строку. Без выбранной строки символ начнёт новую.</p>
           )}
+          {analysis.problems > 0 && <div className="propis2-warn propis2-warn--summary">Строк с проблемами: {analysis.problems} (подсвечены красным)</div>}
+          </div>
 
           <div className="propis2-tabs" role="tablist" aria-label="Что поставить на страницу">
             {TABS.map((t) => (
@@ -236,6 +241,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
             ))}
           </div>
 
+          <div className="propis2-dock-body">
           {tab === "symbol" && <Propis2Carousel topicRecord={topicRecord} onTap={tapTile} ruling={page.ruling} />}
 
           {tab === "word" && (
@@ -252,6 +258,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
               <Button onClick={() => addTyped("passage", draftText, setDraftText)} disabled={!draftText.trim()}>+ Текст</Button>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>

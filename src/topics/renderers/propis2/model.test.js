@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -12,9 +12,9 @@ function record() {
 const map = buildGlyphMap(record());
 
 describe("propis2 model", () => {
-  it("turns rows into engine lines, dropping empty rows and keeping marks", () => {
+  it("turns rows into engine lines, an empty row is an empty ruled row, marks are kept", () => {
     const page = newPage("Т", { rows: [newRow({ text: " Н " , mark: "d" }), newRow({ text: "" }), newRow({ text: "кот" })] });
-    expect(pageToLines(page)).toEqual(["Н#d", "кот"]);
+    expect(pageToLines(page)).toEqual(["Н#d", "", "кот"]);
     expect(rowToLine(newRow({ text: "а  б", mark: "c" }))).toBe("а б#c");
   });
 
@@ -178,5 +178,29 @@ describe("propis2 model", () => {
     expect(analyzeRow(bad, map, "narrow").outside).toEqual([]);
     const page = newPage("w", { ruling: "wide", rows: [newRow({ text: "мама" }), bad] });
     expect(analyzePage(page, map).problems).toBe(1);
+  });
+
+  it("tap on the sheet: an existing row is selected, an empty place gets a new row (blank rows fill the gap)", () => {
+    const page = newPage("T", { rows: [newRow({ text: "а" })] });
+    const same = selectRowAt(page, map, 0);
+    expect(same.page).toBe(page);
+    expect(same.rowId).toBe(page.rows[0].id);
+    const below = selectRowAt(page, map, 3);
+    expect(below.page.rows).toHaveLength(4);
+    expect(below.page.rows.slice(1, 3).every((r) => r.kind === "blank")).toBe(true);
+    expect(below.page.rows[3].id).toBe(below.rowId);
+    expect(lineOwners(below.page, map)[3]).toBe(3); // the empty row stands on the row that was tapped
+    // an empty page: the first tap on the first row selects the page's own empty row
+    const empty = newPage("E");
+    const first = selectRowAt(empty, map, 0);
+    expect(first.rowId).toBe(empty.rows[0].id);
+    // the writing space under a "write after" row is not a row: nothing is selected, nothing is added
+    const wa = { ...newPage("W", { rows: [newRow({ text: "а" })] }), writeAfter: true };
+    const under = selectRowAt(wa, map, 1);
+    expect(under.page).toBe(wa);
+    expect(under.rowId).toBeNull();
+    // and below it a new row appears on the tapped place
+    const beyond = selectRowAt(wa, map, 4);
+    expect(lineOwners(beyond.page, map)[4]).toBe(beyond.page.rows.length - 1);
   });
 });

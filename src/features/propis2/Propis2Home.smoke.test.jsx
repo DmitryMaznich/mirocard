@@ -10,6 +10,7 @@ import { RENDERER_REGISTRY } from "@/topics/registry";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js";
+import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
@@ -330,6 +331,39 @@ describe("Прописи 2 (zip topic)", () => {
     expect(tabs()).toContain("Заглавные");
     await click(btn("Широкая"));
     expect(tabs()).not.toContain("Заглавные");
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  }, 40000);
+
+  it("a tap on an empty ruled row selects it (it is created), then a symbol goes into it; the panel sizes stay fixed", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el, init = {}) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true, ...init })); await tick(60); }); };
+    await click([...host.querySelectorAll("button")].find((b) => b.textContent.includes("Новая страница")));
+    const preview = () => host.querySelector('[data-testid="propis2-preview"]');
+    const svg = preview().querySelector("svg.propis-print-page-svg");
+    const vbH = Number(svg.getAttribute("viewBox").split(/\s+/)[3]);
+    svg.getBoundingClientRect = () => ({ left: 0, top: 0, right: 400, bottom: vbH, width: 400, height: vbH });
+    const yOfRow = (r) => { let y = 0; while (rowAtSvgY(y) !== r && y < vbH) y += 1; return y + 4; };
+    expect(host.querySelector('[data-testid="propis2-row-panel"]')).toBeNull();
+    const bar = () => host.querySelector(".propis2-dock-bar");
+    const dock = () => host.querySelector(".propis2-dock");
+    expect(bar()).not.toBeNull();
+    // tap row 3 of an empty page: a row is created there and selected
+    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(3) });
+    expect(host.querySelector('[data-testid="propis2-row-panel"]')).not.toBeNull();
+    expect(preview().querySelector('[data-overlay="select"]')).not.toBeNull();
+    await click(host.querySelector('[data-tile="м"]'));
+    expect(host.querySelector('[aria-label="Текст строки"]').value).toBe("м");
+    // the bottom panel is the same box with and without a selected row (its bar and body are separate fixed zones)
+    expect(bar().className).toBe("propis2-dock-bar");
+    expect(dock().querySelector(".propis2-dock-body")).not.toBeNull();
+    // a tap outside the ruled rows clears the selection
+    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: vbH + 500 });
+    expect(host.querySelector('[data-testid="propis2-row-panel"]')).toBeNull();
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);

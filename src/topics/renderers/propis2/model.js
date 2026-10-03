@@ -102,18 +102,21 @@ export function wrapPassage(text, glyphMap, ruling = "narrow") {
 
 // Rows -> engine lines, in order. Row numbers on screen and on paper count this same list:
 // sample rows, wrapped text lines (each written once, "#1"), blank writing rows ("" is a ruled
-// empty row for the engine) and, when page.writeAfter is on, a blank row after every sample row.
+// empty row for the engine; a row that has no text yet is one too) and, when page.writeAfter is on, a blank row after
+// every sample row.
 export function pageToLines(page, glyphMap) {
   const out = [];
   for (const row of page?.rows ?? []) {
     if (row.kind === "blank") { out.push(""); continue; }
     if (row.kind === "passage") {
       const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
+      if (!wrapped.length) { out.push(""); continue; }
       for (const l of wrapped) { out.push(`${l}#1`); if (page?.writeAfter) out.push(""); }
       continue;
     }
     const line = rowToLine(row);
-    if (!line) continue;
+    // a row with no text yet still takes its place on the sheet (a ruled, empty row), so it can be selected and filled
+    if (!line) { out.push(""); continue; }
     out.push(line);
     if (page?.writeAfter) out.push("");
   }
@@ -130,10 +133,11 @@ export function lineOwners(page, glyphMap) {
     if (row.kind === "blank") { out.push(i); return; }
     if (row.kind === "passage") {
       const n = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling).length : String(row.text ?? "").trim() ? 1 : 0;
+      if (!n) { out.push(i); return; }
       for (let k = 0; k < n; k += 1) { out.push(i); if (page?.writeAfter) out.push(null); }
       return;
     }
-    if (!rowToLine(row)) return;
+    if (!rowToLine(row)) { out.push(i); return; }
     out.push(i);
     if (page?.writeAfter) out.push(null);
   });
@@ -190,6 +194,18 @@ export function tapSymbol(page, glyphMap, selectedId, tile) {
   else if (row.kind === "text") patch = { text: `${row.text ?? ""}${tile.text}` };
   else patch = { kind: "text", text: tile.text, mark: row.kind === "blank" || row.kind === "passage" ? "" : row.mark };
   return { page: { ...page, rows: page.rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)) }, rowId: row.id };
+}
+
+// A tap on physical row `absRow` of the sheet: a row that exists is selected; an empty place below the last row gets a
+// new, empty row, with blank rows filling any gap above it. Returns { page, rowId } so the caller can select it.
+export function selectRowAt(page, glyphMap, absRow) {
+  const owners = lineOwners(page, glyphMap);
+  const owner = absRow >= 0 && absRow < owners.length ? owners[absRow] : undefined;
+  if (owner === null) return { page, rowId: null }; // the writing space the "write after" option adds: not a row of its own
+  if (owner !== undefined) return { page, rowId: page.rows[owner].id };
+  const row = newRow();
+  const gap = Math.max(0, absRow - owners.length);
+  return { page: { ...page, rows: [...page.rows, ...Array.from({ length: gap }, () => newRow({ kind: "blank" })), row] }, rowId: row.id };
 }
 
 // Tap on a tile with no row selected: it goes to the first free place, i.e. below the last row.

@@ -130,3 +130,25 @@
 .propis2-writeafter.is-disabled { opacity: .35; }
 .propis2-backspace { border: 1px solid #c9c2b0; background: #fff; border-radius: 8px; padding: 6px 10px; font-size: 1rem; cursor: pointer; }
 .propis2-backspace:disabled { opacity: .35; cursor: default; }
+
+/* fixed zones: the settings strip, the canvas and the bottom panel keep their size whatever is selected or typed; only the
+   insides of the bottom panel scroll (its bar for the selected row, its tile grid). */
+.propis2-main { --dock-h: clamp(260px, 36dvh, 380px); grid-template-rows: auto minmax(0, 1fr) var(--dock-h); }
+.propis2-dock { height: var(--dock-h); overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
+.propis2-dock-bar { flex: 0 0 auto; height: 108px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.propis2-dock-bar > .propis2-hint { margin: 0; }
+.propis2-tabs { flex: 0 0 auto; }
+.propis2-dock-body { flex: 1 1 auto; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+.propis2-dock-body > .propis2-carousel { flex: 1 1 auto; min-height: 0; }
+.propis2-dock-body .propis2-carousel-list { flex: 1 1 auto; max-height: none; min-height: 0; }
+.propis2-dock-body > .propis2-typed { overflow-y: auto; align-content: flex-start; }
+.propis2-settings { flex-wrap: nowrap; white-space: nowrap; overflow-x: auto; overflow-y: hidden; min-height: 46px; }
+/* phone: canvas fixed (half a page), the panel takes the rest of the screen */
+.propis2-editor2--phone .propis2-main { grid-template-rows: auto auto minmax(0, 1fr); }
+.propis2-editor2--phone .propis2-settings { flex-wrap: wrap; white-space: normal; overflow: visible; min-height: 0; }
+.propis2-editor2--phone .propis2-dock { height: auto; min-height: 0; }
+.propis2-editor2--phone .propis2-dock-bar { height: 104px; }
+/* landscape tablet: page on the left, settings and the panel stacked on the right; the panel takes the rest */
+.propis2-editor2--side .propis2-main { grid-template-rows: auto minmax(0, 1fr); }
+.propis2-editor2--side .propis2-settings { flex-wrap: wrap; white-space: normal; overflow: visible; }
+.propis2-editor2--side .propis2-dock { height: auto; min-height: 0; overflow: hidden; }
