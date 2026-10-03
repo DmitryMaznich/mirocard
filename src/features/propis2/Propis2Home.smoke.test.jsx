@@ -283,14 +283,23 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('[aria-label="Текст строки"]').value).toBe("к");
     expect(preview().querySelector('[data-overlay="select"]')).not.toBeNull();
 
-    // the slant grid: «Частая» adds the extra lines, «Косая» takes them away
-    expect(preview().querySelector("[data-dense]")).toBeNull();
+    // the slant grid: «Частая» draws a line every 5 mm instead of every 20, the dashes can be switched off
+    const lines = () => preview().querySelectorAll("[data-simple-grid] line").length;
+    expect(preview().querySelector('[data-simple-grid="regular"]')).not.toBeNull();
+    const sparse = lines();
     await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Частая"));
     await act(async () => { await tick(60); });
-    expect(preview().querySelector("[data-dense]")).not.toBeNull();
-    await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Косая"));
+    expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
+    expect(lines()).toBeGreaterThan(sparse * 2);
+    const dashed = () => preview().querySelectorAll("line[stroke-dasharray]").length;
+    const withDash = dashed();
+    expect(withDash).toBeGreaterThan(0);
+    await click(host.querySelector('[aria-label="Пунктир в серединных линиях"]'));
     await act(async () => { await tick(60); });
-    expect(preview().querySelector("[data-dense]")).toBeNull();
+    expect(dashed()).toBe(0);
+    await click(host.querySelector('[aria-label="Пунктир в серединных линиях"]'));
+    await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Редкая"));
+    await act(async () => { await tick(60); });
 
     // typing in the row panel changes the page
     const afterTap = ink();

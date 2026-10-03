@@ -231,6 +231,10 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           ))}
         </div>
         <label className="propis2-writeafter">
+          <input type="checkbox" checked={page.midDash !== false} onChange={(e) => onChange({ ...page, midDash: e.target.checked })} aria-label="Пунктир в серединных линиях" />
+          пунктир
+        </label>
+        <label className="propis2-writeafter">
           <input type="checkbox" checked={Boolean(page.writeAfter)} onChange={(e) => onChange({ ...page, writeAfter: e.target.checked })} aria-label="Строка для письма после каждой строки" />
           писать под каждой строкой
         </label>

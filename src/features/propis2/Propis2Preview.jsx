@@ -9,7 +9,7 @@ export default function Propis2Preview({ page, topicRecord, overlays = null, onP
   const deferred = useDeferredValue(page);
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const task = useMemo(
-    () => buildPageTask({ topicRecord, lines: pageToLines(deferred, glyphMap), narrowRows: deferred.ruling === "narrow", denseGrid: deferred.grid === "dense" }),
+    () => buildPageTask({ topicRecord, lines: pageToLines(deferred, glyphMap), narrowRows: deferred.ruling === "narrow", grid: deferred.grid, midDash: deferred.midDash }),
     [topicRecord, deferred, glyphMap],
   );
   return (

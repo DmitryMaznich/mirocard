@@ -57,7 +57,7 @@ export default function Propis2Home({ db }) {
     const ruling = isSet ? set.ruling : page.ruling;
     const lines = isSet ? setToLines(set, pagesById, glyphMap) : pageToLines(page, glyphMap);
     const gridSource = isSet ? pagesById.get(set.pageIds?.[0]) : page;
-    const task = buildPageTask({ topicRecord, lines, narrowRows: ruling === "narrow", denseGrid: gridSource?.grid === "dense" });
+    const task = buildPageTask({ topicRecord, lines, narrowRows: ruling === "narrow", grid: gridSource?.grid, midDash: gridSource?.midDash });
     return (
       <div className="propis2-view" data-testid="propis2-view">
         <PrintPageView
@@ -66,7 +66,7 @@ export default function Propis2Home({ db }) {
           onFragmentTap={({ row, localX }) => setFragment(pickFragment(row.word, localX, glyphMap, ruling))}
         />
         {fragment && (
-          <Propis2ShowPanel fragment={fragment} topicRecord={topicRecord} ruling={ruling} dense={gridSource?.grid === "dense"} onClose={() => setFragment(null)} />
+          <Propis2ShowPanel fragment={fragment} topicRecord={topicRecord} ruling={ruling} grid={gridSource?.grid} midDash={gridSource?.midDash} onClose={() => setFragment(null)} />
         )}
       </div>
     );

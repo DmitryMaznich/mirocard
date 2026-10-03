@@ -202,12 +202,29 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 // `onFragmentTap` (optional, «Прописи 2»): tap reports the row and the tap's x inside it instead of toggling the
 // inline animation. `crop` (optional): show only a window of the page (the show panel's single row).
 // `speedFactor` slows/speeds the pen animation.
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, denseGrid = false, useElements, wideRows = false, narrowRows = false }) {
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, useElements, wideRows = false, narrowRows = false }) {
   const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
   const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   const guideColor = wideRows ? WIDE_GUIDE_COLOR : GUIDE_COLOR;
   const contentRow = (r) => (wideRows ? r + 1 : r);
+  // «Прописи 2»: a plain slant grid replaces the methodology grid (which stays internal: letters still snap to
+  // it, it is just not drawn). Two kinds only: "regular" (a line every 20 mm) and "dense" (every 5 mm).
+  const simpleStep = simpleGrid ? mmToNativeUnits(simpleGrid === "dense" ? 5 : 20) : 0;
+  const simpleEls = (() => {
+    if (!simpleStep) return null;
+    const yRef = narrowYRef();
+    const x = (k, y) => 15 + k * simpleStep + (yRef - y) * WIDE_SLANT_TAN;
+    const kLo = Math.floor((-15 - yRef * WIDE_SLANT_TAN) / simpleStep);
+    const kHi = Math.ceil((PAGE_W_UNITS - 15 - (yRef - PAGE_H_UNITS) * WIDE_SLANT_TAN) / simpleStep);
+    return (
+      <g data-simple-grid={simpleGrid}>
+        {Array.from({ length: kHi - kLo + 1 }, (_, i) => kLo + i).map((k) => (
+          <line key={k} x1={x(k, 0)} y1={0} x2={x(k, PAGE_H_UNITS)} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
+        ))}
+      </g>
+    );
+  })();
   const diagonalEls = wideRows ? null : diagonalLines.map((l, i) => (
     <line
       key={`d${i}`}
@@ -222,16 +239,14 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
+      {simpleEls}
       {narrowRows && (() => {
         const kLo = Math.floor((-NARROW_FIRST_X - narrowYRef() * WIDE_SLANT_TAN) / NARROW_CELL);
         const kHi = Math.ceil((PAGE_W_UNITS - NARROW_FIRST_X - (narrowYRef() - PAGE_H_UNITS) * WIDE_SLANT_TAN) / NARROW_CELL);
         const ks = Array.from({ length: kHi - kLo + 1 }, (_, i) => kLo + i);
         return (
           <g data-narrow-grid="1">
-            {denseGrid && ks.map((k) => (
-              <line key={`h${k}`} x1={narrowLineX(k + 0.5, 0)} y1={0} x2={narrowLineX(k + 0.5, PAGE_H_UNITS)} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} opacity={0.55} data-dense="1" />
-            ))}
-            {ks.map((k) => (
+            {!simpleStep && ks.map((k) => (
               <line key={k} x1={narrowLineX(k, 0)} y1={0} x2={narrowLineX(k, PAGE_H_UNITS)} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
             ))}
             {ROW_INDICES.slice(1).map((row) => {
@@ -240,9 +255,9 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
               const guideY = rowOriginY(row) + NARROW_GUIDE_LOCAL;
               return (
                 <g key={row} data-narrow-band={row}>
-                  <line x1="0" y1={guideY} x2={PAGE_W_UNITS} y2={guideY} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />
+                  {midDash && <line x1="0" y1={guideY} x2={PAGE_W_UNITS} y2={guideY} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />}
                   <line x1="0" y1={top} x2={PAGE_W_UNITS} y2={top} stroke={guideColor} strokeWidth={GUIDE_THIN_W} />
-                  <line x1="0" y1={(top + bottom) / 2} x2={PAGE_W_UNITS} y2={(top + bottom) / 2} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />
+                  {midDash && <line x1="0" y1={(top + bottom) / 2} x2={PAGE_W_UNITS} y2={(top + bottom) / 2} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />}
                   <line x1="0" y1={bottom} x2={PAGE_W_UNITS} y2={bottom} stroke={guideColor} strokeWidth={GUIDE_BOLD_W} />
                   <line x1={NARROW_BAR_W / 2} y1={top} x2={NARROW_BAR_W / 2} y2={bottom} stroke={guideColor} strokeWidth={NARROW_BAR_W} />
                 </g>
@@ -250,21 +265,13 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
             })}
             {(() => {
               const lastY = rowOriginY(ROW_INDICES.length - 1) + WIDE_BAND_BOTTOM_LOCAL + NARROW_BAND_H;
-              return <line x1="0" y1={lastY} x2={PAGE_W_UNITS} y2={lastY} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />;
+              return midDash ? <line x1="0" y1={lastY} x2={PAGE_W_UNITS} y2={lastY} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} /> : null;
             })()}
           </g>
         );
       })()}
-      {wideRows && !narrowRows ? ROW_INDICES.slice(1).map((row) => (
+      {wideRows && !narrowRows ? (simpleStep ? null : ROW_INDICES.slice(1).map((row) => (
         <g key={`band${row}`} data-wide-band={row}>
-          {denseGrid && Array.from({ length: WIDE_LINE_COUNT }, (_, k) => k - 1).map((k) => (
-            <line
-              key={`h${k}`}
-              x1={wideLineX(k + 0.5, NATIVE_L3 - TEXT_ROW_PITCH)} y1={wideBandTop(row)}
-              x2={wideLineX(k + 0.5, WIDE_BAND_BOTTOM_LOCAL)} y2={wideBandTop(row) + wideBandHeight}
-              stroke={guideColor} strokeWidth={GUIDE_DIAG_W} opacity={0.55} data-dense="1"
-            />
-          ))}
           {Array.from({ length: WIDE_LINE_COUNT }, (_, k) => k - 1).map((k) => (
             <line
               key={k}
@@ -274,10 +281,10 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
             />
           ))}
         </g>
-      )) : diagonalEls}
+      ))) : diagonalEls}
       {!narrowRows && ROW_INDICES.map((row) => (
         <g key={`g${row}`}>
-          {(useElements || wideRows) && !(wideRows && row === 0) && (
+          {(useElements || wideRows) && midDash && !(wideRows && row === 0) && (
             <line
               x1="0" y1={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
               x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
@@ -706,7 +713,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               onToggleActive={focus ? () => {} : null}
               crop={focusCrop}
               speedFactor={speedFactor}
-              denseGrid={Boolean(task?.denseGrid)}
+              simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false}
               overlays={overlays?.filter((o) => Math.floor(o.row / WIDE_ROWS_PER_PAGE) === shownIndex).map((o) => ({ ...o, row: o.row % WIDE_ROWS_PER_PAGE }))}
               useElements={useElements}
               wideRows={wideRows}
@@ -748,7 +755,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
                   useElements={useElements}
                   wideRows={wideRows}
                   narrowRows={narrowRows}
-                  denseGrid={Boolean(task?.denseGrid)}
+                  simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false}
                 />
               </div>
               {isZoomed && (
@@ -807,8 +814,8 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               <div className="propis-print-all" aria-hidden="true">
                 {Array.from({ length: pages.length / 2 }, (_, sheetIndex) => (
                   <div key={sheetIndex} className="propis-print-all__sheet">
-                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} denseGrid={Boolean(task?.denseGrid)} />
-                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} denseGrid={Boolean(task?.denseGrid)} />
+                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} />
+                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} />
                   </div>
                 ))}
               </div>,
