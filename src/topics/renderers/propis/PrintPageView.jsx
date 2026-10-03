@@ -114,6 +114,7 @@ const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, 
 // whole крючок/заборчик could render with no slant guide crossing it at all.
 const SHEET_DIAGONAL_LINES_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
 // «Прописи 2», dense grid on the wide ruling: 5 mm, the distance between the two tops of «и» there.
+const SQUARE_CELL = mmToNativeUnits(5); // «Прописи 2»: the squared grid, 5 mm
 const SHEET_DIAGONAL_LINES_WIDE_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_WIDE_DIAGONAL_SPACING);
 // "Широкая строка": every wide band carries its OWN slant grid, phased on the band's bottom line, so the
 // first slant meets the bottom (and the top) horizontal at the same distance from the page's left edge in
@@ -216,13 +217,24 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   // fine grid of the element sheets, a line every 3 mm (ELEMENT_DIAGONAL_MM) on the narrow ruling and every 5 mm
   // on the wide one: the step follows the row, it is the distance between the two tops of «и» on that row.
   const simpleStep = Boolean(simpleGrid);
-  const simpleEls = simpleGrid ? (
+  // "square": an ordinary school squared grid, 5 mm cells (vertical and horizontal lines), under the row guides.
+  const squareEls = simpleGrid === "square" ? (
+    <g data-simple-grid="square">
+      {Array.from({ length: Math.floor(PAGE_W_UNITS / SQUARE_CELL) + 1 }, (_, i) => (
+        <line key={`v${i}`} x1={i * SQUARE_CELL} y1={0} x2={i * SQUARE_CELL} y2={PAGE_H_UNITS} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} opacity={0.7} />
+      ))}
+      {Array.from({ length: Math.floor(PAGE_H_UNITS / SQUARE_CELL) + 1 }, (_, i) => (
+        <line key={`h${i}`} x1={0} y1={i * SQUARE_CELL} x2={PAGE_W_UNITS} y2={i * SQUARE_CELL} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} opacity={0.7} />
+      ))}
+    </g>
+  ) : null;
+  const simpleEls = squareEls ?? (simpleGrid ? (
     <g data-simple-grid={simpleGrid}>
       {(simpleGrid === "dense" ? (narrowRows ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES_WIDE_DENSE) : SHEET_DIAGONAL_LINES).map((l, i) => (
         <line key={i} x1={l.x1 + diagonalShiftX} y1={0} x2={l.x2 + diagonalShiftX} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
       ))}
     </g>
-  ) : null;
+  ) : null);
   const diagonalEls = wideRows ? null : diagonalLines.map((l, i) => (
     <line
       key={`d${i}`}

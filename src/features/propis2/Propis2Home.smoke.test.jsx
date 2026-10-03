@@ -291,6 +291,12 @@ describe("Прописи 2 (zip topic)", () => {
     await act(async () => { await tick(60); });
     expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
     expect(lines()).toBeGreaterThan(sparse * 2);
+    await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Клетка"));
+    await act(async () => { await tick(60); });
+    expect(preview().querySelector('[data-simple-grid="square"]')).not.toBeNull();
+    expect(preview().querySelectorAll('[data-simple-grid="square"] line').length).toBeGreaterThan(40);
+    await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Частая"));
+    await act(async () => { await tick(60); });
     const dashed = () => preview().querySelectorAll("line[stroke-dasharray]").length;
     const withDash = dashed();
     expect(withDash).toBeGreaterThan(0);

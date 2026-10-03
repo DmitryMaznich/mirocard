@@ -17,6 +17,7 @@ export const RULINGS = [
 export const GRIDS = [
   { id: "regular", label: "Редкая косая линейка (через 20 мм, стандарт)", short: "Редкая" },
   { id: "dense", label: "Частая косая линейка (через 3 мм на узкой строке, 5 мм на широкой)", short: "Частая" },
+  { id: "square", label: "Клетка 5 мм", short: "Клетка" },
 ];
 
 export const ROW_KINDS = [
