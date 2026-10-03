@@ -47,7 +47,9 @@ export function buildTiles(topicRecord) {
     }
   };
   const wide = topicRecord?.wide ?? [];
+  // a letter may be stored under another name and reached through an alias (г -> г1, п -> п1)
   const byLabel = new Map(wide.map((g) => [g.label, g]));
+  for (const g of wide) for (const a of g.aliases ?? []) if (!byLabel.has(a)) byLabel.set(a, g);
   const make = (kind, id, caption) => ({ key: id, kind, text: id, caption, strokes: strokesOf(id) });
   const letters = (alphabet) => [...alphabet].filter((ch) => byLabel.has(ch)).map((ch) => make("text", ch, ch));
   const seen = new Set();
