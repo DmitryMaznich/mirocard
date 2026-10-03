@@ -1,70 +1,85 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
-import Button from "@/shared/components/Button";
-import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
+import { newId, newPage, pageFromLines, pageToLines } from "@/topics/renderers/propis2/model.js";
+import { emptyLibrary, loadLibrary, removePage, saveLibrary, upsertPage } from "@/topics/renderers/propis2/storage.js";
+import Propis2Library from "./Propis2Library";
+import Propis2Editor from "./Propis2Editor";
 import "./propis2.css";
 
-// Spike of the «Прописи 2» home screen (the builder). Step 0: prove the topic can own its home
-// screen and draw a page with the shared engine + data. The real constructor (row types,
-// repeats, reorder, save/load, validation) replaces the plain row list below.
-export default function Propis2Home() {
+// Home screen of «Прописи 2»: library -> editor -> student view. Pages live in IndexedDB on this
+// device and are saved on every change.
+export default function Propis2Home({ db }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const activeTopicId = useAppStore((s) => s.activeTopicId);
   const topicRecord = useAppStore((s) => s.topicRecords.find((r) => r.meta.id === activeTopicId));
+  const [library, setLibrary] = useState(emptyLibrary);
+  const [loaded, setLoaded] = useState(false);
+  const [view, setView] = useState({ name: "library" });
+  const saveTimer = useRef(null);
+  const latest = useRef(library);
+  latest.current = library;
+
+  useEffect(() => {
+    let alive = true;
+    loadLibrary(db).then((lib) => { if (alive) { setLibrary(lib); setLoaded(true); } }).catch(() => { if (alive) setLoaded(true); });
+    return () => { alive = false; };
+  }, [db]);
+
+  // Autosave: debounced write after every change, flushed when the screen goes away.
+  const persist = useCallback((next) => {
+    setLibrary(next);
+    latest.current = next;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => { saveLibrary(latest.current, db).catch(() => {}); }, 300);
+  }, [db]);
+  useEffect(() => () => { clearTimeout(saveTimer.current); saveLibrary(latest.current, db).catch(() => {}); }, [db]);
+
   const sheets = topicRecord?.wideSheets ?? {};
-  const [lines, setLines] = useState(() => [...(sheets.page18 ?? [])]);
-  const [narrow, setNarrow] = useState(true);
-  const [showing, setShowing] = useState(false);
-  const task = useMemo(() => buildPageTask({ topicRecord, lines, narrowRows: narrow }), [topicRecord, lines, narrow]);
+  const elementLabels = useMemo(() => new Set([...(topicRecord?.elements ?? []).map((e) => e.id), ...(topicRecord?.wide ?? []).filter((g) => g.kind === "element").map((g) => g.label)]), [topicRecord]);
+  const page = view.pageId ? library.pages.find((p) => p.id === view.pageId) : null;
 
-  function setLine(i, text) { setLines((ls) => ls.map((l, k) => (k === i ? text : l))); }
-  function addLine() { setLines((ls) => [...ls, ""]); }
-  function removeLine(i) { setLines((ls) => ls.filter((_, k) => k !== i)); }
-  function loadSheet(id) { setLines([...(sheets[id] ?? [])]); }
+  const createPage = (p) => { persist(upsertPage(library, p)); setView({ name: "editor", pageId: p.id }); };
 
-  if (showing) {
+  if (!loaded) return <div className="screen propis2-home" data-testid="propis2-loading" />;
+
+  if (view.name === "show" && page) {
+    const task = buildPageTask({ topicRecord, lines: pageToLines(page), narrowRows: page.ruling === "narrow" });
     return (
       <div className="propis2-view" data-testid="propis2-view">
-        <PrintPageView task={task} onClose={() => setShowing(false)} />
+        <PrintPageView task={task} onClose={() => setView({ name: view.from ?? "library", pageId: view.pageId })} />
       </div>
     );
   }
 
+  if (view.name === "editor" && page) {
+    return (
+      <Propis2Editor
+        page={page}
+        topicRecord={topicRecord}
+        onChange={(next) => persist(upsertPage(library, next))}
+        onBack={() => setView({ name: "library" })}
+        onShow={() => setView({ name: "show", pageId: page.id, from: "editor" })}
+      />
+    );
+  }
+
   return (
-    <div className="screen propis2-home" data-testid="propis2-home">
-      <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
-        <h1 className="screen-title">Прописи 2</h1>
-      </div>
-      <div className="propis2-body">
-        <label className="propis2-field">
-          Готовый набор
-          <select defaultValue="" onChange={(e) => e.target.value && loadSheet(e.target.value)}>
-            <option value="">— выбрать —</option>
-            {Object.entries(PROPIS2_SHEET_TITLES).filter(([id]) => sheets[id]).map(([id, title]) => (
-              <option key={id} value={id}>{title}</option>
-            ))}
-          </select>
-        </label>
-        <label className="propis2-field propis2-field--inline">
-          <input type="checkbox" checked={narrow} onChange={(e) => setNarrow(e.target.checked)} /> Узкая строка
-        </label>
-        <ol className="propis2-rows">
-          {lines.map((line, i) => (
-            <li key={i}>
-              <input value={line} onChange={(e) => setLine(i, e.target.value)} aria-label={`Строка ${i + 1}`} />
-              <button type="button" onClick={() => removeLine(i)} aria-label="Удалить строку">✕</button>
-            </li>
-          ))}
-        </ol>
-        <div className="propis2-actions">
-          <Button onClick={addLine}>+ Строка</Button>
-          <Button onClick={() => setShowing(true)}>Показать страницу</Button>
-        </div>
-      </div>
-    </div>
+    <Propis2Library
+      pages={library.pages}
+      sheets={sheets}
+      onBack={() => setScreen("home")}
+      onNew={() => createPage(newPage())}
+      onFromSheet={(id) => createPage(pageFromLines(PROPIS2_SHEET_TITLES[id] ?? id, sheets[id], "narrow", elementLabels))}
+      onOpen={(id) => setView({ name: "show", pageId: id, from: "library" })}
+      onEdit={(id) => setView({ name: "editor", pageId: id })}
+      onDuplicate={(id) => {
+        const src = library.pages.find((p) => p.id === id);
+        if (src) persist(upsertPage(library, { ...src, id: newId("pg"), title: `${src.title} (копия)`, rows: src.rows.map((r) => ({ ...r, id: newId("r") })), createdAt: Date.now() }));
+      }}
+      onDelete={(id) => persist(removePage(library, id))}
+    />
   );
 }

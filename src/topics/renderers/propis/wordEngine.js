@@ -1322,7 +1322,7 @@ function wideTokenToLabelsRaw(token, glyphsByLabel) {
 // Direction arrows on the first copy of a letter/element are switched off for now (2026-10-02, by the methodologist's
 // decision: the start dots are enough); flip to bring them back.
 const WIDE_DIRECTION_ARROWS = false;
-const WIDE_ROW_MAX_X = 831;
+export const WIDE_ROW_MAX_X = 831;
 // Every page: copies after the first are dashed at one constant intensity, and single words / alternating
 // patterns are multiplied across the row.
 const WIDE_FLAT_COPY_OPACITY = 0.6;
