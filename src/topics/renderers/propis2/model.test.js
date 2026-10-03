@@ -42,16 +42,16 @@ describe("propis2 model", () => {
 
   it("reports characters without a glyph instead of dropping them silently", () => {
     expect(findUnsupported("кот", map)).toEqual([]);
-    expect(findUnsupported("кот!", map)).toEqual(["!"]);
+    expect(findUnsupported("кот@", map)).toEqual(["@"]);
     expect(findUnsupported("a1", map)).toContain("a");
-    expect(analyzeRow(newRow({ text: "кот?" }), map).unsupported).toEqual(["?"]);
+    expect(analyzeRow(newRow({ text: "кот~" }), map).unsupported).toEqual(["~"]);
     expect(analyzeRow(newRow({ text: "" }), map).empty).toBe(true);
   });
 
   it("flags a row that is too wide for the line", () => {
     expect(analyzeRow(newRow({ text: "кот" }), map, "narrow").overflow).toBe(false);
     expect(analyzeRow(newRow({ text: "молоко молоко молоко молоко молоко молоко" }), map, "narrow").overflow).toBe(true);
-    const page = newPage("p", { rows: [newRow({ text: "кот" }), newRow({ text: "кот!" })] });
+    const page = newPage("p", { rows: [newRow({ text: "кот" }), newRow({ text: "кот@" })] });
     expect(analyzePage(page, map).problems).toBe(1);
   });
 
@@ -153,5 +153,17 @@ describe("propis2 model", () => {
     const r = appendTile(page, map, { kind: "text", text: "б" });
     expect(r.page.rows.map((x) => x.text)).toEqual(["а", "б"]);
     expect(pageToLines(r.page, map)).toEqual(["а", "б"]);
+  });
+
+  it("punctuation: supported, stands after the word and is not joined to the last letter", () => {
+    expect(findUnsupported("кот. Кот, кот! кот?", map)).toEqual([]);
+    const lay = (line) => layoutWideLinesIntoRows([line], map, undefined, false, 0.5).placed[0].segments[0];
+    const word = lay("кот");
+    const marked = lay("кот.");
+    expect(marked.strokes.length).toBe(word.strokes.length + 1);
+    // no connector (transition) is added for the dot: the pen lifts, so the animation gains exactly one stroke
+    expect(marked.trajectory.strokes.length).toBe(word.trajectory.strokes.length + 1);
+    expect(marked.width).toBeGreaterThan(word.width);
+    for (const mark of [",", "!", "?"]) expect(lay(`кот${mark}`).strokes.length).toBeGreaterThan(word.strokes.length);
   });
 });

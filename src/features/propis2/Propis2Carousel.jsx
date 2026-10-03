@@ -12,6 +12,7 @@ export const CAROUSEL_TABS = [
   { id: "elements", label: "Элементы" },
   { id: "lower", label: "Строчные" },
   { id: "upper", label: "Заглавные" },
+  { id: "marks", label: "Знаки" },
 ];
 
 // Every tile shows a piece of the NARROW row (thin top line, dashed middle, bold baseline) with the symbol on
@@ -64,11 +65,13 @@ export function buildTiles(topicRecord) {
     seen.add(el.id);
     elements.push(make("element", el.id, el.labelRu ?? el.id));
   }
-  const out = { elements, lower: letters(LOWER), upper: letters(UPPER) };
+  // punctuation marks of the deck (wide.json kind "punct"), in the order of a sentence
+  const marks = [".", ",", "!", "?"].filter((m) => byLabel.get(m)?.kind === "punct").map((m) => make("text", m, m));
+  const out = { elements, lower: letters(LOWER), upper: letters(UPPER), marks };
 
   // One frame for all tiles: tall enough for the highest ascender and the deepest descender of any symbol, wide
   // enough for the widest one, so every tile has the same size and the row stands at the same place in it.
-  const all = [...out.elements, ...out.lower, ...out.upper];
+  const all = [...out.elements, ...out.lower, ...out.upper, ...out.marks];
   let top = ROW_TOP - 4, bottom = ROW_BASE + 6, width = 40;
   for (const t of all) {
     t.box = bbox(t.strokes);

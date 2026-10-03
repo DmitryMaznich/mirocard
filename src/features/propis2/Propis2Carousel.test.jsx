@@ -19,4 +19,10 @@ describe("carousel tiles", () => {
     const t = buildTiles(record());
     expect(t.upper.map((x) => x.text).join("")).toBe("АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ");
   });
+
+  it("punctuation tab: . , ! ? from the v1 captures, drawn with strokes", () => {
+    const t = buildTiles(record());
+    expect(t.marks.map((x) => x.text).join("")).toBe(".,!?");
+    for (const m of t.marks) expect(m.strokes.length).toBeGreaterThan(0);
+  });
 });

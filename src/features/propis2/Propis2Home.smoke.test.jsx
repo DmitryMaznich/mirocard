@@ -83,9 +83,9 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await type(host.querySelector('[aria-label="Название страницы"]'), "Мои буквы");
     await click([...host.querySelectorAll('[role="tab"]')].find((t) => t.textContent === "Слово"));
-    await type(host.querySelector('[aria-label="Слово или слог"]'), "кот!");
+    await type(host.querySelector('[aria-label="Слово или слог"]'), "кот@");
     await click(btn(host, "+ Строка"));
-    expect(host.querySelector("[role=alert]")?.textContent).toContain("«!»");
+    expect(host.querySelector("[role=alert]")?.textContent).toContain("«@»");
     await type(host.querySelector('[aria-label="Текст строки"]'), "кот");
     expect(host.querySelector("[role=alert]")).toBeNull();
 

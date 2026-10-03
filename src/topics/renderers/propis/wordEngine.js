@@ -1078,6 +1078,9 @@ export const WIDE_SCALE = WIDE_ZONE_UNITS / WIDE_CAPTURE_SPAN;
 const WIDE_BASELINE_Y = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
 const WIDE_JOIN_TAN = Math.tan(((90 - 65) * Math.PI) / 180);
 const WIDE_TOKEN_GAP = 36;
+// A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
+// with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
+const WIDE_PUNCT_GAP = 6;
 // Largest sideways nudge (native units) allowed when landing a tail on the next letter's stroke.
 const WIDE_MAX_CONTACT_NUDGE = 6;
 // x where a path first reaches height y (linear between samples), or null if it never does.
@@ -1426,7 +1429,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
-        if (pendingTail) {
+        if (pendingTail && !glyph.noJoin) {
           delete pendingTail.always;
           strokes.push(pendingTail);
           prevExit = getPathEndpoints(pendingTail.d).end;
@@ -1434,14 +1437,18 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           pendingTail = null;
         }
         const local = wideGlyphLocal(glyph, scale);
+        const loose = Boolean(glyph.noJoin) && tokenStartX !== null; // punctuation inside a word: after the ink so far
+        if (loose) { prevExit = null; prevExitStroke = -1; }
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
-        const wantStartX = prevExit
+        const wantStartX = loose
+          ? cursorX + WIDE_PUNCT_GAP * scale - local.minX + local.start[0]
+          : prevExit
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx
           : prevToken
             // next token: a whole number of cells after the previous token's start, along the slant lines
             ? prevToken.startX + (prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
             : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
-        const startX = snapX(rowIndex, wantStartX, local.start[1]);
+        const startX = loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) }));
         let highJoined = false;
@@ -1499,6 +1506,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         }
         prevExit = [local.end[0] + dx, local.end[1]];
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
+        if (glyph.noJoin) { prevExit = null; prevExitStroke = -1; }
         if (local.tail) {
           pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), always: !!glyph.tailAlways, ...(glyph.tailContinuous ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) };
           prevExit = null;
