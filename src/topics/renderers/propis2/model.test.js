@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, pageToLines, pickFragment, rowToLine, wrapPassage } from "./model.js";
+import { analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -97,5 +97,29 @@ describe("propis2 model", () => {
     expect(pickFragment(line, 0, map)).toBe("мама");
     expect(pickFragment(line, 100000, map)).toBe("раму");
     expect(pickFragment("", 5, map)).toBe("");
+  });
+
+  it("a set pads every page to a whole screen page, so each page of the set starts a fresh page", () => {
+    const a = newPage("A", { rows: [newRow({ text: "а" }), newRow({ text: "б" })] });
+    const b = newPage("B", { rows: [newRow({ text: "в" })] });
+    const long = newPage("L", { rows: Array.from({ length: ROWS_PER_PAGE + 3 }, (_, i) => newRow({ text: `к${i % 2 ? "о" : "а"}т` })) });
+    const byId = new Map([a, b, long].map((p) => [p.id, p]));
+    const set = newSet("S", { pageIds: [a.id, b.id, long.id, "gone"] });
+    const lines = setToLines(set, byId, map);
+    // A: 2 lines + padding to ROWS_PER_PAGE, B: 1 line + padding, L: no trailing padding (last page)
+    expect(lines.slice(0, 2)).toEqual(["а", "б"]);
+    expect(lines.slice(2, ROWS_PER_PAGE).every((l) => l === "")).toBe(true);
+    expect(lines[ROWS_PER_PAGE]).toBe("в");
+    expect(lines[ROWS_PER_PAGE * 2]).toBe("кат");
+    expect(lines).toHaveLength(ROWS_PER_PAGE * 2 + ROWS_PER_PAGE + 3);
+    expect(setPageStarts(set, byId, map)).toEqual([1, 2, 3, null]);
+  });
+
+  it("the set's ruling replaces the pages' own ruling", () => {
+    const a = newPage("A", { ruling: "wide", rows: [newRow({ text: "молоко молоко молоко молоко молоко молоко молоко" })] });
+    const byId = new Map([[a.id, a]]);
+    const narrow = setToLines(newSet("n", { ruling: "narrow", pageIds: [a.id] }), byId, map);
+    const wide = setToLines(newSet("w", { ruling: "wide", pageIds: [a.id] }), byId, map);
+    expect(narrow).toEqual(wide); // a text row is the same line; only the wrapping (passage) would differ
   });
 });

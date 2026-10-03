@@ -1,6 +1,10 @@
 // «Прописи 2»: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
+import { PRINT_ROWS_PER_PAGE } from "../propis/propisRuling.js";
+
+// Rows on one screen/paper page of the wide-row sheets (ruling row 0 is only the top edge).
+export const ROWS_PER_PAGE = PRINT_ROWS_PER_PAGE - 1;
 
 export const RULINGS = [
   { id: "narrow", label: "Узкая строка" },
@@ -176,4 +180,44 @@ export function pickFragment(rowWord, localX, glyphMap, ruling = "narrow") {
     if (lineWidth(words.slice(0, k + 1).join(" "), glyphMap, ruling) >= localX - 6) return words[k];
   }
   return words[words.length - 1];
+}
+
+// ---- sets («комплект»): an ordered list of pages shown and printed as one booklet -------------
+
+export function newSet(title = "Новый комплект", patch = {}) {
+  const now = Date.now();
+  return { id: newId("st"), title, ruling: "narrow", pageIds: [], createdAt: now, updatedAt: now, ...patch };
+}
+
+// All pages of a set as one list of engine lines. Every page is padded with blank rows up to a whole
+// number of screen pages, so each page of the set starts on a fresh screen/paper page and the
+// engine's own page counter ("Страница k из N") is the set's page number, on screen and on paper.
+// The set's ruling applies to all its pages. Pages that no longer exist are skipped.
+export function setToLines(set, pagesById, glyphMap) {
+  const out = [];
+  const ids = (set?.pageIds ?? []).filter((id) => pagesById.get(id));
+  ids.forEach((id, k) => {
+    const page = { ...pagesById.get(id), ruling: set.ruling ?? pagesById.get(id).ruling };
+    const lines = pageToLines(page, glyphMap);
+    out.push(...lines);
+    if (k < ids.length - 1) {
+      const rest = (ROWS_PER_PAGE - (lines.length % ROWS_PER_PAGE)) % ROWS_PER_PAGE;
+      for (let i = 0; i < rest; i += 1) out.push("");
+    }
+  });
+  return out;
+}
+
+// First screen page number (1-based) of each page in a set, for the editor's "стр. 3" labels.
+export function setPageStarts(set, pagesById, glyphMap) {
+  const starts = [];
+  let screenPage = 1;
+  for (const id of set?.pageIds ?? []) {
+    const page = pagesById.get(id);
+    if (!page) { starts.push(null); continue; }
+    starts.push(screenPage);
+    const n = pageToLines({ ...page, ruling: set.ruling ?? page.ruling }, glyphMap).length;
+    screenPage += Math.max(1, Math.ceil(n / ROWS_PER_PAGE));
+  }
+  return starts;
 }

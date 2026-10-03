@@ -36,3 +36,4 @@
 .propis2-panel-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .propis2-panel-stage .propis-print-page-wrap { padding: 0; background: transparent; overflow: visible; touch-action: auto; }
 .propis2-panel-stage .propis-print-page-svg { aspect-ratio: auto; width: 100%; height: auto; max-height: 55vh; box-shadow: none; border: 1px solid #e6e0d2; border-radius: 8px; }
+.propis2-h2 { font-size: 1.05rem; margin: 8px 0 0; }

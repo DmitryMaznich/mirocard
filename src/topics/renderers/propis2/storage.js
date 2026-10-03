@@ -13,7 +13,7 @@ export function normalizeLibrary(raw) {
   return {
     version: 1,
     pages: Array.isArray(lib.pages) ? lib.pages.filter((p) => p && p.id && Array.isArray(p.rows)) : [],
-    sets: Array.isArray(lib.sets) ? lib.sets : [],
+    sets: Array.isArray(lib.sets) ? lib.sets.filter((st) => st && st.id && Array.isArray(st.pageIds)) : [],
   };
 }
 
@@ -34,6 +34,21 @@ export function upsertPage(library, page) {
   return { ...library, pages: exists ? library.pages.map((p) => (p.id === page.id ? stamped : p)) : [stamped, ...library.pages] };
 }
 
+// Deleting a page also drops it from every set that listed it.
 export function removePage(library, pageId) {
-  return { ...library, pages: library.pages.filter((p) => p.id !== pageId) };
+  return {
+    ...library,
+    pages: library.pages.filter((p) => p.id !== pageId),
+    sets: library.sets.map((st) => ({ ...st, pageIds: st.pageIds.filter((id) => id !== pageId) })),
+  };
+}
+
+export function upsertSet(library, set) {
+  const stamped = { ...set, updatedAt: Date.now() };
+  const exists = library.sets.some((s) => s.id === set.id);
+  return { ...library, sets: exists ? library.sets.map((s) => (s.id === set.id ? stamped : s)) : [stamped, ...library.sets] };
+}
+
+export function removeSet(library, setId) {
+  return { ...library, sets: library.sets.filter((s) => s.id !== setId) };
 }

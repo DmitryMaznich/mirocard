@@ -195,4 +195,61 @@ describe("Прописи 2 (zip topic)", () => {
     await act(async () => { root.unmount(); await tick(100); });
     host.remove();
   }, 40000);
+
+  it("sets: build a booklet from pages, reorder, duplicate a page inside, show as one booklet with set page numbers", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    const setValue = async (el, value, proto = HTMLInputElement.prototype) => {
+      await act(async () => {
+        Object.getOwnPropertyDescriptor(proto, "value").set.call(el, value);
+        el.dispatchEvent(new Event(el.tagName === "SELECT" ? "change" : "input", { bubbles: true }));
+        await tick();
+      });
+    };
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
+
+    // two pages
+    for (const [title, text] of [["Страница А", "а"], ["Страница Б", "б"]]) {
+      await click(btn("Новая страница"));
+      await setValue(host.querySelector('[aria-label="Название страницы"]'), title);
+      await setValue(host.querySelector('[aria-label="Содержимое строки 1"]'), text);
+      await click(host.querySelector(".back-btn"));
+    }
+    expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(2);
+
+    await click(btn("Новый комплект"));
+    expect(host.querySelector('[data-testid="propis2-set-editor"]')).not.toBeNull();
+    await setValue(host.querySelector('[aria-label="Название комплекта"]'), "Урок 1");
+    const add = host.querySelector('[aria-label="Добавить страницу в комплект"]');
+    const options = [...add.querySelectorAll("option")].filter((o) => o.value);
+    expect(options).toHaveLength(2);
+    await setValue(add, options[0].value, HTMLSelectElement.prototype);
+    await setValue(host.querySelector('[aria-label="Добавить страницу в комплект"]'), options[1].value, HTMLSelectElement.prototype);
+    expect(host.querySelectorAll('[data-testid="propis2-set-page"]')).toHaveLength(2);
+    const titlesOf = () => [...host.querySelectorAll('[data-testid="propis2-set-page"] strong')].map((e) => e.textContent);
+    const first = titlesOf();
+    await click(host.querySelectorAll('[aria-label="Страницу ниже"]')[0]);
+    expect(titlesOf()).toEqual([first[1], first[0]]);
+    await click(host.querySelectorAll('[aria-label="Дублировать страницу"]')[0]);
+    expect(host.querySelectorAll('[data-testid="propis2-set-page"]')).toHaveLength(3);
+    expect(titlesOf()[1]).toContain("(копия)");
+    expect(host.textContent).toContain("с листа 1");
+    expect(host.textContent).toContain("с листа 2");
+
+    await click(btn("Показать комплект как ученику"));
+    expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
+    // 3 pages -> 3 screen pages, the engine pairs them into sheets -> an even count of 4
+    expect(host.querySelector(".propis-text-nav__counter").textContent).toBe("Страница 1 из 4");
+    await click(host.querySelector(".propis-practice-close"));
+    expect(host.querySelector('[data-testid="propis2-set-editor"]')).not.toBeNull();
+    await click(host.querySelector(".back-btn"));
+    expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(1);
+
+    await act(async () => { root.unmount(); await tick(500); });
+    host.remove();
+  }, 40000);
 });

@@ -8,7 +8,7 @@ function dateLabel(ts) {
 
 // «Мои страницы»: the home of the topic. Create from scratch or from a ready sheet, open as the
 // student sees it, edit, duplicate, delete.
-export default function Propis2Library({ pages, sheets, onBack, onNew, onFromSheet, onOpen, onEdit, onDuplicate, onDelete }) {
+export default function Propis2Library({ pages, sets = [], sheets, onBack, onNew, onFromSheet, onOpen, onEdit, onDuplicate, onDelete, onNewSet, onOpenSet, onEditSet, onDuplicateSet, onDeleteSet }) {
   const sheetIds = Object.keys(PROPIS2_SHEET_TITLES).filter((id) => sheets?.[id]);
   return (
     <div className="screen propis2-home" data-testid="propis2-library">
@@ -20,6 +20,9 @@ export default function Propis2Library({ pages, sheets, onBack, onNew, onFromShe
         <div className="propis2-actions">
           <Button onClick={onNew}>+ Новая страница</Button>
         </div>
+        <div className="propis2-actions">
+          <Button onClick={onNewSet}>+ Новый комплект</Button>
+        </div>
         <label className="propis2-field">
           Из готового набора
           <select defaultValue="" onChange={(e) => { if (e.target.value) { onFromSheet(e.target.value); e.target.value = ""; } }} aria-label="Готовый набор">
@@ -27,6 +30,26 @@ export default function Propis2Library({ pages, sheets, onBack, onNew, onFromShe
             {sheetIds.map((id) => <option key={id} value={id}>{PROPIS2_SHEET_TITLES[id]}</option>)}
           </select>
         </label>
+        {sets.length > 0 && (
+          <>
+            <h2 className="propis2-h2">Комплекты</h2>
+            <ul className="propis2-pages">
+              {sets.map((st) => (
+                <li key={st.id} className="propis2-page-card" data-testid="propis2-set-card">
+                  <div className="propis2-page-title">{st.title || "Без названия"}</div>
+                  <div className="propis2-page-meta">{st.pageIds.length} стр. · {dateLabel(st.updatedAt)}</div>
+                  <div className="propis2-actions">
+                    <Button onClick={() => onOpenSet(st.id)}>Открыть</Button>
+                    <Button onClick={() => onEditSet(st.id)}>Изменить</Button>
+                    <button type="button" className="propis2-link" onClick={() => onDuplicateSet(st.id)}>Копия</button>
+                    <button type="button" className="propis2-link" onClick={() => onDeleteSet(st.id)}>Удалить</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <h2 className="propis2-h2">Страницы</h2>
+          </>
+        )}
         {pages.length === 0 ? (
           <p className="propis2-empty">Страниц пока нет. Создайте новую или возьмите готовый набор.</p>
         ) : (

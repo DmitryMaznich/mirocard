@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { openDb } from "@/core/db";
-import { emptyLibrary, loadLibrary, normalizeLibrary, removePage, saveLibrary, upsertPage } from "./storage.js";
-import { newPage, newRow } from "./model.js";
+import { emptyLibrary, loadLibrary, normalizeLibrary, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
+import { newPage, newRow, newSet } from "./model.js";
 
 describe("propis2 library storage", () => {
   it("saves and reloads pages on the device, in order, surviving re-open", async () => {
@@ -27,5 +27,22 @@ describe("propis2 library storage", () => {
     expect(changed.pages[0].title).toBe("y");
     expect(normalizeLibrary({ pages: [null, { id: 1 }, { id: "ok", rows: [] }] }).pages).toHaveLength(1);
     expect(normalizeLibrary("junk").pages).toEqual([]);
+  });
+
+  it("stores sets, and deleting a page removes it from every set", async () => {
+    const db = await openDb("p2s-" + Date.now() + Math.random());
+    const a = newPage("A", { rows: [newRow({ text: "а" })] });
+    const b = newPage("B", { rows: [newRow({ text: "б" })] });
+    let lib = upsertPage(upsertPage(emptyLibrary(), a), b);
+    const st = newSet("Комплект", { pageIds: [a.id, b.id, a.id] });
+    lib = upsertSet(lib, st);
+    await saveLibrary(lib, db);
+    let back = await loadLibrary(db);
+    expect(back.sets).toHaveLength(1);
+    expect(back.sets[0].pageIds).toEqual([a.id, b.id, a.id]);
+    back = removePage(back, a.id);
+    expect(back.sets[0].pageIds).toEqual([b.id]);
+    expect(removeSet(back, st.id).sets).toEqual([]);
+    expect(normalizeLibrary({ sets: [null, { id: "x" }, { id: "ok", pageIds: [] }] }).sets).toHaveLength(1);
   });
 });
