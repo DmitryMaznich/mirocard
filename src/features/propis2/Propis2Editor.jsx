@@ -131,7 +131,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
         <input className="propis2-title-input" value={page.title} onChange={(e) => onChange({ ...page, title: e.target.value })} aria-label="Название страницы" />
         <div className="propis2-seg" role="group" aria-label="Разлиновка">
           {RULINGS.map((r) => (
-            <button key={r.id} type="button" aria-pressed={page.ruling === r.id} className={page.ruling === r.id ? "is-on" : ""} onClick={() => onChange({ ...page, ruling: r.id })}>{r.label}</button>
+            <button key={r.id} type="button" aria-pressed={page.ruling === r.id} className={page.ruling === r.id ? "is-on" : ""} onClick={() => onChange({ ...page, ruling: r.id })} title={r.label}>{r.short ?? r.label}</button>
           ))}
         </div>
       </div>
@@ -156,7 +156,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
             {(selected.kind === "text" || selected.kind === "element") && (
               <div className="propis2-seg" role="group" aria-label="Вид строки">
                 {ROW_MARKS.map((m) => (
-                  <button key={m.id} type="button" aria-pressed={selected.mark === m.id} className={selected.mark === m.id ? "is-on" : ""} onClick={() => patchSelected({ mark: m.id })}>{m.label}</button>
+                  <button key={m.id} type="button" aria-pressed={selected.mark === m.id} className={selected.mark === m.id ? "is-on" : ""} onClick={() => patchSelected({ mark: m.id })} title={m.label}>{m.short ?? m.label}</button>
                 ))}
               </div>
             )}
@@ -183,12 +183,12 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
         <div className="propis2-actions">
           <Button onClick={() => addRow({ kind: "text" })}>+ Слово</Button>
           <Button onClick={() => addRow({ kind: "passage" })}>+ Текст</Button>
-          <Button onClick={() => addRow({ kind: "blank" })}>+ Пустая строка</Button>
+          <Button onClick={() => addRow({ kind: "blank" })}>+ Пустая</Button>
           <label className="propis2-field--inline propis2-writeafter">
             <input type="checkbox" checked={Boolean(page.writeAfter)} onChange={(e) => onChange({ ...page, writeAfter: e.target.checked })} aria-label="Строка для письма после каждой строки" />
-            место для письма под каждой строкой
+            писать под каждой строкой
           </label>
-          <Button onClick={onShow}>Показать как ученику</Button>
+          <Button onClick={onShow}>Показать ученику</Button>
           <Button onClick={onFromMarked} disabled={markedCount === 0}>Страница из отмеченного{markedCount ? ` (${markedCount})` : ""}</Button>
         </div>
       </div>

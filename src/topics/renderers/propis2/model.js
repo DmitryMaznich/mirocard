@@ -7,8 +7,8 @@ import { PRINT_ROWS_PER_PAGE } from "../propis/propisRuling.js";
 export const ROWS_PER_PAGE = PRINT_ROWS_PER_PAGE - 1;
 
 export const RULINGS = [
-  { id: "narrow", label: "Узкая строка" },
-  { id: "wide", label: "Широкая строка" },
+  { id: "narrow", label: "Узкая строка", short: "Узкая" },
+  { id: "wide", label: "Широкая строка", short: "Широкая" },
 ];
 
 export const ROW_KINDS = [
@@ -19,9 +19,9 @@ export const ROW_KINDS = [
 ];
 
 export const ROW_MARKS = [
-  { id: "", label: "Образец" },
-  { id: "d", label: "Образец + точки старта" },
-  { id: "c", label: "Чистая строка" },
+  { id: "", label: "Образец", short: "Образец" },
+  { id: "d", label: "Образец + точки старта", short: "С точками" },
+  { id: "c", label: "Чистая строка", short: "Чистая" },
 ];
 
 let counter = 0;

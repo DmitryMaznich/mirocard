@@ -83,3 +83,23 @@
   .propis2-tile-glyph { width: 44px; height: 44px; }
   .propis2-editor2 .screen-header .propis2-seg button { padding: 6px 7px; font-size: .78rem; }
 }
+
+/* phone: compact dock so the page keeps most of the screen */
+.propis2-dock .propis2-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+@media (max-width: 640px) {
+  .propis2-editor2 { overflow-x: hidden; }
+  .propis2-editor2 .screen-header { padding-left: 8px; padding-right: 8px; gap: 6px; }
+  .propis2-title-input { font-size: .95rem; padding: 5px 8px; }
+  .propis2-dock { padding: 6px 8px calc(6px + var(--app-safe-bottom, 0px)); gap: 6px; }
+  .propis2-editor2 .propis2-dock .btn { padding: 6px 10px !important; font-size: .82rem !important; min-height: 0 !important; height: auto !important; line-height: 1.2; border-radius: 10px; box-shadow: 0 2px 0 rgba(0,0,0,.18); }
+  .propis2-dock-row { gap: 6px; }
+  .propis2-dock-row input[type="text"], .propis2-dock-row input:not([type]), .propis2-dock-row textarea { flex-basis: 100%; }
+  .propis2-seg button { padding: 6px 8px; font-size: .8rem; }
+  .propis2-row-tools button { padding: 4px 8px; }
+  .propis2-hint { margin: 0; font-size: .8rem; }
+  .propis2-writeafter { font-size: .8rem; }
+  .propis2-page-col { padding: 6px; }
+  .propis2-page-col .propis-print-page-svg { max-height: none; }
+  .propis2-carousel-tabs { padding: 6px 6px 2px; gap: 3px; }
+  .propis2-carousel-tab { font-size: .72rem; padding: 6px 2px; }
+}

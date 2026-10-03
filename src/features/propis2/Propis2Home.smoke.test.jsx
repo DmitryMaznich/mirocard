@@ -88,7 +88,7 @@ describe("Прописи 2 (zip topic)", () => {
     await type(host.querySelector('[aria-label="Текст строки"]'), "кот");
     expect(host.querySelector(".propis2-warn")).toBeNull();
 
-    await click(btn(host, "Показать как ученику"));
+    await click(btn(host, "Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
     await click(host.querySelector(".propis-practice-close"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
@@ -143,7 +143,7 @@ describe("Прописи 2 (zip topic)", () => {
     // a passage row and a blank row can be added too
     await click(btn("+ Текст"));
     expect(host.querySelector('textarea[aria-label="Текст строки"]')).not.toBeNull();
-    await click(btn("+ Пустая строка"));
+    await click(btn("+ Пустая"));
     expect(host.textContent).toContain("Пустая строка — место для письма");
 
     await click(btn("Страница из отмеченного"));
@@ -168,7 +168,7 @@ describe("Прописи 2 (zip topic)", () => {
     // a page long enough for two screens: pick the ready sheet (12 rows) and add more rows
     const select = host.querySelector('[aria-label="Готовый набор"]');
     await act(async () => { select.value = "part1"; select.dispatchEvent(new Event("change", { bubbles: true })); await tick(); });
-    await click(btn("Показать как ученику"));
+    await click(btn("Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
     expect(host.querySelector('[data-testid="propis2-panel"]')).toBeNull();
 
