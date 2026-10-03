@@ -113,6 +113,8 @@ const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, 
 // 20mm spacing doesn't work for these: most elements are narrower than one 20mm gap, so a
 // whole крючок/заборчик could render with no slant guide crossing it at all.
 const SHEET_DIAGONAL_LINES_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
+// «Прописи 2», dense grid on the wide ruling: 5 mm, the distance between the two tops of «и» there.
+const SHEET_DIAGONAL_LINES_WIDE_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_WIDE_DIAGONAL_SPACING);
 // "Широкая строка": every wide band carries its OWN slant grid, phased on the band's bottom line, so the
 // first slant meets the bottom (and the top) horizontal at the same distance from the page's left edge in
 // every row (a page-long grid would shift by 3.6 units per row). Distance of that first crossing:
@@ -211,11 +213,12 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   // «Прописи 2»: a plain slant grid replaces the methodology grid in what is drawn (the methodology grid stays
   // internal: letters still snap to it, it is just not drawn). The two grids are the ones of the finished
   // copybooks: "regular" = the standard Russian-school grid, a line every 20 mm (DIAGONAL_MM); "dense" = the
-  // fine grid of the element sheets, a line every 3 mm (ELEMENT_DIAGONAL_MM).
+  // fine grid of the element sheets, a line every 3 mm (ELEMENT_DIAGONAL_MM) on the narrow ruling and every 5 mm
+  // on the wide one: the step follows the row, it is the distance between the two tops of «и» on that row.
   const simpleStep = Boolean(simpleGrid);
   const simpleEls = simpleGrid ? (
     <g data-simple-grid={simpleGrid}>
-      {(simpleGrid === "dense" ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES).map((l, i) => (
+      {(simpleGrid === "dense" ? (narrowRows ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES_WIDE_DENSE) : SHEET_DIAGONAL_LINES).map((l, i) => (
         <line key={i} x1={l.x1 + diagonalShiftX} y1={0} x2={l.x2 + diagonalShiftX} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
       ))}
     </g>

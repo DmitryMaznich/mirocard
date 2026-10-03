@@ -12,10 +12,10 @@ export const RULINGS = [
 ];
 
 // Slant grid, as in the finished copybooks: "regular" (редкая, стандартная школьная: a line every 20 mm) and
-// "dense" (частая, as on the element sheets: every 3 mm). The methodology grid the glyphs snap to is not drawn.
+// "dense" (частая: every 3 mm on the narrow row, 5 mm on the wide one — the distance between the tops of «и»). The methodology grid the glyphs snap to is not drawn.
 export const GRIDS = [
   { id: "regular", label: "Редкая косая линейка (через 20 мм, стандарт)", short: "Редкая" },
-  { id: "dense", label: "Частая косая линейка (через 3 мм)", short: "Частая" },
+  { id: "dense", label: "Частая косая линейка (через 3 мм на узкой строке, 5 мм на широкой)", short: "Частая" },
 ];
 
 export const ROW_KINDS = [
