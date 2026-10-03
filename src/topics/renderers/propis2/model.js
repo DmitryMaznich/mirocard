@@ -120,7 +120,7 @@ export function lineOwners(page, glyphMap) {
 const isEmptyRow = (r) => r.kind !== "blank" && !String(r.text ?? "").trim();
 
 // A tile from the carousel -> row content. element tiles carry the glyph id, letters the glyph label.
-export const tileToRowPatch = (tile) => ({ kind: tile.kind === "element" ? "element" : "text", text: tile.text });
+export const tileToRowPatch = (tile) => ({ kind: tile.kind === "element" ? "element" : tile.kind === "passage" ? "passage" : "text", text: tile.text });
 
 // Drop a tile on physical row `absRow` (0-based over the whole page):
 //  - on a row with content: that row takes the tile (it keeps its sample/dots/clean mark);
@@ -139,7 +139,7 @@ export function dropTile(page, glyphMap, absRow, tile) {
   if (owner != null) {
     const old = rows[owner];
     rowId = old.id;
-    rows = rows.map((r, i) => (i === owner ? { ...r, ...patch, mark: r.kind === "blank" || r.kind === "passage" ? "" : r.mark } : r));
+    rows = rows.map((r, i) => (i === owner ? { ...r, ...patch, mark: r.kind === "blank" || r.kind === "passage" || patch.kind === "passage" ? "" : r.mark } : r));
   } else if (owner === null) {
     const prev = owners.slice(0, absRow).reverse().find((o) => o != null);
     const row = newRow(patch);

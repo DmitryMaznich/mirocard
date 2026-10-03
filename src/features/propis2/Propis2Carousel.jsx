@@ -53,6 +53,8 @@ function frame(strokes) {
 
 export function TileGlyph({ tile, size = 56 }) {
   const { vb, sw } = useMemo(() => frame(tile.strokes), [tile]);
+  // word / text chips have no strokes: they are drawn as plain text
+  if (!tile.strokes.length) return <span className="propis2-chip-text" style={{ maxWidth: size * 3 }}>{tile.caption ?? tile.text}</span>;
   return (
     <svg className="propis2-tile-glyph" width={size} height={size} viewBox={vb} preserveAspectRatio="xMidYMid meet" aria-hidden="true">
       {tile.strokes.map((d, i) => <path key={i} d={d} fill="none" stroke="#1d4ed8" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />)}
@@ -60,29 +62,29 @@ export function TileGlyph({ tile, size = 56 }) {
   );
 }
 
-// Vertical, endless carousel: the list is rendered three times and the scroll position is moved by one
-// list height whenever it leaves the middle copy, so it never ends. A tile is dragged out to the right
-// (onPick with a pointer event), or tapped (onTap).
+// Horizontal, endless carousel: the list is rendered three times and the scroll position is moved by one
+// list width whenever it leaves the middle copy, so it never ends. A tile is dragged up onto the page
+// (onDragStart with the pointer event), or tapped (onTap).
 export default function Propis2Carousel({ topicRecord, onTap, onDragStart }) {
   const tiles = useMemo(() => buildTiles(topicRecord), [topicRecord]);
   const [tab, setTab] = useState("lower");
   const listRef = useRef(null);
   const items = tiles[tab] ?? [];
-  const copies = items.length > 4 ? 3 : 1;
+  const copies = items.length > 6 ? 3 : 1;
 
   useEffect(() => {
     const el = listRef.current;
     if (!el) return;
-    el.scrollTop = copies === 3 ? el.scrollHeight / 3 : 0;
+    el.scrollLeft = copies === 3 ? el.scrollWidth / 3 : 0;
   }, [tab, copies, items.length]);
 
   const onScroll = () => {
     const el = listRef.current;
     if (!el || copies !== 3) return;
-    const h = el.scrollHeight / 3;
-    if (!(h > 0)) return;
-    if (el.scrollTop < h * 0.5) el.scrollTop += h;
-    else if (el.scrollTop > h * 1.5) el.scrollTop -= h;
+    const w = el.scrollWidth / 3;
+    if (!(w > 0)) return;
+    if (el.scrollLeft < w * 0.5) el.scrollLeft += w;
+    else if (el.scrollLeft > w * 1.5) el.scrollLeft -= w;
   };
 
   return (
@@ -104,7 +106,7 @@ export default function Propis2Carousel({ topicRecord, onTap, onDragStart }) {
             onClick={(e) => { if (e.detail === 0) onTap(tile); }}
             onDragStart={(e) => e.preventDefault()}
           >
-            <TileGlyph tile={tile} />
+            <TileGlyph tile={tile} size={52} />
             <span className="propis2-tile-caption">{tile.caption}</span>
           </button>
         )))}

@@ -82,11 +82,12 @@ describe("Прописи 2 (zip topic)", () => {
     await click(btn(host, "Новая страница"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await type(host.querySelector('[aria-label="Название страницы"]'), "Мои буквы");
-    await click(btn(host, "+ Слово"));
-    await type(host.querySelector('[aria-label="Текст строки"]'), "кот!");
-    expect(host.querySelector(".propis2-warn")?.textContent).toContain("«!»");
+    await click([...host.querySelectorAll('[role="tab"]')].find((t) => t.textContent === "Слово"));
+    await type(host.querySelector('[aria-label="Слово или слог"]'), "кот!");
+    await click(btn(host, "+ Строка"));
+    expect(host.querySelector("[role=alert]")?.textContent).toContain("«!»");
     await type(host.querySelector('[aria-label="Текст строки"]'), "кот");
-    expect(host.querySelector(".propis2-warn")).toBeNull();
+    expect(host.querySelector("[role=alert]")).toBeNull();
 
     await click(btn(host, "Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
@@ -132,21 +133,26 @@ describe("Прописи 2 (zip topic)", () => {
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
 
     await click(btn("Новая страница"));
-    await click(btn("+ Слово"));
-    await setValue(host.querySelector('[aria-label="Текст строки"]'), "а");
-    await click(btn("+ Слово"));
-    await setValue(host.querySelector('[aria-label="Текст строки"]'), "б");
-    expect(btn("Страница из отмеченного").disabled).toBe(true);
+    const tab = (name) => [...host.querySelectorAll('[role="tab"]')].find((t) => t.textContent === name);
+    await click(tab("Слово"));
+    await setValue(host.querySelector('[aria-label="Слово или слог"]'), "а");
+    await click(btn("+ Строка"));
+    await setValue(host.querySelector('[aria-label="Слово или слог"]'), "б");
+    await click(btn("+ Строка"));
+    expect(btn("Из отмеченного").disabled).toBe(true);
     await click(host.querySelector('[aria-label="Повторить строку"]'));
-    expect(btn("Страница из отмеченного").disabled).toBe(false);
+    expect(btn("Из отмеченного").disabled).toBe(false);
 
     // a passage row and a blank row can be added too
+    await click(tab("Текст"));
+    await setValue(host.querySelector('[aria-label="Текст для страницы"]'), "мама мыла раму", HTMLTextAreaElement.prototype);
     await click(btn("+ Текст"));
     expect(host.querySelector('textarea[aria-label="Текст строки"]')).not.toBeNull();
+    await click(tab("Слово"));
     await click(btn("+ Пустая"));
     expect(host.textContent).toContain("Пустая строка — место для письма");
 
-    await click(btn("Страница из отмеченного"));
+    await click(btn("Из отмеченного"));
     expect(host.querySelector('[aria-label="Название страницы"]').value).toContain("повторение");
     expect(host.querySelector('[data-testid="propis2-preview"] svg path')).not.toBeNull();
 
@@ -218,8 +224,9 @@ describe("Прописи 2 (zip topic)", () => {
     for (const [title, text] of [["Страница А", "а"], ["Страница Б", "б"]]) {
       await click(btn("Новая страница"));
       await setValue(host.querySelector('[aria-label="Название страницы"]'), title);
-      await click(btn("+ Слово"));
-      await setValue(host.querySelector('[aria-label="Текст строки"]'), text);
+      await click([...host.querySelectorAll('[role="tab"]')].find((t) => t.textContent === "Слово"));
+      await setValue(host.querySelector('[aria-label="Слово или слог"]'), text);
+      await click(btn("+ Строка"));
       await click(host.querySelector(".back-btn"));
     }
     expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(2);

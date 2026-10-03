@@ -2,15 +2,28 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
+import { PRINT_PAGE_H_MM, PRINT_PAGE_W_MM } from "@/topics/renderers/propis/propisRuling.js";
 import { ROWS_PER_PAGE, ROW_MARKS, RULINGS, analyzePage, appendTile, dropTile, duplicateRow, lineOwners, moveRow, newRow } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import Propis2Carousel, { TileGlyph } from "./Propis2Carousel";
 import Propis2Preview from "./Propis2Preview";
 
-// The page constructor: a vertical carousel of letters and elements on the left, the page on the right.
-// A tile is dragged onto the row it should stand on (or tapped: it goes below the last row). Tapping a row
-// selects it; its panel under the page edits text, kind of row, repeat. The page is saved by the parent
-// on every change; nothing is ever dropped silently.
+// The page constructor. Top: the page canvas, as wide as the screen allows (it may scroll a little, never
+// more than ~20% of its height). Above it one line of settings. Below it tabs: «Символ» (a horizontal,
+// endless carousel of letters and elements), «Слово» and «Текст» (typed, then dragged or added). Anything
+// from the tabs is dragged up onto the row it should stand on, or tapped (it goes below the last row).
+// Tapping a row selects it; its bar edits text, kind of row, repeat. The page is saved by the parent on
+// every change; nothing is ever dropped silently.
+const PAGE_ASPECT = PRINT_PAGE_W_MM / PRINT_PAGE_H_MM;
+const MAX_OVERFLOW = 1.2; // the page may be this much taller than the room for it
+const EDGE = 56; // px from the canvas edge where dragging auto-scrolls it
+
+const TABS = [
+  { id: "symbol", label: "Символ" },
+  { id: "word", label: "Слово" },
+  { id: "text", label: "Текст" },
+];
+
 export default function Propis2Editor({ page, topicRecord, onChange, onBack, onShow, onFromMarked }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const analysis = useMemo(() => analyzePage(page, glyphMap), [page, glyphMap]);
@@ -18,12 +31,34 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const [selectedId, setSelectedId] = useState(null);
   const [dropRow, setDropRow] = useState(-1);
   const [ghost, setGhost] = useState(null); // { tile, x, y }
+  const [tab, setTab] = useState("symbol");
+  const [draftWord, setDraftWord] = useState("");
+  const [draftText, setDraftText] = useState("");
+  const [pageW, setPageW] = useState(0);
   const wrapRef = useRef(null);
   const pageIndexRef = useRef(0);
   const latest = useRef({ page, glyphMap });
   latest.current = { page, glyphMap };
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+
+  // The page's width: the canvas width, but not so wide that the page is more than MAX_OVERFLOW times taller
+  // than the room for it. Recomputed when the canvas resizes (rotation, dock height, keyboard).
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return undefined;
+    const measure = () => {
+      const w = el.clientWidth;
+      const h = el.clientHeight;
+      if (!w || !h) return;
+      setPageW(Math.floor(Math.min(w - 8, h * MAX_OVERFLOW * PAGE_ASPECT)));
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const selectedIndex = page.rows.findIndex((r) => r.id === selectedId);
   const selected = selectedIndex >= 0 ? page.rows[selectedIndex] : null;
@@ -63,14 +98,32 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
     const isMouse = e.pointerType === "mouse" || !e.pointerType;
     let dragging = false;
     let row = -1;
+    let pointerY = start.y;
+    let lastX = start.x;
+    let timer = null;
+    // near the top/bottom edge of the canvas the page scrolls by itself, so any row can be reached
+    const autoScroll = () => {
+      const col = wrapRef.current;
+      if (!col || !dragging) return;
+      const box = col.getBoundingClientRect();
+      if (pointerY < box.top + EDGE) col.scrollTop -= 14;
+      else if (pointerY > box.bottom - EDGE) col.scrollTop += 14;
+      else return;
+      row = rowAtPoint(lastX, pointerY);
+      setDropRow(row);
+    };
     const move = (ev) => {
       const dx = ev.clientX - start.x;
       const dy = ev.clientY - start.y;
       if (!dragging) {
-        const go = isMouse ? Math.hypot(dx, dy) > 5 : Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy);
+        // touch: a vertical move starts the drag (the carousel scrolls sideways); mouse: any move
+        const go = isMouse ? Math.hypot(dx, dy) > 5 : Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx);
         if (!go) return;
         dragging = true;
+        timer = setInterval(autoScroll, 30);
       }
+      pointerY = ev.clientY;
+      lastX = ev.clientX;
       ev.preventDefault?.();
       row = rowAtPoint(ev.clientX, ev.clientY);
       setDropRow(row);
@@ -80,6 +133,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", cancel);
+      clearInterval(timer);
       setGhost(null);
       setDropRow(-1);
       if (cancelled) return;
@@ -124,27 +178,45 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
 
   useEffect(() => { if (selectedId && selectedIndex < 0) setSelectedId(null); }, [selectedId, selectedIndex]);
 
+  const addTyped = (kind, text, setText) => {
+    const value = text.trim();
+    if (!value) return;
+    applyDrop(appendTile(page, glyphMap, { kind, text: value }));
+    setText("");
+  };
+  // typed tiles are dragged like carousel tiles; they are drawn as text
+  const typedTile = (kind, text) => ({ key: kind, kind, text: text.trim(), caption: text.trim().slice(0, 24), strokes: [] });
+
   return (
     <div className="screen propis2-home propis2-editor2" data-testid="propis2-editor">
       <div className="screen-header">
         <button className="back-btn" onClick={onBack}><BackArrowIcon /></button>
         <input className="propis2-title-input" value={page.title} onChange={(e) => onChange({ ...page, title: e.target.value })} aria-label="Название страницы" />
+        <Button onClick={onShow}>Показать ученику</Button>
+      </div>
+
+      <div className="propis2-settings" role="group" aria-label="Настройки страницы">
         <div className="propis2-seg" role="group" aria-label="Разлиновка">
           {RULINGS.map((r) => (
             <button key={r.id} type="button" aria-pressed={page.ruling === r.id} className={page.ruling === r.id ? "is-on" : ""} onClick={() => onChange({ ...page, ruling: r.id })} title={r.label}>{r.short ?? r.label}</button>
           ))}
         </div>
+        <label className="propis2-writeafter">
+          <input type="checkbox" checked={Boolean(page.writeAfter)} onChange={(e) => onChange({ ...page, writeAfter: e.target.checked })} aria-label="Строка для письма после каждой строки" />
+          писать под каждой строкой
+        </label>
+        <Button onClick={onFromMarked} disabled={markedCount === 0}>Из отмеченного{markedCount ? ` (${markedCount})` : ""}</Button>
+        {analysis.problems > 0 && <span className="propis2-warn propis2-warn--summary">Строк с проблемами: {analysis.problems}</span>}
       </div>
 
-      <div className="propis2-stage">
-        <Propis2Carousel topicRecord={topicRecord} onTap={tapTile} onDragStart={startDrag} />
-        <div className="propis2-page-col" ref={wrapRef} onClick={onPageClick}>
+      <div className="propis2-page-col" ref={wrapRef} onClick={onPageClick}>
+        <div className="propis2-page-box" style={pageW ? { width: pageW } : undefined}>
           <Propis2Preview page={page} topicRecord={topicRecord} overlays={overlays} onPageIndexChange={(i) => { pageIndexRef.current = i; }} />
         </div>
       </div>
 
       <div className="propis2-dock">
-        {selected ? (
+        {selected && (
           <div className="propis2-dock-row" data-testid="propis2-row-panel">
             {selected.kind === "blank" ? (
               <span className="propis2-blank-note">Пустая строка — место для письма</span>
@@ -176,21 +248,42 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
               <div className="propis2-warn" role="alert">Строка не помещается по ширине — её конец будет обрезан. Сократите или разбейте на две строки.</div>
             )}
           </div>
-        ) : (
-          <p className="propis2-hint">Перетащите букву или элемент слева на нужную строку. Нажмите на строку, чтобы изменить её.</p>
         )}
-        {analysis.problems > 0 && <div className="propis2-warn propis2-warn--summary">Строк с проблемами: {analysis.problems} (подсвечены красным)</div>}
-        <div className="propis2-actions">
-          <Button onClick={() => addRow({ kind: "text" })}>+ Слово</Button>
-          <Button onClick={() => addRow({ kind: "passage" })}>+ Текст</Button>
-          <Button onClick={() => addRow({ kind: "blank" })}>+ Пустая</Button>
-          <label className="propis2-field--inline propis2-writeafter">
-            <input type="checkbox" checked={Boolean(page.writeAfter)} onChange={(e) => onChange({ ...page, writeAfter: e.target.checked })} aria-label="Строка для письма после каждой строки" />
-            писать под каждой строкой
-          </label>
-          <Button onClick={onShow}>Показать ученику</Button>
-          <Button onClick={onFromMarked} disabled={markedCount === 0}>Страница из отмеченного{markedCount ? ` (${markedCount})` : ""}</Button>
+
+        <div className="propis2-tabs" role="tablist" aria-label="Что поставить на страницу">
+          {TABS.map((t) => (
+            <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={`propis2-tab${tab === t.id ? " is-on" : ""}`} onClick={() => setTab(t.id)}>{t.label}</button>
+          ))}
         </div>
+
+        {tab === "symbol" && <Propis2Carousel topicRecord={topicRecord} onTap={tapTile} onDragStart={startDrag} />}
+
+        {tab === "word" && (
+          <div className="propis2-typed" data-testid="propis2-tab-word">
+            <input value={draftWord} onChange={(e) => setDraftWord(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addTyped("text", draftWord, setDraftWord); }} placeholder="слог или слово: ма, мама, шар…" aria-label="Слово или слог" />
+            <Button onClick={() => addTyped("text", draftWord, setDraftWord)} disabled={!draftWord.trim()}>+ Строка</Button>
+            {draftWord.trim() && (
+              <button type="button" className="propis2-tile propis2-tile--typed" onPointerDown={(e) => startDrag(typedTile("text", draftWord), e)} onDragStart={(e) => e.preventDefault()} aria-label="Перетащите слово на строку">
+                <TileGlyph tile={typedTile("text", draftWord)} size={52} />
+                <span className="propis2-tile-caption">перетащите</span>
+              </button>
+            )}
+            <Button onClick={() => addRow({ kind: "blank" })}>+ Пустая строка</Button>
+          </div>
+        )}
+
+        {tab === "text" && (
+          <div className="propis2-typed" data-testid="propis2-tab-text">
+            <textarea value={draftText} rows={2} onChange={(e) => setDraftText(e.target.value)} placeholder="Текст целиком: он разобьётся по строкам листа" aria-label="Текст для страницы" />
+            <Button onClick={() => addTyped("passage", draftText, setDraftText)} disabled={!draftText.trim()}>+ Текст</Button>
+            {draftText.trim() && (
+              <button type="button" className="propis2-tile propis2-tile--typed" onPointerDown={(e) => startDrag(typedTile("passage", draftText), e)} onDragStart={(e) => e.preventDefault()} aria-label="Перетащите текст на строку">
+                <TileGlyph tile={typedTile("passage", draftText)} size={52} />
+                <span className="propis2-tile-caption">перетащите</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {ghost && (
