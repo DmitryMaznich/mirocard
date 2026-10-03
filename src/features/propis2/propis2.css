@@ -77,14 +77,14 @@
 .propis2-typed { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 104px; }
 .propis2-typed input, .propis2-typed textarea { flex: 1 1 180px; min-width: 140px; font-size: 1rem; padding: 8px 10px; border: 1px solid #c9c2b0; border-radius: 8px; font-family: inherit; }
 .propis2-typed .btn { flex: 0 0 auto; height: auto; padding: 8px 14px; font-size: .9rem; }
-.propis2-chip-text { display: inline-block; font-size: 1.1rem; font-weight: 600; color: #1d4ed8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 52px; }
+.propis2-chip-text { display: inline-block; font-size: 1.1rem; font-weight: 600; color: #1d4ed8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 46px; }
 .propis2-carousel { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .propis2-carousel-tabs { display: flex; gap: 6px; }
 .propis2-carousel-tab { border: 1px solid #d3cbb6; background: #fff; border-radius: 999px; padding: 4px 12px; font-size: .8rem; cursor: pointer; }
 .propis2-carousel-tab.is-on { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
 .propis2-carousel-list { display: flex; flex-direction: row; gap: 8px; overflow-x: auto; overscroll-behavior: contain; padding: 2px 0 4px; scrollbar-width: none; touch-action: pan-x; }
 .propis2-carousel-list::-webkit-scrollbar { display: none; }
-.propis2-tile { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 68px; background: #fff; border: 1px solid #d9d2bf; border-radius: 14px; padding: 6px 6px 4px; cursor: grab; touch-action: pan-x; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; box-shadow: 0 2px 0 rgba(0,0,0,.06); }
+.propis2-tile { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 56px; background: #fff; border: 1px solid #d9d2bf; border-radius: 12px; padding: 5px 6px; cursor: grab; touch-action: pan-x; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; box-shadow: 0 2px 0 rgba(0,0,0,.06); }
 .propis2-tile:active { cursor: grabbing; transform: scale(.97); }
 .propis2-tile--typed { touch-action: none; border-color: #16a34a; }
 .propis2-tile-glyph { display: block; pointer-events: none; }
@@ -96,7 +96,7 @@
   .propis2-seg button { padding: 6px 8px; font-size: .8rem; }
   .propis2-row-tools button { padding: 4px 8px; }
   .propis2-typed { min-height: 88px; }
-  .propis2-tile { min-width: 60px; }
+  .propis2-tile { min-width: 50px; }
 }
 
 /* layout areas: portrait = settings / page / dock stacked; landscape tablet = page left, tools right */
