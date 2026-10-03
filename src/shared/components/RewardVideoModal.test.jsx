@@ -3,6 +3,9 @@ import { useState, useEffect, useReducer } from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
 import RewardVideoModal from "./RewardVideoModal.jsx";
+import { recordRewardVideoView } from "@/core/rewardVideoViews";
+
+vi.mock("@/core/rewardVideoViews", () => ({ recordRewardVideoView: vi.fn(async () => {}) }));
 
 // A parent that re-renders on its own unrelated tick, recreating an inline
 // onDismiss closure every time — the same pattern column_addition's
@@ -28,6 +31,7 @@ function ChurningParent({ tickMs }) {
 
 let container;
 beforeEach(() => {
+  vi.clearAllMocks();
   vi.useFakeTimers();
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -38,6 +42,16 @@ afterEach(() => {
 });
 
 describe("RewardVideoModal", () => {
+  it("counts only opening a video, once despite parent re-renders", async () => {
+    const root = createRoot(container);
+    await act(async () => root.render(<ChurningParent tickMs={300} />));
+    expect(recordRewardVideoView).not.toHaveBeenCalled();
+    await act(async () => container.querySelector(".reward-modal__btn--watch").click());
+    expect(recordRewardVideoView).toHaveBeenCalledExactlyOnceWith("s1", "aaaaaaaaaaa");
+    await act(async () => vi.advanceTimersByTime(1500));
+    expect(recordRewardVideoView).toHaveBeenCalledTimes(1);
+    await act(async () => root.unmount());
+  });
   it("auto-dismisses at ~120s even when the caller re-renders every 300ms with a fresh onDismiss (regression: column_addition's Контрольная работа never timed out)", async () => {
     const root = createRoot(container);
     await act(async () => {

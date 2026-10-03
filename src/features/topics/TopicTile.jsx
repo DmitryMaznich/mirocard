@@ -54,6 +54,8 @@ export default function TopicTile({
   disabled = false,
 }) {
   const [loading, setLoading] = useState(false);
+  // 0..1 download fraction; null = size unknown (indeterminate bar).
+  const [progress, setProgress] = useState(null);
   const [error, setError] = useState("");
   const [confirmingInstall, setConfirmingInstall] = useState(false);
 
@@ -80,12 +82,14 @@ export default function TopicTile({
   async function handleAction() {
     setLoading(true);
     setError("");
+    setProgress(0);
     try {
-      await onInstall(entry, { force: status === "update" });
+      await onInstall(entry, { force: status === "update", onProgress: setProgress });
     } catch (err) {
       setError(getImportErrorMessage(err));
     } finally {
       setLoading(false);
+      setProgress(null);
     }
   }
 
@@ -155,7 +159,7 @@ export default function TopicTile({
           <span>{versionText}</span>
           {statusBadge && !personalCaption && <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>{statusBadge.label}</span>}
           {personalCaption && <span className="topic-tile-row__tag topic-tile-row__tag--personal" title={personalCaption}>Личная</span>}
-          {loading && <span className="topic-tile-row__loading">Загружаем…</span>}
+          {loading && <span className="topic-tile-row__loading">{progress != null ? `${Math.round(progress * 100)}%` : "Загружаем…"}</span>}
         </div>
       </div>
       {installedRecord && !isBuiltin && onMenu && (
@@ -187,6 +191,18 @@ export default function TopicTile({
       >
         {badgeIcon}
       </button>
+      {loading && (
+        <div
+          className={`topic-tile-row__progress${progress == null ? " topic-tile-row__progress--indeterminate" : ""}`}
+          role="progressbar"
+          aria-label="Загрузка темы"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress == null ? undefined : Math.round(progress * 100)}
+        >
+          <div className="topic-tile-row__progress-fill" style={progress == null ? undefined : { width: `${Math.max(progress, 0.03) * 100}%` }} />
+        </div>
+      )}
     </article>
     {error && <div className="topic-tile-row__error" role="alert">{error}</div>}
     {confirmingInstall && (

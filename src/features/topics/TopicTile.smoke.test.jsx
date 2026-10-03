@@ -45,7 +45,7 @@ describe("TopicTile — mounted through the real component", () => {
     await act(async () => {
       container.querySelector(".btn-primary").click();
     });
-    expect(onInstall).toHaveBeenCalledWith({ id: "propis", version: "1.0.0" }, { force: false });
+    expect(onInstall).toHaveBeenCalledWith({ id: "propis", version: "1.0.0" }, expect.objectContaining({ force: false }));
   });
 
   it("shows an installation error below the card", async () => {
@@ -76,7 +76,7 @@ describe("TopicTile — mounted through the real component", () => {
     await act(async () => {
       container.querySelector(".topic-tile-row__badge").click();
     });
-    expect(onInstall).toHaveBeenCalledWith({ id: "propis", version: "1.1.0" }, { force: true });
+    expect(onInstall).toHaveBeenCalledWith({ id: "propis", version: "1.1.0" }, expect.objectContaining({ force: true }));
   });
 
   it("shows the update action even when the older installed topic is active", async () => {
@@ -86,7 +86,7 @@ describe("TopicTile — mounted through the real component", () => {
     const badge = container.querySelector(".topic-tile-row__badge");
     expect(badge?.getAttribute("aria-label")).toContain("Доступно обновление v1.12.3");
     await act(async () => { badge.click(); });
-    expect(onInstall).toHaveBeenCalledWith({ id: "symmetry_draw", version: "1.12.3" }, { force: true });
+    expect(onInstall).toHaveBeenCalledWith({ id: "symmetry_draw", version: "1.12.3" }, expect.objectContaining({ force: true }));
   });
 
   it("paid tier, no access yet: badge is enabled and requests access on tap", async () => {

@@ -5,8 +5,9 @@ import { pushOp } from "@/core/syncApi";
 import { PHOTO_ACCEPT, PhotoPrepareError, squarePhotoDataUrl } from "@/shared/utils/squarePhoto";
 import Button from "@/shared/components/Button";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
-import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
+import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials, extractYoutubeId } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import { rewardVideoViewCount } from "@/shared/utils/rewardVideoViews";
 
 function generateStudentId() {
   return "student_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
@@ -108,7 +109,6 @@ export default function StudentEditScreen() {
   const students            = useAppStore((s) => s.students);
   const setStudents         = useAppStore((s) => s.setStudents);
   const editingStudentId    = useAppStore((s) => s.editingStudentId);
-  const studentTopicLinks   = useAppStore((s) => s.studentTopicLinks);
   const studentEditReturnScreen    = useAppStore((s) => s.studentEditReturnScreen);
   const setStudentEditReturnScreen = useAppStore((s) => s.setStudentEditReturnScreen);
 
@@ -398,7 +398,10 @@ export default function StudentEditScreen() {
           {videos.map((v, idx) => (
             <div key={idx} className="se-list-row">
               <span className="se-video-icon">▶</span>
-              <span className="se-list-name">{v.title || getVideoUrl(v)}</span>
+              <span className="se-list-name">
+                {v.title || getVideoUrl(v)}
+                <span className="reward-video-view-count">Показано: {rewardVideoViewCount(initial?.rewardVideoViews, extractYoutubeId(getVideoUrl(v)))} раз</span>
+              </span>
               <button className="se-list-remove" onClick={() => setVideos((p) => p.filter((_, i) => i !== idx))}>✕</button>
             </div>
           ))}

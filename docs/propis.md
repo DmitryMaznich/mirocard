@@ -3461,3 +3461,56 @@ its real position at once (up to the hysteresis-sized offset, 1.5×range). Now `
 last correction and fades it out (smoothstep) over `RETRACE_RELEASE_ARC` (6) units of path after the
 last snapped point. Entry is NOT ramped on purpose: earlier points are the reference the return
 snaps to, so moving them would reopen the gap. Max correction jump at release: 0.45 → 0.055 (Node).
+
+**Retrace snap redesigned at segment level, 2026-10-01.** User: the per-point version (2026-09-30)
+still gave jerks, bumps and sharp turns (worse above range 0.5). Causes found: (1) per-point decisions
+with direction taken from ~1.5 units of noisy points flickered; (2) RDP and grid snap ran AFTER it
+and pulled the two passes apart again; (3) large range grabbed unrelated segments. Replaced by
+`retraceSegments(points, range)` (+ `rdpKeepIdx`, `prepSplinePoints`), run at the END of
+`snapAndFilletPath` (after grid snap and end snap, before the fillet) and on the simplified vertices
+before `fitSpline` in spline mode. Detection uses a COARSE RDP copy (eps 0.5: noise cuts one stick
+into many <5-unit pieces, coarse collapses them); a long segment B (≥5) that turns back
+(anti-parallel, ≤12°) along an earlier long segment A, with both ends of B within `range` of A's line
+and ≥50% overlap, has EVERY original vertex of its span moved perpendicularly onto A's line.
+`segFree` is intentionally NOT used (a vertical stick is "free" for the grid snap). No hysteresis,
+no ramps. Node full-pipeline test (noise 0.3, return offset 0.6, 20 seeds): worst gap between passes
+1.59 → 0.69 at range 2, no new sharp turns. Returns along ARCS are not caught (known limitation).
+
+**Rounding-arc guides on the ruling, 2026-10-01.** User (screenshot of two hand-drawn arcs: ∩ touching
+the top line, ∪ the bottom line): "одинаковые закругления" -- dashed thin green arcs in the grid so
+the same rounding can be repeated. In `drawRuling()` (`tools/letter_capture/handwriting_capture.html`),
+`arcPath(T, up, x0)` builds one cubic-Bézier arc per grid cell: ∩ (up=true) touches lines L1 and L2
+from below, ∪ touches L2 and L3 from above (lines 1–3 / 3–5 in the labels). Ends sit on the slant
+lines at `ARC_DEPTH`=4.2 from the touched line: ∩ from a bold 50° line to the nearest-to-9-units thin
+65° line on its right (starts along 50°, comes down steeply, apex 62% along); ∪ is its point mirror
+(thin 65° on the left, bold 50° on the right, apex 38%). Width is whatever the grid's phase gives at
+that height (bold and thin lines drift apart: 0.3728·(L3−y)). Style `.rule-arc`, group `#arcGuides`,
+toggle `#arcGuidesChk` (default on). Chosen from the screenshot: the view showed the band L1–L2 at
+~10.8 px/unit (arc span ≈ 8.8 units ≈ one cell). Arcs are NOT snap targets yet. Tool-only change.
+
+**Arc snap (stroke sticks to the rounding-arc guides), 2026-10-01.** User: make the strokes snap to the
+dashed arcs "так же, как к прямым линиям". Arc geometry is now shared: `drawRuling()` fills
+`ARC_CURVES` (each arc sampled into 41 points with cumulative length, bbox, length) via
+`makeArcCurve`. `arcSnapPoints(pts, range)` (checkbox `#arcSnapChk`, slider `#arcSnapRangeInput`
+0.5–3, default 1.5) runs on the DENSE filtered points before RDP: a run of consecutive points within
+`range` of one arc, moving ALONG it (direction over a ±2-unit PATH window within 40° of the arc
+tangent over the same span; gaps of ≤2 points bridged), at least max(3, 35% of the arc) long and really
+progressing along it (arc-length span ≥ 0.6·run), is replaced by the arc's exact samples between the
+run's first/last projections. Overlapping candidates: longest wins. `simplifyForPath()` then keeps
+`pinned[]` through RDP (`rdpKeepIdx`). In `snapAndFilletPath` pinned vertices are ABSOLUTE anchors:
+the chain is built forward from the first pinned vertex and BACKWARD (reversed chain) before it, so
+the grid-snap chain can't drift the arc off its guide; a segment with both ends pinned is untouched;
+`snapEndsToRuling` and `retraceSegments` skip pinned vertices. Spline mode (grid snap off) just gets the
+arc samples. Real-page Playwright test (mouse strokes along a ∩ arc, wobble 0.5/1.0): mean distance to
+the arc 0.32→0.10 / 0.71→0.13, the 153° kink at wobble 1.0 gone; spline mode 0.57→0.10; a horizontal
+line through the arc band is unchanged. Known behaviour: a straight stroke that hugs an arc's steep side
+within `range` for ≥35% of the arc length (e.g. a 45° diagonal along the ∩'s right side, ~6 units) DOES
+snap onto the arc; lower the range if that's unwanted. Tool-only change.
+
+**Extra center guide in the lower wide band, 2026-10-02.** User noticed the red dashed "6" is not
+centered in the lower wide band (lines 5–7) while "2" is in the upper one. It is deliberate
+(`BOT_MID = 110`, `NATIVE_BOT_MID = 110` in `propisRuling.js`, pinned by its test; real descenders end
+near y≈110, not at the geometric center 114), and line 6 is shared with the app (`GUIDE_LINES`), so it
+was NOT moved. Added a thin, unnumbered, lighter red dashed line at (L3+L4)/2 = 114 to the workshop
+ruling (`.rule-red-h-center`, `drawRuling()`), a visual aid only: not a snap target, not in `RULING_YS`,
+not part of the 1–7 scheme. Whether line 6 itself should move to 114 is left open. Tool-only change.

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, Component } from "react";
+import { useCallback, useEffect, useRef, Component } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
 import { api, setApiToken } from "@/core/api";
@@ -9,6 +9,7 @@ import { useHeartbeat } from "@/shared/hooks/useHeartbeat";
 import { useBackButtonGuard } from "@/shared/hooks/useBackButtonGuard";
 import { getActiveOrientationLock } from "@/shared/utils/orientationLock";
 import { clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot, canResumeActiveSession } from "@/features/session/activeSession";
+import { requestStoragePersistence } from "@/core/storagePersistence";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 
@@ -144,6 +145,7 @@ function OrientationGuard({ orientationLock }) {
 
 export default function App() {
   const screen = useAppStore((s) => s.screen);
+  const account = useAppStore((s) => s.account);
   const setScreen = useAppStore((s) => s.setScreen);
   const students = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
@@ -161,6 +163,30 @@ export default function App() {
   const setPasswordResetToken = useAppStore((s) => s.setPasswordResetToken);
   const pendingCheckoutPlan = useAppStore((s) => s.pendingCheckoutPlan);
   const closeTimer = useCallback(() => setIsOpen(false), [setIsOpen]);
+  const storageRequestAttempted = useRef(false);
+
+  useEffect(() => {
+    if (!account || screen === "boot" || storageRequestAttempted.current) return;
+
+    function removeListeners() {
+      window.removeEventListener("pointerdown", onInteraction, true);
+      window.removeEventListener("keydown", onInteraction, true);
+      window.removeEventListener("click", onInteraction, true);
+    }
+    function onInteraction() {
+      storageRequestAttempted.current = true;
+      removeListeners();
+      // This is an origin-wide request: it covers all existing and future
+      // IndexedDB/Cache data, regardless of which screen writes it. Never
+      // block the user's action when the browser declines the request.
+      void requestStoragePersistence();
+    }
+
+    window.addEventListener("pointerdown", onInteraction, true);
+    window.addEventListener("keydown", onInteraction, true);
+    window.addEventListener("click", onInteraction, true);
+    return removeListeners;
+  }, [account, screen]);
 
   useEffect(() => {
     if (screen !== "session") resetSession();
@@ -339,7 +365,9 @@ export default function App() {
         };
         await persistBootstrap(db, payload);
         applyBootstrapToStore(payload);
-      } catch {}
+      } catch {
+        // A temporary network failure must not interrupt local use.
+      }
       syncing = false;
       flushQueue().catch(() => {});
     }

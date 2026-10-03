@@ -4,13 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useAppStore } from "@/core/store";
 import { useBackButtonGuard } from "./useBackButtonGuard";
 
-let time = 1000;
-let root = null;
-let container = null;
+let root;
+let container;
 
 function GuardHost(props) {
+  const screen = useAppStore((state) => state.screen);
   useBackButtonGuard({
-    screen: "home",
+    screen,
     isTimerOpen: false,
     onCloseTimer: undefined,
     isSessionExitPromptOpen: false,
@@ -21,288 +21,142 @@ function GuardHost(props) {
   return null;
 }
 
-function resetStore(screen = "home") {
-  useAppStore.setState({
-    screen,
-    topicRecords: [],
-    activeTopicId: null,
+async function travel(method = "back") {
+  await act(async () => {
+    window.history[method]();
+    // jsdom dispatches popstate on a later task, as real browsers do.
+    await new Promise((resolve) => setTimeout(resolve, 30));
   });
 }
 
-function pressBrowserBack() {
-  time += 250;
-  vi.setSystemTime(time);
-  window.dispatchEvent(new PopStateEvent("popstate", {
-    state: { mirocardBackRoot: true },
-  }));
+function goTo(screen) {
+  act(() => useAppStore.getState().setScreen(screen));
 }
 
 beforeEach(() => {
-  vi.useFakeTimers();
-  vi.setSystemTime(time);
-  window.history.replaceState(null, "", "/");
+  window.history.pushState(null, "", "/");
+  useAppStore.setState({ screen: "boot", topicRecords: [], activeTopicId: null });
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
 });
 
 afterEach(() => {
-  act(() => {
-    root?.unmount();
-  });
-  root = null;
+  act(() => root?.unmount());
   container?.remove();
+  root = null;
   container = null;
-  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
 describe("useBackButtonGuard", () => {
-  it("keeps the app on home when browser back is pressed", () => {
-    resetStore("home");
+  it("replaces boot instead of leaving it in the Back stack", async () => {
+    act(() => root.render(<GuardHost />));
+    goTo("home");
+
+    expect(window.history.state).toEqual(expect.objectContaining({ screen: "home", index: 0 }));
     const pushSpy = vi.spyOn(window.history, "pushState");
-
-    act(() => {
-      root.render(<GuardHost />);
-    });
-    pushSpy.mockClear();
-
-    act(() => {
-      pressBrowserBack();
-    });
+    await travel();
 
     expect(useAppStore.getState().screen).toBe("home");
-    expect(pushSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ mirocardBackGuard: true }),
-      "",
-      window.location.href,
-    );
+    expect(pushSpy).not.toHaveBeenCalled();
   });
 
-  it("routes regular screens to their app-level parent", () => {
-    resetStore("students");
+  it("navigates through real screen entries with Back and Forward", async () => {
+    act(() => root.render(<GuardHost />));
+    goTo("home");
+    goTo("students");
+    goTo("student_edit");
 
-    act(() => {
-      root.render(<GuardHost />);
-    });
-    act(() => {
-      pressBrowserBack();
-    });
-
-    expect(useAppStore.getState().screen).toBe("home");
-  });
-
-  it("asks for confirmation before leaving an active session", () => {
-    resetStore("session");
-    const onRequestSessionExit = vi.fn();
-
-    act(() => {
-      root.render(<GuardHost onRequestSessionExit={onRequestSessionExit} />);
-    });
-    act(() => {
-      pressBrowserBack();
-    });
-
-    expect(useAppStore.getState().screen).toBe("session");
-    expect(onRequestSessionExit).toHaveBeenCalledTimes(1);
-  });
-
-  it("rebuilds the guard stack when the app starts on a stale guard entry", () => {
-    resetStore("home");
-    window.history.replaceState(
-      { mirocardBackGuard: true, guardSequence: 42 },
-      "",
-      "/#_guard",
-    );
-
-    act(() => {
-      root.render(<GuardHost />);
-    });
-
-    expect(window.location.hash).toBe("#_guard");
-    expect(window.history.state).toEqual(
-      expect.objectContaining({
-        mirocardBackGuard: true,
-        guardSequence: expect.any(Number),
-      }),
-    );
-    expect(window.history.state.guardSequence).toBeGreaterThan(42);
-
-    act(() => {
-      pressBrowserBack();
-    });
-
-    expect(useAppStore.getState().screen).toBe("home");
-  });
-
-  it("closes the timer before app navigation", () => {
-    resetStore("students");
-    const onCloseTimer = vi.fn();
-
-    act(() => {
-      root.render(<GuardHost isTimerOpen onCloseTimer={onCloseTimer} />);
-    });
-    act(() => {
-      pressBrowserBack();
-    });
-
+    expect(window.history.state).toEqual(expect.objectContaining({ screen: "student_edit", index: 2 }));
+    await travel();
     expect(useAppStore.getState().screen).toBe("students");
-    expect(onCloseTimer).toHaveBeenCalledTimes(1);
+    await travel();
+    expect(useAppStore.getState().screen).toBe("home");
+    await travel("forward");
+    expect(useAppStore.getState().screen).toBe("students");
   });
-});
 
-describe("useBackButtonGuard on iOS", () => {
-  const originalUserAgentDescriptor = Object.getOwnPropertyDescriptor(window.navigator, "userAgent");
+  it("uses an earlier history entry when the in-app Back button changes screen", async () => {
+    act(() => root.render(<GuardHost />));
+    goTo("home");
+    goTo("students");
+    goTo("student_edit");
+    goTo("students");
 
-  function mockIos() {
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 30));
+    });
+    expect(window.history.state).toEqual(expect.objectContaining({ screen: "students", index: 1 }));
+    expect(useAppStore.getState().screen).toBe("students");
+    await travel();
+    expect(useAppStore.getState().screen).toBe("home");
+  });
+
+  it("closes a timer before changing screens", async () => {
+    const onCloseTimer = vi.fn();
+    act(() => root.render(<GuardHost isTimerOpen onCloseTimer={onCloseTimer} />));
+    goTo("home");
+    goTo("students");
+
+    await travel();
+    expect(onCloseTimer).toHaveBeenCalledOnce();
+    expect(useAppStore.getState().screen).toBe("students");
+    expect(window.history.state).toEqual(expect.objectContaining({ screen: "students", index: 1 }));
+  });
+
+  it("asks before leaving a session and never restores it after completion", async () => {
+    const onRequestSessionExit = vi.fn();
+    act(() => root.render(<GuardHost onRequestSessionExit={onRequestSessionExit} />));
+    goTo("home");
+    goTo("params");
+    goTo("session");
+
+    await travel();
+    expect(onRequestSessionExit).toHaveBeenCalledOnce();
+    expect(useAppStore.getState().screen).toBe("session");
+
+    goTo("home");
+    expect(window.history.state).toEqual(expect.objectContaining({ screen: "home" }));
+    await travel("forward");
+    expect(useAppStore.getState().screen).toBe("home");
+  });
+
+  it("creates a Back destination for a restored session on first interaction", async () => {
+    const onRequestSessionExit = vi.fn();
+    act(() => root.render(<GuardHost onRequestSessionExit={onRequestSessionExit} />));
+    goTo("session");
+    expect(window.history.state).toEqual(expect.objectContaining({ screen: "session", index: 0 }));
+
+    act(() => window.dispatchEvent(new Event("pointerdown", { bubbles: true })));
+    expect(window.history.state).toEqual(expect.objectContaining({ screen: "session", index: 1 }));
+    await travel();
+    expect(onRequestSessionExit).toHaveBeenCalledOnce();
+    expect(useAppStore.getState().screen).toBe("session");
+  });
+
+  it("does not restore authenticated screens after sign-out", async () => {
+    act(() => root.render(<GuardHost />));
+    goTo("home");
+    goTo("students");
+    goTo("login");
+    await travel();
+    expect(useAppStore.getState().screen).toBe("login");
+  });
+
+  it("handles iOS swipe history with the same screen stack", async () => {
+    const original = Object.getOwnPropertyDescriptor(window.navigator, "userAgent");
     Object.defineProperty(window.navigator, "userAgent", {
-      value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)",
-      configurable: true,
+      value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)", configurable: true,
     });
-  }
-
-  afterEach(() => {
-    if (originalUserAgentDescriptor) {
-      Object.defineProperty(window.navigator, "userAgent", originalUserAgentDescriptor);
-    } else {
-      delete window.navigator.userAgent;
+    try {
+      act(() => root.render(<GuardHost />));
+      goTo("home");
+      goTo("students");
+      await travel();
+      expect(useAppStore.getState().screen).toBe("home");
+    } finally {
+      if (original) Object.defineProperty(window.navigator, "userAgent", original);
     }
-  });
-
-  function dispatchPopState(state) {
-    time += 250;
-    vi.setSystemTime(time);
-    window.dispatchEvent(new PopStateEvent("popstate", { state }));
-  }
-
-  it("pushes a real history entry for each forward screen change", () => {
-    mockIos();
-    resetStore("home");
-    const pushSpy = vi.spyOn(window.history, "pushState");
-
-    act(() => {
-      root.render(<GuardHost screen="home" />);
-    });
-    pushSpy.mockClear();
-
-    act(() => {
-      root.render(<GuardHost screen="students" />);
-    });
-
-    expect(pushSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ mirocardIosNav: true, screen: "students" }),
-      "",
-      expect.any(String),
-    );
-  });
-
-  it("always rebounds to the current screen on swipe-back, regardless of what the revealed entry says", () => {
-    mockIos();
-    resetStore("home");
-
-    act(() => {
-      root.render(<GuardHost screen="home" />);
-    });
-    act(() => {
-      root.render(<GuardHost screen="students" />);
-    });
-    const pushSpy = vi.spyOn(window.history, "pushState");
-    const setScreenSpy = vi.spyOn(useAppStore.getState(), "setScreen");
-
-    // A swipe never restores a screen from history — not even one that
-    // looks like a plausible, correctly-tagged prior entry (e.g. root).
-    act(() => {
-      dispatchPopState({ mirocardIosNav: true, screen: "home", seq: 0 });
-    });
-
-    expect(pushSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ mirocardIosNav: true, screen: "students" }),
-      "",
-      expect.any(String),
-    );
-    expect(setScreenSpy).not.toHaveBeenCalled();
-  });
-
-  it("rebounds the same way for an untagged or foreign history entry", () => {
-    mockIos();
-    resetStore("home");
-
-    act(() => {
-      root.render(<GuardHost screen="home" />);
-    });
-    const pushSpy = vi.spyOn(window.history, "pushState");
-
-    act(() => {
-      dispatchPopState(null);
-    });
-
-    expect(pushSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ mirocardIosNav: true, screen: "home" }),
-      "",
-      expect.any(String),
-    );
-    expect(useAppStore.getState().screen).toBe("home");
-  });
-
-  it("intercepts swipe-back during an active session with a confirmation prompt", () => {
-    mockIos();
-    resetStore("session");
-    const onRequestSessionExit = vi.fn();
-
-    act(() => {
-      root.render(<GuardHost screen="session" onRequestSessionExit={onRequestSessionExit} />);
-    });
-    const pushSpy = vi.spyOn(window.history, "pushState");
-
-    act(() => {
-      dispatchPopState(null);
-    });
-
-    expect(useAppStore.getState().screen).toBe("session");
-    expect(onRequestSessionExit).toHaveBeenCalledTimes(1);
-    expect(pushSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ mirocardIosNav: true, screen: "session" }),
-      "",
-      expect.any(String),
-    );
-  });
-
-  it("closes an already-open session exit prompt on a second swipe-back", () => {
-    mockIos();
-    resetStore("session");
-    const onCloseSessionExitPrompt = vi.fn();
-
-    act(() => {
-      root.render(
-        <GuardHost
-          screen="session"
-          isSessionExitPromptOpen
-          onCloseSessionExitPrompt={onCloseSessionExitPrompt}
-        />,
-      );
-    });
-
-    act(() => {
-      dispatchPopState(null);
-    });
-
-    expect(onCloseSessionExitPrompt).toHaveBeenCalledTimes(1);
-  });
-
-  it("closes the timer before navigating, without changing screen", () => {
-    mockIos();
-    resetStore("students");
-    const onCloseTimer = vi.fn();
-
-    act(() => {
-      root.render(<GuardHost screen="students" isTimerOpen onCloseTimer={onCloseTimer} />);
-    });
-
-    act(() => {
-      dispatchPopState({ mirocardIosNav: true, screen: "home", seq: 0 });
-    });
-
-    expect(onCloseTimer).toHaveBeenCalledTimes(1);
-    expect(useAppStore.getState().screen).toBe("students");
   });
 });

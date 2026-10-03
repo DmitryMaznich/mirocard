@@ -1,6 +1,5 @@
 import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
-import { AnalyticsScreen } from "@/features/analytics/AnalyticsScreen";
 import { getDb } from "@/core/db";
 import { atomicUpsertOwnedTopic } from "@/core/bootstrap";
 import { deleteTopicRecord } from "@/topics/topicLoader";
@@ -34,7 +33,6 @@ export default function TopicLibraryScreen() {
   const buildInfo         = useAppStore((s) => s.buildInfo);
   const activeTopicId     = useAppStore((s) => s.activeTopicId);
   const setActiveTopicId  = useAppStore((s) => s.setActiveTopicId);
-  const activeStudentId   = useAppStore((s) => s.activeStudentId);
   const ownedTopics       = useAppStore((s) => s.ownedTopics);
   const account           = useAppStore((s) => s.account);
   const token             = useAppStore((s) => s.token);
@@ -44,7 +42,6 @@ export default function TopicLibraryScreen() {
   const [catalogError,      setCatalogError]      = useState(false);
   const [filter,             setFilter]           = useState("mine");
   const [query,              setQuery]            = useState("");
-  const [analyticsTarget,   setAnalyticsTarget]   = useState(null);
   const [deleting,          setDeleting]          = useState(null);
   const [infoTopic,         setInfoTopic]         = useState(null);
   const [actionSheetRecord, setActionSheetRecord] = useState(null);
@@ -59,7 +56,7 @@ export default function TopicLibraryScreen() {
     if (catalog === null) loadCatalog();
   }, [catalog, loadCatalog]);
 
-  const installCatalogEntry = useCallback(async (entry, { force = false } = {}) => {
+  const installCatalogEntry = useCallback(async (entry, { onProgress } = {}) => {
     const owned = (ownedTopics ?? []).find((o) => o.topicId === entry.id);
     const isGranted = owned != null && owned.source !== "request";
     const isFreeStaticDeck = isFreeStaticInstall(entry);
@@ -100,7 +97,7 @@ export default function TopicLibraryScreen() {
       upsertOwnedTopic({ topicId: entry.id, source });
       if (result.status !== "granted") return; // pending — don't download yet
     }
-    const record = await fetchCatalogTopic(entry, buildInfo.version, force);
+    const record = await fetchCatalogTopic(entry, buildInfo.version, { onProgress });
     upsertTopicRecord(record);
 
     // Keep the account library in sync when possible, without turning a free
@@ -322,11 +319,6 @@ export default function TopicLibraryScreen() {
           record={actionSheetRecord}
           onClose={() => setActionSheetRecord(null)}
           onInfo={(r) => { setInfoTopic(r); }}
-          onAnalytics={(r) => setAnalyticsTarget({
-            studentId:  activeStudentId,
-            topicId:    r.meta.id,
-            topicTitle: getTopicTitle(r.meta.title),
-          })}
           onDelete={(r) => setDeleting(r)}
         />
       )}
@@ -355,16 +347,6 @@ export default function TopicLibraryScreen() {
         </Modal>
       )}
 
-      {analyticsTarget && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "#fff" }}>
-          <AnalyticsScreen
-            studentId={analyticsTarget.studentId}
-            topicId={analyticsTarget.topicId}
-            topicTitle={analyticsTarget.topicTitle}
-            onClose={() => setAnalyticsTarget(null)}
-          />
-        </div>
-      )}
     </div>
   );
 }

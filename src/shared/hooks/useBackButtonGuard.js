@@ -1,70 +1,25 @@
 import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
-import { getBackTarget, SESSION_EXIT_TARGET } from "@/shared/navigation/backNavigation";
-import { isIOS, installIosRoot, pushIosScreen } from "@/shared/navigation/iosBackNavigation";
 
-// One entry is enough. With DEPTH=1 the rebound always goes root→#_guard
-// (different URLs), so Chrome Android never silently ignores the pushState.
-// DEPTH≥2 causes same-URL rebounds (#_guard→#_guard) which Chrome may drop.
-const GUARD_HASH = "#_guard";
+// A browser/PWA cannot cancel the OS Back action at the start destination.
+// Keep real screen entries instead of repeatedly pushing a synthetic guard
+// from popstate (which browsers are allowed to skip).
+const NAV_KEY = "mirocardScreenNav";
 
-let guardSequence = 0;
-let guardTopSequence = 0;
-let lastObservedSequence = 0;
-let lastHandledBackAt = 0;
-let lastHandledIosSpecialAt = 0;
-
-function guardUrl() {
-  return window.location.href.replace(/#.*$/, "") + GUARD_HASH;
+function baseUrl() {
+  return window.location.href.replace(/#.*$/, "");
 }
 
-function getGuardSequence(state) {
-  return state?.mirocardBackGuard && Number.isFinite(state.guardSequence)
-    ? state.guardSequence
-    : 0;
+function screenUrl(index) {
+  return `${baseUrl()}#app-${index}`;
 }
 
-function rootStateFrom(state) {
-  const nextState = { ...(state ?? {}) };
-  delete nextState.mirocardBackGuard;
-  nextState.mirocardBackRoot = true;
-  nextState.guardSequence = 0;
-  return nextState;
+function isOurEntry(state, id) {
+  return state?.[NAV_KEY] === id && Number.isInteger(state.index) && state.index >= 0;
 }
 
-function installBackGuardStack() {
-  const currentState = window.history.state;
-  const rootUrl = window.location.href.replace(/#.*$/, "");
-  const currentSequence = getGuardSequence(currentState);
-
-  // Always normalize the current entry to the app root, then put a fresh guard
-  // on top. If the app reloads while the URL is already #_guard, relying on the
-  // existing entry leaves no guaranteed in-app entry behind Android's Back.
-  window.history.replaceState(rootStateFrom(currentState), "", rootUrl);
-
-  guardSequence = Math.max(guardSequence, currentSequence) + 1;
-  window.history.pushState(
-    { mirocardBackGuard: true, guardSequence },
-    "",
-    guardUrl(),
-  );
-  guardTopSequence = guardSequence;
-  lastObservedSequence = guardTopSequence;
-}
-
-function reboundToGuardTop(sequence) {
-  if (sequence >= guardTopSequence) return;
-  guardSequence += 1;
-  guardTopSequence = guardSequence;
-  lastObservedSequence = guardTopSequence;
-  // guardUrl() is computed fresh from window.location.href (current entry after
-  // the back press) → always baseUrl + #_guard, never same as the guard entry
-  // we just left, so Chrome will not drop this pushState.
-  window.history.pushState(
-    { mirocardBackGuard: true, guardSequence },
-    "",
-    guardUrl(),
-  );
+function entry(id, index, screen) {
+  return { [NAV_KEY]: id, index, screen };
 }
 
 export function useBackButtonGuard({
@@ -75,122 +30,150 @@ export function useBackButtonGuard({
   onCloseSessionExitPrompt,
   onRequestSessionExit,
 }) {
-  const screenRef = useRef(screen);
-  const isTimerOpenRef = useRef(isTimerOpen);
-  const onCloseTimerRef = useRef(onCloseTimer);
-  const isSessionExitPromptOpenRef = useRef(isSessionExitPromptOpen);
-  const onCloseSessionExitPromptRef = useRef(onCloseSessionExitPrompt);
-  const onRequestSessionExitRef = useRef(onRequestSessionExit);
-  const isFirstIosRenderRef = useRef(true);
+  const latest = useRef({
+    screen, isTimerOpen, onCloseTimer, isSessionExitPromptOpen,
+    onCloseSessionExitPrompt, onRequestSessionExit,
+  });
+  const nav = useRef({
+    id: null,
+    initialized: false,
+    screens: [],
+    index: 0,
+    pending: null,
+    fromPopstate: null,
+  });
 
   useEffect(() => {
-    screenRef.current = screen;
-    isTimerOpenRef.current = isTimerOpen;
-    onCloseTimerRef.current = onCloseTimer;
-    isSessionExitPromptOpenRef.current = isSessionExitPromptOpen;
-    onCloseSessionExitPromptRef.current = onCloseSessionExitPrompt;
-    onRequestSessionExitRef.current = onRequestSessionExit;
-  }, [
-    screen,
-    isTimerOpen,
-    onCloseTimer,
-    isSessionExitPromptOpen,
-    onCloseSessionExitPrompt,
-    onRequestSessionExit,
-  ]);
+    latest.current = {
+      screen, isTimerOpen, onCloseTimer, isSessionExitPromptOpen,
+      onCloseSessionExitPrompt, onRequestSessionExit,
+    };
+  }, [screen, isTimerOpen, onCloseTimer, isSessionExitPromptOpen,
+    onCloseSessionExitPrompt, onRequestSessionExit]);
 
-  // iOS only: push a real history entry for every forward screen change, so
-  // WebKit's mid-swipe preview reflects the current screen rather than a
-  // snapshot frozen at boot. The popstate handler below never reads these
-  // entries back — it always rebounds to the current screen regardless of
-  // what a swipe reveals (see iosBackNavigation.js for why).
   useEffect(() => {
-    if (!isIOS() || !window.history?.pushState) return undefined;
+    if (!window.history?.pushState) return;
+    const current = nav.current;
 
-    if (isFirstIosRenderRef.current) {
-      isFirstIosRenderRef.current = false;
-      installIosRoot(screen);
-      return undefined;
+    if (!current.initialized) {
+      current.id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+      current.initialized = true;
+      current.screens = [screen];
+      current.index = 0;
+      window.history.replaceState(entry(current.id, 0, screen), "", baseUrl());
+      return;
     }
 
-    pushIosScreen(screen);
-    return undefined;
+    if (current.fromPopstate === screen) {
+      current.fromPopstate = null;
+      return;
+    }
+
+    const previous = current.screens[current.index];
+    if (screen === previous) return;
+
+    if (screen === "login" && previous !== "boot") {
+      // A sign-out/auth failure starts a new navigation lifetime. Old
+      // authenticated screens must never be restored by browser Forward/Back.
+      current.id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+      current.screens = [screen];
+      current.index = 0;
+      current.pending = null;
+      window.history.replaceState(entry(current.id, 0, screen), "", baseUrl());
+      return;
+    }
+
+    // Boot and login are not destinations to return to after loading/auth.
+    // A finished session must not reappear on browser Forward.
+    if (previous === "boot" || (previous === "login" && screen === "home") || previous === "session") {
+      current.screens[current.index] = screen;
+      window.history.replaceState(entry(current.id, current.index, screen), "", current.index ? screenUrl(current.index) : baseUrl());
+      return;
+    }
+
+    // In-app Back buttons already call setScreen(parent). Reuse a matching
+    // earlier entry instead of pushing parent on top of its child.
+    const priorIndex = current.index > 0
+      ? current.screens.lastIndexOf(screen, current.index - 1)
+      : -1;
+    if (priorIndex >= 0) {
+      current.pending = { index: priorIndex, screen };
+      window.history.go(priorIndex - current.index);
+      return;
+    }
+
+    current.screens = current.screens.slice(0, current.index + 1);
+    current.index += 1;
+    current.screens.push(screen);
+    window.history.pushState(entry(current.id, current.index, screen), "", screenUrl(current.index));
   }, [screen]);
 
   useEffect(() => {
     if (!window.history?.pushState) return undefined;
 
-    if (isIOS()) {
-      // Always rebound to the current screen — never treat a swipe as real
-      // navigation. See iosBackNavigation.js for why: `screen` alone can't
-      // capture full app state, and stale entries from earlier page loads
-      // can't be told apart reliably, so trusting history content twice
-      // over broke navigation in practice. This mirrors Android's
-      // always-rebound behavior below, just via a per-transition entry.
-      function handleIosPopState() {
-        const now = Date.now();
-        if (now - lastHandledIosSpecialAt < 180) return;
-        lastHandledIosSpecialAt = now;
+    function ensureResumedSessionBackEntry() {
+      const current = nav.current;
+      if (!current.initialized || current.index !== 0 ||
+        current.screens[0] !== "session" || latest.current.screen !== "session") return;
 
-        pushIosScreen(screenRef.current);
-
-        if (isTimerOpenRef.current) {
-          onCloseTimerRef.current?.();
-          return;
-        }
-
-        if (screenRef.current === "session") {
-          if (isSessionExitPromptOpenRef.current) {
-            onCloseSessionExitPromptRef.current?.();
-          } else {
-            onRequestSessionExitRef.current?.();
-          }
-        }
-      }
-
-      window.addEventListener("popstate", handleIosPopState);
-      return () => window.removeEventListener("popstate", handleIosPopState);
+      // A restored session has no preceding app screen. Add one during an
+      // actual user interaction so mobile browsers do not mark it skippable.
+      const parent = useAppStore.getState().sessionReturnScreen ?? "home";
+      current.screens = [parent, "session"];
+      window.history.replaceState(entry(current.id, 0, parent), "", baseUrl());
+      current.index = 1;
+      window.history.pushState(entry(current.id, 1, "session"), "", screenUrl(1));
     }
 
-    installBackGuardStack();
-
     function handlePopState(event) {
-      const sequence = getGuardSequence(event.state);
-      const isBackNavigation = sequence < lastObservedSequence;
-      lastObservedSequence = sequence;
-      reboundToGuardTop(sequence);
-
-      if (!isBackNavigation) return;
-
-      const now = Date.now();
-      if (now - lastHandledBackAt < 180) return;
-      lastHandledBackAt = now;
-
-      const state = useAppStore.getState();
-
-      if (isTimerOpenRef.current) {
-        onCloseTimerRef.current?.();
+      const current = nav.current;
+      const destination = event.state;
+      if (!isOurEntry(destination, current.id) || destination.index >= current.screens.length) {
+        // An entry from a previous document/load is not ours to trap.
         return;
       }
 
-      if (state.screen === "session" && isSessionExitPromptOpenRef.current) {
-        onCloseSessionExitPromptRef.current?.();
+      if (current.pending) {
+        const pending = current.pending;
+        current.pending = null;
+        current.index = destination.index;
+        current.screens[current.index] = pending.screen;
+        window.history.replaceState(entry(current.id, current.index, pending.screen), "", current.index ? screenUrl(current.index) : baseUrl());
         return;
       }
 
-      const target = getBackTarget(state);
+      const { screen: visibleScreen, isTimerOpen, onCloseTimer,
+        isSessionExitPromptOpen, onCloseSessionExitPrompt, onRequestSessionExit } = latest.current;
+      const isBack = destination.index < current.index;
 
-      if (target === SESSION_EXIT_TARGET) {
-        onRequestSessionExitRef.current?.();
+      if (isBack && (isTimerOpen || visibleScreen === "session")) {
+        // Handle transient UI while retaining the visible screen.
+        current.index = destination.index;
+        current.screens = current.screens.slice(0, current.index + 1);
+        current.index += 1;
+        current.screens.push(visibleScreen);
+        window.history.pushState(entry(current.id, current.index, visibleScreen), "", screenUrl(current.index));
+
+        if (isTimerOpen) onCloseTimer?.();
+        else if (isSessionExitPromptOpen) onCloseSessionExitPrompt?.();
+        else onRequestSessionExit?.();
         return;
       }
 
-      if (target) {
-        state.setScreen(target);
-      }
+      current.index = destination.index;
+      const target = current.screens[current.index];
+      if (!target || target === "boot" || target === visibleScreen) return;
+      current.fromPopstate = target;
+      useAppStore.getState().setScreen(target);
     }
 
     window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
+    window.addEventListener("pointerdown", ensureResumedSessionBackEntry, true);
+    window.addEventListener("keydown", ensureResumedSessionBackEntry, true);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("pointerdown", ensureResumedSessionBackEntry, true);
+      window.removeEventListener("keydown", ensureResumedSessionBackEntry, true);
+    };
   }, []);
 }
