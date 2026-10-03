@@ -19,18 +19,21 @@ const MAX_OVERFLOW = 1.2; // portrait: the page may be this much taller than the
 
 // Landscape tablet and wider: the page takes the whole height on the left, all tools sit in a side panel.
 const SIDE_QUERY = "(min-width: 900px) and (min-aspect-ratio: 1/1)";
-function useSideLayout() {
-  const get = () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia(SIDE_QUERY).matches : false);
-  const [side, setSide] = useState(get);
+// Phone (narrow portrait): the page is as wide as the screen but only about half of it shows; the rest scrolls inside
+// the canvas. Full toolsets above and below it (the tablet has room for the whole page, the phone does not).
+const PHONE_QUERY = "(max-width: 640px)";
+function useMedia(query) {
+  const get = () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia(query).matches : false);
+  const [on, setOn] = useState(get);
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return undefined;
-    const mq = window.matchMedia(SIDE_QUERY);
-    const on = () => setSide(mq.matches);
-    on();
-    mq.addEventListener?.("change", on);
-    return () => mq.removeEventListener?.("change", on);
-  }, []);
-  return side;
+    const mq = window.matchMedia(query);
+    const update = () => setOn(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, [query]);
+  return on;
 }
 const EDGE = 56; // px from the canvas edge where dragging auto-scrolls it
 
@@ -51,8 +54,11 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const [draftWord, setDraftWord] = useState("");
   const [draftText, setDraftText] = useState("");
   const [pageW, setPageW] = useState(0);
-  const side = useSideLayout();
+  const side = useMedia(SIDE_QUERY);
+  const phone = useMedia(PHONE_QUERY) && !side;
   const sideRef = useRef(side);
+  const phoneRef = useRef(phone);
+  phoneRef.current = phone;
   sideRef.current = side;
   const wrapRef = useRef(null);
   const pageIndexRef = useRef(0);
@@ -70,14 +76,14 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
       const w = el.clientWidth;
       const h = el.clientHeight;
       if (!w || !h) return;
-      setPageW(Math.floor(Math.min(w - 8, h * (sideRef.current ? 1 : MAX_OVERFLOW) * PAGE_ASPECT)));
+      setPageW(Math.floor(phoneRef.current ? w - 8 : Math.min(w - 8, h * (sideRef.current ? 1 : MAX_OVERFLOW) * PAGE_ASPECT)));
     };
     measure();
     if (typeof ResizeObserver === "undefined") return undefined;
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [side]);
+  }, [side, phone]);
 
   const selectedIndex = page.rows.findIndex((r) => r.id === selectedId);
   const selected = selectedIndex >= 0 ? page.rows[selectedIndex] : null;
@@ -192,7 +198,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
     owners.forEach((o, abs) => {
       if (o == null) return;
       const info = analysis.rows[o];
-      if (info && (info.unsupported.length || info.overflow)) out.push({ row: abs, tone: "warn" });
+      if (info && (info.unsupported.length || info.outside?.length || info.overflow)) out.push({ row: abs, tone: "warn" });
       if (page.rows[o]?.id === selectedId) out.push({ row: abs, tone: "select" });
     });
     if (dropRow >= 0) out.push({ row: dropRow, tone: "drop" });
@@ -211,7 +217,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const typedTile = (kind, text) => ({ key: kind, kind, text: text.trim(), caption: text.trim().slice(0, 24), strokes: [] });
 
   return (
-    <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}`} data-testid="propis2-editor">
+    <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}${phone ? " propis2-editor2--phone" : ""}`} data-testid="propis2-editor">
       <div className="screen-header">
         <button className="back-btn" onClick={onBack}><BackArrowIcon /></button>
         <input className="propis2-title-input" value={page.title} onChange={(e) => onChange({ ...page, title: e.target.value })} aria-label="Название страницы" />
@@ -277,6 +283,9 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
             {selectedInfo?.unsupported.length > 0 && (
               <div className="propis2-warn" role="alert">Нет начертания для: {selectedInfo.unsupported.map((c) => `«${c}»`).join(" ")} — эти символы не попадут на страницу.</div>
             )}
+            {selectedInfo?.outside?.length > 0 && (
+              <div className="propis2-warn" role="alert">На широкой строке нельзя: {selectedInfo.outside.map((c) => `«${c}»`).join(" ")} — эти знаки выходят за строку. Переключите на узкую или замените.</div>
+            )}
             {selectedInfo?.overflow && (
               <div className="propis2-warn" role="alert">Строка не помещается по ширине — её конец будет обрезан. Сократите или разбейте на две строки.</div>
             )}
@@ -289,7 +298,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           ))}
         </div>
 
-        {tab === "symbol" && <Propis2Carousel topicRecord={topicRecord} onTap={tapTile} onDragStart={startDrag} side={side} />}
+        {tab === "symbol" && <Propis2Carousel topicRecord={topicRecord} onTap={tapTile} onDragStart={startDrag} side={side} ruling={page.ruling} />}
 
         {tab === "word" && (
           <div className="propis2-typed" data-testid="propis2-tab-word">

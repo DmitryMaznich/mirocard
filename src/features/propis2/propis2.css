@@ -112,3 +112,9 @@
 .propis2-carousel--grid .propis2-carousel-list { flex-wrap: wrap; overflow-x: hidden; overflow-y: auto; max-height: calc(100dvh - 330px); touch-action: pan-y; align-content: flex-start; }
 .propis2-carousel--grid .propis2-tile { touch-action: pan-y; }
 .propis2-typed { min-height: 0; }
+
+/* phone: full toolsets above and below, the canvas shows about half a page and scrolls */
+.propis2-editor2--phone .propis2-main { grid-template-rows: auto auto minmax(0, 1fr); }
+.propis2-editor2--phone .propis2-settings { flex-wrap: wrap; white-space: normal; overflow: visible; gap: 6px 8px; padding: 6px 8px; }
+.propis2-editor2--phone .propis2-page-col { height: min(72vw, 44dvh); }
+.propis2-editor2--phone .propis2-dock { overflow-y: auto; min-height: 0; }

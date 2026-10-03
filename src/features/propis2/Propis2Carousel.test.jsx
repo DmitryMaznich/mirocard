@@ -25,4 +25,20 @@ describe("carousel tiles", () => {
     expect(t.marks.map((x) => x.text).join("")).toBe(".,!?");
     for (const m of t.marks) expect(m.strokes.length).toBeGreaterThan(0);
   });
+
+  it("marks: ! and ? are as tall as a capital, . , sit on the baseline", () => {
+    const t = buildTiles(record());
+    const by = (c) => t.marks.find((m) => m.text === c).box;
+    const cap = t.upper.find((x) => x.text === "Т").box;
+    for (const c of ["!", "?"]) expect(by(c).minY).toBeLessThanOrEqual(cap.minY + 2);
+    for (const c of [".", ","]) expect(by(c).minY).toBeGreaterThan(cap.minY + 30);
+  });
+
+  it("which tiles stay inside the row (the wide ruling offers only these)", () => {
+    const t = buildTiles(record());
+    const inRow = (list) => list.filter((x) => x.inRow).map((x) => x.text).join("");
+    expect(inRow(t.lower)).toBe("агеёжийклмнопстхчшъыьэюя");
+    expect(inRow(t.upper)).toBe("");
+    expect(inRow(t.marks)).toBe(".,");
+  });
 });

@@ -2,6 +2,7 @@
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
 import { PRINT_ROWS_PER_PAGE } from "../propis/propisRuling.js";
+import { outsideRowLabels } from "./glyphReach.js";
 
 // Rows on one screen/paper page of the wide-row sheets (ruling row 0 is only the top edge).
 export const ROWS_PER_PAGE = PRINT_ROWS_PER_PAGE - 1;
@@ -208,17 +209,37 @@ export function findUnsupported(text, glyphMap) {
   return out;
 }
 
+// Characters of `text` that exist but leave the row (capitals, б в д з р у ф ц щ, ! ?): not allowed on the wide
+// ruling, where only letters inside the band are written, as in the methodology. Same longest-match walk.
+export function findOutsideRow(text, glyphMap) {
+  const bad = outsideRowLabels(glyphMap);
+  const out = [];
+  for (const token of String(text ?? "").split(/\s+/).filter(Boolean)) {
+    if (token.includes("+") || glyphMap.has(token)) { if (bad.has(token) && !out.includes(token)) out.push(token); continue; }
+    let i = 0;
+    while (i < token.length) {
+      let hit = 0;
+      for (let len = Math.min(token.length - i, 4); len >= 1; len -= 1) {
+        if (glyphMap.has(token.slice(i, i + len))) { hit = len; break; }
+      }
+      if (hit) { const label = token.slice(i, i + hit); if (bad.has(label) && !out.includes(label)) out.push(label); i += hit; } else i += 1;
+    }
+  }
+  return out;
+}
+
 // { empty, unsupported: [chars], overflow } for one row. Overflow = the row, written once with no
 // multiplying, is wider than the printable line (it would be clipped on the page).
 export function analyzeRow(row, glyphMap, ruling = "narrow") {
   const text = String(row?.text ?? "").trim();
-  if (row?.kind === "blank") return { empty: false, blank: true, unsupported: [], overflow: false };
-  if (!text) return { empty: true, unsupported: [], overflow: false };
+  if (row?.kind === "blank") return { empty: false, blank: true, unsupported: [], outside: [], overflow: false };
+  if (!text) return { empty: true, unsupported: [], outside: [], overflow: false };
   const unsupported = findUnsupported(text, glyphMap);
+  const outside = ruling === "wide" ? findOutsideRow(text, glyphMap) : [];
   if (row?.kind === "passage") {
     // wrapped, so only a single word wider than the line can overflow
     const tooWide = text.split(/\s+/).some((w) => lineWidth(w, glyphMap, ruling) > WIDE_ROW_MAX_X);
-    return { empty: false, unsupported, overflow: tooWide };
+    return { empty: false, unsupported, outside, overflow: tooWide };
   }
   let overflow = false;
   if (!unsupported.length || wideTokenToLabels(text.split(/\s+/)[0], glyphMap).length) {
@@ -230,14 +251,14 @@ export function analyzeRow(row, glyphMap, ruling = "narrow") {
       overflow = false;
     }
   }
-  return { empty: false, unsupported, overflow };
+  return { empty: false, unsupported, outside, overflow };
 }
 
 export function analyzePage(page, glyphMap) {
   const rows = (page?.rows ?? []).map((row) => analyzeRow(row, glyphMap, page?.ruling));
   return {
     rows,
-    problems: rows.filter((r) => r.unsupported.length || r.overflow).length,
+    problems: rows.filter((r) => r.unsupported.length || r.outside?.length || r.overflow).length,
   };
 }
 

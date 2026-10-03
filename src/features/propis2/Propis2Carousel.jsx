@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
-import { NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET } from "@/topics/renderers/propis/propisRuling.js";
+import { ROW_BASE, ROW_TOP, bboxOf, narrowStrokes, staysInRow } from "@/topics/renderers/propis2/glyphReach.js";
 
 // Tiles of the vertical carousel: elements, lowercase and capital letters of the installed deck, each drawn
 // with its own captured strokes (not a font), so the adult sees exactly what the child will write.
@@ -19,34 +18,12 @@ export const CAROUSEL_TABS = [
 // it, all at the same scale: the symbol is the one the engine lays out on the narrow ruling (the same
 // strokes, stretch and 0.5 scale as on the page), so a letter on a tile is exactly as big as on the sheet and
 // tiles of different letters can be compared by eye.
-const NARROW_SCALE = 0.5;
-const ROW_BASE = NATIVE_L3 - TEXT_ROW_THIN_OFFSET; // row-local baseline of the narrow band (64)
-const ROW_TOP = ROW_BASE - (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * NARROW_SCALE; // thin top line (40)
 const ROW_MID = (ROW_TOP + ROW_BASE) / 2;
 const MAX_TILE_SYMBOL_W = 100;
 
-function bbox(strokes) {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const d of strokes) {
-    const nums = d.match(/-?\d*\.?\d+/g)?.map(Number) ?? [];
-    for (let i = 0; i + 1 < nums.length; i += 2) {
-      minX = Math.min(minX, nums[i]); maxX = Math.max(maxX, nums[i]);
-      minY = Math.min(minY, nums[i + 1]); maxY = Math.max(maxY, nums[i + 1]);
-    }
-  }
-  return Number.isFinite(minX) ? { minX, minY, maxX, maxY } : null;
-}
-
 export function buildTiles(topicRecord) {
   const glyphMap = buildGlyphMap(topicRecord);
-  const strokesOf = (label) => {
-    try {
-      const { placed } = layoutWideLinesIntoRows([label], glyphMap, undefined, false, NARROW_SCALE);
-      return (placed[0]?.segments?.[0]?.trajectory?.strokes ?? []).map((st) => st.d).filter(Boolean);
-    } catch {
-      return [];
-    }
-  };
+  const strokesOf = (label) => narrowStrokes(glyphMap, label);
   const wide = topicRecord?.wide ?? [];
   // a letter may be stored under another name and reached through an alias (г -> г1, п -> п1)
   const byLabel = new Map(wide.map((g) => [g.label, g]));
@@ -74,7 +51,8 @@ export function buildTiles(topicRecord) {
   const all = [...out.elements, ...out.lower, ...out.upper, ...out.marks];
   let top = ROW_TOP - 4, bottom = ROW_BASE + 6, width = 40;
   for (const t of all) {
-    t.box = bbox(t.strokes);
+    t.box = bboxOf(t.strokes);
+    t.inRow = out.marks.includes(t) ? ".,".includes(t.text) : staysInRow(t.box);
     if (!t.box) continue;
     top = Math.min(top, t.box.minY - 3); bottom = Math.max(bottom, t.box.maxY + 3);
     // very long elements (the picket fence) do not set the width: they are shown from their start and cut off
@@ -108,11 +86,15 @@ export function TileGlyph({ tile, size = 56 }) {
 // Horizontal, endless carousel: the list is rendered three times and the scroll position is moved by one
 // list width whenever it leaves the middle copy, so it never ends. A tile is dragged up onto the page
 // (onDragStart with the pointer event), or tapped (onTap).
-export default function Propis2Carousel({ topicRecord, onTap, onDragStart, side = false }) {
+export default function Propis2Carousel({ topicRecord, onTap, onDragStart, side = false, ruling = "narrow" }) {
   const tiles = useMemo(() => buildTiles(topicRecord), [topicRecord]);
-  const [tab, setTab] = useState("lower");
+  const [pickedTab, setTab] = useState("lower");
   const listRef = useRef(null);
-  const items = tiles[tab] ?? [];
+  // wide ruling: only symbols that stay inside the row (no capitals, no б в д з р у ф ц щ, no ! ?); elements are all there
+  const wide = ruling === "wide";
+  const tabs = CAROUSEL_TABS.filter((t) => !(wide && t.id === "upper"));
+  const tab = tabs.some((t) => t.id === pickedTab) ? pickedTab : "lower";
+  const items = (tiles[tab] ?? []).filter((t) => !wide || tab === "elements" || t.inRow);
   const copies = !side && items.length > 6 ? 3 : 1; // side panel: a plain scrolling grid, no loop
 
   useEffect(() => {
@@ -133,7 +115,7 @@ export default function Propis2Carousel({ topicRecord, onTap, onDragStart, side 
   return (
     <div className={`propis2-carousel${side ? " propis2-carousel--grid" : ""}`} data-testid="propis2-carousel">
       <div className="propis2-carousel-tabs" role="tablist">
-        {CAROUSEL_TABS.map((t) => (
+        {tabs.map((t) => (
           <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={`propis2-carousel-tab${tab === t.id ? " is-on" : ""}`} onClick={() => setTab(t.id)}>{t.label}</button>
         ))}
       </div>

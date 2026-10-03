@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -165,5 +165,18 @@ describe("propis2 model", () => {
     expect(marked.trajectory.strokes.length).toBe(word.trajectory.strokes.length + 1);
     expect(marked.width).toBeGreaterThan(word.width);
     for (const mark of [",", "!", "?"]) expect(lay(`кот${mark}`).strokes.length).toBeGreaterThan(word.strokes.length);
+  });
+
+  it("wide ruling: only letters inside the row; capitals, б в д з р у ф ц щ and ! ? are outside, . , are fine", () => {
+    expect(findOutsideRow("мама ими кот. нет,", map)).toEqual([]);
+    expect(findOutsideRow("Мама", map)).toEqual(["М"]);
+    expect(findOutsideRow("рыба", map).sort()).toEqual(["б", "р"].sort());
+    expect(findOutsideRow("как!", map)).toEqual(["!"]);
+    expect(findOutsideRow("кто?", map)).toEqual(["?"]);
+    const bad = newRow({ text: "Фея" });
+    expect(analyzeRow(bad, map, "wide").outside).toEqual(["Ф"]);
+    expect(analyzeRow(bad, map, "narrow").outside).toEqual([]);
+    const page = newPage("w", { ruling: "wide", rows: [newRow({ text: "мама" }), bad] });
+    expect(analyzePage(page, map).problems).toBe(1);
   });
 });
