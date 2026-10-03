@@ -1054,7 +1054,7 @@ export function layoutElementLinesIntoRows(lines, elementsByLabel, rowWidthUnits
     const allXs = [strokes, ...repeatChain.map((c) => c.strokes)]
       .flat()
       .flatMap((s) => samplePath(s.d).map((p) => p[0]));
-    const width = Math.max(...allXs);
+    const width = allXs.reduce((a, b) => (b > a ? b : a), -Infinity);
     const segment = { type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain };
     return { word: elementId, rowIndex, x: 0, segments: [segment] };
   });
@@ -1382,7 +1382,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         if (strokes.length) {
           const directionArrows = WIDE_DIRECTION_ARROWS ? longArrowsFor(strokes[0].d, scale) : [];
           const animStrokes = strokes.map((st, i) => (i ? { ...st, continuous: true } : st));
-          const width = Math.max(...strokes.flatMap((st) => samplePath(st.d).map((q) => q[0])));
+          const width = strokes.flatMap((st) => samplePath(st.d).map((q) => q[0])).reduce((a, b) => (b > a ? b : a), -Infinity);
           return { word: line, rowIndex, x: 0, segments: [{ type: "element", xOffset: 0, strokes, width, startPoints, directionArrows, repeatChain: [], trajectory: { strokes: animStrokes } }] };
         }
       }
@@ -1542,7 +1542,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       animStrokes.push({ d: toCubicPathD(transition), continuous: true });
       animStrokes.push({ ...st, continuous: true });
     });
-    const width = strokes.length ? Math.max(...strokes.flatMap((s) => samplePath(s.d).map((p) => p[0]))) : 0;
+    const width = strokes.length ? strokes.flatMap((s) => samplePath(s.d).map((p) => p[0])).reduce((a, b) => (b > a ? b : a), -Infinity) : 0;
     // `type: "element"` on purpose: PrintPageView already renders those as static ink with start
     // dots + direction arrows (no tap/animation).
     const segments = strokes.length
