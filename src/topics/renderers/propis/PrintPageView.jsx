@@ -217,6 +217,8 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   // fine grid of the element sheets, a line every 3 mm (ELEMENT_DIAGONAL_MM) on the narrow ruling and every 5 mm
   // on the wide one: the step follows the row, it is the distance between the two tops of «и» on that row.
   const simpleStep = Boolean(simpleGrid);
+  // "square" / "ruled": plain paper, an ordinary school notebook page: only each row's baseline is kept, no thin line, no dashes
+  const plain = simpleGrid === "square" || simpleGrid === "ruled";
   // "square": an ordinary school squared grid, 5 mm cells (vertical and horizontal lines), under the row guides.
   const squareEls = simpleGrid === "square" ? (
     <g data-simple-grid="square">
@@ -228,7 +230,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
       ))}
     </g>
   ) : null;
-  const simpleEls = squareEls ?? (simpleGrid ? (
+  const simpleEls = squareEls ?? (simpleGrid && simpleGrid !== "ruled" ? (
     <g data-simple-grid={simpleGrid}>
       {(simpleGrid === "dense" ? (narrowRows ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES_WIDE_DENSE) : SHEET_DIAGONAL_LINES).map((l, i) => (
         <line key={i} x1={l.x1 + diagonalShiftX} y1={0} x2={l.x2 + diagonalShiftX} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
@@ -265,17 +267,17 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
               const guideY = rowOriginY(row) + NARROW_GUIDE_LOCAL;
               return (
                 <g key={row} data-narrow-band={row}>
-                  {midDash && <line x1="0" y1={guideY} x2={PAGE_W_UNITS} y2={guideY} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />}
-                  <line x1="0" y1={top} x2={PAGE_W_UNITS} y2={top} stroke={guideColor} strokeWidth={GUIDE_THIN_W} />
-                  {midDash && <line x1="0" y1={(top + bottom) / 2} x2={PAGE_W_UNITS} y2={(top + bottom) / 2} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />}
+                  {midDash && !plain && <line x1="0" y1={guideY} x2={PAGE_W_UNITS} y2={guideY} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />}
+                  {!plain && <line x1="0" y1={top} x2={PAGE_W_UNITS} y2={top} stroke={guideColor} strokeWidth={GUIDE_THIN_W} />}
+                  {midDash && !plain && <line x1="0" y1={(top + bottom) / 2} x2={PAGE_W_UNITS} y2={(top + bottom) / 2} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />}
                   <line x1="0" y1={bottom} x2={PAGE_W_UNITS} y2={bottom} stroke={guideColor} strokeWidth={GUIDE_BOLD_W} />
-                  <line x1={NARROW_BAR_W / 2} y1={top} x2={NARROW_BAR_W / 2} y2={bottom} stroke={guideColor} strokeWidth={NARROW_BAR_W} />
+                  {!plain && <line x1={NARROW_BAR_W / 2} y1={top} x2={NARROW_BAR_W / 2} y2={bottom} stroke={guideColor} strokeWidth={NARROW_BAR_W} />}
                 </g>
               );
             })}
             {(() => {
               const lastY = rowOriginY(ROW_INDICES.length - 1) + WIDE_BAND_BOTTOM_LOCAL + NARROW_BAND_H;
-              return midDash ? <line x1="0" y1={lastY} x2={PAGE_W_UNITS} y2={lastY} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} /> : null;
+              return midDash && !plain ? <line x1="0" y1={lastY} x2={PAGE_W_UNITS} y2={lastY} stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} /> : null;
             })()}
           </g>
         );
@@ -294,14 +296,14 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
       ))) : diagonalEls}
       {!narrowRows && ROW_INDICES.map((row) => (
         <g key={`g${row}`}>
-          {(useElements || wideRows) && midDash && !(wideRows && row === 0) && (
+          {(useElements || wideRows) && midDash && !plain && !(wideRows && row === 0) && (
             <line
               x1="0" y1={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
               x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - WIDE_MID_OFFSET}
               stroke={guideColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH}
             />
           )}
-          {!(wideRows && row === 0) && (
+          {!plain && !(wideRows && row === 0) && (
             <line
               x1="0" y1={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}
               x2={PAGE_W_UNITS} y2={rowOriginY(row) + NATIVE_L3 - TEXT_ROW_THIN_OFFSET}

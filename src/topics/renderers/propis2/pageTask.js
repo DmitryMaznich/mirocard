@@ -31,7 +31,7 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     elements: topicRecord?.elements ?? [],
     wideRows: true,
     exactPages: true,
-    simpleGrid: grid === "dense" || grid === "square" ? grid : "regular",
+    simpleGrid: ["dense", "square", "ruled"].includes(grid) ? grid : "regular",
     midDash: midDash !== false,
     narrowRows,
     wideGlyphs: topicRecord?.wide ?? [],

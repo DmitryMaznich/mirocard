@@ -10,7 +10,6 @@ import { RENDERER_REGISTRY } from "@/topics/registry";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js";
-import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
@@ -263,75 +262,74 @@ describe("Прописи 2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
-  it("editor: the page preview follows the typing; carousel tiles are tapped or dragged onto a row", async () => {
+  it("editor: select a row and tap symbols; grid kinds (прописи / клетка / линейка); the wide ruling hides tiles", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
-    const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
-    await click(btn("Новая страница"));
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent === text);
+    await click([...host.querySelectorAll("button")].find((b) => b.textContent.includes("Новая страница")));
     const preview = () => host.querySelector('[data-testid="propis2-preview"]');
     const ink = () => preview().querySelectorAll("svg path").length;
+    const tile = (c) => host.querySelector(`[data-tile="${c}"]`);
+    const input = () => host.querySelector('[aria-label="Текст строки"]');
     expect(host.querySelector('[data-testid="propis2-carousel"]')).not.toBeNull();
+    expect(host.querySelectorAll(".propis2-tile").length).toBeGreaterThan(20); // a grid, not a strip
     const before = ink();
 
-    // tap on a tile: the letter lands on the page and its row is selected
-    await act(async () => { host.querySelector('[data-tile="к"]').click(); await tick(60); });
+    // no row selected: a tapped symbol starts a row; the next taps add to the selected row
+    await click(tile("к"));
+    expect(input().value).toBe("к");
     expect(ink()).toBeGreaterThan(before);
-    expect(host.querySelector('[aria-label="Текст строки"]').value).toBe("к");
     expect(preview().querySelector('[data-overlay="select"]')).not.toBeNull();
+    await click(tile("о"));
+    await click(tile("т"));
+    expect(input().value).toBe("кот");
+    await click(host.querySelector('[aria-label="Стереть последний символ"]'));
+    expect(input().value).toBe("ко");
+    // an element takes the row over
+    await click([...host.querySelectorAll('[role="tab"]')].find((t) => t.textContent === "Элементы"));
+    await click(host.querySelectorAll(".propis2-tile")[0]);
+    expect(host.querySelector('[aria-label="Вид строки"]')).not.toBeNull();
 
-    // the slant grid: «Частая» draws a line every 5 mm instead of every 20, the dashes can be switched off
-    const lines = () => preview().querySelectorAll("[data-simple-grid] line").length;
+    // grid kinds: «Прописи» keeps the slant-grid options, «Клетка» / «Линейка» switch them off
+    const slant = () => [...host.querySelectorAll('[aria-label="Косая линейка"] button')];
+    const dash = () => host.querySelector('[aria-label="Пунктир в серединных линиях"]');
     expect(preview().querySelector('[data-simple-grid="regular"]')).not.toBeNull();
-    const sparse = lines();
-    await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Частая"));
+    expect(slant().every((b) => !b.disabled)).toBe(true);
+    const sparse = preview().querySelectorAll("[data-simple-grid] line").length;
+    await click(btn("Частая"));
     await act(async () => { await tick(60); });
     expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
-    expect(lines()).toBeGreaterThan(sparse * 2);
-    await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Клетка"));
+    expect(preview().querySelectorAll("[data-simple-grid] line").length).toBeGreaterThan(sparse * 2);
+    expect(preview().querySelectorAll("line[stroke-dasharray]").length).toBeGreaterThan(0);
+    await click(dash());
+    await act(async () => { await tick(60); });
+    expect(preview().querySelectorAll("line[stroke-dasharray]").length).toBe(0);
+    await click(dash());
+
+    await click(btn("Клетка"));
     await act(async () => { await tick(60); });
     expect(preview().querySelector('[data-simple-grid="square"]')).not.toBeNull();
-    expect(preview().querySelectorAll('[data-simple-grid="square"] line').length).toBeGreaterThan(40);
-    await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Частая"));
+    expect(slant().every((b) => b.disabled)).toBe(true);
+    expect(dash().disabled).toBe(true);
+    expect(preview().querySelectorAll("line[stroke-dasharray]").length).toBe(0);
+    await click(btn("Линейка"));
     await act(async () => { await tick(60); });
-    const dashed = () => preview().querySelectorAll("line[stroke-dasharray]").length;
-    const withDash = dashed();
-    expect(withDash).toBeGreaterThan(0);
-    await click(host.querySelector('[aria-label="Пунктир в серединных линиях"]'));
+    expect(preview().querySelector("[data-simple-grid]")).toBeNull();
+    expect(slant().every((b) => b.disabled)).toBe(true);
+    await click(btn("Прописи"));
     await act(async () => { await tick(60); });
-    expect(dashed()).toBe(0);
-    await click(host.querySelector('[aria-label="Пунктир в серединных линиях"]'));
-    await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Редкая"));
-    await act(async () => { await tick(60); });
+    expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
+    expect(slant().every((b) => !b.disabled)).toBe(true);
 
-    // typing in the row panel changes the page
-    const afterTap = ink();
-    await act(async () => {
-      const input = host.querySelector('[aria-label="Текст строки"]');
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(input, "кот");
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      await tick(60);
-    });
-    expect(ink()).toBeGreaterThan(afterTap);
-
-    // drag a tile from the carousel onto the third row of the page
-    const svg = preview().querySelector("svg.propis-print-page-svg");
-    const vbH = Number(svg.getAttribute("viewBox").split(/\s+/)[3]);
-    svg.getBoundingClientRect = () => ({ left: 0, top: 0, right: 400, bottom: vbH, width: 400, height: vbH });
-    let y = 0;
-    while (rowAtSvgY(y) !== 2 && y < vbH) y += 1;
-    const fire = (target, type, x, yy) => target.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX: x, clientY: yy, button: 0 }));
-    const tile = host.querySelector('[data-tile="м"]');
-    await act(async () => { fire(tile, "pointerdown", 20, 20); await tick(); });
-    await act(async () => { fire(window, "pointermove", 120, y + 5); await tick(); });
-    expect(host.querySelector(".propis2-ghost")).not.toBeNull();
-    expect(preview().querySelector('[data-overlay="drop"]')).not.toBeNull();
-    await act(async () => { fire(window, "pointerup", 120, y + 5); await tick(60); });
-    expect(host.querySelector(".propis2-ghost")).toBeNull();
-    expect(host.querySelector('[aria-label="Текст строки"]').value).toBe("м");
+    // wide ruling: no capitals tab
+    const tabs = () => [...host.querySelectorAll('[data-testid="propis2-carousel"] [role="tab"]')].map((t) => t.textContent);
+    expect(tabs()).toContain("Заглавные");
+    await click(btn("Широкая"));
+    expect(tabs()).not.toContain("Заглавные");
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);

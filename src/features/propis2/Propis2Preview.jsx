@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo } from "react";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { pageToLines } from "@/topics/renderers/propis2/model.js";
+import { pageToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 
 // Live preview of the page being edited: the page as it will be shown and printed. The layout runs
 // on a deferred copy of the page, so typing stays responsive while the preview catches up.
@@ -9,7 +9,7 @@ export default function Propis2Preview({ page, topicRecord, overlays = null, onP
   const deferred = useDeferredValue(page);
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const task = useMemo(
-    () => buildPageTask({ topicRecord, lines: pageToLines(deferred, glyphMap), narrowRows: deferred.ruling === "narrow", grid: deferred.grid, midDash: deferred.midDash }),
+    () => buildPageTask({ topicRecord, lines: pageToLines(deferred, glyphMap), narrowRows: deferred.ruling === "narrow", grid: taskGrid(deferred), midDash: deferred.midDash }),
     [topicRecord, deferred, glyphMap],
   );
   return (

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { ROW_BASE, ROW_TOP, bboxOf, narrowStrokes, staysInRow } from "@/topics/renderers/propis2/glyphReach.js";
 
-// Tiles of the vertical carousel: elements, lowercase and capital letters of the installed deck, each drawn
+// Tiles of the symbol picker: elements, lowercase and capital letters of the installed deck, each drawn
 // with its own captured strokes (not a font), so the adult sees exactly what the child will write.
 const LOWER = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
 const UPPER = LOWER.toUpperCase();
@@ -83,57 +83,30 @@ export function TileGlyph({ tile, size = 56 }) {
   );
 }
 
-// Horizontal, endless carousel: the list is rendered three times and the scroll position is moved by one
-// list width whenever it leaves the middle copy, so it never ends. A tile is dragged up onto the page
-// (onDragStart with the pointer event), or tapped (onTap).
-export default function Propis2Carousel({ topicRecord, onTap, onDragStart, side = false, ruling = "narrow" }) {
+// The symbol picker: a multi-line grid of tiles with a vertical scroll, a row of tabs over it (elements, lowercase,
+// capitals, marks). No dragging: the adult selects a row on the page and taps a symbol (onTap), which goes into it.
+export default function Propis2Carousel({ topicRecord, onTap, ruling = "narrow" }) {
   const tiles = useMemo(() => buildTiles(topicRecord), [topicRecord]);
   const [pickedTab, setTab] = useState("lower");
-  const listRef = useRef(null);
   // wide ruling: only symbols that stay inside the row (no capitals, no б в д з р у ф ц щ, no ! ?); elements are all there
   const wide = ruling === "wide";
   const tabs = CAROUSEL_TABS.filter((t) => !(wide && t.id === "upper"));
   const tab = tabs.some((t) => t.id === pickedTab) ? pickedTab : "lower";
   const items = (tiles[tab] ?? []).filter((t) => !wide || tab === "elements" || t.inRow);
-  const copies = !side && items.length > 6 ? 3 : 1; // side panel: a plain scrolling grid, no loop
-
-  useEffect(() => {
-    const el = listRef.current;
-    if (!el) return;
-    el.scrollLeft = copies === 3 ? el.scrollWidth / 3 : 0;
-  }, [tab, copies, items.length]);
-
-  const onScroll = () => {
-    const el = listRef.current;
-    if (!el || copies !== 3) return;
-    const w = el.scrollWidth / 3;
-    if (!(w > 0)) return;
-    if (el.scrollLeft < w * 0.5) el.scrollLeft += w;
-    else if (el.scrollLeft > w * 1.5) el.scrollLeft -= w;
-  };
 
   return (
-    <div className={`propis2-carousel${side ? " propis2-carousel--grid" : ""}`} data-testid="propis2-carousel">
+    <div className="propis2-carousel" data-testid="propis2-carousel">
       <div className="propis2-carousel-tabs" role="tablist">
         {tabs.map((t) => (
           <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={`propis2-carousel-tab${tab === t.id ? " is-on" : ""}`} onClick={() => setTab(t.id)}>{t.label}</button>
         ))}
       </div>
-      <div className="propis2-carousel-list" ref={listRef} onScroll={onScroll}>
-        {Array.from({ length: copies }, (_, c) => items.map((tile) => (
-          <button
-            key={`${c}-${tile.key}`}
-            type="button"
-            className="propis2-tile"
-            data-tile={tile.text}
-            aria-label={`${tile.caption}: перетащите на строку или нажмите`}
-            onPointerDown={(e) => onDragStart(tile, e)}
-            onClick={(e) => { if (e.detail === 0) onTap(tile); }}
-            onDragStart={(e) => e.preventDefault()}
-          >
+      <div className="propis2-carousel-list">
+        {items.map((tile) => (
+          <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={`${tile.caption}: добавить в выделенную строку`} onClick={() => onTap(tile)}>
             <TileGlyph tile={tile} size={72} />
           </button>
-        )))}
+        ))}
       </div>
     </div>
   );

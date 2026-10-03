@@ -118,3 +118,15 @@
 .propis2-editor2--phone .propis2-settings { flex-wrap: wrap; white-space: normal; overflow: visible; gap: 6px 8px; padding: 6px 8px; }
 .propis2-editor2--phone .propis2-page-col { height: min(72vw, 44dvh); }
 .propis2-editor2--phone .propis2-dock { overflow-y: auto; min-height: 0; }
+
+/* symbol picker: a multi-line grid with a vertical scroll (no dragging: select a row, tap a symbol) */
+.propis2-carousel-list { flex-wrap: wrap; overflow-x: hidden; overflow-y: auto; max-height: min(300px, 34dvh); touch-action: pan-y; align-content: flex-start; padding: 2px 0 6px; }
+.propis2-tile { cursor: pointer; touch-action: pan-y; }
+.propis2-tile:active { transform: scale(.96); }
+.propis2-editor2--phone .propis2-carousel { flex: 1 1 auto; min-height: 0; }
+.propis2-editor2--phone .propis2-carousel-list { max-height: none; flex: 1 1 auto; min-height: 0; }
+.propis2-editor2--phone .propis2-dock { display: flex; }
+.propis2-seg button:disabled { opacity: .35; cursor: default; }
+.propis2-writeafter.is-disabled { opacity: .35; }
+.propis2-backspace { border: 1px solid #c9c2b0; background: #fff; border-radius: 8px; padding: 6px 10px; font-size: 1rem; cursor: pointer; }
+.propis2-backspace:disabled { opacity: .35; cursor: default; }

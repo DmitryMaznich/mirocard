@@ -17,8 +17,22 @@ export const RULINGS = [
 export const GRIDS = [
   { id: "regular", label: "Редкая косая линейка (через 20 мм, стандарт)", short: "Редкая" },
   { id: "dense", label: "Частая косая линейка (через 3 мм на узкой строке, 5 мм на широкой)", short: "Частая" },
-  { id: "square", label: "Клетка 5 мм", short: "Клетка" },
 ];
+
+// What kind of paper: the copybook ("прописи", slant grid and row guides), a plain squared page ("клетка", 5 mm)
+// or plain ruled paper ("линейка", only the baselines). The slant-grid options (GRIDS, dashes) belong to "propis".
+export const GRID_KINDS = [
+  { id: "propis", label: "Прописи" },
+  { id: "square", label: "Клетка" },
+  { id: "ruled", label: "Линейка" },
+];
+export const pageGridKind = (page) => page?.gridKind ?? (page?.grid === "square" ? "square" : "propis");
+// The grid name the page task / PrintPageView understands.
+export const taskGrid = (page) => {
+  const kind = pageGridKind(page);
+  if (kind !== "propis") return kind;
+  return page?.grid === "dense" ? "dense" : "regular";
+};
 
 export const ROW_KINDS = [
   { id: "text", label: "Буквы, слоги, слова" },
@@ -164,7 +178,21 @@ export function dropTile(page, glyphMap, absRow, tile) {
   return { page: { ...page, rows: rows.length ? rows : [newRow(patch)] }, rowId };
 }
 
-// Tap on a tile: it goes to the first free place, i.e. below the last row.
+// «Select a row, tap a symbol»: a letter or mark is added to the end of the selected row's text; an element (or any
+// symbol on a blank / passage / element row) takes the row over. With no row selected the symbol starts a new row below
+// the last one. Returns { page, rowId } (the row to keep selected).
+export function tapSymbol(page, glyphMap, selectedId, tile) {
+  const idx = selectedId ? page.rows.findIndex((r) => r.id === selectedId) : -1;
+  if (idx < 0) return appendTile(page, glyphMap, tile);
+  const row = page.rows[idx];
+  let patch;
+  if (tile.kind === "element") patch = { kind: "element", text: tile.text };
+  else if (row.kind === "text") patch = { text: `${row.text ?? ""}${tile.text}` };
+  else patch = { kind: "text", text: tile.text, mark: row.kind === "blank" || row.kind === "passage" ? "" : row.mark };
+  return { page: { ...page, rows: page.rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)) }, rowId: row.id };
+}
+
+// Tap on a tile with no row selected: it goes to the first free place, i.e. below the last row.
 export function appendTile(page, glyphMap, tile) {
   const base = { ...page, rows: page.rows.filter((r) => !isEmptyRow(r)) };
   return dropTile(base, glyphMap, lineOwners(base, glyphMap).length, tile);
