@@ -278,6 +278,21 @@
       "access": "paid"
     },
     {
+      "id": "propis2",
+      "version": "0.1.0",
+      "title": {
+        "ru": "Прописи 2",
+        "en": "Copybook 2"
+      },
+      "description": {
+        "ru": "Конструктор страниц прописей: соберите страницу из элементов, букв, слов и текстов; ребёнок пишет на бумаге и смотрит анимацию написания.",
+        "en": "Copybook page builder: compose a page of elements, letters, words and texts; the child writes on paper and watches the pen animation."
+      },
+      "url": "./decks/propis2_v0.1.0.zip",
+      "status": "beta",
+      "access": "paid"
+    },
+    {
       "id": "vowel_consonant_ru",
       "version": "1.0.0",
       "title": {

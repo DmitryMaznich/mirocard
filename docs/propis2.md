@@ -5,11 +5,18 @@
 
 ## Архитектурные решения (2026-10-03)
 
-- **Builtin-тема без deck-zip** (`src/topics/builtinPropis2Topic.js`, как «Сегодня»/«Мои люди»).
-  Данные глифов — те же `tools/propis/wide.json` и `elements.json` (≈100 КБ), импортируются в бандл
-  (`renderers/propis2/data.js`). Один источник правды; второй 8 МБ-zip не нужен.
-- **Код движка не копируется, а импортируется** из `renderers/propis/` (`wordEngine.js`,
-  `PrintPageView.jsx`). Страница рисуется задачей `print_page` (`renderers/propis2/pageTask.js`).
+- **Zip-тема, как и все остальные** (не builtin — это было отвергнуто 2026-10-03). Пакет:
+  `tools/propis2/topic.json` + `scripts/build-propis2-deck.mjs` → `public/decks/propis2_vX.zip`
+  и запись в `public/decks/catalog.json` (status beta). В zip подмешиваются данные глифов из общих
+  `tools/propis/wide.json` и `elements.json` (≈25 КБ в сжатом виде) — один источник правды с v1.
+  Сборка: поднять `meta.version` в `tools/propis2/topic.json`, `node scripts/build-propis2-deck.mjs`.
+- **Рендерер в приложении**, как у v1 (`RENDERER_REGISTRY.propis2`), код движка не копируется, а
+  импортируется из `renderers/propis/` (`wordEngine.js`, `PrintPageView.jsx`). Страница — задача
+  `print_page` (`renderers/propis2/pageTask.js`), данные берутся из установленной темы
+  (`topicRecord.wide / wideSheets / elements`).
+- **Найденная ошибка установщика:** `importTopic` отбрасывал `wide`, `wideSheets`,
+  `wideElementRepeat` при сохранении темы (как раньше `elements`). Исправлено в `topicLoader.js`,
+  тест `src/topics/propis2Install.test.js` (и для v1).
 - **Домашний экран темы — конструктор.** `App.jsx`: экран `params` для renderer `propis2`
   открывает `features/propis2/Propis2Home.jsx` вместо `ParamsScreen`.
 - Хранение страниц: IndexedDB (`kv`), синхронизация с аккаунтом — позже; экспорт/импорт файлом.

@@ -1927,6 +1927,12 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
     // topic.json, see build-propis-deck.mjs) never survive the IndexedDB
     // install step, so the picker always renders empty (2026-09-17).
     elements:   manifest.elements   ?? undefined,
+    // «Широкая/узкая строка» glyph bank, ready sheets and element repeats (propis, propis2): merged
+    // into topic.json by build-propis*-deck.mjs. They must survive the install step too, or the
+    // wide-row pages see an empty glyph bank (the same trap `elements` fell into above).
+    wide:              manifest.wide              ?? undefined,
+    wideSheets:        manifest.wideSheets        ?? undefined,
+    wideElementRepeat: manifest.wideElementRepeat ?? undefined,
     installedAt: new Date().toISOString(),
   };
 

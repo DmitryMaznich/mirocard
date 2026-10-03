@@ -1,15 +1,6 @@
-// Single source of glyph data for «Прописи 2»: the same files tools/propis builds into the
-// v1 deck. They are small (~100 KB), so v2 bundles them instead of depending on an installed
-// deck -- one source of truth, no second 8 MB zip (see docs/propis2.md).
-import wide from "../../../../tools/propis/wide.json";
-import elementsFile from "../../../../tools/propis/elements.json";
-
-export const PROPIS2_WIDE_GLYPHS = wide.glyphs;
-export const PROPIS2_SHEETS = wide.sheets;
-export const PROPIS2_ELEMENT_REPEAT = wide.elementRepeat ?? {};
-export const PROPIS2_ELEMENTS = elementsFile.elements ?? [];
-
-// Ready sheets (methodology pages) usable as templates, in page order.
+// Ready sheets (methodology pages) usable as templates, in page order. The glyph bank, sheets
+// and elements themselves come from the installed deck (topicRecord.wide / wideSheets /
+// elements / wideElementRepeat), merged from tools/propis by scripts/build-propis2-deck.mjs.
 export const PROPIS2_SHEET_TITLES = {
   part1: "Лист 1",
   part2: "Лист 2 (узкая строка)",

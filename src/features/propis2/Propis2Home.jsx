@@ -4,7 +4,7 @@ import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { PROPIS2_SHEETS, PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
+import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
 import "./propis2.css";
 
 // Spike of the «Прописи 2» home screen (the builder). Step 0: prove the topic can own its home
@@ -12,15 +12,18 @@ import "./propis2.css";
 // repeats, reorder, save/load, validation) replaces the plain row list below.
 export default function Propis2Home() {
   const setScreen = useAppStore((s) => s.setScreen);
-  const [lines, setLines] = useState(() => [...(PROPIS2_SHEETS.page18 ?? [])]);
+  const activeTopicId = useAppStore((s) => s.activeTopicId);
+  const topicRecord = useAppStore((s) => s.topicRecords.find((r) => r.meta.id === activeTopicId));
+  const sheets = topicRecord?.wideSheets ?? {};
+  const [lines, setLines] = useState(() => [...(sheets.page18 ?? [])]);
   const [narrow, setNarrow] = useState(true);
   const [showing, setShowing] = useState(false);
-  const task = useMemo(() => buildPageTask({ lines, narrowRows: narrow }), [lines, narrow]);
+  const task = useMemo(() => buildPageTask({ topicRecord, lines, narrowRows: narrow }), [topicRecord, lines, narrow]);
 
   function setLine(i, text) { setLines((ls) => ls.map((l, k) => (k === i ? text : l))); }
   function addLine() { setLines((ls) => [...ls, ""]); }
   function removeLine(i) { setLines((ls) => ls.filter((_, k) => k !== i)); }
-  function loadSheet(id) { setLines([...(PROPIS2_SHEETS[id] ?? [])]); }
+  function loadSheet(id) { setLines([...(sheets[id] ?? [])]); }
 
   if (showing) {
     return (
@@ -41,7 +44,7 @@ export default function Propis2Home() {
           Готовый набор
           <select defaultValue="" onChange={(e) => e.target.value && loadSheet(e.target.value)}>
             <option value="">— выбрать —</option>
-            {Object.entries(PROPIS2_SHEET_TITLES).filter(([id]) => PROPIS2_SHEETS[id]).map(([id, title]) => (
+            {Object.entries(PROPIS2_SHEET_TITLES).filter(([id]) => sheets[id]).map(([id, title]) => (
               <option key={id} value={id}>{title}</option>
             ))}
           </select>
