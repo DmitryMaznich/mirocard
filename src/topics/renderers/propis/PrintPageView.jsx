@@ -608,6 +608,24 @@ function wideSnapX(rowIndex, x, y) {
   return wideLineX(k, y) - contentXUnits;
 }
 
+// «Прописи 2», dense grid: letters snap to the lines that are actually drawn (SHEET_DIAGONAL_LINES_DENSE on the narrow
+// row, SHEET_DIAGONAL_LINES_WIDE_DENSE on the wide one), not to the hidden methodology grid. Line n of such a grid
+// stands at x = n*step - y*tan on its page (see buildDiagonalLines) and every odd page is shifted by one page width,
+// exactly as PrintPage draws it; the page of a row follows from its index alone (WIDE_ROWS_PER_PAGE rows per page).
+function drawnGridSnapX(step) {
+  return (rowIndex, x, y) => {
+    const { contentXUnits } = slotGeometry(0, true);
+    const pageIdx = Math.floor(rowIndex / WIDE_ROWS_PER_PAGE);
+    const yAbs = rowOriginY((rowIndex % WIDE_ROWS_PER_PAGE) + 1) + y;
+    const shift = pageIdx % 2 === 0 ? 0 : -PAGE_W_UNITS;
+    const base = shift - yAbs * WIDE_SLANT_TAN;
+    const n = Math.round((contentXUnits + x - base) / step);
+    return base + n * step - contentXUnits;
+  };
+}
+const narrowDenseSnapX = drawnGridSnapX(TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
+const wideDenseSnapX = drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING);
+
 // Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
 // no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
 export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, speedFactor = 1, overlays = null, onPageIndexChange = null }) {
@@ -659,11 +677,11 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
 
   const layout = useMemo(
     () => wideRows
-      ? (narrowRows ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, narrowSnapX, true, NARROW_SCALE) : layoutWideLinesIntoRows(lines, wideGlyphsByLabel, wideSnapX))
+      ? (narrowRows ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? narrowDenseSnapX : narrowSnapX, true, NARROW_SCALE) : layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? wideDenseSnapX : wideSnapX))
       : useElements
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
-    [wideRows, narrowRows, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
+    [wideRows, narrowRows, task?.simpleGrid, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
   const pages = useMemo(() => paginateRows(layout, wideRows ? WIDE_ROWS_PER_PAGE : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) }), [layout, wideRows, task?.exactPages]);
 
