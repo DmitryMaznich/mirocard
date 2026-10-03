@@ -98,3 +98,18 @@
   .propis2-typed { min-height: 88px; }
   .propis2-tile { min-width: 60px; }
 }
+
+/* layout areas: portrait = settings / page / dock stacked; landscape tablet = page left, tools right */
+.propis2-main { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "settings" "page" "dock"; }
+.propis2-main > .propis2-settings { grid-area: settings; }
+.propis2-main > .propis2-page-col { grid-area: page; }
+.propis2-main > .propis2-dock { grid-area: dock; }
+.propis2-editor2--side .propis2-main { grid-template-columns: minmax(0, 1fr) minmax(360px, 420px); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "page settings" "page dock"; }
+.propis2-editor2--side .propis2-settings { flex-wrap: wrap; white-space: normal; overflow: visible; border-left: 1px solid #ddd5c0; padding: 10px 12px; }
+.propis2-editor2--side .propis2-dock { border-top: none; border-left: 1px solid #ddd5c0; overflow-y: auto; min-height: 0; padding-top: 10px; }
+.propis2-editor2--side .propis2-page-col { align-items: center; }
+.propis2-carousel--grid { min-height: 0; }
+.propis2-carousel--grid .propis2-carousel-tabs { flex-wrap: wrap; }
+.propis2-carousel--grid .propis2-carousel-list { flex-wrap: wrap; overflow-x: hidden; overflow-y: auto; max-height: calc(100dvh - 330px); touch-action: pan-y; align-content: flex-start; }
+.propis2-carousel--grid .propis2-tile { touch-action: pan-y; }
+.propis2-typed { min-height: 0; }

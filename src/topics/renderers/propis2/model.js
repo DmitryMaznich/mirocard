@@ -11,6 +11,13 @@ export const RULINGS = [
   { id: "wide", label: "Широкая строка", short: "Широкая" },
 ];
 
+// Slant grid: the standard "косая линейка" and the "частая косая" (extra lines halfway between the standard
+// ones, drawn lighter; the standard lines stay on top, so the letters' snapping to them is unchanged).
+export const GRIDS = [
+  { id: "regular", label: "Косая линейка", short: "Косая" },
+  { id: "dense", label: "Частая косая линейка", short: "Частая" },
+];
+
 export const ROW_KINDS = [
   { id: "text", label: "Буквы, слоги, слова" },
   { id: "element", label: "Элемент" },
@@ -36,7 +43,7 @@ export function newRow(patch = {}) {
 
 export function newPage(title = "Новая страница", patch = {}) {
   const now = Date.now();
-  return { id: newId("pg"), title, ruling: "narrow", writeAfter: false, rows: [newRow()], createdAt: now, updatedAt: now, ...patch };
+  return { id: newId("pg"), title, ruling: "narrow", grid: "regular", writeAfter: false, rows: [newRow()], createdAt: now, updatedAt: now, ...patch };
 }
 
 // A ready methodology sheet ("Н#d", "г1 г1", "5 5"...) becomes an editable page.

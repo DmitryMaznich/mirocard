@@ -283,6 +283,15 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('[aria-label="Текст строки"]').value).toBe("к");
     expect(preview().querySelector('[data-overlay="select"]')).not.toBeNull();
 
+    // the slant grid: «Частая» adds the extra lines, «Косая» takes them away
+    expect(preview().querySelector("[data-dense]")).toBeNull();
+    await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Частая"));
+    await act(async () => { await tick(60); });
+    expect(preview().querySelector("[data-dense]")).not.toBeNull();
+    await click([...host.querySelectorAll("button")].find((b) => b.textContent === "Косая"));
+    await act(async () => { await tick(60); });
+    expect(preview().querySelector("[data-dense]")).toBeNull();
+
     // typing in the row panel changes the page
     const afterTap = ink();
     await act(async () => {

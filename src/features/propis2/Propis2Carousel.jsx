@@ -65,12 +65,12 @@ export function TileGlyph({ tile, size = 56 }) {
 // Horizontal, endless carousel: the list is rendered three times and the scroll position is moved by one
 // list width whenever it leaves the middle copy, so it never ends. A tile is dragged up onto the page
 // (onDragStart with the pointer event), or tapped (onTap).
-export default function Propis2Carousel({ topicRecord, onTap, onDragStart }) {
+export default function Propis2Carousel({ topicRecord, onTap, onDragStart, side = false }) {
   const tiles = useMemo(() => buildTiles(topicRecord), [topicRecord]);
   const [tab, setTab] = useState("lower");
   const listRef = useRef(null);
   const items = tiles[tab] ?? [];
-  const copies = items.length > 6 ? 3 : 1;
+  const copies = !side && items.length > 6 ? 3 : 1; // side panel: a plain scrolling grid, no loop
 
   useEffect(() => {
     const el = listRef.current;
@@ -88,7 +88,7 @@ export default function Propis2Carousel({ topicRecord, onTap, onDragStart }) {
   };
 
   return (
-    <div className="propis2-carousel" data-testid="propis2-carousel">
+    <div className={`propis2-carousel${side ? " propis2-carousel--grid" : ""}`} data-testid="propis2-carousel">
       <div className="propis2-carousel-tabs" role="tablist">
         {CAROUSEL_TABS.map((t) => (
           <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={`propis2-carousel-tab${tab === t.id ? " is-on" : ""}`} onClick={() => setTab(t.id)}>{t.label}</button>

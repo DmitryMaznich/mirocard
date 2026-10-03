@@ -3,7 +3,7 @@ import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
 import { PRINT_PAGE_H_MM, PRINT_PAGE_W_MM } from "@/topics/renderers/propis/propisRuling.js";
-import { ROWS_PER_PAGE, ROW_MARKS, RULINGS, analyzePage, appendTile, dropTile, duplicateRow, lineOwners, moveRow, newRow } from "@/topics/renderers/propis2/model.js";
+import { GRIDS, ROWS_PER_PAGE, ROW_MARKS, RULINGS, analyzePage, appendTile, dropTile, duplicateRow, lineOwners, moveRow, newRow } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import Propis2Carousel, { TileGlyph } from "./Propis2Carousel";
 import Propis2Preview from "./Propis2Preview";
@@ -15,7 +15,23 @@ import Propis2Preview from "./Propis2Preview";
 // Tapping a row selects it; its bar edits text, kind of row, repeat. The page is saved by the parent on
 // every change; nothing is ever dropped silently.
 const PAGE_ASPECT = PRINT_PAGE_W_MM / PRINT_PAGE_H_MM;
-const MAX_OVERFLOW = 1.2; // the page may be this much taller than the room for it
+const MAX_OVERFLOW = 1.2; // portrait: the page may be this much taller than the room for it (a little scroll)
+
+// Landscape tablet and wider: the page takes the whole height on the left, all tools sit in a side panel.
+const SIDE_QUERY = "(min-width: 900px) and (min-aspect-ratio: 1/1)";
+function useSideLayout() {
+  const get = () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia(SIDE_QUERY).matches : false);
+  const [side, setSide] = useState(get);
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return undefined;
+    const mq = window.matchMedia(SIDE_QUERY);
+    const on = () => setSide(mq.matches);
+    on();
+    mq.addEventListener?.("change", on);
+    return () => mq.removeEventListener?.("change", on);
+  }, []);
+  return side;
+}
 const EDGE = 56; // px from the canvas edge where dragging auto-scrolls it
 
 const TABS = [
@@ -35,6 +51,9 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const [draftWord, setDraftWord] = useState("");
   const [draftText, setDraftText] = useState("");
   const [pageW, setPageW] = useState(0);
+  const side = useSideLayout();
+  const sideRef = useRef(side);
+  sideRef.current = side;
   const wrapRef = useRef(null);
   const pageIndexRef = useRef(0);
   const latest = useRef({ page, glyphMap });
@@ -51,14 +70,14 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
       const w = el.clientWidth;
       const h = el.clientHeight;
       if (!w || !h) return;
-      setPageW(Math.floor(Math.min(w - 8, h * MAX_OVERFLOW * PAGE_ASPECT)));
+      setPageW(Math.floor(Math.min(w - 8, h * (sideRef.current ? 1 : MAX_OVERFLOW) * PAGE_ASPECT)));
     };
     measure();
     if (typeof ResizeObserver === "undefined") return undefined;
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [side]);
 
   const selectedIndex = page.rows.findIndex((r) => r.id === selectedId);
   const selected = selectedIndex >= 0 ? page.rows[selectedIndex] : null;
@@ -116,8 +135,12 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
       const dx = ev.clientX - start.x;
       const dy = ev.clientY - start.y;
       if (!dragging) {
-        // touch: a vertical move starts the drag (the carousel scrolls sideways); mouse: any move
-        const go = isMouse ? Math.hypot(dx, dy) > 5 : Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx);
+        // touch: the move that is not the carousel's own scroll starts the drag (portrait: the strip scrolls
+        // sideways, so a vertical move drags; side panel: the grid scrolls vertically, so a sideways move
+        // drags); mouse: any move
+        const go = isMouse ? Math.hypot(dx, dy) > 5
+          : sideRef.current ? Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)
+          : Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx);
         if (!go) return;
         dragging = true;
         timer = setInterval(autoScroll, 30);
@@ -188,17 +211,23 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const typedTile = (kind, text) => ({ key: kind, kind, text: text.trim(), caption: text.trim().slice(0, 24), strokes: [] });
 
   return (
-    <div className="screen propis2-home propis2-editor2" data-testid="propis2-editor">
+    <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}`} data-testid="propis2-editor">
       <div className="screen-header">
         <button className="back-btn" onClick={onBack}><BackArrowIcon /></button>
         <input className="propis2-title-input" value={page.title} onChange={(e) => onChange({ ...page, title: e.target.value })} aria-label="Название страницы" />
         <Button onClick={onShow}>Показать ученику</Button>
       </div>
 
+      <div className="propis2-main">
       <div className="propis2-settings" role="group" aria-label="Настройки страницы">
         <div className="propis2-seg" role="group" aria-label="Разлиновка">
           {RULINGS.map((r) => (
             <button key={r.id} type="button" aria-pressed={page.ruling === r.id} className={page.ruling === r.id ? "is-on" : ""} onClick={() => onChange({ ...page, ruling: r.id })} title={r.label}>{r.short ?? r.label}</button>
+          ))}
+        </div>
+        <div className="propis2-seg" role="group" aria-label="Линейка">
+          {GRIDS.map((g) => (
+            <button key={g.id} type="button" aria-pressed={(page.grid ?? "regular") === g.id} className={(page.grid ?? "regular") === g.id ? "is-on" : ""} onClick={() => onChange({ ...page, grid: g.id })} title={g.label}>{g.short}</button>
           ))}
         </div>
         <label className="propis2-writeafter">
@@ -256,7 +285,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           ))}
         </div>
 
-        {tab === "symbol" && <Propis2Carousel topicRecord={topicRecord} onTap={tapTile} onDragStart={startDrag} />}
+        {tab === "symbol" && <Propis2Carousel topicRecord={topicRecord} onTap={tapTile} onDragStart={startDrag} side={side} />}
 
         {tab === "word" && (
           <div className="propis2-typed" data-testid="propis2-tab-word">
@@ -284,6 +313,8 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
             )}
           </div>
         )}
+      </div>
+
       </div>
 
       {ghost && (
