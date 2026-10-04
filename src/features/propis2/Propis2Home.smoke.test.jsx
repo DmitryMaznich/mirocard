@@ -295,27 +295,28 @@ describe("Прописи 2 (zip topic)", () => {
     // an element takes the row over
     await click([...host.querySelectorAll('[role="tab"]')].find((t) => (t.getAttribute("aria-label") ?? t.textContent) === "Элементы"));
     await click(host.querySelectorAll(".propis2-tile")[0]);
-    // the row options (above the canvas) apply to the selected row
-    const fade = host.querySelector('[aria-label="Повтор с затуханием"]');
-    expect(fade.disabled).toBe(false);
-    await click(fade);
-    expect(host.querySelector('[aria-label="Повтор с затуханием"]').getAttribute("aria-pressed")).toBe("true");
-    await click(host.querySelector('[aria-label="Без красных точек"]'));
-    expect(host.querySelector('[aria-label="Без красных точек"]').getAttribute("aria-pressed")).toBe("true");
+    // the row options (above the canvas) apply to the selected row; a picker shows the current value, its variants drop down
+    const pickBtn = (group) => host.querySelector(`button[aria-label="${group}"][aria-haspopup]`);
+    const pick = async (group, option) => { await click(pickBtn(group)); await click([...host.querySelectorAll(`[role="listbox"][aria-label="${group}"] button`)].find((b) => b.getAttribute("aria-label") === option)); };
+    expect(pickBtn("Повтор").disabled).toBe(false);
+    await pick("Повтор", "Повтор с затуханием");
+    expect(pickBtn("Повтор").dataset.value).toBe("fade");
+    await pick("Красные точки", "Без красных точек");
+    expect(pickBtn("Красные точки").dataset.value).toBe("none");
 
     // grid kinds: «Прописи» keeps the slant-grid options, «Клетка» / «Линейка» switch them off
-    const slant = () => [...host.querySelectorAll('[aria-label="Косая линейка"] button')];
+    const slant = () => [pickBtn("Косая линейка")];
     const dash = () => host.querySelector('[aria-label="Пунктир в серединных линиях"]');
     // the default: прописи / узкая / частая
     expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
-    expect(host.querySelector('[aria-label="Узкая"]').getAttribute("aria-pressed")).toBe("true");
+    expect(pickBtn("Разлиновка").dataset.value).toBe("narrow");
     expect(slant().every((b) => !b.disabled)).toBe(true);
     const dense = preview().querySelectorAll("[data-simple-grid] line").length;
-    await click(btn("Редкая"));
+    await pick("Косая линейка", "Редкая");
     await act(async () => { await tick(60); });
     expect(preview().querySelector('[data-simple-grid="regular"]')).not.toBeNull();
     expect(dense).toBeGreaterThan(preview().querySelectorAll("[data-simple-grid] line").length * 2);
-    await click(btn("Частая"));
+    await pick("Косая линейка", "Частая");
     await act(async () => { await tick(60); });
     expect(preview().querySelectorAll("line[stroke-dasharray]").length).toBeGreaterThan(0);
     await click(dash());
@@ -323,36 +324,36 @@ describe("Прописи 2 (zip topic)", () => {
     expect(preview().querySelectorAll("line[stroke-dasharray]").length).toBe(0);
     await click(dash());
 
-    await click(btn("Клетка"));
+    await pick("Тип бумаги", "Клетка");
     await act(async () => { await tick(60); });
     expect(preview().querySelector('[data-simple-grid="square"]')).not.toBeNull();
     expect(slant().every((b) => b.disabled)).toBe(true);
     expect(dash().disabled).toBe(true);
     expect(preview().querySelectorAll("line[stroke-dasharray]").length).toBe(0);
-    await click(btn("Линейка"));
+    await pick("Тип бумаги", "Линейка");
     await act(async () => { await tick(60); });
     expect(preview().querySelector("[data-simple-grid]")).toBeNull();
     expect(slant().every((b) => b.disabled)).toBe(true);
-    await click(btn("Прописи"));
+    await pick("Тип бумаги", "Прописи");
     await act(async () => { await tick(60); });
     expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
     expect(slant().every((b) => !b.disabled)).toBe(true);
 
     // wide ruling: the slants are clipped to the wide bands (none in the narrow strips between them); the dashes are slightly red
-    await click(btn("Широкая"));
+    await pick("Разлиновка", "Широкая");
     await act(async () => { await tick(60); });
     const grid = preview().querySelector("[data-simple-grid]");
     expect(grid.getAttribute("clip-path")).toMatch(/^url\(#p2c/);
     expect([...preview().querySelectorAll("rect")].filter((r) => r.parentElement.tagName.toLowerCase() === "clippath").length).toBe(16);
     expect(preview().querySelector("line[stroke-dasharray]").getAttribute("stroke")).toBe("#e57d7a");
-    await click(btn("Узкая"));
+    await pick("Разлиновка", "Узкая");
     await act(async () => { await tick(60); });
     expect(preview().querySelector("[data-simple-grid]").getAttribute("clip-path")).toBeNull();
 
     // wide ruling: no capitals tab
     const tabs = () => [...host.querySelectorAll('[data-testid="propis2-carousel"] [role="tab"]')].map((t) => t.getAttribute("aria-label"));
     expect(tabs()).toContain("Заглавные");
-    await click(btn("Широкая"));
+    await pick("Разлиновка", "Широкая");
     expect(tabs()).not.toContain("Заглавные");
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();

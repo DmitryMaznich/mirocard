@@ -7,6 +7,7 @@ import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import Propis2Carousel, { TileGlyph, buildTiles } from "./Propis2Carousel";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
+import Propis2Picker from "./Propis2Picker";
 
 // The page constructor. The page canvas, with settings above it and the tools below it (tabs «Символ», «Слово», «Текст»).
 // No dragging: select a row (tap it on the page) and tap a symbol, it goes into that row; with no row selected a tapped
@@ -184,19 +185,12 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
 
       <div className="propis2-main">
         <div className="propis2-settings" role="group" aria-label="Настройки страницы">
-          <div className="p2-seg" role="group" aria-label="Тип сетки">
-            {GRID_KINDS.map((g) => { const Icon = PAPER_ICONS[g.id]; return <IconBtn key={g.id} label={g.label} on={gridKind === g.id} onClick={() => onChange({ ...page, gridKind: g.id })}><Icon /></IconBtn>; })}
-          </div>
-          <div className="p2-seg" role="group" aria-label="Разлиновка">
-            {RULINGS.map((r) => { const Icon = RULING_ICONS[r.id]; return <IconBtn key={r.id} label={r.short ?? r.label} on={page.ruling === r.id} onClick={() => onChange({ ...page, ruling: r.id })}><Icon /></IconBtn>; })}
-          </div>
-          <div className="p2-seg" role="group" aria-label="Косая линейка">
-            {GRIDS.map((g) => { const Icon = SLANT_ICONS[g.id]; return <IconBtn key={g.id} label={g.short} on={(page.grid ?? "regular") === g.id} disabled={!propisGrid} onClick={() => onChange({ ...page, grid: g.id })}><Icon /></IconBtn>; })}
-          </div>
-          <div className="p2-seg" role="group" aria-label="Дополнительно">
-            <IconBtn label="Пунктир в серединных линиях" on={page.midDash !== false} disabled={!propisGrid} onClick={() => onChange({ ...page, midDash: page.midDash === false })} data-kind="dash"><I.IconDash /></IconBtn>
-            <IconBtn label="Строка для письма после каждой строки" on={Boolean(page.writeAfter)} onClick={() => onChange({ ...page, writeAfter: !page.writeAfter })} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
-          </div>
+          <Propis2Picker label="Тип бумаги" value={gridKind} onChange={(id) => onChange({ ...page, gridKind: id })} options={GRID_KINDS.map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
+          <Propis2Picker label="Разлиновка" value={page.ruling} onChange={(id) => onChange({ ...page, ruling: id })} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />
+          <Propis2Picker label="Косая линейка" value={page.grid ?? "regular"} disabled={!propisGrid} onChange={(id) => onChange({ ...page, grid: id })} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
+          <IconBtn label="Пунктир в серединных линиях" on={page.midDash !== false} disabled={!propisGrid} onClick={() => onChange({ ...page, midDash: page.midDash === false })} data-kind="dash"><I.IconDash /></IconBtn>
+          <IconBtn label="Строка для письма после каждой строки" on={Boolean(page.writeAfter)} onClick={() => onChange({ ...page, writeAfter: !page.writeAfter })} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
+          <span className="p2-grow" />
           <IconBtn label="Из отмеченного" onClick={onFromMarked} disabled={markedCount === 0} className="p2-ib--plain">
             <I.IconFromMarked />
             {markedCount > 0 && <span className="p2-badge">{markedCount}</span>}
@@ -204,15 +198,16 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
         </div>
 
         <div className="propis2-settings propis2-settings--row" role="group" aria-label="Настройки строки">
-          <div className="p2-seg" role="group" aria-label="Повтор">
-            {REPEAT_OPTS.map(({ id, label, Icon }) => <IconBtn key={id} label={label} on={rowOpts?.repeat === id} disabled={!rowEditable} onClick={() => patchSelected({ repeat: id })}><Icon /></IconBtn>)}
-          </div>
-          <div className="p2-seg" role="group" aria-label="Красные точки">
-            {DOT_OPTS.map(({ id, label, Icon }) => <IconBtn key={id} label={label} on={rowOpts?.dots === id} disabled={!rowEditable} onClick={() => patchSelected({ dots: id })}><Icon /></IconBtn>)}
-          </div>
-          <div className="p2-seg" role="group" aria-label="Копии">
-            <IconBtn label="Копии пунктиром" on={rowOpts?.copies === "dash"} disabled={!rowEditable} onClick={() => patchSelected({ copies: "dash" })}><I.IconCopyDash /></IconBtn>
-            <IconBtn label="Копии бледной сплошной" on={rowOpts?.copies === "solid"} disabled={!rowEditable} onClick={() => patchSelected({ copies: "solid" })}><I.IconCopySolid /></IconBtn>
+          <Propis2Picker label="Повтор" value={rowOpts?.repeat ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ repeat: id })} options={REPEAT_OPTS} />
+          <Propis2Picker label="Красные точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
+          <IconBtn label="Копии пунктиром" on={rowEditable ? rowOpts.copies === "dash" : undefined} disabled={!rowEditable} onClick={() => patchSelected({ copies: rowOpts.copies === "dash" ? "solid" : "dash" })}><I.IconCopyDash /></IconBtn>
+          <IconBtn label="Повторить строку" on={selected ? Boolean(selected.marked) : undefined} disabled={!selected} onClick={() => patchSelected({ marked: !selected.marked })}><I.IconRepeat /></IconBtn>
+          <span className="p2-grow" />
+          <div className="p2-seg" role="group" aria-label="Строка">
+            <IconBtn label="Выше" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={!selected || selectedIndex === 0}><I.IconUp /></IconBtn>
+            <IconBtn label="Ниже" onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={!selected || selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
+            <IconBtn label="Дублировать" disabled={!selected} onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
+            <IconBtn label="Удалить строку" className="p2-ib--danger" disabled={!selected} onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
           </div>
         </div>
 
@@ -237,13 +232,6 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
                   {selected.kind === "text" && (
                     <IconBtn label="Стереть последний символ" onClick={() => patchSelected({ text: Array.from(selected.text).slice(0, -1).join("") })} disabled={!selected.text}><I.IconBackspace /></IconBtn>
                   )}
-                </div>
-                <div className="p2-seg" role="group" aria-label="Строка">
-                  <IconBtn label="Повторить строку" on={Boolean(selected.marked)} onClick={() => patchSelected({ marked: !selected.marked })}><I.IconRepeat /></IconBtn>
-                  <IconBtn label="Выше" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={selectedIndex === 0}><I.IconUp /></IconBtn>
-                  <IconBtn label="Ниже" onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
-                  <IconBtn label="Дублировать" onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
-                  <IconBtn label="Удалить строку" className="p2-ib--danger" onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
                 </div>
                 {selectedInfo?.unsupported.length > 0 && (
                   <div className="p2-warn" role="alert" aria-label={`Нет начертания: ${selectedInfo.unsupported.join(" ")}`}><I.IconWarn />{selectedInfo.unsupported.map((c) => <b key={c}>{c}</b>)}</div>

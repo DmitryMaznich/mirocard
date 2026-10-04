@@ -157,3 +157,23 @@
 .propis2-editor2--side .p2-ib { width: 48px; height: 48px; }
 .propis2-editor2--side .propis2-dock-bar { height: 124px; }
 @media (min-width: 700px) { .propis2-editor2 .p2-ib { width: 48px; height: 48px; } .propis2-editor2 .p2-ib svg { width: 28px; height: 28px; } }
+
+/* mini-pickers (page and row tiers) */
+.p2-grow { flex: 1 1 auto; }
+.p2-pick { position: relative; flex: 0 0 auto; }
+.p2-pick-btn { display: flex; align-items: center; gap: 2px; height: 46px; padding: 0 6px 0 8px; border: 1px solid var(--p2-line); border-radius: 14px; background: var(--p2-surface); color: var(--p2-ink, #28323c); box-shadow: 0 2px 0 var(--p2-line); cursor: pointer; }
+.p2-pick-btn svg:first-child { width: 26px; height: 26px; }
+.p2-pick-btn.is-open { border-color: #4a9b8f; background: #e5f2ef; }
+.p2-pick-btn:disabled { opacity: .38; cursor: default; }
+.p2-pick-list { position: absolute; top: calc(100% + 6px); left: 0; display: flex; flex-direction: column; gap: 4px; padding: 6px; background: var(--p2-surface); border: 1px solid var(--p2-line); border-radius: 16px; box-shadow: 0 12px 28px rgba(40,50,60,.25); z-index: 710; }
+.p2-pick-opt { width: 48px; height: 44px; border: none; border-radius: 12px; background: transparent; color: inherit; display: grid; place-items: center; cursor: pointer; }
+.p2-pick-opt svg { width: 26px; height: 26px; }
+.p2-pick-opt.is-on { background: #4a9b8f; color: #fff; box-shadow: 0 2px 0 #2a6b60; }
+.propis2-editor2--phone .p2-pick-btn { height: 42px; padding: 0 3px 0 5px; border-radius: 12px; }
+.propis2-editor2--phone .p2-pick-btn svg:first-child { width: 22px; height: 22px; }
+.propis2-settings { overflow: visible; }
+.propis2-settings { position: relative; z-index: 6; }
+.propis2-editor2--phone .propis2-settings--row { flex-wrap: nowrap; gap: 4px; padding: 5px 6px; }
+.propis2-editor2--phone .propis2-settings--row .p2-seg .p2-ib { width: 34px; height: 38px; }
+.propis2-editor2--phone .propis2-settings--row .p2-seg { padding: 2px; }
+.propis2-editor2--phone .propis2-settings--row > .p2-ib { width: 38px; height: 42px; }
