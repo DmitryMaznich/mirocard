@@ -3,8 +3,8 @@ import { useAppStore } from "@/core/store";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
-import { newId, newPage, newSet, pageFromLines, pageFromMarked, pageToLines, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
-import { emptyLibrary, loadLibrary, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
+import { newId, newPage, newSet, pageFromLines, pageFromMarked, pageFromPreset, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { emptyLibrary, loadLibrary, removePage, removePreset, removeSet, saveLibrary, upsertPage, upsertPreset, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
@@ -43,6 +43,10 @@ export default function Propis2Home({ db }) {
   const sheets = topicRecord?.wideSheets ?? {};
   const elementLabels = useMemo(() => new Set([...(topicRecord?.elements ?? []).map((e) => e.id), ...(topicRecord?.wide ?? []).filter((g) => g.kind === "element").map((g) => g.label)]), [topicRecord]);
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
+  // presets: the built-in ones are the methodology sheets, «Мои» are saved in the library
+  const builtinPresets = useMemo(() => Object.keys(PROPIS2_SHEET_TITLES).filter((id) => sheets[id]).map((id) => presetFromLines(id, PROPIS2_SHEET_TITLES[id], sheets[id], "narrow", elementLabels)), [sheets, elementLabels]);
+  const presets = useMemo(() => ({ builtin: builtinPresets, mine: library.presets ?? [] }), [builtinPresets, library.presets]);
+  const createFromPreset = (ps) => { const np = pageFromPreset(ps); persist(upsertPage(library, np)); setView({ name: "editor", pageId: np.id }); };
   const page = view.pageId ? library.pages.find((p) => p.id === view.pageId) : null;
   const set = view.setId ? library.sets.find((st) => st.id === view.setId) : null;
   const pagesById = useMemo(() => new Map(library.pages.map((p) => [p.id, p])), [library.pages]);
@@ -102,6 +106,10 @@ export default function Propis2Home({ db }) {
         onChange={(next) => persist(upsertPage(library, next))}
         onBack={() => setView(view.backTo ?? { name: "library" })}
         onShow={() => setView({ name: "show", pageId: page.id, from: "editor", backTo: view.backTo })}
+        presets={presets}
+        onApplyPreset={createFromPreset}
+        onSavePreset={(name) => persist(upsertPreset(library, presetFromPage(page, name)))}
+        onDeletePreset={(id) => persist(removePreset(library, id))}
         onFromMarked={() => {
           const next = pageFromMarked(page);
           if (next) createPage(next);
@@ -117,7 +125,9 @@ export default function Propis2Home({ db }) {
       sheets={sheets}
       onBack={() => setScreen("home")}
       onNew={() => createPage(newPage())}
-      onFromSheet={(id) => createPage(pageFromLines(PROPIS2_SHEET_TITLES[id] ?? id, sheets[id], "narrow", elementLabels))}
+      presets={presets}
+      onFromPreset={(id) => { const ps = [...presets.builtin, ...presets.mine].find((x) => x.id === id); if (ps) createFromPreset(ps); }}
+      onDeletePreset={(id) => persist(removePreset(library, id))}
       onOpen={(id) => setView({ name: "show", pageId: id, from: "library" })}
       onEdit={(id) => setView({ name: "editor", pageId: id })}
       onDuplicate={(id) => {

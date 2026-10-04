@@ -63,3 +63,10 @@ export const IconTapHint = () => (
     <path d="M82 31c0-9 3-13 6-13s4 4 4 9c0-5 1.4-9 4-9s5 4 5 13" strokeWidth="2" stroke="#1d4ed8" />
   </svg>
 );
+
+// ---- presets ---------------------------------------------------------------------------------------------------------------
+export const IconPresets = () => S(<><rect x="6.5" y="3" width="13" height="15" rx="1.6" /><path d="M4 7v12.5A1.5 1.5 0 005.5 21H16" /><path d="M10 8h6M10 11.5h6M10 15h3.5" strokeWidth="1.4" /></>);
+export const IconSavePreset = () => S(<><path d="M6 3.5h12v17l-6-4-6 4z" /><path d="M12 7.5v5M9.5 10h5" /></>);
+export const IconClearPage = () => S(<><path d="M4 20l5.5-1.2L19.8 8.5a2 2 0 000-2.8l-1.5-1.5a2 2 0 00-2.8 0L5.2 14.5z" /><path d="M13 6.7l4.3 4.3M10 20h10" /></>);
+export const IconUndo = () => S(<><path d="M9 7L4 12l5 5" /><path d="M4 12h10a6 6 0 010 12" transform="translate(0 -4)" /></>);
+export const IconLock = () => S(<><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /></>);

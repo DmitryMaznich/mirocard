@@ -88,6 +88,44 @@ export function pageFromLines(title, lines, ruling = "narrow", elementLabels = n
   return newPage(title, { ruling, rows: rows.length ? rows : [newRow()] });
 }
 
+// ---- presets: a ready page whose layout (paper, ruling, rows and their options) is closed. A page made from a preset
+// is `locked`: only the symbols / words of its rows can be changed, until the page is cleared. ----
+export const isLocked = (page) => Boolean(page?.locked);
+
+const PRESET_PAGE_FIELDS = ["ruling", "grid", "gridKind", "midDash", "writeAfter"];
+const copyRows = (rows) => (rows ?? []).map((r) => ({ ...r, id: newId("r"), marked: false }));
+
+export function pageFromPreset(preset, title) {
+  const patch = {};
+  for (const k of PRESET_PAGE_FIELDS) if (preset[k] !== undefined) patch[k] = preset[k];
+  return newPage(title ?? preset.title, { ...patch, rows: copyRows(preset.rows).length ? copyRows(preset.rows) : [newRow()], locked: true, presetId: preset.id });
+}
+
+export function presetFromPage(page, title) {
+  const out = { id: newId("ps"), title: title || page.title || "Пресет", rows: copyRows(page.rows), createdAt: Date.now(), updatedAt: Date.now() };
+  for (const k of PRESET_PAGE_FIELDS) if (page[k] !== undefined) out[k] = page[k];
+  return out;
+}
+
+// A ready methodology sheet as a built-in preset.
+export function presetFromLines(id, title, lines, ruling, elementLabels) {
+  const page = pageFromLines(title, lines, ruling, elementLabels);
+  return { id, title, ruling: page.ruling, rows: page.rows, builtin: true };
+}
+
+// "Clear the page": the layout opens up again, the content goes.
+export const clearPage = (page) => ({ ...page, locked: false, presetId: undefined, rows: [newRow()] });
+
+// On a locked page a tapped symbol replaces the symbols of the selected row (nothing grows, no row is added).
+export function replaceSymbol(page, selectedId, tile) {
+  const idx = page.rows.findIndex((r) => r.id === selectedId);
+  if (idx < 0) return page;
+  const row = page.rows[idx];
+  if (row.kind !== "text" && row.kind !== "element") return page;
+  const patch = tile.kind === "element" ? { kind: "element", text: tile.text } : { kind: "text", text: tile.text };
+  return { ...page, rows: page.rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)) };
+}
+
 export function rowToLine(row) {
   if (row?.kind === "blank") return "";
   const text = String(row?.text ?? "").trim().replace(/\s+/g, " ");

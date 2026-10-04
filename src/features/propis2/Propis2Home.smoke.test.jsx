@@ -391,4 +391,46 @@ describe("Прописи 2 (zip topic)", () => {
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);
+
+  it("presets: a page from a preset is locked until cleared (undo brings it back); save a page as «Мои» preset", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    const setValue = async (el, value) => { await act(async () => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(el, value); el.dispatchEvent(new Event("input", { bubbles: true })); await tick(); }); };
+    const lbl = (name) => host.querySelector(`[aria-label="${name}"]`);
+    const select = lbl("Готовый набор");
+    expect([...select.querySelectorAll("optgroup")].map((g) => g.label)).toEqual(["Методика"]);
+    await act(async () => { select.value = "page18"; select.dispatchEvent(new Event("change", { bubbles: true })); await tick(); });
+
+    // locked: layout controls are off, the lock marker and «Очистить страницу» are there
+    expect(lbl("Тип бумаги").disabled).toBe(true);
+    expect(lbl("Разлиновка").disabled).toBe(true);
+    expect(lbl("Строка для письма после каждой строки").disabled).toBe(true);
+    await click(lbl("Слово"));
+    expect(lbl("+ Пустая строка").disabled).toBe(true);
+    expect(host.querySelector('[role="img"][aria-label^="Страница из пресета"]')).not.toBeNull();
+    const rowsBefore = host.querySelectorAll('[data-testid="propis2-preview"] svg path').length;
+    await click(lbl("Очистить страницу"));
+    expect(lbl("Тип бумаги").disabled).toBe(false);
+    expect(host.querySelector('[role="img"][aria-label^="Страница из пресета"]')).toBeNull();
+    expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBeLessThan(rowsBefore);
+    await click(lbl("Отменить очистку"));
+    expect(lbl("Тип бумаги").disabled).toBe(true);
+    expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBe(rowsBefore);
+
+    // save it as «Мои»
+    await click(lbl("Пресеты"));
+    await setValue(lbl("Название пресета"), "Мой пресет");
+    await click(lbl("Сохранить как пресет"));
+    await click(lbl("Назад"));
+    const groups = [...lbl("Готовый набор").querySelectorAll("optgroup")];
+    expect(groups.map((g) => g.label)).toEqual(["Методика", "Мои"]);
+    expect(groups[1].textContent).toContain("Мой пресет");
+
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  }, 40000);
 });

@@ -5,7 +5,7 @@ import { getDb, kv } from "@/core/db";
 export const LIBRARY_KEY = "propis2:library";
 
 export function emptyLibrary() {
-  return { version: 1, pages: [], sets: [] };
+  return { version: 1, pages: [], sets: [], presets: [] };
 }
 
 export function normalizeLibrary(raw) {
@@ -14,6 +14,7 @@ export function normalizeLibrary(raw) {
     version: 1,
     pages: Array.isArray(lib.pages) ? lib.pages.filter((p) => p && p.id && Array.isArray(p.rows)) : [],
     sets: Array.isArray(lib.sets) ? lib.sets.filter((st) => st && st.id && Array.isArray(st.pageIds)) : [],
+    presets: Array.isArray(lib.presets) ? lib.presets.filter((ps) => ps && ps.id && Array.isArray(ps.rows)) : [],
   };
 }
 
@@ -51,4 +52,15 @@ export function upsertSet(library, set) {
 
 export function removeSet(library, setId) {
   return { ...library, sets: library.sets.filter((s) => s.id !== setId) };
+}
+
+export function upsertPreset(library, preset) {
+  const stamped = { ...preset, updatedAt: Date.now() };
+  const list = library.presets ?? [];
+  const exists = list.some((p) => p.id === preset.id);
+  return { ...library, presets: exists ? list.map((p) => (p.id === preset.id ? stamped : p)) : [stamped, ...list] };
+}
+
+export function removePreset(library, presetId) {
+  return { ...library, presets: (library.presets ?? []).filter((p) => p.id !== presetId) };
 }

@@ -1,6 +1,5 @@
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import Button from "@/shared/components/Button";
-import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
 
 function dateLabel(ts) {
   try { return new Date(ts).toLocaleDateString("ru-RU"); } catch { return ""; }
@@ -8,8 +7,7 @@ function dateLabel(ts) {
 
 // «Мои страницы»: the home of the topic. Create from scratch or from a ready sheet, open as the
 // student sees it, edit, duplicate, delete.
-export default function Propis2Library({ pages, sets = [], sheets, onBack, onNew, onFromSheet, onOpen, onEdit, onDuplicate, onDelete, onNewSet, onOpenSet, onEditSet, onDuplicateSet, onDeleteSet }) {
-  const sheetIds = Object.keys(PROPIS2_SHEET_TITLES).filter((id) => sheets?.[id]);
+export default function Propis2Library({ pages, sets = [], presets = { builtin: [], mine: [] }, onBack, onNew, onFromPreset, onDeletePreset, onOpen, onEdit, onDuplicate, onDelete, onNewSet, onOpenSet, onEditSet, onDuplicateSet, onDeleteSet }) {
   return (
     <div className="screen propis2-home" data-testid="propis2-library">
       <div className="screen-header">
@@ -24,12 +22,23 @@ export default function Propis2Library({ pages, sets = [], sheets, onBack, onNew
           <Button onClick={onNewSet}>+ Новый комплект</Button>
         </div>
         <label className="propis2-field">
-          Из готового набора
-          <select defaultValue="" onChange={(e) => { if (e.target.value) { onFromSheet(e.target.value); e.target.value = ""; } }} aria-label="Готовый набор">
-            <option value="">— выбрать набор —</option>
-            {sheetIds.map((id) => <option key={id} value={id}>{PROPIS2_SHEET_TITLES[id]}</option>)}
+          Из пресета
+          <select defaultValue="" onChange={(e) => { if (e.target.value) { onFromPreset(e.target.value); e.target.value = ""; } }} aria-label="Готовый набор">
+            <option value="">— выбрать пресет —</option>
+            {presets.builtin.length > 0 && <optgroup label="Методика">{presets.builtin.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</optgroup>}
+            {presets.mine.length > 0 && <optgroup label="Мои">{presets.mine.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</optgroup>}
           </select>
         </label>
+        {presets.mine.length > 0 && (
+          <ul className="propis2-pages" aria-label="Мои пресеты">
+            {presets.mine.map((p) => (
+              <li key={p.id} className="propis2-page-card">
+                <div className="propis2-page-title">{p.title}</div>
+                <div className="propis2-actions"><button type="button" className="propis2-link" onClick={() => onDeletePreset?.(p.id)}>Удалить пресет</button></div>
+              </li>
+            ))}
+          </ul>
+        )}
         {sets.length > 0 && (
           <>
             <h2 className="propis2-h2">Комплекты</h2>

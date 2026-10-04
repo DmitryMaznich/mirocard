@@ -177,3 +177,22 @@
 .propis2-editor2--phone .propis2-settings--row .p2-seg .p2-ib { width: 34px; height: 38px; }
 .propis2-editor2--phone .propis2-settings--row .p2-seg { padding: 2px; }
 .propis2-editor2--phone .propis2-settings--row > .p2-ib { width: 38px; height: 42px; }
+
+/* presets popover, locked-page marker, undo bar */
+.p2-presets-panel { position: absolute; top: calc(100% + 6px); right: 0; width: min(320px, 92vw); max-height: 60dvh; overflow-y: auto; padding: 10px 12px; background: var(--p2-surface); border: 1px solid var(--p2-line); border-radius: 16px; box-shadow: 0 12px 28px rgba(40,50,60,.25); z-index: 710; }
+.p2-presets-panel h3 { margin: 8px 0 4px; font: 800 12px/1 inherit; text-transform: uppercase; letter-spacing: .06em; color: #7c8594; }
+.p2-presets-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.p2-presets-list li { display: flex; align-items: center; }
+.p2-presets-item { flex: 1 1 auto; text-align: left; border: none; background: transparent; padding: 10px 8px; border-radius: 10px; font: 700 15px/1.2 inherit; color: inherit; cursor: pointer; }
+.p2-presets-item:hover { background: #e5f2ef; }
+.p2-presets-del { border: none; background: transparent; color: #b91c1c; width: 36px; height: 36px; display: grid; place-items: center; cursor: pointer; }
+.p2-presets-del svg { width: 20px; height: 20px; }
+.p2-presets-empty { margin: 4px 8px; color: #8b93a1; font-size: 14px; }
+.p2-presets-save { display: flex; gap: 8px; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--p2-line); }
+.p2-presets-save input { flex: 1 1 auto; min-width: 0; height: 42px; border: 1px solid var(--p2-line); border-radius: 12px; padding: 0 10px; font: 700 15px inherit; }
+.p2-lock { display: grid; place-items: center; color: #8b93a1; } .p2-lock svg { width: 22px; height: 22px; }
+.p2-undo { position: fixed; left: 50%; bottom: calc(18px + var(--app-safe-bottom, 0px)); transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; background: #28323c; color: #fff; border-radius: 16px; font: 700 15px inherit; box-shadow: 0 8px 24px rgba(0,0,0,.3); z-index: 720; }
+.p2-undo button { width: 40px; height: 40px; border: none; border-radius: 12px; background: #4a9b8f; color: #fff; display: grid; place-items: center; cursor: pointer; }
+.p2-undo svg { width: 22px; height: 22px; }
+.propis2-main > .propis2-settings:not(.propis2-settings--row) { z-index: 8; }
+.p2-undo { white-space: nowrap; }

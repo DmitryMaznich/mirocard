@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -238,5 +238,30 @@ describe("engine row flags", () => {
     expect(seg("и и").startPoints.length).toBeGreaterThan(2);
     expect(seg("и и#o").startPoints).toHaveLength(1);
     expect(seg("и и#c").startPoints).toHaveLength(0);
+  });
+});
+
+describe("presets", () => {
+  it("a page from a preset is locked, with fresh row ids and the preset's options; clearing opens it", () => {
+    const src = newPage("Урок", { ruling: "wide", rows: [newRow({ text: "и", repeat: "fade", dots: "one" }), newRow({ text: "ини" })] });
+    const ps = presetFromPage(src, "Мой");
+    expect(ps.title).toBe("Мой");
+    const page = pageFromPreset(ps);
+    expect(isLocked(page)).toBe(true);
+    expect(page.ruling).toBe("wide");
+    expect(page.rows.map((r) => r.id)).not.toContain(src.rows[0].id);
+    expect(page.rows[0]).toMatchObject({ text: "и", repeat: "fade", dots: "one" });
+    const cleared = clearPage(page);
+    expect(isLocked(cleared)).toBe(false);
+    expect(cleared.rows).toHaveLength(1);
+    expect(cleared.rows[0].text).toBe("");
+  });
+  it("on a locked page a symbol replaces the row's text and never adds rows", () => {
+    const page = pageFromPreset(presetFromPage(newPage("x", { rows: [newRow({ text: "и" })] })));
+    const id = page.rows[0].id;
+    const next = replaceSymbol(page, id, { kind: "letter", text: "м" });
+    expect(next.rows).toHaveLength(1);
+    expect(next.rows[0].text).toBe("м");
+    expect(replaceSymbol(page, "nope", { kind: "letter", text: "м" })).toBe(page);
   });
 });
