@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
-import { PRINT_PAGE_H_MM, PRINT_PAGE_W_MM } from "@/topics/renderers/propis/propisRuling.js";
-import { GRIDS, GRID_KINDS, ROWS_PER_PAGE, MARGINS, RULINGS, pageMargin, rowParams, analyzePage, appendTile, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, replaceSymbol, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
+import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, appendTile, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, replaceSymbol, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import Propis2Carousel, { TileGlyph, buildTiles } from "./Propis2Carousel";
 import Propis2Preview from "./Propis2Preview";
@@ -14,7 +13,6 @@ import Propis2Presets from "./Propis2Presets";
 // No dragging: select a row (tap it on the page) and tap a symbol, it goes into that row; with no row selected a tapped
 // symbol starts a new row. The selected row's bar edits its text, kind of row, repeat, order. The page is saved by the
 // parent on every change; nothing is ever dropped silently.
-const PAGE_ASPECT = PRINT_PAGE_W_MM / PRINT_PAGE_H_MM;
 const MAX_OVERFLOW = 1.2; // portrait tablet: the page may be this much taller than the room for it (a little scroll)
 
 // Landscape tablet and wider: the page takes the whole height on the left, all tools sit in a side panel.
@@ -40,6 +38,7 @@ function useMedia(query) {
 const PAPER_ICONS = { propis: I.IconPaperPropis, square: I.IconPaperSquare, ruled: I.IconPaperRuled };
 const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
 const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense };
+const FORMAT_ICONS = { a5: I.IconFormatA5, a4: I.IconFormatA4 };
 const MARGIN_ICONS = { off: I.IconMarginOff, left: I.IconMarginLeft, right: I.IconMarginRight };
 const REPEAT_OPTS = [
   { id: "one", label: "Одна запись", Icon: I.IconRepOne },
@@ -89,6 +88,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const pageIndexRef = useRef(0);
   const gridKind = pageGridKind(page);
   const propisGrid = gridKind === "propis";
+  const aspect = pageAspect(page);
 
   // The page's width: the canvas width, but not so wide that the page is more than MAX_OVERFLOW times taller
   // than the room for it. Recomputed when the canvas resizes (rotation, dock height, keyboard).
@@ -99,14 +99,14 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
       const w = el.clientWidth;
       const h = el.clientHeight;
       if (!w || !h) return;
-      setPageW(Math.floor(phoneRef.current ? w - 8 : Math.min(w - 8, h * (sideRef.current ? 1 : MAX_OVERFLOW) * PAGE_ASPECT)));
+      setPageW(Math.floor(phoneRef.current ? w - 8 : Math.min(w - 8, h * (sideRef.current ? 1 : MAX_OVERFLOW) * aspect)));
     };
     measure();
     if (typeof ResizeObserver === "undefined") return undefined;
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [side, phone]);
+  }, [side, phone, aspect]);
 
   const selectedIndex = page.rows.findIndex((r) => r.id === selectedId);
   const selected = selectedIndex >= 0 ? page.rows[selectedIndex] : null;
@@ -133,8 +133,8 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
       const vbH = Number(String(svg.getAttribute("viewBox") ?? "").split(/\s+/)[3]) || box.height;
       y = ((cy - box.top) / (box.height || 1)) * vbH;
     }
-    const local = rowAtSvgY(y);
-    return local < 0 ? -1 : pageIndexRef.current * ROWS_PER_PAGE + local;
+    const local = rowAtSvgY(y, pageFormat(page));
+    return local < 0 ? -1 : pageIndexRef.current * rowsPerPage(page) + local;
   };
 
   // Tap on the page: select the row under the finger; an empty place on the sheet gets a new, empty row (so any ruled
@@ -204,6 +204,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
 
       <div className="propis2-main">
         <div className="propis2-settings" role="group" aria-label="Настройки страницы">
+          <Propis2Picker label="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
           <Propis2Picker label="Тип бумаги" disabled={locked} value={gridKind} onChange={(id) => onChange({ ...page, gridKind: id })} options={GRID_KINDS.map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
           <Propis2Picker label="Разлиновка" disabled={locked} value={page.ruling} onChange={(id) => onChange({ ...page, ruling: id })} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />
           <Propis2Picker label="Косая линейка" value={page.grid ?? "regular"} disabled={locked || !propisGrid} onChange={(id) => onChange({ ...page, grid: id })} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />

@@ -440,6 +440,10 @@
     size: 297mm 210mm;
     margin: 0;
   }
+  /* «Прописи 2», format A4: one portrait sheet per page */
+  .propis-print-all__sheet--a4 { page: propis-a4; width: 210mm; height: 297mm; }
+  .propis-print-all__sheet--a4 .propis-print-page-svg { width: 210mm; height: 297mm; }
+  @page propis-a4 { size: 210mm 297mm; margin: 0; }
 }
 
 /* ─── Прописи · «Диктант» ─────────────────────────────────────────────────

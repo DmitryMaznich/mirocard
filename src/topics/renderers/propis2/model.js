@@ -1,12 +1,24 @@
 // «Прописи 2»: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
-import { PRINT_ROWS_PER_PAGE, propis2MarginUnits } from "../propis/propisRuling.js";
+import { PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../propis/propisRuling.js";
 import { outsideRowLabels } from "./glyphReach.js";
 
 
 // Rows on one screen/paper page of the wide-row sheets (ruling row 0 is only the top edge).
 export const ROWS_PER_PAGE = PRINT_ROWS_PER_PAGE - 1;
+
+// Page formats: «А5» is the page of the finished copybooks (two on an A4 landscape sheet when printed), «А4» a whole A4
+// portrait sheet. Same row cycle (12 mm), so A4 simply has more rows and a wider line.
+export const PAGE_FORMATS = [
+  { id: "a5", label: "А5 (как в готовых прописях)", wMm: PRINT_PAGE_W_MM, hMm: PRINT_PAGE_H_MM },
+  { id: "a4", label: "А4 вертикально", wMm: 210, hMm: 297 },
+];
+export const pageFormat = (page) => (page?.format === "a4" ? "a4" : "a5");
+const formatOf = (page) => PAGE_FORMATS.find((f) => f.id === pageFormat(page));
+export const pageAspect = (page) => { const f = formatOf(page); return f.wMm / f.hMm; };
+// content rows on one page (ruling row 0 is only the top edge)
+export const rowsPerPage = (page) => Math.floor((formatOf(page).hMm - PRINT_FIRST_BASELINE_MM) / 12);
 
 export const RULINGS = [
   { id: "narrow", label: "Узкая строка", short: "Узкая" },
@@ -93,7 +105,7 @@ export function pageFromLines(title, lines, ruling = "narrow", elementLabels = n
 // is `locked`: only the symbols / words of its rows can be changed, until the page is cleared. ----
 export const isLocked = (page) => Boolean(page?.locked);
 
-const PRESET_PAGE_FIELDS = ["ruling", "grid", "gridKind", "midDash", "writeAfter", "margin"];
+const PRESET_PAGE_FIELDS = ["ruling", "grid", "gridKind", "midDash", "writeAfter", "margin", "format"];
 const copyRows = (rows) => (rows ?? []).map((r) => ({ ...r, id: newId("r"), marked: false }));
 
 export function pageFromPreset(preset, title) {
@@ -149,7 +161,7 @@ export const MARGINS = [
   { id: "right", label: "Поля справа на первой странице, дальше чередуются" },
 ];
 export const pageMargin = (page) => (page?.margin === "left" || page?.margin === "right" ? page.margin : "off");
-export const rowMaxX = (page) => WIDE_ROW_MAX_X - (pageMargin(page) === "off" ? 0 : propis2MarginUnits());
+export const rowMaxX = (page) => WIDE_ROW_MAX_X + (mmToNativeUnits(formatOf(page).wMm) - mmToNativeUnits(PRINT_PAGE_W_MM)) - (pageMargin(page) === "off" ? 0 : propis2MarginUnits());
 
 const lineWidth = (text, glyphMap, ruling) => {
   const { placed } = layoutWideLinesIntoRows([text], glyphMap, undefined, false, ruling === "narrow" ? 0.5 : 1);
@@ -409,7 +421,8 @@ export function setToLines(set, pagesById, glyphMap) {
     const lines = pageToLines(page, glyphMap);
     out.push(...lines);
     if (k < ids.length - 1) {
-      const rest = (ROWS_PER_PAGE - (lines.length % ROWS_PER_PAGE)) % ROWS_PER_PAGE;
+      const rpp = rowsPerPage(pagesById.get(ids[0]));
+      const rest = (rpp - (lines.length % rpp)) % rpp;
       for (let i = 0; i < rest; i += 1) out.push("");
     }
   });
@@ -425,7 +438,7 @@ export function setPageStarts(set, pagesById, glyphMap) {
     if (!page) { starts.push(null); continue; }
     starts.push(screenPage);
     const n = pageToLines({ ...page, ruling: set.ruling ?? page.ruling }, glyphMap).length;
-    screenPage += Math.max(1, Math.ceil(n / ROWS_PER_PAGE));
+    screenPage += Math.max(1, Math.ceil(n / rowsPerPage(page)));
   }
   return starts;
 }

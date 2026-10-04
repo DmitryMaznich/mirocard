@@ -12,7 +12,6 @@ import {
 } from "./propisRuling.js";
 
 const PAGE_W_UNITS = mmToNativeUnits(PRINT_PAGE_W_MM);
-const PAGE_H_UNITS = mmToNativeUnits(PRINT_PAGE_H_MM);
 const CONTENT_W_UNITS = mmToNativeUnits(PRINT_CONTENT_W_MM);
 
 // Shifts row 0's baseline from wherever buildWordTrajectory's own native coordinate system
@@ -89,13 +88,13 @@ const REPEAT_OPACITY = 0.5;
 const WIDE_CONTENT_INSET_MM = 5;
 // «Прописи 2» margin on a wide-row page: `margin` is the side of the FIRST page ("left" / "right"); it alternates on the
 // spread, the red line stands PROPIS2_MARGIN_MM from that edge and the content keeps a cell's width clear of it.
-function slotGeometry(pageIndex, compact = false, margin = "off") {
+function slotGeometry(pageIndex, compact = false, margin = "off", geom = GEOMS.a5) {
   const isLeftSlot = pageIndex % 2 === 0;
   if (compact && (margin === "left" || margin === "right")) {
     const onLeft = (margin === "left") === isLeftSlot;
     return {
       isLeftSlot,
-      marginXUnits: mmToNativeUnits(onLeft ? PROPIS2_MARGIN_MM : PRINT_PAGE_W_MM - PROPIS2_MARGIN_MM),
+      marginXUnits: mmToNativeUnits(onLeft ? PROPIS2_MARGIN_MM : geom.wMm - PROPIS2_MARGIN_MM),
       contentXUnits: mmToNativeUnits(onLeft ? PROPIS2_MARGIN_MM + WIDE_CONTENT_INSET_MM : WIDE_CONTENT_INSET_MM),
     };
   }
@@ -117,15 +116,12 @@ function slotGeometry(pageIndex, compact = false, margin = "off") {
 // 2026-09-13). The right slot's own copy is shifted left by one page width so whatever fell
 // at sheet-x=[148.5, 297] now sits at this slot's own local x=[0, 148.5] — the svg's own
 // default overflow:hidden clips the rest, same as any other line here.
-const SHEET_DIAGONAL_LINES = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_DIAGONAL_SPACING);
 // "Элементы букв" pages use a much denser diagonal backing than ordinary text pages -- see
 // TEXT_ROW_ELEMENT_DIAGONAL_SPACING's own comment (propisRuling.js) for why the standard
 // 20mm spacing doesn't work for these: most elements are narrower than one 20mm gap, so a
 // whole крючок/заборчик could render with no slant guide crossing it at all.
-const SHEET_DIAGONAL_LINES_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
 // «Прописи 2», dense grid on the wide ruling: 5 mm, the distance between the two tops of «и» there.
 const SQUARE_CELL = mmToNativeUnits(5); // «Прописи 2»: the squared grid, 5 mm
-const SHEET_DIAGONAL_LINES_WIDE_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, TEXT_ROW_WIDE_DIAGONAL_SPACING);
 // "Широкая строка": every wide band carries its OWN slant grid, phased on the band's bottom line, so the
 // first slant meets the bottom (and the top) horizontal at the same distance from the page's left edge in
 // every row (a page-long grid would shift by 3.6 units per row). Distance of that first crossing:
@@ -134,7 +130,7 @@ const WIDE_SLANT_TAN = Math.tan(((90 - ANGLE_FROM_HORIZONTAL_DEG) * Math.PI) / 1
 // slant line k of a band at height y (row-local coordinates: the band's bottom line is y = NATIVE_L3 - TEXT_ROW_THIN_OFFSET)
 const WIDE_BAND_BOTTOM_LOCAL = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
 const wideLineX = (k, yLocal) => WIDE_GRID_FIRST_X + k * TEXT_ROW_WIDE_DIAGONAL_SPACING + (WIDE_BAND_BOTTOM_LOCAL - yLocal) * WIDE_SLANT_TAN;
-const WIDE_LINE_COUNT = Math.ceil((PAGE_W_UNITS + (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * WIDE_SLANT_TAN) / TEXT_ROW_WIDE_DIAGONAL_SPACING) + 2;
+const wideLineCount = (pageW) => Math.ceil((pageW + (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * WIDE_SLANT_TAN) / TEXT_ROW_WIDE_DIAGONAL_SPACING) + 2;
 // "Узкая строка" (методика, часть 2): the same captured glyphs at half size. Band = 24 units (4 mm) standing on the
 // baseline (row-local y = 64), thin line on top, dashed middle, bold baseline; a dashed guide in the middle of the gap
 // between bands (ascender / descender limit); a short bold bar at the left edge of each band. The 65deg slants (cell
@@ -143,7 +139,6 @@ const NARROW_SCALE = 0.5;
 const NARROW_CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * NARROW_SCALE;
 // «Прописи 2», dense grid on the narrow ruling: exactly the letters' own cell (2.5 mm, the distance between the two tops of «и»),
 // so that every stem of every letter stands on a drawn line.
-const SHEET_DIAGONAL_LINES_NARROW_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, NARROW_CELL);
 const NARROW_BAND_H = (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * NARROW_SCALE;
 const NARROW_GUIDE_LOCAL = NATIVE_L3 - TEXT_ROW_PITCH; // 16: dashed limit line above the band
 const NARROW_FIRST_X = 15;
@@ -151,11 +146,36 @@ const NARROW_START_DOT_R = 2;
 const NARROW_BAR_W = 1.4;
 const narrowYRef = () => rowOriginY(1) + WIDE_BAND_BOTTOM_LOCAL;
 const narrowLineX = (k, yAbs) => NARROW_FIRST_X + k * NARROW_CELL + (narrowYRef() - yAbs) * WIDE_SLANT_TAN;
-const ROW_INDICES = Array.from({ length: PRINT_ROWS_PER_PAGE }, (_, i) => i);
 // "Широкая строка": the ordinary 17-row cycle, but ruling row 0 is only the TOP edge of the first
 // wide band (its own bold baseline) -- content rows start at ruling row 1, so 16 per page, and
 // the first band doesn't sit cut off against the physical page edge.
-const WIDE_ROWS_PER_PAGE = PRINT_ROWS_PER_PAGE - 1;
+
+// «Прописи 2» page formats. "a5" is the page of the finished copybooks (148.5 x 210 mm, two of them on an A4 landscape
+// sheet, the diagonal grid runs on across the pair); "a4" is a whole A4 portrait sheet (210 x 297 mm), one page per sheet.
+// Same row cycle, so an A4 page simply has more rows and a wider line.
+const PAGE_ROW_CYCLE_MM = 12;
+function makeGeom(format) {
+  const a4 = format === "a4";
+  const wMm = a4 ? 210 : PRINT_PAGE_W_MM;
+  const hMm = a4 ? 297 : PRINT_PAGE_H_MM;
+  const w = mmToNativeUnits(wMm);
+  const h = mmToNativeUnits(hMm);
+  const rows = Math.floor((hMm - PRINT_FIRST_BASELINE_MM) / PAGE_ROW_CYCLE_MM) + 1;
+  const sheetW = a4 ? w : w * 2;
+  return {
+    format: a4 ? "a4" : "a5", wMm, hMm, w, h, rows, wideRows: rows - 1, pairedSlots: !a4,
+    rowIndices: Array.from({ length: rows }, (_, i) => i),
+    maxX: WIDE_ROW_MAX_X + (w - PAGE_W_UNITS),
+    lines: {
+      std: buildDiagonalLines(h, sheetW, TEXT_ROW_DIAGONAL_SPACING),
+      dense: buildDiagonalLines(h, sheetW, TEXT_ROW_ELEMENT_DIAGONAL_SPACING),
+      wideDense: buildDiagonalLines(h, sheetW, TEXT_ROW_WIDE_DIAGONAL_SPACING),
+      narrowDense: buildDiagonalLines(h, sheetW, NARROW_CELL),
+    },
+  };
+}
+const GEOMS = { a5: makeGeom("a5"), a4: makeGeom("a4") };
+export const geomOf = (format) => (format === "a4" ? GEOMS.a4 : GEOMS.a5);
 // Slants are drawn only inside each wide band (previous baseline down to this row's thin line);
 // the narrow strip below stays blank, as in the original workbook.
 const wideBandTop = (row) => rowOriginY(row) + NATIVE_L3 - TEXT_ROW_PITCH;
@@ -164,10 +184,10 @@ const wideBandHeight = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET;
 // «Прописи 2» editor: which content row (0-based, on one page) a point at svg-y `y` belongs to; -1 outside
 // the ruled rows. A row owns the strip from its previous baseline down to its own baseline (the same
 // for the narrow and wide rulings: both stand on the same 72-unit pitch).
-export function rowAtSvgY(y) {
+export function rowAtSvgY(y, format = "a5") {
   const top = rowOriginY(1) + NATIVE_L3 - TEXT_ROW_PITCH;
   const r = Math.floor((y - top) / TEXT_ROW_PITCH);
-  return r >= 0 && r < WIDE_ROWS_PER_PAGE ? r : -1;
+  return r >= 0 && r < geomOf(format).wideRows ? r : -1;
 }
 const overlayRect = (r) => ({ y: rowOriginY(r + 1) + NATIVE_L3 - TEXT_ROW_PITCH, h: TEXT_ROW_PITCH });
 const OVERLAY_FILL = { select: "rgba(37,99,235,.10)", drop: "rgba(22,163,74,.22)", warn: "rgba(220,38,38,.12)" };
@@ -218,9 +238,18 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 // `onFragmentTap` (optional, «Прописи 2»): tap reports the row and the tap's x inside it instead of toggling the
 // inline animation. `crop` (optional): show only a window of the page (the show panel's single row).
 // `speedFactor` slows/speeds the pen animation.
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", useElements, wideRows = false, narrowRows = false }) {
-  const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows, margin);
-  const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", useElements, wideRows = false, narrowRows = false }) {
+  const geom = geomOf(format);
+  // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
+  const PAGE_W_UNITS = geom.w;
+  const PAGE_H_UNITS = geom.h;
+  const ROW_INDICES = geom.rowIndices;
+  const SHEET_DIAGONAL_LINES_NARROW_DENSE = geom.lines.narrowDense;
+  const SHEET_DIAGONAL_LINES_WIDE_DENSE = geom.lines.wideDense;
+  const SHEET_DIAGONAL_LINES = geom.lines.std;
+  const SHEET_DIAGONAL_LINES_DENSE = geom.lines.dense;
+  const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows, margin, geom);
+  const diagonalShiftX = isLeftSlot || !geom.pairedSlots ? 0 : -PAGE_W_UNITS;
   const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   const guideColor = wideRows ? WIDE_GUIDE_COLOR : GUIDE_COLOR;
   const contentRow = (r) => (wideRows ? r + 1 : r);
@@ -307,7 +336,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
       })()}
       {wideRows && !narrowRows ? (simpleStep ? null : ROW_INDICES.slice(1).map((row) => (
         <g key={`band${row}`} data-wide-band={row}>
-          {Array.from({ length: WIDE_LINE_COUNT }, (_, k) => k - 1).map((k) => (
+          {Array.from({ length: wideLineCount(PAGE_W_UNITS) }, (_, k) => k - 1).map((k) => (
             <line
               key={k}
               x1={wideLineX(k, NATIVE_L3 - TEXT_ROW_PITCH)} y1={wideBandTop(row)}
@@ -632,17 +661,17 @@ function usePinchZoom(wrapRef, contentRef) {
 // index alone (WIDE_ROWS_PER_PAGE rows per page), so the layout can snap without knowing pages.
 // The content's x offset on the page a row lands on (its page follows from its index alone); it only differs between
 // pages when the «Прописи 2» margin alternates.
-const rowContentX = (rowIndex, margin) => slotGeometry(Math.floor(rowIndex / WIDE_ROWS_PER_PAGE), true, margin).contentXUnits;
+const rowContentX = (rowIndex, margin, geom) => slotGeometry(Math.floor(rowIndex / geom.wideRows), true, margin, geom).contentXUnits;
 
-const narrowSnapFor = (margin) => (rowIndex, x, y) => {
-  const contentXUnits = rowContentX(rowIndex, margin);
+const narrowSnapFor = (margin, geom) => (rowIndex, x, y) => {
+  const contentXUnits = rowContentX(rowIndex, margin, geom);
   const yAbs = rowOriginY(rowIndex + 1) + y;
   const k = Math.round((contentXUnits + x - narrowLineX(0, yAbs)) / NARROW_CELL);
   return narrowLineX(k, yAbs) - contentXUnits;
 };
 
-const wideSnapFor = (margin) => (rowIndex, x, y) => {
-  const contentXUnits = rowContentX(rowIndex, margin);
+const wideSnapFor = (margin, geom) => (rowIndex, x, y) => {
+  const contentXUnits = rowContentX(rowIndex, margin, geom);
   // slant line k at local height y (see wideLineX): nearest line to the point, row-local x back out
   const k = Math.round((contentXUnits + x - wideLineX(0, y)) / TEXT_ROW_WIDE_DIAGONAL_SPACING);
   return wideLineX(k, y) - contentXUnits;
@@ -652,12 +681,12 @@ const wideSnapFor = (margin) => (rowIndex, x, y) => {
 // row, SHEET_DIAGONAL_LINES_WIDE_DENSE on the wide one), not to the hidden methodology grid. Line n of such a grid
 // stands at x = n*step - y*tan on its page (see buildDiagonalLines) and every odd page is shifted by one page width,
 // exactly as PrintPage draws it; the page of a row follows from its index alone (WIDE_ROWS_PER_PAGE rows per page).
-function drawnGridSnapX(step, margin) {
+function drawnGridSnapX(step, margin, geom) {
   return (rowIndex, x, y) => {
-    const pageIdx = Math.floor(rowIndex / WIDE_ROWS_PER_PAGE);
-    const contentXUnits = slotGeometry(pageIdx, true, margin).contentXUnits;
-    const yAbs = rowOriginY((rowIndex % WIDE_ROWS_PER_PAGE) + 1) + y;
-    const shift = pageIdx % 2 === 0 ? 0 : -PAGE_W_UNITS;
+    const pageIdx = Math.floor(rowIndex / geom.wideRows);
+    const contentXUnits = slotGeometry(pageIdx, true, margin, geom).contentXUnits;
+    const yAbs = rowOriginY((rowIndex % geom.wideRows) + 1) + y;
+    const shift = pageIdx % 2 === 0 || !geom.pairedSlots ? 0 : -geom.w;
     const base = shift - yAbs * WIDE_SLANT_TAN;
     const n = Math.round((contentXUnits + x - base) / step);
     return base + n * step - contentXUnits;
@@ -699,7 +728,8 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   const lines = task?.lines ?? [];
   const wideRows = Boolean(task?.wideRows);
   const margin = task?.margin === "left" || task?.margin === "right" ? task.margin : "off";
-  const rowMaxX = WIDE_ROW_MAX_X - (margin === "off" ? 0 : propis2MarginUnits());
+  const geom = geomOf(task?.format);
+  const rowMaxX = geom.maxX - (margin === "off" ? 0 : propis2MarginUnits());
   const narrowRows = wideRows && Boolean(task?.narrowRows);
   const useElements = Boolean(task?.useElements) && !wideRows;
   const text = lines.join("\n");
@@ -718,14 +748,14 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   const layout = useMemo(
     () => wideRows
       ? (narrowRows
-        ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? drawnGridSnapX(NARROW_CELL, margin) : narrowSnapFor(margin), true, NARROW_SCALE, rowMaxX)
-        : layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin) : wideSnapFor(margin), true, 1, rowMaxX))
+        ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? drawnGridSnapX(NARROW_CELL, margin, geom) : narrowSnapFor(margin, geom), true, NARROW_SCALE, rowMaxX)
+        : layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom) : wideSnapFor(margin, geom), true, 1, rowMaxX))
       : useElements
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
-    [wideRows, narrowRows, task?.simpleGrid, margin, rowMaxX, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
+    [wideRows, narrowRows, task?.simpleGrid, margin, rowMaxX, geom, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
-  const pages = useMemo(() => paginateRows(layout, wideRows ? WIDE_ROWS_PER_PAGE : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) }), [layout, wideRows, task?.exactPages]);
+  const pages = useMemo(() => paginateRows(layout, wideRows ? geom.wideRows : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) }), [layout, wideRows, task?.exactPages, geom]);
 
   const [pageIndex, setPageIndex] = useState(0);
   useEffect(() => { onPageIndexChange?.(pageIndex); }, [pageIndex, onPageIndexChange]);
@@ -749,7 +779,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
     if (!focus) return null;
     const first = (pages[0] ?? [])[0];
     if (!first) return null;
-    const { contentXUnits } = slotGeometry(0, wideRows, margin);
+    const { contentXUnits } = slotGeometry(0, wideRows, margin, geom);
     const row = wideRows ? first.rowIndex + 1 : first.rowIndex;
     const widthUnits = first.segments.reduce((sum, seg) => sum + seg.width, 0);
     const w = Math.max(260, contentXUnits + first.x + widthUnits + 80);
@@ -771,8 +801,8 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               onToggleActive={focus ? () => {} : null}
               crop={focusCrop}
               speedFactor={speedFactor}
-              simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin}
-              overlays={overlays?.filter((o) => Math.floor(o.row / WIDE_ROWS_PER_PAGE) === shownIndex).map((o) => ({ ...o, row: o.row % WIDE_ROWS_PER_PAGE }))}
+              simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format}
+              overlays={overlays?.filter((o) => Math.floor(o.row / geom.wideRows) === shownIndex).map((o) => ({ ...o, row: o.row % geom.wideRows }))}
               useElements={useElements}
               wideRows={wideRows}
               narrowRows={narrowRows}
@@ -813,7 +843,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
                   useElements={useElements}
                   wideRows={wideRows}
                   narrowRows={narrowRows}
-                  simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin}
+                  simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format}
                 />
               </div>
               {isZoomed && (
@@ -870,12 +900,20 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
                 every ancestor in the chain. */}
             {createPortal(
               <div className="propis-print-all" aria-hidden="true">
-                {Array.from({ length: pages.length / 2 }, (_, sheetIndex) => (
-                  <div key={sheetIndex} className="propis-print-all__sheet">
-                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} />
-                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} />
-                  </div>
-                ))}
+                {geom.pairedSlots
+                  ? Array.from({ length: Math.ceil(pages.length / 2) }, (_, sheetIndex) => (
+                    <div key={sheetIndex} className="propis-print-all__sheet">
+                      {[0, 1].map((slot) => {
+                        const pi = sheetIndex * 2 + slot;
+                        return <PrintPage key={slot} page={pages[pi] ?? []} pageIndex={pi} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} />;
+                      })}
+                    </div>
+                  ))
+                  : pages.map((pg, pi) => (
+                    <div key={pi} className="propis-print-all__sheet propis-print-all__sheet--a4">
+                      <PrintPage page={pg} pageIndex={pi} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} />
+                    </div>
+                  ))}
               </div>,
               document.body
             )}

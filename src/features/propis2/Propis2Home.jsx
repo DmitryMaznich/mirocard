@@ -5,7 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
-import { newId, newPage, newSet, pageFromMarked, pageFromPreset, pageMargin, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { newId, newPage, newSet, pageFromMarked, pageFromPreset, pageFormat, pageMargin, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { emptyLibrary, loadLibrary, removePage, removePreset, removeSet, saveLibrary, upsertPage, upsertPreset, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
@@ -92,7 +92,7 @@ export default function Propis2Home({ db }) {
     const ruling = isSet ? set.ruling : page.ruling;
     const lines = isSet ? setToLines(set, pagesById, glyphMap) : pageToLines(page, glyphMap);
     const gridSource = isSet ? pagesById.get(set.pageIds?.[0]) : page;
-    const task = buildPageTask({ topicRecord, lines, narrowRows: ruling === "narrow", grid: gridSource ? taskGrid(gridSource) : undefined, midDash: gridSource?.midDash, margin: pageMargin(gridSource) });
+    const task = buildPageTask({ topicRecord, lines, narrowRows: ruling === "narrow", grid: gridSource ? taskGrid(gridSource) : undefined, midDash: gridSource?.midDash, margin: pageMargin(gridSource), format: pageFormat(gridSource) });
     return (
       <div className="propis2-view" data-testid="propis2-view">
         <PrintPageView

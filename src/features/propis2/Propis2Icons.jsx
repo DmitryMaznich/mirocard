@@ -75,3 +75,7 @@ export const IconLock = () => S(<><rect x="5" y="11" width="14" height="9" rx="2
 export const IconMarginOff = () => S(<><rect x="5" y="3.5" width="14" height="17" rx="1.4" /><path d="M4 20L20 4" stroke="#dc2626" /></>);
 export const IconMarginLeft = () => S(<><rect x="5" y="3.5" width="14" height="17" rx="1.4" /><path d="M8.5 3.5v17" stroke="#dc2626" strokeWidth="1.8" /></>);
 export const IconMarginRight = () => S(<><rect x="5" y="3.5" width="14" height="17" rx="1.4" /><path d="M15.5 3.5v17" stroke="#dc2626" strokeWidth="1.8" /></>);
+
+// ---- page formats ----
+export const IconFormatA4 = () => S(<><rect x="3.5" y="2.5" width="17" height="19" rx="1.4" /><path d="M7 7h10M7 10.5h10M7 14h10M7 17.5h6" strokeWidth="1.3" /></>);
+export const IconFormatA5 = () => S(<><rect x="6.5" y="5.5" width="11" height="13" rx="1.4" /><path d="M9 9h6M9 12h6M9 15h4" strokeWidth="1.3" /></>);

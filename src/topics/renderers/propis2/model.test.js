@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { MARGINS, pageMargin, rowMaxX, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -280,5 +280,25 @@ describe("margins", () => {
   });
   it("the margin survives a preset", () => {
     expect(pageFromPreset(presetFromPage(newPage("x", { margin: "right", rows: [newRow({ text: "и" })] }))).margin).toBe("right");
+  });
+});
+
+describe("page formats", () => {
+  it("A5 is the default; A4 has more rows and a wider line, the margin still takes 15 mm", () => {
+    expect(PAGE_FORMATS.map((f) => f.id)).toEqual(["a5", "a4"]);
+    const a5 = newPage("x");
+    const a4 = newPage("x", { format: "a4" });
+    expect(pageFormat(a5)).toBe("a5");
+    expect(rowsPerPage(a5)).toBe(16);
+    expect(rowsPerPage(a4)).toBe(23);
+    expect(pageAspect(a4)).toBeCloseTo(210 / 297, 5);
+    expect(rowMaxX(a4)).toBeGreaterThan(rowMaxX(a5) + 300);
+    expect(rowMaxX(newPage("x", { format: "a4", margin: "left" }))).toBe(rowMaxX(a4) - 90);
+  });
+  it("sets pad pages to whole A4 pages", () => {
+    const a = newPage("a", { format: "a4", rows: [newRow({ text: "и" })] });
+    const b = newPage("b", { format: "a4", rows: [newRow({ text: "м" })] });
+    const lines = setToLines(newSet("s", { pageIds: [a.id, b.id] }), new Map([[a.id, a], [b.id, b]]), map);
+    expect(lines.length).toBe(rowsPerPage(a) + 1);
   });
 });
