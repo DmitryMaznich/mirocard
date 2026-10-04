@@ -1,13 +1,13 @@
 import { useMemo, useState, useEffect, useRef, useCallback, useId } from "react";
 import { createPortal } from "react-dom";
-import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, WIDE_GRID_STRETCH, paginateRows } from "./wordEngine.js";
+import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, WIDE_GRID_STRETCH, WIDE_ROW_MAX_X, paginateRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
 import {
   INK_COLOR, NATIVE_L3, TEXT_ROW_WIDE_DIAGONAL_SPACING,
   TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
   ANGLE_FROM_HORIZONTAL_DEG,
   buildDiagonalLines, mmToNativeUnits,
-  PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_MARGIN_MM, PRINT_LEFT_INSET_MM, PRINT_CENTER_INSET_MM,
+  PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_MARGIN_MM, PROPIS2_MARGIN_MM, propis2MarginUnits, PRINT_LEFT_INSET_MM, PRINT_CENTER_INSET_MM,
   PRINT_CONTENT_W_MM, PRINT_FIRST_BASELINE_MM, PRINT_ROWS_PER_PAGE,
 } from "./propisRuling.js";
 
@@ -87,8 +87,18 @@ const REPEAT_OPACITY = 0.5;
 // OPPOSITE (inner/center-divider) side.
 // "Широкая строка" sheets have no margin: no red line, rows start one cell in from the page's left edge.
 const WIDE_CONTENT_INSET_MM = 5;
-function slotGeometry(pageIndex, compact = false) {
+// «Прописи 2» margin on a wide-row page: `margin` is the side of the FIRST page ("left" / "right"); it alternates on the
+// spread, the red line stands PROPIS2_MARGIN_MM from that edge and the content keeps a cell's width clear of it.
+function slotGeometry(pageIndex, compact = false, margin = "off") {
   const isLeftSlot = pageIndex % 2 === 0;
+  if (compact && (margin === "left" || margin === "right")) {
+    const onLeft = (margin === "left") === isLeftSlot;
+    return {
+      isLeftSlot,
+      marginXUnits: mmToNativeUnits(onLeft ? PROPIS2_MARGIN_MM : PRINT_PAGE_W_MM - PROPIS2_MARGIN_MM),
+      contentXUnits: mmToNativeUnits(onLeft ? PROPIS2_MARGIN_MM + WIDE_CONTENT_INSET_MM : WIDE_CONTENT_INSET_MM),
+    };
+  }
   if (compact) return { isLeftSlot, marginXUnits: null, contentXUnits: mmToNativeUnits(WIDE_CONTENT_INSET_MM) };
   return {
     isLeftSlot,
@@ -208,8 +218,8 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 // `onFragmentTap` (optional, «Прописи 2»): tap reports the row and the tap's x inside it instead of toggling the
 // inline animation. `crop` (optional): show only a window of the page (the show panel's single row).
 // `speedFactor` slows/speeds the pen animation.
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, useElements, wideRows = false, narrowRows = false }) {
-  const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows);
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", useElements, wideRows = false, narrowRows = false }) {
+  const { isLeftSlot, marginXUnits, contentXUnits } = slotGeometry(pageIndex, wideRows, margin);
   const diagonalShiftX = isLeftSlot ? 0 : -PAGE_W_UNITS;
   const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   const guideColor = wideRows ? WIDE_GUIDE_COLOR : GUIDE_COLOR;
@@ -620,29 +630,32 @@ function usePinchZoom(wrapRef, contentRef) {
 // Row-local x of the nearest slant-grid line at (x, y) for a "Широкая строка" content row. The
 // ruling phase depends on the physical page slot and the row's own Y, both derivable from the row
 // index alone (WIDE_ROWS_PER_PAGE rows per page), so the layout can snap without knowing pages.
-function narrowSnapX(rowIndex, x, y) {
-  const { contentXUnits } = slotGeometry(0, true);
+// The content's x offset on the page a row lands on (its page follows from its index alone); it only differs between
+// pages when the «Прописи 2» margin alternates.
+const rowContentX = (rowIndex, margin) => slotGeometry(Math.floor(rowIndex / WIDE_ROWS_PER_PAGE), true, margin).contentXUnits;
+
+const narrowSnapFor = (margin) => (rowIndex, x, y) => {
+  const contentXUnits = rowContentX(rowIndex, margin);
   const yAbs = rowOriginY(rowIndex + 1) + y;
   const k = Math.round((contentXUnits + x - narrowLineX(0, yAbs)) / NARROW_CELL);
   return narrowLineX(k, yAbs) - contentXUnits;
-}
+};
 
-function wideSnapX(rowIndex, x, y) {
-  const { contentXUnits } = slotGeometry(0, true);
+const wideSnapFor = (margin) => (rowIndex, x, y) => {
+  const contentXUnits = rowContentX(rowIndex, margin);
   // slant line k at local height y (see wideLineX): nearest line to the point, row-local x back out
   const k = Math.round((contentXUnits + x - wideLineX(0, y)) / TEXT_ROW_WIDE_DIAGONAL_SPACING);
-  void rowIndex; // every row has the same phase, so the row index no longer matters
   return wideLineX(k, y) - contentXUnits;
-}
+};
 
 // «Прописи 2», dense grid: letters snap to the lines that are actually drawn (SHEET_DIAGONAL_LINES_NARROW_DENSE on the narrow
 // row, SHEET_DIAGONAL_LINES_WIDE_DENSE on the wide one), not to the hidden methodology grid. Line n of such a grid
 // stands at x = n*step - y*tan on its page (see buildDiagonalLines) and every odd page is shifted by one page width,
 // exactly as PrintPage draws it; the page of a row follows from its index alone (WIDE_ROWS_PER_PAGE rows per page).
-function drawnGridSnapX(step) {
+function drawnGridSnapX(step, margin) {
   return (rowIndex, x, y) => {
-    const { contentXUnits } = slotGeometry(0, true);
     const pageIdx = Math.floor(rowIndex / WIDE_ROWS_PER_PAGE);
+    const contentXUnits = slotGeometry(pageIdx, true, margin).contentXUnits;
     const yAbs = rowOriginY((rowIndex % WIDE_ROWS_PER_PAGE) + 1) + y;
     const shift = pageIdx % 2 === 0 ? 0 : -PAGE_W_UNITS;
     const base = shift - yAbs * WIDE_SLANT_TAN;
@@ -650,8 +663,6 @@ function drawnGridSnapX(step) {
     return base + n * step - contentXUnits;
   };
 }
-const narrowDenseSnapX = drawnGridSnapX(NARROW_CELL);
-const wideDenseSnapX = drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING);
 
 // Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
 // no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
@@ -687,6 +698,8 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
 
   const lines = task?.lines ?? [];
   const wideRows = Boolean(task?.wideRows);
+  const margin = task?.margin === "left" || task?.margin === "right" ? task.margin : "off";
+  const rowMaxX = WIDE_ROW_MAX_X - (margin === "off" ? 0 : propis2MarginUnits());
   const narrowRows = wideRows && Boolean(task?.narrowRows);
   const useElements = Boolean(task?.useElements) && !wideRows;
   const text = lines.join("\n");
@@ -704,11 +717,13 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
 
   const layout = useMemo(
     () => wideRows
-      ? (narrowRows ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? narrowDenseSnapX : narrowSnapX, true, NARROW_SCALE) : layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? wideDenseSnapX : wideSnapX))
+      ? (narrowRows
+        ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? drawnGridSnapX(NARROW_CELL, margin) : narrowSnapFor(margin), true, NARROW_SCALE, rowMaxX)
+        : layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin) : wideSnapFor(margin), true, 1, rowMaxX))
       : useElements
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
-    [wideRows, narrowRows, task?.simpleGrid, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
+    [wideRows, narrowRows, task?.simpleGrid, margin, rowMaxX, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
   const pages = useMemo(() => paginateRows(layout, wideRows ? WIDE_ROWS_PER_PAGE : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) }), [layout, wideRows, task?.exactPages]);
 
@@ -734,7 +749,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
     if (!focus) return null;
     const first = (pages[0] ?? [])[0];
     if (!first) return null;
-    const { contentXUnits } = slotGeometry(0, wideRows);
+    const { contentXUnits } = slotGeometry(0, wideRows, margin);
     const row = wideRows ? first.rowIndex + 1 : first.rowIndex;
     const widthUnits = first.segments.reduce((sum, seg) => sum + seg.width, 0);
     const w = Math.max(260, contentXUnits + first.x + widthUnits + 80);
@@ -756,7 +771,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               onToggleActive={focus ? () => {} : null}
               crop={focusCrop}
               speedFactor={speedFactor}
-              simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false}
+              simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin}
               overlays={overlays?.filter((o) => Math.floor(o.row / WIDE_ROWS_PER_PAGE) === shownIndex).map((o) => ({ ...o, row: o.row % WIDE_ROWS_PER_PAGE }))}
               useElements={useElements}
               wideRows={wideRows}
@@ -798,7 +813,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
                   useElements={useElements}
                   wideRows={wideRows}
                   narrowRows={narrowRows}
-                  simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false}
+                  simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin}
                 />
               </div>
               {isZoomed && (
@@ -857,8 +872,8 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               <div className="propis-print-all" aria-hidden="true">
                 {Array.from({ length: pages.length / 2 }, (_, sheetIndex) => (
                   <div key={sheetIndex} className="propis-print-all__sheet">
-                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} />
-                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} />
+                    <PrintPage page={pages[sheetIndex * 2]} pageIndex={sheetIndex * 2} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} />
+                    <PrintPage page={pages[sheetIndex * 2 + 1]} pageIndex={sheetIndex * 2 + 1} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} />
                   </div>
                 ))}
               </div>,

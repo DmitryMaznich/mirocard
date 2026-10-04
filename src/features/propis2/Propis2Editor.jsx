@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
 import { PRINT_PAGE_H_MM, PRINT_PAGE_W_MM } from "@/topics/renderers/propis/propisRuling.js";
-import { GRIDS, GRID_KINDS, ROWS_PER_PAGE, RULINGS, rowParams, analyzePage, appendTile, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, replaceSymbol, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
+import { GRIDS, GRID_KINDS, ROWS_PER_PAGE, MARGINS, RULINGS, pageMargin, rowParams, analyzePage, appendTile, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, replaceSymbol, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import Propis2Carousel, { TileGlyph, buildTiles } from "./Propis2Carousel";
 import Propis2Preview from "./Propis2Preview";
@@ -40,6 +40,7 @@ function useMedia(query) {
 const PAPER_ICONS = { propis: I.IconPaperPropis, square: I.IconPaperSquare, ruled: I.IconPaperRuled };
 const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
 const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense };
+const MARGIN_ICONS = { off: I.IconMarginOff, left: I.IconMarginLeft, right: I.IconMarginRight };
 const REPEAT_OPTS = [
   { id: "one", label: "Одна запись", Icon: I.IconRepOne },
   { id: "all", label: "Повтор на всю строку", Icon: I.IconRepAll },
@@ -206,6 +207,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           <Propis2Picker label="Тип бумаги" disabled={locked} value={gridKind} onChange={(id) => onChange({ ...page, gridKind: id })} options={GRID_KINDS.map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
           <Propis2Picker label="Разлиновка" disabled={locked} value={page.ruling} onChange={(id) => onChange({ ...page, ruling: id })} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />
           <Propis2Picker label="Косая линейка" value={page.grid ?? "regular"} disabled={locked || !propisGrid} onChange={(id) => onChange({ ...page, grid: id })} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
+          <Propis2Picker label="Поля" disabled={locked} value={pageMargin(page)} onChange={(id) => onChange({ ...page, margin: id })} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
           <IconBtn label="Пунктир в серединных линиях" on={page.midDash !== false} disabled={locked || !propisGrid} onClick={() => onChange({ ...page, midDash: page.midDash === false })} data-kind="dash"><I.IconDash /></IconBtn>
           <IconBtn label="Строка для письма после каждой строки" on={Boolean(page.writeAfter)} disabled={locked} onClick={() => onChange({ ...page, writeAfter: !page.writeAfter })} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
           <span className="p2-grow" />

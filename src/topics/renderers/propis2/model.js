@@ -1,8 +1,9 @@
 // «Прописи 2»: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
-import { PRINT_ROWS_PER_PAGE } from "../propis/propisRuling.js";
+import { PRINT_ROWS_PER_PAGE, propis2MarginUnits } from "../propis/propisRuling.js";
 import { outsideRowLabels } from "./glyphReach.js";
+
 
 // Rows on one screen/paper page of the wide-row sheets (ruling row 0 is only the top edge).
 export const ROWS_PER_PAGE = PRINT_ROWS_PER_PAGE - 1;
@@ -92,7 +93,7 @@ export function pageFromLines(title, lines, ruling = "narrow", elementLabels = n
 // is `locked`: only the symbols / words of its rows can be changed, until the page is cleared. ----
 export const isLocked = (page) => Boolean(page?.locked);
 
-const PRESET_PAGE_FIELDS = ["ruling", "grid", "gridKind", "midDash", "writeAfter"];
+const PRESET_PAGE_FIELDS = ["ruling", "grid", "gridKind", "midDash", "writeAfter", "margin"];
 const copyRows = (rows) => (rows ?? []).map((r) => ({ ...r, id: newId("r"), marked: false }));
 
 export function pageFromPreset(preset, title) {
@@ -141,6 +142,15 @@ export function rowToLine(row) {
   return flags.length ? `${text}${flags.map((f) => `#${f}`).join("")}` : text;
 }
 
+// Margins (red line, alternating on the spread) narrow the row: its widest allowed ink.
+export const MARGINS = [
+  { id: "off", label: "Без полей" },
+  { id: "left", label: "Поля слева на первой странице, дальше чередуются" },
+  { id: "right", label: "Поля справа на первой странице, дальше чередуются" },
+];
+export const pageMargin = (page) => (page?.margin === "left" || page?.margin === "right" ? page.margin : "off");
+export const rowMaxX = (page) => WIDE_ROW_MAX_X - (pageMargin(page) === "off" ? 0 : propis2MarginUnits());
+
 const lineWidth = (text, glyphMap, ruling) => {
   const { placed } = layoutWideLinesIntoRows([text], glyphMap, undefined, false, ruling === "narrow" ? 0.5 : 1);
   return placed[0]?.segments?.[0]?.width ?? 0;
@@ -148,13 +158,13 @@ const lineWidth = (text, glyphMap, ruling) => {
 
 // Greedy wrap of running text into lines that fit the printable width. A single word wider than
 // the line stays on its own line (the editor warns about it); nothing is cut.
-export function wrapPassage(text, glyphMap, ruling = "narrow") {
+export function wrapPassage(text, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX_X) {
   const words = String(text ?? "").split(/\s+/).filter(Boolean);
   const lines = [];
   let cur = "";
   for (const word of words) {
     const cand = cur ? `${cur} ${word}` : word;
-    if (!cur || lineWidth(cand, glyphMap, ruling) <= WIDE_ROW_MAX_X) cur = cand;
+    if (!cur || lineWidth(cand, glyphMap, ruling) <= maxX) cur = cand;
     else { lines.push(cur); cur = word; }
   }
   if (cur) lines.push(cur);
@@ -170,7 +180,7 @@ export function pageToLines(page, glyphMap) {
   for (const row of page?.rows ?? []) {
     if (row.kind === "blank") { out.push(""); continue; }
     if (row.kind === "passage") {
-      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
+      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
       if (!wrapped.length) { out.push(""); continue; }
       for (const l of wrapped) { out.push(`${l}#1`); if (page?.writeAfter) out.push(""); }
       continue;
@@ -193,7 +203,7 @@ export function lineOwners(page, glyphMap) {
   (page?.rows ?? []).forEach((row, i) => {
     if (row.kind === "blank") { out.push(i); return; }
     if (row.kind === "passage") {
-      const n = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling).length : String(row.text ?? "").trim() ? 1 : 0;
+      const n = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page)).length : String(row.text ?? "").trim() ? 1 : 0;
       if (!n) { out.push(i); return; }
       for (let k = 0; k < n; k += 1) { out.push(i); if (page?.writeAfter) out.push(null); }
       return;
@@ -336,7 +346,7 @@ export function findOutsideRow(text, glyphMap) {
 
 // { empty, unsupported: [chars], overflow } for one row. Overflow = the row, written once with no
 // multiplying, is wider than the printable line (it would be clipped on the page).
-export function analyzeRow(row, glyphMap, ruling = "narrow") {
+export function analyzeRow(row, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX_X) {
   const text = String(row?.text ?? "").trim();
   if (row?.kind === "blank") return { empty: false, blank: true, unsupported: [], outside: [], overflow: false };
   if (!text) return { empty: true, unsupported: [], outside: [], overflow: false };
@@ -344,7 +354,7 @@ export function analyzeRow(row, glyphMap, ruling = "narrow") {
   const outside = ruling === "wide" ? findOutsideRow(text, glyphMap) : [];
   if (row?.kind === "passage") {
     // wrapped, so only a single word wider than the line can overflow
-    const tooWide = text.split(/\s+/).some((w) => lineWidth(w, glyphMap, ruling) > WIDE_ROW_MAX_X);
+    const tooWide = text.split(/\s+/).some((w) => lineWidth(w, glyphMap, ruling) > maxX);
     return { empty: false, unsupported, outside, overflow: tooWide };
   }
   let overflow = false;
@@ -352,7 +362,7 @@ export function analyzeRow(row, glyphMap, ruling = "narrow") {
     try {
       const { placed } = layoutWideLinesIntoRows([text], glyphMap, undefined, false, ruling === "narrow" ? 0.5 : 1);
       const width = placed[0]?.segments?.[0]?.width ?? 0;
-      overflow = width > WIDE_ROW_MAX_X;
+      overflow = width > maxX;
     } catch {
       overflow = false;
     }
@@ -361,7 +371,7 @@ export function analyzeRow(row, glyphMap, ruling = "narrow") {
 }
 
 export function analyzePage(page, glyphMap) {
-  const rows = (page?.rows ?? []).map((row) => analyzeRow(row, glyphMap, page?.ruling));
+  const rows = (page?.rows ?? []).map((row) => analyzeRow(row, glyphMap, page?.ruling, rowMaxX(page)));
   return {
     rows,
     problems: rows.filter((r) => r.unsupported.length || r.outside?.length || r.overflow).length,

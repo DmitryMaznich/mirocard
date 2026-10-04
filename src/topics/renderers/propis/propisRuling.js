@@ -137,6 +137,11 @@ export const mmToNativeUnits = (mm) => (mm * UNIT_H) / LINE_MM;
 // count/row count is real print geometry, not an arbitrary on-screen fit, per the user's
 // explicit goal: "мы должны получать ровно такой же PDF, только с набранными пользователем
 // строками" (the eventual PDF export this same geometry drives, see PrintPageView.jsx).
+// «Прописи 2»: the red margin line stands this far from the page's outer edge (the side alternates on the spread); it
+// takes this much of the row's width.
+export const PROPIS2_MARGIN_MM = 15;
+export const propis2MarginUnits = () => mmToNativeUnits(PROPIS2_MARGIN_MM);
+
 export const PRINT_PAGE_W_MM = 148.5;
 export const PRINT_PAGE_H_MM = 210;
 export const PRINT_MARGIN_MM = 15; // red margin line, from the page's own OUTER edge

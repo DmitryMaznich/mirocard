@@ -1338,7 +1338,7 @@ const WIDE_SOLID_COPY_OPACITY = 0.35;
 // Row marks (sheet "capitals" page): "И#d" = the letter plus two extra red dots to its right where the next copies start
 // (the methodology's marked row), "И#c" = the clean row (no dots at all).
 const WIDE_MARK_COPY_CELLS = 6;
-export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1) {
+export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
@@ -1369,7 +1369,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       for (let n = best; n <= 60; n++) {
         const probe = layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false, scale);
         const w = probe.placed[0].segments[0]?.width ?? 0;
-        if (w > WIDE_ROW_MAX_X) break;
+        if (w > maxX) break;
         best = n;
       }
       return rowOf(best);
@@ -1387,7 +1387,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         const pitch = Math.max(1, Math.round((local.end[0] - local.start[0]) / CELL)) * CELL;
         const strokes = [];
         const startPoints = [];
-        for (let k = 0; startX + (k + 1) * pitch <= WIDE_ROW_MAX_X; k++) {
+        for (let k = 0; startX + (k + 1) * pitch <= maxX; k++) {
           const dx = dx0 + k * pitch;
           let d = transformPathD(local.strokes[0].d, { translateX: dx });
           // the copy's last point lands exactly where the next copy starts

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { MARGINS, pageMargin, rowMaxX, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -263,5 +263,22 @@ describe("presets", () => {
     expect(next.rows).toHaveLength(1);
     expect(next.rows[0].text).toBe("м");
     expect(replaceSymbol(page, "nope", { kind: "letter", text: "м" })).toBe(page);
+  });
+});
+
+describe("margins", () => {
+  it("a margin narrows the row by 15 mm and alternates; no margin keeps the full width", () => {
+    expect(MARGINS.map((m) => m.id)).toEqual(["off", "left", "right"]);
+    expect(pageMargin(newPage())).toBe("off");
+    expect(rowMaxX(newPage("x", { margin: "left" }))).toBe(rowMaxX(newPage()) - 90);
+    expect(rowMaxX(newPage("x", { margin: "right" }))).toBe(rowMaxX(newPage("x", { margin: "left" })));
+  });
+  it("fewer copies fit on a narrower row", () => {
+    const full = layoutWideLinesIntoRows(["и и"], map, undefined, true, 1).placed[0].segments[0].strokes.length;
+    const narrow = layoutWideLinesIntoRows(["и и"], map, undefined, true, 1, rowMaxX(newPage("x", { margin: "left" }))).placed[0].segments[0].strokes.length;
+    expect(narrow).toBeLessThan(full);
+  });
+  it("the margin survives a preset", () => {
+    expect(pageFromPreset(presetFromPage(newPage("x", { margin: "right", rows: [newRow({ text: "и" })] }))).margin).toBe("right");
   });
 });

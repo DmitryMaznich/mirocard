@@ -70,3 +70,8 @@ export const IconSavePreset = () => S(<><path d="M6 3.5h12v17l-6-4-6 4z" /><path
 export const IconClearPage = () => S(<><path d="M4 20l5.5-1.2L19.8 8.5a2 2 0 000-2.8l-1.5-1.5a2 2 0 00-2.8 0L5.2 14.5z" /><path d="M13 6.7l4.3 4.3M10 20h10" /></>);
 export const IconUndo = () => S(<><path d="M9 7L4 12l5 5" /><path d="M4 12h10a6 6 0 010 12" transform="translate(0 -4)" /></>);
 export const IconLock = () => S(<><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /></>);
+
+// ---- margins: none / on the left of the first page / on the right of it (alternating on the spread) ----
+export const IconMarginOff = () => S(<><rect x="5" y="3.5" width="14" height="17" rx="1.4" /><path d="M4 20L20 4" stroke="#dc2626" /></>);
+export const IconMarginLeft = () => S(<><rect x="5" y="3.5" width="14" height="17" rx="1.4" /><path d="M8.5 3.5v17" stroke="#dc2626" strokeWidth="1.8" /></>);
+export const IconMarginRight = () => S(<><rect x="5" y="3.5" width="14" height="17" rx="1.4" /><path d="M15.5 3.5v17" stroke="#dc2626" strokeWidth="1.8" /></>);
