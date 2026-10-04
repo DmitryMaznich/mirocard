@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
+import { api } from "@/core/api";
+import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
 import { newId, newPage, newSet, pageFromMarked, pageFromPreset, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { emptyLibrary, loadLibrary, removePage, removePreset, removeSet, saveLibrary, upsertPage, upsertPreset, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
@@ -25,20 +28,48 @@ export default function Propis2Home({ db }) {
   const latest = useRef(library);
   latest.current = library;
 
-  useEffect(() => {
-    let alive = true;
-    loadLibrary(db).then((lib) => { if (alive) { setLibrary(lib); setLoaded(true); } }).catch(() => { if (alive) setLoaded(true); });
-    return () => { alive = false; };
-  }, [db]);
+  const syncedRef = useRef(new Map()); // what the account is known to hold, per document (see syncLib.js)
 
-  // Autosave: debounced write after every change, flushed when the screen goes away.
+  // Autosave: debounced write after every change, flushed when the screen goes away. The same tick sends what changed
+  // (pages, sets, presets, deletions) to the account through the offline queue.
+  const flush = useCallback(() => {
+    saveLibrary(latest.current, db).catch(() => {});
+    const { ops, next } = diffOps(syncedRef.current, latest.current);
+    syncedRef.current = next;
+    for (const op of ops) pushOp("kv.upsert", op).catch(() => {});
+  }, [db]);
   const persist = useCallback((next) => {
     setLibrary(next);
     latest.current = next;
     clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => { saveLibrary(latest.current, db).catch(() => {}); }, 300);
-  }, [db]);
-  useEffect(() => () => { clearTimeout(saveTimer.current); saveLibrary(latest.current, db).catch(() => {}); }, [db]);
+    saveTimer.current = setTimeout(flush, 300);
+  }, [flush]);
+
+  // Pull the account's documents (last write wins per document); whatever the account lacks or has older goes up with the next flush.
+  const pullRemote = useCallback(async () => {
+    try {
+      const res = await api.get(`/account/kv?prefix=${encodeURIComponent(SYNC_PREFIX)}`);
+      if (!Array.isArray(res?.kv)) return;
+      syncedRef.current = snapshotFromRemote(res.kv);
+      persist(mergeRemote(latest.current, res.kv));
+    } catch {
+      // offline or signed out: the local library keeps working, the queue catches up later
+    }
+  }, [persist]);
+
+  useEffect(() => {
+    let alive = true;
+    loadLibrary(db)
+      .then((lib) => { if (!alive) return; latest.current = lib; syncedRef.current = snapshotDocs(lib); setLibrary(lib); setLoaded(true); pullRemote(); })
+      .catch(() => { if (alive) setLoaded(true); });
+    return () => { alive = false; };
+  }, [db, pullRemote]);
+  useEffect(() => {
+    const onVisible = () => { if (document.visibilityState === "visible") pullRemote(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [pullRemote]);
+  useEffect(() => () => { clearTimeout(saveTimer.current); flush(); }, [flush]);
 
   const sheets = useMemo(() => topicRecord?.wideSheets ?? {}, [topicRecord]);
   const elementLabels = useMemo(() => new Set([...(topicRecord?.elements ?? []).map((e) => e.id), ...(topicRecord?.wide ?? []).filter((g) => g.kind === "element").map((g) => g.label)]), [topicRecord]);

@@ -1,11 +1,14 @@
 // «Прописи 2» library: the adult's pages and page sets, stored on this device (IndexedDB keyval,
 // own key, nothing added to the app's shared tables). Account sync is a later step.
 import { getDb, kv } from "@/core/db";
+import { docKey } from "./syncLib.js";
+
+const tomb = (library, kind, id) => ({ ...(library.deleted ?? {}), [docKey(kind, id)]: Date.now() });
 
 export const LIBRARY_KEY = "propis2:library";
 
 export function emptyLibrary() {
-  return { version: 1, pages: [], sets: [], presets: [] };
+  return { version: 1, pages: [], sets: [], presets: [], deleted: {} };
 }
 
 export function normalizeLibrary(raw) {
@@ -14,6 +17,7 @@ export function normalizeLibrary(raw) {
     version: 1,
     pages: Array.isArray(lib.pages) ? lib.pages.filter((p) => p && p.id && Array.isArray(p.rows)) : [],
     sets: Array.isArray(lib.sets) ? lib.sets.filter((st) => st && st.id && Array.isArray(st.pageIds)) : [],
+    deleted: lib.deleted && typeof lib.deleted === "object" ? lib.deleted : {},
     presets: Array.isArray(lib.presets) ? lib.presets.filter((ps) => ps && ps.id && Array.isArray(ps.rows)) : [],
   };
 }
@@ -40,7 +44,8 @@ export function removePage(library, pageId) {
   return {
     ...library,
     pages: library.pages.filter((p) => p.id !== pageId),
-    sets: library.sets.map((st) => ({ ...st, pageIds: st.pageIds.filter((id) => id !== pageId) })),
+    sets: library.sets.map((st) => (st.pageIds.includes(pageId) ? { ...st, pageIds: st.pageIds.filter((id) => id !== pageId), updatedAt: Date.now() } : st)),
+    deleted: tomb(library, "page", pageId),
   };
 }
 
@@ -51,7 +56,7 @@ export function upsertSet(library, set) {
 }
 
 export function removeSet(library, setId) {
-  return { ...library, sets: library.sets.filter((s) => s.id !== setId) };
+  return { ...library, sets: library.sets.filter((s) => s.id !== setId), deleted: tomb(library, "set", setId) };
 }
 
 export function upsertPreset(library, preset) {
@@ -62,5 +67,5 @@ export function upsertPreset(library, preset) {
 }
 
 export function removePreset(library, presetId) {
-  return { ...library, presets: (library.presets ?? []).filter((p) => p.id !== presetId) };
+  return { ...library, presets: (library.presets ?? []).filter((p) => p.id !== presetId), deleted: tomb(library, "preset", presetId) };
 }

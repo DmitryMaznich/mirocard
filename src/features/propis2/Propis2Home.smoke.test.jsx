@@ -1,6 +1,8 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { api } from "@/core/api";
+import { pushOp } from "@/core/syncApi";
 import { openDb } from "@/core/db";
 import { readFileSync } from "node:fs";
 import Propis2Home from "./Propis2Home.jsx";
@@ -11,6 +13,8 @@ import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
+
+vi.mock("@/core/syncApi", async (orig) => ({ ...(await orig()), pushOp: vi.fn(() => Promise.resolve()) }));
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
@@ -36,6 +40,8 @@ const freshDb = () => openDb("p2home-" + Date.now() + Math.random());
 
 describe("Прописи 2 (zip topic)", () => {
   beforeEach(() => {
+    vi.spyOn(api, "get").mockRejectedValue(new Error("offline"));
+    pushOp.mockClear();
     useAppStore.setState({ topicRecords: [deckRecord()], activeTopicId: "propis2", screen: "params" });
   });
 
@@ -429,6 +435,27 @@ describe("Прописи 2 (zip topic)", () => {
     expect(groups.map((g) => g.label)).toEqual(["Методика", "Мои"]);
     expect(groups[1].textContent).toContain("Мой пресет");
 
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  }, 40000);
+
+  it("sync: a new page goes to the account (one kv document), an account page shows up here", async () => {
+    const db = await freshDb();
+    const remotePage = { id: "pg_remote", title: "С планшета", ruling: "narrow", grid: "dense", rows: [{ id: "r1", kind: "text", text: "и", mark: "", marked: false }], updatedAt: Date.now() + 1000, createdAt: 1 };
+    api.get.mockResolvedValue({ kv: [{ key: "propis2:page:pg_remote", value: remotePage }] });
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(60); });
+    expect(api.get.mock.calls[0][0]).toContain("prefix=propis2%3A");
+    expect(host.textContent).toContain("С планшета");
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    await click(byLabel(host, "Новая страница"));
+    await act(async () => { await tick(500); });
+    const keys = pushOp.mock.calls.filter((c) => c[0] === "kv.upsert").map((c) => c[1].key);
+    expect(keys.length).toBe(1);
+    expect(keys[0]).toMatch(/^propis2:page:pg_/);
+    expect(keys[0]).not.toBe("propis2:page:pg_remote");
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);
