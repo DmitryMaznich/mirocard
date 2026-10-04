@@ -131,6 +131,9 @@ const WIDE_LINE_COUNT = Math.ceil((PAGE_W_UNITS + (TEXT_ROW_PITCH - TEXT_ROW_THI
 // 15 units) run through the WHOLE page, not only inside the bands.
 const NARROW_SCALE = 0.5;
 const NARROW_CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * NARROW_SCALE;
+// «Прописи 2», dense grid on the narrow ruling: exactly the letters' own cell (2.5 mm, the distance between the two tops of «и»),
+// so that every stem of every letter stands on a drawn line.
+const SHEET_DIAGONAL_LINES_NARROW_DENSE = buildDiagonalLines(PAGE_H_UNITS, PAGE_W_UNITS * 2, NARROW_CELL);
 const NARROW_BAND_H = (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * NARROW_SCALE;
 const NARROW_GUIDE_LOCAL = NATIVE_L3 - TEXT_ROW_PITCH; // 16: dashed limit line above the band
 const NARROW_FIRST_X = 15;
@@ -214,7 +217,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   // «Прописи 2»: a plain slant grid replaces the methodology grid in what is drawn (the methodology grid stays
   // internal: letters still snap to it, it is just not drawn). The two grids are the ones of the finished
   // copybooks: "regular" = the standard Russian-school grid, a line every 20 mm (DIAGONAL_MM); "dense" = the
-  // fine grid of the element sheets, a line every 3 mm (ELEMENT_DIAGONAL_MM) on the narrow ruling and every 5 mm
+  // fine grid, a line every 2.5 mm on the narrow ruling (the letters' own cell) and every 5 mm
   // on the wide one: the step follows the row, it is the distance between the two tops of «и» on that row.
   const simpleStep = Boolean(simpleGrid);
   // "square" / "ruled": plain paper, an ordinary school notebook page: only each row's baseline is kept, no thin line, no dashes
@@ -232,7 +235,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   ) : null;
   const simpleEls = squareEls ?? (simpleGrid && simpleGrid !== "ruled" ? (
     <g data-simple-grid={simpleGrid}>
-      {(simpleGrid === "dense" ? (narrowRows ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES_WIDE_DENSE) : SHEET_DIAGONAL_LINES).map((l, i) => (
+      {(simpleGrid === "dense" ? (narrowRows ? SHEET_DIAGONAL_LINES_NARROW_DENSE : SHEET_DIAGONAL_LINES_WIDE_DENSE) : SHEET_DIAGONAL_LINES).map((l, i) => (
         <line key={i} x1={l.x1 + diagonalShiftX} y1={0} x2={l.x2 + diagonalShiftX} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
       ))}
     </g>
@@ -622,7 +625,7 @@ function wideSnapX(rowIndex, x, y) {
   return wideLineX(k, y) - contentXUnits;
 }
 
-// «Прописи 2», dense grid: letters snap to the lines that are actually drawn (SHEET_DIAGONAL_LINES_DENSE on the narrow
+// «Прописи 2», dense grid: letters snap to the lines that are actually drawn (SHEET_DIAGONAL_LINES_NARROW_DENSE on the narrow
 // row, SHEET_DIAGONAL_LINES_WIDE_DENSE on the wide one), not to the hidden methodology grid. Line n of such a grid
 // stands at x = n*step - y*tan on its page (see buildDiagonalLines) and every odd page is shifted by one page width,
 // exactly as PrintPage draws it; the page of a row follows from its index alone (WIDE_ROWS_PER_PAGE rows per page).
@@ -637,7 +640,7 @@ function drawnGridSnapX(step) {
     return base + n * step - contentXUnits;
   };
 }
-const narrowDenseSnapX = drawnGridSnapX(TEXT_ROW_ELEMENT_DIAGONAL_SPACING);
+const narrowDenseSnapX = drawnGridSnapX(NARROW_CELL);
 const wideDenseSnapX = drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING);
 
 // Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:

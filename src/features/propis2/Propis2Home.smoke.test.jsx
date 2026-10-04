@@ -300,13 +300,17 @@ describe("Прописи 2 (zip topic)", () => {
     // grid kinds: «Прописи» keeps the slant-grid options, «Клетка» / «Линейка» switch them off
     const slant = () => [...host.querySelectorAll('[aria-label="Косая линейка"] button')];
     const dash = () => host.querySelector('[aria-label="Пунктир в серединных линиях"]');
-    expect(preview().querySelector('[data-simple-grid="regular"]')).not.toBeNull();
+    // the default: прописи / узкая / частая
+    expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
+    expect(host.querySelector('[aria-label="Узкая"]').getAttribute("aria-pressed")).toBe("true");
     expect(slant().every((b) => !b.disabled)).toBe(true);
-    const sparse = preview().querySelectorAll("[data-simple-grid] line").length;
+    const dense = preview().querySelectorAll("[data-simple-grid] line").length;
+    await click(btn("Редкая"));
+    await act(async () => { await tick(60); });
+    expect(preview().querySelector('[data-simple-grid="regular"]')).not.toBeNull();
+    expect(dense).toBeGreaterThan(preview().querySelectorAll("[data-simple-grid] line").length * 2);
     await click(btn("Частая"));
     await act(async () => { await tick(60); });
-    expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
-    expect(preview().querySelectorAll("[data-simple-grid] line").length).toBeGreaterThan(sparse * 2);
     expect(preview().querySelectorAll("line[stroke-dasharray]").length).toBeGreaterThan(0);
     await click(dash());
     await act(async () => { await tick(60); });

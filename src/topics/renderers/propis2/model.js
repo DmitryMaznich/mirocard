@@ -13,10 +13,10 @@ export const RULINGS = [
 ];
 
 // Slant grid, as in the finished copybooks: "regular" (редкая, стандартная школьная: a line every 20 mm) and
-// "dense" (частая: every 3 mm on the narrow row, 5 mm on the wide one — the distance between the tops of «и»). The methodology grid the glyphs snap to is not drawn.
+// "dense" (частая: every 2.5 mm on the narrow row, 5 mm on the wide one — the distance between the tops of «и», the letters' own cell). The methodology grid the glyphs snap to is not drawn.
 export const GRIDS = [
   { id: "regular", label: "Редкая косая линейка (через 20 мм, стандарт)", short: "Редкая" },
-  { id: "dense", label: "Частая косая линейка (через 3 мм на узкой строке, 5 мм на широкой)", short: "Частая" },
+  { id: "dense", label: "Частая косая линейка (через 2,5 мм на узкой строке, 5 мм на широкой)", short: "Частая" },
 ];
 
 // What kind of paper: the copybook ("прописи", slant grid and row guides), a plain squared page ("клетка", 5 mm)
@@ -59,7 +59,7 @@ export function newRow(patch = {}) {
 
 export function newPage(title = "Новая страница", patch = {}) {
   const now = Date.now();
-  return { id: newId("pg"), title, ruling: "narrow", grid: "regular", midDash: true, writeAfter: false, rows: [newRow()], createdAt: now, updatedAt: now, ...patch };
+  return { id: newId("pg"), title, ruling: "narrow", grid: "dense", midDash: true, writeAfter: false, rows: [newRow()], createdAt: now, updatedAt: now, ...patch };
 }
 
 // A ready methodology sheet ("Н#d", "г1 г1", "5 5"...) becomes an editable page.
