@@ -332,6 +332,17 @@ describe("Прописи 2 (zip topic)", () => {
     expect(preview().querySelector('[data-simple-grid="dense"]')).not.toBeNull();
     expect(slant().every((b) => !b.disabled)).toBe(true);
 
+    // wide ruling: the slants are clipped to the wide bands (none in the narrow strips between them); the dashes are slightly red
+    await click(btn("Широкая"));
+    await act(async () => { await tick(60); });
+    const grid = preview().querySelector("[data-simple-grid]");
+    expect(grid.getAttribute("clip-path")).toMatch(/^url\(#p2c/);
+    expect([...preview().querySelectorAll("rect")].filter((r) => r.parentElement.tagName.toLowerCase() === "clippath").length).toBe(16);
+    expect(preview().querySelector("line[stroke-dasharray]").getAttribute("stroke")).toBe("#e57d7a");
+    await click(btn("Узкая"));
+    await act(async () => { await tick(60); });
+    expect(preview().querySelector("[data-simple-grid]").getAttribute("clip-path")).toBeNull();
+
     // wide ruling: no capitals tab
     const tabs = () => [...host.querySelectorAll('[data-testid="propis2-carousel"] [role="tab"]')].map((t) => t.getAttribute("aria-label"));
     expect(tabs()).toContain("Заглавные");
