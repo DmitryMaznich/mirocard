@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
 import { PRINT_PAGE_H_MM, PRINT_PAGE_W_MM } from "@/topics/renderers/propis/propisRuling.js";
-import { GRIDS, GRID_KINDS, ROWS_PER_PAGE, ROW_MARKS, RULINGS, analyzePage, appendTile, duplicateRow, lineOwners, moveRow, newRow, pageGridKind, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
+import { GRIDS, GRID_KINDS, ROWS_PER_PAGE, RULINGS, rowParams, analyzePage, appendTile, duplicateRow, lineOwners, moveRow, newRow, pageGridKind, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import Propis2Carousel, { TileGlyph, buildTiles } from "./Propis2Carousel";
 import Propis2Preview from "./Propis2Preview";
@@ -38,7 +38,16 @@ function useMedia(query) {
 const PAPER_ICONS = { propis: I.IconPaperPropis, square: I.IconPaperSquare, ruled: I.IconPaperRuled };
 const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
 const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense };
-const MARK_ICONS = { "": I.IconMarkSample, d: I.IconMarkDots, c: I.IconMarkClean };
+const REPEAT_OPTS = [
+  { id: "one", label: "Одна запись", Icon: I.IconRepOne },
+  { id: "all", label: "Повтор на всю строку", Icon: I.IconRepAll },
+  { id: "fade", label: "Повтор с затуханием", Icon: I.IconRepFade },
+];
+const DOT_OPTS = [
+  { id: "none", label: "Без красных точек", Icon: I.IconDotsNone },
+  { id: "one", label: "Красная точка у образца", Icon: I.IconDotsOne },
+  { id: "all", label: "Красные точки у образца и копий", Icon: I.IconDotsAll },
+];
 
 const TABS = [
   { id: "symbol", label: "Символ", Icon: null },
@@ -97,6 +106,8 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const selectedIndex = page.rows.findIndex((r) => r.id === selectedId);
   const selected = selectedIndex >= 0 ? page.rows[selectedIndex] : null;
   const selectedInfo = selectedIndex >= 0 ? analysis.rows[selectedIndex] : null;
+  const rowEditable = Boolean(selected) && (selected.kind === "text" || selected.kind === "element");
+  const rowOpts = selected ? rowParams(selected) : null;
   const markedCount = page.rows.filter((r) => r.marked).length;
 
   const setRows = (rows) => onChange({ ...page, rows: rows.length ? rows : [newRow()] });
@@ -192,6 +203,19 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           </IconBtn>
         </div>
 
+        <div className="propis2-settings propis2-settings--row" role="group" aria-label="Настройки строки">
+          <div className="p2-seg" role="group" aria-label="Повтор">
+            {REPEAT_OPTS.map(({ id, label, Icon }) => <IconBtn key={id} label={label} on={rowOpts?.repeat === id} disabled={!rowEditable} onClick={() => patchSelected({ repeat: id })}><Icon /></IconBtn>)}
+          </div>
+          <div className="p2-seg" role="group" aria-label="Красные точки">
+            {DOT_OPTS.map(({ id, label, Icon }) => <IconBtn key={id} label={label} on={rowOpts?.dots === id} disabled={!rowEditable} onClick={() => patchSelected({ dots: id })}><Icon /></IconBtn>)}
+          </div>
+          <div className="p2-seg" role="group" aria-label="Копии">
+            <IconBtn label="Копии пунктиром" on={rowOpts?.copies === "dash"} disabled={!rowEditable} onClick={() => patchSelected({ copies: "dash" })}><I.IconCopyDash /></IconBtn>
+            <IconBtn label="Копии бледной сплошной" on={rowOpts?.copies === "solid"} disabled={!rowEditable} onClick={() => patchSelected({ copies: "solid" })}><I.IconCopySolid /></IconBtn>
+          </div>
+        </div>
+
         <div className="propis2-page-col" ref={wrapRef} onClick={onPageClick}>
           <div className="propis2-page-box" style={pageW ? { width: pageW } : undefined}>
             <Propis2Preview page={page} topicRecord={topicRecord} overlays={overlays} onPageIndexChange={(i) => { pageIndexRef.current = i; }} />
@@ -214,11 +238,6 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
                     <IconBtn label="Стереть последний символ" onClick={() => patchSelected({ text: Array.from(selected.text).slice(0, -1).join("") })} disabled={!selected.text}><I.IconBackspace /></IconBtn>
                   )}
                 </div>
-                {(selected.kind === "text" || selected.kind === "element") && (
-                  <div className="p2-seg" role="group" aria-label="Вид строки">
-                    {ROW_MARKS.map((m) => { const Icon = MARK_ICONS[m.id]; return <IconBtn key={m.id} label={m.short ?? m.label} on={selected.mark === m.id} onClick={() => patchSelected({ mark: m.id })}><Icon /></IconBtn>; })}
-                  </div>
-                )}
                 <div className="p2-seg" role="group" aria-label="Строка">
                   <IconBtn label="Повторить строку" on={Boolean(selected.marked)} onClick={() => patchSelected({ marked: !selected.marked })}><I.IconRepeat /></IconBtn>
                   <IconBtn label="Выше" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={selectedIndex === 0}><I.IconUp /></IconBtn>

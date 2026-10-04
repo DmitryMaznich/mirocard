@@ -53,6 +53,21 @@ export function newId(prefix = "p") {
   return `${prefix}_${Date.now().toString(36)}${counter.toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 }
 
+// Per-row options (block «Строка»). repeat: "all" (copies across the row), "one" (written once), "fade" (copies fade out
+// to the row's middle); dots (red start dots): "all" (sample and copies), "one" (sample only), "none"; copies: "dash"
+// (dashed, default) or "solid" (pale solid). Rows saved before these existed carry only `mark` ("" / "d" / "c").
+export const REPEATS = ["all", "one", "fade"];
+export const DOTS = ["all", "one", "none"];
+export const COPY_STYLES = ["dash", "solid"];
+export function rowParams(row) {
+  const legacyDots = row?.mark === "c" ? "none" : "all";
+  return {
+    repeat: REPEATS.includes(row?.repeat) ? row.repeat : "all",
+    dots: DOTS.includes(row?.dots) ? row.dots : legacyDots,
+    copies: COPY_STYLES.includes(row?.copies) ? row.copies : "dash",
+  };
+}
+
 export function newRow(patch = {}) {
   return { id: newId("r"), kind: "text", text: "", mark: "", marked: false, ...patch };
 }
@@ -68,7 +83,7 @@ export function pageFromLines(title, lines, ruling = "narrow", elementLabels = n
     const m = /^(.*?)#([dc])$/.exec(line);
     const text = m ? m[1] : line;
     const isElement = elementLabels.has(text.trim());
-    return newRow({ kind: isElement ? "element" : "text", text, mark: m ? m[2] : "" });
+    return newRow({ kind: isElement ? "element" : "text", text, mark: m ? m[2] : "", dots: m?.[2] === "c" ? "none" : "all" });
   });
   return newPage(title, { ruling, rows: rows.length ? rows : [newRow()] });
 }
@@ -77,7 +92,15 @@ export function rowToLine(row) {
   if (row?.kind === "blank") return "";
   const text = String(row?.text ?? "").trim().replace(/\s+/g, " ");
   if (!text) return "";
-  return row.mark === "d" || row.mark === "c" ? `${text}#${row.mark}` : text;
+  const { repeat, dots, copies } = rowParams(row);
+  const flags = [];
+  if (repeat === "one") flags.push("1");
+  if (repeat === "fade") flags.push("f");
+  if (dots === "none") flags.push("c");
+  else if (dots === "one") flags.push("o");
+  else if (row.mark === "d" || repeat === "one") flags.push("d"); // extra dots where the next copies would start
+  if (copies === "solid") flags.push("s");
+  return flags.length ? `${text}${flags.map((f) => `#${f}`).join("")}` : text;
 }
 
 const lineWidth = (text, glyphMap, ruling) => {

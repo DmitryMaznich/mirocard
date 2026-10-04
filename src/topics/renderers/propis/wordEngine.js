@@ -1329,6 +1329,10 @@ export const WIDE_ROW_MAX_X = 831;
 // Every page: copies after the first are dashed at one constant intensity, and single words / alternating
 // patterns are multiplied across the row.
 const WIDE_FLAT_COPY_OPACITY = 0.6;
+// Row option "fade" (#f): copies fade linearly from the sample to nothing at the row's middle (row-local x), only their
+// start dots remain. Option "solid copies" (#s): copies are pale solid lines instead of dashed ones.
+const WIDE_FADE_END_X = 415;
+const WIDE_SOLID_COPY_OPACITY = 0.35;
 
 // A row made of one token repeated ("5 5", "и и") is multiplied across the whole row: as many copies as fit.
 // Row marks (sheet "capitals" page): "И#d" = the letter plus two extra red dots to its right where the next copies start
@@ -1336,11 +1340,16 @@ const WIDE_FLAT_COPY_OPACITY = 0.6;
 const WIDE_MARK_COPY_CELLS = 6;
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1) {
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
-  const marks = lines.map((l) => (/#([dc])$/.exec(l) ?? [])[1] ?? null);
+  // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
+  // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
+  const flags = lines.map((l) => (/((?:#[dc1fso])+)$/.exec(l) ?? [])[1] ?? "");
+  const marks = flags.map((f) => (/#([dco])/.exec(f) ?? [])[1] ?? null);
+  const fades = flags.map((f) => f.includes("#f"));
+  const solids = flags.map((f) => f.includes("#s"));
   // "#1" = write the row exactly once (no multiplying across the line): running text that was wrapped
   // into rows ends on a one-word row, which must not be repeated to fill the line.
-  const once = lines.map((l) => /#1$/.test(l));
-  lines = lines.map((l) => l.replace(/#[dc1]$/, ""));
+  const once = flags.map((f) => f.includes("#1"));
+  lines = lines.map((l) => l.replace(/(?:#[dc1fso])+$/, ""));
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       if (once[rowIndex]) return line;
@@ -1383,7 +1392,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           let d = transformPathD(local.strokes[0].d, { translateX: dx });
           // the copy's last point lands exactly where the next copy starts
           d = shiftPathEndXD(d, startX + (k + 1) * pitch - (local.end[0] + dx));
-          strokes.push({ d, ...(k > 0 ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) });
+          strokes.push({ d, ...(k > 0 ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: startX + k * pitch } : {}) });
           startPoints.push(getPathEndpoints(d).start);
         }
         if (strokes.length) {
@@ -1450,7 +1459,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
             : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
         const startX = loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
-                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) }));
+                const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
         let highJoined = false;
         if (prevExit) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
@@ -1508,7 +1517,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         if (glyph.noJoin) { prevExit = null; prevExitStroke = -1; }
         if (local.tail) {
-          pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), always: !!glyph.tailAlways, ...(glyph.tailContinuous ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY } : {}) };
+          pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), always: !!glyph.tailAlways, ...(glyph.tailContinuous ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX } : {}) };
           prevExit = null;
           prevExitStroke = -1;
         }
@@ -1564,9 +1573,18 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
   });
   placed.forEach((row, i) => {
     const seg = row.segments[0];
-    if (!seg || !marks[i]) return;
+    if (!seg) return;
+    const firstX = seg.strokes[0] ? getPathEndpoints(seg.strokes[0].d).start[0] : 0;
+    seg.strokes = seg.strokes.map(({ copyX, ...st }) => {
+      if (!st.dashed) return st;
+      if (fades[i] && copyX !== undefined) return { ...st, opacity: Math.round(Math.max(0, 1 - (copyX - firstX) / Math.max(1, WIDE_FADE_END_X - firstX)) * 100) / 100 };
+      if (solids[i]) { const { dashed, ...rest } = st; return { ...rest, opacity: WIDE_SOLID_COPY_OPACITY }; }
+      return st;
+    });
+    if (!marks[i]) return;
     if (marks[i] === "c") { seg.startPoints = []; return; }
     const base = seg.startPoints?.[0];
+    if (marks[i] === "o") { seg.startPoints = base ? [base] : []; return; }
     if (base) seg.startPoints = [base, ...[1, 2].map((k) => [base[0] + WIDE_MARK_COPY_CELLS * CELL * k, base[1]])];
   });
   return { placed, rowCount: Math.max(lines.length, 1) };

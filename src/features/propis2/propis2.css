@@ -88,7 +88,9 @@
 .propis2-settings::-webkit-scrollbar { display: none; }
 
 /* layout areas: portrait = settings / canvas / panel; phone = the same with a half-page canvas; landscape tablet = canvas | settings + panel */
-.propis2-main { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) var(--dock-h); grid-template-areas: "settings" "page" "dock"; }
+.propis2-main { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) var(--dock-h); grid-template-areas: "settings" "rowset" "page" "dock"; }
+.propis2-main > .propis2-settings.propis2-settings--row { grid-area: rowset; background: #eef3fb; border-bottom: 3px solid #2563eb; }
+.propis2-settings--row .p2-seg { opacity: 1; } .propis2-settings--row .p2-ib:disabled { opacity: .35; }
 .propis2-main > .propis2-settings { grid-area: settings; }
 .propis2-main > .propis2-page-col { grid-area: page; }
 .propis2-main > .propis2-dock { grid-area: dock; }
@@ -136,7 +138,8 @@
 .propis2-chip-text { display: inline-block; font-weight: 800; color: var(--p2-blue); }
 
 /* phone: the canvas shows about half a page and scrolls; the panel takes the rest of the screen */
-.propis2-editor2--phone .propis2-main { grid-template-rows: auto auto minmax(0, 1fr); }
+.propis2-editor2--phone .propis2-main { grid-template-rows: auto auto auto minmax(0, 1fr); grid-template-areas: "settings" "rowset" "page" "dock"; }
+.propis2-editor2--phone .propis2-settings--row { flex-wrap: wrap; overflow: visible; min-height: 0; padding: 6px 8px; gap: 6px 8px; }
 .propis2-editor2--phone .propis2-settings { flex-wrap: wrap; overflow: visible; min-height: 0; padding: 6px 8px; gap: 6px 8px; }
 .propis2-editor2--phone .propis2-page-col { height: min(72vw, 40dvh); }
 .propis2-editor2--phone .propis2-dock { height: auto; min-height: 0; padding-top: 6px; }
@@ -146,7 +149,8 @@
 .propis2-editor2--phone .propis2-editor2 .screen-header, .propis2-editor2--phone .screen-header { padding-left: 8px; padding-right: 8px; gap: 8px; }
 
 /* landscape tablet: the canvas takes the whole height on the left, the tools sit on the right */
-.propis2-editor2--side .propis2-main { grid-template-columns: minmax(0, 1fr) minmax(380px, 440px); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "page settings" "page dock"; }
+.propis2-editor2--side .propis2-main { grid-template-columns: minmax(0, 1fr) minmax(380px, 440px); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "page settings" "page rowset" "page dock"; }
+.propis2-editor2--side .propis2-settings--row { flex-wrap: wrap; overflow: visible; border-left: 1px solid var(--p2-line); min-height: 0; padding: 10px 12px; }
 .propis2-editor2--side .propis2-settings { flex-wrap: wrap; overflow: visible; border-left: 1px solid var(--p2-line); min-height: 0; padding: 10px 12px; }
 .propis2-editor2--side .propis2-dock { height: auto; min-height: 0; border-radius: 0; box-shadow: none; border-left: 1px solid var(--p2-line); }
 .propis2-editor2--side .propis2-page-col { align-items: center; }

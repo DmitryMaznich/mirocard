@@ -35,6 +35,18 @@ export const IconMarkSample = () => S(<><path d="M2.5 19h19" strokeWidth="1.2" o
 export const IconMarkDots = () => S(<><path d="M2.5 19h19" strokeWidth="1.2" opacity=".5" />{loop}<circle cx="4.2" cy="9.4" r="1.5" fill="#dc2626" stroke="none" /><circle cx="14.5" cy="9.4" r="1.5" fill="#dc2626" stroke="none" /><circle cx="19.5" cy="9.4" r="1.5" fill="#dc2626" stroke="none" /></>);
 export const IconMarkClean = () => S(<><path d="M2.5 19h19" strokeWidth="1.2" opacity=".5" /><path d="M3 9h18M3 14h18" strokeDasharray="1.8 2.4" strokeWidth="1.4" opacity=".7" /></>);
 
+// ---- row options: repeat, start dots, copies style -----------------------------------------------------------------------------
+const baseLine = <path d="M2.5 19h19" strokeWidth="1.2" opacity=".5" />;
+const dot = (x, y) => <circle cx={x} cy={y} r="1.6" fill="#dc2626" stroke="none" />;
+export const IconRepOne = () => S(<>{baseLine}{loop}</>);
+export const IconRepAll = () => S(<>{baseLine}{loop}<g transform="translate(6.5 0)">{loop}</g><g transform="translate(13 0)">{loop}</g></>);
+export const IconRepFade = () => S(<>{baseLine}{loop}<g transform="translate(6.5 0)" opacity=".55">{loop}</g><g transform="translate(13 0)" opacity=".22">{loop}</g></>);
+export const IconDotsNone = () => S(<>{baseLine}{loop}<path d="M4 4l16 16" stroke="#dc2626" /></>);
+export const IconDotsOne = () => S(<>{baseLine}{loop}{dot(4, 9)}</>);
+export const IconDotsAll = () => S(<>{baseLine}{loop}<g transform="translate(9 0)" opacity=".4" strokeDasharray="1.6 1.8">{loop}</g>{dot(4, 9)}{dot(13.2, 9)}</>);
+export const IconCopyDash = () => S(<>{baseLine}{loop}<g transform="translate(9 0)" opacity=".7" strokeDasharray="1.6 1.8">{loop}</g></>);
+export const IconCopySolid = () => S(<>{baseLine}{loop}<g transform="translate(9 0)" opacity=".28">{loop}</g></>);
+
 // ---- what to put on the page: a symbol, a word, a text ------------------------------------------------------------------------
 export const IconTabWord = () => S(<><path d="M3 18h18" strokeWidth="1.3" opacity=".5" /><path d="M4 17c0-5 1.3-7 3-7s2 2 2 4.5c0-2.5.8-4.5 2.2-4.5S13 12 13 17" strokeWidth="1.6" /><path d="M13 17c0-3 1.2-5 3-5s2.5 2 2.5 5" strokeWidth="1.6" /></>);
 export const IconTabText = () => S(<><path d="M4 6h16M4 10.5h16M4 15h16M4 19.5h9" /></>);

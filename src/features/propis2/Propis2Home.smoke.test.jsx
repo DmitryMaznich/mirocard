@@ -295,7 +295,13 @@ describe("Прописи 2 (zip topic)", () => {
     // an element takes the row over
     await click([...host.querySelectorAll('[role="tab"]')].find((t) => (t.getAttribute("aria-label") ?? t.textContent) === "Элементы"));
     await click(host.querySelectorAll(".propis2-tile")[0]);
-    expect(host.querySelector('[aria-label="Вид строки"]')).not.toBeNull();
+    // the row options (above the canvas) apply to the selected row
+    const fade = host.querySelector('[aria-label="Повтор с затуханием"]');
+    expect(fade.disabled).toBe(false);
+    await click(fade);
+    expect(host.querySelector('[aria-label="Повтор с затуханием"]').getAttribute("aria-pressed")).toBe("true");
+    await click(host.querySelector('[aria-label="Без красных точек"]'));
+    expect(host.querySelector('[aria-label="Без красных точек"]').getAttribute("aria-pressed")).toBe("true");
 
     // grid kinds: «Прописи» keeps the slant-grid options, «Клетка» / «Линейка» switch them off
     const slant = () => [...host.querySelectorAll('[aria-label="Косая линейка"] button')];

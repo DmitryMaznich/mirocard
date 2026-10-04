@@ -204,3 +204,39 @@ describe("propis2 model", () => {
     expect(lineOwners(beyond.page, map)[4]).toBe(beyond.page.rows.length - 1);
   });
 });
+
+describe("row params -> engine flags", () => {
+  const row = (p) => newRow({ text: "и", ...p });
+  it("defaults add no flags; legacy marks keep working", () => {
+    expect(rowToLine(row({}))).toBe("и");
+    expect(rowToLine(row({ mark: "c" }))).toBe("и#c");
+    expect(rowToLine(row({ mark: "d" }))).toBe("и#d");
+  });
+  it("repeat, dots and copies style translate", () => {
+    expect(rowToLine(row({ repeat: "one", dots: "none" }))).toBe("и#1#c");
+    expect(rowToLine(row({ repeat: "fade", dots: "one", copies: "solid" }))).toBe("и#f#o#s");
+    expect(rowToLine(row({ repeat: "one" }))).toBe("и#1#d");
+  });
+});
+
+describe("engine row flags", () => {
+  const seg = (line) => layoutWideLinesIntoRows([line], map).placed[0].segments[0];
+  it("fade lowers copy opacity along the row and reaches zero by the middle", () => {
+    const ops = seg("и и#f").strokes.slice(1).map((s) => s.opacity);
+    expect(ops.length).toBeGreaterThan(3);
+    for (let i = 1; i < ops.length; i++) expect(ops[i]).toBeLessThanOrEqual(ops[i - 1]);
+    expect(ops[0]).toBeLessThan(1);
+    expect(ops.at(-1)).toBe(0);
+    expect(seg("и и#f").strokes.some((s) => "copyX" in s)).toBe(false);
+  });
+  it("flat by default, solid copies are not dashed", () => {
+    expect(new Set(seg("и и").strokes.slice(1).map((s) => s.opacity)).size).toBe(1);
+    const solid = seg("и и#s").strokes.slice(1);
+    expect(solid.every((s) => !s.dashed && s.opacity < 0.6)).toBe(true);
+  });
+  it("dots: all copies / sample only / none", () => {
+    expect(seg("и и").startPoints.length).toBeGreaterThan(2);
+    expect(seg("и и#o").startPoints).toHaveLength(1);
+    expect(seg("и и#c").startPoints).toHaveLength(0);
+  });
+});
