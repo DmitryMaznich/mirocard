@@ -3,7 +3,7 @@ import { useAppStore } from "@/core/store";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
-import { newId, newPage, newSet, pageFromLines, pageFromMarked, pageFromPreset, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { newId, newPage, newSet, pageFromMarked, pageFromPreset, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { emptyLibrary, loadLibrary, removePage, removePreset, removeSet, saveLibrary, upsertPage, upsertPreset, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
@@ -40,7 +40,7 @@ export default function Propis2Home({ db }) {
   }, [db]);
   useEffect(() => () => { clearTimeout(saveTimer.current); saveLibrary(latest.current, db).catch(() => {}); }, [db]);
 
-  const sheets = topicRecord?.wideSheets ?? {};
+  const sheets = useMemo(() => topicRecord?.wideSheets ?? {}, [topicRecord]);
   const elementLabels = useMemo(() => new Set([...(topicRecord?.elements ?? []).map((e) => e.id), ...(topicRecord?.wide ?? []).filter((g) => g.kind === "element").map((g) => g.label)]), [topicRecord]);
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   // presets: the built-in ones are the methodology sheets, «Мои» are saved in the library

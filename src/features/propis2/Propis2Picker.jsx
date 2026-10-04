@@ -7,7 +7,8 @@ const Caret = () => (
 );
 
 export default function Propis2Picker({ label, value, options, onChange, disabled = false }) {
-  const [open, setOpen] = useState(false);
+  const [openRaw, setOpen] = useState(false);
+  const open = openRaw && !disabled;
   const ref = useRef(null);
   const current = options.find((o) => o.id === value) ?? options[0];
 
@@ -19,7 +20,6 @@ export default function Propis2Picker({ label, value, options, onChange, disable
     document.addEventListener("keydown", esc);
     return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
   }, [open]);
-  useEffect(() => { if (disabled) setOpen(false); }, [disabled]);
 
   const CurrentIcon = current.Icon;
   return (
