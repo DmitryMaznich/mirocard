@@ -1242,7 +1242,17 @@ function liftEndToD(d, targetY) {
   return n.join(" ");
 }
 
+// The local geometry of a glyph depends only on the glyph and the scale, and a repeated row asks for it once per copy:
+// computed once per (glyph object, scale). Callers must treat the result as read-only.
+const WIDE_LOCAL_CACHE = new WeakMap();
 function wideGlyphLocal(glyph, scale = 1) {
+  let byScale = WIDE_LOCAL_CACHE.get(glyph);
+  if (!byScale) { byScale = new Map(); WIDE_LOCAL_CACHE.set(glyph, byScale); }
+  if (!byScale.has(scale)) byScale.set(scale, wideGlyphLocalCompute(glyph, scale));
+  return byScale.get(scale);
+}
+
+function wideGlyphLocalCompute(glyph, scale = 1) {
   // Per-glyph horizontal stretch (wide.json `stretch`, default 1): the captured letters are
   // narrower than the workbook's (measured ~1.5x on п/т), widened with the slant kept at 65deg.
   const stretch = glyph.stretch ?? 1;
@@ -1393,14 +1403,24 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       if (!unit) return line;
       const gap = unitGaps[rowIndex];
       const rowOf = (n) => Array.from({ length: n }, (_, k) => (k && gap ? [`_${gap}`, ...unit] : unit)).flat().join(" ");
-      let best = Math.max(1, toks.length / unit.length);
-      for (let n = best; n <= 60; n++) {
-        const probe = layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false, scale);
-        const w = probe.placed[0].segments[0]?.width ?? 0;
-        if (w > maxX) break;
-        best = n;
+      // how many units fit. A probe is a whole layout, so estimate from the pitch of two copies and check the neighbours
+      // (the width only grows with the count)
+      const widthOf = (n) => layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false, scale).placed[0].segments[0]?.width ?? 0;
+      const memo = new Map();
+      const fits = (n) => { if (!memo.has(n)) memo.set(n, widthOf(n) <= maxX); return memo.get(n); };
+      const start = Math.max(1, toks.length / unit.length); // the row as typed is taken as fitting
+      let n = start;
+      if (start < 60) {
+        const w1 = widthOf(start);
+        const w2 = widthOf(start + 1);
+        if (w2 > maxX) return rowOf(start);
+        memo.set(start + 1, true);
+        const pitch = Math.max(1, w2 - w1);
+        n = Math.min(60, Math.max(start + 1, start + Math.floor((maxX - w1) / pitch)));
       }
-      return rowOf(best);
+      while (n < 60 && fits(n + 1)) n++;
+      while (n > start && !fits(n)) n--;
+      return rowOf(n);
     });
   }
   const placed = lines.map((line, rowIndex) => {

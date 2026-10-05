@@ -99,17 +99,25 @@ export default function Propis2Home({ db }) {
 
   const createPage = (p) => { persist(upsertPage(library, p)); setView({ name: "editor", pageId: p.id }); };
 
-  if (!loaded) return <div className="screen propis2-home" data-testid="propis2-loading" />;
-
-  // Student view: one page, or a whole set as one booklet (pages padded to screen-page boundaries).
-  if ((view.name === "show" && page) || (view.name === "showSet" && set)) {
-    const isSet = view.name === "showSet";
+  // The student view's layout is heavy (a whole set: hundreds of rows): built once per content, not on every render
+  // (turning a page and opening the show panel re-render this screen).
+  const showData = useMemo(() => {
+    const isSet = view.name === "showSet" && set;
+    if (!isSet && !(view.name === "show" && page)) return null;
     const ruling = isSet ? set.ruling : page.ruling;
     const lines = isSet ? setToLines(set, pagesById, glyphMap) : pageToLines(page, glyphMap);
     const gridSource = isSet ? pagesById.get(set.pageIds?.[0]) : page;
     const starts = isSet ? setPageStarts(set, pagesById, glyphMap) : [];
-    const editTarget = view.from === "editor" ? null : isSet ? set.pageIds[Math.max(0, starts.reduce((best, st, k) => (st != null && st <= shownPage + 1 ? k : best), 0))] : page.id;
     const task = buildPageTask({ topicRecord, lines, narrowRows: ruling === "narrow", grid: gridSource ? taskGrid(gridSource) : undefined, midDash: gridSource?.midDash, margin: pageMargin(gridSource), format: pageFormat(gridSource) });
+    return { isSet, ruling, gridSource, starts, task };
+  }, [view.name, page, set, pagesById, glyphMap, topicRecord]);
+
+  if (!loaded) return <div className="screen propis2-home" data-testid="propis2-loading" />;
+
+  // Student view: one page, or a whole set as one booklet (pages padded to screen-page boundaries).
+  if ((view.name === "show" && page) || (view.name === "showSet" && set)) {
+    const { isSet, ruling, gridSource, starts, task } = showData;
+    const editTarget = view.from === "editor" ? null : isSet ? set.pageIds[Math.max(0, starts.reduce((best, st, k) => (st != null && st <= shownPage + 1 ? k : best), 0))] : page.id;
     return (
       <div className="propis2-view" data-testid="propis2-view">
         <PrintPageView
