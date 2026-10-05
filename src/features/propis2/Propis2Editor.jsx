@@ -57,11 +57,11 @@ const DOT_OPTS = [
 
 
 // A round/square icon button: 44px target, pressed state, the name only as aria-label.
-function IconBtn({ label, on, onClick, disabled, children, className = "", ...rest }) {
+function IconBtn({ label, caption, on, onClick, disabled, children, className = "", ...rest }) {
   const { bind, tip } = useHint(label);
   return (
-    <button type="button" className={`p2-ib${on ? " is-on" : ""} ${className}`} aria-label={label} aria-pressed={on === undefined ? undefined : Boolean(on)} disabled={disabled} onClick={onClick} {...bind} {...rest}>
-      {children}
+    <button type="button" className={`p2-ib${caption ? " p2-tool" : ""}${on ? " is-on" : ""} ${className}`} aria-label={label} aria-pressed={on === undefined ? undefined : Boolean(on)} disabled={disabled} onClick={onClick} {...bind} {...rest}>
+      {caption ? <><span className="p2-tool-ico">{children}</span><span className="p2-cap">{caption}</span></> : children}
       {tip}
     </button>
   );
@@ -236,33 +236,33 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       </div>
 
       {nav && (
-        <div className="p2-pager" role="group" aria-label="Страницы комплекта">
-          <button type="button" className="p2-pager-btn" aria-label="Предыдущая страница" disabled={nav.index <= 0} onClick={nav.onPrev}>‹</button>
+        <div className="propis2-settings p2-pager" role="group" aria-label="Страницы комплекта">
+          <button type="button" className="p2-ib p2-tool" aria-label="Предыдущая страница" disabled={nav.index <= 0} onClick={nav.onPrev}><span className="p2-tool-ico p2-glyph">‹</span><span className="p2-cap">Назад</span></button>
           <span className="p2-pager-pos" aria-live="polite">Стр. {nav.index + 1} из {nav.total}</span>
-          <button type="button" className="p2-pager-btn" aria-label="Следующая страница" disabled={nav.index >= nav.total - 1} onClick={nav.onNext}>›</button>
-          <button type="button" className="p2-pager-txt" aria-label="Переместить страницу раньше" disabled={nav.index <= 0} onClick={nav.onMoveBefore}>← Раньше</button>
-          <button type="button" className="p2-pager-txt" aria-label="Переместить страницу позже" disabled={nav.index >= nav.total - 1} onClick={nav.onMoveAfter}>Позже →</button>
-          <span className="p2-grow" />
-          <button type="button" className="p2-pager-txt" aria-label="Копия страницы" onClick={nav.onDuplicate}>Копия</button>
-          <button type="button" className="p2-pager-txt p2-pager-del" aria-label="Удалить страницу из комплекта" onClick={nav.onDelete}>Удалить</button>
+          <button type="button" className="p2-ib p2-tool" aria-label="Следующая страница" disabled={nav.index >= nav.total - 1} onClick={nav.onNext}><span className="p2-tool-ico p2-glyph">›</span><span className="p2-cap">Вперёд</span></button>
+          <span className="p2-sep" aria-hidden="true" />
+          <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу раньше" disabled={nav.index <= 0} onClick={nav.onMoveBefore}><span className="p2-tool-ico p2-glyph">←</span><span className="p2-cap">Раньше</span></button>
+          <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу позже" disabled={nav.index >= nav.total - 1} onClick={nav.onMoveAfter}><span className="p2-tool-ico p2-glyph">→</span><span className="p2-cap">Позже</span></button>
+          <span className="p2-sep" aria-hidden="true" />
+          <button type="button" className="p2-ib p2-tool" aria-label="Копия страницы" onClick={nav.onDuplicate}><span className="p2-tool-ico"><I.IconDuplicate /></span><span className="p2-cap">Копия</span></button>
+          <button type="button" className="p2-ib p2-tool p2-ib--danger" aria-label="Удалить страницу из комплекта" onClick={nav.onDelete}><span className="p2-tool-ico"><I.IconTrash /></span><span className="p2-cap">Удалить</span></button>
         </div>
       )}
 
       <div className="propis2-main">
         <div className="propis2-settings" role="group" aria-label="Настройки страницы">
-          <Propis2Picker label="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
-          <Propis2Picker label="Тип бумаги" disabled={locked} value={gridKind} onChange={(id) => onChange({ ...page, gridKind: id })} options={GRID_KINDS.map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
-          <Propis2Picker label="Разлиновка" disabled={locked} value={page.ruling} onChange={(id) => onChange({ ...page, ruling: id })} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />
-          <Propis2Picker label="Косая линейка" value={page.grid ?? "regular"} disabled={locked || !propisGrid} onChange={(id) => onChange({ ...page, grid: id })} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
-          <Propis2Picker label="Поля" disabled={locked} value={pageMargin(page)} onChange={(id) => onChange({ ...page, margin: id })} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
-          <IconBtn label="Пунктир в серединных линиях" on={page.midDash !== false} disabled={locked || !propisGrid} onClick={() => onChange({ ...page, midDash: page.midDash === false })} data-kind="dash"><I.IconDash /></IconBtn>
-          <IconBtn label="Строка для письма после каждой строки" on={Boolean(page.writeAfter)} disabled={locked} onClick={() => onChange({ ...page, writeAfter: !page.writeAfter })} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
-          <span className="p2-grow" />
+          <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
+          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} value={gridKind} onChange={(id) => onChange({ ...page, gridKind: id })} options={GRID_KINDS.map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
+          <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked} value={page.ruling} onChange={(id) => onChange({ ...page, ruling: id })} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />
+          <Propis2Picker label="Косая линейка" caption="Наклон" value={page.grid ?? "regular"} disabled={locked || !propisGrid} onChange={(id) => onChange({ ...page, grid: id })} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
+          <Propis2Picker label="Поля" caption="Поля" disabled={locked} value={pageMargin(page)} onChange={(id) => onChange({ ...page, margin: id })} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
+          <IconBtn label="Пунктир в серединных линиях" caption="Пунктир" on={page.midDash !== false} disabled={locked || !propisGrid} onClick={() => onChange({ ...page, midDash: page.midDash === false })} data-kind="dash"><I.IconDash /></IconBtn>
+          <IconBtn label="Строка для письма после каждой строки" caption="Писать" on={Boolean(page.writeAfter)} disabled={locked} onClick={() => onChange({ ...page, writeAfter: !page.writeAfter })} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
           {locked && (
             <>
               <span className="p2-lock" role="img" aria-label="Страница из комплекта: раскладка закрыта, меняются только символы и слова"><I.IconLock /></span>
-              <IconBtn label="Редактировать страницу" onClick={() => onChange({ ...page, locked: false })}><I.IconEditPage /></IconBtn>
-              <IconBtn label="Очистить страницу" className="p2-ib--danger" onClick={clear}><I.IconClearPage /></IconBtn>
+              <IconBtn label="Редактировать страницу" caption="Править" onClick={() => onChange({ ...page, locked: false })}><I.IconEditPage /></IconBtn>
+              <IconBtn label="Очистить страницу" caption="Очистить" className="p2-ib--danger" onClick={clear}><I.IconClearPage /></IconBtn>
             </>
           )}
           <Propis2Presets
@@ -277,17 +277,17 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         </div>
 
         <div className="propis2-settings propis2-settings--row" role="group" aria-label="Настройки строки">
-          <Propis2Picker label="Повтор" value={rowOpts?.repeat ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ repeat: id })} options={REPEAT_OPTS} />
-          <Propis2Picker label="Красные точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
-          <IconBtn label="Копии пунктиром" on={rowEditable ? rowOpts.copies === "dash" : undefined} disabled={!rowEditable} onClick={() => patchSelected({ copies: rowOpts.copies === "dash" ? "solid" : "dash" })}><I.IconCopyDash /></IconBtn>
-          <IconBtn label="Строка как текст (с переносом)" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
-          <IconBtn label="Повторить строку" on={selected ? Boolean(selected.marked) : undefined} disabled={!selected} onClick={() => patchSelected({ marked: !selected.marked })}><I.IconRepeat /></IconBtn>
-          <span className="p2-grow" />
+          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts?.repeat ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ repeat: id })} options={REPEAT_OPTS} />
+          <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
+          <IconBtn label="Копии пунктиром" caption="Копии" on={rowEditable ? rowOpts.copies === "dash" : undefined} disabled={!rowEditable} onClick={() => patchSelected({ copies: rowOpts.copies === "dash" ? "solid" : "dash" })}><I.IconCopyDash /></IconBtn>
+          <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
+          <IconBtn label="Повторить строку" caption="Повтор" on={selected ? Boolean(selected.marked) : undefined} disabled={!selected} onClick={() => patchSelected({ marked: !selected.marked })}><I.IconRepeat /></IconBtn>
+          <span className="p2-sep" aria-hidden="true" />
           <div className="p2-seg" role="group" aria-label="Строка">
-            <IconBtn label="Выше" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={!selected || selectedIndex === 0}><I.IconUp /></IconBtn>
-            <IconBtn label="Ниже" onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={!selected || selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
-            <IconBtn label="Дублировать" disabled={!selected} onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
-            <IconBtn label="Удалить строку" className="p2-ib--danger" disabled={!selected} onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
+            <IconBtn label="Выше" caption="Выше" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={!selected || selectedIndex === 0}><I.IconUp /></IconBtn>
+            <IconBtn label="Ниже" caption="Ниже" onClick={() => setRows(moveRow(page.rows, selectedIndex, 1))} disabled={!selected || selectedIndex === page.rows.length - 1}><I.IconDown /></IconBtn>
+            <IconBtn label="Дублировать" caption="Дубль" disabled={!selected} onClick={() => { const next = duplicateRow(page.rows, selectedIndex); setRows(next); setSelectedId(next[selectedIndex + 1].id); }}><I.IconDuplicate /></IconBtn>
+            <IconBtn label="Удалить строку" caption="Удалить" className="p2-ib--danger" disabled={!selected} onClick={() => { setRows(page.rows.filter((r) => r.id !== selectedId)); setSelectedId(null); }}><I.IconTrash /></IconBtn>
           </div>
         </div>
 

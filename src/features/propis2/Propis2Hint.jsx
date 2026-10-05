@@ -5,9 +5,9 @@ import { useEffect, useRef, useState } from "react";
 const HOLD_MS = 450;
 const SHOW_MS = 1800;
 
-export function useHint(label) {
+export function useHint(label, place = "below") {
   const [shown, setShown] = useState(false);
-  const [align, setAlign] = useState("center");
+  const [pos, setPos] = useState(null);
   const holdTimer = useRef(null);
   const hideTimer = useRef(null);
   const suppress = useRef(false);
@@ -24,8 +24,18 @@ export function useHint(label) {
       const rect = e.currentTarget.getBoundingClientRect();
       holdTimer.current = setTimeout(() => {
         suppress.current = true;
-        // keep the bubble on the screen: a button at an edge gets it aligned to that edge
-        setAlign(rect.left < 90 ? "start" : window.innerWidth - rect.right < 90 ? "end" : "center");
+        // fixed to the screen (the tool strips scroll and clip their children); kept on the screen at the edges
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        if (place === "right") setPos({ left: rect.right + 6, top: rect.top + rect.height / 2, transform: "translateY(-50%)" });
+        else {
+          const above = rect.bottom > vh * 0.6;
+          const vertical = above ? { bottom: vh - rect.top + 6 } : { top: rect.bottom + 6 };
+          const cx = rect.left + rect.width / 2;
+          if (rect.left < 90) setPos({ ...vertical, left: Math.max(6, rect.left) });
+          else if (vw - rect.right < 90) setPos({ ...vertical, right: Math.max(6, vw - rect.right) });
+          else setPos({ ...vertical, left: cx, transform: "translateX(-50%)" });
+        }
         setShown(true);
         clearTimeout(hideTimer.current);
         hideTimer.current = setTimeout(() => setShown(false), SHOW_MS);
@@ -39,6 +49,6 @@ export function useHint(label) {
       if (suppress.current) { suppress.current = false; e.stopPropagation(); e.preventDefault(); }
     },
   };
-  const tip = shown ? <span className={`p2-tip p2-tip--${align}`} role="tooltip">{label}</span> : null;
+  const tip = shown && pos ? <span className="p2-tip" role="tooltip" style={pos}>{label}</span> : null;
   return { bind, tip };
 }

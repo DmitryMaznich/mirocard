@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as I from "./Propis2Icons";
 import { useHint } from "./Propis2Hint";
+import { usePopupPos } from "./usePopupPos";
 
 // The presets popover of the page tier: a text list in two groups («Методика» — built-in, «Мои» — saved by the adult)
 // plus "save this page as a preset". Choosing a preset starts a NEW page from it (the current page is never overwritten).
@@ -8,6 +9,8 @@ export default function Propis2Presets({ builtin = [], mine = [], canSave, defau
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const ref = useRef(null);
+  const btnRef = useRef(null);
+  const panelStyle = usePopupPos(open, btnRef, 320, () => setOpen(false));
   const { bind, tip } = useHint("Комплекты");
   useEffect(() => {
     if (!open) return undefined;
@@ -31,9 +34,9 @@ export default function Propis2Presets({ builtin = [], mine = [], canSave, defau
 
   return (
     <div className="p2-pick p2-presets" ref={ref}>
-      <button type="button" className={`p2-ib p2-ib--plain${open ? " is-on" : ""}`} aria-label="Комплекты" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((o) => !o)} {...bind}><I.IconPresets />{tip}</button>
+      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label="Комплекты" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((o) => !o)} {...bind}><span className="p2-tool-ico"><I.IconPresets /></span><span className="p2-cap">Комплекты</span>{tip}</button>
       {open && (
-        <div className="p2-presets-panel" role="dialog" aria-label="Комплекты">
+        <div className="p2-presets-panel" role="dialog" aria-label="Комплекты" style={panelStyle ?? undefined}>
           {builtin.length > 0 && <><h3>Методика</h3>{list(builtin, false)}</>}
           <h3>Мои</h3>
           {mine.length > 0 ? list(mine, true) : <p className="p2-presets-empty">Пока пусто</p>}
