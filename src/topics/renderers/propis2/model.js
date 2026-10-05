@@ -165,9 +165,13 @@ export function replaceSymbol(page, selectedId, tile) {
   return { ...page, rows: page.rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)) };
 }
 
+// Spaces of a sample row: one is the usual gap between symbols, each further space adds a slant cell (the "_N" pseudo token the
+// engine understands, as in running text).
+const sampleSpacing = (text) => String(text ?? "").trim().replace(/\s+/g, (m) => (m.length > 1 ? ` _${m.length - 1} ` : " "));
+
 export function rowToLine(row) {
   if (row?.kind === "blank") return "";
-  const text = String(row?.text ?? "").trim().replace(/\s+/g, " ");
+  const text = sampleSpacing(row?.text);
   if (!text) return "";
   const { repeat, dots, copies } = rowParams(row);
   if (repeat === "auto") {
@@ -184,6 +188,8 @@ export function rowToLine(row) {
   if (dots === "none") flags.push("c");
   else if (dots === "one") flags.push("o");
   if (copies === "solid") flags.push("s");
+  // `gap`: extra cells between the repeated units of the row (a kit's pairs «Аа»: the pair is told from the next one)
+  if (Number(row?.gap) > 0 && (repeat === "all" || repeat === "fade" || dots === "all")) flags.push(`g${Math.min(8, Math.floor(row.gap))}`);
   return `${text}${flags.map((f) => `#${f}`).join("")}`;
 }
 

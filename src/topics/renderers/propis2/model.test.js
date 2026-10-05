@@ -17,7 +17,7 @@ describe("propis2 model", () => {
   it("turns rows into engine lines, an empty row is an empty ruled row, marks are kept", () => {
     const page = newPage("Т", { rows: [oldRow({ text: " Н " , mark: "d" }), oldRow({ text: "" }), oldRow({ text: "кот" })] });
     expect(pageToLines(page)).toEqual(["Н#d", "", "кот"]);
-    expect(rowToLine(oldRow({ text: "а  б", mark: "c" }))).toBe("а б#c");
+    expect(rowToLine(oldRow({ text: "а  б", mark: "c" }))).toBe("а _1 б#c");
   });
 
   it("round-trips a ready sheet through pageFromLines/pageToLines", () => {
@@ -436,9 +436,9 @@ describe("«Методика» kits (kits.json, built from the v1 notebooks' con
   });
   it("letter pages: practice with fading copies, then independent writing with a sample at the start", () => {
     const first = kits[0].pages;
-    expect(first[0].title).toContain("и И");
+    expect(first[0].title).toContain("И и"); // a pair: the capital first, then the lowercase
     expect(first[0].rows[0]).toMatchObject({ text: "и", repeat: "fade" });
-    expect(first[0].rows[3]).toMatchObject({ text: "и И", asText: false });
+    expect(first[0].rows[3]).toMatchObject({ text: "И  и", asText: false, gap: 2 });
     expect(first[1].rows[0]).toMatchObject({ text: "и", repeat: "one", dots: "one" });
     const last = kits[1].pages.at(-1);
     expect(last.rows.every((r) => !/[ЁЙЫ]/.test(r.text))).toBe(true); // no capital glyph for those: lowercase only
@@ -461,4 +461,20 @@ describe("the connector to the next letter is not part of о б ю э ф в", ()
     for (const L of ["Г", "Р", "О", "Б", "Ю", "Э"]) expect(strokes(`${L}и`) - strokes(L), L).toBe(2);
   });
 
+});
+
+describe("pairs «Аа»: capital first, a gap inside the pair, a bigger one between pairs", () => {
+  const xs = (line) => layoutWideLinesIntoRows([line], map, undefined, true, 0.5).placed[0].segments[0].startPoints.map((p) => p[0]);
+  it("extra spaces of a sample row become slant cells", () => {
+    expect(rowToLine(newRow({ text: "И  и", repeat: "one", dots: "none" }))).toBe("И _1 и#1#c");
+    expect(rowToLine(newRow({ text: "И   и", repeat: "all", gap: 2 }))).toBe("И _2 и#r#g2");
+  });
+  it("the units of a multiplied row are told apart by the unit gap", () => {
+    const plain = xs("И _1 и#r");
+    const apart = xs("И _1 и#r#g2");
+    expect(plain.length).toBeGreaterThan(5);
+    // within a pair the same distance, the next pair starts 2 cells (30 units at the narrow scale) later each time
+    expect(apart[1] - apart[0]).toBeCloseTo(plain[1] - plain[0], 0);
+    expect(apart[2] - apart[1]).toBeGreaterThan(plain[2] - plain[1] + 20);
+  });
 });

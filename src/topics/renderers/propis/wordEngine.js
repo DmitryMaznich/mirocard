@@ -1359,7 +1359,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
-  const flags = lines.map((l) => (/((?:#(?:[dc1fsorx]|i\d+))+)$/.exec(l) ?? [])[1] ?? "");
+  const flags = lines.map((l) => (/((?:#(?:[dc1fsorx]|[ig]\d+))+)$/.exec(l) ?? [])[1] ?? "");
   const marks = flags.map((f) => (/#([dco])/.exec(f) ?? [])[1] ?? null);
   const fades = flags.map((f) => f.includes("#f"));
   // r = fill the row with copies of the row's content even when it is a single letter or a mixed sequence (the default
@@ -1369,11 +1369,13 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
   const hideCopies = flags.map((f) => f.includes("#x"));
   // iN = the row starts N slant cells in from its left edge (the spaces an adult typed before the text)
   const indents = flags.map((f) => Number(/#i(\d+)/.exec(f)?.[1] ?? 0));
+  // gN = N extra slant cells between the repeated units of a multiplied row (a pair «Аа» repeated across the row stays a pair)
+  const unitGaps = flags.map((f) => Number(/#g(\d+)/.exec(f)?.[1] ?? 0));
   const solids = flags.map((f) => f.includes("#s"));
   // "#1" = write the row exactly once (no multiplying across the line): running text that was wrapped
   // into rows ends on a one-word row, which must not be repeated to fill the line.
   const once = flags.map((f) => f.includes("#1"));
-  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorx]|i\d+))+$/, ""));
+  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorx]|[ig]\d+))+$/, ""));
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       if (once[rowIndex]) return line;
@@ -1389,7 +1391,8 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       }
       if (!unit && forced[rowIndex] && toks.length) unit = toks;
       if (!unit) return line;
-      const rowOf = (n) => Array(n).fill(unit).flat().join(" ");
+      const gap = unitGaps[rowIndex];
+      const rowOf = (n) => Array.from({ length: n }, (_, k) => (k && gap ? [`_${gap}`, ...unit] : unit)).flat().join(" ");
       let best = Math.max(1, toks.length / unit.length);
       for (let n = best; n <= 60; n++) {
         const probe = layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false, scale);

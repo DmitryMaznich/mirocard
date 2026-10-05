@@ -25,7 +25,7 @@ export function inferRowKind(line, glyphMap, page, asText) {
   return /\s/.test(t) ? "passage" : "text";
 }
 
-const PARAM_KEYS = ["repeat", "dots", "copies", "mark", "asText"];
+const PARAM_KEYS = ["repeat", "dots", "copies", "mark", "asText", "gap"];
 const paramsOf = (row) => Object.fromEntries(PARAM_KEYS.filter((k) => row?.[k] !== undefined).map((k) => [k, row[k]]));
 
 // Rewrites the tail of the page that starts at row `startId` (null = after the last row with content) from the field's

@@ -24,16 +24,18 @@ HAVE = {g["label"] for g in wide["glyphs"]} | {a for g in wide["glyphs"] for a i
 PAGE = {"ruling": "narrow", "grid": "regular", "gridKind": "propis", "margin": "left", "format": "a5", "midDash": True}
 
 
-def row(text, repeat="all", dots="all", as_text=None, kind="text"):
+def row(text, repeat="all", dots="all", as_text=None, kind="text", gap=None):
     r = {"text": text, "kind": kind, "repeat": repeat, "dots": dots, "copies": "dash"}
     if as_text is not None:
         r["asText"] = as_text
+    if gap:
+        r["gap"] = gap
     return r
 
 
-def sample(text, repeat="one"):
+def sample(text, repeat="one", gap=None):
     """A row of the independent-practice pages: the model once at the start, the rest of the row is the child's."""
-    return row(text, repeat=repeat, dots="one", as_text=False)
+    return row(text, repeat=repeat, dots="one", as_text=False, gap=gap)
 
 
 def chunks(rows, n=ROWS):
@@ -66,14 +68,16 @@ def letter_pages(notebook):
     for group in lg.notebook_groups(notebook):
         for lower, upper in group["letters"]:
             up = upper if upper and upper in HAVE else None
-            pair = f"{lower} {up}" if up else None
-            base = [row(lower, "fade"), row(lower, "fade")] + ([row(up, "fade"), row(pair, "fade", as_text=False), row(pair, "fade", as_text=False)] if up else [])
+            # a pair is the capital FIRST, then the lowercase, with a gap between them (there is no connection in front of a capital, and a
+            # lowercase letter must not run into it); the next pair stands further off than the letters of one pair
+            pair = f"{up}  {lower}" if up else None
+            base = [row(lower, "fade"), row(lower, "fade")] + ([row(up, "fade"), row(pair, "fade", as_text=False, gap=2), row(pair, "fade", as_text=False, gap=2)] if up else [])
             reps = -(-ROWS // len(base))
-            title = f"{lower}{(' ' + up) if up else ''}"
+            title = f"{up} {lower}" if up else lower
             out.append(page(f"{title} — с образцом", (base * reps)[:ROWS]))
             if up:
                 n_lower, n_upper = round(ROWS * 0.3), round(ROWS * 0.3)
-                rows = [sample(lower)] * n_lower + [sample(up)] * n_upper + [sample(pair)] * (ROWS - n_lower - n_upper)
+                rows = [sample(lower)] * n_lower + [sample(up)] * n_upper + [sample(pair, gap=2)] * (ROWS - n_lower - n_upper)
             else:
                 rows = [sample(lower)] * ROWS
             out.append(page(f"{title} — самостоятельно", rows))
