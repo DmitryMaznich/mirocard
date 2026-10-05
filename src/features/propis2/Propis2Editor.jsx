@@ -5,6 +5,7 @@ import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, multipliesByDefault, pageAspe
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { buildTiles } from "./Propis2Carousel";
 import Propis2Field from "./Propis2Field";
+import { useKeyboardInset } from "./useKeyboardInset";
 import { fieldFromRows, insertLine, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
@@ -78,6 +79,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const [pageW, setPageW] = useState(0);
   const [undoPage, setUndoPage] = useState(null); // the page as it was before «Очистить страницу», for «Отменить»
   const locked = isLocked(page);
+  const keyboard = useKeyboardInset();
   const elementTiles = useMemo(() => buildTiles(topicRecord).elements, [topicRecord]);
   const side = useMedia(SIDE_QUERY);
   const phone = useMedia(PHONE_QUERY) && !side;
@@ -226,7 +228,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   useEffect(() => { if (selectedId && selectedIndex < 0) setSelectedId(null); }, [selectedId, selectedIndex]);
 
   return (
-    <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}${phone ? " propis2-editor2--phone" : ""}`} data-testid="propis2-editor">
+    <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}${phone ? " propis2-editor2--phone" : ""}${keyboard.kb ? " propis2-editor2--kb" : ""}`} data-testid="propis2-editor" style={keyboard.kb ? { "--p2-kb": `${keyboard.kb}px`, "--p2-vvh": `${keyboard.vvh}px` } : undefined}>
       <div className="screen-header p2-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
         <input className="propis2-title-input" value={page.title} onChange={(e) => onChange({ ...page, title: e.target.value })} aria-label="Название страницы" />

@@ -222,3 +222,9 @@
 .propis2-editor2--side .propis2-main { grid-template-rows: auto auto minmax(0, 1fr); }
 .propis2-editor2--side .propis2-dock { max-height: none; }
 .propis2-editor2--side .p2-textarea { max-height: 55dvh; }
+
+/* on-screen keyboard: it covers the page; only the text field is lifted above it, tall enough to show a long text */
+.propis2-editor2--kb .propis2-dock { position: relative; z-index: 800; transform: translateY(calc(-1 * var(--p2-kb))); max-height: calc(var(--p2-vvh) - 130px); padding-bottom: 8px; box-shadow: 0 -6px 22px rgba(40, 50, 60, .22); border-radius: 18px 18px 0 0; }
+.propis2-editor2--kb .p2-textarea { min-height: 5.6rem; max-height: calc(var(--p2-vvh) - 200px); }
+.propis2-editor2--kb.propis2-editor2--phone .propis2-dock, .propis2-editor2--kb.propis2-editor2--side .propis2-dock { max-height: calc(var(--p2-vvh) - 130px); }
+.propis2-editor2--kb .propis2-dock { align-self: end; height: auto; }
