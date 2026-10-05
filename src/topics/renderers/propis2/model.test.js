@@ -478,3 +478,14 @@ describe("pairs «Аа»: capital first, a gap inside the pair, a bigger one bet
     expect(apart[2] - apart[1]).toBeGreaterThan(plain[2] - plain[1] + 20);
   });
 });
+
+describe("fade copies", () => {
+  it("the connector inside a faded copy fades with it (never stays at full opacity)", () => {
+    const seg = layoutWideLinesIntoRows(["ба#f"], map, undefined, true, 0.5).placed[0].segments[0];
+    const copies = seg.strokes.filter((s) => s.opacity !== undefined);
+    expect(copies.length).toBeGreaterThan(3);
+    expect(copies.every((s) => s.opacity >= 0 && s.opacity <= 1)).toBe(true);
+    // the last copies are fully faded, connector included
+    expect(copies.slice(-3).every((s) => s.opacity === 0)).toBe(true);
+  });
+});
