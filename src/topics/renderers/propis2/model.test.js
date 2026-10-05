@@ -445,15 +445,15 @@ describe("«Методика» kits (kits.json, built from the v1 notebooks' con
   });
 });
 
-describe("the connector to the next letter is not part of о б ю э с х ж ф в", () => {
+describe("the connector to the next letter is not part of о б ю э ф в", () => {
   const strokes = (line) => layoutWideLinesIntoRows([line], map, undefined, false, 1).placed[0].segments[0].strokes.length;
   it("written alone these letters have no connector; with a letter after them they get it", () => {
-    for (const L of ["о", "б", "ю", "э", "с", "х", "ж", "ф", "в"]) {
+    for (const L of ["о", "б", "ю", "э", "ф", "в"]) {
       expect(strokes(`${L}и`) - strokes(L), L).toBe(2); // и itself + the connector
     }
   });
   it("letters whose final hook is their own stroke keep it alone and add nothing when followed", () => {
-    for (const L of ["г", "п", "т", "и", "н", "к", "л", "м", "я", "ш"]) {
+    for (const L of ["г", "п", "т", "и", "н", "к", "л", "м", "я", "ш", "с", "х", "ж"]) { // с х ж: the same curve, but it is part of the letter
       expect(strokes(`${L}и`) - strokes(L), L).toBe(1);
     }
   });
