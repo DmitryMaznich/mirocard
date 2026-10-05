@@ -138,13 +138,6 @@ describe("Прописи 2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
-    const setValue = async (el, value, proto = HTMLInputElement.prototype) => {
-      await act(async () => {
-        Object.getOwnPropertyDescriptor(proto, "value").set.call(el, value);
-        el.dispatchEvent(new Event(el.tagName === "SELECT" ? "change" : "input", { bubbles: true }));
-        await tick();
-      });
-    };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
 
     await click(btn("Новая страница"));
