@@ -235,3 +235,6 @@
 .propis2-editor2--phone .propis2-main { grid-template-rows: auto auto minmax(0, 1fr) auto; }
 .propis2-editor2--phone .propis2-page-col { height: auto; }
 .propis2-editor2--phone .propis2-dock { height: auto; max-height: min(var(--dock-h), 45dvh); }
+
+/* the element list opens above the field: the dock must not clip it and must stand above the tiers */
+.propis2-dock { overflow: visible; position: relative; z-index: 12; }

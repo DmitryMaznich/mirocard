@@ -278,13 +278,14 @@ describe("Прописи 2 (zip topic)", () => {
     expect(preview().querySelector('[data-overlay="select"]')).not.toBeNull();
     await typeInField(host, "кот\nм");
     expect(host.querySelectorAll('[data-overlay="select"]').length).toBeLessThanOrEqual(1);
-    // the list of elements: a tap puts the element's id on its own line
+    // the list of elements: a tap puts the element's id at the caret as a word of its own (mid-line too)
     await click(host.querySelector('button[aria-label="Элементы"]'));
     const elementTiles = host.querySelectorAll('[role="dialog"][aria-label="Элементы"] .propis2-tile');
     expect(elementTiles.length).toBeGreaterThan(5);
     await click(elementTiles[0]);
-    expect(fieldOf(host).value.split("\n").length).toBeGreaterThanOrEqual(2);
     expect(fieldOf(host).value).toContain(elementTiles[0].getAttribute("data-tile"));
+    expect(fieldOf(host).value.startsWith("кот\nм")).toBe(true);
+    await typeInField(host, "кот\nм"); // back to sample rows for the row options below
     // the row options (above the canvas) apply to the selected row; a picker shows the current value, its variants drop down
     const pickBtn = (group) => host.querySelector(`button[aria-label="${group}"][aria-haspopup]`);
     const pick = async (group, option) => { await click(pickBtn(group)); await click([...host.querySelectorAll(`[role="listbox"][aria-label="${group}"] button`)].find((b) => b.getAttribute("aria-label") === option)); };

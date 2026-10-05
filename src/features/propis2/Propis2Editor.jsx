@@ -6,7 +6,7 @@ import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { buildTiles } from "./Propis2Carousel";
 import Propis2Field from "./Propis2Field";
 import { useKeyboardInset } from "./useKeyboardInset";
-import { fieldFromRows, insertLine, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
+import { fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
 import Propis2Picker from "./Propis2Picker";
@@ -199,7 +199,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   };
   const insertElement = (token, caret) => {
     if (locked) { if (selected) onField(token); return; }
-    const { value, caret: pos } = insertLine(draft, caret, token);
+    const { value, caret: pos } = insertToken(draft, caret, token);
     onField(value);
     setCaretRequest({ pos, n: Date.now() });
   };

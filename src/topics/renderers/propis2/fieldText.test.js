@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildGlyphMap } from "./pageTask.js";
 import { newPage, newRow, pageToLines } from "./model.js";
-import { fieldFromRows, insertLine, inferRowKind, rowIdAtCaret, rowsFromField } from "./fieldText.js";
+import { fieldFromRows, insertToken, inferRowKind, rowIdAtCaret, rowsFromField } from "./fieldText.js";
 
 const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
 const elements = JSON.parse(readFileSync("tools/propis/elements.json", "utf-8")).elements;
@@ -51,15 +51,15 @@ describe("field text <-> rows", () => {
     expect(pageToLines({ ...page, rows: r.rows }, map).slice(0, 3).map((l) => l.replace(/(#\w)+$/, ""))).toEqual(["а", "", "б"]);
   });
 
-  it("running text is told from samples: more than two words is text, an own choice wins", () => {
-    expect(inferRowKind("мама мыла раму", map, page)).toBe("passage");
+  it("running text: the first space after the first symbol makes the row text, even a trailing one; an own choice wins", () => {
     expect(inferRowKind("мама", map, page)).toBe("text");
-    expect(inferRowKind("и м", map, page)).toBe("text");
+    expect(inferRowKind("м", map, page)).toBe("text");
+    expect(inferRowKind("мама ", map, page)).toBe("passage");
+    expect(inferRowKind("и м", map, page)).toBe("passage");
+    expect(inferRowKind("  мама", map, page)).toBe("text"); // leading spaces are not a word break
     expect(inferRowKind("мама мыла раму", map, page, false)).toBe("text");
     expect(inferRowKind("мама", map, page, true)).toBe("passage");
     expect(inferRowKind("   ", map, page)).toBe("blank");
-    const long = Array(40).fill("мама").join(" ");
-    expect(inferRowKind(long, map, page)).toBe("passage");
   });
 
   it("the caret's line is the row it stands in", () => {
@@ -68,9 +68,18 @@ describe("field text <-> rows", () => {
     expect(rowIdAtCaret(rows, rows[1].id, "б\nв", 2)).toBe(rows[2].id);
   });
 
-  it("inserting an element id: into an empty line, or on a new line below", () => {
-    expect(insertLine("", 0, "г1")).toEqual({ value: "г1", caret: 2 });
-    expect(insertLine("а\nб", 1, "г1").value).toBe("а\nг1\nб");
-    expect(insertLine("а\n\nб", 2, "г1").value).toBe("а\nг1\nб");
+  it("an element id goes in at the caret as a word of its own, mid-line too", () => {
+    expect(insertToken("", 0, "г1")).toEqual({ value: "г1", caret: 2 });
+    expect(insertToken("кот", 3, "г1")).toEqual({ value: "кот г1", caret: 6 });
+    expect(insertToken("кот мама", 3, "г1")).toEqual({ value: "кот г1 мама", caret: 6 });
+    expect(insertToken("а\nб", 1, "г1").value).toBe("а г1\nб");
+    expect(insertToken("а\n\nб", 2, "г1").value).toBe("а\nг1\nб");
+  });
+
+  it("an element inside running text is laid out as a word of the text", () => {
+    const rows = [newRow({ text: "кот г1 мама", kind: "passage" })];
+    const lines = pageToLines({ ...page, rows }, map);
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines.join(" ")).toContain("г1");
   });
 });

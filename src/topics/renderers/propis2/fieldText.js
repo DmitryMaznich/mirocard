@@ -1,7 +1,7 @@
 // «Прописи 2»: the one text field of the constructor. It holds the rows of the page from a chosen row to the end, one row
 // per line (Enter = a new row on the sheet). Typing in it rewrites exactly that tail of the page; the rows above are not
 // touched. This module is the pure part: rows -> field text, field text -> rows.
-import { lineWidth, newRow, rowMaxX } from "./model.js";
+import { newRow } from "./model.js";
 
 const isEmptyRow = (r) => r.kind === "blank" || (r.kind !== "passage" && !String(r.text ?? "").trim());
 
@@ -13,18 +13,16 @@ export function fieldFromRows(rows, startIndex) {
   return tail.slice(0, end).map((r) => (r.kind === "blank" ? "" : String(r.text ?? "").replace(/\s*\n\s*/g, " "))).join("\n");
 }
 
-// What one line of the field is on the sheet: empty -> a blank writing row; more than two words (or two words that do not
-// fit the row) -> running text, wrapped over the rows; otherwise a sample row. `asText` (true / false) is the adult's own
-// choice for the row and wins over the rule.
+// What one line of the field is on the sheet: empty -> a blank writing row; a space after the first symbol (even a trailing
+// one: the adult is going on to the next word) -> running text, wrapped over the rows; otherwise a sample row. `asText`
+// (true / false) is the adult's own choice for the row and wins over the rule.
 export function inferRowKind(line, glyphMap, page, asText) {
-  const t = String(line ?? "").trim();
-  if (!t) return "blank";
+  void glyphMap; void page;
+  const t = String(line ?? "").replace(/^\s+/, "");
+  if (!t.trim()) return "blank";
   if (asText === true) return "passage";
   if (asText === false) return "text";
-  const words = t.split(/\s+/).length;
-  if (words > 2) return "passage";
-  if (words === 2 && glyphMap && lineWidth(t, glyphMap, page?.ruling) > rowMaxX(page)) return "passage";
-  return "text";
+  return /\S\s/.test(t) ? "passage" : "text";
 }
 
 const PARAM_KEYS = ["repeat", "dots", "copies", "mark", "asText"];
@@ -63,14 +61,15 @@ export function rowIdAtCaret(rows, startId, value, caret) {
   return rows[start + line]?.id ?? null;
 }
 
-// Puts `token` (an element's id) into the field: into the caret's line when that is empty, else on a new line below it.
-export function insertLine(value, caret, token) {
-  const lines = String(value ?? "").split("\n");
-  const at = Math.min(lines.length - 1, String(value ?? "").slice(0, caret).split("\n").length - 1);
-  if (!lines[at]?.trim()) lines[at] = token;
-  else lines.splice(at + 1, 0, token);
-  const line = lines[at]?.trim() === token && !String(value ?? "").split("\n")[at]?.trim() ? at : at + 1;
-  const text = lines.join("\n");
-  const caretAfter = lines.slice(0, line + 1).join("\n").length;
-  return { value: text, caret: caretAfter };
+// Puts `token` (an element's id) into the field AT THE CARET, as a word of its own: spaces are added where it touches other
+// text, none at the end of the line (a trailing space would turn the row into running text). Returns the new text and the caret.
+export function insertToken(value, caret, token) {
+  const text = String(value ?? "");
+  const at = Math.max(0, Math.min(text.length, caret));
+  const left = text.slice(0, at);
+  const right = text.slice(at);
+  const spaceBefore = left && !/[\s]$/.test(left) ? " " : "";
+  const spaceAfter = right && !/^[\s]/.test(right) ? " " : "";
+  const before = left + spaceBefore + token;
+  return { value: before + spaceAfter + right, caret: before.length + spaceAfter.length };
 }
