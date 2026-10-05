@@ -140,7 +140,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
       const vbH = Number(String(svg.getAttribute("viewBox") ?? "").split(/\s+/)[3]) || box.height;
       y = ((cy - box.top) / (box.height || 1)) * vbH;
     }
-    const local = rowAtSvgY(y, pageFormat(page));
+    const local = rowAtSvgY(y, pageFormat(page), page.ruling === "narrow");
     return local < 0 ? -1 : pageIndexRef.current * rowsPerPage(page) + local;
   };
 

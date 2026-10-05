@@ -520,7 +520,7 @@ describe("Прописи 2 (zip topic)", () => {
     expect([...select.querySelectorAll("option")].some((o) => o.value === "kit:syllables")).toBe(true);
     await act(async () => { select.value = "kit:syllables"; select.dispatchEvent(new Event("change", { bubbles: true })); await tick(60); });
     expect(host.querySelector('[data-testid="propis2-set-editor"]')).not.toBeNull();
-    expect(host.querySelectorAll('[data-testid="propis2-set-page"]').length).toBe(30);
+    expect(host.querySelectorAll('[data-testid="propis2-set-page"]').length).toBe(29);
     await click(host.querySelector(".back-btn"));
     expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(1);
     expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(0);

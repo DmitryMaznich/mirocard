@@ -19,7 +19,9 @@ export const pageFormat = (page) => (page?.format === "a4" ? "a4" : "a5");
 const formatOf = (page) => PAGE_FORMATS.find((f) => f.id === pageFormat(page));
 export const pageAspect = (page) => { const f = formatOf(page); return f.wMm / f.hMm; };
 // content rows on one page (ruling row 0 is only the top edge)
-export const rowsPerPage = (page) => Math.floor((formatOf(page).hMm - PRINT_FIRST_BASELINE_MM) / 12);
+// content rows on one page: all ruling rows on the narrow ruling (17 on A5, 24 on A4); on the wide one the first ruling row is only the
+// top edge of the first band (16 / 23)
+export const rowsPerPage = (page) => Math.floor((formatOf(page).hMm - PRINT_FIRST_BASELINE_MM) / 12) + (page?.ruling === "narrow" ? 1 : 0);
 
 export const RULINGS = [
   { id: "narrow", label: "Узкая строка", short: "Узкая" },
@@ -201,7 +203,7 @@ export const lineWidth = (text, glyphMap, ruling, snap) => {
 };
 
 // The snapping function of a page: the grid it is drawn with (slant frequency), margin, format.
-export const pageSnap = (page) => snapXFor({ narrowRows: page?.ruling === "narrow", simpleGrid: taskGrid(page), margin: pageMargin(page), format: pageFormat(page) });
+export const pageSnap = (page) => snapXFor({ narrowRows: page?.ruling === "narrow", simpleGrid: taskGrid(page), margin: pageMargin(page), format: pageFormat(page), narrow17: page?.ruling === "narrow" });
 // Rows of different pages stand at different phases of the grid: keep one cell of room so a snapped line never runs off.
 const wrapSlack = (ruling) => TEXT_ROW_WIDE_DIAGONAL_SPACING * (ruling === "narrow" ? 0.5 : 1);
 
@@ -464,7 +466,7 @@ export function setToLines(set, pagesById, glyphMap) {
     const lines = pageToLines(page, glyphMap);
     out.push(...lines);
     if (k < ids.length - 1) {
-      const rpp = rowsPerPage(pagesById.get(ids[0]));
+      const rpp = rowsPerPage({ ...pagesById.get(ids[0]), ruling: set.ruling ?? pagesById.get(ids[0]).ruling });
       const rest = (rpp - (lines.length % rpp)) % rpp;
       for (let i = 0; i < rest; i += 1) out.push("");
     }
@@ -481,7 +483,7 @@ export function setPageStarts(set, pagesById, glyphMap) {
     if (!page) { starts.push(null); continue; }
     starts.push(screenPage);
     const n = pageToLines({ ...page, ruling: set.ruling ?? page.ruling }, glyphMap).length;
-    screenPage += Math.max(1, Math.ceil(n / rowsPerPage(page)));
+    screenPage += Math.max(1, Math.ceil(n / rowsPerPage({ ...page, ruling: set.ruling ?? page.ruling })));
   }
   return starts;
 }

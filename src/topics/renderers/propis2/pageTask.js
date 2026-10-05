@@ -36,6 +36,7 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     format: format === "a4" ? "a4" : "a5",
     margin: margin === "left" || margin === "right" ? margin : "off",
     narrowRows,
+    narrow17: Boolean(narrowRows), // the narrow ruling uses all 17 rows of the printed notebook (see PrintPageView)
     wideGlyphs: topicRecord?.wide ?? [],
     wideElementRepeat: topicRecord?.wideElementRepeat ?? {},
   };

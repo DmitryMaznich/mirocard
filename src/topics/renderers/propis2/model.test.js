@@ -102,18 +102,19 @@ describe("propis2 model", () => {
   });
 
   it("a set pads every page to a whole screen page, so each page of the set starts a fresh page", () => {
+    const RPP = rowsPerPage(newPage("x", { ruling: "narrow" })); // 17 rows on the narrow ruling
     const a = newPage("A", { rows: [oldRow({ text: "а" }), oldRow({ text: "б" })] });
     const b = newPage("B", { rows: [oldRow({ text: "в" })] });
-    const long = newPage("L", { rows: Array.from({ length: ROWS_PER_PAGE + 3 }, (_, i) => oldRow({ text: `к${i % 2 ? "о" : "а"}т` })) });
+    const long = newPage("L", { rows: Array.from({ length: RPP + 3 }, (_, i) => oldRow({ text: `к${i % 2 ? "о" : "а"}т` })) });
     const byId = new Map([a, b, long].map((p) => [p.id, p]));
     const set = newSet("S", { pageIds: [a.id, b.id, long.id, "gone"] });
     const lines = setToLines(set, byId, map);
-    // A: 2 lines + padding to ROWS_PER_PAGE, B: 1 line + padding, L: no trailing padding (last page)
+    // A: 2 lines + padding to RPP, B: 1 line + padding, L: no trailing padding (last page)
     expect(lines.slice(0, 2)).toEqual(["а", "б"]);
-    expect(lines.slice(2, ROWS_PER_PAGE).every((l) => l === "")).toBe(true);
-    expect(lines[ROWS_PER_PAGE]).toBe("в");
-    expect(lines[ROWS_PER_PAGE * 2]).toBe("кат");
-    expect(lines).toHaveLength(ROWS_PER_PAGE * 2 + ROWS_PER_PAGE + 3);
+    expect(lines.slice(2, RPP).every((l) => l === "")).toBe(true);
+    expect(lines[RPP]).toBe("в");
+    expect(lines[RPP * 2]).toBe("кат");
+    expect(lines).toHaveLength(RPP * 2 + RPP + 3);
     expect(setPageStarts(set, byId, map)).toEqual([1, 2, 3, null]);
   });
 
@@ -298,8 +299,10 @@ describe("page formats", () => {
     const a5 = newPage("x");
     const a4 = newPage("x", { format: "a4" });
     expect(pageFormat(a5)).toBe("a5");
-    expect(rowsPerPage(a5)).toBe(16);
-    expect(rowsPerPage(a4)).toBe(23);
+    expect(rowsPerPage(a5)).toBe(17); // narrow: all 17 ruling rows of the printed notebook
+    expect(rowsPerPage(a4)).toBe(24);
+    expect(rowsPerPage(newPage("x", { ruling: "wide" }))).toBe(16); // wide: the first ruling row is the top edge of the first band
+    expect(rowsPerPage(newPage("x", { ruling: "wide", format: "a4" }))).toBe(23);
     expect(pageAspect(a4)).toBeCloseTo(210 / 297, 5);
     expect(rowMaxX(a4)).toBeGreaterThan(rowMaxX(a5) + 300);
     expect(rowMaxX(newPage("x", { format: "a4", margin: "left" }))).toBe(rowMaxX(a4) - 90);
@@ -419,7 +422,7 @@ describe("«Методика» kits (kits.json, built from the v1 notebooks' con
     for (const k of kits) {
       expect(k.pages.length, k.id).toBeGreaterThan(5);
       for (const pg of k.pages) {
-        expect(pg.rows.length, `${k.id} ${pg.title}`).toBeLessThanOrEqual(16);
+        expect(pg.rows.length, `${k.id} ${pg.title}`).toBeLessThanOrEqual(17);
         for (const r of pg.rows) expect(findUnsupported(r.text, map), `${k.id} «${r.text}»`).toEqual([]);
       }
     }

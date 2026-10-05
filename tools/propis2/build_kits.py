@@ -16,7 +16,7 @@ import syllables  # noqa: E402
 import texts  # noqa: E402
 import words  # noqa: E402
 
-ROWS = 16  # content rows of an A5 page in the constructor (the v1 notebook has 17: its first ruling row is part of the page)
+ROWS = 17  # rows of an A5 page on the narrow ruling: all 17 ruling rows of the printed notebook
 wide = json.load(open(ROOT / "tools" / "propis" / "wide.json", encoding="utf-8"))
 HAVE = {g["label"] for g in wide["glyphs"]} | {a for g in wide["glyphs"] for a in g.get("aliases", [])}
 
