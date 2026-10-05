@@ -512,9 +512,17 @@ describe("Прописи 2 (zip topic)", () => {
     for (let i = 0; i < 40 && ![...select.querySelectorAll("option")].some((o) => o.value === "kit:syllables"); i += 1) await act(async () => { await tick(100); });
     expect([...select.querySelectorAll("option")].some((o) => o.value === "kit:syllables")).toBe(true);
     await act(async () => { select.value = "kit:syllables"; select.dispatchEvent(new Event("change", { bubbles: true })); await tick(60); });
-    expect(host.querySelector('[data-testid="propis2-set-editor"]')).not.toBeNull();
-    expect(host.querySelectorAll('[data-testid="propis2-set-page"]').length).toBe(29);
+    // straight into the viewer: no set-editor screen in between
+    expect(host.querySelector('[data-testid="propis2-set-editor"]')).toBeNull();
+    expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
+    // «edit this page» opens the constructor on the page that is shown; back returns to the viewer
+    await click(host.querySelector('[aria-label="Изменить эту страницу"]'));
+    expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
+    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Слоги 1");
     await click(host.querySelector(".back-btn"));
+    expect(host.querySelector('[data-testid="propis2-view"]')).not.toBeNull();
+    await click(host.querySelector(".propis-practice-close"));
+    expect(host.querySelector('[data-testid="propis2-library"]')).not.toBeNull();
     expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(1);
     expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(0);
     await click([...host.querySelectorAll('[data-testid="propis2-set-card"] button')].find((b) => b.textContent.includes("Удалить")));

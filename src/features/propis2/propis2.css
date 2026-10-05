@@ -238,3 +238,6 @@
 
 /* the element list opens above the field: the dock must not clip it and must stand above the tiers */
 .propis2-dock { overflow: visible; position: relative; z-index: 12; }
+
+/* the viewer: «edit this page» next to the close button */
+.propis2-view-edit { position: fixed; top: calc(12px + var(--app-safe-top, 0px)); right: calc(64px + var(--app-safe-right, 0px)); z-index: 900; }

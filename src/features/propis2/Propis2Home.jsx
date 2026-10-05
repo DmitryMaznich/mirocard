@@ -5,7 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
-import { kitToLibraryItems, newId, newPage, newSet, pageFromPreset, pageFormat, pageMargin, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { kitToLibraryItems, newId, newPage, newSet, pageFromPreset, pageFormat, pageMargin, pageToLines, presetFromLines, presetFromPage, pickFragment, setPageStarts, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { emptyLibrary, loadLibrary, removePage, removePreset, removeSet, saveLibrary, upsertPage, upsertPreset, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
@@ -24,6 +24,7 @@ export default function Propis2Home({ db }) {
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState({ name: "library" });
   const [fragment, setFragment] = useState(null);
+  const [shownPage, setShownPage] = useState(0); // the screen page the viewer shows (0-based), to edit exactly that page
   const [kits, setKits] = useState([]); // «Методика» kits: a big file, loaded when the topic opens, not with the app
   useEffect(() => { let alive = true; import("@/topics/renderers/propis2/kits.json").then((m) => { if (alive) setKits(m.default?.kits ?? []); }).catch(() => {}); return () => { alive = false; }; }, []);
   const saveTimer = useRef(null);
@@ -85,7 +86,7 @@ export default function Propis2Home({ db }) {
       // a multi-page kit: a set of pages, opened as a set
       const { set: ns, pages: nps } = kitToLibraryItems(ps.kit);
       persist(upsertSet(nps.reduce((lib, pg) => upsertPage(lib, pg), library), ns));
-      setView({ name: "setEditor", setId: ns.id });
+      setView({ name: "showSet", setId: ns.id, from: "library" }); // straight into the viewer, no screen in between
       return;
     }
     const np = pageFromPreset(ps);
@@ -106,14 +107,20 @@ export default function Propis2Home({ db }) {
     const ruling = isSet ? set.ruling : page.ruling;
     const lines = isSet ? setToLines(set, pagesById, glyphMap) : pageToLines(page, glyphMap);
     const gridSource = isSet ? pagesById.get(set.pageIds?.[0]) : page;
+    const starts = isSet ? setPageStarts(set, pagesById, glyphMap) : [];
+    const editTarget = view.from === "editor" ? null : isSet ? set.pageIds[Math.max(0, starts.reduce((best, st, k) => (st != null && st <= shownPage + 1 ? k : best), 0))] : page.id;
     const task = buildPageTask({ topicRecord, lines, narrowRows: ruling === "narrow", grid: gridSource ? taskGrid(gridSource) : undefined, midDash: gridSource?.midDash, margin: pageMargin(gridSource), format: pageFormat(gridSource) });
     return (
       <div className="propis2-view" data-testid="propis2-view">
         <PrintPageView
           task={task}
+          onPageIndexChange={setShownPage}
           onClose={() => { setFragment(null); setView({ ...view, name: view.from ?? "library" }); }}
           onFragmentTap={({ row, localX }) => setFragment(pickFragment(row.word, localX, glyphMap, ruling))}
         />
+        {editTarget && (
+          <button type="button" className="propis-ctrl-btn propis2-view-edit" aria-label="Изменить эту страницу" title="Изменить эту страницу" onClick={() => { setFragment(null); setView({ name: "editor", pageId: editTarget, backTo: isSet ? { name: "showSet", setId: set.id, from: view.from } : view.backTo }); }}>✎</button>
+        )}
         {fragment && (
           <Propis2ShowPanel fragment={fragment} topicRecord={topicRecord} ruling={ruling} grid={gridSource ? taskGrid(gridSource) : undefined} midDash={gridSource?.midDash} onClose={() => setFragment(null)} />
         )}
