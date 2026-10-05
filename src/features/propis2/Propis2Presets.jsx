@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as I from "./Propis2Icons";
+import { useHint } from "./Propis2Hint";
 
 // The presets popover of the page tier: a text list in two groups («Методика» — built-in, «Мои» — saved by the adult)
 // plus "save this page as a preset". Choosing a preset starts a NEW page from it (the current page is never overwritten).
@@ -7,6 +8,7 @@ export default function Propis2Presets({ builtin = [], mine = [], canSave, defau
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const ref = useRef(null);
+  const { bind, tip } = useHint("Пресеты");
   useEffect(() => {
     if (!open) return undefined;
     const away = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
@@ -29,7 +31,7 @@ export default function Propis2Presets({ builtin = [], mine = [], canSave, defau
 
   return (
     <div className="p2-pick p2-presets" ref={ref}>
-      <button type="button" className={`p2-ib p2-ib--plain${open ? " is-on" : ""}`} aria-label="Пресеты" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((o) => !o)}><I.IconPresets /></button>
+      <button type="button" className={`p2-ib p2-ib--plain${open ? " is-on" : ""}`} aria-label="Пресеты" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((o) => !o)} {...bind}><I.IconPresets />{tip}</button>
       {open && (
         <div className="p2-presets-panel" role="dialog" aria-label="Пресеты">
           {builtin.length > 0 && <><h3>Методика</h3>{list(builtin, false)}</>}

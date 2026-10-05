@@ -124,7 +124,7 @@ describe("Прописи 2 (zip topic)", () => {
     host.remove();
   });
 
-  it("marking rows and creating a repetition page from them; passage and blank rows are accepted", async () => {
+  it("passage and blank rows are accepted", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -147,9 +147,7 @@ describe("Прописи 2 (zip topic)", () => {
     await click(btn("+ Строка"));
     await setValue(host.querySelector('[aria-label="Слово или слог"]'), "б");
     await click(btn("+ Строка"));
-    expect(btn("Из отмеченного").disabled).toBe(true);
-    await click(host.querySelector('[aria-label="Повторить строку"]'));
-    expect(btn("Из отмеченного").disabled).toBe(false);
+    expect(btn("Из отмеченного")).toBeUndefined();
 
     // a passage row and a blank row can be added too
     await click(tab("Текст"));
@@ -160,12 +158,8 @@ describe("Прописи 2 (zip topic)", () => {
     await click(btn("+ Пустая"));
     expect(host.querySelector('[aria-label="Пустая строка — место для письма"]')).not.toBeNull();
 
-    await click(btn("Из отмеченного"));
-    expect(host.querySelector('[aria-label="Название страницы"]').value).toContain("повторение");
-    expect(host.querySelector('[data-testid="propis2-preview"] svg path')).not.toBeNull();
-
     await click(host.querySelector(".back-btn"));
-    expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(2);
+    expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(1);
     await act(async () => { root.unmount(); await tick(500); });
     host.remove();
   });
@@ -459,4 +453,24 @@ describe("Прописи 2 (zip topic)", () => {
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);
+
+  it("icon controls carry their name: a title for the mouse, a press-and-hold bubble for touch (which does not click)", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    await act(async () => { byLabel(host, "Новая страница").click(); await tick(); });
+    const fmt = host.querySelector('button[aria-label="Формат"]');
+    expect(fmt.getAttribute("title")).toBe("Формат");
+    expect(host.querySelector('[aria-label="Пресеты"]').getAttribute("title")).toBe("Пресеты");
+    expect(host.querySelector(".p2-tip")).toBeNull();
+    await act(async () => { fmt.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true })); await tick(520); });
+    expect(host.querySelector(".p2-tip").textContent).toBe("Формат");
+    // the press that showed the bubble does not open the list
+    await act(async () => { fmt.dispatchEvent(new MouseEvent("pointerup", { bubbles: true })); fmt.click(); await tick(); });
+    expect(host.querySelector('[role="listbox"]')).toBeNull();
+    await act(async () => { root.unmount(); await tick(300); });
+    host.remove();
+  }, 20000);
 });

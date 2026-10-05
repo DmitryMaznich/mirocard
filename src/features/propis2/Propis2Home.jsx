@@ -5,7 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
-import { newId, newPage, newSet, pageFromMarked, pageFromPreset, pageFormat, pageMargin, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { newId, newPage, newSet, pageFromPreset, pageFormat, pageMargin, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { emptyLibrary, loadLibrary, removePage, removePreset, removeSet, saveLibrary, upsertPage, upsertPreset, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
@@ -141,10 +141,6 @@ export default function Propis2Home({ db }) {
         onApplyPreset={createFromPreset}
         onSavePreset={(name) => persist(upsertPreset(library, presetFromPage(page, name)))}
         onDeletePreset={(id) => persist(removePreset(library, id))}
-        onFromMarked={() => {
-          const next = pageFromMarked(page);
-          if (next) createPage(next);
-        }}
       />
     );
   }

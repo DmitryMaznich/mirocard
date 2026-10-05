@@ -8,6 +8,7 @@ import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
 import Propis2Picker from "./Propis2Picker";
 import Propis2Presets from "./Propis2Presets";
+import { useHint } from "./Propis2Hint";
 
 // The page constructor. The page canvas, with settings above it and the tools below it (tabs «Символ», «Слово», «Текст»).
 // No dragging: select a row (tap it on the page) and tap a symbol, it goes into that row; with no row selected a tapped
@@ -59,14 +60,16 @@ const TABS = [
 
 // A round/square icon button: 44px target, pressed state, the name only as aria-label.
 function IconBtn({ label, on, onClick, disabled, children, className = "", ...rest }) {
+  const { bind, tip } = useHint(label);
   return (
-    <button type="button" className={`p2-ib${on ? " is-on" : ""} ${className}`} aria-label={label} aria-pressed={on === undefined ? undefined : Boolean(on)} disabled={disabled} onClick={onClick} {...rest}>
+    <button type="button" className={`p2-ib${on ? " is-on" : ""} ${className}`} aria-label={label} aria-pressed={on === undefined ? undefined : Boolean(on)} disabled={disabled} onClick={onClick} {...bind} {...rest}>
       {children}
+      {tip}
     </button>
   );
 }
 
-export default function Propis2Editor({ page, topicRecord, onChange, onBack, onShow, onFromMarked, presets, onApplyPreset, onSavePreset, onDeletePreset }) {
+export default function Propis2Editor({ page, topicRecord, onChange, onBack, onShow, presets, onApplyPreset, onSavePreset, onDeletePreset }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const analysis = useMemo(() => analyzePage(page, glyphMap), [page, glyphMap]);
   const owners = useMemo(() => lineOwners(page, glyphMap), [page, glyphMap]);
@@ -113,7 +116,6 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const selectedInfo = selectedIndex >= 0 ? analysis.rows[selectedIndex] : null;
   const rowEditable = !locked && Boolean(selected) && (selected.kind === "text" || selected.kind === "element");
   const rowOpts = selected ? rowParams(selected) : null;
-  const markedCount = page.rows.filter((r) => r.marked).length;
 
   const setRows = (rows) => onChange({ ...page, rows: rows.length ? rows : [newRow()] });
   const patchSelected = (patch) => setRows(page.rows.map((r) => (r.id === selectedId ? { ...r, ...patch } : r)));
@@ -227,10 +229,6 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
             onSave={(name) => onSavePreset?.(name)}
             onDeleteMine={(id) => onDeletePreset?.(id)}
           />
-          <IconBtn label="Из отмеченного" onClick={onFromMarked} disabled={markedCount === 0} className="p2-ib--plain">
-            <I.IconFromMarked />
-            {markedCount > 0 && <span className="p2-badge">{markedCount}</span>}
-          </IconBtn>
         </div>
 
         <div className="propis2-settings propis2-settings--row" role="group" aria-label="Настройки строки">
