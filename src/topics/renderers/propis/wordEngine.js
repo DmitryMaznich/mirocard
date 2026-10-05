@@ -1342,7 +1342,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
-  const flags = lines.map((l) => (/((?:#[dc1fsorx])+)$/.exec(l) ?? [])[1] ?? "");
+  const flags = lines.map((l) => (/((?:#(?:[dc1fsorx]|i\d+))+)$/.exec(l) ?? [])[1] ?? "");
   const marks = flags.map((f) => (/#([dco])/.exec(f) ?? [])[1] ?? null);
   const fades = flags.map((f) => f.includes("#f"));
   // r = fill the row with copies of the row's content even when it is a single letter or a mixed sequence (the default
@@ -1350,11 +1350,13 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
   // start dots stay (the places where the child starts writing).
   const forced = flags.map((f) => f.includes("#r") || f.includes("#f"));
   const hideCopies = flags.map((f) => f.includes("#x"));
+  // iN = the row starts N slant cells in from its left edge (the spaces an adult typed before the text)
+  const indents = flags.map((f) => Number(/#i(\d+)/.exec(f)?.[1] ?? 0));
   const solids = flags.map((f) => f.includes("#s"));
   // "#1" = write the row exactly once (no multiplying across the line): running text that was wrapped
   // into rows ends on a one-word row, which must not be repeated to fill the line.
   const once = flags.map((f) => f.includes("#1"));
-  lines = lines.map((l) => l.replace(/(?:#[dc1fsorx])+$/, ""));
+  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorx]|i\d+))+$/, ""));
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       if (once[rowIndex]) return line;
@@ -1462,7 +1464,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           : prevToken
             // next token: a whole number of cells after the previous token's start, along the slant lines
             ? prevToken.startX + (prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
-            : (cursorX === null ? WIDE_LEFT_PAD - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
+            : (cursorX === null ? WIDE_LEFT_PAD + indents[rowIndex] * CELL - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
         const startX = loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));

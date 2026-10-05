@@ -51,12 +51,13 @@ describe("field text <-> rows", () => {
     expect(pageToLines({ ...page, rows: r.rows }, map).slice(0, 3).map((l) => l.replace(/(#\w)+$/, ""))).toEqual(["а", "", "б"]);
   });
 
-  it("running text: the first space after the first symbol makes the row text, even a trailing one; an own choice wins", () => {
+  it("running text: any space makes the row text (leading and trailing too); an own choice wins", () => {
     expect(inferRowKind("мама", map, page)).toBe("text");
     expect(inferRowKind("м", map, page)).toBe("text");
     expect(inferRowKind("мама ", map, page)).toBe("passage");
     expect(inferRowKind("и м", map, page)).toBe("passage");
-    expect(inferRowKind("  мама", map, page)).toBe("text"); // leading spaces are not a word break
+    expect(inferRowKind(" м", map, page)).toBe("passage"); // a leading space too: the text starts further right
+    expect(inferRowKind("   мама", map, page)).toBe("passage");
     expect(inferRowKind("мама мыла раму", map, page, false)).toBe("text");
     expect(inferRowKind("мама", map, page, true)).toBe("passage");
     expect(inferRowKind("   ", map, page)).toBe("blank");

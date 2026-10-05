@@ -350,3 +350,24 @@ describe("row options act on a single symbol and on mixed rows", () => {
     expect(multipliesByDefault("и м", map)).toBe(false);
   });
 });
+
+describe("spaces before running text", () => {
+  it("leading spaces become an indent flag on the first line only", () => {
+    const rows = [newRow({ kind: "passage", text: "   мама мыла раму" })];
+    const lines = pageToLines({ ...newPage("x"), rows }, map);
+    expect(lines[0]).toMatch(/#1#i3$/);
+    const wrapped = pageToLines({ ...newPage("x"), rows: [newRow({ kind: "passage", text: "  " + Array(40).fill("мама").join(" ") })] }, map);
+    expect(wrapped.length).toBeGreaterThan(1);
+    expect(wrapped[0]).toMatch(/#i2$/);
+    expect(wrapped[1]).not.toMatch(/#i/);
+  });
+  it("the engine starts the row that many slant cells in", () => {
+    const x0 = (line) => {
+      const st = layoutWideLinesIntoRows([line], map, undefined, true, 1).placed[0].segments[0].startPoints[0];
+      return st[0];
+    };
+    const shift = x0("и#1#i3") - x0("и#1");
+    expect(shift).toBeGreaterThan(80);
+    expect(Math.abs(shift - 3 * 30)).toBeLessThan(2);
+  });
+});

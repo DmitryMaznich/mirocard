@@ -13,16 +13,16 @@ export function fieldFromRows(rows, startIndex) {
   return tail.slice(0, end).map((r) => (r.kind === "blank" ? "" : String(r.text ?? "").replace(/\s*\n\s*/g, " "))).join("\n");
 }
 
-// What one line of the field is on the sheet: empty -> a blank writing row; a space after the first symbol (even a trailing
-// one: the adult is going on to the next word) -> running text, wrapped over the rows; otherwise a sample row. `asText`
-// (true / false) is the adult's own choice for the row and wins over the rule.
+// What one line of the field is on the sheet: empty -> a blank writing row; ANY space (leading too: spaces before the text
+// move it to the right, so a word can stand mid-row; a trailing one: the adult is going on to the next word) -> running text,
+// wrapped over the rows; otherwise a sample row. `asText` (true / false) is the adult's own choice for the row.
 export function inferRowKind(line, glyphMap, page, asText) {
   void glyphMap; void page;
-  const t = String(line ?? "").replace(/^\s+/, "");
+  const t = String(line ?? "");
   if (!t.trim()) return "blank";
   if (asText === true) return "passage";
   if (asText === false) return "text";
-  return /\S\s/.test(t) ? "passage" : "text";
+  return /\s/.test(t) ? "passage" : "text";
 }
 
 const PARAM_KEYS = ["repeat", "dots", "copies", "mark", "asText"];

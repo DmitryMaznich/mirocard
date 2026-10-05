@@ -1,7 +1,7 @@
 // «Прописи 2»: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
-import { PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../propis/propisRuling.js";
+import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../propis/propisRuling.js";
 import { outsideRowLabels } from "./glyphReach.js";
 
 
@@ -190,15 +190,19 @@ export const lineWidth = (text, glyphMap, ruling) => {
   return placed[0]?.segments?.[0]?.width ?? 0;
 };
 
+// Spaces typed before running text: the text starts that many slant cells in (a cell is 5 mm on the wide ruling, 2.5 on the narrow).
+export const leadingSpaces = (text) => (/^\s*/.exec(String(text ?? ""))?.[0].length ?? 0);
+const indentUnitsOf = (text, ruling) => leadingSpaces(text) * TEXT_ROW_WIDE_DIAGONAL_SPACING * (ruling === "narrow" ? 0.5 : 1);
+
 // Greedy wrap of running text into lines that fit the printable width. A single word wider than
 // the line stays on its own line (the editor warns about it); nothing is cut.
-export function wrapPassage(text, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX_X) {
+export function wrapPassage(text, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX_X, indentUnits = 0) {
   const words = String(text ?? "").split(/\s+/).filter(Boolean);
   const lines = [];
   let cur = "";
   for (const word of words) {
     const cand = cur ? `${cur} ${word}` : word;
-    if (!cur || lineWidth(cand, glyphMap, ruling) <= maxX) cur = cand;
+    if (!cur || lineWidth(cand, glyphMap, ruling) <= maxX - (lines.length === 0 ? indentUnits : 0)) cur = cand;
     else { lines.push(cur); cur = word; }
   }
   if (cur) lines.push(cur);
@@ -214,9 +218,10 @@ export function pageToLines(page, glyphMap) {
   for (const row of page?.rows ?? []) {
     if (row.kind === "blank") { out.push(""); continue; }
     if (row.kind === "passage") {
-      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
+      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page), indentUnitsOf(row.text, page?.ruling)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
       if (!wrapped.length) { out.push(""); continue; }
-      for (const l of wrapped) { out.push(`${l}#1`); if (page?.writeAfter) out.push(""); }
+      const indent = leadingSpaces(row.text);
+      wrapped.forEach((l, k) => { out.push(`${l}#1${k === 0 && indent ? `#i${indent}` : ""}`); if (page?.writeAfter) out.push(""); });
       continue;
     }
     const line = rowToLine(row);
@@ -237,7 +242,7 @@ export function lineOwners(page, glyphMap) {
   (page?.rows ?? []).forEach((row, i) => {
     if (row.kind === "blank") { out.push(i); return; }
     if (row.kind === "passage") {
-      const n = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page)).length : String(row.text ?? "").trim() ? 1 : 0;
+      const n = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page), indentUnitsOf(row.text, page?.ruling)).length : String(row.text ?? "").trim() ? 1 : 0;
       if (!n) { out.push(i); return; }
       for (let k = 0; k < n; k += 1) { out.push(i); if (page?.writeAfter) out.push(null); }
       return;
