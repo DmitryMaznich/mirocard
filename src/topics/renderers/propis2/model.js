@@ -66,23 +66,38 @@ export function newId(prefix = "p") {
   return `${prefix}_${Date.now().toString(36)}${counter.toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 }
 
-// Per-row options (block «Строка»). repeat: "all" (copies across the row), "one" (written once), "fade" (copies fade out
-// to the row's middle); dots (red start dots): "all" (sample and copies), "one" (sample only), "none"; copies: "dash"
-// (dashed, default) or "solid" (pale solid). Rows saved before these existed carry only `mark` ("" / "d" / "c").
+// Per-row options (block «Строка»).
+//  repeat — what is drawn: "one" (the sample once), "all" (the sample and copies across the whole row), "fade" (copies that
+//           fade out towards the middle of the row). A single letter or element is multiplied too, a mixed sequence ("и м")
+//           repeats as a whole.
+//  dots   — red start dots: "none", "one" (at the sample only), "all" (at every place across the row where a copy starts or
+//           would start: with "one" repeat no copies are drawn, the dots alone mark where the child starts writing).
+//  copies — "dash" (dashed, default) or "solid" (pale solid).
+// Rows from the ready methodology sheets and rows saved before these options existed have no `repeat`: they keep the old
+// rule («auto»: only a word or an already repeating group is multiplied; `mark` "d" / "c" = extra dots / clean row).
 export const REPEATS = ["all", "one", "fade"];
 export const DOTS = ["all", "one", "none"];
 export const COPY_STYLES = ["dash", "solid"];
 export function rowParams(row) {
-  const legacyDots = row?.mark === "c" ? "none" : "all";
+  const explicit = REPEATS.includes(row?.repeat);
   return {
-    repeat: REPEATS.includes(row?.repeat) ? row.repeat : "all",
-    dots: DOTS.includes(row?.dots) ? row.dots : legacyDots,
+    repeat: explicit ? row.repeat : "auto",
+    dots: DOTS.includes(row?.dots) ? row.dots : row?.mark === "c" ? "none" : "all",
     copies: COPY_STYLES.includes(row?.copies) ? row.copies : "dash",
   };
 }
 
+// Does the engine's own rule (no explicit repeat) multiply this text across the row?
+export function multipliesByDefault(text, glyphMap) {
+  const toks = String(text ?? "").trim().split(/\s+/).filter(Boolean);
+  if (!toks.length) return false;
+  if (toks.length === 1) return !glyphMap.has(toks[0]) && wideTokenToLabels(toks[0], glyphMap).length > 1;
+  for (let p = 1; p <= toks.length / 2; p += 1) if (toks.length % p === 0 && toks.every((t, i) => t === toks[i % p])) return true;
+  return false;
+}
+
 export function newRow(patch = {}) {
-  return { id: newId("r"), kind: "text", text: "", mark: "", marked: false, ...patch };
+  return { id: newId("r"), kind: "text", text: "", mark: "", marked: false, repeat: "all", dots: "all", copies: "dash", ...patch };
 }
 
 export function newPage(title = "Новая страница", patch = {}) {
@@ -96,7 +111,7 @@ export function pageFromLines(title, lines, ruling = "narrow", elementLabels = n
     const m = /^(.*?)#([dc])$/.exec(line);
     const text = m ? m[1] : line;
     const isElement = elementLabels.has(text.trim());
-    return newRow({ kind: isElement ? "element" : "text", text, mark: m ? m[2] : "", dots: m?.[2] === "c" ? "none" : "all" });
+    return newRow({ kind: isElement ? "element" : "text", text, mark: m ? m[2] : "", repeat: "auto", dots: m?.[2] === "c" ? "none" : "all" });
   });
   return newPage(title, { ruling, rows: rows.length ? rows : [newRow()] });
 }
@@ -144,14 +159,21 @@ export function rowToLine(row) {
   const text = String(row?.text ?? "").trim().replace(/\s+/g, " ");
   if (!text) return "";
   const { repeat, dots, copies } = rowParams(row);
+  if (repeat === "auto") {
+    // old rule: the sheet's own mark, nothing else (a "solid copies" choice still applies)
+    let legacy = row.mark === "d" || row.mark === "c" ? row.mark : "";
+    if (dots === "none") legacy = "c"; else if (dots === "one") legacy = "o";
+    return `${text}${legacy ? `#${legacy}` : ""}${copies === "solid" ? "#s" : ""}`;
+  }
   const flags = [];
-  if (repeat === "one") flags.push("1");
   if (repeat === "fade") flags.push("f");
+  else if (repeat === "all") flags.push("r");
+  else if (dots === "all") flags.push("r", "x"); // one sample, the dots mark every place the child starts
+  else flags.push("1");
   if (dots === "none") flags.push("c");
   else if (dots === "one") flags.push("o");
-  else if (row.mark === "d" || repeat === "one") flags.push("d"); // extra dots where the next copies would start
   if (copies === "solid") flags.push("s");
-  return flags.length ? `${text}${flags.map((f) => `#${f}`).join("")}` : text;
+  return `${text}${flags.map((f) => `#${f}`).join("")}`;
 }
 
 // Margins (red line, alternating on the spread) narrow the row: its widest allowed ink.

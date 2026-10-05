@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -10,12 +10,14 @@ function record() {
   return { wide: wide.glyphs, wideSheets: wide.sheets, elements, wideElementRepeat: wide.elementRepeat };
 }
 const map = buildGlyphMap(record());
+// rows as the ready sheets / older pages have them: no explicit repeat, the engine's own rule
+const oldRow = (patch = {}) => newRow({ repeat: "auto", ...patch });
 
 describe("propis2 model", () => {
   it("turns rows into engine lines, an empty row is an empty ruled row, marks are kept", () => {
-    const page = newPage("Т", { rows: [newRow({ text: " Н " , mark: "d" }), newRow({ text: "" }), newRow({ text: "кот" })] });
+    const page = newPage("Т", { rows: [oldRow({ text: " Н " , mark: "d" }), oldRow({ text: "" }), oldRow({ text: "кот" })] });
     expect(pageToLines(page)).toEqual(["Н#d", "", "кот"]);
-    expect(rowToLine(newRow({ text: "а  б", mark: "c" }))).toBe("а б#c");
+    expect(rowToLine(oldRow({ text: "а  б", mark: "c" }))).toBe("а б#c");
   });
 
   it("round-trips a ready sheet through pageFromLines/pageToLines", () => {
@@ -32,7 +34,7 @@ describe("propis2 model", () => {
   });
 
   it("moves and duplicates rows", () => {
-    const rows = [newRow({ text: "а" }), newRow({ text: "б" }), newRow({ text: "в" })];
+    const rows = [oldRow({ text: "а" }), oldRow({ text: "б" }), oldRow({ text: "в" })];
     expect(moveRow(rows, 0, 1).map((r) => r.text)).toEqual(["б", "а", "в"]);
     expect(moveRow(rows, 0, -1)).toBe(rows);
     const dup = duplicateRow(rows, 1);
@@ -44,14 +46,14 @@ describe("propis2 model", () => {
     expect(findUnsupported("кот", map)).toEqual([]);
     expect(findUnsupported("кот@", map)).toEqual(["@"]);
     expect(findUnsupported("a1", map)).toContain("a");
-    expect(analyzeRow(newRow({ text: "кот~" }), map).unsupported).toEqual(["~"]);
-    expect(analyzeRow(newRow({ text: "" }), map).empty).toBe(true);
+    expect(analyzeRow(oldRow({ text: "кот~" }), map).unsupported).toEqual(["~"]);
+    expect(analyzeRow(oldRow({ text: "" }), map).empty).toBe(true);
   });
 
   it("flags a row that is too wide for the line", () => {
-    expect(analyzeRow(newRow({ text: "кот" }), map, "narrow").overflow).toBe(false);
-    expect(analyzeRow(newRow({ text: "молоко молоко молоко молоко молоко молоко" }), map, "narrow").overflow).toBe(true);
-    const page = newPage("p", { rows: [newRow({ text: "кот" }), newRow({ text: "кот@" })] });
+    expect(analyzeRow(oldRow({ text: "кот" }), map, "narrow").overflow).toBe(false);
+    expect(analyzeRow(oldRow({ text: "молоко молоко молоко молоко молоко молоко" }), map, "narrow").overflow).toBe(true);
+    const page = newPage("p", { rows: [oldRow({ text: "кот" }), oldRow({ text: "кот@" })] });
     expect(analyzePage(page, map).problems).toBe(1);
   });
 
@@ -60,8 +62,8 @@ describe("propis2 model", () => {
     const lines = wrapPassage(text, map, "narrow");
     expect(lines.length).toBeGreaterThan(1);
     expect(lines.join(" ")).toBe(text);
-    for (const l of lines) expect(analyzeRow(newRow({ text: l }), map, "narrow").overflow).toBe(false);
-    const page = newPage("t", { rows: [newRow({ kind: "passage", text })] });
+    for (const l of lines) expect(analyzeRow(oldRow({ text: l }), map, "narrow").overflow).toBe(false);
+    const page = newPage("t", { rows: [oldRow({ kind: "passage", text })] });
     const out = pageToLines(page, map);
     expect(out.every((l) => l.endsWith("#1"))).toBe(true);
     expect(out.map((l) => l.replace(/#1$/, "")).join(" ")).toBe(text);
@@ -72,7 +74,7 @@ describe("propis2 model", () => {
   });
 
   it("blank rows and the write-after option become empty ruled rows, numbered the same everywhere", () => {
-    const rows = [newRow({ text: "Н", mark: "d" }), newRow({ kind: "blank" }), newRow({ text: "кот" })];
+    const rows = [oldRow({ text: "Н", mark: "d" }), oldRow({ kind: "blank" }), oldRow({ text: "кот" })];
     expect(pageToLines(newPage("a", { rows }), map)).toEqual(["Н#d", "", "кот"]);
     expect(pageToLines(newPage("a", { rows, writeAfter: true }), map)).toEqual(["Н#d", "", "", "кот", ""]);
     const { placed } = layoutWideLinesIntoRows(["кот", "", "кот"], map, undefined, true, 0.5);
@@ -80,7 +82,7 @@ describe("propis2 model", () => {
   });
 
   it("builds a new editable page from the rows marked for repetition (copies, source untouched)", () => {
-    const src = newPage("Урок", { rows: [newRow({ text: "а", marked: true }), newRow({ text: "б" }), newRow({ text: "в", marked: true })] });
+    const src = newPage("Урок", { rows: [oldRow({ text: "а", marked: true }), oldRow({ text: "б" }), oldRow({ text: "в", marked: true })] });
     const next = pageFromMarked(src);
     expect(next.title).toBe("Урок: повторение");
     expect(next.rows.map((r) => r.text)).toEqual(["а", "в"]);
@@ -100,9 +102,9 @@ describe("propis2 model", () => {
   });
 
   it("a set pads every page to a whole screen page, so each page of the set starts a fresh page", () => {
-    const a = newPage("A", { rows: [newRow({ text: "а" }), newRow({ text: "б" })] });
-    const b = newPage("B", { rows: [newRow({ text: "в" })] });
-    const long = newPage("L", { rows: Array.from({ length: ROWS_PER_PAGE + 3 }, (_, i) => newRow({ text: `к${i % 2 ? "о" : "а"}т` })) });
+    const a = newPage("A", { rows: [oldRow({ text: "а" }), oldRow({ text: "б" })] });
+    const b = newPage("B", { rows: [oldRow({ text: "в" })] });
+    const long = newPage("L", { rows: Array.from({ length: ROWS_PER_PAGE + 3 }, (_, i) => oldRow({ text: `к${i % 2 ? "о" : "а"}т` })) });
     const byId = new Map([a, b, long].map((p) => [p.id, p]));
     const set = newSet("S", { pageIds: [a.id, b.id, long.id, "gone"] });
     const lines = setToLines(set, byId, map);
@@ -116,7 +118,7 @@ describe("propis2 model", () => {
   });
 
   it("the set's ruling replaces the pages' own ruling", () => {
-    const a = newPage("A", { ruling: "wide", rows: [newRow({ text: "молоко молоко молоко молоко молоко молоко молоко" })] });
+    const a = newPage("A", { ruling: "wide", rows: [oldRow({ text: "молоко молоко молоко молоко молоко молоко молоко" })] });
     const byId = new Map([[a.id, a]]);
     const narrow = setToLines(newSet("n", { ruling: "narrow", pageIds: [a.id] }), byId, map);
     const wide = setToLines(newSet("w", { ruling: "wide", pageIds: [a.id] }), byId, map);
@@ -124,13 +126,13 @@ describe("propis2 model", () => {
   });
 
   it("drag and drop: a tile on a filled row replaces it, keeps its mark; below the page it fills the gap with blank rows", () => {
-    const page = newPage("Д", { rows: [newRow({ text: "Н", mark: "d" }), newRow({ text: "Ю" })] });
+    const page = newPage("Д", { rows: [oldRow({ text: "Н", mark: "d" }), oldRow({ text: "Ю" })] });
     const a = dropTile(page, map, 0, { kind: "text", text: "К" });
     expect(pageToLines(a.page, map)).toEqual(["К#d", "Ю"]);
     expect(a.page.rows[0].id).toBe(page.rows[0].id);
     expect(a.rowId).toBe(page.rows[0].id);
     const b = dropTile(page, map, 4, { kind: "element", text: "г1" });
-    expect(pageToLines(b.page, map)).toEqual(["Н#d", "Ю", "", "", "г1"]);
+    expect(pageToLines(b.page, map)).toEqual(["Н#d", "Ю", "", "", "г1#r"]);
     expect(b.page.rows.find((r) => r.id === b.rowId).kind).toBe("element");
   });
 
@@ -138,21 +140,21 @@ describe("propis2 model", () => {
     const empty = newPage("П");
     const first = dropTile(empty, map, 0, { kind: "text", text: "а" });
     expect(first.page.rows).toHaveLength(1);
-    expect(pageToLines(first.page, map)).toEqual(["а"]);
+    expect(pageToLines(first.page, map)).toEqual(["а#r"]);
 
-    const wa = { ...newPage("W", { rows: [newRow({ text: "а" }), newRow({ text: "б" })] }), writeAfter: true };
+    const wa = { ...newPage("W", { rows: [oldRow({ text: "а" }), oldRow({ text: "б" })] }), writeAfter: true };
     expect(lineOwners(wa, map)).toEqual([0, null, 1, null]);
     const mid = dropTile(wa, map, 1, { kind: "text", text: "в" }); // the auto blank under "а": a new row goes there
-    expect(pageToLines(mid.page, map)).toEqual(["а", "", "в", "", "б", ""]);
+    expect(pageToLines(mid.page, map)).toEqual(["а", "", "в#r", "", "б", ""]);
     const end = dropTile(wa, map, 9, { kind: "text", text: "г" }); // below: just appended, no gap filling
-    expect(pageToLines(end.page, map).filter(Boolean)).toEqual(["а", "б", "г"]);
+    expect(pageToLines(end.page, map).filter(Boolean)).toEqual(["а", "б", "г#r"]);
   });
 
   it("tap on a tile appends below the last row and drops rows without text", () => {
-    const page = newPage("Т", { rows: [newRow({ text: "а" }), newRow({ text: "" })] });
+    const page = newPage("Т", { rows: [oldRow({ text: "а" }), oldRow({ text: "" })] });
     const r = appendTile(page, map, { kind: "text", text: "б" });
     expect(r.page.rows.map((x) => x.text)).toEqual(["а", "б"]);
-    expect(pageToLines(r.page, map)).toEqual(["а", "б"]);
+    expect(pageToLines(r.page, map)).toEqual(["а", "б#r"]);
   });
 
   it("punctuation: supported, stands after the word and is not joined to the last letter", () => {
@@ -173,15 +175,15 @@ describe("propis2 model", () => {
     expect(findOutsideRow("рыба", map).sort()).toEqual(["б", "р"].sort());
     expect(findOutsideRow("как!", map)).toEqual(["!"]);
     expect(findOutsideRow("кто?", map)).toEqual(["?"]);
-    const bad = newRow({ text: "Фея" });
+    const bad = oldRow({ text: "Фея" });
     expect(analyzeRow(bad, map, "wide").outside).toEqual(["Ф"]);
     expect(analyzeRow(bad, map, "narrow").outside).toEqual([]);
-    const page = newPage("w", { ruling: "wide", rows: [newRow({ text: "мама" }), bad] });
+    const page = newPage("w", { ruling: "wide", rows: [oldRow({ text: "мама" }), bad] });
     expect(analyzePage(page, map).problems).toBe(1);
   });
 
   it("tap on the sheet: an existing row is selected, an empty place gets a new row (blank rows fill the gap)", () => {
-    const page = newPage("T", { rows: [newRow({ text: "а" })] });
+    const page = newPage("T", { rows: [oldRow({ text: "а" })] });
     const same = selectRowAt(page, map, 0);
     expect(same.page).toBe(page);
     expect(same.rowId).toBe(page.rows[0].id);
@@ -195,7 +197,7 @@ describe("propis2 model", () => {
     const first = selectRowAt(empty, map, 0);
     expect(first.rowId).toBe(empty.rows[0].id);
     // the writing space under a "write after" row is not a row: nothing is selected, nothing is added
-    const wa = { ...newPage("W", { rows: [newRow({ text: "а" })] }), writeAfter: true };
+    const wa = { ...newPage("W", { rows: [oldRow({ text: "а" })] }), writeAfter: true };
     const under = selectRowAt(wa, map, 1);
     expect(under.page).toBe(wa);
     expect(under.rowId).toBeNull();
@@ -207,15 +209,22 @@ describe("propis2 model", () => {
 
 describe("row params -> engine flags", () => {
   const row = (p) => newRow({ text: "и", ...p });
-  it("defaults add no flags; legacy marks keep working", () => {
-    expect(rowToLine(row({}))).toBe("и");
-    expect(rowToLine(row({ mark: "c" }))).toBe("и#c");
-    expect(rowToLine(row({ mark: "d" }))).toBe("и#d");
+  it("a new row repeats across the row with a dot at every copy; old rows keep the sheet's marks", () => {
+    expect(rowToLine(row({}))).toBe("и#r");
+    expect(rowToLine(newRow({ text: "и", repeat: "auto", mark: "c" }))).toBe("и#c");
+    expect(rowToLine(newRow({ text: "и", repeat: "auto", mark: "d" }))).toBe("и#d");
+    expect(rowToLine(newRow({ text: "и", repeat: "auto" }))).toBe("и");
+    expect(rowParams({ text: "и", mark: "c" })).toMatchObject({ repeat: "auto", dots: "none" });
   });
   it("repeat, dots and copies style translate", () => {
     expect(rowToLine(row({ repeat: "one", dots: "none" }))).toBe("и#1#c");
+    expect(rowToLine(row({ repeat: "one", dots: "one" }))).toBe("и#1#o");
+    expect(rowToLine(row({ repeat: "one" }))).toBe("и#r#x"); // the sample alone, dots mark every place the child starts
     expect(rowToLine(row({ repeat: "fade", dots: "one", copies: "solid" }))).toBe("и#f#o#s");
-    expect(rowToLine(row({ repeat: "one" }))).toBe("и#1#d");
+    expect(rowToLine(row({ repeat: "all", dots: "none" }))).toBe("и#r#c");
+  });
+  it("an explicit dots choice on an old row replaces its mark", () => {
+    expect(rowToLine(newRow({ text: "и", repeat: "auto", mark: "d", dots: "none" }))).toBe("и#c");
   });
 });
 
@@ -300,5 +309,44 @@ describe("page formats", () => {
     const b = newPage("b", { format: "a4", rows: [newRow({ text: "м" })] });
     const lines = setToLines(newSet("s", { pageIds: [a.id, b.id] }), new Map([[a.id, a], [b.id, b]]), map);
     expect(lines.length).toBe(rowsPerPage(a) + 1);
+  });
+});
+
+describe("row options act on a single symbol and on mixed rows", () => {
+  const seg = (line) => layoutWideLinesIntoRows([line], map, undefined, true, 1).placed[0].segments[0];
+  it("a single letter is multiplied across the row (all) and fades (fade); «one» stays single", () => {
+    expect(seg("и").strokes.length).toBe(1);
+    expect(seg("и#r").strokes.length).toBeGreaterThan(5);
+    const ops = seg("и#f").strokes.slice(1).map((s) => s.opacity);
+    expect(ops.length).toBeGreaterThan(5);
+    expect(ops[0]).toBeLessThan(1);
+    expect(ops.at(-1)).toBe(0);
+    expect(seg("и#1").strokes.length).toBe(1);
+  });
+  it("a mixed sequence repeats as a whole", () => {
+    const toks = layoutWideLinesIntoRows(["и м#r"], map, undefined, true, 1).placed[0];
+    expect(toks.segments[0].strokes.length).toBeGreaterThan(6);
+  });
+  it("dots «all» with a single sample: no copies drawn, a dot at every place across the row", () => {
+    const s = seg("и#r#x");
+    expect(s.strokes.length).toBe(1);
+    expect(s.strokes.some((st) => st.dashed)).toBe(false);
+    expect(s.startPoints.length).toBe(seg("и#r").startPoints.length);
+    expect(s.startPoints.length).toBeGreaterThan(5);
+  });
+  it("dots «sample only» and «none» on a multiplied row", () => {
+    expect(seg("и#r#o").startPoints).toHaveLength(1);
+    expect(seg("и#r#c").startPoints).toHaveLength(0);
+  });
+  it("solid copies are not dashed, also while fading", () => {
+    const st = seg("и#f#s").strokes.slice(1);
+    expect(st.every((x) => !x.dashed)).toBe(true);
+    expect(st[0].opacity).toBeLessThan(1);
+  });
+  it("what the sheet's own rule multiplies is shown as «all», the rest as «one»", () => {
+    expect(multipliesByDefault("мама", map)).toBe(true);
+    expect(multipliesByDefault("и и", map)).toBe(true);
+    expect(multipliesByDefault("и", map)).toBe(false);
+    expect(multipliesByDefault("и м", map)).toBe(false);
   });
 });

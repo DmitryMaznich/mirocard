@@ -1342,14 +1342,19 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
-  const flags = lines.map((l) => (/((?:#[dc1fso])+)$/.exec(l) ?? [])[1] ?? "");
+  const flags = lines.map((l) => (/((?:#[dc1fsorx])+)$/.exec(l) ?? [])[1] ?? "");
   const marks = flags.map((f) => (/#([dco])/.exec(f) ?? [])[1] ?? null);
   const fades = flags.map((f) => f.includes("#f"));
+  // r = fill the row with copies of the row's content even when it is a single letter or a mixed sequence (the default
+  // only multiplies a word or a group that already repeats); f (fade) implies it. x = copies are not drawn, only their
+  // start dots stay (the places where the child starts writing).
+  const forced = flags.map((f) => f.includes("#r") || f.includes("#f"));
+  const hideCopies = flags.map((f) => f.includes("#x"));
   const solids = flags.map((f) => f.includes("#s"));
   // "#1" = write the row exactly once (no multiplying across the line): running text that was wrapped
   // into rows ends on a one-word row, which must not be repeated to fill the line.
   const once = flags.map((f) => f.includes("#1"));
-  lines = lines.map((l) => l.replace(/(?:#[dc1fso])+$/, ""));
+  lines = lines.map((l) => l.replace(/(?:#[dc1fsorx])+$/, ""));
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       if (once[rowIndex]) return line;
@@ -1363,6 +1368,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           if (toks.length % p === 0 && toks.every((t, i) => t === toks[i % p])) { unit = toks.slice(0, p); break; }
         }
       }
+      if (!unit && forced[rowIndex] && toks.length) unit = toks;
       if (!unit) return line;
       const rowOf = (n) => Array(n).fill(unit).flat().join(" ");
       let best = Math.max(1, toks.length / unit.length);
@@ -1577,10 +1583,15 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     const firstX = seg.strokes[0] ? getPathEndpoints(seg.strokes[0].d).start[0] : 0;
     seg.strokes = seg.strokes.map(({ copyX, ...st }) => {
       if (!st.dashed) return st;
-      if (fades[i] && copyX !== undefined) return { ...st, opacity: Math.round(Math.max(0, 1 - (copyX - firstX) / Math.max(1, WIDE_FADE_END_X - firstX)) * 100) / 100 };
-      if (solids[i]) { const { dashed, ...rest } = st; return { ...rest, opacity: WIDE_SOLID_COPY_OPACITY }; }
-      return st;
+      let out = st;
+      if (solids[i]) { const { dashed, ...rest } = st; out = { ...rest, opacity: WIDE_SOLID_COPY_OPACITY }; }
+      if (fades[i] && copyX !== undefined) out = { ...out, opacity: Math.round(Math.max(0, 1 - (copyX - firstX) / Math.max(1, WIDE_FADE_END_X - firstX)) * 100) / 100 };
+      return out;
     });
+    if (hideCopies[i]) {
+      seg.strokes = seg.strokes.filter((st) => !st.dashed && st.opacity === undefined);
+      if (seg.trajectory) seg.trajectory = { ...seg.trajectory, strokes: seg.trajectory.strokes.filter((st) => !st.dashed) };
+    }
     if (!marks[i]) return;
     if (marks[i] === "c") { seg.startPoints = []; return; }
     const base = seg.startPoints?.[0];

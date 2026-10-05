@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
-import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, appendTile, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, replaceSymbol, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
+import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, multipliesByDefault, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, appendTile, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, replaceSymbol, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import Propis2Carousel, { TileGlyph, buildTiles } from "./Propis2Carousel";
 import Propis2Preview from "./Propis2Preview";
@@ -115,7 +115,12 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const selected = selectedIndex >= 0 ? page.rows[selectedIndex] : null;
   const selectedInfo = selectedIndex >= 0 ? analysis.rows[selectedIndex] : null;
   const rowEditable = !locked && Boolean(selected) && (selected.kind === "text" || selected.kind === "element");
-  const rowOpts = selected ? rowParams(selected) : null;
+  const rowOpts = (() => {
+    if (!selected) return null;
+    const p = rowParams(selected);
+    // a row from a ready sheet follows the engine's own rule until a repeat is picked: show what it does
+    return p.repeat === "auto" ? { ...p, repeat: multipliesByDefault(selected.text, glyphMap) ? "all" : "one" } : p;
+  })();
 
   const setRows = (rows) => onChange({ ...page, rows: rows.length ? rows : [newRow()] });
   const patchSelected = (patch) => setRows(page.rows.map((r) => (r.id === selectedId ? { ...r, ...patch } : r)));
