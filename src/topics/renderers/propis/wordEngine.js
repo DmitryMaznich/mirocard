@@ -1255,9 +1255,26 @@ function wideGlyphLocal(glyph, scale = 1) {
   // lowest point of the stem). Split off here so the standalone glyph is unchanged; the layout appends it on demand.
   let tail = null;
   if (Number.isInteger(glyph.tailStroke) && strokes[glyph.tailStroke]) tail = strokes.splice(glyph.tailStroke, 1)[0];
+  // `tailSplit` (stroke index): the stroke's LAST cubic is the connector rise appended to the letter (о, с, ю...): it is cut off and
+  // handled like a `tailStroke`, so the letter alone is written without it and with it only when another letter follows.
+  if (!tail && Number.isInteger(glyph.tailSplit) && strokes[glyph.tailSplit]) {
+    const tokens = strokes[glyph.tailSplit].d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+    let lastC = -1;
+    for (let i = 0; i < tokens.length; i += 1) if (tokens[i] === "C") lastC = i;
+    if (lastC > 3) {
+      const from = tokens.slice(lastC - 2, lastC).join(" "); // the end point of the body = the start of the connector
+      tail = { d: `M ${from} ${tokens.slice(lastC).join(" ")}` };
+      strokes[glyph.tailSplit] = { d: tokens.slice(0, lastC).join(" ") };
+    }
+  }
+  const liftTail = Boolean(tail) && Boolean(glyph.tailLift);
   // Letters' exit rises must end ABOVE the dashed middle line (as in the workbook), never on or under it:
   // the last cubic of the exit stroke is carried further along its own end tangent up to that height.
-  if (/^[\u0400-\u04FF]/.test(glyph.label ?? "") && !glyph.noLiftExit) {
+  if (liftTail && !glyph.noLiftExit) {
+    // the connector is what the exit rise is: lift IT, not the letter's body
+    const dashY = WIDE_BASELINE_Y - (WIDE_ZONE_UNITS / 2) * scale;
+    tail = { d: liftEndToD(tail.d, dashY - 2.2 * scale) };
+  } else if (/^[\u0400-\u04FF]/.test(glyph.label ?? "") && !glyph.noLiftExit) {
     const dashY = WIDE_BASELINE_Y - (WIDE_ZONE_UNITS / 2) * scale;
     const targetY = dashY - 2.2 * scale;
     let bi = 0, bx = -Infinity;

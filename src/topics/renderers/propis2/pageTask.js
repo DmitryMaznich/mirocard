@@ -1,10 +1,13 @@
 // Glyph label -> glyph (aliases included) for a deck record, as the wide-row engine wants it.
+import { withGlyphOverrides } from "./glyphOverrides.js";
+
 export function buildGlyphMap(topicRecord) {
   const map = new Map();
   // elements.json entries ride along by id; wide.json glyphs win (same rule as PrintPageView).
   for (const el of topicRecord?.elements ?? []) map.set(el.id, { label: el.id, kind: "element", strokes: el.strokes, stretch: 1.806, repeatCells: topicRecord?.wideElementRepeat?.[el.id] });
-  for (const g of topicRecord?.wide ?? []) map.set(g.label, g);
-  for (const g of topicRecord?.wide ?? []) for (const a of g.aliases ?? []) map.set(a, g);
+  const wide = withGlyphOverrides(topicRecord?.wide);
+  for (const g of wide) map.set(g.label, g);
+  for (const g of wide) for (const a of g.aliases ?? []) map.set(a, g);
   return map;
 }
 
@@ -37,7 +40,7 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     margin: margin === "left" || margin === "right" ? margin : "off",
     narrowRows,
     narrow17: Boolean(narrowRows), // the narrow ruling uses all 17 rows of the printed notebook (see PrintPageView)
-    wideGlyphs: topicRecord?.wide ?? [],
+    wideGlyphs: withGlyphOverrides(topicRecord?.wide),
     wideElementRepeat: topicRecord?.wideElementRepeat ?? {},
   };
 }
