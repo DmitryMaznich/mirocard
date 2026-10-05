@@ -1427,7 +1427,10 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     let firstGlyph = true;
     const tokenSeen = new Map(); // token text -> how many times already placed on this row
     let prevToken = null; // { isElement, isWord, startX, startY, width, repeatCells } of the previous token
+    let pendingGap = 0; // extra spaces typed between words ("_N" pseudo tokens), in slant cells, for the next word
     for (const token of line.split(/\s+/).filter(Boolean)) {
+      const spacer = /^_(\d+)$/.exec(token);
+      if (spacer) { pendingGap += Number(spacer[1]); continue; }
       const labels = wideTokenToLabels(token, glyphsByLabel);
       prevExit = null;
       // every copy after the first of the same token on a row is a dashed trace-over guide
@@ -1463,8 +1466,8 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           ? prevExit[0] + Math.abs(prevExit[1] - local.start[1]) * WIDE_JOIN_TAN - local.contactDx
           : prevToken
             // next token: a whole number of cells after the previous token's start, along the slant lines
-            ? prevToken.startX + (prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
-            : (cursorX === null ? WIDE_LEFT_PAD + indents[rowIndex] * CELL - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
+            ? prevToken.startX + ((prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) + pendingGap) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
+            : (cursorX === null ? WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
         const startX = loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
@@ -1546,6 +1549,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         const snapped = snapX(rowIndex, prevExit[0], prevExit[1]);
         if (Math.abs(snapped - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, snapped - prevExit[0]) };
       }
+      pendingGap = 0;
       if (tokenStartX !== null) prevToken = { isElement, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells };
     }
     const animStrokes = [];

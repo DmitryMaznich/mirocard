@@ -371,3 +371,24 @@ describe("spaces before running text", () => {
     expect(Math.abs(shift - 3 * 30)).toBeLessThan(2);
   });
 });
+
+describe("extra spaces between words of running text", () => {
+  const x1 = (line) => layoutWideLinesIntoRows([line], map, undefined, true, 1).placed[0].segments[0].startPoints.map((p) => p[0]);
+  it("every space beyond the first adds a slant cell; the first one is the usual gap", () => {
+    expect(wrapPassage("мама мыла", map, "wide")).toEqual(["мама мыла"]);
+    expect(wrapPassage("мама  мыла", map, "wide")).toEqual(["мама _1 мыла"]);
+    expect(wrapPassage("мама    мыла раму", map, "narrow")).toEqual(["мама _3 мыла раму"]);
+    expect(wrapPassage("   мама мыла", map, "wide")).toEqual(["мама мыла"]); // leading spaces are the indent
+  });
+  it("the engine moves the next word right by that many cells", () => {
+    const gap = (line) => { const [a, b] = x1(line); return b - a; };
+    expect(gap("мама _2 мыла#1") - gap("мама мыла#1")).toBeCloseTo(60, 0);
+  });
+  it("a tap on the row still finds the words, not the spacers", () => {
+    expect(pickFragment("мама _2 мыла", 5, map, "wide")).toBe("мама");
+  });
+  it("the row's lines carry the spacers into the page", () => {
+    const rows = [newRow({ kind: "passage", text: "мама   мыла" })];
+    expect(pageToLines({ ...newPage("x", { ruling: "wide" }), rows }, map)[0]).toMatch(/^мама _2 мыла#1$/);
+  });
+});

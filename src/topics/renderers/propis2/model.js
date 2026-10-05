@@ -197,11 +197,14 @@ const indentUnitsOf = (text, ruling) => leadingSpaces(text) * TEXT_ROW_WIDE_DIAG
 // Greedy wrap of running text into lines that fit the printable width. A single word wider than
 // the line stays on its own line (the editor warns about it); nothing is cut.
 export function wrapPassage(text, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX_X, indentUnits = 0) {
-  const words = String(text ?? "").split(/\s+/).filter(Boolean);
+  // words with the extra spaces typed before them: one space is the usual gap between words, every further space adds a
+  // slant cell (an "_N" pseudo word for the engine); spaces at the start of the text are the row's indent, not a gap
+  const words = [];
+  for (const m of String(text ?? "").matchAll(/(\s*)(\S+)/g)) words.push({ word: m[2], extra: words.length ? Math.max(0, m[1].length - 1) : 0 });
   const lines = [];
   let cur = "";
-  for (const word of words) {
-    const cand = cur ? `${cur} ${word}` : word;
+  for (const { word, extra } of words) {
+    const cand = cur ? `${cur}${extra ? ` _${extra} ` : " "}${word}` : word;
     if (!cur || lineWidth(cand, glyphMap, ruling) <= maxX - (lines.length === 0 ? indentUnits : 0)) cur = cand;
     else { lines.push(cur); cur = word; }
   }
@@ -421,7 +424,7 @@ export function analyzePage(page, glyphMap) {
 // same word repeated across the line), `localX` the tap position in the row's own units. Word k is
 // where the line written up to word k has not yet reached the tap.
 export function pickFragment(rowWord, localX, glyphMap, ruling = "narrow") {
-  const words = String(rowWord ?? "").split(/\s+/).filter(Boolean);
+  const words = String(rowWord ?? "").split(/\s+/).filter((w) => w && !/^_\d+$/.test(w));
   if (words.length <= 1) return words[0] ?? "";
   for (let k = 0; k < words.length; k += 1) {
     if (lineWidth(words.slice(0, k + 1).join(" "), glyphMap, ruling) >= localX - 6) return words[k];
