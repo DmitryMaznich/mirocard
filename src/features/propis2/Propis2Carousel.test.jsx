@@ -15,6 +15,14 @@ describe("carousel tiles", () => {
     for (const tile of [...t.lower, ...t.upper, ...t.elements]) expect(tile.strokes.length, tile.text).toBeGreaterThan(0);
   });
 
+  it("letters stored as deck «elements» (г п р л м я) are not offered under the elements", () => {
+    const t = buildTiles(record());
+    const ids = t.elements.map((x) => x.text);
+    for (const l of ["г", "п", "р", "л", "м", "я", "г1", "п1"]) expect(ids, l).not.toContain(l);
+    expect(t.lower.map((x) => x.text)).toEqual(expect.arrayContaining(["г", "п", "р", "л", "м", "я"]));
+    expect(ids.length).toBeGreaterThan(5);
+  });
+
   it("capitals: those the deck has (Ё Й Ъ Ы Ь are not traced yet)", () => {
     const t = buildTiles(record());
     expect(t.upper.map((x) => x.text).join("")).toBe("АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ");

@@ -14,6 +14,8 @@ const UPPER = LOWER.toUpperCase();
 const ROW_MID = (ROW_TOP + ROW_BASE) / 2;
 const MAX_TILE_SYMBOL_W = 100;
 
+const LETTER_NAMES = new Set([...LOWER, ...UPPER]);
+
 export function buildTiles(topicRecord) {
   const glyphMap = buildGlyphMap(topicRecord);
   const strokesOf = (label) => narrowStrokes(glyphMap, label);
@@ -27,6 +29,8 @@ export function buildTiles(topicRecord) {
   const elements = [];
   for (const g of wide) {
     if (g.kind !== "element" || seen.has(g.label)) continue;
+    // г п р л м я are stored as «elements» in the deck but are letters: they live under the letters, not here
+    if ([g.label, ...(g.aliases ?? [])].some((n) => LETTER_NAMES.has(n))) continue;
     seen.add(g.label);
     elements.push(make("element", g.label, g.label));
   }
