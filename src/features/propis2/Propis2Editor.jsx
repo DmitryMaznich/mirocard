@@ -241,11 +241,12 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <span className="p2-pager-pos" aria-live="polite">Стр. {nav.index + 1} из {nav.total}</span>
           <button type="button" className="p2-ib p2-tool" aria-label="Следующая страница" disabled={nav.index >= nav.total - 1} onClick={nav.onNext}><span className="p2-tool-ico p2-glyph">›</span><span className="p2-cap">Вперёд</span></button>
           <span className="p2-sep" aria-hidden="true" />
-          <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу раньше" disabled={nav.index <= 0} onClick={nav.onMoveBefore}><span className="p2-tool-ico p2-glyph">←</span><span className="p2-cap">Раньше</span></button>
-          <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу позже" disabled={nav.index >= nav.total - 1} onClick={nav.onMoveAfter}><span className="p2-tool-ico p2-glyph">→</span><span className="p2-cap">Позже</span></button>
-          <span className="p2-sep" aria-hidden="true" />
+          <button type="button" className="p2-ib p2-tool" aria-label="Добавить страницу" onClick={nav.onAdd}><span className="p2-tool-ico"><I.IconAddPage /></span><span className="p2-cap">Добавить</span></button>
           <button type="button" className="p2-ib p2-tool" aria-label="Копия страницы" onClick={nav.onDuplicate}><span className="p2-tool-ico"><I.IconDuplicate /></span><span className="p2-cap">Копия</span></button>
           <button type="button" className="p2-ib p2-tool p2-ib--danger" aria-label="Удалить страницу из комплекта" onClick={nav.onDelete}><span className="p2-tool-ico"><I.IconTrash /></span><span className="p2-cap">Удалить</span></button>
+          <span className="p2-sep" aria-hidden="true" />
+          <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу раньше" disabled={nav.index <= 0} onClick={nav.onMoveBefore}><span className="p2-tool-ico p2-glyph">←</span><span className="p2-cap">Раньше</span></button>
+          <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу позже" disabled={nav.index >= nav.total - 1} onClick={nav.onMoveAfter}><span className="p2-tool-ico p2-glyph">→</span><span className="p2-cap">Позже</span></button>
         </div>
       )}
 

@@ -542,6 +542,16 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Слоги 2");
     await click(host.querySelector('[aria-label="Переместить страницу позже"]'));
     expect(pos()).toBe(`Стр. 2 из ${total}`);
+    // a new blank page right after this one, with the same paper settings
+    await click(host.querySelector('[aria-label="Добавить страницу"]'));
+    expect(pos()).toBe(`Стр. 3 из ${total + 1}`);
+    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe(`Страница ${total + 1}`);
+    expect(host.querySelector('[aria-label="Тип бумаги"]').disabled).toBe(false); // an own page, not a locked kit one
+    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
+    await click(host.querySelector('[aria-label="Удалить страницу из комплекта"]'));
+    expect(pos()).toBe(`Стр. 3 из ${total}`);
+    await click(host.querySelector('[aria-label="Предыдущая страница"]'));
+    expect(pos()).toBe("Стр. 2 из "+total);
     await click(host.querySelector('[aria-label="Копия страницы"]'));
     expect(pos()).toBe(`Стр. 3 из ${total + 1}`);
     vi.spyOn(window, "confirm").mockReturnValue(true);

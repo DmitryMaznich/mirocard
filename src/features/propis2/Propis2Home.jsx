@@ -170,6 +170,14 @@ export default function Propis2Home({ db }) {
       onNext: () => goPage(navSet.pageIds[navIndex + 1]),
       onMoveBefore: () => { const ids = [...navSet.pageIds]; [ids[navIndex - 1], ids[navIndex]] = [ids[navIndex], ids[navIndex - 1]]; persist(upsertSet(library, { ...navSet, pageIds: ids })); },
       onMoveAfter: () => { const ids = [...navSet.pageIds]; [ids[navIndex + 1], ids[navIndex]] = [ids[navIndex], ids[navIndex + 1]]; persist(upsertSet(library, { ...navSet, pageIds: ids })); },
+      onAdd: () => {
+        // a blank page with this page's paper, ruling, margins and format, right after it
+        const { id: _id, title: _t, rows: _r, createdAt: _c, updatedAt: _u, locked: _l, presetId: _p, ...layout } = page;
+        const fresh = newPage(`Страница ${navSet.pageIds.length + 1}`, layout);
+        const pageIds = [...navSet.pageIds.slice(0, navIndex + 1), fresh.id, ...navSet.pageIds.slice(navIndex + 1)];
+        persist(upsertSet(upsertPage(library, fresh), { ...navSet, pageIds }));
+        goPage(fresh.id);
+      },
       onDuplicate: () => {
         const copy = { ...page, id: newId("pg"), title: `${page.title} (копия)`, rows: page.rows.map((r) => ({ ...r, id: newId("r") })), createdAt: Date.now() };
         const pageIds = [...navSet.pageIds.slice(0, navIndex + 1), copy.id, ...navSet.pageIds.slice(navIndex + 1)];
