@@ -67,7 +67,7 @@ function IconBtn({ label, on, onClick, disabled, children, className = "", ...re
   );
 }
 
-export default function Propis2Editor({ page, topicRecord, onChange, onBack, onShow, presets, onApplyPreset, onSavePreset, onDeletePreset }) {
+export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, presets, onApplyPreset, onSavePreset, onDeletePreset }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const analysis = useMemo(() => analyzePage(page, glyphMap), [page, glyphMap]);
   const owners = useMemo(() => lineOwners(page, glyphMap), [page, glyphMap]);
@@ -234,6 +234,17 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
         <input className="propis2-title-input" value={page.title} onChange={(e) => onChange({ ...page, title: e.target.value })} aria-label="Название страницы" />
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>
+
+      {nav && (
+        <div className="p2-pager" role="group" aria-label="Страницы комплекта">
+          <button type="button" className="p2-pager-btn" aria-label="Предыдущая страница" disabled={nav.index <= 0} onClick={nav.onPrev}>‹</button>
+          <span className="p2-pager-pos" aria-live="polite">Стр. {nav.index + 1} из {nav.total}</span>
+          <button type="button" className="p2-pager-btn" aria-label="Следующая страница" disabled={nav.index >= nav.total - 1} onClick={nav.onNext}>›</button>
+          <span className="p2-grow" />
+          <button type="button" className="p2-pager-txt" aria-label="Копия страницы" onClick={nav.onDuplicate}>Копия</button>
+          <button type="button" className="p2-pager-txt p2-pager-del" aria-label="Удалить страницу из комплекта" onClick={nav.onDelete}>Удалить</button>
+        </div>
+      )}
 
       <div className="propis2-main">
         <div className="propis2-settings" role="group" aria-label="Настройки страницы">

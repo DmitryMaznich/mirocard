@@ -159,13 +159,38 @@ export default function Propis2Home({ db }) {
   }
 
   if (view.name === "editor" && page) {
+    // inside a set the editor pages through all its pages and can copy / delete them (no separate set screen needed)
+    const navSet = view.backTo?.setId ? library.sets.find((st) => st.id === view.backTo.setId) : null;
+    const navIndex = navSet ? navSet.pageIds.indexOf(page.id) : -1;
+    const goPage = (id) => id && setView({ ...view, pageId: id });
+    const nav = navSet && navIndex >= 0 ? {
+      index: navIndex,
+      total: navSet.pageIds.length,
+      onPrev: () => goPage(navSet.pageIds[navIndex - 1]),
+      onNext: () => goPage(navSet.pageIds[navIndex + 1]),
+      onDuplicate: () => {
+        const copy = { ...page, id: newId("pg"), title: `${page.title} (копия)`, rows: page.rows.map((r) => ({ ...r, id: newId("r") })), createdAt: Date.now() };
+        const pageIds = [...navSet.pageIds.slice(0, navIndex + 1), copy.id, ...navSet.pageIds.slice(navIndex + 1)];
+        persist(upsertSet(upsertPage(library, copy), { ...navSet, pageIds }));
+        goPage(copy.id);
+      },
+      onDelete: () => {
+        if (typeof window !== "undefined" && window.confirm && !window.confirm(`Удалить страницу «${page.title}» из комплекта?`)) return;
+        const pageIds = navSet.pageIds.filter((id) => id !== page.id);
+        if (!pageIds.length) { persist(removeSet(removePage(library, page.id), navSet.id)); setView({ name: "library" }); return; }
+        persist(upsertSet(removePage(library, page.id), { ...navSet, pageIds }));
+        goPage(pageIds[Math.min(navIndex, pageIds.length - 1)]);
+      },
+    } : null;
     return (
       <Propis2Editor
+        key={page.id}
+        nav={nav}
         page={page}
         topicRecord={topicRecord}
         onChange={(next) => persist(upsertPage(library, next))}
         onBack={() => setView(view.backTo ?? { name: "library" })}
-        onShow={() => setView({ name: "show", pageId: page.id, from: "editor", backTo: view.backTo })}
+        onShow={() => setView(navSet ? { name: "showSet", setId: navSet.id, pageId: page.id, from: "editor", backTo: view.backTo } : { name: "show", pageId: page.id, from: "editor", backTo: view.backTo })}
         presets={presets}
         onApplyPreset={createFromPreset}
         onSavePreset={(name) => persist(upsertPreset(library, presetFromPage(page, name)))}

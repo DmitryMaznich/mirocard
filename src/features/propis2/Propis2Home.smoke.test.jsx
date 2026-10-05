@@ -528,6 +528,22 @@ describe("Прописи 2 (zip topic)", () => {
     await click(host.querySelector('[aria-label="Изменить эту страницу"]'));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Слоги 1");
+    // inside a set the editor pages through all its pages, copies and deletes them
+    const pos = () => host.querySelector(".p2-pager-pos").textContent;
+    expect(pos()).toMatch(/^Стр\. 1 из (\d+)$/);
+    const total = Number(pos().match(/из (\d+)/)[1]);
+    expect(host.querySelector('[aria-label="Предыдущая страница"]').disabled).toBe(true);
+    await click(host.querySelector('[aria-label="Следующая страница"]'));
+    expect(pos()).toBe(`Стр. 2 из ${total}`);
+    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Слоги 2");
+    await click(host.querySelector('[aria-label="Копия страницы"]'));
+    expect(pos()).toBe(`Стр. 3 из ${total + 1}`);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    await click(host.querySelector('[aria-label="Удалить страницу из комплекта"]'));
+    expect(pos()).toBe(`Стр. 3 из ${total}`);
+    await click(host.querySelector('[aria-label="Предыдущая страница"]'));
+    await click(host.querySelector('[aria-label="Предыдущая страница"]'));
+    expect(pos()).toBe(`Стр. 1 из ${total}`);
     await click(host.querySelector(".back-btn"));
     expect(host.querySelector('[data-testid="propis2-view"]')).not.toBeNull();
     await click(host.querySelector(".propis-practice-close"));
