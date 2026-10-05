@@ -17,46 +17,46 @@
     },
     {
       "id": "reading_short_stories",
-      "version": "1.6.3",
+      "version": "1.6.4",
       "title": {
         "ru": "Чтение: Короткие рассказы",
         "en": "Reading: Short Stories"
       },
       "description": {
-        "ru": "Двенадцать коротких рассказов с иллюстрациями для совместного чтения и самостоятельной проверки понимания.",
-        "en": "Twelve short illustrated stories for shared reading and independent comprehension practice."
+        "ru": "Двенадцать коротких иллюстрированных рассказов. Ребёнок читает их вместе со взрослым обычным текстом или по слогам; затем отвечает на вопросы, находя в рассказе нужное слово или фразу, и обсуждает прочитанное устно.",
+        "en": "Twelve illustrated stories for shared reading, finding answers in the text, and discussing each story aloud."
       },
-      "url": "./decks/reading_short_stories_v1.6.3.zip",
+      "url": "./decks/reading_short_stories_v1.6.4.zip",
       "status": "release",
       "access": "paid"
     },
     {
       "id": "reading_dad_instructions",
-      "version": "1.0.6",
+      "version": "1.0.7",
       "title": {
         "ru": "Чтение. Инструкции",
         "en": "Reading: Instructions"
       },
       "description": {
-        "ru": "Читаем предложение и выполняем задание. Каждый день — новый набор из 10 предложений.",
-        "en": "Read the sentence and follow the instruction. A new set of 10 sentences every day."
+        "ru": "Сорок коротких инструкций: 31 задание с действием и 9 заданий на право и лево. Приложение выдаёт новый набор из десяти предложений на день. Отдельный сценарий «Код от сейфа» предлагает читать подсказки и искать спрятанные цифры.",
+        "en": "Forty short instructions: read and perform a daily set of ten, practise left and right, or follow clues to collect a safe code."
       },
-      "url": "./decks/reading_dad_instructions_v1.0.6.zip",
+      "url": "./decks/reading_dad_instructions_v1.0.7.zip",
       "status": "release",
       "access": "paid"
     },
     {
       "id": "emotions_v2",
-      "version": "1.10.0",
+      "version": "1.10.1",
       "title": {
         "ru": "Эмоции",
         "en": "Emotions"
       },
       "description": {
-        "ru": "Три сюжетные ситуации для каждого из 10 понятий: после сюжета — крупный портрет того же ребёнка с читаемой эмоцией.",
-        "en": "Three situation scenes for each of 10 concepts: each scene is followed by a close-up of the same child with a readable emotion."
+        "ru": "Десять эмоциональных состояний показаны на лицах детей и в коротких сюжетных ситуациях: для каждого состояния есть три ситуации и портреты. Девять режимов ведут от знакомства и выбора эмоции по лицу к сопоставлению события и чувства в обоих направлениях.",
+        "en": "Ten emotions shown on children's faces and in three situations each; nine modes connect facial expression, emotion word, and event."
       },
-      "url": "./decks/emotions_v2_v1.10.0.zip",
+      "url": "./decks/emotions_v2_v1.10.1.zip",
       "status": "release",
       "access": "paid"
     },
@@ -122,46 +122,46 @@
     },
     {
       "id": "comparison",
-      "version": "2.36.0",
+      "version": "2.36.1",
       "title": {
         "ru": "Сравнение",
         "en": "Comparison"
       },
       "description": {
-        "ru": "6 режимов педагогической лестницы: от зрительного сравнения до самостоятельной контрольной работы.",
-        "en": "6 modes: from visual comparison to an independent test. Pedagogical ladder for children aged 4+."
+        "ru": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами.",
+        "en": "Eight modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories."
       },
-      "url": "./decks/comparison_v2.36.0.zip",
+      "url": "./decks/comparison_v2.36.1.zip",
       "status": "release",
       "access": "paid"
     },
     {
       "id": "math_houses",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "title": {
         "ru": "Домики чисел",
         "en": "Number Houses"
       },
       "description": {
-        "ru": "Состав чисел от 2 до 10. Изучаем домики и дополняем до числа. Для детей от 5 лет.",
+        "ru": "Девять домиков показывают состав чисел от 2 до 10. В режиме «Домик» ребёнок дополняет пары частей одного числа; в «Растущем домике» вспоминает и заполняет последовательность пар для выбранного числа.",
         "en": "Number composition from 2 to 10. Learn and complete number houses. Ages 5+."
       },
-      "url": "./decks/math_houses_v1.2.0.zip",
+      "url": "./decks/math_houses_v1.2.1.zip",
       "status": "release",
       "access": "paid"
     },
     {
       "id": "addition_subtraction",
-      "version": "1.9.0",
+      "version": "1.9.1",
       "title": {
         "ru": "Плюс и минус",
         "en": "Addition and Subtraction"
       },
       "description": {
-        "ru": "Педагогическая лестница: от наблюдения и манипуляций с фишками — к знаку, примеру и цепочкам.",
-        "en": "A teaching ladder: object actions, before-after meaning, more/less, action-to-sign mapping, expressions, and result."
+        "ru": "Десять режимов сложения и вычитания: ребёнок наблюдает добавление и убирание предметов, сам действует с фишками, связывает действие со знаком, выбирает знак в примере, вычисляет результат и цепочку, решает задания на бумаге, ищет неизвестное число и считает пример на слух.",
+        "en": "Ten addition and subtraction modes: object actions, signs, single and chained expressions, missing numbers, written practice, and mental calculation from audio."
       },
-      "url": "./decks/addition_subtraction_v1.9.0.zip",
+      "url": "./decks/addition_subtraction_v1.9.1.zip",
       "status": "release",
       "access": "paid"
     },
@@ -182,41 +182,49 @@
     },
     {
       "id": "tools_functions",
-      "version": "1.3.9",
+      "version": "1.3.10",
       "title": {
         "ru": "Инструменты и их применение",
         "en": "Tools and their use"
       },
       "description": {
-        "ru": "12 инструментов: название, применение, сцены до и после",
+        "ru": "Двенадцать инструментов — от молотка и пилы до отвёртки, дрели, рулетки и шпателя — показаны на нескольких фотографиях каждый. В восьми режимах есть называние, выбор по слову, проверка названия, выбор действия инструмента и сцены «до/после», где нужно определить, чем выполнена работа.",
         "en": "12 tools: names, functions, before-and-after scenes"
       },
-      "url": "./decks/tools_functions_v1.3.9.zip",
+      "url": "./decks/tools_functions_v1.3.10.zip",
       "status": "release",
       "access": "paid"
     },
     {
       "id": "column_addition",
-      "version": "1.3.0",
-      "url": "./decks/column_addition_v1.3.0.zip",
+      "version": "1.3.1",
+      "url": "./decks/column_addition_v1.3.1.zip",
       "title": {
         "ru": "Сложение и вычитание в столбик"
       },
       "status": "release",
-      "access": "paid"
+      "access": "paid",
+      "description": {
+        "ru": "Семь режимов готовят к сложению и вычитанию в столбик и дают практику записи. Ребёнок показывает числа и действия на пальцах, собирает число из десятков и единиц, распознаёт готовую модель, разменивает десяток, затем решает примеры в столбик и переписывает их в тетрадь для самостоятельной работы.",
+        "en": "Seven modes progress from finger counting and tens-and-ones models to regrouping, column arithmetic, and independent written examples."
+      }
     },
     {
       "id": "word_formation_soup",
-      "version": "1.0.50",
-      "url": "./decks/word_formation_soup_v1.0.50.zip",
-      "zipUrl": "word_formation_soup_v1.0.50.zip",
+      "version": "1.0.51",
+      "url": "./decks/word_formation_soup_v1.0.51.zip",
+      "zipUrl": "word_formation_soup_v1.0.51.zip",
       "title": {
         "ru": "Словообразование"
       },
       "renderer": "word_formation",
-      "file": "word_formation_soup_v1.0.50.zip",
+      "file": "word_formation_soup_v1.0.51.zip",
       "status": "release",
-      "access": "paid"
+      "access": "paid",
+      "description": {
+        "ru": "В группах «суп», «сок», «варенье», «каша» и «материалы» ребёнок соотносит сочетание «из чего?» с прилагательным: суп из рыбы — рыбный суп, дом из дерева — деревянный дом. Отдельно представлены слова о погоде и временах года. Три режима: знакомство с парами, выбор подходящей формы и выбор окончания сезонного прилагательного.",
+        "en": "Word-formation pairs across soup, juice, jam, porridge, materials, weather, and seasons; three modes cover pair recognition, form choice, and seasonal adjective endings."
+      }
     },
     {
       "id": "phonetic_analysis",
@@ -294,16 +302,16 @@
     },
     {
       "id": "vowel_consonant_ru",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "title": {
         "ru": "Гласные и согласные",
         "en": "Vowels and Consonants"
       },
       "description": {
-        "ru": "31 буква русского алфавита. Перетащи каждую букву в группу гласных или согласных.",
+        "ru": "Тридцать одна буква русского алфавита без ь и ъ распределяется по двум группам. В единственном режиме ребёнок перетаскивает каждую букву в поле «Гласные» или «Согласные»; ошибочная буква возвращается для повторной попытки.",
         "en": "31 Russian letters. Drag each letter into the vowel or consonant group."
       },
-      "url": "./decks/vowel_consonant_ru_v1.0.0.zip",
+      "url": "./decks/vowel_consonant_ru_v1.0.1.zip",
       "status": "release",
       "access": "paid"
     },
@@ -362,14 +370,15 @@
     },
     {
       "id": "word_agreement_ru",
-      "version": "1.8.7",
-      "url": "./decks/word_agreement_ru_v1.8.7.zip",
-      "zipUrl": "word_agreement_ru_v1.8.7.zip",
+      "version": "1.8.8",
+      "url": "./decks/word_agreement_ru_v1.8.8.zip",
+      "zipUrl": "word_agreement_ru_v1.8.8.zip",
       "title": {
         "ru": "Согласование слов"
       },
       "description": {
-        "ru": "Согласование слов и окончаний в предложениях: падеж существительного, число и род глагола, числительное, прилагательное и притяжательные местоимения. Новый режим «Где предмет?» помогает различать в, на и под на простых картинках."
+        "ru": "Короткие предложения с пропуском слова или окончания. Семь режимов предлагают выбрать форму существительного по контексту, число и род глагола, форму после числительного, согласование прилагательного и притяжательного местоимения. Отдельный режим «Где предмет?» работает с отношениями «в», «на» и «под» на картинках.",
+        "en": "Seven modes use short sentence gaps to practise noun, verb, adjective, numeral, and possessive agreement; a picture mode distinguishes in, on, and under."
       },
       "renderer": "word_agreement",
       "status": "release",
@@ -377,14 +386,15 @@
     },
     {
       "id": "symmetry_draw",
-      "version": "1.12.12",
-      "url": "./decks/symmetry_draw_v1.12.12.zip",
-      "zipUrl": "symmetry_draw_v1.12.12.zip",
+      "version": "1.12.13",
+      "url": "./decks/symmetry_draw_v1.12.13.zip",
+      "zipUrl": "symmetry_draw_v1.12.13.zip",
       "title": {
         "ru": "Рисуем по клеткам"
       },
       "description": {
-        "ru": "Симметрия, повтор, графический диктант, точки по координатам и тренировка направлений."
+        "ru": "Шесть режимов работы на клетчатом поле: направления стрелок, движение по устной инструкции, координаты точек, копирование готовой фигуры, графический диктант и достраивание второй половины симметричного рисунка.",
+        "en": "Six grid-based modes: directions, routes, coordinates, copying figures, step-by-step drawing, and completing a symmetrical half."
       },
       "renderer": "flashcards",
       "status": "release",

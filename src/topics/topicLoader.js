@@ -1,6 +1,7 @@
 import JSZip from "jszip";
 import { kv, topics } from "@/core/db";
 import { semver } from "@/shared/utils/semver";
+import { applyReleaseTopicCopy } from "./releaseTopicCopy";
 
 export class TopicImportError extends Error {
   constructor(message) {
@@ -1594,17 +1595,20 @@ function normalizeTopicAbout(about, renderer) {
     []
   );
   const raw = { ...defaults, ...aboutObject };
-  const description = normalizeTextValue(raw.description ?? raw.text, legacyLines[0] ?? defaults.description);
-  const goals = normalizeTextList(raw.goals, defaults.goals ?? []);
-  const finalGoal = normalizeTextValue(raw.finalGoal ?? raw.goal, defaults.finalGoal);
-  const flowFallback = legacyLines.length > 1 ? legacyLines.slice(1) : defaults.flow ?? [];
-  const flow = normalizeTextList(raw.flow ?? raw.tips, flowFallback);
+  // A legacy `about.ru: [...]` is authored copy, not an invitation to insert
+  // unrelated renderer-wide goals and study steps above it.
+  const hasLegacy = legacyLines.length > 0;
+  const description = normalizeTextValue(aboutObject.description ?? aboutObject.text, legacyLines[0] ?? defaults.description);
+  const goals = normalizeTextList(aboutObject.goals, hasLegacy ? [] : defaults.goals ?? []);
+  const finalGoal = normalizeTextValue(aboutObject.finalGoal ?? aboutObject.goal, hasLegacy ? "" : defaults.finalGoal);
+  const flowFallback = hasLegacy ? legacyLines.slice(1) : defaults.flow ?? [];
+  const flow = normalizeTextList(aboutObject.flow ?? aboutObject.tips, flowFallback);
   const duration = normalizeTextValue(raw.duration, "");
 
   return {
     ...raw,
     description,
-    text: normalizeTextValue(raw.text, description),
+    text: normalizeTextValue(aboutObject.text, description),
     goals,
     finalGoal,
     flow,
@@ -1894,7 +1898,7 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
     }
   }
 
-  const record = {
+  const record = applyReleaseTopicCopy({
     id: topicId,
     meta: manifest.meta,
     modes: manifest.modes ?? [],
@@ -1934,7 +1938,7 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
     wideSheets:        manifest.wideSheets        ?? undefined,
     wideElementRepeat: manifest.wideElementRepeat ?? undefined,
     installedAt: new Date().toISOString(),
-  };
+  });
 
   await kv.set(db, `topic:${topicId}`, record);
   await addToIndex(db, topicId);
@@ -1943,7 +1947,7 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
 }
 
 export async function getTopicRecord(db, topicId) {
-  return migrateRecord(await kv.get(db, `topic:${topicId}`));
+  return applyReleaseTopicCopy(migrateRecord(await kv.get(db, `topic:${topicId}`)));
 }
 
 function migrateRecord(record) {
@@ -2068,7 +2072,7 @@ function migrateRecord(record) {
 export async function listTopicRecords(db) {
   const ids = await getInstalledTopicIds(db);
   const records = await Promise.all(ids.map((id) => kv.get(db, `topic:${id}`)));
-  return records.filter(Boolean).map(migrateRecord);
+  return records.filter(Boolean).map((record) => applyReleaseTopicCopy(migrateRecord(record)));
 }
 
 export async function installFirstPartyDeckIfNeeded(db, topicId) {
