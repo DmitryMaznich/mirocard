@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -409,5 +409,35 @@ describe("long text wraps by the grid the page is drawn with", () => {
         }
       });
     }
+  });
+});
+
+describe("«Методика» kits (kits.json, built from the v1 notebooks' content lists)", () => {
+  const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
+  it("the notebooks are there, every page fits one page and every letter has a glyph", () => {
+    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts"]);
+    for (const k of kits) {
+      expect(k.pages.length, k.id).toBeGreaterThan(5);
+      for (const pg of k.pages) {
+        expect(pg.rows.length, `${k.id} ${pg.title}`).toBeLessThanOrEqual(16);
+        for (const r of pg.rows) expect(findUnsupported(r.text, map), `${k.id} «${r.text}»`).toEqual([]);
+      }
+    }
+  });
+  it("a kit becomes a set of locked pages that belong to it", () => {
+    const { set, pages } = kitToLibraryItems(kits[0]);
+    expect(set.pageIds).toHaveLength(kits[0].pages.length);
+    expect(pages.every((p) => p.locked && p.kitId === set.id && p.ruling === "narrow" && p.margin === "left")).toBe(true);
+    expect(new Set(pages.flatMap((p) => p.rows.map((r) => r.id))).size).toBe(pages.reduce((n, p) => n + p.rows.length, 0));
+    expect(pageToLines(pages[0], map)[0]).toMatch(/^и#f/);
+  });
+  it("letter pages: practice with fading copies, then independent writing with a sample at the start", () => {
+    const first = kits[0].pages;
+    expect(first[0].title).toContain("и И");
+    expect(first[0].rows[0]).toMatchObject({ text: "и", repeat: "fade" });
+    expect(first[0].rows[3]).toMatchObject({ text: "и И", asText: false });
+    expect(first[1].rows[0]).toMatchObject({ text: "и", repeat: "one", dots: "one" });
+    const last = kits[1].pages.at(-1);
+    expect(last.rows.every((r) => !/[ЁЙЫ]/.test(r.text))).toBe(true); // no capital glyph for those: lowercase only
   });
 });

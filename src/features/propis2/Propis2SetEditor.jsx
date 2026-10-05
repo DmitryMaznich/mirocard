@@ -57,7 +57,7 @@ export default function Propis2SetEditor({ set, pages, topicRecord, onChange, on
           Добавить страницу
           <select value="" onChange={(e) => e.target.value && setIds([...set.pageIds, e.target.value])} aria-label="Добавить страницу в комплект">
             <option value="">— выбрать из моих страниц —</option>
-            {pages.map((p) => <option key={p.id} value={p.id}>{p.title || "Без названия"}</option>)}
+            {pages.filter((p) => !p.kitId).map((p) => <option key={p.id} value={p.id}>{p.title || "Без названия"}</option>)}
           </select>
         </label>
         <div className="propis2-actions">

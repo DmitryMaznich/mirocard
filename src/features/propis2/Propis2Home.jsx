@@ -5,7 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
-import { newId, newPage, newSet, pageFromPreset, pageFormat, pageMargin, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { kitToLibraryItems, newId, newPage, newSet, pageFromPreset, pageFormat, pageMargin, pageToLines, presetFromLines, presetFromPage, pickFragment, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { emptyLibrary, loadLibrary, removePage, removePreset, removeSet, saveLibrary, upsertPage, upsertPreset, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
@@ -24,6 +24,8 @@ export default function Propis2Home({ db }) {
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState({ name: "library" });
   const [fragment, setFragment] = useState(null);
+  const [kits, setKits] = useState([]); // «Методика» kits: a big file, loaded when the topic opens, not with the app
+  useEffect(() => { let alive = true; import("@/topics/renderers/propis2/kits.json").then((m) => { if (alive) setKits(m.default?.kits ?? []); }).catch(() => {}); return () => { alive = false; }; }, []);
   const saveTimer = useRef(null);
   const latest = useRef(library);
   latest.current = library;
@@ -76,8 +78,20 @@ export default function Propis2Home({ db }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   // presets: the built-in ones are the methodology sheets, «Мои» are saved in the library
   const builtinPresets = useMemo(() => Object.keys(PROPIS2_SHEET_TITLES).filter((id) => sheets[id]).map((id) => presetFromLines(id, PROPIS2_SHEET_TITLES[id], sheets[id], "narrow", elementLabels)), [sheets, elementLabels]);
-  const presets = useMemo(() => ({ builtin: builtinPresets, mine: library.presets ?? [] }), [builtinPresets, library.presets]);
-  const createFromPreset = (ps) => { const np = pageFromPreset(ps); persist(upsertPage(library, np)); setView({ name: "editor", pageId: np.id }); };
+  const kitPresets = useMemo(() => kits.map((k) => ({ id: `kit:${k.id}`, title: k.title, kit: k, builtin: true })), [kits]);
+  const presets = useMemo(() => ({ builtin: [...kitPresets, ...builtinPresets], mine: library.presets ?? [] }), [kitPresets, builtinPresets, library.presets]);
+  const createFromPreset = (ps) => {
+    if (ps.kit) {
+      // a multi-page kit: a set of pages, opened as a set
+      const { set: ns, pages: nps } = kitToLibraryItems(ps.kit);
+      persist(upsertSet(nps.reduce((lib, pg) => upsertPage(lib, pg), library), ns));
+      setView({ name: "setEditor", setId: ns.id });
+      return;
+    }
+    const np = pageFromPreset(ps);
+    persist(upsertPage(library, np));
+    setView({ name: "editor", pageId: np.id });
+  };
   const page = view.pageId ? library.pages.find((p) => p.id === view.pageId) : null;
   const set = view.setId ? library.sets.find((st) => st.id === view.setId) : null;
   const pagesById = useMemo(() => new Map(library.pages.map((p) => [p.id, p])), [library.pages]);
@@ -147,7 +161,7 @@ export default function Propis2Home({ db }) {
 
   return (
     <Propis2Library
-      pages={library.pages}
+      pages={library.pages.filter((p) => !p.kitId)}
       sets={library.sets}
       sheets={sheets}
       onBack={() => setScreen("home")}
@@ -167,9 +181,19 @@ export default function Propis2Home({ db }) {
       onEditSet={(id) => setView({ name: "setEditor", setId: id })}
       onDuplicateSet={(id) => {
         const src = library.sets.find((st) => st.id === id);
-        if (src) persist(upsertSet(library, { ...src, id: newId("st"), title: `${src.title} (копия)`, createdAt: Date.now() }));
+        if (!src) return;
+        // the pages of a kit belong to it: a copy of the kit gets copies of the pages
+        const copy = { ...src, id: newId("st"), title: `${src.title} (копия)`, createdAt: Date.now() };
+        let lib = library;
+        if (src.kit) {
+          const own = src.pageIds.map((pid) => library.pages.find((p) => p.id === pid)).filter(Boolean);
+          const copies = own.map((p) => ({ ...p, id: newId("pg"), kitId: copy.id, rows: p.rows.map((r) => ({ ...r, id: newId("r") })), createdAt: Date.now() }));
+          copy.pageIds = copies.map((p) => p.id);
+          lib = copies.reduce((l, p) => upsertPage(l, p), lib);
+        }
+        persist(upsertSet(lib, copy));
       }}
-      onDeleteSet={(id) => persist(removeSet(library, id))}
+      onDeleteSet={(id) => persist(removeSet(library.pages.filter((p) => p.kitId === id).reduce((lib, p) => removePage(lib, p.id), library), id))}
     />
   );
 }

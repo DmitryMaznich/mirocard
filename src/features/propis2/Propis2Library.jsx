@@ -22,19 +22,19 @@ export default function Propis2Library({ pages, sets = [], presets = { builtin: 
           <Button onClick={onNewSet}>+ Новый комплект</Button>
         </div>
         <label className="propis2-field">
-          Из пресета
+          Из комплекта
           <select defaultValue="" onChange={(e) => { if (e.target.value) { onFromPreset(e.target.value); e.target.value = ""; } }} aria-label="Готовый набор">
-            <option value="">— выбрать пресет —</option>
+            <option value="">— выбрать комплект —</option>
             {presets.builtin.length > 0 && <optgroup label="Методика">{presets.builtin.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</optgroup>}
             {presets.mine.length > 0 && <optgroup label="Мои">{presets.mine.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</optgroup>}
           </select>
         </label>
         {presets.mine.length > 0 && (
-          <ul className="propis2-pages" aria-label="Мои пресеты">
+          <ul className="propis2-pages" aria-label="Мои комплекты (шаблоны)">
             {presets.mine.map((p) => (
               <li key={p.id} className="propis2-page-card">
                 <div className="propis2-page-title">{p.title}</div>
-                <div className="propis2-actions"><button type="button" className="propis2-link" onClick={() => onDeletePreset?.(p.id)}>Удалить пресет</button></div>
+                <div className="propis2-actions"><button type="button" className="propis2-link" onClick={() => onDeletePreset?.(p.id)}>Удалить комплект</button></div>
               </li>
             ))}
           </ul>
