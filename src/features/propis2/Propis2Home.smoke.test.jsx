@@ -392,6 +392,10 @@ describe("Прописи 2 (zip topic)", () => {
     expect(lbl("Текст страницы").disabled).toBe(true); // no row selected yet: nothing to edit
     expect(host.querySelector('[role="img"][aria-label^="Страница из комплекта"]')).not.toBeNull();
     const rowsBefore = host.querySelectorAll('[data-testid="propis2-preview"] svg path').length;
+    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
+    await click(lbl("Очистить страницу"));
+    expect(lbl("Тип бумаги").disabled).toBe(true); // declined: nothing erased
+    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
     await click(lbl("Очистить страницу"));
     expect(lbl("Тип бумаги").disabled).toBe(false);
     expect(host.querySelector('[role="img"][aria-label^="Страница из комплекта"]')).toBeNull();

@@ -160,7 +160,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
     setFieldStartId(result.rowId);
   };
 
-  const clear = () => { setUndoPage(page); setSelectedId(null); setFieldStartId(null); onChange(clearPage(page)); };
+  const clear = () => { if (typeof window !== "undefined" && window.confirm && !window.confirm("Очистить страницу? Все строки будут стёрты.")) return; setUndoPage(page); setSelectedId(null); setFieldStartId(null); onChange(clearPage(page)); };
   const undoClear = () => { if (undoPage) { onChange(undoPage); setUndoPage(null); } };
 
   // ---- the text field ----

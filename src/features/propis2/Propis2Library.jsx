@@ -49,7 +49,7 @@ export default function Propis2Library({ pages, sets = [], presets = { builtin: 
                   <div className="propis2-page-meta">{st.pageIds.length} стр. · {dateLabel(st.updatedAt)}</div>
                   <div className="propis2-actions">
                     <Button onClick={() => onOpenSet(st.id)}>Открыть</Button>
-                    <Button onClick={() => onEditSet(st.id)}>Изменить</Button>
+                    {!st.kit && <Button onClick={() => onEditSet(st.id)}>Изменить</Button>}
                     <button type="button" className="propis2-link" onClick={() => onDuplicateSet(st.id)}>Копия</button>
                     <button type="button" className="propis2-link" onClick={() => onDeleteSet(st.id)}>Удалить</button>
                   </div>
