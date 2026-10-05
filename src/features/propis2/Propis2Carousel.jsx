@@ -1,18 +1,11 @@
-import { useMemo, useState } from "react";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { ROW_BASE, ROW_TOP, bboxOf, narrowStrokes, staysInRow } from "@/topics/renderers/propis2/glyphReach.js";
 
-// Tiles of the symbol picker: elements, lowercase and capital letters of the installed deck, each drawn
-// with its own captured strokes (not a font), so the adult sees exactly what the child will write.
+// Tiles of the deck's symbols (elements, letters, marks), each drawn with its own captured strokes (not a font), so the
+// adult sees exactly what the child will write. The constructor shows the elements in its element list.
 const LOWER = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
 const UPPER = LOWER.toUpperCase();
 
-export const CAROUSEL_TABS = [
-  { id: "elements", label: "Элементы" },
-  { id: "lower", label: "Строчные" },
-  { id: "upper", label: "Заглавные" },
-  { id: "marks", label: "Знаки" },
-];
 
 // Every tile shows a piece of the NARROW row (thin top line, dashed middle, bold baseline) with the symbol on
 // it, all at the same scale: the symbol is the one the engine lays out on the narrow ruling (the same
@@ -85,38 +78,5 @@ export function TileGlyph({ tile, size = 56, bare = false }) {
       </g>}
       {tile.strokes.map((d, i) => <path key={i} d={d} fill="none" stroke="#1d4ed8" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" />)}
     </svg>
-  );
-}
-
-// The symbol picker: a multi-line grid of tiles with a vertical scroll, a row of tabs over it (elements, lowercase,
-// capitals, marks). No dragging: the adult selects a row on the page and taps a symbol (onTap), which goes into it.
-export default function Propis2Carousel({ topicRecord, onTap, ruling = "narrow" }) {
-  const tiles = useMemo(() => buildTiles(topicRecord), [topicRecord]);
-  const [pickedTab, setTab] = useState("lower");
-  // wide ruling: only symbols that stay inside the row (no capitals, no б в д з р у ф ц щ, no ! ?); elements are all there
-  const wide = ruling === "wide";
-  const tabs = CAROUSEL_TABS.filter((t) => !(wide && t.id === "upper"));
-  const tab = tabs.some((t) => t.id === pickedTab) ? pickedTab : "lower";
-  const items = (tiles[tab] ?? []).filter((t) => !wide || tab === "elements" || t.inRow);
-  // the tab icons are the handwriting itself: an element, «а», «А», «?»
-  const iconTile = { elements: tiles.elements[0], lower: tiles.lower.find((t) => t.text === "а"), upper: tiles.upper.find((t) => t.text === "А"), marks: tiles.marks.find((t) => t.text === "?") ?? tiles.marks[0] };
-
-  return (
-    <div className="propis2-carousel" data-testid="propis2-carousel">
-      <div className="propis2-carousel-tabs" role="tablist">
-        {tabs.map((t) => (
-          <button key={t.id} type="button" role="tab" aria-label={t.label} aria-selected={tab === t.id} className={`propis2-carousel-tab${tab === t.id ? " is-on" : ""}`} onClick={() => setTab(t.id)}>
-            {iconTile[t.id] && <TileGlyph tile={iconTile[t.id]} size={26} bare />}
-          </button>
-        ))}
-      </div>
-      <div className="propis2-carousel-list">
-        {items.map((tile) => (
-          <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={`${tile.caption}: добавить в выделенную строку`} onClick={() => onTap(tile)}>
-            <TileGlyph tile={tile} size={72} />
-          </button>
-        ))}
-      </div>
-    </div>
   );
 }

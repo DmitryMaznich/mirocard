@@ -185,7 +185,7 @@ export const MARGINS = [
 export const pageMargin = (page) => (page?.margin === "left" || page?.margin === "right" ? page.margin : "off");
 export const rowMaxX = (page) => WIDE_ROW_MAX_X + (mmToNativeUnits(formatOf(page).wMm) - mmToNativeUnits(PRINT_PAGE_W_MM)) - (pageMargin(page) === "off" ? 0 : propis2MarginUnits());
 
-const lineWidth = (text, glyphMap, ruling) => {
+export const lineWidth = (text, glyphMap, ruling) => {
   const { placed } = layoutWideLinesIntoRows([text], glyphMap, undefined, false, ruling === "narrow" ? 0.5 : 1);
   return placed[0]?.segments?.[0]?.width ?? 0;
 };

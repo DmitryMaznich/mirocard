@@ -79,3 +79,7 @@ export const IconMarginRight = () => S(<><rect x="5" y="3.5" width="14" height="
 // ---- page formats ----
 export const IconFormatA4 = () => S(<><rect x="3.5" y="2.5" width="17" height="19" rx="1.4" /><path d="M7 7h10M7 10.5h10M7 14h10M7 17.5h6" strokeWidth="1.3" /></>);
 export const IconFormatA5 = () => S(<><rect x="6.5" y="5.5" width="11" height="13" rx="1.4" /><path d="M9 9h6M9 12h6M9 15h4" strokeWidth="1.3" /></>);
+
+// ---- the list of elements: a hook and a fence on a row ----
+export const IconElement = () => S(<><path d="M3 19h18" strokeWidth="1.2" opacity=".5" /><path d="M4 17c0-6 1.2-9 3-9s2.2 3 2.2 6c0-3 .8-6 2.6-6M13 17V7M17 17V7M21 17V7" strokeWidth="1.7" /></>);
+export const IconAsText = () => S(<><path d="M4 6h16M4 10.5h16M4 15h16M4 19.5h9" /></>);

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
-import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, multipliesByDefault, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, appendTile, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, replaceSymbol, selectRowAt, tapSymbol } from "@/topics/renderers/propis2/model.js";
+import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, multipliesByDefault, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
-import Propis2Carousel, { TileGlyph, buildTiles } from "./Propis2Carousel";
+import { buildTiles } from "./Propis2Carousel";
+import Propis2Field from "./Propis2Field";
+import { fieldFromRows, insertLine, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
 import Propis2Picker from "./Propis2Picker";
@@ -52,11 +54,6 @@ const DOT_OPTS = [
   { id: "all", label: "Красные точки у образца и копий", Icon: I.IconDotsAll },
 ];
 
-const TABS = [
-  { id: "symbol", label: "Символ", Icon: null },
-  { id: "word", label: "Слово", Icon: I.IconTabWord },
-  { id: "text", label: "Текст", Icon: I.IconTabText },
-];
 
 // A round/square icon button: 44px target, pressed state, the name only as aria-label.
 function IconBtn({ label, on, onClick, disabled, children, className = "", ...rest }) {
@@ -74,13 +71,14 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   const analysis = useMemo(() => analyzePage(page, glyphMap), [page, glyphMap]);
   const owners = useMemo(() => lineOwners(page, glyphMap), [page, glyphMap]);
   const [selectedId, setSelectedId] = useState(null);
-  const [tab, setTab] = useState("symbol");
-  const [draftWord, setDraftWord] = useState("");
-  const [draftText, setDraftText] = useState("");
+  // the field shows the page's rows from `fieldStartId` to the end, one per line; no start = the place below the last row
+  const [fieldStartId, setFieldStartId] = useState(null);
+  const [draft, setDraft] = useState("");
+  const [caretRequest, setCaretRequest] = useState(null);
   const [pageW, setPageW] = useState(0);
   const [undoPage, setUndoPage] = useState(null); // the page as it was before «Очистить страницу», for «Отменить»
   const locked = isLocked(page);
-  const symbolIcon = useMemo(() => { const t = buildTiles(topicRecord).lower.find((x) => x.text === "а"); return t ? <TileGlyph tile={t} size={28} bare /> : "а"; }, [topicRecord]);
+  const elementTiles = useMemo(() => buildTiles(topicRecord).elements, [topicRecord]);
   const side = useMedia(SIDE_QUERY);
   const phone = useMedia(PHONE_QUERY) && !side;
   const sideRef = useRef(side);
@@ -148,7 +146,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   // row can be tapped and filled); a tap outside the ruled rows clears the selection.
   const onPageClick = (e) => {
     const abs = rowAtPoint(e.clientX, e.clientY);
-    if (abs < 0) { setSelectedId(null); return; }
+    if (abs < 0) { setSelectedId(null); setFieldStartId(null); return; }
     if (locked) {
       const owner = abs < owners.length ? owners[abs] : undefined;
       setSelectedId(owner != null ? page.rows[owner].id : null);
@@ -157,29 +155,55 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
     const result = selectRowAt(page, glyphMap, abs);
     if (result.page !== page) onChange(result.page);
     setSelectedId(result.rowId);
+    setFieldStartId(result.rowId);
   };
 
-  const applyResult = (result) => {
-    onChange(result.page);
-    setSelectedId(result.rowId);
-  };
-  const tapTile = (tile) => {
-    if (locked) { if (selectedId) onChange(replaceSymbol(page, selectedId, tile)); return; }
-    applyResult(tapSymbol(page, glyphMap, selectedId, tile));
-  };
-  const clear = () => { setUndoPage(page); setSelectedId(null); onChange(clearPage(page)); };
+  const clear = () => { setUndoPage(page); setSelectedId(null); setFieldStartId(null); onChange(clearPage(page)); };
   const undoClear = () => { if (undoPage) { onChange(undoPage); setUndoPage(null); } };
 
-  const addRow = (patch) => {
-    const row = newRow(patch);
-    setRows([...page.rows.filter((r) => r.kind === "blank" || String(r.text ?? "").trim()), row]);
-    setSelectedId(row.id);
+  // ---- the text field ----
+  const startId = page.rows.some((r) => r.id === fieldStartId) ? fieldStartId : null;
+  const fieldIndex = startId ? page.rows.findIndex((r) => r.id === startId) : -1;
+  const rowsSig = page.rows.map((r) => `${r.id}|${r.kind}|${r.text}`).join("\n");
+  const draftKey = `${rowsSig}#${startId ?? ""}#${locked ? selectedId ?? "" : ""}`;
+  const [draftSynced, setDraftSynced] = useState(draftKey);
+  // the draft is rebuilt from the page whenever the page or the starting row changed from outside the field
+  if (draftSynced !== draftKey) {
+    setDraftSynced(draftKey);
+    setDraft(locked ? (selected ? String(selected.text ?? "") : "") : fieldFromRows(page.rows, fieldIndex < 0 ? page.rows.length : fieldIndex));
+  }
+  const onField = (value) => {
+    if (locked) {
+      if (!selected) return;
+      setDraft(value);
+      const next = { ...page, rows: page.rows.map((r) => (r.id === selected.id ? { ...r, text: value } : r)) };
+      setDraftSynced(`${next.rows.map((r) => `${r.id}|${r.kind}|${r.text}`).join("\n")}#${startId ?? ""}#${selectedId ?? ""}`);
+      onChange(next);
+      return;
+    }
+    const { rows, firstId } = rowsFromField({ rows: page.rows, startId, value, glyphMap, page });
+    if (rows === page.rows) { setDraft(value); return; }
+    const nextStart = startId ?? firstId;
+    setDraft(value);
+    setFieldStartId(nextStart);
+    setDraftSynced(`${rows.map((r) => `${r.id}|${r.kind}|${r.text}`).join("\n")}#${nextStart ?? ""}#`);
+    onChange({ ...page, rows: rows.length ? rows : [newRow()] });
+    if (!selectedId || !rows.some((r) => r.id === selectedId)) setSelectedId(nextStart);
   };
-  const addTyped = (kind, text, setText) => {
-    const value = text.trim();
-    if (!value) return;
-    applyResult(appendTile(page, glyphMap, { kind, text: value }));
-    setText("");
+  const onCaret = (caret) => {
+    if (locked) return;
+    const id = rowIdAtCaret(page.rows, startId, draft, caret);
+    if (id && id !== selectedId) setSelectedId(id);
+  };
+  const insertElement = (token, caret) => {
+    if (locked) { if (selected) onField(token); return; }
+    const { value, caret: pos } = insertLine(draft, caret, token);
+    onField(value);
+    setCaretRequest({ pos, n: Date.now() });
+  };
+  const setRowAsText = (asText) => {
+    if (!selected) return;
+    patchSelected({ asText, kind: asText ? "passage" : "text" });
   };
 
   // Overlays on the page: the selected row (blue), problems (red).
@@ -240,6 +264,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           <Propis2Picker label="Повтор" value={rowOpts?.repeat ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ repeat: id })} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
           <IconBtn label="Копии пунктиром" on={rowEditable ? rowOpts.copies === "dash" : undefined} disabled={!rowEditable} onClick={() => patchSelected({ copies: rowOpts.copies === "dash" ? "solid" : "dash" })}><I.IconCopyDash /></IconBtn>
+          <IconBtn label="Строка как текст (с переносом)" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
           <IconBtn label="Повторить строку" on={selected ? Boolean(selected.marked) : undefined} disabled={!selected} onClick={() => patchSelected({ marked: !selected.marked })}><I.IconRepeat /></IconBtn>
           <span className="p2-grow" />
           <div className="p2-seg" role="group" aria-label="Строка">
@@ -257,63 +282,31 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
         </div>
 
         <div className="propis2-dock">
-          <div className="propis2-dock-bar">
-            {selected ? (
-              <div className="propis2-dock-row" data-testid="propis2-row-panel">
-                <div className="p2-field">
-                  {selected.kind === "blank" ? (
-                    <span className="p2-blank" aria-label="Пустая строка — место для письма"><I.IconAddBlank /></span>
-                  ) : selected.kind === "passage" ? (
-                    <textarea value={selected.text} rows={1} onChange={(e) => patchSelected({ text: e.target.value })} aria-label="Текст строки" />
-                  ) : (
-                    <input value={selected.text} onChange={(e) => patchSelected({ text: e.target.value })} aria-label="Текст строки" />
-                  )}
-                  {selected.kind === "text" && (
-                    <IconBtn label="Стереть последний символ" onClick={() => patchSelected({ text: Array.from(selected.text).slice(0, -1).join("") })} disabled={!selected.text}><I.IconBackspace /></IconBtn>
-                  )}
-                </div>
-                {selectedInfo?.unsupported.length > 0 && (
-                  <div className="p2-warn" role="alert" aria-label={`Нет начертания: ${selectedInfo.unsupported.join(" ")}`}><I.IconWarn />{selectedInfo.unsupported.map((c) => <b key={c}>{c}</b>)}</div>
-                )}
-                {selectedInfo?.outside?.length > 0 && (
-                  <div className="p2-warn" role="alert" aria-label={`На широкой строке нельзя: ${selectedInfo.outside.join(" ")}`}><I.IconWarn /><I.IconRowWide />{selectedInfo.outside.map((c) => <b key={c}>{c}</b>)}</div>
-                )}
-                {selectedInfo?.overflow && (
-                  <div className="p2-warn" role="alert" aria-label="Строка не помещается по ширине"><I.IconWarn /><span className="p2-cut" aria-hidden="true" /></div>
-                )}
-              </div>
-            ) : (
-              <div className="p2-hint" aria-label="Нажмите на строку, затем на символ"><I.IconTapHint /></div>
-            )}
-            {analysis.problems > 0 && <div className="p2-warn p2-warn--summary" role="status" aria-label={`Строк с проблемами: ${analysis.problems}`}><I.IconWarn /><b>{analysis.problems}</b></div>}
-          </div>
-
-          <div className="propis2-tabs" role="tablist" aria-label="Что поставить на страницу">
-            {TABS.map((t) => (
-              <button key={t.id} type="button" role="tab" aria-label={t.label} aria-selected={tab === t.id} className={`propis2-tab${tab === t.id ? " is-on" : ""}`} onClick={() => setTab(t.id)}>
-                {t.id === "symbol" ? <span className="p2-tab-glyph" aria-hidden="true">{symbolIcon}</span> : <t.Icon />}
-              </button>
-            ))}
-          </div>
-
-          <div className="propis2-dock-body">
-            {tab === "symbol" && <Propis2Carousel topicRecord={topicRecord} onTap={tapTile} ruling={page.ruling} />}
-
-            {tab === "word" && (
-              <div className="propis2-typed" data-testid="propis2-tab-word">
-                <input value={draftWord} onChange={(e) => setDraftWord(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addTyped("text", draftWord, setDraftWord); }} aria-label="Слово или слог" />
-                <IconBtn label="+ Строка" onClick={() => addTyped("text", draftWord, setDraftWord)} disabled={locked || !draftWord.trim()} className="p2-ib--primary"><I.IconAddRow /></IconBtn>
-                <IconBtn label="+ Пустая строка" disabled={locked} onClick={() => addRow({ kind: "blank" })}><I.IconAddBlank /></IconBtn>
-              </div>
-            )}
-
-            {tab === "text" && (
-              <div className="propis2-typed" data-testid="propis2-tab-text">
-                <textarea value={draftText} rows={2} onChange={(e) => setDraftText(e.target.value)} aria-label="Текст для страницы" />
-                <IconBtn label="+ Текст" onClick={() => addTyped("passage", draftText, setDraftText)} disabled={locked || !draftText.trim()} className="p2-ib--primary"><I.IconAddText /></IconBtn>
-              </div>
-            )}
-          </div>
+          {(selectedInfo?.unsupported.length > 0 || selectedInfo?.outside?.length > 0 || selectedInfo?.overflow || analysis.problems > 0) && (
+            <div className="p2-warns">
+              {selectedInfo?.unsupported.length > 0 && (
+                <div className="p2-warn" role="alert" aria-label={`Нет начертания: ${selectedInfo.unsupported.join(" ")}`}><I.IconWarn />{selectedInfo.unsupported.map((c) => <b key={c}>{c}</b>)}</div>
+              )}
+              {selectedInfo?.outside?.length > 0 && (
+                <div className="p2-warn" role="alert" aria-label={`На широкой строке нельзя: ${selectedInfo.outside.join(" ")}`}><I.IconWarn /><I.IconRowWide />{selectedInfo.outside.map((c) => <b key={c}>{c}</b>)}</div>
+              )}
+              {selectedInfo?.overflow && (
+                <div className="p2-warn" role="alert" aria-label="Строка не помещается по ширине"><I.IconWarn /><span className="p2-cut" aria-hidden="true" /></div>
+              )}
+              {analysis.problems > 0 && <div className="p2-warn p2-warn--summary" role="status" aria-label={`Строк с проблемами: ${analysis.problems}`}><I.IconWarn /><b>{analysis.problems}</b></div>}
+            </div>
+          )}
+          <Propis2Field
+            value={draft}
+            onChange={onField}
+            onCaret={onCaret}
+            disabled={locked && !selected}
+            singleLine={locked}
+            placeholder={locked ? "Выберите строку на странице" : "Буква, слово или текст. Enter — новая строка"}
+            elements={elementTiles}
+            onInsertElement={insertElement}
+            caretRequest={caretRequest}
+          />
         </div>
       </div>
       {undoPage && (

@@ -35,6 +35,15 @@ function deckRecord() {
 
 // controls of the constructor are icons: they are found by aria-label
 const byLabel = (host, name, exact = false) => [...host.querySelectorAll("button")].find((b) => { const t = b.getAttribute("aria-label") ?? b.textContent; return exact ? t === name : t.includes(name); });
+// the one text field of the constructor: the system keyboard types into it
+const fieldOf = (host) => host.querySelector('[aria-label="Текст страницы"]');
+const typeInField = async (host, value) => {
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set.call(fieldOf(host), value);
+    fieldOf(host).dispatchEvent(new Event("input", { bubbles: true }));
+    await tick();
+  });
+};
 const tick = (ms = 20) => new Promise((r) => setTimeout(r, ms));
 const freshDb = () => openDb("p2home-" + Date.now() + Math.random());
 
@@ -90,11 +99,9 @@ describe("Прописи 2 (zip topic)", () => {
     await click(btn(host, "Новая страница"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await type(host.querySelector('[aria-label="Название страницы"]'), "Мои буквы");
-    await click([...host.querySelectorAll('[role="tab"]')].find((t) => (t.getAttribute("aria-label") ?? t.textContent) === "Слово"));
-    await type(host.querySelector('[aria-label="Слово или слог"]'), "кот@");
-    await click(btn(host, "+ Строка"));
+    await typeInField(host, "кот@");
     expect(host.querySelector("[role=alert]")?.textContent).toContain("@");
-    await type(host.querySelector('[aria-label="Текст строки"]'), "кот");
+    await typeInField(host, "кот");
     expect(host.querySelector("[role=alert]")).toBeNull();
 
     await click(btn(host, "Показать ученику"));
@@ -141,22 +148,11 @@ describe("Прописи 2 (zip topic)", () => {
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
 
     await click(btn("Новая страница"));
-    const tab = (name) => [...host.querySelectorAll('[role="tab"]')].find((t) => (t.getAttribute("aria-label") ?? t.textContent) === name);
-    await click(tab("Слово"));
-    await setValue(host.querySelector('[aria-label="Слово или слог"]'), "а");
-    await click(btn("+ Строка"));
-    await setValue(host.querySelector('[aria-label="Слово или слог"]'), "б");
-    await click(btn("+ Строка"));
+    // Enter makes the next row: two sample rows, running text (more than two words), a blank writing row
+    await typeInField(host, "а\nб\nмама мыла раму\n\nв");
+    expect(fieldOf(host).value).toBe("а\nб\nмама мыла раму\n\nв");
     expect(btn("Из отмеченного")).toBeUndefined();
-
-    // a passage row and a blank row can be added too
-    await click(tab("Текст"));
-    await setValue(host.querySelector('[aria-label="Текст для страницы"]'), "мама мыла раму", HTMLTextAreaElement.prototype);
-    await click(btn("+ Текст"));
-    expect(host.querySelector('textarea[aria-label="Текст строки"]')).not.toBeNull();
-    await click(tab("Слово"));
-    await click(btn("+ Пустая"));
-    expect(host.querySelector('[aria-label="Пустая строка — место для письма"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="propis2-preview"] svg path')).not.toBeNull();
 
     await click(host.querySelector(".back-btn"));
     expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(1);
@@ -226,9 +222,7 @@ describe("Прописи 2 (zip topic)", () => {
     for (const [title, text] of [["Страница А", "а"], ["Страница Б", "б"]]) {
       await click(btn("Новая страница"));
       await setValue(host.querySelector('[aria-label="Название страницы"]'), title);
-      await click([...host.querySelectorAll('[role="tab"]')].find((t) => (t.getAttribute("aria-label") ?? t.textContent) === "Слово"));
-      await setValue(host.querySelector('[aria-label="Слово или слог"]'), text);
-      await click(btn("+ Строка"));
+      await typeInField(host, text);
       await click(host.querySelector(".back-btn"));
     }
     expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(2);
@@ -265,7 +259,7 @@ describe("Прописи 2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
-  it("editor: select a row and tap symbols; grid kinds (прописи / клетка / линейка); the wide ruling hides tiles", async () => {
+  it("editor: type rows in the field and pick elements; row options; grid kinds (прописи / клетка / линейка)", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -275,25 +269,22 @@ describe("Прописи 2 (zip topic)", () => {
     await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая страница")));
     const preview = () => host.querySelector('[data-testid="propis2-preview"]');
     const ink = () => preview().querySelectorAll("svg path").length;
-    const tile = (c) => host.querySelector(`[data-tile="${c}"]`);
-    const input = () => host.querySelector('[aria-label="Текст строки"]');
-    expect(host.querySelector('[data-testid="propis2-carousel"]')).not.toBeNull();
-    expect(host.querySelectorAll(".propis2-tile").length).toBeGreaterThan(20); // a grid, not a strip
     const before = ink();
 
-    // no row selected: a tapped symbol starts a row; the next taps add to the selected row
-    await click(tile("к"));
-    expect(input().value).toBe("к");
+    // typing in the field starts rows; the row the caret is in is selected; Enter makes the next row
+    await typeInField(host, "к");
+    expect(fieldOf(host).value).toBe("к");
     expect(ink()).toBeGreaterThan(before);
     expect(preview().querySelector('[data-overlay="select"]')).not.toBeNull();
-    await click(tile("о"));
-    await click(tile("т"));
-    expect(input().value).toBe("кот");
-    await click(host.querySelector('[aria-label="Стереть последний символ"]'));
-    expect(input().value).toBe("ко");
-    // an element takes the row over
-    await click([...host.querySelectorAll('[role="tab"]')].find((t) => (t.getAttribute("aria-label") ?? t.textContent) === "Элементы"));
-    await click(host.querySelectorAll(".propis2-tile")[0]);
+    await typeInField(host, "кот\nм");
+    expect(host.querySelectorAll('[data-overlay="select"]').length).toBeLessThanOrEqual(1);
+    // the list of elements: a tap puts the element's id on its own line
+    await click(host.querySelector('button[aria-label="Элементы"]'));
+    const elementTiles = host.querySelectorAll('[role="dialog"][aria-label="Элементы"] .propis2-tile');
+    expect(elementTiles.length).toBeGreaterThan(5);
+    await click(elementTiles[0]);
+    expect(fieldOf(host).value.split("\n").length).toBeGreaterThanOrEqual(2);
+    expect(fieldOf(host).value).toContain(elementTiles[0].getAttribute("data-tile"));
     // the row options (above the canvas) apply to the selected row; a picker shows the current value, its variants drop down
     const pickBtn = (group) => host.querySelector(`button[aria-label="${group}"][aria-haspopup]`);
     const pick = async (group, option) => { await click(pickBtn(group)); await click([...host.querySelectorAll(`[role="listbox"][aria-label="${group}"] button`)].find((b) => b.getAttribute("aria-label") === option)); };
@@ -349,16 +340,11 @@ describe("Прописи 2 (zip topic)", () => {
     await act(async () => { await tick(60); });
     expect(preview().querySelector("[data-simple-grid]").getAttribute("clip-path")).toBeNull();
 
-    // wide ruling: no capitals tab
-    const tabs = () => [...host.querySelectorAll('[data-testid="propis2-carousel"] [role="tab"]')].map((t) => t.getAttribute("aria-label"));
-    expect(tabs()).toContain("Заглавные");
-    await pick("Разлиновка", "Широкая");
-    expect(tabs()).not.toContain("Заглавные");
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);
 
-  it("a tap on an empty ruled row selects it (it is created), then a symbol goes into it; the panel sizes stay fixed", async () => {
+  it("a tap on an empty ruled row selects it (it is created); the field starts at the selected row", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -371,22 +357,23 @@ describe("Прописи 2 (zip topic)", () => {
     const vbH = Number(svg.getAttribute("viewBox").split(/\s+/)[3]);
     svg.getBoundingClientRect = () => ({ left: 0, top: 0, right: 400, bottom: vbH, width: 400, height: vbH });
     const yOfRow = (r) => { let y = 0; while (rowAtSvgY(y) !== r && y < vbH) y += 1; return y + 4; };
-    expect(host.querySelector('[data-testid="propis2-row-panel"]')).toBeNull();
-    const bar = () => host.querySelector(".propis2-dock-bar");
-    const dock = () => host.querySelector(".propis2-dock");
-    expect(bar()).not.toBeNull();
-    // tap row 3 of an empty page: a row is created there and selected
+    expect(preview().querySelector('[data-overlay="select"]')).toBeNull();
+    // tap row 3 of an empty page: a row is created there and selected; the field starts at it and is empty
     await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(3) });
-    expect(host.querySelector('[data-testid="propis2-row-panel"]')).not.toBeNull();
     expect(preview().querySelector('[data-overlay="select"]')).not.toBeNull();
-    await click(host.querySelector('[data-tile="м"]'));
-    expect(host.querySelector('[aria-label="Текст строки"]').value).toBe("м");
-    // the bottom panel is the same box with and without a selected row (its bar and body are separate fixed zones)
-    expect(bar().className).toBe("propis2-dock-bar");
-    expect(dock().querySelector(".propis2-dock-body")).not.toBeNull();
-    // a tap outside the ruled rows clears the selection
+    expect(fieldOf(host).value).toBe("");
+    // typing writes into that row (blank rows fill the gap above it)
+    await typeInField(host, "м");
+    expect(fieldOf(host).value).toBe("м");
+    // another tap on it shows its text again; a tap on a row above starts the field there and shows everything below
+    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(3) });
+    expect(fieldOf(host).value).toBe("м");
+    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(1) });
+    expect(fieldOf(host).value).toBe("\n\nм");
+    // a tap outside the ruled rows clears the selection and empties the field (the next typing goes below the last row)
     await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: vbH + 500 });
-    expect(host.querySelector('[data-testid="propis2-row-panel"]')).toBeNull();
+    expect(preview().querySelector('[data-overlay="select"]')).toBeNull();
+    expect(fieldOf(host).value).toBe("");
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);
@@ -408,8 +395,7 @@ describe("Прописи 2 (zip topic)", () => {
     expect(lbl("Тип бумаги").disabled).toBe(true);
     expect(lbl("Разлиновка").disabled).toBe(true);
     expect(lbl("Строка для письма после каждой строки").disabled).toBe(true);
-    await click(lbl("Слово"));
-    expect(lbl("+ Пустая строка").disabled).toBe(true);
+    expect(lbl("Текст страницы").disabled).toBe(true); // no row selected yet: nothing to edit
     expect(host.querySelector('[role="img"][aria-label^="Страница из пресета"]')).not.toBeNull();
     const rowsBefore = host.querySelectorAll('[data-testid="propis2-preview"] svg path').length;
     await click(lbl("Очистить страницу"));
@@ -470,6 +456,53 @@ describe("Прописи 2 (zip topic)", () => {
     // the press that showed the bubble does not open the list
     await act(async () => { fmt.dispatchEvent(new MouseEvent("pointerup", { bubbles: true })); fmt.click(); await tick(); });
     expect(host.querySelector('[role="listbox"]')).toBeNull();
+    await act(async () => { root.unmount(); await tick(300); });
+    host.remove();
+  }, 20000);
+
+  it("a locked page: the field edits only the selected row's text, one line; running text can be switched on a row", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el, init = {}) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true, ...init })); await tick(60); }); };
+    const select = host.querySelector('[aria-label="Готовый набор"]');
+    await act(async () => { select.value = "page18"; select.dispatchEvent(new Event("change", { bubbles: true })); await tick(); });
+    const preview = () => host.querySelector('[data-testid="propis2-preview"]');
+    const svg = preview().querySelector("svg.propis-print-page-svg");
+    const vbH = Number(svg.getAttribute("viewBox").split(/\s+/)[3]);
+    svg.getBoundingClientRect = () => ({ left: 0, top: 0, right: 400, bottom: vbH, width: 400, height: vbH });
+    const yOfRow = (r) => { let y = 0; while (rowAtSvgY(y) !== r && y < vbH) y += 1; return y + 4; };
+    expect(fieldOf(host).disabled).toBe(true);
+    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(0) });
+    expect(fieldOf(host).disabled).toBe(false);
+    const first = fieldOf(host).value;
+    expect(first.length).toBeGreaterThan(0);
+    expect(first).not.toContain("\n");
+    await typeInField(host, "Ю\nлишнее");
+    expect(fieldOf(host).value).not.toContain("\n");
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  }, 40000);
+
+  it("a row can be switched between sample and running text", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
+    await click(byLabel(host, "Новая страница"));
+    await typeInField(host, "мама");
+    const asText = () => host.querySelector('[aria-label="Строка как текст (с переносом)"]');
+    expect(asText().getAttribute("aria-pressed")).toBe("false");
+    await click(asText());
+    expect(asText().getAttribute("aria-pressed")).toBe("true");
+    // a row that is running text takes no repeat or dots
+    expect(host.querySelector('button[aria-label="Повтор"]').disabled).toBe(true);
+    await typeInField(host, "мама мыла раму");
+    expect(asText().getAttribute("aria-pressed")).toBe("true");
     await act(async () => { root.unmount(); await tick(300); });
     host.remove();
   }, 20000);
