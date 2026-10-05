@@ -1,6 +1,7 @@
 // «Прописи 2»: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
+import { snapXFor } from "../propis/PrintPageView.jsx";
 import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../propis/propisRuling.js";
 import { outsideRowLabels } from "./glyphReach.js";
 
@@ -185,10 +186,16 @@ export const MARGINS = [
 export const pageMargin = (page) => (page?.margin === "left" || page?.margin === "right" ? page.margin : "off");
 export const rowMaxX = (page) => WIDE_ROW_MAX_X + (mmToNativeUnits(formatOf(page).wMm) - mmToNativeUnits(PRINT_PAGE_W_MM)) - (pageMargin(page) === "off" ? 0 : propis2MarginUnits());
 
-export const lineWidth = (text, glyphMap, ruling) => {
-  const { placed } = layoutWideLinesIntoRows([text], glyphMap, undefined, false, ruling === "narrow" ? 0.5 : 1);
+// Width of a line as the page lays it out: on the page's own grid (`snap` = what snapXFor gives for the page), not freely.
+export const lineWidth = (text, glyphMap, ruling, snap) => {
+  const { placed } = layoutWideLinesIntoRows([text], glyphMap, snap ? (_row, x, y) => snap(0, x, y) : undefined, false, ruling === "narrow" ? 0.5 : 1);
   return placed[0]?.segments?.[0]?.width ?? 0;
 };
+
+// The snapping function of a page: the grid it is drawn with (slant frequency), margin, format.
+export const pageSnap = (page) => snapXFor({ narrowRows: page?.ruling === "narrow", simpleGrid: taskGrid(page), margin: pageMargin(page), format: pageFormat(page) });
+// Rows of different pages stand at different phases of the grid: keep one cell of room so a snapped line never runs off.
+const wrapSlack = (ruling) => TEXT_ROW_WIDE_DIAGONAL_SPACING * (ruling === "narrow" ? 0.5 : 1);
 
 // Spaces typed before running text: the text starts that many slant cells in (a cell is 5 mm on the wide ruling, 2.5 on the narrow).
 export const leadingSpaces = (text) => (/^\s*/.exec(String(text ?? ""))?.[0].length ?? 0);
@@ -196,7 +203,7 @@ const indentUnitsOf = (text, ruling) => leadingSpaces(text) * TEXT_ROW_WIDE_DIAG
 
 // Greedy wrap of running text into lines that fit the printable width. A single word wider than
 // the line stays on its own line (the editor warns about it); nothing is cut.
-export function wrapPassage(text, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX_X, indentUnits = 0) {
+export function wrapPassage(text, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX_X, indentUnits = 0, snap) {
   // words with the extra spaces typed before them: one space is the usual gap between words, every further space adds a
   // slant cell (an "_N" pseudo word for the engine); spaces at the start of the text are the row's indent, not a gap
   const words = [];
@@ -205,7 +212,7 @@ export function wrapPassage(text, glyphMap, ruling = "narrow", maxX = WIDE_ROW_M
   let cur = "";
   for (const { word, extra } of words) {
     const cand = cur ? `${cur}${extra ? ` _${extra} ` : " "}${word}` : word;
-    if (!cur || lineWidth(cand, glyphMap, ruling) <= maxX - (lines.length === 0 ? indentUnits : 0)) cur = cand;
+    if (!cur || lineWidth(cand, glyphMap, ruling, snap) <= maxX - wrapSlack(ruling) - (lines.length === 0 ? indentUnits : 0)) cur = cand;
     else { lines.push(cur); cur = word; }
   }
   if (cur) lines.push(cur);
@@ -221,7 +228,7 @@ export function pageToLines(page, glyphMap) {
   for (const row of page?.rows ?? []) {
     if (row.kind === "blank") { out.push(""); continue; }
     if (row.kind === "passage") {
-      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page), indentUnitsOf(row.text, page?.ruling)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
+      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page), indentUnitsOf(row.text, page?.ruling), pageSnap(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
       if (!wrapped.length) { out.push(""); continue; }
       const indent = leadingSpaces(row.text);
       wrapped.forEach((l, k) => { out.push(`${l}#1${k === 0 && indent ? `#i${indent}` : ""}`); if (page?.writeAfter) out.push(""); });
@@ -245,7 +252,7 @@ export function lineOwners(page, glyphMap) {
   (page?.rows ?? []).forEach((row, i) => {
     if (row.kind === "blank") { out.push(i); return; }
     if (row.kind === "passage") {
-      const n = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page), indentUnitsOf(row.text, page?.ruling)).length : String(row.text ?? "").trim() ? 1 : 0;
+      const n = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page), indentUnitsOf(row.text, page?.ruling), pageSnap(page)).length : String(row.text ?? "").trim() ? 1 : 0;
       if (!n) { out.push(i); return; }
       for (let k = 0; k < n; k += 1) { out.push(i); if (page?.writeAfter) out.push(null); }
       return;
@@ -388,7 +395,7 @@ export function findOutsideRow(text, glyphMap) {
 
 // { empty, unsupported: [chars], overflow } for one row. Overflow = the row, written once with no
 // multiplying, is wider than the printable line (it would be clipped on the page).
-export function analyzeRow(row, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX_X) {
+export function analyzeRow(row, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX_X, snap) {
   const text = String(row?.text ?? "").trim();
   if (row?.kind === "blank") return { empty: false, blank: true, unsupported: [], outside: [], overflow: false };
   if (!text) return { empty: true, unsupported: [], outside: [], overflow: false };
@@ -396,15 +403,13 @@ export function analyzeRow(row, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX
   const outside = ruling === "wide" ? findOutsideRow(text, glyphMap) : [];
   if (row?.kind === "passage") {
     // wrapped, so only a single word wider than the line can overflow
-    const tooWide = text.split(/\s+/).some((w) => lineWidth(w, glyphMap, ruling) > maxX);
+    const tooWide = text.split(/\s+/).some((w) => lineWidth(w, glyphMap, ruling, snap) > maxX);
     return { empty: false, unsupported, outside, overflow: tooWide };
   }
   let overflow = false;
   if (!unsupported.length || wideTokenToLabels(text.split(/\s+/)[0], glyphMap).length) {
     try {
-      const { placed } = layoutWideLinesIntoRows([text], glyphMap, undefined, false, ruling === "narrow" ? 0.5 : 1);
-      const width = placed[0]?.segments?.[0]?.width ?? 0;
-      overflow = width > maxX;
+      overflow = lineWidth(text, glyphMap, ruling, snap) > maxX;
     } catch {
       overflow = false;
     }
@@ -413,7 +418,7 @@ export function analyzeRow(row, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX
 }
 
 export function analyzePage(page, glyphMap) {
-  const rows = (page?.rows ?? []).map((row) => analyzeRow(row, glyphMap, page?.ruling, rowMaxX(page)));
+  const rows = (page?.rows ?? []).map((row) => analyzeRow(row, glyphMap, page?.ruling, rowMaxX(page), pageSnap(page)));
   return {
     rows,
     problems: rows.filter((r) => r.unsupported.length || r.outside?.length || r.overflow).length,

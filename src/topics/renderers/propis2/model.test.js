@@ -392,3 +392,22 @@ describe("extra spaces between words of running text", () => {
     expect(pageToLines({ ...newPage("x", { ruling: "wide" }), rows }, map)[0]).toMatch(/^мама _2 мыла#1$/);
   });
 });
+
+describe("long text wraps by the grid the page is drawn with", () => {
+  it("no wrapped line is wider than the row, whatever the slant frequency, ruling and margin", async () => {
+    const { snapXFor } = await import("../propis/PrintPageView.jsx");
+    const text = "мама мыла раму и  пошла  гулять в лес  собирать грибы и ягоды, а потом пришла домой и стала варить кашу для всей большой семьи";
+    for (const ruling of ["narrow", "wide"]) for (const grid of ["regular", "dense"]) for (const margin of ["off", "left"]) {
+      const page = newPage("p", { ruling, grid, margin, rows: [newRow({ kind: "passage", text })] });
+      const snap = snapXFor({ narrowRows: ruling === "narrow", simpleGrid: grid, margin, format: "a5" });
+      const lines = pageToLines(page, map);
+      expect(lines.length).toBeGreaterThan(1);
+      lines.forEach((l, i) => {
+        for (const idx of [i, i + 16]) {
+          const { placed } = layoutWideLinesIntoRows([l], map, (r, x, y) => snap(idx, x, y), false, ruling === "narrow" ? 0.5 : 1);
+          expect(placed[0].segments[0].width, `${ruling} ${grid} ${margin} row ${idx}`).toBeLessThanOrEqual(rowMaxX(page));
+        }
+      });
+    }
+  });
+});

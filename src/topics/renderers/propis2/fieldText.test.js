@@ -83,4 +83,20 @@ describe("field text <-> rows", () => {
     expect(lines.length).toBeGreaterThan(0);
     expect(lines.join(" ")).toContain("г1");
   });
+
+  it("Enter in the middle of a row, or a deleted line, does not push the rows below out of step with their options", () => {
+    const rows = [newRow({ text: "аа", repeat: "one" }), newRow({ text: "бб", repeat: "fade" }), newRow({ text: "вв", repeat: "all", dots: "none" })];
+    const id = (r) => r.id;
+    const split = rowsFromField({ rows, startId: rows[0].id, value: "а\nа\nбб\nвв", glyphMap: map, page }).rows;
+    expect(split.map((r) => r.text)).toEqual(["а", "а", "бб", "вв"]);
+    expect(split[2].id).toBe(rows[1].id);
+    expect(split[2].repeat).toBe("fade");
+    expect(split[3].id).toBe(rows[2].id);
+    expect(split[3].dots).toBe("none");
+    expect(split[0].id).toBe(rows[0].id);
+    expect(split[1].repeat).toBe("one"); // the new line takes the options of the row above
+    const gone = rowsFromField({ rows, startId: rows[0].id, value: "аа\nвв", glyphMap: map, page }).rows;
+    expect(gone.map(id)).toEqual([rows[0].id, rows[2].id]);
+    expect(gone[1].dots).toBe("none");
+  });
 });

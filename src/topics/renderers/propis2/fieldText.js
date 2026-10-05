@@ -42,15 +42,25 @@ export function rowsFromField({ rows, startId, value, glyphMap, page }) {
   const head = rows.slice(0, startIndex);
   const tail = rows.slice(startIndex);
   let prev = head[head.length - 1] ?? null;
-  const next = lines.map((line, k) => {
-    const old = tail[k];
+  // Lines are matched to the rows that stood there by what did not change: the unchanged lines at the start and at the end
+  // keep their rows (and so their options), only the changed stretch in between is rewritten by place. So pressing Enter in
+  // the middle of a row, or deleting a line, does not push the rows below out of step with their own options.
+  const oldText = tail.map((r) => (r.kind === "blank" ? "" : String(r.text ?? "").replace(/\s*\n\s*/g, " ")));
+  let pre = 0;
+  while (pre < lines.length && pre < tail.length && lines[pre] === oldText[pre]) pre += 1;
+  let suf = 0;
+  while (suf < lines.length - pre && suf < tail.length - pre && lines[lines.length - 1 - suf] === oldText[tail.length - 1 - suf]) suf += 1;
+  const build = (line, old) => {
     const kind = inferRowKind(line, glyphMap, page, old?.asText);
     const keepKind = old?.kind === "element" && kind === "text" ? "element" : kind;
     const row = old ? { ...old, kind: keepKind, text: line } : { ...newRow({ kind: keepKind, text: line }), ...(prev ? paramsOf(prev) : {}) };
     if (kind === "blank") row.text = "";
-    prev = row;
     return row;
-  });
+  };
+  const next = [];
+  for (let i = 0; i < pre; i += 1) { next.push(tail[i]); prev = tail[i]; }
+  for (let i = pre; i < lines.length - suf; i += 1) { const row = build(lines[i], i < tail.length - suf ? tail[i] : undefined); next.push(row); prev = row; }
+  for (let j = suf; j > 0; j -= 1) next.push(tail[tail.length - j]);
   return { rows: [...head, ...next], firstId: next[0]?.id ?? null };
 }
 

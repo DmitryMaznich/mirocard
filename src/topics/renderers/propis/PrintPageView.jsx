@@ -693,6 +693,15 @@ function drawnGridSnapX(step, margin, geom) {
   };
 }
 
+// The function that puts a letter's start on a line of the grid the page is drawn with (the layout and the text wrapping of
+// «Прописи 2» must use the SAME one: a word placed on the grid is wider than the same word measured freely).
+export function snapXFor({ narrowRows, simpleGrid, margin = "off", format = "a5" }) {
+  const geom = geomOf(format);
+  const dense = simpleGrid === "dense";
+  if (narrowRows) return dense ? drawnGridSnapX(NARROW_CELL, margin, geom) : narrowSnapFor(margin, geom);
+  return dense ? drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom) : wideSnapFor(margin, geom);
+}
+
 // Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
 // no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
 export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, speedFactor = 1, overlays = null, onPageIndexChange = null }) {
@@ -747,9 +756,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
 
   const layout = useMemo(
     () => wideRows
-      ? (narrowRows
-        ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? drawnGridSnapX(NARROW_CELL, margin, geom) : narrowSnapFor(margin, geom), true, NARROW_SCALE, rowMaxX)
-        : layoutWideLinesIntoRows(lines, wideGlyphsByLabel, task?.simpleGrid === "dense" ? drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom) : wideSnapFor(margin, geom), true, 1, rowMaxX))
+      ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, snapXFor({ narrowRows, simpleGrid: task?.simpleGrid, margin, format: geom.format }), true, narrowRows ? NARROW_SCALE : 1, rowMaxX)
       : useElements
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
