@@ -453,9 +453,28 @@ export function pickFragment(rowWord, localX, glyphMap, ruling = "narrow") {
   return words[words.length - 1];
 }
 
-// ---- sets («комплект»): an ordered list of pages shown and printed as one booklet -------------
+// ---- sets («тетрадь»): an ordered list of pages shown and printed as one notebook -------------
 
-export function newSet(title = "Новый комплект", patch = {}) {
+// A notebook («тетрадь») has ONE paper: format, paper type, ruling, slant, margins, the middle dash, write-after. They live on
+// every page (the engine reads them from the first one) and are changed for all the pages together; the page keeps only its rows.
+export const LAYOUT_KEYS = ["format", "gridKind", "ruling", "grid", "midDash", "writeAfter", "margin"];
+
+export function notebookLayout(set, pagesById) {
+  const first = pagesById.get(set?.pageIds?.[0]);
+  const out = {};
+  for (const k of LAYOUT_KEYS) if (first && first[k] !== undefined) out[k] = first[k];
+  if (set?.ruling) out.ruling = set.ruling;
+  return out;
+}
+
+// The part of `next` that differs from `prev` in the notebook-wide keys.
+export function layoutChange(prev, next) {
+  const patch = {};
+  for (const k of LAYOUT_KEYS) if (prev[k] !== next[k]) patch[k] = next[k];
+  return patch;
+}
+
+export function newSet(title = "Новая тетрадь", patch = {}) {
   const now = Date.now();
   return { id: newId("st"), title, ruling: "narrow", pageIds: [], createdAt: now, updatedAt: now, ...patch };
 }

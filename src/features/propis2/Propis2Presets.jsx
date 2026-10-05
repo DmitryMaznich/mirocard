@@ -11,7 +11,7 @@ export default function Propis2Presets({ builtin = [], mine = [], canSave, defau
   const ref = useRef(null);
   const btnRef = useRef(null);
   const panelStyle = usePopupPos(open, btnRef, 320, () => setOpen(false));
-  const { bind, tip } = useHint("Комплекты");
+  const { bind, tip } = useHint("Готовые тетради");
   useEffect(() => {
     if (!open) return undefined;
     const away = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
@@ -26,7 +26,7 @@ export default function Propis2Presets({ builtin = [], mine = [], canSave, defau
       {items.map((p) => (
         <li key={p.id}>
           <button type="button" className="p2-presets-item" onClick={() => { setOpen(false); onApply(p); }}>{p.title}</button>
-          {deletable && <button type="button" className="p2-presets-del" aria-label={`Удалить комплект ${p.title}`} onClick={() => onDeleteMine(p.id)}><I.IconTrash /></button>}
+          {deletable && <button type="button" className="p2-presets-del" aria-label={`Удалить тетрадь ${p.title}`} onClick={() => onDeleteMine(p.id)}><I.IconTrash /></button>}
         </li>
       ))}
     </ul>
@@ -34,15 +34,15 @@ export default function Propis2Presets({ builtin = [], mine = [], canSave, defau
 
   return (
     <div className="p2-pick p2-presets" ref={ref}>
-      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label="Комплекты" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((o) => !o)} {...bind}><span className="p2-tool-ico"><I.IconPresets /></span><span className="p2-cap">Комплекты</span>{tip}</button>
+      <button type="button" ref={btnRef} className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label="Готовые тетради" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((o) => !o)} {...bind}><span className="p2-tool-ico"><I.IconPresets /></span><span className="p2-cap">Тетради</span>{tip}</button>
       {open && (
-        <div className="p2-presets-panel" role="dialog" aria-label="Комплекты" style={panelStyle ?? undefined}>
+        <div className="p2-presets-panel" role="dialog" aria-label="Готовые тетради" style={panelStyle ?? undefined}>
           {builtin.length > 0 && <><h3>Методика</h3>{list(builtin, false)}</>}
           <h3>Мои</h3>
           {mine.length > 0 ? list(mine, true) : <p className="p2-presets-empty">Пока пусто</p>}
           <div className="p2-presets-save">
-            <input value={name} placeholder={defaultName} onChange={(e) => setName(e.target.value)} aria-label="Название комплекта" />
-            <button type="button" className="p2-ib p2-ib--primary" aria-label="Сохранить как комплект" disabled={!canSave} onClick={() => { onSave(name.trim() || defaultName); setName(""); setOpen(false); }}><I.IconSavePreset /></button>
+            <input value={name} placeholder={defaultName} onChange={(e) => setName(e.target.value)} aria-label="Название тетради" />
+            <button type="button" className="p2-ib p2-ib--primary" aria-label="Сохранить как тетрадь" disabled={!canSave} onClick={() => { onSave(name.trim() || defaultName); setName(""); setOpen(false); }}><I.IconSavePreset /></button>
           </div>
         </div>
       )}

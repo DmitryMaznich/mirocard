@@ -5,13 +5,12 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
-import { kitToLibraryItems, newId, newPage, newSet, pageFromPreset, pageFormat, pageMargin, pageToLines, presetFromLines, presetFromPage, pickFragment, setPageStarts, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, pageFromPreset, pageFormat, pageMargin, pageToLines, presetFromLines, presetFromPage, pickFragment, setPageStarts, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
-import { emptyLibrary, loadLibrary, removePage, removePreset, removeSet, saveLibrary, upsertPage, upsertPreset, upsertSet } from "@/topics/renderers/propis2/storage.js";
+import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, removePage, removePreset, removeSet, saveLibrary, upsertPage, upsertPreset, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
-import Propis2SetEditor from "./Propis2SetEditor";
 import "./propis2.css";
 
 // Home screen of «Прописи 2»: library -> editor -> student view. Pages live in IndexedDB on this
@@ -54,7 +53,7 @@ export default function Propis2Home({ db }) {
       const res = await api.get(`/account/kv?prefix=${encodeURIComponent(SYNC_PREFIX)}`);
       if (!Array.isArray(res?.kv)) return;
       syncedRef.current = snapshotFromRemote(res.kv);
-      persist(mergeRemote(latest.current, res.kv));
+      persist(migrateToNotebooks(mergeRemote(latest.current, res.kv)));
     } catch {
       // offline or signed out: the local library keeps working, the queue catches up later
     }
@@ -63,10 +62,20 @@ export default function Propis2Home({ db }) {
   useEffect(() => {
     let alive = true;
     loadLibrary(db)
-      .then((lib) => { if (!alive) return; latest.current = lib; syncedRef.current = snapshotDocs(lib); setLibrary(lib); setLoaded(true); pullRemote(); })
+      .then((raw) => {
+        if (!alive) return;
+        // no page lives outside a notebook: what was saved loose becomes a notebook of one page (and goes up with the next flush)
+        const lib = migrateToNotebooks(raw);
+        syncedRef.current = snapshotDocs(raw);
+        latest.current = lib;
+        setLibrary(lib);
+        setLoaded(true);
+        if (lib !== raw) persist(lib);
+        pullRemote();
+      })
       .catch(() => { if (alive) setLoaded(true); });
     return () => { alive = false; };
-  }, [db, pullRemote]);
+  }, [db, pullRemote, persist]);
   useEffect(() => {
     const onVisible = () => { if (document.visibilityState === "visible") pullRemote(); };
     document.addEventListener("visibilitychange", onVisible);
@@ -81,6 +90,12 @@ export default function Propis2Home({ db }) {
   const builtinPresets = useMemo(() => Object.keys(PROPIS2_SHEET_TITLES).filter((id) => sheets[id]).map((id) => presetFromLines(id, PROPIS2_SHEET_TITLES[id], sheets[id], "narrow", elementLabels)), [sheets, elementLabels]);
   const kitPresets = useMemo(() => kits.map((k) => ({ id: `kit:${k.id}`, title: k.title, kit: k, builtin: true })), [kits]);
   const presets = useMemo(() => ({ builtin: [...kitPresets, ...builtinPresets], mine: library.presets ?? [] }), [kitPresets, builtinPresets, library.presets]);
+  // a new page is a notebook of one page (there is no page outside a notebook)
+  const createPage = (p) => {
+    const nb = newSet(p.title, { id: `st_${p.id}`, ruling: p.ruling, pageIds: [p.id], createdAt: p.createdAt });
+    persist(upsertSet(upsertPage(library, p), nb));
+    setView({ name: "editor", pageId: p.id, backTo: { name: "library" } });
+  };
   const createFromPreset = (ps) => {
     if (ps.kit) {
       // a multi-page kit: a set of pages, opened as a set
@@ -89,15 +104,12 @@ export default function Propis2Home({ db }) {
       setView({ name: "showSet", setId: ns.id, from: "library" }); // straight into the viewer, no screen in between
       return;
     }
-    const np = pageFromPreset(ps);
-    persist(upsertPage(library, np));
-    setView({ name: "editor", pageId: np.id });
+    createPage(pageFromPreset(ps));
   };
   const page = view.pageId ? library.pages.find((p) => p.id === view.pageId) : null;
   const set = view.setId ? library.sets.find((st) => st.id === view.setId) : null;
   const pagesById = useMemo(() => new Map(library.pages.map((p) => [p.id, p])), [library.pages]);
 
-  const createPage = (p) => { persist(upsertPage(library, p)); setView({ name: "editor", pageId: p.id }); };
 
   // The student view's layout is heavy (a whole set: hundreds of rows): built once per content, not on every render
   // (turning a page and opening the show panel re-render this screen).
@@ -136,33 +148,12 @@ export default function Propis2Home({ db }) {
     );
   }
 
-  if (view.name === "setEditor" && set) {
-    return (
-      <Propis2SetEditor
-        set={set}
-        pages={library.pages}
-        topicRecord={topicRecord}
-        onChange={(next) => persist(upsertSet(library, next))}
-        onBack={() => setView({ name: "library" })}
-        onShow={() => setView({ name: "showSet", setId: set.id, from: "setEditor" })}
-        onEditPage={(id) => setView({ name: "editor", pageId: id, backTo: { name: "setEditor", setId: set.id } })}
-        onDuplicatePage={(id, index) => {
-          const src = pagesById.get(id);
-          if (!src) return;
-          const copy = { ...src, id: newId("pg"), title: `${src.title} (копия)`, rows: src.rows.map((r) => ({ ...r, id: newId("r") })), createdAt: Date.now() };
-          const withPage = upsertPage(library, copy);
-          const pageIds = [...set.pageIds.slice(0, index + 1), copy.id, ...set.pageIds.slice(index + 1)];
-          persist(upsertSet(withPage, { ...set, pageIds }));
-        }}
-      />
-    );
-  }
-
   if (view.name === "editor" && page) {
-    // inside a set the editor pages through all its pages and can copy / delete them (no separate set screen needed)
-    const navSet = view.backTo?.setId ? library.sets.find((st) => st.id === view.backTo.setId) : null;
+    // every page is in a notebook: the editor pages through its pages, adds / copies / deletes them, and the paper is the notebook's
+    const navSet = library.sets.find((st) => st.pageIds.includes(page.id)) ?? null;
     const navIndex = navSet ? navSet.pageIds.indexOf(page.id) : -1;
     const goPage = (id) => id && setView({ ...view, pageId: id });
+    const shown = navSet ? { ...page, ...notebookLayout(navSet, pagesById) } : page;
     const nav = navSet && navIndex >= 0 ? {
       index: navIndex,
       total: navSet.pageIds.length,
@@ -171,8 +162,8 @@ export default function Propis2Home({ db }) {
       onMoveBefore: () => { const ids = [...navSet.pageIds]; [ids[navIndex - 1], ids[navIndex]] = [ids[navIndex], ids[navIndex - 1]]; persist(upsertSet(library, { ...navSet, pageIds: ids })); },
       onMoveAfter: () => { const ids = [...navSet.pageIds]; [ids[navIndex + 1], ids[navIndex]] = [ids[navIndex], ids[navIndex + 1]]; persist(upsertSet(library, { ...navSet, pageIds: ids })); },
       onAdd: () => {
-        // a blank page with this page's paper, ruling, margins and format, right after it
-        const { id: _id, title: _t, rows: _r, createdAt: _c, updatedAt: _u, locked: _l, presetId: _p, ...layout } = page;
+        // a blank page with the notebook's paper, right after this one
+        const { id: _id, title: _t, rows: _r, createdAt: _c, updatedAt: _u, locked: _l, presetId: _p, ...layout } = shown;
         const fresh = newPage(`Страница ${navSet.pageIds.length + 1}`, layout);
         const pageIds = [...navSet.pageIds.slice(0, navIndex + 1), fresh.id, ...navSet.pageIds.slice(navIndex + 1)];
         persist(upsertSet(upsertPage(library, fresh), { ...navSet, pageIds }));
@@ -185,9 +176,11 @@ export default function Propis2Home({ db }) {
         goPage(copy.id);
       },
       onDelete: () => {
-        if (typeof window !== "undefined" && window.confirm && !window.confirm(`Удалить страницу «${page.title}» из комплекта?`)) return;
+        const last = navSet.pageIds.length === 1;
+        const ask = last ? `Удалить тетрадь «${navSet.title || page.title}»?` : `Удалить страницу «${page.title}» из тетради?`;
+        if (typeof window !== "undefined" && window.confirm && !window.confirm(ask)) return;
+        if (last) { persist(removeSet(library, navSet.id)); setView({ name: "library" }); return; }
         const pageIds = navSet.pageIds.filter((id) => id !== page.id);
-        if (!pageIds.length) { persist(removeSet(removePage(library, page.id), navSet.id)); setView({ name: "library" }); return; }
         persist(upsertSet(removePage(library, page.id), { ...navSet, pageIds }));
         goPage(pageIds[Math.min(navIndex, pageIds.length - 1)]);
       },
@@ -196,14 +189,21 @@ export default function Propis2Home({ db }) {
       <Propis2Editor
         key={page.id}
         nav={nav}
-        page={page}
+        page={shown}
         topicRecord={topicRecord}
-        onChange={(next) => persist(upsertPage(library, next))}
+        onChange={(next) => {
+          // paper settings are the whole notebook's, the rest is this page's
+          const patch = navSet ? layoutChange(shown, next) : {};
+          let lib = Object.keys(patch).length ? applyLayout(library, navSet.id, patch) : library;
+          // a one-page notebook is named after its page
+          if (navSet && navSet.pageIds.length === 1 && next.title !== shown.title) lib = upsertSet(lib, { ...lib.sets.find((st) => st.id === navSet.id), title: next.title });
+          persist(upsertPage(lib, next));
+        }}
         onBack={() => setView(view.backTo ?? { name: "library" })}
         onShow={() => setView(navSet ? { name: "showSet", setId: navSet.id, pageId: page.id, from: "editor", backTo: view.backTo } : { name: "show", pageId: page.id, from: "editor", backTo: view.backTo })}
         presets={presets}
         onApplyPreset={createFromPreset}
-        onSavePreset={(name) => persist(upsertPreset(library, presetFromPage(page, name)))}
+        onSavePreset={(name) => persist(upsertPreset(library, presetFromPage(shown, name)))}
         onDeletePreset={(id) => persist(removePreset(library, id))}
       />
     );
@@ -211,39 +211,26 @@ export default function Propis2Home({ db }) {
 
   return (
     <Propis2Library
-      pages={library.pages.filter((p) => !p.kitId)}
       sets={library.sets}
-      sheets={sheets}
       onBack={() => setScreen("home")}
-      onNew={() => createPage(newPage())}
+      onNew={() => createPage(newPage("Новая тетрадь"))}
       presets={presets}
       onFromPreset={(id) => { const ps = [...presets.builtin, ...presets.mine].find((x) => x.id === id); if (ps) createFromPreset(ps); }}
       onDeletePreset={(id) => persist(removePreset(library, id))}
-      onOpen={(id) => setView({ name: "show", pageId: id, from: "library" })}
-      onEdit={(id) => setView({ name: "editor", pageId: id })}
-      onDuplicate={(id) => {
-        const src = library.pages.find((p) => p.id === id);
-        if (src) persist(upsertPage(library, { ...src, id: newId("pg"), title: `${src.title} (копия)`, rows: src.rows.map((r) => ({ ...r, id: newId("r") })), createdAt: Date.now() }));
-      }}
-      onDelete={(id) => persist(removePage(library, id))}
-      onNewSet={() => { const st = newSet(); persist(upsertSet(library, st)); setView({ name: "setEditor", setId: st.id }); }}
       onOpenSet={(id) => setView({ name: "showSet", setId: id, from: "library" })}
-      onEditSet={(id) => setView({ name: "setEditor", setId: id })}
+      onEditSet={(id) => { const st = library.sets.find((x) => x.id === id); if (st?.pageIds[0]) setView({ name: "editor", pageId: st.pageIds[0], backTo: { name: "library" } }); }}
+      onRenameSet={(id, title) => { const st = library.sets.find((x) => x.id === id); if (st) persist(upsertSet(library, { ...st, title })); }}
       onDuplicateSet={(id) => {
         const src = library.sets.find((st) => st.id === id);
         if (!src) return;
-        // the pages of a kit belong to it: a copy of the kit gets copies of the pages
+        // a notebook owns its pages: a copy of it gets copies of them
         const copy = { ...src, id: newId("st"), title: `${src.title} (копия)`, createdAt: Date.now() };
-        let lib = library;
-        if (src.kit) {
-          const own = src.pageIds.map((pid) => library.pages.find((p) => p.id === pid)).filter(Boolean);
-          const copies = own.map((p) => ({ ...p, id: newId("pg"), kitId: copy.id, rows: p.rows.map((r) => ({ ...r, id: newId("r") })), createdAt: Date.now() }));
-          copy.pageIds = copies.map((p) => p.id);
-          lib = copies.reduce((l, p) => upsertPage(l, p), lib);
-        }
-        persist(upsertSet(lib, copy));
+        const own = src.pageIds.map((pid) => library.pages.find((p) => p.id === pid)).filter(Boolean);
+        const copies = own.map((p) => ({ ...p, id: newId("pg"), kitId: copy.id, rows: p.rows.map((r) => ({ ...r, id: newId("r") })), createdAt: Date.now() }));
+        copy.pageIds = copies.map((p) => p.id);
+        persist(upsertSet(copies.reduce((l, p) => upsertPage(l, p), library), copy));
       }}
-      onDeleteSet={(id) => persist(removeSet(library.pages.filter((p) => p.kitId === id).reduce((lib, p) => removePage(lib, p.id), library), id))}
+      onDeleteSet={(id) => persist(removeSet(library, id))}
     />
   );
 }

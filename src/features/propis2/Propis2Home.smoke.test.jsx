@@ -94,9 +94,9 @@ describe("Прописи 2 (zip topic)", () => {
 
     let { host, root } = await render();
     expect(host.querySelector('[data-testid="propis2-library"]')).not.toBeNull();
-    expect(host.textContent).toContain("Страниц пока нет");
+    expect(host.textContent).toContain("Тетрадей пока нет");
 
-    await click(btn(host, "Новая страница"));
+    await click(btn(host, "Новая тетрадь"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await type(host.querySelector('[aria-label="Название страницы"]'), "Мои буквы");
     await typeInField(host, "кот@");
@@ -113,13 +113,13 @@ describe("Прописи 2 (zip topic)", () => {
     host.remove();
 
     ({ host, root } = await render());
-    const cards = host.querySelectorAll('[data-testid="propis2-page-card"]');
+    const cards = host.querySelectorAll('[data-testid="propis2-set-card"]');
     expect(cards).toHaveLength(1);
     expect(cards[0].textContent).toContain("Мои буквы");
-    expect(cards[0].textContent).toContain("1 строк");
+    expect(cards[0].textContent).toContain("1 стр.");
 
     await click(btn(host, "Копия"));
-    expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(2);
+    expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(2);
 
     const select = host.querySelector('[aria-label="Готовый набор"]');
     await act(async () => { select.value = "page18"; select.dispatchEvent(new Event("change", { bubbles: true })); await tick(); });
@@ -140,7 +140,7 @@ describe("Прописи 2 (zip topic)", () => {
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
 
-    await click(btn("Новая страница"));
+    await click(btn("Новая тетрадь"));
     // Enter makes the next row: two sample rows, running text (more than two words), a blank writing row
     await typeInField(host, "а\nб\nмама мыла раму\n\nв");
     expect(fieldOf(host).value).toBe("а\nб\nмама мыла раму\n\nв");
@@ -148,7 +148,7 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('[data-testid="propis2-preview"] svg path')).not.toBeNull();
 
     await click(host.querySelector(".back-btn"));
-    expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(1);
+    expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(1);
     await act(async () => { root.unmount(); await tick(500); });
     host.remove();
   });
@@ -195,58 +195,46 @@ describe("Прописи 2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
-  it("sets: build a booklet from pages, reorder, duplicate a page inside, show as one booklet with set page numbers", async () => {
+  it("notebook: add / copy / move pages in the editor, show as one notebook with its page numbers", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
-    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
-    const setValue = async (el, value, proto = HTMLInputElement.prototype) => {
-      await act(async () => {
-        Object.getOwnPropertyDescriptor(proto, "value").set.call(el, value);
-        el.dispatchEvent(new Event(el.tagName === "SELECT" ? "change" : "input", { bubbles: true }));
-        await tick();
-      });
-    };
+    const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
+    const pos = () => host.querySelector(".p2-pager-pos")?.textContent;
 
-    // two pages
-    for (const [title, text] of [["Страница А", "а"], ["Страница Б", "б"]]) {
-      await click(btn("Новая страница"));
-      await setValue(host.querySelector('[aria-label="Название страницы"]'), title);
-      await typeInField(host, text);
-      await click(host.querySelector(".back-btn"));
-    }
-    expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(2);
+    await click(btn("Новая тетрадь"));
+    expect(host.querySelector(".p2-pager-pos")).toBeNull(); // one page: no pager counter
+    await typeInField(host, "а");
+    await click(host.querySelector('[aria-label="Добавить страницу"]'));
+    expect(pos()).toBe("Стр. 2 из 2");
+    await typeInField(host, "б");
+    // the paper is the notebook's: changed on page 2, it is changed on page 1 too
+    const kindBtn = () => host.querySelector('button[aria-label="Тип бумаги"]');
+    const before = kindBtn().getAttribute("data-value");
+    await click(kindBtn());
+    await click([...host.querySelectorAll('[role="option"]')].find((o) => !o.classList.contains("is-on")));
+    const kind = kindBtn().getAttribute("data-value");
+    expect(kind).not.toBe(before);
+    await click(host.querySelector('[aria-label="Предыдущая страница"]'));
+    expect(kindBtn().getAttribute("data-value")).toBe(kind);
+    await click(host.querySelector('[aria-label="Следующая страница"]'));
+    await click(host.querySelector('[aria-label="Копия страницы"]'));
+    expect(pos()).toBe("Стр. 3 из 3");
+    await click(host.querySelector('[aria-label="Переместить страницу раньше"]'));
+    expect(pos()).toBe("Стр. 2 из 3");
 
-    await click(btn("Новый комплект"));
-    expect(host.querySelector('[data-testid="propis2-set-editor"]')).not.toBeNull();
-    await setValue(host.querySelector('[aria-label="Название комплекта"]'), "Урок 1");
-    const add = host.querySelector('[aria-label="Добавить страницу в комплект"]');
-    const options = [...add.querySelectorAll("option")].filter((o) => o.value);
-    expect(options).toHaveLength(2);
-    await setValue(add, options[0].value, HTMLSelectElement.prototype);
-    await setValue(host.querySelector('[aria-label="Добавить страницу в комплект"]'), options[1].value, HTMLSelectElement.prototype);
-    expect(host.querySelectorAll('[data-testid="propis2-set-page"]')).toHaveLength(2);
-    const titlesOf = () => [...host.querySelectorAll('[data-testid="propis2-set-page"] strong')].map((e) => e.textContent);
-    const first = titlesOf();
-    await click(host.querySelectorAll('[aria-label="Страницу ниже"]')[0]);
-    expect(titlesOf()).toEqual([first[1], first[0]]);
-    await click(host.querySelectorAll('[aria-label="Дублировать страницу"]')[0]);
-    expect(host.querySelectorAll('[data-testid="propis2-set-page"]')).toHaveLength(3);
-    expect(titlesOf()[1]).toContain("(копия)");
-    expect(host.textContent).toContain("с листа 1");
-    expect(host.textContent).toContain("с листа 2");
-
-    await click(btn("Показать комплект как ученику"));
+    await click(btn("Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
     // 3 pages -> exactly 3 screen pages (v1 pads to an even count; propis2 sets exactPages)
     expect(host.querySelector(".propis-text-nav__counter").textContent).toBe("Страница 1 из 3");
     await click(host.querySelector(".propis-practice-close"));
-    expect(host.querySelector('[data-testid="propis2-set-editor"]')).not.toBeNull();
+    expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await click(host.querySelector(".back-btn"));
     expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(1);
+    expect(host.querySelector('[data-testid="propis2-set-card"]').textContent).toContain("3 стр.");
 
     await act(async () => { root.unmount(); await tick(500); });
     host.remove();
@@ -259,7 +247,7 @@ describe("Прописи 2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
-    await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая страница")));
+    await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая тетрадь")));
     const preview = () => host.querySelector('[data-testid="propis2-preview"]');
     const ink = () => preview().querySelectorAll("svg path").length;
     const before = ink();
@@ -345,7 +333,7 @@ describe("Прописи 2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el, init = {}) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true, ...init })); await tick(60); }); };
-    await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая страница")));
+    await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая тетрадь")));
     const preview = () => host.querySelector('[data-testid="propis2-preview"]');
     const svg = preview().querySelector("svg.propis-print-page-svg");
     const vbH = Number(svg.getAttribute("viewBox").split(/\s+/)[3]);
@@ -390,7 +378,7 @@ describe("Прописи 2 (zip topic)", () => {
     expect(lbl("Разлиновка").disabled).toBe(true);
     expect(lbl("Строка для письма после каждой строки").disabled).toBe(true);
     expect(lbl("Текст страницы").disabled).toBe(true); // no row selected yet: nothing to edit
-    expect(host.querySelector('[role="img"][aria-label^="Страница из комплекта"]')).not.toBeNull();
+    expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).not.toBeNull();
     const rowsBefore = host.querySelectorAll('[data-testid="propis2-preview"] svg path').length;
     vi.spyOn(window, "confirm").mockReturnValueOnce(false);
     await click(lbl("Очистить страницу"));
@@ -398,21 +386,21 @@ describe("Прописи 2 (zip topic)", () => {
     vi.spyOn(window, "confirm").mockReturnValueOnce(true);
     await click(lbl("Очистить страницу"));
     expect(lbl("Тип бумаги").disabled).toBe(false);
-    expect(host.querySelector('[role="img"][aria-label^="Страница из комплекта"]')).toBeNull();
+    expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).toBeNull();
     expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBeLessThan(rowsBefore);
     await click(lbl("Отменить очистку"));
     expect(lbl("Тип бумаги").disabled).toBe(true);
     // the pencil unlocks the layout and keeps the rows
     await click(lbl("Редактировать страницу"));
     expect(lbl("Тип бумаги").disabled).toBe(false);
-    expect(host.querySelector('[role="img"][aria-label^="Страница из комплекта"]')).toBeNull();
+    expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).toBeNull();
     expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBe(rowsBefore);
     expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBe(rowsBefore);
 
     // save it as «Мои»
-    await click(lbl("Комплекты"));
-    await setValue(lbl("Название комплекта"), "Мой пресет");
-    await click(lbl("Сохранить как комплект"));
+    await click(lbl("Готовые тетради"));
+    await setValue(lbl("Название тетради"), "Мой пресет");
+    await click(lbl("Сохранить как тетрадь"));
     await click(lbl("Назад"));
     const groups = [...lbl("Готовый набор").querySelectorAll("optgroup")];
     expect(groups.map((g) => g.label)).toEqual(["Методика", "Мои"]);
@@ -433,12 +421,16 @@ describe("Прописи 2 (zip topic)", () => {
     expect(api.get.mock.calls[0][0]).toContain("prefix=propis2%3A");
     expect(host.textContent).toContain("С планшета");
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
-    await click(byLabel(host, "Новая страница"));
+    await click(byLabel(host, "Новая тетрадь"));
     await act(async () => { await tick(500); });
     const keys = pushOp.mock.calls.filter((c) => c[0] === "kv.upsert").map((c) => c[1].key);
-    expect(keys.length).toBe(1);
-    expect(keys[0]).toMatch(/^propis2:page:pg_/);
-    expect(keys[0]).not.toBe("propis2:page:pg_remote");
+    // a new notebook = its page + the notebook; the account's loose page became a notebook of its own (same id on every device)
+    const pageKeys = keys.filter((k) => k.startsWith("propis2:page:"));
+    expect(pageKeys).toHaveLength(1);
+    expect(pageKeys[0]).not.toBe("propis2:page:pg_remote");
+    const setKeys = keys.filter((k) => k.startsWith("propis2:set:"));
+    expect(setKeys).toContain("propis2:set:st_pg_remote");
+    expect(setKeys).toHaveLength(2);
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);
@@ -449,10 +441,10 @@ describe("Прописи 2 (zip topic)", () => {
     document.body.appendChild(host);
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
-    await act(async () => { byLabel(host, "Новая страница").click(); await tick(); });
+    await act(async () => { byLabel(host, "Новая тетрадь").click(); await tick(); });
     const fmt = host.querySelector('button[aria-label="Формат"]');
     expect(fmt.getAttribute("title")).toBe("Формат");
-    expect(host.querySelector('[aria-label="Комплекты"]').getAttribute("title")).toBe("Комплекты");
+    expect(host.querySelector('[aria-label="Готовые тетради"]').getAttribute("title")).toBe("Готовые тетради");
     expect(host.querySelector(".p2-tip")).toBeNull();
     await act(async () => { fmt.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true })); await tick(520); });
     expect(host.querySelector(".p2-tip").textContent).toBe("Формат");
@@ -496,7 +488,7 @@ describe("Прописи 2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
-    await click(byLabel(host, "Новая страница"));
+    await click(byLabel(host, "Новая тетрадь"));
     await typeInField(host, "мама");
     const asText = () => host.querySelector('[aria-label="Строка как текст (с переносом)"]');
     expect(asText().getAttribute("aria-pressed")).toBe("false");
@@ -548,14 +540,14 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('[aria-label="Название страницы"]').value).toBe(`Страница ${total + 1}`);
     expect(host.querySelector('[aria-label="Тип бумаги"]').disabled).toBe(false); // an own page, not a locked kit one
     vi.spyOn(window, "confirm").mockReturnValueOnce(true);
-    await click(host.querySelector('[aria-label="Удалить страницу из комплекта"]'));
+    await click(host.querySelector('[aria-label="Удалить страницу из тетради"]'));
     expect(pos()).toBe(`Стр. 3 из ${total}`);
     await click(host.querySelector('[aria-label="Предыдущая страница"]'));
     expect(pos()).toBe("Стр. 2 из "+total);
     await click(host.querySelector('[aria-label="Копия страницы"]'));
     expect(pos()).toBe(`Стр. 3 из ${total + 1}`);
     vi.spyOn(window, "confirm").mockReturnValue(true);
-    await click(host.querySelector('[aria-label="Удалить страницу из комплекта"]'));
+    await click(host.querySelector('[aria-label="Удалить страницу из тетради"]'));
     expect(pos()).toBe(`Стр. 3 из ${total}`);
     await click(host.querySelector('[aria-label="Предыдущая страница"]'));
     await click(host.querySelector('[aria-label="Предыдущая страница"]'));
@@ -565,7 +557,6 @@ describe("Прописи 2 (zip topic)", () => {
     await click(host.querySelector(".propis-practice-close"));
     expect(host.querySelector('[data-testid="propis2-library"]')).not.toBeNull();
     expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(1);
-    expect(host.querySelectorAll('[data-testid="propis2-page-card"]')).toHaveLength(0);
     await click([...host.querySelectorAll('[data-testid="propis2-set-card"] button')].find((b) => b.textContent.includes("Удалить")));
     expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(0);
     await act(async () => { root.unmount(); await tick(300); });

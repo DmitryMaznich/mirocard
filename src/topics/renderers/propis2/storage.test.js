@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { openDb } from "@/core/db";
-import { emptyLibrary, loadLibrary, normalizeLibrary, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
+import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, normalizeLibrary, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
 import { newPage, newRow, newSet } from "./model.js";
 
 describe("propis2 library storage", () => {
@@ -44,5 +44,38 @@ describe("propis2 library storage", () => {
     expect(back.sets[0].pageIds).toEqual([b.id]);
     expect(removeSet(back, st.id).sets).toEqual([]);
     expect(normalizeLibrary({ sets: [null, { id: "x" }, { id: "ok", pageIds: [] }] }).sets).toHaveLength(1);
+  });
+
+  it("a page outside any notebook becomes a notebook of one page, the same on every device, once", () => {
+    const loose = newPage("Буквы");
+    let lib = upsertPage(emptyLibrary(), loose);
+    const once = migrateToNotebooks(lib);
+    expect(once.sets).toHaveLength(1);
+    expect(once.sets[0]).toMatchObject({ id: `st_${loose.id}`, title: "Буквы", pageIds: [loose.id] });
+    expect(migrateToNotebooks(once)).toBe(once); // nothing left to migrate
+    // a notebook that was deleted stays deleted: its page is not wrapped again
+    const gone = removeSet(once, `st_${loose.id}`);
+    expect(gone.pages).toHaveLength(0);
+  });
+
+  it("deleting a notebook deletes the pages it owns, but not one that another notebook also lists", () => {
+    const a = newPage("a"), b = newPage("b");
+    let lib = upsertPage(upsertPage(emptyLibrary(), a), b);
+    lib = upsertSet(lib, newSet("N1", { pageIds: [a.id, b.id] }));
+    lib = upsertSet(lib, newSet("N2", { pageIds: [b.id] }));
+    const n1 = lib.sets.find((st) => st.title === "N1");
+    const next = removeSet(lib, n1.id);
+    expect(next.pages.map((p) => p.id)).toEqual([b.id]);
+    expect(next.deleted).toBeTruthy();
+  });
+
+  it("the paper of a notebook is set for all its pages and the notebook", () => {
+    const a = newPage("a", { format: "a5" }), b = newPage("b", { format: "a5" });
+    let lib = upsertPage(upsertPage(emptyLibrary(), a), b);
+    lib = upsertSet(lib, newSet("N", { id: "st_n", pageIds: [a.id, b.id] }));
+    const next = applyLayout(lib, "st_n", { format: "a4", ruling: "wide" });
+    expect(next.pages.every((p) => p.format === "a4" && p.ruling === "wide")).toBe(true);
+    expect(next.sets[0].ruling).toBe("wide");
+    expect(applyLayout(lib, "st_n", {})).toBe(lib);
   });
 });

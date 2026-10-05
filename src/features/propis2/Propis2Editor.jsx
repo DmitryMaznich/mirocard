@@ -236,17 +236,25 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       </div>
 
       {nav && (
-        <div className="propis2-settings p2-pager" role="group" aria-label="Страницы комплекта">
-          <button type="button" className="p2-ib p2-tool" aria-label="Предыдущая страница" disabled={nav.index <= 0} onClick={nav.onPrev}><span className="p2-tool-ico p2-glyph">‹</span><span className="p2-cap">Назад</span></button>
-          <span className="p2-pager-pos" aria-live="polite">Стр. {nav.index + 1} из {nav.total}</span>
-          <button type="button" className="p2-ib p2-tool" aria-label="Следующая страница" disabled={nav.index >= nav.total - 1} onClick={nav.onNext}><span className="p2-tool-ico p2-glyph">›</span><span className="p2-cap">Вперёд</span></button>
-          <span className="p2-sep" aria-hidden="true" />
+        <div className="propis2-settings p2-pager" role="group" aria-label="Страницы тетради">
+          {nav.total > 1 && (
+            <>
+              <button type="button" className="p2-ib p2-tool" aria-label="Предыдущая страница" disabled={nav.index <= 0} onClick={nav.onPrev}><span className="p2-tool-ico p2-glyph">‹</span><span className="p2-cap">Назад</span></button>
+              <span className="p2-pager-pos" aria-live="polite">Стр. {nav.index + 1} из {nav.total}</span>
+              <button type="button" className="p2-ib p2-tool" aria-label="Следующая страница" disabled={nav.index >= nav.total - 1} onClick={nav.onNext}><span className="p2-tool-ico p2-glyph">›</span><span className="p2-cap">Вперёд</span></button>
+              <span className="p2-sep" aria-hidden="true" />
+            </>
+          )}
           <button type="button" className="p2-ib p2-tool" aria-label="Добавить страницу" onClick={nav.onAdd}><span className="p2-tool-ico"><I.IconAddPage /></span><span className="p2-cap">Добавить</span></button>
           <button type="button" className="p2-ib p2-tool" aria-label="Копия страницы" onClick={nav.onDuplicate}><span className="p2-tool-ico"><I.IconDuplicate /></span><span className="p2-cap">Копия</span></button>
-          <button type="button" className="p2-ib p2-tool p2-ib--danger" aria-label="Удалить страницу из комплекта" onClick={nav.onDelete}><span className="p2-tool-ico"><I.IconTrash /></span><span className="p2-cap">Удалить</span></button>
-          <span className="p2-sep" aria-hidden="true" />
-          <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу раньше" disabled={nav.index <= 0} onClick={nav.onMoveBefore}><span className="p2-tool-ico p2-glyph">←</span><span className="p2-cap">Раньше</span></button>
-          <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу позже" disabled={nav.index >= nav.total - 1} onClick={nav.onMoveAfter}><span className="p2-tool-ico p2-glyph">→</span><span className="p2-cap">Позже</span></button>
+          <button type="button" className="p2-ib p2-tool p2-ib--danger" aria-label={nav.total > 1 ? "Удалить страницу из тетради" : "Удалить тетрадь"} onClick={nav.onDelete}><span className="p2-tool-ico"><I.IconTrash /></span><span className="p2-cap">Удалить</span></button>
+          {nav.total > 1 && (
+            <>
+              <span className="p2-sep" aria-hidden="true" />
+              <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу раньше" disabled={nav.index <= 0} onClick={nav.onMoveBefore}><span className="p2-tool-ico p2-glyph">←</span><span className="p2-cap">Раньше</span></button>
+              <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу позже" disabled={nav.index >= nav.total - 1} onClick={nav.onMoveAfter}><span className="p2-tool-ico p2-glyph">→</span><span className="p2-cap">Позже</span></button>
+            </>
+          )}
         </div>
       )}
 
@@ -261,7 +269,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <IconBtn label="Строка для письма после каждой строки" caption="Писать" on={Boolean(page.writeAfter)} disabled={locked} onClick={() => onChange({ ...page, writeAfter: !page.writeAfter })} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
           {locked && (
             <>
-              <span className="p2-lock" role="img" aria-label="Страница из комплекта: раскладка закрыта, меняются только символы и слова"><I.IconLock /></span>
+              <span className="p2-lock" role="img" aria-label="Страница из тетради: раскладка закрыта, меняются только символы и слова"><I.IconLock /></span>
               <IconBtn label="Редактировать страницу" caption="Править" onClick={() => onChange({ ...page, locked: false })}><I.IconEditPage /></IconBtn>
               <IconBtn label="Очистить страницу" caption="Очистить" className="p2-ib--danger" onClick={clear}><I.IconClearPage /></IconBtn>
             </>
