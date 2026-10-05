@@ -402,6 +402,11 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBeLessThan(rowsBefore);
     await click(lbl("Отменить очистку"));
     expect(lbl("Тип бумаги").disabled).toBe(true);
+    // the pencil unlocks the layout and keeps the rows
+    await click(lbl("Редактировать страницу"));
+    expect(lbl("Тип бумаги").disabled).toBe(false);
+    expect(host.querySelector('[role="img"][aria-label^="Страница из комплекта"]')).toBeNull();
+    expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBe(rowsBefore);
     expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBe(rowsBefore);
 
     // save it as «Мои»

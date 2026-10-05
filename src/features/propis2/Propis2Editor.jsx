@@ -248,6 +248,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
           {locked && (
             <>
               <span className="p2-lock" role="img" aria-label="Страница из комплекта: раскладка закрыта, меняются только символы и слова"><I.IconLock /></span>
+              <IconBtn label="Редактировать страницу" onClick={() => onChange({ ...page, locked: false })}><I.IconEditPage /></IconBtn>
               <IconBtn label="Очистить страницу" className="p2-ib--danger" onClick={clear}><I.IconClearPage /></IconBtn>
             </>
           )}

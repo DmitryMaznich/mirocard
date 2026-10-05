@@ -83,3 +83,5 @@ export const IconFormatA5 = () => S(<><rect x="6.5" y="5.5" width="11" height="1
 // ---- the list of elements: a hook and a fence on a row ----
 export const IconElement = () => S(<><path d="M3 19h18" strokeWidth="1.2" opacity=".5" /><path d="M4 17c0-6 1.2-9 3-9s2.2 3 2.2 6c0-3 .8-6 2.6-6M13 17V7M17 17V7M21 17V7" strokeWidth="1.7" /></>);
 export const IconAsText = () => S(<><path d="M4 6h16M4 10.5h16M4 15h16M4 19.5h9" /></>);
+
+export const IconEditPage = () => S(<><path d="M4 20l5.5-1.2L19.8 8.5a2 2 0 000-2.8l-1.5-1.5a2 2 0 00-2.8 0L5.2 14.5z" /><path d="M13 6.7l4.3 4.3" /></>); // pencil: unlock the kit page layout, keep the rows
