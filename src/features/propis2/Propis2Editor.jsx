@@ -240,6 +240,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <button type="button" className="p2-pager-btn" aria-label="Предыдущая страница" disabled={nav.index <= 0} onClick={nav.onPrev}>‹</button>
           <span className="p2-pager-pos" aria-live="polite">Стр. {nav.index + 1} из {nav.total}</span>
           <button type="button" className="p2-pager-btn" aria-label="Следующая страница" disabled={nav.index >= nav.total - 1} onClick={nav.onNext}>›</button>
+          <button type="button" className="p2-pager-txt" aria-label="Переместить страницу раньше" disabled={nav.index <= 0} onClick={nav.onMoveBefore}>← Раньше</button>
+          <button type="button" className="p2-pager-txt" aria-label="Переместить страницу позже" disabled={nav.index >= nav.total - 1} onClick={nav.onMoveAfter}>Позже →</button>
           <span className="p2-grow" />
           <button type="button" className="p2-pager-txt" aria-label="Копия страницы" onClick={nav.onDuplicate}>Копия</button>
           <button type="button" className="p2-pager-txt p2-pager-del" aria-label="Удалить страницу из комплекта" onClick={nav.onDelete}>Удалить</button>

@@ -249,3 +249,12 @@
 .p2-pager-btn:disabled { opacity: 0.35; cursor: default; }
 .p2-pager-txt { min-height: 44px; padding: 0 14px; border: none; border-radius: 12px; background: #fff; box-shadow: 0 2px 0 #d9c28a; font: inherit; font-size: 14px; color: #5b4a1f; cursor: pointer; touch-action: manipulation; }
 .p2-pager-del { color: #b42318; }
+
+/* on a phone the presets panel opens over the screen, not under its small button (it used to run off the left edge) */
+.propis2-editor2--phone .p2-presets-panel { position: fixed; left: calc(8px + var(--app-safe-left, 0px)); right: calc(8px + var(--app-safe-right, 0px)); top: calc(96px + var(--app-safe-top, 0px)); width: auto; max-width: 440px; margin: 0 auto; max-height: calc(100dvh - 140px - var(--app-safe-top, 0px)); }
+.p2-pager { flex-wrap: wrap; }
+.p2-pager-txt:disabled { opacity: 0.35; cursor: default; }
+.propis2-editor2--phone .p2-pager { padding: 4px 8px; gap: 5px; }
+.propis2-editor2--phone .p2-pager-btn { width: 36px; height: 36px; font-size: 22px; }
+.propis2-editor2--phone .p2-pager-txt { min-height: 36px; padding: 0 9px; font-size: 13px; }
+.propis2-editor2--phone .p2-pager-pos { font-size: 13px; }

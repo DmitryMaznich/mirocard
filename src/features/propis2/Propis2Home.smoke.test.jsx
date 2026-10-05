@@ -536,6 +536,12 @@ describe("Прописи 2 (zip topic)", () => {
     await click(host.querySelector('[aria-label="Следующая страница"]'));
     expect(pos()).toBe(`Стр. 2 из ${total}`);
     expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Слоги 2");
+    // move this page one place earlier, then back: it stays the open page, the position follows it
+    await click(host.querySelector('[aria-label="Переместить страницу раньше"]'));
+    expect(pos()).toBe(`Стр. 1 из ${total}`);
+    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Слоги 2");
+    await click(host.querySelector('[aria-label="Переместить страницу позже"]'));
+    expect(pos()).toBe(`Стр. 2 из ${total}`);
     await click(host.querySelector('[aria-label="Копия страницы"]'));
     expect(pos()).toBe(`Стр. 3 из ${total + 1}`);
     vi.spyOn(window, "confirm").mockReturnValue(true);

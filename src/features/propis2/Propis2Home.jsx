@@ -168,6 +168,8 @@ export default function Propis2Home({ db }) {
       total: navSet.pageIds.length,
       onPrev: () => goPage(navSet.pageIds[navIndex - 1]),
       onNext: () => goPage(navSet.pageIds[navIndex + 1]),
+      onMoveBefore: () => { const ids = [...navSet.pageIds]; [ids[navIndex - 1], ids[navIndex]] = [ids[navIndex], ids[navIndex - 1]]; persist(upsertSet(library, { ...navSet, pageIds: ids })); },
+      onMoveAfter: () => { const ids = [...navSet.pageIds]; [ids[navIndex + 1], ids[navIndex]] = [ids[navIndex], ids[navIndex + 1]]; persist(upsertSet(library, { ...navSet, pageIds: ids })); },
       onDuplicate: () => {
         const copy = { ...page, id: newId("pg"), title: `${page.title} (копия)`, rows: page.rows.map((r) => ({ ...r, id: newId("r") })), createdAt: Date.now() };
         const pageIds = [...navSet.pageIds.slice(0, navIndex + 1), copy.id, ...navSet.pageIds.slice(navIndex + 1)];
