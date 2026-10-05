@@ -1,35 +1,27 @@
 import { useEffect, useState } from "react";
 
-// How much of the screen the on-screen keyboard covers, and how much is left visible above it. The keyboard is meant to
-// OVERLAY the page (the constructor lifts only the text field above it), so while the editor is open the viewport meta asks
-// browsers that resize the page for the keyboard (Chrome on Android) to overlay instead; iOS Safari overlays anyway.
+// While the on-screen keyboard is open the editor follows the VISIBLE part of the screen (the visual viewport), so its bottom
+// edge, the text field, always sits right above the keyboard, as in any messenger. iOS keeps the layout viewport as it was
+// and scrolls it (offsetTop > 0) to reveal the focused field, so the keyboard is "open" when the visible height is smaller than
+// the window, not when the visible area stopped at the window's bottom. Chrome on Android resizes the window itself: nothing to do.
 const KEYBOARD_MIN_PX = 90;
 
 export function useKeyboardInset(active = true) {
-  const [state, setState] = useState({ kb: 0, vvh: 0 });
+  const [state, setState] = useState({ open: false, top: 0, height: 0 });
 
   useEffect(() => {
     if (!active || typeof window === "undefined") return undefined;
-    const meta = document.querySelector('meta[name="viewport"]');
-    const original = meta?.getAttribute("content");
-    if (meta && original && !original.includes("interactive-widget")) meta.setAttribute("content", `${original}, interactive-widget=overlays-content`);
     const vv = window.visualViewport;
-    if (!vv) return () => { if (meta && original) meta.setAttribute("content", original); };
+    if (!vv) return undefined;
     const read = () => {
-      const covered = Math.round(window.innerHeight - vv.height - vv.offsetTop);
-      const open = covered > KEYBOARD_MIN_PX;
-      setState((prev) => (open ? (prev.kb === covered && prev.vvh === Math.round(vv.height) ? prev : { kb: covered, vvh: Math.round(vv.height) }) : (prev.kb === 0 ? prev : { kb: 0, vvh: 0 })));
-      // iOS scrolls the page to show the focused field: keep the editor where it is, the field alone moves
-      if (open && vv.offsetTop > 0) window.scrollTo(0, 0);
+      const open = window.innerHeight - vv.height > KEYBOARD_MIN_PX;
+      const next = open ? { open: true, top: Math.round(vv.offsetTop), height: Math.round(vv.height) } : { open: false, top: 0, height: 0 };
+      setState((prev) => (prev.open === next.open && prev.top === next.top && prev.height === next.height ? prev : next));
     };
     read();
     vv.addEventListener("resize", read);
     vv.addEventListener("scroll", read);
-    return () => {
-      vv.removeEventListener("resize", read);
-      vv.removeEventListener("scroll", read);
-      if (meta && original) meta.setAttribute("content", original);
-    };
+    return () => { vv.removeEventListener("resize", read); vv.removeEventListener("scroll", read); };
   }, [active]);
 
   return state;

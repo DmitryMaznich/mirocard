@@ -45,6 +45,21 @@ export default function Propis2Field({ value, onChange, onCaret, disabled, singl
 
   return (
     <div className="p2-fieldwrap" ref={wrapRef}>
+      <div className="p2-pick p2-elements">
+        <button type="button" className={`p2-ib${open ? " is-on" : ""}`} aria-label="Элементы" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
+          <I.IconElement />
+          {tip}
+        </button>
+        {open && (
+          <div className="p2-elements-panel" role="dialog" aria-label="Элементы">
+            {elements.map((tile) => (
+              <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={tile.caption} onClick={() => { setOpen(false); onInsertElement(tile.text, ref.current?.selectionStart ?? value.length); }}>
+                <TileGlyph tile={tile} size={64} />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <textarea
         ref={ref}
         className="p2-textarea"
@@ -64,21 +79,6 @@ export default function Propis2Field({ value, onChange, onCaret, disabled, singl
         onKeyUp={report}
         onClick={report}
       />
-      <div className="p2-pick p2-elements">
-        <button type="button" className={`p2-ib${open ? " is-on" : ""}`} aria-label="Элементы" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
-          <I.IconElement />
-          {tip}
-        </button>
-        {open && (
-          <div className="p2-elements-panel" role="dialog" aria-label="Элементы">
-            {elements.map((tile) => (
-              <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={tile.caption} onClick={() => { setOpen(false); onInsertElement(tile.text, ref.current?.selectionStart ?? value.length); }}>
-                <TileGlyph tile={tile} size={64} />
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

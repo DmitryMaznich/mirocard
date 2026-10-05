@@ -228,7 +228,7 @@ export default function Propis2Editor({ page, topicRecord, onChange, onBack, onS
   useEffect(() => { if (selectedId && selectedIndex < 0) setSelectedId(null); }, [selectedId, selectedIndex]);
 
   return (
-    <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}${phone ? " propis2-editor2--phone" : ""}${keyboard.kb ? " propis2-editor2--kb" : ""}`} data-testid="propis2-editor" style={keyboard.kb ? { "--p2-kb": `${keyboard.kb}px`, "--p2-vvh": `${keyboard.vvh}px` } : undefined}>
+    <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}${phone ? " propis2-editor2--phone" : ""}${keyboard.open ? " propis2-editor2--kb" : ""}`} data-testid="propis2-editor" style={keyboard.open ? { "--p2-vvtop": `${keyboard.top}px`, "--p2-vvh": `${keyboard.height}px` } : undefined}>
       <div className="screen-header p2-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
         <input className="propis2-title-input" value={page.title} onChange={(e) => onChange({ ...page, title: e.target.value })} aria-label="Название страницы" />

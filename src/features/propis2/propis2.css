@@ -223,8 +223,15 @@
 .propis2-editor2--side .propis2-dock { max-height: none; }
 .propis2-editor2--side .p2-textarea { max-height: 55dvh; }
 
-/* on-screen keyboard: it covers the page; only the text field is lifted above it, tall enough to show a long text */
-.propis2-editor2--kb .propis2-dock { position: relative; z-index: 800; transform: translateY(calc(-1 * var(--p2-kb))); max-height: calc(var(--p2-vvh) - 130px); padding-bottom: 8px; box-shadow: 0 -6px 22px rgba(40, 50, 60, .22); border-radius: 18px 18px 0 0; }
-.propis2-editor2--kb .p2-textarea { min-height: 5.6rem; max-height: calc(var(--p2-vvh) - 200px); }
-.propis2-editor2--kb.propis2-editor2--phone .propis2-dock, .propis2-editor2--kb.propis2-editor2--side .propis2-dock { max-height: calc(var(--p2-vvh) - 130px); }
-.propis2-editor2--kb .propis2-dock { align-self: end; height: auto; }
+/* on-screen keyboard: the editor is exactly the visible part of the screen, so the text field (its bottom edge) is right above the keyboard */
+.propis2-editor2--kb { position: fixed; left: 0; right: 0; top: var(--p2-vvtop, 0px); height: var(--p2-vvh); z-index: 800; }
+.propis2-editor2--kb .propis2-dock, .propis2-editor2--kb.propis2-editor2--phone .propis2-dock, .propis2-editor2--kb.propis2-editor2--side .propis2-dock { align-self: end; height: auto; max-height: min(var(--dock-h), calc(var(--p2-vvh) - 190px)); padding-bottom: 8px; }
+.propis2-editor2--kb .p2-textarea, .propis2-editor2--kb.propis2-editor2--phone .p2-textarea { min-height: 3.6rem; max-height: min(calc(var(--dock-h) - 70px), calc(var(--p2-vvh) - 260px)); }
+
+/* the element button stands to the LEFT of the field (where messengers keep «+»): the right side is where «send» would be */
+.p2-fieldwrap .p2-elements { order: -1; }
+.p2-elements-panel { left: 0; right: auto; }
+/* no fixed bottom zone: the dock is just the text field and takes what its text needs; the canvas gets the rest */
+.propis2-editor2--phone .propis2-main { grid-template-rows: auto auto minmax(0, 1fr) auto; }
+.propis2-editor2--phone .propis2-page-col { height: auto; }
+.propis2-editor2--phone .propis2-dock { height: auto; max-height: min(var(--dock-h), 45dvh); }
