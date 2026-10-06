@@ -826,7 +826,10 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(buildNumber.params.maxTens).toMatchObject({
       type: "number", min: 1, max: 9, default: 3, label: { ru: "Максимум десятков" },
     });
-    expect(buildNumber.ui.instruction).toBe("Перетаскивай монетки, пока не наберёшь число");
+    expect(buildNumber.ui.instruction).toBe("Собери число из монет и стопок");
+    expect(buildNumber.params.buildApproach.default).toBe("group");
+    expect(buildNumber.params.askComposition.default).toBe(false);
+    expect(buildNumber.orientationLock).toBeNull();
   });
 
   it("refreshes a mode's methodology tips to the current default, even if older tips were persisted", async () => {

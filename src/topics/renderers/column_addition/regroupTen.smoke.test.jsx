@@ -1,78 +1,44 @@
-import { act } from "react";
-import { createRoot } from "react-dom/client";
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import RegroupTenTask from "./RegroupTenTask.jsx";
-
-// jsdom has no ResizeObserver; useFitOneLine (textFit.js, used by the
-// instruction line's text sizing) needs one. No-op stub.
-if (typeof window.ResizeObserver === "undefined") {
-  window.ResizeObserver = class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  };
-}
-
-describe("RegroupTenTask", () => {
-  let container = null;
-  let root = null;
-
-  afterEach(() => {
-    if (root) act(() => root.unmount());
-    if (container) container.remove();
-    root = null; container = null;
+import { coinHarness } from "./coinTestHelpers.jsx";
+const task = { cardId: "x", conceptId: "x", number: 23, initial: { tens: 2, ones: 3 }, after: { tens: 1, ones: 13 } };
+describe("RegroupTenTask conservation", () => {
+  const h = coinHarness();
+  it("allows either stack, preserves original loose coins and gains exactly ten", () => {
+    h.mount(RegroupTenTask, task);
+    const original = Array.from(h.container.querySelectorAll("[data-coin-id]"));
+    h.click("Десяток 1"); h.click("Разложить десяток"); h.flush();
+    expect(h.container.querySelectorAll(".cm-board .cb-ten-stack")).toHaveLength(1);
+    expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(13);
+    original.forEach((el, i) => expect(h.container.querySelectorAll("[data-coin-id]")[i]).toBe(el));
+    expect(h.container.querySelector(".cm-total").textContent).toBe("Число 23");
+    expect(h.container.querySelector(".pv-question").textContent).toBe("Сколько теперь единиц?");
   });
-
-  it("mounts showing the instruction as a single non-interactive line", () => {
-    container = document.createElement("div");
-    document.body.appendChild(container);
-    root = createRoot(container);
-    const task = { cardId: "x", conceptId: "x", type: "regroup_ten", number: 23, initial: { tens: 2, ones: 3 }, after: { tens: 1, ones: 13 } };
-    act(() => {
-      root.render(<RegroupTenTask task={task} onCorrect={() => {}} />);
-    });
-    const question = container.querySelector(".pv-question");
-    expect(question.textContent).toBe("Перетащи десяток к единицам");
-    expect(question.getAttribute("role")).toBeNull();
+  it("retains a wrong answer then shows equal totals only after a checked answer", () => {
+    const onCorrect = vi.fn(), onMistake = vi.fn();
+    h.mount(RegroupTenTask, task, { onCorrect, onMistake });
+    h.click("Десяток 2"); h.click("Разложить десяток"); h.flush();
+    h.click("1"); h.click("2"); h.click("Проверить");
+    expect(h.container.querySelector("output").textContent).toBe("12");
+    expect(onMistake).toHaveBeenCalledTimes(1);
+    expect(h.container.querySelector(".pv-regroup-compare")).toBeNull();
+    h.click("Стереть цифру"); h.click("3"); h.click("Проверить");
+    expect(h.container.querySelector(".pv-regroup-compare").textContent).toContain("1 десяток и 13 единиц = 23");
+    expect(onCorrect).not.toHaveBeenCalled(); h.click("Далее →");
+    expect(onCorrect).toHaveBeenCalledWith("x", "x");
   });
-
-  // The last ten-stack is the only interactive thing on this screen — it
-  // needs some visual difference from the static stacks beside it, or the
-  // whole screen reads as dead (see the halo+bob hint in coins.css).
-  it("marks exactly the last ten-stack as the draggable one, with a hint and a direction arrow", () => {
-    container = document.createElement("div");
-    document.body.appendChild(container);
-    root = createRoot(container);
-    const task = { cardId: "x", conceptId: "x", type: "regroup_ten", number: 23, initial: { tens: 2, ones: 3 }, after: { tens: 1, ones: 13 } };
-    act(() => {
-      root.render(<RegroupTenTask task={task} onCorrect={() => {}} />);
-    });
-
-    const draggable = container.querySelectorAll(".pv-ten-stack--draggable");
-    expect(draggable.length).toBe(1);
-    expect(draggable[0].className).toContain("pv-ten-stack--hint");
-    expect(container.querySelectorAll(".cb-ten-stack").length).toBe(2); // both stacks still render normally
-    expect(container.querySelector(".pv-regroup-arrow")).toBeTruthy();
+  it("reverses the same exchange and permits another trial without changing total", () => {
+    h.mount(RegroupTenTask, task);
+    h.click("Десяток 1"); h.click("Разложить десяток"); h.flush();
+    h.click("Собрать обратно"); h.flush();
+    expect(h.container.querySelectorAll(".cm-board .cb-ten-stack")).toHaveLength(2);
+    expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(3);
+    h.click("Десяток 2"); h.click("Разложить десяток"); h.flush();
+    expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(13);
   });
-
-  // The answer step (numpad + guess frame) only exists AFTER a successful
-  // drag — confirms it doesn't leak into the initial state. The drag ->
-  // answer transition itself isn't exercised here: dnd-kit's collision
-  // detection relies on real getBoundingClientRect() layout, which jsdom
-  // doesn't provide, so (same as build_number's own coin drag) it's
-  // verified visually instead of via a simulated pointer sequence.
-  it("does not show the units-count question or numpad before the drag happens", () => {
-    container = document.createElement("div");
-    document.body.appendChild(container);
-    root = createRoot(container);
-    const task = { cardId: "x", conceptId: "x", type: "regroup_ten", number: 23, initial: { tens: 2, ones: 3 }, after: { tens: 1, ones: 13 } };
-    act(() => {
-      root.render(<RegroupTenTask task={task} onCorrect={() => {}} />);
-    });
-
-    expect(container.querySelector(".pv-numpad")).toBeNull();
-    expect(container.querySelector(".pv-guess-row")).toBeNull();
-    expect(container.querySelector(".pv-result-panel")).toBeNull();
-    expect(container.querySelector(".pv-caption")).toBeNull(); // no "Было:" before anything's changed yet
+  it("omits reverse assistance in independent trials", () => {
+    h.mount(RegroupTenTask, { ...task, supportMode: "independent" });
+    h.click("Десяток 1"); h.click("Разложить десяток"); h.flush();
+    expect(h.button("Собрать обратно")).toBeUndefined();
   });
 });

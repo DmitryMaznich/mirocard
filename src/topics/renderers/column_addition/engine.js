@@ -1,4 +1,4 @@
-import { getFingerConfig, getRemoveMode } from "./FingerSystem.js";
+import { getRemoveMode } from "./FingerSystem.js";
 
 const POSITIONS = ["units", "tens", "hundreds"];
 
@@ -293,8 +293,13 @@ function randomIdentifyNumberValue(maxOnes, maxTens = 9) {
   return { tens: randomInt(1, Number(maxTens)), ones: randomInt(1, max) };
 }
 
-export function generateIdentifyNumberTask(card, maxOnes) {
-  const { tens, ones } = randomIdentifyNumberValue(maxOnes);
+export function generateIdentifyNumberTask(card, maxOnes, maxTens = 9, numberSet = "mixed") {
+  let value;
+  if (numberSet === "single") value = { tens: 0, ones: randomInt(1, Math.max(1, Number(maxOnes))) };
+  else if (numberSet === "round") value = { tens: randomInt(1, Number(maxTens)), ones: 0 };
+  else if (numberSet === "two_digit") value = randomPlaceValueNumber(maxOnes, maxTens);
+  else value = randomIdentifyNumberValue(maxOnes, maxTens);
+  const { tens, ones } = value;
   return {
     type: "identify_number",
     cardId: card.id,
@@ -305,8 +310,8 @@ export function generateIdentifyNumberTask(card, maxOnes) {
   };
 }
 
-export function generateRegroupTask(card, maxOnes) {
-  const { tens, ones } = randomPlaceValueNumber(maxOnes);
+export function generateRegroupTask(card, maxOnes, maxTens = 9) {
+  const { tens, ones } = randomPlaceValueNumber(maxOnes, maxTens);
   return {
     type: "regroup_ten",
     cardId: card.id,
@@ -410,11 +415,16 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   if (mode === "build_number") {
     if (!buildNumberCards.length) return [];
     const maxOnes = Number(params.maxOnes ?? 9);
-    const maxTens = Number(params.maxTens ?? 3);
+    const maxTens = params.numberRange === "teens" ? 1 : Number(params.maxTens ?? 3);
     const numericBlocks = params.numericBlocks ?? false;
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      tasks.push(generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], maxOnes, maxTens, numericBlocks));
+      tasks.push({
+        ...generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], maxOnes, maxTens, numericBlocks),
+        buildApproach: params.buildApproach ?? "group",
+        askComposition: Boolean(params.askComposition),
+        supportMode: params.supportMode ?? "learning",
+      });
     }
     return tasks;
   }
@@ -424,7 +434,10 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     const maxOnes = Number(params.maxOnes ?? 9);
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      tasks.push(generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes));
+      tasks.push({
+        ...generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, Number(params.maxTens ?? 9), params.numberSet ?? "mixed"),
+        supportMode: params.supportMode ?? "learning",
+      });
     }
     return tasks;
   }
@@ -434,7 +447,11 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     const maxOnes = Number(params.maxOnes ?? 9);
     const tasks = [];
     for (let i = 0; i < count; i++) {
-      tasks.push(generateRegroupTask(regroupTenCards[i % regroupTenCards.length], maxOnes));
+      tasks.push({
+        ...generateRegroupTask(regroupTenCards[i % regroupTenCards.length], maxOnes, Number(params.maxTens ?? 9)),
+        supportMode: params.supportMode ?? "learning",
+        allowReverse: params.allowReverse !== false,
+      });
     }
     return tasks;
   }
