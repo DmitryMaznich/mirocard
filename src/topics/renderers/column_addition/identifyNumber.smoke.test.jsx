@@ -11,6 +11,10 @@ describe("IdentifyNumberTask explicit checking", () => {
     expect(h.container.querySelector(".pv-question").textContent).toBe("Какое это число?");
     h.click("Проверить");
     expect(h.container.querySelector(".pv-question").textContent).toBe("Правильно!");
+    expect(h.container.querySelector("output").textContent).toBe("23");
+    const recap = h.container.querySelector(".cm-feedback");
+    expect(recap.parentElement).toBe(h.button("Далее →").parentElement);
+    expect(recap.compareDocumentPosition(h.button("Далее →")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(onCorrect).not.toHaveBeenCalled(); h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("x", "x");
   });

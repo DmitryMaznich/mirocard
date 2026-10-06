@@ -3,8 +3,8 @@ import { fitCoinBoard, lessonUnit } from "./coinLayout.js";
 
 describe("coin layout in the available lesson space", () => {
   it("uses height as well as width, including a short landscape lesson", () => {
-    expect(lessonUnit(390, 560)).toBe(1);
-    expect(lessonUnit(390, 420)).toBe(.75);
+    expect(lessonUnit(390, 660)).toBe(1);
+    expect(lessonUnit(390, 495)).toBe(.75);
     expect(lessonUnit(780, 300)).toBe(.7);
   });
   it.each([

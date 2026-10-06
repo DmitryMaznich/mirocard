@@ -14,7 +14,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
     return false;
   }
-  return <CoinLesson title={solved ? "Правильно!" : "Какое это число?"} solved={solved}
+  return <CoinLesson title={solved ? "Правильно!" : "Какое это число?"} solved={solved} result={solved ? task.number : undefined}
     feedback={solved ? placeValueAnswerSentence(task.model.tens, task.model.ones, task.number) : feedback}
     controls={solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button> : <CoinAnswer onSubmit={check} />}>
     <CoinBoard tens={Array.from({ length: task.model.tens }, (_, i) => "read-ten-" + i)}

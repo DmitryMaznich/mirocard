@@ -17,6 +17,9 @@ describe("BuildNumberTask coin lessons", () => {
     h.click("Проверить");
     expect(h.container.querySelector(".pv-question").textContent).toBe("Правильно!");
     expect(h.container.querySelector(".cm-feedback").textContent).toContain("1 десяток и 3 единицы");
+    const recap = h.container.querySelector(".cm-feedback");
+    expect(recap.parentElement).toBe(h.button("Далее →").parentElement);
+    expect(recap.compareDocumentPosition(h.button("Далее →")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
   it("supports ready stacks and only advances when the adult-visible next action is pressed", () => {
     const onCorrect = vi.fn();
@@ -90,7 +93,7 @@ describe("BuildNumberTask coin lessons", () => {
     expect(overlay).toBeTruthy();
     expect(overlay.querySelectorAll(".cb-coin")).toHaveLength(1);
     expect(overlay.textContent).toBe("");
-    expect(h.container.querySelector(".cm-source span").textContent).toBe("Монеты");
+    expect(h.container.querySelector(".cm-source span").textContent).toBe("Взять монету");
     expect(source.style.transform).toBe("");
     pointer(document, "pointerup", 151, 121);
     await act(async () => {});

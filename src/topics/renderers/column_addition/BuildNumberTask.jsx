@@ -78,8 +78,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
       feedback={feedback || (phase === "done" ? placeValueSentence(task.target.tens, task.target.ones, task.number) : "")}
       controls={phase.startsWith("answer") ? <CoinAnswer key={phase} maxDigits={1} onSubmit={answer} /> : phase === "done"
         ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-        : <div className="cm-build-controls"><Button variant="secondary" aria-label="Сначала" disabled={!editable || (!placed.tens.length && !placed.ones.length)} onClick={() => { setPlaced({ tens: [], ones: [] }); clearFeedback(); }}>↺</Button>
-          <div className="cm-sources">{ready && <CoinSource kind="ten" disabled={!editable} onAdd={add} />}<CoinSource kind="coin" disabled={!editable} onAdd={add} /></div>
+        : <div className="cm-build-controls"><div className="cm-sources">{ready && <CoinSource kind="ten" disabled={!editable} onAdd={add} />}<CoinSource kind="coin" disabled={!editable} onAdd={add} /></div>
           <Button disabled={!editable} onClick={check}>Проверить</Button></div>}>
       <CoinBoard tens={placed.tens} ones={placed.ones} boardRef={boardRef} selected={selected}
         onSelect={phase === "build" ? (key) => setSelected(key === selected ? null : key) : undefined}
@@ -89,6 +88,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
         {placed.ones.length >= 10 && <Button disabled={!editable} onClick={group}>Собрать десяток</Button>}
         {selected && <Button variant="secondary" disabled={!editable} onClick={remove}>Убрать</Button>}
         {selected?.startsWith("tens:") && <Button variant="secondary" aria-label="Разложить десяток" disabled={!editable || placed.ones.length > 9} onClick={ungroup}>Разложить</Button>}
+        {(placed.tens.length > 0 || placed.ones.length > 0) && <Button variant="secondary" disabled={!editable} onClick={() => { setPlaced({ tens: [], ones: [] }); clearFeedback(); }}>Сначала</Button>}
       </div>}
     </CoinLesson>
     <CoinDragOverlay />

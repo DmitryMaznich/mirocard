@@ -5,7 +5,7 @@ import { fitCoinBoard, lessonUnit } from "./coinLayout.js";
 import "./place_value.css";
 import "./coins.css";
 
-export function CoinLesson({ title, target, children, controls, feedback, solved = false, className = "" }) {
+export function CoinLesson({ title, target, result, children, controls, feedback, solved = false, className = "" }) {
   const screen = useRef(null);
   const [unit, setUnit] = useState(1);
   useLayoutEffect(() => {
@@ -21,8 +21,10 @@ export function CoinLesson({ title, target, children, controls, feedback, solved
   return <div ref={screen} style={{ "--cm-unit": `${unit}px` }} className={`pv-screen cb-screen cm-screen ${className}`}>
     <header className="cm-heading"><div className={`pv-question${solved ? " pv-question--correct" : ""}`}>{title}</div>
       {target !== undefined && <div className="cm-target">{target}</div>}</header>
-    <div className="cm-body"><div className="cm-model">{children}</div>{controls && <div className="cm-controls">{controls}</div>}</div>
-    <div className="cm-feedback" role="status" aria-live="polite">{feedback}</div>
+    <div className="cm-body"><div className="cm-model">{children}</div><div className="cm-controls">
+      {result !== undefined && <div className="pv-guess-row"><output aria-label="Ответ" className="pv-number-frame">{result}</output></div>}
+      <div className={`cm-feedback${solved ? " cm-feedback--recap" : ""}`} role="status" aria-live="polite">{feedback}</div>
+      {controls}</div></div>
   </div>;
 }
 
@@ -89,9 +91,10 @@ export function CoinBoard({ tens, ones, boardRef, selected, onSelect, dragStacks
       </div>;
     })}</div>
   </>;
-  const stackRows = Math.max(1, Math.ceil(tens.length / 3)), coinRows = Math.max(1, Math.ceil(ones.length / 5));
-  const boardUnits = 52 + Math.max(stackRows * 71.4 + (stackRows - 1) * 6, coinRows * 34 + (coinRows - 1) * 6);
-  return <div ref={(node) => { localRef.current = node; if (boardRef) boardRef.current = node; }} style={{ "--cm-board-units": boardUnits, ...(size ? { "--coin-size": `${size}px` } : {}) }}
+  const oneColumns = ones.length <= 4 ? Math.min(2, Math.max(1, ones.length)) : 5;
+  const stackRows = Math.max(1, Math.ceil(tens.length / 3)), coinRows = Math.max(1, Math.ceil(ones.length / oneColumns));
+  const boardUnits = 52 + Math.max(stackRows * 96.6 + (stackRows - 1) * 6, coinRows * 46 + (coinRows - 1) * 6);
+  return <div ref={(node) => { localRef.current = node; if (boardRef) boardRef.current = node; }} style={{ "--cm-board-units": boardUnits, "--cm-one-columns": oneColumns, ...(size ? { "--coin-size": `${size}px` } : {}) }}
     className={`cm-board pv-zones${wideOnes ? " cm-board--wide-ones" : ""}${groupable ? " cm-board--groupable" : ""}${focus ? ` cm-board--focus-${focus}` : ""}`} aria-label="Модель числа">
     {dropZones ? <DropZone id="cm-tens">{zone("tens", tens)}</DropZone> : <section className="cm-zone">{zone("tens", tens)}</section>}
     {dropZones ? <DropZone id="cm-ones">{zone("ones", ones)}</DropZone> : <section className="cm-zone">{zone("ones", ones)}</section>}
@@ -103,7 +106,7 @@ export function CoinSource({ kind, disabled, onAdd }) {
     {kind === "ten" ? <DraggableObject id="source-ten" kind="ten" disabled={disabled} className="cm-source-stack" label="Взять десяток" onClick={() => onAdd(kind)}><TenStack /></DraggableObject>
       : <div className="cm-pile">{PILE_LAYOUT.map(({ x, y, r }, i) => <DraggableObject key={i} id={i === 14 ? "source-coin" : `source-coin-${i}`} kind="coin" disabled={disabled}
         className="cm-pile-coin" label="Взять монету" style={{ left: `calc(${x} * var(--cm-unit))`, top: `calc(${y} * var(--cm-unit))`, rotate: `${r}deg` }} onClick={() => onAdd(kind)}><Coin /></DraggableObject>)}</div>}
-    <span>{kind === "ten" ? "Десятки" : "Монеты"}</span>
+    <span>{kind === "ten" ? "Взять десяток" : "Взять монету"}</span>
   </div>;
 }
 
