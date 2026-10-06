@@ -11,6 +11,7 @@ import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
 import Propis2SaveDialog from "./Propis2SaveDialog";
+import { setBackInterceptor } from "@/shared/navigation/backInterceptor";
 import "./propis2.css";
 
 // Home screen of «Прописи 2»: library -> editor -> student view. The library lives in IndexedDB on this device. A notebook that is
@@ -124,6 +125,18 @@ export default function Propis2Home({ db }) {
     return lib;
   };
   const requestLeave = () => { if (dirty) setAsk({ mode: "leave" }); else toLibrary(); };
+  // The system Back button does what the on-screen back does: close the question / the show panel, step out of the viewer or
+  // the editor (asking to save unsaved work), and only from the library leave the topic.
+  useEffect(() => {
+    setBackInterceptor(() => {
+      if (ask) { setAsk(null); return true; }
+      if (fragment) { setFragment(null); return true; }
+      if (view.name === "editor") { const bt = view.backTo; if (bt && bt.name !== "library") setView(bt); else requestLeave(); return true; }
+      if (view.name === "show" || view.name === "showSet") { if (view.from === "editor") setView({ ...view, name: "editor" }); else requestLeave(); return true; }
+      return false;
+    });
+    return () => setBackInterceptor(null);
+  });
   const onSaveClick = () => {
     if (!session || !dirty) return;
     if (isNewNb) { setAsk({ mode: "save" }); return; }

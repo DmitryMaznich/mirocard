@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
+import { interceptBack } from "@/shared/navigation/backInterceptor";
 
 // A browser/PWA cannot cancel the OS Back action at the start destination.
 // Keep real screen entries instead of repeatedly pushing a synthetic guard
@@ -157,6 +158,16 @@ export function useBackButtonGuard({
         if (isTimerOpen) onCloseTimer?.();
         else if (isSessionExitPromptOpen) onCloseSessionExitPrompt?.();
         else onRequestSessionExit?.();
+        return;
+      }
+
+      if (isBack && interceptBack()) {
+        // The screen handled Back itself (an inner view with its own Back / unsaved-work question): stay on it, keep the history entry.
+        current.index = destination.index;
+        current.screens = current.screens.slice(0, current.index + 1);
+        current.index += 1;
+        current.screens.push(visibleScreen);
+        window.history.pushState(entry(current.id, current.index, visibleScreen), "", screenUrl(current.index));
         return;
       }
 

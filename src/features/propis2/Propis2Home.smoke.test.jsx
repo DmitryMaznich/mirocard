@@ -603,6 +603,22 @@ describe("Прописи 2 (zip topic)", () => {
       await unmount();
     });
 
+    it("the system Back button does what the on-screen back does: asks about a change, never drops it silently", async () => {
+      const { interceptBack } = await import("@/shared/navigation/backInterceptor");
+      const db = await freshDb();
+      const { host, click, unmount } = await mount(db);
+      expect(interceptBack()).toBe(false); // in the library Back leaves the topic as before
+      await click(byLabel(host, "Новая тетрадь"));
+      await typeInField(host, "а");
+      await act(async () => { expect(interceptBack()).toBe(true); await tick(); });
+      expect(host.querySelector('[data-testid="propis2-save-dialog"]')).not.toBeNull();
+      expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
+      await act(async () => { expect(interceptBack()).toBe(true); await tick(); }); // Back again closes the question
+      expect(host.querySelector('[data-testid="propis2-save-dialog"]')).toBeNull();
+      expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
+      await unmount();
+    });
+
     it("a change asks on leaving: «Остаться» stays, «Не сохранять» drops it, «Сохранить» names and keeps it", async () => {
       const db = await freshDb();
       const { host, click, unmount, cards } = await mount(db);
