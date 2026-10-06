@@ -11,8 +11,8 @@ export function fitCoinBoard({ width, height, tens, ones, unit = 1 }) {
   const oneCols = ones <= 4 ? Math.min(2, Math.max(1, ones)) : 5;
   const tenRows = Math.max(1, Math.ceil(tens / tenCols));
   const oneRows = Math.max(1, Math.ceil(ones / oneCols));
-  return Math.max(1, Math.min(46 * unit,
-    (width * .4 - 20 * unit - (tenCols - 1) * gap) / tenCols / (34 / 30),
+  return Math.max(1, Math.min(28 * unit,
+    (width * .4 - 20 * unit - (tenCols - 1) * gap) / tenCols,
     (width * .6 - 20 * unit - (oneCols - 1) * gap) / oneCols,
     (availableHeight - (tenRows - 1) * gap) / tenRows / 2.1,
     (availableHeight - (oneRows - 1) * gap) / oneRows));

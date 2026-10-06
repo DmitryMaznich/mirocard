@@ -19,9 +19,10 @@ describe("coin layout in the available lesson space", () => {
     [660, 480, 9, 19, 1.4],
   ])("fits every object at %ipx × %ipx, %i stacks and %i coins", (width, height, tens, ones, unit) => {
     const size = fitCoinBoard({ width, height, tens, ones, unit });
-    const stackWidth = size * 34 / 30, stackHeight = size * 2.1;
+    const stackWidth = size, stackHeight = size * 2.1;
     const stackRows = Math.ceil(tens / 3), coinRows = Math.ceil(ones / 5), gap = 6 * unit;
     expect(size).toBeGreaterThan(18);
+    expect(size).toBeLessThanOrEqual(28 * unit);
     expect(stackWidth * Math.min(tens, 3) + gap * (Math.min(tens, 3) - 1)).toBeLessThanOrEqual(width * .4 - 20 * unit + .01);
     expect(size * Math.min(ones, 5) + gap * (Math.min(ones, 5) - 1)).toBeLessThanOrEqual(width * .6 - 20 * unit + .01);
     expect(stackHeight * stackRows + gap * (stackRows - 1)).toBeLessThanOrEqual(height - 52 * unit + .01);

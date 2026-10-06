@@ -1,13 +1,15 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
 import { DragOverlay, useDndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
 import { fitCoinBoard, lessonUnit } from "./coinLayout.js";
 import "./place_value.css";
 import "./coins.css";
+const CoinSizeContext = createContext(null);
 
 export function CoinLesson({ title, target, result, children, controls, feedback, solved = false, className = "" }) {
   const screen = useRef(null);
   const [unit, setUnit] = useState(1);
+  const [coinSize, setCoinSize] = useState(null);
   useLayoutEffect(() => {
     const measure = () => {
       const { width, height } = screen.current.getBoundingClientRect();
@@ -18,25 +20,25 @@ export function CoinLesson({ title, target, result, children, controls, feedback
     observer.observe(screen.current);
     return () => observer.disconnect();
   }, []);
-  return <div ref={screen} style={{ "--cm-unit": `${unit}px` }} className={`pv-screen cb-screen cm-screen ${className}`}>
+  return <CoinSizeContext.Provider value={setCoinSize}><div ref={screen} style={{ "--cm-unit": `${unit}px`, "--coin-size": `${coinSize ?? 28 * unit}px` }} className={`pv-screen cb-screen cm-screen ${className}`}>
     <header className="cm-heading"><div className={`pv-question${solved ? " pv-question--correct" : ""}`}>{title}</div>
       {target !== undefined && <div className="cm-target">{target}</div>}</header>
     <div className="cm-body"><div className="cm-model">{children}</div><div className="cm-controls">
       {result !== undefined && <div className="pv-guess-row"><output aria-label="Ответ" className="pv-number-frame">{result}</output></div>}
       <div className={`cm-feedback${solved ? " cm-feedback--recap" : ""}`} role="status" aria-live="polite">{feedback}</div>
       {controls}</div></div>
-  </div>;
+  </div></CoinSizeContext.Provider>;
 }
 
 function DraggableObject({ id, kind, disabled, onClick, children, className = "", label, style }) {
-  const [coinSize, setCoinSize] = useState(30);
+  const [coinSize, setCoinSize] = useState(28);
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id, disabled, data: { kind, coinSize } });
   return <button type="button" ref={setNodeRef} className={`cm-object ${className}`} disabled={disabled}
     style={{ ...style, opacity: isDragging ? .35 : undefined }}
     onPointerDownCapture={(event) => {
       const visual = event.currentTarget.querySelector(".cb-coin, .cb-stack-coin");
       const width = visual && (parseFloat(getComputedStyle(visual).width) || visual.getBoundingClientRect().width);
-      if (width) setCoinSize(width / (kind === "ten" ? 34 / 30 : 1));
+      if (width) setCoinSize(width);
     }}
     {...attributes} {...listeners} aria-label={label} onClick={() => { if (!isDragging) onClick?.(); }}>{children}</button>;
 }
@@ -46,7 +48,7 @@ function DraggableObject({ id, kind, disabled, onClick, children, className = ""
 export function CoinDragOverlay() {
   const { active } = useDndContext();
   return <DragOverlay dropAnimation={null} adjustScale={false} zIndex={500}>
-    {active && <div className="cm-drag-object" style={{ "--coin-size": `${active.data.current?.coinSize || 30}px` }}>
+    {active && <div className="cm-drag-object" style={{ "--coin-size": `${active.data.current?.coinSize || 28}px` }}>
       {active.data.current?.kind === "ten" ? <TenStack /> : <Coin />}
     </div>}
   </DragOverlay>;
@@ -57,31 +59,34 @@ function DropZone({ id, children }) {
 }
 
 export function CoinBoard({ tens, ones, boardRef, selected, onSelect, dragStacks = false, onStackClick,
-  disabled = false, pendingStack, pendingCoins = [], groupable = false, focus, counted = [], onCount, dropZones = false, wideOnes = false }) {
+  disabled = false, pendingStack, pendingCoins = [], groupable = false, onGroup, focus, counted = [], onCount, dropZones = false, wideOnes = false }) {
   const localRef = useRef(null);
-  const [size, setSize] = useState(null);
+  const setSize = useContext(CoinSizeContext);
   useLayoutEffect(() => {
     const board = localRef.current;
     const measure = () => {
       const { width, height } = board.getBoundingClientRect();
       const unit = parseFloat(getComputedStyle(board).getPropertyValue("--cm-unit")) || 1;
-      if (width && height) setSize(fitCoinBoard({ width, height, tens: tens.length, ones: ones.length, unit }));
+      if (width && height) setSize?.(fitCoinBoard({ width, height, tens: tens.length, ones: ones.length, unit }));
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(board);
     return () => observer.disconnect();
-  }, [tens.length, ones.length]);
+  }, [tens.length, ones.length, setSize]);
   const zone = (kind, objects) => <>
     <h2 className="pv-zone-label">{kind === "tens" ? "Десятки" : "Единицы"}</h2>
-    <div className={kind === "tens" ? "cm-stacks" : "cm-coins"}>{objects.map((id, i) => {
+    <div className={kind === "tens" ? "cm-stacks" : "cm-coins"} onClick={(event) => {
+      if (kind === "ones" && groupable && !disabled && event.target === event.currentTarget) onGroup?.();
+    }}>{objects.map((id, i) => {
       const stack = kind === "tens", key = `${kind}:${id}`;
       const pending = stack ? pendingStack === id : pendingCoins.includes(id);
       const props = { "data-stack-id": stack ? id : undefined, "data-coin-id": stack ? undefined : id };
       const cls = `${pending ? " cm-pending" : ""}${selected === key ? " cm-selected" : ""}${counted.includes(key) ? " cm-counted" : ""}`;
       const label = stack ? `Десяток ${i + 1}` : `Монета ${i + 1}`;
-      const click = () => { if (onCount) onCount(key); else if (onSelect) onSelect(key); else onStackClick?.(id); };
-      const content = stack ? <TenStack /> : <Coin />;
+      const groupMember = !stack && groupable && i < 10;
+      const click = () => { if (groupMember && onGroup) onGroup(); else if (onCount) onCount(key); else if (onSelect) onSelect(key); else onStackClick?.(id); };
+      const content = stack ? <TenStack /> : <Coin groupable={groupMember} />;
       return <div key={id} className={`cm-object-wrap${cls}`} {...props}>
         {stack && dragStacks
           ? <DraggableObject id={`stack-${id}`} kind="ten" disabled={disabled} label={label} onClick={click}>{content}</DraggableObject>
@@ -93,8 +98,8 @@ export function CoinBoard({ tens, ones, boardRef, selected, onSelect, dragStacks
   </>;
   const oneColumns = ones.length <= 4 ? Math.min(2, Math.max(1, ones.length)) : 5;
   const stackRows = Math.max(1, Math.ceil(tens.length / 3)), coinRows = Math.max(1, Math.ceil(ones.length / oneColumns));
-  const boardUnits = 52 + Math.max(stackRows * 96.6 + (stackRows - 1) * 6, coinRows * 46 + (coinRows - 1) * 6);
-  return <div ref={(node) => { localRef.current = node; if (boardRef) boardRef.current = node; }} style={{ "--cm-board-units": boardUnits, "--cm-one-columns": oneColumns, ...(size ? { "--coin-size": `${size}px` } : {}) }}
+  const boardUnits = 52 + Math.max(stackRows * 58.8 + (stackRows - 1) * 6, coinRows * 28 + (coinRows - 1) * 6);
+  return <div ref={(node) => { localRef.current = node; if (boardRef) boardRef.current = node; }} style={{ "--cm-board-units": boardUnits, "--cm-one-columns": oneColumns }}
     className={`cm-board pv-zones${wideOnes ? " cm-board--wide-ones" : ""}${groupable ? " cm-board--groupable" : ""}${focus ? ` cm-board--focus-${focus}` : ""}`} aria-label="Модель числа">
     {dropZones ? <DropZone id="cm-tens">{zone("tens", tens)}</DropZone> : <section className="cm-zone">{zone("tens", tens)}</section>}
     {dropZones ? <DropZone id="cm-ones">{zone("ones", ones)}</DropZone> : <section className="cm-zone">{zone("ones", ones)}</section>}
@@ -105,7 +110,7 @@ export function CoinSource({ kind, disabled, onAdd }) {
   return <div className="cm-source">
     {kind === "ten" ? <DraggableObject id="source-ten" kind="ten" disabled={disabled} className="cm-source-stack" label="Взять десяток" onClick={() => onAdd(kind)}><TenStack /></DraggableObject>
       : <div className="cm-pile">{PILE_LAYOUT.map(({ x, y, r }, i) => <DraggableObject key={i} id={i === 14 ? "source-coin" : `source-coin-${i}`} kind="coin" disabled={disabled}
-        className="cm-pile-coin" label="Взять монету" style={{ left: `calc(${x} * var(--cm-unit))`, top: `calc(${y} * var(--cm-unit))`, rotate: `${r}deg` }} onClick={() => onAdd(kind)}><Coin /></DraggableObject>)}</div>}
+        className="cm-pile-coin" label="Взять монету" style={{ left: `calc(${x} * var(--cm-pile-unit))`, top: `calc(${y} * var(--cm-pile-unit))`, rotate: `${r}deg` }} onClick={() => onAdd(kind)}><Coin /></DraggableObject>)}</div>}
     <span>{kind === "ten" ? "Взять десяток" : "Взять монету"}</span>
   </div>;
 }
