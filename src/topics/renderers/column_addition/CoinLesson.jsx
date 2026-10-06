@@ -2,11 +2,12 @@ import { createContext, useContext, useLayoutEffect, useRef, useState } from "re
 import { DragOverlay, useDndContext, useDraggable, useDroppable } from "@dnd-kit/core";
 import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
 import { fitCoinBoard, lessonUnit } from "./coinLayout.js";
+import { pluralTens, pluralOnes } from "./placeValueLabels.js";
 import "./place_value.css";
 import "./coins.css";
 const CoinSizeContext = createContext(null);
 
-export function CoinLesson({ title, target, result, children, controls, feedback, solved = false, className = "" }) {
+export function CoinLesson({ title, target, result, recap, children, controls, feedback, solved = false, className = "" }) {
   const screen = useRef(null);
   const [unit, setUnit] = useState(1);
   const [coinSize, setCoinSize] = useState(null);
@@ -24,8 +25,15 @@ export function CoinLesson({ title, target, result, children, controls, feedback
     <header className="cm-heading"><div className={`pv-question${solved ? " pv-question--correct" : ""}`}>{title}</div>
       {target !== undefined && <div className="cm-target">{target}</div>}</header>
     <div className="cm-body"><div className="cm-model">{children}</div><div className="cm-controls">
-      {result !== undefined && <div className="pv-guess-row"><output aria-label="Ответ" className="pv-number-frame">{result}</output></div>}
-      <div className={`cm-feedback${solved ? " cm-feedback--recap" : ""}`} role="status" aria-live="polite">{feedback}</div>
+      {recap ? <div className="cm-result" role="status" aria-live="polite">
+        <span className="cm-sr-only">{feedback}</span>
+        {result !== undefined && <output aria-label="Ответ" className="cm-result-number">{result}</output>}
+        <div className="cm-result-parts" aria-hidden="true">
+          <div><strong>{recap.tens}</strong><span>{pluralTens(recap.tens)}</span></div>
+          <span className="cm-result-plus">+</span>
+          <div><strong>{recap.ones}</strong><span>{pluralOnes(recap.ones)}</span></div>
+        </div>
+      </div> : <div className="cm-feedback" role="status" aria-live="polite">{feedback}</div>}
       {controls}</div></div>
   </div></CoinSizeContext.Provider>;
 }
@@ -67,13 +75,13 @@ export function CoinBoard({ tens, ones, boardRef, selected, onSelect, dragStacks
     const measure = () => {
       const { width, height } = board.getBoundingClientRect();
       const unit = parseFloat(getComputedStyle(board).getPropertyValue("--cm-unit")) || 1;
-      if (width && height) setSize?.(fitCoinBoard({ width, height, tens: tens.length, ones: ones.length, unit }));
+      if (width && height) setSize?.(fitCoinBoard({ width, height, unit }));
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(board);
     return () => observer.disconnect();
-  }, [tens.length, ones.length, setSize]);
+  }, [setSize]);
   const zone = (kind, objects) => <>
     <h2 className="pv-zone-label">{kind === "tens" ? "Десятки" : "Единицы"}</h2>
     <div className={kind === "tens" ? "cm-stacks" : "cm-coins"} onClick={(event) => {
@@ -96,10 +104,7 @@ export function CoinBoard({ tens, ones, boardRef, selected, onSelect, dragStacks
       </div>;
     })}</div>
   </>;
-  const oneColumns = ones.length <= 4 ? Math.min(2, Math.max(1, ones.length)) : 5;
-  const stackRows = Math.max(1, Math.ceil(tens.length / 3)), coinRows = Math.max(1, Math.ceil(ones.length / oneColumns));
-  const boardUnits = 52 + Math.max(stackRows * 58.8 + (stackRows - 1) * 6, coinRows * 28 + (coinRows - 1) * 6);
-  return <div ref={(node) => { localRef.current = node; if (boardRef) boardRef.current = node; }} style={{ "--cm-board-units": boardUnits, "--cm-one-columns": oneColumns }}
+  return <div ref={(node) => { localRef.current = node; if (boardRef) boardRef.current = node; }}
     className={`cm-board pv-zones${wideOnes ? " cm-board--wide-ones" : ""}${groupable ? " cm-board--groupable" : ""}${focus ? ` cm-board--focus-${focus}` : ""}`} aria-label="Модель числа">
     {dropZones ? <DropZone id="cm-tens">{zone("tens", tens)}</DropZone> : <section className="cm-zone">{zone("tens", tens)}</section>}
     {dropZones ? <DropZone id="cm-ones">{zone("ones", ones)}</DropZone> : <section className="cm-zone">{zone("ones", ones)}</section>}

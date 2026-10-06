@@ -12,7 +12,7 @@ describe("IdentifyNumberTask explicit checking", () => {
     h.click("Проверить");
     expect(h.container.querySelector(".pv-question").textContent).toBe("Правильно!");
     expect(h.container.querySelector("output").textContent).toBe("23");
-    const recap = h.container.querySelector(".cm-feedback");
+    const recap = h.container.querySelector(".cm-result");
     expect(recap.parentElement).toBe(h.button("Далее →").parentElement);
     expect(recap.compareDocumentPosition(h.button("Далее →")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(onCorrect).not.toHaveBeenCalled(); h.click("Далее →");
