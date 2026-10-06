@@ -528,28 +528,29 @@ describe("words never touch", () => {
 
 describe("capital У joins like о", () => {
   const seg = (l) => layoutWideLinesIntoRows([l + "#1"], map, undefined, false, 0.5).placed[0].segments[0];
+  const nums = (d) => (d.match(/-?\d+\.?\d*/g) || []).map(Number);
   const cubics = (st) => (st.d.match(/C/g) || []).length;
-  it("alone it keeps its lower hook; before a letter the hook is replaced by the connector of о from the lowest point", () => {
+  it("the letter is whole with its hook (the hook is a stroke of the letter, not a connector); the connector is a stroke of its own", () => {
     const alone = seg("У");
     const joined = seg("Ут");
-    // the body is cut at the lowest point (shorter than the standalone stroke), the connector is one cubic of its own, then т
-    expect(cubics(joined.strokes[0])).toBeLessThan(cubics(alone.strokes[0]));
-    expect(cubics(joined.strokes[1])).toBe(1);
+    expect(joined.strokes[0].d).toBe(alone.strokes[0].d); // not cut
+    expect(cubics(joined.strokes[1])).toBe(1); // the connector: one cubic, the curve of о's connector
     expect(joined.strokes.length).toBe(alone.strokes.length + 1 + seg("т").strokes.length);
-    // the connector is the same curve as after о (same length of path, one cubic)
-    const o = seg("ом");
-    expect(cubics(o.strokes[1])).toBe(1);
+    expect(cubics(seg("ом").strokes[1])).toBe(1);
   });
-  it("the connector starts where the body ends and the next letter starts after it (no overlap on the hook)", () => {
-    const ends = (d) => (d.match(/-?\d+\.?\d*/g) || []).map(Number);
+  it("the connector leaves the lowest point of the letter and rises to the right", () => {
     const joined = seg("Ут");
-    const body = ends(joined.strokes[0].d);
-    const conn = ends(joined.strokes[1].d);
-    expect(conn[0]).toBeCloseTo(body[body.length - 2], 1);
-    expect(conn[1]).toBeCloseTo(body[body.length - 1], 1);
-    // it rises to the right
-    expect(conn[conn.length - 2]).toBeGreaterThan(conn[0] + 20);
-    expect(conn[conn.length - 1]).toBeLessThan(conn[1] - 10);
+    const body = nums(joined.strokes[0].d);
+    let low = -Infinity;
+    for (let i = 1; i < body.length; i += 2) low = Math.max(low, body[i]);
+    const conn = nums(joined.strokes[1].d);
+    expect(conn[1]).toBeCloseTo(low, 0); // starts at the lowest y of the letter
+    expect(conn[conn.length - 2]).toBeGreaterThan(conn[0] + 20); // to the right
+    expect(conn[conn.length - 1]).toBeLessThan(conn[1] - 10); // and up
+  });
+  it("is as long as the connector of о (the same curve)", () => {
+    const len = (d) => { const n = nums(d); return n[n.length - 2] - n[0]; };
+    expect(Math.abs(len(seg("Ут").strokes[1].d) - len(seg("ом").strokes[1].d))).toBeLessThan(4);
   });
 });
 });

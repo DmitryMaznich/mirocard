@@ -8,8 +8,8 @@
 //   tailStroke — index of a stroke that IS the connector (a stroke of its own in the capture)
 //   tailLift   — the connector gets the "end above the dashed line" lift the letter's exit used to get
 //   tailContinuous — the pen does not lift between the letter and its connector
-//   joinCut    — {stroke, at: "bottom" | keep}: the letter ends on its own side (У: the lower hook curls up-left); when a letter follows, the cubics after the lowest point
-//                are replaced by the connector of `joinLike` (о) from the lowest point; alone the letter keeps its hook
+//   joinFrom   — {stroke}: the letter ends on its own side (У: the lower hook curls up-left and is part of the letter, never cut); the connector to the next
+//                letter is a stroke of its own from the LOWEST point of that stroke, the curve of `joinLike` (о)
 export const P2_GLYPH_OVERRIDES = {
   "о": { tailSplit: 0, tailLift: true, tailContinuous: true },
   "ю": { tailSplit: 0, tailLift: true, tailContinuous: true },
@@ -17,8 +17,8 @@ export const P2_GLYPH_OVERRIDES = {
   "в": { tailSplit: 0, tailLift: true, tailContinuous: true },
   "б": { tailStroke: 1, tailLift: true },
   "э": { tailStroke: 2, tailLift: true },
-  // capital У: from its lowest point the connector is the same as after о (a little along the bottom, then right and up to the middle of the row)
-  "У": { joinCut: { stroke: 0, at: "bottom" }, joinLikeLabel: "о", tailContinuous: true },
+  // capital У: whole, with its hook; the connector leaves its lowest point and is the same as after о (a little along the bottom, then right and up to the middle of the row)
+  "У": { joinFrom: { stroke: 0 }, joinLikeLabel: "о" },
 };
 
 export const withGlyphOverrides = (glyphs) => {
