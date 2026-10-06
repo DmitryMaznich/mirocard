@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import Button from "@/shared/components/Button";
-import { CoinAnswer, CoinBoard, CoinLesson } from "./CoinLesson.jsx";
+import { CoinAnswer, CoinBoard, CoinDragOverlay, CoinLesson } from "./CoinLesson.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { pluralTens, pluralOnes } from "./placeValueLabels.js";
 
@@ -61,5 +61,6 @@ export default function RegroupTenTask({ task, onCorrect, onMistake, onFlashInco
         <Button variant="secondary" disabled={exchange.busy} onClick={groupBack}>Собрать обратно</Button>
       </div>}
     </CoinLesson>
+    <CoinDragOverlay />
   </DndContext>;
 }
