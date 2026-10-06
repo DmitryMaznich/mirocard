@@ -147,7 +147,7 @@ export function presetFromLines(id, title, lines, ruling, elementLabels) {
 // A ready «Методика» kit (kits.json) as the user's own copy: a set of pages whose layout is closed (`locked`), the pages hidden
 // from the plain page list (`kitId` = the set), so a 38-page notebook is one entry of the library, not 38.
 export function kitToLibraryItems(kit) {
-  const set = newSet(kit.title, { ruling: kit.page?.ruling ?? "narrow", kit: kit.id });
+  const set = newSet(kit.title, { ruling: kit.page?.ruling ?? "narrow", kit: kit.id, sourceId: `kit:${kit.id}` });
   const pages = kit.pages.map((p) => newPage(p.title, { ...(kit.page ?? {}), rows: p.rows.length ? p.rows.map((r) => newRow({ ...r })) : [newRow()], locked: true, kitId: set.id }));
   return { set: { ...set, pageIds: pages.map((x) => x.id) }, pages };
 }

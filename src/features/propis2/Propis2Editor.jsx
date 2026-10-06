@@ -10,7 +10,6 @@ import { fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topic
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
 import Propis2Picker from "./Propis2Picker";
-import Propis2Presets from "./Propis2Presets";
 import { useHint } from "./Propis2Hint";
 
 // The page constructor. The page canvas, with settings above it and the tools below it (tabs «Символ», «Слово», «Текст»).
@@ -67,7 +66,7 @@ function IconBtn({ label, caption, on, onClick, disabled, children, className = 
   );
 }
 
-export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, presets, onApplyPreset, onSavePreset, onDeletePreset }) {
+export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const analysis = useMemo(() => analyzePage(page, glyphMap), [page, glyphMap]);
   const owners = useMemo(() => lineOwners(page, glyphMap), [page, glyphMap]);
@@ -274,15 +273,6 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               <IconBtn label="Очистить страницу" caption="Очистить" className="p2-ib--danger" onClick={clear}><I.IconClearPage /></IconBtn>
             </>
           )}
-          <Propis2Presets
-            builtin={presets?.builtin ?? []}
-            mine={presets?.mine ?? []}
-            defaultName={page.title}
-            canSave={page.rows.some((r) => r.kind === "blank" || String(r.text ?? "").trim())}
-            onApply={(ps) => onApplyPreset?.(ps)}
-            onSave={(name) => onSavePreset?.(name)}
-            onDeleteMine={(id) => onDeletePreset?.(id)}
-          />
         </div>
 
         <div className="propis2-settings propis2-settings--row" role="group" aria-label="Настройки строки">

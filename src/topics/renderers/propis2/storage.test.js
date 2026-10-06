@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { openDb } from "@/core/db";
-import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, normalizeLibrary, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
+import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, normalizeLibrary, presetsToNotebooks, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
 import { newPage, newRow, newSet } from "./model.js";
 
 describe("propis2 library storage", () => {
@@ -77,5 +77,17 @@ describe("propis2 library storage", () => {
     expect(next.pages.every((p) => p.format === "a4" && p.ruling === "wide")).toBe(true);
     expect(next.sets[0].ruling).toBe("wide");
     expect(applyLayout(lib, "st_n", {})).toBe(lib);
+  });
+
+  it("a saved template becomes a notebook of one page, the same everywhere, and is not rebuilt once deleted", () => {
+    const ps = { id: "ps_1", title: "Мой лист", rows: [newRow({ text: "мама" })], createdAt: 5, updatedAt: 6 };
+    let lib = { ...emptyLibrary(), presets: [ps] };
+    const once = migrateToNotebooks(presetsToNotebooks(lib));
+    expect(once.sets).toHaveLength(1);
+    expect(once.sets[0]).toMatchObject({ id: "st_pg_ps_ps_1", title: "Мой лист" });
+    expect(once.pages[0]).toMatchObject({ id: "pg_ps_ps_1", locked: false });
+    expect(migrateToNotebooks(presetsToNotebooks(once))).toBe(once); // idempotent
+    const gone = removeSet(once, "st_pg_ps_ps_1");
+    expect(migrateToNotebooks(presetsToNotebooks(gone)).sets).toHaveLength(0);
   });
 });

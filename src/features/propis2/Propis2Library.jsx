@@ -46,7 +46,7 @@ function NotebookTitle({ title, onRename }) {
 
 // «Мои тетради»: the home of the topic. A notebook is the only thing the adult keeps: create one from scratch or from a ready one,
 // open it as the student sees it, edit, rename, copy, delete.
-export default function Propis2Library({ sets = [], presets = { builtin: [], mine: [] }, onBack, onNew, onFromPreset, onDeletePreset, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
+export default function Propis2Library({ sets = [], ready = [], onBack, onNew, onOpenReady, onEditReady, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
   return (
     <div className="screen propis2-home propis2-lib" data-testid="propis2-library">
       <div className="screen-header">
@@ -54,41 +54,15 @@ export default function Propis2Library({ sets = [], presets = { builtin: [], min
         <h1 className="screen-title">Прописи 2</h1>
       </div>
       <div className="propis2-body">
-        <div className="p2-nb-start" role="group" aria-label="Начать">
-          <button type="button" className="p2-tile p2-tile--primary" aria-label="Новая тетрадь" onClick={onNew}>
+        <div className="p2-nb-start">
+          <button type="button" className="p2-tile p2-tile--primary p2-tile--wide" aria-label="Новая тетрадь" onClick={onNew}>
             <span className="p2-tile-ico"><I.IconAddPage /></span>
-            <span className="p2-tile-cap">Новая</span>
+            <span className="p2-tile-cap">Новая тетрадь</span>
           </button>
-          <label className="p2-tile" aria-label="Готовые тетради">
-            <span className="p2-tile-ico"><I.IconPresets /></span>
-            <span className="p2-tile-cap">Готовые</span>
-            <select defaultValue="" onChange={(e) => { if (e.target.value) { onFromPreset(e.target.value); e.target.value = ""; } }} aria-label="Готовый набор">
-              <option value="">— выбрать тетрадь —</option>
-              {presets.builtin.length > 0 && <optgroup label="Методика">{presets.builtin.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</optgroup>}
-              {presets.mine.length > 0 && <optgroup label="Мои">{presets.mine.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}</optgroup>}
-            </select>
-          </label>
         </div>
 
-        {presets.mine.length > 0 && (
-          <>
-            <h2 className="propis2-h2">Мои шаблоны</h2>
-            <ul className="propis2-pages" aria-label="Мои готовые тетради (шаблоны)">
-              {presets.mine.map((p) => (
-                <li key={p.id} className="p2-nb p2-nb--tpl">
-                  <span className="p2-nb-ico"><I.IconPresets /></span>
-                  <div className="p2-nb-main"><div className="p2-nb-name">{p.title}</div></div>
-                  <Tool label={`Удалить шаблон ${p.title}`} caption="Удалить" tone="p2-ib--danger" onClick={() => onDeletePreset?.(p.id)}><I.IconTrash /></Tool>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-
-        <h2 className="propis2-h2">Мои тетради</h2>
-        {sets.length === 0 ? (
-          <p className="propis2-empty">Тетрадей пока нет. Создайте новую или возьмите готовую.</p>
-        ) : (
+        {sets.length > 0 && <h2 className="propis2-h2">Мои тетради</h2>}
+        {sets.length > 0 && (
           <ul className="propis2-pages">
             {sets.map((st) => (
               <li key={st.id} className="p2-nb" data-testid="propis2-set-card">
@@ -108,6 +82,29 @@ export default function Propis2Library({ sets = [], presets = { builtin: [], min
               </li>
             ))}
           </ul>
+        )}
+
+        {ready.length > 0 && (
+          <>
+            <h2 className="propis2-h2">Готовые тетради</h2>
+            <ul className="propis2-pages">
+              {ready.map((r) => (
+                <li key={r.id} className="p2-nb p2-nb--ready" data-testid="propis2-ready-card">
+                  <div className="p2-nb-head">
+                    <span className="p2-nb-ico"><I.IconNotebook /></span>
+                    <div className="p2-nb-main">
+                      <div className="p2-nb-name">{r.title}</div>
+                      <div className="p2-nb-meta">{r.pages} стр.</div>
+                    </div>
+                  </div>
+                  <div className="p2-nb-tools" role="group" aria-label="Действия с тетрадью">
+                    <Tool label={`Открыть тетрадь ${r.title}`} caption="Открыть" tone="p2-tool--go" onClick={() => onOpenReady(r.id)}><I.IconPlay /></Tool>
+                    <Tool label={`Изменить тетрадь ${r.title}`} caption="Править" onClick={() => onEditReady(r.id)}><I.IconEditPage /></Tool>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </div>
     </div>

@@ -2,6 +2,7 @@
 // own key, nothing added to the app's shared tables). Account sync is a later step.
 import { getDb, kv } from "@/core/db";
 import { docKey } from "./syncLib.js";
+import { pageFromPreset } from "./model.js";
 
 const tomb = (library, kind, id) => ({ ...(library.deleted ?? {}), [docKey(kind, id)]: Date.now() });
 
@@ -103,4 +104,15 @@ export function upsertPreset(library, preset) {
 
 export function removePreset(library, presetId) {
   return { ...library, presets: (library.presets ?? []).filter((p) => p.id !== presetId), deleted: tomb(library, "preset", presetId) };
+}
+
+// The saved page templates («Мои» presets) are gone as a concept: each becomes a notebook of one page (the page gets an id made from
+// the template's, so every device builds the same one; a deleted notebook is not built again). `migrateToNotebooks` wraps the page.
+export function presetsToNotebooks(library) {
+  const have = new Set(library.pages.map((p) => p.id));
+  const fresh = (library.presets ?? [])
+    .map((ps) => ({ ps, id: `pg_ps_${ps.id}` }))
+    .filter(({ id }) => !have.has(id) && !library.deleted?.[docKey("page", id)] && !library.deleted?.[docKey("set", `st_${id}`)])
+    .map(({ ps, id }) => ({ ...pageFromPreset(ps), id, locked: false, presetId: undefined, createdAt: ps.createdAt ?? 0, updatedAt: ps.updatedAt ?? ps.createdAt ?? 0 }));
+  return fresh.length ? { ...library, pages: [...library.pages, ...fresh] } : library;
 }
