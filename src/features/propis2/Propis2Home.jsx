@@ -201,6 +201,7 @@ export default function Propis2Home({ db }) {
       <div className="propis2-view" data-testid="propis2-view">
         <PrintPageView
           task={task}
+          topNav
           onPageIndexChange={setShownPage}
           onClose={() => { setFragment(null); if (view.from === "editor") setView({ ...view, name: "editor" }); else requestLeave(); }}
           onFragmentTap={({ row, localX }) => setFragment(pickFragment(row.word, localX, glyphMap, ruling))}

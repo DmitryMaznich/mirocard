@@ -248,7 +248,7 @@ describe("Прописи 2 (zip topic)", () => {
     await click(btn("Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
     // 3 pages -> exactly 3 screen pages (v1 pads to an even count; propis2 sets exactPages)
-    expect(host.querySelector(".propis-text-nav__counter").textContent).toBe("Страница 1 из 3");
+    expect(host.querySelector(".propis-text-nav__counter").textContent).toBe("1 / 3");
     await click(host.querySelector(".propis-practice-close"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await click(host.querySelector(".back-btn"));

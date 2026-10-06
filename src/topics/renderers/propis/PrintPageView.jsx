@@ -717,7 +717,7 @@ export function snapXFor({ narrowRows, simpleGrid, margin = "off", format = "a5"
 
 // Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
 // no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, speedFactor = 1, overlays = null, onPageIndexChange = null }) {
+export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false }) {
   const lettersByLabel = useMemo(() => {
     const map = new Map();
     for (const item of task?.letters ?? []) map.set(item.label ?? item.id, item);
@@ -880,7 +880,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               )}
             </div>
 
-            <div className="propis-text-nav">
+            <div className={topNav ? "propis-text-nav propis-text-nav--top" : "propis-text-nav"}>
               <button
                 type="button"
                 className="propis-ctrl-btn"
@@ -890,7 +890,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               >
                 ‹
               </button>
-              <span className="propis-text-nav__counter">Страница {pageIndex + 1} из {pages.length}</span>
+              <span className="propis-text-nav__counter" title={`Страница ${pageIndex + 1} из ${pages.length}`}>{topNav ? `${pageIndex + 1} / ${pages.length}` : `Страница ${pageIndex + 1} из ${pages.length}`}</span>
               <button
                 type="button"
                 className="propis-ctrl-btn"
@@ -900,8 +900,8 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               >
                 ›
               </button>
-              <button type="button" className="propis-ctrl-btn propis-print-btn" onClick={() => window.print()}>
-                🖨 Печать
+              <button type="button" className="propis-ctrl-btn propis-print-btn" onClick={() => window.print()} aria-label="Печать" title="Печать">
+                {topNav ? "🖨" : "🖨 Печать"}
               </button>
             </div>
 
