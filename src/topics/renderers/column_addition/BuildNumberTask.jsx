@@ -75,6 +75,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
     if (over?.id === "cm-ones" || over?.id === "cm-tens") add(active.data.current?.kind);
   }}>
     <CoinLesson className="cm-build" title={title} target={phase === "build" || phase === "done" ? task.number : undefined} solved={phase === "done"}
+      recap={phase === "done" ? task.target : undefined}
       feedback={feedback || (phase === "done" ? placeValueSentence(task.target.tens, task.target.ones, task.number) : "")}
       controls={phase.startsWith("answer") ? <CoinAnswer key={phase} maxDigits={1} onSubmit={answer} /> : phase === "done"
         ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
@@ -85,7 +86,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
         onSelect={phase === "build" ? (key) => setSelected(key === selected ? null : key) : undefined}
         disabled={!editable} dropZones pendingStack={exchange.pendingStack} pendingCoins={exchange.pendingCoins}
         groupable={editable && placed.ones.length >= 10} onGroup={group} focus={focus || (phase === "answerTens" ? "tens" : phase === "answerOnes" ? "ones" : null)} />
-      {phase === "build" && selected && <div className="cm-tools">
+      {phase === "build" && <div className="cm-tools">
         {selected && <Button variant="secondary" disabled={!editable} onClick={remove}>Убрать</Button>}
         {selected?.startsWith("tens:") && <Button variant="secondary" aria-label="Разложить десяток" disabled={!editable || placed.ones.length > 9} onClick={ungroup}>Разложить</Button>}
       </div>}
