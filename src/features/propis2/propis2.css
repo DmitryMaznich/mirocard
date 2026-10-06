@@ -325,3 +325,5 @@
 
 /* the app switches the system callout off on <body> (inherited): the typed text needs its copy / paste menu back */
 .p2-textarea, .propis2-editor2 input[type="text"], .propis2-editor2 textarea { -webkit-touch-callout: default; -webkit-user-select: text; user-select: text; }
+/* no gap between the header, the page strip and the tool strips (.screen has 16px between its blocks) */
+.propis2-editor2 { gap: 0; }

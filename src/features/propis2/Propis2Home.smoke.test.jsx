@@ -101,7 +101,7 @@ describe("Прописи 2 (zip topic)", () => {
 
     await click(btn(host, "Новая тетрадь"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
-    await type(host.querySelector('[aria-label="Название страницы"]'), "Мои буквы");
+    await type(host.querySelector('[aria-label="Название тетради"]'), "Мои буквы");
     await typeInField(host, "кот@");
     expect(host.querySelector("[role=alert]")?.textContent).toContain("@");
     await typeInField(host, "кот");
@@ -143,7 +143,7 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelectorAll('[data-testid="propis2-ready-card"]').length).toBeGreaterThan(5);
     await click(host.querySelector('[aria-label="Изменить тетрадь Листы методики, часть 2 (узкая строка)"]'));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
-    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Лист с р");
+    expect(host.querySelector('[aria-label="Название тетради"]').value).toBe("Листы методики, часть 2 (узкая строка)");
     expect(host.querySelector('[data-testid="propis2-preview"] svg path')).not.toBeNull();
 
     await act(async () => { root.unmount(); await tick(500); });
@@ -528,7 +528,8 @@ describe("Прописи 2 (zip topic)", () => {
     // «edit this page» opens the constructor on the page that is shown; back returns to the viewer
     await click(host.querySelector('[aria-label="Изменить эту страницу"]'));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
-    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Слоги 1");
+    const nbName = host.querySelector('[aria-label="Название тетради"]').value; // the field holds the notebook's name, not the page's
+    expect(nbName.length).toBeGreaterThan(0);
     // inside a set the editor pages through all its pages, copies and deletes them
     const pos = () => host.querySelector(".p2-pager-pos").textContent;
     expect(pos()).toMatch(/^Стр\. 1 из (\d+)$/);
@@ -536,17 +537,17 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('[aria-label="Предыдущая страница"]').disabled).toBe(true);
     await click(host.querySelector('[aria-label="Следующая страница"]'));
     expect(pos()).toBe(`Стр. 2 из ${total}`);
-    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Слоги 2");
+    expect(host.querySelector('[aria-label="Название тетради"]').value).toBe(nbName);
     // move this page one place earlier, then back: it stays the open page, the position follows it
     await click(host.querySelector('[aria-label="Переместить страницу раньше"]'));
     expect(pos()).toBe(`Стр. 1 из ${total}`);
-    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Слоги 2");
+    expect(host.querySelector('[aria-label="Название тетради"]').value).toBe(nbName);
     await click(host.querySelector('[aria-label="Переместить страницу позже"]'));
     expect(pos()).toBe(`Стр. 2 из ${total}`);
     // a new blank page right after this one, with the same paper settings
     await click(host.querySelector('[aria-label="Добавить страницу"]'));
     expect(pos()).toBe(`Стр. 3 из ${total + 1}`);
-    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe(`Страница ${total + 1}`);
+    expect(host.querySelector('[aria-label="Название тетради"]').value).toBe(nbName);
     expect(host.querySelector('[aria-label="Тип бумаги"]').disabled).toBe(false); // an own page, not a locked kit one
     vi.spyOn(window, "confirm").mockReturnValueOnce(true);
     await click(host.querySelector('[aria-label="Удалить страницу из тетради"]'));

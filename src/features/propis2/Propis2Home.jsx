@@ -260,6 +260,8 @@ export default function Propis2Home({ db }) {
         key={page.id}
         nav={nav}
         page={shown}
+        title={navSet ? navSet.title : undefined}
+        onTitle={navSet ? (t) => edit(upsertSet(working, { ...navSet, title: t })) : undefined}
         topicRecord={topicRecord}
         onChange={(next) => {
           // paper settings are the whole notebook's, the rest is this page's
