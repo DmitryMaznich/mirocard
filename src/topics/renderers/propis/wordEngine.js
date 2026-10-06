@@ -1506,6 +1506,8 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       let tokenStartX = null;
       let tokenMinX = Infinity;
       let tokenMaxX = -Infinity;
+      let pendingNudge = WIDE_MAX_CONTACT_NUDGE; // how far (units) the pending connector's end may be moved to reach the next letter (glyph.exitNudge)
+      let curNudge = WIDE_MAX_CONTACT_NUDGE;
       let pendingTail = null; // connector of the previous glyph (glyph.tailStroke), drawn only once a letter follows it
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
@@ -1515,6 +1517,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           strokes.push(pendingTail);
           prevExit = getPathEndpoints(pendingTail.d).end;
           prevExitStroke = strokes.length - 1;
+          curNudge = pendingNudge;
           pendingTail = null;
         }
         const local = wideGlyphLocal(glyph, scale);
@@ -1575,7 +1578,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
               if (d2) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d2 }; aligned = true; }
             }
           }
-          if (!aligned && contactX !== null && Math.abs(contactX - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) {
+          if (!aligned && contactX !== null && Math.abs(contactX - prevExit[0]) < curNudge * scale) {
             strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, contactX - prevExit[0]) };
           }
         }
@@ -1593,9 +1596,11 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           firstGlyph = false;
         }
         prevExit = [local.end[0] + dx, local.end[1]];
+        curNudge = WIDE_MAX_CONTACT_NUDGE;
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         if (glyph.noJoin) { prevExit = null; prevExitStroke = -1; }
         if (local.tail) {
+          pendingNudge = glyph.exitNudge ?? WIDE_MAX_CONTACT_NUDGE;
           pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), always: !!glyph.tailAlways, ...(glyph.tailContinuous ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) };
           prevExit = null;
           prevExitStroke = -1;
