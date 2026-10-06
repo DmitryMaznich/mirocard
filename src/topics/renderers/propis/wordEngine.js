@@ -1293,21 +1293,22 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
     if (Number.isInteger(glyph.exitStroke) && strokes[glyph.exitStroke]) bi = glyph.exitStroke; // б: the exit is its own stroke, not the flag
     strokes[bi] = { d: liftEndToD(strokes[bi].d, targetY) };
   }
-  // `joinFrom` {stroke, rise} + `joinLike` (a glyph with a connector, о): the letter is whole and ends on its own side (У: the lower hook curls
-  // up-left and is part of the letter), so the connector to the next letter is a stroke of its own that leaves the LOWEST point of that stroke
-  // (like Г, Р): the connector curve of `joinLike`, moved there. It exists only when a letter follows; the letter itself is never cut.
+  // `joinFrom` {stroke} + `joinLike` (a glyph with a connector, о) + `joinEndLike` (a glyph with the same start whose exit is the grid point
+  // every connector of that kind arrives at: the mid dashed line x the next slant line): the letter is whole and ends on its own side
+  // (У: the lower hook curls up-left and is part of the letter, never cut), so the connector to the next letter is a stroke of its own that
+  // leaves the LOWEST point of that stroke, runs right along the bottom like о's and ends at that grid point. It exists only when a letter follows.
   if (!tail && glyph.joinFrom && glyph.joinLike && strokes[glyph.joinFrom.stroke]) {
     const like = wideGlyphLocal(glyph.joinLike, scale);
-    // the start: on the stem's way into the bottom, `rise` units above the lowest point (the foot of the stem, to the right of the hook), not at the very bottom
     const samples = samplePath(strokes[glyph.joinFrom.stroke].d, 80);
     let iLow = 0;
     samples.forEach((q, i) => { if (q[1] > samples[iLow][1] + 1e-6) iLow = i; });
-    const wantY = samples[iLow][1] - (glyph.joinFrom.rise ?? 0) * scale;
-    let low = samples[iLow];
-    for (let i = iLow; i >= 0; i -= 1) { low = samples[i]; if (samples[i][1] <= wantY) break; }
-    if (like.tail && low) {
+    const low = samples[iLow];
+    if (like.tail) {
       const likeStart = getPathEndpoints(like.tail.d).start;
-      const k = glyph.joinFrom.stretch ?? 1; // the borrowed curve may be shortened/lengthened horizontally from its start
+      const likeEnd = getPathEndpoints(like.tail.d).end;
+      // the curve of the borrowed connector, its end moved onto the grid point (the same for every letter that starts like this one)
+      const endX = glyph.joinEndLike ? wideGlyphLocal(glyph.joinEndLike, scale).end[0] : low[0] + (likeEnd[0] - likeStart[0]);
+      const k = Math.max(0.2, (endX - low[0]) / (likeEnd[0] - likeStart[0]));
       tail = { d: transformPathD(like.tail.d, { scaleX: k, translateX: low[0] - k * likeStart[0], translateY: low[1] - likeStart[1] }) };
     }
   }

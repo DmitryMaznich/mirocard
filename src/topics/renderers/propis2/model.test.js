@@ -534,23 +534,28 @@ describe("capital У joins like о", () => {
     const alone = seg("У");
     const joined = seg("Ут");
     expect(joined.strokes[0].d).toBe(alone.strokes[0].d); // not cut
-    expect(cubics(joined.strokes[1])).toBeLessThanOrEqual(2); // the connector: the curve of о's connector (one or two cubics)
+    expect(cubics(joined.strokes[1])).toBeLessThanOrEqual(2);
     expect(joined.strokes.length).toBe(alone.strokes.length + 1 + seg("т").strokes.length);
+    expect(seg("У").strokes.length).toBe(alone.strokes.length); // nothing added without a following letter
   });
-  it("the connector leaves the foot of the letter (a little above its lowest point) and rises to the right", () => {
+  it("the connector leaves the LOWEST point of the letter and rises to the right", () => {
     const joined = seg("Ут");
     const body = nums(joined.strokes[0].d);
     let low = -Infinity;
     for (let i = 1; i < body.length; i += 2) low = Math.max(low, body[i]);
     const conn = nums(joined.strokes[1].d);
-    expect(conn[1]).toBeLessThanOrEqual(low + 0.01); // starts at the foot: above the lowest point, not below it
-    expect(conn[1]).toBeGreaterThan(low - 8 * 0.5 - 0.5); // by no more than `rise` units (scale 0.5)
-    expect(conn[conn.length - 2]).toBeGreaterThan(conn[0] + 20); // to the right
-    expect(conn[conn.length - 1]).toBeLessThan(conn[1] - 10); // and up
+    expect(conn[1]).toBeCloseTo(low, 0);
+    expect(conn[conn.length - 2]).toBeGreaterThan(conn[0] + 15);
+    expect(conn[conn.length - 1]).toBeLessThan(conn[1] - 10);
   });
-  it("is as long as the connector of о (the same curve)", () => {
-    const len = (d) => { const n = nums(d); return n[n.length - 2] - n[0]; };
-    expect(Math.abs(len(seg("Ут").strokes[1].d) - len(seg("ом").strokes[1].d))).toBeLessThan(4);
+  it("arrives at the same grid point as the exit of Ч (У starts like Ч): the end of every connector of this kind", () => {
+    const endOf = (st) => { const n = nums(st.d); return [n[n.length - 2], n[n.length - 1]]; };
+    const u = seg("Ут");
+    const ch = seg("Чт");
+    const uEnd = endOf(u.strokes[1]);
+    const chExit = endOf(ch.strokes[ch.strokes.length - 1 - seg("т").strokes.length]); // the last stroke of Ч itself is its exit
+    expect(uEnd[0]).toBeCloseTo(chExit[0], 0);
+    expect(uEnd[1]).toBeCloseTo(chExit[1], 0);
   });
 });
 });
