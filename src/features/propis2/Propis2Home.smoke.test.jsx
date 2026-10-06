@@ -131,9 +131,9 @@ describe("Прописи 2 (zip topic)", () => {
 
     // a ready notebook lies in the list like our own: editing it makes our copy quietly
     expect(host.querySelectorAll('[data-testid="propis2-ready-card"]').length).toBeGreaterThan(5);
-    await click(host.querySelector('[aria-label="Изменить тетрадь Заглавные Н Ю К"]'));
+    await click(host.querySelector('[aria-label="Изменить тетрадь Листы методики, часть 2 (узкая строка)"]'));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
-    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Заглавные Н Ю К");
+    expect(host.querySelector('[aria-label="Название страницы"]').value).toBe("Лист с р");
     expect(host.querySelector('[data-testid="propis2-preview"] svg path')).not.toBeNull();
 
     await act(async () => { root.unmount(); await tick(500); });
@@ -172,7 +172,7 @@ describe("Прописи 2 (zip topic)", () => {
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => b.textContent.includes(text));
 
     // a page long enough for two screens: pick the ready sheet (12 rows) and add more rows
-    await click(host.querySelector('[aria-label="Изменить тетрадь Лист 1"]'));
+    await click(host.querySelector('[aria-label="Изменить тетрадь Листы методики, часть 1 (широкая строка)"]'));
     await click(byLabel(host, "Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
     expect(host.querySelector('[data-testid="propis2-panel"]')).toBeNull();
@@ -377,7 +377,7 @@ describe("Прописи 2 (zip topic)", () => {
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     const setValue = async (el, value) => { await act(async () => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(el, value); el.dispatchEvent(new Event("input", { bubbles: true })); await tick(); }); };
     const lbl = (name) => host.querySelector(`[aria-label="${name}"]`);
-    await click(lbl("Изменить тетрадь Заглавные Н Ю К"));
+    await click(lbl("Изменить тетрадь Листы методики, часть 2 (узкая строка)"));
 
     // locked: layout controls are off, the lock marker and «Очистить страницу» are there
     expect(lbl("Тип бумаги").disabled).toBe(true);
@@ -458,7 +458,7 @@ describe("Прописи 2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el, init = {}) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true, ...init })); await tick(60); }); };
-    await click(host.querySelector('[aria-label="Изменить тетрадь Заглавные Н Ю К"]'));
+    await click(host.querySelector('[aria-label="Изменить тетрадь Листы методики, часть 2 (узкая строка)"]'));
     const preview = () => host.querySelector('[data-testid="propis2-preview"]');
     const svg = preview().querySelector("svg.propis-print-page-svg");
     const vbH = Number(svg.getAttribute("viewBox").split(/\s+/)[3]);

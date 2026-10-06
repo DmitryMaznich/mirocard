@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 
@@ -487,5 +487,21 @@ describe("fade copies", () => {
     expect(copies.every((s) => s.opacity >= 0 && s.opacity <= 1)).toBe(true);
     // the last copies are fully faded, connector included
     expect(copies.slice(-3).every((s) => s.opacity === 0)).toBe(true);
+  });
+
+  it("the methodology workbook: part 1 (part1, page3..7) is on the WIDE ruling, part 2 (part2, page8..18) on the NARROW one, every sheet is there", () => {
+    const rec = record();
+    const labels = new Set([...rec.elements.map((e) => e.id), ...rec.wide.filter((g) => g.kind === "element").map((g) => g.label)]);
+    const [one, two] = methodNotebooks(rec.wideSheets, labels);
+    expect(one.page.ruling).toBe("wide");
+    expect(two.page.ruling).toBe("narrow");
+    expect(one.pages.map((p) => p.title)).toEqual(["Лист 1", "Лист с л, м, я", "Лист с о", "Лист с а, ю, с", "Лист с е, ё, э, х, ж", "Лист с ч, ь, ы, ъ"]);
+    expect(two.pages).toHaveLength(12);
+    expect(two.pages.at(-1).title).toBe("Заглавные Н, Ю, К");
+    // the rows are the transcribed workbook rows: nothing lost
+    expect(one.pages[1].rows.map((r) => r.text)).toEqual(rec.wideSheets.page3.map((l) => l.replace(/#[dc]$/, "")));
+    const { set, pages } = kitToLibraryItems(one);
+    expect(set.ruling).toBe("wide");
+    expect(pages.every((p) => p.ruling === "wide" && p.locked)).toBe(true);
   });
 });

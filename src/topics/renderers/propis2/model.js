@@ -4,6 +4,7 @@ import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../p
 import { snapXFor } from "../propis/PrintPageView.jsx";
 import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../propis/propisRuling.js";
 import { outsideRowLabels } from "./glyphReach.js";
+import { PROPIS2_METHOD_NOTEBOOKS } from "./data.js";
 
 
 // Rows on one screen/paper page of the wide-row sheets (ruling row 0 is only the top edge).
@@ -142,6 +143,16 @@ export function presetFromPage(page, title) {
 export function presetFromLines(id, title, lines, ruling, elementLabels) {
   const page = pageFromLines(title, lines, ruling, elementLabels);
   return { id, title, ruling: page.ruling, rows: page.rows, builtin: true };
+}
+
+// The methodology workbook (wide.json `sheets`) as ready notebooks in the shape of a kit: part 1 on the WIDE ruling, part 2 on the NARROW one.
+export function methodNotebooks(sheets, elementLabels) {
+  return PROPIS2_METHOD_NOTEBOOKS.map((m) => ({
+    id: m.id,
+    title: m.title,
+    page: { ruling: m.ruling, grid: "dense", midDash: true },
+    pages: m.sheets.filter(([id]) => sheets?.[id]).map(([id, title]) => ({ title, rows: pageFromLines(title, sheets[id], m.ruling, elementLabels).rows })),
+  }));
 }
 
 // A ready «Методика» kit (kits.json) as the user's own copy: a set of pages whose layout is closed (`locked`), the pages hidden

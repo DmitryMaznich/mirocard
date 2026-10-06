@@ -4,8 +4,7 @@ import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { PROPIS2_SHEET_TITLES } from "@/topics/renderers/propis2/data.js";
-import { kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, pageFromPreset, pageFormat, pageMargin, pageToLines, presetFromLines, pickFragment, setPageStarts, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, pageFromPreset, pageFormat, pageMargin, pageToLines, pickFragment, setPageStarts, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, presetsToNotebooks, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
@@ -86,13 +85,10 @@ export default function Propis2Home({ db }) {
   const sheets = useMemo(() => topicRecord?.wideSheets ?? {}, [topicRecord]);
   const elementLabels = useMemo(() => new Set([...(topicRecord?.elements ?? []).map((e) => e.id), ...(topicRecord?.wide ?? []).filter((g) => g.kind === "element").map((g) => g.label)]), [topicRecord]);
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
-  // presets: the built-in ones are the methodology sheets, «Мои» are saved in the library
-  const builtinPresets = useMemo(() => Object.keys(PROPIS2_SHEET_TITLES).filter((id) => sheets[id]).map((id) => presetFromLines(id, PROPIS2_SHEET_TITLES[id], sheets[id], "narrow", elementLabels)), [sheets, elementLabels]);
-  const kitPresets = useMemo(() => kits.map((k) => ({ id: `kit:${k.id}`, title: k.title, kit: k, builtin: true })), [kits]);
-  // The ready notebooks (the methodology kits and sheets) lie in the list like the adult's own. One becomes the adult's own the first
-  // time it is opened or edited (a copy is made quietly, with its source id) and its card moves to «Мои»; delete that copy and the
-  // ready one is back.
-  const readyAll = useMemo(() => [...kitPresets, ...builtinPresets].map((ps) => ({ id: ps.id, title: ps.title, pages: ps.kit ? ps.kit.pages.length : 1, ps })), [kitPresets, builtinPresets]);
+  // the methodology workbook as two ready notebooks: part 1 on the WIDE ruling, part 2 on the NARROW one (data.js)
+  const methodKits = useMemo(() => methodNotebooks(sheets, elementLabels), [sheets, elementLabels]);
+  const kitPresets = useMemo(() => [...methodKits, ...kits].map((k) => ({ id: `kit:${k.id}`, title: k.title, kit: k, builtin: true })), [methodKits, kits]);
+  const readyAll = useMemo(() => kitPresets.map((ps) => ({ id: ps.id, title: ps.title, pages: ps.kit ? ps.kit.pages.length : 1, ps })), [kitPresets]);
   const takenIds = useMemo(() => new Set(library.sets.map((st) => st.sourceId ?? (st.kit ? `kit:${st.kit}` : null)).filter(Boolean)), [library.sets]);
   const ready = useMemo(() => readyAll.filter((r) => !takenIds.has(r.id)), [readyAll, takenIds]);
   const ownCopyOf = (ps) => {
