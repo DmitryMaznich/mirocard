@@ -9,15 +9,29 @@ export default function Propis2Field({ value, onChange, onCaret, disabled, singl
   const ref = useRef(null);
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
+  const [focused, setFocused] = useState(false);
   const { bind, tip } = useHint("Элементы");
 
-  // grow with the text; CSS max-height stops it and the field scrolls
+  // while typing the field grows with its text (CSS max-height stops it and it scrolls); when not in use it folds to one line
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
-  }, [value]);
+    if (focused) { el.style.height = `${el.scrollHeight}px`; return; }
+    const cs = window.getComputedStyle(el);
+    const line = parseFloat(cs.lineHeight) || 26;
+    const pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0) + (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
+    el.style.height = `${Math.min(el.scrollHeight, Math.ceil(line + pad))}px`;
+    el.scrollTop = 0;
+  }, [value, focused]);
+
+  // a tap anywhere outside the field (a row on the page, a tool) puts it away: blur, so it folds even where the browser keeps focus
+  useEffect(() => {
+    if (!focused) return undefined;
+    const away = (e) => { if (!wrapRef.current?.contains(e.target)) ref.current?.blur(); };
+    document.addEventListener("pointerdown", away);
+    return () => document.removeEventListener("pointerdown", away);
+  }, [focused]);
 
   // put the caret where the parent asks (after an element was inserted) and keep typing there
   useEffect(() => {
@@ -74,6 +88,8 @@ export default function Propis2Field({ value, onChange, onCaret, disabled, singl
         spellCheck={false}
         enterKeyHint={singleLine ? "done" : "enter"}
         onChange={change}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
         onKeyDown={(e) => { if (singleLine && e.key === "Enter") e.preventDefault(); }}
         onSelect={report}
         onKeyUp={report}

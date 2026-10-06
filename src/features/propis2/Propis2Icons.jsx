@@ -81,7 +81,8 @@ export const IconFormatA4 = () => S(<><rect x="3.5" y="2.5" width="17" height="1
 export const IconFormatA5 = () => S(<><rect x="6.5" y="5.5" width="11" height="13" rx="1.4" /><path d="M9 9h6M9 12h6M9 15h4" strokeWidth="1.3" /></>);
 
 // ---- the list of elements: a hook and a fence on a row ----
-export const IconElement = () => S(<><path d="M3 19h18" strokeWidth="1.2" opacity=".5" /><path d="M4 17c0-6 1.2-9 3-9s2.2 3 2.2 6c0-3 .8-6 2.6-6M13 17V7M17 17V7M21 17V7" strokeWidth="1.7" /></>);
+// elements = a tile like the ones in the list: a ruled cell with one pen stroke in it
+export const IconElement = () => S(<><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M5.5 9h13M5.5 16h13" strokeWidth="1.1" opacity=".55" /><path d="M8 15.5c2.5-.2 3.5-3 4.2-5.6M12.2 9.9c.5-1.5 1.7-1.2 1.2.4-.4 1.5-.2 3.9 2.6 4.6" strokeWidth="1.9" /></>);
 export const IconAsText = () => S(<><path d="M4 6h16M4 10.5h16M4 15h16M4 19.5h9" /></>);
 
 export const IconEditPage = () => S(<><path d="M4 20l5.5-1.2L19.8 8.5a2 2 0 000-2.8l-1.5-1.5a2 2 0 00-2.8 0L5.2 14.5z" /><path d="M13 6.7l4.3 4.3" /></>); // pencil: unlock the kit page layout, keep the rows

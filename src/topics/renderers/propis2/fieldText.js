@@ -83,3 +83,15 @@ export function insertToken(value, caret, token) {
   const before = left + spaceBefore + token;
   return { value: before + spaceAfter + right, caret: before.length + spaceAfter.length };
 }
+
+// The field shows an element's id in curly braces, {5}, so the adult sees it is a symbol from the list, not a typed digit
+// or letter; the rows keep the bare id (what the engine reads). `bracesIn` wraps whole-word ids, `bracesOut` unwraps any {..}.
+export function bracesIn(text, ids) {
+  const list = [...new Set(ids ?? [])].filter(Boolean).sort((a, b) => b.length - a.length);
+  if (!list.length) return String(text ?? "");
+  const re = new RegExp(`(^|\\s)(${list.map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?=\\s|$)`, "g");
+  return String(text ?? "").replace(re, "$1{$2}");
+}
+export function bracesOut(text) {
+  return String(text ?? "").replace(/\{([^{}\s]+)\}/g, "$1");
+}

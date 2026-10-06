@@ -6,7 +6,7 @@ import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { buildTiles } from "./Propis2Carousel";
 import Propis2Field from "./Propis2Field";
 import { useKeyboardInset } from "./useKeyboardInset";
-import { fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
+import { bracesIn, bracesOut, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
 import Propis2Picker from "./Propis2Picker";
@@ -80,6 +80,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const locked = isLocked(page);
   const keyboard = useKeyboardInset();
   const elementTiles = useMemo(() => buildTiles(topicRecord).elements, [topicRecord]);
+  const elementIds = useMemo(() => elementTiles.map((t) => t.text), [elementTiles]);
   const side = useMedia(SIDE_QUERY);
   const phone = useMedia(PHONE_QUERY) && !side;
   const sideRef = useRef(side);
@@ -171,21 +172,22 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   // the draft is rebuilt from the page whenever the page or the starting row changed from outside the field
   if (draftSynced !== draftKey) {
     setDraftSynced(draftKey);
-    setDraft(locked ? (selected ? String(selected.text ?? "") : "") : fieldFromRows(page.rows, fieldIndex < 0 ? page.rows.length : fieldIndex));
+    setDraft(bracesIn(locked ? (selected ? String(selected.text ?? "") : "") : fieldFromRows(page.rows, fieldIndex < 0 ? page.rows.length : fieldIndex), elementIds));
   }
-  const onField = (value) => {
+  const onField = (shown) => {
+    const value = bracesOut(shown);
     if (locked) {
       if (!selected) return;
-      setDraft(value);
+      setDraft(shown);
       const next = { ...page, rows: page.rows.map((r) => (r.id === selected.id ? { ...r, text: value } : r)) };
       setDraftSynced(`${next.rows.map((r) => `${r.id}|${r.kind}|${r.text}`).join("\n")}#${startId ?? ""}#${selectedId ?? ""}`);
       onChange(next);
       return;
     }
     const { rows, firstId } = rowsFromField({ rows: page.rows, startId, value, glyphMap, page });
-    if (rows === page.rows) { setDraft(value); return; }
+    if (rows === page.rows) { setDraft(shown); return; }
     const nextStart = startId ?? firstId;
-    setDraft(value);
+    setDraft(shown);
     setFieldStartId(nextStart);
     setDraftSynced(`${rows.map((r) => `${r.id}|${r.kind}|${r.text}`).join("\n")}#${nextStart ?? ""}#`);
     onChange({ ...page, rows: rows.length ? rows : [newRow()] });
@@ -197,8 +199,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     if (id && id !== selectedId) setSelectedId(id);
   };
   const insertElement = (token, caret) => {
-    if (locked) { if (selected) onField(token); return; }
-    const { value, caret: pos } = insertToken(draft, caret, token);
+    if (locked) { if (selected) onField(`{${token}}`); return; }
+    const { value, caret: pos } = insertToken(draft, caret, `{${token}}`);
     onField(value);
     setCaretRequest({ pos, n: Date.now() });
   };

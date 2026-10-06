@@ -100,3 +100,12 @@ describe("field text <-> rows", () => {
     expect(gone[1].dots).toBe("none");
   });
 });
+
+describe("elements in curly braces", () => {
+  it("shows whole-word element ids as {id} and strips the braces back", async () => {
+    const { bracesIn, bracesOut } = await import("./fieldText.js");
+    expect(bracesIn("5 мама 55\n6 5", ["5", "6"])).toBe("{5} мама 55\n{6} {5}");
+    expect(bracesOut("{5} мама 55\n{6} {5}")).toBe("5 мама 55\n6 5");
+    expect(bracesIn("мама", [])).toBe("мама");
+  });
+});
