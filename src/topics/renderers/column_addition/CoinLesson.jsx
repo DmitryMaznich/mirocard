@@ -89,7 +89,9 @@ export function CoinBoard({ tens, ones, boardRef, selected, onSelect, dragStacks
       </div>;
     })}</div>
   </>;
-  return <div ref={(node) => { localRef.current = node; if (boardRef) boardRef.current = node; }} style={size ? { "--coin-size": `${size}px` } : undefined}
+  const stackRows = Math.max(1, Math.ceil(tens.length / 3)), coinRows = Math.max(1, Math.ceil(ones.length / 5));
+  const boardUnits = 52 + Math.max(stackRows * 71.4 + (stackRows - 1) * 6, coinRows * 34 + (coinRows - 1) * 6);
+  return <div ref={(node) => { localRef.current = node; if (boardRef) boardRef.current = node; }} style={{ "--cm-board-units": boardUnits, ...(size ? { "--coin-size": `${size}px` } : {}) }}
     className={`cm-board pv-zones${wideOnes ? " cm-board--wide-ones" : ""}${groupable ? " cm-board--groupable" : ""}${focus ? ` cm-board--focus-${focus}` : ""}`} aria-label="Модель числа">
     {dropZones ? <DropZone id="cm-tens">{zone("tens", tens)}</DropZone> : <section className="cm-zone">{zone("tens", tens)}</section>}
     {dropZones ? <DropZone id="cm-ones">{zone("ones", ones)}</DropZone> : <section className="cm-zone">{zone("ones", ones)}</section>}
