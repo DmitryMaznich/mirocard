@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import Button from "@/shared/components/Button";
-import { CoinAnswer, CoinBoard, CoinLesson, CoinSource } from "./CoinLesson.jsx";
+import { CoinAnswer, CoinBoard, CoinDragOverlay, CoinLesson, CoinSource } from "./CoinLesson.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { placeValueSentence } from "./placeValueLabels.js";
 
@@ -72,15 +72,15 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
   }
   const title = phase === "done" ? "Правильно!" : phase === "answerTens" ? "Сколько десятков?" : phase === "answerOnes" ? "Сколько единиц?" : "Собери число";
   return <DndContext sensors={sensors} onDragEnd={({ active, over }) => {
-    if (active.id === "source-coin" && over?.id === "cm-ones") add("coin");
-    if (active.id === "source-ten" && over?.id === "cm-tens") add("ten");
+    if (over?.id === "cm-ones" || over?.id === "cm-tens") add(active.data.current?.kind);
   }}>
-    <CoinLesson title={title} target={phase === "build" || phase === "done" ? task.number : undefined} solved={phase === "done"}
+    <CoinLesson className="cm-build" title={title} target={phase === "build" || phase === "done" ? task.number : undefined} solved={phase === "done"}
       feedback={feedback || (phase === "done" ? placeValueSentence(task.target.tens, task.target.ones, task.number) : "")}
       controls={phase.startsWith("answer") ? <CoinAnswer key={phase} maxDigits={1} onSubmit={answer} /> : phase === "done"
         ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-        : <><div className="cm-sources">{ready && <CoinSource kind="ten" disabled={!editable} onAdd={add} />}<CoinSource kind="coin" disabled={!editable} onAdd={add} /></div>
-          <Button disabled={!editable} onClick={check}>Проверить</Button></>}>
+        : <div className="cm-build-controls"><Button variant="secondary" aria-label="Сначала" disabled={!editable || (!placed.tens.length && !placed.ones.length)} onClick={() => { setPlaced({ tens: [], ones: [] }); clearFeedback(); }}>↺</Button>
+          <div className="cm-sources">{ready && <CoinSource kind="ten" disabled={!editable} onAdd={add} />}<CoinSource kind="coin" disabled={!editable} onAdd={add} /></div>
+          <Button disabled={!editable} onClick={check}>Проверить</Button></div>}>
       <CoinBoard tens={placed.tens} ones={placed.ones} boardRef={boardRef} selected={selected}
         onSelect={phase === "build" ? (key) => setSelected(key === selected ? null : key) : undefined}
         disabled={!editable} dropZones pendingStack={exchange.pendingStack} pendingCoins={exchange.pendingCoins}
@@ -88,9 +88,9 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
       {phase === "build" && <div className="cm-tools">
         {placed.ones.length >= 10 && <Button disabled={!editable} onClick={group}>Собрать десяток</Button>}
         {selected && <Button variant="secondary" disabled={!editable} onClick={remove}>Убрать</Button>}
-        {selected?.startsWith("tens:") && <Button variant="secondary" disabled={!editable || placed.ones.length > 9} onClick={ungroup}>Разложить десяток</Button>}
-        {(placed.tens.length > 0 || placed.ones.length > 0) && <Button variant="secondary" disabled={!editable} onClick={() => { setPlaced({ tens: [], ones: [] }); clearFeedback(); }}>Сначала</Button>}
+        {selected?.startsWith("tens:") && <Button variant="secondary" aria-label="Разложить десяток" disabled={!editable || placed.ones.length > 9} onClick={ungroup}>Разложить</Button>}
       </div>}
     </CoinLesson>
+    <CoinDragOverlay />
   </DndContext>;
 }

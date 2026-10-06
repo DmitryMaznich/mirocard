@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { act } from "react";
 import BuildNumberTask from "./BuildNumberTask.jsx";
 import { coinHarness } from "./coinTestHelpers.jsx";
 const task = { cardId: "x", conceptId: "x", number: 13, target: { tens: 1, ones: 3 } };
@@ -63,5 +64,37 @@ describe("BuildNumberTask coin lessons", () => {
     h.unmount();
     expect(document.querySelectorAll(".cb-coin-fly-ghost")).toHaveLength(0);
     h.flush();
+  });
+  it("drags a single coin, keeps the pile caption in place and does not add twice on release", async () => {
+    vi.stubGlobal("PointerEvent", MouseEvent);
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function () {
+      if (this.classList.contains("cm-zone")) {
+        return new DOMRect(this.previousElementSibling ? 110 : 0, 0, 110, 200);
+      }
+      if (this.closest(".cm-pile")) return new DOMRect(50, 250, 28, 28);
+      if (this.querySelector(".cm-drag-object") || this.classList.contains("cm-drag-object")) return new DOMRect(50, 250, 28, 28);
+      return new DOMRect(0, 0, 0, 0);
+    });
+    h.mount(BuildNumberTask, task);
+    const source = h.button("Взять монету");
+    const pointer = (target, type, x, y) => act(() => {
+      const event = new MouseEvent(type, { bubbles: true, clientX: x, clientY: y, button: 0 });
+      Object.defineProperty(event, "isPrimary", { value: true });
+      target.dispatchEvent(event);
+    });
+    pointer(source, "pointerdown", 64, 264);
+    pointer(document, "pointermove", 150, 120);
+    h.frame();
+    pointer(document, "pointermove", 151, 121);
+    const overlay = document.querySelector(".cm-drag-object");
+    expect(overlay).toBeTruthy();
+    expect(overlay.querySelectorAll(".cb-coin")).toHaveLength(1);
+    expect(overlay.textContent).toBe("");
+    expect(h.container.querySelector(".cm-source span").textContent).toBe("Монеты");
+    expect(source.style.transform).toBe("");
+    pointer(document, "pointerup", 151, 121);
+    await act(async () => {});
+    h.click("Взять монету");
+    expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(1);
   });
 });

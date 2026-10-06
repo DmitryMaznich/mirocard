@@ -1,12 +1,24 @@
-import { useState } from "react";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
-import { Coin, TenStack } from "./CoinBlocks.jsx";
+import { useLayoutEffect, useRef, useState } from "react";
+import { DragOverlay, useDndContext, useDraggable, useDroppable } from "@dnd-kit/core";
+import { Coin, TenStack, PILE_LAYOUT } from "./CoinBlocks.jsx";
+import { fitCoinBoard, lessonUnit } from "./coinLayout.js";
 import "./place_value.css";
 import "./coins.css";
 
 export function CoinLesson({ title, target, children, controls, feedback, solved = false, className = "" }) {
-  return <div className={`pv-screen cb-screen cm-screen ${className}`}>
+  const screen = useRef(null);
+  const [unit, setUnit] = useState(1);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const { width, height } = screen.current.getBoundingClientRect();
+      if (width && height) setUnit(lessonUnit(width, height));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(screen.current);
+    return () => observer.disconnect();
+  }, []);
+  return <div ref={screen} style={{ "--cm-unit": `${unit}px` }} className={`pv-screen cb-screen cm-screen ${className}`}>
     <header className="cm-heading"><div className={`pv-question${solved ? " pv-question--correct" : ""}`}>{title}</div>
       {target !== undefined && <div className="cm-target">{target}</div>}</header>
     <div className="cm-body"><div className="cm-model">{children}</div>{controls && <div className="cm-controls">{controls}</div>}</div>
@@ -14,11 +26,28 @@ export function CoinLesson({ title, target, children, controls, feedback, solved
   </div>;
 }
 
-function DraggableObject({ id, kind, disabled, onClick, children, className = "", label }) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id, disabled, data: { kind } });
+function DraggableObject({ id, kind, disabled, onClick, children, className = "", label, style }) {
+  const [coinSize, setCoinSize] = useState(30);
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id, disabled, data: { kind, coinSize } });
   return <button type="button" ref={setNodeRef} className={`cm-object ${className}`} disabled={disabled}
-    style={{ transform: CSS.Translate.toString(transform), opacity: isDragging ? .4 : undefined, zIndex: isDragging ? 10 : undefined }}
+    style={{ ...style, opacity: isDragging ? .35 : undefined }}
+    onPointerDownCapture={(event) => {
+      const visual = event.currentTarget.querySelector(".cb-coin, .cb-stack-coin");
+      const width = visual && (parseFloat(getComputedStyle(visual).width) || visual.getBoundingClientRect().width);
+      if (width) setCoinSize(width / (kind === "ten" ? 34 / 30 : 1));
+    }}
     {...attributes} {...listeners} aria-label={label} onClick={() => { if (!isDragging) onClick?.(); }}>{children}</button>;
+}
+
+// Only the object follows the pointer. Its source and caption stay in place;
+// rendering outside the board also avoids clipping at panel boundaries.
+export function CoinDragOverlay() {
+  const { active } = useDndContext();
+  return <DragOverlay dropAnimation={null} adjustScale={false} zIndex={500}>
+    {active && <div className="cm-drag-object" style={{ "--coin-size": `${active.data.current?.coinSize || 30}px` }}>
+      {active.data.current?.kind === "ten" ? <TenStack /> : <Coin />}
+    </div>}
+  </DragOverlay>;
 }
 function DropZone({ id, children }) {
   const { setNodeRef, isOver } = useDroppable({ id });
@@ -27,6 +56,20 @@ function DropZone({ id, children }) {
 
 export function CoinBoard({ tens, ones, boardRef, selected, onSelect, dragStacks = false, onStackClick,
   disabled = false, pendingStack, pendingCoins = [], groupable = false, focus, counted = [], onCount, dropZones = false, wideOnes = false }) {
+  const localRef = useRef(null);
+  const [size, setSize] = useState(null);
+  useLayoutEffect(() => {
+    const board = localRef.current;
+    const measure = () => {
+      const { width, height } = board.getBoundingClientRect();
+      const unit = parseFloat(getComputedStyle(board).getPropertyValue("--cm-unit")) || 1;
+      if (width && height) setSize(fitCoinBoard({ width, height, tens: tens.length, ones: ones.length, unit }));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(board);
+    return () => observer.disconnect();
+  }, [tens.length, ones.length]);
   const zone = (kind, objects) => <>
     <h2 className="pv-zone-label">{kind === "tens" ? "Десятки" : "Единицы"}</h2>
     <div className={kind === "tens" ? "cm-stacks" : "cm-coins"}>{objects.map((id, i) => {
@@ -36,7 +79,7 @@ export function CoinBoard({ tens, ones, boardRef, selected, onSelect, dragStacks
       const cls = `${pending ? " cm-pending" : ""}${selected === key ? " cm-selected" : ""}${counted.includes(key) ? " cm-counted" : ""}`;
       const label = stack ? `Десяток ${i + 1}` : `Монета ${i + 1}`;
       const click = () => { if (onCount) onCount(key); else if (onSelect) onSelect(key); else onStackClick?.(id); };
-      const content = stack ? <TenStack /> : <Coin groupable={groupable && i < 10} />;
+      const content = stack ? <TenStack /> : <Coin />;
       return <div key={id} className={`cm-object-wrap${cls}`} {...props}>
         {stack && dragStacks
           ? <DraggableObject id={`stack-${id}`} kind="ten" disabled={disabled} label={label} onClick={click}>{content}</DraggableObject>
@@ -46,16 +89,20 @@ export function CoinBoard({ tens, ones, boardRef, selected, onSelect, dragStacks
       </div>;
     })}</div>
   </>;
-  return <div ref={boardRef} className={`cm-board pv-zones${wideOnes ? " cm-board--wide-ones" : ""}${focus ? ` cm-board--focus-${focus}` : ""}`} aria-label="Модель числа">
+  return <div ref={(node) => { localRef.current = node; if (boardRef) boardRef.current = node; }} style={size ? { "--coin-size": `${size}px` } : undefined}
+    className={`cm-board pv-zones${wideOnes ? " cm-board--wide-ones" : ""}${groupable ? " cm-board--groupable" : ""}${focus ? ` cm-board--focus-${focus}` : ""}`} aria-label="Модель числа">
     {dropZones ? <DropZone id="cm-tens">{zone("tens", tens)}</DropZone> : <section className="cm-zone">{zone("tens", tens)}</section>}
     {dropZones ? <DropZone id="cm-ones">{zone("ones", ones)}</DropZone> : <section className="cm-zone">{zone("ones", ones)}</section>}
   </div>;
 }
 
 export function CoinSource({ kind, disabled, onAdd }) {
-  return <DraggableObject id={`source-${kind}`} kind={kind} disabled={disabled} className="cm-source" label={kind === "ten" ? "Взять десяток" : "Взять монету"} onClick={() => onAdd(kind)}>
-    {kind === "ten" ? <TenStack /> : <Coin />}<span>{kind === "ten" ? "Взять десяток" : "Взять монету"}</span>
-  </DraggableObject>;
+  return <div className="cm-source">
+    {kind === "ten" ? <DraggableObject id="source-ten" kind="ten" disabled={disabled} className="cm-source-stack" label="Взять десяток" onClick={() => onAdd(kind)}><TenStack /></DraggableObject>
+      : <div className="cm-pile">{PILE_LAYOUT.map(({ x, y, r }, i) => <DraggableObject key={i} id={i === 14 ? "source-coin" : `source-coin-${i}`} kind="coin" disabled={disabled}
+        className="cm-pile-coin" label="Взять монету" style={{ left: `calc(${x} * var(--cm-unit))`, top: `calc(${y} * var(--cm-unit))`, rotate: `${r}deg` }} onClick={() => onAdd(kind)}><Coin /></DraggableObject>)}</div>}
+    <span>{kind === "ten" ? "Десятки" : "Монеты"}</span>
+  </div>;
 }
 
 export function CoinAnswer({ onSubmit, disabled = false, maxDigits = 2, label = "Ответ" }) {
