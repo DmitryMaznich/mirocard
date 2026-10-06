@@ -1293,17 +1293,22 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
     if (Number.isInteger(glyph.exitStroke) && strokes[glyph.exitStroke]) bi = glyph.exitStroke; // б: the exit is its own stroke, not the flag
     strokes[bi] = { d: liftEndToD(strokes[bi].d, targetY) };
   }
-  // `joinFrom` {stroke} + `joinLike` (a glyph with a connector, о): the letter is whole and ends on its own side (У: the lower hook curls
+  // `joinFrom` {stroke, rise} + `joinLike` (a glyph with a connector, о): the letter is whole and ends on its own side (У: the lower hook curls
   // up-left and is part of the letter), so the connector to the next letter is a stroke of its own that leaves the LOWEST point of that stroke
   // (like Г, Р): the connector curve of `joinLike`, moved there. It exists only when a letter follows; the letter itself is never cut.
   if (!tail && glyph.joinFrom && glyph.joinLike && strokes[glyph.joinFrom.stroke]) {
     const like = wideGlyphLocal(glyph.joinLike, scale);
-    const tokens = strokes[glyph.joinFrom.stroke].d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
-    let low = null;
-    tokens.forEach((t, i) => { if (t === "C") { const y = Number(tokens[i + 6]); if (!low || y > low[1] + 1e-6) low = [Number(tokens[i + 5]), y]; } });
+    // the start: on the stem's way into the bottom, `rise` units above the lowest point (the foot of the stem, to the right of the hook), not at the very bottom
+    const samples = samplePath(strokes[glyph.joinFrom.stroke].d, 80);
+    let iLow = 0;
+    samples.forEach((q, i) => { if (q[1] > samples[iLow][1] + 1e-6) iLow = i; });
+    const wantY = samples[iLow][1] - (glyph.joinFrom.rise ?? 0) * scale;
+    let low = samples[iLow];
+    for (let i = iLow; i >= 0; i -= 1) { low = samples[i]; if (samples[i][1] <= wantY) break; }
     if (like.tail && low) {
       const likeStart = getPathEndpoints(like.tail.d).start;
-      tail = { d: transformPathD(like.tail.d, { translateX: low[0] - likeStart[0], translateY: low[1] - likeStart[1] }) };
+      const k = glyph.joinFrom.stretch ?? 1; // the borrowed curve may be shortened/lengthened horizontally from its start
+      tail = { d: transformPathD(like.tail.d, { scaleX: k, translateX: low[0] - k * likeStart[0], translateY: low[1] - likeStart[1] }) };
     }
   }
   const start = getPathEndpoints(strokes[0].d).start;
