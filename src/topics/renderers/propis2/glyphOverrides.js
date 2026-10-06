@@ -16,7 +16,7 @@ export const P2_GLYPH_OVERRIDES = {
   "ю": { tailSplit: 0, tailLift: true, tailContinuous: true },
   "ф": { tailSplit: 0, tailLift: true, tailContinuous: true },
   "в": { tailSplit: 0, tailLift: true, tailContinuous: true },
-  "ь": { tailSplit: 0, tailLift: true, tailContinuous: true },
+  "ь": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24 },
   "б": { tailStroke: 1, tailLift: true },

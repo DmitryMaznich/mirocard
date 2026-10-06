@@ -1158,7 +1158,7 @@ function retargetTailEndD(d, target, dirUnit, pull = 0.3) {
   const k = run * 0.35;
   last.v = [p0[0] + uL[0] * k, p0[1] + uL[1] * k, D[0] - (um[0] / uml) * k, D[1] - (um[1] / uml) * k, D[0], D[1]];
   // a gentle final bend: the last third eases into the opening direction of the next letter instead of arriving dead straight
-  const ua = [uT[0] * 0.5 + dirUnit[0] * 0.5, uT[1] * 0.5 + dirUnit[1] * 0.5];
+  const ua = dirUnit ? [uT[0] * 0.5 + dirUnit[0] * 0.5, uT[1] * 0.5 + dirUnit[1] * 0.5] : uT; // no dirUnit: arrive dead straight
   const ual = Math.hypot(ua[0], ua[1]) || 1;
   segs.push({ c: "C", v: [D[0] + (um[0] / uml) * tl * 0.15, D[1] + (um[1] / uml) * tl * 0.15, target[0] - (ua[0] / ual) * tl * 0.4, target[1] - (ua[1] / ual) * tl * 0.4, target[0], target[1]] });
   const f = (x) => Number(x.toFixed(3));
@@ -1557,7 +1557,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
             const q = samplePath(moved[0].d, 40).find((p) => Math.hypot(p[0] - st0h[0], p[1] - st0h[1]) > 4 * scale);
             if (q) {
               const dl = Math.hypot(q[0] - st0h[0], q[1] - st0h[1]);
-              const d3 = retargetTailEndD(strokes[prevExitStroke].d, st0h, [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]);
+              const d3 = retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]);
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
