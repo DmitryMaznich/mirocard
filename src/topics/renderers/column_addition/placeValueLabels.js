@@ -23,6 +23,7 @@ export function hintDirectionFor(guess, target) {
 // range pluralCoins guards against above), so neither needs that mod100
 // 11-14 exception.
 export function pluralTens(n) {
+  if (n % 100 >= 11 && n % 100 <= 14) return "десятков";
   const mod10 = n % 10;
   if (mod10 === 1) return "десяток";
   if (mod10 >= 2 && mod10 <= 4) return "десятка";
@@ -30,6 +31,7 @@ export function pluralTens(n) {
 }
 
 export function pluralOnes(n) {
+  if (n % 100 >= 11 && n % 100 <= 14) return "единиц";
   const mod10 = n % 10;
   if (mod10 === 1) return "единица";
   if (mod10 >= 2 && mod10 <= 4) return "единицы";

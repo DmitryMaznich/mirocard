@@ -1,146 +1,67 @@
-import { act } from "react";
-import { createRoot } from "react-dom/client";
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import BuildNumberTask from "./BuildNumberTask.jsx";
-import { hintDirectionFor, placeValueSentence } from "./placeValueLabels.js";
+import { coinHarness } from "./coinTestHelpers.jsx";
+const task = { cardId: "x", conceptId: "x", number: 13, target: { tens: 1, ones: 3 } };
 
-// jsdom has no ResizeObserver; useFitOneLine (textFit.js, used by the
-// instruction line's text sizing) needs one. A no-op stub is enough — this
-// test doesn't assert on live-resize font shrinking.
-if (typeof window.ResizeObserver === "undefined") {
-  window.ResizeObserver = class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  };
-}
-
-describe("hintDirectionFor", () => {
-  it("returns 'more' when the guess is below the target", () => {
-    expect(hintDirectionFor(1, 3)).toBe("more");
+describe("BuildNumberTask coin lessons", () => {
+  const h = coinHarness();
+  it("groups before the target is collected, then continues adding units", () => {
+    h.mount(BuildNumberTask, task);
+    for (let i = 0; i < 10; i++) h.click("Взять монету");
+    expect(h.button("Собрать десяток")).toBeTruthy();
+    h.click("Собрать десяток"); h.flush();
+    expect(h.container.querySelectorAll(".cm-board .cb-ten-stack")).toHaveLength(1);
+    expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(0);
+    for (let i = 0; i < 3; i++) h.click("Взять монету");
+    h.click("Проверить");
+    expect(h.container.querySelector(".pv-question").textContent).toBe("Правильно!");
+    expect(h.container.querySelector(".cm-feedback").textContent).toContain("1 десяток и 3 единицы");
   });
-
-  it("returns 'less' when the guess is above the target", () => {
-    expect(hintDirectionFor(5, 3)).toBe("less");
+  it("supports ready stacks and only advances when the adult-visible next action is pressed", () => {
+    const onCorrect = vi.fn();
+    h.mount(BuildNumberTask, { ...task, number: 23, target: { tens: 2, ones: 3 }, buildApproach: "ready" }, { onCorrect });
+    h.click("Взять десяток"); h.click("Взять десяток");
+    for (let i = 0; i < 3; i++) h.click("Взять монету");
+    h.click("Проверить"); expect(onCorrect).not.toHaveBeenCalled();
+    h.click("Далее →"); expect(onCorrect).toHaveBeenCalledWith("x", "x");
   });
-});
-
-describe("BuildNumberTask", () => {
-  let container = null;
-  let root = null;
-
-  afterEach(() => {
-    if (root) act(() => root.unmount());
-    if (container) container.remove();
-    root = null; container = null;
+  it("selects without removing and uses separate remove / ungroup actions", () => {
+    h.mount(BuildNumberTask, { ...task, buildApproach: "ready" });
+    h.click("Взять десяток"); h.click("Десяток 1");
+    expect(h.container.querySelectorAll(".cm-board .cb-ten-stack")).toHaveLength(1);
+    h.click("Разложить десяток"); h.flush();
+    expect(h.container.querySelectorAll(".cm-board .cb-ten-stack")).toHaveLength(0);
+    expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(10);
+    h.click("Монета 1"); h.click("Убрать");
+    expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(9);
   });
-
-  function mount(task, handlers = {}) {
-    container = document.createElement("div");
-    document.body.appendChild(container);
-    root = createRoot(container);
-    act(() => {
-      root.render(
-        <BuildNumberTask
-          task={task}
-          onCorrect={handlers.onCorrect ?? (() => {})}
-          onMistake={handlers.onMistake ?? (() => {})}
-          onFlashIncorrect={handlers.onFlashIncorrect ?? (() => {})}
-        />
-      );
-    });
-  }
-
-  function question() {
-    return container.querySelector(".pv-question");
-  }
-
-  // "Сделано" is mounted in exactly one place at a time — next to the
-  // pile during collect, in .pv-footer during group — so a single
-  // container-wide lookup covers both phases.
-  function doneButton() {
-    return container.querySelector('button[aria-label="Сделано"]');
-  }
-
-  function trayButton(label) {
-    return container.querySelector(`.pv-tray-mat button[aria-label="${label}"]`);
-  }
-
-  function numpadDigit(d) {
-    return Array.from(container.querySelectorAll(".pv-numkey")).find((b) => b.textContent === String(d));
-  }
-
-  it("mounts showing the collect instruction (not tappable) plus icon-only Сначала/Сделано buttons flanking the pile", () => {
-    const task = { cardId: "x", conceptId: "x", type: "build_number", number: 23, target: { tens: 2, ones: 3 } };
-    mount(task);
-    expect(question().textContent).toBe("Перенеси 23 монеты");
-    expect(question().getAttribute("role")).toBeNull();
-    expect(trayButton("Сначала")).toBeTruthy();
-    expect(trayButton("Сделано")).toBeTruthy();
+  it("preserves a wrong construction, distinguishes independent feedback and makes composition optional", () => {
+    const onMistake = vi.fn();
+    h.mount(BuildNumberTask, { ...task, supportMode: "independent", askComposition: true }, { onMistake });
+    h.click("Взять монету"); h.click("Проверить");
+    expect(onMistake).toHaveBeenCalledTimes(1);
+    expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(1);
+    expect(h.container.querySelector(".cm-feedback").textContent).toBe("Проверь число ещё раз");
+    expect(h.container.querySelector(".cm-board").className).not.toContain("focus");
   });
-
-  it("advances collect -> group -> answerTens, confirming each step with its own Сделано button", () => {
-    // number: 0 lets confirming "collect" succeed with zero coins placed,
-    // and confirming "group" succeed with zero grouping needed, reaching
-    // answerTens without simulating a dnd-kit drag.
-    const task = { cardId: "x", conceptId: "x", type: "build_number", number: 0, target: { tens: 0, ones: 0 } };
-    mount(task);
-
-    expect(question().textContent).toBe("Перенеси 0 монет");
-    act(() => { doneButton().click(); });
-    expect(question().textContent).toBe("Собери десятки");
-    // group has no pile to flank — Сделано moves into .pv-footer instead —
-    // but the question itself is plain text now, not tappable, same as
-    // collect.
-    expect(question().getAttribute("role")).toBeNull();
-    expect(doneButton().closest(".pv-footer")).toBeTruthy();
-    act(() => { doneButton().click(); });
-    expect(question().textContent).toBe("Сколько десятков?");
-    expect(container.querySelector('button[aria-label="Сделано"]')).toBeNull();
+  it("asks composition only when enabled and hides the number while answering", () => {
+    h.mount(BuildNumberTask, { ...task, buildApproach: "ready", askComposition: true });
+    h.click("Взять десяток"); for (let i = 0; i < 3; i++) h.click("Взять монету");
+    h.click("Проверить");
+    expect(h.container.querySelector(".cm-target")).toBeNull();
+    expect(h.container.querySelector(".pv-question").textContent).toBe("Сколько десятков?");
+    h.click("1"); h.click("Проверить"); h.click("3"); h.click("Проверить");
+    expect(h.container.querySelector(".pv-question").textContent).toBe("Правильно!");
   });
-
-  it("shakes the Сделано button on a wrong collect tap, without advancing or calling onMistake more than once", () => {
-    let onMistakeCalls = 0;
-    const onMistake = () => { onMistakeCalls += 1; };
-    const task = { cardId: "x", conceptId: "x", type: "build_number", number: 5, target: { tens: 0, ones: 5 } };
-    mount(task, { onMistake });
-
-    // No coins placed yet, so the collected total (0) doesn't match the
-    // target (5) — tapping "Сделано" should shake it, not advance.
-    act(() => { doneButton().click(); });
-    expect(doneButton().closest(".pv-confirm-btn--shake")).toBeTruthy();
-    expect(question().textContent).toBe("Перенеси 5 монет");
-    expect(onMistakeCalls).toBe(1);
-  });
-
-  it("shows the recap sentence and waits for a tap on Далее before calling onCorrect", () => {
-    // number: 0 lets collect/group confirm trivially (see above); answerTens
-    // and answerOnes are then driven by the shared numpad.
-    const task = { cardId: "x", conceptId: "x", type: "build_number", number: 0, target: { tens: 0, ones: 0 } };
-    const onCorrect = () => { onCorrectCalls += 1; };
-    let onCorrectCalls = 0;
-    mount(task, { onCorrect });
-
-    act(() => { doneButton().click(); }); // collect
-    act(() => { doneButton().click(); }); // group
-    act(() => { numpadDigit(0).click(); }); // answerTens
-    act(() => { numpadDigit(0).click(); }); // answerOnes
-
-    expect(question().textContent).toBe("Правильно!");
-    expect(container.querySelector(".pv-recap").textContent).toBe(placeValueSentence(0, 0, 0));
-    expect(onCorrectCalls).toBe(0);
-
-    const nextButton = Array.from(container.querySelectorAll("button")).find((b) => b.textContent.includes("Далее"));
-    expect(nextButton).toBeTruthy();
-    act(() => { nextButton.click(); });
-    expect(onCorrectCalls).toBe(1);
-  });
-
-  it("Сначала stays on the collect phase without crashing", () => {
-    const task = { cardId: "x", conceptId: "x", type: "build_number", number: 5, target: { tens: 0, ones: 5 } };
-    mount(task);
-
-    act(() => { trayButton("Сначала").click(); });
-    expect(question().textContent).toBe("Перенеси 5 монет");
+  it("flies ten coins, locks editing during flight and cancels ghosts on unmount", () => {
+    h.mount(BuildNumberTask, task);
+    for (let i = 0; i < 10; i++) h.click("Взять монету");
+    h.click("Собрать десяток"); h.frame();
+    expect(document.querySelectorAll(".cb-coin-fly-ghost")).toHaveLength(10);
+    expect(h.button("Взять монету").disabled).toBe(true);
+    expect(h.button("Проверить").disabled).toBe(true);
+    h.unmount();
+    expect(document.querySelectorAll(".cb-coin-fly-ghost")).toHaveLength(0);
+    h.flush();
   });
 });

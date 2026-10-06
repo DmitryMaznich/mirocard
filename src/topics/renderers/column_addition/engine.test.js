@@ -533,6 +533,11 @@ const PLACE_VALUE_CARDS = [
 ];
 
 describe("generateTasks – build_number", () => {
+  it("limits the introductory range to one ten and carries teaching choices into the task", () => {
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { maxTens: 9, maxOnes: 9, numberRange: "teens", buildApproach: "ready", askComposition: true, supportMode: "independent" });
+    expect(tasks.every((t) => t.number >= 11 && t.number <= 19 && t.target.tens === 1)).toBe(true);
+    expect(tasks.every((t) => t.buildApproach === "ready" && t.askComposition && t.supportMode === "independent")).toBe(true);
+  });
   it("returns tasks of type build_number with number matching target", () => {
     const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 10, { maxOnes: 9 });
     expect(tasks).toHaveLength(10);
@@ -598,6 +603,14 @@ describe("generateTasks – build_number", () => {
 });
 
 describe("generateTasks – identify_number", () => {
+  it("supports separate single, round and two-digit sets and the chosen maximum tens", () => {
+    const single = generateTasks("identify_number", PLACE_VALUE_CARDS, 20, { numberSet: "single", maxOnes: 3 });
+    expect(single.every((t) => t.model.tens === 0 && t.number >= 1 && t.number <= 3)).toBe(true);
+    const round = generateTasks("identify_number", PLACE_VALUE_CARDS, 20, { numberSet: "round", maxTens: 2 });
+    expect(round.every((t) => [10, 20].includes(t.number))).toBe(true);
+    const two = generateTasks("identify_number", PLACE_VALUE_CARDS, 20, { numberSet: "two_digit", maxTens: 1, maxOnes: 2 });
+    expect(two.every((t) => [11, 12].includes(t.number))).toBe(true);
+  });
   it("returns tasks of type identify_number with number matching model", () => {
     const tasks = generateTasks("identify_number", PLACE_VALUE_CARDS, 10, { maxOnes: 7 });
     expect(tasks).toHaveLength(10);
@@ -634,6 +647,10 @@ describe("generateTasks – identify_number", () => {
 });
 
 describe("generateTasks – regroup_ten", () => {
+  it("honours the maximum tens and independent-trial settings", () => {
+    const tasks = generateTasks("regroup_ten", PLACE_VALUE_CARDS, 20, { maxTens: 1, supportMode: "independent", allowReverse: false });
+    expect(tasks.every((t) => t.initial.tens === 1 && t.supportMode === "independent" && !t.allowReverse)).toBe(true);
+  });
   it("returns tasks where after = initial minus one ten plus ten ones", () => {
     const tasks = generateTasks("regroup_ten", PLACE_VALUE_CARDS, 20, { maxOnes: 9 });
     expect(tasks).toHaveLength(20);
