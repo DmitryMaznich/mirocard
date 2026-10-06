@@ -1270,8 +1270,10 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
   // handled like a `tailStroke`, so the letter alone is written without it and with it only when another letter follows.
   if (!tail && Number.isInteger(glyph.tailSplit) && strokes[glyph.tailSplit]) {
     const tokens = strokes[glyph.tailSplit].d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
-    let lastC = -1;
-    for (let i = 0; i < tokens.length; i += 1) if (tokens[i] === "C") lastC = i;
+    // `tailSplitCount` (default 1): how many of the last cubics make up the connector (ь: the whole rise from the bottom of its loop)
+    const cs = [];
+    for (let i = 0; i < tokens.length; i += 1) if (tokens[i] === "C") cs.push(i);
+    const lastC = cs.length ? cs[Math.max(0, cs.length - (glyph.tailSplitCount ?? 1))] : -1;
     if (lastC > 3) {
       const from = tokens.slice(lastC - 2, lastC).join(" "); // the end point of the body = the start of the connector
       tail = { d: `M ${from} ${tokens.slice(lastC).join(" ")}` };
