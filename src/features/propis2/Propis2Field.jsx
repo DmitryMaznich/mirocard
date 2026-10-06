@@ -67,9 +67,9 @@ export default function Propis2Field({ value, onChange, onCaret, disabled, singl
         {open && (
           <div className="p2-elements-panel" role="dialog" aria-label="Элементы">
             {elements.map((tile) => (
-              <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={tile.caption} onClick={() => { setOpen(false); onInsertElement(tile.text, ref.current?.selectionStart ?? value.length); }}>
+              <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={tile.caption} onClick={() => { setOpen(false); onInsertElement(`{${tile.code}}`, ref.current?.selectionStart ?? value.length); }}>
                 <TileGlyph tile={tile} size={64} />
-                <span className="p2-el-id" aria-hidden="true">{`{${tile.text}}`}</span>
+                <span className="p2-el-id" aria-hidden="true">{`{${tile.code}}`}</span>
               </button>
             ))}
           </div>

@@ -284,7 +284,7 @@ describe("Прописи 2 (zip topic)", () => {
     const elementTiles = host.querySelectorAll('[role="dialog"][aria-label="Элементы"] .propis2-tile');
     expect(elementTiles.length).toBeGreaterThan(5);
     await click(elementTiles[0]);
-    expect(fieldOf(host).value).toContain(elementTiles[0].getAttribute("data-tile"));
+    expect(fieldOf(host).value).toContain("{э1}"); // shown by its code; the row itself keeps the id (checked in fieldText.test)
     expect(fieldOf(host).value.startsWith("кот\nм")).toBe(true);
     await typeInField(host, "кот\nм"); // back to sample rows for the row options below
     // the row options (above the canvas) apply to the selected row; a picker shows the current value, its variants drop down

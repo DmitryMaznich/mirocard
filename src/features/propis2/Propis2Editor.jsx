@@ -79,8 +79,9 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const [undoPage, setUndoPage] = useState(null); // the page as it was before «Очистить страницу», for «Отменить»
   const locked = isLocked(page);
   const keyboard = useKeyboardInset();
-  const elementTiles = useMemo(() => buildTiles(topicRecord).elements, [topicRecord]);
-  const elementIds = useMemo(() => elementTiles.map((t) => t.text), [elementTiles]);
+  // every element has a short code of its own for the field, {э1}, {э2}... (by its place in the list)
+  const elementTiles = useMemo(() => buildTiles(topicRecord).elements.map((t, i) => ({ ...t, code: `э${i + 1}` })), [topicRecord]);
+  const elementCodes = useMemo(() => new Map(elementTiles.map((t) => [t.text, t.code])), [elementTiles]);
   const side = useMedia(SIDE_QUERY);
   const phone = useMedia(PHONE_QUERY) && !side;
   const sideRef = useRef(side);
@@ -172,10 +173,10 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   // the draft is rebuilt from the page whenever the page or the starting row changed from outside the field
   if (draftSynced !== draftKey) {
     setDraftSynced(draftKey);
-    setDraft(bracesIn(locked ? (selected ? String(selected.text ?? "") : "") : fieldFromRows(page.rows, fieldIndex < 0 ? page.rows.length : fieldIndex), elementIds));
+    setDraft(bracesIn(locked ? (selected ? String(selected.text ?? "") : "") : fieldFromRows(page.rows, fieldIndex < 0 ? page.rows.length : fieldIndex), elementCodes));
   }
   const onField = (shown) => {
-    const value = bracesOut(shown);
+    const value = bracesOut(shown, elementCodes);
     if (locked) {
       if (!selected) return;
       setDraft(shown);
@@ -199,8 +200,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     if (id && id !== selectedId) setSelectedId(id);
   };
   const insertElement = (token, caret) => {
-    if (locked) { if (selected) onField(`{${token}}`); return; }
-    const { value, caret: pos } = insertToken(draft, caret, `{${token}}`);
+    if (locked) { if (selected) onField(token); return; }
+    const { value, caret: pos } = insertToken(draft, caret, token);
     onField(value);
     setCaretRequest({ pos, n: Date.now() });
   };

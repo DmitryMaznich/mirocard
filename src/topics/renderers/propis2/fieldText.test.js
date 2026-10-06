@@ -102,10 +102,12 @@ describe("field text <-> rows", () => {
 });
 
 describe("elements in curly braces", () => {
-  it("shows whole-word element ids as {id} and strips the braces back", async () => {
+  it("shows whole-word element ids as {code} and turns the codes back into ids", async () => {
     const { bracesIn, bracesOut } = await import("./fieldText.js");
-    expect(bracesIn("5 мама 55\n6 5", ["5", "6"])).toBe("{5} мама 55\n{6} {5}");
-    expect(bracesOut("{5} мама 55\n{6} {5}")).toBe("5 мама 55\n6 5");
-    expect(bracesIn("мама", [])).toBe("мама");
+    const codes = new Map([["5", "э1"], ["01_pryamaya_liniya", "э2"]]);
+    expect(bracesIn("5 мама 55\n01_pryamaya_liniya 5", codes)).toBe("{э1} мама 55\n{э2} {э1}");
+    expect(bracesOut("{э1} мама 55\n{э2} {э1}", codes)).toBe("5 мама 55\n01_pryamaya_liniya 5");
+    expect(bracesOut("{5} {zzz}", codes)).toBe("5 zzz");
+    expect(bracesIn("мама", new Map())).toBe("мама");
   });
 });

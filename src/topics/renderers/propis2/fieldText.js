@@ -84,14 +84,17 @@ export function insertToken(value, caret, token) {
   return { value: before + spaceAfter + right, caret: before.length + spaceAfter.length };
 }
 
-// The field shows an element's id in curly braces, {5}, so the adult sees it is a symbol from the list, not a typed digit
-// or letter; the rows keep the bare id (what the engine reads). `bracesIn` wraps whole-word ids, `bracesOut` unwraps any {..}.
-export function bracesIn(text, ids) {
-  const list = [...new Set(ids ?? [])].filter(Boolean).sort((a, b) => b.length - a.length);
-  if (!list.length) return String(text ?? "");
-  const re = new RegExp(`(^|\\s)(${list.map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?=\\s|$)`, "g");
-  return String(text ?? "").replace(re, "$1{$2}");
+// The field shows an element by a short code in curly braces, {э1}, so the adult sees it is a symbol from the list, not a
+// typed letter; the rows keep the real id (what the engine reads, e.g. «5» or «01_pryamaya_liniya»), the code is only a
+// layer of display. `codes` is a Map id -> code. `bracesIn` wraps whole-word ids, `bracesOut` turns {code} (or a hand-typed
+// {id}) back into the id.
+export function bracesIn(text, codes) {
+  const ids = [...(codes?.keys() ?? [])].filter(Boolean).sort((a, b) => b.length - a.length);
+  if (!ids.length) return String(text ?? "");
+  const re = new RegExp(`(^|\\s)(${ids.map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?=\\s|$)`, "g");
+  return String(text ?? "").replace(re, (_m, pre, id) => `${pre}{${codes.get(id)}}`);
 }
-export function bracesOut(text) {
-  return String(text ?? "").replace(/\{([^{}\s]+)\}/g, "$1");
+export function bracesOut(text, codes) {
+  const byCode = new Map([...(codes ?? [])].map(([id, code]) => [code, id]));
+  return String(text ?? "").replace(/\{([^{}\s]+)\}/g, (_m, inner) => byCode.get(inner) ?? inner);
 }
