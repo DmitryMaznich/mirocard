@@ -307,7 +307,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
                 <div className="p2-warn" role="alert" aria-label={`Нет начертания: ${selectedInfo.unsupported.join(" ")}`}><I.IconWarn />{selectedInfo.unsupported.map((c) => <b key={c}>{c}</b>)}</div>
               )}
               {selectedInfo?.outside?.length > 0 && (
-                <div className="p2-warn" role="alert" aria-label={`На широкой строке нельзя: ${selectedInfo.outside.join(" ")}`}><I.IconWarn /><I.IconRowWide />{selectedInfo.outside.map((c) => <b key={c}>{c}</b>)}</div>
+                <div className="p2-warn" role="alert" aria-label={`На широкой строке нельзя: ${selectedInfo.outside.map((c) => c.replace("№", "")).join(" ")}`}><I.IconWarn /><I.IconRowWide />{selectedInfo.outside.map((c) => <b key={c}>{c.replace("№", "")}</b>)}</div>
               )}
               {selectedInfo?.overflow && (
                 <div className="p2-warn" role="alert" aria-label="Строка не помещается по ширине"><I.IconWarn /><span className="p2-cut" aria-hidden="true" /></div>

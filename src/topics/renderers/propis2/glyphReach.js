@@ -42,7 +42,7 @@ export function outsideRowLabels(glyphMap) {
   for (const [label, g] of glyphMap) {
     // letters (some, like р л м я, are stored with kind "element": a letter is any one-character Cyrillic label) and marks
     const isLetter = /^[А-Яа-яЁё]$/.test(label);
-    if (!isLetter && g.kind !== "letter" && g.kind !== "punct") continue;
+    if (!isLetter && g.kind !== "letter" && g.kind !== "punct" && g.kind !== "digit") continue; // digits are as tall as capitals
     // marks: the full stop and the comma stand on the baseline (the comma's tail dips a little, as in a notebook);
     // ! and ? are as tall as a capital and do not belong on the wide ruling
     if (g.kind === "punct") { if (!".,".includes(label)) out.add(label); continue; }

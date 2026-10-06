@@ -575,6 +575,9 @@ describe("digits and signs (captured 2026-10-06)", () => {
     expect(findUnsupported("№1№5 №+ №= №- №< №> №0", map)).toEqual([]);
     expect(map.get("5").kind).toBe("element"); // the methodology element keeps its name
     expect(map.get("№5").kind).toBe("digit");
+    // as tall as a capital letter: on the wide ruling they leave the band like capitals do
+    expect(findOutsideRow("№1 №5", map)).toEqual(["№1", "№5"]);
+    expect(findOutsideRow("мама", map)).toEqual([]);
     const { placed } = layoutWideLinesIntoRows(["№2 №+ №3 №= №5#1"], map, undefined, true, 0.5);
     expect(placed[0].segments[0].strokes.length).toBeGreaterThan(5);
   });
