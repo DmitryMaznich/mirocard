@@ -90,11 +90,25 @@ export function insertToken(value, caret, token) {
 // {id}) back into the id.
 export function bracesIn(text, codes) {
   const ids = [...(codes?.keys() ?? [])].filter(Boolean).sort((a, b) => b.length - a.length);
-  if (!ids.length) return String(text ?? "");
-  const re = new RegExp(`(^|\\s)(${ids.map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?=\\s|$)`, "g");
-  return String(text ?? "").replace(re, (_m, pre, id) => `${pre}{${codes.get(id)}}`);
+  const wrapped = ids.length
+    ? String(text ?? "").replace(new RegExp(`(^|\\s)(${ids.map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?=\\s|$)`, "g"), (_m, pre, id) => `${pre}{${codes.get(id)}}`)
+    : String(text ?? "");
+  return digitsIn(wrapped);
 }
 export function bracesOut(text, codes) {
   const byCode = new Map([...(codes ?? [])].map(([id, code]) => [code, id]));
-  return String(text ?? "").replace(/\{([^{}\s]+)\}/g, (_m, inner) => byCode.get(inner) ?? inner);
+  // digits first: a braced element ({э1}) is not a bare word, so only what was typed as a digit becomes one
+  return digitsOut(String(text ?? "")).replace(/\{([^{}\s]+)\}/g, (_m, inner) => byCode.get(inner) ?? inner);
+}
+
+// Digits and signs: the field holds ordinary characters (what the keyboard types), the rows hold glyph labels «№5», «№+»
+// (see glyphOverrides.js). A word made only of digits and + - = < > is a number / a sum; a lone 5 6 7 8 typed bare is the digit
+// (the ELEMENTS with those names are the ones shown in braces, {э1}...). Words with letters are never touched ("п+и", "кое-что").
+const MATH_WORD = /^[0-9+\-=<>−–]+$/;
+const SIGN = { "−": "-", "–": "-" };
+export function digitsOut(text) {
+  return String(text ?? "").replace(/(^|\s)(\S+)/g, (m, pre, word) => (MATH_WORD.test(word) ? `${pre}${[...word].map((c) => `№${SIGN[c] ?? c}`).join("")}` : m));
+}
+export function digitsIn(text) {
+  return String(text ?? "").replace(/(^|\s)((?:№[0-9+\-=<>])+)(?=\s|$)/g, (_m, pre, word) => `${pre}${word.replace(/№/g, "")}`);
 }

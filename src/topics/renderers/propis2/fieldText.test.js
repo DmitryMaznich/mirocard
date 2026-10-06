@@ -105,9 +105,18 @@ describe("elements in curly braces", () => {
   it("shows whole-word element ids as {code} and turns the codes back into ids", async () => {
     const { bracesIn, bracesOut } = await import("./fieldText.js");
     const codes = new Map([["5", "э1"], ["01_pryamaya_liniya", "э2"]]);
-    expect(bracesIn("5 мама 55\n01_pryamaya_liniya 5", codes)).toBe("{э1} мама 55\n{э2} {э1}");
-    expect(bracesOut("{э1} мама 55\n{э2} {э1}", codes)).toBe("5 мама 55\n01_pryamaya_liniya 5");
+    expect(bracesIn("5 мама 55\n01_pryamaya_liniya 5", codes)).toBe("{э1} мама 55\n{э2} {э1}"); // plain 55 in old data stays as it was
+    expect(bracesOut("{э1} мама 55\n{э2} {э1}", codes)).toBe("5 мама №5№5\n01_pryamaya_liniya 5"); // «55» typed bare is the number
     expect(bracesOut("{5} {zzz}", codes)).toBe("5 zzz");
     expect(bracesIn("мама", new Map())).toBe("мама");
+  });
+});
+
+describe("digits and signs in the field", () => {
+  it("bare digits / sums become №-labels in the rows and come back, elements keep their braces", async () => {
+    const { bracesIn, bracesOut } = await import("./fieldText.js");
+    const codes = new Map([["5", "э1"]]);
+    expect(bracesOut("{э1} 5 15 2+3=5 п+и кое-что - 7", codes)).toBe("5 №5 №1№5 №2№+№3№=№5 п+и кое-что №- №7");
+    expect(bracesIn("5 №5 №1№5 №2№+№3№=№5 п+и кое-что №- №7", codes)).toBe("{э1} 5 15 2+3=5 п+и кое-что - 7");
   });
 });

@@ -1354,7 +1354,7 @@ export function wideTokenToLabels(token, glyphsByLabel) {
 }
 
 function wideTokenToLabelsRaw(token, glyphsByLabel) {
-  if (token.includes("+")) return token.split("+").filter((l) => glyphsByLabel.has(l));
+  if (token.includes("+") && !token.includes("№")) return token.split("+").filter((l) => glyphsByLabel.has(l)); // «+» chains letters; «№+» is the plus sign
   if (glyphsByLabel.has(token)) return [token];
   const out = [];
   let i = 0;
@@ -1538,7 +1538,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         // A word is placed by the START of its first letter, but some letters (с а о д ...) have their ink to the LEFT of the start:
         // "любит спать" then touched ("любитспать"). The ink of the new word must stay clear of the previous word by a visible gap:
         // otherwise it moves on to the next slant line. Signs repeated in a row (samples, mixed sequences) keep their measured step: only a word next to something is checked.
-        if (!loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord) && Number.isFinite(prevToken.inkMaxX)) {
+        if (!loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
           const lead = local.start[0] - local.minX;
           for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + WIDE_WORD_MIN_GAP * scale; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
         }

@@ -10,6 +10,7 @@ function record() {
   return { wide: wide.glyphs, wideSheets: wide.sheets, elements, wideElementRepeat: wide.elementRepeat };
 }
 const map = buildGlyphMap(record());
+
 // rows as the ready sheets / older pages have them: no explicit repeat, the engine's own rule
 const oldRow = (patch = {}) => newRow({ repeat: "auto", ...patch });
 
@@ -566,5 +567,15 @@ describe("running text writes a repeated word in full", () => {
     const dashedIn = (r) => placed[r].segments.flatMap((s) => s.strokes).filter((st) => st.dashed).length;
     expect(dashedIn(0)).toBe(0);
     expect(dashedIn(1)).toBeGreaterThan(0); // a sample row keeps its copies
+  });
+});
+
+describe("digits and signs (captured 2026-10-06)", () => {
+  it("are glyphs of their own (№-labels), never joined, never reported as unsupported, and do not clash with elements 5-8", () => {
+    expect(findUnsupported("№1№5 №+ №= №- №< №> №0", map)).toEqual([]);
+    expect(map.get("5").kind).toBe("element"); // the methodology element keeps its name
+    expect(map.get("№5").kind).toBe("digit");
+    const { placed } = layoutWideLinesIntoRows(["№2 №+ №3 №= №5#1"], map, undefined, true, 0.5);
+    expect(placed[0].segments[0].strokes.length).toBeGreaterThan(5);
   });
 });

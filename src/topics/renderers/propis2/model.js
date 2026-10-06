@@ -387,7 +387,7 @@ export function moveRow(rows, index, delta) {
 export function findUnsupported(text, glyphMap) {
   const out = [];
   for (const token of String(text ?? "").split(/\s+/).filter(Boolean)) {
-    if (token.includes("+") || glyphMap.has(token)) continue;
+    if ((token.includes("+") && !token.includes("№")) || glyphMap.has(token)) continue;
     let i = 0;
     while (i < token.length) {
       let hit = 0;
