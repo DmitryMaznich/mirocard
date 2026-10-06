@@ -1078,6 +1078,7 @@ export const WIDE_SCALE = WIDE_ZONE_UNITS / WIDE_CAPTURE_SPAN;
 const WIDE_BASELINE_Y = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
 const WIDE_JOIN_TAN = Math.tan(((90 - 65) * Math.PI) / 180);
 const WIDE_TOKEN_GAP = 36;
+const WIDE_WORD_MIN_GAP = 28; // least visible gap between the ink of two words (row-local units at full scale)
 // A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
 // with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
 const WIDE_PUNCT_GAP = 6;
@@ -1508,7 +1509,14 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
             // next token: a whole number of cells after the previous token's start, along the slant lines
             ? prevToken.startX + ((prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) + pendingGap) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
             : (cursorX === null ? WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
-        const startX = loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
+        let startX = loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
+        // A word is placed by the START of its first letter, but some letters (с а о д ...) have their ink to the LEFT of the start:
+        // "любит спать" then touched ("любитспать"). The ink of the new word must stay clear of the previous word by a visible gap:
+        // otherwise it moves on to the next slant line. Signs repeated in a row (samples, mixed sequences) keep their measured step: only a word next to something is checked.
+        if (!loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord) && Number.isFinite(prevToken.inkMaxX)) {
+          const lead = local.start[0] - local.minX;
+          for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + WIDE_WORD_MIN_GAP * scale; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
+        }
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
         let highJoined = false;
@@ -1590,7 +1598,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         if (Math.abs(snapped - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, snapped - prevExit[0]) };
       }
       pendingGap = 0;
-      if (tokenStartX !== null) prevToken = { isElement, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells };
+      if (tokenStartX !== null) prevToken = { isElement, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells, inkMaxX: tokenMaxX, token };
     }
     const animStrokes = [];
     strokes.forEach((st, i) => {

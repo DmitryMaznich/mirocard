@@ -385,7 +385,8 @@ describe("extra spaces between words of running text", () => {
   });
   it("the engine moves the next word right by that many cells", () => {
     const gap = (line) => { const [a, b] = x1(line); return b - a; };
-    expect(gap("мама _2 мыла#1") - gap("мама мыла#1")).toBeCloseTo(60, 0);
+    // (the plain gap itself is kept at a visible minimum, so extra cells are compared with each other)
+    expect(gap("мама _3 мыла#1") - gap("мама _1 мыла#1")).toBeCloseTo(60, 0);
   });
   it("a tap on the row still finds the words, not the spacers", () => {
     expect(pickFragment("мама _2 мыла", 5, map, "wide")).toBe("мама");
@@ -504,4 +505,24 @@ describe("fade copies", () => {
     expect(set.ruling).toBe("wide");
     expect(pages.every((p) => p.ruling === "wide" && p.locked)).toBe(true);
   });
+
+describe("words never touch", () => {
+  const inkEnds = (line) => {
+    const xs = (d) => (d.match(/-?\d+\.?\d*/g) || []).map(Number).filter((_, i) => i % 2 === 0);
+    const seg = (l) => layoutWideLinesIntoRows([l + "#1"], map, undefined, false, 0.5).placed[0].segments[0];
+    const [a, b] = line.split(" ");
+    const first = seg(a);
+    const both = seg(line);
+    const aMax = Math.max(...first.strokes.flatMap((s) => xs(s.d)));
+    const bMin = Math.min(...both.strokes.slice(first.strokes.length).flatMap((s) => xs(s.d)));
+    return bMin - aMax;
+  };
+  it("a word whose first letter has its ink left of its start point (с а о д) keeps a visible gap from the word before", () => {
+    for (const pair of ["любит спать", "ест спать", "мят спать", "в стол", "и дом", "тепло и", "кот отдых"]) expect(inkEnds(pair), pair).toBeGreaterThanOrEqual(12);
+  });
+  it("signs repeated in a row keep their measured step", () => {
+    const strokes = layoutWideLinesIntoRows(["с с с"], map, undefined, true, 0.5).placed[0].segments[0].strokes;
+    expect(strokes.length).toBeGreaterThan(5);
+  });
+});
 });
