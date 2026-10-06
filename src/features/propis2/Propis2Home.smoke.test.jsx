@@ -118,6 +118,14 @@ describe("Прописи 2 (zip topic)", () => {
     expect(cards[0].textContent).toContain("Мои буквы");
     expect(cards[0].textContent).toContain("1 стр.");
 
+    // rename right in the library: a tap on the name makes it a field; Enter saves, no editor needed
+    await click(host.querySelector('[aria-label^="Переименовать тетрадь"]'));
+    const nameField = host.querySelector('input[aria-label="Название тетради"]');
+    await type(nameField, "Урок про букву М");
+    await act(async () => { nameField.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true })); await tick(); });
+    expect(host.querySelector('input[aria-label="Название тетради"]')).toBeNull();
+    expect(host.querySelector('[data-testid="propis2-set-card"]').textContent).toContain("Урок про букву М");
+
     await click(btn(host, "Копия"));
     expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(2);
 
