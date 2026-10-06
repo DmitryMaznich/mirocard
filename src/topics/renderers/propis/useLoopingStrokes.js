@@ -15,7 +15,19 @@ import { SPEED, easeInOut } from "./propisRuling.js";
 // LoopingLetterCell (one letter's own strokes) and WordAnimatedCard (a whole word's
 // already-assembled stroke list) — the two differ only in how they position/scale their
 // own <g>, not in how the draw animation itself runs.
-export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, loopPauseMs = 1400, speedFactor = 1 } = {}) {
+// `evenSpeed`: constant pen speed (every stroke the same units/sec, no ease-in/out per stroke);
+// only the very last stroke slows slightly over its final stretch (see evenProgress).
+const EVEN_TAIL_FROM = 0.88; // share of the last stroke after which the pen starts to slow
+const EVEN_TAIL_MIN = 0.45;  // relative speed at the very end
+function evenProgress(t) {
+  const a = EVEN_TAIL_FROM, m = EVEN_TAIL_MIN;
+  const total = a + (1 - a) * (1 + m) / 2;
+  if (t <= a) return t / total;
+  const u = t - a;
+  return (a + u - (1 - m) * u * u / (2 * (1 - a))) / total;
+}
+
+export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, loopPauseMs = 1400, speedFactor = 1, evenSpeed = false } = {}) {
   const speedRef = useRef(speedFactor);
   speedRef.current = speedFactor; // read per stroke, so "slow" applies without restarting
   const rafRef = useRef(null);
@@ -83,12 +95,14 @@ export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, lo
     const el = g.querySelector(`[data-pr-anim="${idx}"]`);
     if (!el) { onDone(); return; }
     const len = lensRef.current[idx];
-    const dur = (len / (SPEED * (speedRef.current || 1))) * 1000;
+    const isLast = idx === lensRef.current.length - 1;
+    // the tail slowdown lengthens the last stroke a little, so the base speed stays the same
+    const dur = (len / (SPEED * (speedRef.current || 1))) * 1000 * (evenSpeed && isLast ? 1 + (1 - EVEN_TAIL_FROM) * (1 - EVEN_TAIL_MIN) / 2 : 1);
     const t0 = performance.now();
 
     function frame(now) {
       const raw = Math.min((now - t0) / dur, 1);
-      const eased = easeInOut(raw);
+      const eased = evenSpeed ? (isLast ? evenProgress(raw) : raw) : easeInOut(raw);
       el.setAttribute("stroke-dashoffset", len * (1 - eased));
       const pt = el.getPointAtLength(eased * len);
       if (tip) {

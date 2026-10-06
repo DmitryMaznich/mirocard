@@ -311,6 +311,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
     <svg
       className="propis-print-page-svg"
       viewBox={crop ? `${crop.x} ${crop.y} ${crop.w} ${crop.h}` : `0 0 ${PAGE_W_UNITS} ${PAGE_H_UNITS}`}
+      style={crop ? { "--crop-ratio": crop.w / crop.h } : undefined}
       xmlns="http://www.w3.org/2000/svg"
     >
       <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
@@ -431,7 +432,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
               seg.type === "cursive" ? (
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize={crop ? "normal" : "large"} speedFactor={speedFactor} />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} evenSpeed={Boolean(crop)} />
                   ) : (
                     seg.trajectory.strokes.map((s, ssi) => (
                       <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -454,7 +455,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
                 // several disconnected pen-lifts, each needing its own "start here" mark.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive && seg.trajectory ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize={crop ? "normal" : "large"} speedFactor={speedFactor} />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} evenSpeed={Boolean(crop)} />
                   ) : seg.strokes.map((s, ssi) => (
                     // dashed copies fade out along the row (wordEngine WIDE_FADE_END_X); a fully faded one keeps only its start dot
                     s.opacity !== undefined && s.opacity <= 0.02 ? null : (
@@ -804,9 +805,12 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
     const { contentXUnits } = slotGeometry(0, wideRows, margin, geom);
     const row = wideRows ? first.rowIndex + (narrow17 ? 0 : 1) : first.rowIndex;
     const widthUnits = first.segments.reduce((sum, seg) => sum + seg.width, 0);
-    const w = Math.max(260, contentXUnits + first.x + widthUnits + 80);
-    if (narrowRows) return { x: 0, y: rowOriginY(row) + n17Shift(narrow17) + NARROW_GUIDE_LOCAL - 30, w, h: WIDE_BAND_BOTTOM_LOCAL - NARROW_GUIDE_LOCAL + 75 };
-    return { x: 0, y: wideBandTop(row) - 30, w, h: wideBandHeight + 75 };
+    // the window starts just before the sample and ends just after it (the show panel maximizes this window)
+    const x = Math.max(0, contentXUnits + first.x - 30);
+    const w = Math.max(170, contentXUnits + first.x + widthUnits + 100 - x);
+    const PEN_ROOM = 90; // headroom for the large pen drawn up and to the right of its tip
+    if (narrowRows) return { x, y: rowOriginY(row) + n17Shift(narrow17) + NARROW_GUIDE_LOCAL - 30 - PEN_ROOM, w, h: WIDE_BAND_BOTTOM_LOCAL - NARROW_GUIDE_LOCAL + 75 + PEN_ROOM };
+    return { x, y: wideBandTop(row) - 30 - PEN_ROOM, w, h: wideBandHeight + 75 + PEN_ROOM };
   })();
 
   if (bare) {

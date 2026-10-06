@@ -26,16 +26,6 @@
 .propis2-blank-note { color: #6b7385; align-self: center; }
 .propis2-mark { display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; margin-right: 8px; }
 .propis2-hint { color: #6b7385; font-size: .85rem; margin: 0; }
-.propis2-panel { position: absolute; inset: 0; z-index: 700; /* above v1 .propis-practice-stage (500) */ background: rgba(20, 24, 33, .45); display: flex; align-items: center; justify-content: center; padding: 16px; }
-.propis2-panel-card { background: #fffdf8; border-radius: 16px; width: min(960px, 100%); max-height: 100%; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px calc(14px + var(--app-safe-bottom, 0px)); box-shadow: 0 10px 40px rgba(0,0,0,.25); }
-.propis2-panel-head { display: flex; justify-content: space-between; align-items: center; font-size: 1.2rem; }
-.propis2-panel-x { border: none; background: transparent; font-size: 1.3rem; cursor: pointer; padding: 6px 10px; }
-.propis2-panel-stage { position: relative; min-height: 180px; }
-.propis2-panel-stage .propis-practice-stage { position: static; inset: auto; height: auto; padding: 0; background: transparent; }
-.propis2-panel-stage .propis-print-frame { height: auto; }
-.propis2-panel-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.propis2-panel-stage .propis-print-page-wrap { padding: 0; background: transparent; overflow: visible; touch-action: auto; }
-.propis2-panel-stage .propis-print-page-svg { aspect-ratio: auto; width: 100%; height: auto; max-height: 55vh; box-shadow: none; border: 1px solid #e6e0d2; border-radius: 8px; }
 .propis2-h2 { font-size: 1.05rem; margin: 8px 0 0; }
 .propis2-editor-layout { display: flex; flex-direction: column; gap: 12px; }
 .propis2-editor-layout .propis2-body { max-width: none; }
@@ -229,6 +219,18 @@
 .propis2-dock { overflow: visible; position: relative; z-index: 12; }
 
 /* the viewer: «edit this page» next to the close button */
+/* Show modal: full screen; the ruled window with the animated fragment takes all the space under the one-line button row */
+.propis2-panel { position: absolute; inset: 0; z-index: 700; /* above v1 .propis-practice-stage (500) */ background: #fffdf8; display: flex; }
+.propis2-panel-card { width: 100%; height: 100%; display: flex; flex-direction: column; }
+.propis2-panel-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: calc(12px + var(--app-safe-top, 0px)) calc(12px + var(--app-safe-right, 0px)) 8px calc(16px + var(--app-safe-left, 0px)); }
+.propis2-panel-title { margin-right: auto; font-size: 1.2rem; }
+.propis2-panel-on { background: #1d4ed8; }
+.propis2-panel-stage { flex: 1 1 auto; min-height: 0; position: relative; padding: 0 calc(8px + var(--app-safe-right, 0px)) calc(8px + var(--app-safe-bottom, 0px)) calc(8px + var(--app-safe-left, 0px)); }
+.propis2-panel-stage .propis-practice-stage { position: static; inset: auto; height: 100%; padding: 0; background: transparent; }
+.propis2-panel-stage .propis-print-frame { height: 100%; background: transparent; }
+.propis2-panel-stage .propis-print-page-wrap { container-type: size; padding: 0; background: transparent; overflow: visible; touch-action: auto; }
+/* the svg is exactly the cropped window (its aspect ratio), as large as the stage allows */
+.propis2-panel-stage .propis-print-page-svg { aspect-ratio: var(--crop-ratio); width: min(100cqw, calc(100cqh * var(--crop-ratio))); height: auto; max-width: none; max-height: none; box-shadow: none; border: 1px solid #e6e0d2; border-radius: 8px; }
 .propis2-view-edit { position: fixed; top: calc(12px + var(--app-safe-top, 0px)); right: calc(64px + var(--app-safe-right, 0px)); z-index: 900; }
 
 
