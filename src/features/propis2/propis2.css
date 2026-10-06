@@ -315,3 +315,10 @@
 .p2-banner-text { flex: 1 1 200px; }
 .p2-banner-actions { display: flex; gap: 8px; }
 .p2-banner button { min-height: 40px; padding: 0 14px; border: 1px solid #d9c28a; border-radius: 12px; background: #fff; font: inherit; font-weight: 800; color: #5b4a1f; cursor: pointer; }
+
+/* the element list shows what lands in the text: the id in curly braces under each tile */
+.p2-elements-panel .propis2-tile { gap: 2px; padding-bottom: 3px; }
+.p2-el-id { font: 700 .8rem/1 inherit; font-family: inherit; color: var(--p2-blue); }
+/* no gap between the tool strips and the page */
+.propis2-editor2:not(.propis2-editor2--side) .propis2-page-col { padding-top: 0; }
+.propis2-editor2:not(.propis2-editor2--side) .propis2-preview .propis-print-page-wrap { padding-top: 0; }
