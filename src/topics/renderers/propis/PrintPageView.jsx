@@ -22,6 +22,11 @@ const CONTENT_W_UNITS = mmToNativeUnits(PRINT_CONTENT_W_MM);
 // only the whole grid's vertical anchor moves, row-to-row spacing (TEXT_ROW_PITCH) doesn't.
 const ROW_Y_SHIFT = NATIVE_L3 - mmToNativeUnits(PRINT_FIRST_BASELINE_MM);
 const rowOriginY = (row) => row * TEXT_ROW_PITCH - ROW_Y_SHIFT;
+// «Прописи 2» narrow ruling (`narrow17`) starts at ruling row 0, so its first dashed line used to sit exactly on the page's cut edge (0 mm)
+// while 6 mm stayed free under the last row (17 rows of 12 mm on a 210 mm page): the whole ruling and the writing move down 4.5 mm.
+// The slant lines stay where they are (the writing snaps to them at its new height).
+const NARROW17_SHIFT_MM = 4.5;
+const n17Shift = (narrow17) => (narrow17 ? mmToNativeUnits(NARROW17_SHIFT_MM) : 0);
 
 const GUIDE_COLOR = "#6fa3e0";
 const WIDE_GUIDE_COLOR = "#555555"; // wide-row method sheets: dark grey grid + dashed mid line
@@ -189,7 +194,7 @@ const wideBandHeight = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET;
 const perPageOf = (geom, narrow17) => (narrow17 ? geom.rows : geom.wideRows);
 export function rowAtSvgY(y, format = "a5", narrow17 = false) {
   const off = narrow17 ? 0 : 1;
-  const top = rowOriginY(off) + NATIVE_L3 - TEXT_ROW_PITCH;
+  const top = rowOriginY(off) + n17Shift(narrow17) + NATIVE_L3 - TEXT_ROW_PITCH;
   const r = Math.floor((y - top) / TEXT_ROW_PITCH);
   return r >= 0 && r < perPageOf(geomOf(format), narrow17) ? r : -1;
 }
@@ -257,6 +262,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   const diagonalLines = useElements ? SHEET_DIAGONAL_LINES_DENSE : SHEET_DIAGONAL_LINES;
   const guideColor = wideRows ? WIDE_GUIDE_COLOR : GUIDE_COLOR;
   const rowOff = narrow17 ? 0 : 1;
+  const n17 = n17Shift(narrow17);
   const contentRow = (r) => (wideRows ? r + rowOff : r);
   // «Прописи 2»: a plain slant grid replaces the methodology grid in what is drawn (the methodology grid stays
   // internal: letters still snap to it, it is just not drawn). The two grids are the ones of the finished
@@ -319,9 +325,9 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
               <line key={k} x1={narrowLineX(k, 0)} y1={0} x2={narrowLineX(k, PAGE_H_UNITS)} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
             ))}
             {ROW_INDICES.slice(rowOff).map((row) => {
-              const top = rowOriginY(row) + WIDE_BAND_BOTTOM_LOCAL - NARROW_BAND_H;
-              const bottom = rowOriginY(row) + WIDE_BAND_BOTTOM_LOCAL;
-              const guideY = rowOriginY(row) + NARROW_GUIDE_LOCAL;
+              const top = rowOriginY(row) + n17 + WIDE_BAND_BOTTOM_LOCAL - NARROW_BAND_H;
+              const bottom = rowOriginY(row) + n17 + WIDE_BAND_BOTTOM_LOCAL;
+              const guideY = rowOriginY(row) + n17 + NARROW_GUIDE_LOCAL;
               return (
                 <g key={row} data-narrow-band={row}>
                   {midDash && !plain && <line x1="0" y1={guideY} x2={PAGE_W_UNITS} y2={guideY} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />}
@@ -333,7 +339,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
               );
             })}
             {(() => {
-              const lastY = rowOriginY(ROW_INDICES.length - 1) + WIDE_BAND_BOTTOM_LOCAL + NARROW_BAND_H;
+              const lastY = rowOriginY(ROW_INDICES.length - 1) + n17 + WIDE_BAND_BOTTOM_LOCAL + NARROW_BAND_H;
               return midDash && !plain ? <line x1="0" y1={lastY} x2={PAGE_W_UNITS} y2={lastY} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} /> : null;
             })()}
           </g>
@@ -395,13 +401,13 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
         const elementSnapDx = startPoint
           ? nearestDiagonalX(
               contentXUnits + p.x + startPoint[0],
-              rowOriginY(contentRow(p.rowIndex)) + startPoint[1],
+              rowOriginY(contentRow(p.rowIndex)) + n17 + startPoint[1],
               wideRows ? TEXT_ROW_WIDE_DIAGONAL_SPACING : TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
               diagonalShiftX
             ) - (contentXUnits + p.x + startPoint[0])
           : 0;
         return (
-          <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowOriginY(contentRow(p.rowIndex))})`}>
+          <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowOriginY(contentRow(p.rowIndex)) + n17})`}>
             {tappable && (
               <rect
                 className="propis-text-word-hit"
@@ -493,7 +499,8 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
         );
       })}
       {overlays?.map((o, k) => {
-        const { y, h } = overlayRect(o.row, rowOff);
+        const { y: oy, h } = overlayRect(o.row, rowOff);
+        const y = oy + n17;
         return <rect key={`ov${k}`} x="0" y={y} width={PAGE_W_UNITS} height={h} fill={OVERLAY_FILL[o.tone] ?? OVERLAY_FILL.select} pointerEvents="none" data-overlay={o.tone} />;
       })}
     </svg>
@@ -670,7 +677,7 @@ const rowContentX = (rowIndex, margin, geom, narrow17) => slotGeometry(Math.floo
 
 const narrowSnapFor = (margin, geom, narrow17) => (rowIndex, x, y) => {
   const contentXUnits = rowContentX(rowIndex, margin, geom, narrow17);
-  const yAbs = rowOriginY(rowIndex + (narrow17 ? 0 : 1)) + y;
+  const yAbs = rowOriginY(rowIndex + (narrow17 ? 0 : 1)) + n17Shift(narrow17) + y;
   const k = Math.round((contentXUnits + x - narrowLineX(0, yAbs)) / NARROW_CELL);
   return narrowLineX(k, yAbs) - contentXUnits;
 };
@@ -691,7 +698,7 @@ function drawnGridSnapX(step, margin, geom, narrow17 = false) {
   return (rowIndex, x, y) => {
     const pageIdx = Math.floor(rowIndex / perPage);
     const contentXUnits = slotGeometry(pageIdx, true, margin, geom).contentXUnits;
-    const yAbs = rowOriginY((rowIndex % perPage) + (narrow17 ? 0 : 1)) + y;
+    const yAbs = rowOriginY((rowIndex % perPage) + (narrow17 ? 0 : 1)) + n17Shift(narrow17) + y;
     const shift = pageIdx % 2 === 0 || !geom.pairedSlots ? 0 : -geom.w;
     const base = shift - yAbs * WIDE_SLANT_TAN;
     const n = Math.round((contentXUnits + x - base) / step);
@@ -798,7 +805,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
     const row = wideRows ? first.rowIndex + (narrow17 ? 0 : 1) : first.rowIndex;
     const widthUnits = first.segments.reduce((sum, seg) => sum + seg.width, 0);
     const w = Math.max(260, contentXUnits + first.x + widthUnits + 80);
-    if (narrowRows) return { x: 0, y: rowOriginY(row) + NARROW_GUIDE_LOCAL - 30, w, h: WIDE_BAND_BOTTOM_LOCAL - NARROW_GUIDE_LOCAL + 75 };
+    if (narrowRows) return { x: 0, y: rowOriginY(row) + n17Shift(narrow17) + NARROW_GUIDE_LOCAL - 30, w, h: WIDE_BAND_BOTTOM_LOCAL - NARROW_GUIDE_LOCAL + 75 };
     return { x: 0, y: wideBandTop(row) - 30, w, h: wideBandHeight + 75 };
   })();
 
