@@ -9,8 +9,10 @@ describe("BuildNumberTask coin lessons", () => {
   it("groups before the target is collected, then continues adding units", () => {
     h.mount(BuildNumberTask, task);
     for (let i = 0; i < 10; i++) h.click("Взять монету");
-    expect(h.button("Собрать десяток")).toBeTruthy();
-    h.click("Собрать десяток"); h.flush();
+    expect(h.button("Собрать десяток")).toBeUndefined();
+    expect(h.container.querySelectorAll(".cb-coin--groupable")).toHaveLength(10);
+    expect(h.button("Сначала").closest(".cm-supply")).toBeTruthy();
+    h.click("Монета 1"); h.flush();
     expect(h.container.querySelectorAll(".cm-board .cb-ten-stack")).toHaveLength(1);
     expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(0);
     for (let i = 0; i < 3; i++) h.click("Взять монету");
@@ -29,6 +31,16 @@ describe("BuildNumberTask coin lessons", () => {
     h.click("Проверить"); expect(onCorrect).not.toHaveBeenCalled();
     h.click("Далее →"); expect(onCorrect).toHaveBeenCalledWith("x", "x");
   });
+  it("highlights exactly ten out of thirteen coins and groups them on tap", () => {
+    h.mount(BuildNumberTask, task);
+    for (let i = 0; i < 13; i++) h.click("Взять монету");
+    expect(h.container.querySelectorAll(".cb-coin--groupable")).toHaveLength(10);
+    const remainder = Array.from(h.container.querySelectorAll("[data-coin-id]")).slice(10);
+    h.click("Монета 5"); h.flush();
+    expect(h.container.querySelectorAll(".cm-board .cb-ten-stack")).toHaveLength(1);
+    expect(Array.from(h.container.querySelectorAll("[data-coin-id]"))).toEqual(remainder);
+    expect(h.container.querySelectorAll(".cb-coin--groupable")).toHaveLength(0);
+  });
   it("selects without removing and uses separate remove / ungroup actions", () => {
     h.mount(BuildNumberTask, { ...task, buildApproach: "ready" });
     h.click("Взять десяток"); h.click("Десяток 1");
@@ -36,8 +48,8 @@ describe("BuildNumberTask coin lessons", () => {
     h.click("Разложить десяток"); h.flush();
     expect(h.container.querySelectorAll(".cm-board .cb-ten-stack")).toHaveLength(0);
     expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(10);
-    h.click("Монета 1"); h.click("Убрать");
-    expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(9);
+    h.click("Взять монету"); h.click("Монета 11"); h.click("Убрать");
+    expect(h.container.querySelectorAll(".cm-board .cb-coin")).toHaveLength(10);
   });
   it("preserves a wrong construction, distinguishes independent feedback and makes composition optional", () => {
     const onMistake = vi.fn();
@@ -60,7 +72,7 @@ describe("BuildNumberTask coin lessons", () => {
   it("flies ten coins, locks editing during flight and cancels ghosts on unmount", () => {
     h.mount(BuildNumberTask, task);
     for (let i = 0; i < 10; i++) h.click("Взять монету");
-    h.click("Собрать десяток"); h.frame();
+    h.click("Монета 1"); h.frame();
     expect(document.querySelectorAll(".cb-coin-fly-ghost")).toHaveLength(10);
     expect(h.button("Взять монету").disabled).toBe(true);
     expect(h.button("Проверить").disabled).toBe(true);
