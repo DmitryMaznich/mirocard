@@ -559,3 +559,12 @@ describe("capital У joins like о", () => {
   });
 });
 });
+
+describe("running text writes a repeated word in full", () => {
+  it("a word that occurs twice in a once-written row is not a dashed copy", () => {
+    const { placed } = layoutWideLinesIntoRows(["я не но я#1", "я я"], map, undefined, true, 0.5);
+    const dashedIn = (r) => placed[r].segments.flatMap((s) => s.strokes).filter((st) => st.dashed).length;
+    expect(dashedIn(0)).toBe(0);
+    expect(dashedIn(1)).toBeGreaterThan(0); // a sample row keeps its copies
+  });
+});

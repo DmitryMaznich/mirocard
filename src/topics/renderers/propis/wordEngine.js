@@ -1494,7 +1494,8 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       const labels = wideTokenToLabels(token, glyphsByLabel);
       prevExit = null;
       // every copy after the first of the same token on a row is a dashed trace-over guide
-      const dashed = (tokenSeen.get(token) ?? 0) >= 1;
+      // (a «written once» row, running text, has no copies: a word that merely occurs twice in it, «я … я», «и и», is written in full)
+      const dashed = !once[rowIndex] && (tokenSeen.get(token) ?? 0) >= 1;
       tokenSeen.set(token, (tokenSeen.get(token) ?? 0) + 1);
       const isElement = labels.length === 1 && glyphsByLabel.get(labels[0])?.kind === "element";
       const isWordToken = !glyphsByLabel.has(token) && labels.length > 1; // a spelled-out word, not a letter/element (ш, ии are glyphs)

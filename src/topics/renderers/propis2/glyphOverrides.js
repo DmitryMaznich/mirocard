@@ -16,6 +16,8 @@ export const P2_GLYPH_OVERRIDES = {
   "ю": { tailSplit: 0, tailLift: true, tailContinuous: true },
   "ф": { tailSplit: 0, tailLift: true, tailContinuous: true },
   "в": { tailSplit: 0, tailLift: true, tailContinuous: true },
+  "ь": { tailSplit: 0, tailLift: true, tailContinuous: true },
+  "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true },
   "б": { tailStroke: 1, tailLift: true },
   "э": { tailStroke: 2, tailLift: true },
   // capital У: whole, with its hook; the connector leaves its lowest point like о's and arrives where Ч's exit does (У is «как Ч»)
