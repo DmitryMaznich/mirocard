@@ -46,7 +46,7 @@ function NotebookTitle({ title, onRename }) {
 
 // «Мои тетради»: the home of the topic. A notebook is the only thing the adult keeps: create one from scratch or from a ready one,
 // open it as the student sees it, edit, rename, copy, delete.
-export default function Propis2Library({ sets = [], ready = [], onBack, onNew, onOpenReady, onEditReady, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
+export default function Propis2Library({ sets = [], ready = [], draft = null, blankCount = 0, onBack, onNew, onResumeDraft, onDropDraft, onDropBlank, onOpenReady, onEditReady, onOpenSet, onEditSet, onRenameSet, onDuplicateSet, onDeleteSet }) {
   return (
     <div className="screen propis2-home propis2-lib" data-testid="propis2-library">
       <div className="screen-header">
@@ -54,6 +54,15 @@ export default function Propis2Library({ sets = [], ready = [], onBack, onNew, o
         <h1 className="screen-title">Прописи 2</h1>
       </div>
       <div className="propis2-body">
+        {draft && (
+          <div className="p2-banner" role="status" data-testid="propis2-draft-banner">
+            <span className="p2-banner-text">Не сохранена тетрадь «{draft.set.title || "Без названия"}»</span>
+            <span className="p2-banner-actions">
+              <button type="button" aria-label="Продолжить несохранённую тетрадь" onClick={onResumeDraft}>Продолжить</button>
+              <button type="button" aria-label="Удалить несохранённую тетрадь" onClick={onDropDraft}>Удалить</button>
+            </span>
+          </div>
+        )}
         <div className="p2-nb-start">
           <button type="button" className="p2-tile p2-tile--primary p2-tile--wide" aria-label="Новая тетрадь" onClick={onNew}>
             <span className="p2-tile-ico"><I.IconAddPage /></span>
@@ -61,6 +70,12 @@ export default function Propis2Library({ sets = [], ready = [], onBack, onNew, o
           </button>
         </div>
 
+        {blankCount > 0 && (
+          <div className="p2-banner" role="status" data-testid="propis2-blank-banner">
+            <span className="p2-banner-text">Пустых тетрадей: {blankCount}</span>
+            <span className="p2-banner-actions"><button type="button" aria-label="Удалить пустые тетради" onClick={onDropBlank}>Удалить пустые</button></span>
+          </div>
+        )}
         {sets.length > 0 && <h2 className="propis2-h2">Мои тетради</h2>}
         {sets.length > 0 && (
           <ul className="propis2-pages">
@@ -77,7 +92,7 @@ export default function Propis2Library({ sets = [], ready = [], onBack, onNew, o
                   <Tool label={`Открыть тетрадь ${st.title ?? ""}`} caption="Открыть" tone="p2-tool--go" onClick={() => onOpenSet(st.id)}><I.IconPlay /></Tool>
                   <Tool label={`Изменить тетрадь ${st.title ?? ""}`} caption="Править" onClick={() => onEditSet(st.id)}><I.IconEditPage /></Tool>
                   <Tool label={`Копия тетради ${st.title ?? ""}`} caption="Копия" onClick={() => onDuplicateSet(st.id)}><I.IconDuplicate /></Tool>
-                  <Tool label={`Удалить тетрадь ${st.title ?? ""}`} caption="Удалить" tone="p2-ib--danger" onClick={() => onDeleteSet(st.id)}><I.IconTrash /></Tool>
+                  <Tool label={`Удалить тетрадь ${st.title ?? ""}`} caption="Удалить" tone="p2-ib--danger" onClick={() => { if (window.confirm(`Удалить тетрадь «${st.title ?? ""}»?`)) onDeleteSet(st.id); }}><I.IconTrash /></Tool>
                 </div>
               </li>
             ))}

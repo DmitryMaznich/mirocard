@@ -291,3 +291,25 @@
 .p2-tile--wide { flex-direction: row; gap: 10px; min-height: 64px; }
 .p2-tile--wide .p2-tile-cap { font-size: 16px; }
 .p2-nb--ready .p2-nb-ico { background: #eaf0fb; color: #1d4ed8; }
+
+/* confirmation dialog and the save button */
+.p2-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(20, 24, 33, .5); }
+.p2-modal-card { width: min(420px, 100%); background: #fff; border-radius: 20px; padding: 20px 18px 16px; box-shadow: 0 18px 48px rgba(0, 0, 0, .35); display: flex; flex-direction: column; gap: 12px; color: #28323c; }
+.p2-modal-title { margin: 0; font-size: 19px; }
+.p2-modal-text { margin: 0; font-weight: 700; color: #4b5563; overflow-wrap: anywhere; }
+.p2-modal-field { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 14px; }
+.p2-modal-field input { padding: 10px 12px; border: 2px solid #4a9b8f; border-radius: 12px; font: inherit; font-size: 17px; }
+.p2-modal-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.p2-modal-btn { min-height: 48px; border: 1px solid #e3dccb; border-radius: 14px; background: #fff; font: inherit; font-weight: 800; font-size: 16px; color: #28323c; cursor: pointer; touch-action: manipulation; }
+.p2-modal-btn--primary { background: #4a9b8f; border-color: #4a9b8f; color: #fff; box-shadow: 0 3px 0 #2a6b60; }
+.p2-modal-btn--primary:disabled { background: #b8d4cf; border-color: #b8d4cf; box-shadow: none; }
+.p2-modal-btn--danger { color: #b42318; }
+.p2-save { flex: 0 0 auto; width: 48px; height: 48px; border: none; border-radius: 50%; background: #2563eb; color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 3px 0 #1d4ed8; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.p2-save svg { width: 28px; height: 28px; }
+.p2-save:disabled { background: #cbd5e1; box-shadow: none; color: #fff; cursor: default; }
+.p2-save:not(:disabled):active { transform: translateY(3px); box-shadow: none; }
+/* library banners: an unsaved notebook from a closed app, empty notebooks */
+.p2-banner { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 14px; border-radius: 14px; background: #fff7e6; border: 1px solid #ecd9b0; font-weight: 700; color: #5b4a1f; }
+.p2-banner-text { flex: 1 1 200px; }
+.p2-banner-actions { display: flex; gap: 8px; }
+.p2-banner button { min-height: 40px; padding: 0 14px; border: 1px solid #d9c28a; border-radius: 12px; background: #fff; font: inherit; font-weight: 800; color: #5b4a1f; cursor: pointer; }

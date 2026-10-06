@@ -116,3 +116,41 @@ export function presetsToNotebooks(library) {
     .map(({ ps, id }) => ({ ...pageFromPreset(ps), id, locked: false, presetId: undefined, createdAt: ps.createdAt ?? 0, updatedAt: ps.updatedAt ?? ps.createdAt ?? 0 }));
   return fresh.length ? { ...library, pages: [...library.pages, ...fresh] } : library;
 }
+
+// ---- the notebook being worked on: nothing reaches the library until the adult confirms ----
+
+// What the adult confirmed goes into the library as THAT notebook only (its set and its pages; pages taken out of it are deleted):
+// the rest of the library is whatever it is now, so a pull that came in while editing is not overwritten.
+export function mergeNotebook(library, sessionLib, sid) {
+  const next = sessionLib.sets.find((st) => st.id === sid);
+  const old = library.sets.find((st) => st.id === sid);
+  if (!next) return old ? removeSet(library, sid) : library;
+  let lib = library;
+  const keep = new Set(next.pageIds);
+  for (const id of old?.pageIds ?? []) if (!keep.has(id)) lib = removePage(lib, id);
+  for (const id of next.pageIds) {
+    const pg = sessionLib.pages.find((p) => p.id === id);
+    if (pg) lib = upsertPage(lib, pg);
+  }
+  return upsertSet(lib, next);
+}
+
+export const setTitleOf = (lib, sid, title) => ({ ...lib, sets: lib.sets.map((st) => (st.id === sid ? { ...st, title } : st)) });
+
+// A notebook the adult only opened: no text in any row, not a ready one (those are never "empty"). The clutter of «Новая тетрадь».
+export function isBlankNotebook(set, pagesById) {
+  if (set.kit || set.sourceId) return false;
+  return set.pageIds.every((id) => {
+    const pg = pagesById.get(id);
+    return !pg || pg.rows.every((r) => !String(r.text ?? "").trim());
+  });
+}
+
+// The unsaved notebook is kept on this device (not synced) while it is edited, so a closed or killed app does not lose it.
+export const DRAFT_KEY = "propis2:draft";
+export async function saveDraft(draft, db) { await kv.set(db ?? (await getDb()), DRAFT_KEY, draft); }
+export async function loadDraft(db) {
+  const d = await kv.get(db ?? (await getDb()), DRAFT_KEY);
+  return d && d.sid && d.set && Array.isArray(d.pages) ? d : null;
+}
+export async function clearDraft(db) { await kv.del(db ?? (await getDb()), DRAFT_KEY); }

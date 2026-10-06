@@ -66,7 +66,7 @@ function IconBtn({ label, caption, on, onClick, disabled, children, className = 
   );
 }
 
-export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow }) {
+export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const analysis = useMemo(() => analyzePage(page, glyphMap), [page, glyphMap]);
   const owners = useMemo(() => lineOwners(page, glyphMap), [page, glyphMap]);
@@ -231,6 +231,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       <div className="screen-header p2-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
         <input className="propis2-title-input" value={page.title} onChange={(e) => onChange({ ...page, title: e.target.value })} aria-label="Название страницы" />
+        {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /></button>}
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>
 

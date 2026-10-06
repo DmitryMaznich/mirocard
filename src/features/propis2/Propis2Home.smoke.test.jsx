@@ -4,6 +4,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import { openDb } from "@/core/db";
+import { saveLibrary, emptyLibrary, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
+import { newPage, newSet, newRow } from "@/topics/renderers/propis2/model.js";
 import { readFileSync } from "node:fs";
 import Propis2Home from "./Propis2Home.jsx";
 import { useAppStore } from "@/core/store";
@@ -34,6 +36,7 @@ function deckRecord() {
 }
 
 // controls of the constructor are icons: they are found by aria-label
+const dlgBtn = (host, text) => [...host.querySelectorAll('[data-testid="propis2-save-dialog"] button')].find((b) => b.textContent.includes(text));
 const byLabel = (host, name, exact = false) => [...host.querySelectorAll("button")].find((b) => { const t = b.getAttribute("aria-label") ?? b.textContent; return exact ? t === name : t.includes(name); });
 // the one text field of the constructor: the system keyboard types into it
 const fieldOf = (host) => host.querySelector('[aria-label="Текст страницы"]');
@@ -109,6 +112,13 @@ describe("Прописи 2 (zip topic)", () => {
     await click(host.querySelector(".propis-practice-close"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
 
+    // nothing is kept until it is confirmed: the save button asks for the name of a new notebook
+    await click(byLabel(host, "Сохранить тетрадь"));
+    expect(host.querySelector('[data-testid="propis2-save-dialog"]')).not.toBeNull();
+    await click(dlgBtn(host, "Сохранить"));
+    expect(host.querySelector('[data-testid="propis2-save-dialog"]')).toBeNull();
+    expect(byLabel(host, "Сохранить тетрадь").disabled).toBe(true); // nothing unsaved now
+
     await act(async () => { root.unmount(); await tick(500); });
     host.remove();
 
@@ -157,6 +167,7 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('[data-testid="propis2-preview"] svg path')).not.toBeNull();
 
     await click(host.querySelector(".back-btn"));
+    await click(dlgBtn(host, "Сохранить")); // leaving a new notebook with changes asks; saving puts it in the list
     expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(1);
     await act(async () => { root.unmount(); await tick(500); });
     host.remove();
@@ -241,6 +252,7 @@ describe("Прописи 2 (zip topic)", () => {
     await click(host.querySelector(".propis-practice-close"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await click(host.querySelector(".back-btn"));
+    await click(dlgBtn(host, "Сохранить"));
     expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(1);
     expect(host.querySelector('[data-testid="propis2-set-card"]').textContent).toContain("3 стр.");
 
@@ -419,6 +431,9 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.textContent).toContain("С планшета");
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     await click(byLabel(host, "Новая тетрадь"));
+    await typeInField(host, "и");
+    await click(byLabel(host, "Сохранить тетрадь"));
+    await click(dlgBtn(host, "Сохранить"));
     await act(async () => { await tick(500); });
     const keys = pushOp.mock.calls.filter((c) => c[0] === "kv.upsert").map((c) => c[1].key);
     // a new notebook = its page + the notebook; the account's loose page became a notebook of its own (same id on every device)
@@ -550,6 +565,7 @@ describe("Прописи 2 (zip topic)", () => {
     await click(host.querySelector(".back-btn"));
     expect(host.querySelector('[data-testid="propis2-view"]')).not.toBeNull();
     await click(host.querySelector(".propis-practice-close"));
+    await click(dlgBtn(host, "Сохранить")); // the changes made in the editor are confirmed: the copy is kept
     expect(host.querySelector('[data-testid="propis2-library"]')).not.toBeNull();
     expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(1);
     // it became ours: its ready card has moved to «Мои тетради» (and is not offered twice)
@@ -561,4 +577,135 @@ describe("Прописи 2 (zip topic)", () => {
     await act(async () => { root.unmount(); await tick(300); });
     host.remove();
   }, 30000);
+
+  describe("what is kept needs a confirmation", () => {
+    const mount = async (db) => {
+      const host = document.createElement("div");
+      document.body.appendChild(host);
+      const root = createRoot(host);
+      await act(async () => { root.render(<Propis2Home db={db} />); await tick(60); });
+      const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+      const unmount = async () => { await act(async () => { root.unmount(); await tick(300); }); host.remove(); };
+      const cards = () => host.querySelectorAll('[data-testid="propis2-set-card"]');
+      return { host, click, unmount, cards };
+    };
+
+    it("opening an editor and leaving it without a change keeps nothing (no «Новая тетрадь» left behind)", async () => {
+      const db = await freshDb();
+      const { host, click, unmount, cards } = await mount(db);
+      await click(byLabel(host, "Новая тетрадь"));
+      expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
+      expect(byLabel(host, "Сохранить тетрадь").disabled).toBe(true);
+      await click(host.querySelector(".back-btn"));
+      expect(host.querySelector('[data-testid="propis2-save-dialog"]')).toBeNull();
+      expect(host.querySelector('[data-testid="propis2-library"]')).not.toBeNull();
+      expect(cards()).toHaveLength(0);
+      await unmount();
+    });
+
+    it("a change asks on leaving: «Остаться» stays, «Не сохранять» drops it, «Сохранить» names and keeps it", async () => {
+      const db = await freshDb();
+      const { host, click, unmount, cards } = await mount(db);
+      await click(byLabel(host, "Новая тетрадь"));
+      await typeInField(host, "а");
+      expect(byLabel(host, "Сохранить тетрадь").disabled).toBe(false);
+      await click(host.querySelector(".back-btn"));
+      expect(host.querySelector('[data-testid="propis2-save-dialog"]')).not.toBeNull();
+      await click(dlgBtn(host, "Остаться"));
+      expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
+      await click(host.querySelector(".back-btn"));
+      await click(dlgBtn(host, "Не сохранять"));
+      expect(host.querySelector('[data-testid="propis2-library"]')).not.toBeNull();
+      expect(cards()).toHaveLength(0);
+      // again, and keep it under a name of our own
+      await click(byLabel(host, "Новая тетрадь"));
+      await typeInField(host, "а");
+      await click(host.querySelector(".back-btn"));
+      const name = host.querySelector('[data-testid="propis2-save-dialog"] input');
+      await act(async () => { Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set.call(name, "Моя первая"); name.dispatchEvent(new Event("input", { bubbles: true })); await tick(); });
+      await click(dlgBtn(host, "Сохранить"));
+      expect(cards()).toHaveLength(1);
+      expect(cards()[0].textContent).toContain("Моя первая");
+      await unmount();
+    });
+
+    it("changes to a notebook that is already in the list are confirmed too: «Не сохранять» leaves it as it was", async () => {
+      const db = await freshDb();
+      const pg = newPage("Урок", { rows: [newRow({ text: "мама" })] });
+      await saveLibrary(upsertSet(upsertPage(emptyLibrary(), pg), newSet("Урок", { id: "st_urok", pageIds: [pg.id] })), db);
+      const { host, click, unmount, cards } = await mount(db);
+      expect(cards()[0].textContent).toContain("1 стр.");
+      await click(byLabel(host, "Изменить тетрадь Урок"));
+      await click(byLabel(host, "Добавить страницу"));
+      await click(host.querySelector(".back-btn"));
+      expect(host.querySelector('[data-testid="propis2-save-dialog"]').textContent).toContain("Сохранить изменения в тетради?");
+      await click(dlgBtn(host, "Не сохранять"));
+      expect(cards()[0].textContent).toContain("1 стр.");
+      await click(byLabel(host, "Изменить тетрадь Урок"));
+      await click(byLabel(host, "Добавить страницу"));
+      await click(byLabel(host, "Сохранить тетрадь")); // an existing notebook: no question, it is kept
+      expect(host.querySelector('[data-testid="propis2-save-dialog"]')).toBeNull();
+      await click(host.querySelector(".back-btn"));
+      expect(host.querySelector('[data-testid="propis2-save-dialog"]')).toBeNull();
+      expect(cards()[0].textContent).toContain("2 стр.");
+      await unmount();
+    });
+
+    it("a ready notebook only looked at or opened for editing is not copied into the list until a change is confirmed", async () => {
+      const db = await freshDb();
+      const { host, click, unmount, cards } = await mount(db);
+      const ready = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь Листы методики, часть 1 (широкая строка)"]';
+      const edit = '[data-testid="propis2-ready-card"] [aria-label="Изменить тетрадь Листы методики, часть 1 (широкая строка)"]';
+      await click(host.querySelector(ready));
+      expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
+      await click(host.querySelector(".propis-practice-close"));
+      expect(host.querySelector('[data-testid="propis2-save-dialog"]')).toBeNull();
+      expect(cards()).toHaveLength(0);
+      expect(host.querySelector(ready)).not.toBeNull();
+      await click(host.querySelector(edit));
+      await click(host.querySelector(".back-btn"));
+      expect(host.querySelector('[data-testid="propis2-save-dialog"]')).toBeNull();
+      expect(cards()).toHaveLength(0);
+      await unmount();
+    });
+
+    it("an unsaved notebook survives a closed app: the library offers to continue it", async () => {
+      const db = await freshDb();
+      let m = await mount(db);
+      await m.click(byLabel(m.host, "Новая тетрадь"));
+      await typeInField(m.host, "кот");
+      await act(async () => { await tick(900); }); // the draft is mirrored to the device
+      await m.unmount(); // the app is closed without saving
+      m = await mount(db);
+      await act(async () => { await tick(200); });
+      expect(m.cards()).toHaveLength(0);
+      expect(m.host.querySelector('[data-testid="propis2-draft-banner"]')).not.toBeNull();
+      await m.click(byLabel(m.host, "Продолжить несохранённую тетрадь"));
+      expect(m.host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
+      expect(byLabel(m.host, "Сохранить тетрадь").disabled).toBe(false);
+      await m.click(byLabel(m.host, "Сохранить тетрадь"));
+      await m.click(dlgBtn(m.host, "Сохранить"));
+      await m.click(m.host.querySelector(".back-btn"));
+      expect(m.cards()).toHaveLength(1);
+      expect(m.host.querySelector('[data-testid="propis2-draft-banner"]')).toBeNull();
+      await m.unmount();
+    });
+
+    it("empty notebooks left by the old autosave can be removed in one tap", async () => {
+      const db = await freshDb();
+      let lib = emptyLibrary();
+      for (const t of ["Новая тетрадь", "Новая страница"]) { const pg = newPage(t); lib = upsertSet(upsertPage(lib, pg), newSet(t, { id: `st_${pg.id}`, pageIds: [pg.id] })); }
+      const full = newPage("С буквами", { rows: [newRow({ text: "мама" })] });
+      lib = upsertSet(upsertPage(lib, full), newSet("С буквами", { id: `st_${full.id}`, pageIds: [full.id] }));
+      await saveLibrary(lib, db);
+      const { host, click, unmount, cards } = await mount(db);
+      expect(cards()).toHaveLength(3);
+      expect(host.querySelector('[data-testid="propis2-blank-banner"]').textContent).toContain("2");
+      await click(byLabel(host, "Удалить пустые тетради"));
+      expect(cards()).toHaveLength(1);
+      expect(cards()[0].textContent).toContain("С буквами");
+      expect(host.querySelector('[data-testid="propis2-blank-banner"]')).toBeNull();
+      await unmount();
+    });
+  });
 });
