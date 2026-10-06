@@ -525,4 +525,31 @@ describe("words never touch", () => {
     expect(strokes.length).toBeGreaterThan(5);
   });
 });
+
+describe("capital У joins like о", () => {
+  const seg = (l) => layoutWideLinesIntoRows([l + "#1"], map, undefined, false, 0.5).placed[0].segments[0];
+  const cubics = (st) => (st.d.match(/C/g) || []).length;
+  it("alone it keeps its lower hook; before a letter the hook is replaced by the connector of о from the lowest point", () => {
+    const alone = seg("У");
+    const joined = seg("Ут");
+    // the body is cut at the lowest point (shorter than the standalone stroke), the connector is one cubic of its own, then т
+    expect(cubics(joined.strokes[0])).toBeLessThan(cubics(alone.strokes[0]));
+    expect(cubics(joined.strokes[1])).toBe(1);
+    expect(joined.strokes.length).toBe(alone.strokes.length + 1 + seg("т").strokes.length);
+    // the connector is the same curve as after о (same length of path, one cubic)
+    const o = seg("ом");
+    expect(cubics(o.strokes[1])).toBe(1);
+  });
+  it("the connector starts where the body ends and the next letter starts after it (no overlap on the hook)", () => {
+    const ends = (d) => (d.match(/-?\d+\.?\d*/g) || []).map(Number);
+    const joined = seg("Ут");
+    const body = ends(joined.strokes[0].d);
+    const conn = ends(joined.strokes[1].d);
+    expect(conn[0]).toBeCloseTo(body[body.length - 2], 1);
+    expect(conn[1]).toBeCloseTo(body[body.length - 1], 1);
+    // it rises to the right
+    expect(conn[conn.length - 2]).toBeGreaterThan(conn[0] + 20);
+    expect(conn[conn.length - 1]).toBeLessThan(conn[1] - 10);
+  });
+});
 });

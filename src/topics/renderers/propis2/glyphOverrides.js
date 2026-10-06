@@ -8,6 +8,8 @@
 //   tailStroke — index of a stroke that IS the connector (a stroke of its own in the capture)
 //   tailLift   — the connector gets the "end above the dashed line" lift the letter's exit used to get
 //   tailContinuous — the pen does not lift between the letter and its connector
+//   joinCut    — {stroke, at: "bottom" | keep}: the letter ends on its own side (У: the lower hook curls up-left); when a letter follows, the cubics after the lowest point
+//                are replaced by the connector of `joinLike` (о) from the lowest point; alone the letter keeps its hook
 export const P2_GLYPH_OVERRIDES = {
   "о": { tailSplit: 0, tailLift: true, tailContinuous: true },
   "ю": { tailSplit: 0, tailLift: true, tailContinuous: true },
@@ -15,6 +17,12 @@ export const P2_GLYPH_OVERRIDES = {
   "в": { tailSplit: 0, tailLift: true, tailContinuous: true },
   "б": { tailStroke: 1, tailLift: true },
   "э": { tailStroke: 2, tailLift: true },
+  // capital У: from its lowest point the connector is the same as after о (a little along the bottom, then right and up to the middle of the row)
+  "У": { joinCut: { stroke: 0, at: "bottom" }, joinLikeLabel: "о", tailContinuous: true },
 };
 
-export const withGlyphOverrides = (glyphs) => (glyphs ?? []).map((g) => (P2_GLYPH_OVERRIDES[g.label] ? { ...g, ...P2_GLYPH_OVERRIDES[g.label] } : g));
+export const withGlyphOverrides = (glyphs) => {
+  const patched = (glyphs ?? []).map((g) => (P2_GLYPH_OVERRIDES[g.label] ? { ...g, ...P2_GLYPH_OVERRIDES[g.label] } : g));
+  // `joinLikeLabel` -> the (already patched) glyph whose connector is borrowed
+  return patched.map((g) => (g.joinLikeLabel ? { ...g, joinLike: patched.find((x) => x.label === g.joinLikeLabel) } : g));
+};

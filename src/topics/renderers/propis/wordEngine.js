@@ -1293,6 +1293,28 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
     if (Number.isInteger(glyph.exitStroke) && strokes[glyph.exitStroke]) bi = glyph.exitStroke; // б: the exit is its own stroke, not the flag
     strokes[bi] = { d: liftEndToD(strokes[bi].d, targetY) };
   }
+  // `joinCut` {stroke, keep | at: "bottom"} + `joinLike` (a glyph with a connector, о): the letter ends on its own side (У: the lower hook curls up-left), so
+  // when a letter FOLLOWS, its last cubics are replaced by that glyph's connector from the cut point (the lowest point of the letter);
+  // written alone the letter keeps its hook. Returned as `joinedStroke` + `tail`; the layout swaps the stroke in when a letter follows.
+  let joinedStroke = null;
+  if (!tail && glyph.joinCut && glyph.joinLike && strokes[glyph.joinCut.stroke]) {
+    const like = wideGlyphLocal(glyph.joinLike, scale);
+    const idx = glyph.joinCut.stroke;
+    const tokens = strokes[idx].d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+    const cAt = tokens.flatMap((t, i) => (t === "C" ? [i] : []));
+    // where to cut: after the first `keep` cubics, or ("bottom") right after the cubic that ends lowest on the page
+    let keep = glyph.joinCut.keep;
+    if (glyph.joinCut.at === "bottom") {
+      let low = -Infinity;
+      cAt.forEach((ci, k) => { const y = Number(tokens[ci + 6]); if (y > low + 1e-6) { low = y; keep = k + 1; } });
+    }
+    if (like.tail && keep && cAt.length > keep) {
+      const body = tokens.slice(0, cAt[keep]);
+      const likeStart = getPathEndpoints(like.tail.d).start;
+      joinedStroke = { index: idx, d: body.join(" ") };
+      tail = { d: transformPathD(like.tail.d, { translateX: Number(body[body.length - 2]) - likeStart[0], translateY: Number(body[body.length - 1]) - likeStart[1] }) };
+    }
+  }
   const start = getPathEndpoints(strokes[0].d).start;
   // Exit = end of the stroke that reaches furthest right ("й": the main stroke, not the breve;
   // "к": the second stroke) -- the real continuation point of the pen.
@@ -1315,7 +1337,7 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
     const crossings = pathXsAtY(strokes[0].d, dashY);
     if (crossings.length) contactDx = Math.min(...crossings) - start[0];
   }
-  return { strokes, tail, start, end, exitStrokeIndex, contactDx, minX: Math.min(...xs), maxX: Math.max(...xs) };
+  return { strokes, tail, joinedStroke, start, end, exitStrokeIndex, contactDx, minX: Math.min(...xs), maxX: Math.max(...xs) };
 }
 
 // `snapX(rowIndex, x, y)` -> x of the nearest slant-grid line at row-local point (x, y), supplied by
@@ -1492,6 +1514,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         if (!glyph) continue;
         if (pendingTail && !glyph.noJoin) {
           delete pendingTail.always;
+          if (pendingTail.replace) { strokes[pendingTail.replace.index] = { ...strokes[pendingTail.replace.index], d: pendingTail.replace.d }; delete pendingTail.replace; }
           strokes.push(pendingTail);
           prevExit = getPathEndpoints(pendingTail.d).end;
           prevExitStroke = strokes.length - 1;
@@ -1576,7 +1599,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         if (glyph.noJoin) { prevExit = null; prevExitStroke = -1; }
         if (local.tail) {
-          pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), always: !!glyph.tailAlways, ...(glyph.tailContinuous ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) };
+          pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), ...(local.joinedStroke ? { replace: { index: firstMovedIndex + local.joinedStroke.index, d: transformPathD(local.joinedStroke.d, { translateX: dx }) } } : {}), always: !!glyph.tailAlways, ...(glyph.tailContinuous ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) };
           prevExit = null;
           prevExitStroke = -1;
         }
@@ -1588,6 +1611,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       // tailAlways glyphs (П, Т: the connector is drawn after the bar) keep their tail when nothing follows
       if (pendingTail?.always) {
         delete pendingTail.always;
+        delete pendingTail.replace;
         strokes.push(pendingTail);
         prevExit = getPathEndpoints(pendingTail.d).end;
         prevExitStroke = strokes.length - 1;
