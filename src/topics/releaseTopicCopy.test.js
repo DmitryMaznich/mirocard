@@ -130,8 +130,8 @@ describe("release topic copy", () => {
       const visible = container.textContent;
       expect(visible).toContain("суп из рыбы — рыбный суп");
       expect(visible).toContain("Знакомство с парами");
-      expect(visible).toContain("Выбери окончание (времена года)");
-      expect(visible).toContain("Цель: Ребёнок выбирает согласованную форму сезонного прилагательного");
+      expect(visible).toContain("Согласование прилагательных");
+      expect(visible).toContain("Цель: Ребёнок согласует знакомое прилагательное с существительным по роду и числу");
       expect(visible).not.toContain("переносит навык в занятие");
     } finally {
       act(() => root.unmount());

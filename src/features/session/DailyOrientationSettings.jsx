@@ -4,7 +4,15 @@ import {
   DEFAULT_WAKE_HOUR,
   getDaypartId,
   parseWeeklyPlan,
+  splitPlanIcon,
 } from "@/topics/renderers/daily_orientation/timeUtils";
+import {
+  daysUntil,
+  daysWord,
+  formatDayMonth,
+  sortByNextOccurrence,
+  visibleImportantDates,
+} from "@/features/importantDates/importantDates";
 import "./dailyOrientationSettings.css";
 
 // Settings screen for the "Сегодня" wall display. Instead of a flat list of
@@ -50,9 +58,26 @@ const WEEK = [
   { day: 0, short: "Вс", name: "Воскресенье", weekend: true },
 ];
 
+// Pictures for the weekly plan: a child who doesn't read yet recognises
+// the day by its picture ("🏊 Бассейн").
+const PLAN_ICONS = ["🏫", "🏠", "🏊", "⚽", "🎨", "🎵", "🗣️", "🩺", "🛒", "🌳", "🚗", "🧸", "👵", "🎂"];
+
 const WAKE_RANGE = [5, 9];
 const BED_RANGE = [19, 23];
 const DAYPART_LABELS = { morning: "Утро", day: "День", evening: "Вечер", night: "Ночь" };
+
+const IMPORTANT_DATES_STYLES = [
+  { value: "bright", label: "Празднично", hint: "Гирлянда, тёплый фон и полоса с фото" },
+  { value: "calm", label: "Спокойно", hint: "Только полоса с фото — для детей, которых пугают перемены на экране" },
+  { value: "off", label: "Не показывать", hint: "Экран не отмечает важные даты" },
+];
+
+function whenText(item, today) {
+  const left = daysUntil(item, today);
+  if (left === 0) return "сегодня";
+  if (left === 1) return "завтра";
+  return `через ${daysWord(left)}`;
+}
 
 function isOn(params, key) {
   return params[key] !== false;
@@ -122,7 +147,7 @@ function HourStepper({ id, label, value, range, onChange }) {
   );
 }
 
-export default function DailyOrientationSettings({ params, setParams }) {
+export default function DailyOrientationSettings({ params, setParams, student, onOpenImportantDates }) {
   const [nudgedCard, setNudgedCard] = useState(null);
   const wakeHour = Number(params.wakeHour ?? DEFAULT_WAKE_HOUR);
   const bedHour = Number(params.bedHour ?? DEFAULT_BED_HOUR);
@@ -130,6 +155,7 @@ export default function DailyOrientationSettings({ params, setParams }) {
   // with trimming, so reading straight from it would eat a space the moment
   // it's typed between two words.
   const [planDraft, setPlanDraft] = useState(() => parseWeeklyPlan(params.weeklyPlan ?? ""));
+  const [iconPickerDay, setIconPickerDay] = useState(null);
   const visibleCards = MAP_CARDS.filter((card) => cardIsOn(params, card));
   const hiddenLabels = [
     ...(isOn(params, "showCarousel") ? [] : ["вчера, сегодня, завтра"]),
@@ -138,6 +164,12 @@ export default function DailyOrientationSettings({ params, setParams }) {
   const timeOn = cardIsOn(params, MAP_CARDS.find((card) => card.id === "time"));
   const daypartOn = isOn(params, "showDaypart");
   const clockPartsOn = CLOCK_PARTS.filter((part) => isOn(params, part.key));
+  const today = new Date();
+  const importantDates = visibleImportantDates(student?.importantDates);
+  const upcomingDates = sortByNextOccurrence(importantDates, today)
+    .filter((item) => daysUntil(item, today) !== null)
+    .slice(0, 3);
+  const datesStyle = params.importantDatesStyle ?? "bright";
 
   function set(patch) {
     setParams((current) => ({ ...current, ...patch }));
@@ -165,6 +197,12 @@ export default function DailyOrientationSettings({ params, setParams }) {
     const next = { ...planDraft, [day]: text };
     setPlanDraft(next);
     set({ weeklyPlan: serializeWeeklyPlan(next) });
+  }
+
+  // The picture is stored in front of the text ("🏊 Бассейн"), so saved
+  // plans and the "Пн: …" format stay as they were.
+  function setPlanDayParts(day, { icon, text }) {
+    setPlanDay(day, icon ? `${icon} ${text}` : text);
   }
 
   return (
@@ -208,6 +246,25 @@ export default function DailyOrientationSettings({ params, setParams }) {
             : `Скрыто: ${hiddenLabels.join(", ")}`}
         </p>
 
+        <div className="dos-subgroup">
+          <span className="dos-subgroup__label" id="dos-case-label">Буквы на карточках</span>
+          <div className="dos-dates__styles" role="radiogroup" aria-labelledby="dos-case-label">
+            {[["upper", "ЗАГЛАВНЫЕ"], ["sentence", "Обычные"]].map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={(params.letterCase ?? "upper") === value}
+                className={`dos-chip${(params.letterCase ?? "upper") === value ? " dos-chip--on" : ""}`}
+                onClick={() => set({ letterCase: value })}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="dos-dates__style-hint">Одна форма везде: ребёнок, который читает словами, не должен видеть «СРЕДА» на карточке и «Среда» в окне.</p>
+        </div>
+
         {timeOn && (
           <div className="dos-subgroup">
             <span className="dos-subgroup__label" id="dos-clock-label">Время показывать</span>
@@ -228,6 +285,30 @@ export default function DailyOrientationSettings({ params, setParams }) {
                 );
               })}
             </div>
+          </div>
+        )}
+        {timeOn && isOn(params, "showTimeWords") && (
+          <div className="dos-subgroup">
+            <span className="dos-subgroup__label" id="dos-timewords-label">Время словами</span>
+            <div className="dos-dates__styles" role="radiogroup" aria-labelledby="dos-timewords-label">
+              {[["exact", "Точно"], ["spoken", "Как говорят дома"]].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={(params.timeWordsStyle ?? "exact") === value}
+                  className={`dos-chip${(params.timeWordsStyle ?? "exact") === value ? " dos-chip--on" : ""}`}
+                  onClick={() => set({ timeWordsStyle: value })}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="dos-dates__style-hint">
+              {(params.timeWordsStyle ?? "exact") === "spoken"
+                ? "«Двадцать минут десятого», «без пяти десять», «половина десятого»."
+                : "«Девять часов двадцать минут» — по цифрам на часах."}
+            </p>
           </div>
         )}
       </section>
@@ -262,6 +343,80 @@ export default function DailyOrientationSettings({ params, setParams }) {
         </div>
       </section>
 
+      <section className="dos-section" aria-labelledby="dos-sound-title">
+        <header className="dos-section__head">
+          <h2 className="dos-section__title" id="dos-sound-title">Озвучка карточек</h2>
+          <p className="dos-section__hint">
+            Обычно не нужна: экран используется со взрослым, и отвечает ребёнок. Включите, если ребёнок
+            не может сказать ответ — тогда он нажимает кнопку на карточке, и планшет произносит ответ за него.
+          </p>
+        </header>
+        <div className="dos-subgroup">
+          <span className="dos-subgroup__label" id="dos-sound-label">Кнопка «Прослушать» на карточках</span>
+          <div className="dos-dates__styles" role="radiogroup" aria-labelledby="dos-sound-label">
+            {[[false, "Выключена"], [true, "Включена"]].map(([value, label]) => (
+              <button
+                key={label}
+                type="button"
+                role="radio"
+                aria-checked={(params.cardSound === true) === value}
+                className={`dos-chip${(params.cardSound === true) === value ? " dos-chip--on" : ""}`}
+                onClick={() => set({ cardSound: value })}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={`dos-section${datesStyle === "off" ? " dos-section--muted" : ""}`} aria-labelledby="dos-dates-title">
+        <header className="dos-section__head">
+          <h2 className="dos-section__title" id="dos-dates-title">Важные даты</h2>
+          <p className="dos-section__hint">Дни рождения, праздники и события из профиля ребёнка: в этот день экран выглядит празднично, а заранее показывает, сколько дней осталось.</p>
+        </header>
+
+        <div className="dos-card dos-dates">
+          {upcomingDates.length ? (
+            <ul className="dos-dates__list">
+              {upcomingDates.map((item) => (
+                <li key={item.id} className="dos-dates__item">
+                  <span className="dos-dates__icon" aria-hidden="true">{item.icon}</span>
+                  <span className="dos-dates__title">{item.title}</span>
+                  <span className="dos-dates__when">{formatDayMonth(item)} · {whenText(item, today)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="dos-dates__empty">Пока нет ни одной даты.</p>
+          )}
+          {onOpenImportantDates && (
+            <button type="button" className="dos-dates__open" onClick={onOpenImportantDates}>
+              {importantDates.length ? "Настроить даты" : "Добавить даты"}
+            </button>
+          )}
+        </div>
+
+        <div className="dos-subgroup">
+          <span className="dos-subgroup__label" id="dos-dates-style-label">Как отмечать на экране</span>
+          <div className="dos-dates__styles" role="radiogroup" aria-labelledby="dos-dates-style-label">
+            {IMPORTANT_DATES_STYLES.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={datesStyle === option.value}
+                className={`dos-chip${datesStyle === option.value ? " dos-chip--on" : ""}`}
+                onClick={() => set({ importantDatesStyle: option.value })}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <p className="dos-dates__style-hint">{IMPORTANT_DATES_STYLES.find((option) => option.value === datesStyle)?.hint}</p>
+        </div>
+      </section>
+
       <section className="dos-section" aria-labelledby="dos-week-title">
         <header className="dos-section__head">
           <h2 className="dos-section__title" id="dos-week-title">План на неделю</h2>
@@ -269,20 +424,52 @@ export default function DailyOrientationSettings({ params, setParams }) {
         </header>
 
         <div className="dos-card dos-week">
-          {WEEK.map(({ day, short, name, weekend }) => (
-            <label key={day} className={`dos-week__row${weekend ? " dos-week__row--weekend" : ""}`}>
-              <span className="dos-week__day" title={name}>{short}</span>
-              <input
-                id={`dos-week-${day}`}
-                className="dos-week__input"
-                type="text"
-                value={planDraft[day] ?? ""}
-                placeholder={weekend ? "Например: поездка в парк" : "Например: школа"}
-                maxLength={60}
-                onChange={(event) => setPlanDay(day, event.target.value)}
-              />
-            </label>
-          ))}
+          {WEEK.map(({ day, short, name, weekend }) => {
+            const { icon, text } = splitPlanIcon(planDraft[day] ?? "");
+            return (
+              <div key={day} className={`dos-week__row${weekend ? " dos-week__row--weekend" : ""}`}>
+                <span className="dos-week__day" title={name}>{short}</span>
+                <button
+                  type="button"
+                  className={`dos-week__icon${icon ? "" : " dos-week__icon--empty"}`}
+                  aria-label={icon ? `Картинка ${name}: ${icon}. Изменить` : `Добавить картинку: ${name}`}
+                  aria-expanded={iconPickerDay === day}
+                  onClick={() => setIconPickerDay(iconPickerDay === day ? null : day)}
+                >
+                  {icon ?? "＋"}
+                </button>
+                <input
+                  id={`dos-week-${day}`}
+                  className="dos-week__input"
+                  type="text"
+                  aria-label={name}
+                  value={text}
+                  placeholder={weekend ? "Например: поездка в парк" : "Например: школа"}
+                  maxLength={60}
+                  onChange={(event) => setPlanDayParts(day, { icon, text: event.target.value })}
+                />
+                {iconPickerDay === day && (
+                  <div className="dos-week__icons" role="group" aria-label={`Картинка для дня: ${name}`}>
+                    {PLAN_ICONS.map((choice) => (
+                      <button
+                        key={choice}
+                        type="button"
+                        className={`dos-week__icon-choice${choice === icon ? " dos-week__icon-choice--on" : ""}`}
+                        onClick={() => { setPlanDayParts(day, { icon: choice, text }); setIconPickerDay(null); }}
+                      >
+                        {choice}
+                      </button>
+                    ))}
+                    {icon && (
+                      <button type="button" className="dos-week__icon-clear" onClick={() => { setPlanDayParts(day, { icon: null, text }); setIconPickerDay(null); }}>
+                        Без картинки
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>

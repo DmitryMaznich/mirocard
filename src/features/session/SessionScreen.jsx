@@ -362,10 +362,14 @@ export default function SessionScreen() {
         </div>
       ) : sessionState?.tasks.length === 0 ? (
         <div className="screen-center" style={{ gap: 16, padding: 24, textAlign: "center" }}>
-          <div>Для выбранных понятий нет подходящих предложений.</div>
-          <div>Попробуйте выбрать другие понятия.</div>
-          <button className="btn btn--secondary" style={{ marginTop: 8 }} onClick={() => setScreen("concepts")}>
-            <BackArrowIcon size={16} /> Назад к понятиям
+          <div>{topicRecord.meta.id === "word_formation_soup" && sessionParams.materialSet === "transfer"
+            ? "Для выбранного набора нет подготовленных заданий на новые сочетания."
+            : "Для выбранных понятий нет подходящих предложений."}</div>
+          <div>{topicRecord.meta.id === "word_formation_soup"
+            ? "Выберите другую категорию или знакомые сочетания в настройках занятия."
+            : "Попробуйте выбрать другие понятия."}</div>
+          <button className="btn btn--secondary" style={{ marginTop: 8 }} onClick={() => setScreen(topicRecord.meta.id === "word_formation_soup" ? "params" : "concepts")}>
+            <BackArrowIcon size={16} /> {topicRecord.meta.id === "word_formation_soup" ? "Назад к настройкам" : "Назад к понятиям"}
           </button>
         </div>
       ) : (

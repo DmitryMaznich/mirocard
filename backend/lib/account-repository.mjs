@@ -107,6 +107,36 @@ function mergeMyPeople(existing, incoming) {
   return [...byId.values()];
 }
 
+// Important dates (the "Сегодня" screen's birthdays/holidays/events) are
+// edited one card at a time like My People, so they merge the same way: by
+// id, newest change wins, tombstones kept. Each card has at most one photo.
+function processImportantDatePhotos(db, dates) {
+  if (!Array.isArray(dates)) return [];
+  return dates.map((item) => ({
+    ...item,
+    photo: item.deletedAt || typeof item.photo !== "string" || !item.photo ? null : extractAndStorePhoto(db, item.photo),
+    // Photos from the day itself, keyed by year ("2026": [...]).
+    eventPhotos: item.deletedAt || !item.eventPhotos || typeof item.eventPhotos !== "object"
+      ? {}
+      : Object.fromEntries(Object.entries(item.eventPhotos).map(([year, photos]) => [
+        year,
+        (Array.isArray(photos) ? photos : []).filter((photo) => typeof photo === "string" && photo).map((photo) => extractAndStorePhoto(db, photo)),
+      ])),
+  }));
+}
+
+function mergeImportantDates(existing, incoming) {
+  const byId = new Map();
+  for (const item of [...(existing ?? []), ...(incoming ?? [])]) {
+    if (!item?.id) continue;
+    const current = byId.get(item.id);
+    const sameEdit = current && personChangeTime(item) === personChangeTime(current);
+    if (current && sameEdit && current.photo?.startsWith?.("/api/photos/") && item.photo?.startsWith?.("data:")) continue;
+    if (!current || personChangeTime(item) >= personChangeTime(current)) byId.set(item.id, item);
+  }
+  return [...byId.values()];
+}
+
 export function getPhoto(db, hash) {
   return db.prepare("SELECT content_type, data FROM photos WHERE hash = ?").get(hash) ?? null;
 }
@@ -555,6 +585,18 @@ export function upsertStudentMyPeople(db, accountId, { studentId, people, update
   const newest = [existing.my_people_updated_at, updatedAt].filter(Boolean).sort().at(-1) ?? updatedAt;
   db.prepare(
     "UPDATE students SET my_people = ?, my_people_updated_at = ? WHERE id = ?"
+  ).run(JSON.stringify(merged), newest, studentId);
+}
+
+export function upsertStudentImportantDates(db, accountId, { studentId, dates, updatedAt }) {
+  const existing = db.prepare(
+    "SELECT important_dates, important_dates_updated_at FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
+  ).get(studentId, accountId);
+  if (!existing) return;
+  const merged = mergeImportantDates(safeJson(existing.important_dates, []), processImportantDatePhotos(db, dates));
+  const newest = [existing.important_dates_updated_at, updatedAt].filter(Boolean).sort().at(-1) ?? updatedAt;
+  db.prepare(
+    "UPDATE students SET important_dates = ?, important_dates_updated_at = ? WHERE id = ?"
   ).run(JSON.stringify(merged), newest, studentId);
 }
 

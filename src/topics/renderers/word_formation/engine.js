@@ -1,4 +1,7 @@
 import { shuffle } from "@/shared/utils/shuffle";
+import { buildWordOptions, buildSeasonFormOptions, seasonalWordCards } from "./exerciseModel";
+import { transferCards } from "@/topics/wordFormationTransfer";
+import { soupAgreementTasks } from "@/topics/wordFormationSoup";
 
 const DIFFICULTY_ORDER = { easy: 0, medium: 1, hard: 2 };
 
@@ -27,26 +30,10 @@ function isOverview(card) {
 
 function generatePairIntroTasks(cards, params) {
   const filtered = filterByCategory(cards, params.category);
-  const active   = filtered.length > 0 ? filtered : cards;
+  const active   = filtered;
 
-  const overviewCards = active.filter(isOverview);
-  const regularCards  = active.filter(c => !isOverview(c));
-
-  const tasks = overviewCards.map(card => ({
-    type: "season_overview",
-    card,
-    params,
-  }));
-
-  if (regularCards.length > 0) {
-    tasks.push({
-      type:  "pair_intro",
-      cards: sortByDifficulty(regularCards),
-      params,
-    });
-  }
-
-  return tasks;
+  const playable = sortByDifficulty([...active.filter(c => !isOverview(c)), ...seasonalWordCards(active)]);
+  return playable.map(card => ({ type: "pair_intro", cards: [card], params }));
 }
 
 function generateFormItTasks(cards, params) {
@@ -126,48 +113,34 @@ function generateQuestionAskTasks(cards) {
   }));
 }
 
-function generateSeasonPickItemsTasks(overviewCards, params = {}) {
-  const allItems = overviewCards.flatMap(card =>
-    (card.items ?? []).map(it => ({ ...it, _seasonCardId: card.id }))
-  );
-  return shuffle(overviewCards.map(card => {
-    const correct     = shuffle([...(card.items ?? [])]).slice(0, 2);
-    const distractors = shuffle(allItems.filter(it => it._seasonCardId !== card.id)).slice(0, 4);
-    const chips = shuffle([
-      ...correct.map(it    => ({ ...it, isTarget: true  })),
-      ...distractors.map(it => ({ ...it, isTarget: false })),
-    ]);
-    return { type: "season_pick_items", card, chips, params };
-  }));
-}
-
 function generatePickFormTasks(cards, params) {
-  const filtered = filterByCategory(cards, params.category);
-  const active   = filtered.length > 0 ? filtered : cards;
-  const overviewCards = active.filter(isOverview);
-  const playable      = active.filter(c => !isOverview(c));
-  return [
-    ...(overviewCards.length > 0 ? generateSeasonPickItemsTasks(overviewCards, params) : []),
-    ...shuffle(sortByDifficulty(playable).map((card) => ({
-      type:     "pick_form",
-      card,
-      allCards: playable,
-      params,
-    }))),
-  ];
+  const active = filterByCategory(cards, params.category);
+  const playable = [...active.filter(c => !isOverview(c)), ...seasonalWordCards(active)];
+  // All seasons provide meaningful distractors even when only one is selected.
+  const pool = [...active.filter(c => !isOverview(c)), ...seasonalWordCards(cards)];
+  return shuffle(playable.map(card => ({
+    type: "pick_form", card, allCards: pool, params,
+    options: buildWordOptions(card, pool, params.optionCount),
+  }))).filter(task => task.options.length >= 2);
 }
 
 function generateSeasonFormPickTasks(cards, params) {
-  const tasks = [];
-  for (const card of cards.filter(isOverview)) {
+  const selected = filterByCategory(cards, params.category ?? ["soup"]);
+  const tasks = soupAgreementTasks(selected, params);
+  for (const card of selected.filter(isOverview)) {
     for (const item of (card.items ?? [])) {
-      tasks.push({ type: "season_form_pick", card, item, params });
+      tasks.push({ type: "season_form_pick", card, item, params, options: buildSeasonFormOptions(item.adjPhrase, params.optionCount) });
     }
   }
   return shuffle(tasks);
 }
 
 export function generateTasks(mode, cards, _sessionSize, params = {}) {
+  if (params.materialSet === "transfer") {
+    cards = transferCards(cards);
+    params = { ...params, introStage: "answer", showImage: false, hintMode: "phrase",
+      activityStage: "check", questionHint: false };
+  }
   switch (mode.type) {
     case "pair_intro":        return generatePairIntroTasks(cards, params);
     case "pick_form":         return generatePickFormTasks(cards, params);

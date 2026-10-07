@@ -211,18 +211,18 @@
     },
     {
       "id": "word_formation_soup",
-      "version": "1.0.51",
-      "url": "./decks/word_formation_soup_v1.0.51.zip",
-      "zipUrl": "word_formation_soup_v1.0.51.zip",
+      "version": "1.0.57",
+      "url": "./decks/word_formation_soup_v1.0.57.zip",
+      "zipUrl": "word_formation_soup_v1.0.57.zip",
       "title": {
         "ru": "Словообразование"
       },
       "renderer": "word_formation",
-      "file": "word_formation_soup_v1.0.51.zip",
+      "file": "word_formation_soup_v1.0.57.zip",
       "status": "release",
       "access": "paid",
       "description": {
-        "ru": "В группах «суп», «сок», «варенье», «каша» и «материалы» ребёнок соотносит сочетание «из чего?» с прилагательным: суп из рыбы — рыбный суп, дом из дерева — деревянный дом. Отдельно представлены слова о погоде и временах года. Три режима: знакомство с парами, выбор подходящей формы и выбор окончания сезонного прилагательного.",
+        "ru": "В группах «суп», «сок», «варенье», «каша» и «материалы» ребёнок соотносит сочетание «из чего?» с прилагательным. В сценарии «Суп» продукт связан с фотографией готового супа: суп из рыбы — рыбный суп. Три режима: знакомство с парами, выбор прилагательного и согласование прилагательных с существительными. Отдельно представлены погода и времена года.",
         "en": "Word-formation pairs across soup, juice, jam, porridge, materials, weather, and seasons; three modes cover pair recognition, form choice, and seasonal adjective endings."
       }
     },

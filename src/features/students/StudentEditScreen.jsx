@@ -368,6 +368,17 @@ export default function StudentEditScreen() {
           </div>
         )}
 
+        {/* ── Важные даты ── */}
+        {isEdit && (
+          <div className="settings-section se-my-people-card">
+            <div className="settings-section-title">Важные даты</div>
+            <p>Дни рождения, праздники и события — для экрана «Сегодня».</p>
+            <button type="button" className="se-add-row" onClick={() => { useAppStore.getState().setImportantDatesReturnScreen("student_edit"); setScreen("important_dates_settings"); }}>
+              {initial.importantDates?.some((item) => !item.deletedAt) ? "Настроить даты" : "Добавить даты"}
+            </button>
+          </div>
+        )}
+
         {/* ── Близкие взрослые ── */}
         <div className="settings-section">
           <div className="settings-section-title">Близкие взрослые</div>

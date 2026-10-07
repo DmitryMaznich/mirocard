@@ -45,6 +45,23 @@ export function mergeMyPeople(local, server) {
   return [...byId.values()];
 }
 
+// Important dates (birthdays/holidays/events for the "Сегодня" screen) are
+// edited card by card too, so they merge exactly like My People. Each card
+// carries at most one photo.
+export function mergeImportantDates(local, server) {
+  const byId = new Map();
+  for (const item of [...(local ?? []), ...(server ?? [])]) {
+    if (!item?.id) continue;
+    const current = byId.get(item.id);
+    const sameEdit = current && myPersonChangeTime(item) === myPersonChangeTime(current);
+    if (current && sameEdit && String(current.photo ?? "").startsWith("/api/photos/") && String(item.photo ?? "").startsWith("data:")) continue;
+    if (!current || myPersonChangeTime(item) >= myPersonChangeTime(current)) {
+      byId.set(item.id, item);
+    }
+  }
+  return [...byId.values()];
+}
+
 function studentChangeTime(student) {
   return student?.deletedAt ?? student?.updatedAt ?? student?.createdAt ?? "";
 }
@@ -137,6 +154,12 @@ export function mergeStudentRecords(local, server) {
       .sort()
       .at(-1) ?? null;
 
+    const importantDates = mergeImportantDates(current.importantDates, student.importantDates);
+    const importantDatesUpdatedAt = [current.importantDatesUpdatedAt, student.importantDatesUpdatedAt]
+      .filter(Boolean)
+      .sort()
+      .at(-1) ?? null;
+
     byId.set(student.id, {
       ...winner,
       photo:          resolvedPhoto,
@@ -151,6 +174,8 @@ export function mergeStudentRecords(local, server) {
       myPeopleProfileUpdatedAt,
       myPeople,
       myPeopleUpdatedAt,
+      importantDates,
+      importantDatesUpdatedAt,
     });
   }
 

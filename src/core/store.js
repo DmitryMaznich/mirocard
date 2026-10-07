@@ -122,6 +122,10 @@ export const useAppStore = create((set) => ({
   // there, otherwise the student card it has always returned to.
   myPeopleReturnScreen: null,
   setMyPeopleReturnScreen: (myPeopleReturnScreen) => set({ myPeopleReturnScreen }),
+  // Same for "Важные даты": opened from the student card or from the
+  // "Сегодня" topic's settings.
+  importantDatesReturnScreen: null,
+  setImportantDatesReturnScreen: (importantDatesReturnScreen) => set({ importantDatesReturnScreen }),
 
   students: [],
   setStudents: (students) => set({ students }),

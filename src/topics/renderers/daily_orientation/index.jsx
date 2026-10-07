@@ -1,12 +1,27 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSpeech } from "@/shared/hooks/useSpeech";
+import { useAppStore } from "@/core/store";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
+import {
+  agePhrase,
+  ageOn,
+  cardPhoto,
+  conversationQuestions,
+  countdownPhrase,
+  dayPhrase,
+  eventPhotosFor,
+  eventsOnDate,
+  isBirthdayType,
+  nearestCountdown,
+  visibleImportantDates,
+  yesterdayPhrase,
+} from "@/features/importantDates/importantDates";
 import {
   dateClipKeys,
   daypartClipKeys,
   monthClipKeys,
   seasonClipKeys,
   timeClipKeys,
-  weatherClipKeys,
   weekdayClipKeys,
 } from "./audioBank.js";
 import { clipsSupported, useClipPlayer } from "./clipPlayer.js";
@@ -28,7 +43,10 @@ import {
   getSpokenSeason,
   getSpokenTime,
   getSpokenWeekday,
+  getSpokenClockWordParts,
   parseWeeklyPlan,
+  splitPlanIcon,
+  spokenClockSentence,
 } from "./timeUtils";
 import { DateContent, DaypartContent, MonthContent, SeasonContent, WeekContent } from "./ConceptModals.jsx";
 import "./dailyOrientation.css";
@@ -45,21 +63,34 @@ const MODAL_IDLE_CLOSE_MS = 90_000;
 
 const WEATHER_STORAGE_KEY = "daily_orientation_weather";
 
-// Feminine adjectives agreeing with "погода" ("погода дождливая", not
-// "погода — дождь"): дождь/снег/туман name the precipitation/phenomenon
-// itself, not a description of the weather, so they're wrong here even
-// though they're the obvious first word that comes to mind for each icon.
+// How people actually say it: "Сегодня солнечно", "Сегодня идёт дождь",
+// "Сегодня туман". (These were "погода солнечная/дождливая" adjectives --
+// grammatical, but nobody talks like that, and a child learns the phrase
+// they hear.) Spoken with browser TTS: the recorded clips still say the old
+// adjective form, so they're no longer used for this card.
 const WEATHER_OPTIONS = [
-  { id: "sunny", label: "СОЛНЕЧНАЯ" },
-  { id: "cloudy", label: "ПАСМУРНАЯ" },
-  { id: "rain", label: "ДОЖДЛИВАЯ" },
-  { id: "snow", label: "СНЕЖНАЯ" },
-  { id: "fog", label: "ТУМАННАЯ" },
+  { id: "sunny", label: "СОЛНЕЧНО" },
+  { id: "cloudy", label: "ПАСМУРНО" },
+  { id: "rain", label: "ИДЁТ ДОЖДЬ" },
+  { id: "snow", label: "ИДЁТ СНЕГ" },
+  { id: "fog", label: "ТУМАН" },
 ];
 const WEATHER_LABEL_BY_ID = Object.fromEntries(WEATHER_OPTIONS.map((o) => [o.id, o.label]));
 
+// Answers on the cards are written in capitals by default; "sentence" case
+// ("Среда", "Октябрь") is for a child who reads whole words and would see
+// "СРЕДА" here and "Среда" in the modals as two different words.
+function makeCaseText(sentenceCase) {
+  return (text) => {
+    const value = String(text ?? "");
+    if (!sentenceCase) return value.toLocaleUpperCase("ru-RU");
+    const lower = value.toLocaleLowerCase("ru-RU");
+    return lower.charAt(0).toLocaleUpperCase("ru-RU") + lower.slice(1);
+  };
+}
+
 function getSpokenWeather(weatherId) {
-  return `Погода ${WEATHER_LABEL_BY_ID[weatherId].toLowerCase()}.`;
+  return `Сегодня ${WEATHER_LABEL_BY_ID[weatherId].toLowerCase()}.`;
 }
 
 function readStoredWeather(dateKey) {
@@ -520,7 +551,7 @@ function FitText({ className, children }) {
   );
 }
 
-function DaypartCard({ daypartId, hidden, speakerButton, cardProps }) {
+function DaypartCard({ daypartId, hidden, speakerButton, cardProps, caseText }) {
   return (
     <article
       className={`daily-orientation__card daily-orientation__card--daypart daily-orientation__card--daypart-${daypartId} daily-orientation__card--speakable${hidden ? " daily-orientation__card--daypart-hidden" : ""}`}
@@ -539,7 +570,7 @@ function DaypartCard({ daypartId, hidden, speakerButton, cardProps }) {
             className={`daily-orientation__daypart-step${part.id === daypartId ? " daily-orientation__daypart-step--current" : ""}`}
             aria-current={part.id === daypartId ? "true" : undefined}
           >
-            {part.label}
+            {caseText(part.label)}
           </li>
         ))}
       </ol>
@@ -549,6 +580,194 @@ function DaypartCard({ daypartId, hidden, speakerButton, cardProps }) {
 
 function longestWordLength(text) {
   return Math.max(...text.split(/\s+/).map((word) => word.length));
+}
+
+// ── Важные даты ─────────────────────────────────────────────────────
+// A day from the student's "Важные даты" is marked on the screen itself: a
+// ribbon under the carousel with the photo and one sentence ("Сегодня день
+// рождения мамы!"), and -- in the "Празднично" style -- a garland and a warm
+// background, so the difference is visible from across the room. In the
+// days before it, a quieter ribbon counts down. Nothing animates and
+// nothing plays on its own: a sudden change to a familiar screen can upset
+// a child, and the countdown is there so the day doesn't come as a surprise.
+// No speaker on the ribbons, deliberately: the screen is always used with
+// an adult, and saying the sentence is the child's job, not the tablet's.
+
+const GARLAND_COLORS = ["#f59e0b", "#4a9b8f", "#e8684a", "#3b82f6", "#a855f7", "#22c55e"];
+const GARLAND_FLAGS = 23;
+const MAX_CANDLES = 12;
+
+function Garland({ width }) {
+  const sag = 38;
+  const flags = Array.from({ length: GARLAND_FLAGS }, (_, index) => {
+    const x = 20 + index * ((width - 40) / (GARLAND_FLAGS - 1));
+    const t = x / width;
+    const y = 8 + 4 * sag * t * (1 - t);
+    return <path key={index} d={`M${x - 18} ${y} L${x + 18} ${y} L${x} ${y + 40} Z`} fill={GARLAND_COLORS[index % GARLAND_COLORS.length]} />;
+  });
+  return (
+    <svg className="daily-orientation__garland" viewBox={`0 0 ${width} 70`} preserveAspectRatio="none" aria-hidden="true">
+      <path d={`M0 8 Q${width / 2} ${8 + 2 * sag} ${width} 8`} fill="none" stroke="#b9a68a" strokeWidth="3" />
+      {flags}
+    </svg>
+  );
+}
+
+function ImportantPicture({ item, photo, className }) {
+  return (
+    <span className={`${className} daily-orientation__important-picture--${item.type}`} aria-hidden="true">
+      {photo ? <AuthenticatedImage src={photo} alt="" draggable="false" /> : <span>{item.icon}</span>}
+    </span>
+  );
+}
+
+function Candle({ lit }) {
+  return (
+    <svg className={`daily-orientation__candle${lit ? " daily-orientation__candle--lit" : ""}`} viewBox="0 0 24 56" aria-hidden="true">
+      {lit && <path className="daily-orientation__candle-flame" d="M12 2c3.5 5 5 8 5 11a5 5 0 0 1-10 0c0-3 1.5-6 5-11Z" />}
+      <rect className="daily-orientation__candle-wick" x="11" y="17" width="2" height="5" rx="1" />
+      <rect className="daily-orientation__candle-body" x="5" y="22" width="14" height="32" rx="3" />
+    </svg>
+  );
+}
+
+function AskButton({ onClick }) {
+  return (
+    <button type="button" className="daily-orientation__ask" onClick={onClick} aria-label="Вопросы для разговора">?</button>
+  );
+}
+
+// The day's photos (added afterwards in "Важные даты") as a small strip;
+// a tap opens them large for retelling.
+function EventPhotoStrip({ photos, onOpen }) {
+  if (!photos.length) return null;
+  const shown = photos.slice(0, 3);
+  return (
+    <button type="button" className="daily-orientation__important-photos" onClick={onOpen} aria-label={`Фото с этого дня: ${photos.length}`}>
+      {shown.map((photo) => <AuthenticatedImage key={photo} src={photo} alt="" draggable="false" />)}
+      {photos.length > shown.length && <span className="daily-orientation__important-photos-more">+{photos.length - shown.length}</span>}
+    </button>
+  );
+}
+
+// offset -1 is the day after: a calmer ribbon ("Вчера был день рождения
+// мамы") with the photos from it, for "Что мы делали?".
+function ImportantDayRibbon({ events, offset, date, pictureFor, onAsk, onOpenPhotos }) {
+  const past = offset < 0;
+  return (
+    <section
+      className={`daily-orientation__important daily-orientation__important--day${past ? " daily-orientation__important--past" : ""}${events.length > 1 ? " daily-orientation__important--double" : ""}`}
+      aria-label={past ? "Вчера был важный день" : "Важный день"}
+    >
+      {events.map((item) => {
+        const age = !past && item.type === "own_birthday" ? ageOn(item, date) : null;
+        const photo = pictureFor(item);
+        const photos = eventPhotosFor(item, date.getFullYear());
+        const eyebrow = past ? "Вчера был важный день" : offset > 0 ? "Завтра важный день" : "Важный день";
+        return (
+          <div key={item.id} className="daily-orientation__important-event">
+            <span className="daily-orientation__important-frame">
+              <ImportantPicture item={item} photo={photo} className="daily-orientation__important-picture" />
+              {!past && item.type === "own_birthday" && <span className="daily-orientation__important-crown" aria-hidden="true">👑</span>}
+              {!past && item.type === "birthday" && (
+                <>
+                  <span className="daily-orientation__important-balloon daily-orientation__important-balloon--a" aria-hidden="true">🎈</span>
+                  <span className="daily-orientation__important-balloon daily-orientation__important-balloon--b" aria-hidden="true">🎈</span>
+                </>
+              )}
+            </span>
+            <div className="daily-orientation__important-copy">
+              <p className="daily-orientation__important-eyebrow">{eyebrow}</p>
+              <p className="daily-orientation__important-phrase">
+                {past ? (yesterdayPhrase(item) ?? item.title) : dayPhrase(item, offset)}
+                {age && offset === 0 && <span className="daily-orientation__important-age"> {agePhrase(item, date)}</span>}
+              </p>
+            </div>
+            {photos.length > 0 ? (
+              <EventPhotoStrip photos={photos} onOpen={() => onOpenPhotos(photos)} />
+            ) : age && offset === 0 && age <= MAX_CANDLES ? (
+              <span className="daily-orientation__important-candles" aria-hidden="true">
+                {Array.from({ length: age }, (_, index) => <Candle key={index} lit />)}
+              </span>
+            ) : !past && events.length === 1 && isBirthdayType(item) && photo ? (
+              <span className="daily-orientation__important-cake" aria-hidden="true">🎂</span>
+            ) : null}
+          </div>
+        );
+      })}
+      <AskButton onClick={onAsk} />
+    </section>
+  );
+}
+
+function QuestionsContent({ groups }) {
+  return (
+    <div className="daily-orientation__questions">
+      <h2 className="daily-orientation__questions-title">Вопросы для разговора</h2>
+      <p className="daily-orientation__questions-lead">Спросите ребёнка — отвечает он сам. Под вопросом — над чем он работает.</p>
+      {groups.map(({ title, questions }) => (
+        <section key={title} className="daily-orientation__questions-group">
+          {groups.length > 1 && <h3>{title}</h3>}
+          <ol>
+            {questions.map(({ question, hint }) => (
+              <li key={question}>
+                <strong>{question}</strong>
+                <span>{hint}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function PhotoViewer({ photos }) {
+  const [index, setIndex] = useState(0);
+  const count = photos.length;
+  return (
+    <div className="daily-orientation__viewer">
+      <AuthenticatedImage className="daily-orientation__viewer-photo" src={photos[index]} alt={`Фото ${index + 1} из ${count}`} draggable="false" />
+      {count > 1 && (
+        <div className="daily-orientation__viewer-nav">
+          <button type="button" onClick={() => setIndex((index - 1 + count) % count)} aria-label="Предыдущее фото"><Chevron direction="left" /></button>
+          <span>{index + 1} / {count}</span>
+          <button type="button" onClick={() => setIndex((index + 1) % count)} aria-label="Следующее фото"><Chevron direction="right" /></button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CountdownRibbon({ countdown, picture, onAsk }) {
+  const { item, daysLeft } = countdown;
+  const { title, when } = countdownPhrase(item, daysLeft);
+  const total = item.countdownDays;
+  const birthday = isBirthdayType(item);
+  return (
+    <section className="daily-orientation__important daily-orientation__important--countdown" aria-label={`${title} — ${when}`}>
+      <ImportantPicture item={item} photo={picture} className="daily-orientation__important-picture daily-orientation__important-picture--small" />
+      <p className="daily-orientation__countdown-text">
+        <span className="daily-orientation__countdown-title">{title}</span>{" "}
+        <b className="daily-orientation__countdown-when">{when}</b>
+      </p>
+      {/* One mark per day of the countdown; one goes out each morning, so
+          what's left is the number of marks still lit. Candles for a
+          birthday, plain dots for everything else. */}
+      <ol className={`daily-orientation__countdown-marks${total > 7 ? " daily-orientation__countdown-marks--many" : ""}`} aria-hidden="true">
+        {Array.from({ length: total }, (_, index) => {
+          const lit = index >= total - daysLeft;
+          return (
+            <li key={index} className="daily-orientation__countdown-mark">
+              {birthday ? <Candle lit={lit} /> : <span className={`daily-orientation__countdown-dot${lit ? " daily-orientation__countdown-dot--lit" : ""}`} />}
+            </li>
+          );
+        })}
+        <li className="daily-orientation__countdown-goal">{birthday ? "🎂" : item.icon}</li>
+      </ol>
+      <AskButton onClick={onAsk} />
+    </section>
+  );
 }
 
 function DigitalClock({ now }) {
@@ -571,13 +790,28 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const [offset, setOffset] = useState(0);
   // Which concept modal is open: "week" | "date" | "month" | "season" | "daypart" | null.
   const [openConcept, setOpenConcept] = useState(null);
+  // Questions for the adult ({ groups }) or the day's photos (string[]).
+  const [questionsFor, setQuestionsFor] = useState(null);
+  const [viewerPhotos, setViewerPhotos] = useState(null);
   const [isWeatherPickerOpen, setIsWeatherPickerOpen] = useState(false);
   const dragStart = useRef(null);
   const lastSpokenAtRef = useRef(0);
   const display = resolveDisplayOptions(sessionParams);
+  // Card speakers are off unless the adult switches them on: the screen is
+  // always used with an adult and the child says the answer. They're for a
+  // child who can't say it -- then the speaker is the child's voice (AAC).
+  const cardSound = soundEnabled && sessionParams?.cardSound === true;
   const weeklyPlan = parseWeeklyPlan(sessionParams?.weeklyPlan);
   const { weatherId, selectWeather } = useTodaysWeather(getLocalDateKey(now));
   const activeDate = addCalendarDays(now, offset);
+  const student = useAppStore((state) => state.students.find((candidate) => candidate.id === state.activeStudentId) ?? null);
+  const datesStyle = sessionParams?.importantDatesStyle ?? "bright";
+  const importantDates = datesStyle === "off" ? [] : visibleImportantDates(student?.importantDates);
+  // Today is festive; tomorrow previews it; yesterday gets a calm "Вчера был …".
+  const dayEvents = eventsOnDate(importantDates, activeDate).slice(0, 2);
+  const countdown = offset === 0 && !dayEvents.length ? nearestCountdown(importantDates, now) : null;
+  const isFestive = offset >= 0 && dayEvents.length > 0 && datesStyle === "bright";
+  const importantPicture = (item) => cardPhoto(item, student?.myPeople) ?? (item.type === "own_birthday" ? student?.photo ?? null : null);
   const { weekday, month } = formatDisplayDate(activeDate);
   // Plain number on the card, no "-е": a child reads the "е" as a letter.
   // The ordinal is heard (the speaker says "двадцать девятое") and the
@@ -586,8 +820,23 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const season = getSeason(activeDate.getMonth());
   const hasTime = display.showAnalogClock || display.showTimeWords || display.showDigitalTime;
   const hideCurrentTime = offset !== 0;
-  const timeWords = getClockWordParts(now);
-  const timeWordsFit = useFitTimeWords(`${timeWords.hour} ${timeWords.minute}`);
+  const sentenceCase = sessionParams?.letterCase === "sentence";
+  const caseText = makeCaseText(sentenceCase);
+  // "exact": "девять часов двадцать минут" (24-hour, hour first);
+  // "spoken": "двадцать минут десятого" -- how it's said at home.
+  const spokenTime = sessionParams?.timeWordsStyle === "spoken";
+  const timeWords = spokenTime ? getSpokenClockWordParts(now) : getClockWordParts(now);
+  const timeWordsMinuteFirst = spokenTime && timeWords.minute !== "ровно";
+  const timeWordsText = timeWordsMinuteFirst ? `${timeWords.minute} ${timeWords.hour}` : `${timeWords.hour} ${timeWords.minute}`;
+  const timeWordsFit = useFitTimeWords(timeWordsText);
+  // On Вчера/Завтра the month and season usually haven't changed: they're
+  // dimmed so the change that matters (day, date) stands out, and "Вчера был
+  // октябрь" isn't offered as a sentence.
+  const monthUnchanged = offset !== 0 && activeDate.getMonth() === now.getMonth();
+  const seasonUnchanged = offset !== 0 && season.id === getSeason(now.getMonth()).id;
+  // What that day held, from the weekly plan -- fills the "right now" row,
+  // which has nothing to show on Вчера/Завтра.
+  const dayPlan = offset !== 0 ? weeklyPlan[activeDate.getDay()] ?? null : null;
   const timeCardClassName = [
     "daily-orientation__card",
     "daily-orientation__card--big",
@@ -621,6 +870,8 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
     };
   }
   const closeConcept = useCallback(() => setOpenConcept(null), []);
+  const closeQuestions = useCallback(() => setQuestionsFor(null), []);
+  const closeViewer = useCallback(() => setViewerPhotos(null), []);
 
   function selectOffset(nextOffset) {
     setOffset(Math.max(-1, Math.min(1, nextOffset)));
@@ -668,9 +919,10 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   }
 
   return (
-    <main className="daily-orientation" aria-label="Экран ориентации во времени">
+    <main className={`daily-orientation${isFestive ? " daily-orientation--festive" : ""}${sentenceCase ? " daily-orientation--sentence-case" : ""}`} aria-label="Экран ориентации во времени">
       <div className="daily-orientation__viewport" ref={viewportRef}>
         <div className={`daily-orientation__canvas${display.showCarousel ? "" : " daily-orientation__canvas--without-carousel"}`} style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px`, transform: `scale(${scale})` }}>
+          {isFestive && <Garland width={canvasWidth} />}
           {display.showCarousel && (
             <nav
               className="daily-orientation__carousel"
@@ -703,6 +955,34 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
             </nav>
           )}
 
+          {dayEvents.length > 0 && (
+            <ImportantDayRibbon
+              events={dayEvents}
+              offset={offset}
+              date={activeDate}
+              pictureFor={importantPicture}
+              onOpenPhotos={setViewerPhotos}
+              onAsk={() => setQuestionsFor({
+                groups: dayEvents.map((item) => ({
+                  title: item.title,
+                  questions: conversationQuestions(item, {
+                    when: offset < 0 ? "yesterday" : offset > 0 ? "tomorrow" : "today",
+                    age: item.type === "own_birthday" ? ageOn(item, activeDate) : null,
+                  }),
+                })),
+              })}
+            />
+          )}
+          {countdown && (
+            <CountdownRibbon
+              countdown={countdown}
+              picture={importantPicture(countdown.item)}
+              onAsk={() => setQuestionsFor({
+                groups: [{ title: countdown.item.title, questions: conversationQuestions(countdown.item, { when: "countdown", daysLeft: countdown.daysLeft }) }],
+              })}
+            />
+          )}
+
           <div className="daily-orientation__grid" aria-live="polite">
             {showTopRow && (
               <div className="daily-orientation__row">
@@ -711,20 +991,20 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     className="daily-orientation__card daily-orientation__card--big daily-orientation__card--stacked daily-orientation__card--weekday daily-orientation__card--speakable"
                     {...conceptCardProps("week")}
                   >
-                    {soundEnabled && (
+                    {cardSound && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenWeekday(activeDate, offset), weekdayClipKeys(activeDate, offset));
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_WEEKDAY}</p>
-                    <FitText className="daily-orientation__answer">{weekday}</FitText>
+                    <FitText className="daily-orientation__answer">{caseText(weekday)}</FitText>
                   </article>
                 )}
 
                 {display.showDayOfMonth && (
                   <article className="daily-orientation__card daily-orientation__card--narrow daily-orientation__card--stacked daily-orientation__card--date daily-orientation__card--speakable" {...conceptCardProps("date")}>
-                    {soundEnabled && (
+                    {cardSound && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenDate(activeDate, offset), dateClipKeys(activeDate, offset));
@@ -732,24 +1012,27 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     )}
                     <p className="daily-orientation__question">{CAPTION_DATE_NUMBER}</p>
                     <FitText className="daily-orientation__date-number">{dayOfMonth}</FitText>
+                    {dayEvents.length > 0 && (
+                      <span className="daily-orientation__date-mark" aria-hidden="true">{isBirthdayType(dayEvents[0]) ? "🎂" : dayEvents[0].icon}</span>
+                    )}
                   </article>
                 )}
 
                 {display.showMonth && (
-                  <article className="daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--date daily-orientation__card--speakable" {...conceptCardProps("month")}>
-                    {soundEnabled && (
+                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--date daily-orientation__card--speakable${monthUnchanged ? " daily-orientation__card--unchanged" : ""}`} {...conceptCardProps("month")}>
+                    {cardSound && !monthUnchanged && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenMonth(activeDate, offset), monthClipKeys(activeDate, offset));
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_MONTH}</p>
-                    <FitText className="daily-orientation__answer">{month}</FitText>
+                    <FitText className="daily-orientation__answer">{caseText(month)}</FitText>
                   </article>
                 )}
 
                 {display.showSeason && (
-                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id} daily-orientation__card--speakable`} {...conceptCardProps("season")}>
+                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id} daily-orientation__card--speakable${seasonUnchanged ? " daily-orientation__card--unchanged" : ""}`} {...conceptCardProps("season")}>
                     {/* Illustration on the top two thirds, muted; the band
                         underneath carries a small "Время года" over the
                         season's name (the caption on the picture itself read
@@ -757,7 +1040,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     <div className="daily-orientation__season-picture" aria-hidden="true">
                       <img src={`/daily-orientation/season_${season.id}.webp`} alt="" draggable="false" />
                     </div>
-                    {soundEnabled && (
+                    {cardSound && !seasonUnchanged && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenSeason(activeDate, offset), seasonClipKeys(activeDate, offset));
@@ -765,21 +1048,34 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     )}
                     <div className="daily-orientation__season-band">
                       <p className="daily-orientation__season-caption">{CAPTION_SEASON}</p>
-                      <FitText className="daily-orientation__answer">{season.label}</FitText>
+                      <FitText className="daily-orientation__answer">{caseText(season.label)}</FitText>
                     </div>
                   </article>
                 )}
               </div>
             )}
 
-            {showBottomRow && (
+            {dayPlan && (
+              <div className="daily-orientation__row">
+                <article className="daily-orientation__card daily-orientation__card--plan" {...conceptCardProps("week")}>
+                  <p className="daily-orientation__question">{offset < 0 ? "Что было вчера" : "Что будет завтра"}</p>
+                  <div className="daily-orientation__plan">
+                    {splitPlanIcon(dayPlan).icon && <span className="daily-orientation__plan-icon" aria-hidden="true">{splitPlanIcon(dayPlan).icon}</span>}
+                    <FitText className="daily-orientation__answer">{caseText(splitPlanIcon(dayPlan).text)}</FitText>
+                  </div>
+                </article>
+              </div>
+            )}
+
+            {showBottomRow && !dayPlan && (
               <div className="daily-orientation__row">
                 {display.showDaypart && (
                   <DaypartCard
                     daypartId={daypartId}
+                    caseText={caseText}
                     hidden={hideCurrentTime}
                     cardProps={conceptCardProps("daypart")}
-                    speakerButton={soundEnabled && !hideCurrentTime && (
+                    speakerButton={cardSound && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenDaypart(daypartId), daypartClipKeys(daypartId));
@@ -801,10 +1097,10 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                       setIsWeatherPickerOpen(true);
                     }}
                   >
-                    {soundEnabled && weatherId && !hideCurrentTime && (
+                    {cardSound && weatherId && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        speakCard(getSpokenWeather(weatherId), weatherClipKeys(weatherId));
+                        speakCard(getSpokenWeather(weatherId));
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_WEATHER}</p>
@@ -812,10 +1108,13 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                       {weatherId ? (
                         <>
                           <WeatherMark id={weatherId} />
-                          <span>{WEATHER_LABEL_BY_ID[weatherId]}</span>
+                          <span>{caseText(WEATHER_LABEL_BY_ID[weatherId])}</span>
                         </>
                       ) : (
-                        <span>Добавить</span>
+                        <>
+                          <span className="daily-orientation__weather-unset-mark" aria-hidden="true">?</span>
+                          <span className="daily-orientation__weather-unset-label">Отметить</span>
+                        </>
                       )}
                     </div>
                   </article>
@@ -823,10 +1122,11 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
 
                 {hasTime && (
                   <article className={timeCardClassName} aria-hidden={hideCurrentTime}>
-                    {soundEnabled && !hideCurrentTime && (
+                    {cardSound && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        speakCard(getSpokenTime(now), timeClipKeys(now));
+                        if (spokenTime) speakCard(`Сейчас ${spokenClockSentence(now)}.`);
+                        else speakCard(getSpokenTime(now), timeClipKeys(now));
                       }} />
                     )}
                     {(display.showAnalogClock || display.showDigitalTime) && (
@@ -841,11 +1141,18 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                         <strong
                           className="daily-orientation__time-words"
                           ref={timeWordsFit.wordsRef}
-                          aria-label={formatRussianClockTime(now)}
-                          style={{ "--fit-chars": longestWordLength(`${timeWords.hour} ${timeWords.minute}`) }}
+                          aria-label={spokenTime ? spokenClockSentence(now) : formatRussianClockTime(now)}
+                          style={{ "--fit-chars": longestWordLength(timeWordsText) }}
                         >
-                          <span className="daily-orientation__time-words-hour">{timeWords.hour}</span>
-                          <span className="daily-orientation__time-words-minute">{timeWords.minute}</span>
+                          {/* Hour half in the hour hand's colour, minute half in the
+                              minute hand's; "двадцать минут десятого" puts the
+                              minute half first. Only the first word is
+                              capitalised in sentence case. */}
+                          {(timeWordsMinuteFirst ? ["minute", "hour"] : ["hour", "minute"]).map((part, index) => (
+                            <span key={part} className={`daily-orientation__time-words-${part}`}>
+                              {index === 0 || !sentenceCase ? caseText(timeWords[part]) : timeWords[part]}
+                            </span>
+                          ))}
                         </strong>
                       )}
                     </div>
@@ -862,11 +1169,21 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
       </div>
       {openConcept && (
         <DailyOrientationModal label={CONCEPT_MODAL_LABELS[openConcept]} onClose={closeConcept}>
-          {openConcept === "week" && <WeekContent activeDate={activeDate} today={now} plan={weeklyPlan} />}
-          {openConcept === "date" && <DateContent activeDate={activeDate} offset={offset} today={now} />}
+          {openConcept === "week" && <WeekContent activeDate={activeDate} today={now} plan={weeklyPlan} importantDates={importantDates} />}
+          {openConcept === "date" && <DateContent activeDate={activeDate} offset={offset} today={now} importantDates={importantDates} />}
           {openConcept === "month" && <MonthContent activeDate={activeDate} />}
           {openConcept === "season" && <SeasonContent activeDate={activeDate} />}
           {openConcept === "daypart" && <DaypartContent daypartId={daypartId} wakeHour={wakeHour} bedHour={bedHour} />}
+        </DailyOrientationModal>
+      )}
+      {questionsFor && (
+        <DailyOrientationModal label="Вопросы для разговора" onClose={closeQuestions}>
+          <QuestionsContent groups={questionsFor.groups} />
+        </DailyOrientationModal>
+      )}
+      {viewerPhotos && (
+        <DailyOrientationModal label="Фото с этого дня" onClose={closeViewer}>
+          <PhotoViewer photos={viewerPhotos} />
         </DailyOrientationModal>
       )}
       {isWeatherPickerOpen && (

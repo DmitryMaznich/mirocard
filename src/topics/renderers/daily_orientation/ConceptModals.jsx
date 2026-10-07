@@ -6,10 +6,11 @@ import {
   WEEK_MONDAY_FIRST,
   addCalendarDays,
   daysInMonth,
-  daysWord,
   getSeason,
   monthEndingChange,
+  splitPlanIcon,
 } from "./timeUtils.js";
+import { eventsOnDate, isBirthdayType } from "@/features/importantDates/importantDates";
 import "./conceptModals.css";
 
 // What each card's tap opens: the whole range of that concept with the
@@ -53,7 +54,13 @@ function CycleArrow() {
 // ── День недели ──────────────────────────────────────────────────────
 // Full names are the label; the short form (пн, вт…) is only a small
 // caption under it, never on its own.
-export function WeekContent({ activeDate, today, plan }) {
+// The icon a date from "Важные даты" gets in a calendar cell or a week day.
+function importantMark(events) {
+  if (!events.length) return null;
+  return isBirthdayType(events[0]) ? "🎂" : events[0].icon;
+}
+
+export function WeekContent({ activeDate, today, plan, importantDates = [] }) {
   const mondayOffset = (activeDate.getDay() + 6) % 7;
   const monday = addCalendarDays(activeDate, -mondayOffset);
   return (
@@ -77,7 +84,17 @@ export function WeekContent({ activeDate, today, plan }) {
               <span className="dom-week__tag">{tag ?? " "}</span>
               <span className="dom-week__name">{capitalize(name)}</span>
               <span className="dom-week__short">{short}</span>
-              {plan[day] ? <span className="dom-week__plan">{plan[day]}</span> : null}
+              {eventsOnDate(importantDates, date).map((item) => (
+                <span key={item.id} className="dom-week__event">
+                  <span aria-hidden="true">{isBirthdayType(item) ? "🎂" : item.icon}</span> {item.title}
+                </span>
+              ))}
+              {plan[day] ? (
+                <span className="dom-week__plan">
+                  {splitPlanIcon(plan[day]).icon && <span className="dom-week__plan-icon" aria-hidden="true">{splitPlanIcon(plan[day]).icon}</span>}
+                  {splitPlanIcon(plan[day]).text}
+                </span>
+              ) : null}
             </li>
           );
         })}
@@ -92,7 +109,7 @@ export function WeekContent({ activeDate, today, plan }) {
 // the same word, with the one letter that changes after a number marked.
 const DATE_LEAD = { "-1": "Вчера было", 0: "Сегодня", 1: "Завтра будет" };
 
-export function DateContent({ activeDate, offset, today }) {
+export function DateContent({ activeDate, offset, today, importantDates = [] }) {
   const year = activeDate.getFullYear();
   const monthIndex = activeDate.getMonth();
   const total = daysInMonth(year, monthIndex);
@@ -119,6 +136,8 @@ export function DateContent({ activeDate, offset, today }) {
             if (number === null) return <span key={`blank-${index}`} className="dom-calendar__cell dom-calendar__cell--blank" />;
             const weekend = index % 7 >= 5;
             const past = todayInMonth !== null && number < todayInMonth;
+            const events = eventsOnDate(importantDates, new Date(year, monthIndex, number));
+            const mark = importantMark(events);
             return (
               <span
                 key={number}
@@ -129,9 +148,12 @@ export function DateContent({ activeDate, offset, today }) {
                   weekend ? "dom-calendar__cell--weekend" : "",
                   past ? "dom-calendar__cell--past" : "",
                   number === dayNumber ? "dom-calendar__cell--active" : "",
+                  mark ? "dom-calendar__cell--important" : "",
                 ].filter(Boolean).join(" ")}
+                title={events.map((item) => item.title).join(", ") || undefined}
               >
                 {number}
+                {mark && <span className="dom-calendar__mark" aria-hidden="true">{mark}</span>}
               </span>
             );
           })}
@@ -162,10 +184,10 @@ export function DateContent({ activeDate, offset, today }) {
 }
 
 // ── Месяц ─────────────────────────────────────────────────────────────
-// All twelve, grouped by the season they belong to, each with its length:
-// month, number of days and time of year connected in one picture.
+// All twelve, grouped by the season they belong to: month and time of year
+// connected in one picture. (Each month's length used to be shown too --
+// not something this screen's children need, and one more thing to read.)
 export function MonthContent({ activeDate }) {
-  const year = activeDate.getFullYear();
   const activeMonth = activeDate.getMonth();
   return (
     <div className="dom">
@@ -179,9 +201,6 @@ export function MonthContent({ activeDate }) {
             </h3>
             <ol className="dom-months__list">
               {SEASON_MONTHS[seasonId].map((monthIndex) => {
-                // December belongs to the winter that starts this year, but
-                // January/February to the one that ends it -- lengths use the
-                // displayed date's year either way (only February varies).
                 const isActive = monthIndex === activeMonth;
                 return (
                   <li
@@ -190,7 +209,6 @@ export function MonthContent({ activeDate }) {
                     aria-current={isActive ? "true" : undefined}
                   >
                     <span className="dom-months__month-name">{capitalize(MONTHS_NOMINATIVE[monthIndex])}</span>
-                    <span className="dom-months__month-days">{daysWord(daysInMonth(year, monthIndex))}</span>
                   </li>
                 );
               })}

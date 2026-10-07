@@ -51,6 +51,8 @@ export function buildBootstrap(db, accountId) {
       myPeopleProfileUpdatedAt: s.my_people_profile_updated_at ?? null,
       myPeople:        safeJson(s.my_people, []),
       myPeopleUpdatedAt: s.my_people_updated_at ?? null,
+      importantDates:  safeJson(s.important_dates, []),
+      importantDatesUpdatedAt: s.important_dates_updated_at ?? null,
       createdAt:       s.created_at,
       updatedAt:       s.updated_at,
     })),

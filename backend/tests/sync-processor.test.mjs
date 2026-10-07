@@ -100,3 +100,47 @@ test("unknown op type is ignored without error", () => {
     processSync(db, acc.id, [{ type: "unknown.op", data: {} }])
   );
 });
+
+test("student.important_dates.upsert merges cards by id so two devices don't erase each other", () => {
+  const db = makeDb();
+  const acc = makeAcc(db);
+  processSync(db, acc.id, [{ type: "student.upsert", data: { id: "s1", name: "Миня" } }]);
+  const mom = { id: "d1", type: "birthday", title: "День рождения мамы", month: 10, day: 7, updatedAt: "2026-10-01T00:00:00.000Z" };
+  const school = { id: "d2", type: "event", title: "Идём в школу", month: 10, day: 19, year: 2026, updatedAt: "2026-10-02T00:00:00.000Z" };
+  processSync(db, acc.id, [{ type: "student.important_dates.upsert", data: { studentId: "s1", dates: [mom], updatedAt: mom.updatedAt } }]);
+  // A second device that never saw "mom" adds its own card.
+  processSync(db, acc.id, [{ type: "student.important_dates.upsert", data: { studentId: "s1", dates: [school], updatedAt: school.updatedAt } }]);
+  let stored = JSON.parse(getStudents(db, acc.id)[0].important_dates);
+  assert.deepEqual(stored.map((item) => item.id).sort(), ["d1", "d2"]);
+
+  // An older copy of a card can't overwrite a newer edit; a delete tombstone wins.
+  processSync(db, acc.id, [{ type: "student.important_dates.upsert", data: { studentId: "s1", dates: [{ ...mom, title: "старое", updatedAt: "2026-09-01T00:00:00.000Z" }], updatedAt: "2026-09-01T00:00:00.000Z" } }]);
+  stored = JSON.parse(getStudents(db, acc.id)[0].important_dates);
+  assert.equal(stored.find((item) => item.id === "d1").title, "День рождения мамы");
+  processSync(db, acc.id, [{ type: "student.important_dates.upsert", data: { studentId: "s1", dates: [{ ...school, deletedAt: "2026-10-03T00:00:00.000Z" }], updatedAt: "2026-10-03T00:00:00.000Z" } }]);
+  stored = JSON.parse(getStudents(db, acc.id)[0].important_dates);
+  assert.ok(stored.find((item) => item.id === "d2").deletedAt);
+});
+
+test("student.important_dates.upsert stores a data-URL photo in the photo store", () => {
+  const db = makeDb();
+  const acc = makeAcc(db);
+  processSync(db, acc.id, [{ type: "student.upsert", data: { id: "s1", name: "Миня" } }]);
+  processSync(db, acc.id, [{ type: "student.important_dates.upsert", data: { studentId: "s1", dates: [{ id: "d1", title: "Поездка", photo: "data:image/jpeg;base64,/9j/abc==", updatedAt: "2026-10-01T00:00:00.000Z" }], updatedAt: "2026-10-01T00:00:00.000Z" } }]);
+  const stored = JSON.parse(getStudents(db, acc.id)[0].important_dates);
+  assert.match(stored[0].photo, /^\/api\/photos\/[0-9a-f]{32}$/);
+});
+
+test("student.important_dates.upsert stores photos from the day itself, and drops them with the card", () => {
+  const db = makeDb();
+  const acc = makeAcc(db);
+  processSync(db, acc.id, [{ type: "student.upsert", data: { id: "s1", name: "Миня" } }]);
+  const card = { id: "d1", title: "День рождения мамы", eventPhotos: { 2026: ["data:image/jpeg;base64,/9j/xyz==", "/api/photos/0123456789abcdef0123456789abcdef"] }, updatedAt: "2026-10-08T00:00:00.000Z" };
+  processSync(db, acc.id, [{ type: "student.important_dates.upsert", data: { studentId: "s1", dates: [card], updatedAt: card.updatedAt } }]);
+  let stored = JSON.parse(getStudents(db, acc.id)[0].important_dates);
+  assert.equal(stored[0].eventPhotos["2026"].length, 2);
+  assert.ok(stored[0].eventPhotos["2026"].every((photo) => /^\/api\/photos\/[0-9a-f]{32}$/.test(photo)));
+  processSync(db, acc.id, [{ type: "student.important_dates.upsert", data: { studentId: "s1", dates: [{ ...card, deletedAt: "2026-10-09T00:00:00.000Z", updatedAt: "2026-10-09T00:00:00.000Z" }], updatedAt: "2026-10-09T00:00:00.000Z" } }]);
+  stored = JSON.parse(getStudents(db, acc.id)[0].important_dates);
+  assert.deepEqual(stored[0].eventPhotos, {});
+});

@@ -6,6 +6,13 @@ export function computeConceptLevel(sessions, studentId, topicId, conceptId, sco
   const relevant = sessions
     .filter((s) => s.studentId === studentId && s.topicId === topicId)
     .filter((s) => !scope || s.modeId === scope)
+    // Transfer is reported separately rather than inflating familiar-material mastery.
+    .filter((s) => topicId !== "word_formation_soup" || s.paramsSnapshot?.materialSet !== "transfer")
+    .filter((s) => topicId !== "word_formation_soup" || s.modeId !== "season_form_pick"
+      || s.paramsSnapshot?.activityStage === "check")
+    // Looking at or repeating a model is not independent mastery.
+    .filter((s) => topicId !== "word_formation_soup" || s.modeId !== "pair_intro"
+      || s.assessments?.some(a => a.conceptId === conceptId && a.quality === "independent"))
     .filter((s) => s.conceptIds?.includes(conceptId))
     .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
     .slice(0, 6);

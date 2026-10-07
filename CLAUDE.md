@@ -163,6 +163,16 @@ Before touching anything in this topic, read `docs/propis.md` first — it has t
 map, the ruling geometry's design decisions (and why), and pitfalls already hit once
 (don't repeat them).
 
+## Важные даты (important dates) for the "Сегодня" screen
+
+Birthdays, holidays and one-off events kept on the student
+(`student.importantDates`, own sync op, merged per card like My People) and
+shown by the `daily_orientation` topic: festive look on the day, a countdown
+before it, "Вчера был …" with photos from the day, and question prompts for the
+adult. Read `docs/important-dates.md` before continuing. The rest of the same
+speech-therapy review of the topic (weather wording, letter case, spoken time,
+plan pictures, what's deferred) is in `docs/daily-orientation-review.md`.
+
 ## Плюс и минус (addition_subtraction) design review — in progress
 
 A mode-by-mode design/mechanics review of this topic's teaching ladder is under way

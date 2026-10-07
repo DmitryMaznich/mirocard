@@ -119,3 +119,25 @@ describe("daily orientation time helpers", () => {
     expect(getSpokenDaypart("evening")).toBe("Сейчас вечер.");
   });
 });
+
+describe("разговорное время", async () => {
+  const { spokenClockSentence } = await import("./timeUtils.js");
+  const at = (h, m) => spokenClockSentence(new Date(2026, 9, 7, h, m));
+  it("says time the way it's said at home", () => {
+    expect(at(9, 0)).toBe("девять часов ровно");
+    expect(at(13, 0)).toBe("час ровно");
+    expect(at(9, 5)).toBe("пять минут десятого");
+    expect(at(9, 1)).toBe("одну минуту десятого");
+    expect(at(9, 21)).toBe("двадцать одну минуту десятого");
+    expect(at(9, 15)).toBe("четверть десятого");
+    expect(at(9, 30)).toBe("половина десятого");
+    expect(at(9, 40)).toBe("без двадцати десять");
+    expect(at(9, 45)).toBe("без четверти десять");
+    expect(at(9, 55)).toBe("без пяти десять");
+    expect(at(9, 58)).toBe("без двух минут десять");
+    expect(at(9, 59)).toBe("без одной минуты десять");
+    expect(at(12, 50)).toBe("без десяти час");
+    expect(at(23, 30)).toBe("половина двенадцатого");
+    expect(at(0, 10)).toBe("десять минут первого");
+  });
+});

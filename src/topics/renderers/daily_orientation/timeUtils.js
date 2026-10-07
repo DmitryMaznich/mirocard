@@ -246,3 +246,64 @@ export function monthEndingChange(monthIndex) {
   };
 }
 
+
+// ── Разговорное время ("двадцать минут десятого") ──────────────────
+// The way time is said at home, on a 12-hour clock: past the hour it counts
+// toward the next one ("пять минут десятого", "четверть десятого",
+// "половина десятого"), after half it counts what's left ("без двадцати
+// десять", "без четверти десять"). Split into the minute half and the hour
+// half like getClockWordParts, so the card can keep the hand colours -- but
+// here the minute half comes first.
+
+const HOUR12_NOMINATIVE = ["двенадцать", "час", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять", "одиннадцать", "двенадцать"];
+const HOUR12_ORDINAL_GENITIVE = ["двенадцатого", "первого", "второго", "третьего", "четвёртого", "пятого", "шестого", "седьмого", "восьмого", "девятого", "десятого", "одиннадцатого", "двенадцатого"];
+const GENITIVE_UNITS = ["", "одной", "двух", "трёх", "четырёх", "пяти", "шести", "семи", "восьми", "девяти", "десяти", "одиннадцати", "двенадцати", "тринадцати", "четырнадцати", "пятнадцати", "шестнадцати", "семнадцати", "восемнадцати", "девятнадцати"];
+
+function genitiveNumber(value) {
+  if (value < 20) return GENITIVE_UNITS[value];
+  return value % 10 ? `двадцати ${GENITIVE_UNITS[value % 10]}` : "двадцати";
+}
+
+// "одна минута" -> "одну минуту" after "N минут(у) десятого".
+function accusativeMinutes(value) {
+  const word = MINUTE_WORDS[value].replace(/одна$/, "одну");
+  return `${word} ${russianPlural(value, "минуту", "минуты", "минут")}`;
+}
+
+export function getSpokenClockWordParts(date) {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const hour12 = hours % 12 || 12;
+  const next12 = (hours + 1) % 12 || 12;
+  if (minutes === 0) {
+    return { minute: "ровно", hour: hour12 === 1 ? "час" : `${HOUR12_NOMINATIVE[hour12]} ${russianPlural(hour12, "час", "часа", "часов")}` };
+  }
+  if (minutes === 15) return { minute: "четверть", hour: HOUR12_ORDINAL_GENITIVE[next12] };
+  if (minutes === 30) return { minute: "половина", hour: HOUR12_ORDINAL_GENITIVE[next12] };
+  if (minutes < 30) return { minute: accusativeMinutes(minutes), hour: HOUR12_ORDINAL_GENITIVE[next12] };
+  const left = 60 - minutes;
+  if (left === 15) return { minute: "без четверти", hour: HOUR12_NOMINATIVE[next12] };
+  const leftWords = left % 5 === 0
+    ? `без ${genitiveNumber(left)}`
+    : `без ${genitiveNumber(left)} ${left % 10 === 1 && left !== 11 ? "минуты" : "минут"}`;
+  return { minute: leftWords, hour: HOUR12_NOMINATIVE[next12] };
+}
+
+// "ровно" goes after the hour ("девять часов ровно"); everything else
+// before it ("двадцать минут десятого", "без пяти десять").
+export function spokenClockSentence(date) {
+  const { minute, hour } = getSpokenClockWordParts(date);
+  return minute === "ровно" ? `${hour} ровно` : `${minute} ${hour}`;
+}
+
+// A plan entry may start with a picture: "🏫 Школа". The settings screen
+// puts it there; the week modal and the Вчера/Завтра card show it big.
+const LEADING_ICON = /^(\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic})*)\s*/u;
+
+// The text is returned untrimmed: the settings input edits it live, and
+// trimming would eat a space the moment it's typed.
+export function splitPlanIcon(entry) {
+  const value = String(entry ?? "");
+  const match = LEADING_ICON.exec(value.trimStart());
+  return match ? { icon: match[1], text: value.trimStart().slice(match[0].length) } : { icon: null, text: value };
+}

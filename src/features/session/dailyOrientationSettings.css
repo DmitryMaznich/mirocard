@@ -302,3 +302,71 @@
   .dos-map-card { transition: none; }
   .dos-map-card--locked { animation: none; }
 }
+
+/* ── Важные даты ────────────────────────────────────────────────── */
+.dos-dates { display: grid; gap: 10px; padding: 14px 16px; }
+.dos-dates__list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.dos-dates__item { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.dos-dates__icon { font-size: 1.25rem; text-align: center; }
+.dos-dates__title { overflow: hidden; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.dos-dates__when { color: var(--dos-muted); font-size: .82rem; font-weight: 700; white-space: nowrap; }
+.dos-dates__empty { margin: 0; color: var(--dos-muted); font-size: .88rem; }
+.dos-dates__open {
+  justify-self: start;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1.5px solid var(--dos-accent);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--dos-accent);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.dos-dates__open:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }
+.dos-dates__style-hint { flex: 1 1 100%; margin: 0; color: var(--dos-muted); font-size: .8rem; }
+.dos-dates__styles { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* Plan pictures: a button before each day's text, a palette under it. */
+.dos-week__row { flex-wrap: wrap; }
+.dos-week__icon {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid #e2ded5;
+  border-radius: 10px;
+  background: #fffdf9;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.dos-week__icon--empty { border-style: dashed; color: var(--dos-muted); font-size: 1rem; }
+.dos-week__icons { flex: 1 1 100%; display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 8px calc(2.4em + 12px); }
+.dos-week__icon-choice {
+  width: 42px;
+  height: 42px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: #f4f0e8;
+  font-size: 1.3rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.dos-week__icon-choice--on { border-color: var(--dos-accent); background: var(--dos-accent-soft); }
+.dos-week__icon-clear {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: #b3261e;
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.dos-week__icon:focus-visible, .dos-week__icon-choice:focus-visible { outline: 3px solid #db9f48; outline-offset: 2px; }

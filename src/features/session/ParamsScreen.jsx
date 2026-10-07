@@ -1942,6 +1942,16 @@ export default function ParamsScreen() {
   }
 
   const isDailyOrientation = topicRecord?.meta.renderer === "daily_orientation";
+  // "Важные даты" live on the student, not in these params; keep the
+  // settings edited so far before leaving for them (they'd otherwise be
+  // re-read from the last saved link on the way back).
+  function openImportantDates() {
+    persistStudentTopicLink(activeStudentId, activeTopicId, { params });
+    const state = useAppStore.getState();
+    state.setEditingStudentId(activeStudentId);
+    state.setImportantDatesReturnScreen("params");
+    setScreen("important_dates_settings");
+  }
   const dailyOrientationContentKeys = [
     "showWeekday",
     "showDayOfMonth",
@@ -2160,7 +2170,7 @@ export default function ParamsScreen() {
       )}
       {(() => {
         if (isDailyOrientation) {
-          return <DailyOrientationSettings params={params} setParams={setParams} />;
+          return <DailyOrientationSettings params={params} setParams={setParams} student={student} onOpenImportantDates={openImportantDates} />;
         }
         function renderParam(key, def) {
           if (def.type === "concept_selector") return null;
