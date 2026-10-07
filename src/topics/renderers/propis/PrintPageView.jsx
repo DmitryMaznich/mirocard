@@ -241,6 +241,19 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
   return diagonalLineX(n, y, spacingUnits, diagonalShiftX);
 }
 
+// Where a row can be tapped (row-local y): over its own ink, with a margin (`wideRows`: «Прописи 2» / the wide sheets, whose letters stand
+// on the band at y 16..64 on the narrow ruling, not around NATIVE_L3 as the v1 text rows; a rect around NATIVE_L3 sat below the letters).
+const HIT_PAD = 10;
+const HIT_CACHE = new WeakMap();
+function hitBox(row, wideRows) {
+  if (!wideRows) return { y: NATIVE_L3 - TEXT_ROW_PITCH / 2, h: TEXT_ROW_PITCH };
+  if (HIT_CACHE.has(row.segments)) return HIT_CACHE.get(row.segments);
+  const ys = row.segments.flatMap((seg) => seg.strokes ?? []).flatMap((st) => (st.d.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) ?? []).map(Number).filter((_, i) => i % 2 === 1));
+  const box = ys.length ? { y: Math.min(...ys) - HIT_PAD, h: Math.max(...ys) - Math.min(...ys) + 2 * HIT_PAD } : { y: NATIVE_L3 - TEXT_ROW_PITCH / 2, h: TEXT_ROW_PITCH };
+  HIT_CACHE.set(row.segments, box);
+  return box;
+}
+
 // The ink of one row. A row that is not being animated is drawn by RowInk, which React skips while the row object is the same: the
 // layout keeps finished rows (wordEngine.js), so typing in one row of the page redraws only that row.
 function RowSegments({ segments, isActive = false, narrowRows = false, speedFactor = 1, evenSpeed = false, tipSize = "large" }) {
@@ -393,7 +406,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
     <g data-simple-grid={simpleGrid} clipPath={slantClip ? `url(#${clipId})` : undefined}>
       {slantClip && (
         <clipPath id={clipId}>
-          {ROW_INDICES.slice(1).map((row) => <rect key={row} x="0" y={wideBandTop(row)} width={PAGE_W_UNITS} height={wideBandHeight} />)}
+          {ROW_INDICES.slice(1).filter((row) => onlyRow === null || row === onlyRow).map((row) => <rect key={row} x="0" y={wideBandTop(row)} width={PAGE_W_UNITS} height={wideBandHeight} />)}
         </clipPath>
       )}
       {(simpleGrid === "dense" ? (narrowRows ? SHEET_DIAGONAL_LINES_NARROW_DENSE : SHEET_DIAGONAL_LINES_WIDE_DENSE) : SHEET_DIAGONAL_LINES).map((l, i) => (
@@ -430,8 +443,11 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
               const top = rowOriginY(row) + n17 + WIDE_BAND_BOTTOM_LOCAL - NARROW_BAND_H;
               const bottom = rowOriginY(row) + n17 + WIDE_BAND_BOTTOM_LOCAL;
               const guideY = rowOriginY(row) + n17 + NARROW_GUIDE_LOCAL;
+              // the show panel's single row keeps its lower dashed line too (the descender limit: on the page it is the next row's guide)
+              const lowY = rowOriginY(row + 1) + n17 + NARROW_GUIDE_LOCAL;
               return (
                 <g key={row} data-narrow-band={row}>
+                  {onlyRow !== null && midDash && !plain && <line x1="0" y1={lowY} x2={PAGE_W_UNITS} y2={lowY} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />}
                   {midDash && !plain && <line x1="0" y1={guideY} x2={PAGE_W_UNITS} y2={guideY} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />}
                   {!plain && <line x1="0" y1={top} x2={PAGE_W_UNITS} y2={top} stroke={guideColor} strokeWidth={GUIDE_THIN_W} />}
                   {midDash && !plain && <line x1="0" y1={(top + bottom) / 2} x2={PAGE_W_UNITS} y2={(top + bottom) / 2} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} />}
@@ -510,10 +526,14 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
           : 0;
         return (
           <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowY(p.rowIndex)})`}>
+            {isActive
+              ? <RowSegments segments={p.segments} isActive narrowRows={narrowRows} speedFactor={speedFactor} evenSpeed={Boolean(crop)} tipSize={crop ? "medium" : "large"} />
+              : <RowInk segments={p.segments} narrowRows={narrowRows} />}
+            {/* the tap area lies OVER the ink (it covers the letters themselves, see hitBox), so the strokes do not swallow the tap */}
             {tappable && (
               <rect
                 className="propis-text-word-hit"
-                x={-4} y={NATIVE_L3 - TEXT_ROW_PITCH / 2} width={p.segments.reduce((s, seg) => s + seg.width, 0) + 8} height={TEXT_ROW_PITCH}
+                x={-4} y={hitBox(p, wideRows).y} width={p.segments.reduce((s, seg) => s + seg.width, 0) + 8} height={hitBox(p, wideRows).h}
                 onClick={(e) => {
                   if (!onFragmentTap) { onToggleActive(i); return; }
                   // tap x in the row's own units (the rect sits inside the row's translated <g>)
@@ -529,9 +549,6 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
                 }}
               />
             )}
-            {isActive
-              ? <RowSegments segments={p.segments} isActive narrowRows={narrowRows} speedFactor={speedFactor} evenSpeed={Boolean(crop)} tipSize={crop ? "medium" : "large"} />
-              : <RowInk segments={p.segments} narrowRows={narrowRows} />}
           </g>
         );
       })}
