@@ -316,3 +316,30 @@
   .dom-week__day--active,
   .dom-cycle__item--active { transform: none; }
 }
+
+/* ── Важные даты in the calendar and the week ─────────────────────── */
+.dom-calendar__cell { position: relative; }
+.dom-calendar__cell--important { opacity: 1; }
+.dom-calendar__mark {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  font-size: clamp(14px, 1.5vw, 22px);
+  line-height: 1;
+}
+.dom-week__event {
+  width: 100%;
+  margin-top: 6px;
+  padding: clamp(4px, .5vw, 8px) clamp(4px, .5vw, 8px);
+  border-radius: clamp(8px, 1vw, 14px);
+  background: #fff3d6;
+  color: #9a3412;
+  font-size: clamp(11px, 1.1vw, 16px);
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+}
+/* The plan sits at the bottom of the day (margin-top: auto); a date's tag
+   goes just above it, so the first tag takes over the push. */
+.dom-week__short + .dom-week__event { margin-top: auto; }
+.dom-week__event ~ .dom-week__plan { margin-top: 6px; }

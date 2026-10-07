@@ -693,3 +693,157 @@
   font-size: min(52px, calc(100cqi / (var(--fit-chars, 10) * 0.78)));
 }
 
+
+/* ── Важные даты ───────────────────────────────────────────────────
+   All sizes are in the 1600x1000 design canvas (scaled as a whole), like
+   the rest of this screen. The ribbon is a fixed-height row between the
+   carousel and the cards; the card rows are flex and simply give up the
+   height it takes. */
+.daily-orientation--festive {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(255, 255, 255, .98), transparent 55%),
+    linear-gradient(180deg, #fff3e2 0%, #fde9da 100%);
+}
+.daily-orientation__canvas { position: relative; }
+.daily-orientation--festive .daily-orientation__canvas { gap: 26px; padding-top: 76px; padding-bottom: 46px; }
+.daily-orientation__garland {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 70px;
+  pointer-events: none;
+}
+.daily-orientation__garland path:not(:first-child) { opacity: .9; }
+
+.daily-orientation__important {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  box-sizing: border-box;
+  border-radius: 34px;
+  color: var(--orientation-ink);
+}
+.daily-orientation__important--day {
+  height: 150px;
+  padding: 0 96px 0 28px;
+  border: 3px solid #f2b98c;
+  background: linear-gradient(90deg, #fff7dc, #ffe9df);
+  box-shadow: 0 10px 28px rgba(200, 110, 60, .16);
+}
+.daily-orientation__important--countdown {
+  height: 104px;
+  padding: 0 96px 0 22px;
+  border: 2px solid #eadfcc;
+  background: #fffdf8;
+  box-shadow: 0 6px 18px rgba(41, 54, 51, .06);
+}
+.daily-orientation__important .daily-orientation__speaker-icon { top: 50%; transform: translateY(-50%); }
+
+.daily-orientation__important-event {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.daily-orientation__important-frame { position: relative; flex: 0 0 auto; }
+.daily-orientation__important-picture {
+  display: grid;
+  width: 120px;
+  height: 120px;
+  overflow: hidden;
+  place-items: center;
+  box-sizing: border-box;
+  border: 6px solid #fff;
+  border-radius: 50%;
+  background: #f4d9c6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+  font-size: 64px;
+  line-height: 1;
+}
+.daily-orientation__important-picture img { width: 100%; height: 100%; object-fit: cover; }
+.daily-orientation__important-picture--holiday { background: #ede9fe; }
+.daily-orientation__important-picture--event { background: #e0f2fe; }
+.daily-orientation__important-picture--own_birthday { background: #fff1c7; }
+.daily-orientation__important-picture--small { width: 80px; height: 80px; border-width: 4px; font-size: 42px; }
+.daily-orientation__important-balloon,
+.daily-orientation__important-crown { position: absolute; font-size: 50px; line-height: 1; }
+.daily-orientation__important-balloon--a { left: -34px; top: -22px; transform: rotate(-14deg); }
+.daily-orientation__important-balloon--b { right: -30px; top: -26px; transform: rotate(12deg); filter: hue-rotate(200deg); }
+.daily-orientation__important-crown { left: 50%; top: -34px; transform: translateX(-50%); }
+
+.daily-orientation__important-copy { flex: 1 1 auto; min-width: 0; }
+.daily-orientation__important-eyebrow {
+  margin: 0 0 4px;
+  color: #c2410c;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.daily-orientation__important-phrase {
+  margin: 0;
+  font-size: 54px;
+  font-weight: 950;
+  line-height: 1.08;
+}
+.daily-orientation__important-age { color: #c2410c; white-space: nowrap; }
+.daily-orientation__important--double .daily-orientation__important-event { gap: 20px; }
+.daily-orientation__important--double .daily-orientation__important-phrase { font-size: 34px; }
+.daily-orientation__important--double .daily-orientation__important-eyebrow { font-size: 18px; }
+.daily-orientation__important--double .daily-orientation__important-picture { width: 104px; height: 104px; }
+
+.daily-orientation__important-cake { flex: 0 0 auto; font-size: 96px; line-height: 1; }
+.daily-orientation__important-candles { flex: 0 0 auto; display: flex; align-items: flex-end; gap: 4px; }
+.daily-orientation__important-candles .daily-orientation__candle { width: 26px; height: 62px; }
+
+.daily-orientation__candle-body { fill: #e5ddd0; }
+.daily-orientation__candle-wick { fill: #8b8172; }
+.daily-orientation__candle--lit .daily-orientation__candle-body { fill: #f59e0b; }
+.daily-orientation__candle-flame { fill: #fb923c; stroke: #fde68a; stroke-width: 2; }
+
+.daily-orientation__countdown-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 42px;
+  font-weight: 850;
+  line-height: 1.1;
+}
+.daily-orientation__countdown-when { color: #c2410c; font-weight: 950; white-space: nowrap; }
+.daily-orientation__countdown-marks {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.daily-orientation__countdown-mark { display: flex; }
+.daily-orientation__countdown-dot {
+  width: 40px;
+  height: 40px;
+  box-sizing: border-box;
+  border: 4px dashed #d6ccbb;
+  border-radius: 50%;
+}
+.daily-orientation__countdown-dot--lit { border: 0; background: #f59e0b; box-shadow: inset 0 -4px 0 rgba(0, 0, 0, .12); }
+.daily-orientation__countdown-mark .daily-orientation__candle { width: 22px; height: 54px; }
+.daily-orientation__countdown-goal { margin-left: 4px; font-size: 56px; line-height: 1; }
+.daily-orientation__countdown-marks--many { gap: 7px; }
+.daily-orientation__countdown-marks--many .daily-orientation__countdown-dot { width: 24px; height: 24px; border-width: 3px; }
+.daily-orientation__countdown-marks--many .daily-orientation__candle { width: 16px; height: 40px; }
+
+/* The day's icon under the number on the Число card. */
+.daily-orientation__date-mark {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 48px;
+  line-height: 1;
+}

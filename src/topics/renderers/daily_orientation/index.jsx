@@ -1,5 +1,18 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useSpeech } from "@/shared/hooks/useSpeech";
+import { useAppStore } from "@/core/store";
+import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
+import {
+  agePhrase,
+  ageOn,
+  cardPhoto,
+  countdownPhrase,
+  dayPhrase,
+  eventsOnDate,
+  isBirthdayType,
+  nearestCountdown,
+  visibleImportantDates,
+} from "@/features/importantDates/importantDates";
 import {
   dateClipKeys,
   daypartClipKeys,
@@ -551,6 +564,124 @@ function longestWordLength(text) {
   return Math.max(...text.split(/\s+/).map((word) => word.length));
 }
 
+// ── Важные даты ─────────────────────────────────────────────────────
+// A day from the student's "Важные даты" is marked on the screen itself: a
+// ribbon under the carousel with the photo and one sentence ("Сегодня день
+// рождения мамы!"), and -- in the "Празднично" style -- a garland and a warm
+// background, so the difference is visible from across the room. In the
+// days before it, a quieter ribbon counts down. Nothing animates and
+// nothing plays on its own: a sudden change to a familiar screen can upset
+// a child, and the countdown is there so the day doesn't come as a surprise.
+
+const GARLAND_COLORS = ["#f59e0b", "#4a9b8f", "#e8684a", "#3b82f6", "#a855f7", "#22c55e"];
+const GARLAND_FLAGS = 23;
+const MAX_CANDLES = 12;
+
+function Garland({ width }) {
+  const sag = 38;
+  const flags = Array.from({ length: GARLAND_FLAGS }, (_, index) => {
+    const x = 20 + index * ((width - 40) / (GARLAND_FLAGS - 1));
+    const t = x / width;
+    const y = 8 + 4 * sag * t * (1 - t);
+    return <path key={index} d={`M${x - 18} ${y} L${x + 18} ${y} L${x} ${y + 40} Z`} fill={GARLAND_COLORS[index % GARLAND_COLORS.length]} />;
+  });
+  return (
+    <svg className="daily-orientation__garland" viewBox={`0 0 ${width} 70`} preserveAspectRatio="none" aria-hidden="true">
+      <path d={`M0 8 Q${width / 2} ${8 + 2 * sag} ${width} 8`} fill="none" stroke="#b9a68a" strokeWidth="3" />
+      {flags}
+    </svg>
+  );
+}
+
+function ImportantPicture({ item, photo, className }) {
+  return (
+    <span className={`${className} daily-orientation__important-picture--${item.type}`} aria-hidden="true">
+      {photo ? <AuthenticatedImage src={photo} alt="" draggable="false" /> : <span>{item.icon}</span>}
+    </span>
+  );
+}
+
+function Candle({ lit }) {
+  return (
+    <svg className={`daily-orientation__candle${lit ? " daily-orientation__candle--lit" : ""}`} viewBox="0 0 24 56" aria-hidden="true">
+      {lit && <path className="daily-orientation__candle-flame" d="M12 2c3.5 5 5 8 5 11a5 5 0 0 1-10 0c0-3 1.5-6 5-11Z" />}
+      <rect className="daily-orientation__candle-wick" x="11" y="17" width="2" height="5" rx="1" />
+      <rect className="daily-orientation__candle-body" x="5" y="22" width="14" height="32" rx="3" />
+    </svg>
+  );
+}
+
+function ImportantDayRibbon({ events, offset, date, pictureFor, speakerButton }) {
+  return (
+    <section className={`daily-orientation__important daily-orientation__important--day${events.length > 1 ? " daily-orientation__important--double" : ""}`} aria-label="Важный день">
+      {events.map((item) => {
+        const age = item.type === "own_birthday" ? ageOn(item, date) : null;
+        const photo = pictureFor(item);
+        return (
+          <div key={item.id} className="daily-orientation__important-event">
+            <span className="daily-orientation__important-frame">
+              <ImportantPicture item={item} photo={photo} className="daily-orientation__important-picture" />
+              {item.type === "own_birthday" && <span className="daily-orientation__important-crown" aria-hidden="true">👑</span>}
+              {item.type === "birthday" && (
+                <>
+                  <span className="daily-orientation__important-balloon daily-orientation__important-balloon--a" aria-hidden="true">🎈</span>
+                  <span className="daily-orientation__important-balloon daily-orientation__important-balloon--b" aria-hidden="true">🎈</span>
+                </>
+              )}
+            </span>
+            <div className="daily-orientation__important-copy">
+              <p className="daily-orientation__important-eyebrow">{offset > 0 ? "Завтра важный день" : "Важный день"}</p>
+              <p className="daily-orientation__important-phrase">
+                {dayPhrase(item, offset)}
+                {age && offset === 0 && <span className="daily-orientation__important-age"> {agePhrase(item, date)}</span>}
+              </p>
+            </div>
+            {age && offset === 0 && age <= MAX_CANDLES ? (
+              <span className="daily-orientation__important-candles" aria-hidden="true">
+                {Array.from({ length: age }, (_, index) => <Candle key={index} lit />)}
+              </span>
+            ) : events.length === 1 && isBirthdayType(item) && photo ? (
+              <span className="daily-orientation__important-cake" aria-hidden="true">🎂</span>
+            ) : null}
+          </div>
+        );
+      })}
+      {speakerButton}
+    </section>
+  );
+}
+
+function CountdownRibbon({ countdown, picture, speakerButton }) {
+  const { item, daysLeft } = countdown;
+  const { title, when } = countdownPhrase(item, daysLeft);
+  const total = item.countdownDays;
+  const birthday = isBirthdayType(item);
+  return (
+    <section className="daily-orientation__important daily-orientation__important--countdown" aria-label={`${title} — ${when}`}>
+      <ImportantPicture item={item} photo={picture} className="daily-orientation__important-picture daily-orientation__important-picture--small" />
+      <p className="daily-orientation__countdown-text">
+        <span className="daily-orientation__countdown-title">{title}</span>{" "}
+        <b className="daily-orientation__countdown-when">{when}</b>
+      </p>
+      {/* One mark per day of the countdown; one goes out each morning, so
+          what's left is the number of marks still lit. Candles for a
+          birthday, plain dots for everything else. */}
+      <ol className={`daily-orientation__countdown-marks${total > 7 ? " daily-orientation__countdown-marks--many" : ""}`} aria-hidden="true">
+        {Array.from({ length: total }, (_, index) => {
+          const lit = index >= total - daysLeft;
+          return (
+            <li key={index} className="daily-orientation__countdown-mark">
+              {birthday ? <Candle lit={lit} /> : <span className={`daily-orientation__countdown-dot${lit ? " daily-orientation__countdown-dot--lit" : ""}`} />}
+            </li>
+          );
+        })}
+        <li className="daily-orientation__countdown-goal">{birthday ? "🎂" : item.icon}</li>
+      </ol>
+      {speakerButton}
+    </section>
+  );
+}
+
 function DigitalClock({ now }) {
   const hours = String(now.getHours()).padStart(2, "0");
   const minutes = String(now.getMinutes()).padStart(2, "0");
@@ -578,6 +709,14 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const weeklyPlan = parseWeeklyPlan(sessionParams?.weeklyPlan);
   const { weatherId, selectWeather } = useTodaysWeather(getLocalDateKey(now));
   const activeDate = addCalendarDays(now, offset);
+  const student = useAppStore((state) => state.students.find((candidate) => candidate.id === state.activeStudentId) ?? null);
+  const datesStyle = sessionParams?.importantDatesStyle ?? "bright";
+  const importantDates = datesStyle === "off" ? [] : visibleImportantDates(student?.importantDates);
+  // Step one marks today and (as a preview) tomorrow; "Вчера был …" comes later.
+  const dayEvents = offset >= 0 ? eventsOnDate(importantDates, activeDate).slice(0, 2) : [];
+  const countdown = offset === 0 && !dayEvents.length ? nearestCountdown(importantDates, now) : null;
+  const isFestive = dayEvents.length > 0 && datesStyle === "bright";
+  const importantPicture = (item) => cardPhoto(item, student?.myPeople) ?? (item.type === "own_birthday" ? student?.photo ?? null : null);
   const { weekday, month } = formatDisplayDate(activeDate);
   // Plain number on the card, no "-е": a child reads the "е" as a letter.
   // The ordinal is heard (the speaker says "двадцать девятое") and the
@@ -668,9 +807,10 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   }
 
   return (
-    <main className="daily-orientation" aria-label="Экран ориентации во времени">
+    <main className={`daily-orientation${isFestive ? " daily-orientation--festive" : ""}`} aria-label="Экран ориентации во времени">
       <div className="daily-orientation__viewport" ref={viewportRef}>
         <div className={`daily-orientation__canvas${display.showCarousel ? "" : " daily-orientation__canvas--without-carousel"}`} style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px`, transform: `scale(${scale})` }}>
+          {isFestive && <Garland width={canvasWidth} />}
           {display.showCarousel && (
             <nav
               className="daily-orientation__carousel"
@@ -703,6 +843,30 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
             </nav>
           )}
 
+          {dayEvents.length > 0 && (
+            <ImportantDayRibbon
+              events={dayEvents}
+              offset={offset}
+              date={activeDate}
+              pictureFor={importantPicture}
+              speakerButton={soundEnabled && (
+                <SpeakerButton onClick={() => speakCard(dayEvents.map((item) => [dayPhrase(item, offset), item.type === "own_birthday" && offset === 0 ? agePhrase(item, activeDate) : null].filter(Boolean).join(" ")).join(" "))} />
+              )}
+            />
+          )}
+          {countdown && (
+            <CountdownRibbon
+              countdown={countdown}
+              picture={importantPicture(countdown.item)}
+              speakerButton={soundEnabled && (
+                <SpeakerButton onClick={() => {
+                  const { title, when } = countdownPhrase(countdown.item, countdown.daysLeft);
+                  speakCard(`${title} ${when.replace(/!$/, "")}.`);
+                }} />
+              )}
+            />
+          )}
+
           <div className="daily-orientation__grid" aria-live="polite">
             {showTopRow && (
               <div className="daily-orientation__row">
@@ -732,6 +896,9 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     )}
                     <p className="daily-orientation__question">{CAPTION_DATE_NUMBER}</p>
                     <FitText className="daily-orientation__date-number">{dayOfMonth}</FitText>
+                    {dayEvents.length > 0 && (
+                      <span className="daily-orientation__date-mark" aria-hidden="true">{isBirthdayType(dayEvents[0]) ? "🎂" : dayEvents[0].icon}</span>
+                    )}
                   </article>
                 )}
 
@@ -862,8 +1029,8 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
       </div>
       {openConcept && (
         <DailyOrientationModal label={CONCEPT_MODAL_LABELS[openConcept]} onClose={closeConcept}>
-          {openConcept === "week" && <WeekContent activeDate={activeDate} today={now} plan={weeklyPlan} />}
-          {openConcept === "date" && <DateContent activeDate={activeDate} offset={offset} today={now} />}
+          {openConcept === "week" && <WeekContent activeDate={activeDate} today={now} plan={weeklyPlan} importantDates={importantDates} />}
+          {openConcept === "date" && <DateContent activeDate={activeDate} offset={offset} today={now} importantDates={importantDates} />}
           {openConcept === "month" && <MonthContent activeDate={activeDate} />}
           {openConcept === "season" && <SeasonContent activeDate={activeDate} />}
           {openConcept === "daypart" && <DaypartContent daypartId={daypartId} wakeHour={wakeHour} bedHour={bedHour} />}

@@ -14,10 +14,18 @@ describe("daily orientation built-in mode", () => {
       "showDayOfMonth",
       "showMonth",
       "showSeason",
+      "showDaypart",
+      "showWeather",
       "showAnalogClock",
       "showTimeWords",
       "showDigitalTime",
+      "wakeHour",
+      "bedHour",
+      "importantDatesStyle",
+      "weeklyPlan",
     ]);
-    expect(Object.values(mode.params).every((param) => param.type === "boolean" && param.default === true)).toBe(true);
+    const switches = Object.entries(mode.params).filter(([key]) => key.startsWith("show")).map(([, param]) => param);
+    expect(switches.every((param) => param.type === "boolean" && param.default === true)).toBe(true);
+    expect(mode.params.importantDatesStyle).toMatchObject({ type: "enum", default: "bright", values: ["bright", "calm", "off"] });
   });
 });

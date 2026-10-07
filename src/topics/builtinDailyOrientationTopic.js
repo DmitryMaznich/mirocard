@@ -109,6 +109,16 @@ export function buildDailyOrientationTopicRecord() {
             compact: true,
             section: "Режим дня",
           },
+          // How the screen marks a day from the student's "Важные даты":
+          // garland + warm background, the ribbon alone, or nothing at all.
+          importantDatesStyle: {
+            type: "enum",
+            label: { ru: "Важные даты на экране" },
+            values: ["bright", "calm", "off"],
+            labels: { ru: { bright: "Празднично", calm: "Спокойно", off: "Не показывать" } },
+            default: "bright",
+            section: "Важные даты",
+          },
           weeklyPlan: {
             type: "free_text",
             label: { ru: "План на неделю" },

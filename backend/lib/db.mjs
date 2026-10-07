@@ -253,6 +253,12 @@ export function initDb(dbPath = DB_PATH) {
   if (!studentColumns.some((column) => column.name === "my_people_updated_at")) {
     db.exec("ALTER TABLE students ADD COLUMN my_people_updated_at TEXT");
   }
+  if (!studentColumns.some((column) => column.name === "important_dates")) {
+    db.exec("ALTER TABLE students ADD COLUMN important_dates TEXT DEFAULT '[]'");
+  }
+  if (!studentColumns.some((column) => column.name === "important_dates_updated_at")) {
+    db.exec("ALTER TABLE students ADD COLUMN important_dates_updated_at TEXT");
+  }
   // GDPR Art. 9: the free-text "comment" field can carry health/development
   // data (speech-therapy notes, diagnoses) — that's a special category and
   // needs its own explicit consent, separate from the account-level consent

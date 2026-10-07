@@ -3,6 +3,7 @@ import {
   upsertStudentVideos, upsertStudentAdults,
   recordStudentVideoViews,
   upsertStudentMyPeopleProfile, upsertStudentMyPeople,
+  upsertStudentImportantDates,
   appendSession,
   upsertAccountTopic, softDeleteAccountTopic,
   upsertStudentTopicLink,
@@ -31,6 +32,9 @@ const HANDLERS = {
 
   "student.my_people.upsert": (db, accountId, data) =>
     upsertStudentMyPeople(db, accountId, { studentId: data.studentId, people: data.people, updatedAt: data.updatedAt }),
+
+  "student.important_dates.upsert": (db, accountId, data) =>
+    upsertStudentImportantDates(db, accountId, { studentId: data.studentId, dates: data.dates, updatedAt: data.updatedAt }),
 
   "student.delete": (db, accountId, data) =>
     softDeleteStudent(db, accountId, data.id),

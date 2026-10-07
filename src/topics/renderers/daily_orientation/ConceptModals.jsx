@@ -10,6 +10,7 @@ import {
   getSeason,
   monthEndingChange,
 } from "./timeUtils.js";
+import { eventsOnDate, isBirthdayType } from "@/features/importantDates/importantDates";
 import "./conceptModals.css";
 
 // What each card's tap opens: the whole range of that concept with the
@@ -53,7 +54,13 @@ function CycleArrow() {
 // ── День недели ──────────────────────────────────────────────────────
 // Full names are the label; the short form (пн, вт…) is only a small
 // caption under it, never on its own.
-export function WeekContent({ activeDate, today, plan }) {
+// The icon a date from "Важные даты" gets in a calendar cell or a week day.
+function importantMark(events) {
+  if (!events.length) return null;
+  return isBirthdayType(events[0]) ? "🎂" : events[0].icon;
+}
+
+export function WeekContent({ activeDate, today, plan, importantDates = [] }) {
   const mondayOffset = (activeDate.getDay() + 6) % 7;
   const monday = addCalendarDays(activeDate, -mondayOffset);
   return (
@@ -77,6 +84,11 @@ export function WeekContent({ activeDate, today, plan }) {
               <span className="dom-week__tag">{tag ?? " "}</span>
               <span className="dom-week__name">{capitalize(name)}</span>
               <span className="dom-week__short">{short}</span>
+              {eventsOnDate(importantDates, date).map((item) => (
+                <span key={item.id} className="dom-week__event">
+                  <span aria-hidden="true">{isBirthdayType(item) ? "🎂" : item.icon}</span> {item.title}
+                </span>
+              ))}
               {plan[day] ? <span className="dom-week__plan">{plan[day]}</span> : null}
             </li>
           );
@@ -92,7 +104,7 @@ export function WeekContent({ activeDate, today, plan }) {
 // the same word, with the one letter that changes after a number marked.
 const DATE_LEAD = { "-1": "Вчера было", 0: "Сегодня", 1: "Завтра будет" };
 
-export function DateContent({ activeDate, offset, today }) {
+export function DateContent({ activeDate, offset, today, importantDates = [] }) {
   const year = activeDate.getFullYear();
   const monthIndex = activeDate.getMonth();
   const total = daysInMonth(year, monthIndex);
@@ -119,6 +131,8 @@ export function DateContent({ activeDate, offset, today }) {
             if (number === null) return <span key={`blank-${index}`} className="dom-calendar__cell dom-calendar__cell--blank" />;
             const weekend = index % 7 >= 5;
             const past = todayInMonth !== null && number < todayInMonth;
+            const events = eventsOnDate(importantDates, new Date(year, monthIndex, number));
+            const mark = importantMark(events);
             return (
               <span
                 key={number}
@@ -129,9 +143,12 @@ export function DateContent({ activeDate, offset, today }) {
                   weekend ? "dom-calendar__cell--weekend" : "",
                   past ? "dom-calendar__cell--past" : "",
                   number === dayNumber ? "dom-calendar__cell--active" : "",
+                  mark ? "dom-calendar__cell--important" : "",
                 ].filter(Boolean).join(" ")}
+                title={events.map((item) => item.title).join(", ") || undefined}
               >
                 {number}
+                {mark && <span className="dom-calendar__mark" aria-hidden="true">{mark}</span>}
               </span>
             );
           })}

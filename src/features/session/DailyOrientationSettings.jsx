@@ -5,6 +5,13 @@ import {
   getDaypartId,
   parseWeeklyPlan,
 } from "@/topics/renderers/daily_orientation/timeUtils";
+import {
+  daysUntil,
+  daysWord,
+  formatDayMonth,
+  sortByNextOccurrence,
+  visibleImportantDates,
+} from "@/features/importantDates/importantDates";
 import "./dailyOrientationSettings.css";
 
 // Settings screen for the "Сегодня" wall display. Instead of a flat list of
@@ -53,6 +60,19 @@ const WEEK = [
 const WAKE_RANGE = [5, 9];
 const BED_RANGE = [19, 23];
 const DAYPART_LABELS = { morning: "Утро", day: "День", evening: "Вечер", night: "Ночь" };
+
+const IMPORTANT_DATES_STYLES = [
+  { value: "bright", label: "Празднично", hint: "Гирлянда, тёплый фон и полоса с фото" },
+  { value: "calm", label: "Спокойно", hint: "Только полоса с фото — для детей, которых пугают перемены на экране" },
+  { value: "off", label: "Не показывать", hint: "Экран не отмечает важные даты" },
+];
+
+function whenText(item, today) {
+  const left = daysUntil(item, today);
+  if (left === 0) return "сегодня";
+  if (left === 1) return "завтра";
+  return `через ${daysWord(left)}`;
+}
 
 function isOn(params, key) {
   return params[key] !== false;
@@ -122,7 +142,7 @@ function HourStepper({ id, label, value, range, onChange }) {
   );
 }
 
-export default function DailyOrientationSettings({ params, setParams }) {
+export default function DailyOrientationSettings({ params, setParams, student, onOpenImportantDates }) {
   const [nudgedCard, setNudgedCard] = useState(null);
   const wakeHour = Number(params.wakeHour ?? DEFAULT_WAKE_HOUR);
   const bedHour = Number(params.bedHour ?? DEFAULT_BED_HOUR);
@@ -138,6 +158,12 @@ export default function DailyOrientationSettings({ params, setParams }) {
   const timeOn = cardIsOn(params, MAP_CARDS.find((card) => card.id === "time"));
   const daypartOn = isOn(params, "showDaypart");
   const clockPartsOn = CLOCK_PARTS.filter((part) => isOn(params, part.key));
+  const today = new Date();
+  const importantDates = visibleImportantDates(student?.importantDates);
+  const upcomingDates = sortByNextOccurrence(importantDates, today)
+    .filter((item) => daysUntil(item, today) !== null)
+    .slice(0, 3);
+  const datesStyle = params.importantDatesStyle ?? "bright";
 
   function set(patch) {
     setParams((current) => ({ ...current, ...patch }));
@@ -259,6 +285,53 @@ export default function DailyOrientationSettings({ params, setParams }) {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className={`dos-section${datesStyle === "off" ? " dos-section--muted" : ""}`} aria-labelledby="dos-dates-title">
+        <header className="dos-section__head">
+          <h2 className="dos-section__title" id="dos-dates-title">Важные даты</h2>
+          <p className="dos-section__hint">Дни рождения, праздники и события из профиля ребёнка: в этот день экран выглядит празднично, а заранее показывает, сколько дней осталось.</p>
+        </header>
+
+        <div className="dos-card dos-dates">
+          {upcomingDates.length ? (
+            <ul className="dos-dates__list">
+              {upcomingDates.map((item) => (
+                <li key={item.id} className="dos-dates__item">
+                  <span className="dos-dates__icon" aria-hidden="true">{item.icon}</span>
+                  <span className="dos-dates__title">{item.title}</span>
+                  <span className="dos-dates__when">{formatDayMonth(item)} · {whenText(item, today)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="dos-dates__empty">Пока нет ни одной даты.</p>
+          )}
+          {onOpenImportantDates && (
+            <button type="button" className="dos-dates__open" onClick={onOpenImportantDates}>
+              {importantDates.length ? "Настроить даты" : "Добавить даты"}
+            </button>
+          )}
+        </div>
+
+        <div className="dos-subgroup">
+          <span className="dos-subgroup__label" id="dos-dates-style-label">Как отмечать на экране</span>
+          <div className="dos-dates__styles" role="radiogroup" aria-labelledby="dos-dates-style-label">
+            {IMPORTANT_DATES_STYLES.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={datesStyle === option.value}
+                className={`dos-chip${datesStyle === option.value ? " dos-chip--on" : ""}`}
+                onClick={() => set({ importantDatesStyle: option.value })}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <p className="dos-dates__style-hint">{IMPORTANT_DATES_STYLES.find((option) => option.value === datesStyle)?.hint}</p>
         </div>
       </section>
 
