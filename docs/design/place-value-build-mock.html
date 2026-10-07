@@ -1,0 +1,893 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+@font-face{font-family:Nunito;font-weight:400;src:url(../../node_modules/@fontsource/nunito/files/nunito-cyrillic-400-normal.woff2)}
+@font-face{font-family:Nunito;font-weight:400;src:url(../../node_modules/@fontsource/nunito/files/nunito-latin-400-normal.woff2)}
+@font-face{font-family:Nunito;font-weight:700;src:url(../../node_modules/@fontsource/nunito/files/nunito-cyrillic-700-normal.woff2)}
+@font-face{font-family:Nunito;font-weight:700;src:url(../../node_modules/@fontsource/nunito/files/nunito-latin-700-normal.woff2)}
+@font-face{font-family:Nunito;font-weight:800;src:url(../../node_modules/@fontsource/nunito/files/nunito-cyrillic-800-normal.woff2)}
+@font-face{font-family:Nunito;font-weight:800;src:url(../../node_modules/@fontsource/nunito/files/nunito-latin-800-normal.woff2)}
+@font-face{font-family:Nunito;font-weight:900;src:url(../../node_modules/@fontsource/nunito/files/nunito-cyrillic-900-normal.woff2)}
+@font-face{font-family:Nunito;font-weight:900;src:url(../../node_modules/@fontsource/nunito/files/nunito-latin-900-normal.woff2)}
+/* Actual layout lengths preserve pointer tracking; coin geometry follows the original lesson. */
+.cb-screen { --cb-scale: 1px; }
+.cb-coin {
+  width: var(--coin-size, 30px); height: var(--coin-size, 30px);
+  box-sizing: border-box; position: relative; border-radius: 50%; flex-shrink: 0;
+  background: radial-gradient(circle at 32% 28%, #fff6da, #f6c94e 45%, #e0a72c 85%);
+  border: 1.5px solid #9a6414; box-shadow: inset 0 -2px 3px #9a64144d, 0 2px 3px #0000001a;
+  display: grid; place-items: center; color: #7a4e10; font-size: 14px; font-weight: 800;
+}
+.cb-ten-stack { display: flex; flex-direction: column-reverse; align-items: center; position: relative; flex-shrink: 0; padding-top: calc(var(--coin-size, 30px) * .2); }
+.cb-stack-coin {
+  width: var(--coin-size, 28px); height: calc(var(--coin-size, 28px) * .4);
+  box-sizing: border-box; border-radius: 50%; border: 1.5px solid #9a6414; flex-shrink: 0;
+  background: radial-gradient(ellipse at 32% 22%, #fff6da, #f6c94e 45%, #e0a72c 85%);
+  margin-top: calc(var(--coin-size, 30px) * -7 / 30); box-shadow: 0 1px 0 #0000001a;
+}
+.cb-stack-coin:last-child { margin-top: 0; }
+.cb-coin--groupable { outline: 2px solid #78a58f; outline-offset: 0; animation: cm-group-ready 1.2s ease-in-out infinite; }
+@keyframes cm-group-ready { 0%, 100% { outline-color: #78a58f; } 50% { outline-color: #78a58f44; } }
+.cb-stack-badge { position: absolute; top: -4px; right: -8px; background: #8a5a1c; color: #fff6da; border-radius: 50%; padding: 4px; }
+.cb-coin-fly-ghost { position: fixed; pointer-events: none; z-index: 500; transform: translate(-50%, -50%); animation: none; }
+.cm-drag-object { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; filter: drop-shadow(0 5px 5px #63451433); pointer-events: none; }
+.cm-screen {
+  --cm-unit: 1px; --cm-gap: calc(10 * var(--cm-unit));
+  container-type: size; color: #203b38; background: #fffcf5;
+  padding: calc(12 * var(--cm-unit)); gap: var(--cm-gap); overflow: auto;
+}
+.cm-heading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(6 * var(--cm-unit)); flex-shrink: 0; min-height: calc(36 * var(--cm-unit)); }
+.cm-screen .pv-question { font-size: calc(27 * var(--cm-unit)); font-weight: 800; line-height: 1.15; white-space: normal; overflow: visible; text-overflow: clip; margin: 0; padding: 0; }
+.cm-screen .pv-question--correct { color: #286b5a; }
+.cm-target { text-align: center; font-size: calc(76 * var(--cm-unit)); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.cm-body { display: flex; flex-direction: column; gap: var(--cm-gap); width: 100%; max-width: 640px; margin: 0 auto; flex: 1 1 0; min-height: 0; }
+.cm-model { flex: 0 0 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; justify-content: flex-start; gap: var(--cm-gap); }
+.cm-board { display: grid; grid-template-columns: 40% 60%; gap: 0; align-items: stretch; flex: 0 0 auto; min-height: 0; height: calc(240.4 * var(--cm-unit)); border: 1.5px solid #dce2d1; border-radius: calc(16 * var(--cm-unit)); background: #fffdf6; }
+.cm-zone { min-width: 0; min-height: 0; display: flex; flex-direction: column; padding: 0 calc(8 * var(--cm-unit)) calc(8 * var(--cm-unit)); transition: background .15s; }
+.cm-zone + .cm-zone { border-left: 1px solid #dce2d1; }
+.cm-screen .pv-zone-label { font-size: calc(17 * var(--cm-unit)); letter-spacing: 0; font-weight: 800; color: #476253; text-align: center; line-height: 1.2; margin: 0; padding: calc(9 * var(--cm-unit)) 0; flex-shrink: 0; }
+.cm-zone--over { background: #edf5eb; }
+.cm-board--focus-tens .cm-zone:first-child, .cm-board--focus-ones .cm-zone:last-child { background: #edf5eb; }
+.cm-stacks, .cm-coins { display: grid; justify-content: center; align-content: start; align-items: center; gap: calc(6 * var(--cm-unit)); flex: 1 1 0; min-height: 0; margin: 0 auto; padding-top: calc(8 * var(--cm-unit)); overflow-y: auto; }
+.cm-stacks { grid-template-columns: repeat(3, var(--coin-size)); grid-auto-rows: calc(var(--coin-size) * 2.1); width: min(100%, calc(var(--coin-size) * 3 + 12 * var(--cm-unit))); }
+.cm-coins { grid-template-columns: repeat(5, var(--coin-size)); grid-auto-rows: var(--coin-size); width: min(100%, calc(var(--coin-size) * var(--cm-one-columns, 5) + (var(--cm-one-columns, 5) - 1) * 6 * var(--cm-unit))); }
+.cm-object-wrap { display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+.cm-object { appearance: none; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; padding: 0; min-height: 0; min-width: 0; margin: 0; position: relative; border-radius: 6px; color: inherit; font: inherit; }
+button.cm-object { cursor: grab; touch-action: none; }
+.cm-object:disabled { cursor: default; }
+.cm-selected::after { content: ''; position: absolute; height: 3px; width: 70%; bottom: -5px; background: #286b5a; border-radius: 3px; pointer-events: none; }
+.cm-counted::after { content: '✓'; position: absolute; top: -6px; right: -4px; color: #286b5a; font-size: calc(14 * var(--cm-unit)); font-weight: 900; pointer-events: none; text-shadow: 0 1px 2px white; }
+.cm-pending { visibility: hidden; }
+.cm-build-controls { display: flex; flex-direction: column; gap: var(--cm-gap); }
+.cm-build-controls > .btn { width: 100%; }
+.cm-supply { display: flex; flex-direction: column; gap: calc(6 * var(--cm-unit)); padding: calc(8 * var(--cm-unit)); border-radius: calc(16 * var(--cm-unit)); background: #f0f0e2; }
+.cm-supply > .btn { align-self: flex-end; }
+.cm-sources { display: flex; gap: calc(12 * var(--cm-unit)); align-items: stretch; justify-content: center; min-width: 0; }
+.cm-source { --cm-pile-unit: calc(var(--coin-size) / 28); flex: 1; display: flex; flex-direction: column; align-items: center; gap: calc(4 * var(--cm-unit)); padding: calc(6 * var(--cm-unit)); background: #fffdf5; border-radius: calc(12 * var(--cm-unit)); border: 1px solid #e5dfcb; }
+.cm-source span { font-size: calc(17 * var(--cm-unit)); line-height: 1.2; font-weight: 800; text-align: center; }
+.cm-source-stack { min-height: calc(86 * var(--cm-pile-unit)); }
+.cm-pile { position: relative; width: calc(128 * var(--cm-pile-unit)); height: calc(86 * var(--cm-pile-unit)); }
+.cm-pile-coin { position: absolute; }
+.cm-pile::after { content: ''; position: absolute; left: 10%; right: 10%; bottom: -3px; height: 6px; background: radial-gradient(ellipse, #9a641433, transparent 70%); pointer-events: none; }
+.cm-controls { flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--cm-gap); min-width: 0; }
+.cm-controls > .btn { width: 100%; }
+.session-renderer-wrap:has(> .cm-screen) { background-color: #fffcf5; }
+/* These three lessons need the space previously reserved for the 96px
+   feedback badge. Keep a fixed, smaller reservation and badge in all states
+   so answering never shifts the coins or covers the instruction. */
+.session-screen:has(.cm-screen) { background-color: #fffcf5; }
+.session-screen:has(.cm-screen) .session-header-wrap { margin-bottom: 28px; }
+.session-screen:has(.cm-screen) .session-plan-tongue--correct,
+.session-screen:has(.cm-screen) .session-plan-tongue--incorrect {
+  width: 40px; height: 40px; transform: translate(-50%, 80%);
+}
+.session-screen:has(.cm-screen) .session-plan-tongue__emoji { font-size: 26px; line-height: 1; }
+.cm-tools { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: calc(6 * var(--cm-unit)); flex-shrink: 0; }
+.cm-build .cm-tools { min-height: max(36px, calc(42 * var(--cm-unit))); }
+.cm-screen .btn { min-height: max(36px, calc(42 * var(--cm-unit))); font-size: calc(17 * var(--cm-unit)); border-radius: calc(12 * var(--cm-unit)); padding: calc(8 * var(--cm-unit)) calc(12 * var(--cm-unit)); line-height: 1.2; }
+.cm-screen .btn-primary { background: #286b5a; border-color: #286b5a; color: white; box-shadow: 0 2px 0 #194c3f; }
+.cm-screen .btn-secondary { color: #315b48; background: #edf1e3; border-color: #d7e0cd; box-shadow: 0 2px 0 #cbd6bf; }
+.cm-primary { width: 100%; }
+.cm-screen .btn:disabled { opacity: .55; }
+.cm-caption { font-size: calc(15 * var(--cm-unit)); line-height: 1.25; color: #476253; text-align: center; margin: 0; flex-shrink: 0; }
+.cm-feedback { flex-shrink: 0; text-align: center; font-size: calc(16 * var(--cm-unit)); line-height: 1.25; font-weight: 650; color: #315f4b; }
+.cm-feedback { min-height: calc(40 * var(--cm-unit)); display: grid; align-items: center; }
+.cm-feedback:empty { visibility: hidden; }
+.cm-result { position: relative; padding: calc(16 * var(--cm-unit)); border: 1.5px solid #d3dfcc; border-radius: calc(16 * var(--cm-unit)); background: #edf3e8; color: #244b40; }
+.cm-result-number { display: block; text-align: center; font-size: calc(64 * var(--cm-unit)); font-weight: 800; line-height: 1; margin-bottom: calc(12 * var(--cm-unit)); font-variant-numeric: tabular-nums; }
+.cm-result-parts { display: grid; grid-template-columns: 1fr auto 1fr; gap: calc(12 * var(--cm-unit)); align-items: center; }
+.cm-result-parts > div { display: flex; flex-direction: column; align-items: center; gap: calc(4 * var(--cm-unit)); }
+.cm-result-parts strong { font-size: calc(44 * var(--cm-unit)); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.cm-result-parts span { font-size: calc(22 * var(--cm-unit)); font-weight: 750; line-height: 1.2; }
+.cm-result-parts .cm-result-plus { font-size: calc(30 * var(--cm-unit)); color: #638573; }
+.cm-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.cm-answer { display: flex; flex-direction: column; gap: calc(8 * var(--cm-unit)); width: 100%; max-width: 560px; align-self: center; }
+.cm-screen .pv-guess-row { margin: 0; gap: calc(10 * var(--cm-unit)); }
+.cm-screen .pv-number-frame { border: 1.5px solid #cdd8c2; border-radius: calc(12 * var(--cm-unit)); min-width: calc(90 * var(--cm-unit)); min-height: calc(54 * var(--cm-unit)); font-size: calc(38 * var(--cm-unit)); font-weight: 800; line-height: 1; display: grid; place-items: center; background: #fffdf5; color: #203b38; padding: calc(6 * var(--cm-unit)) calc(18 * var(--cm-unit)); }
+.cm-screen .pv-number-frame--shake { border-color: #b8733d; animation: none; }
+.cm-screen .pv-backspace-btn { width: max(36px, calc(42 * var(--cm-unit))); height: max(36px, calc(42 * var(--cm-unit))); color: #315b48; background: #edf1e3; border-color: #d5decb; box-shadow: 0 2px 0 #cbd6bf; font-size: calc(26 * var(--cm-unit)); }
+.cm-screen .pv-numpad { grid-template-columns: repeat(5, 1fr); gap: calc(6 * var(--cm-unit)); padding: 0; }
+.cm-screen .pv-numkey { font-size: calc(26 * var(--cm-unit)); min-height: max(36px, calc(46 * var(--cm-unit))); padding: calc(6 * var(--cm-unit)) 0; line-height: 1; background: #f0f2e6; border: 1px solid #d7deca; color: #203b38; box-shadow: 0 2px 0 #d0d9c3; border-radius: calc(10 * var(--cm-unit)); }
+.cm-total { font-size: calc(18 * var(--cm-unit)); line-height: 1; text-align: center; color: #244b40; flex-shrink: 0; }
+.cm-total strong { font-size: calc(26 * var(--cm-unit)); font-variant-numeric: tabular-nums; }
+.cm-screen button:focus-visible { outline: 2px solid #286b5a; outline-offset: 3px; }
+/* Preserve the mockup's composition on every device. A taller lesson can
+   use the mockup's 3-column pad; a short one uses two rows to fit. */
+@container (min-width: 600px) and (min-height: 900px) {
+  .cm-screen .pv-numpad { grid-template-columns: repeat(3, 1fr); }
+  .cm-screen .pv-numkey:last-child { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .cm-screen *, .cb-coin-fly-ghost { animation: none !important; transition: none !important; } }
+
+
+/* «Обмен десятка» (ExchangeTenTask). The topic's own coins: a loose coin is
+   one unit, a stack of ten coins is a ten (coins.css .cb-coin / .cb-ten-stack).
+   Zone headers carry the place colors (tens amber, ones blue), the same as
+   the spoken model line. --coin-size is set from JS (ExchangeTenTask measures
+   .px-board). */
+
+@font-face {
+  font-family: 'Primo';
+  src: url('../../public/fonts/primo.ttf') format('truetype');
+  font-display: swap;
+}
+
+.px-screen {
+  --px-ones: #2563eb;
+  --px-ones-light: #60a5fa;
+  --px-ones-dark: #1e40af;
+  --px-tens: #d97706;
+  --px-tens-light: #fbbf24;
+  --px-tens-dark: #92400e;
+  --px-give: #c04040;
+  --px-get: #1f7a6f;
+  padding: 12px 16px 14px;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.px-task {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  font-size: clamp(20px, 2.8vw, 30px);
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.px-num {
+  font-size: clamp(32px, 5vw, 52px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.px-verb--give { color: var(--px-give); }
+.px-verb--get { color: var(--px-get); }
+
+.px-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.px-board {
+  flex: 1 1 auto;
+  max-width: 760px;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Zones hug their coins but never shrink below a comfortable drop target
+   (the ones zone receives a dragged stack even when it is empty). */
+.px-board > .px-zone { min-height: calc(var(--coin-size) * 5.2 + 48px); }
+
+.px-zone {
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.px-zone h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.px-chip {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.px-zone--tens h3 { color: var(--px-tens-dark); }
+.px-zone--tens .px-chip { background: var(--px-tens); }
+.px-zone--ones h3 { color: var(--px-ones-dark); }
+.px-zone--ones .px-chip { background: var(--px-ones); }
+
+.px-zone--tens { flex: 0 0 auto; width: calc(var(--coin-size) * 6.4 + 28px); }
+.px-zone--ones { flex: 0 0 auto; width: calc(var(--coin-size) * 6.2 + 28px); }
+
+.px-zone--drag-over {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35);
+}
+
+.px-stacks {
+  display: grid;
+  grid-template-columns: repeat(5, var(--coin-size));
+  grid-auto-rows: calc(var(--coin-size) * 2.2);
+  gap: calc(var(--coin-size) * 0.3);
+  align-items: end;
+}
+
+/* ── Coins and stacks ───────────────────── */
+
+.px-stack,
+.px-coin {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.px-stack {
+  border-radius: 8px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.px-coin {
+  border-radius: 50%;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.px-stack:disabled,
+.px-coin:disabled,
+.px-coin--static { cursor: default; }
+
+.px-pending { visibility: hidden; }
+
+.px-coins {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--coin-size) * 0.4);
+}
+
+/* Blocks of ten: two rows of five, so 13 reads as 10 + 3 at a glance. */
+.px-coin-block {
+  display: grid;
+  grid-template-columns: repeat(5, var(--coin-size));
+  gap: calc(var(--coin-size) * 0.22);
+}
+
+/* ── The ten-frame («Собери десяток», TenFrame.jsx) ── */
+
+.px-tenframe {
+  margin-top: 12px;
+  border-radius: 14px;
+}
+
+.px-tenframe h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.px-tf {
+  display: grid;
+  grid-template-columns: repeat(5, var(--coin-size));
+  gap: calc(var(--coin-size) * 0.22);
+  width: max-content;
+  padding: 8px;
+  border: 2.5px dashed #94a3b8;
+  border-radius: 14px;
+  background: #f8fafc;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.px-tf--full {
+  border-style: solid;
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.px-tf-slot {
+  width: var(--coin-size);
+  height: var(--coin-size);
+  box-sizing: border-box;
+  border: 2px dashed #cbd5e1;
+  border-radius: 50%;
+}
+
+/* «Проверка» without the frame: a growing stack, no places, no counter. */
+.px-tf-pile {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: calc(var(--coin-size) * 1.6);
+  min-height: calc(var(--coin-size) * 2.6);
+  padding: 6px;
+  border: 2.5px dashed #94a3b8;
+  border-radius: 14px;
+  background: #f8fafc;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.px-tf-pile .cb-ten-stack { padding-top: 0; }
+
+.px-tf-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.px-tf-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.px-tf-count--full { color: #166534; }
+
+.px-close {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 12px;
+  background: #e2e8f0;
+  color: #64748b;
+  font: 800 15px Nunito, sans-serif;
+  box-shadow: 0 3px 0 #cbd5e1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.px-close--ready:not(:disabled) {
+  background: #16a34a;
+  color: #fff;
+  box-shadow: 0 3px 0 #166534;
+}
+
+.px-close:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+.px-close:disabled { cursor: default; }
+
+/* ── Hints and animation ────────────────── */
+
+.px-glow {
+  border-radius: 8px;
+  box-shadow: 0 0 0 4px #fff, 0 0 0 8px #93c5fd, 0 0 22px 10px rgba(96, 165, 250, 0.55);
+  animation: px-glow 1.4s ease-in-out infinite;
+}
+
+@keyframes px-glow {
+  0%, 100% { box-shadow: 0 0 0 4px #fff, 0 0 0 8px #93c5fd, 0 0 18px 6px rgba(96, 165, 250, 0.45); }
+  50% { box-shadow: 0 0 0 4px #fff, 0 0 0 8px #60a5fa, 0 0 26px 12px rgba(96, 165, 250, 0.7); }
+}
+
+.px-new { animation: px-pop 0.35s ease-out both; }
+
+@keyframes px-pop {
+  from { transform: translateY(-40%) scale(0.6); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .px-new, .px-glow { animation: none; }
+}
+
+/* ── Side: tray and column ──────────────── */
+
+.px-side {
+  flex: 0 0 clamp(190px, 24vw, 260px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.px-tray {
+  border: 2px dashed;
+  border-radius: 18px;
+  padding: 10px 12px;
+}
+
+.px-tray--give { background: #fff7f7; border-color: #e7a3a3; }
+.px-tray--get { background: #f0fbf8; border-color: #8fcfc3; }
+
+.px-tray h3 { margin: 0 0 8px; font-size: 15px; font-weight: 800; }
+.px-tray--give h3 { color: var(--px-give); }
+.px-tray--get h3 { color: var(--px-get); }
+
+.px-slots {
+  display: grid;
+  grid-template-columns: repeat(5, var(--coin-size));
+  gap: calc(var(--coin-size) * 0.22);
+}
+
+.px-slot {
+  width: var(--coin-size);
+  height: var(--coin-size);
+  box-sizing: border-box;
+  border: 2px dashed currentColor;
+  border-radius: 50%;
+}
+
+.px-tray--give .px-slot { color: #e7a3a3; }
+.px-tray--get .px-slot { color: #8fcfc3; }
+
+.px-count {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Same look as the Столбик trainer: notebook cells, Primo digits, a crossed
+   tens digit with the reduced value in an amber top-left corner, and a small
+   «1» before the ones digit (reads as 12). */
+.px-col {
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 10px 12px;
+}
+
+.px-col h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.px-nb {
+  display: grid;
+  grid-template-columns: repeat(3, 40px);
+  grid-template-rows: 22px 40px 40px 4px 40px;
+  width: max-content;
+  margin: 0 auto;
+  background-color: #f0f6ff;
+  background-image:
+    linear-gradient(rgba(140, 190, 255, 0.55) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 190, 255, 0.55) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.px-nb-d {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding-top: 8px;
+  font: 700 34px 'Primo', cursive;
+  color: #1a1a2e;
+  line-height: 1;
+}
+
+.px-nb-d--gone { color: #9ca3af; }
+
+.px-nb-d--gone::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 58%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--px-give);
+  transform: rotate(-35deg);
+}
+
+.px-nb-corner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 58%;
+  height: 58%;
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  padding: 1px 0 0 4px;
+  background: #fef3c7;
+  color: #92400e;
+  font: 700 15px 'Primo', cursive;
+  line-height: 1;
+}
+
+.px-nb-aux {
+  display: grid;
+  place-items: end center;
+  font: 700 17px 'Primo', cursive;
+  color: #92400e;
+}
+
+.px-nb-sign { font-family: Nunito, sans-serif; font-weight: 800; }
+.px-nb-sign--give { color: var(--px-give); }
+.px-nb-sign--get { color: var(--px-get); }
+
+.px-nb-line {
+  align-self: center;
+  height: 3px;
+  border-radius: 2px;
+  background: #1a1a2e;
+}
+
+/* ── Bottom: hint, undo, answer, result ─── */
+
+.px-bottom {
+  flex-shrink: 0;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-bottom: var(--app-safe-bottom, 0px);
+}
+
+.px-hint {
+  max-width: 520px;
+  padding: 10px 16px;
+  border: 2px solid #bfdbfe;
+  border-radius: 16px;
+  background: #fff;
+  color: #172554;
+  font-size: 18px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(30, 64, 175, 0.12);
+}
+
+.px-hint small {
+  display: block;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.px-note {
+  max-width: 520px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.px-undo {
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 14px;
+  background: #e2e8f0;
+  color: #334155;
+  font: 800 15px Nunito, sans-serif;
+  box-shadow: 0 3px 0 #cbd5e1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.px-undo:active { transform: translateY(3px); box-shadow: none; }
+.px-undo:disabled { opacity: 0.45; cursor: default; }
+
+.px-answer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.px-numanswer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.px-frame {
+  min-width: 84px;
+  height: 62px;
+  padding: 0 10px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #3b82f6;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 38px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: #1a1a2e;
+}
+
+.px-frame--wrong {
+  border-color: #ef4444;
+  background: #fef2f2;
+  animation: px-shake 0.4s ease-in-out;
+}
+
+@keyframes px-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.px-keys {
+  display: grid;
+  grid-template-columns: repeat(5, 48px);
+  gap: 6px;
+}
+
+.px-key {
+  height: 48px;
+  border: 2px solid #dbeafe;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 0 #c7d2fe;
+  font: 800 22px Nunito, sans-serif;
+  color: #1a1a2e;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.px-key:active { transform: translateY(3px); box-shadow: none; }
+.px-key:disabled { opacity: 0.45; cursor: default; }
+.px-key--erase { width: 56px; }
+
+.px-answer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.px-answer-q {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.px-done {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 18px;
+  border: 2px solid #86efac;
+  border-radius: 18px;
+  background: #f0fdf4;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.px-eq {
+  font-size: 30px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.px-eq-sign--give { color: var(--px-give); }
+.px-eq-sign--get { color: var(--px-get); }
+
+.px-say {
+  font-size: 18px;
+  font-weight: 700;
+  color: #166534;
+}
+
+/* Narrow board (JS sets --stacked): tens above ones, each full width. */
+.px-screen--stacked .px-board { flex-direction: column; align-items: stretch; justify-content: flex-start; }
+.px-screen--stacked .px-board > .px-zone { min-height: 0; }
+.px-screen--stacked .px-zone--tens,
+.px-screen--stacked .px-zone--ones { width: auto; }
+.px-screen--stacked .px-zone--ones { flex: 1 1 auto; }
+
+/* Phones / portrait: tray and column go under the coins. */
+@media (max-width: 720px) {
+  .px-screen { padding: 10px; }
+  .px-main { flex-direction: column; }
+  .px-side { flex: 0 0 auto; flex-direction: row; }
+  .px-side > * { flex: 1; min-width: 0; }
+  .px-side .px-slots { --coin-size: 26px; }
+}
+
+/* «Сложи по десять» (GroupTenTask). Shares the px- zones, coins, ten-frame
+   and answer row with «Обмен десятка» (exchange.css); only the heap and the
+   question list live here. --coin-size is set from JS (measures .gt-main). */
+
+.gt-task {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.gt-task b {
+  display: block;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 900;
+  color: #1a1a2e;
+}
+
+.gt-task span {
+  font-size: 16px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.gt-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.gt-heap {
+  flex: 1 1 0;
+  max-width: 620px;
+  min-width: 0;
+}
+
+.gt-heap h3 { color: #334155; }
+
+.gt-heapbox {
+  flex: 1;
+  display: grid;
+  min-height: calc(var(--coin-size) * 3);
+}
+
+.gt-heap-cell {
+  position: relative;
+  min-width: var(--coin-size);
+  min-height: var(--coin-size);
+}
+
+.gt-heap-coin { position: absolute; }
+
+.gt-side {
+  flex: 0 0 auto;
+  width: calc(var(--coin-size) * 6.6 + 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gt-framecard .px-tenframe { margin-top: 0; }
+
+.gt-tens { width: auto; }
+.gt-tens .px-stacks { min-height: calc(var(--coin-size) * 2.2); }
+
+/* After «Больше не сложить»: tens left, ones right — the order of the digits. */
+.gt-main--sorted { align-items: flex-start; }
+.gt-main--sorted > .px-zone { width: calc(var(--coin-size) * 6.6 + 28px); }
+.gt-ones h3 small { font-size: 12px; font-weight: 700; color: #64748b; }
+
+.gt-finish { background: #fff; border: 2px solid #cbd5e1; }
+
+.gt-ask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gt-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 290px;
+}
+
+.gt-q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 8px 5px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.gt-q--tens { color: #92400e; }
+.gt-q--ones { color: #1e40af; }
+.gt-q--active { border-color: #3b82f6; box-shadow: 0 0 0 3px #dbeafe; }
+.gt-q--ok { border-color: #86efac; background: #f0fdf4; }
+
+.gt-q-value {
+  min-width: 56px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 24px;
+  font-weight: 900;
+  color: #1a1a2e;
+}
+
+.gt-q--ok .gt-q-value { border-color: #16a34a; color: #16a34a; }
+
+.gt-number {
+  font-size: 40px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Phones: heap on top, then the frame, then the stacks. */
+.gt-screen--narrow .gt-main { flex-direction: column; justify-content: flex-start; }
+.gt-screen--narrow .gt-heap { max-width: none; flex: 1 1 auto; }
+.gt-screen--narrow .gt-side { width: auto; }
+.gt-screen--narrow .gt-main--sorted > .px-zone { width: auto; }
+.gt-screen--narrow .gt-questions { min-width: 0; width: 100%; }
+
+
+*{box-sizing:border-box}html,body,#app{margin:0;height:100%;font-family:Nunito,sans-serif;background:#f0f6ff}
+.top{height:56px;display:flex;align-items:center;padding:0 16px;background:#fff;border-bottom:1px solid #e2e8f0;font-weight:700;font-size:15px}
+.wrap{height:calc(100% - 56px);display:flex;flex-direction:column}
+.pv-screen{flex:1}
+.lvl{font-size:12px;font-weight:900;letter-spacing:.05em;color:#2563eb;text-transform:uppercase;text-align:center}
+.mixed{flex:1;display:grid;gap:4px;min-height:calc(var(--coin-size)*3)}
+.mixed>span{position:relative;display:flex;align-items:flex-end}
+.cnt-mark{position:relative}.cnt-mark:after{content:"✓";position:absolute;top:-8px;right:-6px;color:#16a34a;font-weight:900;font-size:18px;text-shadow:0 1px 2px #fff}
+.count-btn{border:2px solid #cbd5e1;background:#fff;border-radius:12px;padding:8px 14px;font:800 15px Nunito;color:#334155}
+.count-btn.on{border-color:#16a34a;color:#166534;background:#f0fdf4}
+.gt-main--sorted{align-items:stretch}.btn{border:0;border-radius:14px;padding:12px 18px;font:800 16px Nunito;background:#4a9b8f;color:#fff;box-shadow:0 3px 0 #2a6b60}.gt-main{flex:0 1 auto}.px-screen{justify-content:center}
+.gt-task .target{display:block;font-size:clamp(40px,6vw,64px);font-weight:900;line-height:1.05;color:#1a1a2e;font-variant-numeric:tabular-nums}
+.gt-task .target.words{font-size:clamp(30px,4.4vw,46px);color:#1a1a2e}
+.side{flex:0 0 auto;display:flex;flex-direction:column;gap:12px;width:calc(var(--coin-size)*4.4 + 28px)}
+.src{background:#fff7e6;border:2px solid #f3d9a4;border-radius:18px;padding:10px 12px}
+.src h3{margin:0 0 8px;font-size:15px;font-weight:800;color:#92400e}
+.srcrow{display:flex;gap:14px;align-items:flex-end;justify-content:center}
+.srcbtn{display:flex;flex-direction:column;align-items:center;gap:6px;border:2px solid #e5d3a8;background:#fff;border-radius:14px;padding:10px 12px;font:800 14px Nunito;color:#334155;box-shadow:0 3px 0 #e5d3a8}
+.zone-empty{border-style:dashed}
+.px-zone .px-stacks:empty,.px-zone .px-coins:empty{min-height:calc(var(--coin-size)*2.2)}
+.gt-screen--narrow .side{width:auto}.gt-screen--narrow .zone-empty,.gt-screen--narrow .px-zone{width:auto}.hintx{font-size:13px;color:#64748b;font-weight:700;text-align:center}
+</style></head><body><div id="app"></div><script>
+const P=new URLSearchParams(location.search),f=P.get("f")||"A",phone=f.endsWith("p");
+const coin='<span class="px-coin px-coin--static"><div class="cb-coin"></div></span>';
+const stack='<div class="px-stack-wrap"><div class="cb-ten-stack">'+'<div class="cb-stack-coin"></div>'.repeat(10)+'</div></div>';
+function zones(t,o){const blocks=[];for(let b=0;b*10<o;b++)blocks.push('<div class="px-coin-block">'+coin.repeat(Math.min(10,o-b*10))+'</div>');
+ return '<div style="display:flex;gap:12px;flex:1;min-width:0;justify-content:center;'+(phone?'flex-direction:column;align-items:stretch':'')+'"><section class="px-zone px-zone--tens'+(t?'':' zone-empty')+'"><h3><span class="px-chip"></span>Десятки</h3><div class="px-stacks">'+stack.repeat(t)+'</div></section>'+
+ '<section class="px-zone px-zone--ones'+(o?'':' zone-empty')+'"><h3><span class="px-chip"></span>Единицы</h3><div class="px-coins">'+blocks.join("")+'</div></section></div>'}
+const side='<div class="side"><div class="src"><h3>Возьми</h3><div class="srcrow"><button class="srcbtn">'+stack+'Стопку</button><button class="srcbtn">'+coin+'Монету</button></div></div><div class="hintx">Нажми на стопку или монету в зоне, чтобы убрать её</div></div>';
+const note=(t)=>'<div class="px-note">'+t+'</div>';
+const check='<button class="btn">Проверить</button><button class="px-undo">Сначала</button>';
+const S={
+ A:{t:'<span class="target">47</span>',lvl:"цифрами",tens:0,ones:0,bottom:check},
+ B:{t:'<span class="target">47</span>',lvl:"цифрами",tens:3,ones:2,bottom:check},
+ C:{t:'<span class="target">47</span>',lvl:"цифрами · ошибка",tens:7,ones:4,bottom:note("Ты положил 7 десятков — это семьдесят. А нужно сорок семь.")+check},
+ D:{t:'<span class="target">47</span>',lvl:"цифрами · ошибка",tens:3,ones:14,bottom:note("Отдельных монет больше девяти. Десять монет — это сколько стопок?")+check},
+ E:{t:'<span class="target words">сорок семь</span>',lvl:"словами",tens:4,ones:5,bottom:check},
+ F:{t:'<span class="target words">сорок семь</span>',lvl:"словами · готово",tens:4,ones:7,done:true,bottom:'<div class="px-done"><span class="gt-number">47</span><div class="px-say">4 десятка и 7 единиц — сорок семь</div><button class="btn">Далее →</button></div>'},
+};
+const s=S[f.replace("p","")];
+document.getElementById("app").innerHTML='<div class="top">Разряды числа · Собери число</div><div class="wrap"><div class="pv-screen px-screen gt-screen'+(phone?' gt-screen--narrow':'')+'" style="--coin-size:'+(phone?30:46)+'px">'+
+ '<header class="gt-task"><b style="font-size:20px;color:#475569">Собери число</b>'+s.t+'<div class="lvl">уровень: '+s.lvl+'</div></header>'+
+ '<div class="gt-main" style="'+(phone?'flex-direction:column':'')+'">'+zones(s.tens,s.ones)+(s.done?'':side)+'</div><div class="px-bottom">'+s.bottom+'</div></div></div>';
+</script></body></html>
