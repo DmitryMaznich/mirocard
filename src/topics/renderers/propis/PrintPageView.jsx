@@ -243,14 +243,14 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 
 // The ink of one row. A row that is not being animated is drawn by RowInk, which React skips while the row object is the same: the
 // layout keeps finished rows (wordEngine.js), so typing in one row of the page redraws only that row.
-function RowSegments({ segments, isActive = false, narrowRows = false, speedFactor = 1, evenSpeed = false }) {
+function RowSegments({ segments, isActive = false, narrowRows = false, speedFactor = 1, evenSpeed = false, tipSize = "large" }) {
   return (
     <>
       {segments.map((seg, si) =>
               seg.type === "cursive" ? (
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} evenSpeed={evenSpeed} />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize={tipSize} speedFactor={speedFactor} evenSpeed={evenSpeed} />
                   ) : (
                     seg.trajectory.strokes.map((s, ssi) => (
                       <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -273,7 +273,7 @@ function RowSegments({ segments, isActive = false, narrowRows = false, speedFact
                 // several disconnected pen-lifts, each needing its own "start here" mark.
                 <g key={si} transform={`translate(${seg.xOffset} 0)`}>
                   {isActive && seg.trajectory ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} evenSpeed={evenSpeed} />
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize={tipSize} speedFactor={speedFactor} evenSpeed={evenSpeed} />
                   ) : seg.strokes.map((s, ssi) => (
                     // dashed copies fade out along the row (wordEngine WIDE_FADE_END_X); a fully faded one keeps only its start dot
                     s.opacity !== undefined && s.opacity <= 0.02 ? null : (
@@ -363,6 +363,8 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   const contentRow = (r) => (wideRows ? r + rowOff : r);
   // y of a content row's own origin on this page
   const rowY = (r) => (square ? squareRowY(r) : rowOriginY(contentRow(r)) + n17);
+  // the show panel's window (crop.row): only the ruling of the row the pen writes on, not its neighbours
+  const onlyRow = crop?.row ?? null;
   // «Прописи 2»: a plain slant grid replaces the methodology grid in what is drawn (the methodology grid stays
   // internal: letters still snap to it, it is just not drawn). The two grids are the ones of the finished
   // copybooks: "regular" = the standard Russian-school grid, a line every 20 mm (DIAGONAL_MM); "dense" = the
@@ -424,7 +426,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
             {!simpleStep && ks.map((k) => (
               <line key={k} x1={narrowLineX(k, 0)} y1={0} x2={narrowLineX(k, PAGE_H_UNITS)} y2={PAGE_H_UNITS} stroke={guideColor} strokeWidth={GUIDE_DIAG_W} />
             ))}
-            {ROW_INDICES.slice(rowOff).map((row) => {
+            {ROW_INDICES.slice(rowOff).filter((row) => onlyRow === null || row === onlyRow).map((row) => {
               const top = rowOriginY(row) + n17 + WIDE_BAND_BOTTOM_LOCAL - NARROW_BAND_H;
               const bottom = rowOriginY(row) + n17 + WIDE_BAND_BOTTOM_LOCAL;
               const guideY = rowOriginY(row) + n17 + NARROW_GUIDE_LOCAL;
@@ -438,7 +440,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
                 </g>
               );
             })}
-            {(() => {
+            {onlyRow === null && (() => {
               const lastY = rowOriginY(ROW_INDICES.length - 1) + n17 + WIDE_BAND_BOTTOM_LOCAL + NARROW_BAND_H;
               return midDash && !plain ? <line x1="0" y1={lastY} x2={PAGE_W_UNITS} y2={lastY} stroke={dashColor} strokeWidth={GUIDE_THIN_W} strokeDasharray={GUIDE_WIDE_MID_DASH} /> : null;
             })()}
@@ -457,7 +459,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
           ))}
         </g>
       ))) : diagonalEls}
-      {!narrowRows && ROW_INDICES.map((row) => (
+      {!narrowRows && ROW_INDICES.filter((row) => onlyRow === null || row === onlyRow || row === onlyRow - 1).map((row) => (
         <g key={`g${row}`}>
           {(useElements || wideRows) && midDash && !plain && !(wideRows && row === 0) && (
             <line
@@ -528,7 +530,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
               />
             )}
             {isActive
-              ? <RowSegments segments={p.segments} isActive narrowRows={narrowRows} speedFactor={speedFactor} evenSpeed={Boolean(crop)} />
+              ? <RowSegments segments={p.segments} isActive narrowRows={narrowRows} speedFactor={speedFactor} evenSpeed={Boolean(crop)} tipSize={crop ? "medium" : "large"} />
               : <RowInk segments={p.segments} narrowRows={narrowRows} />}
           </g>
         );
@@ -759,6 +761,9 @@ function drawnGridSnapX(step, margin, geom, narrow17 = false) {
 // «Прописи 2» must use the SAME one: a word placed on the grid is wider than the same word measured freely).
 // The same function for the same page parameters (`cacheable`): the layout keeps finished rows per grid function (wordEngine.js).
 const SNAP_FNS = new Map();
+// the show panel's window (focus): room for the pen above (and, to keep the row in the middle, below) the row; margin beside the ink
+const FOCUS_PEN_ROOM = 44;
+const FOCUS_SIDE = 40;
 export function snapXFor(args) {
   const key = JSON.stringify([args.narrowRows, args.simpleGrid, args.margin ?? "off", args.format ?? "a5", args.narrow17 ?? false]);
   let fn = SNAP_FNS.get(key);
@@ -775,7 +780,7 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
 
 // Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
 // no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false }) {
+export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false }) {
   const lettersByLabel = useMemo(() => {
     const map = new Map();
     for (const item of task?.letters ?? []) map.set(item.label ?? item.id, item);
@@ -854,22 +859,32 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   const canPrev = pageIndex > 0;
   const canNext = pageIndex < pages.length - 1;
 
-  // `focus`: a window on the first row only (the show panel): ruling lines of that row, the sample, room for
-  // ascenders/descenders and a margin to the right of the sample.
+  // `focus`: a window on the first row only (the show panel). The writing row stands in the MIDDLE of the window (the room left
+  // for the pen above it is left below it too) and the window is centred on the ink of the sample, not on the row's start; with
+  // `fitAspect` (the stage's width / height) the window takes the stage's shape, so the ruling runs across the whole stage and the
+  // sample is as large as the stage allows: a single letter fills the height, a word the width.
   const focusCrop = (() => {
     if (!focus) return null;
     const first = (pages[0] ?? [])[0];
     if (!first) return null;
     const { contentXUnits } = slotGeometry(0, wideRows, margin, geom);
     const row = wideRows ? first.rowIndex + (narrow17 ? 0 : 1) : first.rowIndex;
-    const widthUnits = first.segments.reduce((sum, seg) => sum + seg.width, 0);
-    // the window starts just before the sample and ends just after it (the show panel maximizes this window)
-    const x = Math.max(0, contentXUnits + first.x - 30);
-    const w = Math.max(170, contentXUnits + first.x + widthUnits + 100 - x);
-    const PEN_ROOM = 90; // headroom for the large pen drawn up and to the right of its tip
-    if (square) return { x, y: squareRowY(first.rowIndex) + WIDE_BAND_BOTTOM_LOCAL - SQUARE_PITCH - PEN_ROOM, w, h: SQUARE_PITCH + SQUARE_CELL + PEN_ROOM };
-    if (narrowRows) return { x, y: rowOriginY(row) + n17Shift(narrow17) + NARROW_GUIDE_LOCAL - 30 - PEN_ROOM, w, h: WIDE_BAND_BOTTOM_LOCAL - NARROW_GUIDE_LOCAL + 75 + PEN_ROOM };
-    return { x, y: wideBandTop(row) - 30 - PEN_ROOM, w, h: wideBandHeight + 75 + PEN_ROOM };
+    const xs = first.segments.flatMap((seg) => seg.strokes ?? []).flatMap((st) => (st.d.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) ?? []).map(Number).filter((_, i) => i % 2 === 0));
+    const inkL = contentXUnits + first.x + (xs.length ? Math.min(...xs) : 0);
+    const inkR = contentXUnits + first.x + (xs.length ? Math.max(...xs) : first.segments.reduce((sum, seg) => sum + seg.width, 0));
+    // the band the letters stand in, with what rises above and hangs below it (page y)
+    const [top, bottom] = square
+      ? [squareRowY(first.rowIndex) + WIDE_BAND_BOTTOM_LOCAL - 1.6 * SQUARE_CELL, squareRowY(first.rowIndex) + WIDE_BAND_BOTTOM_LOCAL + 0.9 * SQUARE_CELL]
+      : narrowRows
+        ? [rowOriginY(row) + n17Shift(narrow17) + NARROW_GUIDE_LOCAL - 6, rowOriginY(row) + n17Shift(narrow17) + WIDE_BAND_BOTTOM_LOCAL + 30]
+        : [wideBandTop(row) - 12, wideBandTop(row) + wideBandHeight + 60];
+    const room = FOCUS_PEN_ROOM; // the pen leans up and right of its tip: as much room above the row as below it
+    const h = bottom - top + 2 * room;
+    // wider to the stage's shape (the ruling across the whole stage); a long word that is wider stays so, the stage centres it vertically
+    const w = Math.max(inkR - inkL + 2 * FOCUS_SIDE, fitAspect > 0 ? h * fitAspect : h * 0.9);
+    const cx = (inkL + inkR) / 2;
+    const cy = (top + bottom) / 2;
+    return { x: cx - w / 2, y: cy - h / 2, w, h, row: wideRows ? row : first.rowIndex };
   })();
 
   if (bare) {

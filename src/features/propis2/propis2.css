@@ -216,17 +216,25 @@
 
 /* the viewer: «edit this page» next to the close button */
 /* Show modal: full screen; the ruled window with the animated fragment takes all the space under the one-line button row */
-.propis2-panel { position: absolute; inset: 0; z-index: 700; /* above v1 .propis-practice-stage (500) */ background: #fffdf8; display: flex; }
-.propis2-panel-card { width: 100%; height: 100%; display: flex; flex-direction: column; }
-.propis2-panel-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: calc(12px + var(--app-safe-top, 0px)) calc(12px + var(--app-safe-right, 0px)) 8px calc(16px + var(--app-safe-left, 0px)); }
-.propis2-panel-title { margin-right: auto; font-size: 1.2rem; }
-.propis2-panel-on { background: #1d4ed8; }
-.propis2-panel-stage { flex: 1 1 auto; min-height: 0; position: relative; padding: 0 calc(8px + var(--app-safe-right, 0px)) calc(8px + var(--app-safe-bottom, 0px)) calc(8px + var(--app-safe-left, 0px)); }
+/* show panel: what is shown (kind + fragment) at the top, the writing row in the middle, the controls at the bottom */
+.propis2-panel { position: absolute; inset: 0; z-index: 700; /* above v1 .propis-practice-stage (500) */ background: #fffdf8; display: flex; flex-direction: column; }
+.propis2-panel-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; position: relative; padding: calc(14px + var(--app-safe-top, 0px)) calc(72px + var(--app-safe-right, 0px)) 6px calc(72px + var(--app-safe-left, 0px)); }
+.propis2-panel-what { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.propis2-panel-kind { font: 700 clamp(13px, 1.6vw, 16px)/1.2 "Nunito", sans-serif; color: #8b8577; text-transform: uppercase; letter-spacing: .08em; }
+.propis2-panel-title { font: 800 clamp(26px, 4vw, 40px)/1.15 "Nunito", sans-serif; color: #1f2937; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.propis2-panel-close { position: absolute; top: calc(12px + var(--app-safe-top, 0px)); right: calc(12px + var(--app-safe-right, 0px)); width: 48px; height: 48px; border: none; border-radius: 50%; background: #efe9dc; color: #4b5563; font: 700 22px/1 "Nunito", sans-serif; display: grid; place-items: center; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.propis2-panel-close:active { background: #e3dccb; }
+.propis2-panel-stage { flex: 1 1 auto; min-height: 0; position: relative; padding: 0 var(--app-safe-right, 0px) 0 var(--app-safe-left, 0px); }
+.propis2-panel-controls { flex: 0 0 auto; display: flex; justify-content: center; gap: 14px; padding: 10px 16px calc(18px + var(--app-safe-bottom, 0px)); }
+.propis2-panel-btn { min-width: 150px; height: 56px; padding: 0 22px; border: none; border-radius: 16px; background: #4a9b8f; color: #fff; font: 800 18px/1 "Nunito", sans-serif; display: inline-flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; box-shadow: 0 3px 0 #2a6b60; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.propis2-panel-btn:active { transform: translateY(3px); box-shadow: none; }
+.propis2-panel-ico { font-size: 22px; line-height: 1; }
+.propis2-panel-btn--slow { background: #fff; color: #2a6b60; box-shadow: 0 3px 0 #c9d9d5, inset 0 0 0 2px #4a9b8f; }
+.propis2-panel-btn--slow.is-on { background: #2a6b60; color: #fff; box-shadow: 0 3px 0 #1d4f47; }
 .propis2-panel-stage .propis-practice-stage { position: static; inset: auto; height: 100%; padding: 0; background: transparent; }
 .propis2-panel-stage .propis-print-frame { height: 100%; background: transparent; }
-.propis2-panel-stage .propis-print-page-wrap { container-type: size; padding: 0; background: transparent; overflow: visible; touch-action: auto; }
-/* the svg is exactly the cropped window (its aspect ratio), as large as the stage allows */
-.propis2-panel-stage .propis-print-page-svg { aspect-ratio: var(--crop-ratio); width: min(100cqw, calc(100cqh * var(--crop-ratio))); height: auto; max-width: none; max-height: none; box-shadow: none; border: 1px solid #e6e0d2; border-radius: 8px; }
+.propis2-panel-stage .propis-print-page-wrap { container-type: size; height: 100%; padding: 0; background: transparent; overflow: visible; touch-action: auto; display: flex; align-items: center; justify-content: center; }
+.propis2-panel-stage .propis-print-page-svg { aspect-ratio: var(--crop-ratio); width: min(100cqw, calc(100cqh * var(--crop-ratio))); height: auto; max-width: none; max-height: none; box-shadow: none; border: none; border-radius: 0; }
 .propis2-view-edit { position: fixed; top: calc(12px + var(--app-safe-top, 0px)); right: calc(64px + var(--app-safe-right, 0px)); z-index: 900; }
 
 

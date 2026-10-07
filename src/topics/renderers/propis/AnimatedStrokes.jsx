@@ -27,6 +27,8 @@ const TIP_PATHS = {
     { d: "M -20 -74 L -26 -114 Q -26 -120 0 -121 Q 26 -120 26 -114 L 20 -74 Z", fill: "ink" },
   ],
 };
+// «Прописи 2» show panel: the same pen at half size (the large one was 2.5x the height of a capital there, it hid the letter)
+TIP_PATHS.medium = TIP_PATHS.large.map((p) => ({ ...p, d: p.d.replace(/-?\d+(\.\d+)?/g, (n) => String(Number(n) / 2)) }));
 
 // Renders one trajectory's looping handwriting animation: a faint static background copy
 // of every stroke, the same strokes redrawn as an animated dash-offset reveal, and a
