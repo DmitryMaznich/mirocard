@@ -1260,7 +1260,7 @@ function wideGlyphLocal(glyph, scale = 1) {
 // all about the baseline. How much across the slant: so that the digit spans CELL_DIGIT_SPAN of the cell's width ON PAPER (not across
 // the slant: a 7 is mostly its top bar, its stem runs along the slant and adds no width, a 0 is all oval). The signs share one scale,
 // so that the bar of +, the minus and the bars of = are equally long (CELL_SIGN_BAR of a cell).
-const CELL_DIGIT_SPAN = { default: 0.78, "№1": 0.55, "№4": 0.7, "№7": 0.72 };
+const CELL_DIGIT_SPAN = { default: 0.78, "№1": 0.55, "№4": 0.7, "№7": 0.6 };
 const CELL_SIGN_BAR = 0.55;
 const isCellSign = (label) => /^№[^0-9]/.test(label ?? "");
 const CELL_LOCAL_CACHE = new WeakMap();
