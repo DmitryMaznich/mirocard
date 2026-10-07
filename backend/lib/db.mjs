@@ -208,6 +208,34 @@ export function initDb(dbPath = DB_PATH) {
       used_at    INTEGER
     );
 
+    CREATE TABLE IF NOT EXISTS account_lifecycle (
+      account_id TEXT PRIMARY KEY REFERENCES accounts(id),
+      blocked_previous_status TEXT,
+      deletion_previous_status TEXT,
+      blocked_at TEXT,
+      scheduled_at TEXT,
+      delete_after TEXT,
+      purged_at TEXT,
+      reason TEXT NOT NULL DEFAULT ''
+    );
+    CREATE TABLE IF NOT EXISTS admin_account_events (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      actor TEXT NOT NULL,
+      reason TEXT NOT NULL,
+      details_json TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_admin_account_events_account ON admin_account_events(account_id, created_at);
+    CREATE TABLE IF NOT EXISTS admin_deletion_confirmations (
+      token_hash TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL REFERENCES accounts(id),
+      mode TEXT NOT NULL,
+      snapshot_hash TEXT NOT NULL,
+      expires_at INTEGER NOT NULL
+    );
+
   `);
 
   const studentColumns = db.prepare("PRAGMA table_info(students)").all();

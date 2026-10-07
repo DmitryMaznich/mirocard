@@ -113,7 +113,12 @@
                   <option value="all">Все статусы</option>
                   <option value="active">Подтверждённые</option>
                   <option value="pending">Ждут подтверждения</option>
-                  <option value="deleted">Удалённые</option></select
+                  <option value="blocked">Заблокированные</option>
+                  <option value="deletion_pending">Ожидают удаления</option>
+                  <option value="purged">Данные удалены</option>
+                  <option value="deleted">
+                    Доступ закрыт (старый статус)
+                  </option></select
                 ><select id="activity-filter" aria-label="Активность">
                   <option value="all">Любая активность</option>
                   <option value="online">Сейчас онлайн</option>
@@ -314,6 +319,71 @@
           <button class="btn" value="cancel" autofocus>Отмена</button
           ><button id="confirm-submit" class="btn danger" value="confirm">
             Подтвердить
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog
+      id="deletion-dialog"
+      class="deletion-dialog"
+      aria-labelledby="deletion-title"
+    >
+      <form id="deletion-form">
+        <p class="eyebrow">УДАЛЕНИЕ АККАУНТА</p>
+        <h2 id="deletion-title"></h2>
+        <div id="deletion-summary"></div>
+        <p class="error">
+          Удаление очищает личные данные из рабочей базы. Платёжная история
+          сохраняется с обезличенным профилем. Возвраты и отмена списаний у
+          платёжного провайдера не выполняются. Резервные копии и данные на
+          устройствах пользователя не стираются.
+        </p>
+        <div id="deletion-fields" hidden>
+          <label
+            >Причина удаления<textarea
+              id="deletion-reason"
+              minlength="3"
+              maxlength="500"
+              required
+              rows="2"
+              placeholder="Не добавляйте личные данные в причину"
+            ></textarea>
+          </label>
+          <label
+            >Введите email пользователя<input
+              id="deletion-email"
+              autocomplete="off"
+              required
+          /></label>
+          <label
+            >Введите слово УДАЛИТЬ<input
+              id="deletion-word"
+              autocomplete="off"
+              required
+          /></label>
+          <label class="deletion-check"
+            ><input id="deletion-ack-data" type="checkbox" required />Понимаю,
+            какие личные данные будут удалены.</label
+          >
+          <label class="deletion-check"
+            ><input
+              id="deletion-ack-retention"
+              type="checkbox"
+              required
+            />Понимаю последствия для платежей, резервных копий и
+            устройств.</label
+          >
+          <p class="caption">
+            Подтверждение действительно 5 минут. Изменение состава данных
+            потребует повторной проверки.
+          </p>
+        </div>
+        <div class="dialog-actions">
+          <button type="button" class="btn" id="deletion-cancel">Отмена</button
+          ><button type="button" class="btn danger" id="deletion-next">
+            Проверил состав данных →</button
+          ><button class="btn danger" id="deletion-submit" disabled hidden>
+            Продолжить удаление
           </button>
         </div>
       </form>

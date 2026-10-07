@@ -64,7 +64,46 @@ async function fixture(viewport) {
     if (route.request().method() === "POST") {
       const body = route.request().postDataJSON();
       writes.push({ path, body });
-      const a = accounts.find((a) => a.email === body.email);
+      const id = path.split("/")[4];
+      const a = accounts.find((a) => a.email === body.email || a.id === id);
+      if (path.endsWith("/deletion-preview")) {
+        await route.fulfill({
+          json: {
+            accountId: a.id,
+            email: a.email,
+            mode: body.mode,
+            students: 2,
+            sessions: a.sessionsTotal,
+            audio: 3,
+            materials: 4,
+            orders: 1,
+            paidOrders: 1,
+            activeAccess: 1,
+            confirmationToken: "test-confirmation",
+            deleteAfter: "2026-10-14T12:00:00Z",
+          },
+        });
+        return;
+      }
+      if (path.endsWith("/delete")) {
+        if (body.mode === "immediate") {
+          a.status = "purged";
+          a.email = "removed@deleted.invalid";
+          a.firstName = "";
+          a.lastName = "";
+          a.activeSessions = [];
+          a.featureFlags = [];
+          a.subscription = null;
+          a.topicAssignments = [];
+        } else {
+          a.status = "deletion_pending";
+          a.lifecycle = { delete_after: "2026-10-14T12:00:00Z" };
+        }
+      }
+      if (path.endsWith("/lifecycle")) {
+        a.status = body.action === "block" ? "blocked" : "active";
+        if (body.action === "block") a.activeSessions = [];
+      }
       if (path.endsWith("/flags")) a.featureFlags = body.flags;
       if (path.endsWith("/revoke"))
         a.topicAssignments = a.topicAssignments.filter(
@@ -112,6 +151,12 @@ async function fixture(viewport) {
     });
   });
   await page.goto(base + "/admin.html");
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    "Login form fits the viewport",
+  );
   await page.locator("#token-input").fill("demo-token");
   await page.locator("#login-button").click();
   await page.locator("#accounts-body tr").first().waitFor();
@@ -262,6 +307,93 @@ test("mobile layout contains page width; logout stops refresh and clears sensiti
     await page.evaluate(() => sessionStorage.getItem("mrc_admin_token")),
     null,
   );
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
+test("immediate deletion requires three stages and cancellation never sends a delete operation", async () => {
+  const { page, writes, errors } = await fixture({ width: 390, height: 844 });
+  await page.locator("#search").fill("user1@example.test");
+  await page.locator("#accounts-body .name-button").click();
+  await page.locator('[data-action="delete-immediate"]').click();
+  await page.locator("#deletion-dialog").waitFor();
+  assert.equal(await page.locator("#deletion-fields").isVisible(), false);
+  await page.screenshot({
+    path: "output/admin-qa/deletion-preview-mobile.png",
+    fullPage: true,
+  });
+  await page.locator("#deletion-next").click();
+  assert.equal(await page.locator("#deletion-submit").isDisabled(), true);
+  await page.locator("#deletion-reason").fill("Тестовый аккаунт");
+  await page.locator("#deletion-email").fill("wrong@example.test");
+  await page.locator("#deletion-word").fill("УДАЛИТЬ");
+  await page.locator("#deletion-ack-data").check();
+  await page.locator("#deletion-ack-retention").check();
+  assert.equal(await page.locator("#deletion-submit").isDisabled(), true);
+  await page.locator("#deletion-email").fill("user1@example.test");
+  assert.equal(await page.locator("#deletion-submit").isEnabled(), true);
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  );
+  await page.screenshot({
+    path: "output/admin-qa/deletion-confirm-mobile.png",
+    fullPage: true,
+  });
+  await page.locator("#deletion-submit").click();
+  await page.locator('#confirm-dialog button[value="cancel"]').click();
+  assert.equal(writes.filter((w) => w.path.endsWith("/delete")).length, 0);
+  await page.locator("#deletion-submit").click();
+  await page.locator("#confirm-submit").click();
+  await page.waitForFunction(() =>
+    document.querySelector("#toast").textContent.includes("удалены"),
+  );
+  assert.equal(writes.filter((w) => w.path.endsWith("/delete")).length, 1);
+  const operation = writes.find((w) => w.path.endsWith("/delete"));
+  assert.equal(operation.body.confirmEmail, "user1@example.test");
+  assert.equal(operation.body.confirmWord, "УДАЛИТЬ");
+  await page.waitForFunction(() =>
+    document
+      .querySelector("#account-title")
+      .textContent.includes("Удалённый аккаунт"),
+  );
+  assert.equal(
+    await page.locator('[data-action="delete-immediate"]').count(),
+    0,
+  );
+  assert.ok(
+    (await page.locator("#account-title").textContent()).includes(
+      "Удалённый аккаунт",
+    ),
+  );
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+test("blocked accounts cannot change functions; scheduling and cancelling deletion updates status", async () => {
+  const { page, errors } = await fixture({ width: 1440, height: 1000 });
+  await page.locator("#search").fill("user1@example.test");
+  await page.locator("#accounts-body .name-button").click();
+  await page.locator("#lifecycle-reason").fill("Временная блокировка");
+  await page.locator('[data-action="block"]').click();
+  await page.locator("#confirm-submit").click();
+  await page.locator('[data-action="unblock"]').waitFor();
+  assert.equal(await page.locator('[data-flag="planner"]').isDisabled(), true);
+  assert.equal(await page.locator('[data-action="grant"]').count(), 0);
+  await page.locator('[data-action="delete-scheduled"]').click();
+  await page.locator("#deletion-next").click();
+  await page.locator("#deletion-reason").fill("По просьбе пользователя");
+  await page.locator("#deletion-email").fill("user1@example.test");
+  await page.locator("#deletion-word").fill("УДАЛИТЬ");
+  await page.locator("#deletion-ack-data").check();
+  await page.locator("#deletion-ack-retention").check();
+  await page.locator("#deletion-submit").click();
+  await page.locator("#confirm-submit").click();
+  await page.locator('[data-action="cancel-deletion"]').waitFor();
+  await page.locator("#lifecycle-reason").fill("Отмена по просьбе");
+  await page.locator('[data-action="cancel-deletion"]').click();
+  await page.locator("#confirm-submit").click();
+  await page.locator('[data-action="block"]').waitFor();
   assert.deepEqual(errors, []);
   await page.close();
 });

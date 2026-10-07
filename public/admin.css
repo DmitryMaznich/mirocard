@@ -167,6 +167,7 @@ input::placeholder {
   flex-shrink: 0;
 }
 .auth-screen {
+  grid-template-columns: minmax(0, 1fr);
   min-height: 100dvh;
   display: grid;
   place-items: center;
@@ -174,6 +175,7 @@ input::placeholder {
   background: radial-gradient(ellipse at 50% 0%, #e7eaff, transparent 65%);
 }
 .auth-card {
+  min-width: 0;
   width: 410px;
   max-width: 100%;
   padding: 40px;
@@ -193,6 +195,10 @@ input::placeholder {
 }
 .auth-card label {
   display: block;
+}
+.auth-card > input {
+  width: 100%;
+  margin-top: 7px;
 }
 .auth-card .btn {
   width: 100%;
@@ -1050,4 +1056,111 @@ dialog::backdrop {
 }
 .numeric {
   white-space: nowrap;
+}
+textarea {
+  display: block;
+  width: 100%;
+  margin-top: 7px;
+  border: 1px solid #dce2ec;
+  border-radius: 7px;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--ink);
+  resize: vertical;
+}
+textarea:focus {
+  outline: 2px solid #bdc6ff;
+  outline-offset: 1px;
+}
+.danger-zone {
+  border-top: 1px solid #f0d5db;
+  padding-top: 24px;
+}
+.lifecycle-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.audit-heading {
+  margin-top: 24px;
+}
+.audit-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  font-size: 12px;
+}
+.audit-list li {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.audit-list small {
+  display: block;
+  margin-top: 5px;
+}
+.audit-list p {
+  margin-top: 6px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.deletion-dialog {
+  width: 580px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100dvh - 32px);
+  padding: 28px;
+}
+.deletion-dialog h2 {
+  font-size: 22px;
+}
+.deletion-identity {
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  margin-top: 18px;
+}
+.deletion-counts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 15px;
+  background: #f7f9fc;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.deletion-counts strong {
+  font-size: 18px;
+  margin-right: 5px;
+}
+#deletion-fields label {
+  display: block;
+  margin-top: 15px;
+}
+.deletion-check {
+  display: flex !important;
+  gap: 10px;
+  align-items: flex-start;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.deletion-check input {
+  width: 16px;
+  flex-shrink: 0;
+  margin: 3px 0 0;
+}
+#deletion-fields > .caption {
+  margin-top: 18px;
+  line-height: 1.6;
+}
+.deletion-dialog .dialog-actions {
+  flex-wrap: wrap;
+}
+@media (max-width: 700px) {
+  .deletion-dialog {
+    padding: 20px;
+  }
+  .lifecycle-actions .btn {
+    width: 100%;
+  }
 }
