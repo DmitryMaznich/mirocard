@@ -1255,13 +1255,14 @@ function wideGlyphLocal(glyph, scale = 1) {
 }
 
 // «Прописи 2», squared paper: a digit stands in ONE cell, as tall as the cell, with the slant of the copybook (65deg, as the school
-// digit «1» runs from the top right corner of its cell to the middle of the bottom side). That lean alone takes ~half the cell's width
-// (2.3 mm of 5), so the digit is narrowed across the slant to CELL_DIGIT_WIDTH of the cell; the engine puts it against the RIGHT side
-// of its cell. The glyph as laid out for the row (`scale`) is unslanted, brought down to the cell's height, narrowed, leaned again,
-// all about the baseline.
-const CELL_DIGIT_WIDTH = 0.42; // the width across the slant, of a cell (~2.1 mm): with the lean the digit spans ~4.4 mm of the 5
-const CELL_SIGN_SPAN = 0.7; // a sign's width, of a cell, in the middle of it
-const CELL_DIGIT_NARROWER = { "№1": 0.6, "№4": 0.85, "№5": 0.9, "№7": 0.9 }; // these are narrower by nature (the stem of 1, the open 4)
+// digit «1» runs from the top right corner of its cell to the middle of the bottom side), against the RIGHT side of its cell. The
+// glyph as laid out for the row (`scale`) is unslanted, brought down to the cell's height, scaled across the slant and leaned again,
+// all about the baseline. How much across the slant: so that the digit spans CELL_DIGIT_SPAN of the cell's width ON PAPER (not across
+// the slant: a 7 is mostly its top bar, its stem runs along the slant and adds no width, a 0 is all oval). The signs share one scale,
+// so that the bar of +, the minus and the bars of = are equally long (CELL_SIGN_BAR of a cell).
+const CELL_DIGIT_SPAN = { default: 0.78, "№1": 0.55, "№4": 0.7, "№7": 0.72 };
+const CELL_SIGN_BAR = 0.55;
+const isCellSign = (label) => /^№[^0-9]/.test(label ?? "");
 const CELL_LOCAL_CACHE = new WeakMap();
 function cellGlyphLocal(glyph, scale, cellSize) {
   let byKey = CELL_LOCAL_CACHE.get(glyph);
@@ -1271,16 +1272,17 @@ function cellGlyphLocal(glyph, scale, cellSize) {
     const base = wideGlyphLocal(glyph, scale);
     const t0 = Math.tan((25 * Math.PI) / 180);
     const ky = cellSize / ((WIDE_CAPTURE_BASELINE - WIDE_CAPTURE_CAP_TOP) * WIDE_SCALE * scale);
-    // width across the slant of the glyph as captured
-    const us = base.strokes.flatMap((st) => samplePath(st.d).map((q) => q[0] - (WIDE_BASELINE_Y - q[1]) * t0));
     const mapWith = (k) => (x, y) => { const h = WIDE_BASELINE_Y - y; return [k * (x - h * t0) + ky * h * t0, WIDE_BASELINE_Y - ky * h]; };
-    let kx = (CELL_DIGIT_WIDTH * cellSize * (CELL_DIGIT_NARROWER[glyph.label] ?? 1)) / Math.max(1, Math.max(...us) - Math.min(...us));
-    if (/^№[^0-9]/.test(glyph.label ?? "")) {
-      // a sign (+ - = < >) is mostly horizontal: narrowing it across the slant would shrink its bars; it spans CELL_SIGN_SPAN of the cell
-      const pts = base.strokes.flatMap((st) => samplePath(st.d));
-      const span = (k) => { const xs = pts.map(([x, y]) => mapWith(k)(x, y)[0]); return Math.max(...xs) - Math.min(...xs); };
+    let kx;
+    if (isCellSign(glyph.label)) {
+      // the bars of the signs are two cells of the slant grid long in the glyph data (build_digit_glyphs.py), 60 units at scale 1
+      kx = (CELL_SIGN_BAR * cellSize) / (2 * TEXT_ROW_WIDE_DIAGONAL_SPACING * scale);
+    } else {
+      const pts = base.strokes.flatMap((st) => samplePath(st.d, 60));
+      const span = (k) => { const m = mapWith(k); const xs = pts.map(([x, y]) => m(x, y)[0]); return Math.max(...xs) - Math.min(...xs); };
+      const want = (CELL_DIGIT_SPAN[glyph.label] ?? CELL_DIGIT_SPAN.default) * cellSize;
       let lo = 0.05, hi = 3;
-      for (let i = 0; i < 30; i += 1) { const mid = (lo + hi) / 2; if (span(mid) < CELL_SIGN_SPAN * cellSize) lo = mid; else hi = mid; }
+      for (let i = 0; i < 30; i += 1) { const mid = (lo + hi) / 2; if (span(mid) < want) lo = mid; else hi = mid; }
       kx = lo;
     }
     const map = mapWith(kx);
@@ -1532,6 +1534,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     let prevToken = null; // { isElement, isWord, startX, startY, width, repeatCells } of the previous token
     let pendingGap = 0; // extra spaces typed between words ("_N" pseudo tokens), in slant cells, for the next word
     let cellNext = null; // squared paper: the next free cell after a digit (a number fills cells one after another)
+    const cellRun = []; // squared paper: what was placed in cells, in order ({ first, count, minX, maxX, sign, dotFrom, dotTo }; null = anything else)
     for (const token of line.split(/\s+/).filter(Boolean)) {
       const spacer = /^_(\d+)$/.exec(token);
       if (spacer) { pendingGap += Number(spacer[1]); continue; }
@@ -1589,7 +1592,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           else if (prevToken) k = (prevToken.cellNext ?? firstFree(prevToken.inkMaxX + WIDE_PUNCT_GAP * scale)) + 1 + pendingGap;
           else k = firstFree(WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL);
           // a digit touches the RIGHT side of its cell (as in the school cell: the «1» from the top right corner); a sign stands in the middle
-          const isSign = /^№[^0-9]/.test(label);
+          const isSign = isCellSign(label);
           startX = (isSign ? o + k * S + (S - (local.maxX - local.minX)) / 2 - local.minX : o + (k + 1) * S - local.maxX) + local.start[0];
           cellNext = k + 1;
         } else if (loose && glyph.kind === "digit") {
@@ -1647,6 +1650,8 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         }
         const firstMovedIndex = strokes.length;
         strokes.push(...moved);
+        const cellRec = inCell ? { first: firstMovedIndex, count: moved.length, minX: local.minX + dx, maxX: local.maxX + dx, sign: isCellSign(label), dotFrom: startPoints.length, dotTo: startPoints.length } : null;
+        cellRun.push(cellRec);
         if (prevExit) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
         if (tokenStartX === null) {
           // every token's first glyph gets its red start dot(s); only the very first one also gets direction arrows
@@ -1657,6 +1662,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
             directionArrows.push(...longArrowsFor(s.d, scale, glyph.arrowSpan ?? null));
           }
           firstGlyph = false;
+          if (cellRec) cellRec.dotTo = startPoints.length;
         }
         prevExit = [local.end[0] + dx, local.end[1]];
         curNudge = WIDE_MAX_CONTACT_NUDGE;
@@ -1690,6 +1696,15 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       if (tokenStartX !== null) prevToken = { isElement, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells, inkMaxX: tokenMaxX, token, cellNext };
       cellNext = null;
     }
+    // squared paper: a sign between two digits stands in the middle between their ink (the digits stand against the right side of their
+    // cells, so the middle of the sign's own cell is off-centre: the gap to the digit before is smaller than to the digit after)
+    cellRun.forEach((rec, i) => {
+      const prev = cellRun[i - 1], next = cellRun[i + 1];
+      if (!rec?.sign || !prev || !next || prev.sign || next.sign) return;
+      const shift = (prev.maxX + next.minX) / 2 - (rec.minX + rec.maxX) / 2;
+      for (let j = rec.first; j < rec.first + rec.count; j += 1) strokes[j] = { ...strokes[j], d: transformPathD(strokes[j].d, { translateX: shift }) };
+      for (let j = rec.dotFrom; j < rec.dotTo; j += 1) startPoints[j] = [startPoints[j][0] + shift, startPoints[j][1]];
+    });
     const animStrokes = [];
     strokes.forEach((st, i) => {
       if (!joins.has(i)) { animStrokes.push(st); return; }

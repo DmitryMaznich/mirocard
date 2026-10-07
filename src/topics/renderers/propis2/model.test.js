@@ -622,6 +622,14 @@ describe("digits and signs (captured 2026-10-06)", () => {
     }
     expect(byCell.size).toBe(10);
     for (const [c, [lo, hi]] of byCell) { expect(lo).toBeGreaterThanOrEqual(c * S); expect(hi).toBeCloseTo((c + 1) * S, 0); }
+    // a sign stands in the middle between the ink of its digits; the minus is as long as the bar of the plus
+    const xsOf = (st) => st.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, i) => i % 2 === 0);
+    const sum = layoutWideLinesIntoRows(["№2№+№3#1"], map, snap, false, 0.5).placed[0].segments[0].strokes.map(xsOf); // 2 | bar, upright | 3
+    const gapL = Math.min(...sum[1], ...sum[2]) - Math.max(...sum[0]);
+    const gapR = Math.min(...sum[3]) - Math.max(...sum[1], ...sum[2]);
+    expect(Math.abs(gapL - gapR)).toBeLessThan(0.5);
+    const minus = layoutWideLinesIntoRows(["№-#1"], map, snap, false, 0.5).placed[0].segments[0].strokes.map(xsOf)[0];
+    expect(Math.max(...minus) - Math.min(...minus)).toBeCloseTo(Math.max(...sum[1]) - Math.min(...sum[1]), 1);
   });
 
   it("squared paper has its own rows: a writing cell and an empty one (10 mm), and the editor finds them", () => {
