@@ -1,51 +1,58 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import Button from "@/shared/components/Button";
+import { Coin, TenStack } from "./CoinBlocks.jsx";
+import { CoinDragOverlay } from "./CoinLesson.jsx";
+import { useCoinExchange } from "./useCoinExchange.js";
 import { placeValuePhrase } from "./placeValueLabels.js";
 import "./place_value.css";
+import "./coins.css";
 import "./exchange.css";
 
 // «Обмен десятка». The task gives a reason to exchange: «Отдай k» when there
-// may not be enough loose cubes (break a ten — the column's заём), «Получи k»
-// when loose cubes may reach ten (build a ten — the column's перенос). The
-// app never exchanges on its own and never hints before the child is stuck;
-// about half of the tasks need no exchange at all (see generateExchangeTask).
-// See docs/place-value-methodology.md, режим 4.
+// may not be enough loose coins (break a stack of ten — the column's заём),
+// «Получи k» when loose coins may reach ten (build a new stack — перенос).
+// The app never exchanges on its own and never hints before the child is
+// stuck; about half of the tasks need no exchange at all (generateExchangeTask).
+// Same coins and stacks as the rest of the topic — the topic later leads on to
+// money. See docs/place-value-methodology.md, режим 4.
 
 const HINT_DELAY_MS = 4000;
 
 function initialModel(task) {
   return {
-    tens: task.start.tens,
-    ones: task.start.ones,
-    moved: 0,          // give: cubes already given; get: cubes already taken from the tray
-    mould: 0,          // loose cubes put into the empty-ten form
+    tens: Array.from({ length: task.start.tens }, (_, i) => `t${i}`),
+    ones: Array.from({ length: task.start.ones }, (_, i) => `o${i}`),
+    tray: task.op === "get" ? Array.from({ length: task.k }, (_, i) => `g${i}`) : [],
+    moved: 0,          // give: coins already given; get: coins already taken from the tray
+    mould: [],         // loose coins put into the empty form for a ten
     broke: false,      // a ten was broken at least once (column: crossed tens digit)
     grouped: false,    // a ten was built at least once (column: carried 1)
-    fresh: null,       // { kind: "break" | "group", at } — drives the enter animation only
+    newStack: null,    // id of a stack just built from the form (pop animation)
+    serial: 0,
   };
 }
 
-function Rod({ index, onBreak, disabled, glow }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: `rod-${index}`, disabled, data: { kind: "rod" } });
-  return <button type="button" ref={setNodeRef} className={`px-rod${glow ? " px-glow" : ""}`} aria-label={`Десяток ${index + 1}`}
+function Stack({ id, index, onBreak, disabled, glow, coinSize }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: `stack-${id}`, disabled, data: { kind: "ten", stackId: id, coinSize } });
+  return <button type="button" ref={setNodeRef} className={`px-stack${glow ? " px-glow" : ""}`} aria-label={`Десяток ${index + 1}`}
     style={{ opacity: isDragging ? 0.35 : undefined }} disabled={disabled}
-    {...attributes} {...listeners} onClick={() => { if (!isDragging) onBreak(); }}>
-    {Array.from({ length: 10 }, (_, i) => <i key={i} />)}
+    {...attributes} {...listeners} onClick={() => { if (!isDragging) onBreak(id); }}>
+    <TenStack />
   </button>;
 }
 
-function OnesZone({ children, onEmptyTap, highlight }) {
+function OnesZone({ children, onEmptyTap }) {
   const { setNodeRef, isOver } = useDroppable({ id: "px-ones" });
-  return <section ref={setNodeRef} className={`px-zone px-zone--ones${isOver ? " px-zone--drag-over" : ""}${highlight ? " px-zone--glow" : ""}`}
-    onClick={(event) => { if (event.target === event.currentTarget || event.target.classList.contains("px-cubes")) onEmptyTap?.(); }}>
+  return <section ref={setNodeRef} className={`px-zone px-zone--ones${isOver ? " px-zone--drag-over" : ""}`}
+    onClick={(event) => { if (event.target === event.currentTarget || event.target.classList.contains("px-coins")) onEmptyTap?.(); }}>
     <h3><span className="px-chip" />Единицы</h3>
-    <div className="px-cubes">{children}</div>
+    <div className="px-coins">{children}</div>
   </section>;
 }
 
 // Compact answer row: the number frame, then two rows of five digit keys —
-// the cubes above must stay readable while the child counts them.
+// the coins above must stay readable while the child counts them.
 function NumberAnswer({ onSubmit }) {
   const [digits, setDigits] = useState("");
   const [wrong, setWrong] = useState(false);
@@ -94,23 +101,25 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
   const [phase, setPhase] = useState("act");
   const [note, setNote] = useState("");
   const [hintLevel, setHintLevel] = useState(0);
-  const [unit, setUnit] = useState(36);
+  const [coinSize, setCoinSize] = useState(40);
+  const [stacked, setStacked] = useState(false);
   const boardRef = useRef(null);
   const penalized = useRef(false);
+  const exchange = useCoinExchange(boardRef);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }));
 
   const actionDone = model.moved === task.k;
-  const ready = actionDone && model.ones <= 9 && model.mould === 0;
+  const ready = actionDone && model.ones.length <= 9 && model.mould.length === 0 && !exchange.busy;
   const stuck = phase !== "act" ? null
-    : give && !actionDone && model.ones === 0 ? "noOnes"
-      : actionDone && model.ones + model.mould >= 10 && model.mould < 10 ? "tooMany"
+    : give && !actionDone && model.ones.length === 0 ? "noOnes"
+      : actionDone && model.ones.length + model.mould.length >= 10 && model.mould.length < 10 ? "tooMany"
         : null;
 
   useEffect(() => { if (phase === "act" && ready) setPhase("answer"); }, [phase, ready]);
 
   // Hints only in «Обучение» and only once the child is actually stuck:
-  // first a question, then the place to look at glows.
+  // first a question, then the place to look at glows. Any action restarts it.
   useEffect(() => {
     setHintLevel(0);
     if (!teaching || !stuck) return undefined;
@@ -119,81 +128,105 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     return () => { clearTimeout(first); clearTimeout(second); };
   }, [stuck, teaching, history.length]);
 
-  const maxRodSlots = Math.min(9, task.start.tens + 1) + (task.start.tens < 9 ? 1 : 0);
+  // Coin size from the board's own box. Wide: tens and ones side by side;
+  // narrow (phones): one above the other, which leaves the coins larger.
   useLayoutEffect(() => {
     const board = boardRef.current;
     if (!board) return undefined;
     const measure = () => {
       const { width, height } = board.getBoundingClientRect();
       if (!width || !height) return;
-      const byHeight = (height - 64) / 10.6;
-      const byWidth = (width - 64) / (maxRodSlots * 1.32 + 5 * 1.26 + 1.6);
-      setUnit(Math.max(16, Math.min(46, byHeight, byWidth)));
+      const narrow = width < 560;
+      const size = narrow
+        ? Math.min((width - 48) / 6.4, (height - 110) / 9.6)
+        : Math.min((width - 84) / 13, (height - 64) / 5.4);
+      setStacked(narrow);
+      setCoinSize(Math.max(20, Math.min(56, size)));
     };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(board);
     return () => observer.disconnect();
-  }, [maxRodSlots]);
+  }, []);
 
   function change(update, nextNote = "") {
-    if (phase !== "act") return;
+    if (phase !== "act" || exchange.busy) return;
     const next = update(model);
     setHistory((h) => [...h, model]);
-    setModel({ ...next, fresh: next.fresh ?? null });
+    setModel({ ...next, newStack: next.newStack ?? null });
     setNote(nextNote);
   }
   function undo() {
-    if (!history.length || phase !== "act") return;
+    if (!history.length || phase !== "act" || exchange.busy) return;
     setModel(history[history.length - 1]);
     setHistory((h) => h.slice(0, -1));
     setNote("");
   }
-  function tapCube() {
+  function tapCoin(id) {
     if (give && !actionDone) {
-      if (model.ones > 0) change((m) => ({ ...m, ones: m.ones - 1, moved: m.moved + 1 }));
+      change((m) => ({ ...m, ones: m.ones.filter((x) => x !== id), moved: m.moved + 1 }));
       return;
     }
-    if (model.ones > 0 && model.mould < 10 && model.tens < 9) change((m) => ({ ...m, ones: m.ones - 1, mould: m.mould + 1 }));
+    if (model.mould.length < 10 && model.tens.length < 9) change((m) => ({ ...m, ones: m.ones.filter((x) => x !== id), mould: [...m.mould, id] }));
   }
   function takeFromTray() {
-    if (!give && !actionDone) change((m) => ({ ...m, ones: m.ones + 1, moved: m.moved + 1 }));
+    if (give || !model.tray.length) return;
+    change((m) => ({ ...m, ones: [...m.ones, m.tray[0]], tray: m.tray.slice(1), moved: m.moved + 1 }));
   }
   function tapMould() {
-    if (model.mould === 10) change((m) => ({ ...m, tens: m.tens + 1, mould: 0, grouped: true, fresh: { kind: "group", at: m.tens } }));
-    else if (model.mould > 0) change((m) => ({ ...m, ones: m.ones + 1, mould: m.mould - 1 }));
+    if (model.mould.length === 10) {
+      change((m) => {
+        const id = `n${m.serial}`;
+        return { ...m, tens: [...m.tens, id], mould: [], grouped: true, newStack: id, serial: m.serial + 1 };
+      });
+    } else if (model.mould.length) {
+      change((m) => ({ ...m, ones: [...m.ones, m.mould[m.mould.length - 1]], mould: m.mould.slice(0, -1) }));
+    }
   }
-  function breakRod() {
-    if (phase !== "act" || model.tens === 0) return;
-    const needed = give && !actionDone && model.ones < task.k - model.moved;
+  function breakStack(stackId) {
+    if (phase !== "act" || exchange.busy || !model.tens.includes(stackId)) return;
+    const needed = give && !actionDone && model.ones.length < task.k - model.moved;
     let nextNote = "";
     if (!needed && teaching) {
       nextNote = give
-        ? "Можно было отдать без размена — отдельных кубиков хватало."
-        : "Здесь размен не нужен: кубики только прибавляются.";
+        ? "Можно было отдать без размена — отдельных монет хватало."
+        : "Здесь размен не нужен: монеты только прибавляются.";
     } else if (!needed && !penalized.current) {
       penalized.current = true;
       onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
     }
-    change((m) => ({ ...m, tens: m.tens - 1, ones: m.ones + 10, broke: true, fresh: { kind: "break", at: m.ones } }), nextNote);
+    const coinIds = Array.from({ length: 10 }, (_, i) => `b${model.serial}-${i}`);
+    const snapshot = model;
+    const apply = (m) => ({ ...m, tens: m.tens.filter((x) => x !== stackId), ones: [...m.ones, ...coinIds], broke: true, newStack: null, serial: m.serial + 1 });
+    // The same ten-coins flight as the other coin lessons; the new coins stay
+    // hidden (px-pending) until their flying copies land on them.
+    const started = exchange.start({ direction: "ungroup", stackId, coinIds, commit: () => {
+      setHistory((h) => [...h, snapshot]);
+      setModel(apply);
+      setNote(nextNote);
+    } });
+    if (!started) change(apply, nextNote);
   }
   function answer(guess) {
     if (guess === task.result) { setPhase("done"); setNote(""); return true; }
-    setNote(teaching ? "Посчитай бруски и отдельные кубики ещё раз." : "Проверь число ещё раз.");
+    setNote(teaching ? "Посчитай стопки и отдельные монеты ещё раз." : "Проверь число ещё раз.");
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
     return false;
   }
 
-  const glowRods = hintLevel >= 2 && stuck === "noOnes";
+  const glowStacks = hintLevel >= 2 && stuck === "noOnes";
   const glowMould = hintLevel >= 2 && stuck === "tooMany";
   const hintText = stuck === "noOnes"
-    ? (hintLevel >= 2 ? "Брусок — это 10 кубиков. Его можно разобрать." : "Отдельных кубиков больше нет. Где ещё есть кубики?")
-    : "Отдельных кубиков больше девяти. Что можно из них сложить?";
-  const showMould = model.tens < 9 || model.mould > 0;
+    ? (hintLevel >= 2 ? "Стопка — это 10 монет. Её можно разложить." : "Отдельных монет больше нет. Где ещё есть монеты?")
+    : "Отдельных монет больше девяти. Что можно из них сложить?";
+  const showMould = phase === "act" && (model.tens.length < 9 || model.mould.length > 0);
   const sign = give ? "−" : "+";
+  const blocks = Math.ceil(model.ones.length / 10);
 
-  return <DndContext sensors={sensors} onDragEnd={({ active, over }) => { if (over?.id === "px-ones" && active.data.current?.kind === "rod") breakRod(); }}>
-    <div className="pv-screen px-screen" style={{ "--u": `${unit}px` }}>
+  return <DndContext sensors={sensors} onDragEnd={({ active, over }) => {
+    if (over?.id === "px-ones" && active.data.current?.kind === "ten") breakStack(active.data.current.stackId);
+  }}>
+    <div className={`pv-screen px-screen${stacked ? " px-screen--stacked" : ""}`} style={{ "--coin-size": `${coinSize}px` }}>
       <header className="px-task">
         <span>Было</span><span className="px-num">{task.number}</span>
         <span className={`px-verb px-verb--${task.op}`}>{give ? "Отдай" : "Получи"} {task.k}</span>
@@ -202,27 +235,25 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
         <div className="px-board" ref={boardRef}>
           <section className="px-zone px-zone--tens">
             <h3><span className="px-chip" />Десятки</h3>
-            <div className="px-rods">
-              {Array.from({ length: model.tens }, (_, i) => <div key={i} className={model.fresh?.kind === "group" && model.fresh.at === i ? "px-rod-wrap px-new" : "px-rod-wrap"}>
-                <Rod index={i} onBreak={breakRod} disabled={phase !== "act"} glow={glowRods} />
+            <div className="px-stacks">
+              {model.tens.map((id, i) => <div key={id} data-stack-id={id}
+                className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}${model.newStack === id ? " px-new" : ""}`}>
+                <Stack id={id} index={i} onBreak={breakStack} disabled={phase !== "act" || exchange.busy} glow={glowStacks} coinSize={coinSize} />
               </div>)}
-              {showMould && phase === "act" && <button type="button" className={`px-mould${model.mould === 10 ? " px-mould--full" : ""}${glowMould ? " px-glow" : ""}`}
-                aria-label={model.mould === 10 ? "Сложить брусок" : "Форма для десятка"} onClick={tapMould}>
-                {Array.from({ length: 10 }, (_, i) => <i key={i} className={i >= 10 - model.mould ? "px-filled" : ""} />)}
+              {showMould && <button type="button" className={`px-mould${model.mould.length === 10 ? " px-mould--full" : ""}${glowMould ? " px-glow" : ""}`}
+                aria-label={model.mould.length === 10 ? "Сложить стопку" : "Форма для десятка"} onClick={tapMould}>
+                <span className="cb-ten-stack">{model.mould.map((id) => <span key={id} className="cb-stack-coin" />)}</span>
+                <span className="px-mould-count">{model.mould.length}/10</span>
               </button>}
             </div>
-            {model.mould === 10 && phase === "act" && <p className="px-mould-caption">Нажми — получится брусок</p>}
+            {model.mould.length === 10 && phase === "act" && <p className="px-mould-caption">Нажми — получится стопка</p>}
           </section>
-          <OnesZone highlight={false} onEmptyTap={() => { if (teaching && stuck === "noOnes") setHintLevel((l) => Math.max(l, 1)); }}>
+          <OnesZone onEmptyTap={() => { if (teaching && stuck === "noOnes") setHintLevel((l) => Math.max(l, 1)); }}>
             {/* Blocks of ten (two rows of five), so 13 reads as 10 + 3 at a glance. */}
-            {Array.from({ length: Math.ceil(model.ones / 10) }, (_, block) => <div key={block} className="px-cube-block">
-              {Array.from({ length: Math.min(10, model.ones - block * 10) }, (_, j) => {
-                const i = block * 10 + j;
-                const fresh = model.fresh?.kind === "break" && i >= model.fresh.at && i < model.fresh.at + 10;
-                return <button type="button" key={i} className={`px-cube${fresh ? " px-new" : ""}`} aria-label={`Кубик ${i + 1}`}
-                  style={fresh ? { animationDelay: `${(i - model.fresh.at) * 35}ms` } : undefined}
-                  disabled={phase !== "act"} onClick={tapCube} />;
-              })}
+            {Array.from({ length: blocks }, (_, block) => <div key={block} className="px-coin-block">
+              {model.ones.slice(block * 10, block * 10 + 10).map((id, j) => <button type="button" key={id} data-coin-id={id}
+                className={`px-coin${exchange.pendingCoins.includes(id) ? " px-pending" : ""}`} aria-label={`Монета ${block * 10 + j + 1}`}
+                disabled={phase !== "act" || exchange.busy} onClick={() => tapCoin(id)}><Coin /></button>)}
             </div>)}
           </OnesZone>
         </div>
@@ -231,11 +262,12 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
             <h3>{give ? "Отдать" : "Получи"} {task.k}</h3>
             <div className="px-slots">
               {Array.from({ length: task.k }, (_, i) => {
-                const filled = give ? i < model.moved : i >= model.moved;
-                return filled
-                  ? <button type="button" key={i} className="px-cube" aria-label={give ? `Отдан кубик ${i + 1}` : `Взять кубик ${i + 1}`}
-                    disabled={give || phase !== "act"} onClick={takeFromTray} />
-                  : <span key={i} className="px-slot" />;
+                const filled = give ? i < model.moved : i < model.tray.length;
+                if (!filled) return <span key={i} className="px-slot" />;
+                return give
+                  ? <span key={i} className="px-coin px-coin--static" aria-label={`Отдана монета ${i + 1}`}><Coin /></span>
+                  : <button type="button" key={i} className="px-coin" aria-label={`Взять монету ${i + 1}`}
+                    disabled={phase !== "act" || exchange.busy} onClick={takeFromTray}><Coin /></button>;
               })}
             </div>
             <p className="px-count">{give ? "отдано" : "получено"} {model.moved} из {task.k}</p>
@@ -247,7 +279,7 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
         {phase === "act" && <>
           {teaching && stuck && hintLevel >= 1 && <div className="px-hint" role="status"><small>Подсказка</small>{hintText}</div>}
           {note && <div className="px-note" role="status">{note}</div>}
-          {teaching && <button type="button" className="px-undo" disabled={!history.length} onClick={undo}>↶ Отменить</button>}
+          {teaching && <button type="button" className="px-undo" disabled={!history.length || exchange.busy} onClick={undo}>↶ Отменить</button>}
         </>}
         {phase === "answer" && <div className="px-answer">
           <span className="px-answer-q">Сколько стало?</span>
@@ -261,5 +293,6 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
         </div>}
       </div>
     </div>
+    <CoinDragOverlay />
   </DndContext>;
 }

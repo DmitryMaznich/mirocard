@@ -1,8 +1,8 @@
-/* «Обмен десятка» (ExchangeTenTask). Cubes, not coins: a loose cube is one
-   unit (blue), a ten is a rod built from ten cubes of the same size (amber),
-   so a ten visibly is ten units. Colors per place: ones blue, tens amber —
-   the same in the zones, the rods/cubes and the spoken model line.
-   --u (one cube's side) is set from JS (ExchangeTenTask measures .px-board). */
+/* «Обмен десятка» (ExchangeTenTask). The topic's own coins: a loose coin is
+   one unit, a stack of ten coins is a ten (coins.css .cb-coin / .cb-ten-stack).
+   Zone headers carry the place colors (tens amber, ones blue), the same as
+   the spoken model line. --coin-size is set from JS (ExchangeTenTask measures
+   .px-board). */
 
 @font-face {
   font-family: 'Primo';
@@ -59,9 +59,14 @@
   min-width: 0;
   min-height: 0;
   display: flex;
+  align-items: flex-start;
   justify-content: center;
   gap: 12px;
 }
+
+/* Zones hug their coins but never shrink below a comfortable drop target
+   (the ones zone receives a dragged stack even when it is empty). */
+.px-board > .px-zone { min-height: calc(var(--coin-size) * 5.2 + 48px); }
 
 .px-zone {
   background: #fff;
@@ -95,8 +100,8 @@
 .px-zone--ones h3 { color: var(--px-ones-dark); }
 .px-zone--ones .px-chip { background: var(--px-ones); }
 
-.px-zone--tens { flex: 0 0 auto; min-width: calc(var(--u) * 4); }
-.px-zone--ones { flex: 0 0 auto; width: calc(var(--u) * 6.3 + 28px); }
+.px-zone--tens { flex: 0 0 auto; width: calc(var(--coin-size) * 6.4 + 28px); }
+.px-zone--ones { flex: 0 0 auto; width: calc(var(--coin-size) * 6.2 + 28px); }
 
 .px-zone--drag-over {
   border-color: #3b82f6;
@@ -104,108 +109,100 @@
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.35);
 }
 
-.px-rods {
-  display: flex;
-  align-items: flex-start;
-  gap: calc(var(--u) * 0.32);
+.px-stacks {
+  display: grid;
+  grid-template-columns: repeat(5, var(--coin-size));
+  grid-auto-rows: calc(var(--coin-size) * 2.2);
+  gap: calc(var(--coin-size) * 0.3);
+  align-items: end;
 }
 
-/* ── Cubes and rods ─────────────────────── */
+/* ── Coins and stacks ───────────────────── */
 
-.px-cube,
-.px-rod i,
-.px-mould i.px-filled {
-  display: block;
-  width: var(--u);
-  height: var(--u);
-  border: 1.5px solid var(--edge);
-  background: linear-gradient(145deg, var(--light), var(--base) 60%);
-}
-
-.px-cube,
-.px-mould i.px-filled {
-  --light: var(--px-ones-light);
-  --base: var(--px-ones);
-  --edge: var(--px-ones-dark);
-}
-
-.px-cube {
-  padding: 0;
-  border-radius: 6px;
-  box-shadow: 0 3px 0 var(--px-ones-dark);
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.px-cube:disabled { cursor: default; }
-
-.px-rod {
-  display: flex;
-  flex-direction: column;
+.px-stack,
+.px-coin {
+  appearance: none;
   padding: 0;
   border: 0;
   background: none;
-  border-radius: 6px;
-  box-shadow: 0 3px 0 var(--px-tens-dark);
-  cursor: grab;
-  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
   -webkit-tap-highlight-color: transparent;
 }
 
-.px-rod:disabled { cursor: default; }
-
-.px-rod i {
-  --light: var(--px-tens-light);
-  --base: var(--px-tens);
-  --edge: var(--px-tens-dark);
-  border-top-width: 0;
+.px-stack {
+  border-radius: 8px;
+  cursor: grab;
+  touch-action: none;
 }
 
-.px-rod i:first-child { border-top-width: 1.5px; border-radius: 6px 6px 0 0; }
-.px-rod i:last-child { border-radius: 0 0 6px 6px; }
+.px-coin {
+  border-radius: 50%;
+  cursor: pointer;
+  touch-action: manipulation;
+}
 
-.px-cubes {
+.px-stack:disabled,
+.px-coin:disabled,
+.px-coin--static { cursor: default; }
+
+.px-pending { visibility: hidden; }
+
+.px-coins {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--u) * 0.45);
+  gap: calc(var(--coin-size) * 0.4);
 }
 
-.px-cube-block {
+/* Blocks of ten: two rows of five, so 13 reads as 10 + 3 at a glance. */
+.px-coin-block {
   display: grid;
-  grid-template-columns: repeat(5, var(--u));
-  gap: calc(var(--u) * 0.26);
+  grid-template-columns: repeat(5, var(--coin-size));
+  gap: calc(var(--coin-size) * 0.22);
 }
 
 /* ── The empty form for a ten ───────────── */
 
 .px-mould {
+  position: relative;
+  width: calc(var(--coin-size) * 1.2);
+  height: calc(var(--coin-size) * 2.2);
   display: flex;
-  flex-direction: column;
-  padding: 2px;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 0 4px;
   border: 2.5px dashed #94a3b8;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #f8fafc;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  justify-self: center;
 }
 
-.px-mould i {
-  display: block;
-  width: var(--u);
-  height: var(--u);
-  border-bottom: 1px dashed #cbd5e1;
-}
+.px-mould .cb-ten-stack { padding-top: 0; }
 
-.px-mould i:last-child { border-bottom: 0; }
+.px-mould-count {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+}
 
 .px-mould--full {
   border-style: solid;
   border-color: #16a34a;
   background: #f0fdf4;
 }
+
+.px-mould--full .px-mould-count { color: #166534; }
 
 .px-mould-caption {
   margin: 8px 0 0;
@@ -263,15 +260,16 @@
 
 .px-slots {
   display: grid;
-  grid-template-columns: repeat(5, var(--u));
-  gap: calc(var(--u) * 0.26);
+  grid-template-columns: repeat(5, var(--coin-size));
+  gap: calc(var(--coin-size) * 0.22);
 }
 
 .px-slot {
-  width: var(--u);
-  height: var(--u);
+  width: var(--coin-size);
+  height: var(--coin-size);
+  box-sizing: border-box;
   border: 2px dashed currentColor;
-  border-radius: 6px;
+  border-radius: 50%;
 }
 
 .px-tray--give .px-slot { color: #e7a3a3; }
@@ -532,11 +530,18 @@
   color: #166534;
 }
 
-/* Phones / portrait: tray and column go under the cubes. */
+/* Narrow board (JS sets --stacked): tens above ones, each full width. */
+.px-screen--stacked .px-board { flex-direction: column; align-items: stretch; justify-content: flex-start; }
+.px-screen--stacked .px-board > .px-zone { min-height: 0; }
+.px-screen--stacked .px-zone--tens,
+.px-screen--stacked .px-zone--ones { width: auto; }
+.px-screen--stacked .px-zone--ones { flex: 1 1 auto; }
+
+/* Phones / portrait: tray and column go under the coins. */
 @media (max-width: 720px) {
   .px-screen { padding: 10px; }
   .px-main { flex-direction: column; }
   .px-side { flex: 0 0 auto; flex-direction: row; }
   .px-side > * { flex: 1; min-width: 0; }
-  .px-zone--ones { flex: 1 1 auto; width: auto; }
+  .px-side .px-slots { --coin-size: 26px; }
 }
