@@ -229,12 +229,6 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       <div className="screen-header p2-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
         <input className="propis2-title-input" value={title ?? page.title} onChange={(e) => (onTitle ? onTitle(e.target.value) : onChange({ ...page, title: e.target.value }, { typing: true }))} aria-label={onTitle ? "Название тетради" : "Название страницы"} />
-        {onUndo && (
-          <div className="p2-history" role="group" aria-label="История изменений">
-            <button type="button" className="p2-hist" onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить"><I.IconUndo /></button>
-            <button type="button" className="p2-hist" onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть"><I.IconRedo /></button>
-          </div>
-        )}
         {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /></button>}
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>
@@ -295,6 +289,13 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           </div>
         </div>
 
+        {onUndo && (
+          // undo / redo float over the canvas, at its right side (not in the scrolling page: they stay put while it scrolls)
+          <div className="p2-history" role="group" aria-label="История изменений">
+            <button type="button" className="p2-hist" onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить"><I.IconUndo /></button>
+            <button type="button" className="p2-hist" onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть"><I.IconRedo /></button>
+          </div>
+        )}
         <div className="propis2-page-col" ref={wrapRef} onClick={onPageClick}>
           <div className="propis2-page-box" style={pageW ? { width: pageW } : undefined}>
             <Propis2Preview page={page} topicRecord={topicRecord} overlays={overlays} onPageIndexChange={(i) => { pageIndexRef.current = i; }} />

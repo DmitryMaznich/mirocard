@@ -302,12 +302,12 @@
 .p2-modal-btn--primary { background: #4a9b8f; border-color: #4a9b8f; color: #fff; box-shadow: 0 3px 0 #2a6b60; }
 .p2-modal-btn--primary:disabled { background: #b8d4cf; border-color: #b8d4cf; box-shadow: none; }
 .p2-modal-btn--danger { color: #b42318; }
-/* undo / redo arrows in the editor's header */
-.p2-history { flex: 0 0 auto; display: flex; gap: 2px; }
-.p2-hist { width: 42px; height: 42px; border: none; border-radius: 50%; background: transparent; color: #fff; display: grid; place-items: center; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+/* undo / redo: two round buttons one above the other, floating over the right side of the canvas (same grid area as the page) */
+.propis2-main > .p2-history { grid-area: page; justify-self: end; align-self: start; z-index: 6; display: flex; flex-direction: column; gap: 10px; margin: 12px calc(12px + var(--app-safe-right, 0px)) 0 0; pointer-events: none; }
+.p2-hist { pointer-events: auto; width: 48px; height: 48px; border: none; border-radius: 50%; background: rgba(255, 255, 255, .94); color: #1f2937; display: grid; place-items: center; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 0, 0, .22), 0 1px 3px rgba(0, 0, 0, .12); touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .p2-hist svg { width: 26px; height: 26px; }
-.p2-hist:disabled { color: rgba(255, 255, 255, .28); cursor: default; }
-.p2-hist:not(:disabled):active { background: rgba(255, 255, 255, .15); }
+.p2-hist:disabled { color: #c3cad5; box-shadow: 0 2px 8px rgba(0, 0, 0, .12); cursor: default; }
+.p2-hist:not(:disabled):active { transform: scale(.94); }
 .p2-save { flex: 0 0 auto; width: 48px; height: 48px; border: none; border-radius: 50%; background: #2563eb; color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 3px 0 #1d4ed8; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .p2-save svg { width: 28px; height: 28px; }
 .p2-save:disabled { background: #cbd5e1; box-shadow: none; color: #fff; cursor: default; }
