@@ -2,7 +2,8 @@
 
 Split out of «Сложение и вычитание в столбик» (`column_addition`) on 2026-10-07:
 the three coin modes — «Собери число» (`build_number`), «Какое это число?»
-(`identify_number`), «Разменяй десяток» (`regroup_ten`) — are numeration
+(`identify_number`), «Разменяй десяток» (`regroup_ten`, since replaced by «Обмен
+десятка» `exchange_ten`, see `docs/place-value-methodology.md`) — are numeration
 (разрядный состав), not column arithmetic, and use a different visual language
 (coins and stacks of ten vs. the checkered notebook). Not merged into «Домики
 чисел»: in school usage «состав числа» means 7 = 3 + 4 within 10; this topic is

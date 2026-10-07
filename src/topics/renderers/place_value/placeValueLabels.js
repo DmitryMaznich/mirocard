@@ -1,4 +1,4 @@
-// Unlike a single digit 0-9 (identify_number's/regroup_ten's counters, which
+// Unlike a single digit 0-9 (identify_number's counter, which
 // used to need this plural form before the live counter was removed),
 // build_number's raw coin count is the FULL target number (up to
 // maxTens*10+maxOnes, e.g. 28 or 14) — so this one does need the
@@ -54,4 +54,24 @@ export function placeValueSentence(tens, ones, number) {
 // place value, not Russian numerals.
 export function placeValueAnswerSentence(tens, ones, number) {
   return `${tens} ${pluralTens(tens)} и ${ones} ${pluralOnes(ones)} — это ${number}`;
+}
+
+const UNIT_WORDS = ["ноль", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"];
+const TEEN_WORDS = ["десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать"];
+const TENS_WORDS = ["", "десять", "двадцать", "тридцать", "сорок", "пятьдесят", "шестьдесят", "семьдесят", "восемьдесят", "девяносто"];
+
+// 0..99 spelled out, for the spoken model «2 десятка и 7 единиц — двадцать семь».
+export function numberWords(n) {
+  if (n < 10) return UNIT_WORDS[n];
+  if (n < 20) return TEEN_WORDS[n - 10];
+  const tens = Math.floor(n / 10), ones = n % 10;
+  return ones ? `${TENS_WORDS[tens]} ${UNIT_WORDS[ones]}` : TENS_WORDS[tens];
+}
+
+// The one speech pattern every place-value answer ends with. Zero ones are
+// named on purpose («3 десятка и 0 единиц») — that's the placeholder zero.
+export function placeValuePhrase(n) {
+  const tens = Math.floor(n / 10), ones = n % 10;
+  const parts = tens ? `${tens} ${pluralTens(tens)} и ${ones} ${pluralOnes(ones)}` : `${ones} ${pluralOnes(ones)}`;
+  return `${parts} — ${numberWords(n)}`;
 }

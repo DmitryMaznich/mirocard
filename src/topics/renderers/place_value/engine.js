@@ -35,7 +35,7 @@ export function generateBuildNumberTask(card, maxOnes, maxTens, numericBlocks) {
 // 30/40/50) and bare single digits (tens = 0, e.g. 7) among the regular
 // two-digit draws. Left out of the shared randomPlaceValueNumber above —
 // build_number has nothing new to demonstrate on a round ten, and
-// regroup_ten specifically needs at least one ten to exchange, so neither
+// exchange_ten builds its own start numbers (generateExchangeTask), so neither
 // should ever see tens = 0. Without these edge cases, a child can answer
 // "какое это число?" by pattern ("it's always two digits, both filled")
 // instead of actually reading the picture — see the same session's
@@ -70,18 +70,6 @@ export function generateIdentifyNumberTask(card, maxOnes, maxTens = 9, numberSet
   };
 }
 
-export function generateRegroupTask(card, maxOnes, maxTens = 9) {
-  const { tens, ones } = randomPlaceValueNumber(maxOnes, maxTens);
-  return {
-    type: "regroup_ten",
-    cardId: card.id,
-    conceptId: card.conceptId,
-    maxOnes: Number(maxOnes),
-    number: tens * 10 + ones,
-    initial: { tens, ones },
-    after: { tens: tens - 1, ones: ones + 10 },
-  };
-}
 
 export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const mode = typeof modeOrObj === "string" ? modeOrObj : (modeOrObj?.type ?? modeOrObj?.id ?? "");
@@ -92,7 +80,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const allCards = cards.filter(c => c.renderer === "place_value");
   const buildNumberCards    = allCards.filter(c => c.params?.mode === "build_number");
   const identifyNumberCards = allCards.filter(c => c.params?.mode === "identify_number");
-  const regroupTenCards     = allCards.filter(c => c.params?.mode === "regroup_ten");
+  const exchangeCards       = allCards.filter(c => c.params?.mode === "exchange_ten");
 
   if (mode === "build_number") {
     if (!buildNumberCards.length) return [];
@@ -124,19 +112,61 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     return tasks;
   }
 
-  if (mode === "regroup_ten") {
-    if (!regroupTenCards.length) return [];
-    const maxOnes = Number(params.maxOnes ?? 9);
+  if (mode === "exchange_ten") {
+    if (!exchangeCards.length) return [];
+    const flags = exchangeFlags(count);
     const tasks = [];
     for (let i = 0; i < count; i++) {
       tasks.push({
-        ...generateRegroupTask(regroupTenCards[i % regroupTenCards.length], maxOnes, Number(params.maxTens ?? 9)),
+        ...generateExchangeTask(exchangeCards[i % exchangeCards.length], params, flags[i]),
         supportMode: params.supportMode ?? "learning",
-        allowReverse: params.allowReverse !== false,
+        showColumn: Boolean(params.showColumn),
       });
     }
     return tasks;
   }
 
   return [];
+}
+
+// «Обмен десятка»: the model of `number` plus an action with a reason —
+// «Отдай k» (give) or «Получи k» (get). generateTasks passes `needsExchange`
+// so that half of a session needs an exchange (break a ten when there aren't
+// enough ones / build a ten when ones reach ten) and half doesn't — the child
+// has to decide each time. Results stay within 1..99.
+export function generateExchangeTask(card, params = {}, needsExchange = true) {
+  const maxTens = Math.min(9, Math.max(1, Number(params.maxTens ?? 5)));
+  const operation = params.operation ?? "give";
+  const op = operation === "mixed" ? (Math.random() < 0.5 ? "give" : "get") : operation === "get" ? "get" : "give";
+  const exchangeOf = (tens, ones, k) => (op === "give" ? k > ones : ones + k >= 10);
+  const resultOf = (tens, ones, k) => (op === "give" ? tens * 10 + ones - k : tens * 10 + ones + k);
+  let tens = 1, ones = 0, k = 1;
+  for (let attempt = 0; attempt < 500; attempt++) {
+    const t = randomInt(1, maxTens), o = randomInt(0, 9), n = randomInt(1, 9);
+    const result = resultOf(t, o, n);
+    if (exchangeOf(t, o, n) !== needsExchange || result < 1 || result > 99) continue;
+    tens = t; ones = o; k = n;
+    break;
+  }
+  const number = tens * 10 + ones;
+  return {
+    type: "exchange_ten",
+    cardId: card.id,
+    conceptId: card.conceptId,
+    op,
+    k,
+    number,
+    start: { tens, ones },
+    result: resultOf(tens, ones, k),
+    needsExchange: exchangeOf(tens, ones, k),
+  };
+}
+
+function exchangeFlags(count) {
+  const flags = Array.from({ length: count }, (_, i) => i % 2 === 0);
+  for (let i = flags.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [flags[i], flags[j]] = [flags[j], flags[i]];
+  }
+  return flags;
 }

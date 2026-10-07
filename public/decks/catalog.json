@@ -197,8 +197,8 @@
     },
     {
       "id": "place_value",
-      "version": "1.0.0",
-      "url": "./decks/place_value_v1.0.0.zip",
+      "version": "1.0.1",
+      "url": "./decks/place_value_v1.0.1.zip",
       "title": {
         "ru": "Разряды числа",
         "en": "Place Value"
@@ -206,8 +206,8 @@
       "status": "release",
       "access": "paid",
       "description": {
-        "ru": "Три режима о том, как устроено число: отдельные монеты — единицы, стопки по десять монет — десятки. Ребёнок собирает число из монет и стопок, читает готовую модель и разменивает десяток на десять единиц.",
-        "en": "Tens and ones with coins and stacks of ten: build a number, read a model, exchange a ten for ten ones."
+        "ru": "Как устроено число: отдельные предметы — единицы, группа из десяти — десяток. Ребёнок собирает число, читает готовую модель и сам решает, когда нужен обмен десятка: разбирает его, если единиц не хватает, и складывает новый, если единиц набралось десять.",
+        "en": "Tens and ones: build a number, read a model, and decide when a ten must be exchanged (carry and borrow)."
       }
     },
     {

@@ -1,11 +1,11 @@
 import BuildNumberTask from "./BuildNumberTask.jsx";
 import IdentifyNumberTask from "./IdentifyNumberTask.jsx";
-import RegroupTenTask from "./RegroupTenTask.jsx";
+import ExchangeTenTask from "./ExchangeTenTask.jsx";
 
 const TASKS = {
   build_number: BuildNumberTask,
   identify_number: IdentifyNumberTask,
-  regroup_ten: RegroupTenTask,
+  exchange_ten: ExchangeTenTask,
 };
 
 export default function PlaceValueRenderer({ task, sessionParams, onCorrect, onMistake, onFlashIncorrect }) {

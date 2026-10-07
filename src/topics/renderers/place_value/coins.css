@@ -99,11 +99,6 @@ button.cm-object { cursor: grab; touch-action: none; }
 .cm-screen .pv-numkey { font-size: calc(26 * var(--cm-unit)); min-height: max(36px, calc(46 * var(--cm-unit))); padding: calc(6 * var(--cm-unit)) 0; line-height: 1; background: #f0f2e6; border: 1px solid #d7deca; color: #203b38; box-shadow: 0 2px 0 #d0d9c3; border-radius: calc(10 * var(--cm-unit)); }
 .cm-total { font-size: calc(18 * var(--cm-unit)); line-height: 1; text-align: center; color: #244b40; flex-shrink: 0; }
 .cm-total strong { font-size: calc(26 * var(--cm-unit)); font-variant-numeric: tabular-nums; }
-.cm-screen .pv-regroup-compare { flex-shrink: 0; gap: calc(6 * var(--cm-unit)); }
-.cm-screen .pv-regroup-step { background: #f4f6ec; border-color: #dce2d1; padding: calc(6 * var(--cm-unit)); }
-.cm-screen .pv-regroup-step-label { font-size: calc(13 * var(--cm-unit)); background: transparent; color: #315b48; padding: 0; }
-.cm-screen .pv-regroup-step-eq { font-size: calc(16 * var(--cm-unit)); color: #203b38; }
-.cm-screen .pv-regroup-step-eq b { color: #286b5a; }
 .cm-screen button:focus-visible { outline: 2px solid #286b5a; outline-offset: 3px; }
 /* Preserve the mockup's composition on every device. A taller lesson can
    use the mockup's 3-column pad; a short one uses two rows to fit. */
@@ -112,3 +107,4 @@ button.cm-object { cursor: grab; touch-action: none; }
   .cm-screen .pv-numkey:last-child { grid-column: 2; }
 }
 @media (prefers-reduced-motion: reduce) { .cm-screen *, .cb-coin-fly-ghost { animation: none !important; transition: none !important; } }
+

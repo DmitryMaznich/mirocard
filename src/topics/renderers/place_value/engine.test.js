@@ -4,7 +4,7 @@ import { generateTasks } from "./engine.js";
 const PLACE_VALUE_CARDS = [
   { id: "build_number",    conceptId: "build_number",    renderer: "place_value", params: { mode: "build_number" } },
   { id: "identify_number", conceptId: "identify_number", renderer: "place_value", params: { mode: "identify_number" } },
-  { id: "regroup_ten",     conceptId: "regroup_ten",     renderer: "place_value", params: { mode: "regroup_ten" } },
+  { id: "exchange_ten",    conceptId: "exchange_ten",    renderer: "place_value", params: { mode: "exchange_ten" } },
 ];
 
 describe("generateTasks – build_number", () => {
@@ -121,20 +121,35 @@ describe("generateTasks – identify_number", () => {
   });
 });
 
-describe("generateTasks – regroup_ten", () => {
-  it("honours the maximum tens and independent-trial settings", () => {
-    const tasks = generateTasks("regroup_ten", PLACE_VALUE_CARDS, 20, { maxTens: 1, supportMode: "independent", allowReverse: false });
-    expect(tasks.every((t) => t.initial.tens === 1 && t.supportMode === "independent" && !t.allowReverse)).toBe(true);
-  });
-  it("returns tasks where after = initial minus one ten plus ten ones", () => {
-    const tasks = generateTasks("regroup_ten", PLACE_VALUE_CARDS, 20, { maxOnes: 9 });
-    expect(tasks).toHaveLength(20);
-    for (const t of tasks) {
-      expect(t.type).toBe("regroup_ten");
-      expect(t.initial.tens).toBeGreaterThanOrEqual(1);
-      expect(t.after.tens).toBe(t.initial.tens - 1);
-      expect(t.after.ones).toBe(t.initial.ones + 10);
-      expect(t.after.tens * 10 + t.after.ones).toBe(t.number);
+describe("generateTasks – exchange_ten", () => {
+  it("makes exactly half of a session need an exchange, with the reason matching the action", () => {
+    for (const operation of ["give", "get", "mixed"]) {
+      const tasks = generateTasks("exchange_ten", PLACE_VALUE_CARDS, 10, { operation, maxTens: 5 });
+      expect(tasks).toHaveLength(10);
+      expect(tasks.filter((t) => t.needsExchange)).toHaveLength(5);
+      for (const t of tasks) {
+        expect(t.type).toBe("exchange_ten");
+        expect(t.number).toBe(t.start.tens * 10 + t.start.ones);
+        expect(t.result).toBe(t.op === "give" ? t.number - t.k : t.number + t.k);
+        expect(t.result).toBeGreaterThanOrEqual(1);
+        expect(t.result).toBeLessThanOrEqual(99);
+        expect(t.k).toBeGreaterThanOrEqual(1);
+        expect(t.k).toBeLessThanOrEqual(9);
+        expect(t.start.tens).toBeLessThanOrEqual(5);
+        expect(t.needsExchange).toBe(t.op === "give" ? t.k > t.start.ones : t.start.ones + t.k >= 10);
+        if (operation !== "mixed") expect(t.op).toBe(operation);
+      }
     }
+  });
+
+  it("carries the adult's settings into each task", () => {
+    const [task] = generateTasks("exchange_ten", PLACE_VALUE_CARDS, 1, { supportMode: "independent", showColumn: true });
+    expect(task).toMatchObject({ supportMode: "independent", showColumn: true, cardId: "exchange_ten" });
+  });
+
+  it("works with a single ten available", () => {
+    const tasks = generateTasks("exchange_ten", PLACE_VALUE_CARDS, 20, { operation: "mixed", maxTens: 1 });
+    expect(tasks.every((t) => t.start.tens === 1)).toBe(true);
+    expect(tasks.filter((t) => t.needsExchange)).toHaveLength(10);
   });
 });

@@ -520,9 +520,10 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const buildNumber = record.modes.find((m) => m.id === "build_number");
     expect(buildNumber.ui.icon).toBe("media/icons/place_value_build.svg");
 
-    const regroupTen = record.modes.find((m) => m.id === "regroup_ten");
-    expect(regroupTen.ui.title).toBe("Разменяй десяток");
-    expect(regroupTen.ui.icon).toBe("media/icons/place_value_regroup.svg");
+    // «Разменяй десяток» was replaced by «Обмен десятка» (exchange_ten); a stale
+    // record must not keep the old mode around.
+    expect(record.modes.find((m) => m.id === "regroup_ten")).toBeUndefined();
+    expect(record.modes.map((m) => m.id)).toEqual(["build_number", "identify_number", "exchange_ten"]);
   });
 
   // Widget-type migration (a param's `type` changing between what a stale
@@ -569,7 +570,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(buildNumber.params).toHaveProperty("maxTens");
   });
 
-  it("drops identify_number's and regroup_ten's numericBlocks param, same as build_number", async () => {
+  it("drops identify_number's and exchange_ten's numericBlocks param, same as build_number", async () => {
     // Same "10" vs "Десятки" choice build_number used to offer, removed for the
     // same reason — a stale device that saved the old param shape must have it
     // dropped on the next load.
@@ -590,10 +591,10 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
           },
         },
         {
-          id: "regroup_ten",
-          type: "regroup_ten",
+          id: "exchange_ten",
+          type: "exchange_ten",
           evaluation: "instant",
-          ui: { title: "Разменяй десяток", icon: "media/icons/place_value_regroup.svg" },
+          ui: { title: "Обмен десятка", icon: "media/icons/place_value_regroup.svg" },
           params: {
             maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
             numericBlocks: { type: "visual_boolean", default: false, offLabel: { ru: "Десятки" }, label: { ru: "Блоки с цифрами" } },
@@ -602,7 +603,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
       ],
       cards: [
         { id: "identify_number", conceptId: "identify_number", renderer: "place_value", params: { mode: "identify_number" } },
-        { id: "regroup_ten", conceptId: "regroup_ten", renderer: "place_value", params: { mode: "regroup_ten" } },
+        { id: "exchange_ten", conceptId: "exchange_ten", renderer: "place_value", params: { mode: "exchange_ten" } },
       ],
       installedAt: new Date().toISOString(),
     };
@@ -619,8 +620,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // along with the manipulative/checklist redesign that removed the counter entirely.
     expect(byId.identify_number.params).not.toHaveProperty("showCounters");
 
-    expect(byId.regroup_ten.params).not.toHaveProperty("numericBlocks");
-    expect(byId.regroup_ten.params).toHaveProperty("maxOnes");
+    expect(byId.exchange_ten.params).not.toHaveProperty("numericBlocks");
+    expect(byId.exchange_ten.params).toHaveProperty("maxTens");
   });
 
   it("refreshes column_arithmetic's params to the new reference shape, even if an older shape was persisted", async () => {
@@ -826,7 +827,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
   });
 
   it("refreshes a mode's methodology tips to the current default, even if older tips were persisted", async () => {
-    // Simulates a device that installed regroup_ten back when its tips still mentioned
+    // Simulates a device whose stored methodology for a mode is stale (old tips mentioned
     // the "Число изменилось?" question that has since been removed — on the next load,
     // the tips must reflect the current copy instead of staying pinned to the old text.
     const db = await freshDb();
@@ -835,10 +836,10 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
       meta: { id: "place_value", renderer: "place_value", version: "1.0.0", title: { ru: "Разряды числа" } },
       modes: [
         {
-          id: "regroup_ten",
-          type: "regroup_ten",
+          id: "exchange_ten",
+          type: "exchange_ten",
           evaluation: "instant",
-          ui: { title: "Разменяй десяток", instruction: "Перетащи десяток в единицы", icon: "media/icons/place_value_regroup.svg" },
+          ui: { title: "Обмен десятка", instruction: "Перетащи десяток в единицы", icon: "media/icons/place_value_regroup.svg" },
           params: {
             maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
           },
@@ -848,7 +849,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
           },
         },
       ],
-      cards: [{ id: "regroup_ten", conceptId: "regroup_ten", renderer: "place_value", params: { mode: "regroup_ten" } }],
+      cards: [{ id: "exchange_ten", conceptId: "exchange_ten", renderer: "place_value", params: { mode: "exchange_ten" } }],
       installedAt: new Date().toISOString(),
     };
 
@@ -856,9 +857,10 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     await kv.set(db, "installedTopicIds", ["place_value"]);
 
     const record = await getTopicRecord(db, "place_value");
-    const regroupTen = record.modes.find((m) => m.id === "regroup_ten");
-    expect(regroupTen.methodology.text).not.toContain("Число изменилось");
-    expect(regroupTen.methodology.tips.some((t) => t.includes("Число изменилось"))).toBe(false);
+    const exchange = record.modes.find((m) => m.id === "exchange_ten");
+    expect(exchange.methodology.text).not.toContain("Число изменилось");
+    expect(exchange.methodology.tips.some((t) => t.includes("Число изменилось"))).toBe(false);
+    expect(exchange.methodology.text).toContain("Отдай 5");
   });
 });
 

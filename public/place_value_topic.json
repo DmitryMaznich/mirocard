@@ -2,12 +2,36 @@
   "meta": {
     "id": "place_value",
     "renderer": "place_value",
-    "version": "1.0.0",
-    "title": { "ru": "Разряды числа", "en": "Place Value" }
+    "version": "1.0.1",
+    "title": {
+      "ru": "Разряды числа",
+      "en": "Place Value"
+    }
   },
   "cards": [
-    { "id": "build_number", "conceptId": "build_number", "renderer": "place_value", "params": { "mode": "build_number" } },
-    { "id": "identify_number", "conceptId": "identify_number", "renderer": "place_value", "params": { "mode": "identify_number" } },
-    { "id": "regroup_ten", "conceptId": "regroup_ten", "renderer": "place_value", "params": { "mode": "regroup_ten" } }
+    {
+      "id": "build_number",
+      "conceptId": "build_number",
+      "renderer": "place_value",
+      "params": {
+        "mode": "build_number"
+      }
+    },
+    {
+      "id": "identify_number",
+      "conceptId": "identify_number",
+      "renderer": "place_value",
+      "params": {
+        "mode": "identify_number"
+      }
+    },
+    {
+      "id": "exchange_ten",
+      "conceptId": "exchange_ten",
+      "renderer": "place_value",
+      "params": {
+        "mode": "exchange_ten"
+      }
+    }
   ]
 }
