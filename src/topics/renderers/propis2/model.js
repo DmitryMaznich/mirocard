@@ -1,7 +1,7 @@
 // «Прописи 2»: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
-import { snapXFor } from "../propis/PrintPageView.jsx";
+import { snapXFor, squareRowsPerPage } from "../propis/PrintPageView.jsx";
 import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../propis/propisRuling.js";
 import { outsideRowLabels } from "./glyphReach.js";
 import { PROPIS2_METHOD_NOTEBOOKS } from "./data.js";
@@ -22,7 +22,7 @@ export const pageAspect = (page) => { const f = formatOf(page); return f.wMm / f
 // content rows on one page (ruling row 0 is only the top edge)
 // content rows on one page: all ruling rows on the narrow ruling (17 on A5, 24 on A4); on the wide one the first ruling row is only the
 // top edge of the first band (16 / 23)
-export const rowsPerPage = (page) => Math.floor((formatOf(page).hMm - PRINT_FIRST_BASELINE_MM) / 12) + (page?.ruling === "narrow" ? 1 : 0);
+export const rowsPerPage = (page) => (taskGrid(page) === "square" ? squareRowsPerPage(pageFormat(page)) : Math.floor((formatOf(page).hMm - PRINT_FIRST_BASELINE_MM) / 12) + (page?.ruling === "narrow" ? 1 : 0));
 
 export const RULINGS = [
   { id: "narrow", label: "Узкая строка", short: "Узкая" },
@@ -215,12 +215,15 @@ export const rowMaxX = (page) => WIDE_ROW_MAX_X + (mmToNativeUnits(formatOf(page
 
 // Width of a line as the page lays it out: on the page's own grid (`snap` = what snapXFor gives for the page), not freely.
 export const lineWidth = (text, glyphMap, ruling, snap) => {
-  const { placed } = layoutWideLinesIntoRows([text], glyphMap, snap ? (_row, x, y) => snap(0, x, y) : undefined, false, ruling === "narrow" ? 0.5 : 1);
+  const rowSnap = snap ? Object.assign((_row, x, y) => snap(0, x, y), snap.cell ? { cell: { size: snap.cell.size, origin: () => snap.cell.origin(0) } } : {}) : undefined;
+  const { placed } = layoutWideLinesIntoRows([text], glyphMap, rowSnap, false, ruling === "narrow" ? 0.5 : 1);
   return placed[0]?.segments?.[0]?.width ?? 0;
 };
 
 // The snapping function of a page: the grid it is drawn with (slant frequency), margin, format.
-export const pageSnap = (page) => snapXFor({ narrowRows: page?.ruling === "narrow", simpleGrid: taskGrid(page), margin: pageMargin(page), format: pageFormat(page), narrow17: page?.ruling === "narrow" });
+export const pageSnap = (page) => snapXFor({ narrowRows: pageRuling(page) === "narrow", simpleGrid: taskGrid(page), margin: pageMargin(page), format: pageFormat(page), narrow17: pageRuling(page) === "narrow" });
+// The row size the layout uses: squared paper has no copybook ruling of its own, its letters and digits are laid out at the narrow size.
+export const pageRuling = (page) => (taskGrid(page) === "square" ? "narrow" : page?.ruling);
 // Rows of different pages stand at different phases of the grid: keep one cell of room so a snapped line never runs off.
 const wrapSlack = (ruling) => TEXT_ROW_WIDE_DIAGONAL_SPACING * (ruling === "narrow" ? 0.5 : 1);
 
@@ -255,7 +258,7 @@ export function pageToLines(page, glyphMap) {
   for (const row of page?.rows ?? []) {
     if (row.kind === "blank") { out.push(""); continue; }
     if (row.kind === "passage") {
-      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page), indentUnitsOf(row.text, page?.ruling), pageSnap(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
+      const wrapped = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)), pageSnap(page)) : String(row.text ?? "").trim() ? [String(row.text).trim()] : [];
       if (!wrapped.length) { out.push(""); continue; }
       const indent = leadingSpaces(row.text);
       wrapped.forEach((l, k) => { out.push(`${l}#1${k === 0 && indent ? `#i${indent}` : ""}`); if (page?.writeAfter) out.push(""); });
@@ -279,7 +282,7 @@ export function lineOwners(page, glyphMap) {
   (page?.rows ?? []).forEach((row, i) => {
     if (row.kind === "blank") { out.push(i); return; }
     if (row.kind === "passage") {
-      const n = glyphMap ? wrapPassage(row.text, glyphMap, page?.ruling, rowMaxX(page), indentUnitsOf(row.text, page?.ruling), pageSnap(page)).length : String(row.text ?? "").trim() ? 1 : 0;
+      const n = glyphMap ? wrapPassage(row.text, glyphMap, pageRuling(page), rowMaxX(page), indentUnitsOf(row.text, pageRuling(page)), pageSnap(page)).length : String(row.text ?? "").trim() ? 1 : 0;
       if (!n) { out.push(i); return; }
       for (let k = 0; k < n; k += 1) { out.push(i); if (page?.writeAfter) out.push(null); }
       return;
@@ -445,7 +448,7 @@ export function analyzeRow(row, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX
 }
 
 export function analyzePage(page, glyphMap) {
-  const rows = (page?.rows ?? []).map((row) => analyzeRow(row, glyphMap, page?.ruling, rowMaxX(page), pageSnap(page)));
+  const rows = (page?.rows ?? []).map((row) => analyzeRow(row, glyphMap, pageRuling(page), rowMaxX(page), pageSnap(page)));
   return {
     rows,
     problems: rows.filter((r) => r.unsupported.length || r.outside?.length || r.overflow).length,

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
+import { rowAtSvgY } from "../propis/PrintPageView.jsx";
 
 function record() {
   const wide = JSON.parse(readFileSync("tools/propis/wide.json", "utf-8"));
@@ -592,5 +593,32 @@ describe("digits and signs (captured 2026-10-06)", () => {
     for (const s of strokes) expect(offGrid(s.d)).toBeLessThan(0.01);
     const yOf = (label) => map.get(label).strokes.map((s) => s.d.match(/-?\d*\.?\d+/g).map(Number)[1]);
     expect(yOf("№-")[0]).toBeCloseTo(yOf("№+")[0], 1);
+  });
+
+  it("on squared paper: one digit per cell, a cell tall, narrower than the cell; a number in neighbouring cells, the next token one cell further", () => {
+    const S = 30; // 5 mm
+    const snap = Object.assign((_r, x) => x, { cell: { size: S, origin: () => 0 } });
+    const seg = layoutWideLinesIntoRows(["№2№5 №3#1"], map, snap, false, 0.5).placed[0].segments[0];
+    const boxes = seg.strokes.map((s) => { const v = s.d.match(/-?\d*\.?\d+/g).map(Number); const xs = v.filter((_, i) => i % 2 === 0), ys = v.filter((_, i) => i % 2); return [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)]; });
+    // 2, 5, 3: one stroke 2, two strokes 5, one stroke 3
+    const glyphs = [[boxes[0]], [boxes[1], boxes[2]], [boxes[3]]].map((bs) => [Math.min(...bs.map((b) => b[0])), Math.max(...bs.map((b) => b[1])), Math.min(...bs.map((b) => b[2])), Math.max(...bs.map((b) => b[3]))]);
+    const cells = glyphs.map(([x0, x1]) => Math.floor((x0 + x1) / 2 / S));
+    expect(cells[1] - cells[0]).toBe(1); // «25»: neighbouring cells
+    expect(cells[2] - cells[1]).toBe(2); // «3»: one cell skipped
+    for (const [x0, x1, y0, y1] of glyphs) {
+      const c = Math.floor((x0 + x1) / 2 / S);
+      expect(x0).toBeGreaterThanOrEqual(c * S); expect(x1).toBeLessThanOrEqual((c + 1) * S); // inside its cell
+      expect(x1 - x0).toBeLessThan(0.85 * S);
+      expect(y1 - y0).toBeGreaterThan(0.9 * S); expect(y1 - y0).toBeLessThan(1.05 * S); // a cell tall
+    }
+  });
+
+  it("squared paper has its own rows: a writing cell and an empty one (10 mm), and the editor finds them", () => {
+    const sq = { ...newPage("x"), gridKind: "square" };
+    expect(rowsPerPage(sq)).toBe(20);
+    expect(rowsPerPage({ ...sq, format: "a4" })).toBe(29);
+    expect(rowAtSvgY(55, "a5", true, true)).toBe(0); // the writing cell of row 0: 5-10 mm (30-60 units)
+    expect(rowAtSvgY(115, "a5", true, true)).toBe(1);
+    expect(rowAtSvgY(-5, "a5", true, true)).toBe(-1);
   });
 });

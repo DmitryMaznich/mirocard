@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
-import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, multipliesByDefault, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt } from "@/topics/renderers/propis2/model.js";
+import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, multipliesByDefault, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { buildTiles } from "./Propis2Carousel";
 import Propis2Field from "./Propis2Field";
@@ -141,7 +141,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       const vbH = Number(String(svg.getAttribute("viewBox") ?? "").split(/\s+/)[3]) || box.height;
       y = ((cy - box.top) / (box.height || 1)) * vbH;
     }
-    const local = rowAtSvgY(y, pageFormat(page), page.ruling === "narrow");
+    const local = rowAtSvgY(y, pageFormat(page), page.ruling === "narrow", taskGrid(page) === "square");
     return local < 0 ? -1 : pageIndexRef.current * rowsPerPage(page) + local;
   };
 

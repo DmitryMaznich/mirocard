@@ -1193,6 +1193,7 @@ function wideTransform(d, originX) {
 // (x slides with y, x' = x + (y - y') * tan25), so every point stays on its own grid line and the stems stay on the grid.
 // Only small corrections are made (otherwise the glyph is left alone); descenders (р) and elements are not touched.
 const WIDE_CAPTURE_TOP = 10;
+const WIDE_CAPTURE_CAP_TOP = -42; // top of a capital letter (and of a digit) in the capture
 function mapCubicPoints(d, fn) {
   const t = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
   const out = [];
@@ -1251,6 +1252,28 @@ function wideGlyphLocal(glyph, scale = 1) {
   if (!byScale) { byScale = new Map(); WIDE_LOCAL_CACHE.set(glyph, byScale); }
   if (!byScale.has(scale)) byScale.set(scale, wideGlyphLocalCompute(glyph, scale));
   return byScale.get(scale);
+}
+
+// «Прописи 2», squared paper: a digit stands in ONE cell, as tall as the cell, narrower than it and leaning less than on the slant
+// grid (a 25deg lean over a 5 mm cell would carry the digit out of its cell). The glyph as laid out for the row (`scale`) is
+// unslanted, brought down to the cell's height, narrowed by CELL_DIGIT_NARROW and leaned again by CELL_DIGIT_TAN, all about the baseline.
+const CELL_DIGIT_TAN = 0.2; // ~11deg: the foot of a digit 1 mm left of its top
+const CELL_DIGIT_NARROW = 0.75; // the width across the slant: ~2.5 mm instead of ~3.3 mm (with the lean, ~3.5 mm of the 5 mm cell)
+const CELL_LOCAL_CACHE = new WeakMap();
+function cellGlyphLocal(glyph, scale, cellSize) {
+  let byKey = CELL_LOCAL_CACHE.get(glyph);
+  if (!byKey) { byKey = new Map(); CELL_LOCAL_CACHE.set(glyph, byKey); }
+  const key = `${scale}|${cellSize}`;
+  if (!byKey.has(key)) {
+    const base = wideGlyphLocal(glyph, scale);
+    const t0 = Math.tan((25 * Math.PI) / 180);
+    const ky = cellSize / ((WIDE_CAPTURE_BASELINE - WIDE_CAPTURE_CAP_TOP) * WIDE_SCALE * scale);
+    const map = (x, y) => { const h = WIDE_BASELINE_Y - y; return [CELL_DIGIT_NARROW * (x - h * t0) + ky * h * CELL_DIGIT_TAN, WIDE_BASELINE_Y - ky * h]; };
+    const strokes = base.strokes.map((st) => ({ ...st, d: mapCubicPoints(st.d, map) }));
+    const xs = strokes.flatMap((st) => samplePath(st.d).map((q) => q[0]));
+    byKey.set(key, { ...base, strokes, tail: null, start: getPathEndpoints(strokes[0].d).start, end: getPathEndpoints(strokes[base.exitStrokeIndex].d).end, contactDx: 0, minX: Math.min(...xs), maxX: Math.max(...xs) });
+  }
+  return byKey.get(key);
 }
 
 function wideGlyphLocalCompute(glyph, scale = 1) {
@@ -1389,6 +1412,9 @@ const WIDE_SOLID_COPY_OPACITY = 0.35;
 const WIDE_MARK_COPY_CELLS = 6;
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
+  // squared paper: digits go into the cells of the grid (see cellGlyphLocal); `cell.origin(row)` = a vertical grid line, row-local x
+  const cellGrid = snapX.cell ?? null;
+  const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { size: cellGrid.size, origin: () => cellGrid.origin(row) } } : {});
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
   const flags = lines.map((l) => (/((?:#(?:[dc1fsorx]|[ig]\d+))+)$/.exec(l) ?? [])[1] ?? "");
@@ -1427,7 +1453,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       const rowOf = (n) => Array.from({ length: n }, (_, k) => (k && gap ? [`_${gap}`, ...unit] : unit)).flat().join(" ");
       // how many units fit. A probe is a whole layout, so estimate from the pitch of two copies and check the neighbours
       // (the width only grows with the count)
-      const widthOf = (n) => layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, (_r, x, y) => snapX(rowIndex, x, y), false, scale).placed[0].segments[0]?.width ?? 0;
+      const widthOf = (n) => layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, rowSnap(rowIndex), false, scale).placed[0].segments[0]?.width ?? 0;
       const memo = new Map();
       const fits = (n) => { if (!memo.has(n)) memo.set(n, widthOf(n) <= maxX); return memo.get(n); };
       const start = Math.max(1, toks.length / unit.length); // the row as typed is taken as fitting
@@ -1490,6 +1516,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
     const tokenSeen = new Map(); // token text -> how many times already placed on this row
     let prevToken = null; // { isElement, isWord, startX, startY, width, repeatCells } of the previous token
     let pendingGap = 0; // extra spaces typed between words ("_N" pseudo tokens), in slant cells, for the next word
+    let cellNext = null; // squared paper: the next free cell after a digit (a number fills cells one after another)
     for (const token of line.split(/\s+/).filter(Boolean)) {
       const spacer = /^_(\d+)$/.exec(token);
       if (spacer) { pendingGap += Number(spacer[1]); continue; }
@@ -1514,6 +1541,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
+        const inCell = Boolean(cellGrid) && glyph.kind === "digit";
         if (pendingTail && !glyph.noJoin) {
           delete pendingTail.always;
           strokes.push(pendingTail);
@@ -1522,7 +1550,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           curNudge = pendingNudge;
           pendingTail = null;
         }
-        const local = wideGlyphLocal(glyph, scale);
+        const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
         const loose = Boolean(glyph.noJoin) && tokenStartX !== null; // punctuation inside a word: after the ink so far
         if (loose) { prevExit = null; prevExitStroke = -1; }
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
@@ -1536,14 +1564,25 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
             : (cursorX === null ? WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
         let startX = loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
         // a digit inside a number («25») is set on the grid too, on the first slant line not left of where it would go (a sign is never written between lines)
-        if (loose && glyph.kind === "digit") {
+        if (inCell) {
+          // the cell: the next one inside a number, one cell skipped before a new token, the first whole cell after anything else
+          const S = cellGrid.size;
+          const o = cellGrid.origin(rowIndex);
+          const firstFree = (x) => Math.ceil((x - o) / S - 1e-6);
+          let k;
+          if (tokenStartX !== null) k = cellNext ?? firstFree(cursorX + WIDE_PUNCT_GAP * scale);
+          else if (prevToken) k = (prevToken.cellNext ?? firstFree(prevToken.inkMaxX + WIDE_PUNCT_GAP * scale)) + 1 + pendingGap;
+          else k = firstFree(WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL);
+          startX = o + k * S + (S - (local.maxX - local.minX)) / 2 - local.minX + local.start[0];
+          cellNext = k + 1;
+        } else if (loose && glyph.kind === "digit") {
           startX = snapX(rowIndex, wantStartX, local.start[1]);
           if (startX < wantStartX - 1e-6) startX = snapX(rowIndex, startX + CELL, local.start[1]);
         }
         // A word is placed by the START of its first letter, but some letters (с а о д ...) have their ink to the LEFT of the start:
         // "любит спать" then touched ("любитспать"). The ink of the new word must stay clear of the previous word by a visible gap:
         // otherwise it moves on to the next slant line. Signs repeated in a row (samples, mixed sequences) keep their measured step: only a word next to something is checked.
-        if (!loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
+        if (!inCell && !loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
           const lead = local.start[0] - local.minX;
           for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + WIDE_WORD_MIN_GAP * (glyph.kind === "digit" ? 1.2 : 1) * scale; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
         }
@@ -1613,6 +1652,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           prevExitStroke = -1;
         }
         cursorX = local.maxX + dx;
+        if (!inCell) cellNext = null;
         if (tokenStartX === null) { tokenStartX = startX; tokenStartY = local.start[1]; }
         tokenMinX = Math.min(tokenMinX, local.minX + dx);
         tokenMaxX = Math.max(tokenMaxX, local.maxX + dx);
@@ -1630,7 +1670,8 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         if (Math.abs(snapped - prevExit[0]) < WIDE_MAX_CONTACT_NUDGE * scale) strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: shiftPathEndXD(strokes[prevExitStroke].d, snapped - prevExit[0]) };
       }
       pendingGap = 0;
-      if (tokenStartX !== null) prevToken = { isElement, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells, inkMaxX: tokenMaxX, token };
+      if (tokenStartX !== null) prevToken = { isElement, isWord: labels.length > 1, startX: tokenStartX, startY: tokenStartY, width: tokenMaxX - tokenMinX, repeatCells, inkMaxX: tokenMaxX, token, cellNext };
+      cellNext = null;
     }
     const animStrokes = [];
     strokes.forEach((st, i) => {

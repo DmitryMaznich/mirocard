@@ -191,8 +191,22 @@ const wideBandHeight = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET;
 // for the narrow and wide rulings: both stand on the same 72-unit pitch).
 // «Прописи 2» narrow ruling (`narrow17`): content starts at ruling row 0, a page holds all 17 rows of the printed notebook (24 on A4);
 // the wide ruling keeps its first ruling row as the top edge of the first band (16 / 23 rows).
-const perPageOf = (geom, narrow17) => (narrow17 ? geom.rows : geom.wideRows);
-export function rowAtSvgY(y, format = "a5", narrow17 = false) {
+// «Прописи 2», squared paper ("square"): its own rows, not the 12 mm cycle of the copybook. A row is two cells (10 mm): one cell
+// written in, one left empty ("через клетку"); the baseline is a line of the grid, the first one 10 mm from the top. A digit is
+// one cell tall (wordEngine.js places it in its cell, `snapX.cell`).
+const SQUARE_PITCH = 2 * SQUARE_CELL;
+const SQUARE_FIRST_BASELINE = 2 * SQUARE_CELL;
+const squareRowsOf = (geom) => Math.floor((geom.h - SQUARE_CELL - SQUARE_FIRST_BASELINE) / SQUARE_PITCH) + 1;
+export const squareRowsPerPage = (format) => squareRowsOf(geomOf(format));
+// y of the row-local origin of content row `row` of a squared page (the engine's baseline is row-local y = WIDE_BAND_BOTTOM_LOCAL)
+const squareRowY = (row) => SQUARE_FIRST_BASELINE + row * SQUARE_PITCH - WIDE_BAND_BOTTOM_LOCAL;
+const perPageOf = (geom, narrow17, square = false) => (square ? squareRowsOf(geom) : narrow17 ? geom.rows : geom.wideRows);
+export function rowAtSvgY(y, format = "a5", narrow17 = false, square = false) {
+  if (square) {
+    // a row owns the two cells above its baseline (the empty one and the one written in)
+    const r = Math.floor((y - (SQUARE_FIRST_BASELINE - SQUARE_PITCH)) / SQUARE_PITCH);
+    return r >= 0 && r < squareRowsOf(geomOf(format)) ? r : -1;
+  }
   const off = narrow17 ? 0 : 1;
   const top = rowOriginY(off) + n17Shift(narrow17) + NATIVE_L3 - TEXT_ROW_PITCH;
   const r = Math.floor((y - top) / TEXT_ROW_PITCH);
@@ -247,7 +261,7 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
 // `onFragmentTap` (optional, «Прописи 2»): tap reports the row and the tap's x inside it instead of toggling the
 // inline animation. `crop` (optional): show only a window of the page (the show panel's single row).
 // `speedFactor` slows/speeds the pen animation.
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, useElements, wideRows = false, narrowRows = false }) {
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, square = false, useElements, wideRows = false, narrowRows = false }) {
   const geom = geomOf(format);
   // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
   const PAGE_W_UNITS = geom.w;
@@ -264,6 +278,8 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   const rowOff = narrow17 ? 0 : 1;
   const n17 = n17Shift(narrow17);
   const contentRow = (r) => (wideRows ? r + rowOff : r);
+  // y of a content row's own origin on this page
+  const rowY = (r) => (square ? squareRowY(r) : rowOriginY(contentRow(r)) + n17);
   // «Прописи 2»: a plain slant grid replaces the methodology grid in what is drawn (the methodology grid stays
   // internal: letters still snap to it, it is just not drawn). The two grids are the ones of the finished
   // copybooks: "regular" = the standard Russian-school grid, a line every 20 mm (DIAGONAL_MM); "dense" = the
@@ -316,7 +332,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
     >
       <rect x="0" y="0" width="100%" height="100%" className="propis-paper" />
       {simpleEls}
-      {narrowRows && (() => {
+      {narrowRows && !square && (() => {
         const kLo = Math.floor((-NARROW_FIRST_X - narrowYRef() * WIDE_SLANT_TAN) / NARROW_CELL);
         const kHi = Math.ceil((PAGE_W_UNITS - NARROW_FIRST_X - (narrowYRef() - PAGE_H_UNITS) * WIDE_SLANT_TAN) / NARROW_CELL);
         const ks = Array.from({ length: kHi - kLo + 1 }, (_, i) => kLo + i);
@@ -408,7 +424,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
             ) - (contentXUnits + p.x + startPoint[0])
           : 0;
         return (
-          <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowOriginY(contentRow(p.rowIndex)) + n17})`}>
+          <g key={i} transform={`translate(${contentXUnits + p.x + elementSnapDx} ${rowY(p.rowIndex)})`}>
             {tappable && (
               <rect
                 className="propis-text-word-hit"
@@ -500,8 +516,8 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
         );
       })}
       {overlays?.map((o, k) => {
-        const { y: oy, h } = overlayRect(o.row, rowOff);
-        const y = oy + n17;
+        const { y: oy, h } = square ? { y: squareRowY(o.row) + WIDE_BAND_BOTTOM_LOCAL - SQUARE_PITCH, h: SQUARE_PITCH } : overlayRect(o.row, rowOff);
+        const y = square ? oy : oy + n17;
         return <rect key={`ov${k}`} x="0" y={y} width={PAGE_W_UNITS} height={h} fill={OVERLAY_FILL[o.tone] ?? OVERLAY_FILL.select} pointerEvents="none" data-overlay={o.tone} />;
       })}
     </svg>
@@ -674,7 +690,15 @@ function usePinchZoom(wrapRef, contentRef) {
 // index alone (WIDE_ROWS_PER_PAGE rows per page), so the layout can snap without knowing pages.
 // The content's x offset on the page a row lands on (its page follows from its index alone); it only differs between
 // pages when the «Прописи 2» margin alternates.
-const rowContentX = (rowIndex, margin, geom, narrow17) => slotGeometry(Math.floor(rowIndex / perPageOf(geom, narrow17)), true, margin, geom).contentXUnits;
+const rowContentX = (rowIndex, margin, geom, narrow17, square = false) => slotGeometry(Math.floor(rowIndex / perPageOf(geom, narrow17, square)), true, margin, geom).contentXUnits;
+
+// Squared paper: letters are not snapped (yet); digits go into cells: `cell` tells the engine the cell size and where, in the row's
+// own x, a vertical line of the grid is (the grid starts at the page's left edge, the content at the margin).
+function squareSnapFor(margin, geom) {
+  const snap = (_rowIndex, x) => x;
+  snap.cell = { size: SQUARE_CELL, origin: (rowIndex) => -rowContentX(rowIndex, margin, geom, true, true) };
+  return snap;
+}
 
 const narrowSnapFor = (margin, geom, narrow17) => (rowIndex, x, y) => {
   const contentXUnits = rowContentX(rowIndex, margin, geom, narrow17);
@@ -711,6 +735,7 @@ function drawnGridSnapX(step, margin, geom, narrow17 = false) {
 // «Прописи 2» must use the SAME one: a word placed on the grid is wider than the same word measured freely).
 export function snapXFor({ narrowRows, simpleGrid, margin = "off", format = "a5", narrow17 = false }) {
   const geom = geomOf(format);
+  if (simpleGrid === "square") return squareSnapFor(margin, geom);
   const dense = simpleGrid === "dense";
   if (narrowRows) return dense ? drawnGridSnapX(NARROW_CELL, margin, geom, narrow17) : narrowSnapFor(margin, geom, narrow17);
   return dense ? drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom) : wideSnapFor(margin, geom);
@@ -755,7 +780,8 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   const rowMaxX = geom.maxX - (margin === "off" ? 0 : propis2MarginUnits());
   const narrowRows = wideRows && Boolean(task?.narrowRows);
   const narrow17 = narrowRows && Boolean(task?.narrow17);
-  const perPage = perPageOf(geom, narrow17);
+  const square = wideRows && task?.simpleGrid === "square";
+  const perPage = perPageOf(geom, narrow17, square);
   const useElements = Boolean(task?.useElements) && !wideRows;
   const text = lines.join("\n");
   const wideGlyphsByLabel = useMemo(() => {
@@ -778,7 +804,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
       : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
     [wideRows, narrowRows, task?.simpleGrid, margin, rowMaxX, geom, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
   );
-  const pages = useMemo(() => paginateRows(layout, wideRows ? perPageOf(geom, narrow17) : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) }), [layout, wideRows, task?.exactPages, geom, narrow17]);
+  const pages = useMemo(() => paginateRows(layout, wideRows ? perPageOf(geom, narrow17, square) : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) }), [layout, wideRows, task?.exactPages, geom, narrow17, square]);
 
   const [pageIndex, setPageIndex] = useState(0);
   useEffect(() => { onPageIndexChange?.(pageIndex); }, [pageIndex, onPageIndexChange]);
@@ -809,6 +835,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
     const x = Math.max(0, contentXUnits + first.x - 30);
     const w = Math.max(170, contentXUnits + first.x + widthUnits + 100 - x);
     const PEN_ROOM = 90; // headroom for the large pen drawn up and to the right of its tip
+    if (square) return { x, y: squareRowY(first.rowIndex) + WIDE_BAND_BOTTOM_LOCAL - SQUARE_PITCH - PEN_ROOM, w, h: SQUARE_PITCH + SQUARE_CELL + PEN_ROOM };
     if (narrowRows) return { x, y: rowOriginY(row) + n17Shift(narrow17) + NARROW_GUIDE_LOCAL - 30 - PEN_ROOM, w, h: WIDE_BAND_BOTTOM_LOCAL - NARROW_GUIDE_LOCAL + 75 + PEN_ROOM };
     return { x, y: wideBandTop(row) - 30 - PEN_ROOM, w, h: wideBandHeight + 75 + PEN_ROOM };
   })();
@@ -827,7 +854,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               onToggleActive={focus ? () => {} : null}
               crop={focusCrop}
               speedFactor={speedFactor}
-              simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17}
+              simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} square={square}
               overlays={overlays?.filter((o) => Math.floor(o.row / perPage) === shownIndex).map((o) => ({ ...o, row: o.row % perPage }))}
               useElements={useElements}
               wideRows={wideRows}
@@ -869,7 +896,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
                   useElements={useElements}
                   wideRows={wideRows}
                   narrowRows={narrowRows}
-                  simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17}
+                  simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} square={square}
                 />
               </div>
               {isZoomed && (
@@ -931,13 +958,13 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
                     <div key={sheetIndex} className="propis-print-all__sheet">
                       {[0, 1].map((slot) => {
                         const pi = sheetIndex * 2 + slot;
-                        return <PrintPage key={slot} page={pages[pi] ?? []} pageIndex={pi} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} />;
+                        return <PrintPage key={slot} page={pages[pi] ?? []} pageIndex={pi} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} square={square} />;
                       })}
                     </div>
                   ))
                   : pages.map((pg, pi) => (
                     <div key={pi} className="propis-print-all__sheet propis-print-all__sheet--a4">
-                      <PrintPage page={pg} pageIndex={pi} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} />
+                      <PrintPage page={pg} pageIndex={pi} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} square={square} />
                     </div>
                   ))}
               </div>,

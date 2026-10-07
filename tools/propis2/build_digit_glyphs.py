@@ -188,7 +188,7 @@ def shift_x(cmds, dx, upto=None):
 
 
 def straight_signs(label, strokes):
-    """«<» and «>» are two straight lines through the tip (the hand curved the upper arm of «>»); the bar of «+» is two cells long
+    """«-» is as long as the bar of «+». «<» and «>» are two straight lines through the tip (the hand curved the upper arm of «>»); the bar of «+» is two cells long
     and crossed by the upright exactly in its middle (its start then stays on a slant line, as the upright is on one)."""
     if label in "<>":
         out = []
@@ -197,6 +197,10 @@ def straight_signs(label, strokes):
             tip = (max if label == ">" else min)(pts, key=lambda q: q[0])
             out.append([("M", [pts[0]]), ("L", [tip]), ("L", [pts[-1]])])
         return out
+    if label == "-":
+        # as long as the bar of «+» (two cells), from the same start
+        (_, (a,)), (_, (b,)) = strokes[0]
+        return [[("M", [a]), ("L", [np.array([a[0] + 2 * GRID_CELL, a[1]])])]]
     if label == "+":
         bar, upright = strokes
         y = bar[0][1][0][1]
