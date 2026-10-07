@@ -158,7 +158,7 @@
 .p2-pick-list { position: fixed; display: flex; flex-direction: column; gap: 4px; padding: 6px; background: var(--p2-surface); border: 1px solid var(--p2-line); border-radius: 16px; box-shadow: 0 12px 28px rgba(40,50,60,.25); z-index: 710; }
 .p2-pick-opt { width: 48px; height: 44px; border: none; border-radius: 12px; background: transparent; color: inherit; display: grid; place-items: center; cursor: pointer; }
 .p2-pick-opt svg { width: 26px; height: 26px; }
-.p2-pick-opt.is-on { background: #4a9b8f; color: #fff; box-shadow: 0 2px 0 #2a6b60; }
+.p2-pick-opt.is-on { background: var(--p2-teal-soft, #e3f1ee); color: #2a6b60; box-shadow: inset 0 0 0 2px #4a9b8f; } /* light: the pictograms are three-coloured (grey ruling, red guides) and would vanish on solid teal */
 .propis2-editor2--phone .p2-pick-btn { height: 42px; padding: 0 3px 0 5px; border-radius: 12px; }
 .propis2-editor2--phone .p2-pick-btn svg:first-child { width: 22px; height: 22px; }
 .propis2-settings { overflow: visible; }
