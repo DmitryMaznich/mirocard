@@ -215,7 +215,7 @@ export const rowMaxX = (page) => WIDE_ROW_MAX_X + (mmToNativeUnits(formatOf(page
 
 // Width of a line as the page lays it out: on the page's own grid (`snap` = what snapXFor gives for the page), not freely.
 export const lineWidth = (text, glyphMap, ruling, snap) => {
-  const rowSnap = snap ? Object.assign((_row, x, y) => snap(0, x, y), snap.cell ? { cell: { size: snap.cell.size, origin: () => snap.cell.origin(0) } } : {}) : undefined;
+  const rowSnap = snap ? Object.assign((_row, x, y) => snap(0, x, y), snap.cell ? { cell: { ...snap.cell, origin: () => snap.cell.origin(0) } } : {}) : undefined;
   const { placed } = layoutWideLinesIntoRows([text], glyphMap, rowSnap, false, ruling === "narrow" ? 0.5 : 1);
   return placed[0]?.segments?.[0]?.width ?? 0;
 };

@@ -196,6 +196,8 @@ const wideBandHeight = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET;
 // one cell tall (wordEngine.js places it in its cell, `snapX.cell`).
 const SQUARE_PITCH = 2 * SQUARE_CELL;
 const SQUARE_FIRST_BASELINE = 2 * SQUARE_CELL;
+// letters on squared paper: a lowercase letter (the 48-unit band of the copybook at scale 1) one cell tall
+const SQUARE_LETTER_SCALE = SQUARE_CELL / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
 const squareRowsOf = (geom) => Math.floor((geom.h - SQUARE_CELL - SQUARE_FIRST_BASELINE) / SQUARE_PITCH) + 1;
 export const squareRowsPerPage = (format) => squareRowsOf(geomOf(format));
 // y of the row-local origin of content row `row` of a squared page (the engine's baseline is row-local y = WIDE_BAND_BOTTOM_LOCAL)
@@ -696,7 +698,7 @@ const rowContentX = (rowIndex, margin, geom, narrow17, square = false) => slotGe
 // own x, a vertical line of the grid is (the grid starts at the page's left edge, the content at the margin).
 function squareSnapFor(margin, geom) {
   const snap = (_rowIndex, x) => x;
-  snap.cell = { size: SQUARE_CELL, origin: (rowIndex) => -rowContentX(rowIndex, margin, geom, true, true) };
+  snap.cell = { size: SQUARE_CELL, scale: SQUARE_LETTER_SCALE, origin: (rowIndex) => -rowContentX(rowIndex, margin, geom, true, true) };
   return snap;
 }
 

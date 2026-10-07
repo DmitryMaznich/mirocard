@@ -1293,6 +1293,34 @@ function cellGlyphLocal(glyph, scale, cellSize) {
   return byKey.get(key);
 }
 
+// «Прописи 2», squared paper: letters. The row is laid out at the scale where a lowercase letter is one cell tall (`snapX.cell.scale`);
+// what rises above the lowercase band (capitals, б в) is halved (a capital is 1.5 cells, not 2) and what hangs below the baseline
+// (р у д з ц щ) is cut to CELL_LETTER_DOWN of its length: rows are one empty cell apart, and a tail of the row above must not meet
+// a capital of the row below in that cell. Moved along the slant (the lean stays 65deg); the lowercase band itself is untouched,
+// so the joins between letters stay exactly as they are.
+const CELL_LETTER_UP = 0.5;
+const CELL_LETTER_DOWN = 0.4;
+const CELL_LETTER_CACHE = new WeakMap();
+function cellLetterLocal(glyph, scale) {
+  let byScale = CELL_LETTER_CACHE.get(glyph);
+  if (!byScale) { byScale = new Map(); CELL_LETTER_CACHE.set(glyph, byScale); }
+  if (!byScale.has(scale)) {
+    const base = wideGlyphLocal(glyph, scale);
+    const t0 = Math.tan((25 * Math.PI) / 180);
+    const xh = WIDE_ZONE_UNITS * scale; // height of the lowercase band
+    const map = (x, y) => {
+      const h = WIDE_BASELINE_Y - y;
+      const h2 = h > xh ? xh + (h - xh) * CELL_LETTER_UP : h < 0 ? h * CELL_LETTER_DOWN : h;
+      return [x + (h2 - h) * t0, WIDE_BASELINE_Y - h2];
+    };
+    const mapD = (d) => mapCubicPoints(d, map);
+    const strokes = base.strokes.map((st) => ({ ...st, d: mapD(st.d) }));
+    const xs = strokes.flatMap((st) => samplePath(st.d).map((q) => q[0]));
+    byScale.set(scale, { ...base, strokes, tail: base.tail ? { ...base.tail, d: mapD(base.tail.d) } : null, start: map(...base.start), end: map(...base.end), minX: Math.min(...xs), maxX: Math.max(...xs) });
+  }
+  return byScale.get(scale);
+}
+
 function wideGlyphLocalCompute(glyph, scale = 1) {
   // Per-glyph horizontal stretch (wide.json `stretch`, default 1): the captured letters are
   // narrower than the workbook's (measured ~1.5x on п/т), widened with the slant kept at 65deg.
@@ -1428,10 +1456,12 @@ const WIDE_SOLID_COPY_OPACITY = 0.35;
 // (the methodology's marked row), "И#c" = the clean row (no dots at all).
 const WIDE_MARK_COPY_CELLS = 6;
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
-  const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
-  // squared paper: digits go into the cells of the grid (see cellGlyphLocal); `cell.origin(row)` = a vertical grid line, row-local x
+  // squared paper: digits go into the cells of the grid (see cellGlyphLocal), letters are a cell tall (cellLetterLocal) and every word
+  // starts on a vertical line of the grid; `cell.origin(row)` = a vertical grid line, row-local x; `cell.scale` = the letters' scale
   const cellGrid = snapX.cell ?? null;
-  const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { size: cellGrid.size, origin: () => cellGrid.origin(row) } } : {});
+  if (cellGrid?.scale) scale = cellGrid.scale;
+  const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
+  const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { ...cellGrid, origin: () => cellGrid.origin(row) } } : {});
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
   const flags = lines.map((l) => (/((?:#(?:[dc1fsorx]|[ig]\d+))+)$/.exec(l) ?? [])[1] ?? "");
@@ -1568,7 +1598,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           curNudge = pendingNudge;
           pendingTail = null;
         }
-        const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
+        const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : cellGrid ? cellLetterLocal(glyph, scale) : wideGlyphLocal(glyph, scale);
         const loose = Boolean(glyph.noJoin) && tokenStartX !== null; // punctuation inside a word: after the ink so far
         if (loose) { prevExit = null; prevExitStroke = -1; }
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
@@ -1595,6 +1625,18 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           const isSign = isCellSign(label);
           startX = (isSign ? o + k * S + (S - (local.maxX - local.minX)) / 2 - local.minX : o + (k + 1) * S - local.maxX) + local.start[0];
           cellNext = k + 1;
+        } else if (cellGrid && tokenStartX === null && !prevExit) {
+          // squared paper, the first letter of a word: its start on a vertical line of the grid; after anything else, one cell left empty
+          // (its ink may reach at most half into it: а о с have ink to the left of their start)
+          const S = cellGrid.size;
+          const o = cellGrid.origin(rowIndex);
+          const lead = local.start[0] - local.minX;
+          let k, inkFrom;
+          if (prevToken) { const e = Math.ceil((prevToken.inkMaxX - o) / S - 1e-6); k = e + 1 + pendingGap; inkFrom = o + (e + 0.5 + pendingGap) * S; }
+          else { k = Math.ceil((WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL - o) / S - 1e-6); inkFrom = o + (k - 0.5) * S; }
+          while (o + k * S - lead < inkFrom) k += 1;
+          startX = o + k * S;
+          cellNext = null;
         } else if (loose && glyph.kind === "digit") {
           startX = snapX(rowIndex, wantStartX, local.start[1]);
           if (startX < wantStartX - 1e-6) startX = snapX(rowIndex, startX + CELL, local.start[1]);
@@ -1602,7 +1644,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         // A word is placed by the START of its first letter, but some letters (с а о д ...) have their ink to the LEFT of the start:
         // "любит спать" then touched ("любитспать"). The ink of the new word must stay clear of the previous word by a visible gap:
         // otherwise it moves on to the next slant line. Signs repeated in a row (samples, mixed sequences) keep their measured step: only a word next to something is checked.
-        if (!inCell && !loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
+        if (!cellGrid && !loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
           const lead = local.start[0] - local.minX;
           for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + WIDE_WORD_MIN_GAP * (glyph.kind === "digit" ? 1.2 : 1) * scale; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
         }
