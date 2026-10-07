@@ -1456,8 +1456,8 @@ const WIDE_SOLID_COPY_OPACITY = 0.35;
 // (the methodology's marked row), "И#c" = the clean row (no dots at all).
 const WIDE_MARK_COPY_CELLS = 6;
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
-  // squared paper: digits go into the cells of the grid (see cellGlyphLocal), letters are a cell tall (cellLetterLocal) and every word
-  // starts on a vertical line of the grid; `cell.origin(row)` = a vertical grid line, row-local x; `cell.scale` = the letters' scale
+  // squared paper: digits go into the cells of the grid (see cellGlyphLocal), letters are a cell tall (cellLetterLocal) and placed
+  // freely, like on the copybook (no vertical grid line); `cell.origin(row)` = a vertical grid line, row-local x; `cell.scale` = the letters' scale
   const cellGrid = snapX.cell ?? null;
   if (cellGrid?.scale) scale = cellGrid.scale;
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
@@ -1625,18 +1625,6 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           const isSign = isCellSign(label);
           startX = (isSign ? o + k * S + (S - (local.maxX - local.minX)) / 2 - local.minX : o + (k + 1) * S - local.maxX) + local.start[0];
           cellNext = k + 1;
-        } else if (cellGrid && tokenStartX === null && !prevExit) {
-          // squared paper, the first letter of a word: its start on a vertical line of the grid; after anything else, one cell left empty
-          // (its ink may reach at most half into it: а о с have ink to the left of their start)
-          const S = cellGrid.size;
-          const o = cellGrid.origin(rowIndex);
-          const lead = local.start[0] - local.minX;
-          let k, inkFrom;
-          if (prevToken) { const e = Math.ceil((prevToken.inkMaxX - o) / S - 1e-6); k = e + 1 + pendingGap; inkFrom = o + (e + 0.5 + pendingGap) * S; }
-          else { k = Math.ceil((WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL - o) / S - 1e-6); inkFrom = o + (k - 0.5) * S; }
-          while (o + k * S - lead < inkFrom) k += 1;
-          startX = o + k * S;
-          cellNext = null;
         } else if (loose && glyph.kind === "digit") {
           startX = snapX(rowIndex, wantStartX, local.start[1]);
           if (startX < wantStartX - 1e-6) startX = snapX(rowIndex, startX + CELL, local.start[1]);
@@ -1644,7 +1632,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         // A word is placed by the START of its first letter, but some letters (с а о д ...) have their ink to the LEFT of the start:
         // "любит спать" then touched ("любитспать"). The ink of the new word must stay clear of the previous word by a visible gap:
         // otherwise it moves on to the next slant line. Signs repeated in a row (samples, mixed sequences) keep their measured step: only a word next to something is checked.
-        if (!cellGrid && !loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
+        if (!inCell && !loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
           const lead = local.start[0] - local.minX;
           for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + WIDE_WORD_MIN_GAP * (glyph.kind === "digit" ? 1.2 : 1) * scale; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
         }
