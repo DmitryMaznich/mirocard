@@ -446,8 +446,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // renamed to "maxOnes" — on the next load, the stale key must not linger forever.
     const db = await freshDb();
     const staleRecord = {
-      id: "column_addition",
-      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      id: "place_value",
+      meta: { id: "place_value", renderer: "place_value", version: "1.0.0", title: { ru: "Разряды числа" } },
       modes: [
         {
           id: "build_number",
@@ -459,14 +459,14 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
           },
         },
       ],
-      cards: [{ id: "build_number", conceptId: "build_number", renderer: "column_addition", params: { mode: "build_number" } }],
+      cards: [{ id: "build_number", conceptId: "build_number", renderer: "place_value", params: { mode: "build_number" } }],
       installedAt: new Date().toISOString(),
     };
 
-    await kv.set(db, "topic:column_addition", staleRecord);
-    await kv.set(db, "installedTopicIds", ["column_addition"]);
+    await kv.set(db, "topic:place_value", staleRecord);
+    await kv.set(db, "installedTopicIds", ["place_value"]);
 
-    const record = await getTopicRecord(db, "column_addition");
+    const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
     expect(buildNumber.params).toHaveProperty("maxOnes");
     expect(buildNumber.params).not.toHaveProperty("level");
@@ -480,8 +480,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // migrated.
     const db = await freshDb();
     const staleRecord = {
-      id: "column_addition",
-      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      id: "place_value",
+      meta: { id: "place_value", renderer: "place_value", version: "1.0.0", title: { ru: "Разряды числа" } },
       modes: [
         {
           id: "build_number",
@@ -503,16 +503,16 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
         },
       ],
       cards: [
-        { id: "build_number", conceptId: "build_number", renderer: "column_addition", params: { mode: "build_number" } },
-        { id: "regroup_ten", conceptId: "regroup_ten", renderer: "column_addition", params: { mode: "regroup_ten" } },
+        { id: "build_number", conceptId: "build_number", renderer: "place_value", params: { mode: "build_number" } },
+        { id: "regroup_ten", conceptId: "regroup_ten", renderer: "place_value", params: { mode: "regroup_ten" } },
       ],
       installedAt: new Date().toISOString(),
     };
 
-    await kv.set(db, "topic:column_addition", staleRecord);
-    await kv.set(db, "installedTopicIds", ["column_addition"]);
+    await kv.set(db, "topic:place_value", staleRecord);
+    await kv.set(db, "installedTopicIds", ["place_value"]);
 
-    const record = await getTopicRecord(db, "column_addition");
+    const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
     expect(buildNumber.ui.icon).toBe("media/icons/place_value_build.svg");
 
@@ -536,8 +536,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // the next load, the same way a renamed/retired param is dropped elsewhere.
     const db = await freshDb();
     const staleRecord = {
-      id: "column_addition",
-      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      id: "place_value",
+      meta: { id: "place_value", renderer: "place_value", version: "1.0.0", title: { ru: "Разряды числа" } },
       modes: [
         {
           id: "build_number",
@@ -551,14 +551,14 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
           },
         },
       ],
-      cards: [{ id: "build_number", conceptId: "build_number", renderer: "column_addition", params: { mode: "build_number" } }],
+      cards: [{ id: "build_number", conceptId: "build_number", renderer: "place_value", params: { mode: "build_number" } }],
       installedAt: new Date().toISOString(),
     };
 
-    await kv.set(db, "topic:column_addition", staleRecord);
-    await kv.set(db, "installedTopicIds", ["column_addition"]);
+    await kv.set(db, "topic:place_value", staleRecord);
+    await kv.set(db, "installedTopicIds", ["place_value"]);
 
-    const record = await getTopicRecord(db, "column_addition");
+    const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
     expect(buildNumber.params).not.toHaveProperty("numericBlocks");
     expect(buildNumber.params).toHaveProperty("maxOnes");
@@ -571,8 +571,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // dropped on the next load.
     const db = await freshDb();
     const staleRecord = {
-      id: "column_addition",
-      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      id: "place_value",
+      meta: { id: "place_value", renderer: "place_value", version: "1.0.0", title: { ru: "Разряды числа" } },
       modes: [
         {
           id: "identify_number",
@@ -597,16 +597,16 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
         },
       ],
       cards: [
-        { id: "identify_number", conceptId: "identify_number", renderer: "column_addition", params: { mode: "identify_number" } },
-        { id: "regroup_ten", conceptId: "regroup_ten", renderer: "column_addition", params: { mode: "regroup_ten" } },
+        { id: "identify_number", conceptId: "identify_number", renderer: "place_value", params: { mode: "identify_number" } },
+        { id: "regroup_ten", conceptId: "regroup_ten", renderer: "place_value", params: { mode: "regroup_ten" } },
       ],
       installedAt: new Date().toISOString(),
     };
 
-    await kv.set(db, "topic:column_addition", staleRecord);
-    await kv.set(db, "installedTopicIds", ["column_addition"]);
+    await kv.set(db, "topic:place_value", staleRecord);
+    await kv.set(db, "installedTopicIds", ["place_value"]);
 
-    const record = await getTopicRecord(db, "column_addition");
+    const record = await getTopicRecord(db, "place_value");
     const byId = Object.fromEntries(record.modes.map((m) => [m.id, m]));
 
     expect(byId.identify_number.params).not.toHaveProperty("numericBlocks");
@@ -708,21 +708,11 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
             op: { type: "enum", values: ["add", "sub", "mixed"], labels: { ru: { add: "Сложение", sub: "Вычитание", mixed: "Микс" } }, default: "add", label: { ru: "Операция" } },
           },
         },
-        {
-          id: "identify_number",
-          type: "identify_number",
-          evaluation: "instant",
-          ui: { title: "Какое это число?", icon: "media/icons/place_value_identify.svg" },
-          params: {
-            maxOnes: { type: "number", min: 0, max: 9, default: 2, label: { ru: "Максимум единиц" } },
-          },
-        },
       ],
       cards: [
         { id: "column_copy", conceptId: "column_copy", renderer: "column_addition", params: { operation: "add" } },
         { id: "fshow_0", conceptId: "fshow_0", renderer: "column_addition", params: { mode: "fingers_show", n: 0 } },
         { id: "fcount_a_1_1", conceptId: "fcount_a_1_1", renderer: "column_addition", params: { mode: "fingers_count", op: "add", a: 1, b: 1 } },
-        { id: "identify_number", conceptId: "identify_number", renderer: "column_addition", params: { mode: "identify_number" } },
       ],
       installedAt: new Date().toISOString(),
     };
@@ -742,9 +732,6 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(byId.fingers_show.params.hint.info.ru.tip).toEqual(expect.any(String));
 
     expect(byId.fingers_count.hideConceptPicker).toBe(true);
-
-    expect(byId.identify_number.hideConceptPicker).toBe(true);
-    expect(byId.identify_number.params.maxOnes.info.ru.text).toEqual(expect.any(String));
   });
 
   it("reorders an already-installed column_addition record's modes to the current pedagogical sequence", async () => {
@@ -778,12 +765,11 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     await kv.set(db, "installedTopicIds", ["column_addition"]);
 
     const record = await getTopicRecord(db, "column_addition");
+    // build_number / identify_number / regroup_ten moved to the place_value topic;
+    // a record saved before the move must not keep them as leftover "custom" modes.
     expect(record.modes.map((m) => m.id)).toEqual([
       "fingers_show",
       "fingers_count",
-      "build_number",
-      "identify_number",
-      "regroup_ten",
       "column_arithmetic",
       "column_copy",
     ]);
@@ -800,8 +786,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // instruction copy must both appear.
     const db = await freshDb();
     const staleRecord = {
-      id: "column_addition",
-      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      id: "place_value",
+      meta: { id: "place_value", renderer: "place_value", version: "1.0.0", title: { ru: "Разряды числа" } },
       modes: [
         {
           id: "build_number",
@@ -814,14 +800,14 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
           },
         },
       ],
-      cards: [{ id: "build_number", conceptId: "build_number", renderer: "column_addition", params: { mode: "build_number" } }],
+      cards: [{ id: "build_number", conceptId: "build_number", renderer: "place_value", params: { mode: "build_number" } }],
       installedAt: new Date().toISOString(),
     };
 
-    await kv.set(db, "topic:column_addition", staleRecord);
-    await kv.set(db, "installedTopicIds", ["column_addition"]);
+    await kv.set(db, "topic:place_value", staleRecord);
+    await kv.set(db, "installedTopicIds", ["place_value"]);
 
-    const record = await getTopicRecord(db, "column_addition");
+    const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
     expect(buildNumber.params.maxTens).toMatchObject({
       type: "number", min: 1, max: 9, default: 3, label: { ru: "Максимум десятков" },
@@ -838,8 +824,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // the tips must reflect the current copy instead of staying pinned to the old text.
     const db = await freshDb();
     const staleRecord = {
-      id: "column_addition",
-      meta: { id: "column_addition", renderer: "column_addition", version: "1.3.0", title: { ru: "Сложение и вычитание в столбик" } },
+      id: "place_value",
+      meta: { id: "place_value", renderer: "place_value", version: "1.0.0", title: { ru: "Разряды числа" } },
       modes: [
         {
           id: "regroup_ten",
@@ -855,14 +841,14 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
           },
         },
       ],
-      cards: [{ id: "regroup_ten", conceptId: "regroup_ten", renderer: "column_addition", params: { mode: "regroup_ten" } }],
+      cards: [{ id: "regroup_ten", conceptId: "regroup_ten", renderer: "place_value", params: { mode: "regroup_ten" } }],
       installedAt: new Date().toISOString(),
     };
 
-    await kv.set(db, "topic:column_addition", staleRecord);
-    await kv.set(db, "installedTopicIds", ["column_addition"]);
+    await kv.set(db, "topic:place_value", staleRecord);
+    await kv.set(db, "installedTopicIds", ["place_value"]);
 
-    const record = await getTopicRecord(db, "column_addition");
+    const record = await getTopicRecord(db, "place_value");
     const regroupTen = record.modes.find((m) => m.id === "regroup_ten");
     expect(regroupTen.methodology.text).not.toContain("Число изменилось");
     expect(regroupTen.methodology.tips.some((t) => t.includes("Число изменилось"))).toBe(false);

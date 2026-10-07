@@ -432,6 +432,19 @@ const BUILTIN_ASSETS = {
   <rect x="78" y="84" width="24" height="24" rx="5" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
   <text x="90" y="102" text-anchor="middle" font-family="Arial,sans-serif" font-size="18" font-weight="900" fill="#059669">2</text>
 </svg>`,
+  "media/avatar_place_value.svg": `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="24" fill="#fff8ec"/>
+  <rect x="12" y="28" width="32" height="72" rx="8" fill="#fde2e2" stroke="#dc6b6b" stroke-width="3"/>
+  <rect x="48" y="28" width="32" height="72" rx="8" fill="#fffaf0" stroke="#d9a441" stroke-width="3"/>
+  <rect x="84" y="28" width="32" height="72" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/>
+  <text x="28" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#b91c1c">с</text>
+  <text x="64" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#92400e">д</text>
+  <text x="100" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" font-weight="700" fill="#1e3a8a">е</text>
+  <text x="28" y="86" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="900" fill="#b91c1c">2</text>
+  <text x="64" y="86" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="900" fill="#92400e">4</text>
+  <text x="100" y="86" text-anchor="middle" font-family="Arial,sans-serif" font-size="32" font-weight="900" fill="#1e3a8a">7</text>
+</svg>`,
   "media/icons/place_value_build.svg": `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="24" fill="#fff8ec"/>

@@ -3,9 +3,6 @@ import { generateExamples, taskNeedsBorrowTeaching, resolveCompareMode } from ".
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import FingersShowTask from "./FingersShowTask.jsx";
 import FingersCountTask from "./FingersCountTask.jsx";
-import BuildNumberTask from "./BuildNumberTask.jsx";
-import IdentifyNumberTask from "./IdentifyNumberTask.jsx";
-import RegroupTenTask from "./RegroupTenTask.jsx";
 import CrossoutGesture from "./CrossoutGesture.jsx";
 import HelperPanel from "../addition_subtraction/HelperPanel.jsx";
 import DigitKeypad from "./DigitKeypad.jsx";
@@ -1050,39 +1047,6 @@ export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCo
   }
   if (task?.type === "fingers_count") {
     return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={strictMistake} onFlashIncorrect={onFlashIncorrect} />;
-  }
-  if (task?.type === "build_number") {
-    return (
-      <BuildNumberTask
-        key={`${task.cardId}-${task.number}`}
-        task={task}
-        onCorrect={onCorrect}
-        onMistake={strictMistake}
-        onFlashIncorrect={onFlashIncorrect}
-      />
-    );
-  }
-  if (task?.type === "identify_number") {
-    return (
-      <IdentifyNumberTask
-        key={`${task.cardId}-${task.number}`}
-        task={task}
-        onCorrect={onCorrect}
-        onMistake={strictMistake}
-        onFlashIncorrect={onFlashIncorrect}
-      />
-    );
-  }
-  if (task?.type === "regroup_ten") {
-    return (
-      <RegroupTenTask
-        key={`${task.cardId}-${task.number}`}
-        task={task}
-        onCorrect={onCorrect}
-        onMistake={strictMistake}
-        onFlashIncorrect={onFlashIncorrect}
-      />
-    );
   }
   if (!task || task.type !== "column_arithmetic") {
     return <div className="col-screen" style={{ color: "#666", fontSize: 18 }}>Нет задания</div>;

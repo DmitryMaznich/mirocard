@@ -20,9 +20,9 @@ import "@fontsource/nunito/700.css";
 import "@fontsource/nunito/800.css";
 import "@/styles.css";
 import SessionHeader from "@/features/session/SessionHeader.jsx";
-import BuildNumberTask from "@/topics/renderers/column_addition/BuildNumberTask.jsx";
-import IdentifyNumberTask from "@/topics/renderers/column_addition/IdentifyNumberTask.jsx";
-import RegroupTenTask from "@/topics/renderers/column_addition/RegroupTenTask.jsx";
+import BuildNumberTask from "@/topics/renderers/place_value/BuildNumberTask.jsx";
+import IdentifyNumberTask from "@/topics/renderers/place_value/IdentifyNumberTask.jsx";
+import RegroupTenTask from "@/topics/renderers/place_value/RegroupTenTask.jsx";
 import "./review.css";
 function Preview() {
   const [mode, setMode] = useState("build"), [number, setNumber] = useState(13);
@@ -42,7 +42,7 @@ function Preview() {
     <button onClick={() => setTrial((n) => n + 1)}>Начать заново</button>
     <small>Это действующие компоненты из проекта. Настройки сверху относятся только к просмотру. Для размена однозначного числа используется 23.</small>
   </div></details><div className="review-window"><div className="session-screen"><div className="session-header-wrap">
-    <SessionHeader topicTitle="Сложение и вычитание в столбик" modeTitle={mode === "build" ? "Собери число" : mode === "read" ? "Какое это число?" : "Разменяй десяток"}
+    <SessionHeader topicTitle="Разряды числа" modeTitle={mode === "build" ? "Собери число" : mode === "read" ? "Какое это число?" : "Разменяй десяток"}
       showProgress evaluation="instant" onClose={() => setTrial((n) => n + 1)} onOpenModeSettings={() => { document.querySelector(".review-settings").open = true; }} />
   </div><div className="session-renderer-wrap"><Component key={[mode, actual, approach, support, composition, trial].join("-")} task={task} onCorrect={() => setTrial((n) => n + 1)} /></div></div></div></>;
 }

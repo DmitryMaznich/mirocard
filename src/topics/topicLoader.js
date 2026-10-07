@@ -322,6 +322,19 @@ const DEFAULT_TOPIC_ABOUT = {
       "3-значные числа вводите только после стабильной работы с 2-значными.",
     ],
   },
+  place_value: {
+    description: "Разряды числа на предметной модели: отдельные монеты — единицы, стопки по десять монет — десятки. Ребёнок собирает число, читает готовую модель и разменивает десяток на десять единиц.",
+    goals: [
+      "Понять, что десять единиц можно собрать в один десяток и обратно.",
+      "Связать количество десятков и единиц с записью числа.",
+      "Увидеть, что при размене меняется состав числа, а количество сохраняется.",
+    ],
+    finalGoal: "Ребёнок собирает и читает двузначное число по десяткам и единицам и объясняет размен десятка.",
+    flow: [
+      "Начните со сборки одного десятка и малого остатка, затем переходите к нескольким десяткам.",
+      "После уверенной сборки предложите чтение готовой модели, затем размен десятка.",
+    ],
+  },
   written_letters: {
     description: "Тема тренирует распознавание рукописных букв русского алфавита: различение строчных и заглавных, соответствие печатной и письменной форм.",
     goals: [
@@ -650,6 +663,9 @@ const DEFAULT_MODE_METHODOLOGY = {
         "Для вычитания начинайте с примеров где вычитаемое совпадает с одной рукой — убрать целую руку наглядно.",
       ],
     },
+
+  },
+  place_value: {
     build_number: {
       summary: "Собери число из монет и стопок по десять.",
       text: "Число показано крупно. В уровне «Собираем десятки сами» ребёнок добавляет монеты. Когда их не меньше десяти, первые десять подсвечиваются. Тап по подсвеченным монетам собирает десяток: монеты поочерёдно летят в стопку. В уровне «Готовые десятки» можно добавлять стопки целиком. Проверка — по кнопке; выбранный предмет можно убрать или разложить отдельным действием. Кнопка «Сначала» находится в нижнем блоке с кучкой.",
@@ -697,7 +713,6 @@ const DEFAULT_MODE_METHODOLOGY = {
         "Дайте время рассмотреть одинаковый итог в записях до и после размена.",
       ],
     },
-
   },
   written_letters: {
     sort_case: {
@@ -1113,100 +1128,6 @@ const DEFAULT_MODES = {
       },
     },
     {
-      id: "build_number",
-      type: "build_number",
-      evaluation: "instant",
-      orientationLock: null,
-      ui: { title: "Собери число", instruction: "Собери число из монет и стопок", icon: "media/icons/place_value_build.svg" },
-      hideConceptPicker: true,
-      params: {
-        buildApproach: { type: "enum", values: ["group", "ready"], labels: { ru: { group: "Собираем десятки сами", ready: "Готовые десятки" } }, default: "group", label: { ru: "Уровень" } },
-        numberRange: { type: "enum", values: ["teens", "custom"], labels: { ru: { teens: "Один десяток (10–19)", custom: "Несколько десятков" } }, default: "teens", label: { ru: "Диапазон чисел" }, hint: { ru: "В первом диапазоне всегда один десяток; количество отдельных единиц ограничено настройкой ниже." } },
-        supportMode: { type: "enum", values: ["learning", "independent"], labels: { ru: { learning: "Обучение", independent: "Самостоятельная проба" } }, default: "learning", label: { ru: "Поддержка" } },
-        askComposition: { type: "boolean", default: false, label: { ru: "Дополнительно спросить состав числа" } },
-        maxOnes: {
-          type: "number",
-          min: 0,
-          max: 9,
-          default: 2,
-          label: { ru: "Максимум единиц" },
-          info: {
-            ru: {
-              text: "Максимальный остаток отдельных монет после сборки десятков. 0 — только круглые десятки. Эта настройка не ограничивает общее число переносимых монет.",
-              tip: "Начните с одного десятка и 1–2 отдельных монет. Готовые стопки подключайте после знакомства со сборкой десятка.",
-            },
-          },
-        },
-        maxTens: {
-          showWhen: { numberRange: "custom" },
-          type: "number",
-          min: 1,
-          max: 9,
-          default: 3,
-          label: { ru: "Максимум десятков" },
-          info: {
-            ru: {
-              text: "Максимальное количество стопок по десять монет в загаданном числе.",
-              tip: "Для первого знакомства достаточно 2-3 десятков; расширяйте диапазон постепенно.",
-            },
-          },
-        },
-      },
-    },
-    {
-      id: "identify_number",
-      type: "identify_number",
-      evaluation: "instant",
-      orientationLock: null,
-      ui: { title: "Какое это число?", instruction: "Посмотри на десятки и единицы и введи число", icon: "media/icons/place_value_identify.svg" },
-      hideConceptPicker: true,
-      params: {
-        numberSet: { type: "enum", values: ["two_digit", "round", "single", "mixed"], labels: { ru: { two_digit: "Десятки и единицы", round: "Круглые десятки", single: "Только единицы", mixed: "Смешанный набор" } }, default: "two_digit", label: { ru: "Набор чисел" } },
-        supportMode: { type: "enum", values: ["learning", "independent"], labels: { ru: { learning: "Обучение", independent: "Самостоятельная проба" } }, default: "learning", label: { ru: "Поддержка" }, hint: { ru: "В обучении доступна отметка уже посчитанных предметов. Счётчик количества не показывается." } },
-        maxTens: { type: "number", min: 1, max: 9, default: 3, label: { ru: "Максимум десятков" }, disabledWhen: { numberSet: "single" } },
-        maxOnes: {
-          disabledWhen: { numberSet: "round" },
-          type: "number",
-          min: 0,
-          max: 9,
-          default: 9,
-          label: { ru: "Максимум единиц" },
-          info: {
-            ru: {
-              text: "Максимальное число единиц в загаданном числе, которое нужно опознать — 0 означает, что единиц не будет (круглые десятки).",
-              tip: "Сначала предложите знакомый состав, затем круглые десятки и смешанный набор. В наборе «Только единицы» минимум — одна монета.",
-            },
-          },
-        },
-      },
-    },
-    {
-      id: "regroup_ten",
-      type: "regroup_ten",
-      evaluation: "instant",
-      orientationLock: null,
-      ui: { title: "Разменяй десяток", instruction: "Разложи один десяток на отдельные монеты", icon: "media/icons/place_value_regroup.svg" },
-      hideConceptPicker: true,
-      params: {
-        supportMode: { type: "enum", values: ["learning", "independent"], labels: { ru: { learning: "Обучение", independent: "Самостоятельная проба" } }, default: "learning", label: { ru: "Поддержка" } },
-        allowReverse: { type: "boolean", default: true, label: { ru: "Разрешить собрать обратно" }, showWhen: { supportMode: "learning" } },
-        maxTens: { type: "number", min: 1, max: 9, default: 3, label: { ru: "Максимум десятков" } },
-        maxOnes: {
-          type: "number",
-          min: 0,
-          max: 9,
-          default: 2,
-          label: { ru: "Максимум единиц" },
-          info: {
-            ru: {
-              text: "Максимальное число единиц в исходном числе перед разменом десятка.",
-              tip: "Начните с малых значений, чтобы ребёнку было проще уследить, как десяток превращается в 10 единиц.",
-            },
-          },
-        },
-      },
-    },
-    {
       id: "column_arithmetic",
       type: "column_arithmetic",
       evaluation: "auto",
@@ -1349,6 +1270,102 @@ const DEFAULT_MODES = {
       },
     },
   ],
+  place_value: [
+    {
+      id: "build_number",
+      type: "build_number",
+      evaluation: "instant",
+      orientationLock: null,
+      ui: { title: "Собери число", instruction: "Собери число из монет и стопок", icon: "media/icons/place_value_build.svg" },
+      hideConceptPicker: true,
+      params: {
+        buildApproach: { type: "enum", values: ["group", "ready"], labels: { ru: { group: "Собираем десятки сами", ready: "Готовые десятки" } }, default: "group", label: { ru: "Уровень" } },
+        numberRange: { type: "enum", values: ["teens", "custom"], labels: { ru: { teens: "Один десяток (10–19)", custom: "Несколько десятков" } }, default: "teens", label: { ru: "Диапазон чисел" }, hint: { ru: "В первом диапазоне всегда один десяток; количество отдельных единиц ограничено настройкой ниже." } },
+        supportMode: { type: "enum", values: ["learning", "independent"], labels: { ru: { learning: "Обучение", independent: "Самостоятельная проба" } }, default: "learning", label: { ru: "Поддержка" } },
+        askComposition: { type: "boolean", default: false, label: { ru: "Дополнительно спросить состав числа" } },
+        maxOnes: {
+          type: "number",
+          min: 0,
+          max: 9,
+          default: 2,
+          label: { ru: "Максимум единиц" },
+          info: {
+            ru: {
+              text: "Максимальный остаток отдельных монет после сборки десятков. 0 — только круглые десятки. Эта настройка не ограничивает общее число переносимых монет.",
+              tip: "Начните с одного десятка и 1–2 отдельных монет. Готовые стопки подключайте после знакомства со сборкой десятка.",
+            },
+          },
+        },
+        maxTens: {
+          showWhen: { numberRange: "custom" },
+          type: "number",
+          min: 1,
+          max: 9,
+          default: 3,
+          label: { ru: "Максимум десятков" },
+          info: {
+            ru: {
+              text: "Максимальное количество стопок по десять монет в загаданном числе.",
+              tip: "Для первого знакомства достаточно 2-3 десятков; расширяйте диапазон постепенно.",
+            },
+          },
+        },
+      },
+    },
+    {
+      id: "identify_number",
+      type: "identify_number",
+      evaluation: "instant",
+      orientationLock: null,
+      ui: { title: "Какое это число?", instruction: "Посмотри на десятки и единицы и введи число", icon: "media/icons/place_value_identify.svg" },
+      hideConceptPicker: true,
+      params: {
+        numberSet: { type: "enum", values: ["two_digit", "round", "single", "mixed"], labels: { ru: { two_digit: "Десятки и единицы", round: "Круглые десятки", single: "Только единицы", mixed: "Смешанный набор" } }, default: "two_digit", label: { ru: "Набор чисел" } },
+        supportMode: { type: "enum", values: ["learning", "independent"], labels: { ru: { learning: "Обучение", independent: "Самостоятельная проба" } }, default: "learning", label: { ru: "Поддержка" }, hint: { ru: "В обучении доступна отметка уже посчитанных предметов. Счётчик количества не показывается." } },
+        maxTens: { type: "number", min: 1, max: 9, default: 3, label: { ru: "Максимум десятков" }, disabledWhen: { numberSet: "single" } },
+        maxOnes: {
+          disabledWhen: { numberSet: "round" },
+          type: "number",
+          min: 0,
+          max: 9,
+          default: 9,
+          label: { ru: "Максимум единиц" },
+          info: {
+            ru: {
+              text: "Максимальное число единиц в загаданном числе, которое нужно опознать — 0 означает, что единиц не будет (круглые десятки).",
+              tip: "Сначала предложите знакомый состав, затем круглые десятки и смешанный набор. В наборе «Только единицы» минимум — одна монета.",
+            },
+          },
+        },
+      },
+    },
+    {
+      id: "regroup_ten",
+      type: "regroup_ten",
+      evaluation: "instant",
+      orientationLock: null,
+      ui: { title: "Разменяй десяток", instruction: "Разложи один десяток на отдельные монеты", icon: "media/icons/place_value_regroup.svg" },
+      hideConceptPicker: true,
+      params: {
+        supportMode: { type: "enum", values: ["learning", "independent"], labels: { ru: { learning: "Обучение", independent: "Самостоятельная проба" } }, default: "learning", label: { ru: "Поддержка" } },
+        allowReverse: { type: "boolean", default: true, label: { ru: "Разрешить собрать обратно" }, showWhen: { supportMode: "learning" } },
+        maxTens: { type: "number", min: 1, max: 9, default: 3, label: { ru: "Максимум десятков" } },
+        maxOnes: {
+          type: "number",
+          min: 0,
+          max: 9,
+          default: 2,
+          label: { ru: "Максимум единиц" },
+          info: {
+            ru: {
+              text: "Максимальное число единиц в исходном числе перед разменом десятка.",
+              tip: "Начните с малых значений, чтобы ребёнку было проще уследить, как десяток превращается в 10 единиц.",
+            },
+          },
+        },
+      },
+    },
+  ],
   written_letters: [
     {
       id: "sort_case",
@@ -1459,6 +1476,9 @@ const DEFAULT_META = {
   column_addition: {
     avatar: "media/avatar_column_addition.svg",
   },
+  place_value: {
+    avatar: "media/avatar_place_value.svg",
+  },
   written_letters: {
     avatar: "media/avatar.svg",
   },
@@ -1497,6 +1517,9 @@ const MODE_ICON_FALLBACKS = {
   },
   column_addition: {
     default: "media/icons/operations_mode.svg",
+  },
+  place_value: {
+    default: "media/icons/place_value_build.svg",
   },
   written_letters: {
     default: "media/icons/reading_mode.svg",
@@ -1997,7 +2020,7 @@ function migrateRecord(record) {
   // preferCurrentDefault), it just never had cardType set on import. Special-cased here
   // so its mode order follows DEFAULT_MODES instead of staying pinned to whatever was
   // persisted at install time.
-  if (record.meta.cardType === "procedural" || proceduralRenderer === "column_addition") {
+  if (record.meta.cardType === "procedural" || proceduralRenderer === "column_addition" || proceduralRenderer === "place_value") {
     return {
       ...record,
       meta: mergeDefaultMeta({ ...record.meta, renderer: proceduralRenderer }, proceduralRenderer),

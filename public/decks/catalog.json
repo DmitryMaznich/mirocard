@@ -196,16 +196,31 @@
       "access": "paid"
     },
     {
+      "id": "place_value",
+      "version": "1.0.0",
+      "url": "./decks/place_value_v1.0.0.zip",
+      "title": {
+        "ru": "Разряды числа",
+        "en": "Place Value"
+      },
+      "status": "release",
+      "access": "paid",
+      "description": {
+        "ru": "Три режима о том, как устроено число: отдельные монеты — единицы, стопки по десять монет — десятки. Ребёнок собирает число из монет и стопок, читает готовую модель и разменивает десяток на десять единиц.",
+        "en": "Tens and ones with coins and stacks of ten: build a number, read a model, exchange a ten for ten ones."
+      }
+    },
+    {
       "id": "column_addition",
-      "version": "1.3.1",
-      "url": "./decks/column_addition_v1.3.1.zip",
+      "version": "1.3.2",
+      "url": "./decks/column_addition_v1.3.2.zip",
       "title": {
         "ru": "Сложение и вычитание в столбик"
       },
       "status": "release",
       "access": "paid",
       "description": {
-        "ru": "Семь режимов готовят к сложению и вычитанию в столбик и дают практику записи. Ребёнок показывает числа и действия на пальцах, собирает число из десятков и единиц, распознаёт готовую модель, разменивает десяток, затем решает примеры в столбик и переписывает их в тетрадь для самостоятельной работы.",
+        "ru": "Четыре режима ведут к сложению и вычитанию в столбик и дают практику записи. Ребёнок показывает числа и действия на пальцах, затем решает примеры в столбик по шагам и переписывает их в тетрадь для самостоятельной работы. Десятки и единицы на монетах — в отдельной теме «Разряды числа».",
         "en": "Seven modes progress from finger counting and tens-and-ones models to regrouping, column arithmetic, and independent written examples."
       }
     },

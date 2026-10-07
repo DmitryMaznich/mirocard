@@ -8,9 +8,6 @@
   "cards": [
     { "id": "col_add", "conceptId": "col_add", "renderer": "column_addition", "params": { "operation": "add" } },
     { "id": "col_sub", "conceptId": "col_sub", "renderer": "column_addition", "params": { "operation": "subtract" } },
-    { "id": "build_number", "conceptId": "build_number", "renderer": "column_addition", "params": { "mode": "build_number" } },
-    { "id": "identify_number", "conceptId": "identify_number", "renderer": "column_addition", "params": { "mode": "identify_number" } },
-    { "id": "regroup_ten", "conceptId": "regroup_ten", "renderer": "column_addition", "params": { "mode": "regroup_ten" } },
 
     { "id": "fshow_0",  "conceptId": "fshow_0",  "renderer": "column_addition", "params": { "mode": "fingers_show", "n": 0 } },
     { "id": "fshow_1",  "conceptId": "fshow_1",  "renderer": "column_addition", "params": { "mode": "fingers_show", "n": 1 } },

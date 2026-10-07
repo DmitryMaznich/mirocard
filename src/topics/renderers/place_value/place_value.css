@@ -1,3 +1,20 @@
+/* .session-renderer-wrap's parent (.session-header-wrap, see styles.css)
+   reserves a margin-bottom of 58px (86px ≤560px) below the app header for
+   the feedback-badge overhang. Stretch the wrap into that gap and paint it
+   the screen's own color so the task reaches the top of the screen. */
+.session-renderer-wrap:has(> .pv-screen) {
+  margin-top: -58px;
+  padding-top: 58px;
+  background-color: #f0f6ff;
+}
+
+@media (max-width: 560px) {
+  .session-renderer-wrap:has(> .pv-screen) {
+    margin-top: -86px;
+    padding-top: 86px;
+  }
+}
+
 .pv-screen {
   position: relative;
   width: 100%;

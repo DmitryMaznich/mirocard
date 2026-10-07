@@ -13,6 +13,7 @@ export const CATALOG_CATEGORIES = {
   comparison:               "Математика",
   math_houses:              "Математика",
   addition_subtraction:     "Математика",
+  place_value:              "Математика",
   column_addition:          "Математика",
   emotions_v2:              "Словарный запас",
   people_names:             "Словарный запас",
