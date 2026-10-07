@@ -30,12 +30,12 @@ export const OWN_BIRTHDAY_TITLE = "Мой день рождения";
 // calculation every year, and a wrong date on a wall display is worse than
 // none -- the adult can add it as a one-off event instead.
 export const PRESET_HOLIDAYS = [
-  { presetId: "new_year", title: "Новый год", day: 1, month: 1, icon: "🎄" },
-  { presetId: "christmas", title: "Рождество", day: 7, month: 1, icon: "⭐" },
-  { presetId: "feb_23", title: "23 Февраля", day: 23, month: 2, icon: "🎖️" },
-  { presetId: "mar_8", title: "8 Марта", day: 8, month: 3, icon: "🌷" },
-  { presetId: "victory_day", title: "День Победы", day: 9, month: 5, icon: "🎖️" },
-  { presetId: "knowledge_day", title: "День знаний", day: 1, month: 9, icon: "🔔" },
+  { presetId: "new_year", title: "Новый год", day: 1, month: 1, icon: "🎄", pastVerb: "был" },
+  { presetId: "christmas", title: "Рождество", day: 7, month: 1, icon: "⭐", pastVerb: "было" },
+  { presetId: "feb_23", title: "23 Февраля", day: 23, month: 2, icon: "🎖️", pastVerb: "было" },
+  { presetId: "mar_8", title: "8 Марта", day: 8, month: 3, icon: "🌷", pastVerb: "было" },
+  { presetId: "victory_day", title: "День Победы", day: 9, month: 5, icon: "🎖️", pastVerb: "был" },
+  { presetId: "knowledge_day", title: "День знаний", day: 1, month: 9, icon: "🔔", pastVerb: "был" },
 ];
 
 export const MONTH_NAMES_GENITIVE = [
@@ -49,6 +49,22 @@ export function makeImportantDateId() {
 
 export function typeInfo(type) {
   return DATE_TYPES.find((entry) => entry.id === type) ?? DATE_TYPES[3];
+}
+
+export const MAX_EVENT_PHOTOS = 6;
+
+// Photos from the day itself, for retelling afterwards ("Что мы делали?").
+// Keyed by the year it happened in, so last year's birthday photos don't
+// come back next year.
+function normaliseEventPhotos(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const out = {};
+  for (const [year, photos] of Object.entries(value)) {
+    if (!/^\d{4}$/.test(year) || !Array.isArray(photos)) continue;
+    const list = photos.filter((photo) => typeof photo === "string" && photo).slice(0, MAX_EVENT_PHOTOS);
+    if (list.length) out[year] = list;
+  }
+  return out;
 }
 
 export function normaliseImportantDate(item) {
@@ -68,6 +84,8 @@ export function normaliseImportantDate(item) {
     countdownDays: COUNTDOWN_OPTIONS.includes(Number(item?.countdownDays)) ? Number(item.countdownDays) : DEFAULT_COUNTDOWN_DAYS,
     enabled: item?.enabled !== false,
     presetId: item?.presetId ?? null,
+    pastPhrase: typeof item?.pastPhrase === "string" && item.pastPhrase.trim() ? item.pastPhrase : null,
+    eventPhotos: normaliseEventPhotos(item?.eventPhotos),
     createdAt: item?.createdAt ?? null,
     updatedAt: item?.updatedAt ?? null,
     deletedAt: item?.deletedAt ?? null,
@@ -246,4 +264,112 @@ export function isCompleteDraft(item) {
   if (item.day > daysInMonth(item.repeat === "once" && item.year ? item.year : 2024, item.month)) return false;
   if (item.repeat === "once" && !item.year) return false;
   return true;
+}
+
+// ── Step 2: вчера, photos from the day, questions for the adult ──────
+
+// The most recent day the card happened on, up to and including `from`.
+export function lastOccurrence(item, from) {
+  const today = startOfDay(from);
+  for (const year of [today.getFullYear(), today.getFullYear() - 1]) {
+    const occurrence = occurrenceInYear(item, year);
+    if (occurrence && occurrence <= today) return occurrence;
+  }
+  return null;
+}
+
+export function eventPhotosFor(item, year) {
+  return item.eventPhotos?.[String(year)] ?? [];
+}
+
+// A title that starts with a verb ("Идём в новую школу") can't be put into
+// the past by adding был/была -- the adult writes that sentence themselves.
+const VERB_ENDING = /(ём|ем|им|ешь|ет|ит|ут|ют|ат|ят|ть|ться|тся|ёмся|емся|имся)$/;
+
+function pastVerbFor(item) {
+  if (isBirthdayType(item)) return "был"; // "день рождения"
+  const preset = PRESET_HOLIDAYS.find((entry) => entry.presetId === item.presetId);
+  if (preset) return preset.pastVerb;
+  const first = item.title.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+  if (!first || /^\d/.test(first) || VERB_ENDING.test(first)) return null;
+  if (/[ая]$/.test(first)) return "была";
+  if (/[оеё]$/.test(first)) return "было";
+  if (/[ыи]$/.test(first)) return "были";
+  return "был";
+}
+
+// "Вчера был день рождения мамы", "Вчера было 8 Марта". Null when the
+// title can't be safely put into the past -- the editor then asks for it.
+export function suggestPastPhrase(item) {
+  if (item.type === "own_birthday") return "Вчера был мой день рождения";
+  const verb = pastVerbFor(item);
+  return verb ? `Вчера ${verb} ${titleInSentence(item)}` : null;
+}
+
+export function yesterdayPhrase(item) {
+  const phrase = (item.pastPhrase ?? "").trim() || suggestPastPhrase(item);
+  if (!phrase) return null;
+  return /[.!?]$/.test(phrase) ? phrase : `${phrase}.`;
+}
+
+// Prompts for the adult standing at the screen with the child. The child
+// answers -- the screen never says these. Each has the grammar it works on,
+// so the adult can pick by the child's current goal.
+export function conversationQuestions(item, { when, daysLeft = null, age = null }) {
+  const birthday = item.type === "birthday";
+  const own = item.type === "own_birthday";
+  if (when === "countdown") {
+    return [
+      { question: "Сколько дней осталось?", hint: "счёт, согласование числа: 3 дня, 5 дней" },
+      { question: `Что будет, когда погаснет последн${isBirthdayType(item) ? "яя свеча" : "ий кружок"}?`, hint: "будущее время" },
+      { question: daysLeft === 1 ? "Это будет завтра или послезавтра?" : "Это будет скоро или нескоро?", hint: "понятия времени" },
+      ...(birthday ? [{ question: "Что мы подарим?", hint: "будущее время, винительный: подарим машинку" }] : []),
+    ];
+  }
+  if (when === "yesterday") {
+    return [
+      { question: "Что было вчера?", hint: "прошедшее время: был, была, было" },
+      { question: "Что мы делали?", hint: "глаголы прошедшего времени: ели торт, пели" },
+      ...(birthday || own ? [
+        { question: "Кто пришёл в гости?", hint: "рассказ о событии" },
+        { question: "Что подарили?", hint: "винительный падеж: подарили куклу" },
+      ] : [
+        { question: "Где мы были?", hint: "предложный падеж: в школе, в парке" },
+        { question: "С кем мы были?", hint: "творительный падеж: с мамой" },
+      ]),
+      { question: "Тебе понравилось? Что больше всего?", hint: "оценка, развёрнутый ответ" },
+    ];
+  }
+  // today / tomorrow
+  const tomorrow = when === "tomorrow";
+  if (own) {
+    return [
+      { question: tomorrow ? "Чей завтра день рождения?" : "Чей сегодня день рождения?", hint: "местоимение: мой" },
+      { question: tomorrow ? "Сколько тебе будет лет?" : "Сколько тебе лет?", hint: age ? `число и слово: ${yearsWord(age)}` : "число и слово: год, года, лет" },
+      { question: "Кто тебя поздравит?", hint: "именительный падеж: мама, бабушка" },
+      { question: "Что ты хочешь в подарок?", hint: "винительный падеж: машинку, мяч" },
+    ];
+  }
+  if (birthday) {
+    return [
+      { question: tomorrow ? "У кого завтра день рождения?" : "У кого сегодня день рождения?", hint: "родительный падеж: у мамы, у папы" },
+      { question: "Кого мы поздравляем?", hint: "винительный падеж: маму, папу" },
+      { question: "Кому мы подарим подарок?", hint: "дательный падеж: маме, папе" },
+      { question: "Что мы подарим?", hint: "винительный падеж: цветы, открытку" },
+      ...(item.year ? [{ question: "Сколько лет исполнится?", hint: "число и слово: год, года, лет" }] : []),
+    ];
+  }
+  if (item.type === "holiday") {
+    return [
+      { question: tomorrow ? "Какой завтра праздник?" : "Какой сегодня праздник?", hint: "название праздника" },
+      { question: "Что делают в этот праздник?", hint: "глаголы: поздравляют, дарят, украшают" },
+      { question: "Кого мы поздравляем?", hint: "винительный падеж: маму, бабушку" },
+    ];
+  }
+  return [
+    { question: tomorrow ? "Что будет завтра?" : "Что сегодня будет?", hint: "будущее время" },
+    { question: "Куда мы пойдём или поедем?", hint: "винительный падеж с «в»: в школу, в парк" },
+    { question: "С кем?", hint: "творительный падеж: с мамой" },
+    { question: "Что возьмём с собой?", hint: "винительный падеж: рюкзак, книгу" },
+  ];
 }

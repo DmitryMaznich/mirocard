@@ -56,10 +56,18 @@ many important days aren't tied to a person.
   best-effort genitive ("мама" → "мамы", "бабушка Галя" → "бабушки Гали");
   the adult sees and can fix it.
 
-## Step 2 backlog (agreed, not built)
+## Step 2 (built 2026-10-07)
 
-- "Вчера был …" on the Вчера view (currently shows nothing for dates).
-- Attach photos from the event afterwards, for retelling ("Что мы делали?").
-- "?" button with adult question prompts on the day, by case:
-  "У кого сегодня день рождения?" / "Кого поздравляем?" / "Кому подарим?" /
-  "Сколько лет исполнилось?".
+- **Вчера**: the day after, a calm ribbon (no garland) says "Вчера был день
+  рождения мамы." The past sentence is suggested from the title (был/была/
+  было/были by the first word; presets carry their own verb), and can be
+  overridden per card (`pastPhrase`, "Как сказать на следующий день"). A
+  title that starts with a verb ("Идём в новую школу") gets no suggestion —
+  the editor asks for one, otherwise the ribbon shows just the title.
+- **Photos from the day** (`eventPhotos: { "2026": [...] }`, max 6 per year,
+  keyed by year so last year's don't reappear): added in the card editor
+  once the date has happened; shown as a strip on the ribbon (today and
+  вчера), a tap opens them large. Saved immediately on upload.
+- **"?" for the adult** on every ribbon: questions by situation (today /
+  tomorrow / вчера / countdown) and type, each with the grammar it works on
+  ("У кого сегодня день рождения?" — родительный падеж). Never spoken.

@@ -64,12 +64,37 @@ describe("DailyOrientationRenderer — важные даты", () => {
     expect(container.querySelector(".daily-orientation--festive")).toBeNull();
   });
 
-  it("previews tomorrow's festive look from the carousel, and says nothing yet on Вчера", () => {
+  it("previews tomorrow's festive look from the carousel", () => {
     mountAt(new Date(2026, 9, 6, 19, 0), [MOM]);
     clickCarousel("Завтра");
     expect(container.querySelector(".daily-orientation__important--day")?.textContent).toContain("Завтра день рождения мамы!");
+  });
+
+  it("says «Вчера был …» the day after, calmly, with the day's photos", () => {
+    const photos = ["data:image/png;base64,AAA", "data:image/png;base64,BBB"];
+    mountAt(new Date(2026, 9, 8, 9, 0), [{ ...MOM, eventPhotos: { 2026: photos, 2025: ["data:image/png;base64,OLD"] } }]);
     clickCarousel("Вчера");
-    expect(container.querySelector(".daily-orientation__important")).toBeNull();
+    const ribbon = container.querySelector(".daily-orientation__important--past");
+    expect(ribbon.textContent).toContain("Вчера был день рождения мамы.");
+    expect(container.querySelector(".daily-orientation--festive")).toBeNull();
+    expect(ribbon.querySelectorAll(".daily-orientation__important-photos img")).toHaveLength(2);
+
+    act(() => ribbon.querySelector(".daily-orientation__important-photos").click());
+    expect(container.querySelector(".daily-orientation__viewer")?.textContent).toContain("1 / 2");
+  });
+
+  it("falls back to the title when a verb title has no «вчера» sentence", () => {
+    mountAt(new Date(2026, 9, 20, 9, 0), [SCHOOL]);
+    clickCarousel("Вчера");
+    expect(container.querySelector(".daily-orientation__important--past .daily-orientation__important-phrase").textContent).toBe("Идём в новую школу");
+  });
+
+  it("opens questions for the adult from the ribbon's «?»", () => {
+    mountAt(new Date(2026, 9, 7, 9, 20), [MOM]);
+    act(() => container.querySelector(".daily-orientation__ask").click());
+    const dialog = container.querySelector('[role="dialog"]');
+    expect(dialog.textContent).toContain("У кого сегодня день рождения?");
+    expect(dialog.textContent).toContain("родительный падеж");
   });
 
   it("keeps the ribbon but drops the garland in the calm style, and shows nothing when off", () => {

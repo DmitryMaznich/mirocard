@@ -168,9 +168,8 @@ map, the ruling geometry's design decisions (and why), and pitfalls already hit 
 Birthdays, holidays and one-off events kept on the student
 (`student.importantDates`, own sync op, merged per card like My People) and
 shown by the `daily_orientation` topic: festive look on the day, a countdown
-before it. Step 1 is built; step 2 (Вчера, photos after the event, adult
-question prompts, own-voice recording) is not. Read `docs/important-dates.md`
-before continuing.
+before it, "Вчера был …" with photos from the day, and question prompts for the
+adult. Read `docs/important-dates.md` before continuing.
 
 ## Плюс и минус (addition_subtraction) design review — in progress
 

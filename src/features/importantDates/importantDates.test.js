@@ -112,3 +112,38 @@ describe("phrases", () => {
     expect(suggestBirthdayTitle({ relation: "папа" })).toBe("День рождения папы");
   });
 });
+
+describe("step 2: вчера, photos, questions", () => {
+  it("puts a title into the past when it safely can", async () => {
+    const { suggestPastPhrase, yesterdayPhrase } = await import("./importantDates.js");
+    expect(suggestPastPhrase(card({ type: "birthday", title: "День рождения мамы" }))).toBe("Вчера был день рождения мамы");
+    expect(suggestPastPhrase(card({ type: "own_birthday" }))).toBe("Вчера был мой день рождения");
+    expect(suggestPastPhrase(card({ type: "holiday", title: "8 Марта", presetId: "mar_8" }))).toBe("Вчера было 8 Марта");
+    expect(suggestPastPhrase(card({ type: "event", title: "Поездка к бабушке" }))).toBe("Вчера была поездка к бабушке");
+    expect(suggestPastPhrase(card({ type: "event", title: "Утренник в саду" }))).toBe("Вчера был утренник в саду");
+    // A verb can't just get был/была in front of it.
+    expect(suggestPastPhrase(card({ type: "event", title: "Идём в новую школу" }))).toBeNull();
+    expect(yesterdayPhrase(card({ type: "event", title: "Идём в новую школу" }))).toBeNull();
+    expect(yesterdayPhrase(card({ type: "event", title: "Идём в новую школу", pastPhrase: "Вчера мы ходили в новую школу" }))).toBe("Вчера мы ходили в новую школу.");
+  });
+
+  it("finds the latest occurrence and that year's photos", async () => {
+    const { lastOccurrence, eventPhotosFor } = await import("./importantDates.js");
+    const mom = card({ day: 7, month: 10, eventPhotos: { 2025: ["/api/photos/a"], 2026: ["/api/photos/b"], bad: ["x"] } });
+    expect(lastOccurrence(mom, new Date(2026, 9, 8))).toEqual(new Date(2026, 9, 7));
+    expect(lastOccurrence(mom, new Date(2026, 9, 6))).toEqual(new Date(2025, 9, 7));
+    expect(eventPhotosFor(mom, 2026)).toEqual(["/api/photos/b"]);
+    expect(eventPhotosFor(mom, 2024)).toEqual([]);
+    expect(Object.keys(mom.eventPhotos)).toEqual(["2025", "2026"]);
+  });
+
+  it("offers questions for the adult by situation", async () => {
+    const { conversationQuestions } = await import("./importantDates.js");
+    const mom = card({ type: "birthday", title: "День рождения мамы" });
+    expect(conversationQuestions(mom, { when: "today" }).map((q) => q.question)).toContain("У кого сегодня день рождения?");
+    expect(conversationQuestions(mom, { when: "tomorrow" })[0].question).toBe("У кого завтра день рождения?");
+    expect(conversationQuestions(mom, { when: "yesterday" }).map((q) => q.question)).toContain("Что подарили?");
+    expect(conversationQuestions(mom, { when: "countdown", daysLeft: 3 })[1].question).toBe("Что будет, когда погаснет последняя свеча?");
+    expect(conversationQuestions(card({ type: "own_birthday", year: 2018 }), { when: "today", age: 8 })[1].hint).toContain("8 лет");
+  });
+});

@@ -193,3 +193,43 @@
   .idates-card__picture { width: 48px; height: 48px; font-size: 1.6rem; }
   .idates-card__when { font-size: .72rem; }
 }
+
+/* Photos from the day itself (step 2). */
+.idates-memories__lead { margin: 0; color: #71807d; font-size: .74rem; line-height: 1.35; }
+.idates-memories__grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.idates-memories__thumb { position: relative; width: 72px; height: 72px; }
+.idates-memories__thumb img { display: block; width: 100%; height: 100%; border-radius: 14px; object-fit: cover; background: #d9ebe5; }
+.idates-memories__thumb--armed img { outline: 3px solid #ef4444; outline-offset: -3px; opacity: .7; }
+.idates-memories__thumb button {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border: 2px solid #fffdf9;
+  border-radius: 13px;
+  background: rgba(38, 49, 49, .78);
+  color: #fff;
+  font: inherit;
+  font-size: .72rem;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.idates-memories__thumb--armed button { right: 50%; transform: translateX(50%); background: #dc2626; white-space: nowrap; }
+.idates-memories__add {
+  width: 72px;
+  height: 72px;
+  border: 2px dashed #bad8d0;
+  border-radius: 14px;
+  background: #f4faf8;
+  color: #317a71;
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}

@@ -6,12 +6,15 @@ import {
   agePhrase,
   ageOn,
   cardPhoto,
+  conversationQuestions,
   countdownPhrase,
   dayPhrase,
+  eventPhotosFor,
   eventsOnDate,
   isBirthdayType,
   nearestCountdown,
   visibleImportantDates,
+  yesterdayPhrase,
 } from "@/features/importantDates/importantDates";
 import {
   dateClipKeys,
@@ -613,18 +616,45 @@ function Candle({ lit }) {
   );
 }
 
-function ImportantDayRibbon({ events, offset, date, pictureFor }) {
+function AskButton({ onClick }) {
   return (
-    <section className={`daily-orientation__important daily-orientation__important--day${events.length > 1 ? " daily-orientation__important--double" : ""}`} aria-label="Важный день">
+    <button type="button" className="daily-orientation__ask" onClick={onClick} aria-label="Вопросы для разговора">?</button>
+  );
+}
+
+// The day's photos (added afterwards in "Важные даты") as a small strip;
+// a tap opens them large for retelling.
+function EventPhotoStrip({ photos, onOpen }) {
+  if (!photos.length) return null;
+  const shown = photos.slice(0, 3);
+  return (
+    <button type="button" className="daily-orientation__important-photos" onClick={onOpen} aria-label={`Фото с этого дня: ${photos.length}`}>
+      {shown.map((photo) => <AuthenticatedImage key={photo} src={photo} alt="" draggable="false" />)}
+      {photos.length > shown.length && <span className="daily-orientation__important-photos-more">+{photos.length - shown.length}</span>}
+    </button>
+  );
+}
+
+// offset -1 is the day after: a calmer ribbon ("Вчера был день рождения
+// мамы") with the photos from it, for "Что мы делали?".
+function ImportantDayRibbon({ events, offset, date, pictureFor, onAsk, onOpenPhotos }) {
+  const past = offset < 0;
+  return (
+    <section
+      className={`daily-orientation__important daily-orientation__important--day${past ? " daily-orientation__important--past" : ""}${events.length > 1 ? " daily-orientation__important--double" : ""}`}
+      aria-label={past ? "Вчера был важный день" : "Важный день"}
+    >
       {events.map((item) => {
-        const age = item.type === "own_birthday" ? ageOn(item, date) : null;
+        const age = !past && item.type === "own_birthday" ? ageOn(item, date) : null;
         const photo = pictureFor(item);
+        const photos = eventPhotosFor(item, date.getFullYear());
+        const eyebrow = past ? "Вчера был важный день" : offset > 0 ? "Завтра важный день" : "Важный день";
         return (
           <div key={item.id} className="daily-orientation__important-event">
             <span className="daily-orientation__important-frame">
               <ImportantPicture item={item} photo={photo} className="daily-orientation__important-picture" />
-              {item.type === "own_birthday" && <span className="daily-orientation__important-crown" aria-hidden="true">👑</span>}
-              {item.type === "birthday" && (
+              {!past && item.type === "own_birthday" && <span className="daily-orientation__important-crown" aria-hidden="true">👑</span>}
+              {!past && item.type === "birthday" && (
                 <>
                   <span className="daily-orientation__important-balloon daily-orientation__important-balloon--a" aria-hidden="true">🎈</span>
                   <span className="daily-orientation__important-balloon daily-orientation__important-balloon--b" aria-hidden="true">🎈</span>
@@ -632,27 +662,69 @@ function ImportantDayRibbon({ events, offset, date, pictureFor }) {
               )}
             </span>
             <div className="daily-orientation__important-copy">
-              <p className="daily-orientation__important-eyebrow">{offset > 0 ? "Завтра важный день" : "Важный день"}</p>
+              <p className="daily-orientation__important-eyebrow">{eyebrow}</p>
               <p className="daily-orientation__important-phrase">
-                {dayPhrase(item, offset)}
+                {past ? (yesterdayPhrase(item) ?? item.title) : dayPhrase(item, offset)}
                 {age && offset === 0 && <span className="daily-orientation__important-age"> {agePhrase(item, date)}</span>}
               </p>
             </div>
-            {age && offset === 0 && age <= MAX_CANDLES ? (
+            {photos.length > 0 ? (
+              <EventPhotoStrip photos={photos} onOpen={() => onOpenPhotos(photos)} />
+            ) : age && offset === 0 && age <= MAX_CANDLES ? (
               <span className="daily-orientation__important-candles" aria-hidden="true">
                 {Array.from({ length: age }, (_, index) => <Candle key={index} lit />)}
               </span>
-            ) : events.length === 1 && isBirthdayType(item) && photo ? (
+            ) : !past && events.length === 1 && isBirthdayType(item) && photo ? (
               <span className="daily-orientation__important-cake" aria-hidden="true">🎂</span>
             ) : null}
           </div>
         );
       })}
+      <AskButton onClick={onAsk} />
     </section>
   );
 }
 
-function CountdownRibbon({ countdown, picture }) {
+function QuestionsContent({ groups }) {
+  return (
+    <div className="daily-orientation__questions">
+      <h2 className="daily-orientation__questions-title">Вопросы для разговора</h2>
+      <p className="daily-orientation__questions-lead">Спросите ребёнка — отвечает он сам. Под вопросом — над чем он работает.</p>
+      {groups.map(({ title, questions }) => (
+        <section key={title} className="daily-orientation__questions-group">
+          {groups.length > 1 && <h3>{title}</h3>}
+          <ol>
+            {questions.map(({ question, hint }) => (
+              <li key={question}>
+                <strong>{question}</strong>
+                <span>{hint}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function PhotoViewer({ photos }) {
+  const [index, setIndex] = useState(0);
+  const count = photos.length;
+  return (
+    <div className="daily-orientation__viewer">
+      <AuthenticatedImage className="daily-orientation__viewer-photo" src={photos[index]} alt={`Фото ${index + 1} из ${count}`} draggable="false" />
+      {count > 1 && (
+        <div className="daily-orientation__viewer-nav">
+          <button type="button" onClick={() => setIndex((index - 1 + count) % count)} aria-label="Предыдущее фото"><Chevron direction="left" /></button>
+          <span>{index + 1} / {count}</span>
+          <button type="button" onClick={() => setIndex((index + 1) % count)} aria-label="Следующее фото"><Chevron direction="right" /></button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CountdownRibbon({ countdown, picture, onAsk }) {
   const { item, daysLeft } = countdown;
   const { title, when } = countdownPhrase(item, daysLeft);
   const total = item.countdownDays;
@@ -678,6 +750,7 @@ function CountdownRibbon({ countdown, picture }) {
         })}
         <li className="daily-orientation__countdown-goal">{birthday ? "🎂" : item.icon}</li>
       </ol>
+      <AskButton onClick={onAsk} />
     </section>
   );
 }
@@ -702,6 +775,9 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const [offset, setOffset] = useState(0);
   // Which concept modal is open: "week" | "date" | "month" | "season" | "daypart" | null.
   const [openConcept, setOpenConcept] = useState(null);
+  // Questions for the adult ({ groups }) or the day's photos (string[]).
+  const [questionsFor, setQuestionsFor] = useState(null);
+  const [viewerPhotos, setViewerPhotos] = useState(null);
   const [isWeatherPickerOpen, setIsWeatherPickerOpen] = useState(false);
   const dragStart = useRef(null);
   const lastSpokenAtRef = useRef(0);
@@ -716,10 +792,10 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const student = useAppStore((state) => state.students.find((candidate) => candidate.id === state.activeStudentId) ?? null);
   const datesStyle = sessionParams?.importantDatesStyle ?? "bright";
   const importantDates = datesStyle === "off" ? [] : visibleImportantDates(student?.importantDates);
-  // Step one marks today and (as a preview) tomorrow; "Вчера был …" comes later.
-  const dayEvents = offset >= 0 ? eventsOnDate(importantDates, activeDate).slice(0, 2) : [];
+  // Today is festive; tomorrow previews it; yesterday gets a calm "Вчера был …".
+  const dayEvents = eventsOnDate(importantDates, activeDate).slice(0, 2);
   const countdown = offset === 0 && !dayEvents.length ? nearestCountdown(importantDates, now) : null;
-  const isFestive = dayEvents.length > 0 && datesStyle === "bright";
+  const isFestive = offset >= 0 && dayEvents.length > 0 && datesStyle === "bright";
   const importantPicture = (item) => cardPhoto(item, student?.myPeople) ?? (item.type === "own_birthday" ? student?.photo ?? null : null);
   const { weekday, month } = formatDisplayDate(activeDate);
   // Plain number on the card, no "-е": a child reads the "е" as a letter.
@@ -764,6 +840,8 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
     };
   }
   const closeConcept = useCallback(() => setOpenConcept(null), []);
+  const closeQuestions = useCallback(() => setQuestionsFor(null), []);
+  const closeViewer = useCallback(() => setViewerPhotos(null), []);
 
   function selectOffset(nextOffset) {
     setOffset(Math.max(-1, Math.min(1, nextOffset)));
@@ -853,12 +931,25 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
               offset={offset}
               date={activeDate}
               pictureFor={importantPicture}
+              onOpenPhotos={setViewerPhotos}
+              onAsk={() => setQuestionsFor({
+                groups: dayEvents.map((item) => ({
+                  title: item.title,
+                  questions: conversationQuestions(item, {
+                    when: offset < 0 ? "yesterday" : offset > 0 ? "tomorrow" : "today",
+                    age: item.type === "own_birthday" ? ageOn(item, activeDate) : null,
+                  }),
+                })),
+              })}
             />
           )}
           {countdown && (
             <CountdownRibbon
               countdown={countdown}
               picture={importantPicture(countdown.item)}
+              onAsk={() => setQuestionsFor({
+                groups: [{ title: countdown.item.title, questions: conversationQuestions(countdown.item, { when: "countdown", daysLeft: countdown.daysLeft }) }],
+              })}
             />
           )}
 
@@ -1029,6 +1120,16 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
           {openConcept === "month" && <MonthContent activeDate={activeDate} />}
           {openConcept === "season" && <SeasonContent activeDate={activeDate} />}
           {openConcept === "daypart" && <DaypartContent daypartId={daypartId} wakeHour={wakeHour} bedHour={bedHour} />}
+        </DailyOrientationModal>
+      )}
+      {questionsFor && (
+        <DailyOrientationModal label="Вопросы для разговора" onClose={closeQuestions}>
+          <QuestionsContent groups={questionsFor.groups} />
+        </DailyOrientationModal>
+      )}
+      {viewerPhotos && (
+        <DailyOrientationModal label="Фото с этого дня" onClose={closeViewer}>
+          <PhotoViewer photos={viewerPhotos} />
         </DailyOrientationModal>
       )}
       {isWeatherPickerOpen && (

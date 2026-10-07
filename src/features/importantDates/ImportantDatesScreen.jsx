@@ -12,6 +12,7 @@ import {
   DATE_ICONS,
   DATE_TYPES,
   DEFAULT_COUNTDOWN_DAYS,
+  MAX_EVENT_PHOTOS,
   MONTH_NAMES_GENITIVE,
   OWN_BIRTHDAY_TITLE,
   PRESET_HOLIDAYS,
@@ -20,14 +21,17 @@ import {
   dayPhrase,
   daysUntil,
   daysWord,
+  eventPhotosFor,
   formatDayMonth,
   isBirthdayType,
   isCompleteDraft,
+  lastOccurrence,
   makeImportantDateId,
   normaliseImportantDates,
   ownBirthdayFromProfile,
   sortByNextOccurrence,
   suggestBirthdayTitle,
+  suggestPastPhrase,
   typeInfo,
   yearsWord,
 } from "./importantDates";
@@ -134,7 +138,71 @@ function Segmented({ options, value, onChange, className = "" }) {
   );
 }
 
-function DateEditor({ item, myPeople, onChange, onDelete, onClose }) {
+function EventPhotos({ item, year, onPatch }) {
+  const inputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+  const [armed, setArmed] = useState(null);
+  const photos = eventPhotosFor(item, year);
+
+  async function add(event) {
+    const files = Array.from(event.target.files ?? []).slice(0, MAX_EVENT_PHOTOS - photos.length);
+    event.target.value = "";
+    if (!files.length) return;
+    setUploading(true);
+    setError("");
+    try {
+      for (const file of files) {
+        const photo = await storePhoto(await squarePhotoDataUrl(file, { maxSize: PHOTO_MAX_SIZE, quality: PHOTO_JPEG_QUALITY }));
+        // By id, against the current card: a HEIC conversion takes seconds
+        // and this render's `item` may be stale by then.
+        onPatch(item.id, (current) => {
+          const list = eventPhotosFor(current, year);
+          if (list.length >= MAX_EVENT_PHOTOS) return {};
+          return { eventPhotos: { ...current.eventPhotos, [year]: [...list, photo] } };
+        });
+      }
+    } catch (failure) {
+      setError(failure instanceof PhotoPrepareError ? failure.message : "Не получилось добавить фото. Попробуйте ещё раз.");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  function remove(photo) {
+    if (armed !== photo) { setArmed(photo); return; }
+    setArmed(null);
+    onPatch(item.id, (current) => ({
+      eventPhotos: { ...current.eventPhotos, [year]: eventPhotosFor(current, year).filter((candidate) => candidate !== photo) },
+    }));
+  }
+
+  return (
+    <div className="idates-field idates-memories">
+      <span className="idates-field__label">Фото с этого дня ({formatDayMonth({ ...item, repeat: "yearly" })} {year})</span>
+      <p className="idates-memories__lead">Для разговора на следующий день: «Что мы делали? Кто пришёл?» Экран покажет их во «Вчера».</p>
+      <div className="idates-memories__grid">
+        {photos.map((photo, index) => (
+          <span key={photo} className={`idates-memories__thumb${armed === photo ? " idates-memories__thumb--armed" : ""}`}>
+            <AuthenticatedImage src={photo} alt="" />
+            <button type="button" onClick={() => remove(photo)} aria-label={armed === photo ? `Точно удалить фото ${index + 1}` : `Удалить фото ${index + 1}`}>
+              {armed === photo ? "Удалить?" : "✕"}
+            </button>
+          </span>
+        ))}
+        {photos.length < MAX_EVENT_PHOTOS && (
+          <button type="button" className="idates-memories__add" onClick={() => inputRef.current?.click()} disabled={uploading}>
+            {uploading ? "Готовим…" : "+ Фото"}
+          </button>
+        )}
+      </div>
+      <input ref={inputRef} type="file" accept={PHOTO_ACCEPT} multiple onChange={add} hidden />
+      {error && <span className="mp-editor__photo-error" role="alert">{error}</span>}
+    </div>
+  );
+}
+
+function DateEditor({ item, myPeople, onChange, onPatch, onDelete, onClose }) {
   const photoRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState("");
@@ -177,13 +245,16 @@ function DateEditor({ item, myPeople, onChange, onDelete, onClose }) {
     setPhotoError("");
     try {
       const photo = await storePhoto(await squarePhotoDataUrl(file, { maxSize: PHOTO_MAX_SIZE, quality: PHOTO_JPEG_QUALITY }));
-      update({ photo });
+      onPatch(item.id, () => ({ photo }));
     } catch (error) {
       setPhotoError(error instanceof PhotoPrepareError ? error.message : "Не получилось добавить фото. Попробуйте ещё раз.");
     } finally {
       setUploading(false);
     }
   }
+
+  const pastSuggestion = suggestPastPhrase(item);
+  const lastDay = item.isDraft ? null : lastOccurrence(item, new Date());
 
   const yearLabel = isBirthdayType(item)
     ? "Год рождения — необязательно"
@@ -325,6 +396,24 @@ function DateEditor({ item, myPeople, onChange, onDelete, onClose }) {
           </div>
         </div>
 
+        {!isOwn && (
+          <label className="mp-field idates-field">
+            <span>Как сказать на следующий день — во «Вчера»</span>
+            <input
+              value={item.pastPhrase ?? ""}
+              onChange={(event) => update({ pastPhrase: event.target.value || null })}
+              placeholder={pastSuggestion ?? "Например, Вчера мы ходили в новую школу"}
+            />
+            <small className="mp-field__hint">
+              {pastSuggestion
+                ? "Можно оставить пустым — экран скажет, как в подсказке."
+                : "Название начинается с глагола — напишите, как сказать про вчера, иначе экран покажет только название."}
+            </small>
+          </label>
+        )}
+
+        {lastDay && <EventPhotos item={item} year={lastDay.getFullYear()} onPatch={onPatch} />}
+
         <label className="mp-check-row">
           <input type="checkbox" checked={item.enabled} onChange={(event) => update({ enabled: event.target.checked })} />
           <span><strong>Показывать на экране «Сегодня»</strong><small>Выключенная дата остаётся в списке, но экран её не показывает.</small></span>
@@ -402,6 +491,20 @@ export default function ImportantDatesScreen() {
     commit((current) => current.map((item) => item.id === next.id ? stamp(next) : item));
   }
 
+  // For async results (an uploaded photo): apply against the card as it is
+  // now, and save straight away -- a photo is the expensive part to redo.
+  function patchDate(id, makePatch) {
+    const current = datesRef.current.find((item) => item.id === id);
+    if (!current) return;
+    const patch = makePatch(current);
+    if (!Object.keys(patch).length) return;
+    updateDate({ ...current, ...patch });
+    if (!current.isDraft) {
+      editorSnapshot.current = JSON.stringify(datesRef.current.find((item) => item.id === id));
+      persist();
+    }
+  }
+
   function openEditor(id) {
     editorSnapshot.current = JSON.stringify(datesRef.current.find((item) => item.id === id) ?? null);
     setEditingId(id);
@@ -453,7 +556,7 @@ export default function ImportantDatesScreen() {
 
   function deleteDate(id) {
     const now = new Date().toISOString();
-    commit((current) => current.map((item) => item.id === id ? { ...item, photo: null, deletedAt: now, updatedAt: now } : item));
+    commit((current) => current.map((item) => item.id === id ? { ...item, photo: null, eventPhotos: {}, deletedAt: now, updatedAt: now } : item));
     setEditingId(null);
     persist();
   }
@@ -570,6 +673,7 @@ export default function ImportantDatesScreen() {
           item={editing}
           myPeople={myPeople}
           onChange={updateDate}
+          onPatch={patchDate}
           onDelete={() => deleteDate(editing.id)}
           onClose={closeEditor}
         />

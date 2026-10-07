@@ -115,6 +115,13 @@ function processImportantDatePhotos(db, dates) {
   return dates.map((item) => ({
     ...item,
     photo: item.deletedAt || typeof item.photo !== "string" || !item.photo ? null : extractAndStorePhoto(db, item.photo),
+    // Photos from the day itself, keyed by year ("2026": [...]).
+    eventPhotos: item.deletedAt || !item.eventPhotos || typeof item.eventPhotos !== "object"
+      ? {}
+      : Object.fromEntries(Object.entries(item.eventPhotos).map(([year, photos]) => [
+        year,
+        (Array.isArray(photos) ? photos : []).filter((photo) => typeof photo === "string" && photo).map((photo) => extractAndStorePhoto(db, photo)),
+      ])),
   }));
 }
 
