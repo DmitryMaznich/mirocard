@@ -27,6 +27,12 @@ the three coin modes — «Собери число» (`build_number`), «Как�
 - Students who used these modes inside column_addition need to install the new
   topic; their old stats stay under `column_addition`.
 
+## Methodology rework of the three coin modes
+
+In progress: `docs/place-value-methodology.md` (in Russian) is the agreed
+direction for redesigning «Собери число», «Какое это число?» and «Разменяй
+десяток» into a four-step ladder. Read it before touching these modes.
+
 ## Planned next (agreed with the user)
 
 The topic is named for the whole ladder, not only tens: hundreds and thousands

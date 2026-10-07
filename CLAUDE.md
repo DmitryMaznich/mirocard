@@ -188,7 +188,8 @@ ignored in some sandboxes, use Playwright instead when a screenshot's exact widt
 
 Topic split out of «Сложение и вычитание в столбик» on 2026-10-07 (coin modes for
 tens and ones); next step is hundreds and thousands. Read `docs/place-value.md`
-before continuing — it has the file map and the agreed plan.
+before continuing — it has the file map and the agreed plan; the methodology
+rework of the coin modes is in `docs/place-value-methodology.md`.
 
 ## Important
 
