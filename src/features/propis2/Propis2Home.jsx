@@ -17,6 +17,9 @@ import "./propis2.css";
 // Home screen of «Прописи 2»: library -> editor -> student view. The library lives in IndexedDB on this device. A notebook that is
 // opened or edited is worked on as a SESSION (a draft in memory, mirrored to this device): nothing reaches «Мои тетради» until the
 // adult confirms (save button / the question when leaving), so opening an editor never leaves a «Новая тетрадь» behind.
+const UNDO_TYPING_MS = 1000;
+const UNDO_DEPTH = 200;
+
 export default function Propis2Home({ db }) {
   const setScreen = useAppStore((s) => s.setScreen);
   const activeTopicId = useAppStore((s) => s.activeTopicId);
@@ -32,7 +35,9 @@ export default function Propis2Home({ db }) {
   const latest = useRef(library);
   latest.current = library;
 
-  const [session, setSession] = useState(null); // the notebook being worked on: {sid, lib, base}; lib !== base means unsaved changes
+  // the notebook being worked on: {sid, lib, base, past, future}; lib !== base means unsaved changes. past / future: the undo / redo
+  // history of this session, entries {lib, pageId} (the whole notebook as it was, and the page that was open: undo goes back there)
+  const [session, setSession] = useState(null);
   const [ask, setAsk] = useState(null); // the confirmation dialog: {mode: "leave" | "save"}
   const [draft, setDraft] = useState(null); // an unsaved notebook a closed app left on this device
   const working = session ? session.lib : library;
@@ -114,8 +119,42 @@ export default function Propis2Home({ db }) {
     return { lib: upsertSet(upsertPage(library, pg), nb), set: nb };
   };
   // ---- the session of a notebook: open it, work on it, confirm or drop ----
-  const startSession = (sid, lib = library) => setSession({ sid, lib, base: lib });
-  const edit = (next) => setSession((cur) => (cur ? { ...cur, lib: next } : cur));
+  const startSession = (sid, lib = library) => setSession({ sid, lib, base: lib, past: [], future: [] });
+  // Every change of the notebook goes through here and can be undone. Typing (`typing`: the text field, the title) is ONE step while
+  // the keys come less than UNDO_TYPING_MS apart, as in a text editor; anything else is a step of its own.
+  const lastTyping = useRef(0);
+  const edit = (next, { typing = false } = {}) => {
+    const now = Date.now();
+    const join = typing && now - lastTyping.current < UNDO_TYPING_MS;
+    lastTyping.current = typing ? now : 0;
+    const pageId = view.pageId ?? null;
+    setSession((cur) => {
+      if (!cur || next === cur.lib) return cur;
+      const past = join && cur.past.length ? cur.past : [...cur.past, { lib: cur.lib, pageId }].slice(-UNDO_DEPTH);
+      return { ...cur, lib: next, past, future: [] };
+    });
+  };
+  // the page to show after a step back/forward: the one open when that change was made, or one that still exists in the notebook
+  const pageAfter = (lib, wanted) => {
+    if (wanted && lib.pages.some((p) => p.id === wanted)) return wanted;
+    return lib.sets.find((st) => st.id === session?.sid)?.pageIds[0] ?? null;
+  };
+  const undo = () => {
+    if (!session?.past.length) return;
+    lastTyping.current = 0;
+    const { lib, pageId } = session.past[session.past.length - 1];
+    setSession({ ...session, lib, past: session.past.slice(0, -1), future: [{ lib: session.lib, pageId: view.pageId ?? null }, ...session.future] });
+    const to = pageAfter(lib, pageId);
+    if (to && to !== view.pageId) setView({ ...view, pageId: to });
+  };
+  const redo = () => {
+    if (!session?.future.length) return;
+    lastTyping.current = 0;
+    const { lib, pageId } = session.future[0];
+    setSession({ ...session, lib, past: [...session.past, { lib: session.lib, pageId: view.pageId ?? null }], future: session.future.slice(1) });
+    const to = pageAfter(lib, pageId);
+    if (to && to !== view.pageId) setView({ ...view, pageId: to });
+  };
   const endSession = () => { setSession(null); setAsk(null); setFragment(null); setDraft(null); clearDraft(db).catch(() => {}); };
   const toLibrary = () => { endSession(); setView({ name: "library" }); };
   // what the adult confirmed goes into the library as THAT notebook only
@@ -171,7 +210,7 @@ export default function Propis2Home({ db }) {
   const resumeDraft = () => {
     if (!draft) return;
     const lib = mergeNotebook(library, { sets: [draft.set], pages: draft.pages }, draft.sid);
-    setSession({ sid: draft.sid, lib, base: library });
+    setSession({ sid: draft.sid, lib, base: library, past: [], future: [] });
     setView({ name: "editor", pageId: draft.set.pageIds[0], backTo: { name: "library" } });
   };
 
@@ -274,16 +313,20 @@ export default function Propis2Home({ db }) {
         nav={nav}
         page={shown}
         title={navSet ? navSet.title : undefined}
-        onTitle={navSet ? (t) => edit(upsertSet(working, { ...navSet, title: t })) : undefined}
+        onTitle={navSet ? (t) => edit(upsertSet(working, { ...navSet, title: t }), { typing: true }) : undefined}
         topicRecord={topicRecord}
-        onChange={(next) => {
+        onChange={(next, how) => {
           // paper settings are the whole notebook's, the rest is this page's
           const patch = navSet ? layoutChange(shown, next) : {};
           let lib = Object.keys(patch).length ? applyLayout(working, navSet.id, patch) : working;
           // a one-page notebook is named after its page
           if (navSet && navSet.pageIds.length === 1 && next.title !== shown.title) lib = upsertSet(lib, { ...lib.sets.find((st) => st.id === navSet.id), title: next.title });
-          edit(upsertPage(lib, next));
+          edit(upsertPage(lib, next), how);
         }}
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={Boolean(session?.past.length)}
+        canRedo={Boolean(session?.future.length)}
         onBack={() => { const bt = view.backTo; if (bt && bt.name !== "library") setView(bt); else requestLeave(); }}
         dirty={dirty}
         onSave={onSaveClick}

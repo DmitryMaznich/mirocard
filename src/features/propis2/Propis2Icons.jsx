@@ -68,7 +68,9 @@ export const IconTapHint = () => (
 export const IconPresets = () => S(<><rect x="6.5" y="3" width="13" height="15" rx="1.6" /><path d="M4 7v12.5A1.5 1.5 0 005.5 21H16" /><path d="M10 8h6M10 11.5h6M10 15h3.5" strokeWidth="1.4" /></>);
 export const IconSavePreset = () => S(<><path d="M6 3.5h12v17l-6-4-6 4z" /><path d="M12 7.5v5M9.5 10h5" /></>);
 export const IconClearPage = () => S(<><path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13" /><path d="M10.5 11v6M13.5 11v6" /></>); // a bin, not a pencil: the ✎ elsewhere means «edit»
-export const IconUndo = () => S(<><path d="M9 7L4 12l5 5" /><path d="M4 12h10a6 6 0 010 12" transform="translate(0 -4)" /></>);
+// undo / redo: curved arrows, as in the editors (Edits)
+export const IconUndo = () => S(<><path d="M9 14L4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 010 11H11" /></>);
+export const IconRedo = () => S(<><path d="M15 14l5-5-5-5" /><path d="M20 9H9.5a5.5 5.5 0 000 11H13" /></>);
 export const IconLock = () => S(<><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /></>);
 
 // ---- margins: none / on the left of the first page / on the right of it (alternating on the spread) ----

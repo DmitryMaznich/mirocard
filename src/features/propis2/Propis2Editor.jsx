@@ -66,7 +66,7 @@ function IconBtn({ label, caption, on, onClick, disabled, children, className = 
   );
 }
 
-export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle }) {
+export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const analysis = useMemo(() => analyzePage(page, glyphMap), [page, glyphMap]);
   const owners = useMemo(() => lineOwners(page, glyphMap), [page, glyphMap]);
@@ -76,7 +76,6 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const [draft, setDraft] = useState("");
   const [caretRequest, setCaretRequest] = useState(null);
   const [pageW, setPageW] = useState(0);
-  const [undoPage, setUndoPage] = useState(null); // the page as it was before «Очистить страницу», for «Отменить»
   const locked = isLocked(page);
   const keyboard = useKeyboardInset();
   // every element has a short code of its own for the field, {э1}, {э2}... (by its place in the list)
@@ -161,8 +160,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     setFieldStartId(result.rowId);
   };
 
-  const clear = () => { if (typeof window !== "undefined" && window.confirm && !window.confirm("Очистить страницу? Все строки будут стёрты.")) return; setUndoPage(page); setSelectedId(null); setFieldStartId(null); onChange(clearPage(page)); };
-  const undoClear = () => { if (undoPage) { onChange(undoPage); setUndoPage(null); } };
+  // undone, like any other change, with the undo arrow
+  const clear = () => { if (typeof window !== "undefined" && window.confirm && !window.confirm("Очистить страницу? Все строки будут стёрты.")) return; setSelectedId(null); setFieldStartId(null); onChange(clearPage(page)); };
 
   // ---- the text field ----
   const startId = page.rows.some((r) => r.id === fieldStartId) ? fieldStartId : null;
@@ -175,14 +174,15 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     setDraftSynced(draftKey);
     setDraft(bracesIn(locked ? (selected ? String(selected.text ?? "") : "") : fieldFromRows(page.rows, fieldIndex < 0 ? page.rows.length : fieldIndex), elementCodes));
   }
-  const onField = (shown) => {
+  // `typing`: keys typed in the field (one undo step while typed without a pause); a tile inserted is a step of its own
+  const onField = (shown, typing = true) => {
     const value = bracesOut(shown, elementCodes);
     if (locked) {
       if (!selected) return;
       setDraft(shown);
       const next = { ...page, rows: page.rows.map((r) => (r.id === selected.id ? { ...r, text: value } : r)) };
       setDraftSynced(`${next.rows.map((r) => `${r.id}|${r.kind}|${r.text}`).join("\n")}#${startId ?? ""}#${selectedId ?? ""}`);
-      onChange(next);
+      onChange(next, { typing });
       return;
     }
     const { rows, firstId } = rowsFromField({ rows: page.rows, startId, value, glyphMap, page });
@@ -191,7 +191,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     setDraft(shown);
     setFieldStartId(nextStart);
     setDraftSynced(`${rows.map((r) => `${r.id}|${r.kind}|${r.text}`).join("\n")}#${nextStart ?? ""}#`);
-    onChange({ ...page, rows: rows.length ? rows : [newRow()] });
+    onChange({ ...page, rows: rows.length ? rows : [newRow()] }, { typing });
     if (!selectedId || !rows.some((r) => r.id === selectedId)) setSelectedId(nextStart);
   };
   const onCaret = (caret) => {
@@ -200,9 +200,9 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     if (id && id !== selectedId) setSelectedId(id);
   };
   const insertElement = (token, caret) => {
-    if (locked) { if (selected) onField(token); return; }
+    if (locked) { if (selected) onField(token, false); return; }
     const { value, caret: pos } = insertToken(draft, caret, token);
-    onField(value);
+    onField(value, false);
     setCaretRequest({ pos, n: Date.now() });
   };
   const setRowAsText = (asText) => {
@@ -222,18 +222,19 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     return out;
   }, [owners, analysis, page.rows, selectedId]);
 
-  useEffect(() => {
-    if (!undoPage) return undefined;
-    const t = setTimeout(() => setUndoPage(null), 8000);
-    return () => clearTimeout(t);
-  }, [undoPage]);
   useEffect(() => { if (selectedId && selectedIndex < 0) setSelectedId(null); }, [selectedId, selectedIndex]);
 
   return (
     <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}${phone ? " propis2-editor2--phone" : ""}${keyboard.open ? " propis2-editor2--kb" : ""}`} data-testid="propis2-editor" style={keyboard.open ? { "--p2-vvtop": `${keyboard.top}px`, "--p2-vvh": `${keyboard.height}px` } : undefined}>
       <div className="screen-header p2-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
-        <input className="propis2-title-input" value={title ?? page.title} onChange={(e) => (onTitle ? onTitle(e.target.value) : onChange({ ...page, title: e.target.value }))} aria-label={onTitle ? "Название тетради" : "Название страницы"} />
+        <input className="propis2-title-input" value={title ?? page.title} onChange={(e) => (onTitle ? onTitle(e.target.value) : onChange({ ...page, title: e.target.value }, { typing: true }))} aria-label={onTitle ? "Название тетради" : "Название страницы"} />
+        {onUndo && (
+          <div className="p2-history" role="group" aria-label="История изменений">
+            <button type="button" className="p2-hist" onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить"><I.IconUndo /></button>
+            <button type="button" className="p2-hist" onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть"><I.IconRedo /></button>
+          </div>
+        )}
         {onSave && <button type="button" className="p2-save" onClick={onSave} disabled={!dirty} aria-label="Сохранить тетрадь" title={dirty ? "Сохранить тетрадь" : "Нет несохранённых изменений"}><I.IconSave /></button>}
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>
@@ -328,12 +329,6 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           />
         </div>
       </div>
-      {undoPage && (
-        <div className="p2-undo" role="status">
-          <span>Страница очищена</span>
-          <button type="button" aria-label="Отменить очистку" onClick={undoClear}><I.IconUndo /></button>
-        </div>
-      )}
     </div>
   );
 }

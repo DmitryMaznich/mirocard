@@ -260,6 +260,63 @@ describe("Прописи 2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
+  it("undo / redo arrows: typing is one step, every other change a step of its own; undoing «add page» goes back to the page it was added from", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
+    const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
+    const undoBtn = () => host.querySelector('[aria-label="Отменить"]');
+    const redoBtn = () => host.querySelector('[aria-label="Вернуть"]');
+    const pos = () => host.querySelector(".p2-pager-pos")?.textContent ?? null;
+    const ink = () => host.querySelectorAll('[data-testid="propis2-preview"] svg path').length; // the written strokes on the page
+
+    await click(btn("Новая тетрадь"));
+    const blank = ink();
+    expect(undoBtn().disabled).toBe(true);
+    expect(redoBtn().disabled).toBe(true);
+    // three keys typed without a pause: one step
+    await typeInField(host, "м");
+    await typeInField(host, "ма");
+    await typeInField(host, "мам");
+    expect(undoBtn().disabled).toBe(false);
+    // the paper: a step of its own
+    const kindBtn = () => host.querySelector('button[aria-label="Тип бумаги"]');
+    const kind0 = kindBtn().getAttribute("data-value");
+    await click(kindBtn());
+    await click([...host.querySelectorAll('[role="option"]')].find((o) => !o.classList.contains("is-on")));
+    expect(kindBtn().getAttribute("data-value")).not.toBe(kind0);
+    await click(host.querySelector('[aria-label="Добавить страницу"]'));
+    expect(pos()).toBe("Стр. 2 из 2");
+
+    await click(undoBtn()); // the added page goes, back on page 1 with its word
+    expect(pos()).toBeNull();
+    expect(ink()).toBeGreaterThan(blank);
+    await click(undoBtn()); // the paper
+    expect(kindBtn().getAttribute("data-value")).toBe(kind0);
+    await click(undoBtn()); // the whole word at once
+    expect(ink()).toBe(blank);
+    expect(undoBtn().disabled).toBe(true);
+    expect(btn("Сохранить тетрадь").disabled).toBe(true); // back where the notebook started: nothing to save
+
+    await click(redoBtn());
+    expect(ink()).toBeGreaterThan(blank);
+    await click(redoBtn());
+    await click(redoBtn());
+    expect(pos()).toBe("Стр. 2 из 2");
+    expect(redoBtn().disabled).toBe(true);
+    // a new change after undo drops what could be redone
+    await click(undoBtn());
+    expect(redoBtn().disabled).toBe(false);
+    await click(host.querySelector('[aria-label="Строка для письма после каждой строки"]'));
+    expect(redoBtn().disabled).toBe(true);
+
+    await act(async () => { root.unmount(); await tick(500); });
+    host.remove();
+  }, 40000);
+
   it("editor: type rows in the field and pick elements; row options; grid kinds (прописи / клетка / линейка)", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
@@ -405,7 +462,7 @@ describe("Прописи 2 (zip topic)", () => {
     expect(lbl("Тип бумаги").disabled).toBe(false);
     expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).toBeNull();
     expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBeLessThan(rowsBefore);
-    await click(lbl("Отменить очистку"));
+    await click(lbl("Отменить"));
     expect(lbl("Тип бумаги").disabled).toBe(true);
     // the pencil unlocks the layout and keeps the rows
     await click(lbl("Редактировать страницу"));
