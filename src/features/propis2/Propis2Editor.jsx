@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
 import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, multipliesByDefault, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt, taskGrid } from "@/topics/renderers/propis2/model.js";
@@ -68,8 +68,11 @@ function IconBtn({ label, caption, on, onClick, disabled, children, className = 
 
 export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
-  const analysis = useMemo(() => analyzePage(page, glyphMap), [page, glyphMap]);
-  const owners = useMemo(() => lineOwners(page, glyphMap), [page, glyphMap]);
+  // The checks of the rows and the map of the sheet's rows are worked out on a deferred copy of the page (as the preview is): a key
+  // typed shows in the field at once, the marks on the sheet follow a moment later.
+  const settled = useDeferredValue(page);
+  const analysis = useMemo(() => analyzePage(settled, glyphMap), [settled, glyphMap]);
+  const owners = useMemo(() => lineOwners(settled, glyphMap), [settled, glyphMap]);
   const [selectedId, setSelectedId] = useState(null);
   // the field shows the page's rows from `fieldStartId` to the end, one per line; no start = the place below the last row
   const [fieldStartId, setFieldStartId] = useState(null);

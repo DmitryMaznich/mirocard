@@ -7,8 +7,9 @@ import SeasonIntroTask      from "./SeasonIntroTask";
 import SeasonPickItemsTask  from "./SeasonPickItemsTask";
 import SeasonFormPickTask   from "./SeasonFormPickTask";
 import "./WordFormation.css";
+import { WordSpeechProvider } from "./WordSpeech";
 
-export default function WordFormationRenderer({ task, topicId, onAdvance, onPrevious, onCorrect, onIncorrect }) {
+function TaskView({ task, topicId, onAdvance, onPrevious, onCorrect, onIncorrect }) {
   switch (task?.type) {
     case "pair_intro":        return <PairIntroTask       task={task} topicId={topicId} onAdvance={onAdvance} />;
     case "season_overview":   return <SeasonIntroTask     task={task} topicId={topicId} onAdvance={onAdvance} onPrevious={onPrevious} />;
@@ -25,4 +26,9 @@ export default function WordFormationRenderer({ task, topicId, onAdvance, onPrev
         </div>
       );
   }
+}
+
+// Size against the space left below the session header, including safe areas.
+export default function WordFormationRenderer(props) {
+  return <WordSpeechProvider enabled={props.soundEnabled !== false && props.task?.params?.speechEnabled === true}><div className="wf-viewport"><TaskView {...props} /></div></WordSpeechProvider>;
 }

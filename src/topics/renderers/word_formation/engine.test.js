@@ -11,13 +11,13 @@ const CARDS = [
 ];
 
 describe("pair_intro", () => {
-  it("returns one task with all cards sorted easy→hard", () => {
+  it("returns one pair per task sorted easy→hard", () => {
     const tasks = generateTasks({ type: "pair_intro" }, CARDS, 6, {});
-    expect(tasks).toHaveLength(1);
+    expect(tasks).toHaveLength(6);
     expect(tasks[0].type).toBe("pair_intro");
-    expect(tasks[0].cards).toHaveLength(6);
+    expect(tasks[0].cards).toHaveLength(1);
     expect(tasks[0].cards[0].difficulty).toBe("easy");
-    expect(tasks[0].cards[tasks[0].cards.length - 1].difficulty).toBe("medium");
+    expect(tasks[tasks.length - 1].cards[0].difficulty).toBe("medium");
   });
 });
 

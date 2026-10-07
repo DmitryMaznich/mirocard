@@ -571,6 +571,23 @@ describe("running text writes a repeated word in full", () => {
   });
 });
 
+describe("layout cache (typing in one row lays out only that row)", () => {
+  it("a page laid out with the cached rows is exactly the page laid out from scratch, on every grid; snapXFor is stable", async () => {
+    const { snapXFor } = await import("../propis/PrintPageView.jsx");
+    const lines = ["мама мыла раму", "", "Жора#d", "№2№+№3№=№5", "и и и", "жуки#f", "уж#1#i2"];
+    for (const args of [{ narrowRows: true, simpleGrid: "dense", narrow17: true }, { narrowRows: true, simpleGrid: "regular", narrow17: true }, { narrowRows: false, simpleGrid: "dense" }, { narrowRows: true, simpleGrid: "square", narrow17: true }]) {
+      const snap = snapXFor(args);
+      expect(snapXFor({ ...args })).toBe(snap);
+      const scale = args.narrowRows ? 0.5 : 1;
+      const fresh = layoutWideLinesIntoRows(lines, map, Object.assign((r, x, y) => snap(r, x, y), snap.cell ? { cell: snap.cell } : {}), true, scale);
+      const cached = layoutWideLinesIntoRows(lines, map, snap, true, scale);
+      const again = layoutWideLinesIntoRows(lines, map, snap, true, scale);
+      expect(JSON.parse(JSON.stringify(cached))).toEqual(JSON.parse(JSON.stringify(fresh)));
+      expect(again.placed[2]).toBe(cached.placed[2]); // the same row object: not laid out again
+    }
+  });
+});
+
 describe("a sample multiplied across the row", () => {
   it("never runs into its next copy: every letter keeps a gap to its copy (б р х ж had a step smaller than the letter)", () => {
     const box = (sts) => { const xs = sts.flatMap((st) => st.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, i) => i % 2 === 0)); return [Math.min(...xs), Math.max(...xs)]; };

@@ -27,8 +27,11 @@ describe("daily orientation built-in mode", () => {
       "importantDatesStyle",
       "weeklyPlan",
     ]);
-    const switches = Object.entries(mode.params).filter(([key]) => key.startsWith("show")).map(([, param]) => param);
-    expect(switches.every((param) => param.type === "boolean" && param.default === true)).toBe(true);
+    const displaySwitches = Object.entries(mode.params).filter(([key]) => key.startsWith("show"));
+    expect(displaySwitches.every(([, param]) => param.type === "boolean" && param.default === true)).toBe(true);
+    expect(mode.params.wakeHour.values).toContain(mode.params.wakeHour.default);
+    expect(mode.params.bedHour.values).toContain(mode.params.bedHour.default);
+    expect(mode.params.weeklyPlan).toMatchObject({ type: "free_text", default: "" });
     expect(mode.params.cardSound).toMatchObject({ type: "boolean", default: false });
     expect(mode.params.importantDatesStyle).toMatchObject({ type: "enum", default: "bright", values: ["bright", "calm", "off"] });
   });

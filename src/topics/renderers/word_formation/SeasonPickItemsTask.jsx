@@ -69,7 +69,7 @@ export default function SeasonPickItemsTask({ task, topicId, onCorrect, onIncorr
   }
 
   return (
-    <div className="wf-season">
+    <div className="wf-season wf-season--pick">
       <div className="wf-season__photo-wrap">
         <BgImage topicId={topicId} path={card.backgroundImage} />
         <div className="wf-season__title">{card.contextPhrase}.</div>

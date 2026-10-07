@@ -1,6 +1,9 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
-import { shuffle } from "@/shared/utils/shuffle";
+import { buildSeasonFormOptions } from "./exerciseModel";
+import { ListenButton } from "./WordSpeech";
+import SoupMeaning from "./SoupMeaning";
+import { useWordAnswer } from "./useWordAnswer";
 
 const ADJ_ENDINGS = ["ый", "ий", "ой", "ая", "яя", "ое", "ее", "ые", "ие"];
 
@@ -9,18 +12,6 @@ const QUESTION_END = {
   "ая": "ая", "яя": "ая",
   "ое": "ое", "ее": "ое",
   "ые": "ие", "ие": "ие",
-};
-
-const FORM_SETS = {
-  "ий": ["ий", "яя", "ее", "ие"],
-  "ый": ["ый", "ая", "ое", "ые"],
-  "ой": ["ой", "ая", "ое", "ые"],
-  "ая": ["ый", "ая", "ое", "ые"],
-  "яя": ["ий", "яя", "ее", "ие"],
-  "ое": ["ый", "ая", "ое", "ые"],
-  "ее": ["ий", "яя", "ее", "ие"],
-  "ые": ["ый", "ая", "ое", "ые"],
-  "ие": ["ий", "яя", "ее", "ие"],
 };
 
 function splitAdj(adjPhrase) {
@@ -36,90 +27,63 @@ function splitAdj(adjPhrase) {
 
 export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorrect }) {
   const { card, item } = task;
-  const [pickedIdx, setPickedIdx] = useState(null);
-  const [status, setStatus]       = useState("idle"); // idle | correct | wrong
-
-  const anchorRef = useRef(null);
+  const food = card.category === "soup";
+  const checking = task.params?.activityStage === "check";
+  const questionHint = !checking && task.params?.questionHint !== false;
+  const { answer, select } = useWordAnswer(onCorrect, onIncorrect, card.conceptId ?? card.id, `${card.id}:${item.id}`);
+  const pickedIdx = answer?.index;
+  const status = answer?.status ?? "idle";
+  const showImage = task.params?.showImage !== false;
 
   const bgUrl   = useTopicFile(topicId, card.backgroundImage ?? "");
   const itemUrl = useTopicFile(topicId, item.image ?? "");
-
-  // Keep spacer = half of card height so card sits exactly on the boundary
-  useLayoutEffect(() => {
-    const el = anchorRef.current;
-    if (!el) return;
-    const update = () => {
-      const root = el.closest(".wf-sfp");
-      if (root) root.style.setProperty("--sfp-card-half", Math.ceil(el.offsetHeight / 2) + "px");
-    };
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   const { stem, ending: correctEnding, noun } = splitAdj(item.adjPhrase);
   const seasonName = (card.contextPhrase ?? "").trim().split(/\s+/).at(-1);
   const qEnd       = QUESTION_END[correctEnding] ?? "ой";
 
   const options = useMemo(
-    () => shuffle((FORM_SETS[correctEnding] ?? [correctEnding]).map((end, i) => ({
-      key: i,
-      ending: end,
-      isTarget: end === correctEnding,
-    }))),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [item.adjPhrase],
+    () => task.options ?? buildSeasonFormOptions(item.adjPhrase, task.params?.optionCount),
+    [task.options, item.adjPhrase, task.params?.optionCount],
   );
-
-  function handlePick(opt, idx) {
-    if (status !== "idle") return;
-    setPickedIdx(idx);
-    if (opt.isTarget) {
-      setStatus("correct");
-      onCorrect?.();
-    } else {
-      setStatus("wrong");
-      onIncorrect?.();
-    }
-  }
 
   function btnClass(opt, idx) {
     if (status === "correct" && opt.isTarget)    return "wf-sfp__btn--correct";
     if (status === "wrong" && idx === pickedIdx)  return "wf-sfp__btn--wrong";
-    if (status === "wrong" && opt.isTarget)       return "wf-sfp__btn--reveal";
-    if (status !== "idle" && !opt.isTarget)       return "wf-sfp__btn--dim";
+    if (status === "correct" && !opt.isTarget)   return "wf-sfp__btn--dim";
     return "";
   }
 
   const answered = status === "correct";
 
   return (
-    <div className="wf-sfp">
-      {/* Season photo — card anchor sits at bottom edge, overflows downward by 50% */}
+    <div className={`wf-sfp${checking ? " wf-sfp--check" : ""}${food ? " wf-sfp--food" : showImage && (bgUrl || itemUrl) ? "" : " wf-sfp--text"}`}>
+      {/* Season context and example card */}
       <div className="wf-sfp__season-zone">
-        <div className="wf-sfp__season-art">
+        {!food && showImage && <div className="wf-sfp__season-art">
           {bgUrl
             ? <img className="wf-sfp__season-bg" src={bgUrl} alt="" draggable={false} />
             : <div className="wf-sfp__season-bg--empty" />
           }
-        </div>
+        </div>}
+        {food && showImage && <SoupMeaning card={card} item={item} topicId={topicId} />}
         <div className="wf-sfp__season-pill-wrap">
           <span className="wf-sfp__season-pill">
-            {"Время года — "}<strong>{seasonName}</strong>
+            {food ? item.sourcePhrase : <>Время года — <strong>{seasonName}</strong></>}
           </span>
+          <ListenButton text={food ? `${item.sourcePhrase}. ${noun}${questionHint ? " как" + qEnd + "?" : ""}` : `${card.contextPhrase}. ${noun}${questionHint ? " как" + qEnd + "?" : ""}`} label="Послушать условие" />
         </div>
-        <div className="wf-sfp__card-anchor" ref={anchorRef}>
+        <div className="wf-sfp__card-anchor">
           <div className="wf-sfp__item-card">
-            {itemUrl && (
+            {showImage && itemUrl && (
               <img className="wf-sfp__item-img" src={itemUrl} alt={noun} draggable={false} />
             )}
             <div className="wf-sfp__item-label">
               <div className={`wf-sfp__label-wrap${answered ? " wf-sfp__label-wrap--answered" : ""}`}>
-                <div className="wf-sfp__label wf-sfp__label--q">
-                  {noun} как<span className="wf-sfp__q-end">{qEnd}</span>?
+                <div className="wf-sfp__label wf-sfp__label--q" aria-hidden={answered}>
+                  {noun}{questionHint && <> как<span className="wf-sfp__q-end">{qEnd}</span>?</>}
                 </div>
-                <div className="wf-sfp__label wf-sfp__label--a">
+                <div className="wf-sfp__label wf-sfp__label--a" aria-hidden={!answered}>
                   <span><span className="wf-sfp__adj-stem">{stem}</span><span className="wf-sfp__adj-end">{correctEnding}</span></span>
                   <span>{noun}</span>
                 </div>
@@ -129,21 +93,20 @@ export default function SeasonFormPickTask({ task, topicId, onCorrect, onIncorre
         </div>
       </div>
 
-      {/* Spacer equal to bottom half of card so options start below it */}
-      <div className="wf-sfp__card-spacer" />
-
+      {status === "wrong" && <div className="wf-lesson__feedback" role="status">Посмотрим вместе</div>}
       {/* Choice buttons 2×2 */}
-      <div className="wf-sfp__options">
+      <div className={`wf-sfp__options${options.length === 2 ? " wf-sfp__options--two" : ""}`}>
         {options.map((opt, idx) => (
+          <div className="wf-choice" key={opt.key}>
           <button
-            key={opt.key}
             className={`wf-sfp__btn ${btnClass(opt, idx)}`}
-            onClick={() => handlePick(opt, idx)}
+            onClick={() => select(opt, idx)}
             disabled={status !== "idle"}
           >
             <span className="wf-sfp__btn-stem">{stem}</span>
             <span className="wf-sfp__btn-end">{opt.ending}</span>
           </button>
+          </div>
         ))}
       </div>
     </div>
