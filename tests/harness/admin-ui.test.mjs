@@ -112,6 +112,7 @@ async function fixture(viewport) {
     });
   });
   await page.goto(base + "/admin.html");
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Login form fits the viewport');
   await page.locator("#token-input").fill("demo-token");
   await page.locator("#login-button").click();
   await page.locator("#accounts-body tr").first().waitFor();

@@ -167,6 +167,7 @@ input::placeholder {
   flex-shrink: 0;
 }
 .auth-screen {
+  grid-template-columns: minmax(0, 1fr);
   min-height: 100dvh;
   display: grid;
   place-items: center;
@@ -174,6 +175,7 @@ input::placeholder {
   background: radial-gradient(ellipse at 50% 0%, #e7eaff, transparent 65%);
 }
 .auth-card {
+  min-width: 0;
   width: 410px;
   max-width: 100%;
   padding: 40px;
@@ -193,6 +195,10 @@ input::placeholder {
 }
 .auth-card label {
   display: block;
+}
+.auth-card > input {
+  width: 100%;
+  margin-top: 7px;
 }
 .auth-card .btn {
   width: 100%;
