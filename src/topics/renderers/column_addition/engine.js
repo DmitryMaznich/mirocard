@@ -1,5 +1,3 @@
-import { getRemoveMode } from "./FingerSystem.js";
-
 const POSITIONS = ["units", "tens", "hundreds"];
 
 function randomInt(min, max) {
@@ -226,26 +224,6 @@ function generateSubTask(carryMode, digits, card, usedPairs, bottomDigits = digi
   return null;
 }
 
-export function generateFingersShow(card) {
-  const n = card.params?.n ?? 0;
-  return {
-    type: "fingers_show",
-    cardId: card.id,
-    conceptId: card.conceptId,
-    n,
-  };
-}
-
-export function generateFingersCount(card) {
-  const op  = card.params?.op ?? "add";
-  const a   = card.params?.a ?? 0;
-  const b   = card.params?.b ?? 0;
-  const result = op === "add" ? a + b : a - b;
-  const base = { type: "fingers_count", cardId: card.id, conceptId: card.conceptId, op, a, b, result };
-  if (op === "sub") return { ...base, ...getRemoveMode(a, b) };
-  return base;
-}
-
 // "2+1" and "round10" are the two non-numeric `digits` values. "2+1" is a
 // shorthand for "top is 2-значное, bottom is 1-значное" (uneven width);
 // "round10" means both operands are plain multiples of 10 (even width, both
@@ -306,33 +284,8 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const allCards = cards.filter(c => c.renderer === "column_addition");
   if (!allCards.length) return [];
 
-  const fingerShowCards     = allCards.filter(c => c.params?.mode === "fingers_show");
-  const fingerCountCards    = allCards.filter(c => c.params?.mode === "fingers_count");
-
-  if (mode === "fingers_show") {
-    const pool = fingerShowCards.length ? fingerShowCards : [];
-    const tasks = [];
-    for (let i = 0; tasks.length < count && i < pool.length * 3; i++) {
-      tasks.push(generateFingersShow(pool[i % pool.length]));
-    }
-    return tasks;
-  }
-
-  if (mode === "fingers_count") {
-    const opFilter = params.op;
-    let pool = fingerCountCards.length ? fingerCountCards : [];
-    if (opFilter && opFilter !== "mixed") {
-      pool = pool.filter(c => (c.params?.op ?? "add") === opFilter);
-    }
-    if (!pool.length) pool = fingerCountCards;
-    const tasks = [];
-    for (let i = 0; tasks.length < count && i < pool.length * 3; i++) {
-      tasks.push(generateFingersCount(pool[i % pool.length]));
-    }
-    return tasks;
-  }
-
-  // Default: column_arithmetic — exclude finger cards
+  // column_arithmetic — cards with params.mode belonged to modes that moved out
+  // (fingers → addition_subtraction, coins → place_value); older decks still carry them.
   const arithmeticCards = allCards.filter(c => !c.params?.mode);
   if (!arithmeticCards.length) return [];
 

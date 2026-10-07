@@ -18,6 +18,8 @@ import {
   observeRetryAudioItems,
   observeStartAudioItems,
 } from "./audioPhrases";
+import FingersShowTask from "./fingers/FingersShowTask.jsx";
+import FingersCountTask from "./fingers/FingersCountTask.jsx";
 
 
 const ACTION_OPTIONS_PAST = [
@@ -1322,7 +1324,13 @@ function OperationTask({ task, onCorrect, onIncorrect, onMistake, streakCount, p
   return null;
 }
 
-export default function AdditionSubtractionRenderer({ task, onCorrect, onIncorrect, onMistake, streakCount, playFeedback, soundEnabled, student }) {
+export default function AdditionSubtractionRenderer({ task, sessionParams, onCorrect, onPrevious, onIncorrect, onMistake, onFlashIncorrect, streakCount, playFeedback, soundEnabled, student }) {
   if (!task) return null;
+  if (task.type === "fingers_show") {
+    return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} onPrevious={onPrevious} />;
+  }
+  if (task.type === "fingers_count") {
+    return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={sessionParams?.strictStars ? onMistake : undefined} onFlashIncorrect={onFlashIncorrect} />;
+  }
   return <OperationTask key={`${task.cardId}:${task.start ?? task.C}:${task.delta ?? task.answer}:${task.type}:${task.missingPosition ?? task.associationDirection ?? ""}`} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onMistake={onMistake} streakCount={streakCount} playFeedback={playFeedback} soundEnabled={soundEnabled} student={student} />;
 }

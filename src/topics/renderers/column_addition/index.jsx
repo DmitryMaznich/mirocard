@@ -1,13 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from "react";
 import { generateExamples, taskNeedsBorrowTeaching, resolveCompareMode } from "./engine.js";
 import RewardVideoModal from "@/shared/components/RewardVideoModal";
-import FingersShowTask from "./FingersShowTask.jsx";
-import FingersCountTask from "./FingersCountTask.jsx";
 import CrossoutGesture from "./CrossoutGesture.jsx";
 import HelperPanel from "../addition_subtraction/HelperPanel.jsx";
 import DigitKeypad from "./DigitKeypad.jsx";
 import ColumnHints from "./ColumnHints.jsx";
 import { useTapButtonSize } from "./useTapButtonSize.js";
+import "./tapKeyboard.css";
 import "./column_addition.css";
 
 const POSITIONS = ["units", "tens", "hundreds"];
@@ -1037,16 +1036,10 @@ function ColumnCopyView({ sessionParams, onCorrect, student }) {
 
 // ── Renderer entry point ──────────────────────────────────────────────────────
 
-export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, onPrevious, student, onMistake, onFlashIncorrect }) {
+export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCorrect, student, onMistake, onFlashIncorrect }) {
   const strictMistake = sessionParams?.strictStars ? onMistake : undefined;
   if (mode?.type === "column_copy") {
     return <ColumnCopyView sessionParams={sessionParams} onCorrect={onCorrect} student={student} />;
-  }
-  if (task?.type === "fingers_show") {
-    return <FingersShowTask task={task} sessionParams={sessionParams} onCorrect={onCorrect} onPrevious={onPrevious} />;
-  }
-  if (task?.type === "fingers_count") {
-    return <FingersCountTask task={task} onCorrect={onCorrect} onMistake={strictMistake} onFlashIncorrect={onFlashIncorrect} />;
   }
   if (!task || task.type !== "column_arithmetic") {
     return <div className="col-screen" style={{ color: "#666", fontSize: 18 }}>Нет задания</div>;

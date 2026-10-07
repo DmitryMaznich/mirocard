@@ -7,6 +7,20 @@ flagging what needs a real decision or an asset that isn't available in this
 sandbox. This file is the handoff — read it first if you're picking this back
 up in a new session/account.
 
+## Mode numbering changed 2026-10-07
+
+The two finger modes moved in from «Сложение и вычитание в столбик»
+(`src/topics/renderers/addition_subtraction/fingers/`, components unchanged;
+tasks come from `fingers/fingerTasks.js`, not deck cards). Ladder is now:
+1 «Покажи на пальцах» (`fingers_show`) → 2 «Что изменилось?» → 3 «Назови
+действие» → 4 «Сделай действие» → 5 «Знак ↔ Действие» → 6 «Найди знак» →
+7 «Считаем на пальцах» (`fingers_count`) → 8 «Сколько стало?» → 9 «Цепочка» →
+10 «Контрольная работа» → 11 «Найди неизвестное» → 12 «Слушай и посчитай».
+The order (and operation_audio's number, which lives only in the deck
+manifest) is pinned by `orderAdditionSubtractionModes` in `topicLoader.js`,
+because installed decks keep their own mode order. The titles quoted below
+are the old numbers. Both finger modes are not yet reviewed in this pass.
+
 ## Status by mode
 
 Mode ids are `task.type` in `engine.js` / `topicLoader.js`'s

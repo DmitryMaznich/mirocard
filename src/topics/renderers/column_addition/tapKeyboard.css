@@ -1,0 +1,86 @@
+/* Shared by the Столбик tap keyboard (column_addition) and «Считаем на
+   пальцах» (addition_subtraction/fingers). Imported by DigitKeypad.jsx and
+   by both screens directly, so whichever loads first brings the styles. */
+
+.col-slant {
+  display: inline-block;
+}
+
+/* ── Tap keyboard ───────────────────────────── */
+
+.col-tap-kb {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  margin-top: 16px;
+  background: rgba(240, 246, 255, 0.9);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(100, 130, 200, 0.18);
+  flex-shrink: 0;
+}
+
+.col-tap-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.col-tap-row--form {
+  gap: 6px;
+}
+
+.col-tap-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 2px solid #dbeafe;
+  border-radius: 12px;
+  font-weight: 700;
+  font-family: 'Primo', cursive;
+  color: #1a1a2e;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #c7d2fe;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.col-tap-btn:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.col-tap-btn--sign {
+  color: #2563eb;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  box-shadow: 0 3px 0 #a5b4fc;
+}
+
+.col-tap-btn--sign-dim {
+  color: #9ca3af;
+  background: #f9fafb;
+  border-color: #e5e7eb;
+  box-shadow: 0 3px 0 #d1d5db;
+}
+
+.col-tap-btn--line {
+  background: #fff;
+  border: 2px solid #dbeafe;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #c7d2fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.col-tap-btn--line:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}

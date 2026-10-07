@@ -491,6 +491,30 @@ const DEFAULT_MODE_METHODOLOGY = {
     },
   },
   addition_subtraction: {
+    fingers_show: {
+      summary: "Покажи число пальцами.",
+      text: "На экране — цифра и эталонная поза рук. Ребёнок воспроизводит позу своими пальцами. Логопед оценивает и переходит к следующей.",
+      settings: [
+        "«Подсказка» — показывать ли схему рук или только цифру.",
+      ],
+      goal: "Ребёнок запоминает каноническую позу для каждого числа 0–10.",
+      tips: [
+        "Начинайте с малых чисел (0–5), затем добавляйте большие.",
+        "Режим «Только цифра» — для проверки без подсказки.",
+      ],
+    },
+    fingers_count: {
+      summary: "Поднимай пальцы, считай вместе с ребёнком.",
+      text: "Экран показывает пример. Ребёнок поднимает пальцы левой руки (первое слагаемое), затем правой (второе), соединяет и считает все. При вычитании — выставляет число и убирает пальцы.",
+      settings: [
+        "«Операция» — сложение, вычитание или оба.",
+      ],
+      goal: "Ребёнок понимает сложение как объединение двух групп пальцев, вычитание — как убирание части.",
+      tips: [
+        "Проговаривайте вслух: «Три пальца плюс четыре пальца — считаем вместе!»",
+        "Для вычитания начинайте с примеров где вычитаемое совпадает с одной рукой — убрать целую руку наглядно.",
+      ],
+    },
     operation_observe: {
       summary: "Короткое визуальное наблюдение: одно изменение и выбор направления.",
       text: "На детском экране нет лишних подписей и вопроса: ребёнок видит предметы, одно изменение и выбирает «Больше» или «Меньше». Взрослый при необходимости задаёт вопрос вслух.",
@@ -637,30 +661,6 @@ const DEFAULT_MODE_METHODOLOGY = {
       tips: [
         "Проверяйте тетрадь: цифры должны стоять строго по разрядам (единицы под единицами, десятки под десятками).",
         "Начинайте с 6 примеров без переноса, постепенно увеличивайте количество и сложность.",
-      ],
-    },
-    fingers_show: {
-      summary: "Покажи число пальцами.",
-      text: "На экране — цифра и эталонная поза рук. Ребёнок воспроизводит позу своими пальцами. Логопед оценивает и переходит к следующей.",
-      settings: [
-        "«Подсказка» — показывать ли схему рук или только цифру.",
-      ],
-      goal: "Ребёнок запоминает каноническую позу для каждого числа 0–10.",
-      tips: [
-        "Начинайте с малых чисел (0–5), затем добавляйте большие.",
-        "Режим «Только цифра» — для проверки без подсказки.",
-      ],
-    },
-    fingers_count: {
-      summary: "Поднимай пальцы, считай вместе с ребёнком.",
-      text: "Экран показывает пример. Ребёнок поднимает пальцы левой руки (первое слагаемое), затем правой (второе), соединяет и считает все. При вычитании — выставляет число и убирает пальцы.",
-      settings: [
-        "«Операция» — сложение, вычитание или оба.",
-      ],
-      goal: "Ребёнок понимает сложение как объединение двух групп пальцев, вычитание — как убирание части.",
-      tips: [
-        "Проговаривайте вслух: «Три пальца плюс четыре пальца — считаем вместе!»",
-        "Для вычитания начинайте с примеров где вычитаемое совпадает с одной рукой — убрать целую руку наглядно.",
       ],
     },
 
@@ -921,10 +921,30 @@ const DEFAULT_MODES = {
   letter_writing: [],
   addition_subtraction: [
     {
+      id: "fingers_show",
+      type: "fingers_show",
+      evaluation: "none",
+      ui: { title: "1. Покажи на пальцах", instruction: "Покажи число на пальцах", icon: "media/icons/fingers_show_mode.svg" },
+      hideConceptPicker: true,
+      params: {
+        hint: {
+          type: "boolean",
+          default: true,
+          label: { ru: "Руки-подсказка" },
+          info: {
+            ru: {
+              text: "Показывает руки с поднятыми пальцами рядом с цифрой — наглядная подсказка, как это число выглядит на пальцах.",
+              tip: "Выключите, когда ребёнок уже узнаёт цифры без опоры на руки — останется только сама цифра.",
+            },
+          },
+        },
+      },
+    },
+    {
       id: "operation_observe",
       type: "operation_observe",
       evaluation: "auto",
-      ui: { title: "1. Что изменилось?", instruction: "Больше или меньше?", icon: "media/icons/operations_mode.svg" },
+      ui: { title: "2. Что изменилось?", instruction: "Больше или меньше?", icon: "media/icons/operations_mode.svg" },
       params: {
         maxNumber: { type: "enum", values: [3, 5], labels: { ru: { "3": "до 3", "5": "до 5" } }, default: 3, label: { ru: "Максимальное число" } },
         showNumerals: { type: "boolean", default: false, label: { ru: "Показывать цифры" } },
@@ -935,7 +955,7 @@ const DEFAULT_MODES = {
       id: "operation_name_action",
       type: "operation_name_action",
       evaluation: "auto",
-      ui: { title: "2. Назови действие", instruction: "Прибавили или убрали?", icon: "media/icons/operations_mode.svg" },
+      ui: { title: "3. Назови действие", instruction: "Прибавили или убрали?", icon: "media/icons/operations_mode.svg" },
       params: {
         maxNumber: { type: "enum", values: [3, 5], labels: { ru: { "3": "до 3", "5": "до 5" } }, default: 3, label: { ru: "Максимальное число" } },
         shapeMode: { type: "enum", values: ["circle", "blocks"], labels: { ru: { circle: "Только круги", blocks: "Фигуры сериями" } }, default: "circle", label: { ru: "Материал" } },
@@ -947,7 +967,7 @@ const DEFAULT_MODES = {
       id: "operation_do_action",
       type: "operation_do_action",
       evaluation: "auto",
-      ui: { title: "3. Сделай действие", instruction: "Покажи на палке и назови результат", icon: "media/icons/operations_action_from_sign.svg" },
+      ui: { title: "4. Сделай действие", instruction: "Покажи на палке и назови результат", icon: "media/icons/operations_action_from_sign.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 1, label: { ru: "Максимальное изменение" } },
@@ -959,7 +979,7 @@ const DEFAULT_MODES = {
       id: "operation_action_from_sign",
       type: "operation_action_from_sign",
       evaluation: "auto",
-      ui: { title: "4. Знак ↔ Действие", instruction: "Связываем знак со словом действия", icon: "media/icons/operations_action_from_sign.svg" },
+      ui: { title: "5. Знак ↔ Действие", instruction: "Связываем знак со словом действия", icon: "media/icons/operations_action_from_sign.svg" },
       params: {
         direction: {
           type: "enum",
@@ -979,7 +999,7 @@ const DEFAULT_MODES = {
       id: "operation_find_sign",
       type: "operation_find_sign",
       evaluation: "auto",
-      ui: { title: "5. Найди знак", instruction: "Какой знак пропущен в примере?", icon: "media/icons/operations_sign_from_action.svg" },
+      ui: { title: "6. Найди знак", instruction: "Какой знак пропущен в примере?", icon: "media/icons/operations_sign_from_action.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
@@ -989,10 +1009,32 @@ const DEFAULT_MODES = {
       },
     },
     {
+      id: "fingers_count",
+      type: "fingers_count",
+      evaluation: "instant",
+      ui: { title: "7. Считаем на пальцах", instruction: "Поднимай пальцы и считай", icon: "media/icons/fingers_count_mode.svg" },
+      hideConceptPicker: true,
+      params: {
+        op: {
+          type: "enum",
+          values: ["add", "sub", "mixed"],
+          labels: { ru: { add: "Сложение", sub: "Вычитание", mixed: "Микс" } },
+          default: "add",
+          label: { ru: "Операция" },
+          info: {
+            ru: {
+              text: "Какие примеры видит ребёнок — только сложение (прибавление пальцев), только вычитание (убирание пальцев) или оба вида вперемешку.",
+              tip: "Если ребёнок только осваивает счёт на пальцах — начните с одной операции, чтобы не путать направление счёта.",
+            },
+          },
+        },
+      },
+    },
+    {
       id: "operation_result",
       type: "operation_result",
       evaluation: "auto",
-      ui: { title: "6. Сколько стало?", instruction: "Вычисли результат примера", icon: "media/icons/operations_result.svg" },
+      ui: { title: "8. Сколько стало?", instruction: "Вычисли результат примера", icon: "media/icons/operations_result.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 5, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
@@ -1013,7 +1055,7 @@ const DEFAULT_MODES = {
       id: "operation_chain",
       type: "operation_chain",
       evaluation: "auto",
-      ui: { title: "7. Цепочка", instruction: "Посчитай пример из двух действий", icon: "media/icons/operations_missing_sign.svg" },
+      ui: { title: "9. Цепочка", instruction: "Посчитай пример из двух действий", icon: "media/icons/operations_missing_sign.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 10, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
@@ -1035,7 +1077,7 @@ const DEFAULT_MODES = {
       type: "operation_worksheet",
       evaluation: "none",
       hideConceptPicker: true,
-      ui: { title: "8. Контрольная работа", instruction: "Реши в тетради и впиши ответ", icon: "media/icons/operations_missing_sign.svg" },
+      ui: { title: "10. Контрольная работа", instruction: "Реши в тетради и впиши ответ", icon: "media/icons/operations_missing_sign.svg" },
       params: {
         maxNumber: { type: "enum", values: [5, 10, 20], labels: { ru: { "5": "до 5", "10": "до 10", "20": "до 20" } }, default: 10, label: { ru: "Максимальное число" } },
         changeMax: { type: "enum", values: [1, 3, 5, 10, 99], labels: { ru: { "1": "1", "3": "3", "5": "5", "10": "10", "99": "любое" } }, default: 3, label: { ru: "Максимальное изменение" } },
@@ -1048,7 +1090,7 @@ const DEFAULT_MODES = {
       id: "operation_missing_term",
       type: "operation_missing_term",
       evaluation: "auto",
-      ui: { title: "10. Найди неизвестное", instruction: "Какое число спрятано под ❓", icon: "media/icons/operations_missing_sign.svg" },
+      ui: { title: "11. Найди неизвестное", instruction: "Какое число спрятано под ❓", icon: "media/icons/operations_missing_sign.svg" },
       params: {
         operation: {
           type: "enum",
@@ -1085,48 +1127,6 @@ const DEFAULT_MODES = {
     },
   ],
   column_addition: [
-    {
-      id: "fingers_show",
-      type: "fingers_show",
-      evaluation: "none",
-      ui: { title: "Покажи", instruction: "Покажи число на пальцах", icon: "media/icons/fingers_show_mode.svg" },
-      hideConceptPicker: true,
-      params: {
-        hint: {
-          type: "boolean",
-          default: true,
-          label: { ru: "Руки-подсказка" },
-          info: {
-            ru: {
-              text: "Показывает руки с поднятыми пальцами рядом с цифрой — наглядная подсказка, как это число выглядит на пальцах.",
-              tip: "Выключите, когда ребёнок уже узнаёт цифры без опоры на руки — останется только сама цифра.",
-            },
-          },
-        },
-      },
-    },
-    {
-      id: "fingers_count",
-      type: "fingers_count",
-      evaluation: "instant",
-      ui: { title: "Считаем на пальцах", instruction: "Поднимай пальцы и считай", icon: "media/icons/fingers_count_mode.svg" },
-      hideConceptPicker: true,
-      params: {
-        op: {
-          type: "enum",
-          values: ["add", "sub", "mixed"],
-          labels: { ru: { add: "Сложение", sub: "Вычитание", mixed: "Микс" } },
-          default: "add",
-          label: { ru: "Операция" },
-          info: {
-            ru: {
-              text: "Какие примеры видит ребёнок — только сложение (прибавление пальцев), только вычитание (убирание пальцев) или оба вида вперемешку.",
-              tip: "Если ребёнок только осваивает счёт на пальцах — начните с одной операции, чтобы не путать направление счёта.",
-            },
-          },
-        },
-      },
-    },
     {
       id: "column_arithmetic",
       type: "column_arithmetic",
@@ -1713,6 +1713,39 @@ function mergeDefaultModes(existingModes = [], defaultModes = []) {
   return [...mergedDefaults, ...customModes];
 }
 
+// addition_subtraction's mode order lives in its published deck manifest, and
+// mergeDefaultModesKeepOrder only appends new defaults at the end. The finger
+// modes (moved in from column_addition) belong inside the ladder, so the order
+// is pinned here for both fresh imports and already-installed records.
+// operation_audio is manifest-only (no DEFAULT_MODES entry), so its number is
+// set here too.
+const ADDITION_SUBTRACTION_ORDER = [
+  "fingers_show",
+  "operation_observe",
+  "operation_name_action",
+  "operation_do_action",
+  "operation_action_from_sign",
+  "operation_find_sign",
+  "fingers_count",
+  "operation_result",
+  "operation_chain",
+  "operation_worksheet",
+  "operation_missing_term",
+  "operation_audio",
+];
+
+function orderAdditionSubtractionModes(modes) {
+  const rank = (mode) => {
+    const index = ADDITION_SUBTRACTION_ORDER.indexOf(mode.id);
+    return index === -1 ? ADDITION_SUBTRACTION_ORDER.length : index;
+  };
+  return [...modes]
+    .sort((a, b) => rank(a) - rank(b))
+    .map((mode) => mode.id === "operation_audio"
+      ? { ...mode, ui: { ...(mode.ui ?? {}), title: "12. Слушай и посчитай" } }
+      : mode);
+}
+
 // Preserves manifest mode order; only appends default modes absent from manifest
 function mergeDefaultModesKeepOrder(manifestModes = [], defaultModes = []) {
   const defaultById = Object.fromEntries(defaultModes.map((m) => [m.id, m]));
@@ -1810,9 +1843,10 @@ function normalizeProcedural(manifest) {
   }));
 
   const defaultModes = DEFAULT_MODES[renderer] ?? [];
-  const modes = manifest.modes?.length
+  let modes = manifest.modes?.length
     ? ensureModeIcons(mergeDefaultModesKeepOrder(manifest.modes, defaultModes), renderer)
     : ensureModeIcons(defaultModes, renderer);
+  if (renderer === "addition_subtraction") modes = orderAdditionSubtractionModes(modes);
 
   return { ...manifest, meta, cards, modes };
 }
@@ -2084,6 +2118,7 @@ function migrateRecord(record) {
         merged = merged.filter((m) => m.id !== "compare_put_sign");
       }
     }
+    if (record.meta.renderer === "addition_subtraction") merged = orderAdditionSubtractionModes(merged);
     return {
       ...record,
       meta: mergeDefaultMeta({ ...record.meta }, record.meta.renderer),

@@ -21,6 +21,9 @@ the three coin modes — «Собери число» (`build_number`), «Как�
 - `column_addition`'s release copy has `allowedModeIds` without the three moved
   modes, so already-installed records drop them on the next read instead of
   keeping them as leftover "custom" modes.
+- The finger modes left column_addition the same day (to addition_subtraction,
+  see `docs/addition-subtraction-design-review.md`); column_addition now has only
+  «Столбик — Тренажёр» and «Контрольная работа».
 - Students who used these modes inside column_addition need to install the new
   topic; their old stats stay under `column_addition`.
 

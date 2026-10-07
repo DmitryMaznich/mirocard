@@ -1,4 +1,5 @@
 import { shuffle } from "@/shared/utils/shuffle";
+import { generateFingerTasks } from "./fingers/fingerTasks.js";
 
 const DEFAULT_CHANGE_MAX = 1;
 const DEFAULT_RAIL_SIZE = 20;
@@ -398,6 +399,9 @@ export function generateTasks(mode, cards, arg3, arg4) {
         : {}
   );
   const modeType = getModeType(mode);
+  if (modeType === "fingers_show" || modeType === "fingers_count") {
+    return generateFingerTasks(modeType, count, params);
+  }
   const operationCards = cards.filter((card) => card.renderer === "addition_subtraction");
 
   if (!operationCards.length) return [];

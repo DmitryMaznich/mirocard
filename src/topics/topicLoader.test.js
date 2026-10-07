@@ -174,26 +174,30 @@ describe("importTopic — valid cases", () => {
     expect(record.meta.renderer).toBe("addition_subtraction");
     expect(record.meta.avatar).toBe("media/avatar_operations.svg");
     expect(record.modes.map((m) => m.id)).toEqual([
+      "fingers_show",
       "operation_observe",
       "operation_name_action",
       "operation_do_action",
       "operation_action_from_sign",
       "operation_find_sign",
+      "fingers_count",
       "operation_result",
       "operation_chain",
       "operation_worksheet",
       "operation_missing_term",
     ]);
     expect(record.modes.map((m) => m.ui.title)).toEqual([
-      "1. Что изменилось?",
-      "2. Назови действие",
-      "3. Сделай действие",
-      "4. Знак ↔ Действие",
-      "5. Найди знак",
-      "6. Сколько стало?",
-      "7. Цепочка",
-      "8. Контрольная работа",
-      "10. Найди неизвестное",
+      "1. Покажи на пальцах",
+      "2. Что изменилось?",
+      "3. Назови действие",
+      "4. Сделай действие",
+      "5. Знак ↔ Действие",
+      "6. Найди знак",
+      "7. Считаем на пальцах",
+      "8. Сколько стало?",
+      "9. Цепочка",
+      "10. Контрольная работа",
+      "11. Найди неизвестное",
     ]);
     const observeMode = record.modes.find((mode) => mode.id === "operation_observe");
     expect(observeMode.params.maxNumber.default).toBe(3);
@@ -669,6 +673,35 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(mode.params.operation.info.ru.tip).toEqual(expect.any(String));
   });
 
+  it("slots the finger modes into an installed addition_subtraction record's ladder", async () => {
+    // Installed decks carry their own mode order (no finger modes, operation_audio
+    // numbered 10); mergeDefaultModesKeepOrder alone would append the finger modes
+    // at the end.
+    const db = await freshDb();
+    const staleRecord = {
+      id: "addition_subtraction",
+      meta: { id: "addition_subtraction", renderer: "addition_subtraction", version: "1.9.1", title: { ru: "Плюс и минус" } },
+      modes: [
+        "operation_observe", "operation_name_action", "operation_do_action", "operation_action_from_sign",
+        "operation_find_sign", "operation_result", "operation_chain", "operation_worksheet", "operation_missing_term",
+      ].map((id) => ({ id, type: id, evaluation: "auto", ui: { title: id } }))
+        .concat([{ id: "operation_audio", type: "operation_audio", evaluation: "auto", ui: { title: "10. Слушай и посчитай", instruction: "Послушай пример" } }]),
+      cards: [{ id: "operation_plus", conceptId: "plus", renderer: "addition_subtraction", params: { operation: "add" } }],
+      installedAt: new Date().toISOString(),
+    };
+    await kv.set(db, "topic:addition_subtraction", staleRecord);
+    await kv.set(db, "installedTopicIds", ["addition_subtraction"]);
+
+    const record = await getTopicRecord(db, "addition_subtraction");
+    expect(record.modes.map((m) => m.id)).toEqual([
+      "fingers_show", "operation_observe", "operation_name_action", "operation_do_action",
+      "operation_action_from_sign", "operation_find_sign", "fingers_count", "operation_result",
+      "operation_chain", "operation_worksheet", "operation_missing_term", "operation_audio",
+    ]);
+    const audio = record.modes.find((m) => m.id === "operation_audio");
+    expect(audio.ui).toMatchObject({ title: "12. Слушай и посчитай", instruction: "Послушай пример" });
+  });
+
   it("refreshes the rest of column_addition's modes to the reference screen shape", async () => {
     // Same reference-screen rollout as column_arithmetic, applied to the topic's other
     // modes: every mode in the topic hides the concept picker now (parents don't want
@@ -690,29 +723,9 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
             operation: { type: "enum", values: ["add", "subtract", "mixed"], labels: { ru: { add: "Только +", subtract: "Только −", mixed: "Микс" } }, default: "add", label: { ru: "Операция" } },
           },
         },
-        {
-          id: "fingers_show",
-          type: "fingers_show",
-          evaluation: "none",
-          ui: { title: "Покажи", icon: "media/icons/column_addition_mode.svg" },
-          params: {
-            hint: { type: "enum", values: [true, false], labels: { ru: { "true": "С руками (подсказка)", "false": "Только цифра" } }, default: true, label: { ru: "Подсказка" } },
-          },
-        },
-        {
-          id: "fingers_count",
-          type: "fingers_count",
-          evaluation: "instant",
-          ui: { title: "Считаем на пальцах", icon: "media/icons/fingers_count_mode.svg" },
-          params: {
-            op: { type: "enum", values: ["add", "sub", "mixed"], labels: { ru: { add: "Сложение", sub: "Вычитание", mixed: "Микс" } }, default: "add", label: { ru: "Операция" } },
-          },
-        },
       ],
       cards: [
         { id: "column_copy", conceptId: "column_copy", renderer: "column_addition", params: { operation: "add" } },
-        { id: "fshow_0", conceptId: "fshow_0", renderer: "column_addition", params: { mode: "fingers_show", n: 0 } },
-        { id: "fcount_a_1_1", conceptId: "fcount_a_1_1", renderer: "column_addition", params: { mode: "fingers_count", op: "add", a: 1, b: 1 } },
       ],
       installedAt: new Date().toISOString(),
     };
@@ -727,11 +740,6 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(byId.column_copy.params.operation.section).toBe("Что решаем");
     expect(byId.column_copy.params.operation.info.ru.text).toEqual(expect.any(String));
 
-    expect(byId.fingers_show.hideConceptPicker).toBe(true);
-    expect(byId.fingers_show.params.hint.type).toBe("boolean");
-    expect(byId.fingers_show.params.hint.info.ru.tip).toEqual(expect.any(String));
-
-    expect(byId.fingers_count.hideConceptPicker).toBe(true);
   });
 
   it("reorders an already-installed column_addition record's modes to the current pedagogical sequence", async () => {
@@ -765,11 +773,10 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     await kv.set(db, "installedTopicIds", ["column_addition"]);
 
     const record = await getTopicRecord(db, "column_addition");
-    // build_number / identify_number / regroup_ten moved to the place_value topic;
-    // a record saved before the move must not keep them as leftover "custom" modes.
+    // The coin modes moved to place_value and the finger modes to
+    // addition_subtraction; a record saved before the move must not keep them
+    // as leftover "custom" modes.
     expect(record.modes.map((m) => m.id)).toEqual([
-      "fingers_show",
-      "fingers_count",
       "column_arithmetic",
       "column_copy",
     ]);
