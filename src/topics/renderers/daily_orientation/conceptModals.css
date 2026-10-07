@@ -236,7 +236,6 @@
 }
 .dom-months__month--active { background: #fff; }
 .dom-months__month-name { font-size: clamp(15px, 1.6vw, 24px); font-weight: 900; }
-.dom-months__month-days { font-size: clamp(12px, 1.1vw, 16px); font-weight: 700; color: var(--dom-muted); }
 
 /* ── Время года / Время суток: a cycle ────────────────────────────── */
 .dom-cycle {
@@ -343,3 +342,4 @@
    goes just above it, so the first tag takes over the push. */
 .dom-week__short + .dom-week__event { margin-top: auto; }
 .dom-week__event ~ .dom-week__plan { margin-top: 6px; }
+.dom-week__plan-icon { display: block; margin-bottom: 2px; font-size: clamp(24px, 3vw, 40px); line-height: 1.1; }

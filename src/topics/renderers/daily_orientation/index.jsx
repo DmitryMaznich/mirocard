@@ -22,7 +22,6 @@ import {
   monthClipKeys,
   seasonClipKeys,
   timeClipKeys,
-  weatherClipKeys,
   weekdayClipKeys,
 } from "./audioBank.js";
 import { clipsSupported, useClipPlayer } from "./clipPlayer.js";
@@ -44,7 +43,10 @@ import {
   getSpokenSeason,
   getSpokenTime,
   getSpokenWeekday,
+  getSpokenClockWordParts,
   parseWeeklyPlan,
+  splitPlanIcon,
+  spokenClockSentence,
 } from "./timeUtils";
 import { DateContent, DaypartContent, MonthContent, SeasonContent, WeekContent } from "./ConceptModals.jsx";
 import "./dailyOrientation.css";
@@ -61,21 +63,34 @@ const MODAL_IDLE_CLOSE_MS = 90_000;
 
 const WEATHER_STORAGE_KEY = "daily_orientation_weather";
 
-// Feminine adjectives agreeing with "погода" ("погода дождливая", not
-// "погода — дождь"): дождь/снег/туман name the precipitation/phenomenon
-// itself, not a description of the weather, so they're wrong here even
-// though they're the obvious first word that comes to mind for each icon.
+// How people actually say it: "Сегодня солнечно", "Сегодня идёт дождь",
+// "Сегодня туман". (These were "погода солнечная/дождливая" adjectives --
+// grammatical, but nobody talks like that, and a child learns the phrase
+// they hear.) Spoken with browser TTS: the recorded clips still say the old
+// adjective form, so they're no longer used for this card.
 const WEATHER_OPTIONS = [
-  { id: "sunny", label: "СОЛНЕЧНАЯ" },
-  { id: "cloudy", label: "ПАСМУРНАЯ" },
-  { id: "rain", label: "ДОЖДЛИВАЯ" },
-  { id: "snow", label: "СНЕЖНАЯ" },
-  { id: "fog", label: "ТУМАННАЯ" },
+  { id: "sunny", label: "СОЛНЕЧНО" },
+  { id: "cloudy", label: "ПАСМУРНО" },
+  { id: "rain", label: "ИДЁТ ДОЖДЬ" },
+  { id: "snow", label: "ИДЁТ СНЕГ" },
+  { id: "fog", label: "ТУМАН" },
 ];
 const WEATHER_LABEL_BY_ID = Object.fromEntries(WEATHER_OPTIONS.map((o) => [o.id, o.label]));
 
+// Answers on the cards are written in capitals by default; "sentence" case
+// ("Среда", "Октябрь") is for a child who reads whole words and would see
+// "СРЕДА" here and "Среда" in the modals as two different words.
+function makeCaseText(sentenceCase) {
+  return (text) => {
+    const value = String(text ?? "");
+    if (!sentenceCase) return value.toLocaleUpperCase("ru-RU");
+    const lower = value.toLocaleLowerCase("ru-RU");
+    return lower.charAt(0).toLocaleUpperCase("ru-RU") + lower.slice(1);
+  };
+}
+
 function getSpokenWeather(weatherId) {
-  return `Погода ${WEATHER_LABEL_BY_ID[weatherId].toLowerCase()}.`;
+  return `Сегодня ${WEATHER_LABEL_BY_ID[weatherId].toLowerCase()}.`;
 }
 
 function readStoredWeather(dateKey) {
@@ -536,7 +551,7 @@ function FitText({ className, children }) {
   );
 }
 
-function DaypartCard({ daypartId, hidden, speakerButton, cardProps }) {
+function DaypartCard({ daypartId, hidden, speakerButton, cardProps, caseText }) {
   return (
     <article
       className={`daily-orientation__card daily-orientation__card--daypart daily-orientation__card--daypart-${daypartId} daily-orientation__card--speakable${hidden ? " daily-orientation__card--daypart-hidden" : ""}`}
@@ -555,7 +570,7 @@ function DaypartCard({ daypartId, hidden, speakerButton, cardProps }) {
             className={`daily-orientation__daypart-step${part.id === daypartId ? " daily-orientation__daypart-step--current" : ""}`}
             aria-current={part.id === daypartId ? "true" : undefined}
           >
-            {part.label}
+            {caseText(part.label)}
           </li>
         ))}
       </ol>
@@ -805,8 +820,23 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const season = getSeason(activeDate.getMonth());
   const hasTime = display.showAnalogClock || display.showTimeWords || display.showDigitalTime;
   const hideCurrentTime = offset !== 0;
-  const timeWords = getClockWordParts(now);
-  const timeWordsFit = useFitTimeWords(`${timeWords.hour} ${timeWords.minute}`);
+  const sentenceCase = sessionParams?.letterCase === "sentence";
+  const caseText = makeCaseText(sentenceCase);
+  // "exact": "девять часов двадцать минут" (24-hour, hour first);
+  // "spoken": "двадцать минут десятого" -- how it's said at home.
+  const spokenTime = sessionParams?.timeWordsStyle === "spoken";
+  const timeWords = spokenTime ? getSpokenClockWordParts(now) : getClockWordParts(now);
+  const timeWordsMinuteFirst = spokenTime && timeWords.minute !== "ровно";
+  const timeWordsText = timeWordsMinuteFirst ? `${timeWords.minute} ${timeWords.hour}` : `${timeWords.hour} ${timeWords.minute}`;
+  const timeWordsFit = useFitTimeWords(timeWordsText);
+  // On Вчера/Завтра the month and season usually haven't changed: they're
+  // dimmed so the change that matters (day, date) stands out, and "Вчера был
+  // октябрь" isn't offered as a sentence.
+  const monthUnchanged = offset !== 0 && activeDate.getMonth() === now.getMonth();
+  const seasonUnchanged = offset !== 0 && season.id === getSeason(now.getMonth()).id;
+  // What that day held, from the weekly plan -- fills the "right now" row,
+  // which has nothing to show on Вчера/Завтра.
+  const dayPlan = offset !== 0 ? weeklyPlan[activeDate.getDay()] ?? null : null;
   const timeCardClassName = [
     "daily-orientation__card",
     "daily-orientation__card--big",
@@ -889,7 +919,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   }
 
   return (
-    <main className={`daily-orientation${isFestive ? " daily-orientation--festive" : ""}`} aria-label="Экран ориентации во времени">
+    <main className={`daily-orientation${isFestive ? " daily-orientation--festive" : ""}${sentenceCase ? " daily-orientation--sentence-case" : ""}`} aria-label="Экран ориентации во времени">
       <div className="daily-orientation__viewport" ref={viewportRef}>
         <div className={`daily-orientation__canvas${display.showCarousel ? "" : " daily-orientation__canvas--without-carousel"}`} style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px`, transform: `scale(${scale})` }}>
           {isFestive && <Garland width={canvasWidth} />}
@@ -968,7 +998,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_WEEKDAY}</p>
-                    <FitText className="daily-orientation__answer">{weekday}</FitText>
+                    <FitText className="daily-orientation__answer">{caseText(weekday)}</FitText>
                   </article>
                 )}
 
@@ -989,20 +1019,20 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                 )}
 
                 {display.showMonth && (
-                  <article className="daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--date daily-orientation__card--speakable" {...conceptCardProps("month")}>
-                    {cardSound && (
+                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--date daily-orientation__card--speakable${monthUnchanged ? " daily-orientation__card--unchanged" : ""}`} {...conceptCardProps("month")}>
+                    {cardSound && !monthUnchanged && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenMonth(activeDate, offset), monthClipKeys(activeDate, offset));
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_MONTH}</p>
-                    <FitText className="daily-orientation__answer">{month}</FitText>
+                    <FitText className="daily-orientation__answer">{caseText(month)}</FitText>
                   </article>
                 )}
 
                 {display.showSeason && (
-                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id} daily-orientation__card--speakable`} {...conceptCardProps("season")}>
+                  <article className={`daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--season daily-orientation__card--season-${season.id} daily-orientation__card--speakable${seasonUnchanged ? " daily-orientation__card--unchanged" : ""}`} {...conceptCardProps("season")}>
                     {/* Illustration on the top two thirds, muted; the band
                         underneath carries a small "Время года" over the
                         season's name (the caption on the picture itself read
@@ -1010,7 +1040,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     <div className="daily-orientation__season-picture" aria-hidden="true">
                       <img src={`/daily-orientation/season_${season.id}.webp`} alt="" draggable="false" />
                     </div>
-                    {cardSound && (
+                    {cardSound && !seasonUnchanged && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenSeason(activeDate, offset), seasonClipKeys(activeDate, offset));
@@ -1018,18 +1048,31 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     )}
                     <div className="daily-orientation__season-band">
                       <p className="daily-orientation__season-caption">{CAPTION_SEASON}</p>
-                      <FitText className="daily-orientation__answer">{season.label}</FitText>
+                      <FitText className="daily-orientation__answer">{caseText(season.label)}</FitText>
                     </div>
                   </article>
                 )}
               </div>
             )}
 
-            {showBottomRow && (
+            {dayPlan && (
+              <div className="daily-orientation__row">
+                <article className="daily-orientation__card daily-orientation__card--plan" {...conceptCardProps("week")}>
+                  <p className="daily-orientation__question">{offset < 0 ? "Что было вчера" : "Что будет завтра"}</p>
+                  <div className="daily-orientation__plan">
+                    {splitPlanIcon(dayPlan).icon && <span className="daily-orientation__plan-icon" aria-hidden="true">{splitPlanIcon(dayPlan).icon}</span>}
+                    <FitText className="daily-orientation__answer">{caseText(splitPlanIcon(dayPlan).text)}</FitText>
+                  </div>
+                </article>
+              </div>
+            )}
+
+            {showBottomRow && !dayPlan && (
               <div className="daily-orientation__row">
                 {display.showDaypart && (
                   <DaypartCard
                     daypartId={daypartId}
+                    caseText={caseText}
                     hidden={hideCurrentTime}
                     cardProps={conceptCardProps("daypart")}
                     speakerButton={cardSound && !hideCurrentTime && (
@@ -1057,7 +1100,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     {cardSound && weatherId && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        speakCard(getSpokenWeather(weatherId), weatherClipKeys(weatherId));
+                        speakCard(getSpokenWeather(weatherId));
                       }} />
                     )}
                     <p className="daily-orientation__question">{CAPTION_WEATHER}</p>
@@ -1065,10 +1108,13 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                       {weatherId ? (
                         <>
                           <WeatherMark id={weatherId} />
-                          <span>{WEATHER_LABEL_BY_ID[weatherId]}</span>
+                          <span>{caseText(WEATHER_LABEL_BY_ID[weatherId])}</span>
                         </>
                       ) : (
-                        <span>Добавить</span>
+                        <>
+                          <span className="daily-orientation__weather-unset-mark" aria-hidden="true">?</span>
+                          <span className="daily-orientation__weather-unset-label">Отметить</span>
+                        </>
                       )}
                     </div>
                   </article>
@@ -1079,7 +1125,8 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     {cardSound && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
-                        speakCard(getSpokenTime(now), timeClipKeys(now));
+                        if (spokenTime) speakCard(`Сейчас ${spokenClockSentence(now)}.`);
+                        else speakCard(getSpokenTime(now), timeClipKeys(now));
                       }} />
                     )}
                     {(display.showAnalogClock || display.showDigitalTime) && (
@@ -1094,11 +1141,18 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                         <strong
                           className="daily-orientation__time-words"
                           ref={timeWordsFit.wordsRef}
-                          aria-label={formatRussianClockTime(now)}
-                          style={{ "--fit-chars": longestWordLength(`${timeWords.hour} ${timeWords.minute}`) }}
+                          aria-label={spokenTime ? spokenClockSentence(now) : formatRussianClockTime(now)}
+                          style={{ "--fit-chars": longestWordLength(timeWordsText) }}
                         >
-                          <span className="daily-orientation__time-words-hour">{timeWords.hour}</span>
-                          <span className="daily-orientation__time-words-minute">{timeWords.minute}</span>
+                          {/* Hour half in the hour hand's colour, minute half in the
+                              minute hand's; "двадцать минут десятого" puts the
+                              minute half first. Only the first word is
+                              capitalised in sentence case. */}
+                          {(timeWordsMinuteFirst ? ["minute", "hour"] : ["hour", "minute"]).map((part, index) => (
+                            <span key={part} className={`daily-orientation__time-words-${part}`}>
+                              {index === 0 || !sentenceCase ? caseText(timeWords[part]) : timeWords[part]}
+                            </span>
+                          ))}
                         </strong>
                       )}
                     </div>

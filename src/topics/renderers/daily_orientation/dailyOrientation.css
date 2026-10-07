@@ -941,3 +941,49 @@
   -webkit-tap-highlight-color: transparent;
 }
 .daily-orientation__viewer-nav .daily-orientation__chevron { width: 28px; height: 28px; }
+
+/* ── Оценка темы, шаг 3 ───────────────────────────────────────────── */
+/* Вчера/Завтра: month and season that didn't change step back. */
+.daily-orientation__card--unchanged { opacity: .42; filter: saturate(.6); }
+
+/* What that day held (weekly plan), in the row that's otherwise empty on
+   Вчера/Завтра. */
+.daily-orientation__card--plan {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: var(--orientation-sage);
+  container-type: inline-size;
+}
+.daily-orientation__plan { display: flex; align-items: center; justify-content: center; gap: 28px; max-width: 100%; }
+.daily-orientation__plan-icon { font-size: 120px; line-height: 1; }
+.daily-orientation__card--plan .daily-orientation__answer { font-size: 96px; }
+
+/* Время суток: the current part is the answer -- as big as the other cards'. */
+.daily-orientation__daypart-step--current { font-size: 60px; }
+
+/* Weather not marked yet: a quiet "?" instead of a dashed empty box. */
+.daily-orientation__weather-display--unset {
+  border: 0;
+  padding: 0;
+  gap: 10px;
+}
+.daily-orientation__weather-unset-mark {
+  display: grid;
+  width: 120px;
+  height: 120px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(7, 61, 79, .06);
+  color: rgba(7, 61, 79, .35);
+  font-size: 72px;
+  font-weight: 900;
+}
+.daily-orientation__weather-unset-label { font-size: 24px; font-weight: 800; }
+
+/* Sentence case ("Среда", not "СРЕДА") everywhere the screen used capitals. */
+.daily-orientation--sentence-case .daily-orientation__carousel-item,
+.daily-orientation--sentence-case .daily-orientation__time-words { text-transform: none; }

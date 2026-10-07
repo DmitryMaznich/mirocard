@@ -109,6 +109,25 @@ export function buildDailyOrientationTopicRecord() {
             compact: true,
             section: "Режим дня",
           },
+          // "СРЕДА" or "Среда" on the cards -- one form everywhere, for a
+          // child who reads whole words.
+          letterCase: {
+            type: "enum",
+            label: { ru: "Буквы на карточках" },
+            values: ["upper", "sentence"],
+            labels: { ru: { upper: "ЗАГЛАВНЫЕ", sentence: "Обычные" } },
+            default: "upper",
+            section: "Что показывать",
+          },
+          // "девять часов двадцать минут" or "двадцать минут десятого".
+          timeWordsStyle: {
+            type: "enum",
+            label: { ru: "Время словами" },
+            values: ["exact", "spoken"],
+            labels: { ru: { exact: "Точно", spoken: "Как говорят дома" } },
+            default: "exact",
+            section: "Что показывать",
+          },
           // Speaker buttons on the cards. Off by default: the screen is used
           // with an adult and the child answers; switch on for a child who
           // can't say the answer, so the speaker becomes their voice.

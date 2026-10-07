@@ -6,9 +6,9 @@ import {
   WEEK_MONDAY_FIRST,
   addCalendarDays,
   daysInMonth,
-  daysWord,
   getSeason,
   monthEndingChange,
+  splitPlanIcon,
 } from "./timeUtils.js";
 import { eventsOnDate, isBirthdayType } from "@/features/importantDates/importantDates";
 import "./conceptModals.css";
@@ -89,7 +89,12 @@ export function WeekContent({ activeDate, today, plan, importantDates = [] }) {
                   <span aria-hidden="true">{isBirthdayType(item) ? "🎂" : item.icon}</span> {item.title}
                 </span>
               ))}
-              {plan[day] ? <span className="dom-week__plan">{plan[day]}</span> : null}
+              {plan[day] ? (
+                <span className="dom-week__plan">
+                  {splitPlanIcon(plan[day]).icon && <span className="dom-week__plan-icon" aria-hidden="true">{splitPlanIcon(plan[day]).icon}</span>}
+                  {splitPlanIcon(plan[day]).text}
+                </span>
+              ) : null}
             </li>
           );
         })}
@@ -179,10 +184,10 @@ export function DateContent({ activeDate, offset, today, importantDates = [] }) 
 }
 
 // ── Месяц ─────────────────────────────────────────────────────────────
-// All twelve, grouped by the season they belong to, each with its length:
-// month, number of days and time of year connected in one picture.
+// All twelve, grouped by the season they belong to: month and time of year
+// connected in one picture. (Each month's length used to be shown too --
+// not something this screen's children need, and one more thing to read.)
 export function MonthContent({ activeDate }) {
-  const year = activeDate.getFullYear();
   const activeMonth = activeDate.getMonth();
   return (
     <div className="dom">
@@ -196,9 +201,6 @@ export function MonthContent({ activeDate }) {
             </h3>
             <ol className="dom-months__list">
               {SEASON_MONTHS[seasonId].map((monthIndex) => {
-                // December belongs to the winter that starts this year, but
-                // January/February to the one that ends it -- lengths use the
-                // displayed date's year either way (only February varies).
                 const isActive = monthIndex === activeMonth;
                 return (
                   <li
@@ -207,7 +209,6 @@ export function MonthContent({ activeDate }) {
                     aria-current={isActive ? "true" : undefined}
                   >
                     <span className="dom-months__month-name">{capitalize(MONTHS_NOMINATIVE[monthIndex])}</span>
-                    <span className="dom-months__month-days">{daysWord(daysInMonth(year, monthIndex))}</span>
                   </li>
                 );
               })}
