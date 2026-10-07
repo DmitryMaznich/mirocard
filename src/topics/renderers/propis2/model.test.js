@@ -581,4 +581,16 @@ describe("digits and signs (captured 2026-10-06)", () => {
     const { placed } = layoutWideLinesIntoRows(["№2 №+ №3 №= №5#1"], map, undefined, true, 0.5);
     expect(placed[0].segments[0].strokes.length).toBeGreaterThan(5);
   });
+
+  it("stand on the slant grid like the letters: every start dot (but the bar of 7) on a line, also the digits inside a number; minus at the height of the bar of plus", () => {
+    const TAN = Math.tan((25 * Math.PI) / 180);
+    const CELL = 30;
+    const snap = (_r, x, y) => CELL * Math.round((x + y * TAN) / CELL) - y * TAN;
+    const offGrid = (d) => { const [x, y] = d.match(/-?\d*\.?\d+/g).map(Number); const u = (x + y * TAN) / CELL; return Math.abs(u - Math.round(u)); };
+    const strokes = layoutWideLinesIntoRows(["№1№4 №2№5 №6№9 №+ №= №0№8#1"], map, snap).placed[0].segments.flatMap((s) => s.strokes);
+    expect(strokes.length).toBe(14);
+    for (const s of strokes) expect(offGrid(s.d)).toBeLessThan(0.01);
+    const yOf = (label) => map.get(label).strokes.map((s) => s.d.match(/-?\d*\.?\d+/g).map(Number)[1]);
+    expect(yOf("№-")[0]).toBeCloseTo(yOf("№+")[0], 1);
+  });
 });

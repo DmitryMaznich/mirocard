@@ -1535,6 +1535,11 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
             ? prevToken.startX + ((prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) + pendingGap) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
             : (cursorX === null ? WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
         let startX = loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
+        // a digit inside a number («25») is set on the grid too, on the first slant line not left of where it would go (a sign is never written between lines)
+        if (loose && glyph.kind === "digit") {
+          startX = snapX(rowIndex, wantStartX, local.start[1]);
+          if (startX < wantStartX - 1e-6) startX = snapX(rowIndex, startX + CELL, local.start[1]);
+        }
         // A word is placed by the START of its first letter, but some letters (с а о д ...) have their ink to the LEFT of the start:
         // "любит спать" then touched ("любитспать"). The ink of the new word must stay clear of the previous word by a visible gap:
         // otherwise it moves on to the next slant line. Signs repeated in a row (samples, mixed sequences) keep their measured step: only a word next to something is checked.

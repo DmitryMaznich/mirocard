@@ -149,11 +149,90 @@ def xform(pt, s, x0):
     return np.array([pt[0] + SLANT * (s - 1.0) * h, BASE_DECK - h * s + DY])
 
 
-def fmt(cmds, s, x0):
+def to_deck(cmds, s, x0):
+    return [(c, [xform(p, s, x0) for p in ps]) for c, ps in cmds]
+
+
+def fmt(cmds):
+    return " ".join(c + " " + " ".join(f"{q[0]:.2f} {q[1]:.2f}" for q in ps) for c, ps in cmds)
+
+
+# One cell of the slant grid in deck units: 30 page units (5 mm on the wide row, the narrow row is the same at half scale) divided
+# by what the engine does to a glyph's x (stretch 1.806, then WIDE_SCALE = 48/52).
+GRID_CELL = 30.0 / (1.806 * 48.0 / 52.0)
+
+
+def grid_u(pt):
+    """Where a point is across the slant lines (its x carried down the slant to the baseline)."""
+    return pt[0] - SLANT * (BASE_DECK - pt[1])
+
+
+def off_grid(v):
+    """How far `v` (a difference of grid_u) is from a whole number of cells, signed."""
+    return v - GRID_CELL * round(v / GRID_CELL)
+
+
+def stem_of(cmds):
+    """Index of the first straight piece that runs along the slant (a stem: 1, 4, the upright of +), or None."""
+    for i, (c, ps) in enumerate(cmds):
+        if c != "L" or i == 0: continue
+        a, b = cmds[i - 1][1][-1], ps[-1]
+        if abs(b[1] - a[1]) > 15 and abs((a[0] - b[0]) / (b[1] - a[1]) - SLANT) < 0.03: return i
+    return None
+
+
+def shift_x(cmds, dx, upto=None):
+    """Moves a stroke sideways by dx; with `upto`, only its start moves by the whole dx, fading to nothing at command `upto`."""
+    n = len(cmds) if upto is None else upto
+    return [(c, [q + np.array([dx * (1.0 if upto is None else max(0.0, 1.0 - i / n)), 0.0]) for q in ps]) for i, (c, ps) in enumerate(cmds)]
+
+
+def on_grid(label, strokes):
+    """Puts the digit on the slant grid the way the letters are: the engine sets the START of the first stroke on a slant line,
+    so every other start point and every stem must be a whole number of cells from it (the stems then lie ON the lines and
+    every red start dot sits on a line). The hand drew them 0.2-0.3 of a cell off."""
+    u0 = grid_u(strokes[0][0][1][0])
     out = []
-    for c, ps in cmds:
-        out.append(c + " " + " ".join(f"{q[0]:.2f} {q[1]:.2f}" for q in (xform(p, s, x0) for p in ps)))
-    return " ".join(out)
+    for k, cmds in enumerate(strokes):
+        if k == 0 and label == "7":
+            # the downstroke of 7 was a slightly bent line steeper than the grid: it becomes a straight line along the slant, on the
+            # slant line nearest to where it ran; the top bar stretches/shrinks to the new corner, the start tick stays
+            corner = max(range(len(cmds)), key=lambda i: cmds[i][1][-1][0])
+            stem = [q for _, ps in cmds[corner + 1:] for q in ps]
+            u_stem = u0 + GRID_CELL * round((np.mean([grid_u(q) for q in stem]) - u0) / GRID_CELL)
+            top, foot = cmds[corner][1][-1], cmds[-1][1][-1]
+            new_top = np.array([u_stem + SLANT * (BASE_DECK - top[1]), top[1]])
+            new_foot = np.array([u_stem + SLANT * (BASE_DECK - foot[1]), foot[1]])
+            bar = cmds[2:corner + 1]  # after the tick (M, L)
+            dx = new_top[0] - top[0]
+            bar = [(c, [q + np.array([dx * (i + 1) / len(bar), 0.0]) for q in ps]) for i, (c, ps) in enumerate(bar)]
+            out.append(cmds[:2] + bar + [("L", [new_foot])])
+            continue
+        if k == 1 and label == "7":
+            # the cross bar of 7 is centred on the (moved) downstroke: crossing it in the middle matters more than its start dot
+            # being on a line (a bar a cell long cannot have both)
+            xs = [q[0] for _, ps in cmds for q in ps]
+            y = float(np.mean([q[1] for _, ps in cmds for q in ps]))
+            out.append(shift_x(cmds, u_stem + SLANT * (BASE_DECK - y) - (min(xs) + max(xs)) / 2))
+            continue
+        i = stem_of(cmds)
+        if k == 0:
+            # the start stays where the engine puts it; the stem gets a whole number of cells away by bending the lead-in (flag of 1)
+            out.append(shift_x(cmds, off_grid(grid_u(cmds[i - 1][1][-1]) - u0), upto=i - 1) if i and i > 1 else cmds)  # a stem that IS the start is on its line already
+        else:
+            ref = cmds[i - 1][1][-1] if i else cmds[0][1][0]
+            out.append(shift_x(cmds, -off_grid(grid_u(ref) - u0)))
+    return out
+
+
+def lift_to(cmds, dy):
+    """Moves a stroke up/down by `dy` along the slant (so it keeps its place on the slant grid)."""
+    return [(c, [np.array([q[0] - SLANT * dy, q[1] + dy]) for q in ps]) for c, ps in cmds]
+
+
+def bar_y(cmds):
+    ys = [q[1] for _, ps in cmds for q in ps]
+    return (min(ys) + max(ys)) / 2
 
 
 def main():
@@ -171,7 +250,13 @@ def main():
     for it in raw:
         allp = np.concatenate([parse(st["d"]) for st in it["strokes"]])
         x0 = float(allp[:, 0].min())
-        strokes = [{"d": fmt(stroke_path(st["d"]), s, x0)} for st in it["strokes"]]
+        paths = [stroke_path(st["d"]) for st in it["strokes"]]
+        if it["label"] == "-":
+            # the captured minus sat at the lower third of the digit (on the dashed line); it belongs at the height of the bar of «+»
+            plus = [stroke_path(st["d"]) for st in next(p for p in raw if p["label"] == "+")["strokes"]]
+            want = bar_y(min(plus, key=lambda c: np.ptp([q[1] for _, ps in c for q in ps])))  # the flat stroke of «+»
+            paths = [lift_to(c, want - bar_y(c)) for c in paths]
+        strokes = [{"d": fmt(c)} for c in on_grid(it["label"], [to_deck(c, s, x0) for c in paths])]
         glyphs.append({"label": "№" + it["label"], "kind": "digit", "strokes": strokes, "stretch": 1.806, "noJoin": True,
                        "sourceLabel": f"{it['label']} (захват 2026-10-06; сглажен, масштаб x{s:.3f} = высота заглавной, база y=62)"})
     OUT.write_text(json.dumps(glyphs, ensure_ascii=False, indent=1))
