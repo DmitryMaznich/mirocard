@@ -934,6 +934,7 @@ export function getBuiltinTopicAvatarPath(topicId) {
   if (topicId === "math_houses") return "media/avatar.svg";
   if (topicId === "propis") return "media/avatar_propis.svg";
   if (topicId === "addition_subtraction") return "media/avatar_operations.svg";
+  if (topicId === "place_value") return "media/avatar_place_value.svg";
   if (topicId?.startsWith("reading_")) return "media/avatar_reading.svg";
   if (topicId === "sentence_puzzle") return "media/avatar_sentence_puzzle.svg";
   if (topicId === "streak_tracker") return "media/avatar_streak_tracker.svg";
