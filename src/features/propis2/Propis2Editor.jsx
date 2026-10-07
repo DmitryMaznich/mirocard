@@ -282,7 +282,6 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
           <IconBtn label="Копии пунктиром" caption="Копии" on={rowEditable ? rowOpts.copies === "dash" : undefined} disabled={!rowEditable} onClick={() => patchSelected({ copies: rowOpts.copies === "dash" ? "solid" : "dash" })}><I.IconCopyDash /></IconBtn>
           <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
-          <IconBtn label="Повторить строку" caption="Повтор" on={selected ? Boolean(selected.marked) : undefined} disabled={!selected} onClick={() => patchSelected({ marked: !selected.marked })}><I.IconRepeat /></IconBtn>
           <span className="p2-sep" aria-hidden="true" />
           <div className="p2-seg" role="group" aria-label="Строка">
             <IconBtn label="Выше" caption="Выше" onClick={() => setRows(moveRow(page.rows, selectedIndex, -1))} disabled={!selected || selectedIndex === 0}><I.IconUp /></IconBtn>
