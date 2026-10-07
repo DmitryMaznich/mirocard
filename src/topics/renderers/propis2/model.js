@@ -214,7 +214,27 @@ export const pageMargin = (page) => (page?.margin === "left" || page?.margin ===
 export const rowMaxX = (page) => WIDE_ROW_MAX_X + (mmToNativeUnits(formatOf(page).wMm) - mmToNativeUnits(PRINT_PAGE_W_MM)) - (pageMargin(page) === "off" ? 0 : propis2MarginUnits());
 
 // Width of a line as the page lays it out: on the page's own grid (`snap` = what snapXFor gives for the page), not freely.
+// Widths are asked for again and again (the wrapping of a passage measures every growing prefix, on every key typed): kept per glyph
+// set and grid function (pageSnap gives the same function for the same page parameters).
+const WIDTH_CACHE = new WeakMap();
+const NO_SNAP = {};
+const cacheOf = (store, glyphMap, snap) => {
+  let bySnap = store.get(glyphMap);
+  if (!bySnap) { bySnap = new WeakMap(); store.set(glyphMap, bySnap); }
+  let m = bySnap.get(snap ?? NO_SNAP);
+  if (!m) { m = new Map(); bySnap.set(snap ?? NO_SNAP, m); }
+  if (m.size > 20000) m.clear();
+  return m;
+};
 export const lineWidth = (text, glyphMap, ruling, snap) => {
+  const cache = glyphMap ? cacheOf(WIDTH_CACHE, glyphMap, snap) : null;
+  const key = `${ruling}|${text}`;
+  if (cache?.has(key)) return cache.get(key);
+  const w = lineWidthNow(text, glyphMap, ruling, snap);
+  cache?.set(key, w);
+  return w;
+};
+const lineWidthNow = (text, glyphMap, ruling, snap) => {
   const rowSnap = snap ? Object.assign((_row, x, y) => snap(0, x, y), snap.cell ? { cell: { ...snap.cell, origin: () => snap.cell.origin(0) } } : {}) : undefined;
   const { placed } = layoutWideLinesIntoRows([text], glyphMap, rowSnap, false, ruling === "narrow" ? 0.5 : 1);
   return placed[0]?.segments?.[0]?.width ?? 0;
@@ -233,7 +253,16 @@ const indentUnitsOf = (text, ruling) => leadingSpaces(text) * TEXT_ROW_WIDE_DIAG
 
 // Greedy wrap of running text into lines that fit the printable width. A single word wider than
 // the line stays on its own line (the editor warns about it); nothing is cut.
+const WRAP_CACHE = new WeakMap();
 export function wrapPassage(text, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX_X, indentUnits = 0, snap) {
+  const cache = glyphMap ? cacheOf(WRAP_CACHE, glyphMap, snap) : null;
+  const key = `${ruling}|${maxX}|${indentUnits}|${text}`;
+  if (cache?.has(key)) return cache.get(key);
+  const lines = wrapPassageNow(text, glyphMap, ruling, maxX, indentUnits, snap);
+  cache?.set(key, lines);
+  return lines;
+}
+function wrapPassageNow(text, glyphMap, ruling, maxX, indentUnits, snap) {
   // words with the extra spaces typed before them: one space is the usual gap between words, every further space adds a
   // slant cell (an "_N" pseudo word for the engine); spaces at the start of the text are the row's indent, not a gap
   const words = [];

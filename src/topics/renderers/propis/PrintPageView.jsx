@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useRef, useCallback, useId } from "react";
+import { memo, useMemo, useState, useEffect, useRef, useCallback, useId } from "react";
 import { createPortal } from "react-dom";
 import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, WIDE_GRID_STRETCH, WIDE_ROW_MAX_X, paginateRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
@@ -241,6 +241,86 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
   return diagonalLineX(n, y, spacingUnits, diagonalShiftX);
 }
 
+// The ink of one row. A row that is not being animated is drawn by RowInk, which React skips while the row object is the same: the
+// layout keeps finished rows (wordEngine.js), so typing in one row of the page redraws only that row.
+function RowSegments({ segments, isActive = false, narrowRows = false, speedFactor = 1, evenSpeed = false }) {
+  return (
+    <>
+      {segments.map((seg, si) =>
+              seg.type === "cursive" ? (
+                <g key={si} transform={`translate(${seg.xOffset} 0)`}>
+                  {isActive ? (
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} evenSpeed={evenSpeed} />
+                  ) : (
+                    seg.trajectory.strokes.map((s, ssi) => (
+                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                    ))
+                  )}
+                </g>
+              ) : seg.type === "glyph" ? (
+                <g key={si} transform={`translate(${seg.xOffset} 0)`}>
+                  {seg.strokes.map((s, ssi) => (
+                    <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  ))}
+                </g>
+              ) : seg.type === "element" ? (
+                // "Элементы букв" -- always static ink (no tap/animation, see isElementRow
+                // above): the primary example, its start dot(s) and direction arrow(s), then
+                // the rest of the row filled with dashed trace-guide copies
+                // (wordEngine.js's buildRepeatChain) for the child to trace over on paper.
+                // One start dot per STROKE, not just the first: a multi-stroke element
+                // (01_pryamaya_liniya's two separate lines, 03_zaborchik_ploskie's four) is
+                // several disconnected pen-lifts, each needing its own "start here" mark.
+                <g key={si} transform={`translate(${seg.xOffset} 0)`}>
+                  {isActive && seg.trajectory ? (
+                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} evenSpeed={evenSpeed} />
+                  ) : seg.strokes.map((s, ssi) => (
+                    // dashed copies fade out along the row (wordEngine WIDE_FADE_END_X); a fully faded one keeps only its start dot
+                    s.opacity !== undefined && s.opacity <= 0.02 ? null : (
+                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} opacity={s.opacity} />
+                    )
+                  ))}
+                  {!isActive && seg.startPoints?.map((pt, pi) => (
+                    <circle key={pi} cx={pt[0]} cy={pt[1]} r={narrowRows ? NARROW_START_DOT_R : ELEMENT_START_DOT_R} fill={START_DOT_COLOR} />
+                  ))}
+                  {!isActive && seg.directionArrows?.map((a, ai) => a && a.long && (
+                    <g key={ai} fill="none" stroke={ARROW_COLOR} strokeWidth={1.1} strokeLinecap="round" strokeLinejoin="round">
+                      <path d={a.d} />
+                      <path d={a.head} />
+                    </g>
+                  ))}
+                  {!isActive && seg.directionArrows?.map((a, ai) => a && !a.long && (
+                    <g key={ai} transform={`translate(${a.point[0]} ${a.point[1]}) rotate(${a.angleDeg})`}>
+                      <path d={ARROW_PATH} fill={ARROW_COLOR} />
+                    </g>
+                  ))}
+                  {seg.repeatChain?.map((copy, ci) => (
+                    <g key={ci}>
+                      {copy.strokes.map((s, ssi) => (
+                        <path
+                          key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2}
+                          strokeLinecap="round" strokeLinejoin="round" strokeDasharray={REPEAT_DASH} opacity={REPEAT_OPACITY}
+                        />
+                      ))}
+                      {copy.startPoints?.map((pt, pi) => (
+                        <circle key={pi} cx={pt[0]} cy={pt[1]} r={narrowRows ? NARROW_START_DOT_R : ELEMENT_START_DOT_R} fill={START_DOT_COLOR} opacity={REPEAT_OPACITY} />
+                      ))}
+                    </g>
+                  ))}
+                </g>
+              ) : (
+                <text key={si} x={seg.xOffset} y={NATIVE_L3} fontSize={FALLBACK_FONT_SIZE} fontFamily="system-ui, sans-serif" fill={INK_COLOR}>
+                  {seg.text}
+                </text>
+              )
+            )}
+    </>
+  );
+}
+const RowInk = memo(function RowInk({ segments, narrowRows }) {
+  return <RowSegments segments={segments} narrowRows={narrowRows} />;
+});
+
 // One physical page's ruling + content, reused for both the interactive on-screen view (one
 // page at a time, tap-to-animate) and the print-only stacked view (every page, static ink,
 // see PrintPageView's own "propis-print-all" block). `activeIndex`/`onToggleActive` are
@@ -447,74 +527,9 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
                 }}
               />
             )}
-            {p.segments.map((seg, si) =>
-              seg.type === "cursive" ? (
-                <g key={si} transform={`translate(${seg.xOffset} 0)`}>
-                  {isActive ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} evenSpeed={Boolean(crop)} />
-                  ) : (
-                    seg.trajectory.strokes.map((s, ssi) => (
-                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                    ))
-                  )}
-                </g>
-              ) : seg.type === "glyph" ? (
-                <g key={si} transform={`translate(${seg.xOffset} 0)`}>
-                  {seg.strokes.map((s, ssi) => (
-                    <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                  ))}
-                </g>
-              ) : seg.type === "element" ? (
-                // "Элементы букв" -- always static ink (no tap/animation, see isElementRow
-                // above): the primary example, its start dot(s) and direction arrow(s), then
-                // the rest of the row filled with dashed trace-guide copies
-                // (wordEngine.js's buildRepeatChain) for the child to trace over on paper.
-                // One start dot per STROKE, not just the first: a multi-stroke element
-                // (01_pryamaya_liniya's two separate lines, 03_zaborchik_ploskie's four) is
-                // several disconnected pen-lifts, each needing its own "start here" mark.
-                <g key={si} transform={`translate(${seg.xOffset} 0)`}>
-                  {isActive && seg.trajectory ? (
-                    <AnimatedStrokes trajectory={seg.trajectory} tipSize="large" speedFactor={speedFactor} evenSpeed={Boolean(crop)} />
-                  ) : seg.strokes.map((s, ssi) => (
-                    // dashed copies fade out along the row (wordEngine WIDE_FADE_END_X); a fully faded one keeps only its start dot
-                    s.opacity !== undefined && s.opacity <= 0.02 ? null : (
-                      <path key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" strokeDasharray={s.dashed ? REPEAT_DASH : undefined} opacity={s.opacity} />
-                    )
-                  ))}
-                  {!isActive && seg.startPoints?.map((pt, pi) => (
-                    <circle key={pi} cx={pt[0]} cy={pt[1]} r={narrowRows ? NARROW_START_DOT_R : ELEMENT_START_DOT_R} fill={START_DOT_COLOR} />
-                  ))}
-                  {!isActive && seg.directionArrows?.map((a, ai) => a && a.long && (
-                    <g key={ai} fill="none" stroke={ARROW_COLOR} strokeWidth={1.1} strokeLinecap="round" strokeLinejoin="round">
-                      <path d={a.d} />
-                      <path d={a.head} />
-                    </g>
-                  ))}
-                  {!isActive && seg.directionArrows?.map((a, ai) => a && !a.long && (
-                    <g key={ai} transform={`translate(${a.point[0]} ${a.point[1]}) rotate(${a.angleDeg})`}>
-                      <path d={ARROW_PATH} fill={ARROW_COLOR} />
-                    </g>
-                  ))}
-                  {seg.repeatChain?.map((copy, ci) => (
-                    <g key={ci}>
-                      {copy.strokes.map((s, ssi) => (
-                        <path
-                          key={ssi} d={s.d} fill="none" stroke={INK_COLOR} strokeWidth={2}
-                          strokeLinecap="round" strokeLinejoin="round" strokeDasharray={REPEAT_DASH} opacity={REPEAT_OPACITY}
-                        />
-                      ))}
-                      {copy.startPoints?.map((pt, pi) => (
-                        <circle key={pi} cx={pt[0]} cy={pt[1]} r={narrowRows ? NARROW_START_DOT_R : ELEMENT_START_DOT_R} fill={START_DOT_COLOR} opacity={REPEAT_OPACITY} />
-                      ))}
-                    </g>
-                  ))}
-                </g>
-              ) : (
-                <text key={si} x={seg.xOffset} y={NATIVE_L3} fontSize={FALLBACK_FONT_SIZE} fontFamily="system-ui, sans-serif" fill={INK_COLOR}>
-                  {seg.text}
-                </text>
-              )
-            )}
+            {isActive
+              ? <RowSegments segments={p.segments} isActive narrowRows={narrowRows} speedFactor={speedFactor} evenSpeed={Boolean(crop)} />
+              : <RowInk segments={p.segments} narrowRows={narrowRows} />}
           </g>
         );
       })}
@@ -742,7 +757,15 @@ function drawnGridSnapX(step, margin, geom, narrow17 = false) {
 
 // The function that puts a letter's start on a line of the grid the page is drawn with (the layout and the text wrapping of
 // «Прописи 2» must use the SAME one: a word placed on the grid is wider than the same word measured freely).
-export function snapXFor({ narrowRows, simpleGrid, margin = "off", format = "a5", narrow17 = false }) {
+// The same function for the same page parameters (`cacheable`): the layout keeps finished rows per grid function (wordEngine.js).
+const SNAP_FNS = new Map();
+export function snapXFor(args) {
+  const key = JSON.stringify([args.narrowRows, args.simpleGrid, args.margin ?? "off", args.format ?? "a5", args.narrow17 ?? false]);
+  let fn = SNAP_FNS.get(key);
+  if (!fn) { fn = makeSnapX(args); fn.cacheable = true; SNAP_FNS.set(key, fn); }
+  return fn;
+}
+function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narrow17 = false }) {
   const geom = geomOf(format);
   if (simpleGrid === "square") return squareSnapFor(margin, geom);
   const dense = simpleGrid === "dense";

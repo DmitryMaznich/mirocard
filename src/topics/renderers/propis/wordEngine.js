@@ -1427,7 +1427,33 @@ const WIDE_SOLID_COPY_OPACITY = 0.35;
 // Row marks (sheet "capitals" page): "И#d" = the letter plus two extra red dots to its right where the next copies start
 // (the methodology's marked row), "И#c" = the clean row (no dots at all).
 const WIDE_MARK_COPY_CELLS = 6;
-export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
+// Rows are laid out independently of each other (a row only depends on its own line, its index, the grid and the glyphs), so with a
+// grid function that is stable for the page (`snapX.cacheable`: snapXFor gives the same function for the same page parameters) every
+// finished row is kept and reused: typing in one row of a page lays out only that row again, not the whole page.
+const WIDE_ROW_CACHE = new WeakMap(); // glyphsByLabel -> WeakMap(snapX) -> Map(key -> row)
+const WIDE_ROW_CACHE_MAX = 4000;
+export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
+  if (!snapX?.cacheable || !glyphsByLabel) return layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX, multiply, scale, maxX);
+  let bySnap = WIDE_ROW_CACHE.get(glyphsByLabel);
+  if (!bySnap) { bySnap = new WeakMap(); WIDE_ROW_CACHE.set(glyphsByLabel, bySnap); }
+  let rows = bySnap.get(snapX);
+  if (!rows) { rows = new Map(); bySnap.set(snapX, rows); }
+  if (rows.size > WIDE_ROW_CACHE_MAX) rows.clear();
+  const placed = lines.map((line, rowIndex) => {
+    const key = `${multiply ? 1 : 0}|${scale}|${maxX}|${rowIndex}|${line}`;
+    let row = rows.get(key);
+    if (!row) {
+      // the row alone, with the grid of ITS place on the page
+      const own = Object.assign((_r, x, y) => snapX(rowIndex, x, y), snapX.cell ? { cell: { ...snapX.cell, origin: () => snapX.cell.origin(rowIndex) } } : {});
+      row = { ...layoutWideLinesIntoRowsNow([line], glyphsByLabel, own, multiply, scale, maxX).placed[0], rowIndex };
+      rows.set(key, row);
+    }
+    return row;
+  });
+  return { placed, rowCount: Math.max(lines.length, 1) };
+}
+
+function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
   // squared paper: digits go into the cells of the grid (see cellGlyphLocal); letters are the copybook's letters, only smaller
   // (`cell.scale`: a lowercase letter 3/4 of a cell, a capital 1.5 cells), placed freely; `cell.origin(row)` = a vertical grid line, row-local x
   const cellGrid = snapX.cell ?? null;
