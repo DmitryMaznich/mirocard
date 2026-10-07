@@ -595,7 +595,7 @@ describe("digits and signs (captured 2026-10-06)", () => {
     expect(yOf("№-")[0]).toBeCloseTo(yOf("№+")[0], 1);
   });
 
-  it("on squared paper: one digit per cell, a cell tall, narrower than the cell; a number in neighbouring cells, the next token one cell further", () => {
+  it("on squared paper: one digit per cell, a cell tall, against the right side of the cell; a number in neighbouring cells, the next token one cell further", () => {
     const S = 30; // 5 mm
     const snap = Object.assign((_r, x) => x, { cell: { size: S, origin: () => 0 } });
     const seg = layoutWideLinesIntoRows(["№2№5 №3#1"], map, snap, false, 0.5).placed[0].segments[0];
@@ -607,10 +607,21 @@ describe("digits and signs (captured 2026-10-06)", () => {
     expect(cells[2] - cells[1]).toBe(2); // «3»: one cell skipped
     for (const [x0, x1, y0, y1] of glyphs) {
       const c = Math.floor((x0 + x1) / 2 / S);
-      expect(x0).toBeGreaterThanOrEqual(c * S); expect(x1).toBeLessThanOrEqual((c + 1) * S); // inside its cell
-      expect(x1 - x0).toBeLessThan(0.85 * S);
+      expect(x0).toBeGreaterThanOrEqual(c * S); // inside its cell
+      expect(x1).toBeCloseTo((c + 1) * S, 0); // and touching its RIGHT side
       expect(y1 - y0).toBeGreaterThan(0.9 * S); expect(y1 - y0).toBeLessThan(1.05 * S); // a cell tall
     }
+    // every digit: inside its cell, touching the right side
+    const all = layoutWideLinesIntoRows(["№1 №2 №3 №4 №5 №6 №7 №8 №9 №0#1"], map, snap, false, 0.5).placed[0].segments[0].strokes;
+    const byCell = new Map();
+    for (const st of all) {
+      const v = st.d.match(/-?\d*\.?\d+/g).map(Number); const xs = v.filter((_, i) => i % 2 === 0);
+      const c = Math.floor((Math.min(...xs) + Math.max(...xs)) / 2 / S);
+      const [lo, hi] = byCell.get(c) ?? [Infinity, -Infinity];
+      byCell.set(c, [Math.min(lo, ...xs), Math.max(hi, ...xs)]);
+    }
+    expect(byCell.size).toBe(10);
+    for (const [c, [lo, hi]] of byCell) { expect(lo).toBeGreaterThanOrEqual(c * S); expect(hi).toBeCloseTo((c + 1) * S, 0); }
   });
 
   it("squared paper has its own rows: a writing cell and an empty one (10 mm), and the editor finds them", () => {

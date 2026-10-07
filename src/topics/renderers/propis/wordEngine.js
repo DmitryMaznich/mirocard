@@ -1254,11 +1254,14 @@ function wideGlyphLocal(glyph, scale = 1) {
   return byScale.get(scale);
 }
 
-// «Прописи 2», squared paper: a digit stands in ONE cell, as tall as the cell, narrower than it and leaning less than on the slant
-// grid (a 25deg lean over a 5 mm cell would carry the digit out of its cell). The glyph as laid out for the row (`scale`) is
-// unslanted, brought down to the cell's height, narrowed by CELL_DIGIT_NARROW and leaned again by CELL_DIGIT_TAN, all about the baseline.
-const CELL_DIGIT_TAN = 0.2; // ~11deg: the foot of a digit 1 mm left of its top
-const CELL_DIGIT_NARROW = 0.75; // the width across the slant: ~2.5 mm instead of ~3.3 mm (with the lean, ~3.5 mm of the 5 mm cell)
+// «Прописи 2», squared paper: a digit stands in ONE cell, as tall as the cell, with the slant of the copybook (65deg, as the school
+// digit «1» runs from the top right corner of its cell to the middle of the bottom side). That lean alone takes ~half the cell's width
+// (2.3 mm of 5), so the digit is narrowed across the slant to CELL_DIGIT_WIDTH of the cell; the engine puts it against the RIGHT side
+// of its cell. The glyph as laid out for the row (`scale`) is unslanted, brought down to the cell's height, narrowed, leaned again,
+// all about the baseline.
+const CELL_DIGIT_WIDTH = 0.42; // the width across the slant, of a cell (~2.1 mm): with the lean the digit spans ~4.4 mm of the 5
+const CELL_SIGN_SPAN = 0.7; // a sign's width, of a cell, in the middle of it
+const CELL_DIGIT_NARROWER = { "№1": 0.6, "№4": 0.85, "№5": 0.9, "№7": 0.9 }; // these are narrower by nature (the stem of 1, the open 4)
 const CELL_LOCAL_CACHE = new WeakMap();
 function cellGlyphLocal(glyph, scale, cellSize) {
   let byKey = CELL_LOCAL_CACHE.get(glyph);
@@ -1268,7 +1271,19 @@ function cellGlyphLocal(glyph, scale, cellSize) {
     const base = wideGlyphLocal(glyph, scale);
     const t0 = Math.tan((25 * Math.PI) / 180);
     const ky = cellSize / ((WIDE_CAPTURE_BASELINE - WIDE_CAPTURE_CAP_TOP) * WIDE_SCALE * scale);
-    const map = (x, y) => { const h = WIDE_BASELINE_Y - y; return [CELL_DIGIT_NARROW * (x - h * t0) + ky * h * CELL_DIGIT_TAN, WIDE_BASELINE_Y - ky * h]; };
+    // width across the slant of the glyph as captured
+    const us = base.strokes.flatMap((st) => samplePath(st.d).map((q) => q[0] - (WIDE_BASELINE_Y - q[1]) * t0));
+    const mapWith = (k) => (x, y) => { const h = WIDE_BASELINE_Y - y; return [k * (x - h * t0) + ky * h * t0, WIDE_BASELINE_Y - ky * h]; };
+    let kx = (CELL_DIGIT_WIDTH * cellSize * (CELL_DIGIT_NARROWER[glyph.label] ?? 1)) / Math.max(1, Math.max(...us) - Math.min(...us));
+    if (/^№[^0-9]/.test(glyph.label ?? "")) {
+      // a sign (+ - = < >) is mostly horizontal: narrowing it across the slant would shrink its bars; it spans CELL_SIGN_SPAN of the cell
+      const pts = base.strokes.flatMap((st) => samplePath(st.d));
+      const span = (k) => { const xs = pts.map(([x, y]) => mapWith(k)(x, y)[0]); return Math.max(...xs) - Math.min(...xs); };
+      let lo = 0.05, hi = 3;
+      for (let i = 0; i < 30; i += 1) { const mid = (lo + hi) / 2; if (span(mid) < CELL_SIGN_SPAN * cellSize) lo = mid; else hi = mid; }
+      kx = lo;
+    }
+    const map = mapWith(kx);
     const strokes = base.strokes.map((st) => ({ ...st, d: mapCubicPoints(st.d, map) }));
     const xs = strokes.flatMap((st) => samplePath(st.d).map((q) => q[0]));
     byKey.set(key, { ...base, strokes, tail: null, start: getPathEndpoints(strokes[0].d).start, end: getPathEndpoints(strokes[base.exitStrokeIndex].d).end, contactDx: 0, minX: Math.min(...xs), maxX: Math.max(...xs) });
@@ -1573,7 +1588,9 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           if (tokenStartX !== null) k = cellNext ?? firstFree(cursorX + WIDE_PUNCT_GAP * scale);
           else if (prevToken) k = (prevToken.cellNext ?? firstFree(prevToken.inkMaxX + WIDE_PUNCT_GAP * scale)) + 1 + pendingGap;
           else k = firstFree(WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL);
-          startX = o + k * S + (S - (local.maxX - local.minX)) / 2 - local.minX + local.start[0];
+          // a digit touches the RIGHT side of its cell (as in the school cell: the «1» from the top right corner); a sign stands in the middle
+          const isSign = /^№[^0-9]/.test(label);
+          startX = (isSign ? o + k * S + (S - (local.maxX - local.minX)) / 2 - local.minX : o + (k + 1) * S - local.maxX) + local.start[0];
           cellNext = k + 1;
         } else if (loose && glyph.kind === "digit") {
           startX = snapX(rowIndex, wantStartX, local.start[1]);
