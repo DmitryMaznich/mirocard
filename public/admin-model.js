@@ -1,7 +1,10 @@
 export const STATUS_LABELS = {
   active: "Подтверждён",
   pending: "Ждёт подтверждения",
-  deleted: "Удалён",
+  deleted: "Доступ закрыт",
+  blocked: "Заблокирован",
+  deletion_pending: "Ожидает удаления",
+  purged: "Данные удалены",
 };
 export const PLAN_LABELS = {
   monthly: "Месяц",
@@ -11,6 +14,7 @@ export const PLAN_LABELS = {
   all_access: "Постоянный доступ",
 };
 export function accountName(a) {
+  if (a.status === "purged") return "Удалённый аккаунт";
   return (
     a.displayName ||
     [a.firstName, a.lastName].filter(Boolean).join(" ") ||
