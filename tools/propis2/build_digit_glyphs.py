@@ -187,6 +187,25 @@ def shift_x(cmds, dx, upto=None):
     return [(c, [q + np.array([dx * (1.0 if upto is None else max(0.0, 1.0 - i / n)), 0.0]) for q in ps]) for i, (c, ps) in enumerate(cmds)]
 
 
+def straight_signs(label, strokes):
+    """«<» and «>» are two straight lines through the tip (the hand curved the upper arm of «>»); the bar of «+» is two cells long
+    and crossed by the upright exactly in its middle (its start then stays on a slant line, as the upright is on one)."""
+    if label in "<>":
+        out = []
+        for cmds in strokes:
+            pts = [q for _, ps in cmds for q in ps]
+            tip = (max if label == ">" else min)(pts, key=lambda q: q[0])
+            out.append([("M", [pts[0]]), ("L", [tip]), ("L", [pts[-1]])])
+        return out
+    if label == "+":
+        bar, upright = strokes
+        y = bar[0][1][0][1]
+        (_, (a,)), (_, (b,)) = upright
+        xv = a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])
+        return [[("M", [np.array([xv - GRID_CELL, y])]), ("L", [np.array([xv + GRID_CELL, y])])], upright]
+    return strokes
+
+
 def on_grid(label, strokes):
     """Puts the digit on the slant grid the way the letters are: the engine sets the START of the first stroke on a slant line,
     so every other start point and every stem must be a whole number of cells from it (the stems then lie ON the lines and
@@ -256,7 +275,7 @@ def main():
             plus = [stroke_path(st["d"]) for st in next(p for p in raw if p["label"] == "+")["strokes"]]
             want = bar_y(min(plus, key=lambda c: np.ptp([q[1] for _, ps in c for q in ps])))  # the flat stroke of «+»
             paths = [lift_to(c, want - bar_y(c)) for c in paths]
-        strokes = [{"d": fmt(c)} for c in on_grid(it["label"], [to_deck(c, s, x0) for c in paths])]
+        strokes = [{"d": fmt(c)} for c in straight_signs(it["label"], on_grid(it["label"], [to_deck(c, s, x0) for c in paths]))]
         glyphs.append({"label": "№" + it["label"], "kind": "digit", "strokes": strokes, "stretch": 1.806, "noJoin": True,
                        "sourceLabel": f"{it['label']} (захват 2026-10-06; сглажен, масштаб x{s:.3f} = высота заглавной, база y=62)"})
     OUT.write_text(json.dumps(glyphs, ensure_ascii=False, indent=1))
