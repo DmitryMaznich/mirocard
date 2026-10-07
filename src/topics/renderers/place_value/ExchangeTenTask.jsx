@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DndContext, PointerSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors } from "@dnd-kit/core";
 import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
-import { CoinDragOverlay } from "./CoinLesson.jsx";
+import { CoinDragOverlay } from "./CoinDragOverlay.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import NumberAnswer from "./NumberAnswer.jsx";
 import TenFrame from "./TenFrame.jsx";

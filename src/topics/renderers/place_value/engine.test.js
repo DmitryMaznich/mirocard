@@ -10,9 +10,9 @@ const PLACE_VALUE_CARDS = [
 
 describe("generateTasks – build_number", () => {
   it("limits the introductory range to one ten and carries teaching choices into the task", () => {
-    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { maxTens: 9, maxOnes: 9, numberRange: "teens", buildApproach: "ready", askComposition: true, supportMode: "independent" });
+    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { maxTens: 9, maxOnes: 9, numberRange: "teens", prompt: "words", supportMode: "independent" });
     expect(tasks.every((t) => t.number >= 11 && t.number <= 19 && t.target.tens === 1)).toBe(true);
-    expect(tasks.every((t) => t.buildApproach === "ready" && t.askComposition && t.supportMode === "independent")).toBe(true);
+    expect(tasks.every((t) => t.prompt === "words" && t.supportMode === "independent")).toBe(true);
   });
   it("returns tasks of type build_number with number matching target", () => {
     const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 10, { maxOnes: 9 });
@@ -49,11 +49,11 @@ describe("generateTasks – build_number", () => {
     }
   });
 
-  it("maxTens not specified: tens digit defaults to the 1-3 range", () => {
+  it("maxTens not specified: tens digit defaults to the 1-5 range", () => {
     const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 30, { maxOnes: 9 });
     for (const t of tasks) {
       expect(t.target.tens).toBeGreaterThanOrEqual(1);
-      expect(t.target.tens).toBeLessThanOrEqual(3);
+      expect(t.target.tens).toBeLessThanOrEqual(5);
     }
   });
 
@@ -62,19 +62,11 @@ describe("generateTasks – build_number", () => {
     for (const t of tasks) expect(t.target.tens).toBe(1);
   });
 
-  it("task.maxTens reflects the configured value", () => {
-    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9, maxTens: 5 });
-    expect(tasks.every((t) => t.maxTens === 5)).toBe(true);
-  });
-
-  it("numericBlocks defaults to false when not specified", () => {
-    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9 });
-    expect(tasks.every(t => t.numericBlocks === false)).toBe(true);
-  });
-
-  it("numericBlocks follows the numericBlocks param", () => {
-    const tasks = generateTasks("build_number", PLACE_VALUE_CARDS, 5, { maxOnes: 9, numericBlocks: true });
-    expect(tasks.every(t => t.numericBlocks === true)).toBe(true);
+  it("prompt: digits by default, words, or a per-task mix", () => {
+    expect(generateTasks("build_number", PLACE_VALUE_CARDS, 5, {}).every((t) => t.prompt === "digits")).toBe(true);
+    expect(generateTasks("build_number", PLACE_VALUE_CARDS, 5, { prompt: "words" }).every((t) => t.prompt === "words")).toBe(true);
+    const mixed = generateTasks("build_number", PLACE_VALUE_CARDS, 60, { prompt: "mix" });
+    expect(new Set(mixed.map((t) => t.prompt))).toEqual(new Set(["digits", "words"]));
   });
 });
 

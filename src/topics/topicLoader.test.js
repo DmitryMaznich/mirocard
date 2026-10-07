@@ -818,11 +818,14 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
     expect(buildNumber.params.maxTens).toMatchObject({
-      type: "number", min: 1, max: 9, default: 3, label: { ru: "Максимум десятков" },
+      type: "number", min: 1, max: 9, default: 5, label: { ru: "Максимум десятков" },
     });
-    expect(buildNumber.ui.instruction).toBe("Собери число из монет и стопок");
-    expect(buildNumber.params.buildApproach.default).toBe("group");
-    expect(buildNumber.params.askComposition.default).toBe(false);
+    expect(buildNumber.ui.instruction).toBe("Положи нужное число стопок и монет");
+    expect(buildNumber.params.prompt.default).toBe("digits");
+    // Dropped in the rework: building tens from single coins moved to «Сложи по
+    // десять», and the extra composition question was removed.
+    expect(buildNumber.params).not.toHaveProperty("buildApproach");
+    expect(buildNumber.params).not.toHaveProperty("askComposition");
     expect(buildNumber.orientationLock).toBeNull();
   });
 

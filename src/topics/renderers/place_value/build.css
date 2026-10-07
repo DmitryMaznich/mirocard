@@ -1,0 +1,97 @@
+/* «Собери число» (BuildNumberTask). Zones, coins and answer buttons come from
+   exchange.css/group.css; here only the target number and the «Возьми» panel. */
+
+.bn-task { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+
+.gt-task .bn-ask {
+  font-size: 18px;
+  font-weight: 800;
+  color: #475569;
+}
+
+.gt-task .bn-target {
+  font-size: clamp(44px, 6vw, 64px);
+  font-weight: 900;
+  line-height: 1.05;
+  color: #1a1a2e;
+  font-variant-numeric: tabular-nums;
+}
+
+.gt-task .bn-target--words { font-size: clamp(30px, 4.4vw, 46px); }
+
+.bn-main { align-items: flex-start; }
+
+.bn-zones {
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+}
+
+.bn-zones .px-zone { min-height: calc(var(--coin-size) * 5.2 + 48px); }
+.bn-zones--wrong .px-zone { border-color: #ef4444; animation: px-shake 0.4s ease-in-out; }
+
+.bn-placed { cursor: pointer; touch-action: manipulation; }
+
+.bn-side {
+  flex: 0 0 auto;
+  width: calc(var(--coin-size) * 4.4 + 40px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bn-source {
+  padding: 10px 12px;
+  border: 2px solid #f3d9a4;
+  border-radius: 18px;
+  background: #fff7e6;
+}
+
+.bn-source h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #92400e;
+}
+
+.bn-source-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 14px;
+}
+
+.bn-take {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 72px;
+  padding: 10px 12px;
+  border: 2px solid #e5d3a8;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 0 #e5d3a8;
+  font: 800 14px Nunito, sans-serif;
+  color: #334155;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bn-take:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+.bn-take:disabled { opacity: 0.45; cursor: default; }
+
+.bn-caption {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+/* Phones: zones one above the other, the «Возьми» panel under them. */
+.gt-screen--narrow .bn-main { flex-direction: column; align-items: stretch; }
+.gt-screen--narrow .bn-zones { flex-direction: column; }
+.gt-screen--narrow .bn-zones .px-zone { width: auto; min-height: 0; }
+.gt-screen--narrow .bn-side { width: auto; }

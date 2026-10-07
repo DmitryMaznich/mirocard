@@ -1,96 +1,126 @@
-import { useRef, useState } from "react";
-import { DndContext, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
-import { CoinAnswer, CoinBoard, CoinDragOverlay, CoinLesson, CoinSource } from "./CoinLesson.jsx";
-import { useCoinExchange } from "./useCoinExchange.js";
-import { placeValueSentence } from "./placeValueLabels.js";
+import { Coin, TenStack } from "./CoinBlocks.jsx";
+import { placeValuePhrase, numberWords, pluralTens } from "./placeValueLabels.js";
+import "./place_value.css";
+import "./coins.css";
+import "./exchange.css";
+import "./group.css";
+import "./build.css";
+
+// «Собери число» — turn a number into a model. The number is given in digits
+// («47») or in words («сорок семь»); the child takes ready stacks and loose
+// coins (one tap = one stack / one coin, a tap on a placed item takes it back)
+// and presses «Проверить». No grouping of loose coins here (that's «Сложи по
+// десять») and no «here are ten» highlight: ten loose coins instead of a stack
+// is the child's own mistake to notice. See docs/place-value-methodology.md,
+// режим 3.
+
+const MAX_TENS = 9;
+const MAX_ONES = 19;
 
 export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
-  const [phase, setPhase] = useState("build");
-  const [placed, setPlaced] = useState({ tens: [], ones: [] });
-  const [selected, setSelected] = useState(null);
-  const [feedback, setFeedback] = useState("");
-  const [focus, setFocus] = useState(null);
-  const serial = useRef(0), boardRef = useRef(null);
-  const exchange = useCoinExchange(boardRef);
-  const ready = task.buildApproach === "ready", teaching = task.supportMode !== "independent";
-  const editable = phase === "build" && !exchange.busy;
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }));
-  const nextId = () => "build-" + serial.current++;
-  function clearFeedback() { setFeedback(""); setFocus(null); setSelected(null); }
-  function add(kind) {
-    if (!editable || (kind === "ten" && !ready)) return;
-    const side = kind === "ten" ? "tens" : "ones";
-    if (placed[side].length >= (side === "tens" ? 11 : 19)) {
-      setFeedback(side === "ones" ? "Собери десяток или убери лишние монеты" : "Убери лишние десятки");
-      return;
-    }
-    clearFeedback();
-    const id = nextId();
-    setPlaced((p) => ({ ...p, [side]: [...p[side], id] }));
-  }
-  function group() {
-    if (!editable || placed.ones.length < 10) return;
-    if (placed.tens.length >= 11) { setFeedback("Убери лишние десятки"); return; }
-    const coinIds = placed.ones.slice(0, 10), stackId = nextId();
-    exchange.start({ direction: "group", stackId, coinIds, commit: () => {
-      clearFeedback();
-      setPlaced((p) => ({ tens: [...p.tens, stackId], ones: p.ones.slice(10) }));
-    } });
-  }
-  function ungroup() {
-    if (!editable || !selected?.startsWith("tens:") || placed.ones.length > 9) return;
-    const stackId = selected.slice(5), coinIds = Array.from({ length: 10 }, nextId);
-    exchange.start({ direction: "ungroup", stackId, coinIds, commit: () => {
-      clearFeedback();
-      setPlaced((p) => ({ tens: p.tens.filter((id) => id !== stackId), ones: [...p.ones, ...coinIds] }));
-    } });
-  }
-  function remove() {
-    if (!editable || !selected) return;
-    const side = selected.startsWith("tens:") ? "tens" : "ones", id = selected.slice(5);
-    setPlaced((p) => ({ ...p, [side]: p[side].filter((item) => item !== id) }));
-    clearFeedback();
-  }
-  function mistake(message, side) {
-    setFeedback(teaching ? message : "Проверь число ещё раз"); setFocus(teaching ? side : null);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
-    return false;
-  }
+  const teaching = task.supportMode !== "independent";
+  const words = task.prompt === "words";
+  const [tens, setTens] = useState(0);
+  const [ones, setOnes] = useState(0);
+  const [solved, setSolved] = useState(false);
+  const [note, setNote] = useState("");
+  const [shake, setShake] = useState(false);
+  const [coinSize, setCoinSize] = useState(44);
+  const [narrow, setNarrow] = useState(false);
+  const mainRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const main = mainRef.current;
+    if (!main) return undefined;
+    const measure = () => {
+      const { width, height } = main.getBoundingClientRect();
+      if (!width || !height) return;
+      const isNarrow = width < 640;
+      const size = isNarrow
+        ? Math.min((width - 50) / 6.4, (height - 200) / 9, 40)
+        : Math.min((width - 170) / 17.8, (height - 60) / 5.6, 52);
+      setNarrow(isNarrow);
+      setCoinSize(Math.max(20, size));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(main);
+    return () => observer.disconnect();
+  }, []);
+
+  const edit = (fn) => { if (solved) return; fn(); setNote(""); };
   function check() {
-    if (!editable) return;
-    if (placed.ones.length >= 10) { setFeedback("Собери десяток из десяти монет"); setFocus("ones"); return; }
-    if (placed.tens.length !== task.target.tens) { mistake("Проверь десятки. Посчитай стопки", "tens"); return; }
-    if (placed.ones.length !== task.target.ones) { mistake("Проверь единицы. Посчитай отдельные монеты", "ones"); return; }
-    clearFeedback(); setPhase(task.askComposition ? "answerTens" : "done");
+    if (solved) return;
+    const { target } = task;
+    if (tens === target.tens && ones === target.ones) { setSolved(true); setNote(""); return; }
+    let message = "Проверь число ещё раз.";
+    if (teaching) {
+      if (tens > 0 && tens !== target.tens && tens === target.ones && ones === target.tens) {
+        message = `Ты положил ${tens} ${pluralTens(tens)} — это ${numberWords(tens * 10)}. А нужно ${numberWords(task.number)}.`;
+      } else if (ones > 9) {
+        message = "Отдельных монет больше девяти. Десять монет — это сколько стопок?";
+      } else if (tens !== target.tens) {
+        message = "Проверь десятки.";
+      } else {
+        message = "Проверь единицы.";
+      }
+    }
+    setNote(message);
+    setShake(true);
+    setTimeout(() => setShake(false), 450);
+    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
   }
-  function answer(guess) {
-    const side = phase === "answerTens" ? "tens" : "ones";
-    if (guess !== task.target[side]) return mistake(side === "tens" ? "Посчитай стопки десятков" : "Посчитай отдельные монеты", side);
-    clearFeedback(); setPhase(side === "tens" ? "answerOnes" : "done"); return true;
-  }
-  const title = phase === "done" ? "Правильно!" : phase === "answerTens" ? "Сколько десятков?" : phase === "answerOnes" ? "Сколько единиц?" : "Собери число";
-  return <DndContext sensors={sensors} onDragEnd={({ active, over }) => {
-    if (over?.id === "cm-ones" || over?.id === "cm-tens") add(active.data.current?.kind);
-  }}>
-    <CoinLesson className="cm-build" title={title} target={phase === "build" || phase === "done" ? task.number : undefined} solved={phase === "done"}
-      recap={phase === "done" ? task.target : undefined}
-      feedback={feedback || (phase === "done" ? placeValueSentence(task.target.tens, task.target.ones, task.number) : "")}
-      controls={phase.startsWith("answer") ? <CoinAnswer key={phase} maxDigits={1} onSubmit={answer} /> : phase === "done"
-        ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-        : <div className="cm-build-controls"><div className="cm-supply"><div className="cm-sources">{ready && <CoinSource kind="ten" disabled={!editable} onAdd={add} />}<CoinSource kind="coin" disabled={!editable} onAdd={add} /></div>
-          <Button variant="secondary" disabled={!editable || (!placed.tens.length && !placed.ones.length)} onClick={() => { setPlaced({ tens: [], ones: [] }); clearFeedback(); }}>Сначала</Button></div>
-          <Button disabled={!editable} onClick={check}>Проверить</Button></div>}>
-      <CoinBoard tens={placed.tens} ones={placed.ones} boardRef={boardRef} selected={selected}
-        onSelect={phase === "build" ? (key) => setSelected(key === selected ? null : key) : undefined}
-        disabled={!editable} dropZones pendingStack={exchange.pendingStack} pendingCoins={exchange.pendingCoins}
-        groupable={editable && placed.ones.length >= 10} onGroup={group} focus={focus || (phase === "answerTens" ? "tens" : phase === "answerOnes" ? "ones" : null)} />
-      {phase === "build" && <div className="cm-tools">
-        {selected && <Button variant="secondary" disabled={!editable} onClick={remove}>Убрать</Button>}
-        {selected?.startsWith("tens:") && <Button variant="secondary" aria-label="Разложить десяток" disabled={!editable || placed.ones.length > 9} onClick={ungroup}>Разложить</Button>}
+
+  const blocks = Math.ceil(ones / 10);
+  return <div className={`pv-screen px-screen gt-screen bn-screen${narrow ? " gt-screen--narrow" : ""}`} style={{ "--coin-size": `${coinSize}px` }}>
+    <header className="gt-task bn-task">
+      <span className="bn-ask">Собери число</span>
+      <span className={`bn-target${words ? " bn-target--words" : ""}`}>{words ? numberWords(task.number) : task.number}</span>
+    </header>
+    <div className="gt-main bn-main" ref={mainRef}>
+      <div className={`bn-zones${shake ? " bn-zones--wrong" : ""}`}>
+        <section className="px-zone px-zone--tens">
+          <h3><span className="px-chip" />Десятки</h3>
+          <div className="px-stacks">
+            {Array.from({ length: tens }, (_, i) => <button type="button" key={i} className="px-stack bn-placed" aria-label={`Убрать десяток ${i + 1}`}
+              disabled={solved} onClick={() => edit(() => setTens((t) => t - 1))}><TenStack /></button>)}
+          </div>
+        </section>
+        <section className="px-zone px-zone--ones">
+          <h3><span className="px-chip" />Единицы</h3>
+          <div className="px-coins">
+            {Array.from({ length: blocks }, (_, b) => <div key={b} className="px-coin-block">
+              {Array.from({ length: Math.min(10, ones - b * 10) }, (_, j) => <button type="button" key={j} className="px-coin bn-placed"
+                aria-label={`Убрать монету ${b * 10 + j + 1}`} disabled={solved} onClick={() => edit(() => setOnes((o) => o - 1))}><Coin /></button>)}
+            </div>)}
+          </div>
+        </section>
+      </div>
+      {!solved && <aside className="bn-side">
+        <div className="bn-source">
+          <h3>Возьми</h3>
+          <div className="bn-source-row">
+            <button type="button" className="bn-take" aria-label="Взять стопку" disabled={tens >= MAX_TENS}
+              onClick={() => edit(() => setTens((t) => Math.min(MAX_TENS, t + 1)))}><TenStack /><span>Стопку</span></button>
+            <button type="button" className="bn-take" aria-label="Взять монету" disabled={ones >= MAX_ONES}
+              onClick={() => edit(() => setOnes((o) => Math.min(MAX_ONES, o + 1)))}><Coin /><span>Монету</span></button>
+          </div>
+        </div>
+        <p className="bn-caption">Нажми на стопку или монету в зоне, чтобы убрать её</p>
+      </aside>}
+    </div>
+    <div className="px-bottom">
+      {!solved ? <>
+        {note && <div className="px-note" role="status">{note}</div>}
+        <Button disabled={!tens && !ones} onClick={check}>Проверить</Button>
+        <button type="button" className="px-undo" disabled={!tens && !ones} onClick={() => edit(() => { setTens(0); setOnes(0); })}>Сначала</button>
+      </> : <div className="px-done" role="status">
+        <span className="gt-number">{task.number}</span>
+        <div className="px-say">{placeValuePhrase(task.number)}</div>
+        <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
       </div>}
-    </CoinLesson>
-    <CoinDragOverlay />
-  </DndContext>;
+    </div>
+  </div>;
 }

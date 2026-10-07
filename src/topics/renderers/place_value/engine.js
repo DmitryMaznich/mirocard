@@ -17,15 +17,12 @@ function randomPlaceValueNumber(maxOnes, maxTens = 9) {
   return { tens, ones };
 }
 
-export function generateBuildNumberTask(card, maxOnes, maxTens, numericBlocks) {
+export function generateBuildNumberTask(card, maxOnes, maxTens) {
   const { tens, ones } = randomPlaceValueNumber(maxOnes, maxTens);
   return {
     type: "build_number",
     cardId: card.id,
     conceptId: card.conceptId,
-    maxOnes: Number(maxOnes),
-    maxTens: Number(maxTens),
-    numericBlocks: Boolean(numericBlocks),
     number: tens * 10 + ones,
     target: { tens, ones },
   };
@@ -86,14 +83,14 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   if (mode === "build_number") {
     if (!buildNumberCards.length) return [];
     const maxOnes = Number(params.maxOnes ?? 9);
-    const maxTens = params.numberRange === "teens" ? 1 : Number(params.maxTens ?? 3);
-    const numericBlocks = params.numericBlocks ?? false;
+    const maxTens = params.numberRange === "teens" ? 1 : Number(params.maxTens ?? 5);
+    const prompt = params.prompt ?? "digits";
     const tasks = [];
     for (let i = 0; i < count; i++) {
       tasks.push({
-        ...generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], maxOnes, maxTens, numericBlocks),
-        buildApproach: params.buildApproach ?? "group",
-        askComposition: Boolean(params.askComposition),
+        ...generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], maxOnes, maxTens),
+        // «Цифрами» / «Словами» / «Микс» — how the number is given (see BuildNumberTask).
+        prompt: prompt === "mix" ? (Math.random() < 0.5 ? "digits" : "words") : prompt === "words" ? "words" : "digits",
         supportMode: params.supportMode ?? "learning",
       });
     }
