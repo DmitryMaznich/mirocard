@@ -1540,7 +1540,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
         // otherwise it moves on to the next slant line. Signs repeated in a row (samples, mixed sequences) keep their measured step: only a word next to something is checked.
         if (!loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
           const lead = local.start[0] - local.minX;
-          for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + WIDE_WORD_MIN_GAP * (glyph.kind === "digit" ? 1.8 : 1) * scale; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
+          for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + WIDE_WORD_MIN_GAP * (glyph.kind === "digit" ? 1.2 : 1) * scale; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
         }
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));

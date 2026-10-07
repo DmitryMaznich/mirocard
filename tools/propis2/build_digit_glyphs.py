@@ -13,8 +13,8 @@ What it does to a capture (the hand shakes, the size is a guess):
   3. every piece between corners is smoothed (Gaussian along the arc length, the ends stay put) and refit as cubic Beziers;
      a piece that is straight within STRAIGHT_TOL (the signs, the stem of 1 and 4, the bar of 7) becomes an exact line;
   4. all pieces of a stroke go back into ONE path (the pen does not lift at a corner);
-  5. size: the base moves to y=62 (the deck's baseline) and everything is scaled by one factor so that a digit is as tall as a
-     capital letter (CAP_H), the signs keep their place relative to the digits.
+  5. size: the base moves to y=62 (the deck's baseline) and everything grows TALLER (not wider; the engine widens by itself) by one factor so that a digit is as tall as a
+     capital letter (CAP_H), keeping the slant; the signs keep their place relative to the digits.
 """
 import json, math, re
 from pathlib import Path
@@ -136,11 +136,17 @@ def stroke_path(d):
     return cmds
 
 
+SLANT = 0.4663  # tan of the slant of the capture grid (23 units of lean over 50 of height, the stem of the captured «1»)
 DY = 0.0  # one common vertical correction (set in main): the digits' feet stand on the baseline, as a whole group
 
 
 def xform(pt, s, x0):
-    return np.array([x0 + (pt[0] - x0) * s, BASE_DECK - (BASE_CAPTURE - pt[1]) * s + DY])
+    # TALLER, NOT WIDER: the engine itself stretches every glyph horizontally (stretch 1.806), so the captured widths are already
+    # meant to be widened; only the height grows by `s`. The lean of the strokes (SLANT = dx per unit of height, the grid's slant)
+    # is kept: a point at height h moves to height s*h and slides along the slant by SLANT*(s-1)*h, so the cross-section width of the
+    # digit stays what the hand drew and the strokes still run along the slant lines.
+    h = BASE_CAPTURE - pt[1]
+    return np.array([pt[0] + SLANT * (s - 1.0) * h, BASE_DECK - h * s + DY])
 
 
 def fmt(cmds, s, x0):
