@@ -105,8 +105,11 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     const maxOnes = Number(params.maxOnes ?? 9);
     const tasks = [];
     for (let i = 0; i < count; i++) {
+      const task = generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, Number(params.maxTens ?? 9), params.numberSet ?? "mixed");
       tasks.push({
-        ...generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, Number(params.maxTens ?? 9), params.numberSet ?? "mixed"),
+        ...task,
+        ...identifyLayout(task.number, params.layout ?? "places"),
+        seed: randomInt(1, 100000),
         supportMode: params.supportMode ?? "learning",
       });
     }
@@ -213,4 +216,19 @@ export function groupTenNumbers(range, count) {
     out.push(...round);
   }
   return out.slice(0, count);
+}
+
+// «Какое это число?» model layouts (docs/place-value-methodology.md, режим 2):
+// "places" — tens and ones in their own labelled zones; "mixed" — one shared
+// zone, loose coins placed left of the stacks (catches reading left to right:
+// 3 coins + 2 stacks → «32»); "over9" — one stack fewer and ten more loose
+// coins (34 shown as 2 stacks + 14 coins). "mix" picks one per task. "over9"
+// needs at least one ten, so it falls back to "places" for one-digit numbers.
+export function identifyLayout(number, setting) {
+  const tens = Math.floor(number / 10), ones = number % 10;
+  const choices = ["places", "mixed", "over9"];
+  let layout = setting === "mix" ? choices[randomInt(0, 2)] : choices.includes(setting) ? setting : "places";
+  if (layout === "over9" && tens === 0) layout = "places";
+  const model = layout === "over9" ? { tens: tens - 1, ones: ones + 10 } : { tens, ones };
+  return { layout, model };
 }
