@@ -632,16 +632,16 @@ describe("digits and signs (captured 2026-10-06)", () => {
     expect(Math.max(...minus) - Math.min(...minus)).toBeCloseTo(Math.max(...sum[1]) - Math.min(...sum[1]), 1);
   });
 
-  it("on squared paper a lowercase letter is a cell tall, a capital 1.5 cells, a tail at most 0.4 of a cell; words placed freely", () => {
+  it("on squared paper the letters keep the copybook's proportions: a lowercase letter 3/4 of a cell, a capital 1.5 cells, a tail 3/4; words placed freely", () => {
     const S = 30;
-    const snap = Object.assign((_r, x) => x, { cell: { size: S, origin: () => 0, scale: S / 48 } });
+    const snap = Object.assign((_r, x) => x, { cell: { size: S, origin: () => 0, scale: (0.75 * S) / 48 } });
     const BASE = 64; // the row's baseline, row-local
     const seg = (line) => layoutWideLinesIntoRows([line], map, snap, false).placed[0].segments[0];
     const ys = (sg) => sg.strokes.flatMap((st) => st.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, i) => i % 2));
     const xs = (sg) => sg.strokes.flatMap((st) => st.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, i) => i % 2 === 0));
-    expect(BASE - Math.min(...ys(seg("мама#1")))).toBeCloseTo(S, -0.5);
+    expect(BASE - Math.min(...ys(seg("мама#1")))).toBeCloseTo(0.75 * S, -0.5);
     expect(BASE - Math.min(...ys(seg("Б#1")))).toBeCloseTo(1.5 * S, -0.5);
-    expect(Math.max(...ys(seg("р#1"))) - BASE).toBeLessThanOrEqual(0.45 * S);
+    expect(Math.max(...ys(seg("р#1"))) - BASE).toBeCloseTo(0.75 * S, -0.5);
     // words are placed freely (no grid line), with the copybook's gap between them
     const two = seg("мама мама#1");
     expect(two.startPoints.length).toBe(2);

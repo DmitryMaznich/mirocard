@@ -1293,34 +1293,6 @@ function cellGlyphLocal(glyph, scale, cellSize) {
   return byKey.get(key);
 }
 
-// «Прописи 2», squared paper: letters. The row is laid out at the scale where a lowercase letter is one cell tall (`snapX.cell.scale`);
-// what rises above the lowercase band (capitals, б в) is halved (a capital is 1.5 cells, not 2) and what hangs below the baseline
-// (р у д з ц щ) is cut to CELL_LETTER_DOWN of its length: rows are one empty cell apart, and a tail of the row above must not meet
-// a capital of the row below in that cell. Moved along the slant (the lean stays 65deg); the lowercase band itself is untouched,
-// so the joins between letters stay exactly as they are.
-const CELL_LETTER_UP = 0.5;
-const CELL_LETTER_DOWN = 0.4;
-const CELL_LETTER_CACHE = new WeakMap();
-function cellLetterLocal(glyph, scale) {
-  let byScale = CELL_LETTER_CACHE.get(glyph);
-  if (!byScale) { byScale = new Map(); CELL_LETTER_CACHE.set(glyph, byScale); }
-  if (!byScale.has(scale)) {
-    const base = wideGlyphLocal(glyph, scale);
-    const t0 = Math.tan((25 * Math.PI) / 180);
-    const xh = WIDE_ZONE_UNITS * scale; // height of the lowercase band
-    const map = (x, y) => {
-      const h = WIDE_BASELINE_Y - y;
-      const h2 = h > xh ? xh + (h - xh) * CELL_LETTER_UP : h < 0 ? h * CELL_LETTER_DOWN : h;
-      return [x + (h2 - h) * t0, WIDE_BASELINE_Y - h2];
-    };
-    const mapD = (d) => mapCubicPoints(d, map);
-    const strokes = base.strokes.map((st) => ({ ...st, d: mapD(st.d) }));
-    const xs = strokes.flatMap((st) => samplePath(st.d).map((q) => q[0]));
-    byScale.set(scale, { ...base, strokes, tail: base.tail ? { ...base.tail, d: mapD(base.tail.d) } : null, start: map(...base.start), end: map(...base.end), minX: Math.min(...xs), maxX: Math.max(...xs) });
-  }
-  return byScale.get(scale);
-}
-
 function wideGlyphLocalCompute(glyph, scale = 1) {
   // Per-glyph horizontal stretch (wide.json `stretch`, default 1): the captured letters are
   // narrower than the workbook's (measured ~1.5x on п/т), widened with the slant kept at 65deg.
@@ -1456,8 +1428,8 @@ const WIDE_SOLID_COPY_OPACITY = 0.35;
 // (the methodology's marked row), "И#c" = the clean row (no dots at all).
 const WIDE_MARK_COPY_CELLS = 6;
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) => x, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
-  // squared paper: digits go into the cells of the grid (see cellGlyphLocal), letters are a cell tall (cellLetterLocal) and placed
-  // freely, like on the copybook (no vertical grid line); `cell.origin(row)` = a vertical grid line, row-local x; `cell.scale` = the letters' scale
+  // squared paper: digits go into the cells of the grid (see cellGlyphLocal); letters are the copybook's letters, only smaller
+  // (`cell.scale`: a lowercase letter 3/4 of a cell, a capital 1.5 cells), placed freely; `cell.origin(row)` = a vertical grid line, row-local x
   const cellGrid = snapX.cell ?? null;
   if (cellGrid?.scale) scale = cellGrid.scale;
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
@@ -1598,7 +1570,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX = (_row, x) 
           curNudge = pendingNudge;
           pendingTail = null;
         }
-        const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : cellGrid ? cellLetterLocal(glyph, scale) : wideGlyphLocal(glyph, scale);
+        const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
         const loose = Boolean(glyph.noJoin) && tokenStartX !== null; // punctuation inside a word: after the ink so far
         if (loose) { prevExit = null; prevExitStroke = -1; }
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.

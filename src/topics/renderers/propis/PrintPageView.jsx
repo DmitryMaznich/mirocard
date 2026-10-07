@@ -196,8 +196,9 @@ const wideBandHeight = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET;
 // one cell tall (wordEngine.js places it in its cell, `snapX.cell`).
 const SQUARE_PITCH = 2 * SQUARE_CELL;
 const SQUARE_FIRST_BASELINE = 2 * SQUARE_CELL;
-// letters on squared paper: a lowercase letter (the 48-unit band of the copybook at scale 1) one cell tall
-const SQUARE_LETTER_SCALE = SQUARE_CELL / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
+// letters on squared paper: the copybook's letters in the copybook's proportions, a lowercase letter (the 48-unit band at scale 1)
+// 3/4 of a cell tall, so a capital is 1.5 cells (the school norm for squared notebooks)
+const SQUARE_LETTER_SCALE = (0.75 * SQUARE_CELL) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
 const squareRowsOf = (geom) => Math.floor((geom.h - SQUARE_CELL - SQUARE_FIRST_BASELINE) / SQUARE_PITCH) + 1;
 export const squareRowsPerPage = (format) => squareRowsOf(geomOf(format));
 // y of the row-local origin of content row `row` of a squared page (the engine's baseline is row-local y = WIDE_BAND_BOTTOM_LOCAL)
