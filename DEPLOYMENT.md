@@ -44,6 +44,30 @@ curl -s https://app.mironium.com/api/version
 curl -s -o /dev/null -w "%{http_code}\n" https://app.mironium.com/
 ```
 
+### Remote administration
+
+Open `https://app.mironium.com/admin.html` from a desktop or mobile browser.
+The login page is public; every administrative API operation requires the
+server-side `MIROCARD_ADMIN_TOKEN` from Railway service variables. Never put
+that token in a URL, bookmark, repository, or message. Store it in a password
+manager and paste it into the login form. The panel retains it only in the
+current browser tab's session storage; logout clears it. The server secret
+itself has no automatic expiry and is revoked by changing the Railway variable.
+
+Use a cryptographically random secret of at least 32 bytes. Its current strength
+has not been verified by reading production credentials. A secret page name is
+not an authorization boundary. HTTPS protects the connection; the admin page
+uses a restrictive CSP, denies framing, disables indexing and caching, and
+bypasses the application's offline service worker. Failed credentials are
+limited to 20 attempts per client IP in 15 minutes using the backend's existing
+single-instance in-memory limiter. Correct credentials are not locked out by
+those attempts. This is a basic defense, not a distributed WAF or MFA.
+
+For stronger protection of user administration, add an identity-based login
+with MFA/passkeys and expiring server-managed sessions. Enforce that protection
+on the administrative API as well as the HTML page. A leaked bearer token
+currently grants full administrative access until the server secret is changed.
+
 ### Email delivery
 
 Email verification and password-reset emails send via the Resend HTTP API (`RESEND_API_KEY`, `backend/lib/mailer.mjs`), not SMTP — the old `mail.kaplieva.help` SMTP relay (unreachable from Railway's network) is no longer used for this. The `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS` variables may still linger on the Railway service from before the switch; they're dead config, not read by `mailer.mjs`.
