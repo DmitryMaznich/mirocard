@@ -9,6 +9,7 @@ import { useTimer } from "@/features/timer/TimerContext";
 
 const ASSESSMENT_LABELS = {
   independent: "Сам",
+  after_model: "После образца",
   after_text: "После текста",
   none: "Нет ответа",
   prompted: "С подсказкой",
@@ -115,6 +116,11 @@ export default function SessionSummary() {
         <div className="summary-topic-label">
           {getTopicTitle(topicRecord?.meta.title) || session.topicId}
           {sessionText ? ` · ${getTopicTitle(sessionText.title)}` : ""}
+          {session.topicId === "word_formation_soup" && session.paramsSnapshot?.materialSet === "transfer" ? " · Новые сочетания: перенос" : ""}
+          {session.topicId === "word_formation_soup" && session.modeId === "season_form_pick"
+            ? session.paramsSnapshot?.activityStage === "check" || session.paramsSnapshot?.materialSet === "transfer"
+              ? " · Проверка согласования" : " · Обучение согласованию"
+            : ""}
         </div>
 
         <div className="summary-check">✓</div>

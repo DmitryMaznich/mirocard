@@ -14,6 +14,23 @@ function makeSession(conceptIds, mistakeConceptIds, completedAt = new Date().toI
 }
 
 describe("computeConceptLevel", () => {
+  it("counts agreement checks rather than supported teaching as mastery", () => {
+    const session = { ...makeSession(["autumn"], []), topicId: "word_formation_soup", modeId: "season_form_pick", paramsSnapshot: { activityStage: "training" } };
+    expect(computeConceptLevel([session], "student_1", "word_formation_soup", "autumn")).toBe(0);
+    expect(computeConceptLevel([{ ...session, paramsSnapshot: { activityStage: "check" } }], "student_1", "word_formation_soup", "autumn")).toBe(1);
+  });
+  it("reports transfer separately from mastery on familiar material", () => {
+    const session = { ...makeSession(["fish"], []), topicId: "word_formation_soup", modeId: "pick_form", paramsSnapshot: { materialSet: "transfer" } };
+    expect(computeConceptLevel([session], "student_1", "word_formation_soup", "fish")).toBe(0);
+  });
+  it("does not count word formation models and prompted answers as mastery", () => {
+    const session = { ...makeSession(["fish"], []), topicId: "word_formation_soup", modeId: "pair_intro" };
+    const sessions = [session, { ...session, assessments: [{ conceptId: "fish", quality: "after_model" }] },
+      { ...session, assessments: [{ conceptId: "fish", quality: "prompted" }] }];
+    expect(computeConceptLevel(sessions, "student_1", "word_formation_soup", "fish")).toBe(0);
+    sessions.push({ ...session, assessments: [{ conceptId: "fish", quality: "independent" }] });
+    expect(computeConceptLevel(sessions, "student_1", "word_formation_soup", "fish")).toBe(1);
+  });
   it("returns 0 when no sessions include the concept", () => {
     const sessions = [makeSession(["jacket"], [])];
     expect(computeConceptLevel(sessions, "student_1", "clothes", "tshirt")).toBe(0);
