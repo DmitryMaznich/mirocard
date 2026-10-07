@@ -695,10 +695,16 @@ function usePinchZoom(wrapRef, contentRef) {
 // pages when the «Прописи 2» margin alternates.
 const rowContentX = (rowIndex, margin, geom, narrow17, square = false) => slotGeometry(Math.floor(rowIndex / perPageOf(geom, narrow17, square)), true, margin, geom).contentXUnits;
 
-// Squared paper: letters are not snapped (yet); digits go into cells: `cell` tells the engine the cell size and where, in the row's
-// own x, a vertical line of the grid is (the grid starts at the page's left edge, the content at the margin).
+// Squared paper: digits go into cells: `cell` tells the engine the cell size and where, in the row's own x, a vertical line of the grid
+// is (the grid starts at the page's left edge, the content at the margin). Letters snap to an UNDRAWN slant grid of their own cell
+// (the copybook's slant grid scaled with them): the joins of the copybook are measured on that grid; placed freely, every join came out
+// longer (most of all the ones leaving the bottom of a letter: э ж о), so the words are exactly the copybook's, only smaller.
 function squareSnapFor(margin, geom) {
-  const snap = (_rowIndex, x) => x;
+  const step = TEXT_ROW_WIDE_DIAGONAL_SPACING * SQUARE_LETTER_SCALE;
+  const snap = (_rowIndex, x, y) => {
+    const lean = (WIDE_BAND_BOTTOM_LOCAL - y) * WIDE_SLANT_TAN;
+    return Math.round((x - lean) / step) * step + lean;
+  };
   snap.cell = { size: SQUARE_CELL, scale: SQUARE_LETTER_SCALE, origin: (rowIndex) => -rowContentX(rowIndex, margin, geom, true, true) };
   return snap;
 }

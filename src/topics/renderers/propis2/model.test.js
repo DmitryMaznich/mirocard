@@ -648,6 +648,15 @@ describe("digits and signs (captured 2026-10-06)", () => {
     expect(two.startPoints[1][0] - Math.max(...xs(seg("мама#1")))).toBeGreaterThan(0);
   });
 
+  it("on squared paper a word is the copybook's word, only smaller: the letters snap to an undrawn slant grid of their own cell (joins of э ж о as on the copybook)", async () => {
+    const { snapXFor } = await import("../propis/PrintPageView.jsx");
+    const xs = (sg) => sg.strokes.flatMap((st) => st.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, i) => i % 2 === 0));
+    const width = (snap, w) => { const sg = layoutWideLinesIntoRows([w + "#1"], map, snap, false, 0.5).placed[0].segments[0]; return Math.max(...xs(sg)) - Math.min(...xs(sg)); };
+    const slant = snapXFor({ narrowRows: true, simpleGrid: "dense", narrow17: true });
+    const square = snapXFor({ narrowRows: true, simpleGrid: "square", narrow17: true });
+    for (const w of ["этаж", "эхо", "жуки", "мама", "Жора"]) expect(width(square, w) / width(slant, w)).toBeCloseTo(square.cell.scale / 0.5, 2);
+  });
+
   it("squared paper has its own rows: a writing cell and an empty one (10 mm), and the editor finds them", () => {
     const sq = { ...newPage("x"), gridKind: "square" };
     expect(rowsPerPage(sq)).toBe(20);
