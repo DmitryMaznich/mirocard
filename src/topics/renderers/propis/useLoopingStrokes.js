@@ -17,6 +17,11 @@ import { SPEED, easeInOut } from "./propisRuling.js";
 // own <g>, not in how the draw animation itself runs.
 // `evenSpeed`: constant pen speed (every stroke the same units/sec, no ease-in/out per stroke);
 // only the very last stroke slows slightly over its final stretch (see evenProgress).
+// With evenSpeed there is no pause between strokes either: where the pen leaves the paper (the bar of э, the dots of ё, the strokes
+// of Ж) it flies to the next stroke's start through the air, visible but faint, at AIR_SPEED times the writing speed; the only
+// slowing down is at the very end of the last stroke (the end of the word / letter).
+const AIR_SPEED = 2.5;
+const AIR_OPACITY = "0.45";
 const EVEN_TAIL_FROM = 0.88; // share of the last stroke after which the pen starts to slow
 const EVEN_TAIL_MIN = 0.45;  // relative speed at the very end
 function evenProgress(t) {
@@ -67,6 +72,7 @@ export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, lo
     const PAUSE = 260;
     const strokeCount = paths.length;
 
+    let lastPt = null; // where the pen left the paper (evenSpeed: the air move starts there)
     function runStroke(i) {
       if (i >= strokeCount) {
         if (tip) tip.setAttribute("opacity", "0");
@@ -81,14 +87,36 @@ export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, lo
       // onDone goes straight to runStroke(i + 1) so a continuous i + 1 never picks up a
       // second, redundant pause on top of this one.
       const el = g.querySelector(`[data-pr-anim="${i}"]`);
-      const pause = el?.getAttribute("data-pr-continuous") === "1" ? 0 : PAUSE;
+      const lifted = el?.getAttribute("data-pr-continuous") !== "1";
+      const done = (pt) => { lastPt = pt; runStroke(i + 1); };
+      if (evenSpeed) {
+        if (lifted && lastPt && el && tip) airMove(tip, lastPt, el.getPointAtLength(0), () => animStroke(g, i, tip, done));
+        else animStroke(g, i, tip, done);
+        return;
+      }
       const t = setTimeout(() => {
-        animStroke(g, i, tip, () => runStroke(i + 1));
-      }, pause);
+        animStroke(g, i, tip, done);
+      }, lifted ? PAUSE : 0);
       timersRef.current.push(t);
     }
 
     runStroke(0);
+  }
+
+  // the pen through the air from `a` to `b` (no ink), faint, at AIR_SPEED times the writing speed
+  function airMove(tip, a, b, onDone) {
+    const dist = Math.hypot(b.x - a.x, b.y - a.y);
+    const dur = (dist / (SPEED * AIR_SPEED * (speedRef.current || 1))) * 1000;
+    if (dur < 16) { onDone(); return; }
+    const t0 = performance.now();
+    function frame(now) {
+      const k = Math.min((now - t0) / dur, 1);
+      tip.setAttribute("transform", `translate(${a.x + (b.x - a.x) * k} ${a.y + (b.y - a.y) * k})`);
+      tip.setAttribute("opacity", AIR_OPACITY);
+      if (k < 1) rafRef.current = requestAnimationFrame(frame);
+      else onDone();
+    }
+    rafRef.current = requestAnimationFrame(frame);
   }
 
   function animStroke(g, idx, tip, onDone) {
@@ -115,8 +143,9 @@ export function useLoopingStrokes(containerRef, dependencyKey, { delayMs = 0, lo
         rafRef.current = requestAnimationFrame(frame);
       } else {
         el.setAttribute("stroke-dashoffset", 0);
-        if (tip) tip.setAttribute("opacity", "0");
-        onDone();
+        // evenSpeed: the pen stays in sight between strokes (it goes on, or flies to the next one); it disappears at the end only
+        if (tip && !evenSpeed) tip.setAttribute("opacity", "0");
+        onDone(pt);
       }
     }
     rafRef.current = requestAnimationFrame(frame);
