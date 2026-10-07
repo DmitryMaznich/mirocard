@@ -1,8 +1,10 @@
 import BuildNumberTask from "./BuildNumberTask.jsx";
 import IdentifyNumberTask from "./IdentifyNumberTask.jsx";
 import ExchangeTenTask from "./ExchangeTenTask.jsx";
+import GroupTenTask from "./GroupTenTask.jsx";
 
 const TASKS = {
+  group_ten: GroupTenTask,
   build_number: BuildNumberTask,
   identify_number: IdentifyNumberTask,
   exchange_ten: ExchangeTenTask,

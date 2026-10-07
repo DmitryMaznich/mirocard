@@ -10,6 +10,14 @@
   },
   "cards": [
     {
+      "id": "group_ten",
+      "conceptId": "group_ten",
+      "renderer": "place_value",
+      "params": {
+        "mode": "group_ten"
+      }
+    },
+    {
       "id": "build_number",
       "conceptId": "build_number",
       "renderer": "place_value",

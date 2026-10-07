@@ -1,0 +1,132 @@
+/* «Сложи по десять» (GroupTenTask). Shares the px- zones, coins, ten-frame
+   and answer row with «Обмен десятка» (exchange.css); only the heap and the
+   question list live here. --coin-size is set from JS (measures .gt-main). */
+
+.gt-task {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.gt-task b {
+  display: block;
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 900;
+  color: #1a1a2e;
+}
+
+.gt-task span {
+  font-size: 16px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.gt-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.gt-heap {
+  flex: 1 1 0;
+  max-width: 620px;
+  min-width: 0;
+}
+
+.gt-heap h3 { color: #334155; }
+
+.gt-heapbox {
+  flex: 1;
+  display: grid;
+  min-height: calc(var(--coin-size) * 3);
+}
+
+.gt-heap-cell {
+  position: relative;
+  min-width: var(--coin-size);
+  min-height: var(--coin-size);
+}
+
+.gt-heap-coin { position: absolute; }
+
+.gt-side {
+  flex: 0 0 auto;
+  width: calc(var(--coin-size) * 6.6 + 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gt-framecard .px-tenframe { margin-top: 0; }
+
+.gt-tens { width: auto; }
+.gt-tens .px-stacks { min-height: calc(var(--coin-size) * 2.2); }
+
+/* After «Больше не сложить»: tens left, ones right — the order of the digits. */
+.gt-main--sorted { align-items: flex-start; }
+.gt-main--sorted > .px-zone { width: calc(var(--coin-size) * 6.6 + 28px); }
+.gt-ones h3 small { font-size: 12px; font-weight: 700; color: #64748b; }
+
+.gt-finish { background: #fff; border: 2px solid #cbd5e1; }
+
+.gt-ask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gt-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 290px;
+}
+
+.gt-q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 8px 5px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.gt-q--tens { color: #92400e; }
+.gt-q--ones { color: #1e40af; }
+.gt-q--active { border-color: #3b82f6; box-shadow: 0 0 0 3px #dbeafe; }
+.gt-q--ok { border-color: #86efac; background: #f0fdf4; }
+
+.gt-q-value {
+  min-width: 56px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 24px;
+  font-weight: 900;
+  color: #1a1a2e;
+}
+
+.gt-q--ok .gt-q-value { border-color: #16a34a; color: #16a34a; }
+
+.gt-number {
+  font-size: 40px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Phones: heap on top, then the frame, then the stacks. */
+.gt-screen--narrow .gt-main { flex-direction: column; justify-content: flex-start; }
+.gt-screen--narrow .gt-heap { max-width: none; flex: 1 1 auto; }
+.gt-screen--narrow .gt-side { width: auto; }
+.gt-screen--narrow .gt-main--sorted > .px-zone { width: auto; }
+.gt-screen--narrow .gt-questions { min-width: 0; width: 100%; }

@@ -4,6 +4,8 @@ import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { CoinDragOverlay } from "./CoinLesson.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
+import NumberAnswer from "./NumberAnswer.jsx";
+import TenFrame from "./TenFrame.jsx";
 import { placeValuePhrase } from "./placeValueLabels.js";
 import "./place_value.css";
 import "./coins.css";
@@ -15,7 +17,8 @@ import "./exchange.css";
 // The app never exchanges on its own and never hints before the child is
 // stuck; about half of the tasks need no exchange at all (generateExchangeTask).
 // Same coins and stacks as the rest of the topic — the topic later leads on to
-// money. See docs/place-value-methodology.md, режим 4.
+// money — and the same ten-frame as «Сложи по десять» for building a ten.
+// See docs/place-value-methodology.md, режим 4.
 
 const HINT_DELAY_MS = 4000;
 
@@ -25,10 +28,9 @@ function initialModel(task) {
     ones: Array.from({ length: task.start.ones }, (_, i) => `o${i}`),
     tray: task.op === "get" ? Array.from({ length: task.k }, (_, i) => `g${i}`) : [],
     moved: 0,          // give: coins already given; get: coins already taken from the tray
-    mould: [],         // loose coins put into the empty form for a ten
+    frame: [],         // loose coins put into the ten-frame («Собери десяток»)
     broke: false,      // a ten was broken at least once (column: crossed tens digit)
     grouped: false,    // a ten was built at least once (column: carried 1)
-    newStack: null,    // id of a stack just built from the form (pop animation)
     serial: 0,
   };
 }
@@ -49,25 +51,6 @@ function OnesZone({ children, onEmptyTap }) {
     <h3><span className="px-chip" />Единицы</h3>
     <div className="px-coins">{children}</div>
   </section>;
-}
-
-// Compact answer row: the number frame, then two rows of five digit keys —
-// the coins above must stay readable while the child counts them.
-function NumberAnswer({ onSubmit }) {
-  const [digits, setDigits] = useState("");
-  const [wrong, setWrong] = useState(false);
-  return <div className="px-numanswer">
-    <output aria-label="Ответ" className={`px-frame${wrong ? " px-frame--wrong" : ""}`}>{digits || "?"}</output>
-    <div className="px-keys">
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => <button type="button" key={d} className="px-key"
-        onClick={() => { if (digits.length < 2) { setDigits((v) => v + d); setWrong(false); } }}>{d}</button>)}
-    </div>
-    <div className="px-answer-actions">
-      <button type="button" className="px-key px-key--erase" aria-label="Стереть цифру" disabled={!digits.length}
-        onClick={() => { setDigits((v) => v.slice(0, -1)); setWrong(false); }}>⌫</button>
-      <Button disabled={!digits.length} onClick={() => setWrong(!onSubmit(Number(digits)))}>Проверить</Button>
-    </div>
-  </div>;
 }
 
 function Column({ task, model, solved }) {
@@ -110,10 +93,10 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }));
 
   const actionDone = model.moved === task.k;
-  const ready = actionDone && model.ones.length <= 9 && model.mould.length === 0 && !exchange.busy;
+  const ready = actionDone && model.ones.length <= 9 && model.frame.length === 0 && !exchange.busy;
   const stuck = phase !== "act" ? null
     : give && !actionDone && model.ones.length === 0 ? "noOnes"
-      : actionDone && model.ones.length + model.mould.length >= 10 && model.mould.length < 10 ? "tooMany"
+      : actionDone && model.ones.length + model.frame.length >= 10 && model.frame.length < 10 ? "tooMany"
         : null;
 
   useEffect(() => { if (phase === "act" && ready) setPhase("answer"); }, [phase, ready]);
@@ -138,8 +121,8 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
       if (!width || !height) return;
       const narrow = width < 560;
       const size = narrow
-        ? Math.min((width - 48) / 6.4, (height - 110) / 9.6)
-        : Math.min((width - 84) / 13, (height - 64) / 5.4);
+        ? Math.min((width - 48) / 6.4, (height - 200) / 12)
+        : Math.min((width - 84) / 13, (height - 160) / 7);
       setStacked(narrow);
       setCoinSize(Math.max(20, Math.min(56, size)));
     };
@@ -153,7 +136,7 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     if (phase !== "act" || exchange.busy) return;
     const next = update(model);
     setHistory((h) => [...h, model]);
-    setModel({ ...next, newStack: next.newStack ?? null });
+    setModel(next);
     setNote(nextNote);
   }
   function undo() {
@@ -167,21 +150,29 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
       change((m) => ({ ...m, ones: m.ones.filter((x) => x !== id), moved: m.moved + 1 }));
       return;
     }
-    if (model.mould.length < 10 && model.tens.length < 9) change((m) => ({ ...m, ones: m.ones.filter((x) => x !== id), mould: [...m.mould, id] }));
+    if (model.frame.length < 10 && model.tens.length < 9) change((m) => ({ ...m, ones: m.ones.filter((x) => x !== id), frame: [...m.frame, id] }));
   }
   function takeFromTray() {
     if (give || !model.tray.length) return;
     change((m) => ({ ...m, ones: [...m.ones, m.tray[0]], tray: m.tray.slice(1), moved: m.moved + 1 }));
   }
-  function tapMould() {
-    if (model.mould.length === 10) {
-      change((m) => {
-        const id = `n${m.serial}`;
-        return { ...m, tens: [...m.tens, id], mould: [], grouped: true, newStack: id, serial: m.serial + 1 };
-      });
-    } else if (model.mould.length) {
-      change((m) => ({ ...m, ones: [...m.ones, m.mould[m.mould.length - 1]], mould: m.mould.slice(0, -1) }));
-    }
+  function returnFromFrame(id) {
+    change((m) => ({ ...m, frame: m.frame.filter((x) => x !== id), ones: [...m.ones, id] }));
+  }
+  function closeFrame() {
+    if (model.frame.length !== 10 || phase !== "act" || exchange.busy) return;
+    const stackId = `n${model.serial}`;
+    const coinIds = model.frame;
+    const snapshot = model;
+    const apply = (m) => ({ ...m, tens: [...m.tens, stackId], frame: [], grouped: true, serial: m.serial + 1 });
+    // Ten coins fly from the frame into the new stack (same flight as the
+    // other coin lessons); the stack stays hidden until they land.
+    const started = exchange.start({ direction: "group", stackId, coinIds, commit: () => {
+      setHistory((h) => [...h, snapshot]);
+      setModel(apply);
+      setNote("");
+    } });
+    if (!started) change(apply);
   }
   function breakStack(stackId) {
     if (phase !== "act" || exchange.busy || !model.tens.includes(stackId)) return;
@@ -197,7 +188,7 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     }
     const coinIds = Array.from({ length: 10 }, (_, i) => `b${model.serial}-${i}`);
     const snapshot = model;
-    const apply = (m) => ({ ...m, tens: m.tens.filter((x) => x !== stackId), ones: [...m.ones, ...coinIds], broke: true, newStack: null, serial: m.serial + 1 });
+    const apply = (m) => ({ ...m, tens: m.tens.filter((x) => x !== stackId), ones: [...m.ones, ...coinIds], broke: true, serial: m.serial + 1 });
     // The same ten-coins flight as the other coin lessons; the new coins stay
     // hidden (px-pending) until their flying copies land on them.
     const started = exchange.start({ direction: "ungroup", stackId, coinIds, commit: () => {
@@ -215,11 +206,11 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
   }
 
   const glowStacks = hintLevel >= 2 && stuck === "noOnes";
-  const glowMould = hintLevel >= 2 && stuck === "tooMany";
+  const glowFrame = hintLevel >= 2 && stuck === "tooMany";
   const hintText = stuck === "noOnes"
     ? (hintLevel >= 2 ? "Стопка — это 10 монет. Её можно разложить." : "Отдельных монет больше нет. Где ещё есть монеты?")
-    : "Отдельных монет больше девяти. Что можно из них сложить?";
-  const showMould = phase === "act" && (model.tens.length < 9 || model.mould.length > 0);
+    : (hintLevel >= 2 ? "Сложи десять монет в рамку — получится стопка." : "Отдельных монет больше девяти. Что можно из них сложить?");
+  const showFrame = phase === "act" && (model.tens.length < 9 || model.frame.length > 0);
   const sign = give ? "−" : "+";
   const blocks = Math.ceil(model.ones.length / 10);
 
@@ -237,16 +228,12 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
             <h3><span className="px-chip" />Десятки</h3>
             <div className="px-stacks">
               {model.tens.map((id, i) => <div key={id} data-stack-id={id}
-                className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}${model.newStack === id ? " px-new" : ""}`}>
+                className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>
                 <Stack id={id} index={i} onBreak={breakStack} disabled={phase !== "act" || exchange.busy} glow={glowStacks} coinSize={coinSize} />
               </div>)}
-              {showMould && <button type="button" className={`px-mould${model.mould.length === 10 ? " px-mould--full" : ""}${glowMould ? " px-glow" : ""}`}
-                aria-label={model.mould.length === 10 ? "Сложить стопку" : "Форма для десятка"} onClick={tapMould}>
-                <span className="cb-ten-stack">{model.mould.map((id) => <span key={id} className="cb-stack-coin" />)}</span>
-                <span className="px-mould-count">{model.mould.length}/10</span>
-              </button>}
             </div>
-            {model.mould.length === 10 && phase === "act" && <p className="px-mould-caption">Нажми — получится стопка</p>}
+            {showFrame && <TenFrame coinIds={model.frame} pendingIds={exchange.pendingCoins} onReturn={returnFromFrame} onClose={closeFrame}
+              disabled={phase !== "act" || exchange.busy} glow={glowFrame} />}
           </section>
           <OnesZone onEmptyTap={() => { if (teaching && stuck === "noOnes") setHintLevel((l) => Math.max(l, 1)); }}>
             {/* Blocks of ten (two rows of five), so 13 reads as 10 + 3 at a glance. */}

@@ -5,6 +5,7 @@ const PLACE_VALUE_CARDS = [
   { id: "build_number",    conceptId: "build_number",    renderer: "place_value", params: { mode: "build_number" } },
   { id: "identify_number", conceptId: "identify_number", renderer: "place_value", params: { mode: "identify_number" } },
   { id: "exchange_ten",    conceptId: "exchange_ten",    renderer: "place_value", params: { mode: "exchange_ten" } },
+  { id: "group_ten",       conceptId: "group_ten",       renderer: "place_value", params: { mode: "group_ten" } },
 ];
 
 describe("generateTasks – build_number", () => {
@@ -151,5 +152,35 @@ describe("generateTasks – exchange_ten", () => {
     const tasks = generateTasks("exchange_ten", PLACE_VALUE_CARDS, 20, { operation: "mixed", maxTens: 1 });
     expect(tasks.every((t) => t.start.tens === 1)).toBe(true);
     expect(tasks.filter((t) => t.needsExchange)).toHaveLength(10);
+  });
+});
+
+describe("generateTasks – group_ten", () => {
+  it("keeps each range inside its bounds and splits the number into tens and ones", () => {
+    const bounds = { teens: [11, 19], to49: [21, 49], round: [20, 40], mixed: [11, 49] };
+    for (const [numberRange, [min, max]] of Object.entries(bounds)) {
+      const tasks = generateTasks("group_ten", PLACE_VALUE_CARDS, 30, { numberRange });
+      expect(tasks).toHaveLength(30);
+      for (const t of tasks) {
+        expect(t.type).toBe("group_ten");
+        expect(t.number).toBeGreaterThanOrEqual(min);
+        expect(t.number).toBeLessThanOrEqual(max);
+        expect(t.tens * 10 + t.ones).toBe(t.number);
+        if (numberRange === "round") expect(t.ones).toBe(0);
+        if (numberRange === "to49") expect(t.ones).not.toBe(0);
+      }
+    }
+  });
+
+  it("does not repeat a number until the range is used up", () => {
+    const tasks = generateTasks("group_ten", PLACE_VALUE_CARDS, 9, { numberRange: "teens" });
+    expect(new Set(tasks.map((t) => t.number)).size).toBe(9);
+  });
+
+  it("carries the frame and support settings", () => {
+    const [task] = generateTasks("group_ten", PLACE_VALUE_CARDS, 1, { supportMode: "independent", showFrame: false });
+    expect(task).toMatchObject({ supportMode: "independent", showFrame: false, cardId: "group_ten" });
+    const [defaults] = generateTasks("group_ten", PLACE_VALUE_CARDS, 1, {});
+    expect(defaults).toMatchObject({ supportMode: "learning", showFrame: true });
   });
 });

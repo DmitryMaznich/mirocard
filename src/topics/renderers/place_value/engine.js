@@ -81,6 +81,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const buildNumberCards    = allCards.filter(c => c.params?.mode === "build_number");
   const identifyNumberCards = allCards.filter(c => c.params?.mode === "identify_number");
   const exchangeCards       = allCards.filter(c => c.params?.mode === "exchange_ten");
+  const groupTenCards       = allCards.filter(c => c.params?.mode === "group_ten");
 
   if (mode === "build_number") {
     if (!buildNumberCards.length) return [];
@@ -110,6 +111,22 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       });
     }
     return tasks;
+  }
+
+  if (mode === "group_ten") {
+    if (!groupTenCards.length) return [];
+    const numbers = groupTenNumbers(params.numberRange ?? "teens", count);
+    return numbers.map((number, i) => ({
+      type: "group_ten",
+      cardId: groupTenCards[i % groupTenCards.length].id,
+      conceptId: groupTenCards[i % groupTenCards.length].conceptId,
+      number,
+      tens: Math.floor(number / 10),
+      ones: number % 10,
+      seed: randomInt(1, 100000),
+      supportMode: params.supportMode ?? "learning",
+      showFrame: params.showFrame !== false,
+    }));
   }
 
   if (mode === "exchange_ten") {
@@ -169,4 +186,31 @@ function exchangeFlags(count) {
     [flags[i], flags[j]] = [flags[j], flags[i]];
   }
   return flags;
+}
+
+// «Сложи по десять»: how many loose coins lie in the heap. Ranges follow the
+// methodology: 11–19 (one stack), 20–49, round tens (nothing left over), or a
+// mix. Nothing above 49 — the point is grouping, and counting 60 coins one by
+// one only tires the child. Numbers don't repeat until the pool runs out.
+const GROUP_TEN_RANGES = {
+  teens: () => Array.from({ length: 9 }, (_, i) => 11 + i),
+  to49: () => Array.from({ length: 30 }, (_, i) => 20 + i).filter((n) => n % 10 !== 0),
+  round: () => [20, 30, 40],
+};
+
+export function groupTenNumbers(range, count) {
+  const pool = range === "mixed"
+    ? [...GROUP_TEN_RANGES.teens(), ...GROUP_TEN_RANGES.to49(), ...GROUP_TEN_RANGES.round()]
+    : (GROUP_TEN_RANGES[range] ?? GROUP_TEN_RANGES.teens)();
+  const out = [];
+  while (out.length < count) {
+    const round = [...pool];
+    for (let i = round.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [round[i], round[j]] = [round[j], round[i]];
+    }
+    if (out.length && round[0] === out[out.length - 1] && round.length > 1) [round[0], round[1]] = [round[1], round[0]];
+    out.push(...round);
+  }
+  return out.slice(0, count);
 }

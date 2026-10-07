@@ -523,7 +523,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // «Разменяй десяток» was replaced by «Обмен десятка» (exchange_ten); a stale
     // record must not keep the old mode around.
     expect(record.modes.find((m) => m.id === "regroup_ten")).toBeUndefined();
-    expect(record.modes.map((m) => m.id)).toEqual(["build_number", "identify_number", "exchange_ten"]);
+    expect(record.modes.map((m) => m.id)).toEqual(["group_ten", "build_number", "identify_number", "exchange_ten"]);
   });
 
   // Widget-type migration (a param's `type` changing between what a stale

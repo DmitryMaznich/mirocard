@@ -56,15 +56,15 @@ describe("ExchangeTenTask", () => {
     expect(h.container.querySelector(".px-note")).toBeNull();
   });
 
-  it("get: coins come from the tray, ten loose coins go into the form and become a stack", () => {
+  it("get: coins come from the tray, ten loose coins go into the ten-frame and become a stack", () => {
     const onCorrect = vi.fn();
     h.mount(ExchangeTenTask, get, { onCorrect });
     for (let i = 0; i < 5; i++) h.click("Взять монету 1");
     expect(count(".px-zone--ones .px-coin")).toBe(12);
     expect(h.container.textContent).not.toContain("Сколько стало?");
     for (let i = 0; i < 10; i++) h.click("Монета 1");
-    expect(count(".px-mould .cb-stack-coin")).toBe(10);
-    h.click("Сложить стопку");
+    expect(count(".px-tf .px-coin")).toBe(10);
+    h.click("Сложить в стопку"); h.flush();
     expect(count(".px-zone--tens .px-stack")).toBe(4);
     expect(count(".px-zone--ones .px-coin")).toBe(2);
     answer(42);
