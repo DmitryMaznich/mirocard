@@ -706,6 +706,10 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
   const dragStart = useRef(null);
   const lastSpokenAtRef = useRef(0);
   const display = resolveDisplayOptions(sessionParams);
+  // Card speakers are off unless the adult switches them on: the screen is
+  // always used with an adult and the child says the answer. They're for a
+  // child who can't say it -- then the speaker is the child's voice (AAC).
+  const cardSound = soundEnabled && sessionParams?.cardSound === true;
   const weeklyPlan = parseWeeklyPlan(sessionParams?.weeklyPlan);
   const { weatherId, selectWeather } = useTodaysWeather(getLocalDateKey(now));
   const activeDate = addCalendarDays(now, offset);
@@ -866,7 +870,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     className="daily-orientation__card daily-orientation__card--big daily-orientation__card--stacked daily-orientation__card--weekday daily-orientation__card--speakable"
                     {...conceptCardProps("week")}
                   >
-                    {soundEnabled && (
+                    {cardSound && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenWeekday(activeDate, offset), weekdayClipKeys(activeDate, offset));
@@ -879,7 +883,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
 
                 {display.showDayOfMonth && (
                   <article className="daily-orientation__card daily-orientation__card--narrow daily-orientation__card--stacked daily-orientation__card--date daily-orientation__card--speakable" {...conceptCardProps("date")}>
-                    {soundEnabled && (
+                    {cardSound && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenDate(activeDate, offset), dateClipKeys(activeDate, offset));
@@ -895,7 +899,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
 
                 {display.showMonth && (
                   <article className="daily-orientation__card daily-orientation__card--wide daily-orientation__card--stacked daily-orientation__card--date daily-orientation__card--speakable" {...conceptCardProps("month")}>
-                    {soundEnabled && (
+                    {cardSound && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenMonth(activeDate, offset), monthClipKeys(activeDate, offset));
@@ -915,7 +919,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     <div className="daily-orientation__season-picture" aria-hidden="true">
                       <img src={`/daily-orientation/season_${season.id}.webp`} alt="" draggable="false" />
                     </div>
-                    {soundEnabled && (
+                    {cardSound && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenSeason(activeDate, offset), seasonClipKeys(activeDate, offset));
@@ -937,7 +941,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                     daypartId={daypartId}
                     hidden={hideCurrentTime}
                     cardProps={conceptCardProps("daypart")}
-                    speakerButton={soundEnabled && !hideCurrentTime && (
+                    speakerButton={cardSound && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenDaypart(daypartId), daypartClipKeys(daypartId));
@@ -959,7 +963,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                       setIsWeatherPickerOpen(true);
                     }}
                   >
-                    {soundEnabled && weatherId && !hideCurrentTime && (
+                    {cardSound && weatherId && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenWeather(weatherId), weatherClipKeys(weatherId));
@@ -981,7 +985,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
 
                 {hasTime && (
                   <article className={timeCardClassName} aria-hidden={hideCurrentTime}>
-                    {soundEnabled && !hideCurrentTime && (
+                    {cardSound && !hideCurrentTime && (
                       <SpeakerButton onClick={(event) => {
                         event.stopPropagation();
                         speakCard(getSpokenTime(now), timeClipKeys(now));

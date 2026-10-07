@@ -22,7 +22,10 @@ describe("DailyOrientationRenderer", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
-    act(() => root.render(<DailyOrientationRenderer sessionParams={sessionParams} soundEnabled={soundEnabled} />));
+    // The tests that pass soundEnabled are about the speakers themselves, so
+    // they also switch on the topic's own "Озвучка карточек" (off by default).
+    const params = soundEnabled ? { cardSound: true, ...sessionParams } : sessionParams;
+    act(() => root.render(<DailyOrientationRenderer sessionParams={params} soundEnabled={soundEnabled} />));
   }
 
   function dateCards() {
@@ -168,6 +171,12 @@ describe("DailyOrientationRenderer", () => {
 
       expect(speakSpy).toHaveBeenCalledTimes(1);
       expect(speakSpy.mock.calls[0][0].text).toBe("Сегодня двадцать второе сентября.");
+    });
+
+    it("shows no speakers unless the adult turns on Озвучка карточек", () => {
+      stubSpeechSynthesis();
+      mountAt(new Date(2026, 8, 22, 14, 35), { cardSound: false }, true);
+      expect(container.querySelector(".daily-orientation__speaker-icon")).toBeNull();
     });
 
     it("cards no longer speak on a whole-card tap, and render no icon when sound is disabled", () => {

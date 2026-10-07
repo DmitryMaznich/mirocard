@@ -21,11 +21,13 @@ describe("daily orientation built-in mode", () => {
       "showDigitalTime",
       "wakeHour",
       "bedHour",
+      "cardSound",
       "importantDatesStyle",
       "weeklyPlan",
     ]);
     const switches = Object.entries(mode.params).filter(([key]) => key.startsWith("show")).map(([, param]) => param);
     expect(switches.every((param) => param.type === "boolean" && param.default === true)).toBe(true);
+    expect(mode.params.cardSound).toMatchObject({ type: "boolean", default: false });
     expect(mode.params.importantDatesStyle).toMatchObject({ type: "enum", default: "bright", values: ["bright", "calm", "off"] });
   });
 });

@@ -39,6 +39,10 @@ many important days aren't tied to a person.
     speaker button** (removed 2026-10-07 at the therapist's request): the
     screen is always used with an adult, and the sentence is for the child
     to say, not the tablet.
+  - Same reasoning for the whole screen: the cards' recorded-voice speakers
+    are now **off by default** (param `cardSound`, "Озвучка карточек" in the
+    topic settings). Kept, not deleted, for a child who can't say the answer
+    — for them the speaker is their voice (AAC).
 
 ## Phrase rules (why they look like this)
 

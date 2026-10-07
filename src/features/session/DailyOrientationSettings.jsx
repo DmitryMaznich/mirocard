@@ -288,6 +288,33 @@ export default function DailyOrientationSettings({ params, setParams, student, o
         </div>
       </section>
 
+      <section className="dos-section" aria-labelledby="dos-sound-title">
+        <header className="dos-section__head">
+          <h2 className="dos-section__title" id="dos-sound-title">Озвучка карточек</h2>
+          <p className="dos-section__hint">
+            Обычно не нужна: экран используется со взрослым, и отвечает ребёнок. Включите, если ребёнок
+            не может сказать ответ — тогда он нажимает кнопку на карточке, и планшет произносит ответ за него.
+          </p>
+        </header>
+        <div className="dos-subgroup">
+          <span className="dos-subgroup__label" id="dos-sound-label">Кнопка «Прослушать» на карточках</span>
+          <div className="dos-dates__styles" role="radiogroup" aria-labelledby="dos-sound-label">
+            {[[false, "Выключена"], [true, "Включена"]].map(([value, label]) => (
+              <button
+                key={label}
+                type="button"
+                role="radio"
+                aria-checked={(params.cardSound === true) === value}
+                className={`dos-chip${(params.cardSound === true) === value ? " dos-chip--on" : ""}`}
+                onClick={() => set({ cardSound: value })}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className={`dos-section${datesStyle === "off" ? " dos-section--muted" : ""}`} aria-labelledby="dos-dates-title">
         <header className="dos-section__head">
           <h2 className="dos-section__title" id="dos-dates-title">Важные даты</h2>

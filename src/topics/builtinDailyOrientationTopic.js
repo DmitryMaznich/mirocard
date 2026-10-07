@@ -109,6 +109,15 @@ export function buildDailyOrientationTopicRecord() {
             compact: true,
             section: "Режим дня",
           },
+          // Speaker buttons on the cards. Off by default: the screen is used
+          // with an adult and the child answers; switch on for a child who
+          // can't say the answer, so the speaker becomes their voice.
+          cardSound: {
+            type: "boolean",
+            label: { ru: "Озвучка карточек" },
+            default: false,
+            section: "Озвучка",
+          },
           // How the screen marks a day from the student's "Важные даты":
           // garland + warm background, the ribbon alone, or nothing at all.
           importantDatesStyle: {
