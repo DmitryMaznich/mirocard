@@ -21,7 +21,12 @@ export const P2_GLYPH_OVERRIDES = {
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24 },
-  "б": { tailStroke: 1, tailLift: true },
+  // repeatCells (the step of the copies when a sample is multiplied across the row): wide.json's step for б р х ж is smaller than the
+  // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
+  "б": { tailStroke: 1, tailLift: true, repeatCells: 4 },
+  "р": { repeatCells: 4 },
+  "х": { repeatCells: 4 },
+  "ж": { repeatCells: 5 },
   "э": { tailStroke: 2, tailLift: true },
   // capital У: whole, with its hook; the connector leaves its lowest point like о's and arrives where Ч's exit does (У is «как Ч»)
   "У": { joinFrom: { stroke: 0 }, joinLikeLabel: "о", joinEndLikeLabel: "Ч" },

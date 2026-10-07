@@ -571,6 +571,20 @@ describe("running text writes a repeated word in full", () => {
   });
 });
 
+describe("a sample multiplied across the row", () => {
+  it("never runs into its next copy: every letter keeps a gap to its copy (б р х ж had a step smaller than the letter)", () => {
+    const box = (sts) => { const xs = sts.flatMap((st) => st.d.match(/-?\d*\.?\d+/g).map(Number).filter((_, i) => i % 2 === 0)); return [Math.min(...xs), Math.max(...xs)]; };
+    const tooClose = [];
+    for (const l of "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯ") {
+      if (!map.has(l)) continue;
+      const n = layoutWideLinesIntoRows([`${l}#1`], map, undefined, false, 0.5).placed[0].segments[0].strokes.length;
+      const two = layoutWideLinesIntoRows([`${l} ${l}#1`], map, undefined, false, 0.5).placed[0].segments[0].strokes;
+      if (box(two.slice(n))[0] - box(two.slice(0, n))[1] < 0.3 * 15) tooClose.push(l);
+    }
+    expect(tooClose).toEqual([]);
+  });
+});
+
 describe("digits and signs (captured 2026-10-06)", () => {
   it("are glyphs of their own (№-labels), never joined, never reported as unsupported, and do not clash with elements 5-8", () => {
     expect(findUnsupported("№1№5 №+ №= №- №< №> №0", map)).toEqual([]);
