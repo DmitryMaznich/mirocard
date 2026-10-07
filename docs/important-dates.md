@@ -35,8 +35,10 @@ many important days aren't tied to a person.
     isn't a surprise in the morning;
   - calendar (Число modal) and week (День недели modal) show the dates;
   - param `importantDatesStyle`: `bright` | `calm` (ribbon only) | `off`.
-  - Nothing animates and nothing plays on its own; the ribbon's speaker uses
-    browser TTS (names are per family, so there are no recorded clips).
+  - Nothing animates and nothing plays on its own. The ribbons have **no
+    speaker button** (removed 2026-10-07 at the therapist's request): the
+    screen is always used with an adult, and the sentence is for the child
+    to say, not the tablet.
 
 ## Phrase rules (why they look like this)
 
@@ -57,5 +59,3 @@ many important days aren't tied to a person.
 - "?" button with adult question prompts on the day, by case:
   "У кого сегодня день рождения?" / "Кого поздравляем?" / "Кому подарим?" /
   "Сколько лет исполнилось?".
-- Recording the ribbon phrase in the parent's own voice (open question —
-  TTS vs. own voice — not decided yet).

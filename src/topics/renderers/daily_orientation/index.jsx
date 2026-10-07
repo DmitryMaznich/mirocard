@@ -572,6 +572,8 @@ function longestWordLength(text) {
 // days before it, a quieter ribbon counts down. Nothing animates and
 // nothing plays on its own: a sudden change to a familiar screen can upset
 // a child, and the countdown is there so the day doesn't come as a surprise.
+// No speaker on the ribbons, deliberately: the screen is always used with
+// an adult, and saying the sentence is the child's job, not the tablet's.
 
 const GARLAND_COLORS = ["#f59e0b", "#4a9b8f", "#e8684a", "#3b82f6", "#a855f7", "#22c55e"];
 const GARLAND_FLAGS = 23;
@@ -611,7 +613,7 @@ function Candle({ lit }) {
   );
 }
 
-function ImportantDayRibbon({ events, offset, date, pictureFor, speakerButton }) {
+function ImportantDayRibbon({ events, offset, date, pictureFor }) {
   return (
     <section className={`daily-orientation__important daily-orientation__important--day${events.length > 1 ? " daily-orientation__important--double" : ""}`} aria-label="Важный день">
       {events.map((item) => {
@@ -646,12 +648,11 @@ function ImportantDayRibbon({ events, offset, date, pictureFor, speakerButton })
           </div>
         );
       })}
-      {speakerButton}
     </section>
   );
 }
 
-function CountdownRibbon({ countdown, picture, speakerButton }) {
+function CountdownRibbon({ countdown, picture }) {
   const { item, daysLeft } = countdown;
   const { title, when } = countdownPhrase(item, daysLeft);
   const total = item.countdownDays;
@@ -677,7 +678,6 @@ function CountdownRibbon({ countdown, picture, speakerButton }) {
         })}
         <li className="daily-orientation__countdown-goal">{birthday ? "🎂" : item.icon}</li>
       </ol>
-      {speakerButton}
     </section>
   );
 }
@@ -849,21 +849,12 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
               offset={offset}
               date={activeDate}
               pictureFor={importantPicture}
-              speakerButton={soundEnabled && (
-                <SpeakerButton onClick={() => speakCard(dayEvents.map((item) => [dayPhrase(item, offset), item.type === "own_birthday" && offset === 0 ? agePhrase(item, activeDate) : null].filter(Boolean).join(" ")).join(" "))} />
-              )}
             />
           )}
           {countdown && (
             <CountdownRibbon
               countdown={countdown}
               picture={importantPicture(countdown.item)}
-              speakerButton={soundEnabled && (
-                <SpeakerButton onClick={() => {
-                  const { title, when } = countdownPhrase(countdown.item, countdown.daysLeft);
-                  speakCard(`${title} ${when.replace(/!$/, "")}.`);
-                }} />
-              )}
             />
           )}
 
