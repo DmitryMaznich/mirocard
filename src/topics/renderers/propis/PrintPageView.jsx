@@ -799,43 +799,21 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
   return fn;
 }
 
-// Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
-// no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
-// A long document can be shown in parts («Прописи 2»: a notebook whose pages are on different paper is laid out one run of pages at a
-// time): `pageBase` is the number of screen pages before this part, `pageTotal` the pages of the whole document, `onEdge(dir)` is
-// called when ‹ is pressed on the first page of the part (dir -1) or › on its last one (dir +1), `startAt` is the page of the part it opens on
-// (a number, or "last" when coming back from the next part), `onPageCount(n)` reports how many pages the part really takes. The page
-// counter, `onPageIndexChange` and the side of the margin (it alternates from page to page) follow the whole document.
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null }) {
-  const lettersByLabel = useMemo(() => {
-    const map = new Map();
-    for (const item of task?.letters ?? []) map.set(item.label ?? item.id, item);
-    return map;
-  }, [task]);
-
-  const connectorsByKey = useMemo(() => {
-    const map = new Map();
-    for (const item of task?.connectors ?? []) {
-      const key = `${item.fromLine}_${item.toLine}`;
-      const list = map.get(key);
-      if (list) list.push(item);
-      else map.set(key, [item]);
-    }
-    return map;
-  }, [task]);
-
-  const punctuationByLabel = useMemo(() => {
-    const map = new Map();
-    for (const item of task?.punctuation ?? []) map.set(item.label ?? item.id, item);
-    return map;
-  }, [task]);
-
-  const elementsByLabel = useMemo(() => {
-    const map = new Map();
-    for (const item of task?.elements ?? []) map.set(item.id, item);
-    return map;
-  }, [task]);
-
+// A task laid out and cut into pages, with what drawing a page of it needs (the viewer, and the print of a document in parts).
+function layoutTaskPages(task) {
+  const lettersByLabel = new Map();
+  for (const item of task?.letters ?? []) lettersByLabel.set(item.label ?? item.id, item);
+  const connectorsByKey = new Map();
+  for (const item of task?.connectors ?? []) {
+    const key = `${item.fromLine}_${item.toLine}`;
+    const list = connectorsByKey.get(key);
+    if (list) list.push(item);
+    else connectorsByKey.set(key, [item]);
+  }
+  const punctuationByLabel = new Map();
+  for (const item of task?.punctuation ?? []) punctuationByLabel.set(item.label ?? item.id, item);
+  const elementsByLabel = new Map();
+  for (const item of task?.elements ?? []) elementsByLabel.set(item.id, item);
   const lines = task?.lines ?? [];
   const wideRows = Boolean(task?.wideRows);
   const margin = task?.margin === "left" || task?.margin === "right" ? task.margin : "off";
@@ -846,28 +824,40 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   const square = wideRows && task?.simpleGrid === "square";
   const perPage = perPageOf(geom, narrow17, square);
   const useElements = Boolean(task?.useElements) && !wideRows;
-  const text = lines.join("\n");
-  const wideGlyphsByLabel = useMemo(() => {
-    const map = new Map();
-    // elements.json entries captured on the wide zone ride along by id (same capture grid, so
-    // they get the same grid stretch); wide.json glyphs win and also register their aliases.
-    for (const el of task?.elements ?? []) map.set(el.id, { label: el.id, kind: "element", strokes: el.strokes, stretch: WIDE_GRID_STRETCH, repeatCells: task?.wideElementRepeat?.[el.id] });
-    for (const item of task?.wideGlyphs ?? []) {
-      map.set(item.label, item);
-      for (const alias of item.aliases ?? []) map.set(alias, item);
-    }
-    return map;
-  }, [task]);
-
-  const layout = useMemo(
-    () => wideRows
-      ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, snapXFor({ narrowRows, simpleGrid: task?.simpleGrid, margin, format: geom.format, narrow17 }), true, narrowRows ? NARROW_SCALE : 1, rowMaxX)
-      : useElements
+  // elements.json entries captured on the wide zone ride along by id (same capture grid, so
+  // they get the same grid stretch); wide.json glyphs win and also register their aliases.
+  const wideGlyphsByLabel = new Map();
+  for (const el of task?.elements ?? []) wideGlyphsByLabel.set(el.id, { label: el.id, kind: "element", strokes: el.strokes, stretch: WIDE_GRID_STRETCH, repeatCells: task?.wideElementRepeat?.[el.id] });
+  for (const item of task?.wideGlyphs ?? []) {
+    wideGlyphsByLabel.set(item.label, item);
+    for (const alias of item.aliases ?? []) wideGlyphsByLabel.set(alias, item);
+  }
+  const layout = wideRows
+    ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, snapXFor({ narrowRows, simpleGrid: task?.simpleGrid, margin, format: geom.format, narrow17 }), true, narrowRows ? NARROW_SCALE : 1, rowMaxX)
+    : useElements
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
-      : layoutTextIntoRows(text, lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel),
-    [wideRows, narrowRows, task?.simpleGrid, margin, rowMaxX, geom, wideGlyphsByLabel, useElements, lines, elementsByLabel, text, lettersByLabel, connectorsByKey, punctuationByLabel]
-  );
-  const pages = useMemo(() => paginateRows(layout, wideRows ? perPageOf(geom, narrow17, square) : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) }), [layout, wideRows, task?.exactPages, geom, narrow17, square]);
+      : layoutTextIntoRows(lines.join("\n"), lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel);
+  const pages = paginateRows(layout, wideRows ? perPage : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) });
+  return { lines, wideRows, margin, geom, narrowRows, narrow17, square, perPage, useElements, pages, simpleGrid: task?.simpleGrid ?? null, midDash: task?.midDash !== false };
+}
+
+// Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
+// no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
+// A long document can be shown in parts («Прописи 2»: a notebook whose pages are on different paper is laid out one run of pages at a
+// time): `pageBase` is the number of screen pages before this part, `pageTotal` the pages of the whole document, `onEdge(dir)` is
+// called when ‹ is pressed on the first page of the part (dir -1) or › on its last one (dir +1), `startAt` is the page of the part it opens on
+// (a number, or "last" when coming back from the next part), `onPageCount(n)` reports how many pages the part really takes. The page
+// counter, `onPageIndexChange` and the side of the margin (it alternates from page to page) follow the whole document.
+// `printParts`: the tasks of ALL the parts, in order: printing then prints the whole document, every part on its own paper (the
+// pages numbered through, two A5 pages on an A4 sheet across the parts); without it the print is this task's pages.
+export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null, printParts = null }) {
+  const own = useMemo(() => layoutTaskPages(task), [task]);
+  const { lines, wideRows, margin, geom, narrowRows, narrow17, square, perPage, useElements, pages } = own;
+  // what printing prints: every page of the document with the paper it is laid out on
+  const printPages = useMemo(() => {
+    const parts = printParts?.length ? printParts.map((t) => (t === task ? own : layoutTaskPages(t))) : [own];
+    return parts.flatMap((part) => part.pages.map((page) => ({ page, part })));
+  }, [printParts, task, own]);
 
   const [pageIndex, setPageIndex] = useState(() => Math.max(0, Math.min(pages.length - 1, startAt === "last" ? pages.length - 1 : Number(startAt) || 0)));
   useEffect(() => { onPageIndexChange?.(pageBase + pageIndex); }, [pageIndex, pageBase, onPageIndexChange]);
@@ -1031,17 +1021,19 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
             {createPortal(
               <div className="propis-print-all" aria-hidden="true">
                 {geom.pairedSlots
-                  ? Array.from({ length: Math.ceil(pages.length / 2) }, (_, sheetIndex) => (
+                  ? Array.from({ length: Math.ceil(printPages.length / 2) }, (_, sheetIndex) => (
                     <div key={sheetIndex} className="propis-print-all__sheet">
                       {[0, 1].map((slot) => {
                         const pi = sheetIndex * 2 + slot;
-                        return <PrintPage key={slot} page={pages[pi] ?? []} pageIndex={pi} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} square={square} />;
+                        // the empty right half of the last sheet (an odd number of pages) is ruled like the page beside it
+                        const { page = [], part } = printPages[pi] ?? { part: printPages[pi - 1]?.part ?? own };
+                        return <PrintPage key={slot} page={page} pageIndex={pi} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />;
                       })}
                     </div>
                   ))
-                  : pages.map((pg, pi) => (
+                  : printPages.map(({ page, part }, pi) => (
                     <div key={pi} className="propis-print-all__sheet propis-print-all__sheet--a4">
-                      <PrintPage page={pg} pageIndex={pi} useElements={useElements} wideRows={wideRows} narrowRows={narrowRows} simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} square={square} />
+                      <PrintPage page={page} pageIndex={pi} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />
                     </div>
                   ))}
               </div>,

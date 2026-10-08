@@ -258,17 +258,24 @@ export default function Propis2Home({ db }) {
   }, [view.name, set, pagesById, glyphMap, partPages]);
   const partIndex = sections ? Math.min(part.index, Math.max(0, sections.list.length - 1)) : 0;
   const partSec = sections?.list[partIndex] ?? null;
-  const partKey = partSec ? `${partSec.key}|${partSec.pageIds.join()}` : ""; // the run's pages and paper (not its page counts)
+  // the runs' pages and paper (not their page counts): the tasks are rebuilt only when these change
+  const runsKey = sections ? sections.list.map((sec) => `${sec.key}|${sec.pageIds.join()}`).join("/") : "";
+  const taskOf = useCallback((paper, lines) => buildPageTask({ topicRecord, lines, narrowRows: paper.ruling === "narrow", grid: taskGrid(paper), midDash: paper.midDash, margin: pageMargin(paper), format: pageFormat(paper) }), [topicRecord]);
+  // one task per run: the viewer shows the open one, printing prints them all
+  const runTasks = useMemo(
+    () => (sections ? sections.list.map((sec) => taskOf(sec.paper, setToLines(set, pagesById, glyphMap, sec.pageIds))) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [runsKey, set, pagesById, glyphMap, taskOf],
+  );
   const showData = useMemo(() => {
     const isSet = view.name === "showSet" && set;
     if (!isSet && !(view.name === "show" && page)) return null;
     if (isSet && !partSec) return null;
     const paper = isSet ? partSec.paper : page;
-    const lines = isSet ? setToLines(set, pagesById, glyphMap, partSec.pageIds) : pageToLines(page, glyphMap);
-    const task = buildPageTask({ topicRecord, lines, narrowRows: paper.ruling === "narrow", grid: taskGrid(paper), midDash: paper.midDash, margin: pageMargin(paper), format: pageFormat(paper) });
+    const task = isSet ? runTasks[partIndex] : taskOf(page, pageToLines(page, glyphMap));
     return { isSet, ruling: paper.ruling, gridSource: paper, task };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view.name, page, set, partKey, pagesById, glyphMap, topicRecord]);
+  }, [view.name, page, set, runTasks, partIndex, glyphMap, taskOf]);
   const onPartPages = useCallback((n) => {
     const k = partSec?.pageIds.join();
     if (k) setPartPages((cur) => (cur[k] === n ? cur : { ...cur, [k]: n }));
@@ -295,6 +302,7 @@ export default function Propis2Home({ db }) {
             pageTotal: sections.total,
             startAt: part.startAt,
             onPageCount: onPartPages,
+            printParts: runTasks.length > 1 ? runTasks : null,
             onEdge: (dir) => { setFragment(null); setPart({ index: partIndex + dir, startAt: dir < 0 ? "last" : 0 }); },
           } : {})}
           onClose={() => { setFragment(null); if (view.from === "editor") setView({ ...view, name: "editor" }); else requestLeave(); }}
