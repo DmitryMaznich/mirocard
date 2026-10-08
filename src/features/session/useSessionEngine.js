@@ -1,3 +1,4 @@
+import { recordUsage } from "@/shared/hooks/useUsageTracking";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
@@ -283,6 +284,7 @@ export function useSessionEngine() {
   });
   const { getActiveDurationMs } = useActiveSessionTimer(
     Boolean(sessionState && sessionState.status !== "completed"),
+    sessionState?.id ?? sessionState?.startedAt,
   );
 
   // Recovery: if the session was built without adult cards (closeAdults not yet
@@ -360,7 +362,27 @@ export function useSessionEngine() {
     }
   }, [deckExhausted, topicRecord, activeModeId, mode?.excludeFromLoop, link, isReading, activeTextId, activeStudentId, activeTopicId, activeText, activeStudent, setActiveModeId]);
 
+  const completedUsageIds = useRef(new Set());
+  const currentUsageId = useRef(null);
+  useEffect(() => {
+    const id = sessionState?.id ?? (sessionState?.startedAt ? `session_${sessionState.startedAt}_${activeTopicId}` : null);
+    if (!id) return undefined;
+    currentUsageId.current = id;
+    const owner = useAppStore.getState().account?.id;
+    if (!owner) return undefined;
+    recordUsage("session_start", {id:`session-start:${id}`,sessionId:id,topicId:activeTopicId,mode:activeModeId,accountId:owner});
+    return () => {
+      currentUsageId.current = null;
+      // StrictMode cleanup is followed by the same effect synchronously.
+      queueMicrotask(() => {
+        if (currentUsageId.current === id || completedUsageIds.current.has(id)) return;
+        recordUsage("session_exit", {id:`session-exit:${id}`,sessionId:id,topicId:activeTopicId,mode:activeModeId,accountId:owner});
+      });
+    };
+  }, [sessionState?.id, activeTopicId, activeModeId]);
+
   async function finishSession(state) {
+    completedUsageIds.current.add(state.id ?? `session_${state.startedAt}_${activeTopicId}`);
     const cardEvents = cardLogger.getCardEvents();
     cardLogger.resetCardEvents();
 

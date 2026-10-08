@@ -105,6 +105,67 @@ async function fixture(viewport) {
       await route.fulfill({ json: { ok: true } });
       return;
     }
+    if (path.endsWith("/usage")) {
+      await route.fulfill({
+        json: {
+          measuredSince: "2026-10-08T08:00:00Z",
+          summary: {
+            foregroundMs: 120000,
+            timeSamples: 4,
+            hasUsage: true,
+            activeMs: 60000,
+            activeDays: 1,
+            visits: 1,
+            completed: 2,
+            topics: 1,
+            interrupted: 1,
+          },
+          topics: [
+            {
+              topicId: "beta",
+              opens: 3,
+              foregroundMs: 120000,
+              timeSamples: 4,
+              hasUsage: true,
+              activeMs: 60000,
+              completed: 2,
+              interrupted: 1,
+              unclosed: 0,
+              exerciseActiveMs: 40000,
+              measuredSessions: 1,
+              elapsedMs: 180000,
+              lastAt: "2026-10-08T09:00:00Z",
+              modes: { reading: 2 },
+            },
+          ],
+          features: [
+            {
+              screen: "session",
+              foregroundMs: 120000,
+              timeSamples: 4,
+              hasUsage: true,
+              activeMs: 60000,
+              views: 2,
+            },
+          ],
+          milestones: { registeredAt: "2026-10-01T12:00:00Z" },
+          technical: {
+            device: "Phone",
+            version: "1.0.2496",
+            received_at: "2026-10-08T09:00:00Z",
+          },
+          timeline: [
+            {
+              kind: "session_complete",
+              at: "2026-10-08T09:00:00Z",
+              topicId: "beta",
+              activeMs: 40000,
+            },
+          ],
+        },
+      });
+      return;
+    }
     await route.fulfill({
       json: path.endsWith("/accounts")
         ? accounts
@@ -383,6 +444,34 @@ test("mobile cards fit narrow screens and preserve sorting and account actions",
   await page.locator("#confirm-submit").click();
   await page.locator('[data-action="unblock"]').waitFor();
   assert.equal(await page.locator('[data-flag="planner"]').isDisabled(), true);
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
+test("usage tab shows topic statistics, period controls and mobile layout", async () => {
+  const { page, errors } = await fixture({ width: 390, height: 844 });
+  await page.locator("#search").fill("user1@example.test");
+  await page.locator("#accounts-body .name-button").click();
+  await page.locator('[data-action="usage-tab"]').click();
+  await page.locator(".usage-topic").waitFor();
+  await page.locator(".usage-topic summary").click();
+  assert.equal(await page.locator("#account-management").isVisible(), false);
+  assert.ok(
+    (await page.locator("#usage-content").textContent()).includes(
+      "Чтение: Стихи",
+    ),
+  );
+  await page.locator("#usage-period").selectOption("all");
+  await page.locator(".usage-topic").waitFor();
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+    true,
+  );
+  await page.screenshot({ path: "output/admin-qa/usage-mobile.png" });
+  await page.locator('[data-action="manage-tab"]').click();
+  assert.equal(await page.locator("#account-management").isVisible(), true);
   assert.deepEqual(errors, []);
   await page.close();
 });

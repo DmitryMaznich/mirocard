@@ -347,23 +347,24 @@
 
 .px-nb {
   display: grid;
-  grid-template-columns: repeat(3, 40px);
-  grid-template-rows: 22px 40px 40px 4px 40px;
+  --nb-cell: 40px;
+  grid-template-columns: repeat(3, var(--nb-cell));
+  grid-template-rows: calc(var(--nb-cell) * 0.55) var(--nb-cell) var(--nb-cell) 4px var(--nb-cell);
   width: max-content;
   margin: 0 auto;
   background-color: #f0f6ff;
   background-image:
     linear-gradient(rgba(140, 190, 255, 0.55) 1px, transparent 1px),
     linear-gradient(90deg, rgba(140, 190, 255, 0.55) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-size: var(--nb-cell) var(--nb-cell);
 }
 
 .px-nb-d {
   position: relative;
   display: grid;
   place-items: center;
-  padding-top: 8px;
-  font: 700 34px 'Primo', cursive;
+  padding-top: calc(var(--nb-cell) * 0.2);
+  font: 700 calc(var(--nb-cell) * 0.85) 'Primo', cursive;
   color: #1a1a2e;
   line-height: 1;
 }
@@ -392,7 +393,7 @@
   padding: 1px 0 0 4px;
   background: #fef3c7;
   color: #92400e;
-  font: 700 15px 'Primo', cursive;
+  font: 700 calc(var(--nb-cell) * 0.38) 'Primo', cursive;
   line-height: 1;
 }
 
@@ -579,10 +580,13 @@
 
 /* Narrow board (JS sets --stacked): tens above ones, each full width. */
 .px-screen--stacked .px-board { flex-direction: column; align-items: stretch; justify-content: flex-start; }
-.px-screen--stacked .px-board > .px-zone { min-height: 0; }
+.px-screen--stacked .px-board { overflow-y: auto; }
+/* Never squeeze a zone to nothing (the tray and column below take their share
+   first); if a phone is really short the board scrolls instead. */
+.px-screen--stacked .px-board > .px-zone { min-height: 0; flex-shrink: 0; }
 .px-screen--stacked .px-zone--tens,
 .px-screen--stacked .px-zone--ones { width: auto; }
-.px-screen--stacked .px-zone--ones { flex: 1 1 auto; }
+.px-screen--stacked .px-zone--ones { flex: 1 0 auto; }
 
 /* Phones / portrait: tray and column go under the coins. */
 @media (max-width: 720px) {
@@ -591,4 +595,7 @@
   .px-side { flex: 0 0 auto; flex-direction: row; }
   .px-side > * { flex: 1; min-width: 0; }
   .px-side .px-slots { --coin-size: 26px; }
+  .px-col { padding: 6px 8px; }
+  .px-col h3 { display: none; }
+  .px-nb { --nb-cell: 26px; }
 }

@@ -66,7 +66,16 @@ function plan(a) {
 }
 function topicLabel(id) {
   const title = catalog.find((t) => t.id === id)?.title;
-  return typeof title === "string" ? title : (title?.ru ?? id);
+  return typeof title === "string"
+    ? title
+    : (title?.ru ??
+        {
+          daily_orientation: "Сегодня",
+          streak_tracker: "5 из 5",
+          my_people: "Мои люди",
+          reading_dad_texts: "Рецепты планировщика",
+        }[id] ??
+        id);
 }
 function initials(a) {
   return accountName(a)
@@ -410,8 +419,8 @@ function renderDetail(a) {
       !assigned.some((x) => x.topicId === t.id),
   );
   $("account-content").innerHTML =
-    `<header class="detail-header"><div class="identity"><div class="avatar" aria-hidden="true">${esc(initials(a))}</div><div><p class="eyebrow">КАРТОЧКА ПОЛЬЗОВАТЕЛЯ</p><h2 id="account-title">${esc(accountName(a))}</h2><p class="detail-email">${a.status === "purged" ? "Личные данные очищены" : esc(a.email)}</p></div></div><button class="btn small" data-action="close" aria-label="Закрыть карточку">✕</button></header>
-    <div class="detail-body"><p id="detail-error" class="error" role="alert" hidden></p>
+    `<header class="detail-header"><div class="identity"><div class="avatar" aria-hidden="true">${esc(initials(a))}</div><div><p class="eyebrow">КАРТОЧКА ПОЛЬЗОВАТЕЛЯ</p><h2 id="account-title">${esc(accountName(a))}</h2><p class="detail-email">${a.status === "purged" ? "Личные данные очищены" : esc(a.email)}</p></div></div><button class="btn small" data-action="close" aria-label="Закрыть карточку">✕</button></header><div class="detail-tabs"><button class="btn" data-action="manage-tab" aria-pressed="true">Аккаунт</button><button class="btn" data-action="usage-tab" aria-pressed="false">Использование</button></div>
+    <div class="detail-body" id="account-management"><p id="detail-error" class="error" role="alert" hidden></p>
     <dl class="detail-meta"><div><dt>Статус аккаунта</dt><dd>${badge(a)}</dd></div><div><dt>Роль</dt><dd>${esc(ROLES[a.role] ?? a.role ?? "Не указана")}</dd></div><div><dt>Дата регистрации</dt><dd>${date(a.createdAt, true)}</dd></div><div><dt>ID пользователя</dt><dd>${esc(a.id)}</dd></div><div><dt>Последний визит</dt><dd>${date(a.lastSeenAt, true)}</dd></div><div><dt>Рассылки</dt><dd>${a.marketingOptIn ? "Согласие получено" : "Нет согласия"}</dd></div></dl>
     ${deleted ? '<p class="access-note">Доступ к аккаунту закрыт. Изменение функций и назначений недоступно.</p>' : a.status === "pending" ? '<div class="detail-section access-note">Email не подтверждён. Подтвердите его вручную, если личность пользователя проверена.<br><button class="btn small" data-action="verify">Подтвердить email</button></div>' : ""}
     <section class="detail-section"><div class="section-title"><h3>Активность</h3><button class="btn small" data-action="sessions">История занятий</button></div><div class="detail-stats"><div class="detail-stat"><strong>${a.openCount ?? 0}</strong><small>открытий приложения</small></div><div class="detail-stat"><strong>${a.sessions7d ?? 0}</strong><small>занятий за 7 дней</small></div><div class="detail-stat"><strong>${a.sessionsTotal ?? 0}</strong><small>занятий всего</small></div></div>
@@ -419,7 +428,7 @@ function renderDetail(a) {
     <section class="detail-section"><div class="section-title"><h3>Подписка и доступ</h3></div><div class="access-note"><strong>${esc(plan(a))}</strong>${a.subscription && a.subscription.plan !== "all_access" ? ` · до ${date(a.subscription.currentPeriodEnd, true)}${a.subscription.cancelAtPeriodEnd ? " · отмена в конце периода" : ""}` : ""}<br>Подписка открывает опубликованные платные темы. Отдельные назначения ниже дают доступ к beta- и индивидуальным темам.</div>
     <div class="topic-list">${assigned.length ? assigned.map((t) => `<div class="topic-item"><div>${esc(topicLabel(t.topicId))}<small>${t.assignment ? "Назначение администратора" : t.source === "paid" ? "Покупка" : t.source === "free" ? "Бесплатная тема" : "Выданный доступ"} · ${date(t.assignedAt ?? t.acquiredAt)}</small></div>${!deleted && (t.assignment || ["grant", "assigned"].includes(t.source)) ? `<button class="btn small" data-action="revoke" data-topic="${esc(t.topicId)}">Отозвать</button>` : ""}</div>`).join("") : '<p class="empty-note">Отдельных назначений нет.</p>'}</div>
     ${!deleted ? `<div class="grant-form"><select id="grant-topic" aria-label="Тема для назначения" ${!catalogLoaded || !available.length ? "disabled" : ""}><option value="">${catalogLoaded ? (available.length ? "Выберите beta- или индивидуальную тему" : "Нет тем для назначения") : "Каталог недоступен — обновите данные"}</option>${available.map((t) => `<option value="${esc(t.id)}">${esc(topicLabel(t.id))} · ${t.publication === "beta" ? "Beta" : "Индивидуальная"}</option>`).join("")}</select><button class="btn primary small" data-action="grant" disabled>Назначить тему</button></div>` : ""}</section>
-    <section class="detail-section"><div class="section-title"><h3>Дополнительные функции</h3></div><p class="empty-note">Изменения применяются после сохранения. Доступ к beta-темам выдаётся отдельным назначением выше.</p><div class="flag-list">${FLAGS.map(([key, label]) => `<label class="flag-item"><input type="checkbox" data-flag="${key}" ${(a.featureFlags ?? []).includes(key) ? "checked" : ""} ${deleted ? "disabled" : ""}>${label}</label>`).join("")}</div>${!deleted ? '<div class="flags-actions"><button class="btn primary small" data-action="flags" disabled>Сохранить функции</button><span id="flags-hint" class="caption">Нет несохранённых изменений</span></div>' : ""}</section>${lifecycleSection(a)}</div>`;
+    <section class="detail-section"><div class="section-title"><h3>Дополнительные функции</h3></div><p class="empty-note">Изменения применяются после сохранения. Доступ к beta-темам выдаётся отдельным назначением выше.</p><div class="flag-list">${FLAGS.map(([key, label]) => `<label class="flag-item"><input type="checkbox" data-flag="${key}" ${(a.featureFlags ?? []).includes(key) ? "checked" : ""} ${deleted ? "disabled" : ""}>${label}</label>`).join("")}</div>${!deleted ? '<div class="flags-actions"><button class="btn primary small" data-action="flags" disabled>Сохранить функции</button><span id="flags-hint" class="caption">Нет несохранённых изменений</span></div>' : ""}</section>${lifecycleSection(a)}</div><section id="account-usage" class="detail-body" hidden><div class="usage-heading"><h3>Использование приложения</h3><select id="usage-period" aria-label="Период статистики"><option value="today">Сегодня</option><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="all">Всё время</option></select></div><div id="usage-content"></div></section>`;
 }
 $("account-dialog").addEventListener("close", () => {
   selectedId = null;
@@ -430,6 +439,7 @@ $("account-dialog").addEventListener("cancel", (e) => {
     $("account-content").querySelector('[data-action="close"]')?.click();
 });
 $("account-content").addEventListener("change", (e) => {
+  if (e.target.id === "usage-period") loadUsage(selectedId);
   if (e.target.id === "grant-topic")
     $("account-content").querySelector('[data-action="grant"]').disabled =
       !e.target.value;
@@ -543,6 +553,18 @@ $("account-content").addEventListener("click", async (e) => {
     }
   }
   if (action === "archive") beginDeletion(a, "archive");
+  if (["manage-tab", "usage-tab"].includes(action)) {
+    const usage = action === "usage-tab";
+    $("account-management").hidden = usage;
+    $("account-usage").hidden = !usage;
+    $("account-content")
+      .querySelectorAll(".detail-tabs button")
+      .forEach((b) =>
+        b.setAttribute("aria-pressed", String(b.dataset.action === action)),
+      );
+    if (usage) loadUsage(a.id);
+  }
+  if (action === "usage-retry") loadUsage(a.id);
   if (action === "sessions") loadSessions(a.id);
   if (
     action === "verify" &&
@@ -839,3 +861,155 @@ document.querySelectorAll("[data-scope]").forEach((b) =>
     renderAccounts();
   }),
 );
+let usageRequest = 0;
+const duration = (ms) =>
+  ms == null
+    ? "Нет данных"
+    : ms < 60000
+      ? `${Math.round(ms / 1000)} с`
+      : `${Math.floor(ms / 3600000) ? Math.floor(ms / 3600000) + " ч " : ""}${Math.round((ms % 3600000) / 60000)} мин`;
+const SCREEN_NAMES = {
+  home: "Главная",
+  modes: "Выбор режима",
+  texts: "Выбор текста",
+  params: "Настройка занятия",
+  concepts: "Выбор заданий",
+  session: "Занятие",
+  summary: "Итоги занятия",
+  topics: "Библиотека тем",
+  library: "Библиотека тем",
+  subscription: "Подписка",
+  planner: "Меню и магазин",
+  planner_menu: "Меню",
+  planner_shopping: "Список покупок",
+  planner_putaway: "Размещение покупок",
+  instructions: "Инструкции",
+  lesson_plan_period: "План занятий: период",
+  lesson_plan_history: "История планов занятий",
+  students: "Ученики",
+  lesson_plan: "План занятий",
+  settings: "Настройки",
+};
+const screenName = (s) => SCREEN_NAMES[s] ?? s ?? "Приложение";
+async function loadUsage(id) {
+  const target = $("usage-content");
+  if (!target || selectedId !== id) return;
+  const request = ++usageRequest,
+    epoch = generation,
+    period = $("usage-period").value;
+  target.innerHTML =
+    '<p class="empty-note" role="status">Загрузка статистики…</p>';
+  try {
+    const r = await api(
+      `/accounts/${encodeURIComponent(id)}/usage?period=${period}`,
+    );
+    if (
+      request !== usageRequest ||
+      epoch !== generation ||
+      selectedId !== id ||
+      !target.isConnected
+    )
+      return;
+    const sum = r.summary,
+      labels = {
+        app_open: "Открыл приложение",
+        screen_view: "Перешёл на экран",
+        topic_open: "Открыл тему",
+        session_start: "Начал занятие",
+        session_exit: "Вышел из занятия",
+        session_complete: "Завершил занятие",
+        topic_acquired: "Добавил тему",
+        sync_error: "Ошибка запроса",
+        checkout_created: "Начал оформление подписки",
+        order_status: "Обновление заказа",
+      };
+    target.innerHTML = `<p class="access-note">${r.measuredSince ? `Учёт открытий и времени начат ${date(r.measuredSince, true)}.` : "Новые события использования ещё не получены."} Старые занятия показаны из истории; их активное время неизвестно. «Сегодня» считается по времени Любляны. Одновременная работа на разных устройствах суммируется.</p>
+      <div class="usage-stats">${[
+        [
+          "На переднем плане",
+          sum.timeSamples ? duration(sum.foregroundMs) : "Нет замеров",
+        ],
+        [
+          "Активное время",
+          sum.timeSamples ? duration(sum.activeMs) : "Нет замеров",
+        ],
+        ["Активные дни", sum.activeDays],
+        ["Сеансы приложения", sum.visits],
+        ["Завершённые занятия", sum.completed],
+        ["Тем использовано", sum.topics],
+        ["Выходы без завершения", sum.interrupted],
+      ]
+        .map(
+          ([k, v]) =>
+            `<div class="detail-stat"><small>${k}</small><strong>${esc(v)}</strong></div>`,
+        )
+        .join("")}</div>
+      <p class="empty-note">Активное время — оценка по взаимодействиям с приложением. Скрытая вкладка и бездействие дольше минуты не учитываются. После внезапного закрытия последние секунды могут не сохраниться.</p>
+      <section class="detail-section"><h3>Темы</h3><p class="empty-note">Открытия считаются при входе в тему, переходы между её настройками отдельно не добавляют открытия.</p><div class="usage-topics">${
+        r.topics.length
+          ? r.topics
+              .map(
+                (t) =>
+                  `<details class="usage-topic"><summary><strong>${esc(topicLabel(t.topicId))}</strong><span>${t.hasUsage ? t.opens + " открытий" : "Нет учёта открытий"} · ${t.timeSamples ? duration(t.foregroundMs) : "Нет замеров времени"}</span></summary><div class="usage-topic-grid">${[
+                    [
+                      "На переднем плане",
+                      t.timeSamples ? duration(t.foregroundMs) : "Нет замеров",
+                    ],
+                    [
+                      "Активное время",
+                      t.timeSamples ? duration(t.activeMs) : "Нет замеров",
+                    ],
+                    [
+                      "Занятия",
+                      `${t.completed} завершено · ${t.interrupted} выходов`,
+                    ],
+                    [
+                      "Активное время упражнений",
+                      t.measuredSessions
+                        ? `${duration(t.exerciseActiveMs)} (${t.measuredSessions} занятий с замером)`
+                        : "Нет замеров",
+                    ],
+                    ["Время от начала до завершения", duration(t.elapsedMs)],
+                    ["Последнее использование", date(t.lastAt, true)],
+                  ]
+                    .map(
+                      ([k, v]) =>
+                        `<div><small>${k}</small><strong>${esc(v)}</strong></div>`,
+                    )
+                    .join(
+                      "",
+                    )}</div>${t.unclosed ? `<p class="empty-note">${t.unclosed} начатых занятий без итогового события: могли продолжаться, завершиться офлайн или закрыться внезапно.</p>` : ""}<p class="empty-note">Режимы завершённых занятий: ${
+                    Object.entries(t.modes)
+                      .map(([k, v]) => `${esc(k)} — ${v}`)
+                      .join(", ") || "Нет завершённых занятий"
+                  }</p></details>`,
+              )
+              .join("")
+          : '<p class="empty-note">За этот период использование тем не зафиксировано.</p>'
+      }</div></section>
+      <section class="detail-section"><h3>Использование экранов и функций</h3>${r.features.length ? `<ul class="usage-feature-list">${r.features.map((f) => `<li><span>${esc(screenName(f.screen))}</span><strong>${duration(f.foregroundMs)}</strong><small>${f.views} переходов · активно ${duration(f.activeMs)}</small></li>`).join("")}</ul>` : '<p class="empty-note">Новых событий пока нет.</p>'}</section>
+      <section class="detail-section"><h3>Первые шаги · всё время</h3><dl class="usage-milestones">${[
+        ["Регистрация", r.milestones.registeredAt],
+        ["Первое открытие · новый учёт", r.milestones.firstVisitAt],
+        ["Последний вход / синхронизация", r.milestones.seenAt],
+        ["Первый ученик", r.milestones.firstStudentAt],
+        ["Первая добавленная тема", r.milestones.firstTopicAt],
+        ["Первое завершённое занятие", r.milestones.firstSessionAt],
+      ]
+        .map(
+          ([k, v]) =>
+            `<div><dt>${k}</dt><dd>${v ? date(v, true) : "Пока не зафиксировано"}</dd></div>`,
+        )
+        .join("")}</dl></section>
+      <section class="detail-section"><h3>Техническая информация</h3><p class="empty-note">${r.technical ? `${esc(r.technical.device ?? "Устройство неизвестно")} · версия ${esc(r.technical.version ?? "неизвестна")}<br>Последняя передача статистики: ${date(r.technical.received_at, true)}` : "Нет новых технических данных."}</p></section>
+      <section class="detail-section"><h3>Лента действий</h3><p class="empty-note">Последние 100 событий выбранного периода. Фоновые сигналы времени скрыты.</p><ol class="usage-timeline">${r.timeline.map((e) => `<li><time>${date(e.at, true)}</time><strong>${esc(labels[e.kind] ?? e.kind)}</strong><p>${esc(e.topicId ? topicLabel(e.topicId) : screenName(e.screen))}${e.mode ? ` · ${esc(e.mode)}` : ""}${e.plan ? ` · ${esc(PLAN_LABELS[e.plan] ?? e.plan)} · ${esc({ pending: "Ожидает оплаты", completed: "Оплачен", refunded: "Возврат", chargeback: "Оспорен", abandoned: "Оформление прервано" }[e.orderStatus] ?? e.orderStatus)}` : ""}${e.kind === "session_complete" ? ` · ${e.activeMs != null ? "активно " + duration(e.activeMs) : "интервал " + duration(e.elapsedMs) + " (без замера активности)"}` : ""}</p></li>`).join("") || "<li>Событий за этот период нет.</li>"}</ol></section>`;
+  } catch (e) {
+    if (
+      request === usageRequest &&
+      epoch === generation &&
+      selectedId === id &&
+      target.isConnected
+    )
+      target.innerHTML = `<p class="error">${esc(e.message)}</p><button class="btn" data-action="usage-retry">Повторить загрузку</button>`;
+  }
+}

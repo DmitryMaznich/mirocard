@@ -78,7 +78,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       if (!width || !height) return;
       const isNarrow = width < 600;
       let size;
-      if (!grouping) size = isNarrow ? Math.min((width - 50) / 6.4, 44) : Math.min((width - 120) / 13.2, 56);
+      if (!grouping) size = isNarrow ? Math.min(((width - 12) / 2 - 24) / 6.3, (height - 52) / 2.4, 40) : Math.min((width - 120) / 13.2, 56);
       else if (isNarrow) size = Math.min((width - 40) / (layout.cols * 1.15), (width - 60) / 6.4, (height - 240) / (layout.rows * 1.15 + 4.7), 44);
       else size = Math.min((width - 110) / (6.6 + layout.cols * 1.15), (height - 70) / (layout.rows * 1.15), (height - 190) / 4.8, 56);
       setNarrow(isNarrow);

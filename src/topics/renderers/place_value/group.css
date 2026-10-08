@@ -124,9 +124,26 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Phones: heap on top, then the frame, then the stacks. */
+/* Phones: heap on top, then the frame, then the stacks. Once sorted, tens and
+   ones stand side by side (the order of the digits) and the questions and
+   keypad tighten up, so the coins keep their room above them. */
 .gt-screen--narrow .gt-main { flex-direction: column; justify-content: flex-start; }
 .gt-screen--narrow .gt-heap { max-width: none; flex: 1 1 auto; }
 .gt-screen--narrow .gt-side { width: auto; }
 .gt-screen--narrow .gt-main--sorted > .px-zone { width: auto; }
 .gt-screen--narrow .gt-questions { min-width: 0; width: 100%; }
+
+.gt-screen--narrow .gt-main--sorted { flex-direction: row; align-items: flex-start; overflow-y: auto; }
+.gt-screen--narrow .gt-main--sorted > .px-zone { flex: 1 1 0; width: auto; flex-shrink: 1; min-width: 0; padding: 8px 10px; }
+.gt-screen--narrow .gt-main--sorted > .id-mixed { flex: 1 1 auto; }
+.gt-screen--narrow .gt-ones h3 small { display: none; }
+.gt-screen--narrow .gt-ask { gap: 8px; }
+.gt-screen--narrow .gt-questions { gap: 4px; }
+.gt-screen--narrow .gt-q { padding: 3px 6px 3px 12px; border-radius: 12px; font-size: 15px; }
+.gt-screen--narrow .gt-q-value { min-width: 46px; height: 32px; border-radius: 10px; font-size: 20px; }
+.gt-screen--narrow .px-numanswer { display: grid; grid-template-columns: auto auto; gap: 8px; }
+.gt-screen--narrow .px-numanswer .px-frame { min-width: 60px; height: auto; align-self: stretch; }
+.gt-screen--narrow .px-keys { grid-template-columns: repeat(5, 44px); }
+.gt-screen--narrow .px-key { height: 40px; font-size: 20px; }
+.gt-screen--narrow .px-answer-actions { grid-column: 1 / -1; justify-content: center; }
+.gt-screen--narrow .px-answer-actions .px-undo { padding: 10px 14px; }

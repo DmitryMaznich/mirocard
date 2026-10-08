@@ -347,3 +347,11 @@ describe("computeSessionRecord", () => {
     expect(rec.entryPoint).toBe("lesson_plan");
   });
 });
+
+it("keeps the session identity from start through completion", () => {
+ const state=createSessionState(TASKS,MODE,"student_1","clothes","1.0.0",["tshirt"]);
+ const record=computeSessionRecord(state,"student_1","clothes","1.0.0",[],{activeDurationMs:1000});
+ expect(record.id).toBe(state.id);
+ expect(record.activeDurationMs).toBe(1000);
+ expect(createSessionState(TASKS,MODE,"student_1","clothes","1.0.0",["tshirt"]).id).not.toBe(state.id);
+});
