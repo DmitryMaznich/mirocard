@@ -1247,7 +1247,7 @@ function liftEndToD(d, targetY) {
 // The local geometry of a glyph depends only on the glyph and the scale, and a repeated row asks for it once per copy:
 // computed once per (glyph object, scale). Callers must treat the result as read-only.
 const WIDE_LOCAL_CACHE = new WeakMap();
-function wideGlyphLocal(glyph, scale = 1) {
+export function wideGlyphLocal(glyph, scale = 1) {
   let byScale = WIDE_LOCAL_CACHE.get(glyph);
   if (!byScale) { byScale = new Map(); WIDE_LOCAL_CACHE.set(glyph, byScale); }
   if (!byScale.has(scale)) byScale.set(scale, wideGlyphLocalCompute(glyph, scale));
@@ -1264,7 +1264,7 @@ const CELL_DIGIT_SPAN = { default: 0.78, "№1": 0.55, "№4": 0.7, "№7": 0.6 
 const CELL_SIGN_BAR = 0.55;
 const isCellSign = (label) => /^№[^0-9]/.test(label ?? "");
 const CELL_LOCAL_CACHE = new WeakMap();
-function cellGlyphLocal(glyph, scale, cellSize) {
+export function cellGlyphLocal(glyph, scale, cellSize) {
   let byKey = CELL_LOCAL_CACHE.get(glyph);
   if (!byKey) { byKey = new Map(); CELL_LOCAL_CACHE.set(glyph, byKey); }
   const key = `${scale}|${cellSize}`;

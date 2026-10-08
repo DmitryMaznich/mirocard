@@ -133,6 +133,27 @@ explicit design decision. Don't touch `letter_writing` while working on this.
     ruled cards (no ink stroke) and the corner badge swaps `read_lines`' "+"
     for a small printer glyph. Same palette (`#eaf2fb`/`#bcd8ec`/`#ef6f5e`) as
     its siblings to still read as "part of this topic" at a glance.
+  - **Digits workbook (`propis_worksheets_digits`, deck v1.32.243,
+    2026-10-08).** 24-page booklet «Прописи — цифры» from
+    `scripts/digits_workbook/` (cover: `cover_tetrad.py --style=цифры
+    --variant=digits`). Originally built 2026-09-28/29 on branch
+    `claude/punctuation-handwriting-workbook-3k5ovb` from captured digit cards
+    that are no longer in `topic.json`; now drawn with the «Прописи 2» digits:
+    `node tools/propis2/export_workbook_digits.mjs` writes
+    `scripts/digits_workbook/p2_digits.json` with the app's own geometry
+    (squared paper: `cellGlyphLocal`; copybook row for pages 21-24 and the
+    cover: `wideGlyphLocal`), then `python scripts/digits_workbook/build.py`
+    builds the PDF and stages it + the cover thumbnail into
+    `tools/propis/print|thumbnails`. Re-export after any change to
+    `digitGlyphs.json`. A sign between two digits is centred between their
+    ink, as the app does.
+  - **`tools/propis/print|thumbnails` are gitignored**: a deck build only
+    ships what is on disk. In a fresh checkout restore them from the last
+    deck zip first. Deck zips v1.32.x as imported on 2026-10-05 store the
+    Cyrillic names mangled (`print/#U043f#U0440...pdf`, no UTF-8 flag), so
+    the app (which looks files up by `print/прописи_....pdf`) cannot find
+    them; decode `#UXXXX` back to the character when extracting. v1.32.243
+    is the first rebuilt with proper names.
   - **Categories reshuffled 2026-09-15 (propis deck v1.27.0, print_materials
     deck v1.0.34) — two lists instead of three, user request.** The original
     3-category split (`notebooks`/`worksheets`/`ready`, the last one always
