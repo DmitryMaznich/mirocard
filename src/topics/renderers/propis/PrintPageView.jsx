@@ -791,8 +791,12 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
   const geom = geomOf(format);
   if (simpleGrid === "square") return squareSnapFor(margin, geom);
   const dense = simpleGrid === "dense";
-  if (narrowRows) return dense ? drawnGridSnapX(NARROW_CELL, margin, geom, narrow17) : narrowSnapFor(margin, geom, narrow17);
-  return dense ? drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom) : wideSnapFor(margin, geom);
+  if (dense) return narrowRows ? drawnGridSnapX(NARROW_CELL, margin, geom, narrow17) : drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom);
+  // the methodology grid the letters snap to is NOT drawn on these pages (only the 20 mm slants): `hidden` tells the layout so
+  // (a digit inside a number then keeps a steady gap to the one before instead of jumping to the next invisible line)
+  const fn = narrowRows ? narrowSnapFor(margin, geom, narrow17) : wideSnapFor(margin, geom);
+  fn.hidden = true;
+  return fn;
 }
 
 // Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:

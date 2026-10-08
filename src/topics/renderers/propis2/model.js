@@ -236,7 +236,7 @@ export const lineWidth = (text, glyphMap, ruling, snap) => {
   return w;
 };
 const lineWidthNow = (text, glyphMap, ruling, snap) => {
-  const rowSnap = snap ? Object.assign((_row, x, y) => snap(0, x, y), snap.cell ? { cell: { ...snap.cell, origin: () => snap.cell.origin(0) } } : {}) : undefined;
+  const rowSnap = snap ? Object.assign((_row, x, y) => snap(0, x, y), snap.cell ? { cell: { ...snap.cell, origin: () => snap.cell.origin(0) } } : {}, snap.hidden ? { hidden: true } : {}) : undefined;
   const { placed } = layoutWideLinesIntoRows([text], glyphMap, rowSnap, false, ruling === "narrow" ? 0.5 : 1);
   return placed[0]?.segments?.[0]?.width ?? 0;
 };

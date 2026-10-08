@@ -605,7 +605,7 @@ describe("layout cache (typing in one row lays out only that row)", () => {
       const snap = snapXFor(args);
       expect(snapXFor({ ...args })).toBe(snap);
       const scale = args.narrowRows ? 0.5 : 1;
-      const fresh = layoutWideLinesIntoRows(lines, map, Object.assign((r, x, y) => snap(r, x, y), snap.cell ? { cell: snap.cell } : {}), true, scale);
+      const fresh = layoutWideLinesIntoRows(lines, map, Object.assign((r, x, y) => snap(r, x, y), snap.cell ? { cell: snap.cell } : {}, snap.hidden ? { hidden: true } : {}), true, scale);
       const cached = layoutWideLinesIntoRows(lines, map, snap, true, scale);
       const again = layoutWideLinesIntoRows(lines, map, snap, true, scale);
       expect(JSON.parse(JSON.stringify(cached))).toEqual(JSON.parse(JSON.stringify(fresh)));
