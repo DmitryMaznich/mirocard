@@ -74,11 +74,15 @@ test("audio reviewer: real playback, filtered ratings, persistence, reports, loc
     assert.equal(await page.locator("#note").inputValue(), "");
     assert.equal(await page.locator("#redo").getAttribute("aria-pressed"), "false");
     await page.unroute("**/audio-review-manifest.json");
-    const replacements = manifest.playlists.find((entry) => entry.id === "audio/addition-subtraction-review");
-    if (replacements) {
-      assert.deepEqual(replacements.items.map((item) => item.key), ["n1", "n3", "n4", "n5", "n6", "plus"]);
+    for (const [id, expectedKeys] of [
+      ["audio/addition-subtraction-review", ["n1", "n3", "n4", "n5", "n6", "plus"]],
+      ["audio/addition-subtraction-russian-review", ["n1", "n3", "n4", "n5", "n6"]],
+    ]) {
+      const replacements = manifest.playlists.find((entry) => entry.id === id);
+      if (!replacements) continue;
+      assert.deepEqual(replacements.items.map((item) => item.key), expectedKeys);
       await page.locator("#playlist").selectOption(replacements.id);
-      assert.equal(await page.locator(".track").count(), 6);
+      assert.equal(await page.locator(".track").count(), expectedKeys.length);
       const durations = await page.evaluate(async (urls) => {
         const context = new AudioContext();
         try {

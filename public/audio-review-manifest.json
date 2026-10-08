@@ -490,6 +490,57 @@
       ]
     },
     {
+      "id": "audio/addition-subtraction-russian-review",
+      "title": "Плюс / минус — русский голос WaveNet",
+      "items": [
+        {
+          "id": "audio/addition-subtraction-russian-review/n1.mp3",
+          "key": "n1",
+          "path": "audio/addition-subtraction-russian-review/n1.mp3",
+          "url": "/audio/addition-subtraction-russian-review/n1.mp3",
+          "label": "1 — один — русский голос",
+          "category": "Числа",
+          "version": "61816ab09d8371ff"
+        },
+        {
+          "id": "audio/addition-subtraction-russian-review/n3.mp3",
+          "key": "n3",
+          "path": "audio/addition-subtraction-russian-review/n3.mp3",
+          "url": "/audio/addition-subtraction-russian-review/n3.mp3",
+          "label": "3 — три — русский голос",
+          "category": "Числа",
+          "version": "72cb7e237d61c83c"
+        },
+        {
+          "id": "audio/addition-subtraction-russian-review/n4.mp3",
+          "key": "n4",
+          "path": "audio/addition-subtraction-russian-review/n4.mp3",
+          "url": "/audio/addition-subtraction-russian-review/n4.mp3",
+          "label": "4 — четыре — русский голос",
+          "category": "Числа",
+          "version": "eaa21917006883b5"
+        },
+        {
+          "id": "audio/addition-subtraction-russian-review/n5.mp3",
+          "key": "n5",
+          "path": "audio/addition-subtraction-russian-review/n5.mp3",
+          "url": "/audio/addition-subtraction-russian-review/n5.mp3",
+          "label": "5 — пять — русский голос",
+          "category": "Числа",
+          "version": "bd6a16798985a530"
+        },
+        {
+          "id": "audio/addition-subtraction-russian-review/n6.mp3",
+          "key": "n6",
+          "path": "audio/addition-subtraction-russian-review/n6.mp3",
+          "url": "/audio/addition-subtraction-russian-review/n6.mp3",
+          "label": "6 — шесть — русский голос",
+          "category": "Числа",
+          "version": "1f14fe43de1531bc"
+        }
+      ]
+    },
+    {
       "id": "audio/daily-orientation",
       "title": "Ориентировка во времени",
       "items": [

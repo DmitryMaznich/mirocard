@@ -21,6 +21,7 @@ for (const { key, text } of PHRASE_ENTRIES) setLabel(`audio/addition-subtraction
 for (const [path, entry] of [...labels]) {
   if (path.startsWith("audio/addition-subtraction/") && entry.category !== "Фразы") {
     setLabel(path.replace("audio/addition-subtraction/", "audio/addition-subtraction-review/"), `${entry.label} — новая запись`, entry.category);
+    setLabel(path.replace("audio/addition-subtraction/", "audio/addition-subtraction-russian-review/"), `${entry.label} — русский голос`, entry.category);
   }
 }
 for (const { key, text } of AUDIO_ENTRIES) setLabel(`audio/daily-orientation/${key}.mp3`, text, "Слова и фразы");
@@ -32,6 +33,7 @@ for (const entry of propis.texts) {
 const names = {
   "audio/addition-subtraction": "Плюс / минус — слушаем и считаем",
   "audio/addition-subtraction-review": "Плюс / минус — повторная проверка",
+  "audio/addition-subtraction-russian-review": "Плюс / минус — русский голос WaveNet",
   "audio/daily-orientation": "Ориентировка во времени",
   "audio/propis-dictation": "Прописи — диктант",
   "sounds/letters": "Звуки букв",
