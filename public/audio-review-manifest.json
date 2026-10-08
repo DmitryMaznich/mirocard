@@ -430,6 +430,66 @@
       ]
     },
     {
+      "id": "audio/addition-subtraction-review",
+      "title": "Плюс / минус — повторная проверка",
+      "items": [
+        {
+          "id": "audio/addition-subtraction-review/n1.mp3",
+          "key": "n1",
+          "path": "audio/addition-subtraction-review/n1.mp3",
+          "url": "/audio/addition-subtraction-review/n1.mp3",
+          "label": "1 — один — новая запись",
+          "category": "Числа",
+          "version": "b91b3ad610873dfb"
+        },
+        {
+          "id": "audio/addition-subtraction-review/n3.mp3",
+          "key": "n3",
+          "path": "audio/addition-subtraction-review/n3.mp3",
+          "url": "/audio/addition-subtraction-review/n3.mp3",
+          "label": "3 — три — новая запись",
+          "category": "Числа",
+          "version": "dda58c0e33f4d3df"
+        },
+        {
+          "id": "audio/addition-subtraction-review/n4.mp3",
+          "key": "n4",
+          "path": "audio/addition-subtraction-review/n4.mp3",
+          "url": "/audio/addition-subtraction-review/n4.mp3",
+          "label": "4 — четыре — новая запись",
+          "category": "Числа",
+          "version": "ee32912f06deaa4f"
+        },
+        {
+          "id": "audio/addition-subtraction-review/n5.mp3",
+          "key": "n5",
+          "path": "audio/addition-subtraction-review/n5.mp3",
+          "url": "/audio/addition-subtraction-review/n5.mp3",
+          "label": "5 — пять — новая запись",
+          "category": "Числа",
+          "version": "cda7067763904ae3"
+        },
+        {
+          "id": "audio/addition-subtraction-review/n6.mp3",
+          "key": "n6",
+          "path": "audio/addition-subtraction-review/n6.mp3",
+          "url": "/audio/addition-subtraction-review/n6.mp3",
+          "label": "6 — шесть — новая запись",
+          "category": "Числа",
+          "version": "bf6aaed8972d5a99"
+        },
+        {
+          "id": "audio/addition-subtraction-review/plus.mp3",
+          "key": "plus",
+          "path": "audio/addition-subtraction-review/plus.mp3",
+          "url": "/audio/addition-subtraction-review/plus.mp3",
+          "label": "плюс — новая запись",
+          "category": "Знаки",
+          "version": "6a4729b74b8fa255"
+        }
+      ]
+    },
+    {
       "id": "audio/daily-orientation",
       "title": "Ориентировка во времени",
       "items": [

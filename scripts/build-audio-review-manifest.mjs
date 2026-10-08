@@ -18,6 +18,11 @@ for (const [key, word] of [["plus", "плюс"], ["minus", "минус"]]) {
   setLabel(`audio/addition-subtraction/${key}.mp3`, word, "Знаки");
 }
 for (const { key, text } of PHRASE_ENTRIES) setLabel(`audio/addition-subtraction/phrases/${key}.mp3`, text, "Фразы");
+for (const [path, entry] of [...labels]) {
+  if (path.startsWith("audio/addition-subtraction/") && entry.category !== "Фразы") {
+    setLabel(path.replace("audio/addition-subtraction/", "audio/addition-subtraction-review/"), `${entry.label} — новая запись`, entry.category);
+  }
+}
 for (const { key, text } of AUDIO_ENTRIES) setLabel(`audio/daily-orientation/${key}.mp3`, text, "Слова и фразы");
 const propis = JSON.parse(readFileSync(join(root, "tools/propis/topic.json"), "utf8"));
 for (const word of propis.words) setLabel(`audio/propis-dictation/${wordDictationKey(word)}.mp3`, word.word, "Слова");
@@ -26,6 +31,7 @@ for (const entry of propis.texts) {
 }
 const names = {
   "audio/addition-subtraction": "Плюс / минус — слушаем и считаем",
+  "audio/addition-subtraction-review": "Плюс / минус — повторная проверка",
   "audio/daily-orientation": "Ориентировка во времени",
   "audio/propis-dictation": "Прописи — диктант",
   "sounds/letters": "Звуки букв",

@@ -74,6 +74,25 @@ test("audio reviewer: real playback, filtered ratings, persistence, reports, loc
     assert.equal(await page.locator("#note").inputValue(), "");
     assert.equal(await page.locator("#redo").getAttribute("aria-pressed"), "false");
     await page.unroute("**/audio-review-manifest.json");
+    const replacements = manifest.playlists.find((entry) => entry.id === "audio/addition-subtraction-review");
+    if (replacements) {
+      assert.deepEqual(replacements.items.map((item) => item.key), ["n1", "n3", "n4", "n5", "n6", "plus"]);
+      await page.locator("#playlist").selectOption(replacements.id);
+      assert.equal(await page.locator(".track").count(), 6);
+      const durations = await page.evaluate(async (urls) => {
+        const context = new AudioContext();
+        try {
+          const results = [];
+          for (const url of urls) {
+            const data = await (await fetch(url)).arrayBuffer();
+            const buffer = await context.decodeAudioData(data);
+            results.push(buffer.duration);
+          }
+          return results;
+        } finally { await context.close(); }
+      }, replacements.items.map((item) => item.url));
+      assert.ok(durations.every((seconds) => seconds > 0.3 && seconds < 4));
+    }
     await page.locator("#playlist").selectOption("audio/daily-orientation");
     assert.ok(await page.locator(".track").count() > 100);
     await page.locator("#files").setInputFiles(resolve(publicDir, "audio/addition-subtraction/n10.mp3"));

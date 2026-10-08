@@ -7,7 +7,7 @@
 //   node scripts/generate-addition-subtraction-kore-audio.mjs --only=numbers --force
 //   node scripts/generate-addition-subtraction-kore-audio.mjs --only=phrases --force
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Mp3Encoder } from "@breezystack/lamejs";
 import { getGeminiApiKey } from "./lib/gemini-key.mjs";
@@ -16,7 +16,10 @@ import { NUMBER_WORDS, SIGN_WORDS, audioKeyForNumber } from "../src/topics/rende
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const OUT_DIR = join(ROOT, "public", "audio", "addition-subtraction");
+// A separate output directory lets adults approve replacement clips first.
+const outputArgument = process.argv.find((arg) => arg.startsWith("--out-dir="))?.slice("--out-dir=".length);
+const OUT_DIR = outputArgument ? resolve(ROOT, outputArgument) : join(ROOT, "public", "audio", "addition-subtraction");
+const STYLE = process.argv.find((arg) => arg.startsWith("--style="))?.slice("--style=".length) ?? "Прочитай спокойно, чётко и дружелюбно, как для ребёнка";
 const MODEL = process.argv.find((arg) => arg.startsWith("--model="))?.split("=")[1] ?? "gemini-2.5-flash-preview-tts";
 const VOICE = process.argv.find((arg) => arg.startsWith("--voice="))?.split("=")[1] ?? "Kore";
 const ONLY = process.argv.find((arg) => arg.startsWith("--only="))?.split("=")[1] ?? "all";
@@ -97,14 +100,14 @@ async function synthesizeOnce(text, { isSingleWord = false } = {}) {
           content: [{
             type: "text",
             text: spokenText,
-            annotations: [{ type: "speech_metadata", style: "calm, clear, friendly, for a child" }],
+            annotations: [{ type: "speech_metadata", style: STYLE }],
           }],
         }],
         response_format: { type: "audio", mime_type: "audio/l16", sample_rate: SAMPLE_RATE },
         generation_config: { speech_config: [{ voice: VOICE }] },
       }
     : {
-        contents: [{ parts: [{ text: `Прочитай спокойно, чётко и дружелюбно, как для ребёнка: ${spokenText}` }] }],
+        contents: [{ parts: [{ text: `${STYLE}: ${spokenText}` }] }],
         generationConfig: {
           responseModalities: ["AUDIO"],
           speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } },
