@@ -210,11 +210,13 @@ def examples_page(title, examples):
 
 
 def text_rows(models_top, models):
-    """The workbook's text pages: sentences to copy, each followed by an empty row (17 rows of the narrow ruling)."""
-    rows = [model(t) for t in models_top]
-    for t in models:
+    """The workbook's text pages: every sentence with an empty row under it to copy it into (17 rows of the narrow ruling: 8 sentences).
+    The printed workbook traced the top sentences (half-tone dashes) instead; the constructor has no traced sentence, and model rows
+    one under another left nowhere to write (owner, 2026-10-08), so every one gets its row and what does not fit is left out."""
+    rows = []
+    for t in (models_top + models)[:ROWS // 2]:
         rows += [model(t), blank()]
-    return rows[:ROWS]
+    return rows
 
 
 def tx(title, rows):
@@ -234,7 +236,7 @@ digit_pages += [
     examples_page("Примеры до 10", dp.MIXED10),
     examples_page("Примеры до 20", dp.TWO_DIGIT),
     tx("Число и слово", text_rows(["1 кот, 2 кота, 5 котов", "1 мяч, 3 мяча, 6 мячей", "1 дом, 4 дома, 7 домов"],
-                                  ["1 жук, 2 жука, 5 жуков", "1 лиса, 4 лисы, 8 лис", "1 кит, 2 кита, 6 китов", "1 мак, 3 мака, 5 маков", "1 слон, 2 слона, 7 слонов", "1 утка, 4 утки, 9 уток", "1 рыба, 2 рыбы, 10 рыб"])),
+                                  ["1 жук, 2 жука, 5 жуков", "1 лиса, 4 лисы, 8 лис", "1 кит, 2 кита, 6 китов", "1 рыба, 2 рыбы, 10 рыб", "1 слон, 2 слона, 7 слонов", "1 утка, 4 утки, 9 уток", "1 мак, 3 мака, 5 маков"])),
     tx("Сколько? Сколько лет?", text_rows(["Мне 7 лет.", "У меня 2 руки.", "У кота 4 лапы."],
                                           ["У меня 10 пальцев.", "Мне 5 лет, а Оле 3.", "У стула 4 ножки.", "В году 12 месяцев.", "У жука 6 лап.", "В классе 20 детей.", "У паука 8 лап."])),
     tx("Даты и время", text_rows(["1 мая, 8 марта", "9 мая, 1 июня", "31 декабря"],
