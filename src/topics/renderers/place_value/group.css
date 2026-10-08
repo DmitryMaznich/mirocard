@@ -28,19 +28,19 @@
   gap: 16px;
 }
 
-/* Grouping: the heap on top, under it the frame with the stacks beside it. */
-.gt-main:not(.gt-main--sorted) { flex-direction: column; align-items: stretch; gap: 10px; }
+/* «Сложи по десять»: the heap on top, under it the frame with the stacks
+   beside it; both keep their size (the heap is a fixed grid of cells). */
+.gt-main:not(.gt-main--sorted) { flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 
-.gt-heap {
-  flex: 1 1 auto;
-  min-width: 0;
+.gt-heap,
+.gt-bench {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: calc(var(--coin-size) * 11.5 + 28px);
+  box-sizing: border-box;
 }
 
-.gt-heapbox {
-  flex: 1;
-  display: grid;
-  min-height: calc(var(--coin-size) * 3);
-}
+.gt-heapbox { display: grid; }
 
 .gt-heap-cell {
   position: relative;
@@ -51,7 +51,6 @@
 .gt-heap-coin { position: absolute; }
 
 .gt-bench {
-  flex: 0 0 auto;
   flex-direction: row;
   align-items: center;
   gap: calc(var(--coin-size) * 0.6);
@@ -156,3 +155,77 @@
 .gt-screen--narrow .px-key { height: 40px; font-size: 20px; }
 .gt-screen--narrow .px-answer-actions { grid-column: 1 / -1; justify-content: center; }
 .gt-screen--narrow .px-answer-actions .px-undo { padding: 10px 14px; }
+
+/* Bottom: one status line, then the three answer fields typed into straight
+   from the keypad (FieldPad.jsx). */
+.gt-bottom { flex-direction: column; gap: 8px; }
+
+.gt-status {
+  min-height: 24px;
+  max-width: 560px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.gt-status-hint { color: #1d4ed8; }
+.gt-status-note { color: #9a3412; }
+
+.fp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.fp-fields { display: flex; gap: 8px; }
+
+.fp-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.fp-field--tens { color: #92400e; }
+.fp-field--ones { color: #1e40af; }
+
+.fp-value {
+  width: 76px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: 2.5px solid #cbd5e1;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 30px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: #1a1a2e;
+}
+
+.fp-field--active .fp-value { border-color: #3b82f6; box-shadow: 0 0 0 3px #dbeafe; }
+.fp-field--ok .fp-value { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
+.fp-field--wrong .fp-value { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
+
+.fp-keys {
+  display: grid;
+  grid-template-columns: repeat(6, 46px);
+  gap: 6px;
+}
+
+.fp-keys .px-key { height: 44px; }
+.fp-key--erase { color: #64748b; }
+.fp-key--enter { background: #16a34a; border-color: #16a34a; box-shadow: 0 3px 0 #15803d; color: #fff; }
+
+.gt-screen--narrow .gt-status { font-size: 14px; }
+.gt-screen--narrow .fp { gap: 8px; }
+.gt-screen--narrow .fp-value { width: 72px; height: 46px; font-size: 26px; }
+.gt-screen--narrow .fp-keys .px-key { height: 42px; font-size: 20px; }
+.gt-screen--narrow .gt-task span { display: none; }

@@ -3,7 +3,7 @@ import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { placeValuePhrase, numberWords } from "./placeValueLabels.js";
-import NumberAnswer from "./NumberAnswer.jsx";
+import FieldPad from "./FieldPad.jsx";
 import TenFrame from "./TenFrame.jsx";
 import "./place_value.css";
 import "./coins.css";
@@ -11,10 +11,11 @@ import "./exchange.css";
 import "./group.css";
 
 // «Сложи по десять» — the topic's way in. A heap of loose coins and no number:
-// the child moves coins into the ten-frame one by one, closes each full frame
-// into a stack themselves, decides when no more stacks can be made, and then
-// answers how many stacks, how many loose coins, how many altogether. The point
-// is to discover that 2 stacks and 3 coins are easier to count than 23 coins.
+// the child moves coins into the ten-frame one by one, taps each full frame to
+// turn it into a stack, and answers how many tens, how many ones, what number.
+// Starting to answer is the decision that no more stacks can be made (there is
+// no «done» button). The point is to discover that 2 stacks and 3 coins are
+// easier to count than 23 coins. All on one screen, zones of fixed size.
 // See docs/place-value-methodology.md, режим 1.
 
 const HINT_DELAY_MS = 6000;
@@ -28,9 +29,11 @@ function seededRandom(seed) {
 // Scattered, but never overlapping: each coin gets its own cell of an even
 // grid (cells shuffled, so the heap has no visible rows) and a random offset
 // inside that cell — a cell is never smaller than a coin, so coins can't touch.
+// The heap keeps one size (9 × 6 cells) whatever the number — a small number
+// just leaves more empty space; it grows only when the coins need more cells.
 export function heapLayout(count, seed) {
-  const cols = count <= 19 ? 6 : 9;
-  const rows = Math.max(3, Math.ceil((count * 1.35) / cols));
+  const cols = 9;
+  const rows = Math.max(6, Math.ceil((count * 1.35) / cols));
   const random = seededRandom(seed || 1);
   const cells = [];
   for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) cells.push([x, y]);
@@ -42,10 +45,10 @@ export function heapLayout(count, seed) {
   return { cols, rows, coins };
 }
 
-const QUESTIONS = [
-  { key: "tens", label: "Сколько стопок?", tone: "tens" },
-  { key: "ones", label: "Сколько отдельных монет?", tone: "ones" },
-  { key: "total", label: "Сколько всего монет?", tone: "total" },
+const FIELDS = [
+  { key: "tens", label: "Десятков", tone: "tens" },
+  { key: "ones", label: "Единиц", tone: "ones" },
+  { key: "total", label: "Число", tone: "total" },
 ];
 
 export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
@@ -53,7 +56,6 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const slots = task.showFrame !== false;
   const layout = useMemo(() => heapLayout(task.number, task.seed), [task.number, task.seed]);
   const [model, setModel] = useState(() => ({ heap: layout.coins.map((c) => c.id), frame: [], tens: [], serial: 0 }));
-  const [history, setHistory] = useState([]);
   const [phase, setPhase] = useState("group");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -66,10 +68,8 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const exchange = useCoinExchange(mainRef);
   const position = useMemo(() => Object.fromEntries(layout.coins.map((c) => [c.id, c])), [layout]);
 
-  // Coin size from the board's own box. While grouping, every heap cell must
-  // be clearly wider than a coin (no touching coins); once sorted, only two
-  // short zones are left, so the coins may grow.
-  const grouping = phase === "group";
+  // Coin size from the board's own box: the heap (9 columns), and under it the
+  // frame with room for every stack the number makes.
   const maxStacks = Math.max(1, Math.floor(task.number / 10));
   useLayoutEffect(() => {
     const main = mainRef.current;
@@ -78,11 +78,8 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       const { width, height } = main.getBoundingClientRect();
       if (!width || !height) return;
       const isNarrow = width < 600;
-      let size;
-      if (!grouping) size = isNarrow ? Math.min(((width - 12) / 2 - 24) / 6.3, (height - 52) / 2.4, 40) : Math.min((width - 120) / 13.2, 56);
-      // Heap on top; under it the frame with the finished stacks to its right.
-      else size = Math.min((width - 28) / (layout.cols * 1.15), (width - 60) / (6.9 + maxStacks * 1.3),
-        (height - 100) / (layout.rows * 1.15 + 2.6), isNarrow ? 44 : 56);
+      const size = Math.min((width - 28) / (layout.cols * 1.15), (width - 60) / (6.9 + maxStacks * 1.3),
+        (height - 80) / (layout.rows * 1.15 + 2.6), isNarrow ? 44 : 56);
       setNarrow(isNarrow);
       setCoinSize(Math.max(20, size));
     };
@@ -90,7 +87,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     const observer = new ResizeObserver(measure);
     observer.observe(main);
     return () => observer.disconnect();
-  }, [layout, grouping, maxStacks]);
+  }, [layout, maxStacks]);
 
   // «Обучение» only, and only after a pause: how to start, or that a full
   // frame is waiting to be closed. The decisions themselves are never hinted.
@@ -102,20 +99,12 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     if (!idleReason) { setHint((h) => (h === "early" ? h : null)); return undefined; }
     const timer = setTimeout(() => setHint(idleReason), HINT_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [idleReason, history.length]);
+  }, [idleReason, model]);
 
   function change(update, nextNote = "") {
     if (phase !== "group" || exchange.busy) return;
-    setHistory((h) => [...h, model]);
     setModel(update(model));
     setNote(nextNote);
-    setHint(null);
-  }
-  function undo() {
-    if (!history.length || phase !== "group" || exchange.busy) return;
-    setModel(history[history.length - 1]);
-    setHistory((h) => h.slice(0, -1));
-    setNote("");
     setHint(null);
   }
   function mistake(message) {
@@ -142,49 +131,41 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     }
     const stackId = `s${model.serial}`;
     const coinIds = model.frame;
-    const snapshot = model;
     const apply = (m) => ({ ...m, frame: [], tens: [...m.tens, stackId], serial: m.serial + 1 });
     const started = exchange.start({ direction: "group", stackId, coinIds, commit: () => {
-      setHistory((h) => [...h, snapshot]);
       setModel(apply);
       setNote("");
       setHint(null);
     } });
     if (!started) change(apply);
   }
-  function finishGrouping() {
-    if (phase !== "group" || exchange.busy) return;
-    const loose = model.heap.length + model.frame.length;
-    if (loose >= 10) {
+  const ones = model.heap.length + model.frame.length, tens = model.tens.length;
+  const expected = { tens, ones, total: task.number };
+  function answer(key, guess) {
+    if (phase !== "group" || exchange.busy) return false;
+    // Answering is the decision that no more stacks can be made: with ten loose
+    // coins still there, «Обучение» points at the heap, «Проверка» counts it.
+    if (key === "tens" && ones >= 10) {
       if (teaching) { setHint("early"); setNote(""); }
       else mistake("Посмотри ещё раз: можно сложить ещё одну стопку?");
-      return;
+      return false;
     }
-    setHistory([]);
-    setModel((m) => ({ ...m, heap: [...m.heap, ...m.frame], frame: [] }));
-    setNote("");
-    setHint(null);
-    setPhase("ask");
-  }
-
-  const ones = model.heap.length, tens = model.tens.length;
-  const expected = { tens, ones, total: task.number };
-  function answer(guess) {
-    const q = QUESTIONS[step];
-    if (guess === expected[q.key]) {
-      setAnswers((a) => ({ ...a, [q.key]: guess }));
+    if (guess === expected[key]) {
+      setAnswers((a) => ({ ...a, [key]: guess }));
       setNote("");
-      if (step === 2) setPhase("done"); else setStep(step + 1);
+      setHint(null);
+      if (step === FIELDS.length - 1) setPhase("done"); else setStep(step + 1);
       return true;
     }
     const messages = {
-      tens: "Посчитай стопки ещё раз.",
-      ones: "Посчитай отдельные монеты ещё раз.",
+      tens: "Посчитай стопки ещё раз — каждая стопка это десяток.",
+      ones: "Единицы — монеты, которые не сложились в стопку. Посчитай их ещё раз.",
       total: teaching
         ? `Стопок ${tens} — это ${numberWords(tens * 10)}. И ещё ${ones} ${ones === 1 ? "монета" : ones >= 2 && ones <= 4 ? "монеты" : "монет"}.`
         : "Проверь число ещё раз.",
     };
-    setNote(messages[q.key]);
+    setHint(null);
+    setNote(messages[key]);
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
     return false;
   }
@@ -197,62 +178,38 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const stackList = model.tens.map((id) => <div key={id} data-stack-id={id} className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>
     <TenStack />
   </div>);
-  const stacks = <section className="px-zone px-zone--tens gt-tens">
-    <h3><span className="px-chip" />Десятки</h3>
-    <div className="px-stacks">{stackList}</div>
-  </section>;
+  const done = phase === "done";
 
   return <div className={`pv-screen px-screen gt-screen${narrow ? " gt-screen--narrow" : ""}`} style={{ "--coin-size": `${coinSize}px` }}>
     <header className="gt-task">
       <b>Сколько здесь монет?</b>
-      {grouping && <span>Сложи их стопками по десять — так считать легче</span>}
+      <span>Сложи их стопками по десять — так считать легче</span>
     </header>
-    <div className={`gt-main${grouping ? "" : " gt-main--sorted"}`} ref={mainRef}>
-      {grouping ? <>
-        <section className={`px-zone gt-heap${hint === "early" ? " px-glow" : ""}`}>
-          <div className="gt-heapbox" style={{ gridTemplateColumns: `repeat(${layout.cols}, 1fr)`, gridTemplateRows: `repeat(${layout.rows}, 1fr)` }}>
-            {model.heap.map((id) => <span key={id} className="gt-heap-cell" style={{ gridColumn: position[id].col + 1, gridRow: position[id].row + 1 }}>
-              <button type="button" className="px-coin gt-heap-coin" aria-label="Монета из россыпи"
-                style={{ left: `calc((100% - var(--coin-size)) * ${position[id].jx.toFixed(3)})`, top: `calc((100% - var(--coin-size)) * ${position[id].jy.toFixed(3)})` }}
-                disabled={exchange.busy} onClick={() => takeCoin(id)}><Coin /></button>
-            </span>)}
-          </div>
-        </section>
-        {/* The frame, and the stacks it has turned into, right next to it. */}
-        <section className="px-zone gt-bench">
-          <TenFrame coinIds={model.frame} onReturn={returnCoin} onClose={closeFrame} slots={slots} tapToClose
-            disabled={exchange.busy} glow={hint === "full"} />
-          <div className="gt-bench-stacks">{stackList}</div>
-        </section>
-      </> : <>
-        {stacks}
-        <section className="px-zone px-zone--ones gt-ones">
-          <h3><span className="px-chip" />Единицы <small>— то, что не сложилось в стопку</small></h3>
-          <div className="px-coin-block">{model.heap.map((id) => <span key={id} className="px-coin px-coin--static"><Coin /></span>)}</div>
-        </section>
-      </>}
-    </div>
-    <div className="px-bottom">
-      {grouping && <>
-        {hintText && <div className="px-hint" role="status"><small>Подсказка</small>{hintText}</div>}
-        {note && <div className="px-note" role="status">{note}</div>}
-        {teaching && <button type="button" className="px-undo" disabled={!history.length || exchange.busy} onClick={undo}>↶ Отменить</button>}
-        <button type="button" className="px-undo gt-finish" disabled={exchange.busy} onClick={finishGrouping}>Больше не сложить</button>
-      </>}
-      {phase === "ask" && <div className="gt-ask">
-        <div className="gt-questions">
-          {QUESTIONS.map((q, i) => <div key={q.key} className={`gt-q gt-q--${q.tone}${i === step ? " gt-q--active" : ""}${answers[q.key] !== undefined ? " gt-q--ok" : ""}`}>
-            <span>{q.label}</span><span className="gt-q-value">{answers[q.key] ?? (i === step ? "?" : "")}</span>
-          </div>)}
+    <div className="gt-main" ref={mainRef}>
+      <section className={`px-zone gt-heap${hint === "early" ? " px-glow" : ""}`}>
+        <div className="gt-heapbox" style={{ gridTemplateColumns: `repeat(${layout.cols}, 1fr)`, gridTemplateRows: `repeat(${layout.rows}, calc(var(--coin-size) * 1.15))` }}>
+          {model.heap.map((id) => <span key={id} className="gt-heap-cell" style={{ gridColumn: position[id].col + 1, gridRow: position[id].row + 1 }}>
+            <button type="button" className="px-coin gt-heap-coin" aria-label="Монета из россыпи"
+              style={{ left: `calc((100% - var(--coin-size)) * ${position[id].jx.toFixed(3)})`, top: `calc((100% - var(--coin-size)) * ${position[id].jy.toFixed(3)})` }}
+              disabled={exchange.busy || done} onClick={() => takeCoin(id)}><Coin /></button>
+          </span>)}
         </div>
-        <NumberAnswer key={step} onSubmit={answer} />
-        {note && <div className="px-note" role="status">{note}</div>}
-      </div>}
-      {phase === "done" && <div className="px-done" role="status">
-        <span className="gt-number">{task.number}</span>
-        <div className="px-say">{placeValuePhrase(task.number)}</div>
-        <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-      </div>}
+      </section>
+      {/* The frame, and the stacks it has turned into, right next to it. */}
+      <section className="px-zone gt-bench">
+        <TenFrame coinIds={model.frame} onReturn={returnCoin} onClose={closeFrame} slots={slots} tapToClose
+          disabled={exchange.busy || done} glow={hint === "full"} />
+        <div className="gt-bench-stacks">{stackList}</div>
+      </section>
+    </div>
+    <div className="px-bottom gt-bottom">
+      <div className="gt-status" role="status">
+        {done ? <span className="px-say">{placeValuePhrase(task.number)}</span>
+          : hintText ? <span className="gt-status-hint">{hintText}</span>
+            : note ? <span className="gt-status-note">{note}</span> : null}
+      </div>
+      <FieldPad fields={FIELDS} step={step} values={answers} onCheck={answer} done={done} />
+      {done && <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>}
     </div>
   </div>;
 }
