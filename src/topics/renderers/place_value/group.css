@@ -163,6 +163,21 @@
    ones small, under their stacks and frame; the number big, below. */
 .gt-bottom { flex-direction: column; gap: 8px; }
 
+/* Wide screens: the keypad to the right of the number, so the bottom takes
+   less height and the coins keep it. Phones: the number, then the keypad. */
+.gt-screen:not(.gt-screen--narrow) .gt-bottom {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas: "status status" "num keys";
+  justify-content: center;
+  align-items: center;
+  column-gap: 48px;
+  row-gap: 6px;
+}
+.gt-screen:not(.gt-screen--narrow) .gt-bottom > .fp-field--big { grid-area: num; }
+.gt-screen:not(.gt-screen--narrow) .gt-bottom > .gt-status { grid-area: status; justify-self: center; }
+.gt-screen:not(.gt-screen--narrow) .gt-bottom > :last-child { grid-area: keys; }
+
 .gt-status {
   min-height: 24px;
   max-width: 560px;
@@ -206,8 +221,16 @@
 .gt-bench--off .fp-field,
 .gt-bottom--off .fp-field { opacity: 0.45; }
 
-.fp-field--big { flex-direction: row; gap: 14px; font-size: 22px; font-weight: 900; color: #1a1a2e; }
-.fp-field--big .fp-value { width: 128px; height: 76px; border-width: 3px; border-radius: 18px; font-size: 52px; }
+/* The number is what all of it was for: the biggest thing under the coins,
+   sized by the screen's height so it grows wherever there is room. */
+.fp-field--big { gap: 4px; font-size: clamp(18px, 2.8vh, 26px); font-weight: 900; color: #1a1a2e; }
+.fp-field--big .fp-value {
+  width: clamp(120px, 22vh, 200px);
+  height: clamp(66px, 13vh, 120px);
+  border-width: 3px;
+  border-radius: 20px;
+  font-size: clamp(48px, 9.5vh, 92px);
+}
 
 .fp-field--active .fp-value { border-color: #3b82f6; box-shadow: 0 0 0 3px #dbeafe; }
 .fp-field--ok .fp-value { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
@@ -224,8 +247,16 @@
 .fp-key--enter { background: #16a34a; border-color: #16a34a; box-shadow: 0 3px 0 #15803d; color: #fff; }
 
 .gt-screen--narrow .gt-status { font-size: 14px; }
-.gt-screen--narrow .fp-value { width: 64px; height: 44px; font-size: 26px; }
-.gt-screen--narrow .fp-field--big { font-size: 19px; }
-.gt-screen--narrow .fp-field--big .fp-value { width: 104px; height: 62px; font-size: 42px; }
+.gt-screen--narrow .fp-field:not(.fp-field--big) .fp-value { width: 64px; height: 44px; font-size: 26px; }
 .gt-screen--narrow .fp-keys .px-key { height: 42px; font-size: 20px; }
 .gt-screen--narrow .gt-task span { display: none; }
+
+/* Short phones (iPhone SE and the like): the number's label beside the field,
+   lower keys, and an empty status line takes no room. */
+@media (max-height: 640px) {
+  .gt-screen--narrow .gt-bottom { gap: 6px; }
+  .gt-screen--narrow .gt-status { min-height: 0; }
+  .gt-screen--narrow .fp-field--big { flex-direction: row; gap: 12px; font-size: 18px; }
+  .gt-screen--narrow .fp-field--big .fp-value { width: 100px; height: 56px; font-size: 40px; }
+  .gt-screen--narrow .fp-keys .px-key { height: 38px; }
+}
