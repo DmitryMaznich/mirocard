@@ -33,8 +33,9 @@ function seededRandom(seed) {
 // The heap keeps one size (9 × 6 cells) whatever the number — a small number
 // just leaves more empty space; it grows only when the coins need more cells.
 export function heapLayout(count, seed) {
-  const cols = 9;
-  const rows = Math.max(6, Math.ceil((count * 1.35) / cols));
+  // Up to 49: 9 × 6 cells. Bigger numbers get a wider, denser grid (12 columns).
+  const cols = count <= 49 ? 9 : 12;
+  const rows = count <= 49 ? Math.max(6, Math.ceil((count * 1.35) / cols)) : Math.ceil((count * 1.2) / cols);
   const random = seededRandom(seed || 1);
   const cells = [];
   for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) cells.push([x, y]);
@@ -73,7 +74,9 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   // Coin size from the board's own box: the heap (9 columns), and under it the
   // stacks (room for every stack the number makes) and the frame, each with
   // its answer field below.
+  // The stack store mirrors the frame: up to five in a row, a second row for 6–9.
   const maxStacks = Math.max(1, Math.floor(task.number / 10));
+  const stackCols = Math.min(5, maxStacks), stackRows = Math.ceil(maxStacks / 5);
   useLayoutEffect(() => {
     const main = mainRef.current;
     if (!main) return undefined;
@@ -81,8 +84,8 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       const { width, height } = main.getBoundingClientRect();
       if (!width || !height) return;
       const isNarrow = width < 600;
-      const size = Math.min((width - 28) / (layout.cols * 1.15), (width - 60) / (6.9 + maxStacks * 1.3),
-        (height - 150) / (layout.rows * 1.15 + 2.5), isNarrow ? 44 : 56);
+      const size = Math.min((width - 28) / (layout.cols * 1.15), (width - 60) / (7.7 + stackCols * 1.3),
+        (height - 150) / (layout.rows * 1.15 + Math.max(2.5, stackRows * 2.5)), isNarrow ? 44 : 56);
       setNarrow(isNarrow);
       setCoinSize(Math.max(20, size));
     };
@@ -90,7 +93,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     const observer = new ResizeObserver(measure);
     observer.observe(main);
     return () => observer.disconnect();
-  }, [layout, maxStacks]);
+  }, [layout, stackCols, stackRows]);
 
   // «Обучение» only, and only after a pause: how to start, or that a full
   // frame is waiting to be closed. The decisions themselves are never hinted.
@@ -202,7 +205,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       </section>
       {/* Tens left, ones right — the order of the digits: the stacks, then the
           frame they come out of, each with its answer field under it. */}
-      <section className={`px-zone gt-bench${canAnswer ? "" : " gt-bench--off"}`} style={{ "--gt-stacks": maxStacks }}>
+      <section className={`px-zone gt-bench${canAnswer ? "" : " gt-bench--off"}`} style={{ "--gt-stack-cols": stackCols }}>
         <div className="gt-bench-stacks">{stackList}</div>
         <TenFrame coinIds={model.frame} onReturn={returnCoin} onClose={closeFrame} slots={slots} tapToClose
           disabled={exchange.busy || done} glow={hint === "full"} />

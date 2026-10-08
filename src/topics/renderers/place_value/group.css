@@ -36,7 +36,7 @@
 .gt-bench {
   flex: 0 0 auto;
   width: 100%;
-  max-width: calc(var(--coin-size) * 11.5 + 28px);
+  max-width: calc(var(--coin-size) * 14.5 + 28px);
   box-sizing: border-box;
 }
 
@@ -63,11 +63,12 @@
 .gt-bench > .fp-field { justify-self: center; }
 
 .gt-bench-stacks {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(var(--gt-stack-cols), var(--coin-size));
+  grid-auto-rows: calc(var(--coin-size) * 2.2);
   justify-content: center;
-  align-items: flex-end;
+  align-items: end;
   gap: calc(var(--coin-size) * 0.3);
-  min-width: calc(var(--coin-size) * var(--gt-stacks) * 1.3);
   min-height: calc(var(--coin-size) * 2.2);
 }
 
