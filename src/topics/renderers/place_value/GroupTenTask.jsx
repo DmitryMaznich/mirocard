@@ -70,6 +70,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   // be clearly wider than a coin (no touching coins); once sorted, only two
   // short zones are left, so the coins may grow.
   const grouping = phase === "group";
+  const maxStacks = Math.max(1, Math.floor(task.number / 10));
   useLayoutEffect(() => {
     const main = mainRef.current;
     if (!main) return undefined;
@@ -79,8 +80,9 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       const isNarrow = width < 600;
       let size;
       if (!grouping) size = isNarrow ? Math.min(((width - 12) / 2 - 24) / 6.3, (height - 52) / 2.4, 40) : Math.min((width - 120) / 13.2, 56);
-      else if (isNarrow) size = Math.min((width - 40) / (layout.cols * 1.15), (width - 60) / 6.4, (height - 240) / (layout.rows * 1.15 + 4.7), 44);
-      else size = Math.min((width - 110) / (6.6 + layout.cols * 1.15), (height - 70) / (layout.rows * 1.15), (height - 190) / 4.8, 56);
+      // Heap on top; under it the frame with the finished stacks to its right.
+      else size = Math.min((width - 28) / (layout.cols * 1.15), (width - 60) / (6.9 + maxStacks * 1.3),
+        (height - 100) / (layout.rows * 1.15 + 2.6), isNarrow ? 44 : 56);
       setNarrow(isNarrow);
       setCoinSize(Math.max(20, size));
     };
@@ -88,7 +90,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     const observer = new ResizeObserver(measure);
     observer.observe(main);
     return () => observer.disconnect();
-  }, [layout, grouping]);
+  }, [layout, grouping, maxStacks]);
 
   // «Обучение» only, and only after a pause: how to start, or that a full
   // frame is waiting to be closed. The decisions themselves are never hinted.
@@ -132,6 +134,9 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     if (phase !== "group" || exchange.busy || !model.frame.length) return;
     if (model.frame.length !== 10) {
       // Only reachable without the frame: the child counted the stack wrong.
+      // The pile is the button, so it can't also take coins back: the coins
+      // return to the heap and the child counts ten again.
+      change((m) => ({ ...m, heap: [...m.heap, ...m.frame], frame: [] }));
       mistake(teaching ? "В стопке должно быть ровно десять монет. Посчитай ещё раз." : "Проверь, сколько монет в стопке.");
       return;
     }
@@ -186,16 +191,15 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
 
   const hintText = {
     start: "Нажимай на монеты — они перейдут в рамку.",
-    full: "В рамке десять монет — нажми «Сложить в стопку».",
+    full: "В рамке десять монет — нажми на рамку, и они сложатся в стопку.",
     early: "Посмотри на россыпь: можно сложить ещё одну стопку?",
   }[hint];
+  const stackList = model.tens.map((id) => <div key={id} data-stack-id={id} className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>
+    <TenStack />
+  </div>);
   const stacks = <section className="px-zone px-zone--tens gt-tens">
     <h3><span className="px-chip" />Десятки</h3>
-    <div className="px-stacks">
-      {model.tens.map((id) => <div key={id} data-stack-id={id} className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>
-        <TenStack />
-      </div>)}
-    </div>
+    <div className="px-stacks">{stackList}</div>
   </section>;
 
   return <div className={`pv-screen px-screen gt-screen${narrow ? " gt-screen--narrow" : ""}`} style={{ "--coin-size": `${coinSize}px` }}>
@@ -206,7 +210,6 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     <div className={`gt-main${grouping ? "" : " gt-main--sorted"}`} ref={mainRef}>
       {grouping ? <>
         <section className={`px-zone gt-heap${hint === "early" ? " px-glow" : ""}`}>
-          <h3>Россыпь</h3>
           <div className="gt-heapbox" style={{ gridTemplateColumns: `repeat(${layout.cols}, 1fr)`, gridTemplateRows: `repeat(${layout.rows}, 1fr)` }}>
             {model.heap.map((id) => <span key={id} className="gt-heap-cell" style={{ gridColumn: position[id].col + 1, gridRow: position[id].row + 1 }}>
               <button type="button" className="px-coin gt-heap-coin" aria-label="Монета из россыпи"
@@ -215,14 +218,12 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
             </span>)}
           </div>
         </section>
-        <div className="gt-side">
-          <section className="px-zone gt-framecard">
-            <TenFrame coinIds={model.frame} onReturn={returnCoin} onClose={closeFrame} slots={slots}
-              onPileTap={() => model.frame.length && returnCoin(model.frame[model.frame.length - 1])}
-              disabled={exchange.busy} glow={hint === "full"} />
-          </section>
-          {stacks}
-        </div>
+        {/* The frame, and the stacks it has turned into, right next to it. */}
+        <section className="px-zone gt-bench">
+          <TenFrame coinIds={model.frame} onReturn={returnCoin} onClose={closeFrame} slots={slots} tapToClose
+            disabled={exchange.busy} glow={hint === "full"} />
+          <div className="gt-bench-stacks">{stackList}</div>
+        </section>
       </> : <>
         {stacks}
         <section className="px-zone px-zone--ones gt-ones">

@@ -28,13 +28,13 @@
   gap: 16px;
 }
 
+/* Grouping: the heap on top, under it the frame with the stacks beside it. */
+.gt-main:not(.gt-main--sorted) { flex-direction: column; align-items: stretch; gap: 10px; }
+
 .gt-heap {
-  flex: 1 1 0;
-  max-width: 620px;
+  flex: 1 1 auto;
   min-width: 0;
 }
-
-.gt-heap h3 { color: #334155; }
 
 .gt-heapbox {
   flex: 1;
@@ -50,15 +50,26 @@
 
 .gt-heap-coin { position: absolute; }
 
-.gt-side {
+.gt-bench {
   flex: 0 0 auto;
-  width: calc(var(--coin-size) * 6.6 + 28px);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-direction: row;
+  align-items: center;
+  gap: calc(var(--coin-size) * 0.6);
 }
 
-.gt-framecard .px-tenframe { margin-top: 0; }
+.gt-bench .px-tenframe { margin-top: 0; flex: 0 0 auto; }
+
+.gt-bench-stacks {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: calc(var(--coin-size) * 0.3);
+  min-height: calc(var(--coin-size) * 2.2);
+}
+
+.gt-bench-stacks .px-stack-wrap { width: var(--coin-size); }
 
 .gt-tens { width: auto; }
 .gt-tens .px-stacks { min-height: calc(var(--coin-size) * 2.2); }
@@ -124,12 +135,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Phones: heap on top, then the frame, then the stacks. Once sorted, tens and
+/* Phones: once sorted, tens and
    ones stand side by side (the order of the digits) and the questions and
    keypad tighten up, so the coins keep their room above them. */
 .gt-screen--narrow .gt-main { flex-direction: column; justify-content: flex-start; }
-.gt-screen--narrow .gt-heap { max-width: none; flex: 1 1 auto; }
-.gt-screen--narrow .gt-side { width: auto; }
 .gt-screen--narrow .gt-main--sorted > .px-zone { width: auto; }
 .gt-screen--narrow .gt-questions { min-width: 0; width: 100%; }
 

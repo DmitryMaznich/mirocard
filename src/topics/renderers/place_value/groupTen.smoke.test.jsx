@@ -23,8 +23,10 @@ describe("GroupTenTask", () => {
     take(10);
     expect(count(".px-tf .px-coin")).toBe(10);
     expect(count(".gt-heap-coin")).toBe(3);
+    // The full frame itself is the button; the stack lands right beside it.
+    expect(h.button("Сложить в стопку").classList).toContain("px-tf--ready");
     h.click("Сложить в стопку"); h.flush();
-    expect(count(".gt-tens .cb-ten-stack")).toBe(1);
+    expect(count(".gt-bench-stacks .cb-ten-stack")).toBe(1);
     expect(count(".px-tf .px-coin")).toBe(0);
     h.click("Больше не сложить");
     expect(h.container.querySelector(".gt-q--active").textContent).toContain("Сколько стопок?");
@@ -38,7 +40,8 @@ describe("GroupTenTask", () => {
   it("a frame coin can be put back, and the frame cannot be closed before ten", () => {
     h.mount(GroupTenTask, task(13));
     take(4);
-    expect(h.button("Сложить в стопку").disabled).toBe(true);
+    expect(h.button("Сложить в стопку")).toBeUndefined();
+    expect(h.container.querySelector(".px-tenframe h3, .px-tf-count")).toBeNull();
     h.click("Монета в рамке 2");
     expect(count(".px-tf .px-coin")).toBe(3);
     expect(count(".gt-heap-coin")).toBe(10);
@@ -60,17 +63,18 @@ describe("GroupTenTask", () => {
     expect(h.container.querySelector(".gt-questions")).toBeNull();
   });
 
-  it("without the frame the child counts ten alone; a wrong stack is not accepted", () => {
+  it("without the frame the child counts ten alone; a wrong stack goes back to the heap", () => {
     const onMistake = vi.fn();
     h.mount(GroupTenTask, task(12, { showFrame: false }), { onMistake });
     expect(count(".px-tf-slot")).toBe(0);
     take(9);
     h.click("Сложить в стопку");
     expect(h.container.querySelector(".px-note").textContent).toContain("ровно десять");
-    expect(count(".gt-tens .cb-ten-stack")).toBe(0);
-    take(1);
+    expect(count(".gt-bench-stacks .cb-ten-stack")).toBe(0);
+    expect(count(".gt-heap-coin")).toBe(12);
+    take(10);
     h.click("Сложить в стопку"); h.flush();
-    expect(count(".gt-tens .cb-ten-stack")).toBe(1);
+    expect(count(".gt-bench-stacks .cb-ten-stack")).toBe(1);
     expect(count(".gt-heap-coin")).toBe(2);
   });
 
