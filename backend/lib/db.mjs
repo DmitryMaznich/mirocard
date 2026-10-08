@@ -357,6 +357,11 @@ export function initDb(dbPath = DB_PATH) {
   if (!tokenColumns.includes("last_topic_id")) {
     db.exec("ALTER TABLE auth_tokens ADD COLUMN last_topic_id TEXT");
   }
+  for (const col of ["client_version", "current_screen"]) {
+    if (!tokenColumns.includes(col)) {
+      db.exec(`ALTER TABLE auth_tokens ADD COLUMN ${col} TEXT`);
+    }
+  }
   if (!accountColumns.includes("first_name")) {
     db.exec("ALTER TABLE accounts ADD COLUMN first_name TEXT NOT NULL DEFAULT ''");
   }

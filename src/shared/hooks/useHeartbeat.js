@@ -9,16 +9,47 @@ export function useHeartbeat() {
   useUsageTracking();
   useEffect(() => {
     async function beat() {
-      const { token, screen, activeTopicId } = useAppStore.getState();
-      if (document.hidden || !token || screen === "boot" || screen === "login" || screen === "register") return;
+      const { token, screen, activeTopicId, homeActiveTab, buildInfo } =
+        useAppStore.getState();
+      if (
+        document.hidden ||
+        !token ||
+        screen === "boot" ||
+        screen === "login" ||
+        screen === "register"
+      )
+        return;
       try {
-        await api.post("/heartbeat", { screen, topicId: activeTopicId || null });
-      } catch { /* Presence is best-effort; usage is queued separately. */ }
+        const currentScreen =
+          screen === "home" && homeActiveTab && homeActiveTab !== "session"
+            ? homeActiveTab
+            : screen;
+        const topicScreen = [
+          "home",
+          "modes",
+          "texts",
+          "params",
+          "concepts",
+          "session",
+          "summary",
+          "reading",
+          "all_texts",
+        ].includes(currentScreen);
+        await api.post("/heartbeat", {
+          screen: currentScreen,
+          topicId: topicScreen ? activeTopicId || null : null,
+          version: buildInfo?.version ?? null,
+        });
+      } catch {
+        /* Presence is best-effort; usage is queued separately. */
+      }
     }
 
     beat();
     const interval = setInterval(beat, INTERVAL_MS);
-    function onVisible() { if (!document.hidden) beat(); }
+    function onVisible() {
+      if (!document.hidden) beat();
+    }
     document.addEventListener("visibilitychange", onVisible);
     return () => {
       clearInterval(interval);

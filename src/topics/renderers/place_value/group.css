@@ -28,19 +28,19 @@
   gap: 16px;
 }
 
-.gt-heap {
-  flex: 1 1 0;
-  max-width: 620px;
-  min-width: 0;
+/* «Сложи по десять»: the heap on top, under it the frame with the stacks
+   beside it; both keep their size (the heap is a fixed grid of cells). */
+.gt-main:not(.gt-main--sorted) { flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+
+.gt-heap,
+.gt-bench {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: calc(var(--coin-size) * 14.5 + 28px);
+  box-sizing: border-box;
 }
 
-.gt-heap h3 { color: #334155; }
-
-.gt-heapbox {
-  flex: 1;
-  display: grid;
-  min-height: calc(var(--coin-size) * 3);
-}
+.gt-heapbox { display: grid; }
 
 .gt-heap-cell {
   position: relative;
@@ -50,15 +50,29 @@
 
 .gt-heap-coin { position: absolute; }
 
-.gt-side {
-  flex: 0 0 auto;
-  width: calc(var(--coin-size) * 6.6 + 28px);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.gt-bench {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-items: end;
+  column-gap: calc(var(--coin-size) * 1.2);
+  row-gap: 8px;
 }
 
-.gt-framecard .px-tenframe { margin-top: 0; }
+.gt-bench .px-tenframe { margin-top: 0; }
+.gt-bench > .fp-field { justify-self: center; }
+
+.gt-bench-stacks {
+  display: grid;
+  grid-template-columns: repeat(var(--gt-stack-cols), var(--coin-size));
+  grid-auto-rows: calc(var(--coin-size) * 2.2);
+  justify-content: center;
+  align-items: end;
+  gap: calc(var(--coin-size) * 0.3);
+  min-height: calc(var(--coin-size) * 2.2);
+}
+
+.gt-bench-stacks .px-stack-wrap { width: var(--coin-size); }
 
 .gt-tens { width: auto; }
 .gt-tens .px-stacks { min-height: calc(var(--coin-size) * 2.2); }
@@ -124,12 +138,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Phones: heap on top, then the frame, then the stacks. Once sorted, tens and
+/* Phones: once sorted, tens and
    ones stand side by side (the order of the digits) and the questions and
    keypad tighten up, so the coins keep their room above them. */
 .gt-screen--narrow .gt-main { flex-direction: column; justify-content: flex-start; }
-.gt-screen--narrow .gt-heap { max-width: none; flex: 1 1 auto; }
-.gt-screen--narrow .gt-side { width: auto; }
 .gt-screen--narrow .gt-main--sorted > .px-zone { width: auto; }
 .gt-screen--narrow .gt-questions { min-width: 0; width: 100%; }
 
@@ -147,3 +159,112 @@
 .gt-screen--narrow .px-key { height: 40px; font-size: 20px; }
 .gt-screen--narrow .px-answer-actions { grid-column: 1 / -1; justify-content: center; }
 .gt-screen--narrow .px-answer-actions .px-undo { padding: 10px 14px; }
+
+/* Answer fields typed into straight from the keypad (FieldPad.jsx): tens and
+   ones small, under their stacks and frame; the number big, below. */
+.gt-bottom { flex-direction: column; gap: 8px; }
+
+/* Wide screens: the keypad to the right of the number, so the bottom takes
+   less height and the coins keep it. Phones: the number, then the keypad. */
+.gt-screen:not(.gt-screen--narrow) .gt-bottom {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas: "status status" "num keys";
+  justify-content: center;
+  align-items: center;
+  column-gap: 48px;
+  row-gap: 6px;
+}
+.gt-screen:not(.gt-screen--narrow) .gt-bottom > .fp-field--big { grid-area: num; }
+.gt-screen:not(.gt-screen--narrow) .gt-bottom > .gt-status { grid-area: status; justify-self: center; }
+.gt-screen:not(.gt-screen--narrow) .gt-bottom > :last-child { grid-area: keys; }
+
+.gt-status {
+  min-height: 24px;
+  max-width: 560px;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.gt-status-hint { color: #1d4ed8; }
+.gt-status-note { color: #9a3412; }
+
+.fp-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.fp-field--tens { color: #92400e; }
+.fp-field--ones { color: #1e40af; }
+
+.fp-value {
+  width: 76px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: 2.5px solid #cbd5e1;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 30px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: #1a1a2e;
+}
+
+.gt-bench--off .fp-field,
+.gt-bottom--off .fp-field { opacity: 0.45; }
+
+/* The number is what all of it was for: the biggest thing under the coins,
+   sized by the screen's height so it grows wherever there is room. */
+.fp-field--big { gap: 4px; font-size: clamp(18px, 2.8vh, 26px); font-weight: 900; color: #1a1a2e; }
+.fp-field--big .fp-value {
+  width: clamp(120px, 22vh, 200px);
+  height: clamp(66px, 13vh, 120px);
+  border-width: 3px;
+  border-radius: 20px;
+  font-size: clamp(48px, 9.5vh, 92px);
+}
+
+/* Digits keep the place colour — tens amber, ones blue, the number black —
+   both while typed and once accepted (no green «correct» colour here). */
+.fp-field--tens .fp-value { color: #b45309; }
+.fp-field--ones .fp-value { color: #1d4ed8; }
+.fp-field--total .fp-value { color: #1a1a2e; }
+.fp-field--active .fp-value { border-color: #3b82f6; box-shadow: 0 0 0 3px #dbeafe; }
+.fp-field--ok.fp-field--tens .fp-value { border-color: #f59e0b; background: #fffbeb; }
+.fp-field--ok.fp-field--ones .fp-value { border-color: #60a5fa; background: #eff6ff; }
+.fp-field--ok.fp-field--total .fp-value { border-color: #1a1a2e; background: #fff; }
+.fp-field--wrong .fp-value { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
+
+.fp-keys {
+  display: grid;
+  grid-template-columns: repeat(6, 46px);
+  gap: 6px;
+}
+
+.fp-keys .px-key { height: 44px; }
+.fp-key--erase { color: #64748b; }
+.fp-key--enter { background: #16a34a; border-color: #16a34a; box-shadow: 0 3px 0 #15803d; color: #fff; }
+
+.gt-screen--narrow .gt-status { font-size: 14px; }
+.gt-screen--narrow .fp-field:not(.fp-field--big) .fp-value { width: 64px; height: 44px; font-size: 26px; }
+.gt-screen--narrow .fp-keys .px-key { height: 42px; font-size: 20px; }
+.gt-screen--narrow .gt-task span { display: none; }
+
+/* Short phones (iPhone SE and the like): the number's label beside the field,
+   lower keys, and an empty status line takes no room. */
+@media (max-height: 640px) {
+  .gt-screen--narrow .gt-bottom { gap: 6px; }
+  .gt-screen--narrow .gt-status { min-height: 0; }
+  .gt-screen--narrow .fp-field--big { flex-direction: row; gap: 12px; font-size: 18px; }
+  .gt-screen--narrow .fp-field--big .fp-value { width: 100px; height: 56px; font-size: 40px; }
+  .gt-screen--narrow .fp-keys .px-key { height: 38px; }
+}

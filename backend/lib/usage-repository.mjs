@@ -203,6 +203,32 @@ export function getUsageReport(db, accountId, period = "30", now = Date.now()) {
       mode: e.mode,
       device: e.device,
     }));
+  // Continuous work stays visible without flooding the timeline with 10-second
+  // samples. Each minute/topic/screen/visit is one explicitly labelled entry.
+  const activity = new Map();
+  for (const e of events) {
+    if (e.kind !== "time") continue;
+    const key = JSON.stringify([
+      e.occurred_at.slice(0, 16),
+      e.topic_id,
+      e.screen,
+      e.visit_id,
+    ]);
+    const item = activity.get(key) ?? {
+      kind: "activity",
+      at: e.occurred_at,
+      topicId: e.topic_id,
+      screen: e.screen,
+      device: e.device,
+      foregroundMs: 0,
+      activeMs: 0,
+    };
+    if (e.occurred_at > item.at) item.at = e.occurred_at;
+    item.foregroundMs += e.foreground_ms;
+    item.activeMs += e.active_ms;
+    activity.set(key, item);
+  }
+  timeline.push(...activity.values());
   timeline.push(
     ...sessions.map((s) => ({
       id: s.id,
@@ -288,6 +314,11 @@ export function getUsageReport(db, accountId, period = "30", now = Date.now()) {
     ),
     timeline: timeline.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 100),
     technical: latest,
+    clients: db
+      .prepare(
+        "SELECT device,client_version AS version,current_screen AS screen,last_topic_id AS topicId,last_seen_at AS lastSeenAt FROM auth_tokens WHERE account_id=? AND last_seen_at>=? ORDER BY last_seen_at DESC LIMIT 8",
+      )
+      .all(accountId, new Date(now - 86400000).toISOString()),
     milestones: {
       registeredAt: a?.created_at,
       firstVisitAt: db

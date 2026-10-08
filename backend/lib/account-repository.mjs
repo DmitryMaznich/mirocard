@@ -245,15 +245,17 @@ export function serializeAccount(row) {
   };
 }
 
-export function recordHeartbeat(db, tokenHash, { device, topicId }) {
+export function recordHeartbeat(db, tokenHash, { device, topicId, screen, version }) {
   const ts = new Date().toISOString();
   db.prepare(`
     UPDATE auth_tokens
     SET last_seen_at = ?,
         device = COALESCE(?, device),
-        last_topic_id = COALESCE(?, last_topic_id)
+        last_topic_id = ?,
+        current_screen = ?,
+        client_version = COALESCE(?, client_version)
     WHERE token_hash = ?
-  `).run(ts, device ?? null, topicId ?? null, tokenHash);
+  `).run(ts, device ?? null, topicId ?? null, screen ?? null, version ?? null, tokenHash);
 }
 
 export function getActiveTokens(db, accountId, withinMs = 2 * 60 * 1000) {

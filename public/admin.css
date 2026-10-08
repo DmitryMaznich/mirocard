@@ -1488,3 +1488,19 @@ body:has(dialog[open]) {
     overflow-wrap: anywhere;
   }
 }
+
+.usage-updates {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+@media (max-width: 700px) {
+  .usage-updates {
+    flex-wrap: wrap;
+  }
+  .usage-updates .btn {
+    width: 100%;
+  }
+}

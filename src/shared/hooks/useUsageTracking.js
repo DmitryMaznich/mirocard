@@ -45,7 +45,7 @@ export function useUsageTracking() {
     };
     window.addEventListener("mrc-api-error", onError);
     const sample = setInterval(tracker.sample, 1000),
-      flush = setInterval(tracker.flush, 30000);
+      flush = setInterval(tracker.flush, 10000);
     const unsubscribe = useAppStore.subscribe(tracker.sample);
     const visibility = () =>
       document.hidden ? tracker.pause() : tracker.resume();
@@ -53,6 +53,8 @@ export function useUsageTracking() {
     window.addEventListener("pointerdown", tracker.interact, { passive: true });
     window.addEventListener("keydown", tracker.interact);
     window.addEventListener("pagehide", tracker.pause);
+    window.addEventListener("pageshow", tracker.resume);
+    document.addEventListener("freeze", tracker.pause);
     return () => {
       window.removeEventListener("mrc-api-error", onError);
       tracker.pause();
@@ -63,6 +65,8 @@ export function useUsageTracking() {
       window.removeEventListener("pointerdown", tracker.interact);
       window.removeEventListener("keydown", tracker.interact);
       window.removeEventListener("pagehide", tracker.pause);
+      window.removeEventListener("pageshow", tracker.resume);
+      document.removeEventListener("freeze", tracker.pause);
     };
   }, []);
 }

@@ -221,7 +221,7 @@ is NULL and is never reconstructed from elapsed wall time.
 New usage events contain only account-scoped identifiers, screen/topic/mode,
 time, generic device class and app version. No request bodies, user agent strings,
 student names, tokens or exercise answers are added to this event stream.
-Foreground/active time is sampled every second and queued about every 30 seconds;
+Foreground/active time is sampled every second and queued about every 10 seconds;
 hidden tabs, sleep gaps and idle after 60 seconds are excluded from active time.
 The existing IndexedDB sync queue retries offline events with stable event IDs;
 server insertion is idempotent and time samples are capped at 30 seconds.
@@ -239,3 +239,13 @@ failures themselves. Topic acquisition records indicate account ownership, not
 proof of successful ZIP download. Collection begins with the new app version;
 there is no retroactive reconstruction of openings. Archived users retain these
 records under the current account retention policy.
+
+
+The usage pane refreshes every 15 seconds while open and visible, preserving
+expanded topic cards and scroll. Continuous time samples appear as minute-level
+activity summaries in the timeline, not fake logins or repeated topic openings.
+Per-token heartbeat metadata reports the last declared app version and screen;
+no credential identifiers are exposed. Cached clients must load the updated app
+once; signing out is not required. Activity before collection began cannot be
+recovered from login/logout records. Mobile pagehide/visibility/freeze events
+flush pending time, and pageshow resumes the timer without counting suspension.

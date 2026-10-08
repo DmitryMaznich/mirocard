@@ -14,22 +14,30 @@ describe("GroupTenTask", () => {
   it("shows a heap and no number until the child has answered", () => {
     h.mount(GroupTenTask, task(23));
     expect(count(".gt-heap-coin")).toBe(23);
-    expect(h.container.textContent).not.toContain("23");
+    expect(Array.from(h.container.querySelectorAll(".gt-heap, .fp-value")).map((e) => e.textContent).join("")).not.toContain("23");
   });
 
-  it("frame → stack → «Больше не сложить» → three questions → spoken model", () => {
+  const field = (label) => h.container.querySelector(`output[aria-label="${label}"]`).textContent;
+
+  it("frame → stack → answers typed straight into the fields → spoken model", () => {
     const onCorrect = vi.fn(), onMistake = vi.fn();
     h.mount(GroupTenTask, task(13), { onCorrect, onMistake });
+    expect(h.button("Больше не сложить")).toBeUndefined();
     take(10);
     expect(count(".px-tf .px-coin")).toBe(10);
     expect(count(".gt-heap-coin")).toBe(3);
+    // The full frame itself is the button; the stack lands right beside it.
+    expect(h.button("Сложить в стопку").classList).toContain("px-tf--ready");
     h.click("Сложить в стопку"); h.flush();
-    expect(count(".gt-tens .cb-ten-stack")).toBe(1);
+    expect(count(".gt-bench-stacks .cb-ten-stack")).toBe(1);
     expect(count(".px-tf .px-coin")).toBe(0);
-    h.click("Больше не сложить");
-    expect(h.container.querySelector(".gt-q--active").textContent).toContain("Сколько стопок?");
-    answer(1); answer(3); answer(13);
-    expect(h.container.querySelector(".px-say").textContent).toBe("1 десяток и 3 единицы — тринадцать");
+    h.click("1");
+    expect(field("Десятков")).toBe("1");
+    h.click("Проверить");
+    expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Единиц");
+    answer(3); answer(13);
+    expect(h.container.querySelector(".px-say")).toBeNull();
+    expect(field("Какое это число?")).toBe("13");
     expect(onMistake).not.toHaveBeenCalled();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("g", "g");
@@ -38,39 +46,41 @@ describe("GroupTenTask", () => {
   it("a frame coin can be put back, and the frame cannot be closed before ten", () => {
     h.mount(GroupTenTask, task(13));
     take(4);
-    expect(h.button("Сложить в стопку").disabled).toBe(true);
+    expect(h.button("Сложить в стопку")).toBeUndefined();
+    expect(h.container.querySelector(".px-tenframe h3, .px-tf-count")).toBeNull();
     h.click("Монета в рамке 2");
     expect(count(".px-tf .px-coin")).toBe(3);
     expect(count(".gt-heap-coin")).toBe(10);
   });
 
-  it("stopping while ten more could be stacked: hint in «Обучение», one mistake in «Проверка»", () => {
-    const onMistake = vi.fn();
-    h.mount(GroupTenTask, task(23), { onMistake });
+  it("the number and keypad stay hidden while stacks can still be made; the leftover heap shrinks", () => {
+    h.mount(GroupTenTask, task(23));
+    expect(h.container.querySelector(".fp-keys")).toBeNull();
+    expect(h.container.querySelector('output[aria-label="Какое это число?"]')).toBeNull();
+    expect(h.container.querySelector(".gt-bench--off")).not.toBeNull();
     take(10); h.click("Сложить в стопку"); h.flush();
-    h.click("Больше не сложить");
-    expect(h.container.querySelector(".px-hint").textContent).toContain("можно сложить ещё одну стопку?");
-    expect(h.container.querySelector(".gt-heap.px-glow")).not.toBeNull();
-    expect(onMistake).not.toHaveBeenCalled();
-    h.unmount();
-    h.mount(GroupTenTask, task(23, { supportMode: "independent" }), { onMistake });
-    h.click("Больше не сложить"); h.click("Больше не сложить");
-    expect(onMistake).toHaveBeenCalledTimes(1);
-    expect(h.container.querySelector(".px-hint")).toBeNull();
-    expect(h.container.querySelector(".gt-questions")).toBeNull();
+    expect(h.container.querySelector(".fp-keys")).toBeNull();
+    take(10); h.click("Сложить в стопку"); h.flush();
+    expect(h.container.querySelector(".fp-keys")).not.toBeNull();
+    expect(h.container.querySelector(".gt-heapbox").style.gridTemplateRows).toContain("repeat(3,");
+    expect(count(".gt-heap-coin")).toBe(3);
+    expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Десятков");
+    answer(2); answer(3); answer(23);
+    expect(field("Какое это число?")).toBe("23");
   });
 
-  it("without the frame the child counts ten alone; a wrong stack is not accepted", () => {
+  it("without the frame the child counts ten alone; a wrong stack goes back to the heap", () => {
     const onMistake = vi.fn();
     h.mount(GroupTenTask, task(12, { showFrame: false }), { onMistake });
     expect(count(".px-tf-slot")).toBe(0);
     take(9);
     h.click("Сложить в стопку");
-    expect(h.container.querySelector(".px-note").textContent).toContain("ровно десять");
-    expect(count(".gt-tens .cb-ten-stack")).toBe(0);
-    take(1);
+    expect(h.container.querySelector(".gt-status").textContent).toContain("ровно десять");
+    expect(count(".gt-bench-stacks .cb-ten-stack")).toBe(0);
+    expect(count(".gt-heap-coin")).toBe(12);
+    take(10);
     h.click("Сложить в стопку"); h.flush();
-    expect(count(".gt-tens .cb-ten-stack")).toBe(1);
+    expect(count(".gt-bench-stacks .cb-ten-stack")).toBe(1);
     expect(count(".gt-heap-coin")).toBe(2);
   });
 
@@ -79,23 +89,23 @@ describe("GroupTenTask", () => {
     h.mount(GroupTenTask, task(20), { onMistake });
     take(10); h.click("Сложить в стопку"); h.flush();
     take(10); h.click("Сложить в стопку"); h.flush();
-    h.click("Больше не сложить");
     answer(2); answer(0); answer(2);
     expect(onMistake).toHaveBeenCalledTimes(1);
-    expect(h.container.querySelector(".px-note").textContent).toContain("Стопок 2 — это двадцать");
+    expect(h.container.querySelector(".gt-status").textContent).toContain("Стопок 2 — это двадцать");
     h.click("Стереть цифру"); answer(20);
-    expect(h.container.querySelector(".px-say").textContent).toBe("2 десятка и 0 единиц — двадцать");
+    expect(field("Единиц")).toBe("0");
+    expect(field("Какое это число?")).toBe("20");
   });
 
   it("the how-to-start hint waits for a pause and only in «Обучение»", () => {
     h.mount(GroupTenTask, task(13));
-    expect(h.container.querySelector(".px-hint")).toBeNull();
+    expect(h.container.querySelector(".gt-status").textContent).toBe("");
     act(() => vi.advanceTimersByTime(6000));
-    expect(h.container.querySelector(".px-hint").textContent).toContain("Нажимай на монеты");
+    expect(h.container.querySelector(".gt-status").textContent).toContain("Нажимай на монеты");
     h.unmount();
     h.mount(GroupTenTask, task(13, { supportMode: "independent" }));
     act(() => vi.advanceTimersByTime(20000));
-    expect(h.container.querySelector(".px-hint")).toBeNull();
+    expect(h.container.querySelector(".gt-status").textContent).toBe("");
   });
 });
 

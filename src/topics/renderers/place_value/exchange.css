@@ -196,6 +196,19 @@
   background: #f0fdf4;
 }
 
+/* A full frame that is itself the button («Сложи по десять»). */
+.px-tf--ready {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 4px 0 #86efac;
+}
+
+.px-tf--ready:active { transform: translateY(3px); box-shadow: none; }
+
 .px-tf-slot {
   width: var(--coin-size);
   height: var(--coin-size);

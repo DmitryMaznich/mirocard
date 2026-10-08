@@ -196,6 +196,7 @@ const GROUP_TEN_RANGES = {
   teens: () => Array.from({ length: 9 }, (_, i) => 11 + i),
   to49: () => Array.from({ length: 30 }, (_, i) => 20 + i).filter((n) => n % 10 !== 0),
   round: () => [20, 30, 40],
+  to99: () => Array.from({ length: 50 }, (_, i) => 50 + i).filter((n) => n % 10 !== 0),
 };
 
 export function groupTenNumbers(range, count) {
