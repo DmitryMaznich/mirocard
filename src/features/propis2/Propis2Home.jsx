@@ -4,7 +4,7 @@ import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { NOTEBOOK_KEYS, PAGE_PAPER_KEYS, newRow, rowToLine, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageMargin, pageToLines, paperDiffers, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { NOTEBOOK_KEYS, PAGE_PAPER_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageMargin, pageToLines, paperDiffers, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
@@ -12,8 +12,8 @@ import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
 import Propis2SaveDialog from "./Propis2SaveDialog";
 import Propis2PrintDialog from "./Propis2PrintDialog";
-import Propis2Cover from "./Propis2Cover";
-import { digitsOut } from "@/topics/renderers/propis2/fieldText.js";
+import CoverSide from "./cover/CoverSide.jsx";
+import { migrateLegacy, normalizeCover } from "./cover/coverConfig.js";
 import { setBackInterceptor } from "@/shared/navigation/backInterceptor";
 import "./propis2.css";
 
@@ -283,20 +283,36 @@ export default function Propis2Home({ db }) {
     return { isSet, ruling: paper.ruling, gridSource: paper, task };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view.name, page, set, runTasks, partIndex, glyphMap, taskOf]);
-  // the covers: the name of the notebook, the notebook's first rows (its own paper) and the name written on the copybook ruling
+  // the cover: the notebook's own (`set.cover`, synced with it; a notebook printed before keeps the design remembered on this device),
+  // drawn with the notebook's name and first rows (its own paper)
   const printKey = view.name === "showSet" && set ? set.id : view.name === "show" && page ? page.id : null;
   const printTitle = view.name === "showSet" && set ? set.title : page?.title ?? "";
   const coverFirstPage = view.name === "showSet" && set ? pagesById.get(set.pageIds[0]) : page;
-  const coverProps = useMemo(() => {
+  const coverSet = view.name === "showSet" ? set : page ? working.sets.find((st) => st.pageIds.includes(page.id)) ?? null : null;
+  const squaredFirst = Boolean(coverFirstPage) && taskGrid(coverFirstPage) === "square";
+  const coverNotebook = useMemo(() => {
     if (!printKey || !coverFirstPage) return null;
     const sample = view.name === "showSet" ? runTasks?.[0] : taskOf(coverFirstPage, pageToLines(coverFirstPage, glyphMap));
-    // the name written once on the WIDE ruling (large, like the title line of the printed copybooks), no start dots; nothing else:
-    // a row of the notebook under it ran into the name (its digits are capital-tall)
-    const nameLine = rowToLine(newRow({ text: digitsOut(printTitle), repeat: "one", dots: "none" }));
-    const titleTask = buildPageTask({ topicRecord, lines: [nameLine], narrowRows: false, grid: "regular", midDash: true, margin: "off", format: pageFormat(coverFirstPage) });
-    return { title: printTitle, titleTask, sampleTask: sample, a4: pageFormat(coverFirstPage) === "a4" };
+    return { title: printTitle, sampleTask: sample, a4: pageFormat(coverFirstPage) === "a4", topicRecord };
   }, [printKey, printTitle, coverFirstPage, view.name, runTasks, taskOf, glyphMap, topicRecord]);
-  const printCfg = { cover: "school", numbers: true, ...(printKey ? printCfgs[printKey] : null) };
+  const printCfg = { numbers: true, ...(printKey ? printCfgs[printKey] : null) };
+  const cover = useMemo(
+    () => normalizeCover(coverSet?.cover ?? migrateLegacy(printCfg.cover, { squared: squaredFirst }), { squared: squaredFirst }),
+    [coverSet?.cover, printCfg.cover, squaredFirst],
+  );
+  // the chosen cover goes into the notebook: into the library when the notebook is there, and into the open session (so saving it later
+  // keeps it) without making the session unsaved when it was not
+  const saveCover = (next) => {
+    if (!coverSet) return;
+    const withCover = (lib) => ({ ...lib, sets: lib.sets.map((st) => (st.id === coverSet.id ? { ...st, cover: next, updatedAt: Date.now() } : st)) });
+    const inLibrary = library.sets.find((st) => st.id === coverSet.id);
+    if (inLibrary) persist(upsertSet(library, { ...inLibrary, cover: next }));
+    setSession((cur) => {
+      if (!cur || !cur.lib.sets.some((st) => st.id === coverSet.id)) return cur;
+      const lib = withCover(cur.lib);
+      return { ...cur, lib, base: cur.base === cur.lib ? lib : inLibrary ? withCover(cur.base) : cur.base };
+    });
+  };
   useEffect(() => {
     if (!printRun) return undefined;
     const t = setTimeout(() => window.print(), 60);
@@ -324,7 +340,8 @@ export default function Propis2Home({ db }) {
           topNav
           onPageIndexChange={setShownPage}
           onPrint={() => setPrintAsk(true)}
-          printCover={printCfg.cover !== "none" && coverProps ? <Propis2Cover design={printCfg.cover} {...coverProps} /> : null}
+          printCover={cover.enabled && coverNotebook ? <CoverSide side="front" cover={cover} notebook={coverNotebook} /> : null}
+          printBack={cover.enabled && cover.back.kind !== "none" && coverNotebook ? <CoverSide side="back" cover={cover} notebook={coverNotebook} /> : null}
           pageNumbers={printCfg.numbers}
           {...(isSet ? {
             pageBase: partSec.start,
@@ -340,15 +357,17 @@ export default function Propis2Home({ db }) {
         {editTarget && (
           <button type="button" className="propis-ctrl-btn propis2-view-edit" aria-label="Изменить эту страницу" title="Изменить эту страницу" onClick={() => { setFragment(null); setView({ name: "editor", pageId: editTarget, backTo: isSet ? { name: "showSet", setId: set.id, from: view.from } : view.backTo }); }}>✎</button>
         )}
-        {printAsk && coverProps && (
+        {printAsk && coverNotebook && (
           <Propis2PrintDialog
             title={printTitle}
             pages={isSet ? sections.total : Math.max(1, Math.ceil(pageToLines(page, glyphMap).length / rowsPerPage(page)))}
-            initial={printCfg}
-            coverProps={coverProps}
+            cover={cover}
+            numbers={printCfg.numbers}
+            notebook={coverNotebook}
             onCancel={() => setPrintAsk(false)}
-            onPrint={(cfg) => {
-              const next = { ...printCfgs, [printKey]: cfg };
+            onPrint={({ cover: chosen, numbers }) => {
+              saveCover(chosen);
+              const next = { ...printCfgs, [printKey]: { numbers } };
               setPrintCfgs(next);
               writePrintCfgs(next);
               setPrintAsk(false);
@@ -468,7 +487,8 @@ export default function Propis2Home({ db }) {
   );
 }
 
-// the print choices (cover, page numbers) per notebook: a convenience of this device, not part of the notebook
+// page numbers per notebook: a convenience of this device, not part of the notebook (the cover is the notebook's: `set.cover`;
+// the first version kept the cover design here too, `cover`, read once as the cover of a notebook that has none yet)
 const PRINT_CFG_KEY = "propis2:print";
 function readPrintCfgs() {
   try { return JSON.parse(localStorage.getItem(PRINT_CFG_KEY) ?? "{}") ?? {}; } catch { return {}; }

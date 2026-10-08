@@ -879,8 +879,9 @@ export function PrintPageTop({ task, rows = 5 }) {
 // pages numbered through, two A5 pages on an A4 sheet across the parts); without it the print is this task's pages.
 // `onPrint`: the print button calls it instead of printing at once (a dialog that asks for a cover and page numbers first);
 // `printCover`: a cover (an A5 / A4 page) printed before the pages, on its own sheet, followed by an empty sheet (its back, for
-// printing on both sides); `pageNumbers`: number the printed pages (the cover is not counted).
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, pageNumbers = false }) {
+// printing on both sides); `printBack`: the back of the cover (owner, 2026-10-08: it is printed on the back of the front) — A5: the
+// left half of the cover's landscape sheet; A4: the second sheet, in place of the empty one; `pageNumbers`: number the printed pages (the cover is not counted).
+export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false }) {
   const own = useMemo(() => layoutTaskPages(task), [task]);
   const { lines, wideRows, margin, geom, narrowRows, narrow17, square, perPage, useElements, pages } = own;
   // what printing prints: every page of the document with the paper it is laid out on
@@ -1052,14 +1053,14 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               <div className="propis-print-all" aria-hidden="true">
                 {printCover && (geom.pairedSlots ? (
                   <>
-                    {/* the cover on the right half of a landscape sheet (the left half is the back cover), then the empty back of that sheet */}
-                    <div className="propis-print-all__sheet"><div className="propis-print-cover" /><div className="propis-print-cover">{printCover}</div></div>
+                    {/* the cover on the right half of a landscape sheet, the back cover on its left half, then the empty back of that sheet */}
+                    <div className="propis-print-all__sheet"><div className="propis-print-cover propis-print-cover--back">{printBack}</div><div className="propis-print-cover">{printCover}</div></div>
                     <div className="propis-print-all__sheet" />
                   </>
                 ) : (
                   <>
                     <div className="propis-print-all__sheet propis-print-all__sheet--a4"><div className="propis-print-cover propis-print-cover--a4">{printCover}</div></div>
-                    <div className="propis-print-all__sheet propis-print-all__sheet--a4" />
+                    <div className="propis-print-all__sheet propis-print-all__sheet--a4">{printBack && <div className="propis-print-cover propis-print-cover--a4 propis-print-cover--back">{printBack}</div>}</div>
                   </>
                 ))}
                 {geom.pairedSlots
