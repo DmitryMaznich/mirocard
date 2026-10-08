@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, paperDiffers } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 import { rowAtSvgY } from "../propis/PrintPageView.jsx";
@@ -120,12 +120,26 @@ describe("propis2 model", () => {
     expect(setPageStarts(set, byId, map)).toEqual([1, 2, 3, null]);
   });
 
-  it("the set's ruling replaces the pages' own ruling", () => {
-    const a = newPage("A", { ruling: "wide", rows: [oldRow({ text: "молоко молоко молоко молоко молоко молоко молоко" })] });
-    const byId = new Map([[a.id, a]]);
-    const narrow = setToLines(newSet("n", { ruling: "narrow", pageIds: [a.id] }), byId, map);
-    const wide = setToLines(newSet("w", { ruling: "wide", pageIds: [a.id] }), byId, map);
-    expect(narrow).toEqual(wide); // a text row is the same line; only the wrapping (passage) would differ
+  it("every page on its own paper: a page is padded to its own rows per page, runs of pages on the same paper", () => {
+    const sq = newPage("Кл", { gridKind: "square", rows: [newRow({ text: "1" })] });
+    const sq2 = newPage("Кл2", { gridKind: "square", rows: [newRow({ text: "2" })], writeAfter: true });
+    const wide = newPage("Ш", { ruling: "wide", rows: [newRow({ text: "а" })] });
+    const narrow = newPage("У", { ruling: "narrow", rows: [newRow({ text: "б" })] });
+    const byId = new Map([sq, sq2, wide, narrow].map((p) => [p.id, p]));
+    const set = newSet("S", { ruling: "wide", pageIds: [sq.id, sq2.id, wide.id, narrow.id] });
+    // the set's ruling no longer overrides: each page is padded by its own paper
+    const lines = setToLines(set, byId, map);
+    expect(lines[0]).toBe(pageToLines(sq, map)[0]);
+    expect(lines[rowsPerPage(sq)]).toBe(pageToLines(sq2, map)[0]);
+    // runs: the two squared pages (they differ only in «писать после», which is not paper), then the wide one, then the narrow one
+    const secs = notebookSections(set, byId, map);
+    expect(secs.map((x) => x.pageIds)).toEqual([[sq.id, sq2.id], [wide.id], [narrow.id]]);
+    expect(secs.map((x) => x.start)).toEqual([0, 2, 3]);
+    expect(setToLines(set, byId, map, secs[1].pageIds)).toEqual(pageToLines(wide, map));
+    expect(paperDiffers(set, byId, wide)).toBe(true);
+    expect(paperDiffers(newSet("one", { pageIds: [wide.id] }), byId, wide)).toBe(false);
+    // only the format is the notebook's
+    expect(notebookLayout(newSet("x", { pageIds: [narrow.id] }), new Map([[narrow.id, { ...narrow, format: "a4" }]]))).toEqual({ format: "a4" });
   });
 
   it("drag and drop: a tile on a filled row replaces it, keeps its mark; below the page it fills the gap with blank rows", () => {

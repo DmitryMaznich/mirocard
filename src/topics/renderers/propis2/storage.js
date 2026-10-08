@@ -70,7 +70,8 @@ export function removeSet(library, setId) {
   };
 }
 
-// Change the paper of a whole notebook: `patch` (notebook-wide keys, see LAYOUT_KEYS) goes onto every page and the set.
+// Change the paper of a whole notebook: `patch` (the format, or a page's paper put onto all pages, see LAYOUT_KEYS) goes onto every
+// page and the set.
 export function applyLayout(library, setId, patch) {
   const set = library.sets.find((s) => s.id === setId);
   if (!set || !Object.keys(patch).length) return library;
@@ -83,6 +84,22 @@ export function applyLayout(library, setId, patch) {
   };
 }
 
+// Until 2026-10-08 the ruling of a notebook (`set.ruling`) overrode its pages' own when the notebook was shown; now every page has
+// its own paper. A notebook from before (no `pagePaper`) gets its ruling written onto its pages once, so it looks as it did, and is
+// marked. Deterministic (devices that migrate the same notebook get the same documents); a page shared with a marked notebook or
+// already on that ruling is left alone. Returns the same object when there is nothing to do.
+export function pagesTakeNotebookRuling(library) {
+  const old = library.sets.filter((s) => !s.pagePaper);
+  if (!old.length) return library;
+  const want = new Map();
+  for (const s of old) if (s.ruling) for (const id of s.pageIds) if (!want.has(id)) want.set(id, s.ruling);
+  return {
+    ...library,
+    pages: library.pages.map((p) => (want.has(p.id) && p.ruling !== want.get(p.id) ? { ...p, ruling: want.get(p.id) } : p)),
+    sets: library.sets.map((s) => (s.pagePaper ? s : { ...s, pagePaper: true })),
+  };
+}
+
 // There is no page outside a notebook: a page that no notebook lists becomes a notebook of one page. The id is made from the
 // page's, and the stamps are the page's own, so devices that migrate the same page build the same notebook (last write wins,
 // no duplicates).
@@ -90,7 +107,7 @@ export function migrateToNotebooks(library) {
   const listed = new Set(library.sets.flatMap((s) => s.pageIds));
   const loose = library.pages.filter((p) => !listed.has(p.id));
   if (!loose.length) return library;
-  const made = loose.map((p) => ({ id: `st_${p.id}`, title: p.title || "Тетрадь", ruling: p.ruling ?? "narrow", pageIds: [p.id], createdAt: p.createdAt ?? p.updatedAt ?? 0, updatedAt: p.updatedAt ?? p.createdAt ?? 0 }));
+  const made = loose.map((p) => ({ id: `st_${p.id}`, title: p.title || "Тетрадь", ruling: p.ruling ?? "narrow", pagePaper: true, pageIds: [p.id], createdAt: p.createdAt ?? p.updatedAt ?? 0, updatedAt: p.updatedAt ?? p.createdAt ?? 0 }));
   const have = new Set(library.sets.map((s) => s.id));
   return { ...library, sets: [...library.sets, ...made.filter((s) => !have.has(s.id) && !library.deleted?.[docKey("set", s.id)])] };
 }

@@ -498,17 +498,56 @@ export function pickFragment(rowWord, localX, glyphMap, ruling = "narrow") {
 
 // ---- sets («тетрадь»): an ordered list of pages shown and printed as one notebook -------------
 
-// A notebook («тетрадь») has ONE paper: format, paper type, ruling, slant, margins, the middle dash, write-after. They live on
-// every page (the engine reads them from the first one) and are changed for all the pages together; the page keeps only its rows.
+// The paper of a page: format, paper type, ruling, slant, margins, the middle dash, write-after. Since 2026-10-08 every page of a
+// notebook («тетрадь») has its OWN paper (a digits notebook: squared pages, then copybook pages with digits in the text); only the
+// format (A4 / A5) is the notebook's, because the pages are printed as one booklet. A new page takes the paper of the page it is added
+// after, and the editor can put the paper of a page onto all the pages of its notebook.
 export const LAYOUT_KEYS = ["format", "gridKind", "ruling", "grid", "midDash", "writeAfter", "margin"];
+export const NOTEBOOK_KEYS = ["format"];
+export const PAGE_PAPER_KEYS = LAYOUT_KEYS.filter((k) => !NOTEBOOK_KEYS.includes(k));
 
+// What the notebook imposes on each of its pages: the keys of NOTEBOOK_KEYS, taken from its first page.
 export function notebookLayout(set, pagesById) {
   const first = pagesById.get(set?.pageIds?.[0]);
   const out = {};
-  for (const k of LAYOUT_KEYS) if (first && first[k] !== undefined) out[k] = first[k];
-  if (set?.ruling) out.ruling = set.ruling;
+  for (const k of NOTEBOOK_KEYS) if (first && first[k] !== undefined) out[k] = first[k];
   return out;
 }
+
+// One string per paper as the engine draws it (defaults filled in), to tell whether two pages are on the same paper. «Писать после»
+// is not paper for the engine (it adds blank lines), so pages that differ only in it stay in one run.
+export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), taskGrid(page) === "square" ? "" : page?.ruling === "narrow" ? "narrow" : "wide", page?.midDash !== false, pageMargin(page)]);
+
+// Does any page of the notebook differ in paper (any of PAGE_PAPER_KEYS) from `page`?
+export function paperDiffers(set, pagesById, page) {
+  const sig = (pg) => JSON.stringify([paperKey(pg), Boolean(pg?.writeAfter)]);
+  const key = sig(page);
+  return (set?.pageIds ?? []).some((id) => pagesById.get(id) && sig(pagesById.get(id)) !== key);
+}
+
+// The notebook in runs of consecutive pages on the same paper («участки»). The student view lays out each run on its own paper;
+// a notebook on one paper is one run, laid out as one document exactly as before. `pages`: how many screen pages each run is
+// expected to take (from the line count, see setPageStarts), `start`: the screen page the run starts on (0-based).
+export function notebookSections(set, pagesById, glyphMap) {
+  const out = [];
+  for (const id of set?.pageIds ?? []) {
+    const page = pagesById.get(id);
+    if (!page) continue;
+    const key = paperKey(page);
+    const last = out[out.length - 1];
+    if (last && last.key === key) last.pageIds.push(id);
+    else out.push({ key, paper: page, pageIds: [id] });
+  }
+  let start = 0;
+  for (const sec of out) {
+    sec.start = start;
+    sec.pages = sec.pageIds.reduce((n, id) => n + screenPagesOf(pagesById.get(id), glyphMap), 0);
+    start += sec.pages;
+  }
+  return out;
+}
+
+const screenPagesOf = (page, glyphMap) => Math.max(1, Math.ceil(pageToLines(page, glyphMap).length / rowsPerPage(page)));
 
 // The part of `next` that differs from `prev` in the notebook-wide keys.
 export function layoutChange(prev, next) {
@@ -519,22 +558,21 @@ export function layoutChange(prev, next) {
 
 export function newSet(title = "Новая тетрадь", patch = {}) {
   const now = Date.now();
-  return { id: newId("st"), title, ruling: "narrow", pageIds: [], createdAt: now, updatedAt: now, ...patch };
+  return { id: newId("st"), title, ruling: "narrow", pagePaper: true, pageIds: [], createdAt: now, updatedAt: now, ...patch };
 }
 
-// All pages of a set as one list of engine lines. Every page is padded with blank rows up to a whole
-// number of screen pages, so each page of the set starts on a fresh screen/paper page and the
-// engine's own page counter ("Страница k из N") is the set's page number, on screen and on paper.
-// The set's ruling applies to all its pages. Pages that no longer exist are skipped.
-export function setToLines(set, pagesById, glyphMap) {
+// Pages of a set as one list of engine lines (all of them, or only `ids`, the pages of one run on the same paper). Every page is
+// padded with blank rows up to a whole number of screen pages, so each page of the set starts on a fresh screen/paper page and the
+// engine's own page counter is the set's page number, on screen and on paper. Each page on its own paper. Pages that no longer
+// exist are skipped.
+export function setToLines(set, pagesById, glyphMap, ids = set?.pageIds ?? []) {
   const out = [];
-  const ids = (set?.pageIds ?? []).filter((id) => pagesById.get(id));
-  ids.forEach((id, k) => {
-    const page = { ...pagesById.get(id), ruling: set.ruling ?? pagesById.get(id).ruling };
+  const pages = ids.map((id) => pagesById.get(id)).filter(Boolean);
+  pages.forEach((page, k) => {
     const lines = pageToLines(page, glyphMap);
     out.push(...lines);
-    if (k < ids.length - 1) {
-      const rpp = rowsPerPage({ ...pagesById.get(ids[0]), ruling: set.ruling ?? pagesById.get(ids[0]).ruling });
+    if (k < pages.length - 1) {
+      const rpp = rowsPerPage(page);
       const rest = (rpp - (lines.length % rpp)) % rpp;
       for (let i = 0; i < rest; i += 1) out.push("");
     }
@@ -550,8 +588,7 @@ export function setPageStarts(set, pagesById, glyphMap) {
     const page = pagesById.get(id);
     if (!page) { starts.push(null); continue; }
     starts.push(screenPage);
-    const n = pageToLines({ ...page, ruling: set.ruling ?? page.ruling }, glyphMap).length;
-    screenPage += Math.max(1, Math.ceil(n / rowsPerPage({ ...page, ruling: set.ruling ?? page.ruling })));
+    screenPage += screenPagesOf(page, glyphMap);
   }
   return starts;
 }

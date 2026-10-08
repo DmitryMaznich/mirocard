@@ -66,7 +66,7 @@ function IconBtn({ label, caption, on, onClick, disabled, children, className = 
   );
 }
 
-export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false }) {
+export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false, paperToAll = null }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   // The checks of the rows and the map of the sheet's rows are worked out on a deferred copy of the page (as the preview is): a key
   // typed shows in the field at once, the marks on the sheet follow a moment later.
@@ -268,6 +268,10 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <Propis2Picker label="Поля" caption="Поля" disabled={locked} value={pageMargin(page)} onChange={(id) => onChange({ ...page, margin: id })} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
           <IconBtn label="Пунктир в серединных линиях" caption="Пунктир" on={page.midDash !== false} disabled={locked || !propisGrid} onClick={() => onChange({ ...page, midDash: page.midDash === false })} data-kind="dash"><I.IconDash /></IconBtn>
           <IconBtn label="Строка для письма после каждой строки" caption="Писать" on={Boolean(page.writeAfter)} disabled={locked} onClick={() => onChange({ ...page, writeAfter: !page.writeAfter })} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
+          {paperToAll && (
+            // the paper is each page's own (only the format is the notebook's): this puts the paper of this page onto all of them
+            <IconBtn label="Бумагу этой страницы на все страницы тетради" caption="Всем" disabled={locked || !paperToAll.differs} onClick={paperToAll.apply} data-kind="paperall"><I.IconPaperAll /></IconBtn>
+          )}
           {locked && (
             <>
               <span className="p2-lock" role="img" aria-label="Страница из тетради: раскладка закрыта, меняются только символы и слова"><I.IconLock /></span>

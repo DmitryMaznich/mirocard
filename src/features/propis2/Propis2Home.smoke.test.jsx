@@ -230,13 +230,32 @@ describe("Прописи 2 (zip topic)", () => {
     await click(host.querySelector('[aria-label="Добавить страницу"]'));
     expect(pos()).toBe("Стр. 2 из 2");
     await typeInField(host, "б");
-    // the paper is the notebook's: changed on page 2, it is changed on page 1 too
+    // the paper is each page's own: changed on page 2, page 1 keeps its paper
     const kindBtn = () => host.querySelector('button[aria-label="Тип бумаги"]');
+    const toAll = () => host.querySelector('[aria-label="Бумагу этой страницы на все страницы тетради"]');
+    const counter = () => host.querySelector(".propis-text-nav__counter").textContent;
     const before = kindBtn().getAttribute("data-value");
+    expect(toAll().disabled).toBe(true); // both pages on the same paper
     await click(kindBtn());
     await click([...host.querySelectorAll('[role="option"]')].find((o) => !o.classList.contains("is-on")));
     const kind = kindBtn().getAttribute("data-value");
     expect(kind).not.toBe(before);
+    expect(toAll().disabled).toBe(false);
+    await click(host.querySelector('[aria-label="Предыдущая страница"]'));
+    expect(kindBtn().getAttribute("data-value")).toBe(before);
+    await click(host.querySelector('[aria-label="Следующая страница"]'));
+    // two pages on two papers: the student view opens on the page being edited and pages across into the other paper
+    await click(btn("Показать ученику"));
+    expect(counter()).toBe("2 / 2");
+    await click(host.querySelector('[aria-label="Предыдущая страница"]'));
+    expect(counter()).toBe("1 / 2");
+    expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
+    await click(host.querySelector('[aria-label="Следующая страница"]'));
+    expect(counter()).toBe("2 / 2");
+    await click(host.querySelector(".propis-practice-close"));
+    // the paper of page 2 onto all pages
+    await click(toAll());
+    expect(toAll().disabled).toBe(true);
     await click(host.querySelector('[aria-label="Предыдущая страница"]'));
     expect(kindBtn().getAttribute("data-value")).toBe(kind);
     await click(host.querySelector('[aria-label="Следующая страница"]'));
@@ -247,8 +266,8 @@ describe("Прописи 2 (zip topic)", () => {
 
     await click(btn("Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
-    // 3 pages -> exactly 3 screen pages (v1 pads to an even count; propis2 sets exactPages)
-    expect(host.querySelector(".propis-text-nav__counter").textContent).toBe("1 / 3");
+    // 3 pages -> exactly 3 screen pages (v1 pads to an even count; propis2 sets exactPages); opened on the edited page
+    expect(counter()).toBe("2 / 3");
     await click(host.querySelector(".propis-practice-close"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await click(host.querySelector(".back-btn"));

@@ -4,9 +4,9 @@ import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, pageFromPreset, pageFormat, pageMargin, pageToLines, pickFragment, setPageStarts, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { NOTEBOOK_KEYS, PAGE_PAPER_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageMargin, pageToLines, paperDiffers, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
-import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
+import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
@@ -28,7 +28,11 @@ export default function Propis2Home({ db }) {
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState({ name: "library" });
   const [fragment, setFragment] = useState(null);
-  const [shownPage, setShownPage] = useState(0); // the screen page the viewer shows (0-based), to edit exactly that page
+  const [shownPage, setShownPage] = useState(0); // the screen page the viewer shows (0-based, whole notebook), to edit exactly that page
+  // the student view of a notebook shows one run of pages on the same paper at a time (model.js notebookSections): which run, and on
+  // which of its pages it opens (a page index in the run, or "last" when coming back from the next run)
+  const [part, setPart] = useState({ index: 0, startAt: 0 });
+  const [partPages, setPartPages] = useState({}); // screen pages each run really takes, as the viewer reports them (by its page ids)
   const [kits, setKits] = useState([]); // «Методика» kits: a big file, loaded when the topic opens, not with the app
   useEffect(() => { let alive = true; import("@/topics/renderers/propis2/kits.json").then((m) => { if (alive) setKits(m.default?.kits ?? []); }).catch(() => {}); return () => { alive = false; }; }, []);
   const saveTimer = useRef(null);
@@ -67,7 +71,7 @@ export default function Propis2Home({ db }) {
       const res = await api.get(`/account/kv?prefix=${encodeURIComponent(SYNC_PREFIX)}`);
       if (!Array.isArray(res?.kv)) return;
       syncedRef.current = snapshotFromRemote(res.kv);
-      persist(migrateToNotebooks(presetsToNotebooks(mergeRemote(latest.current, res.kv))));
+      persist(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(mergeRemote(latest.current, res.kv)))));
     } catch {
       // offline or signed out: the local library keeps working, the queue catches up later
     }
@@ -79,7 +83,7 @@ export default function Propis2Home({ db }) {
       .then((raw) => {
         if (!alive) return;
         // no page lives outside a notebook: what was saved loose becomes a notebook of one page (and goes up with the next flush)
-        const lib = migrateToNotebooks(presetsToNotebooks(raw));
+        const lib = pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(raw)));
         syncedRef.current = snapshotDocs(raw);
         latest.current = lib;
         setLibrary(lib);
@@ -209,12 +213,24 @@ export default function Propis2Home({ db }) {
   }, [session, db]);
   const resumeDraft = () => {
     if (!draft) return;
-    const lib = mergeNotebook(library, { sets: [draft.set], pages: draft.pages }, draft.sid);
+    const lib = pagesTakeNotebookRuling(mergeNotebook(library, { sets: [draft.set], pages: draft.pages }, draft.sid));
     setSession({ sid: draft.sid, lib, base: library, past: [], future: [] });
     setView({ name: "editor", pageId: draft.set.pageIds[0], backTo: { name: "library" } });
   };
 
-  const openReady = (id) => { const r = readyAll.find((x) => x.id === id); if (!r) return; const { lib, set: st } = ownCopyOf(r.ps); startSession(st.id, lib); setView({ name: "showSet", setId: st.id, from: "library" }); };
+  // the student view of a notebook, opened on its first page or on the page `pageId`
+  const showNotebook = (st, pagesByIdNow, extra, pageId = null) => {
+    const secs = notebookSections(st, pagesByIdNow, glyphMap);
+    const at = Math.max(0, secs.findIndex((sec) => sec.pageIds.includes(pageId)));
+    let startAt = 0;
+    if (pageId && secs[at]) for (const id of secs[at].pageIds) { if (id === pageId) break; startAt += screenPagesOf(pagesByIdNow.get(id)); }
+    setPart({ index: at, startAt });
+    setPartPages({});
+    setShownPage(0);
+    setView({ name: "showSet", setId: st.id, ...extra });
+  };
+  const screenPagesOf = (pg) => Math.max(1, Math.ceil(pageToLines(pg, glyphMap).length / rowsPerPage(pg)));
+  const openReady = (id) => { const r = readyAll.find((x) => x.id === id); if (!r) return; const { lib, set: st } = ownCopyOf(r.ps); startSession(st.id, lib); showNotebook(st, new Map(lib.pages.map((p) => [p.id, p])), { from: "library" }); };
   const editReady = (id) => { const r = readyAll.find((x) => x.id === id); if (!r) return; const { lib, set: st } = ownCopyOf(r.ps); startSession(st.id, lib); setView({ name: "editor", pageId: st.pageIds[0], backTo: { name: "library" } }); };
   // a new page is a notebook of one page (there is no page outside a notebook); it is not in the list until it is confirmed
   const createPage = (p) => {
@@ -231,30 +247,56 @@ export default function Propis2Home({ db }) {
   }, [library.sets, library.pages]);
 
   // The student view's layout is heavy (a whole set: hundreds of rows): built once per content, not on every render
-  // (turning a page and opening the show panel re-render this screen).
+  // (turning a page and opening the show panel re-render this screen). A notebook is laid out one run of pages on the same paper at
+  // a time (each on its own paper); a notebook on one paper is one run, the whole notebook at once as before.
+  const sections = useMemo(() => {
+    if (!(view.name === "showSet" && set)) return null;
+    const secs = notebookSections(set, pagesById, glyphMap);
+    let start = 0;
+    for (const sec of secs) { sec.start = start; start += partPages[sec.pageIds.join()] ?? sec.pages; }
+    return { list: secs, total: start };
+  }, [view.name, set, pagesById, glyphMap, partPages]);
+  const partIndex = sections ? Math.min(part.index, Math.max(0, sections.list.length - 1)) : 0;
+  const partSec = sections?.list[partIndex] ?? null;
+  const partKey = partSec ? `${partSec.key}|${partSec.pageIds.join()}` : ""; // the run's pages and paper (not its page counts)
   const showData = useMemo(() => {
     const isSet = view.name === "showSet" && set;
     if (!isSet && !(view.name === "show" && page)) return null;
-    const ruling = isSet ? set.ruling : page.ruling;
-    const lines = isSet ? setToLines(set, pagesById, glyphMap) : pageToLines(page, glyphMap);
-    const gridSource = isSet ? pagesById.get(set.pageIds?.[0]) : page;
-    const starts = isSet ? setPageStarts(set, pagesById, glyphMap) : [];
-    const task = buildPageTask({ topicRecord, lines, narrowRows: ruling === "narrow", grid: gridSource ? taskGrid(gridSource) : undefined, midDash: gridSource?.midDash, margin: pageMargin(gridSource), format: pageFormat(gridSource) });
-    return { isSet, ruling, gridSource, starts, task };
-  }, [view.name, page, set, pagesById, glyphMap, topicRecord]);
+    if (isSet && !partSec) return null;
+    const paper = isSet ? partSec.paper : page;
+    const lines = isSet ? setToLines(set, pagesById, glyphMap, partSec.pageIds) : pageToLines(page, glyphMap);
+    const task = buildPageTask({ topicRecord, lines, narrowRows: paper.ruling === "narrow", grid: taskGrid(paper), midDash: paper.midDash, margin: pageMargin(paper), format: pageFormat(paper) });
+    return { isSet, ruling: paper.ruling, gridSource: paper, task };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view.name, page, set, partKey, pagesById, glyphMap, topicRecord]);
+  const onPartPages = useCallback((n) => {
+    const k = partSec?.pageIds.join();
+    if (k) setPartPages((cur) => (cur[k] === n ? cur : { ...cur, [k]: n }));
+  }, [partSec]);
 
   if (!loaded) return <div className="screen propis2-home" data-testid="propis2-loading" />;
 
   // Student view: one page, or a whole set as one booklet (pages padded to screen-page boundaries).
   if ((view.name === "show" && page) || (view.name === "showSet" && set)) {
-    const { isSet, ruling, gridSource, starts, task } = showData;
-    const editTarget = view.from === "editor" ? null : isSet ? set.pageIds[Math.max(0, starts.reduce((best, st, k) => (st != null && st <= shownPage + 1 ? k : best), 0))] : page.id;
+    const { isSet, ruling, gridSource, task } = showData;
+    // the page of the notebook on the screen page shown: within the run, by the screen pages each of its pages takes
+    let editTarget = isSet ? partSec.pageIds[0] : page.id;
+    if (isSet) { let at = partSec.start; for (const id of partSec.pageIds) { if (at > shownPage) break; editTarget = id; at += screenPagesOf(pagesById.get(id)); } }
+    if (view.from === "editor") editTarget = null;
     return (
       <div className="propis2-view" data-testid="propis2-view">
         <PrintPageView
+          key={isSet ? `${set.id}:${partIndex}:${part.startAt}` : page.id}
           task={task}
           topNav
           onPageIndexChange={setShownPage}
+          {...(isSet ? {
+            pageBase: partSec.start,
+            pageTotal: sections.total,
+            startAt: part.startAt,
+            onPageCount: onPartPages,
+            onEdge: (dir) => { setFragment(null); setPart({ index: partIndex + dir, startAt: dir < 0 ? "last" : 0 }); },
+          } : {})}
           onClose={() => { setFragment(null); if (view.from === "editor") setView({ ...view, name: "editor" }); else requestLeave(); }}
           onFragmentTap={({ row, localX }) => setFragment(pickFragment(row.word, localX, glyphMap, ruling))}
         />
@@ -316,13 +358,18 @@ export default function Propis2Home({ db }) {
         onTitle={navSet ? (t) => edit(upsertSet(working, { ...navSet, title: t }), { typing: true }) : undefined}
         topicRecord={topicRecord}
         onChange={(next, how) => {
-          // paper settings are the whole notebook's, the rest is this page's
-          const patch = navSet ? layoutChange(shown, next) : {};
+          // the format is the whole notebook's (one booklet when printed); the rest of the paper and the rows are this page's
+          const change = navSet ? layoutChange(shown, next) : {};
+          const patch = Object.fromEntries(Object.entries(change).filter(([k]) => NOTEBOOK_KEYS.includes(k)));
           let lib = Object.keys(patch).length ? applyLayout(working, navSet.id, patch) : working;
           // a one-page notebook is named after its page
           if (navSet && navSet.pageIds.length === 1 && next.title !== shown.title) lib = upsertSet(lib, { ...lib.sets.find((st) => st.id === navSet.id), title: next.title });
           edit(upsertPage(lib, next), how);
         }}
+        paperToAll={navSet && navSet.pageIds.length > 1 ? {
+          differs: paperDiffers(navSet, pagesById, shown),
+          apply: () => edit(applyLayout(working, navSet.id, Object.fromEntries(PAGE_PAPER_KEYS.map((k) => [k, shown[k]])))),
+        } : null}
         onUndo={undo}
         onRedo={redo}
         canUndo={Boolean(session?.past.length)}
@@ -330,7 +377,7 @@ export default function Propis2Home({ db }) {
         onBack={() => { const bt = view.backTo; if (bt && bt.name !== "library") setView(bt); else requestLeave(); }}
         dirty={dirty}
         onSave={onSaveClick}
-        onShow={() => setView(navSet ? { name: "showSet", setId: navSet.id, pageId: page.id, from: "editor", backTo: view.backTo } : { name: "show", pageId: page.id, from: "editor", backTo: view.backTo })}
+        onShow={() => (navSet ? showNotebook(navSet, pagesById, { pageId: page.id, from: "editor", backTo: view.backTo }, page.id) : setView({ name: "show", pageId: page.id, from: "editor", backTo: view.backTo }))}
       />
       {dialog}
       </>
@@ -350,7 +397,7 @@ export default function Propis2Home({ db }) {
       ready={ready}
       onOpenReady={openReady}
       onEditReady={editReady}
-      onOpenSet={(id) => { startSession(id); setView({ name: "showSet", setId: id, from: "library" }); }}
+      onOpenSet={(id) => { const st = library.sets.find((x) => x.id === id); if (!st) return; startSession(id); showNotebook(st, new Map(library.pages.map((p) => [p.id, p])), { from: "library" }); }}
       onEditSet={(id) => { const st = library.sets.find((x) => x.id === id); if (st?.pageIds[0]) { startSession(id); setView({ name: "editor", pageId: st.pageIds[0], backTo: { name: "library" } }); } }}
       onRenameSet={(id, title) => { const st = library.sets.find((x) => x.id === id); if (st) persist(upsertSet(library, { ...st, title })); }}
       onDuplicateSet={(id) => {

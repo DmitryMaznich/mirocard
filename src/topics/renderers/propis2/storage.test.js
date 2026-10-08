@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { openDb } from "@/core/db";
-import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, normalizeLibrary, presetsToNotebooks, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
+import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, normalizeLibrary, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
 import { newPage, newRow, newSet } from "./model.js";
 
 describe("propis2 library storage", () => {
@@ -89,5 +89,22 @@ describe("propis2 library storage", () => {
     expect(migrateToNotebooks(presetsToNotebooks(once))).toBe(once); // idempotent
     const gone = removeSet(once, "st_pg_ps_ps_1");
     expect(migrateToNotebooks(presetsToNotebooks(gone)).sets).toHaveLength(0);
+  });
+
+  it("a notebook from before per-page paper: its ruling goes onto its pages once, then the pages keep their own", () => {
+    const a = newPage("A", { ruling: "wide" });
+    const b = newPage("B", { ruling: "narrow" });
+    const old = { id: "st_old", title: "T", ruling: "narrow", pageIds: [a.id, b.id], createdAt: 1, updatedAt: 1 };
+    const lib = { ...emptyLibrary(), pages: [a, b], sets: [old] };
+    const once = pagesTakeNotebookRuling(lib);
+    expect(once.pages.map((p) => p.ruling)).toEqual(["narrow", "narrow"]);
+    expect(once.pages[1]).toBe(b); // already on that ruling: untouched
+    expect(once.sets[0].pagePaper).toBe(true);
+    expect(pagesTakeNotebookRuling(once)).toBe(once); // idempotent
+    // a page changed afterwards keeps its own ruling
+    const changed = upsertPage(once, { ...once.pages[0], ruling: "wide" });
+    expect(pagesTakeNotebookRuling(changed).pages.find((p) => p.id === a.id).ruling).toBe("wide");
+    // new notebooks are per-page from the start
+    expect(newSet("N").pagePaper).toBe(true);
   });
 });

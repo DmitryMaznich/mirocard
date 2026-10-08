@@ -797,7 +797,12 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
 
 // Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
 // no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false }) {
+// A long document can be shown in parts («Прописи 2»: a notebook whose pages are on different paper is laid out one run of pages at a
+// time): `pageBase` is the number of screen pages before this part, `pageTotal` the pages of the whole document, `onEdge(dir)` is
+// called when ‹ is pressed on the first page of the part (dir -1) or › on its last one (dir +1), `startAt` is the page of the part it opens on
+// (a number, or "last" when coming back from the next part), `onPageCount(n)` reports how many pages the part really takes. The page
+// counter, `onPageIndexChange` and the side of the margin (it alternates from page to page) follow the whole document.
+export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null }) {
   const lettersByLabel = useMemo(() => {
     const map = new Map();
     for (const item of task?.letters ?? []) map.set(item.label ?? item.id, item);
@@ -860,8 +865,10 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   );
   const pages = useMemo(() => paginateRows(layout, wideRows ? perPageOf(geom, narrow17, square) : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) }), [layout, wideRows, task?.exactPages, geom, narrow17, square]);
 
-  const [pageIndex, setPageIndex] = useState(0);
-  useEffect(() => { onPageIndexChange?.(pageIndex); }, [pageIndex, onPageIndexChange]);
+  const [pageIndex, setPageIndex] = useState(() => Math.max(0, Math.min(pages.length - 1, startAt === "last" ? pages.length - 1 : Number(startAt) || 0)));
+  useEffect(() => { onPageIndexChange?.(pageBase + pageIndex); }, [pageIndex, pageBase, onPageIndexChange]);
+  useEffect(() => { onPageCount?.(pages.length); }, [pages.length, onPageCount]);
+  const total = Math.max(pageTotal ?? 0, pageBase + pages.length);
   const [activeIndex, setActiveIndex] = useState(focus ? 0 : null);
   useEffect(() => setActiveIndex(focus ? 0 : null), [pageIndex, focus]);
   // pages.length only shrinks if the task itself changes (new session) — clamp defensively
@@ -873,8 +880,10 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   const { isZoomed, reset: resetZoom } = usePinchZoom(zoomWrapRef, zoomContentRef);
   useEffect(() => { resetZoom(); }, [pageIndex, resetZoom]);
 
-  const canPrev = pageIndex > 0;
-  const canNext = pageIndex < pages.length - 1;
+  const canPrev = pageIndex > 0 || Boolean(onEdge && pageBase > 0);
+  const canNext = pageIndex < pages.length - 1 || Boolean(onEdge && pageBase + pages.length < total);
+  const goPrev = () => { if (pageIndex > 0) setPageIndex(pageIndex - 1); else if (canPrev) onEdge(-1); };
+  const goNext = () => { if (pageIndex < pages.length - 1) setPageIndex(pageIndex + 1); else if (canNext) onEdge(1); };
 
   // `focus`: a window on the first row only (the show panel). The writing row stands in the MIDDLE of the window (the room left
   // for the pen above it is left below it too) and the window is centred on the ink of the sample, not on the row's start; with
@@ -952,7 +961,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               <div className="propis-print-page-zoom" ref={zoomContentRef}>
                 <PrintPage
                   page={pages[pageIndex] ?? []}
-                  pageIndex={pageIndex}
+                  pageIndex={pageBase + pageIndex}
                   activeIndex={activeIndex}
                   onToggleActive={(i) => setActiveIndex((cur) => (cur === i ? null : i))}
                   onFragmentTap={onFragmentTap}
@@ -979,17 +988,17 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               <button
                 type="button"
                 className="propis-ctrl-btn"
-                onClick={() => setPageIndex((i) => Math.max(0, i - 1))}
+                onClick={goPrev}
                 disabled={!canPrev}
                 aria-label="Предыдущая страница"
               >
                 ‹
               </button>
-              <span className="propis-text-nav__counter" title={`Страница ${pageIndex + 1} из ${pages.length}`}>{topNav ? `${pageIndex + 1} / ${pages.length}` : `Страница ${pageIndex + 1} из ${pages.length}`}</span>
+              <span className="propis-text-nav__counter" title={`Страница ${pageBase + pageIndex + 1} из ${total}`}>{topNav ? `${pageBase + pageIndex + 1} / ${total}` : `Страница ${pageBase + pageIndex + 1} из ${total}`}</span>
               <button
                 type="button"
                 className="propis-ctrl-btn"
-                onClick={() => setPageIndex((i) => Math.min(pages.length - 1, i + 1))}
+                onClick={goNext}
                 disabled={!canNext}
                 aria-label="Следующая страница"
               >
