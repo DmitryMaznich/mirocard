@@ -229,3 +229,4 @@
 .gt-screen--narrow .fp-value { width: 72px; height: 46px; font-size: 26px; }
 .gt-screen--narrow .fp-keys .px-key { height: 42px; font-size: 20px; }
 .gt-screen--narrow .gt-task span { display: none; }
+.fp--off .fp-fields { opacity: 0.45; }

@@ -13,8 +13,9 @@ import "./group.css";
 // «Сложи по десять» — the topic's way in. A heap of loose coins and no number:
 // the child moves coins into the ten-frame one by one, taps each full frame to
 // turn it into a stack, and answers how many tens, how many ones, what number.
-// Starting to answer is the decision that no more stacks can be made (there is
-// no «done» button). The point is to discover that 2 stacks and 3 coins are
+// The answer fields switch on by themselves once fewer than ten loose coins
+// are left: with a single frame the child can't stop half way, so there is no
+// «done» button and no «could you make another stack?» check. The point is to discover that 2 stacks and 3 coins are
 // easier to count than 23 coins. All on one screen, zones of fixed size.
 // See docs/place-value-methodology.md, режим 1.
 
@@ -96,7 +97,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       : slots && model.frame.length === 10 ? "full"
         : null;
   useEffect(() => {
-    if (!idleReason) { setHint((h) => (h === "early" ? h : null)); return undefined; }
+    if (!idleReason) { setHint(null); return undefined; }
     const timer = setTimeout(() => setHint(idleReason), HINT_DELAY_MS);
     return () => clearTimeout(timer);
   }, [idleReason, model]);
@@ -141,15 +142,9 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   }
   const ones = model.heap.length + model.frame.length, tens = model.tens.length;
   const expected = { tens, ones, total: task.number };
+  const canAnswer = ones < 10;
   function answer(key, guess) {
-    if (phase !== "group" || exchange.busy) return false;
-    // Answering is the decision that no more stacks can be made: with ten loose
-    // coins still there, «Обучение» points at the heap, «Проверка» counts it.
-    if (key === "tens" && ones >= 10) {
-      if (teaching) { setHint("early"); setNote(""); }
-      else mistake("Посмотри ещё раз: можно сложить ещё одну стопку?");
-      return false;
-    }
+    if (phase !== "group" || exchange.busy || !canAnswer) return false;
     if (guess === expected[key]) {
       setAnswers((a) => ({ ...a, [key]: guess }));
       setNote("");
@@ -173,7 +168,6 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const hintText = {
     start: "Нажимай на монеты — они перейдут в рамку.",
     full: "В рамке десять монет — нажми на рамку, и они сложатся в стопку.",
-    early: "Посмотри на россыпь: можно сложить ещё одну стопку?",
   }[hint];
   const stackList = model.tens.map((id) => <div key={id} data-stack-id={id} className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>
     <TenStack />
@@ -186,7 +180,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       <span>Сложи их стопками по десять — так считать легче</span>
     </header>
     <div className="gt-main" ref={mainRef}>
-      <section className={`px-zone gt-heap${hint === "early" ? " px-glow" : ""}`}>
+      <section className="px-zone gt-heap">
         <div className="gt-heapbox" style={{ gridTemplateColumns: `repeat(${layout.cols}, 1fr)`, gridTemplateRows: `repeat(${layout.rows}, calc(var(--coin-size) * 1.15))` }}>
           {model.heap.map((id) => <span key={id} className="gt-heap-cell" style={{ gridColumn: position[id].col + 1, gridRow: position[id].row + 1 }}>
             <button type="button" className="px-coin gt-heap-coin" aria-label="Монета из россыпи"
@@ -208,7 +202,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
           : hintText ? <span className="gt-status-hint">{hintText}</span>
             : note ? <span className="gt-status-note">{note}</span> : null}
       </div>
-      <FieldPad fields={FIELDS} step={step} values={answers} onCheck={answer} done={done} />
+      <FieldPad fields={FIELDS} step={step} values={answers} onCheck={answer} done={done} off={!canAnswer || exchange.busy} />
       {done && <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>}
     </div>
   </div>;

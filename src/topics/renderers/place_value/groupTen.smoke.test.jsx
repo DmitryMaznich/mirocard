@@ -52,20 +52,17 @@ describe("GroupTenTask", () => {
     expect(count(".gt-heap-coin")).toBe(10);
   });
 
-  it("answering while ten more could be stacked: hint in «Обучение», one mistake in «Проверка»", () => {
-    const onMistake = vi.fn();
-    h.mount(GroupTenTask, task(23), { onMistake });
+  it("the answer fields switch on only when no more stacks can be made", () => {
+    h.mount(GroupTenTask, task(23));
+    expect(h.container.querySelector(".fp--off")).not.toBeNull();
+    expect(h.button("1").disabled).toBe(true);
     take(10); h.click("Сложить в стопку"); h.flush();
-    answer(1);
-    expect(h.container.querySelector(".gt-status").textContent).toContain("можно сложить ещё одну стопку?");
-    expect(h.container.querySelector(".gt-heap.px-glow")).not.toBeNull();
-    expect(h.container.querySelector(".fp-field--wrong")).not.toBeNull();
-    expect(onMistake).not.toHaveBeenCalled();
-    h.unmount();
-    h.mount(GroupTenTask, task(23, { supportMode: "independent" }), { onMistake });
-    answer(0); answer(0);
-    expect(onMistake).toHaveBeenCalledTimes(1);
-    expect(h.container.querySelector(".gt-status").textContent).toContain("можно сложить ещё одну стопку?");
+    expect(h.container.querySelector(".fp--off")).not.toBeNull();
+    take(10); h.click("Сложить в стопку"); h.flush();
+    expect(h.container.querySelector(".fp--off")).toBeNull();
+    expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Десятков");
+    answer(2); answer(3); answer(23);
+    expect(h.container.querySelector(".px-say").textContent).toBe("2 десятка и 3 единицы — двадцать три");
   });
 
   it("without the frame the child counts ten alone; a wrong stack goes back to the heap", () => {
