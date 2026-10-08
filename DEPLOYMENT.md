@@ -44,6 +44,63 @@ curl -s https://app.mironium.com/api/version
 curl -s -o /dev/null -w "%{http_code}\n" https://app.mironium.com/
 ```
 
+### Remote administration
+
+Open `https://app.mironium.com/admin.html` from a desktop or mobile browser.
+The login page is public; every administrative API operation requires the
+server-side `MIROCARD_ADMIN_TOKEN` from Railway service variables. Never put
+that token in a URL, bookmark, repository, or message. Store it in a password
+manager and paste it into the login form. The panel retains it only in the
+current browser tab's session storage; logout clears it. The server secret
+itself has no automatic expiry and is revoked by changing the Railway variable.
+
+Use a cryptographically random secret of at least 32 bytes. Its current strength
+has not been verified by reading production credentials. A secret page name is
+not an authorization boundary. HTTPS protects the connection; the admin page
+uses a restrictive CSP, denies framing, disables indexing and caching, and
+bypasses the application's offline service worker. Failed credentials are
+limited to 20 attempts per client IP in 15 minutes using the backend's existing
+single-instance in-memory limiter. Correct credentials are not locked out by
+those attempts. This is a basic defense, not a distributed WAF or MFA.
+
+For stronger protection of user administration, add an identity-based login
+with MFA/passkeys and expiring server-managed sessions. Enforce that protection
+on the administrative API as well as the HTML page. A leaked bearer token
+currently grants full administrative access until the server secret is changed.
+
+### Account lifecycle in the administration panel
+
+The user card supports reversible blocking, deletion after seven days, and
+immediate erasure. Both deletion paths require a fresh five-minute server-side
+preview, an exact email and `УДАЛИТЬ`, a reason, two acknowledgements, and a final
+confirmation. Previews are bound to the account, operation and current data
+summary. They cannot be reused or applied to another account. A changed summary
+requires a new preview.
+
+Blocking and scheduling immediately revoke all login/reset/verification tokens,
+Google handoff codes and push subscriptions. Restoration preserves the previous
+account status (including pending verification or prior blocking) and does not
+restore old sessions. A deletion deadline is stored in SQLite; a sweep at server
+startup and every minute processes it, so a restart cannot lose scheduled work.
+
+Erasure is transactional in the working database: it removes student records,
+lesson history, progress, analysis, personal audio/materials, settings, identities
+and topic assignments. Referenced private photos are removed only when no other
+record uses them. The original email is released for a new account with a new ID.
+An anonymized account row remains for accounting references. Orders, consent and
+redemption records remain; entitlements are revoked, provider event payloads are
+scrubbed, and late webhooks cannot restore access or personal provider data.
+The last ten lifecycle actions and reasons appear on the user card. With the
+current shared admin token, the journal identifies the administrative mechanism,
+not an independently authenticated human. Do not put personal data in reasons.
+
+Erasure does not cancel/refund payments at a provider, wipe offline devices,
+securely overwrite SQLite/WAL storage pages, or remove existing backups. Existing
+backups follow their normal retention. Any restoration from backup must replay
+subsequent erasures before exposing restored user data. No actual production
+account is deleted by deploying this feature; only confirmed operations create
+deletion requests.
+
 ### Email delivery
 
 Email verification and password-reset emails send via the Resend HTTP API (`RESEND_API_KEY`, `backend/lib/mailer.mjs`), not SMTP — the old `mail.kaplieva.help` SMTP relay (unreachable from Railway's network) is no longer used for this. The `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS` variables may still linger on the Railway service from before the switch; they're dead config, not read by `mailer.mjs`.

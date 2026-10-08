@@ -10,6 +10,7 @@ import NarrativeRenderer           from "./renderers/narrative/index.jsx";
 import LetterWritingRenderer       from "./renderers/letter_writing/index.jsx";
 import StreakTrackerRenderer        from "./renderers/streak_tracker/index.jsx";
 import ColumnAdditionRenderer       from "./renderers/column_addition/index.jsx";
+import PlaceValueRenderer           from "./renderers/place_value/index.jsx";
 import WrittenLettersRenderer       from "./renderers/written_letters/index.jsx";
 import PrintMaterialsRenderer       from "./renderers/print_materials/index.jsx";
 import WordFormationRenderer        from "./renderers/word_formation/index.jsx";
@@ -34,6 +35,7 @@ export const RENDERER_REGISTRY = {
   letter_writing:        LetterWritingRenderer,
   streak_tracker:        StreakTrackerRenderer,
   column_addition:       ColumnAdditionRenderer,
+  place_value:           PlaceValueRenderer,
   written_letters:       WrittenLettersRenderer,
   print_materials:       PrintMaterialsRenderer,
   word_formation:        WordFormationRenderer,

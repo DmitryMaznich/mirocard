@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import AnimatedHand from "./AnimatedHand.jsx";
-import DigitKeypad from "./DigitKeypad.jsx";
-import { useTapButtonSize } from "./useTapButtonSize.js";
+import DigitKeypad from "../../column_addition/DigitKeypad.jsx";
+import { useTapButtonSize } from "../../column_addition/useTapButtonSize.js";
 import { useFitOneLine, useRowsHeightCap } from "./textFit.js";
+import "../../column_addition/tapKeyboard.css";
 import "./fingers.css";
 
 // Same hand-written-style buttons as the Столбик tap keyboard, plus a delete

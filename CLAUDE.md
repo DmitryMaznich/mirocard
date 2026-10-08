@@ -184,6 +184,13 @@ recorded voice audio to replace browser TTS), and pitfalls already hit once this
 (don't repeat them — e.g. the raw `chrome --headless --window-size` CLI flag is silently
 ignored in some sandboxes, use Playwright instead when a screenshot's exact width matters).
 
+## Разряды числа (place_value)
+
+Topic split out of «Сложение и вычитание в столбик» on 2026-10-07 (coin modes for
+tens and ones); next step is hundreds and thousands. Read `docs/place-value.md`
+before continuing — it has the file map and the agreed plan; the methodology
+rework of the coin modes is in `docs/place-value-methodology.md`.
+
 ## Important
 
 - Synology/SmartNAS is allowed only as backup storage, not as a backend/runtime target.

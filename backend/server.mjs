@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { randomUUID, createHash, randomBytes } from "node:crypto";
+import { randomUUID, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync, createReadStream, statSync, readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -66,6 +66,7 @@ import {
 } from "./lib/billing-providers/lava-top.mjs";
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
 import { gitSha } from "../scripts/git-sha.mjs";
+import { prepareDeletion, confirmDeletion, blockAccount, restoreAccount, startAccountDeletionLoop } from "./lib/account-lifecycle.mjs";
 import { reportError, trackEvent } from "./lib/observability.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
@@ -119,7 +120,12 @@ function requireAuth(req) {
 
 function requireAdmin(req) {
   const raw = getBearerToken(req);
-  if (!raw || raw !== ADMIN_TOKEN) throw { status: 403, message: "Admin access required" };
+  const expected = createHash("sha256").update(ADMIN_TOKEN).digest();
+  const received = createHash("sha256").update(raw ?? "").digest();
+  if (!raw || !timingSafeEqual(expected, received)) {
+    if (!checkAdminAttempt(getClientIp(req))) throw { status: 429, message: "Слишком много неверных попыток. Повторите вход через 15 минут." };
+    throw { status: 403, message: "Admin access required" };
+  }
 }
 
 // ─── Catalog helpers ─────────────────────────────────────────────────────────
@@ -186,6 +192,9 @@ const HOUR_MS = 60 * 60 * 1000;
 const checkRegisterLimit  = createRateLimiter({ max: 10, windowMs: HOUR_MS });        // per IP
 const checkLoginLimit     = createRateLimiter({ max: 10, windowMs: 15 * 60 * 1000 }); // per email, 15min
 const checkForgotPwLimit  = createRateLimiter({ max: 5,  windowMs: HOUR_MS });        // per email
+// Only failed admin credentials consume the limit. A scan must not lock the
+// actual administrator out, and the panel's background refresh is not a login.
+const checkAdminAttempt = createRateLimiter({ max: 20, windowMs: 15 * 60 * 1000 });
 const checkPromoLimit     = createRateLimiter({ max: 20, windowMs: HOUR_MS });        // per account
 const checkCheckoutLimit  = createRateLimiter({ max: 20, windowMs: HOUR_MS });        // per account
 const checkWebhookLimit   = createRateLimiter({ max: 600, windowMs: 60 * 1000 });     // per provider, coarse flood guard
@@ -250,13 +259,15 @@ function getLegacyPasswordHashesPath() {
     path.join(DATA_DIR, "legacy-password-hashes.json");
 }
 
-function readLegacyPasswordHashes() {
+function readLegacyPasswordHashes(strict = false) {
   const legacyPath = getLegacyPasswordHashesPath();
   if (!existsSync(legacyPath)) return {};
   try {
     const parsed = JSON.parse(readFileSync(legacyPath, "utf8"));
+    if (strict && (!parsed || typeof parsed !== "object" || Array.isArray(parsed))) throw new Error("Invalid legacy credential store");
     return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-  } catch {
+  } catch (err) {
+    if (strict) throw err;
     return {};
   }
 }
@@ -266,16 +277,17 @@ function getLegacyPasswordHashes(email) {
   return Array.isArray(hashes) ? hashes.filter((hash) => typeof hash === "string") : [];
 }
 
-function clearLegacyPasswordHashes(email) {
+function clearLegacyPasswordHashes(email, strict = false) {
   const legacyPath = getLegacyPasswordHashesPath();
   if (!existsSync(legacyPath)) return;
-  const legacy = readLegacyPasswordHashes();
+  const legacy = readLegacyPasswordHashes(strict);
   const key = sanitizeEmail(email);
   if (!(key in legacy)) return;
   delete legacy[key];
   try {
     writeFileSync(legacyPath, `${JSON.stringify(legacy, null, 2)}\n`);
   } catch (err) {
+    if (strict) throw err;
     console.error("Failed to clear legacy password hashes:", err);
   }
 }
@@ -602,7 +614,7 @@ async function handleGoogleCompleteSignup(req, res) {
   const id = hit.payload;
 
   let account = findAccountByEmailAny(db, id.email);
-  if (account?.status === "deleted") return writeJson(res, 409, { error: "Account is deleted" });
+  if (account && !["active", "pending"].includes(account.status)) return writeJson(res, 409, { error: "Account access is closed" });
   if (!account) {
     account = createAccount(db, {
       email: id.email,
@@ -1082,6 +1094,7 @@ async function handleAdminSetFlags(req, res) {
   }
   const account = findAccountByEmailAny(db, body.email);
   if (!account) return writeJson(res, 404, { error: "Account not found" });
+  if (!["active", "pending"].includes(account.status)) return writeJson(res, 409, { error: "Account is not editable" });
   setAccountFeatureFlags(db, account.id, body.flags);
   writeJson(res, 200, { ok: true, email: account.email, flags: body.flags });
 }
@@ -1094,6 +1107,7 @@ async function handleAdminGrant(req, res) {
   }
   const account = findAccountByEmailAny(db, body.email);
   if (!account) return writeJson(res, 404, { error: "Account not found" });
+  if (!["active", "pending"].includes(account.status)) return writeJson(res, 409, { error: "Account is not editable" });
 
   const entry = getCatalogEntry(body.topicId);
   if (!entry) return writeJson(res, 404, { error: "Deck not found in catalog" });
@@ -1111,14 +1125,29 @@ async function handleAdminVerifyAccount(req, res) {
   if (!body?.email) return writeJson(res, 400, { error: "email required" });
   const account = findAccountByEmailAny(db, body.email);
   if (!account) return writeJson(res, 404, { error: "Account not found" });
-  if (account.status === "deleted") return writeJson(res, 409, { error: "Account is deleted" });
+  if (!["active", "pending"].includes(account.status)) return writeJson(res, 409, { error: "Account is not editable" });
   if (account.status !== "active") activateAccount(db, account.id);
   writeJson(res, 200, { ok: true, email: account.email, status: "active" });
 }
 
 async function handleAdminListAccounts(req, res) {
   requireAdmin(req);
-  writeJson(res, 200, listAllAccounts(db));
+  writeJson(res, 200, listAllAccounts(db).map(account => ({
+    ...account,
+    subscription: getActiveSubscriptionForAccount(db, account.id),
+    studentCount: db.prepare("SELECT COUNT(*) AS n FROM students WHERE account_id = ?").get(account.id).n,
+    lifecycle: db.prepare("SELECT * FROM account_lifecycle WHERE account_id = ?").get(account.id) ?? null,
+    adminEvents: db.prepare("SELECT action, actor, reason, details_json AS details, created_at AS createdAt FROM admin_account_events WHERE account_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 10").all(account.id),
+  })));
+}
+
+async function handleAdminCatalog(req, res) {
+  requireAdmin(req);
+  // Administration needs the complete catalog, including individually assigned
+  // topics. Do not rely on the public catalog filtered for an ordinary account.
+  writeJson(res, 200, { decks: (loadCatalog().decks ?? []).map(entry => ({
+    id: entry.id, title: entry.title, publication: getTopicPublication(entry),
+  })) });
 }
 
 async function handleAdminGetAccountSessions(req, res, accountId) {
@@ -1137,6 +1166,18 @@ async function handleAdminGetAccountSessions(req, res, accountId) {
   })));
 }
 
+async function handleAdminLifecycle(req, res, accountId, operation) {
+  requireAdmin(req);
+  const body = await readJsonBody(req) ?? {};
+  if (operation === "deletion-preview") return writeJson(res, 200, prepareDeletion(db, accountId, body.mode));
+  if (operation === "delete") return writeJson(res, 200, confirmDeletion(db, accountId, body, {
+    beforePurge: email => clearLegacyPasswordHashes(email, true),
+  }));
+  if (body.action === "block") return writeJson(res, 200, blockAccount(db, accountId, body.reason));
+  if (!["unblock", "cancel-deletion"].includes(body.action)) return writeJson(res, 400, { error: "Неизвестное действие с аккаунтом." });
+  return writeJson(res, 200, restoreAccount(db, accountId, body.action, body.reason));
+}
+
 async function handleAdminRevoke(req, res) {
   requireAdmin(req);
   const body = await readJsonBody(req);
@@ -1145,6 +1186,7 @@ async function handleAdminRevoke(req, res) {
   }
   const account = findAccountByEmailAny(db, body.email);
   if (!account) return writeJson(res, 404, { error: "Account not found" });
+  if (!["active", "pending"].includes(account.status)) return writeJson(res, 409, { error: "Account is not editable" });
   revokeAccountTopicAssignment(db, account.id, body.topicId);
   revokeAccountTopic(db, account.id, body.topicId);
   writeJson(res, 200, { ok: true });
@@ -1158,7 +1200,22 @@ async function handleAdminListPromoCodes(req, res) {
 async function handleAdminCreatePromoCode(req, res) {
   requireAdmin(req);
   const body = await readJsonBody(req);
-  if (!body?.code || !body?.kind) return writeJson(res, 400, { error: "code and kind required" });
+  if (typeof body?.code !== "string" || !body.code.trim() || body.code.trim().length > 80
+    || !["percent_off", "fixed_off", "free_grant"].includes(body.kind)) {
+    return writeJson(res, 400, { error: "Укажите код (до 80 символов) и допустимый тип промокода." });
+  }
+  const positiveInteger = value => Number.isSafeInteger(value) && value > 0;
+  if ((body.kind === "percent_off" && (!positiveInteger(body.value) || body.value > 100))
+    || (body.kind === "fixed_off" && (!positiveInteger(body.value) || !["EUR", "USD"].includes(body.currency)))
+    || (body.kind === "free_grant" && !positiveInteger(body.grantDurationDays))
+    || (body.maxRedemptions != null && !positiveInteger(body.maxRedemptions))
+    || (body.appliesToPlan != null && !Object.hasOwn(PLAN_CATALOG, body.appliesToPlan))
+    || (body.expiresAt != null && (!Number.isFinite(Date.parse(body.expiresAt)) || Date.parse(body.expiresAt) <= Date.now()))) {
+    return writeJson(res, 400, { error: "Проверьте значение скидки, валюту, срок, план и лимит использований." });
+  }
+  if (listPromoCodes(db).some(code => code.code === body.code.trim().toUpperCase())) {
+    return writeJson(res, 409, { error: "Промокод с таким названием уже существует." });
+  }
   createPromoCode(db, {
     code: body.code,
     kind: body.kind,
@@ -1768,11 +1825,18 @@ function serveStaticFile(res, absPath) {
   // deployment, even though the server already has the current version.
   // The service worker and manifest must be checked fresh for the same reason.
   const fileName = path.basename(absPath);
-  const isAppShell = ["index.html", "sw.js", "manifest.json"].includes(fileName);
+  const isAppShell = ["index.html", "sw.js", "manifest.json", "admin.html", "admin.js", "admin-model.js", "admin.css"].includes(fileName);
   // The catalog stays at one fixed URL while each deck ZIP has a versioned
   // filename. Cache the ZIPs, but always revalidate the catalog so a newly
   // published topic is visible as soon as the deployment switches over.
   const isDeckCatalog = fileName === "catalog.json" && path.dirname(absPath).endsWith(`${path.sep}decks`);
+  if (fileName === "admin.html") {
+    res.setHeader("Content-Security-Policy", "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'self'");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Referrer-Policy", "no-referrer");
+    res.setHeader("X-Robots-Tag", "noindex, nofollow");
+  }
   res.writeHead(200, {
     "Content-Type": contentType,
     "Content-Length": stat.size,
@@ -1920,7 +1984,10 @@ async function router(req, res) {
     if (method === "GET"    && p === "/materials/catalog")                        return await handleGetMaterialsCatalog(req, res);
     if (method === "POST"   && p === "/materials/request")                        return await handleRequestMaterial(req, res);
     if (method === "GET"    && p === "/materials/download")                       return await handleDownloadMaterial(req, res);
+    { const m = p.match(/^\/admin\/accounts\/([^/]+)\/(lifecycle|deletion-preview|delete)$/);
+      if (method === "POST" && m) return await handleAdminLifecycle(req, res, m[1], m[2]); }
     if (method === "GET"    && p === "/admin/accounts")                            return await handleAdminListAccounts(req, res);
+    if (method === "GET"    && p === "/admin/catalog")                             return await handleAdminCatalog(req, res);
     { const m = p.match(/^\/admin\/accounts\/([^/]+)\/sessions$/);
       if (method === "GET" && m) return await handleAdminGetAccountSessions(req, res, m[1]); }
     if (method === "POST"   && p === "/admin/account/flags")                       return await handleAdminSetFlags(req, res);
@@ -1995,6 +2062,7 @@ export { router, db };
 // PORT for real and race whatever's already listening on it.
 const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 if (isMainModule) {
+  startAccountDeletionLoop(db, { beforePurge: email => clearLegacyPasswordHashes(email, true) });
   createServer(router).listen(PORT, () => {
     console.log(`Mirocard2 backend running on port ${PORT}`);
   });

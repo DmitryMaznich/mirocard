@@ -21,7 +21,7 @@ async function install(deck) {
 
 describe("release topic copy", () => {
   it("covers every shipped mode with a concrete description and goal", async () => {
-    expect(releaseDecks).toHaveLength(13);
+    expect(releaseDecks).toHaveLength(14);
     for (const deck of releaseDecks) {
       const { record } = await install(deck);
       expect(record.meta.about.description.length, deck.id).toBeGreaterThan(45);

@@ -1,0 +1,99 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+@font-face{font-family:Nunito;font-weight:400;src:url(../../node_modules/@fontsource/nunito/files/nunito-latin-400-normal.woff2);unicode-range:U+0000-00FF,U+2212,U+2190-21FF}
+@font-face{font-family:Nunito;font-weight:700;src:url(../../node_modules/@fontsource/nunito/files/nunito-latin-700-normal.woff2);unicode-range:U+0000-00FF,U+2212,U+2190-21FF}
+@font-face{font-family:Nunito;font-weight:800;src:url(../../node_modules/@fontsource/nunito/files/nunito-latin-800-normal.woff2);unicode-range:U+0000-00FF,U+2212,U+2190-21FF}
+@font-face{font-family:Nunito;font-weight:900;src:url(../../node_modules/@fontsource/nunito/files/nunito-latin-900-normal.woff2);unicode-range:U+0000-00FF,U+2212,U+2190-21FF}
+@font-face{font-family:Primo;src:url(../../public/fonts/primo.ttf)}
+@font-face{font-family:Nunito;font-weight:400;src:url(../../node_modules/@fontsource/nunito/files/nunito-cyrillic-400-normal.woff2)}
+@font-face{font-family:Nunito;font-weight:700;src:url(../../node_modules/@fontsource/nunito/files/nunito-cyrillic-700-normal.woff2)}
+@font-face{font-family:Nunito;font-weight:800;src:url(../../node_modules/@fontsource/nunito/files/nunito-cyrillic-800-normal.woff2)}
+@font-face{font-family:Nunito;font-weight:900;src:url(../../node_modules/@fontsource/nunito/files/nunito-cyrillic-900-normal.woff2)}
+:root{--u:clamp(22px,3.6vw,40px);--ones:#2563eb;--ones-l:#60a5fa;--ones-d:#1e40af;--tens:#d97706;--tens-l:#fbbf24;--tens-d:#92400e}
+@media (max-width:600px){:root{--u:30px}}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Nunito,sans-serif;color:#1a1a2e;background:#f0f6ff}
+.top{height:52px;display:flex;align-items:center;gap:12px;padding:0 16px;background:#fff;border-bottom:1px solid #e2e8f0;font-size:14px;color:#64748b}
+.top b{color:#1a1a2e}.stars{margin-left:auto;letter-spacing:2px;color:#f59e0b}
+.screen{height:calc(100% - 52px);display:flex;flex-direction:column;padding:14px 18px 16px;gap:12px}
+.task{display:flex;align-items:baseline;justify-content:center;gap:14px;flex-wrap:wrap;font-size:clamp(22px,3vw,30px);font-weight:700}
+.task .num{font-size:clamp(34px,5vw,52px);font-weight:900}
+.task .verb{color:#c04040}.task .verb.add{color:#1f7a6f}
+.main{flex:1;min-height:0;display:flex;gap:16px;justify-content:center}
+.board{flex:0 1 auto;display:flex;gap:12px;min-width:0}
+.zone{flex:0 0 auto;background:#fff;border-radius:18px;border:2px solid #e2e8f0;padding:10px 12px;display:flex;flex-direction:column;min-width:0}
+.zone h3{margin:0 0 8px;font-size:15px;font-weight:800;display:flex;align-items:center;gap:8px}
+.zone.tens h3{color:var(--tens-d)}.zone.ones h3{color:var(--ones-d)}
+.zone h3 .chip{width:14px;height:14px;border-radius:4px}
+.zone.tens h3 .chip{background:var(--tens)}.zone.ones h3 .chip{background:var(--ones)}
+.zone.tens{min-width:calc(var(--u)*5.6)}.zone.ones{width:calc(var(--u)*6.6)}
+.rods{display:flex;gap:calc(var(--u)*.35);align-items:flex-end;flex:1}
+.rod{display:flex;flex-direction:column;border-radius:6px;box-shadow:0 3px 0 var(--tens-d)}
+.rod i,.cube{width:var(--u);height:var(--u);display:block;background:linear-gradient(145deg,var(--l),var(--c) 60%);border:1.5px solid var(--d)}
+.rod i{--l:var(--tens-l);--c:var(--tens);--d:var(--tens-d);border-top-width:0}
+.rod i:first-child{border-top-width:1.5px;border-radius:6px 6px 0 0}.rod i:last-child{border-radius:0 0 6px 6px}
+.cube{--l:var(--ones-l);--c:var(--ones);--d:var(--ones-d);border-radius:6px;box-shadow:0 3px 0 var(--ones-d)}
+.rod.sel{outline:4px solid #3b82f6;outline-offset:3px}
+.mould{display:flex;flex-direction:column;border:2.5px dashed #94a3b8;border-radius:8px;padding:2px}
+.mould i{width:var(--u);height:var(--u);display:block;border-bottom:1px dashed #cbd5e1}
+.mould i:last-child{border-bottom:0}
+.mould i.f{--l:var(--ones-l);--c:var(--ones);--d:var(--ones-d);background:linear-gradient(145deg,var(--l),var(--c) 60%);border:1.5px solid var(--d)}
+.cubes{display:grid;grid-template-columns:repeat(5,var(--u));gap:calc(var(--u)*.3) calc(var(--u)*.25);align-content:start;column-gap:calc(var(--u)*.25)}
+.cubes .gap{grid-column:span 5;height:2px}
+.cubes.wide{grid-template-columns:repeat(5,var(--u))}
+.side{flex:0 0 clamp(170px,24vw,250px);display:flex;flex-direction:column;gap:12px}
+.tray{background:#fff7f7;border:2px dashed #e7a3a3;border-radius:18px;padding:10px 12px}
+.tray.add{background:#f0fbf8;border-color:#8fcfc3}
+.tray h3{margin:0 0 8px;font-size:15px;font-weight:800;color:#c04040}.tray.add h3{color:#1f7a6f}
+.slots{display:grid;grid-template-columns:repeat(5,var(--u));gap:calc(var(--u)*.25)}
+.slot{width:var(--u);height:var(--u);border:2px dashed #e7a3a3;border-radius:6px}
+.tray .count{margin-top:6px;font-size:14px;color:#64748b}
+.col{background:#fff;border-radius:18px;border:2px solid #e2e8f0;padding:10px 12px}
+.col h3{margin:0 0 6px;font-size:13px;font-weight:800;color:#64748b}
+.nb{display:grid;grid-template-columns:repeat(2,44px);grid-auto-rows:44px;margin:0 auto;width:max-content;background-color:#f0f6ff;background-image:linear-gradient(rgba(140,190,255,.55) 1px,transparent 1px),linear-gradient(90deg,rgba(140,190,255,.55) 1px,transparent 1px);background-size:44px 44px;border:1px solid rgba(140,190,255,.55)}
+.nb .hd{font:800 12px Nunito;display:grid;place-items:end center;padding-bottom:3px}.nb .hd.t{color:var(--tens-d)}.nb .hd.o{color:var(--ones-d)}
+.nb .d{position:relative;font:700 40px Primo,cursive;display:grid;place-items:center;padding-top:10px}
+.nb .d.gone{color:#9ca3af}.nb .d.gone:after{content:"";position:absolute;left:6px;right:6px;top:55%;height:3px;background:#c04040;transform:rotate(-35deg)}
+.nb .c{position:absolute;top:0;left:0;width:58%;height:58%;clip-path:polygon(0 0,100% 0,0 100%);background:#fef3c7;color:#92400e;font:700 17px Primo,cursive;padding:1px 0 0 4px;line-height:1}
+.col .cap{font-size:13px;color:#64748b;text-align:center;margin-top:6px}
+.bottom{display:flex;align-items:center;justify-content:center;gap:14px;min-height:64px}
+.hint{background:#fff;border:2px solid #bfdbfe;border-radius:16px;padding:10px 16px;font-size:18px;font-weight:700;color:#172554;box-shadow:0 6px 18px rgba(30,64,175,.12)}
+.hint small{display:block;font-size:12px;color:#2563eb;font-weight:900;letter-spacing:.04em}
+.undo{border:0;background:#e2e8f0;color:#334155;border-radius:14px;padding:12px 16px;font:800 15px Nunito;box-shadow:0 3px 0 #cbd5e1}
+.answer{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700}
+.frame{min-width:84px;height:62px;border:3px solid #3b82f6;border-radius:14px;background:#fff;display:grid;place-items:center;font-size:38px;font-weight:900}
+.frame.ok{border-color:#16a34a;background:#f0fdf4;color:#16a34a}
+.pad{display:grid;grid-template-columns:repeat(5,46px);gap:6px}.pad b{height:46px;border-radius:12px;background:#fff;border:2px solid #dbeafe;box-shadow:0 3px 0 #c7d2fe;display:grid;place-items:center;font-size:22px}
+.done{background:#f0fdf4;border:2px solid #86efac;border-radius:18px;padding:10px 18px;text-align:center}
+.done .eq{font-size:30px;font-weight:900}.done .eq .m{color:#c04040}.done .eq .p{color:#1f7a6f}
+.done .say{font-size:18px;font-weight:700;color:#166534;margin-top:2px}
+.done .say .t{color:var(--tens-d)}.done .say .o{color:var(--ones-d)}
+.flash{animation:none;box-shadow:0 0 0 4px #fff,0 0 0 8px #93c5fd,0 0 22px 10px rgba(96,165,250,.55);border-radius:8px}
+.phone .main{flex-direction:column;justify-content:flex-start}.phone .zone.tens{min-width:0}.phone .zone.ones{width:auto;flex:1}.phone .screen{padding:12px 10px}.phone .side{flex:0 0 auto;flex-direction:row}.phone .side>*{flex:1}
+.phone .board{flex:1}
+</style></head><body><div id="app"></div>
+<script>
+const P=new URLSearchParams(location.search), f=P.get("f")||"A";
+const cubes=n=>Array.from({length:n},(_,i)=>'<span class="cube"></span>'+(i%10===9&&i<n-1?'<span class="gap"></span>':'')).join("");
+const rods=(n,sel)=>Array.from({length:n},(_,i)=>'<div class="rod'+(sel===i?' sel flash':'')+'">'+'<i></i>'.repeat(10)+'</div>').join("");
+const mould=k=>'<div class="mould">'+Array.from({length:10},(_,i)=>'<i class="'+(i>=10-k?'f':'')+'"></i>').join("")+'</div>';
+const slots=(k,n,add)=>'<div class="slots">'+Array.from({length:n},(_,i)=>i<k?'<span class="cube" style="'+(add?'':'')+'"></span>':'<span class="slot"'+(add?' style="border-color:#8fcfc3"':'')+'></span>').join("")+'</div>';
+const col=(st)=>'<div class="col"><h3>Так это пишут в столбике</h3><div class="nb"><div class="hd t">дес.</div><div class="hd o">ед.</div>'+
+ (st==="after"?'<div class="d gone">3<span class="c">2</span></div><div class="d">2<span class="c">1</span></div>':'<div class="d">3</div><div class="d">2</div>')+'</div>'+
+ (st==="after"?'<div class="cap">3 десятка → 2, а единиц стало 12</div>':'<div class="cap">32 = 3 десятка и 2 единицы</div>')+'</div>';
+const S={
+ A:{title:'<span>Было</span><span class="num">32</span><span class="verb">Отдай 5</span>',t:3,o:2,tray:[0,5],bottom:'',col:'before'},
+ B:{title:'<span>Было</span><span class="num">32</span><span class="verb">Отдай 5</span>',t:3,o:0,tray:[2,5],sel:null,flashRods:true,bottom:'<div class="hint"><small>ПОДСКАЗКА</small>Отдельных кубиков больше нет. Где ещё есть кубики?</div><button class="undo">↶ Отменить</button>',col:'before'},
+ C:{title:'<span>Было</span><span class="num">32</span><span class="verb">Отдай 5</span>',t:2,o:10,tray:[2,5],bottom:'<button class="undo">↶ Отменить</button>',col:'after'},
+ D:{title:'<span>Было</span><span class="num">32</span><span class="verb">Отдай 5</span>',t:2,o:7,tray:[5,5],bottom:'<div class="done"><div class="eq">32 <span class="m">−</span> 5 = 27</div><div class="say"><span class="t">2 десятка</span> и <span class="o">7 единиц</span> — двадцать семь</div></div>',col:'after'},
+ E:{title:'<span>Было</span><span class="num">32</span><span class="verb add">Получи 9</span>',t:3,o:7,mould:4,tray:[0,9,true],bottom:'<button class="undo">↶ Отменить</button>',col:null},
+ F:{title:'<span>Было</span><span class="num">32</span><span class="verb">Отдай 5</span>',t:2,o:7,tray:[5,5],bottom:'<div class="answer">Сколько стало? <div class="frame">2_</div></div><div class="pad">'+[1,2,3,4,5,6,7,8,9,0].map(d=>'<b>'+d+'</b>').join("")+'</div>',col:'after'},
+};
+const s=S[f.replace("p","")]; const phone=f.endsWith("p");
+document.body.className=phone?"phone":"";
+document.getElementById("app").innerHTML='<div class="top"><b>Обмен десятка</b> · задание 3 из 10<span class="stars">★★☆☆☆</span></div>'+
+'<div class="screen"><div class="task">'+s.title+'</div><div class="main"><div class="board">'+
+'<div class="zone tens"><h3><span class="chip"></span>Десятки</h3><div class="rods'+(s.flashRods?' ':'')+'">'+(s.flashRods?rods(s.t).replace(/class="rod"/g,'class="rod flash"'):rods(s.t))+(s.mould!=null?mould(s.mould):'')+'</div></div>'+
+'<div class="zone ones"><h3><span class="chip"></span>Единицы</h3><div class="cubes">'+cubes(s.o)+'</div></div></div>'+
+'<div class="side">'+(s.tray?'<div class="tray'+(s.tray[2]?' add':'')+'"><h3>'+(s.tray[2]?'Получи 9':'Отдать 5')+'</h3>'+slots(s.tray[0],s.tray[1],s.tray[2])+(s.tray[2]?'<div class="count">получено 9 из 9</div>':'<div class="count">отдано '+s.tray[0]+' из 5</div>')+'</div>':'')+(s.col?col(s.col):'')+'</div></div>'+
+'<div class="bottom">'+s.bottom+'</div></div>';
+</script></body></html>

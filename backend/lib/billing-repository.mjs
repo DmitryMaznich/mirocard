@@ -150,6 +150,8 @@ export function getActiveSubscriptionForAccount(db, accountId) {
 // Returns true if this is the first time this exact provider event has been
 // seen (caller should act on it), false if it's a duplicate delivery.
 export function recordPaymentEvent(db, { accountId, provider, eventType, externalId, payloadJson }) {
+  // A late webhook must not restore personal provider data after erasure.
+  if (db.prepare("SELECT status FROM accounts WHERE id = ?").get(accountId)?.status === "purged") payloadJson = "{}";
   try {
     db.prepare(`
       INSERT INTO payment_events (id, account_id, provider, event_type, external_id, payload_json, processed_at)
@@ -311,8 +313,8 @@ export function findEntitlementsNeedingReminders(db, { at = now() } = {}) {
 
   const due = [];
   for (const row of currentActiveRows) {
-    const account = db.prepare("SELECT email, feature_flags FROM accounts WHERE id = ?").get(row.account_id);
-    if (!account) continue;
+    const account = db.prepare("SELECT email, feature_flags, status FROM accounts WHERE id = ?").get(row.account_id);
+    if (!account || ["blocked", "deletion_pending", "deleted", "purged"].includes(account.status)) continue;
     // Unlimited (all_access) accounts never lose access, so an "ending
     // soon"/"ended" email about a leftover trial row would be false.
     if (safeJson(account.feature_flags, []).includes("all_access")) continue;

@@ -41,6 +41,11 @@ export default defineConfig([
     },
   },
   {
+    files: ['public/admin*.js'],
+    extends: [js.configs.recommended],
+    languageOptions: { globals: globals.browser },
+  },
+  {
     // Everything else that's JS in this repo: the backend (Node
     // http-server, no framework), deck-build/asset tooling under tools/,
     // deploy/CLI scripts, the landing site's zero-dependency static

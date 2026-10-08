@@ -12,6 +12,7 @@ import { generateTasks as narrativeEngine }            from "./narrative/engine"
 import { generateTasks as letterWritingEngine }        from "./letter_writing/engine";
 import { generateTasks as streakTrackerEngine }        from "./streak_tracker/engine";
 import { generateTasks as columnAdditionEngine }       from "./column_addition/engine.js";
+import { generateTasks as placeValueEngine }           from "./place_value/engine.js";
 import { generateTasks as writtenLettersEngine }       from "./written_letters/engine.js";
 import { generateTasks as printMaterialsEngine }       from "./print_materials/engine.js";
 import { generateTasks as wordFormationEngine }        from "./word_formation/engine";
@@ -38,6 +39,7 @@ export const ENGINE_REGISTRY = {
   letter_writing:        letterWritingEngine,
   streak_tracker:        streakTrackerEngine,
   column_addition:       columnAdditionEngine,
+  place_value:           placeValueEngine,
   written_letters:       writtenLettersEngine,
   print_materials:       printMaterialsEngine,
   word_formation:        wordFormationEngine,

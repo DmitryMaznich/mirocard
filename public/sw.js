@@ -43,6 +43,10 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
 
+  // Administration is always online. Never cache its page or scripts, and
+  // never overwrite the ordinary application's offline shell with admin.html.
+  if (/^\/admin(?:\.html|\.js|\.css|-model\.js)$/.test(url.pathname)) return;
+
   // Фото учеников — cache-first (контент-адресуемые, immutable)
   if (url.pathname.startsWith("/api/photos/")) {
     e.respondWith(

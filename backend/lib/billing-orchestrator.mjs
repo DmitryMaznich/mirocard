@@ -65,6 +65,10 @@ export function processBillingEvent(db, { provider, event, rawBody }) {
       // Guards against an out-of-order or duplicate-with-a-different-
       // event-id success delivery re-extending an already-completed
       // order's entitlement a second time.
+      if (db.prepare("SELECT status FROM accounts WHERE id = ?").get(order.account_id)?.status === "purged") {
+        if (["pending", "abandoned"].includes(order.status)) completeOrder(db, order.id);
+        return { ok: true, reason: "account_purged" };
+      }
       if (order.status !== "pending") return { ok: true, reason: "order_not_pending" };
       completeOrder(db, order.id);
       extendEntitlementForOrder(db, order);
@@ -77,7 +81,7 @@ export function processBillingEvent(db, { provider, event, rawBody }) {
     if (order.status !== "completed") return { ok: true, reason: "order_not_completed" };
     markOrderRefunded(db, order.id, event.eventType);
     revokeEntitlementsForOrder(db, order.id);
-    incrementRevision(db, order.account_id);
+    if (db.prepare("SELECT status FROM accounts WHERE id = ?").get(order.account_id)?.status !== "purged") incrementRevision(db, order.account_id);
     return { ok: true, kind: "refunded", orderId: order.id, accountId: order.account_id };
   });
 }

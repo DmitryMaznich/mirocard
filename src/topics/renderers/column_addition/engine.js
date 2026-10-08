@@ -1,5 +1,3 @@
-import { getRemoveMode } from "./FingerSystem.js";
-
 const POSITIONS = ["units", "tens", "hundreds"];
 
 function randomInt(min, max) {
@@ -226,103 +224,6 @@ function generateSubTask(carryMode, digits, card, usedPairs, bottomDigits = digi
   return null;
 }
 
-export function generateFingersShow(card) {
-  const n = card.params?.n ?? 0;
-  return {
-    type: "fingers_show",
-    cardId: card.id,
-    conceptId: card.conceptId,
-    n,
-  };
-}
-
-export function generateFingersCount(card) {
-  const op  = card.params?.op ?? "add";
-  const a   = card.params?.a ?? 0;
-  const b   = card.params?.b ?? 0;
-  const result = op === "add" ? a + b : a - b;
-  const base = { type: "fingers_count", cardId: card.id, conceptId: card.conceptId, op, a, b, result };
-  if (op === "sub") return { ...base, ...getRemoveMode(a, b) };
-  return base;
-}
-
-// maxOnes = 0 is a distinct, deliberate case (ones is always 0) — it is never mixed in
-// with maxOnes > 0, where ones is drawn from [1, maxOnes]. This keeps "no ones" (a separate
-// abstraction for a child learning place value) from showing up as an incidental low roll
-// once a parent widens the range — it only appears when maxOnes is set to exactly 0.
-function randomPlaceValueNumber(maxOnes, maxTens = 9) {
-  const tens = randomInt(1, Number(maxTens));
-  const max = Number(maxOnes);
-  const ones = max === 0 ? 0 : randomInt(1, max);
-  return { tens, ones };
-}
-
-export function generateBuildNumberTask(card, maxOnes, maxTens, numericBlocks) {
-  const { tens, ones } = randomPlaceValueNumber(maxOnes, maxTens);
-  return {
-    type: "build_number",
-    cardId: card.id,
-    conceptId: card.conceptId,
-    maxOnes: Number(maxOnes),
-    maxTens: Number(maxTens),
-    numericBlocks: Boolean(numericBlocks),
-    number: tens * 10 + ones,
-    target: { tens, ones },
-  };
-}
-
-// identify_number only: occasionally mixes in round tens (ones = 0, e.g.
-// 30/40/50) and bare single digits (tens = 0, e.g. 7) among the regular
-// two-digit draws. Left out of the shared randomPlaceValueNumber above —
-// build_number has nothing new to demonstrate on a round ten, and
-// regroup_ten specifically needs at least one ten to exchange, so neither
-// should ever see tens = 0. Without these edge cases, a child can answer
-// "какое это число?" by pattern ("it's always two digits, both filled")
-// instead of actually reading the picture — see the same session's
-// "величина без ощущения" discussion for why that matters here specifically.
-function randomIdentifyNumberValue(maxOnes, maxTens = 9) {
-  const max = Number(maxOnes);
-  // maxOnes = 0 is still the pre-existing, deliberate "round tens only"
-  // session (untouched) — the mixing below only applies to a normal
-  // maxOnes > 0 session.
-  if (max === 0) return { tens: randomInt(1, Number(maxTens)), ones: 0 };
-
-  const roll = Math.random();
-  if (roll < 0.15) return { tens: randomInt(1, Number(maxTens)), ones: 0 };
-  if (roll < 0.3) return { tens: 0, ones: randomInt(1, max) };
-  return { tens: randomInt(1, Number(maxTens)), ones: randomInt(1, max) };
-}
-
-export function generateIdentifyNumberTask(card, maxOnes, maxTens = 9, numberSet = "mixed") {
-  let value;
-  if (numberSet === "single") value = { tens: 0, ones: randomInt(1, Math.max(1, Number(maxOnes))) };
-  else if (numberSet === "round") value = { tens: randomInt(1, Number(maxTens)), ones: 0 };
-  else if (numberSet === "two_digit") value = randomPlaceValueNumber(maxOnes, maxTens);
-  else value = randomIdentifyNumberValue(maxOnes, maxTens);
-  const { tens, ones } = value;
-  return {
-    type: "identify_number",
-    cardId: card.id,
-    conceptId: card.conceptId,
-    maxOnes: Number(maxOnes),
-    number: tens * 10 + ones,
-    model: { tens, ones },
-  };
-}
-
-export function generateRegroupTask(card, maxOnes, maxTens = 9) {
-  const { tens, ones } = randomPlaceValueNumber(maxOnes, maxTens);
-  return {
-    type: "regroup_ten",
-    cardId: card.id,
-    conceptId: card.conceptId,
-    maxOnes: Number(maxOnes),
-    number: tens * 10 + ones,
-    initial: { tens, ones },
-    after: { tens: tens - 1, ones: ones + 10 },
-  };
-}
-
 // "2+1" and "round10" are the two non-numeric `digits` values. "2+1" is a
 // shorthand for "top is 2-значное, bottom is 1-значное" (uneven width);
 // "round10" means both operands are plain multiples of 10 (even width, both
@@ -383,80 +284,8 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const allCards = cards.filter(c => c.renderer === "column_addition");
   if (!allCards.length) return [];
 
-  const fingerShowCards     = allCards.filter(c => c.params?.mode === "fingers_show");
-  const fingerCountCards    = allCards.filter(c => c.params?.mode === "fingers_count");
-  const buildNumberCards    = allCards.filter(c => c.params?.mode === "build_number");
-  const identifyNumberCards = allCards.filter(c => c.params?.mode === "identify_number");
-  const regroupTenCards     = allCards.filter(c => c.params?.mode === "regroup_ten");
-
-  if (mode === "fingers_show") {
-    const pool = fingerShowCards.length ? fingerShowCards : [];
-    const tasks = [];
-    for (let i = 0; tasks.length < count && i < pool.length * 3; i++) {
-      tasks.push(generateFingersShow(pool[i % pool.length]));
-    }
-    return tasks;
-  }
-
-  if (mode === "fingers_count") {
-    const opFilter = params.op;
-    let pool = fingerCountCards.length ? fingerCountCards : [];
-    if (opFilter && opFilter !== "mixed") {
-      pool = pool.filter(c => (c.params?.op ?? "add") === opFilter);
-    }
-    if (!pool.length) pool = fingerCountCards;
-    const tasks = [];
-    for (let i = 0; tasks.length < count && i < pool.length * 3; i++) {
-      tasks.push(generateFingersCount(pool[i % pool.length]));
-    }
-    return tasks;
-  }
-
-  if (mode === "build_number") {
-    if (!buildNumberCards.length) return [];
-    const maxOnes = Number(params.maxOnes ?? 9);
-    const maxTens = params.numberRange === "teens" ? 1 : Number(params.maxTens ?? 3);
-    const numericBlocks = params.numericBlocks ?? false;
-    const tasks = [];
-    for (let i = 0; i < count; i++) {
-      tasks.push({
-        ...generateBuildNumberTask(buildNumberCards[i % buildNumberCards.length], maxOnes, maxTens, numericBlocks),
-        buildApproach: params.buildApproach ?? "group",
-        askComposition: Boolean(params.askComposition),
-        supportMode: params.supportMode ?? "learning",
-      });
-    }
-    return tasks;
-  }
-
-  if (mode === "identify_number") {
-    if (!identifyNumberCards.length) return [];
-    const maxOnes = Number(params.maxOnes ?? 9);
-    const tasks = [];
-    for (let i = 0; i < count; i++) {
-      tasks.push({
-        ...generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, Number(params.maxTens ?? 9), params.numberSet ?? "mixed"),
-        supportMode: params.supportMode ?? "learning",
-      });
-    }
-    return tasks;
-  }
-
-  if (mode === "regroup_ten") {
-    if (!regroupTenCards.length) return [];
-    const maxOnes = Number(params.maxOnes ?? 9);
-    const tasks = [];
-    for (let i = 0; i < count; i++) {
-      tasks.push({
-        ...generateRegroupTask(regroupTenCards[i % regroupTenCards.length], maxOnes, Number(params.maxTens ?? 9)),
-        supportMode: params.supportMode ?? "learning",
-        allowReverse: params.allowReverse !== false,
-      });
-    }
-    return tasks;
-  }
-
-  // Default: column_arithmetic — exclude finger cards
+  // column_arithmetic — cards with params.mode belonged to modes that moved out
+  // (fingers → addition_subtraction, coins → place_value); older decks still carry them.
   const arithmeticCards = allCards.filter(c => !c.params?.mode);
   if (!arithmeticCards.length) return [];
 
