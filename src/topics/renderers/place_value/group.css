@@ -51,20 +51,23 @@
 .gt-heap-coin { position: absolute; }
 
 .gt-bench {
-  flex-direction: row;
-  align-items: center;
-  gap: calc(var(--coin-size) * 0.6);
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: center;
+  align-items: end;
+  column-gap: calc(var(--coin-size) * 1.2);
+  row-gap: 8px;
 }
 
-.gt-bench .px-tenframe { margin-top: 0; flex: 0 0 auto; }
+.gt-bench .px-tenframe { margin-top: 0; }
+.gt-bench > .fp-field { justify-self: center; }
 
 .gt-bench-stacks {
-  flex: 1 1 auto;
-  min-width: 0;
   display: flex;
-  flex-wrap: wrap;
+  justify-content: center;
   align-items: flex-end;
   gap: calc(var(--coin-size) * 0.3);
+  min-width: calc(var(--coin-size) * var(--gt-stacks) * 1.3);
   min-height: calc(var(--coin-size) * 2.2);
 }
 
@@ -156,8 +159,8 @@
 .gt-screen--narrow .px-answer-actions { grid-column: 1 / -1; justify-content: center; }
 .gt-screen--narrow .px-answer-actions .px-undo { padding: 10px 14px; }
 
-/* Bottom: one status line, then the three answer fields typed into straight
-   from the keypad (FieldPad.jsx). */
+/* Answer fields typed into straight from the keypad (FieldPad.jsx): tens and
+   ones small, under their stacks and frame; the number big, below. */
 .gt-bottom { flex-direction: column; gap: 8px; }
 
 .gt-status {
@@ -171,16 +174,6 @@
 
 .gt-status-hint { color: #1d4ed8; }
 .gt-status-note { color: #9a3412; }
-
-.fp {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.fp-fields { display: flex; gap: 8px; }
 
 .fp-field {
   display: flex;
@@ -210,6 +203,12 @@
   color: #1a1a2e;
 }
 
+.gt-bench--off .fp-field,
+.gt-bottom--off .fp-field { opacity: 0.45; }
+
+.fp-field--big { flex-direction: row; gap: 14px; font-size: 22px; font-weight: 900; color: #1a1a2e; }
+.fp-field--big .fp-value { width: 128px; height: 76px; border-width: 3px; border-radius: 18px; font-size: 52px; }
+
 .fp-field--active .fp-value { border-color: #3b82f6; box-shadow: 0 0 0 3px #dbeafe; }
 .fp-field--ok .fp-value { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
 .fp-field--wrong .fp-value { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
@@ -225,8 +224,8 @@
 .fp-key--enter { background: #16a34a; border-color: #16a34a; box-shadow: 0 3px 0 #15803d; color: #fff; }
 
 .gt-screen--narrow .gt-status { font-size: 14px; }
-.gt-screen--narrow .fp { gap: 8px; }
-.gt-screen--narrow .fp-value { width: 72px; height: 46px; font-size: 26px; }
+.gt-screen--narrow .fp-value { width: 64px; height: 44px; font-size: 26px; }
+.gt-screen--narrow .fp-field--big { font-size: 19px; }
+.gt-screen--narrow .fp-field--big .fp-value { width: 104px; height: 62px; font-size: 42px; }
 .gt-screen--narrow .fp-keys .px-key { height: 42px; font-size: 20px; }
 .gt-screen--narrow .gt-task span { display: none; }
-.fp--off .fp-fields { opacity: 0.45; }

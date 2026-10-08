@@ -3,7 +3,7 @@ import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { placeValuePhrase, numberWords } from "./placeValueLabels.js";
-import FieldPad from "./FieldPad.jsx";
+import { AnswerField, Keypad, useTypedAnswer } from "./FieldPad.jsx";
 import TenFrame from "./TenFrame.jsx";
 import "./place_value.css";
 import "./coins.css";
@@ -49,7 +49,7 @@ export function heapLayout(count, seed) {
 const FIELDS = [
   { key: "tens", label: "Десятков", tone: "tens" },
   { key: "ones", label: "Единиц", tone: "ones" },
-  { key: "total", label: "Число", tone: "total" },
+  { key: "total", label: "Какое это число?", tone: "total" },
 ];
 
 export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
@@ -62,6 +62,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const [answers, setAnswers] = useState({});
   const [note, setNote] = useState("");
   const [hint, setHint] = useState(null);
+  const typed = useTypedAnswer();
   const [coinSize, setCoinSize] = useState(44);
   const [narrow, setNarrow] = useState(false);
   const mainRef = useRef(null);
@@ -70,7 +71,8 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const position = useMemo(() => Object.fromEntries(layout.coins.map((c) => [c.id, c])), [layout]);
 
   // Coin size from the board's own box: the heap (9 columns), and under it the
-  // frame with room for every stack the number makes.
+  // stacks (room for every stack the number makes) and the frame, each with
+  // its answer field below.
   const maxStacks = Math.max(1, Math.floor(task.number / 10));
   useLayoutEffect(() => {
     const main = mainRef.current;
@@ -80,7 +82,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       if (!width || !height) return;
       const isNarrow = width < 600;
       const size = Math.min((width - 28) / (layout.cols * 1.15), (width - 60) / (6.9 + maxStacks * 1.3),
-        (height - 80) / (layout.rows * 1.15 + 2.6), isNarrow ? 44 : 56);
+        (height - 150) / (layout.rows * 1.15 + 2.5), isNarrow ? 44 : 56);
       setNarrow(isNarrow);
       setCoinSize(Math.max(20, size));
     };
@@ -143,6 +145,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const ones = model.heap.length + model.frame.length, tens = model.tens.length;
   const expected = { tens, ones, total: task.number };
   const canAnswer = ones < 10;
+  const done = phase === "done";
   function answer(key, guess) {
     if (phase !== "group" || exchange.busy || !canAnswer) return false;
     if (guess === expected[key]) {
@@ -165,6 +168,16 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     return false;
   }
 
+  function enter() {
+    if (!typed.digits) return;
+    if (answer(FIELDS[step].key, Number(typed.digits))) typed.reset(); else typed.fail();
+  }
+  const field = (i, big) => {
+    const f = FIELDS[i], ok = answers[f.key] !== undefined, active = !done && canAnswer && i === step;
+    return <AnswerField label={f.label} tone={f.tone} big={big} ok={ok} active={active} wrong={typed.wrong}
+      value={ok ? answers[f.key] : active ? typed.digits : ""} />;
+  };
+
   const hintText = {
     start: "Нажимай на монеты — они перейдут в рамку.",
     full: "В рамке десять монет — нажми на рамку, и они сложатся в стопку.",
@@ -172,8 +185,6 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const stackList = model.tens.map((id) => <div key={id} data-stack-id={id} className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>
     <TenStack />
   </div>);
-  const done = phase === "done";
-
   return <div className={`pv-screen px-screen gt-screen${narrow ? " gt-screen--narrow" : ""}`} style={{ "--coin-size": `${coinSize}px` }}>
     <header className="gt-task">
       <b>Сколько здесь монет?</b>
@@ -189,21 +200,25 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
           </span>)}
         </div>
       </section>
-      {/* The frame, and the stacks it has turned into, right next to it. */}
-      <section className="px-zone gt-bench">
+      {/* Tens left, ones right — the order of the digits: the stacks, then the
+          frame they come out of, each with its answer field under it. */}
+      <section className={`px-zone gt-bench${canAnswer ? "" : " gt-bench--off"}`} style={{ "--gt-stacks": maxStacks }}>
+        <div className="gt-bench-stacks">{stackList}</div>
         <TenFrame coinIds={model.frame} onReturn={returnCoin} onClose={closeFrame} slots={slots} tapToClose
           disabled={exchange.busy || done} glow={hint === "full"} />
-        <div className="gt-bench-stacks">{stackList}</div>
+        {field(0)}
+        {field(1)}
       </section>
     </div>
-    <div className="px-bottom gt-bottom">
+    <div className={`px-bottom gt-bottom${canAnswer ? "" : " gt-bottom--off"}`}>
+      {field(2, true)}
       <div className="gt-status" role="status">
         {done ? <span className="px-say">{placeValuePhrase(task.number)}</span>
           : hintText ? <span className="gt-status-hint">{hintText}</span>
             : note ? <span className="gt-status-note">{note}</span> : null}
       </div>
-      <FieldPad fields={FIELDS} step={step} values={answers} onCheck={answer} done={done} off={!canAnswer || exchange.busy} />
-      {done && <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>}
+      {done ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
+        : <Keypad off={!canAnswer || exchange.busy} typed={typed} onEnter={enter} />}
     </div>
   </div>;
 }

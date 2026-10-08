@@ -14,7 +14,7 @@ describe("GroupTenTask", () => {
   it("shows a heap and no number until the child has answered", () => {
     h.mount(GroupTenTask, task(23));
     expect(count(".gt-heap-coin")).toBe(23);
-    expect(h.container.querySelector(".gt-main").textContent + h.container.querySelector(".fp-fields").textContent).not.toContain("23");
+    expect(Array.from(h.container.querySelectorAll(".gt-heap, .fp-value")).map((e) => e.textContent).join("")).not.toContain("23");
   });
 
   const field = (label) => h.container.querySelector(`output[aria-label="${label}"]`).textContent;
@@ -54,12 +54,12 @@ describe("GroupTenTask", () => {
 
   it("the answer fields switch on only when no more stacks can be made", () => {
     h.mount(GroupTenTask, task(23));
-    expect(h.container.querySelector(".fp--off")).not.toBeNull();
+    expect(h.container.querySelector(".fp-keys--off")).not.toBeNull();
     expect(h.button("1").disabled).toBe(true);
     take(10); h.click("Сложить в стопку"); h.flush();
-    expect(h.container.querySelector(".fp--off")).not.toBeNull();
+    expect(h.container.querySelector(".fp-keys--off")).not.toBeNull();
     take(10); h.click("Сложить в стопку"); h.flush();
-    expect(h.container.querySelector(".fp--off")).toBeNull();
+    expect(h.container.querySelector(".fp-keys--off")).toBeNull();
     expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Десятков");
     answer(2); answer(3); answer(23);
     expect(h.container.querySelector(".px-say").textContent).toBe("2 десятка и 3 единицы — двадцать три");
