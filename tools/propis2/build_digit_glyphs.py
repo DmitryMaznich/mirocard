@@ -248,6 +248,25 @@ def on_grid(label, strokes):
     return out
 
 
+# The bottom wave of «2»: the hand wrote it short and flat. In a school cell the wave runs on to the RIGHT side of the cell, as far as
+# the top of the 2 reaches (owner, 2026-10-08), and is a little higher. Everything after the bottom-left corner of the 2 is
+# scaled about that corner: WAVE2_X across (found so that on squared paper the end of the wave touches the right side of the cell,
+# see scripts/digits_workbook/p2_digits.json: max x of the 2 = its last point), WAVE2_Y up.
+WAVE2_X = 1.45
+WAVE2_Y = 1.4
+
+
+def wave_of_2(label, strokes):
+    if label != "2":
+        return strokes
+    cmds = strokes[0]
+    corner = min(range(len(cmds)), key=lambda i: cmds[i][1][-1][0])  # the bottom-left corner: the leftmost point
+    c = cmds[corner][1][-1].copy()
+    k = np.array([WAVE2_X, WAVE2_Y])
+    wave = [(cm, [c + (q - c) * k for q in ps]) for cm, ps in cmds[corner + 1:]]
+    return [cmds[:corner + 1] + wave] + strokes[1:]
+
+
 def lift_to(cmds, dy):
     """Moves a stroke up/down by `dy` along the slant (so it keeps its place on the slant grid)."""
     return [(c, [np.array([q[0] - SLANT * dy, q[1] + dy]) for q in ps]) for c, ps in cmds]
@@ -279,7 +298,7 @@ def main():
             plus = [stroke_path(st["d"]) for st in next(p for p in raw if p["label"] == "+")["strokes"]]
             want = bar_y(min(plus, key=lambda c: np.ptp([q[1] for _, ps in c for q in ps])))  # the flat stroke of «+»
             paths = [lift_to(c, want - bar_y(c)) for c in paths]
-        strokes = [{"d": fmt(c)} for c in straight_signs(it["label"], on_grid(it["label"], [to_deck(c, s, x0) for c in paths]))]
+        strokes = [{"d": fmt(c)} for c in wave_of_2(it["label"], straight_signs(it["label"], on_grid(it["label"], [to_deck(c, s, x0) for c in paths])))]
         glyphs.append({"label": "№" + it["label"], "kind": "digit", "strokes": strokes, "stretch": 1.806, "noJoin": True,
                        "sourceLabel": f"{it['label']} (захват 2026-10-06; сглажен, масштаб x{s:.3f} = высота заглавной, база y=62)"})
     OUT.write_text(json.dumps(glyphs, ensure_ascii=False, indent=1))
