@@ -57,8 +57,11 @@ def diagonal_x_mm(k, y_mm, kind, half_offset_mm):
     return x0 + k * s + y_mm * SLANT - half_offset_mm
 
 
-def _draw_half(c, x_offset, kind, palette):
+def _draw_half(c, x_offset, kind, palette, margin_mm=MARGIN_MM):
     col = PALETTES[palette]
+    if kind == "cells":
+        _draw_cells(c, x_offset, palette, margin_mm)
+        return
     # horizontals (identical loop to propis_ruling.py)
     c.setStrokeColorRGB(*col["h"])
     y = VERTICAL_SHIFT_MM * mm
@@ -93,6 +96,37 @@ def _draw_half(c, x_offset, kind, palette):
     c.restoreState()
 
 
+CELL_MM = 5.0
+CELL_GRAY = 0.70
+CELL_WIDTH = 0.3  # points
+
+
+def _draw_cells(c, x_offset, palette, margin_mm=MARGIN_MM):
+    """"Клетка" half for the digits workbook (scripts/digits_workbook):
+    5mm squares, anchored on the red margin (left page: x=margin, right
+    page: x=PAGE_W-margin) and on the page's bottom edge (210 = 42 cells),
+    so a cell column always starts exactly at the margin line. Drawn to the
+    very edges of the half (user, 2026-09-29: how close to the paper edge
+    it actually prints is up to the printer)."""
+    c.saveState()
+    c.setStrokeGray(CELL_GRAY)
+    c.setLineWidth(CELL_WIDTH)
+    x0, x1 = x_offset, x_offset + HALF_W
+    step = CELL_MM * mm
+    anchor = margin_mm * mm if x_offset == 0 else PAGE_W - margin_mm * mm
+    k = math.floor((x0 - anchor) / step)
+    while anchor + k * step <= x1:
+        x = anchor + k * step
+        if x >= x0:
+            c.line(x, 0, x, PAGE_H)
+        k += 1
+    y = 0.0
+    while y <= PAGE_H + 0.01:
+        c.line(x0, y, x1, y)
+        y += step
+    c.restoreState()
+
+
 WATERMARK_TEXT = "Mironium"
 WATERMARK_GRAY = 0.80
 WATERMARK_SPAN_MM = (22, 204)   # along the page height, clear of the page-number badge
@@ -118,7 +152,7 @@ def _watermark_font():
         return "Helvetica"
 
 
-def _margin_watermark(c, edge_x, angle, inward):
+def _margin_watermark(c, edge_x, angle, inward, margin_mm=MARGIN_MM):
     """Vertical WATERMARK_TEXT in two columns down an outer margin, in a
     checkerboard (user, 2026-09-24): the height is split into
     WATERMARK_SLOTS slots, column 1 takes the odd slots, column 2 the even
@@ -127,13 +161,14 @@ def _margin_watermark(c, edge_x, angle, inward):
     from the page edge into the margin."""
     from reportlab.pdfbase.pdfmetrics import stringWidth
     font = _watermark_font()
-    size = WATERMARK_WORD_MM * mm / stringWidth(WATERMARK_TEXT, font, 1)
+    k = margin_mm / MARGIN_MM   # narrower margin: smaller word, columns closer
+    size = WATERMARK_WORD_MM * k * mm / stringWidth(WATERMARK_TEXT, font, 1)
     lo, hi = WATERMARK_SPAN_MM
     slot = (hi - lo) / WATERMARK_SLOTS
     for col, off in enumerate(WATERMARK_COLS_MM):
-        x = edge_x + inward * off * mm
-        for k in range(col, WATERMARK_SLOTS, 2):
-            y = (lo + slot * (k + 0.5)) * mm
+        x = edge_x + inward * off * k * mm
+        for i in range(col, WATERMARK_SLOTS, 2):   # not `k`: that is the margin scale above
+            y = (lo + slot * (i + 0.5)) * mm
             c.saveState()
             c.translate(x, y)
             c.rotate(angle)
@@ -143,24 +178,24 @@ def _margin_watermark(c, edge_x, angle, inward):
             c.restoreState()
 
 
-def draw_sheet_ruling(c, left_kind, right_kind, palette="gray"):
+def draw_sheet_ruling(c, left_kind, right_kind, palette="gray", margin_mm=MARGIN_MM):
     c.setFillColorRGB(1, 1, 1)
     c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
 
-    _draw_half(c, 0, left_kind, palette)
-    _draw_half(c, HALF_W, right_kind, palette)
+    _draw_half(c, 0, left_kind, palette, margin_mm)
+    _draw_half(c, HALF_W, right_kind, palette, margin_mm)
 
     # red margins
     c.setStrokeColorRGB(0.8, 0.2, 0.2)
     c.setLineWidth(0.6)
-    c.line(MARGIN_MM * mm, 0, MARGIN_MM * mm, PAGE_H)
-    c.line(PAGE_W - MARGIN_MM * mm, 0, PAGE_W - MARGIN_MM * mm, PAGE_H)
+    c.line(margin_mm * mm, 0, margin_mm * mm, PAGE_H)
+    c.line(PAGE_W - margin_mm * mm, 0, PAGE_W - margin_mm * mm, PAGE_H)
 
     # vertical "Mironium" watermark down each outer margin, full page height
     # (user, 2026-09-24). Drawn before the page-number badge, whose white
     # circle then sits on top of it.
-    _margin_watermark(c, 0, 90, +1)
-    _margin_watermark(c, PAGE_W, -90, -1)
+    _margin_watermark(c, 0, 90, +1, margin_mm)
+    _margin_watermark(c, PAGE_W, -90, -1, margin_mm)
 
     # white center divider
     c.setStrokeColorRGB(1, 1, 1)

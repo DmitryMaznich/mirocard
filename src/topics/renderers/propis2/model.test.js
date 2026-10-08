@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage } from "./model.js";
+import { methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, paperDiffers } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 import { rowAtSvgY } from "../propis/PrintPageView.jsx";
@@ -120,12 +120,26 @@ describe("propis2 model", () => {
     expect(setPageStarts(set, byId, map)).toEqual([1, 2, 3, null]);
   });
 
-  it("the set's ruling replaces the pages' own ruling", () => {
-    const a = newPage("A", { ruling: "wide", rows: [oldRow({ text: "молоко молоко молоко молоко молоко молоко молоко" })] });
-    const byId = new Map([[a.id, a]]);
-    const narrow = setToLines(newSet("n", { ruling: "narrow", pageIds: [a.id] }), byId, map);
-    const wide = setToLines(newSet("w", { ruling: "wide", pageIds: [a.id] }), byId, map);
-    expect(narrow).toEqual(wide); // a text row is the same line; only the wrapping (passage) would differ
+  it("every page on its own paper: a page is padded to its own rows per page, runs of pages on the same paper", () => {
+    const sq = newPage("Кл", { gridKind: "square", rows: [newRow({ text: "1" })] });
+    const sq2 = newPage("Кл2", { gridKind: "square", rows: [newRow({ text: "2" })], writeAfter: true });
+    const wide = newPage("Ш", { ruling: "wide", rows: [newRow({ text: "а" })] });
+    const narrow = newPage("У", { ruling: "narrow", rows: [newRow({ text: "б" })] });
+    const byId = new Map([sq, sq2, wide, narrow].map((p) => [p.id, p]));
+    const set = newSet("S", { ruling: "wide", pageIds: [sq.id, sq2.id, wide.id, narrow.id] });
+    // the set's ruling no longer overrides: each page is padded by its own paper
+    const lines = setToLines(set, byId, map);
+    expect(lines[0]).toBe(pageToLines(sq, map)[0]);
+    expect(lines[rowsPerPage(sq)]).toBe(pageToLines(sq2, map)[0]);
+    // runs: the two squared pages (they differ only in «писать после», which is not paper), then the wide one, then the narrow one
+    const secs = notebookSections(set, byId, map);
+    expect(secs.map((x) => x.pageIds)).toEqual([[sq.id, sq2.id], [wide.id], [narrow.id]]);
+    expect(secs.map((x) => x.start)).toEqual([0, 2, 3]);
+    expect(setToLines(set, byId, map, secs[1].pageIds)).toEqual(pageToLines(wide, map));
+    expect(paperDiffers(set, byId, wide)).toBe(true);
+    expect(paperDiffers(newSet("one", { pageIds: [wide.id] }), byId, wide)).toBe(false);
+    // only the format is the notebook's
+    expect(notebookLayout(newSet("x", { pageIds: [narrow.id] }), new Map([[narrow.id, { ...narrow, format: "a4" }]]))).toEqual({ format: "a4" });
   });
 
   it("drag and drop: a tile on a filled row replaces it, keeps its mark; below the page it fills the gap with blank rows", () => {
@@ -421,11 +435,11 @@ describe("long text wraps by the grid the page is drawn with", () => {
 describe("«Методика» kits (kits.json, built from the v1 notebooks' content lists)", () => {
   const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
   it("the notebooks are there, every page fits one page and every letter has a glyph", () => {
-    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts"]);
+    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts", "digits"]);
     for (const k of kits) {
       expect(k.pages.length, k.id).toBeGreaterThan(5);
       for (const pg of k.pages) {
-        expect(pg.rows.length, `${k.id} ${pg.title}`).toBeLessThanOrEqual(17);
+        expect(pg.rows.length, `${k.id} ${pg.title}`).toBeLessThanOrEqual(rowsPerPage({ ...k.page, ...pg.paper }));
         for (const r of pg.rows) expect(findUnsupported(r.text, map), `${k.id} «${r.text}»`).toEqual([]);
       }
     }
@@ -436,6 +450,18 @@ describe("«Методика» kits (kits.json, built from the v1 notebooks' con
     expect(pages.every((p) => p.locked && p.kitId === set.id && p.ruling === "narrow" && p.margin === "left")).toBe(true);
     expect(new Set(pages.flatMap((p) => p.rows.map((r) => r.id))).size).toBe(pages.reduce((n, p) => n + p.rows.length, 0));
     expect(pageToLines(pages[0], map)[0]).toMatch(/^и#f/);
+  });
+  it("the digits kit: squared pages, then digits in text on the copybook ruling, each page on its own paper", () => {
+    const k = kits.find((x) => x.id === "digits");
+    expect(k.pages).toHaveLength(24);
+    const { set, pages } = kitToLibraryItems(k);
+    expect(pages.slice(0, 20).every((p) => p.gridKind === "square")).toBe(true);
+    expect(pages.slice(20).every((p) => p.gridKind === "propis" && p.ruling === "narrow")).toBe(true);
+    const byId = new Map(pages.map((p) => [p.id, p]));
+    expect(notebookSections(set, byId, map).map((x) => x.pageIds.length)).toEqual([20, 4]);
+    // digits are kept as glyph labels, also before a comma or a full stop
+    expect(k.pages[0].rows[0]).toMatchObject({ text: "№1", repeat: "fade" });
+    expect(k.pages[21].rows.some((r) => r.text === "Мне №5 лет, а Оле №3.")).toBe(true);
   });
   it("letter pages: practice with fading copies, then independent writing with a sample at the start", () => {
     const first = kits[0].pages;
@@ -579,7 +605,7 @@ describe("layout cache (typing in one row lays out only that row)", () => {
       const snap = snapXFor(args);
       expect(snapXFor({ ...args })).toBe(snap);
       const scale = args.narrowRows ? 0.5 : 1;
-      const fresh = layoutWideLinesIntoRows(lines, map, Object.assign((r, x, y) => snap(r, x, y), snap.cell ? { cell: snap.cell } : {}), true, scale);
+      const fresh = layoutWideLinesIntoRows(lines, map, Object.assign((r, x, y) => snap(r, x, y), snap.cell ? { cell: snap.cell } : {}, snap.hidden ? { hidden: true } : {}), true, scale);
       const cached = layoutWideLinesIntoRows(lines, map, snap, true, scale);
       const again = layoutWideLinesIntoRows(lines, map, snap, true, scale);
       expect(JSON.parse(JSON.stringify(cached))).toEqual(JSON.parse(JSON.stringify(fresh)));

@@ -1164,3 +1164,197 @@ textarea:focus {
     width: 100%;
   }
 }
+.mobile-sort {
+  display: none;
+}
+@media (max-width: 700px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  .btn,
+  .name-button,
+  .nav-item {
+    min-height: 44px;
+  }
+  .mobile-sort {
+    display: grid;
+    gap: 8px;
+    padding: 0 16px 16px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .mobile-sort select {
+    width: 100%;
+  }
+  .table-scroll {
+    overflow: visible;
+    padding: 0 12px 12px;
+  }
+  .users-table {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+  .users-table thead {
+    display: none;
+  }
+  .users-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+  .users-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px 12px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: white;
+  }
+  .users-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+    text-align: left;
+    white-space: normal;
+  }
+  .users-table td:first-child,
+  .users-table td:last-child {
+    grid-column: 1 / -1;
+  }
+  .users-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .users-table td:last-child .btn {
+    width: 100%;
+    background: #f5f7fb;
+  }
+  .identity > div:last-child {
+    min-width: 0;
+  }
+  .identity .caption,
+  .name-button,
+  .detail-email {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+  .name-button {
+    text-align: left;
+  }
+  .users-table .numeric {
+    text-align: left;
+  }
+  .toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+  .toolbar .search-wrap,
+  #status-filter {
+    grid-column: 1 / -1;
+  }
+  .toolbar select {
+    width: 100%;
+    min-width: 0;
+  }
+  .account-dialog {
+    width: 100vw;
+    max-width: 100vw;
+    position: fixed;
+    inset: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .detail-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: white;
+    border-bottom: 1px solid var(--line);
+    padding-top: max(16px, env(safe-area-inset-top));
+  }
+  .detail-header .identity {
+    min-width: 0;
+    flex: 1;
+  }
+  .detail-header > .btn {
+    flex-shrink: 0;
+    width: 44px;
+  }
+  .detail-body {
+    padding-bottom: max(28px, env(safe-area-inset-bottom));
+  }
+  .detail-meta {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .detail-meta > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .flag-item {
+    min-height: 48px;
+  }
+  .flags-actions {
+    flex-wrap: wrap;
+  }
+  .flags-actions .btn,
+  .grant-form .btn {
+    width: 100%;
+  }
+  .confirm-dialog,
+  .deletion-dialog {
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .dialog-actions .btn {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
+.directory-scopes {
+  display: flex;
+  gap: 8px;
+  padding: 0 24px;
+}
+.directory-scopes .btn {
+  flex: 1;
+}
+.directory-scopes .btn[aria-pressed="true"] {
+  color: #414db9;
+  background: #eef0ff;
+  border-color: #cbd1ff;
+}
+.directory-scopes span {
+  margin-left: 8px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 700px) {
+  .directory-scopes {
+    padding: 0 16px;
+  }
+}

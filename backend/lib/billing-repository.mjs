@@ -314,7 +314,7 @@ export function findEntitlementsNeedingReminders(db, { at = now() } = {}) {
   const due = [];
   for (const row of currentActiveRows) {
     const account = db.prepare("SELECT email, feature_flags, status FROM accounts WHERE id = ?").get(row.account_id);
-    if (!account || ["blocked", "deletion_pending", "deleted", "purged"].includes(account.status)) continue;
+    if (!account || ["blocked", "deletion_pending", "deleted", "archived", "purged"].includes(account.status)) continue;
     // Unlimited (all_access) accounts never lose access, so an "ending
     // soon"/"ended" email about a leftover trial row would be false.
     if (safeJson(account.feature_flags, []).includes("all_access")) continue;

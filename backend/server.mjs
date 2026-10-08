@@ -66,7 +66,7 @@ import {
 } from "./lib/billing-providers/lava-top.mjs";
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
 import { gitSha } from "../scripts/git-sha.mjs";
-import { prepareDeletion, confirmDeletion, blockAccount, restoreAccount, startAccountDeletionLoop } from "./lib/account-lifecycle.mjs";
+import { prepareDeletion, confirmDeletion, blockAccount, restoreAccount, cancelScheduledErasure } from "./lib/account-lifecycle.mjs";
 import { reportError, trackEvent } from "./lib/observability.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
@@ -1170,11 +1170,9 @@ async function handleAdminLifecycle(req, res, accountId, operation) {
   requireAdmin(req);
   const body = await readJsonBody(req) ?? {};
   if (operation === "deletion-preview") return writeJson(res, 200, prepareDeletion(db, accountId, body.mode));
-  if (operation === "delete") return writeJson(res, 200, confirmDeletion(db, accountId, body, {
-    beforePurge: email => clearLegacyPasswordHashes(email, true),
-  }));
+  if (operation === "delete") return writeJson(res, 200, confirmDeletion(db, accountId, body));
   if (body.action === "block") return writeJson(res, 200, blockAccount(db, accountId, body.reason));
-  if (!["unblock", "cancel-deletion"].includes(body.action)) return writeJson(res, 400, { error: "Неизвестное действие с аккаунтом." });
+  if (!["unblock", "restore"].includes(body.action)) return writeJson(res, 400, { error: "Неизвестное действие с аккаунтом." });
   return writeJson(res, 200, restoreAccount(db, accountId, body.action, body.reason));
 }
 
@@ -2062,7 +2060,7 @@ export { router, db };
 // PORT for real and race whatever's already listening on it.
 const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 if (isMainModule) {
-  startAccountDeletionLoop(db, { beforePurge: email => clearLegacyPasswordHashes(email, true) });
+  cancelScheduledErasure(db);
   createServer(router).listen(PORT, () => {
     console.log(`Mirocard2 backend running on port ${PORT}`);
   });

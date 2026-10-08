@@ -1078,10 +1078,12 @@ export const WIDE_SCALE = WIDE_ZONE_UNITS / WIDE_CAPTURE_SPAN;
 const WIDE_BASELINE_Y = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
 const WIDE_JOIN_TAN = Math.tan(((90 - 65) * Math.PI) / 180);
 const WIDE_TOKEN_GAP = 36;
-const WIDE_WORD_MIN_GAP = 28; // least visible gap between the ink of two words (row-local units at full scale)
+const WIDE_WORD_MIN_GAP = 28;
+const WIDE_WORD_SPACE = 44; // a plain space between two words of a text (ink to ink, row-local units at full scale): no wider gap is left after a wide word // least visible gap between the ink of two words (row-local units at full scale)
 // A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
 // with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
 const WIDE_PUNCT_GAP = 6;
+const WIDE_DIGIT_GAP = 10; // between the ink of two digits of one number on a page whose snapping grid is not drawn (row-local units at full scale)
 // Largest sideways nudge (native units) allowed when landing a tail on the next letter's stroke.
 const WIDE_MAX_CONTACT_NUDGE = 6;
 // x where a path first reaches height y (linear between samples), or null if it never does.
@@ -1247,7 +1249,7 @@ function liftEndToD(d, targetY) {
 // The local geometry of a glyph depends only on the glyph and the scale, and a repeated row asks for it once per copy:
 // computed once per (glyph object, scale). Callers must treat the result as read-only.
 const WIDE_LOCAL_CACHE = new WeakMap();
-function wideGlyphLocal(glyph, scale = 1) {
+export function wideGlyphLocal(glyph, scale = 1) {
   let byScale = WIDE_LOCAL_CACHE.get(glyph);
   if (!byScale) { byScale = new Map(); WIDE_LOCAL_CACHE.set(glyph, byScale); }
   if (!byScale.has(scale)) byScale.set(scale, wideGlyphLocalCompute(glyph, scale));
@@ -1264,7 +1266,7 @@ const CELL_DIGIT_SPAN = { default: 0.78, "№1": 0.55, "№4": 0.7, "№7": 0.6 
 const CELL_SIGN_BAR = 0.55;
 const isCellSign = (label) => /^№[^0-9]/.test(label ?? "");
 const CELL_LOCAL_CACHE = new WeakMap();
-function cellGlyphLocal(glyph, scale, cellSize) {
+export function cellGlyphLocal(glyph, scale, cellSize) {
   let byKey = CELL_LOCAL_CACHE.get(glyph);
   if (!byKey) { byKey = new Map(); CELL_LOCAL_CACHE.set(glyph, byKey); }
   const key = `${scale}|${cellSize}`;
@@ -1444,7 +1446,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply = 
     let row = rows.get(key);
     if (!row) {
       // the row alone, with the grid of ITS place on the page
-      const own = Object.assign((_r, x, y) => snapX(rowIndex, x, y), snapX.cell ? { cell: { ...snapX.cell, origin: () => snapX.cell.origin(rowIndex) } } : {});
+      const own = Object.assign((_r, x, y) => snapX(rowIndex, x, y), snapX.cell ? { cell: { ...snapX.cell, origin: () => snapX.cell.origin(rowIndex) } } : {}, snapX.hidden ? { hidden: true } : {});
       row = { ...layoutWideLinesIntoRowsNow([line], glyphsByLabel, own, multiply, scale, maxX).placed[0], rowIndex };
       rows.set(key, row);
     }
@@ -1459,7 +1461,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   const cellGrid = snapX.cell ?? null;
   if (cellGrid?.scale) scale = cellGrid.scale;
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
-  const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { ...cellGrid, origin: () => cellGrid.origin(row) } } : {});
+  const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { ...cellGrid, origin: () => cellGrid.origin(row) } } : {}, snapX.hidden ? { hidden: true } : {});
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
   const flags = lines.map((l) => (/((?:#(?:[dc1fsorx]|[ig]\d+))+)$/.exec(l) ?? [])[1] ?? "");
@@ -1624,15 +1626,34 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           startX = (isSign ? o + k * S + (S - (local.maxX - local.minX)) / 2 - local.minX : o + (k + 1) * S - local.maxX) + local.start[0];
           cellNext = k + 1;
         } else if (loose && glyph.kind === "digit") {
-          startX = snapX(rowIndex, wantStartX, local.start[1]);
-          if (startX < wantStartX - 1e-6) startX = snapX(rowIndex, startX + CELL, local.start[1]);
+          if (snapX.hidden) {
+            // the grid is not drawn: the digits of a number stand a steady gap apart («20», not «2 0» when the next line is far)
+            startX = wantStartX + (WIDE_DIGIT_GAP - WIDE_PUNCT_GAP) * scale;
+          } else {
+            startX = snapX(rowIndex, wantStartX, local.start[1]);
+            if (startX < wantStartX - 1e-6) startX = snapX(rowIndex, startX + CELL, local.start[1]);
+          }
         }
         // A word is placed by the START of its first letter, but some letters (с а о д ...) have their ink to the LEFT of the start:
         // "любит спать" then touched ("любитспать"). The ink of the new word must stay clear of the previous word by a visible gap:
         // otherwise it moves on to the next slant line. Signs repeated in a row (samples, mixed sequences) keep their measured step: only a word next to something is checked.
         if (!inCell && !loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
           const lead = local.start[0] - local.minX;
-          for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + WIDE_WORD_MIN_GAP * (glyph.kind === "digit" ? 1.2 : 1) * scale; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
+          // after a comma / full stop the next word or number stands a word space off the MARK, not huddled against it
+          // («1 кот, 2 кота», «в 7 утра, в 9 вечера»): the mark is small, the gap to it reads as no gap at all
+          const afterMark = /[.,!?;:]$/.test(prevToken.token);
+          // (a plain word space here is ~2x WIDE_WORD_MIN_GAP; after a mark at least 1.8x, measured from the mark's ink)
+          const minGap = WIDE_WORD_MIN_GAP * (afterMark ? 1.8 : glyph.kind === "digit" ? 1.2 : 1) * scale;
+          for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + minGap; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
+          // ...and not much further than a word space either: the step in cells counts from the START of the previous word, so after a
+          // wide one-letter word («В классе», «У меня») the gap came out twice a word space. Moved back line by line while the gap stays
+          // at least a plain word space (spaces typed on purpose, `pendingGap`, are kept).
+          const plain = Math.max(minGap, WIDE_WORD_SPACE * scale);
+          for (let k = 0; k < 4 && pendingGap === 0; k += 1) {
+            const back = snapX(rowIndex, startX - CELL, local.start[1]);
+            if (back >= startX - 1e-6 || back - lead < prevToken.inkMaxX + plain) break;
+            startX = back;
+          }
         }
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
