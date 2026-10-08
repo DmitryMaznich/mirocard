@@ -57,3 +57,26 @@ test("time excludes hidden tabs, idle after one minute and sleep gaps; context c
   t.sample();
   assert.equal(events.at(-1).topicId, null);
 });
+
+test("home feature tabs do not attribute planner time to the selected exercise topic", () => {
+  let state = {
+    token: "token",
+    account: { id: "owner" },
+    screen: "home",
+    activeTopicId: "exercise",
+    homeActiveTab: "planner",
+  };
+  const events = [];
+  const t = createUsageTracker({
+    getState: () => state,
+    isVisible: () => true,
+    emit: (e) => events.push(e),
+  });
+  t.sample();
+  assert.equal(events.at(-1).screen, "planner");
+  assert.equal(events.at(-1).topicId, null);
+  assert.equal(events.filter((e) => e.kind === "topic_open").length, 0);
+  state = { ...state, homeActiveTab: "session" };
+  t.sample();
+  assert.equal(events.at(-1).topicId, "exercise");
+});

@@ -24,13 +24,15 @@ export function createUsageTracker({
     active = 0;
   const state = () => {
     const s = getState();
+    const screen =
+      s.screen === "home" && s.homeActiveTab && s.homeActiveTab !== "session"
+        ? s.homeActiveTab
+        : s.screen;
     return s.token && s.account?.id
       ? {
           accountId: s.account.id,
-          screen: s.screen,
-          topicId: TOPIC_SCREENS.has(s.screen)
-            ? (s.activeTopicId ?? null)
-            : null,
+          screen,
+          topicId: TOPIC_SCREENS.has(screen) ? (s.activeTopicId ?? null) : null,
         }
       : null;
   };
