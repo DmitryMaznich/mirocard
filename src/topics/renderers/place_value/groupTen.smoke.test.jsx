@@ -53,14 +53,17 @@ describe("GroupTenTask", () => {
     expect(count(".gt-heap-coin")).toBe(10);
   });
 
-  it("the answer fields switch on only when no more stacks can be made", () => {
+  it("the number and keypad stay hidden while stacks can still be made; the leftover heap shrinks", () => {
     h.mount(GroupTenTask, task(23));
-    expect(h.container.querySelector(".fp-keys--off")).not.toBeNull();
-    expect(h.button("1").disabled).toBe(true);
+    expect(h.container.querySelector(".fp-keys")).toBeNull();
+    expect(h.container.querySelector('output[aria-label="Какое это число?"]')).toBeNull();
+    expect(h.container.querySelector(".gt-bench--off")).not.toBeNull();
     take(10); h.click("Сложить в стопку"); h.flush();
-    expect(h.container.querySelector(".fp-keys--off")).not.toBeNull();
+    expect(h.container.querySelector(".fp-keys")).toBeNull();
     take(10); h.click("Сложить в стопку"); h.flush();
-    expect(h.container.querySelector(".fp-keys--off")).toBeNull();
+    expect(h.container.querySelector(".fp-keys")).not.toBeNull();
+    expect(h.container.querySelector(".gt-heapbox").style.gridTemplateRows).toContain("repeat(3,");
+    expect(count(".gt-heap-coin")).toBe(3);
     expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Десятков");
     answer(2); answer(3); answer(23);
     expect(field("Какое это число?")).toBe("23");

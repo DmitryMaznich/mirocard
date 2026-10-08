@@ -149,7 +149,7 @@ describe("generateTasks – exchange_ten", () => {
 
 describe("generateTasks – group_ten", () => {
   it("keeps each range inside its bounds and splits the number into tens and ones", () => {
-    const bounds = { teens: [11, 19], to49: [21, 49], round: [20, 40], mixed: [11, 49] };
+    const bounds = { teens: [11, 19], to49: [21, 49], to99: [51, 99], round: [20, 40], mixed: [11, 49] };
     for (const [numberRange, [min, max]] of Object.entries(bounds)) {
       const tasks = generateTasks("group_ten", PLACE_VALUE_CARDS, 30, { numberRange });
       expect(tasks).toHaveLength(30);
@@ -159,7 +159,7 @@ describe("generateTasks – group_ten", () => {
         expect(t.number).toBeLessThanOrEqual(max);
         expect(t.tens * 10 + t.ones).toBe(t.number);
         if (numberRange === "round") expect(t.ones).toBe(0);
-        if (numberRange === "to49") expect(t.ones).not.toBe(0);
+        if (numberRange === "to49" || numberRange === "to99") expect(t.ones).not.toBe(0);
       }
     }
   });
