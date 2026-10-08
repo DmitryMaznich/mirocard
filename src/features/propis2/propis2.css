@@ -337,3 +337,42 @@
 .p2-textarea, .propis2-editor2 input[type="text"], .propis2-editor2 textarea { -webkit-touch-callout: default; -webkit-user-select: text; user-select: text; }
 /* no gap between the header, the page strip and the tool strips (.screen has 16px between its blocks) */
 .propis2-editor2 { gap: 0; }
+
+/* ---- covers of a printed notebook (Propis2Cover.jsx): sizes in cqw, so a preview is the cover itself, smaller ---- */
+.p2-cover { container-type: inline-size; position: relative; width: 100%; aspect-ratio: 148.5 / 210; background: #fff; color: #1f2933; font-family: "Nunito", sans-serif; overflow: hidden; box-sizing: border-box; }
+.p2-cover--a4 { aspect-ratio: 210 / 297; }
+.propis-print-cover .p2-cover { height: 100%; aspect-ratio: auto; }
+.p2-cover-mid { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6cqw; padding: 0 12cqw; }
+.p2-cover-top { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; gap: 4cqw; padding: 14cqw 10cqw 0; }
+.p2-cover-kicker { font-weight: 900; font-size: 6.2cqw; letter-spacing: 0.32em; padding-left: 0.32em; }
+.p2-cover-name { font-weight: 700; font-size: 4.6cqw; color: #4b5563; text-align: center; overflow-wrap: anywhere; margin-top: -3cqw; }
+.p2-cover-name--big { font-weight: 900; font-size: 6.4cqw; color: #1d4ed8; margin-top: -1cqw; }
+.p2-cover-fields { align-self: stretch; display: flex; flex-direction: column; gap: 4.5cqw; margin-top: 4cqw; }
+.p2-cover-field { display: flex; align-items: flex-end; gap: 2cqw; font-size: 3.4cqw; font-weight: 700; color: #4b5563; }
+.p2-cover-field i { flex: 1; border-bottom: 0.35cqw solid #6b7280; }
+.p2-cover-ruled { align-self: stretch; margin: 0 -6cqw; }
+.p2-cover-window { align-self: stretch; border: 0.6cqw solid #4a9b8f; border-radius: 2cqw; overflow: hidden; line-height: 0; }
+.p2-cover .propis-print-page-svg { display: block; width: 100%; height: auto; aspect-ratio: var(--crop-ratio); box-shadow: none; border-radius: 0; }
+.p2-cover .propis-paper { fill: #fff; }
+.p2-cover-logo { position: absolute; left: 0; right: 0; bottom: 7cqw; text-align: center; font-weight: 900; font-size: 3.6cqw; color: #4a9b8f; letter-spacing: 0.04em; }
+
+/* ---- the print dialog (Propis2PrintDialog.jsx) ---- */
+.p2-print-card { width: min(520px, 100%); max-height: calc(100dvh - 32px - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px)); overflow-y: auto; }
+.p2-print-sub { margin: -6px 0 0; color: #6b7280; font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
+.p2-print-sec { font-weight: 800; font-size: 15px; }
+.p2-print-covers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; align-items: start; }
+.p2-print-cover { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 6px 6px 8px; border: 2px solid #e3dccb; border-radius: 12px; background: #fff; font: inherit; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.p2-print-cover.is-on { border-color: #4a9b8f; box-shadow: 0 0 0 3px #d5ebe7; }
+.p2-print-thumb { flex: none; display: block; border: 1px solid #e5e1d6; border-radius: 6px; overflow: hidden; aspect-ratio: 148.5 / 210; background: #fff; pointer-events: none; }
+.p2-print-thumb .p2-cover { height: 100%; aspect-ratio: auto; }
+.p2-print-none { display: flex; height: 100%; align-items: center; justify-content: center; font-size: 28px; color: #9aa3af; }
+.p2-print-label { line-height: 1.15; font-weight: 800; font-size: clamp(10px, 2.7vw, 12.5px); color: #28323c; text-align: center; }
+.p2-print-note { margin: -4px 0 0; font-size: 12.5px; color: #6b7280; font-weight: 600; }
+.p2-print-note--sw { margin-left: 56px; margin-top: -10px; }
+.p2-print-switch { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; padding: 6px 0; cursor: pointer; }
+.p2-print-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.p2-print-sw { position: relative; width: 46px; height: 28px; border-radius: 14px; background: #cbd5e1; flex: none; transition: background .15s; }
+.p2-print-sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.p2-print-switch input:checked + .p2-print-sw { background: #4a9b8f; }
+.p2-print-switch input:checked + .p2-print-sw::after { left: 21px; }
+.p2-print-switch input:focus-visible + .p2-print-sw { outline: 2px solid #4a9b8f; outline-offset: 2px; }

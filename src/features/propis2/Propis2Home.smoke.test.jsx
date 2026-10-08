@@ -268,6 +268,22 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
     // 3 pages -> exactly 3 screen pages (v1 pads to an even count; propis2 sets exactPages); opened on the edited page
     expect(counter()).toBe("2 / 3");
+    // printing asks first: a cover (none / three designs) and page numbers; then prints the cover and the numbered pages
+    const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
+    await click(host.querySelector('.propis-practice-stage [aria-label="Печать"]'));
+    const dlg = () => document.querySelector('[data-testid="propis2-print-dialog"]');
+    expect(dlg()).not.toBeNull();
+    expect(printSpy).not.toHaveBeenCalled();
+    expect([...dlg().querySelectorAll('[role="radio"]')].map((r) => r.getAttribute("aria-label"))).toEqual(["Без обложки", "Школьная", "Пропись", "С образцом"]);
+    expect(dlg().querySelector('input[type="checkbox"]').checked).toBe(true); // page numbers on by default
+    await click([...dlg().querySelectorAll('[role="radio"]')].find((r) => r.getAttribute("aria-label") === "С образцом"));
+    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Печать"));
+    await act(async () => { await tick(120); });
+    expect(dlg()).toBeNull();
+    expect(printSpy).toHaveBeenCalledTimes(1);
+    expect(document.querySelector('.propis-print-all [data-testid="propis2-cover-sample"]')).not.toBeNull();
+    expect([...document.querySelectorAll(".propis-print-all [data-page-number]")].map((g) => g.getAttribute("data-page-number"))).toEqual(["1", "2", "3"]);
+    printSpy.mockRestore();
     await click(host.querySelector(".propis-practice-close"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await click(host.querySelector(".back-btn"));

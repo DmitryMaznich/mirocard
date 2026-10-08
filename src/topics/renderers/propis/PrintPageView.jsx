@@ -357,7 +357,11 @@ const RowInk = memo(function RowInk({ segments, narrowRows }) {
 // `onFragmentTap` (optional, «Прописи 2»): tap reports the row and the tap's x inside it instead of toggling the
 // inline animation. `crop` (optional): show only a window of the page (the show panel's single row).
 // `speedFactor` slows/speeds the pen animation.
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, square = false, useElements, wideRows = false, narrowRows = false }) {
+// `pageNumber`: printed in a small ring at the bottom, by the OUTER edge of the page (as in the printed notebooks): on an A4 sheet of
+// two A5 pages the left page's is on the left, the right page's on the right; a whole A4 page alternates like a book (1 right, 2 left).
+const PAGE_NUMBER_R_MM = 2.6;
+const PAGE_NUMBER_INSET_MM = 6.5;
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, square = false, useElements, wideRows = false, narrowRows = false, pageNumber = null }) {
   const geom = geomOf(format);
   // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
   const PAGE_W_UNITS = geom.w;
@@ -557,6 +561,18 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
         const y = square ? oy : oy + n17;
         return <rect key={`ov${k}`} x="0" y={y} width={PAGE_W_UNITS} height={h} fill={OVERLAY_FILL[o.tone] ?? OVERLAY_FILL.select} pointerEvents="none" data-overlay={o.tone} />;
       })}
+      {pageNumber != null && (() => {
+        const outerLeft = geom.pairedSlots ? isLeftSlot : pageIndex % 2 === 1;
+        const r = mmToNativeUnits(PAGE_NUMBER_R_MM);
+        const cx = outerLeft ? mmToNativeUnits(PAGE_NUMBER_INSET_MM) : PAGE_W_UNITS - mmToNativeUnits(PAGE_NUMBER_INSET_MM);
+        const cy = PAGE_H_UNITS - mmToNativeUnits(PAGE_NUMBER_INSET_MM);
+        return (
+          <g data-page-number={pageNumber}>
+            <circle cx={cx} cy={cy} r={r} fill="#fff" stroke="#c7cdd4" strokeWidth={r * 0.08} />
+            <text x={cx} y={cy} dy="0.35em" textAnchor="middle" fontFamily="Nunito, sans-serif" fontWeight="700" fontSize={r * (pageNumber > 99 ? 0.85 : 1.05)} fill="#6b7280">{pageNumber}</text>
+          </g>
+        );
+      })()}
     </svg>
   );
 }
@@ -841,6 +857,17 @@ function layoutTaskPages(task) {
   return { lines, wideRows, margin, geom, narrowRows, narrow17, square, perPage, useElements, pages, simpleGrid: task?.simpleGrid ?? null, midDash: task?.midDash !== false };
 }
 
+// The top rows of the first page of a task, as printed (its own paper): the window on a notebook on its cover. `rows`: how much of
+// the page, in its rows.
+export function PrintPageTop({ task, rows = 5 }) {
+  const doc = useMemo(() => layoutTaskPages(task), [task]);
+  const h = Math.min(doc.geom.h, doc.geom.h * ((rows + 0.6) / Math.max(1, doc.perPage)));
+  return (
+    <PrintPage page={doc.pages[0] ?? []} pageIndex={0} crop={{ x: 0, y: 0, w: doc.geom.w, h }} useElements={doc.useElements} wideRows={doc.wideRows} narrowRows={doc.narrowRows}
+      simpleGrid={doc.simpleGrid} midDash={doc.midDash} margin={doc.margin} format={doc.geom.format} narrow17={doc.narrow17} square={doc.square} />
+  );
+}
+
 // Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
 // no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
 // A long document can be shown in parts («Прописи 2»: a notebook whose pages are on different paper is laid out one run of pages at a
@@ -850,7 +877,10 @@ function layoutTaskPages(task) {
 // counter, `onPageIndexChange` and the side of the margin (it alternates from page to page) follow the whole document.
 // `printParts`: the tasks of ALL the parts, in order: printing then prints the whole document, every part on its own paper (the
 // pages numbered through, two A5 pages on an A4 sheet across the parts); without it the print is this task's pages.
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null, printParts = null }) {
+// `onPrint`: the print button calls it instead of printing at once (a dialog that asks for a cover and page numbers first);
+// `printCover`: a cover (an A5 / A4 page) printed before the pages, on its own sheet, followed by an empty sheet (its back, for
+// printing on both sides); `pageNumbers`: number the printed pages (the cover is not counted).
+export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, pageNumbers = false }) {
   const own = useMemo(() => layoutTaskPages(task), [task]);
   const { lines, wideRows, margin, geom, narrowRows, narrow17, square, perPage, useElements, pages } = own;
   // what printing prints: every page of the document with the paper it is laid out on
@@ -998,7 +1028,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               >
                 ›
               </button>
-              <button type="button" className="propis-ctrl-btn propis-print-btn" onClick={() => window.print()} aria-label="Печать" title="Печать">
+              <button type="button" className="propis-ctrl-btn propis-print-btn" onClick={() => (onPrint ? onPrint() : window.print())} aria-label="Печать" title="Печать">
                 {topNav ? "🖨" : "🖨 Печать"}
               </button>
             </div>
@@ -1020,6 +1050,18 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
                 every ancestor in the chain. */}
             {createPortal(
               <div className="propis-print-all" aria-hidden="true">
+                {printCover && (geom.pairedSlots ? (
+                  <>
+                    {/* the cover on the right half of a landscape sheet (the left half is the back cover), then the empty back of that sheet */}
+                    <div className="propis-print-all__sheet"><div className="propis-print-cover" /><div className="propis-print-cover">{printCover}</div></div>
+                    <div className="propis-print-all__sheet" />
+                  </>
+                ) : (
+                  <>
+                    <div className="propis-print-all__sheet propis-print-all__sheet--a4"><div className="propis-print-cover propis-print-cover--a4">{printCover}</div></div>
+                    <div className="propis-print-all__sheet propis-print-all__sheet--a4" />
+                  </>
+                ))}
                 {geom.pairedSlots
                   ? Array.from({ length: Math.ceil(printPages.length / 2) }, (_, sheetIndex) => (
                     <div key={sheetIndex} className="propis-print-all__sheet">
@@ -1027,13 +1069,13 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
                         const pi = sheetIndex * 2 + slot;
                         // the empty right half of the last sheet (an odd number of pages) is ruled like the page beside it
                         const { page = [], part } = printPages[pi] ?? { part: printPages[pi - 1]?.part ?? own };
-                        return <PrintPage key={slot} page={page} pageIndex={pi} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />;
+                        return <PrintPage key={slot} page={page} pageIndex={pi} pageNumber={pageNumbers && printPages[pi] ? pi + 1 : null} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />;
                       })}
                     </div>
                   ))
                   : printPages.map(({ page, part }, pi) => (
                     <div key={pi} className="propis-print-all__sheet propis-print-all__sheet--a4">
-                      <PrintPage page={page} pageIndex={pi} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />
+                      <PrintPage page={page} pageIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />
                     </div>
                   ))}
               </div>,
