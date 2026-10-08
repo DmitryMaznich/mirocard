@@ -99,6 +99,17 @@
                   >Онлайн: активность за последние 2 минуты</span
                 >
               </div>
+              <div
+                class="directory-scopes"
+                role="group"
+                aria-label="Раздел пользователей"
+              >
+                <button class="btn" data-scope="current" aria-pressed="true">
+                  Текущие <span id="current-count"></span></button
+                ><button class="btn" data-scope="removed" aria-pressed="false">
+                  Удалённые <span id="removed-count"></span>
+                </button>
+              </div>
               <div class="toolbar">
                 <div class="search-wrap">
                   <span aria-hidden="true">⌕</span
@@ -110,7 +121,9 @@
                   />
                 </div>
                 <select id="status-filter" aria-label="Статус аккаунта">
-                  <option value="all">Все статусы</option>
+                  <option value="current">Текущие пользователи</option>
+                  <option value="removed">Удалённые</option>
+                  <option value="all">Все пользователи</option>
                   <option value="active">Подтверждённые</option>
                   <option value="pending">Ждут подтверждения</option>
                   <option value="blocked">Заблокированные</option>
@@ -130,6 +143,16 @@
                   <option value="none">Нет активного доступа</option>
                 </select>
               </div>
+              <label class="mobile-sort"
+                >Сортировка<select id="mobile-sort">
+                  <option value="lastSeenAt:desc">
+                    Сначала последние визиты
+                  </option>
+                  <option value="createdAt:desc">Сначала новые</option>
+                  <option value="name:asc">По имени</option>
+                  <option value="sessions7d:desc">По активности</option>
+                </select></label
+              >
               <div class="table-scroll">
                 <table class="users-table">
                   <thead>
@@ -172,7 +195,8 @@
                 <div class="pagination">
                   <label for="page-size" class="caption">На странице</label
                   ><select id="page-size">
-                    <option>25</option>
+                    <option>10</option>
+                    <option selected>25</option>
                     <option>50</option>
                     <option>100</option></select
                   ><button
@@ -332,11 +356,12 @@
         <p class="eyebrow">УДАЛЕНИЕ АККАУНТА</p>
         <h2 id="deletion-title"></h2>
         <div id="deletion-summary"></div>
-        <p class="error">
-          Удаление очищает личные данные из рабочей базы. Платёжная история
-          сохраняется с обезличенным профилем. Возвраты и отмена списаний у
-          платёжного провайдера не выполняются. Резервные копии и данные на
-          устройствах пользователя не стираются.
+        <p class="access-note">
+          Пользователь будет перенесён в раздел «Удалённые». Все личные данные,
+          ученики, занятия, темы и платёжная история сохранятся. Вход закроется
+          на всех устройствах. Аккаунт можно восстановить в любое время. Срок
+          подписки продолжит идти; списания у платёжного провайдера этим
+          действием не отменяются.
         </p>
         <div id="deletion-fields" hidden>
           <label
@@ -363,15 +388,15 @@
           /></label>
           <label class="deletion-check"
             ><input id="deletion-ack-data" type="checkbox" required />Понимаю,
-            какие личные данные будут удалены.</label
+            что доступ пользователя будет закрыт.</label
           >
           <label class="deletion-check"
             ><input
               id="deletion-ack-retention"
               type="checkbox"
               required
-            />Понимаю последствия для платежей, резервных копий и
-            устройств.</label
+            />Подтверждаю, что данные сохраняются, а срок подписки не
+            приостанавливается.</label
           >
           <p class="caption">
             Подтверждение действительно 5 минут. Изменение состава данных
@@ -381,9 +406,9 @@
         <div class="dialog-actions">
           <button type="button" class="btn" id="deletion-cancel">Отмена</button
           ><button type="button" class="btn danger" id="deletion-next">
-            Проверил состав данных →</button
+            Проверил аккаунт →</button
           ><button class="btn danger" id="deletion-submit" disabled hidden>
-            Продолжить удаление
+            Продолжить перенос
           </button>
         </div>
       </form>

@@ -1,7 +1,8 @@
 export const STATUS_LABELS = {
   active: "Подтверждён",
   pending: "Ждёт подтверждения",
-  deleted: "Доступ закрыт",
+  deleted: "Удалён · данные сохранены",
+  archived: "Удалён · данные сохранены",
   blocked: "Заблокирован",
   deletion_pending: "Ожидает удаления",
   purged: "Данные удалены",
@@ -47,9 +48,17 @@ export function filterAccounts(accounts, filters, now = Date.now()) {
       )
     )
       return false;
+    const removed = [
+      "archived",
+      "deleted",
+      "deletion_pending",
+      "purged",
+    ].includes(a.status);
+    if (filters.status === "current" && removed) return false;
+    if (filters.status === "removed" && !removed) return false;
     if (
-      filters.status !== "all" &&
       filters.status &&
+      !["all", "current", "removed"].includes(filters.status) &&
       a.status !== filters.status
     )
       return false;

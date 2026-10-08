@@ -229,10 +229,10 @@ test("administrative lifecycle routes require admin credentials and enforce conf
     200,
   );
   const preview = await (
-    await request(route + "/deletion-preview", { mode: "immediate" })
+    await request(route + "/deletion-preview", { mode: "archive" })
   ).json();
   const input = {
-    mode: "immediate",
+    mode: "archive",
     confirmationToken: preview.confirmationToken,
     reason: "Тестовый аккаунт",
     confirmEmail: victim.email,
@@ -254,22 +254,77 @@ test("administrative lifecycle routes require admin credentials and enforce conf
   assert.equal(
     db.prepare("SELECT status FROM accounts WHERE id = ?").get(victim.id)
       .status,
-    "purged",
+    "archived",
   );
-  const replacement = createAccount(db, {
-    email: victim.email,
-    passwordHash: "new",
-  });
-  assert.notEqual(replacement.id, victim.id);
+  assert.equal(
+    db.prepare("SELECT email FROM accounts WHERE id = ?").get(victim.id).email,
+    victim.email,
+  );
+  assert.equal(
+    (await request(route + "/deletion-preview", { mode: "immediate" })).status,
+    410,
+  );
+  assert.equal(
+    (
+      await request(route + "/lifecycle", {
+        action: "restore",
+        reason: "Возврат доступа",
+      })
+    ).status,
+    200,
+  );
+  assert.equal(
+    db.prepare("SELECT status FROM accounts WHERE id = ?").get(victim.id)
+      .status,
+    "active",
+  );
 });
 
-test('new Google signup cannot bypass a blocked account', async () => {
-  const { createOneTimeCode } = await import('../lib/one-time-codes.mjs');
-  const victim = createAccount(db, { email: 'google-blocked@example.test', passwordHash: 'hash' }); activateAccount(db, victim.id);
-  await request(`/accounts/${victim.id}/lifecycle`, { action: 'block', reason: 'Проверка' });
-  const signupCode = createOneTimeCode(db, { kind: 'google_signup_confirm', payload: { email: victim.email, subject: 'google-blocked-subject', givenName: 'Name', familyName: 'Last' } });
-  const response = await fetch(base.replace('/admin', '/auth/google/complete-signup'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ signupCode, role: 'parent', referralSource: 'other', consentPersonalData: true }) });
+test("new Google signup cannot bypass a blocked account", async () => {
+  const { createOneTimeCode } = await import("../lib/one-time-codes.mjs");
+  const victim = createAccount(db, {
+    email: "google-blocked@example.test",
+    passwordHash: "hash",
+  });
+  activateAccount(db, victim.id);
+  await request(`/accounts/${victim.id}/lifecycle`, {
+    action: "block",
+    reason: "Проверка",
+  });
+  const signupCode = createOneTimeCode(db, {
+    kind: "google_signup_confirm",
+    payload: {
+      email: victim.email,
+      subject: "google-blocked-subject",
+      givenName: "Name",
+      familyName: "Last",
+    },
+  });
+  const response = await fetch(
+    base.replace("/admin", "/auth/google/complete-signup"),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        signupCode,
+        role: "parent",
+        referralSource: "other",
+        consentPersonalData: true,
+      }),
+    },
+  );
   assert.equal(response.status, 409);
-  assert.equal(db.prepare('SELECT status FROM accounts WHERE id = ?').get(victim.id).status, 'blocked');
-  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM account_identities WHERE account_id = ?').get(victim.id).n, 0);
+  assert.equal(
+    db.prepare("SELECT status FROM accounts WHERE id = ?").get(victim.id)
+      .status,
+    "blocked",
+  );
+  assert.equal(
+    db
+      .prepare(
+        "SELECT COUNT(*) AS n FROM account_identities WHERE account_id = ?",
+      )
+      .get(victim.id).n,
+    0,
+  );
 });

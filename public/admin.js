@@ -30,6 +30,7 @@ const ROLES = {
   teacher: "Педагог",
   admin: "Администратор",
 };
+if (matchMedia("(max-width: 700px)").matches) $("page-size").value = "10";
 let token = sessionStorage.getItem("mrc_admin_token") || "";
 let accounts = [],
   catalog = [],
@@ -273,6 +274,22 @@ function renderAccounts() {
     .join("");
   $("nav-count").textContent = accounts.length;
   $("total-count").textContent = accounts.length;
+  const removedCount = accounts.filter((a) =>
+    ["archived", "deleted", "deletion_pending", "purged"].includes(a.status),
+  ).length;
+  $("removed-count").textContent = removedCount;
+  $("current-count").textContent = accounts.length - removedCount;
+  document
+    .querySelectorAll("[data-scope]")
+    .forEach((b) =>
+      b.setAttribute(
+        "aria-pressed",
+        String(
+          b.dataset.scope ===
+            ($("status-filter").value === "removed" ? "removed" : "current"),
+        ),
+      ),
+    );
   const filtered = visibleAccounts(),
     size = Number($("page-size").value),
     pages = Math.max(1, Math.ceil(filtered.length / size));
@@ -283,9 +300,9 @@ function renderAccounts() {
     .map(
       (a) => `<tr>
     <td><div class="identity"><div class="avatar" aria-hidden="true">${esc(initials(a))}</div><div><button class="name-button" data-account="${esc(a.id)}">${esc(accountName(a))}</button><span class="caption">${a.status === "purged" ? "Личные данные очищены" : esc(a.email)}</span></div></div></td>
-    <td>${badge(a)}</td><td><span class="${a.subscription ? "badge purple" : "caption"}">${esc(plan(a))}</span>${a.subscription && a.subscription.plan !== "all_access" ? `<span class="cell-sub">до ${date(a.subscription.currentPeriodEnd)}</span>` : ""}</td>
-    <td>${isOnline(a) ? '<span class="online-indicator"></span><span>Онлайн</span>' : a.lastSeenAt ? date(a.lastSeenAt) : '<span class="caption">Ещё не заходил</span>'}${a.lastSeenAt ? `<span class="cell-sub">${date(a.lastSeenAt, true)}</span>` : ""}</td>
-    <td class="numeric"><strong>${a.sessions7d ?? 0}</strong><span class="cell-sub">${a.sessionsTotal ?? 0} всего</span></td><td class="numeric">${date(a.createdAt)}</td>
+    <td data-label="Статус">${badge(a)}</td><td data-label="Подписка"><span class="${a.subscription ? "badge purple" : "caption"}">${esc(plan(a))}</span>${a.subscription && a.subscription.plan !== "all_access" ? `<span class="cell-sub">до ${date(a.subscription.currentPeriodEnd)}</span>` : ""}</td>
+    <td data-label="Последний визит">${isOnline(a) ? '<span class="online-indicator"></span><span>Онлайн</span>' : a.lastSeenAt ? date(a.lastSeenAt) : '<span class="caption">Ещё не заходил</span>'}${a.lastSeenAt ? `<span class="cell-sub">${date(a.lastSeenAt, true)}</span>` : ""}</td>
+    <td class="numeric" data-label="Занятия / 7 дней"><strong>${a.sessions7d ?? 0}</strong><span class="cell-sub">${a.sessionsTotal ?? 0} всего</span></td><td class="numeric" data-label="Регистрация">${date(a.createdAt)}</td>
     <td><button class="btn small" data-account="${esc(a.id)}" aria-label="Открыть пользователя ${esc(accountName(a))}">Открыть →</button></td></tr>`,
     )
     .join("");
@@ -498,7 +515,7 @@ $("account-content").addEventListener("click", async (e) => {
       return;
     $("account-dialog").close();
   }
-  if (["block", "unblock", "cancel-deletion"].includes(action)) {
+  if (["block", "unblock", "restore"].includes(action)) {
     const why = $("lifecycle-reason").value.trim();
     if (why.length < 3) {
       error("Укажите причину: минимум 3 символа.");
@@ -508,7 +525,7 @@ $("account-content").addEventListener("click", async (e) => {
     const titles = {
       block: "Заблокировать аккаунт?",
       unblock: "Разблокировать аккаунт?",
-      "cancel-deletion": "Отменить удаление?",
+      restore: "Восстановить аккаунт?",
     };
     if (
       await confirmAction(
@@ -525,8 +542,7 @@ $("account-content").addEventListener("click", async (e) => {
       );
     }
   }
-  if (["delete-immediate", "delete-scheduled"].includes(action))
-    beginDeletion(a, action === "delete-immediate" ? "immediate" : "scheduled");
+  if (action === "archive") beginDeletion(a, "archive");
   if (action === "sessions") loadSessions(a.id);
   if (
     action === "verify" &&
@@ -702,22 +718,24 @@ function lifecycleSection(a) {
   const labels = {
     block: "Блокировка",
     unblock: "Разблокировка",
-    "schedule-deletion": "Удаление запланировано",
-    "cancel-deletion": "Удаление отменено",
+    archive: "Перенос в удалённые",
+    restore: "Восстановление",
     purge: "Личные данные удалены",
+    "schedule-deletion": "Прежнее удаление запланировано",
+    "cancel-deletion": "Удаление отменено",
   };
-  const purged = a.status === "purged";
+  const removed = ["archived", "deleted", "deletion_pending"].includes(
+    a.status,
+  );
   return `<section class="detail-section danger-zone"><div class="section-title"><h3>Управление аккаунтом</h3></div>
-    ${a.status === "blocked" ? '<p class="empty-note">Вход закрыт на всех устройствах. Данные сохранены, срок оплаченного доступа продолжает идти.</p>' : ""}
-    ${a.status === "deletion_pending" ? `<p class="access-note">Удаление запланировано на <strong>${date(a.lifecycle?.delete_after, true)}</strong>. До этого срока его можно отменить. Доступ уже закрыт.</p>` : ""}
-    ${a.status === "deleted" ? '<p class="empty-note">Старое удаление закрыло вход, но оставило личные данные. Их можно удалить ниже.</p>' : ""}
     ${
-      purged
-        ? `<p class="empty-note">Личные данные очищены ${date(a.lifecycle?.purged_at, true)}. Осталась обезличенная запись для связи с платёжной историей. Восстановление через панель недоступно.</p>`
-        : `<label>Причина блокировки или восстановления<textarea id="lifecycle-reason" rows="2" minlength="3" maxlength="500" placeholder="Не добавляйте личные данные в причину"></textarea></label>
-    <div class="lifecycle-actions">${["active", "pending"].includes(a.status) ? '<button class="btn small" data-action="block">Заблокировать аккаунт</button>' : a.status === "blocked" ? '<button class="btn small" data-action="unblock">Разблокировать</button>' : ""}${a.status === "deletion_pending" ? '<button class="btn small" data-action="cancel-deletion">Отменить удаление</button>' : '<button class="btn small" data-action="delete-scheduled">Удалить через 7 дней</button>'}<button class="btn danger small" data-action="delete-immediate">Удалить немедленно…</button></div>`
+      a.status === "purged"
+        ? '<p class="empty-note">Данные были очищены по прежним правилам. Восстановление через панель невозможно.</p>'
+        : `${removed ? '<p class="access-note">Аккаунт в разделе «Удалённые». Данные сохранены, автоматической очистки нет. Можно восстановить доступ.</p>' : '<p class="empty-note">Блокировка и перенос в удалённые закрывают вход на всех устройствах. Данные сохраняются, срок подписки продолжает идти.</p>'}
+      <label>Причина блокировки или восстановления<textarea id="lifecycle-reason" rows="2" minlength="3" maxlength="500" placeholder="Кратко опишите причину"></textarea></label>
+      <div class="lifecycle-actions">${removed ? '<button class="btn primary" data-action="restore">Восстановить аккаунт</button>' : `${a.status === "blocked" ? '<button class="btn" data-action="unblock">Разблокировать</button>' : '<button class="btn" data-action="block">Заблокировать аккаунт</button>'}<button class="btn danger" data-action="archive">Перенести в удалённые…</button>`}</div>`
     }
-    ${(a.adminEvents ?? []).length ? `<h3 class="audit-heading">Последние действия администратора</h3><ul class="audit-list">${a.adminEvents.map((e) => `<li><strong>${esc(labels[e.action] ?? e.action)}</strong><small>${date(e.createdAt, true)} · ${e.actor === "deletion_scheduler" ? "автоматически" : "администратор"}</small><p>${esc(e.reason)}</p></li>`).join("")}</ul>` : ""}</section>`;
+    ${(a.adminEvents ?? []).length ? `<h3 class="audit-heading">Последние действия администратора</h3><ul class="audit-list">${a.adminEvents.map((e) => `<li><strong>${esc(labels[e.action] ?? e.action)}</strong><small>${date(e.createdAt, true)} · ${e.actor === "admin_token" ? "администратор" : "автоматически"}</small><p>${esc(e.reason)}</p></li>`).join("")}</ul>` : ""}</section>`;
 }
 let deletionPreview = null;
 async function beginDeletion(a, mode) {
@@ -739,10 +757,9 @@ async function beginDeletion(a, mode) {
     $("deletion-submit").hidden = true;
     $("deletion-submit").disabled = true;
     $("deletion-next").hidden = false;
-    $("deletion-title").textContent =
-      mode === "immediate" ? "Немедленное удаление" : "Удаление через 7 дней";
+    $("deletion-title").textContent = "Перенести в удалённые";
     $("deletion-summary").innerHTML =
-      `<p class="deletion-identity"><strong>${esc(accountName(a))}</strong><br>${esc(preview.email)}</p><div class="deletion-counts"><span><strong>${preview.students}</strong> учеников</span><span><strong>${preview.sessions}</strong> занятий</span><span><strong>${preview.audio}</strong> аудиозаписей</span><span><strong>${preview.materials}</strong> записей материалов</span></div><p class="empty-note">Платёжных заказов: ${preview.orders}, из них оплачено: ${preview.paidOrders}. ${preview.activeAccess || preview.hasUnlimitedAccess ? "Есть действующий доступ." : "Действующий доступ не обнаружен."}</p><p class="empty-note">${mode === "immediate" ? "После выполнения отменить удаление в панели невозможно." : `Доступ закроется сразу. Очистка данных запланирована через 7 дней, ориентировочно ${date(preview.deleteAfter, true)}.`}</p>`;
+      `<p class="deletion-identity"><strong>${esc(accountName(a))}</strong><br>${esc(preview.email)}</p><div class="deletion-counts"><span><strong>${preview.students}</strong> учеников</span><span><strong>${preview.sessions}</strong> занятий</span><span><strong>${preview.audio}</strong> аудиозаписей</span><span><strong>${preview.materials}</strong> записей материалов</span></div><p class="empty-note">Платёжных заказов: ${preview.orders}, из них оплачено: ${preview.paidOrders}. ${preview.activeAccess || preview.hasUnlimitedAccess ? "Есть действующий доступ." : "Действующий доступ не обнаружен."}</p><p class="empty-note">Все данные сохранятся. Восстановление доступно в разделе «Удалённые».</p>`;
     $("deletion-dialog").showModal();
   } catch (e) {
     error(e.message, !token);
@@ -793,10 +810,8 @@ $("deletion-form").addEventListener("submit", async (e) => {
   if (
     !(await confirmAction(
       "Последнее подтверждение",
-      `${preview.email}: ${preview.mode === "immediate" ? "личные данные будут удалены сейчас. Отмена после выполнения невозможна." : "доступ будет закрыт сейчас, личные данные удалятся через 7 дней."}`,
-      preview.mode === "immediate"
-        ? "Да, удалить немедленно"
-        : "Да, запланировать удаление",
+      `${preview.email}: доступ будет закрыт, аккаунт переместится в «Удалённые». Данные сохранятся.`,
+      "Да, перенести в удалённые",
     ))
   )
     return;
@@ -806,9 +821,21 @@ $("deletion-form").addEventListener("submit", async (e) => {
   mutate(
     `/accounts/${encodeURIComponent(preview.accountId)}/delete`,
     body,
-    preview.mode === "immediate"
-      ? "Личные данные аккаунта удалены."
-      : "Удаление запланировано. Доступ закрыт.",
+    "Аккаунт перенесён в удалённые. Данные сохранены.",
     preview.accountId,
   );
 });
+
+$("mobile-sort").addEventListener("change", (e) => {
+  [sortKey, sortDir] = e.target.value.split(":");
+  page = 1;
+  renderAccounts();
+});
+
+document.querySelectorAll("[data-scope]").forEach((b) =>
+  b.addEventListener("click", () => {
+    $("status-filter").value = b.dataset.scope;
+    page = 1;
+    renderAccounts();
+  }),
+);
