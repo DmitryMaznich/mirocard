@@ -750,7 +750,12 @@ async function handleHeartbeat(req, res) {
   const body = await readJsonBody(req);
   const device = parseDevice(req.headers["user-agent"]);
   const topicId = typeof body?.topicId === "string" ? body.topicId || null : null;
-  recordHeartbeat(db, hashToken(raw), { device, topicId });
+  recordHeartbeat(db, hashToken(raw), {
+    device,
+    topicId,
+    screen: typeof body?.screen === "string" ? body.screen.slice(0, 60) : null,
+    version: typeof body?.version === "string" ? body.version.slice(0, 30) : null,
+  });
   writeNoContent(res);
 }
 

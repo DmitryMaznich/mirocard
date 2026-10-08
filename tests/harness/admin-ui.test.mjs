@@ -55,6 +55,7 @@ async function fixture(viewport) {
   }));
   accounts[2].firstName = "<img src=x onerror=alert(1)>";
   const writes = [];
+  let usageReads = 0;
   await page.route("**/api/admin/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
     if (route.request().headers().authorization !== "Bearer demo-token") {
@@ -106,6 +107,7 @@ async function fixture(viewport) {
       return;
     }
     if (path.endsWith("/usage")) {
+      usageReads++;
       await route.fulfill({
         json: {
           measuredSince: "2026-10-08T08:00:00Z",
@@ -116,7 +118,7 @@ async function fixture(viewport) {
             activeMs: 60000,
             activeDays: 1,
             visits: 1,
-            completed: 2,
+            completed: usageReads + 1,
             topics: 1,
             interrupted: 1,
           },
@@ -211,7 +213,7 @@ async function fixture(viewport) {
   await page.locator("#token-input").fill("demo-token");
   await page.locator("#login-button").click();
   await page.locator("#accounts-body tr").first().waitFor();
-  return { page, errors, writes };
+  return { page, errors, writes, usageReads: () => usageReads };
 }
 test("admin directory: pagination, filters, sorting, CSV, escaped names and visual review", async () => {
   const { page, errors } = await fixture({ width: 1440, height: 1000 });
@@ -472,6 +474,47 @@ test("usage tab shows topic statistics, period controls and mobile layout", asyn
   await page.screenshot({ path: "output/admin-qa/usage-mobile.png" });
   await page.locator('[data-action="manage-tab"]').click();
   assert.equal(await page.locator("#account-management").isVisible(), true);
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
+test("open usage report refreshes continuously without logging out and keeps expanded topics", async () => {
+  const { page, errors, usageReads } = await fixture({
+    width: 390,
+    height: 844,
+  });
+  await page.locator("#search").fill("user1@example.test");
+  await page.locator("#accounts-body .name-button").click();
+  await page.locator('[data-action="usage-tab"]').click();
+  await page.locator(".usage-topic").waitFor();
+  await page.locator(".usage-topic summary").click();
+  const before = usageReads();
+  // Exercise the real polling interval, including the network response.
+  await page.waitForFunction(
+    () =>
+      document.querySelectorAll("#usage-content .usage-stats .detail-stat")[4]
+        ?.querySelector("strong")?.textContent === "3",
+    null,
+    { timeout: 22000 },
+  );
+  await page.waitForFunction(
+    () => document.querySelector("#usage-content").dataset.loading === "false",
+  );
+  assert.ok(usageReads() > before);
+  assert.equal(
+    await page.locator(".usage-topic").evaluate((e) => e.open),
+    true,
+  );
+  const reads = usageReads();
+  await page.locator('[data-action="usage-retry"]').click();
+  await page.waitForFunction(
+    () => document.querySelector("#usage-content").dataset.loading === "false",
+  );
+  assert.ok(usageReads() > reads);
+  await page.locator('[data-action="close"]').click();
+  await page.locator("#logout").click();
+  const stopped = usageReads();
+  assert.equal(usageReads(), stopped);
   assert.deepEqual(errors, []);
   await page.close();
 });

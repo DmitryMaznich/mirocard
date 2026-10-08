@@ -168,9 +168,15 @@ async function enter() {
   await loadData();
   if (!token) return;
   refreshTimer = setInterval(() => {
-    if (!document.hidden && !$("account-dialog").open && !mutating && token)
-      loadData(true);
-  }, 30000);
+    if (document.hidden || mutating || !token) return;
+    if (!$("account-dialog").open) loadData(true);
+    else if (
+      $("account-usage") &&
+      !$("account-usage").hidden &&
+      !window.getSelection()?.toString()
+    )
+      loadUsage(selectedId, true);
+  }, 15000);
 }
 $("login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -220,6 +226,8 @@ async function loadData(silent = false) {
         minute: "2-digit",
       });
     renderAccounts();
+    if (selectedId && $("account-usage") && !$("account-usage").hidden)
+      loadUsage(selectedId, true);
     if (!silent) sessionsCache.clear();
   } catch (e) {
     if (epoch === generation && token) {
@@ -428,7 +436,7 @@ function renderDetail(a) {
     <section class="detail-section"><div class="section-title"><h3>Подписка и доступ</h3></div><div class="access-note"><strong>${esc(plan(a))}</strong>${a.subscription && a.subscription.plan !== "all_access" ? ` · до ${date(a.subscription.currentPeriodEnd, true)}${a.subscription.cancelAtPeriodEnd ? " · отмена в конце периода" : ""}` : ""}<br>Подписка открывает опубликованные платные темы. Отдельные назначения ниже дают доступ к beta- и индивидуальным темам.</div>
     <div class="topic-list">${assigned.length ? assigned.map((t) => `<div class="topic-item"><div>${esc(topicLabel(t.topicId))}<small>${t.assignment ? "Назначение администратора" : t.source === "paid" ? "Покупка" : t.source === "free" ? "Бесплатная тема" : "Выданный доступ"} · ${date(t.assignedAt ?? t.acquiredAt)}</small></div>${!deleted && (t.assignment || ["grant", "assigned"].includes(t.source)) ? `<button class="btn small" data-action="revoke" data-topic="${esc(t.topicId)}">Отозвать</button>` : ""}</div>`).join("") : '<p class="empty-note">Отдельных назначений нет.</p>'}</div>
     ${!deleted ? `<div class="grant-form"><select id="grant-topic" aria-label="Тема для назначения" ${!catalogLoaded || !available.length ? "disabled" : ""}><option value="">${catalogLoaded ? (available.length ? "Выберите beta- или индивидуальную тему" : "Нет тем для назначения") : "Каталог недоступен — обновите данные"}</option>${available.map((t) => `<option value="${esc(t.id)}">${esc(topicLabel(t.id))} · ${t.publication === "beta" ? "Beta" : "Индивидуальная"}</option>`).join("")}</select><button class="btn primary small" data-action="grant" disabled>Назначить тему</button></div>` : ""}</section>
-    <section class="detail-section"><div class="section-title"><h3>Дополнительные функции</h3></div><p class="empty-note">Изменения применяются после сохранения. Доступ к beta-темам выдаётся отдельным назначением выше.</p><div class="flag-list">${FLAGS.map(([key, label]) => `<label class="flag-item"><input type="checkbox" data-flag="${key}" ${(a.featureFlags ?? []).includes(key) ? "checked" : ""} ${deleted ? "disabled" : ""}>${label}</label>`).join("")}</div>${!deleted ? '<div class="flags-actions"><button class="btn primary small" data-action="flags" disabled>Сохранить функции</button><span id="flags-hint" class="caption">Нет несохранённых изменений</span></div>' : ""}</section>${lifecycleSection(a)}</div><section id="account-usage" class="detail-body" hidden><div class="usage-heading"><h3>Использование приложения</h3><select id="usage-period" aria-label="Период статистики"><option value="today">Сегодня</option><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="all">Всё время</option></select></div><div id="usage-content"></div></section>`;
+    <section class="detail-section"><div class="section-title"><h3>Дополнительные функции</h3></div><p class="empty-note">Изменения применяются после сохранения. Доступ к beta-темам выдаётся отдельным назначением выше.</p><div class="flag-list">${FLAGS.map(([key, label]) => `<label class="flag-item"><input type="checkbox" data-flag="${key}" ${(a.featureFlags ?? []).includes(key) ? "checked" : ""} ${deleted ? "disabled" : ""}>${label}</label>`).join("")}</div>${!deleted ? '<div class="flags-actions"><button class="btn primary small" data-action="flags" disabled>Сохранить функции</button><span id="flags-hint" class="caption">Нет несохранённых изменений</span></div>' : ""}</section>${lifecycleSection(a)}</div><section id="account-usage" class="detail-body" hidden><div class="usage-heading"><h3>Использование приложения</h3><select id="usage-period" aria-label="Период статистики"><option value="today">Сегодня</option><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="all">Всё время</option></select></div><div class="usage-updates"><span id="usage-live-status" class="caption" role="status">Автообновление каждые 15 секунд</span><button class="btn small" data-action="usage-retry">Обновить статистику</button></div><div id="usage-content"></div></section>`;
 }
 $("account-dialog").addEventListener("close", () => {
   selectedId = null;
@@ -891,14 +899,21 @@ const SCREEN_NAMES = {
   settings: "Настройки",
 };
 const screenName = (s) => SCREEN_NAMES[s] ?? s ?? "Приложение";
-async function loadUsage(id) {
+async function loadUsage(id, quiet = false) {
   const target = $("usage-content");
-  if (!target || selectedId !== id) return;
+  if (
+    !target ||
+    selectedId !== id ||
+    (quiet && target.dataset.loading === "true")
+  )
+    return;
+  target.dataset.loading = "true";
   const request = ++usageRequest,
     epoch = generation,
     period = $("usage-period").value;
-  target.innerHTML =
-    '<p class="empty-note" role="status">Загрузка статистики…</p>';
+  if (!quiet)
+    target.innerHTML =
+      '<p class="empty-note" role="status">Загрузка статистики…</p>';
   try {
     const r = await api(
       `/accounts/${encodeURIComponent(id)}/usage?period=${period}`,
@@ -910,6 +925,19 @@ async function loadUsage(id) {
       !target.isConnected
     )
       return;
+    const snapshot = JSON.stringify(r);
+    $("usage-live-status").textContent =
+      "Обновлено " +
+      new Date().toLocaleTimeString("ru-RU") +
+      " · автообновление 15 с";
+    if (quiet && target.dataset.snapshot === snapshot) return;
+    const expanded = new Set(
+      [...target.querySelectorAll("details[open][data-usage-topic]")].map(
+        (e) => e.dataset.usageTopic,
+      ),
+    );
+    const scrollTop = $("account-dialog").scrollTop;
+    target.dataset.snapshot = snapshot;
     const sum = r.summary,
       labels = {
         app_open: "Открыл приложение",
@@ -920,6 +948,7 @@ async function loadUsage(id) {
         session_complete: "Завершил занятие",
         topic_acquired: "Добавил тему",
         sync_error: "Ошибка запроса",
+        activity: "Использование экрана",
         checkout_created: "Начал оформление подписки",
         order_status: "Обновление заказа",
       };
@@ -950,7 +979,7 @@ async function loadUsage(id) {
           ? r.topics
               .map(
                 (t) =>
-                  `<details class="usage-topic"><summary><strong>${esc(topicLabel(t.topicId))}</strong><span>${t.hasUsage ? t.opens + " открытий" : "Нет учёта открытий"} · ${t.timeSamples ? duration(t.foregroundMs) : "Нет замеров времени"}</span></summary><div class="usage-topic-grid">${[
+                  `<details class="usage-topic" data-usage-topic="${esc(t.topicId)}"><summary><strong>${esc(topicLabel(t.topicId))}</strong><span>${t.hasUsage ? t.opens + " открытий" : "Нет учёта открытий"} · ${t.timeSamples ? duration(t.foregroundMs) : "Нет замеров времени"}</span></summary><div class="usage-topic-grid">${[
                     [
                       "На переднем плане",
                       t.timeSamples ? duration(t.foregroundMs) : "Нет замеров",
@@ -1001,15 +1030,26 @@ async function loadUsage(id) {
             `<div><dt>${k}</dt><dd>${v ? date(v, true) : "Пока не зафиксировано"}</dd></div>`,
         )
         .join("")}</dl></section>
-      <section class="detail-section"><h3>Техническая информация</h3><p class="empty-note">${r.technical ? `${esc(r.technical.device ?? "Устройство неизвестно")} · версия ${esc(r.technical.version ?? "неизвестна")}<br>Последняя передача статистики: ${date(r.technical.received_at, true)}` : "Нет новых технических данных."}</p></section>
-      <section class="detail-section"><h3>Лента действий</h3><p class="empty-note">Последние 100 событий выбранного периода. Фоновые сигналы времени скрыты.</p><ol class="usage-timeline">${r.timeline.map((e) => `<li><time>${date(e.at, true)}</time><strong>${esc(labels[e.kind] ?? e.kind)}</strong><p>${esc(e.topicId ? topicLabel(e.topicId) : screenName(e.screen))}${e.mode ? ` · ${esc(e.mode)}` : ""}${e.plan ? ` · ${esc(PLAN_LABELS[e.plan] ?? e.plan)} · ${esc({ pending: "Ожидает оплаты", completed: "Оплачен", refunded: "Возврат", chargeback: "Оспорен", abandoned: "Оформление прервано" }[e.orderStatus] ?? e.orderStatus)}` : ""}${e.kind === "session_complete" ? ` · ${e.activeMs != null ? "активно " + duration(e.activeMs) : "интервал " + duration(e.elapsedMs) + " (без замера активности)"}` : ""}</p></li>`).join("") || "<li>Событий за этот период нет.</li>"}</ol></section>`;
+      <section class="detail-section"><h3>Техническая информация</h3><p class="empty-note">${r.technical ? `${esc(r.technical.device ?? "Устройство неизвестно")} · версия ${esc(r.technical.version ?? "неизвестна")}<br>Последняя передача статистики: ${date(r.technical.received_at, true)}` : "Нет новых технических данных."}</p>${(r.clients ?? []).map((c) => `<p class="empty-note">${esc(c.device ?? "Устройство")}: версия ${esc(c.version ?? "не передана")} · сигнал присутствия ${date(c.lastSeenAt, true)} · ${esc(screenName(c.screen))}${c.version ? "" : ". Обновите приложение один раз, чтобы включить текущий сбор статистики; выходить из аккаунта не требуется."}</p>`).join("")}</section>
+      <section class="detail-section"><h3>Лента действий</h3><p class="empty-note">Последние 100 событий выбранного периода. Непрерывная работа показана минутными сводками, даже без выхода и повторного входа.</p><ol class="usage-timeline">${r.timeline.map((e) => `<li><time>${date(e.at, true)}</time><strong>${esc(labels[e.kind] ?? e.kind)}</strong><p>${esc(e.topicId ? topicLabel(e.topicId) : screenName(e.screen))}${e.mode ? ` · ${esc(e.mode)}` : ""}${e.plan ? ` · ${esc(PLAN_LABELS[e.plan] ?? e.plan)} · ${esc({ pending: "Ожидает оплаты", completed: "Оплачен", refunded: "Возврат", chargeback: "Оспорен", abandoned: "Оформление прервано" }[e.orderStatus] ?? e.orderStatus)}` : ""}${e.kind === "activity" ? ` · экран открыт ${duration(e.foregroundMs)}, активно ${duration(e.activeMs)}` : ""}${e.kind === "session_complete" ? ` · ${e.activeMs != null ? "активно " + duration(e.activeMs) : "интервал " + duration(e.elapsedMs) + " (без замера активности)"}` : ""}</p></li>`).join("") || "<li>Событий за этот период нет.</li>"}</ol></section>`;
+    target.querySelectorAll("details[data-usage-topic]").forEach((e) => {
+      e.open = expanded.has(e.dataset.usageTopic);
+    });
+    if (quiet) $("account-dialog").scrollTop = scrollTop;
   } catch (e) {
     if (
       request === usageRequest &&
       epoch === generation &&
       selectedId === id &&
       target.isConnected
-    )
-      target.innerHTML = `<p class="error">${esc(e.message)}</p><button class="btn" data-action="usage-retry">Повторить загрузку</button>`;
+    ) {
+      if (quiet)
+        $("usage-live-status").textContent =
+          "Не удалось обновить статистику. Показаны предыдущие данные.";
+      else
+        target.innerHTML = `<p class="error">${esc(e.message)}</p><button class="btn" data-action="usage-retry">Повторить загрузку</button>`;
+    }
+  } finally {
+    if (request === usageRequest) target.dataset.loading = "false";
   }
 }

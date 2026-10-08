@@ -21,14 +21,17 @@ export function createUsageTracker({
     last = now(),
     lastInteraction = last,
     foreground = 0,
-    active = 0;
+    active = 0,
+    wasVisible = isVisible();
   const state = () => {
     const s = getState();
     const screen =
       s.screen === "home" && s.homeActiveTab && s.homeActiveTab !== "session"
         ? s.homeActiveTab
         : s.screen;
-    return s.token && s.account?.id
+    return s.token &&
+      s.account?.id &&
+      !["boot", "login", "register"].includes(screen)
       ? {
           accountId: s.account.id,
           screen,
@@ -57,7 +60,7 @@ export function createUsageTracker({
   const sample = () => {
     const at = now(),
       delta = Math.min(5000, Math.max(0, at - last));
-    if (context && isVisible()) {
+    if (context && wasVisible) {
       foreground += delta;
       active += Math.max(
         0,
@@ -65,6 +68,7 @@ export function createUsageTracker({
       );
     }
     last = at;
+    wasVisible = isVisible();
     const next = state();
     if (JSON.stringify(next) !== JSON.stringify(context)) {
       flush();
@@ -92,10 +96,12 @@ export function createUsageTracker({
       sample();
       flush();
       last = now();
+      wasVisible = false;
     },
     resume: () => {
       last = now();
       lastInteraction = last;
+      wasVisible = isVisible();
       sample();
     },
   };

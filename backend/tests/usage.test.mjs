@@ -6,6 +6,8 @@ import {
   activateAccount,
   appendSession,
   upsertStudent,
+  storeAuthToken,
+  recordHeartbeat,
 } from "../lib/account-repository.mjs";
 import { appendUsageEvent, getUsageReport } from "../lib/usage-repository.mjs";
 import { processSync } from "../lib/sync-processor.mjs";
@@ -153,5 +155,60 @@ test("usage-only sync does not change application data revision; duplicates surv
   processSync(db, a.id, [op, op]);
   assert.equal(getRev(), before);
   assert.equal(db.prepare("SELECT COUNT(*) n FROM usage_events").get().n, 1);
+  db.close();
+});
+
+test("continuous activity appears in minute summaries without fabricated logins or topic openings", () => {
+  const { db, a } = fixture();
+  appendUsageEvent(db, a.id, event("initial", "topic_open"), now);
+  appendUsageEvent(
+    db,
+    a.id,
+    event("time1", "time", { foregroundMs: 10000, activeMs: 10000 }),
+    now,
+  );
+  appendUsageEvent(
+    db,
+    a.id,
+    event("time2", "time", {
+      occurredAt: new Date(now + 10000).toISOString(),
+      foregroundMs: 10000,
+      activeMs: 5000,
+    }),
+    now + 10000,
+  );
+  const r = getUsageReport(db, a.id, "today", now + 10000);
+  const activity = r.timeline.filter((e) => e.kind === "activity");
+  assert.equal(activity.length, 1);
+  assert.equal(activity[0].foregroundMs, 20000);
+  assert.equal(activity[0].activeMs, 15000);
+  assert.equal(r.topics[0].opens, 1);
+  assert.equal(r.timeline.filter((e) => e.kind === "app_open").length, 0);
+  db.close();
+});
+test("client diagnostics show heartbeat version and location without exposing authentication secrets", () => {
+  const { db, a } = fixture();
+  storeAuthToken(db, {
+    tokenHash: "private-secret",
+    accountId: a.id,
+    expiresAt: "2099-01-01T00:00:00Z",
+  });
+  recordHeartbeat(db, "private-secret", {
+    device: "Phone",
+    topicId: "first",
+    screen: "home",
+    version: "1.0.2501",
+  });
+  recordHeartbeat(db, "private-secret", {
+    device: "Phone",
+    topicId: null,
+    screen: "planner",
+    version: "1.0.2501",
+  });
+  const r = getUsageReport(db, a.id, "all", Date.now());
+  assert.equal(r.clients[0].screen, "planner");
+  assert.equal(r.clients[0].topicId, null);
+  assert.equal(r.clients[0].version, "1.0.2501");
+  assert.equal(JSON.stringify(r).includes("private-secret"), false);
   db.close();
 });
