@@ -1,3 +1,4 @@
+import { audioKeyUrl } from "./audioNumbers";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -104,7 +105,7 @@ describe("operation_name_action", () => {
       { url: "/audio/addition-subtraction/phrases/was.mp3", tight: false },
       { url: "/audio/addition-subtraction/n2.mp3", tight: false },
       { url: "/audio/addition-subtraction/phrases/became.mp3", tight: false },
-      { url: "/audio/addition-subtraction/n3.mp3", tight: false },
+      { url: audioKeyUrl("n3"), tight: false },
     ]);
     expect(onCorrect).not.toHaveBeenCalled();
     audio.play.mock.calls.at(-1)?.[1]?.();
@@ -159,9 +160,9 @@ describe("operation_name_action", () => {
       { url: "/audio/addition-subtraction/phrases/correct_removed_count.mp3", tight: false },
       { url: "/audio/addition-subtraction/n2.mp3", tight: false },
       { url: "/audio/addition-subtraction/phrases/was.mp3", tight: false },
-      { url: "/audio/addition-subtraction/n3.mp3", tight: false },
+      { url: audioKeyUrl("n3"), tight: false },
       { url: "/audio/addition-subtraction/phrases/became.mp3", tight: false },
-      { url: "/audio/addition-subtraction/n1.mp3", tight: false },
+      { url: audioKeyUrl("n1"), tight: false },
     ]);
     audio.play.mock.calls.at(-1)?.[1]?.();
     expect(onCorrect).toHaveBeenCalledWith("minus", "operation_minus");

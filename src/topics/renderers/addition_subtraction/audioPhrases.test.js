@@ -1,3 +1,4 @@
+import { audioKeyUrl } from "./audioNumbers";
 import { describe, expect, it } from "vitest";
 import {
   nameActionCorrectAudioItems,
@@ -9,7 +10,7 @@ describe("addition/subtraction phrase audio", () => {
     expect(observeStartAudioItems(45)).toEqual([
       { url: "/audio/addition-subtraction/phrases/was.mp3", tight: false },
       { url: "/audio/addition-subtraction/n40.mp3", tight: false },
-      { url: "/audio/addition-subtraction/n5.mp3", tight: true },
+      { url: audioKeyUrl("n5"), tight: true },
     ]);
   });
 
@@ -18,9 +19,9 @@ describe("addition/subtraction phrase audio", () => {
       { url: "/audio/addition-subtraction/phrases/correct_added_count.mp3", tight: false },
       { url: "/audio/addition-subtraction/n2.mp3", tight: false },
       { url: "/audio/addition-subtraction/phrases/was.mp3", tight: false },
-      { url: "/audio/addition-subtraction/n3.mp3", tight: false },
+      { url: audioKeyUrl("n3"), tight: false },
       { url: "/audio/addition-subtraction/phrases/became.mp3", tight: false },
-      { url: "/audio/addition-subtraction/n5.mp3", tight: false },
+      { url: audioKeyUrl("n5"), tight: false },
     ]);
   });
 });

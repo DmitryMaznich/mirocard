@@ -1,10 +1,19 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import { resolve, extname } from "node:path";
 import { chromium } from "@playwright/test";
-import { ALL_AUDIO_KEYS } from "../../src/topics/renderers/addition_subtraction/audioNumbers.js";
+import { ALL_AUDIO_KEYS, AUDIO_REVISIONS, audioKeyUrl } from "../../src/topics/renderers/addition_subtraction/audioNumbers.js";
+
+test("approved audio revisions match the installed recordings and their playback URLs", async () => {
+  for (const [key, revision] of Object.entries(AUDIO_REVISIONS)) {
+    const bytes = await readFile(resolve(`public/audio/addition-subtraction/${key}.mp3`));
+    assert.equal(createHash("sha256").update(bytes).digest("hex").slice(0, 16), revision, key);
+    assert.equal(audioKeyUrl(key), `/audio/addition-subtraction/${key}.mp3?v=${revision}`);
+  }
+});
 
 test("audio reviewer: real playback, filtered ratings, persistence, reports, local files and mobile", { timeout: 60_000 }, async () => {
   const publicDir = resolve("public");
