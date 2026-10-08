@@ -76,7 +76,10 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
       const c = isNarrow ? 5 : 8;
       const size = layout === "mixed"
         ? Math.min((width - 40) / (c * 1.3), (height - 50) / (Math.max(2, Math.ceil(((tens + ones) * 1.4) / c)) * 2.4), 52)
-        : isNarrow ? Math.min((width - 50) / 6.4, (height - 120) / 6.5, 44) : Math.min((width - 120) / 13.2, (height - 60) / 5.4, 56);
+        : isNarrow
+          // Phones: two zones side by side; tall enough for two rows of stacks or two blocks of coins.
+          ? Math.min(((width - 12) / 2 - 24) / 6.3, (height - 52) / Math.max(tens > 5 ? 4.8 : 2.4, ones > 10 ? 5 : 2.4), 40)
+          : Math.min((width - 120) / 13.2, (height - 60) / 5.4, 56);
       setNarrow(isNarrow);
       setCoinSize(Math.max(20, size));
     };
@@ -127,6 +130,9 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     {Array.from({ length: Math.min(10, count - b * 10) }, (_, j) => item(`${prefix}:${b * 10 + j}`, "coin"))}
   </div>);
 
+  const countButton = teaching && <button type="button" className={`px-undo id-count${counting ? " id-count--on" : ""}`}
+    onClick={() => { setCounting((c) => !c); setCounted([]); }}>{counting ? "Закончить счёт" : "Посчитать"}</button>;
+
   return <div className={`pv-screen px-screen gt-screen id-screen${narrow ? " gt-screen--narrow" : ""}`} style={{ "--coin-size": `${coinSize}px` }}>
     <header className="gt-task"><b>Какое это число?</b></header>
     <div className="gt-main gt-main--sorted id-main" ref={mainRef}>
@@ -158,9 +164,8 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
           </div>)}
         </div>
         {/* Three digits allowed on purpose: «214» and «203» are the mistakes to catch. */}
-        <NumberAnswer key={step} onSubmit={answer} maxDigits={3} />
-        {teaching && <button type="button" className={`px-undo id-count${counting ? " id-count--on" : ""}`}
-          onClick={() => { setCounting((c) => !c); setCounted([]); }}>{counting ? "Закончить счёт" : "Посчитать"}</button>}
+        <NumberAnswer key={step} onSubmit={answer} maxDigits={3} extra={narrow && countButton} />
+        {!narrow && countButton}
         {note && <div className="px-note" role="status">{note}</div>}
         {counting && <p className="id-caption">Нажимай на то, что уже посчитал</p>}
       </div>

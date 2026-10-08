@@ -111,8 +111,9 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     return () => { clearTimeout(first); clearTimeout(second); };
   }, [stuck, teaching, history.length]);
 
-  // Coin size from the board's own box. Wide: tens and ones side by side;
-  // narrow (phones): one above the other, which leaves the coins larger.
+  // Coin size from the board's own box. Wide: tens and ones side by side.
+  // Narrow (phones): one above the other when the phone is tall enough for
+  // that to leave the coins larger; a short phone keeps them side by side.
   useLayoutEffect(() => {
     const board = boardRef.current;
     if (!board) return undefined;
@@ -120,11 +121,14 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
       const { width, height } = board.getBoundingClientRect();
       if (!width || !height) return;
       const narrow = width < 560;
-      const size = narrow
-        ? Math.min((width - 48) / 6.4, (height - 200) / 12)
+      // On a phone the tray sits under the board, so the zones share its full width.
+      const side = narrow
+        ? Math.min(((width - 12) / 2 - 28) / 6.4, (height - 150) / 6)
         : Math.min((width - 84) / 13, (height - 160) / 7);
-      setStacked(narrow);
-      setCoinSize(Math.max(20, Math.min(56, size)));
+      const above = Math.min((width - 48) / 6.4, (height - 200) / 10);
+      const stack = narrow && above >= side;
+      setStacked(stack);
+      setCoinSize(Math.max(20, Math.min(56, stack ? above : side)));
     };
     measure();
     const observer = new ResizeObserver(measure);
