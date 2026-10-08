@@ -36,7 +36,8 @@ describe("GroupTenTask", () => {
     h.click("Проверить");
     expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Единиц");
     answer(3); answer(13);
-    expect(h.container.querySelector(".px-say").textContent).toBe("1 десяток и 3 единицы — тринадцать");
+    expect(h.container.querySelector(".px-say")).toBeNull();
+    expect(field("Какое это число?")).toBe("13");
     expect(onMistake).not.toHaveBeenCalled();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("g", "g");
@@ -62,7 +63,7 @@ describe("GroupTenTask", () => {
     expect(h.container.querySelector(".fp-keys--off")).toBeNull();
     expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Десятков");
     answer(2); answer(3); answer(23);
-    expect(h.container.querySelector(".px-say").textContent).toBe("2 десятка и 3 единицы — двадцать три");
+    expect(field("Какое это число?")).toBe("23");
   });
 
   it("without the frame the child counts ten alone; a wrong stack goes back to the heap", () => {
@@ -89,7 +90,8 @@ describe("GroupTenTask", () => {
     expect(onMistake).toHaveBeenCalledTimes(1);
     expect(h.container.querySelector(".gt-status").textContent).toContain("Стопок 2 — это двадцать");
     h.click("Стереть цифру"); answer(20);
-    expect(h.container.querySelector(".px-say").textContent).toBe("2 десятка и 0 единиц — двадцать");
+    expect(field("Единиц")).toBe("0");
+    expect(field("Какое это число?")).toBe("20");
   });
 
   it("the how-to-start hint waits for a pause and only in «Обучение»", () => {

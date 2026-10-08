@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
-import { placeValuePhrase, numberWords } from "./placeValueLabels.js";
+import { numberWords } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useTypedAnswer } from "./FieldPad.jsx";
 import TenFrame from "./TenFrame.jsx";
 import "./place_value.css";
@@ -213,7 +213,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     <div className={`px-bottom gt-bottom${canAnswer ? "" : " gt-bottom--off"}`}>
       {field(2, true)}
       <div className="gt-status" role="status">
-        {done ? <span className="px-say">{placeValuePhrase(task.number)}</span>
+        {done ? null
           : hintText ? <span className="gt-status-hint">{hintText}</span>
             : note ? <span className="gt-status-note">{note}</span> : null}
       </div>

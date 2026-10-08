@@ -232,8 +232,15 @@
   font-size: clamp(48px, 9.5vh, 92px);
 }
 
+/* Digits keep the place colour — tens amber, ones blue, the number black —
+   both while typed and once accepted (no green «correct» colour here). */
+.fp-field--tens .fp-value { color: #b45309; }
+.fp-field--ones .fp-value { color: #1d4ed8; }
+.fp-field--total .fp-value { color: #1a1a2e; }
 .fp-field--active .fp-value { border-color: #3b82f6; box-shadow: 0 0 0 3px #dbeafe; }
-.fp-field--ok .fp-value { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
+.fp-field--ok.fp-field--tens .fp-value { border-color: #f59e0b; background: #fffbeb; }
+.fp-field--ok.fp-field--ones .fp-value { border-color: #60a5fa; background: #eff6ff; }
+.fp-field--ok.fp-field--total .fp-value { border-color: #1a1a2e; background: #fff; }
 .fp-field--wrong .fp-value { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
 
 .fp-keys {
