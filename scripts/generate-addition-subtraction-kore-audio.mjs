@@ -11,6 +11,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Mp3Encoder } from "@breezystack/lamejs";
 import { getGeminiApiKey } from "./lib/gemini-key.mjs";
+import { PHRASE_ENTRIES } from "../src/topics/renderers/addition_subtraction/audioPhraseBank.js";
 import { NUMBER_WORDS, SIGN_WORDS, audioKeyForNumber } from "../src/topics/renderers/addition_subtraction/audioNumbers.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -41,27 +42,6 @@ const NUMBER_ENTRIES = [
   ...Object.entries(NUMBER_WORDS).map(([number, text]) => ({ key: audioKeyForNumber(number), text })),
   { key: "plus", text: SIGN_WORDS.add },
   { key: "minus", text: SIGN_WORDS.subtract },
-];
-
-// Each entry is a grammatically complete fixed segment. Variable numbers are
-// appended at playback time by audioPhrases.js from the same Kore word bank.
-const PHRASE_ENTRIES = [
-  { key: "was", text: "Было" },
-  { key: "became", text: "стало" },
-  { key: "more_or_less", text: "Стало больше или меньше?" },
-  { key: "correct_more", text: "Правильно. Стало больше." },
-  { key: "correct_less", text: "Правильно. Стало меньше." },
-  { key: "wrong_look_again", text: "Неправильно. Посмотри ещё раз." },
-  { key: "what_was_done", text: "Что сделали?" },
-  { key: "what_was_done_say", text: "Что сделали? Скажи." },
-  { key: "how_many_added", text: "Сколько прибавили?" },
-  { key: "how_many_removed", text: "Сколько убрали?" },
-  { key: "correct_added", text: "Правильно. Прибавили." },
-  { key: "correct_removed", text: "Правильно. Убрали." },
-  { key: "correct_added_count", text: "Правильно. Прибавили" },
-  { key: "correct_removed_count", text: "Правильно. Убрали" },
-  { key: "look_again", text: "Посмотри ещё раз." },
-  { key: "count_again", text: "Посчитай ещё раз." },
 ];
 
 const apiKey = getGeminiApiKey();

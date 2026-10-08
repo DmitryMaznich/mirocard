@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Проверка звуков · Мирониум</title>
+  <link rel="stylesheet" href="/audio-review.css">
+  <script src="/admin-audio-review.js" defer></script>
+</head>
+<body>
+<main>
+  <header><div><span class="eyebrow">МИРОНИУМ · АУДИОТЕКА</span><h1>Слушаем и проверяем</h1><p>Один файл — одна оценка. Отметьте записи, которые нужно переделать.</p></div><a href="/">В приложение ↗</a></header>
+  <section class="sources" aria-label="Выбор набора">
+    <label class="grow">Набор звуков<select id="playlist" disabled></select></label>
+    <label class="file-button">＋ Свои файлы<input id="files" type="file" accept="audio/*,.mp3,.wav,.ogg,.m4a,.webm" multiple></label>
+    <label class="file-button">＋ Папка<input id="folder" type="file" webkitdirectory multiple></label>
+  </section>
+  <div id="message" role="status" aria-live="polite"></div>
+  <div class="workspace">
+    <section class="library" aria-label="Плейлист">
+      <div class="filters">
+        <label>Найти запись<input id="search" type="search" placeholder="Число, слово или имя файла"></label>
+        <div class="filter-row"><label>Раздел<select id="category"><option value="">Все разделы</option></select></label><label>Оценка<select id="filter"><option value="all">Все записи</option><option value="pending">Не проверены</option><option value="redo">Переделать</option><option value="ok">Хорошо</option></select></label></div>
+      </div>
+      <p id="summary" class="summary"></p><div id="tracks" class="tracks"></div>
+    </section>
+    <section class="review" aria-label="Прослушивание и оценка">
+      <span id="position" class="eyebrow">Загрузка списка…</span>
+      <h2 id="title">Выберите запись</h2><p id="path" class="path"></p>
+      <audio id="audio" controls preload="none"></audio>
+      <div class="transport"><button id="previous" aria-label="Предыдущая запись">←</button><button id="repeat" class="primary">↻ Прослушать</button><button id="next" aria-label="Следующая запись">→</button></div>
+      <div class="options"><label><input id="continuous" type="checkbox"> Играть весь список подряд</label><label>Пауза между записями <select id="gap"><option value="1000">1 сек.</option><option value="2500" selected>2,5 сек.</option><option value="5000">5 сек.</option></select></label><label><input id="advance" type="checkbox" checked> Следующая запись после оценки</label></div>
+      <div class="assessment"><button id="ok" class="good">✓ Хорошо <kbd>1</kbd></button><button id="redo" class="bad">↻ Переделать <kbd>2</kbd></button></div>
+      <button id="pending" class="quiet">Снять оценку</button>
+      <label class="note-label">Что исправить<textarea id="note" rows="3" placeholder="Например: неверное ударение, лишний звук, слишком длинная пауза"></textarea></label>
+      <p class="hint">Пробел — играть / пауза · ← → — переключить · R — повторить.<br>Оценки и комментарии сохраняются в этом браузере. Свои файлы остаются на вашем устройстве; после перезагрузки выберите их снова.</p>
+    </section>
+  </div>
+  <footer><div><strong id="totals">Результаты проверки</strong><p>Скачайте список на переделку и передайте его мне вместе с комментариями.</p></div><div class="exports"><button id="copy">Скопировать список</button><button id="text-export">Скачать список .txt</button><button id="json-export">Все оценки .json</button></div></footer>
+</main>
+</body>
+</html>
