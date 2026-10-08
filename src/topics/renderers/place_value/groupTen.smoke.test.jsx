@@ -32,9 +32,9 @@ describe("GroupTenTask", () => {
     expect(count(".sg-stacks .cb-ten-stack")).toBe(1);
     expect(count(".px-tf .px-coin")).toBe(0);
     h.click("1");
-    expect(field("Десятков")).toBe("1");
+    expect(field("Десятки")).toBe("1");
     h.click("Проверить");
-    expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Единиц");
+    expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Единицы");
     answer(3); answer(13);
     expect(h.container.querySelector(".px-say")).toBeNull();
     expect(field("Какое это число?")).toBe("13");
@@ -67,7 +67,7 @@ describe("GroupTenTask", () => {
     // The heap is not laid out again: same grid, coins where they were.
     expect(h.container.querySelector(".sg-heapbox").style.gridTemplateRows).toBe(rows);
     expect(count(".sg-heap-coin")).toBe(3);
-    expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Десятков");
+    expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Десятки");
     answer(2); answer(3); answer(23);
     expect(field("Какое это число?")).toBe("23");
   });
@@ -96,19 +96,49 @@ describe("GroupTenTask", () => {
     expect(onMistake).toHaveBeenCalledTimes(1);
     expect(h.container.querySelector(".sg-status").textContent).toContain("Стопок 2 — это двадцать");
     h.click("Стереть цифру"); answer(20);
-    expect(field("Единиц")).toBe("0");
+    expect(field("Единицы")).toBe("0");
     expect(field("Какое это число?")).toBe("20");
   });
 
-  it("the how-to-start hint waits for a pause and only in «Обучение»", () => {
+  it("the written how-to-start hint waits for a pause and only in «Обучение»", () => {
     h.mount(GroupTenTask, task(13));
     expect(h.container.querySelector(".sg-status").textContent).toBe("");
     act(() => vi.advanceTimersByTime(6000));
-    expect(h.container.querySelector(".sg-status").textContent).toContain("Нажимай на монеты");
+    expect(h.container.querySelector(".sg-status").textContent).toContain("Перенеси монету в рамку");
     h.unmount();
     h.mount(GroupTenTask, task(13, { supportMode: "independent" }));
     act(() => vi.advanceTimersByTime(20000));
     expect(h.container.querySelector(".sg-status").textContent).toBe("");
+  });
+});
+
+describe("GroupTenTask — the hand and dragging", () => {
+  const h = coinHarness();
+  const count = (sel) => h.container.querySelectorAll(sel).length;
+
+  it("after a pause a hand shows how to take a coin into the frame — in both modes — and goes on the first action", () => {
+    for (const supportMode of ["learning", "independent"]) {
+      h.mount(GroupTenTask, task(13, { supportMode }));
+      expect(h.container.querySelector(".sg-hand")).toBeNull();
+      act(() => vi.advanceTimersByTime(3000));
+      expect(h.container.querySelector(".sg-hand--move")).not.toBeNull();
+      h.click("Монета из россыпи");
+      expect(h.container.querySelector(".sg-hand")).toBeNull();
+      h.unmount();
+    }
+  });
+
+  it("a full frame waiting too long gets a tapping hand", () => {
+    h.mount(GroupTenTask, task(13));
+    for (let i = 0; i < 10; i++) h.click("Монета из россыпи");
+    act(() => vi.advanceTimersByTime(6000));
+    expect(h.container.querySelector(".sg-hand--tap")).not.toBeNull();
+  });
+
+  it("the columns are named, and their answer fields show only a box", () => {
+    h.mount(GroupTenTask, task(13));
+    expect(Array.from(h.container.querySelectorAll(".sg-head")).map((e) => e.textContent)).toEqual(["Десятки", "Единицы"]);
+    expect(count(".sg-bench .fp-label")).toBe(0);
   });
 });
 

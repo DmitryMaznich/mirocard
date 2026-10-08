@@ -6,6 +6,7 @@
    --coin-size is fitted once per task in JS (GroupTenTask's measure). */
 
 .sg-screen {
+  position: relative;
   padding: 6px 12px calc(10px + var(--app-safe-bottom, 0px));
   overflow-x: hidden;
   overflow-y: auto; /* only a last resort: 99 coins on the shortest phones */
@@ -80,7 +81,137 @@
    15 coins so a growing pile doesn't push anything. */
 .sg-frame .px-tf-pile { box-sizing: border-box; height: calc(var(--coin-size) * 3 + 16px); }
 
+/* Column headings: what the stacks and the frame are (the same words as the
+   place-value colours elsewhere in the topic). */
+.sg-head {
+  justify-self: center;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.sg-head--tens { color: #92400e; }
+.sg-head--ones { color: #1e40af; }
+.sg-chip { width: 12px; height: 12px; border-radius: 4px; }
+.sg-head--tens .sg-chip { background: #d97706; }
+.sg-head--ones .sg-chip { background: #2563eb; }
+
 .sg-bench > .sg-reveal { justify-self: center; }
+
+/* Heap coins can also be dragged into the frame. */
+.sg-heap-coin { touch-action: none; }
+.sg-lifted { visibility: hidden; }
+
+.sg-drag-coin {
+  position: fixed;
+  z-index: 600;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(1.12);
+  filter: drop-shadow(0 6px 6px rgba(99, 69, 20, 0.3));
+}
+
+/* ── The hand: how to work the screen, shown after a pause ──
+   Its fingertip sits on the point (left/top); «move» takes a coin along the
+   dashed arrow into the frame, «tap» presses the full frame. */
+.sg-hand {
+  position: absolute;
+  z-index: 30;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.sg-hand-finger {
+  position: absolute;
+  left: -14px;
+  top: -4px;
+  font-size: 44px;
+  line-height: 1;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  filter: drop-shadow(0 3px 4px rgba(15, 23, 42, 0.3));
+  transform-origin: 14px 4px;
+}
+
+.sg-hand-path {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  stroke: #3b82f6;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 2 8;
+  opacity: 0;
+  animation: sg-hand-path 2.8s ease-in-out infinite;
+}
+
+.sg-hand-coin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  animation: sg-hand-coin 2.8s ease-in-out infinite;
+}
+
+.sg-hand--move .sg-hand-finger { animation: sg-hand-move 2.8s ease-in-out infinite; }
+.sg-hand--tap .sg-hand-finger { animation: sg-hand-tap 1.8s ease-in-out infinite; }
+
+.sg-hand-ripple {
+  position: absolute;
+  left: -28px;
+  top: -28px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid #16a34a;
+  opacity: 0;
+  animation: sg-hand-ripple 1.8s ease-out infinite;
+}
+
+@keyframes sg-hand-move {
+  0% { opacity: 0; transform: translate(0, 0) scale(1); }
+  12% { opacity: 1; transform: translate(0, 0) scale(1); }
+  24% { transform: translate(0, 0) scale(0.86); }
+  64% { opacity: 1; transform: translate(var(--dx), var(--dy)) scale(0.86); }
+  74% { opacity: 1; transform: translate(var(--dx), var(--dy)) scale(1); }
+  90%, 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1); }
+}
+
+@keyframes sg-hand-coin {
+  0%, 20% { opacity: 0; transform: translate(-50%, -50%); }
+  24% { opacity: 0.95; transform: translate(-50%, -50%) scale(1.08); }
+  64% { opacity: 0.95; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.08); }
+  74%, 100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))); }
+}
+
+@keyframes sg-hand-path {
+  0%, 10% { opacity: 0; }
+  20%, 70% { opacity: 0.8; }
+  86%, 100% { opacity: 0; }
+}
+
+@keyframes sg-hand-tap {
+  0% { opacity: 0; transform: scale(1); }
+  15% { opacity: 1; transform: scale(1); }
+  28% { transform: scale(0.84); }
+  40% { transform: scale(1); }
+  52% { transform: scale(0.84); }
+  64% { opacity: 1; transform: scale(1); }
+  85%, 100% { opacity: 0; transform: scale(1); }
+}
+
+@keyframes sg-hand-ripple {
+  0%, 24% { opacity: 0; transform: scale(0.4); }
+  30% { opacity: 0.8; transform: scale(0.5); }
+  60%, 100% { opacity: 0; transform: scale(1.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-hand-finger, .sg-hand-coin, .sg-hand-path, .sg-hand-ripple { animation-duration: 4s; }
+}
 
 .sg-reveal { visibility: hidden; opacity: 0; transition: opacity 0.35s ease, visibility 0s linear 0.35s; }
 .sg-reveal.sg-show { visibility: visible; opacity: 1; transition: opacity 0.35s ease; }
@@ -184,7 +315,9 @@
 .sg-screen--tablet .sg-board,
 .sg-screen--wide .sg-board { row-gap: 14px; }
 .sg-screen--tablet .fp-field,
-.sg-screen--wide .fp-field { font-size: 17px; }
+.sg-screen--wide .fp-field,
+.sg-screen--tablet .sg-head,
+.sg-screen--wide .sg-head { font-size: 18px; }
 .sg-screen--tablet .fp-value,
 .sg-screen--wide .fp-value { width: 84px; height: 58px; font-size: 36px; border-radius: 14px; }
 .sg-screen--tablet .fp-field--big,

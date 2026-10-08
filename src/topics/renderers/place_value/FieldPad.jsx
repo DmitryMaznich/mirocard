@@ -17,9 +17,11 @@ export function useTypedAnswer(maxDigits = 2) {
   };
 }
 
-export function AnswerField({ label, tone, value, active, ok, wrong, big = false }) {
+// `bare`: the label is already on screen as the column's heading, so the
+// field shows only its box (the label stays as the box's accessible name).
+export function AnswerField({ label, tone, value, active, ok, wrong, big = false, bare = false }) {
   return <div className={`fp-field fp-field--${tone}${big ? " fp-field--big" : ""}${active ? " fp-field--active" : ""}${ok ? " fp-field--ok" : ""}${active && wrong ? " fp-field--wrong" : ""}`}>
-    <span className="fp-label">{label}</span>
+    {!bare && <span className="fp-label">{label}</span>}
     <output className="fp-value" aria-label={label}>{value}</output>
   </div>;
 }

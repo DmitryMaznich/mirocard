@@ -20,6 +20,7 @@ import "./group_ten.css";
 // See docs/place-value-methodology.md, режим 1.
 
 const HINT_DELAY_MS = 6000;
+const HAND_DELAY_MS = 3000;
 const WIDE_ANSWER = 420; // px, the answer column on a landscape tablet (group_ten.css)
 const PILE_LIMIT = 15;
 
@@ -53,8 +54,8 @@ export function heapLayout(count, seed) {
 }
 
 const FIELDS = [
-  { key: "tens", label: "Десятков", tone: "tens" },
-  { key: "ones", label: "Единиц", tone: "ones" },
+  { key: "tens", label: "Десятки", tone: "tens" },
+  { key: "ones", label: "Единицы", tone: "ones" },
   { key: "total", label: "Какое это число?", tone: "total" },
 ];
 
@@ -68,6 +69,10 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const [answers, setAnswers] = useState({});
   const [note, setNote] = useState("");
   const [hint, setHint] = useState(null);
+  const [hand, setHand] = useState(null);
+  const [dragging, setDragging] = useState(null);
+  const drag = useRef(null);
+  const justDragged = useRef(false);
   const typed = useTypedAnswer();
   const [coinSize, setCoinSize] = useState(32);
   const [mode, setMode] = useState("phone");
@@ -115,17 +120,39 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     return () => observer.disconnect();
   }, [mode, layout.cols, layout.rows, stackCols, stackRows, slots]);
 
-  // «Обучение» only, and only after a pause: how to start, or that a full
-  // frame is waiting to be closed. The decisions themselves are never hinted.
-  const idleReason = phase !== "group" || !teaching ? null
+  // After a pause, how to work the screen: at the start a hand takes a coin
+  // into the frame; at a full frame it taps the frame. The hand is about the
+  // controls, so it shows in both modes; the written hint only in «Обучение».
+  // The decisions themselves are never hinted.
+  const idleReason = phase !== "group" ? null
     : model.frame.length === 0 && model.tens.length === 0 ? "start"
       : slots && model.frame.length === 10 ? "full"
         : null;
   useEffect(() => {
     if (!idleReason) { setHint(null); return undefined; }
-    const timer = setTimeout(() => setHint(idleReason), HINT_DELAY_MS);
+    const timer = setTimeout(() => setHint(idleReason), idleReason === "start" ? HAND_DELAY_MS : HINT_DELAY_MS);
     return () => clearTimeout(timer);
   }, [idleReason, model]);
+
+  // Where the hand goes, from the real positions: the heap coin nearest the
+  // frame and the first empty place in it, or the middle of the full frame.
+  useLayoutEffect(() => {
+    const screen = screenRef.current;
+    if (!hint || !screen) { setHand(null); return; }
+    const origin = screen.getBoundingClientRect();
+    const at = (el) => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2 - origin.left + screen.scrollLeft, y: r.top + r.height / 2 - origin.top + screen.scrollTop }; };
+    if (hint === "full") {
+      const frame = screen.querySelector(".px-tf--ready, .px-tf-pile");
+      setHand(frame ? { kind: "tap", ...at(frame) } : null);
+      return;
+    }
+    const coins = Array.from(screen.querySelectorAll(".sg-heap-coin"));
+    const target = screen.querySelector(".sg-frame .px-tf-slot, .sg-frame .px-tf-pile");
+    if (!coins.length || !target) { setHand(null); return; }
+    const to = at(target);
+    const from = coins.map(at).sort((a, b) => Math.hypot(a.x - to.x, a.y - to.y) - Math.hypot(b.x - to.x, b.y - to.y))[0];
+    setHand({ kind: "move", ...from, dx: to.x - from.x, dy: to.y - from.y });
+  }, [hint, coinSize]);
 
   function change(update, nextNote = "") {
     if (phase !== "group" || exchange.busy) return;
@@ -142,6 +169,35 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     if (model.frame.length >= limit) return;
     change((m) => ({ ...m, heap: m.heap.filter((x) => x !== id), frame: [...m.frame, id] }));
   }
+  // A heap coin goes into the frame by a tap or by dragging it there.
+  function tapCoin(id) {
+    if (justDragged.current) { justDragged.current = false; return; }
+    takeCoin(id);
+  }
+  function startDrag(e, id) {
+    if (exchange.busy || done) return;
+    drag.current = { id, x0: e.clientX, y0: e.clientY, moved: false };
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    setHint(null);
+  }
+  function moveDrag(e) {
+    const d = drag.current;
+    if (!d || (!d.moved && Math.hypot(e.clientX - d.x0, e.clientY - d.y0) < 8)) return;
+    d.moved = true;
+    setDragging({ id: d.id, x: e.clientX, y: e.clientY });
+  }
+  function endDrag(e) {
+    const d = drag.current;
+    drag.current = null;
+    if (!d?.moved) return;
+    // The click that may follow this pointerup must not take a coin again;
+    // if the browser sends none, the flag must not swallow the next real tap.
+    justDragged.current = true;
+    setTimeout(() => { justDragged.current = false; }, 0);
+    setDragging(null);
+    if (document.elementFromPoint(e.clientX, e.clientY)?.closest(".sg-frame")) takeCoin(d.id);
+  }
+  function cancelDrag() { drag.current = null; setDragging(null); }
   function returnCoin(id) {
     change((m) => ({ ...m, frame: m.frame.filter((x) => x !== id), heap: [...m.heap, id] }));
   }
@@ -197,14 +253,14 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   }
   const field = (i, big) => {
     const f = FIELDS[i], ok = answers[f.key] !== undefined, active = !done && canAnswer && i === step;
-    return <AnswerField label={f.label} tone={f.tone} big={big} ok={ok} active={active} wrong={typed.wrong}
+    return <AnswerField label={f.label} tone={f.tone} big={big} bare={!big} ok={ok} active={active} wrong={typed.wrong}
       value={ok ? answers[f.key] : active ? typed.digits : ""} />;
   };
 
-  const hintText = {
-    start: "Нажимай на монеты — они перейдут в рамку.",
+  const hintText = teaching ? {
+    start: "Перенеси монету в рамку — нажми на неё или потяни.",
     full: "В рамке десять монет — нажми на рамку, и они сложатся в стопку.",
-  }[hint];
+  }[hint] : null;
   const stackList = model.tens.map((id) => <div key={id} data-stack-id={id} className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>
     <TenStack />
   </div>);
@@ -220,15 +276,18 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
         <section className="sg-card sg-heap">
           <div className="sg-heapbox" style={{ gridTemplateColumns: `repeat(${layout.cols}, 1fr)`, gridTemplateRows: `repeat(${layout.rows}, calc(var(--coin-size) * 1.12))` }}>
             {model.heap.map((id) => <span key={id} className="sg-cell" style={{ gridColumn: position[id].col + 1, gridRow: position[id].row + 1 }}>
-              <button type="button" className="px-coin sg-heap-coin" aria-label="Монета из россыпи"
+              <button type="button" className={`px-coin sg-heap-coin${dragging?.id === id ? " sg-lifted" : ""}`} aria-label="Монета из россыпи"
                 style={{ left: `calc((100% - var(--coin-size)) * ${position[id].jx.toFixed(3)})`, top: `calc((100% - var(--coin-size)) * ${position[id].jy.toFixed(3)})` }}
-                disabled={exchange.busy || done} onClick={() => takeCoin(id)}><Coin /></button>
+                disabled={exchange.busy || done} onClick={() => tapCoin(id)}
+                onPointerDown={(e) => startDrag(e, id)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={cancelDrag}><Coin /></button>
             </span>)}
           </div>
         </section>
         {/* Tens left, ones right — the order of the digits: the stacks, then the
             frame they come out of, each with its answer field under it. */}
         <section className="sg-card sg-bench">
+          <h3 className="sg-head sg-head--tens"><span className="sg-chip" />Десятки</h3>
+          <h3 className="sg-head sg-head--ones"><span className="sg-chip" />Единицы</h3>
           <div className="sg-stacks">{stackList}</div>
           <div className="sg-frame">
             <TenFrame coinIds={model.frame} onReturn={returnCoin} onClose={closeFrame} slots={slots} tapToClose
@@ -247,5 +306,17 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
         </div>
       </div>
     </div>
+    {hand && <div className={`sg-hand sg-hand--${hand.kind}`} aria-hidden="true"
+      style={{ left: hand.x, top: hand.y, "--dx": `${hand.dx ?? 0}px`, "--dy": `${hand.dy ?? 0}px` }}>
+      {hand.kind === "move" && <svg className="sg-hand-path" width="1" height="1">
+        <defs><marker id="sg-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#3b82f6" /></marker></defs>
+        <line x1="0" y1="0" x2={hand.dx * 0.86} y2={hand.dy * 0.86} markerEnd="url(#sg-arrow)" />
+      </svg>}
+      {hand.kind === "move" && <span className="sg-hand-coin"><Coin /></span>}
+      {hand.kind === "tap" && <span className="sg-hand-ripple" />}
+      <span className="sg-hand-finger">👆</span>
+    </div>}
+    {dragging && <span className="sg-drag-coin" style={{ left: dragging.x, top: dragging.y }}><Coin /></span>}
   </div>;
 }
