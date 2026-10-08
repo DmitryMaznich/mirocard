@@ -1,0 +1,212 @@
+/* «Сложи по десять» (GroupTenTask). One composed screen: the title, the heap,
+   the bench (stack store left, ten-frame right — the order of the digits —
+   each with its answer field under it), then the number, a status line and
+   the keypad. Every element's place is reserved from the start; what isn't
+   needed yet is only invisible (.sg-reveal), so nothing moves when it shows.
+   --coin-size is fitted once per task in JS (GroupTenTask's measure). */
+
+.sg-screen {
+  padding: 6px 12px calc(10px + var(--app-safe-bottom, 0px));
+  overflow-x: hidden;
+  overflow-y: auto; /* only a last resort: 99 coins on the shortest phones */
+}
+
+.sg-inner {
+  width: 100%;
+  margin: 0 auto auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  row-gap: 10px;
+}
+
+.sg-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.15;
+  color: #1a1a2e;
+  text-align: center;
+}
+
+/* Heap and bench share one width, so the screen reads as one column. */
+.sg-board {
+  width: min(100%, max(calc(var(--coin-size) * var(--sg-cols) * 1.6 + 28px),
+    calc(var(--coin-size) * (var(--sg-stack-cols) * 1.3 + 6.8) + 64px)));
+  display: grid;
+  row-gap: 10px;
+}
+
+.sg-card {
+  box-sizing: border-box;
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 18px;
+}
+
+.sg-heap { padding: 10px 12px; }
+.sg-heapbox { display: grid; }
+
+.sg-cell {
+  position: relative;
+  min-width: var(--coin-size);
+  min-height: var(--coin-size);
+}
+
+.sg-heap-coin { position: absolute; }
+
+.sg-bench {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: space-evenly;
+  align-items: end;
+  row-gap: 8px;
+  padding: 12px;
+}
+
+.sg-stacks {
+  display: grid;
+  grid-template-columns: repeat(var(--sg-stack-cols), var(--coin-size));
+  grid-template-rows: repeat(var(--sg-stack-rows), calc(var(--coin-size) * 2.2));
+  gap: calc(var(--coin-size) * 0.3);
+  align-items: end;
+}
+
+.sg-stacks .px-stack-wrap { width: var(--coin-size); }
+
+.sg-frame .px-tenframe { margin: 0; }
+
+/* Without the frame the pile is the button; its height is fixed for up to
+   15 coins so a growing pile doesn't push anything. */
+.sg-frame .px-tf-pile { box-sizing: border-box; height: calc(var(--coin-size) * 3 + 16px); }
+
+.sg-bench > .sg-reveal { justify-self: center; }
+
+.sg-reveal { visibility: hidden; opacity: 0; transition: opacity 0.35s ease, visibility 0s linear 0.35s; }
+.sg-reveal.sg-show { visibility: visible; opacity: 1; transition: opacity 0.35s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sg-reveal, .sg-reveal.sg-show { transition: none; }
+}
+
+.sg-answer {
+  width: 100%;
+  display: grid;
+  justify-items: center;
+  row-gap: 6px;
+}
+
+.sg-status {
+  min-height: 36px;
+  max-width: 520px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.sg-status-hint { color: #1d4ed8; }
+.sg-status-note { color: #9a3412; }
+
+/* Keypad, or «Далее» in its place: the slot keeps its size either way. */
+.sg-slot {
+  justify-self: stretch;
+  height: 92px;
+  display: grid;
+  place-items: center;
+}
+
+/* ── Answer fields and keypad (FieldPad.jsx) ── */
+
+.fp-field {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.fp-field--tens { color: #92400e; }
+.fp-field--ones { color: #1e40af; }
+
+.fp-value {
+  width: 64px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  border: 2.5px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 26px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Digits keep the place colour — tens amber, ones blue, the number black. */
+.fp-field--tens .fp-value { color: #b45309; }
+.fp-field--ones .fp-value { color: #1d4ed8; }
+.fp-field--total .fp-value { color: #1a1a2e; }
+
+/* The number is what all of it was for: the biggest thing under the coins. */
+.fp-field--big { flex-direction: row; gap: 14px; font-size: 19px; font-weight: 900; color: #1a1a2e; }
+.fp-field--big .fp-value { width: 110px; height: 56px; border-width: 3px; border-radius: 16px; font-size: 42px; }
+
+.fp-field--active .fp-value { border-color: #3b82f6; box-shadow: 0 0 0 3px #dbeafe; }
+.fp-field--ok.fp-field--tens .fp-value { border-color: #f59e0b; background: #fffbeb; }
+.fp-field--ok.fp-field--ones .fp-value { border-color: #60a5fa; background: #eff6ff; }
+.fp-field--ok.fp-field--total .fp-value { border-color: #1a1a2e; }
+.fp-field--wrong .fp-value { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
+
+.fp-keys {
+  display: grid;
+  grid-template-columns: repeat(6, 48px);
+  gap: 6px;
+}
+
+.fp-keys .px-key { height: 40px; font-size: 21px; }
+.fp-key--erase { color: #64748b; }
+.fp-key--enter { background: #16a34a; border-color: #16a34a; box-shadow: 0 3px 0 #15803d; color: #fff; }
+
+/* ── Tablets: bigger type and keys, the number's label above it ── */
+
+.sg-screen--tablet,
+.sg-screen--wide { padding: 10px 24px calc(16px + var(--app-safe-bottom, 0px)); }
+.sg-screen--tablet .sg-title,
+.sg-screen--wide .sg-title { font-size: 30px; }
+.sg-screen--tablet .sg-inner,
+.sg-screen--wide .sg-inner { row-gap: 14px; }
+.sg-screen--tablet .sg-board,
+.sg-screen--wide .sg-board { row-gap: 14px; }
+.sg-screen--tablet .fp-field,
+.sg-screen--wide .fp-field { font-size: 17px; }
+.sg-screen--tablet .fp-value,
+.sg-screen--wide .fp-value { width: 84px; height: 58px; font-size: 36px; border-radius: 14px; }
+.sg-screen--tablet .fp-field--big,
+.sg-screen--wide .fp-field--big { flex-direction: column; gap: 6px; font-size: 24px; }
+.sg-screen--tablet .fp-field--big .fp-value,
+.sg-screen--wide .fp-field--big .fp-value { width: 180px; height: 104px; font-size: 76px; border-radius: 20px; }
+.sg-screen--tablet .fp-keys,
+.sg-screen--wide .fp-keys { grid-template-columns: repeat(6, 60px); gap: 8px; }
+.sg-screen--tablet .fp-keys .px-key,
+.sg-screen--wide .fp-keys .px-key { height: 56px; font-size: 26px; }
+.sg-screen--tablet .sg-slot,
+.sg-screen--wide .sg-slot { height: 124px; }
+.sg-screen--tablet .sg-status,
+.sg-screen--wide .sg-status { font-size: 17px; min-height: 46px; }
+
+/* Landscape tablet: coins on the left, the answer column on the right. */
+.sg-screen--wide .sg-inner {
+  grid-template-columns: minmax(0, 1fr) var(--sg-answer-w);
+  grid-template-areas: "title title" "board answer";
+  column-gap: 32px;
+  align-items: center;
+}
+.sg-screen--wide .sg-title { grid-area: title; }
+.sg-screen--wide .sg-board { grid-area: board; }
+.sg-screen--wide .sg-answer { grid-area: answer; }
