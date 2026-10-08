@@ -1,3 +1,4 @@
+import { useUsageTracking } from "./useUsageTracking";
 import { useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
@@ -5,13 +6,14 @@ import { api } from "@/core/api";
 const INTERVAL_MS = 30_000;
 
 export function useHeartbeat() {
+  useUsageTracking();
   useEffect(() => {
     async function beat() {
       const { token, screen, activeTopicId } = useAppStore.getState();
-      if (!token || screen === "boot" || screen === "login" || screen === "register") return;
+      if (document.hidden || !token || screen === "boot" || screen === "login" || screen === "register") return;
       try {
         await api.post("/heartbeat", { screen, topicId: activeTopicId || null });
-      } catch {}
+      } catch { /* Presence is best-effort; usage is queued separately. */ }
     }
 
     beat();
@@ -22,5 +24,5 @@ export function useHeartbeat() {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 }

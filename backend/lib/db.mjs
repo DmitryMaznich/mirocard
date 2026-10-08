@@ -310,6 +310,17 @@ export function initDb(dbPath = DB_PATH) {
     db.exec("ALTER TABLE sessions ADD COLUMN card_events TEXT DEFAULT '[]'");
   }
 
+  for (const [column, type] of [["active_duration_ms", "INTEGER"], ["elapsed_duration_ms", "INTEGER"], ["entry_point", "TEXT"]]) {
+    if (!sessionColumns.some(c => c.name === column)) db.exec(`ALTER TABLE sessions ADD COLUMN ${column} ${type}`);
+  }
+  db.exec(`CREATE TABLE IF NOT EXISTS usage_events (
+    account_id TEXT NOT NULL REFERENCES accounts(id), id TEXT NOT NULL,
+    kind TEXT NOT NULL, occurred_at TEXT NOT NULL, received_at TEXT NOT NULL,
+    topic_id TEXT, screen TEXT, session_id TEXT, mode TEXT,
+    foreground_ms INTEGER NOT NULL DEFAULT 0, active_ms INTEGER NOT NULL DEFAULT 0,
+    device TEXT, version TEXT, visit_id TEXT,
+    PRIMARY KEY(account_id, id)
+  ); CREATE INDEX IF NOT EXISTS idx_usage_account_time ON usage_events(account_id, occurred_at);`);
   // Ensure unique email at DB level. Older DBs may lack the constraint if the
   // table was created before UNIQUE was in the schema. IF NOT EXISTS is safe to
   // run on every startup — it's a no-op once the index exists. We skip only

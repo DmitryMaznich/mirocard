@@ -68,6 +68,7 @@ export async function flushQueue() {
     try {
       await api.post("/sync", { operations: [{ type, data }] });
     } catch (error) {
+      if (type !== "usage.append" && typeof window !== "undefined") window.dispatchEvent(new CustomEvent("mrc-api-error", {detail:{code:`Синхронизация ${error.status ? "HTTP " + error.status : "без связи"}`}}));
       // Network errors, timeouts and 5xx: stop and retry the whole queue
       // next time, in order.
       if (!isPermanentSyncRejection(error)) break;

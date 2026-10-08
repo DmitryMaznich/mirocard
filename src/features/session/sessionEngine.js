@@ -39,6 +39,7 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
   // Math.floor(evaluableCount / 5) = 0 when there are fewer than 5 tasks → cap to 1.
   const effectiveAps = Math.max(1, Math.min(rawAps, Math.floor(evaluableCount / 5) || 1));
   return {
+    id: generateId(),
     status: "task_active",
     tasks,
     taskIndex: 0,
@@ -201,7 +202,7 @@ export function computeSessionRecord(state, studentId, topicId, topicVersion, ca
   }
 
   const record = {
-    id:             generateId(),
+    id:             state.id ?? `session_${state.startedAt}_${topicId}`,
     studentId,
     topicId,
     topicVersion,
