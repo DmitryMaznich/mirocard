@@ -209,3 +209,43 @@ A successful production deploy on the old host meant:
 - `http://192.168.1.163:8080/version.json` matched the same commit/build time.
 - `https://mirocard.kaplieva.help/api/version` responded from the same runtime backend.
 - `sw.js`, `index.html`, `manifest.json`, and app assets came from the same `dist/` build.
+
+
+## User usage statistics
+
+The admin user card has a Usage tab for today (Europe/Ljubljana), rolling 7/30
+ days, or all time. Reports are admin-authenticated and scoped to the selected
+account. Historical completed sessions remain available; unknown active duration
+is NULL and is never reconstructed from elapsed wall time.
+
+New usage events contain only account-scoped identifiers, screen/topic/mode,
+time, generic device class and app version. No request bodies, user agent strings,
+student names, tokens or exercise answers are added to this event stream.
+Foreground/active time is sampled every second and queued about every 10 seconds;
+hidden tabs, sleep gaps and idle after 60 seconds are excluded from active time.
+The existing IndexedDB sync queue retries offline events with stable event IDs;
+server insertion is idempotent and time samples are capped at 30 seconds.
+Concurrent devices are summed. This is an interaction estimate, not proof of
+attention; the last seconds can be lost on forced close.
+
+Session IDs stay stable from start to completion. Explicit exits without a saved
+completion are distinguished from starts with no ending event. Resumed sessions
+can later become completed; old records have no opening/exit events. Exercise
+active duration measures the currently mounted run; resuming after a reload can
+underestimate it. Period selection applies to event timestamps and session start
+ timestamps; milestones and last technical delivery are all-time. API/sync errors
+are recorded as generic status codes at most once a minute, excluding telemetry
+failures themselves. Topic acquisition records indicate account ownership, not
+proof of successful ZIP download. Collection begins with the new app version;
+there is no retroactive reconstruction of openings. Archived users retain these
+records under the current account retention policy.
+
+
+The usage pane refreshes every 15 seconds while open and visible, preserving
+expanded topic cards and scroll. Continuous time samples appear as minute-level
+activity summaries in the timeline, not fake logins or repeated topic openings.
+Per-token heartbeat metadata reports the last declared app version and screen;
+no credential identifiers are exposed. Cached clients must load the updated app
+once; signing out is not required. Activity before collection began cannot be
+recovered from login/logout records. Mobile pagehide/visibility/freeze events
+flush pending time, and pageshow resumes the timer without counting suspension.

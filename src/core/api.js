@@ -17,6 +17,9 @@ export function createApiClient({ baseUrl = BASE_URL, token = null, timeoutMs = 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
+    const notifyError = code => {
+      if (token && path !== "/sync" && path !== "/heartbeat" && typeof window !== "undefined") window.dispatchEvent(new CustomEvent("mrc-api-error", {detail:{code}}));
+    };
     let res;
     try {
       res = await fetch(`${baseUrl}${path}`, {
@@ -25,13 +28,17 @@ export function createApiClient({ baseUrl = BASE_URL, token = null, timeoutMs = 
         body: body !== undefined ? JSON.stringify(body) : undefined,
         signal: controller.signal,
       });
+    } catch (err) {
+      notifyError("network");
+      throw err;
     } finally {
       clearTimeout(timer);
     }
 
     if (!res.ok) {
+      notifyError(`HTTP ${res.status}`);
       let message = res.statusText;
-      try { message = (await res.json()).error || message; } catch {}
+      try { message = (await res.json()).error || message; } catch { /* Keep the HTTP status when no JSON body is available. */ }
       throw new ApiError(message, res.status);
     }
 

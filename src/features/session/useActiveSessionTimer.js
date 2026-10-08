@@ -7,7 +7,7 @@ const IDLE_LIMIT_MS = 60_000;
  * active recently. It intentionally does not use the app-wide timer: that
  * timer is a visual aid and can stay open outside a session.
  */
-export function useActiveSessionTimer(enabled) {
+export function useActiveSessionTimer(enabled, sessionKey) {
   const activeMsRef = useRef(0);
   const activeSinceRef = useRef(null);
   const lastInteractionRef = useRef(null);
@@ -32,6 +32,12 @@ export function useActiveSessionTimer(enabled) {
     const lastActiveAt = Math.min(at, (lastInteractionRef.current ?? at) + IDLE_LIMIT_MS);
     return activeMsRef.current + Math.max(0, lastActiveAt - activeSinceRef.current);
   }, []);
+
+  useEffect(() => {
+    activeMsRef.current = 0;
+    activeSinceRef.current = null;
+    lastInteractionRef.current = null;
+  }, [sessionKey]);
 
   useEffect(() => {
     if (!enabled) {
@@ -60,7 +66,7 @@ export function useActiveSessionTimer(enabled) {
       window.removeEventListener("keydown", onInteraction);
       pause();
     };
-  }, [enabled, markInteraction, pause]);
+  }, [enabled, sessionKey, markInteraction, pause]);
 
   return { getActiveDurationMs };
 }

@@ -1,3 +1,4 @@
+import { appendUsageEvent } from "./usage-repository.mjs";
 import {
   upsertStudent, softDeleteStudent, upsertStudentPhoto,
   upsertStudentVideos, upsertStudentAdults,
@@ -13,6 +14,7 @@ import {
 } from "./account-repository.mjs";
 
 const HANDLERS = {
+  "usage.append": (db, accountId, data) => appendUsageEvent(db, accountId, data),
   "student.video_view.record": (db, accountId, data) =>
     recordStudentVideoViews(db, accountId, data),
   "student.upsert": (db, accountId, data) =>
@@ -68,5 +70,5 @@ export function processSync(db, accountId, operations) {
       console.error(`[sync] ${op.type} skipped — ${err.message}`, JSON.stringify(op.data ?? {}).slice(0, 200));
     }
   }
-  incrementRevision(db, accountId);
+  if (operations.some(op => op.type !== "usage.append")) incrementRevision(db, accountId);
 }

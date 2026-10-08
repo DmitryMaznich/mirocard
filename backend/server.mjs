@@ -1,3 +1,4 @@
+import { getUsageReport } from "./lib/usage-repository.mjs";
 import { createServer } from "node:http";
 import { randomUUID, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync, createReadStream, statSync, readdirSync } from "node:fs";
@@ -749,7 +750,12 @@ async function handleHeartbeat(req, res) {
   const body = await readJsonBody(req);
   const device = parseDevice(req.headers["user-agent"]);
   const topicId = typeof body?.topicId === "string" ? body.topicId || null : null;
-  recordHeartbeat(db, hashToken(raw), { device, topicId });
+  recordHeartbeat(db, hashToken(raw), {
+    device,
+    topicId,
+    screen: typeof body?.screen === "string" ? body.screen.slice(0, 60) : null,
+    version: typeof body?.version === "string" ? body.version.slice(0, 30) : null,
+  });
   writeNoContent(res);
 }
 
@@ -835,6 +841,9 @@ function sessionToApi(s) {
     percentCorrect: s.percent_correct,
     mistakes,
     cardEvents,
+    activeDurationMs: s.active_duration_ms,
+    elapsedDurationMs: s.elapsed_duration_ms,
+    entryPoint: s.entry_point,
     createdAt:      s.created_at,
   };
 }
@@ -1162,6 +1171,8 @@ async function handleAdminGetAccountSessions(req, res, accountId) {
     completedAt: s.completed_at,
     correctCount: s.correct_count,
     incorrectCount: s.incorrect_count,
+    activeDurationMs: s.active_duration_ms,
+    elapsedDurationMs: s.elapsed_duration_ms,
     percentCorrect: s.percent_correct,
   })));
 }
@@ -1984,6 +1995,12 @@ async function router(req, res) {
     if (method === "GET"    && p === "/materials/download")                       return await handleDownloadMaterial(req, res);
     { const m = p.match(/^\/admin\/accounts\/([^/]+)\/(lifecycle|deletion-preview|delete)$/);
       if (method === "POST" && m) return await handleAdminLifecycle(req, res, m[1], m[2]); }
+    if (method === "GET" && /^\/admin\/accounts\/[^/]+\/usage$/.test(p)) {
+      requireAdmin(req);
+      const id = p.split("/")[3];
+      if (!db.prepare("SELECT id FROM accounts WHERE id = ?").get(id)) return writeJson(res, 404, {error:"Account not found"});
+      return writeJson(res, 200, getUsageReport(db, id, new URL(req.url, "http://localhost").searchParams.get("period") ?? "30"));
+    }
     if (method === "GET"    && p === "/admin/accounts")                            return await handleAdminListAccounts(req, res);
     if (method === "GET"    && p === "/admin/catalog")                             return await handleAdminCatalog(req, res);
     { const m = p.match(/^\/admin\/accounts\/([^/]+)\/sessions$/);

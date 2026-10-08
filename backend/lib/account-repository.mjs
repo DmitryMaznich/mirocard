@@ -245,15 +245,17 @@ export function serializeAccount(row) {
   };
 }
 
-export function recordHeartbeat(db, tokenHash, { device, topicId }) {
+export function recordHeartbeat(db, tokenHash, { device, topicId, screen, version }) {
   const ts = new Date().toISOString();
   db.prepare(`
     UPDATE auth_tokens
     SET last_seen_at = ?,
         device = COALESCE(?, device),
-        last_topic_id = COALESCE(?, last_topic_id)
+        last_topic_id = ?,
+        current_screen = ?,
+        client_version = COALESCE(?, client_version)
     WHERE token_hash = ?
-  `).run(ts, device ?? null, topicId ?? null, tokenHash);
+  `).run(ts, device ?? null, topicId ?? null, screen ?? null, version ?? null, tokenHash);
 }
 
 export function getActiveTokens(db, accountId, withinMs = 2 * 60 * 1000) {
@@ -622,8 +624,8 @@ export function appendSession(db, accountId, session) {
     INSERT OR IGNORE INTO sessions
       (id, account_id, student_id, topic_id, topic_version, mode,
        started_at, completed_at, correct_count, incorrect_count,
-       percent_correct, mistakes, card_events, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       percent_correct, mistakes, card_events, created_at, active_duration_ms, elapsed_duration_ms, entry_point)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     session.id,
     accountId,
@@ -638,9 +640,12 @@ export function appendSession(db, accountId, session) {
     session.percentCorrect ?? session.percent_correct ?? null,
     Array.isArray(mistakesRaw)   ? JSON.stringify(mistakesRaw)   : (mistakesRaw   ?? "[]"),
     Array.isArray(cardEventsRaw) ? JSON.stringify(cardEventsRaw) : (cardEventsRaw ?? "[]"),
-    now()
+    now(),
+    safeDuration(session.activeDurationMs), safeDuration(session.elapsedDurationMs),
+    typeof session.entryPoint === "string" ? session.entryPoint.slice(0, 40) : null
   );
 }
+function safeDuration(value) { return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 86400000 ? Math.round(value) : null; }
 
 export function getSessions(db, accountId, { studentId = null, limit = 50, before = null } = {}) {
   let sql = "SELECT * FROM sessions WHERE account_id = ?";

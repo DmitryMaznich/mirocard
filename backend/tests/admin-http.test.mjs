@@ -328,3 +328,16 @@ test("new Google signup cannot bypass a blocked account", async () => {
     0,
   );
 });
+
+test("usage report is admin-only and validates the account and period", async () => {
+  assert.equal((await fetch(base + `/accounts/${a.id}/usage`)).status, 403);
+  assert.equal(
+    (await request(`/accounts/${a.id}/usage?period=all`)).status,
+    200,
+  );
+  assert.equal(
+    (await request(`/accounts/${a.id}/usage?period=wrong`)).status,
+    400,
+  );
+  assert.equal((await request(`/accounts/missing/usage`)).status, 404);
+});
