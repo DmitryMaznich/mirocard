@@ -1078,7 +1078,8 @@ export const WIDE_SCALE = WIDE_ZONE_UNITS / WIDE_CAPTURE_SPAN;
 const WIDE_BASELINE_Y = NATIVE_L3 - TEXT_ROW_THIN_OFFSET;
 const WIDE_JOIN_TAN = Math.tan(((90 - 65) * Math.PI) / 180);
 const WIDE_TOKEN_GAP = 36;
-const WIDE_WORD_MIN_GAP = 28; // least visible gap between the ink of two words (row-local units at full scale)
+const WIDE_WORD_MIN_GAP = 28;
+const WIDE_WORD_SPACE = 44; // a plain space between two words of a text (ink to ink, row-local units at full scale): no wider gap is left after a wide word // least visible gap between the ink of two words (row-local units at full scale)
 // A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
 // with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
 const WIDE_PUNCT_GAP = 6;
@@ -1644,6 +1645,15 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           // (a plain word space here is ~2x WIDE_WORD_MIN_GAP; after a mark at least 1.8x, measured from the mark's ink)
           const minGap = WIDE_WORD_MIN_GAP * (afterMark ? 1.8 : glyph.kind === "digit" ? 1.2 : 1) * scale;
           for (let k = 0; k < 4 && startX - lead < prevToken.inkMaxX + minGap; k += 1) startX = snapX(rowIndex, startX + CELL, local.start[1]);
+          // ...and not much further than a word space either: the step in cells counts from the START of the previous word, so after a
+          // wide one-letter word («В классе», «У меня») the gap came out twice a word space. Moved back line by line while the gap stays
+          // at least a plain word space (spaces typed on purpose, `pendingGap`, are kept).
+          const plain = Math.max(minGap, WIDE_WORD_SPACE * scale);
+          for (let k = 0; k < 4 && pendingGap === 0; k += 1) {
+            const back = snapX(rowIndex, startX - CELL, local.start[1]);
+            if (back >= startX - 1e-6 || back - lead < prevToken.inkMaxX + plain) break;
+            startX = back;
+          }
         }
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
