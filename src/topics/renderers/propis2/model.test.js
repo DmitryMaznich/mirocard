@@ -435,11 +435,11 @@ describe("long text wraps by the grid the page is drawn with", () => {
 describe("«Методика» kits (kits.json, built from the v1 notebooks' content lists)", () => {
   const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
   it("the notebooks are there, every page fits one page and every letter has a glyph", () => {
-    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts"]);
+    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts", "digits"]);
     for (const k of kits) {
       expect(k.pages.length, k.id).toBeGreaterThan(5);
       for (const pg of k.pages) {
-        expect(pg.rows.length, `${k.id} ${pg.title}`).toBeLessThanOrEqual(17);
+        expect(pg.rows.length, `${k.id} ${pg.title}`).toBeLessThanOrEqual(rowsPerPage({ ...k.page, ...pg.paper }));
         for (const r of pg.rows) expect(findUnsupported(r.text, map), `${k.id} «${r.text}»`).toEqual([]);
       }
     }
@@ -450,6 +450,18 @@ describe("«Методика» kits (kits.json, built from the v1 notebooks' con
     expect(pages.every((p) => p.locked && p.kitId === set.id && p.ruling === "narrow" && p.margin === "left")).toBe(true);
     expect(new Set(pages.flatMap((p) => p.rows.map((r) => r.id))).size).toBe(pages.reduce((n, p) => n + p.rows.length, 0));
     expect(pageToLines(pages[0], map)[0]).toMatch(/^и#f/);
+  });
+  it("the digits kit: squared pages, then digits in text on the copybook ruling, each page on its own paper", () => {
+    const k = kits.find((x) => x.id === "digits");
+    expect(k.pages).toHaveLength(24);
+    const { set, pages } = kitToLibraryItems(k);
+    expect(pages.slice(0, 20).every((p) => p.gridKind === "square")).toBe(true);
+    expect(pages.slice(20).every((p) => p.gridKind === "propis" && p.ruling === "narrow")).toBe(true);
+    const byId = new Map(pages.map((p) => [p.id, p]));
+    expect(notebookSections(set, byId, map).map((x) => x.pageIds.length)).toEqual([20, 4]);
+    // digits are kept as glyph labels, also before a comma or a full stop
+    expect(k.pages[0].rows[0]).toMatchObject({ text: "№1", repeat: "fade" });
+    expect(k.pages[21].rows.some((r) => r.text === "Мне №5 лет, а Оле №3.")).toBe(true);
   });
   it("letter pages: practice with fading copies, then independent writing with a sample at the start", () => {
     const first = kits[0].pages;

@@ -159,7 +159,8 @@ export function methodNotebooks(sheets, elementLabels) {
 // from the plain page list (`kitId` = the set), so a 38-page notebook is one entry of the library, not 38.
 export function kitToLibraryItems(kit) {
   const set = newSet(kit.title, { ruling: kit.page?.ruling ?? "narrow", kit: kit.id, sourceId: `kit:${kit.id}` });
-  const pages = kit.pages.map((p) => newPage(p.title, { ...(kit.page ?? {}), rows: p.rows.length ? p.rows.map((r) => newRow({ ...r })) : [newRow()], locked: true, kitId: set.id }));
+  // a page of a kit may have its own paper (`paper`, over the kit's `page`): the digits kit is squared paper, then the copybook ruling
+  const pages = kit.pages.map((p) => newPage(p.title, { ...(kit.page ?? {}), ...(p.paper ?? {}), rows: p.rows.length ? p.rows.map((r) => newRow({ ...r })) : [newRow()], locked: true, kitId: set.id }));
   return { set: { ...set, pageIds: pages.map((x) => x.id) }, pages };
 }
 
