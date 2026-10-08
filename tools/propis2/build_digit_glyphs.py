@@ -263,7 +263,19 @@ def wave_of_2(label, strokes):
     corner = min(range(len(cmds)), key=lambda i: cmds[i][1][-1][0])  # the bottom-left corner: the leftmost point
     c = cmds[corner][1][-1].copy()
     k = np.array([WAVE2_X, WAVE2_Y])
-    wave = [(cm, [c + (q - c) * k for q in ps]) for cm, ps in cmds[corner + 1:]]
+    pts = [c + (ps[-1] - c) * k for _, ps in cmds[corner + 1:]]  # the points the pen passed (not control points)
+    # the captured wave was a hump, a sharp V at the bottom and a straight tail: it is redrawn as ONE smooth curve through the same
+    # corner, top of the hump, bottom of the trough and end (owner: «в нижнем изгибе плавно, сейчас ломаная»). Horizontal at the top
+    # of the hump and at the bottom of the trough; leaving the corner towards the hump, arriving at the end rising gently.
+    hump = min(pts[:-1], key=lambda q: q[1])  # the end rises about as high: not it
+    trough = max((q for q in pts if q[0] > hump[0]), key=lambda q: q[1])
+    end = pts[-1]
+    rise = np.array([1.0, -0.55]) / np.hypot(1.0, 0.55)
+    knots = [(c, (hump - c) / np.hypot(*(hump - c))), (hump, np.array([1.0, 0.0])), (trough, np.array([1.0, 0.0])), (end, rise)]
+    wave = []
+    for (p0, t0), (p1, t1) in zip(knots, knots[1:]):
+        L = np.hypot(*(p1 - p0)) / 3.0
+        wave.append(("C", [p0 + t0 * L, p1 - t1 * L, p1]))
     return [cmds[:corner + 1] + wave] + strokes[1:]
 
 
