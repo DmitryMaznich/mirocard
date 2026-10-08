@@ -167,8 +167,8 @@ def _margin_watermark(c, edge_x, angle, inward, margin_mm=MARGIN_MM):
     slot = (hi - lo) / WATERMARK_SLOTS
     for col, off in enumerate(WATERMARK_COLS_MM):
         x = edge_x + inward * off * k * mm
-        for k in range(col, WATERMARK_SLOTS, 2):
-            y = (lo + slot * (k + 0.5)) * mm
+        for i in range(col, WATERMARK_SLOTS, 2):   # not `k`: that is the margin scale above
+            y = (lo + slot * (i + 0.5)) * mm
             c.saveState()
             c.translate(x, y)
             c.rotate(angle)
