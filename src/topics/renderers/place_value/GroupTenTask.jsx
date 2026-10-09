@@ -126,7 +126,8 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const idleReason = phase !== "group" ? null
     : model.frame.length === 0 && model.tens.length === 0 ? "start"
       : slots && model.frame.length === 10 ? "full"
-        : null;
+        : model.heap.length > 0 && model.tens.length > 0 ? "more"
+          : null;
   useEffect(() => {
     if (!idleReason) { setHint(null); return undefined; }
     const timer = setTimeout(() => setHint(idleReason), idleReason === "start" ? HAND_DELAY_MS : HINT_DELAY_MS);
@@ -222,7 +223,9 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   }
   const ones = model.heap.length + model.frame.length, tens = model.tens.length;
   const expected = { tens, ones, total: task.number };
-  const canAnswer = ones < 10;
+  // The fields come once the heap is empty: every ten is a stack and the
+  // coins left over (fewer than ten) lie in the frame, under «Единицы».
+  const canAnswer = model.heap.length === 0 && ones < 10;
   const done = phase === "done";
   function answer(key, guess) {
     if (phase !== "group" || exchange.busy || !canAnswer) return false;
@@ -259,6 +262,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
 
   const hintText = {
     start: "Перенеси монету в рамку — нажми на неё или потяни.",
+    more: "Перенеси в рамку все оставшиеся монеты.",
     full: "В рамке десять монет — нажми на рамку, и они сложатся в стопку.",
   }[hint];
   const stackList = model.tens.map((id) => <div key={id} data-stack-id={id} className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>

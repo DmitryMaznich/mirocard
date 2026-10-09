@@ -31,6 +31,7 @@ describe("GroupTenTask", () => {
     h.click("Сложить в стопку"); h.flush();
     expect(count(".sg-stacks .cb-ten-stack")).toBe(1);
     expect(count(".px-tf .px-coin")).toBe(0);
+    take(3); // the leftover coins go into the frame too: the ones
     h.click("1");
     expect(field("Десятки")).toBe("1");
     h.click("Проверить");
@@ -53,7 +54,7 @@ describe("GroupTenTask", () => {
     expect(count(".sg-heap-coin")).toBe(10);
   });
 
-  it("answer fields, number and keypad have their places from the start but show only when no more stacks can be made", () => {
+  it("answer fields, number and keypad have their places from the start but show only once the heap is empty", () => {
     h.mount(GroupTenTask, task(23));
     const shown = () => count(".sg-reveal.sg-show");
     expect(count(".sg-reveal")).toBe(4);
@@ -63,13 +64,26 @@ describe("GroupTenTask", () => {
     expect(shown()).toBe(0);
     const rows = h.container.querySelector(".sg-heapbox").style.gridTemplateRows;
     take(10); h.click("Сложить в стопку"); h.flush();
+    // No more stacks can be made, but three coins are still in the heap.
+    expect(shown()).toBe(0);
+    take(2);
+    expect(shown()).toBe(0);
+    take(1);
     expect(shown()).toBe(4);
-    // The heap is not laid out again: same grid, coins where they were.
+    // The heap is not laid out again: same grid.
     expect(h.container.querySelector(".sg-heapbox").style.gridTemplateRows).toBe(rows);
-    expect(count(".sg-heap-coin")).toBe(3);
+    expect(count(".px-tf .px-coin")).toBe(3);
     expect(h.container.querySelector(".fp-field--active output").getAttribute("aria-label")).toBe("Десятки");
     answer(2); answer(3); answer(23);
     expect(field("Какое это число?")).toBe("23");
+  });
+
+  it("after the last stack, a pause brings the hand back for the coins still in the heap", () => {
+    h.mount(GroupTenTask, task(13));
+    take(10); h.click("Сложить в стопку"); h.flush();
+    act(() => vi.advanceTimersByTime(6000));
+    expect(h.container.querySelector(".sg-hand--move")).not.toBeNull();
+    expect(h.container.querySelector(".sg-status").textContent).toContain("все оставшиеся монеты");
   });
 
   it("without the frame the child counts ten alone; a wrong stack goes back to the heap", () => {
