@@ -60,7 +60,6 @@ const FIELDS = [
 ];
 
 export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
-  const teaching = task.supportMode !== "independent";
   const slots = task.showFrame !== false;
   const layout = useMemo(() => heapLayout(task.number, task.seed), [task.number, task.seed]);
   const [model, setModel] = useState(() => ({ heap: layout.coins.map((c) => c.id), frame: [], tens: [], serial: 0 }));
@@ -121,9 +120,9 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   }, [mode, layout.cols, layout.rows, stackCols, stackRows, slots]);
 
   // After a pause, how to work the screen: at the start a hand takes a coin
-  // into the frame; at a full frame it taps the frame. The hand is about the
-  // controls, so it shows in both modes; the written hint only in «Обучение».
-  // The decisions themselves are never hinted.
+  // into the frame; at a full frame it taps the frame (with a written line).
+  // The decisions themselves are never hinted. No «Обучение/Проверка» here:
+  // working without the frame («Рамка на 10 мест» off) is this mode's check.
   const idleReason = phase !== "group" ? null
     : model.frame.length === 0 && model.tens.length === 0 ? "start"
       : slots && model.frame.length === 10 ? "full"
@@ -208,7 +207,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       // The pile is the button, so it can't also take coins back: the coins
       // return to the heap and the child counts ten again.
       change((m) => ({ ...m, heap: [...m.heap, ...m.frame], frame: [] }));
-      mistake(teaching ? "В стопке должно быть ровно десять монет. Посчитай ещё раз." : "Проверь, сколько монет в стопке.");
+      mistake("В стопке должно быть ровно десять монет. Посчитай ещё раз.");
       return;
     }
     const stackId = `s${model.serial}`;
@@ -237,9 +236,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     const messages = {
       tens: "Посчитай стопки ещё раз — каждая стопка это десяток.",
       ones: "Единицы — монеты, которые не сложились в стопку. Посчитай их ещё раз.",
-      total: teaching
-        ? `Стопок ${tens} — это ${numberWords(tens * 10)}. И ещё ${ones} ${ones === 1 ? "монета" : ones >= 2 && ones <= 4 ? "монеты" : "монет"}.`
-        : "Проверь число ещё раз.",
+      total: `Стопок ${tens} — это ${numberWords(tens * 10)}. И ещё ${ones} ${ones === 1 ? "монета" : ones >= 2 && ones <= 4 ? "монеты" : "монет"}.`,
     };
     setHint(null);
     setNote(messages[key]);
@@ -257,10 +254,10 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       value={ok ? answers[f.key] : active ? typed.digits : ""} />;
   };
 
-  const hintText = teaching ? {
+  const hintText = {
     start: "Перенеси монету в рамку — нажми на неё или потяни.",
     full: "В рамке десять монет — нажми на рамку, и они сложатся в стопку.",
-  }[hint] : null;
+  }[hint];
   const stackList = model.tens.map((id) => <div key={id} data-stack-id={id} className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>
     <TenStack />
   </div>);

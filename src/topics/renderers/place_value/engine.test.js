@@ -169,10 +169,12 @@ describe("generateTasks – group_ten", () => {
     expect(new Set(tasks.map((t) => t.number)).size).toBe(9);
   });
 
-  it("carries the frame and support settings", () => {
+  it("carries the frame setting", () => {
+    // No «Режим» in this mode: a stale stored supportMode is not carried over.
     const [task] = generateTasks("group_ten", PLACE_VALUE_CARDS, 1, { supportMode: "independent", showFrame: false });
-    expect(task).toMatchObject({ supportMode: "independent", showFrame: false, cardId: "group_ten" });
+    expect(task).toMatchObject({ showFrame: false, cardId: "group_ten" });
+    expect(task.supportMode).toBeUndefined();
     const [defaults] = generateTasks("group_ten", PLACE_VALUE_CARDS, 1, {});
-    expect(defaults).toMatchObject({ supportMode: "learning", showFrame: true });
+    expect(defaults).toMatchObject({ showFrame: true });
   });
 });

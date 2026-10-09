@@ -124,7 +124,6 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       tens: Math.floor(number / 10),
       ones: number % 10,
       seed: randomInt(1, 100000),
-      supportMode: params.supportMode ?? "learning",
       showFrame: params.showFrame !== false,
     }));
   }

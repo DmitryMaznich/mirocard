@@ -3,7 +3,7 @@ import { act } from "react";
 import GroupTenTask, { heapLayout } from "./GroupTenTask.jsx";
 import { coinHarness } from "./coinTestHelpers.jsx";
 
-const task = (number, extra = {}) => ({ type: "group_ten", cardId: "g", conceptId: "g", number, tens: Math.floor(number / 10), ones: number % 10, seed: 42, supportMode: "learning", showFrame: true, ...extra });
+const task = (number, extra = {}) => ({ type: "group_ten", cardId: "g", conceptId: "g", number, tens: Math.floor(number / 10), ones: number % 10, seed: 42, showFrame: true, ...extra });
 
 describe("GroupTenTask", () => {
   const h = coinHarness();
@@ -100,15 +100,11 @@ describe("GroupTenTask", () => {
     expect(field("Какое это число?")).toBe("20");
   });
 
-  it("the written how-to-start hint waits for a pause and only in «Обучение»", () => {
+  it("the written how-to-start hint waits for a pause", () => {
     h.mount(GroupTenTask, task(13));
     expect(h.container.querySelector(".sg-status").textContent).toBe("");
     act(() => vi.advanceTimersByTime(6000));
     expect(h.container.querySelector(".sg-status").textContent).toContain("Перенеси монету в рамку");
-    h.unmount();
-    h.mount(GroupTenTask, task(13, { supportMode: "independent" }));
-    act(() => vi.advanceTimersByTime(20000));
-    expect(h.container.querySelector(".sg-status").textContent).toBe("");
   });
 });
 
@@ -116,16 +112,13 @@ describe("GroupTenTask — the hand and dragging", () => {
   const h = coinHarness();
   const count = (sel) => h.container.querySelectorAll(sel).length;
 
-  it("after a pause a hand shows how to take a coin into the frame — in both modes — and goes on the first action", () => {
-    for (const supportMode of ["learning", "independent"]) {
-      h.mount(GroupTenTask, task(13, { supportMode }));
-      expect(h.container.querySelector(".sg-hand")).toBeNull();
-      act(() => vi.advanceTimersByTime(3000));
-      expect(h.container.querySelector(".sg-hand--move")).not.toBeNull();
-      h.click("Монета из россыпи");
-      expect(h.container.querySelector(".sg-hand")).toBeNull();
-      h.unmount();
-    }
+  it("after a pause a hand shows how to take a coin into the frame, and goes on the first action", () => {
+    h.mount(GroupTenTask, task(13));
+    expect(h.container.querySelector(".sg-hand")).toBeNull();
+    act(() => vi.advanceTimersByTime(3000));
+    expect(h.container.querySelector(".sg-hand--move")).not.toBeNull();
+    h.click("Монета из россыпи");
+    expect(h.container.querySelector(".sg-hand")).toBeNull();
   });
 
   it("a full frame waiting too long gets a tapping hand", () => {
