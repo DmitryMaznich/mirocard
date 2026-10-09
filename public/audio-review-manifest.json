@@ -2875,6 +2875,327 @@
       ]
     },
     {
+      "id": "audio/propis-phoneme-review",
+      "title": "Прописи — звуки букв WaveNet",
+      "items": [
+        {
+          "id": "audio/propis-phoneme-review/sound_а.mp3",
+          "key": "sound_а",
+          "path": "audio/propis-phoneme-review/sound_а.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%B0.mp3",
+          "label": "А — звук [а]",
+          "category": "Звуки",
+          "version": "428d0dddd6276b64"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_б.mp3",
+          "key": "sound_б",
+          "path": "audio/propis-phoneme-review/sound_б.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%B1.mp3",
+          "label": "Б — звук [б]",
+          "category": "Звуки",
+          "version": "7a2fd8a1914c4976"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_в.mp3",
+          "key": "sound_в",
+          "path": "audio/propis-phoneme-review/sound_в.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%B2.mp3",
+          "label": "В — звук [в]",
+          "category": "Звуки",
+          "version": "8f8000cf212aaa62"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_г.mp3",
+          "key": "sound_г",
+          "path": "audio/propis-phoneme-review/sound_г.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%B3.mp3",
+          "label": "Г — звук [г]",
+          "category": "Звуки",
+          "version": "4e3ed07a96411a60"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_д.mp3",
+          "key": "sound_д",
+          "path": "audio/propis-phoneme-review/sound_д.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%B4.mp3",
+          "label": "Д — звук [д]",
+          "category": "Звуки",
+          "version": "cf604d9d753087db"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_е.mp3",
+          "key": "sound_е",
+          "path": "audio/propis-phoneme-review/sound_е.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%B5.mp3",
+          "label": "Е — звук [йэ]",
+          "category": "Звуки",
+          "version": "968d4a3b0d488d1e"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_ё.mp3",
+          "key": "sound_ё",
+          "path": "audio/propis-phoneme-review/sound_ё.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%91.mp3",
+          "label": "Ё — звук [йо]",
+          "category": "Звуки",
+          "version": "4d9c3da978b2a051"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_ж.mp3",
+          "key": "sound_ж",
+          "path": "audio/propis-phoneme-review/sound_ж.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%B6.mp3",
+          "label": "Ж — звук [ж]",
+          "category": "Звуки",
+          "version": "3d4bdec62198ae1f"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_з.mp3",
+          "key": "sound_з",
+          "path": "audio/propis-phoneme-review/sound_з.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%B7.mp3",
+          "label": "З — звук [з]",
+          "category": "Звуки",
+          "version": "9180599368c4c828"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_и.mp3",
+          "key": "sound_и",
+          "path": "audio/propis-phoneme-review/sound_и.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%B8.mp3",
+          "label": "И — звук [и]",
+          "category": "Звуки",
+          "version": "7204eaf05d31824c"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_й.mp3",
+          "key": "sound_й",
+          "path": "audio/propis-phoneme-review/sound_й.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%B9.mp3",
+          "label": "Й — звук [й]",
+          "category": "Звуки",
+          "version": "5dec727ecffb778a"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_к.mp3",
+          "key": "sound_к",
+          "path": "audio/propis-phoneme-review/sound_к.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%BA.mp3",
+          "label": "К — звук [к]",
+          "category": "Звуки",
+          "version": "2d2203da7179fd38"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_л.mp3",
+          "key": "sound_л",
+          "path": "audio/propis-phoneme-review/sound_л.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%BB.mp3",
+          "label": "Л — звук [л]",
+          "category": "Звуки",
+          "version": "2c8a89100e978b53"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_м.mp3",
+          "key": "sound_м",
+          "path": "audio/propis-phoneme-review/sound_м.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%BC.mp3",
+          "label": "М — звук [м]",
+          "category": "Звуки",
+          "version": "760bd528f118b30e"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_н.mp3",
+          "key": "sound_н",
+          "path": "audio/propis-phoneme-review/sound_н.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%BD.mp3",
+          "label": "Н — звук [н]",
+          "category": "Звуки",
+          "version": "dd02fa29d4c5fd99"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_о.mp3",
+          "key": "sound_о",
+          "path": "audio/propis-phoneme-review/sound_о.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%BE.mp3",
+          "label": "О — звук [о]",
+          "category": "Звуки",
+          "version": "634f3a3b1c1e2950"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_п.mp3",
+          "key": "sound_п",
+          "path": "audio/propis-phoneme-review/sound_п.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D0%BF.mp3",
+          "label": "П — звук [п]",
+          "category": "Звуки",
+          "version": "d78b21fa84fd86eb"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_р.mp3",
+          "key": "sound_р",
+          "path": "audio/propis-phoneme-review/sound_р.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%80.mp3",
+          "label": "Р — звук [р]",
+          "category": "Звуки",
+          "version": "78508a36c409d72f"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_с.mp3",
+          "key": "sound_с",
+          "path": "audio/propis-phoneme-review/sound_с.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%81.mp3",
+          "label": "С — звук [с]",
+          "category": "Звуки",
+          "version": "970ef1bc39d14e66"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_т.mp3",
+          "key": "sound_т",
+          "path": "audio/propis-phoneme-review/sound_т.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%82.mp3",
+          "label": "Т — звук [т]",
+          "category": "Звуки",
+          "version": "4042282dcc84188c"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_у.mp3",
+          "key": "sound_у",
+          "path": "audio/propis-phoneme-review/sound_у.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%83.mp3",
+          "label": "У — звук [у]",
+          "category": "Звуки",
+          "version": "9f8261a701ccf15d"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_ф.mp3",
+          "key": "sound_ф",
+          "path": "audio/propis-phoneme-review/sound_ф.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%84.mp3",
+          "label": "Ф — звук [ф]",
+          "category": "Звуки",
+          "version": "ef1d886352056946"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_х.mp3",
+          "key": "sound_х",
+          "path": "audio/propis-phoneme-review/sound_х.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%85.mp3",
+          "label": "Х — звук [х]",
+          "category": "Звуки",
+          "version": "f11f2724e9ddd314"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_ц.mp3",
+          "key": "sound_ц",
+          "path": "audio/propis-phoneme-review/sound_ц.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%86.mp3",
+          "label": "Ц — звук [ц]",
+          "category": "Звуки",
+          "version": "6593d811bb8b247e"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_ч.mp3",
+          "key": "sound_ч",
+          "path": "audio/propis-phoneme-review/sound_ч.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%87.mp3",
+          "label": "Ч — звук [ч]",
+          "category": "Звуки",
+          "version": "ad665c728e9d0cfb"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_ш.mp3",
+          "key": "sound_ш",
+          "path": "audio/propis-phoneme-review/sound_ш.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%88.mp3",
+          "label": "Ш — звук [ш]",
+          "category": "Звуки",
+          "version": "491107fe625ee622"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_щ.mp3",
+          "key": "sound_щ",
+          "path": "audio/propis-phoneme-review/sound_щ.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%89.mp3",
+          "label": "Щ — звук [щ]",
+          "category": "Звуки",
+          "version": "bd3e8ad8e9731993"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_ъ.mp3",
+          "key": "sound_ъ",
+          "path": "audio/propis-phoneme-review/sound_ъ.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%8A.mp3",
+          "label": "Ъ — твёрдый знак",
+          "category": "Знаки",
+          "version": "819a1e25b7b8c998"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_ы.mp3",
+          "key": "sound_ы",
+          "path": "audio/propis-phoneme-review/sound_ы.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%8B.mp3",
+          "label": "Ы — звук [ы]",
+          "category": "Звуки",
+          "version": "051ff20d9f2a6b02"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_ь.mp3",
+          "key": "sound_ь",
+          "path": "audio/propis-phoneme-review/sound_ь.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%8C.mp3",
+          "label": "Ь — мягкий знак",
+          "category": "Знаки",
+          "version": "8b9cd00c5a40577b"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_э.mp3",
+          "key": "sound_э",
+          "path": "audio/propis-phoneme-review/sound_э.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%8D.mp3",
+          "label": "Э — звук [э]",
+          "category": "Звуки",
+          "version": "dd3b95514b362c40"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_ю.mp3",
+          "key": "sound_ю",
+          "path": "audio/propis-phoneme-review/sound_ю.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%8E.mp3",
+          "label": "Ю — звук [йу]",
+          "category": "Звуки",
+          "version": "4b819761d8aa1be6"
+        },
+        {
+          "id": "audio/propis-phoneme-review/sound_я.mp3",
+          "key": "sound_я",
+          "path": "audio/propis-phoneme-review/sound_я.mp3",
+          "url": "/audio/propis-phoneme-review/sound_%D1%8F.mp3",
+          "label": "Я — звук [йа]",
+          "category": "Звуки",
+          "version": "a048eb536ca144f9"
+        },
+        {
+          "id": "audio/propis-phoneme-review/case_upper.mp3",
+          "key": "case_upper",
+          "path": "audio/propis-phoneme-review/case_upper.mp3",
+          "url": "/audio/propis-phoneme-review/case_upper.mp3",
+          "label": "Заглавная",
+          "category": "Регистр",
+          "version": "3274cba35ad2a03c"
+        },
+        {
+          "id": "audio/propis-phoneme-review/case_lower.mp3",
+          "key": "case_lower",
+          "path": "audio/propis-phoneme-review/case_lower.mp3",
+          "url": "/audio/propis-phoneme-review/case_lower.mp3",
+          "label": "Строчная",
+          "category": "Регистр",
+          "version": "2e4dc22d082edb38"
+        }
+      ]
+    },
+    {
       "id": "sounds",
       "title": "Сигналы ответа",
       "items": [

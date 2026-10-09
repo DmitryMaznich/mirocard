@@ -6,6 +6,7 @@ import { NUMBER_WORDS } from "../src/topics/renderers/addition_subtraction/audio
 import { PHRASE_ENTRIES } from "../src/topics/renderers/addition_subtraction/audioPhraseBank.js";
 import { AUDIO_ENTRIES } from "../src/topics/renderers/daily_orientation/audioBank.js";
 import { splitIntoSentences, textSentenceDictationKey, wordDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
+import { PROPIS_PHONEME_ENTRIES } from "./lib/propis-phoneme-bank.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = join(root, "public");
@@ -30,12 +31,14 @@ for (const word of propis.words) setLabel(`audio/propis-dictation/${wordDictatio
 for (const entry of propis.texts) {
   splitIntoSentences(entry.text).forEach((text, index) => setLabel(`audio/propis-dictation/${textSentenceDictationKey(entry, index)}.mp3`, text, "Предложения"));
 }
+for (const entry of PROPIS_PHONEME_ENTRIES) setLabel(`audio/propis-phoneme-review/${entry.key}.mp3`, entry.label, entry.category);
 const names = {
   "audio/addition-subtraction": "Плюс / минус — слушаем и считаем",
   "audio/addition-subtraction-review": "Плюс / минус — повторная проверка",
   "audio/addition-subtraction-russian-review": "Плюс / минус — русский голос WaveNet",
   "audio/daily-orientation": "Ориентировка во времени",
   "audio/propis-dictation": "Прописи — диктант",
+  "audio/propis-phoneme-review": "Прописи — звуки букв WaveNet",
   "sounds/letters": "Звуки букв",
   sounds: "Сигналы ответа",
 };
@@ -60,6 +63,11 @@ walk(join(publicDir, "audio"));
 walk(join(publicDir, "sounds"));
 const categoryOrder = ["Числа", "Знаки", "Фразы"];
 for (const group of groups.values()) {
+  if (group.id === "audio/propis-phoneme-review") {
+    const order = new Map(PROPIS_PHONEME_ENTRIES.map((entry) => [entry.key, entry.order]));
+    group.items.sort((a, b) => order.get(a.key) - order.get(b.key));
+    continue;
+  }
   group.items.sort((a, b) => {
     const categoryRank = (item) => { const i = categoryOrder.indexOf(item.category); return i < 0 ? 3 : i; };
     return categoryRank(a) - categoryRank(b) || a.path.localeCompare(b.path, "ru", { numeric: true });
