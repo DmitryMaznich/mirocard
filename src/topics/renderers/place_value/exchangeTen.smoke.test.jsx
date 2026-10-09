@@ -39,6 +39,9 @@ describe("ExchangeTenTask — «Плюс и минус через десяток
     // All four are gone: nothing more can be taken, the answer comes.
     expect(h.button("Монета в рамке 1").disabled).toBe(true);
     expect(count(".sg-reveal.sg-show")).toBe(2);
+    // The tray with the four coins taken out fades: the question is what is left.
+    expect(h.container.querySelector(".xt-tray--gone")).not.toBeNull();
+    expect(h.container.querySelector('output[aria-label="Сколько осталось?"]')).not.toBeNull();
     answer(28);
     expect(h.container.querySelector(".xt-q").textContent).toBe("28");
     expect(onMistake).not.toHaveBeenCalled();
@@ -66,6 +69,8 @@ describe("ExchangeTenTask — «Плюс и минус через десяток
     h.click("Монета из лотка"); h.click("Монета из лотка");
     expect(frameCoins()).toBe(2);
     expect(count(".sg-reveal.sg-show")).toBe(2);
+    expect(h.container.querySelector(".xt-tray--gone")).not.toBeNull();
+    expect(h.container.querySelector('output[aria-label="Сколько стало?"]')).not.toBeNull();
     answer(42);
     expect(h.container.querySelector(".xt-q").textContent).toBe("42");
   });

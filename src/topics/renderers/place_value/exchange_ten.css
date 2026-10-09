@@ -23,6 +23,9 @@
   border-style: dashed;
 }
 
+.xt-tray { transition: opacity 0.4s ease, visibility 0s linear 0s; }
+.xt-tray--gone { opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0s linear 0.4s; }
+
 .xt-tray--give { background: #fff7f7; border-color: #e7a3a3; }
 .xt-tray--get { background: #f0fbf8; border-color: #8fcfc3; }
 

@@ -197,7 +197,9 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
               disabled={phase !== "act" || exchange.busy || (give ? left === 0 : !frameFull)} glow={hint === "full"} />
           </div>
         </section>
-        <section className={`sg-card xt-tray xt-tray--${task.op}`}>
+        {/* Once the action is done the tray fades (its place stays): the
+            question is about what is left on the board, not what was moved. */}
+        <section className={`sg-card xt-tray xt-tray--${task.op}${answering ? " xt-tray--gone" : ""}`} aria-hidden={answering}>
           <span className="xt-tray-label">{sign}{task.k}</span>
           <div className="xt-slots">
             {Array.from({ length: task.k }, (_, i) => {
@@ -214,7 +216,7 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
       </div>
       <div className="sg-answer">
         <div className={`sg-num sg-reveal${show}`}>
-          <AnswerField label="Сколько получилось?" tone="total" big ok={done} active={phase === "answer"} wrong={typed.wrong}
+          <AnswerField label={give ? "Сколько осталось?" : "Сколько стало?"} tone="total" big ok={done} active={phase === "answer"} wrong={typed.wrong}
             value={done ? task.result : phase === "answer" ? typed.digits : ""} />
         </div>
         <div className="sg-status" role="status">{status}</div>
