@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { numberWords, pluralTens, pluralOnes } from "./placeValueLabels.js";
-import { AnswerField, Keypad, useTypedAnswer } from "./FieldPad.jsx";
+import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
@@ -145,6 +145,9 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     if (!typed.digits || solved) return;
     if (answer(Number(typed.digits))) typed.reset(); else typed.fail();
   }
+  // Tens and ones check themselves; only the number is confirmed by hand.
+  const autoField = !solved && questions[step].key !== "total";
+  useAutoCheck(typed, { auto: autoField, expected: questions[step].expected, submit: answer });
   const field = (key, big) => {
     const i = questions.findIndex((q) => q.key === key);
     if (i < 0) return null;
@@ -204,7 +207,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         <div className="sg-status" role="status">{status}</div>
         <div className="sg-slot">
           {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-            : <Keypad typed={typed} onEnter={enter} grid={mode !== "phone"} />}
+            : <Keypad typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={!autoField} />}
         </div>
       </div>
     </div>

@@ -250,10 +250,12 @@
 /* Keypad, or «Далее» in its place: the slot keeps its size either way. */
 .sg-slot {
   justify-self: stretch;
-  height: 92px;
+  height: 96px;
   display: grid;
   place-items: center;
 }
+
+.sg-slot > .sg-reveal { width: 100%; display: grid; justify-items: center; }
 
 /* ── Answer fields and keypad (FieldPad.jsx) ── */
 
@@ -300,19 +302,48 @@
 .fp-field--ok.fp-field--total .fp-value { border-color: #1a1a2e; }
 .fp-field--wrong .fp-value { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
 
+/* Phone keypad: a tall ⌫ on the left, two rows of five digits, a tall
+   wide ✓ on the right. */
 .fp-keys {
+  width: min(100%, 360px);
   display: grid;
-  grid-template-columns: repeat(6, 48px);
+  grid-template-columns: 1.1fr repeat(5, 1fr) 1.6fr;
   gap: 6px;
 }
 
-.fp-keys .px-key { height: 40px; font-size: 21px; }
-.fp-key--erase { color: #64748b; }
-.fp-key--enter { background: #16a34a; border-color: #16a34a; box-shadow: 0 3px 0 #15803d; color: #fff; }
+.fp-keys .px-key { height: 42px; font-size: 21px; }
+.fp-key--erase { grid-row: span 2; height: auto !important; color: #64748b; font-size: 24px !important; }
+
+.fp-enter {
+  grid-row: span 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 14px;
+  background: #16a34a;
+  box-shadow: 0 4px 0 #15803d;
+  color: #fff;
+  font: 800 19px Nunito, sans-serif;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fp-enter span:first-child { font-size: 30px; line-height: 1; }
+.fp-enter-word { display: none; }
+.fp-enter:active { transform: translateY(3px); box-shadow: none; }
+.fp-enter:disabled { opacity: 0.4; cursor: default; transform: none; }
 
 /* ── Tablets: bigger type, the 3 × 4 keypad, the number beside it ── */
 
-.fp-keys--grid { grid-template-columns: repeat(3, var(--sg-key-w, 76px)); gap: 10px; }
+.fp-keys--grid { width: auto; grid-template-columns: repeat(3, var(--sg-key-w, 76px)); gap: 10px; }
+.fp-keys--grid .fp-enter { grid-row: auto; grid-column: 1 / -1; height: 64px; }
+.fp-keys--grid .fp-enter span:first-child { font-size: 1.2em; }
+.fp-keys--grid .fp-enter-word { display: inline; }
+.fp-keys--grid .fp-key--erase { grid-row: auto; height: 60px !important; }
+.fp-key-zero { display: grid; grid-column: span 2; }
 
 .sg-screen--tablet,
 .sg-screen--wide { padding: 10px 24px calc(16px + var(--app-safe-bottom, 0px)); }
@@ -339,9 +370,11 @@
 .sg-screen--tablet .sg-status,
 .sg-screen--wide .sg-status { font-size: 17px; min-height: 46px; }
 .sg-screen--tablet .sg-slot,
-.sg-screen--wide .sg-slot { height: 280px; }
-.sg-screen--tablet .sg-slot > button,
-.sg-screen--wide .sg-slot > button { min-width: 220px; min-height: 64px; font-size: 22px; }
+.sg-screen--wide .sg-slot { height: 352px; }
+.sg-screen--tablet .fp-enter,
+.sg-screen--wide .fp-enter { border-radius: 16px; font-size: 24px; }
+.sg-screen--tablet .sg-slot > .btn,
+.sg-screen--wide .sg-slot > .btn { min-width: 220px; min-height: 64px; font-size: 22px; }
 
 /* Portrait tablet: the hint line on top, then the number and the keypad
    side by side — the eye goes from the number straight to the keys. */

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { act } from "react";
 import IdentifyNumberTask, { mixedLayout } from "./IdentifyNumberTask.jsx";
 import { coinHarness } from "./coinTestHelpers.jsx";
 
@@ -78,6 +79,34 @@ describe("IdentifyNumberTask", () => {
     expect(count(".id-item--counted")).toBe(1);
     answer(3);
     expect(count(".id-item--counted")).toBe(0);
+  });
+
+  it("tens and ones check themselves; only the number needs «Проверить»", () => {
+    const onMistake = vi.fn();
+    h.mount(IdentifyNumberTask, task({ layout: "over9", model: { tens: 2, ones: 14 } }), { onMistake });
+    expect(h.button("Проверить").disabled).toBe(true);
+    h.click("2");
+    expect(active()).toBe("Отдельных монет");
+    h.click("1");
+    expect(active()).toBe("Отдельных монет"); // «1» may still become 14
+    h.click("4");
+    expect(active()).toBe("Какое это число?");
+    expect(onMistake).not.toHaveBeenCalled();
+    h.click("3");
+    expect(h.button("Проверить").disabled).toBe(false);
+  });
+
+  it("a digit that can't lead to the answer is a mistake at once and clears itself", () => {
+    const onMistake = vi.fn();
+    h.mount(IdentifyNumberTask, task(), { onMistake });
+    h.click("5");
+    expect(onMistake).toHaveBeenCalledTimes(1);
+    expect(note()).toContain("Посчитай стопки");
+    expect(h.container.querySelector(".fp-field--wrong")).not.toBeNull();
+    act(() => vi.advanceTimersByTime(800));
+    expect(value("Десятки")).toBe("");
+    h.click("3");
+    expect(active()).toBe("Единицы");
   });
 
   it("one-digit numbers and round tens", () => {

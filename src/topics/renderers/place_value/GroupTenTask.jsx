@@ -3,7 +3,7 @@ import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { numberWords } from "./placeValueLabels.js";
-import { AnswerField, Keypad, useTypedAnswer } from "./FieldPad.jsx";
+import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import TenFrame from "./TenFrame.jsx";
 import "./place_value.css";
 import "./coins.css";
@@ -248,6 +248,9 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     if (!typed.digits) return;
     if (answer(FIELDS[step].key, Number(typed.digits))) typed.reset(); else typed.fail();
   }
+  // Tens and ones check themselves; only the number is confirmed by hand.
+  const autoField = !done && canAnswer && step < FIELDS.length - 1;
+  useAutoCheck(typed, { auto: autoField, expected: expected[FIELDS[step].key], submit: (n) => answer(FIELDS[step].key, n) });
   const field = (i, big) => {
     const f = FIELDS[i], ok = answers[f.key] !== undefined, active = !done && canAnswer && i === step;
     return <AnswerField label={f.label} tone={f.tone} big={big} bare={!big} ok={ok} active={active} wrong={typed.wrong}
@@ -299,7 +302,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
         <div className="sg-status" role="status">{status}</div>
         <div className="sg-slot">
           {done ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-            : <div className={`sg-reveal${show}`}><Keypad off={!canAnswer || exchange.busy} typed={typed} onEnter={enter} grid={mode !== "phone"} /></div>}
+            : <div className={`sg-reveal${show}`}><Keypad off={!canAnswer || exchange.busy} typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={!autoField} /></div>}
         </div>
       </div>
     </div>
