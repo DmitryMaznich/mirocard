@@ -1,8 +1,10 @@
 import JSZip from "jszip";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { syncCoordinateAudio } from "./sync-coordinate-audio.mjs";
+import { RELEASE_TOPIC_COPY, applyReleaseTopicCopy } from "../../src/topics/releaseTopicCopy.js";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 
@@ -19,7 +21,10 @@ function addDirectory(zip, source, relative = "") {
 export async function createSymmetryDrawDeckBuffer(topicJson = readFileSync(join(dir, "topic.json"))) {
   syncCoordinateAudio();
   const zip = new JSZip();
-  zip.file("topic.json", topicJson);
+  // Preserve the published methodology copy when rebuilding from source.
+  const topic = applyReleaseTopicCopy(JSON.parse(topicJson.toString()));
+  topic.meta.copyHash = createHash("sha256").update(JSON.stringify(RELEASE_TOPIC_COPY.symmetry_draw)).digest("hex").slice(0, 16);
+  zip.file("topic.json", JSON.stringify(topic, null, 2));
   zip.file("renderer", readFileSync(join(dir, "renderer.js")));
   zip.file("mirocard2.css", readFileSync(join(dir, "renderer.css")));
   zip.file("media/avatar.svg", readFileSync(join(dir, "media", "avatar.svg")));
