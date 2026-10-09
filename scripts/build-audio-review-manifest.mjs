@@ -7,6 +7,7 @@ import { PHRASE_ENTRIES } from "../src/topics/renderers/addition_subtraction/aud
 import { AUDIO_ENTRIES } from "../src/topics/renderers/daily_orientation/audioBank.js";
 import { splitIntoSentences, textSentenceDictationKey, wordDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
 import { PROPIS_PHONEME_ENTRIES } from "./lib/propis-phoneme-bank.mjs";
+import { PROPIS_NATURAL_PILOT } from "./lib/propis-natural-pilot-bank.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = join(root, "public");
@@ -32,13 +33,15 @@ for (const entry of propis.texts) {
   splitIntoSentences(entry.text).forEach((text, index) => setLabel(`audio/propis-dictation/${textSentenceDictationKey(entry, index)}.mp3`, text, "Предложения"));
 }
 for (const entry of PROPIS_PHONEME_ENTRIES) setLabel(`audio/propis-phoneme-review/${entry.key}.mp3`, entry.label, entry.category);
+for (const entry of PROPIS_NATURAL_PILOT) setLabel(`audio/propis-natural-pilot/${entry.key}.wav`, entry.label, entry.category);
 const names = {
   "audio/addition-subtraction": "Плюс / минус — слушаем и считаем",
   "audio/addition-subtraction-review": "Плюс / минус — повторная проверка",
   "audio/addition-subtraction-russian-review": "Плюс / минус — русский голос WaveNet",
   "audio/daily-orientation": "Ориентировка во времени",
   "audio/propis-dictation": "Прописи — диктант",
-  "audio/propis-phoneme-review": "Прописи — звуки букв WaveNet",
+  "audio/propis-phoneme-review": "Прописи — WaveNet с обрезкой (отклонён)",
+  "audio/propis-natural-pilot": "Прописи — 5 звуков без обрезки",
   "sounds/letters": "Звуки букв",
   sounds: "Сигналы ответа",
 };
@@ -63,8 +66,9 @@ walk(join(publicDir, "audio"));
 walk(join(publicDir, "sounds"));
 const categoryOrder = ["Числа", "Знаки", "Фразы"];
 for (const group of groups.values()) {
-  if (group.id === "audio/propis-phoneme-review") {
-    const order = new Map(PROPIS_PHONEME_ENTRIES.map((entry) => [entry.key, entry.order]));
+  if (["audio/propis-phoneme-review", "audio/propis-natural-pilot"].includes(group.id)) {
+    const entries = group.id === "audio/propis-natural-pilot" ? PROPIS_NATURAL_PILOT : PROPIS_PHONEME_ENTRIES;
+    const order = new Map(entries.map((entry) => [entry.key, entry.order]));
     group.items.sort((a, b) => order.get(a.key) - order.get(b.key));
     continue;
   }
