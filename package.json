@@ -1,14 +1,16 @@
 {
   "name": "mirocard2",
   "private": true,
-  "version": "1.0.2506",
+  "version": "1.0.2510",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"
   },
   "scripts": {
+    "audio:review": "node scripts/build-audio-review-manifest.mjs",
+    "predev": "node scripts/build-audio-review-manifest.mjs",
     "dev": "vite --host 0.0.0.0 --port 8080 --configLoader native",
-    "prebuild": "node scripts/sync-capture-tool.mjs",
+    "prebuild": "node scripts/build-audio-review-manifest.mjs && node scripts/sync-capture-tool.mjs",
     "build": "vite build --configLoader native",
     "build:people-names": "node scripts/build-people-names-deck.mjs",
     "figures:export": "node tools/symmetry_draw/export-figure-jsons.mjs",

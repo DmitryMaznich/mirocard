@@ -8,15 +8,18 @@
 // Output: public/audio/addition-subtraction/<key>.mp3
 import { createSign } from "node:crypto";
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT      = join(__dirname, "..");
-const SA_PATH   = "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
-const OUT_DIR   = join(ROOT, "public/audio/addition-subtraction");
-const VOICE     = "ru-RU-Wavenet-D";
-const RATE      = 0.9;
+const SA_PATH   = process.env.GOOGLE_APPLICATION_CREDENTIALS || "C:/Users/dmazn/Projects/Mirocard/cardgen-studio/credentials/google-tts-sa.json";
+const arg = (name) => process.argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3);
+const OUT_DIR   = resolve(ROOT, arg("out-dir") ?? "public/audio/addition-subtraction");
+const VOICE     = arg("voice") ?? "ru-RU-Wavenet-D";
+const RATE      = Number(arg("rate") ?? "0.9");
+const KEYS      = arg("keys")?.split(",").filter(Boolean);
+if (!Number.isFinite(RATE) || RATE < 0.25 || RATE > 4) throw new Error("Speaking rate must be between 0.25 and 4.");
 
 const ONES  = ["ноль", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"];
 const TEENS = ["десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать"];
@@ -53,6 +56,7 @@ async function getToken(sa) {
     body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
   });
   const data = await resp.json();
+  if (!resp.ok || !data.access_token) throw new Error(`Google authorization failed (${resp.status}): ${data.error ?? "no access token"}`);
   _token = data.access_token;
   _tokenExpiry = now + (data.expires_in || 3600);
   return _token;
@@ -79,6 +83,15 @@ if (!existsSync(SA_PATH)) {
   process.exit(1);
 }
 const sa = JSON.parse(readFileSync(SA_PATH, "utf8"));
+if (process.argv.includes("--list-voices")) {
+  const token = await getToken(sa);
+  const response = await fetch("https://texttospeech.googleapis.com/v1/voices?languageCode=ru-RU", { headers: { Authorization: `Bearer ${token}` } });
+  if (!response.ok) throw new Error(`Voice list failed (${response.status})`);
+  const data = await response.json();
+  console.log(JSON.stringify(data.voices?.map(({ name, ssmlGender }) => ({ name, ssmlGender })), null, 2));
+  process.exit(0);
+}
+if (KEYS?.some((key) => !Object.hasOwn(WORDS, key))) throw new Error("Unknown --keys entry.");
 if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });
 
 const force = process.argv.includes("--force");
@@ -86,6 +99,7 @@ let generated = 0;
 let skipped   = 0;
 
 for (const [key, word] of Object.entries(WORDS)) {
+  if (KEYS && !KEYS.includes(key)) continue;
   const outPath = join(OUT_DIR, `${key}.mp3`);
   if (!force && existsSync(outPath)) {
     console.log(`  skip  ${key} (${word})`);

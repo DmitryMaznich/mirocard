@@ -1,0 +1,464 @@
+{
+  "schemaVersion": 1,
+  "playlist": {
+    "id": "audio/addition-subtraction",
+    "title": "Плюс / минус — слушаем и считаем"
+  },
+  "exportedAt": "2026-10-08T18:52:31.639Z",
+  "items": [
+    {
+      "path": "audio/addition-subtraction/n0.mp3",
+      "key": "n0",
+      "label": "0 — ноль",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "31bff6cc692be0cd",
+      "updatedAt": "2026-10-08T18:41:54.093Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n1.mp3",
+      "key": "n1",
+      "label": "1 — один",
+      "category": "Числа",
+      "status": "redo",
+      "note": "Гнусавое произношение",
+      "version": "62b47db1a6781fc5",
+      "updatedAt": "2026-10-08T18:42:43.261Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n2.mp3",
+      "key": "n2",
+      "label": "2 — два",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "e316d03f60ca90ac",
+      "updatedAt": "2026-10-08T18:49:20.711Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n3.mp3",
+      "key": "n3",
+      "label": "3 — три",
+      "category": "Числа",
+      "status": "redo",
+      "note": "Слишком детская интонация",
+      "version": "2659746b579dd7f8",
+      "updatedAt": "2026-10-08T18:49:42.573Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n4.mp3",
+      "key": "n4",
+      "label": "4 — четыре",
+      "category": "Числа",
+      "status": "redo",
+      "note": "Слышится чепыре",
+      "version": "41511b44c11fca8d",
+      "updatedAt": "2026-10-08T18:50:26.926Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n5.mp3",
+      "key": "n5",
+      "label": "5 — пять",
+      "category": "Числа",
+      "status": "redo",
+      "note": "Слишком грубый голос",
+      "version": "ab5eced8314c8698",
+      "updatedAt": "2026-10-08T18:50:53.641Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n6.mp3",
+      "key": "n6",
+      "label": "6 — шесть",
+      "category": "Числа",
+      "status": "redo",
+      "note": "Какой-то акцент",
+      "version": "d0622dcc6d0c64a7",
+      "updatedAt": "2026-10-08T18:51:07.282Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n7.mp3",
+      "key": "n7",
+      "label": "7 — семь",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "d3a9061ff057d5a5",
+      "updatedAt": "2026-10-08T18:51:09.472Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n8.mp3",
+      "key": "n8",
+      "label": "8 — восемь",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "7b5ea15b025fbc3b",
+      "updatedAt": "2026-10-08T18:51:11.440Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n9.mp3",
+      "key": "n9",
+      "label": "9 — девять",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "46337c43b8aa0a6b",
+      "updatedAt": "2026-10-08T18:51:14.357Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n10.mp3",
+      "key": "n10",
+      "label": "10 — десять",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "aa1893cd9080d2a3",
+      "updatedAt": "2026-10-08T18:51:16.115Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n11.mp3",
+      "key": "n11",
+      "label": "11 — одиннадцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "a4729afde6da5ed7",
+      "updatedAt": "2026-10-08T18:51:18.414Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n12.mp3",
+      "key": "n12",
+      "label": "12 — двенадцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "cee90e0d1b6fb325",
+      "updatedAt": "2026-10-08T18:51:20.065Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n13.mp3",
+      "key": "n13",
+      "label": "13 — тринадцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "daeecfb4b9221c0d",
+      "updatedAt": "2026-10-08T18:51:21.790Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n14.mp3",
+      "key": "n14",
+      "label": "14 — четырнадцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "1bc6b7c0fa24b8da",
+      "updatedAt": "2026-10-08T18:51:23.823Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n15.mp3",
+      "key": "n15",
+      "label": "15 — пятнадцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "fcfe5bc54d7f55df",
+      "updatedAt": "2026-10-08T18:51:25.416Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n16.mp3",
+      "key": "n16",
+      "label": "16 — шестнадцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "1e47524d99c781fd",
+      "updatedAt": "2026-10-08T18:51:27.174Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n17.mp3",
+      "key": "n17",
+      "label": "17 — семнадцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "e6508804c5fbb2fc",
+      "updatedAt": "2026-10-08T18:51:29.075Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n18.mp3",
+      "key": "n18",
+      "label": "18 — восемнадцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "d68ec5228d688121",
+      "updatedAt": "2026-10-08T18:51:31.159Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n19.mp3",
+      "key": "n19",
+      "label": "19 — девятнадцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "1ffbe975096fe2e7",
+      "updatedAt": "2026-10-08T18:51:33.550Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n20.mp3",
+      "key": "n20",
+      "label": "20 — двадцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "2c0ea8d30f277664",
+      "updatedAt": "2026-10-08T18:51:35.850Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n30.mp3",
+      "key": "n30",
+      "label": "30 — тридцать",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "ebb64db5749d5727",
+      "updatedAt": "2026-10-08T18:51:37.784Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n40.mp3",
+      "key": "n40",
+      "label": "40 — сорок",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "bc5870f994764668",
+      "updatedAt": "2026-10-08T18:51:39.759Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n50.mp3",
+      "key": "n50",
+      "label": "50 — пятьдесят",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "dc220349a36fe326",
+      "updatedAt": "2026-10-08T18:51:41.983Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n60.mp3",
+      "key": "n60",
+      "label": "60 — шестьдесят",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "8659a883e4d7ae0b",
+      "updatedAt": "2026-10-08T18:51:44.226Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n70.mp3",
+      "key": "n70",
+      "label": "70 — семьдесят",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "25a5b459511e28e3",
+      "updatedAt": "2026-10-08T18:51:45.792Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n80.mp3",
+      "key": "n80",
+      "label": "80 — восемьдесят",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "173f501b2a89cfbd",
+      "updatedAt": "2026-10-08T18:51:47.535Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n90.mp3",
+      "key": "n90",
+      "label": "90 — девяносто",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "f1ce89d392446ac0",
+      "updatedAt": "2026-10-08T18:51:49.417Z"
+    },
+    {
+      "path": "audio/addition-subtraction/n100.mp3",
+      "key": "n100",
+      "label": "100 — сто",
+      "category": "Числа",
+      "status": "ok",
+      "note": "",
+      "version": "e6945925ca0b0bfd",
+      "updatedAt": "2026-10-08T18:51:53.610Z"
+    },
+    {
+      "path": "audio/addition-subtraction/minus.mp3",
+      "key": "minus",
+      "label": "минус",
+      "category": "Знаки",
+      "status": "ok",
+      "note": "",
+      "version": "e533665bcbf62829",
+      "updatedAt": "2026-10-08T18:51:55.928Z"
+    },
+    {
+      "path": "audio/addition-subtraction/plus.mp3",
+      "key": "plus",
+      "label": "плюс",
+      "category": "Знаки",
+      "status": "redo",
+      "note": "Глухой звук",
+      "version": "5b282aebac017252",
+      "updatedAt": "2026-10-08T18:52:08.579Z"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/became.mp3",
+      "key": "phrases/became",
+      "label": "стало",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "cdc72dbe4847703f"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/correct_added_count.mp3",
+      "key": "phrases/correct_added_count",
+      "label": "Правильно. Прибавили",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "ce40e88c577563b5"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/correct_added.mp3",
+      "key": "phrases/correct_added",
+      "label": "Правильно. Прибавили.",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "fd9f48b7948e80e0"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/correct_less.mp3",
+      "key": "phrases/correct_less",
+      "label": "Правильно. Стало меньше.",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "6489c788a6a147cb"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/correct_more.mp3",
+      "key": "phrases/correct_more",
+      "label": "Правильно. Стало больше.",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "c4f20fba3f937a37"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/correct_removed_count.mp3",
+      "key": "phrases/correct_removed_count",
+      "label": "Правильно. Убрали",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "8c78104d0e789743"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/correct_removed.mp3",
+      "key": "phrases/correct_removed",
+      "label": "Правильно. Убрали.",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "452b0a45d7251036"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/count_again.mp3",
+      "key": "phrases/count_again",
+      "label": "Посчитай ещё раз.",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "5c3c0a64aaf3bc12"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/how_many_added.mp3",
+      "key": "phrases/how_many_added",
+      "label": "Сколько прибавили?",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "0fc1c058e486e5d1"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/how_many_removed.mp3",
+      "key": "phrases/how_many_removed",
+      "label": "Сколько убрали?",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "f37f951e902d5d33"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/look_again.mp3",
+      "key": "phrases/look_again",
+      "label": "Посмотри ещё раз.",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "dedc4766737c5b2c"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/more_or_less.mp3",
+      "key": "phrases/more_or_less",
+      "label": "Стало больше или меньше?",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "c9e8bd6e7aa470ee"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/was.mp3",
+      "key": "phrases/was",
+      "label": "Было",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "4965e170299953c4"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/what_was_done_say.mp3",
+      "key": "phrases/what_was_done_say",
+      "label": "Что сделали? Скажи.",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "91fa4c75c4ec738f"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/what_was_done.mp3",
+      "key": "phrases/what_was_done",
+      "label": "Что сделали?",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "9007910ec734a315"
+    },
+    {
+      "path": "audio/addition-subtraction/phrases/wrong_look_again.mp3",
+      "key": "phrases/wrong_look_again",
+      "label": "Неправильно. Посмотри ещё раз.",
+      "category": "Фразы",
+      "status": "pending",
+      "note": "",
+      "version": "cf9fe0afd212f823"
+    }
+  ]
+}

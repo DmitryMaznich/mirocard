@@ -46,6 +46,8 @@ self.addEventListener("fetch", (e) => {
   // Administration is always online. Never cache its page or scripts, and
   // never overwrite the ordinary application's offline shell with admin.html.
   if (/^\/admin(?:\.html|\.js|\.css|-model\.js)$/.test(url.pathname)) return;
+  // The pronunciation reviewer is a separate page, never the offline app shell.
+  if (/^\/(?:audio-review(?:\.html|\.css|-manifest\.json)|admin-audio-review\.js)$/.test(url.pathname)) return;
 
   // Фото учеников — cache-first (контент-адресуемые, immutable)
   if (url.pathname.startsWith("/api/photos/")) {

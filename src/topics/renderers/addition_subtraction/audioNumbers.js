@@ -26,6 +26,17 @@ export const NUMBER_WORDS = {
 
 export const SIGN_WORDS = { add: "плюс", subtract: "минус" };
 
+// Content fingerprints of replacements approved by the adult on 2026-10-08.
+// New URLs prevent browsers from reusing the rejected recordings at these paths.
+export const AUDIO_REVISIONS = {
+  n1: "61816ab09d8371ff",
+  n3: "72cb7e237d61c83c",
+  n4: "eaa21917006883b5",
+  n5: "bd6a16798985a530",
+  n6: "1f14fe43de1531bc",
+  plus: "6a4729b74b8fa255",
+};
+
 // Every distinct recorded word, keyed the same way the generator script and
 // the audio files on disk are: "n0".."n20", "n30".."n90", "n100", "plus", "minus".
 export function audioKeyForNumber(n) {
@@ -78,5 +89,6 @@ export function taskAudioItems(task) {
 }
 
 export function audioKeyUrl(key) {
-  return `/audio/addition-subtraction/${key}.mp3`;
+  const revision = AUDIO_REVISIONS[key];
+  return `/audio/addition-subtraction/${key}.mp3${revision ? `?v=${revision}` : ""}`;
 }

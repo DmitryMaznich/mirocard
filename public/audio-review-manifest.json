@@ -1,0 +1,3250 @@
+{
+  "playlists": [
+    {
+      "id": "audio/addition-subtraction",
+      "title": "Плюс / минус — слушаем и считаем",
+      "items": [
+        {
+          "id": "audio/addition-subtraction/n0.mp3",
+          "key": "n0",
+          "path": "audio/addition-subtraction/n0.mp3",
+          "url": "/audio/addition-subtraction/n0.mp3",
+          "label": "0 — ноль",
+          "category": "Числа",
+          "version": "31bff6cc692be0cd"
+        },
+        {
+          "id": "audio/addition-subtraction/n1.mp3",
+          "key": "n1",
+          "path": "audio/addition-subtraction/n1.mp3",
+          "url": "/audio/addition-subtraction/n1.mp3",
+          "label": "1 — один",
+          "category": "Числа",
+          "version": "61816ab09d8371ff"
+        },
+        {
+          "id": "audio/addition-subtraction/n2.mp3",
+          "key": "n2",
+          "path": "audio/addition-subtraction/n2.mp3",
+          "url": "/audio/addition-subtraction/n2.mp3",
+          "label": "2 — два",
+          "category": "Числа",
+          "version": "e316d03f60ca90ac"
+        },
+        {
+          "id": "audio/addition-subtraction/n3.mp3",
+          "key": "n3",
+          "path": "audio/addition-subtraction/n3.mp3",
+          "url": "/audio/addition-subtraction/n3.mp3",
+          "label": "3 — три",
+          "category": "Числа",
+          "version": "72cb7e237d61c83c"
+        },
+        {
+          "id": "audio/addition-subtraction/n4.mp3",
+          "key": "n4",
+          "path": "audio/addition-subtraction/n4.mp3",
+          "url": "/audio/addition-subtraction/n4.mp3",
+          "label": "4 — четыре",
+          "category": "Числа",
+          "version": "eaa21917006883b5"
+        },
+        {
+          "id": "audio/addition-subtraction/n5.mp3",
+          "key": "n5",
+          "path": "audio/addition-subtraction/n5.mp3",
+          "url": "/audio/addition-subtraction/n5.mp3",
+          "label": "5 — пять",
+          "category": "Числа",
+          "version": "bd6a16798985a530"
+        },
+        {
+          "id": "audio/addition-subtraction/n6.mp3",
+          "key": "n6",
+          "path": "audio/addition-subtraction/n6.mp3",
+          "url": "/audio/addition-subtraction/n6.mp3",
+          "label": "6 — шесть",
+          "category": "Числа",
+          "version": "1f14fe43de1531bc"
+        },
+        {
+          "id": "audio/addition-subtraction/n7.mp3",
+          "key": "n7",
+          "path": "audio/addition-subtraction/n7.mp3",
+          "url": "/audio/addition-subtraction/n7.mp3",
+          "label": "7 — семь",
+          "category": "Числа",
+          "version": "d3a9061ff057d5a5"
+        },
+        {
+          "id": "audio/addition-subtraction/n8.mp3",
+          "key": "n8",
+          "path": "audio/addition-subtraction/n8.mp3",
+          "url": "/audio/addition-subtraction/n8.mp3",
+          "label": "8 — восемь",
+          "category": "Числа",
+          "version": "7b5ea15b025fbc3b"
+        },
+        {
+          "id": "audio/addition-subtraction/n9.mp3",
+          "key": "n9",
+          "path": "audio/addition-subtraction/n9.mp3",
+          "url": "/audio/addition-subtraction/n9.mp3",
+          "label": "9 — девять",
+          "category": "Числа",
+          "version": "46337c43b8aa0a6b"
+        },
+        {
+          "id": "audio/addition-subtraction/n10.mp3",
+          "key": "n10",
+          "path": "audio/addition-subtraction/n10.mp3",
+          "url": "/audio/addition-subtraction/n10.mp3",
+          "label": "10 — десять",
+          "category": "Числа",
+          "version": "aa1893cd9080d2a3"
+        },
+        {
+          "id": "audio/addition-subtraction/n11.mp3",
+          "key": "n11",
+          "path": "audio/addition-subtraction/n11.mp3",
+          "url": "/audio/addition-subtraction/n11.mp3",
+          "label": "11 — одиннадцать",
+          "category": "Числа",
+          "version": "a4729afde6da5ed7"
+        },
+        {
+          "id": "audio/addition-subtraction/n12.mp3",
+          "key": "n12",
+          "path": "audio/addition-subtraction/n12.mp3",
+          "url": "/audio/addition-subtraction/n12.mp3",
+          "label": "12 — двенадцать",
+          "category": "Числа",
+          "version": "cee90e0d1b6fb325"
+        },
+        {
+          "id": "audio/addition-subtraction/n13.mp3",
+          "key": "n13",
+          "path": "audio/addition-subtraction/n13.mp3",
+          "url": "/audio/addition-subtraction/n13.mp3",
+          "label": "13 — тринадцать",
+          "category": "Числа",
+          "version": "daeecfb4b9221c0d"
+        },
+        {
+          "id": "audio/addition-subtraction/n14.mp3",
+          "key": "n14",
+          "path": "audio/addition-subtraction/n14.mp3",
+          "url": "/audio/addition-subtraction/n14.mp3",
+          "label": "14 — четырнадцать",
+          "category": "Числа",
+          "version": "1bc6b7c0fa24b8da"
+        },
+        {
+          "id": "audio/addition-subtraction/n15.mp3",
+          "key": "n15",
+          "path": "audio/addition-subtraction/n15.mp3",
+          "url": "/audio/addition-subtraction/n15.mp3",
+          "label": "15 — пятнадцать",
+          "category": "Числа",
+          "version": "fcfe5bc54d7f55df"
+        },
+        {
+          "id": "audio/addition-subtraction/n16.mp3",
+          "key": "n16",
+          "path": "audio/addition-subtraction/n16.mp3",
+          "url": "/audio/addition-subtraction/n16.mp3",
+          "label": "16 — шестнадцать",
+          "category": "Числа",
+          "version": "1e47524d99c781fd"
+        },
+        {
+          "id": "audio/addition-subtraction/n17.mp3",
+          "key": "n17",
+          "path": "audio/addition-subtraction/n17.mp3",
+          "url": "/audio/addition-subtraction/n17.mp3",
+          "label": "17 — семнадцать",
+          "category": "Числа",
+          "version": "e6508804c5fbb2fc"
+        },
+        {
+          "id": "audio/addition-subtraction/n18.mp3",
+          "key": "n18",
+          "path": "audio/addition-subtraction/n18.mp3",
+          "url": "/audio/addition-subtraction/n18.mp3",
+          "label": "18 — восемнадцать",
+          "category": "Числа",
+          "version": "d68ec5228d688121"
+        },
+        {
+          "id": "audio/addition-subtraction/n19.mp3",
+          "key": "n19",
+          "path": "audio/addition-subtraction/n19.mp3",
+          "url": "/audio/addition-subtraction/n19.mp3",
+          "label": "19 — девятнадцать",
+          "category": "Числа",
+          "version": "1ffbe975096fe2e7"
+        },
+        {
+          "id": "audio/addition-subtraction/n20.mp3",
+          "key": "n20",
+          "path": "audio/addition-subtraction/n20.mp3",
+          "url": "/audio/addition-subtraction/n20.mp3",
+          "label": "20 — двадцать",
+          "category": "Числа",
+          "version": "2c0ea8d30f277664"
+        },
+        {
+          "id": "audio/addition-subtraction/n30.mp3",
+          "key": "n30",
+          "path": "audio/addition-subtraction/n30.mp3",
+          "url": "/audio/addition-subtraction/n30.mp3",
+          "label": "30 — тридцать",
+          "category": "Числа",
+          "version": "ebb64db5749d5727"
+        },
+        {
+          "id": "audio/addition-subtraction/n40.mp3",
+          "key": "n40",
+          "path": "audio/addition-subtraction/n40.mp3",
+          "url": "/audio/addition-subtraction/n40.mp3",
+          "label": "40 — сорок",
+          "category": "Числа",
+          "version": "bc5870f994764668"
+        },
+        {
+          "id": "audio/addition-subtraction/n50.mp3",
+          "key": "n50",
+          "path": "audio/addition-subtraction/n50.mp3",
+          "url": "/audio/addition-subtraction/n50.mp3",
+          "label": "50 — пятьдесят",
+          "category": "Числа",
+          "version": "dc220349a36fe326"
+        },
+        {
+          "id": "audio/addition-subtraction/n60.mp3",
+          "key": "n60",
+          "path": "audio/addition-subtraction/n60.mp3",
+          "url": "/audio/addition-subtraction/n60.mp3",
+          "label": "60 — шестьдесят",
+          "category": "Числа",
+          "version": "8659a883e4d7ae0b"
+        },
+        {
+          "id": "audio/addition-subtraction/n70.mp3",
+          "key": "n70",
+          "path": "audio/addition-subtraction/n70.mp3",
+          "url": "/audio/addition-subtraction/n70.mp3",
+          "label": "70 — семьдесят",
+          "category": "Числа",
+          "version": "25a5b459511e28e3"
+        },
+        {
+          "id": "audio/addition-subtraction/n80.mp3",
+          "key": "n80",
+          "path": "audio/addition-subtraction/n80.mp3",
+          "url": "/audio/addition-subtraction/n80.mp3",
+          "label": "80 — восемьдесят",
+          "category": "Числа",
+          "version": "173f501b2a89cfbd"
+        },
+        {
+          "id": "audio/addition-subtraction/n90.mp3",
+          "key": "n90",
+          "path": "audio/addition-subtraction/n90.mp3",
+          "url": "/audio/addition-subtraction/n90.mp3",
+          "label": "90 — девяносто",
+          "category": "Числа",
+          "version": "f1ce89d392446ac0"
+        },
+        {
+          "id": "audio/addition-subtraction/n100.mp3",
+          "key": "n100",
+          "path": "audio/addition-subtraction/n100.mp3",
+          "url": "/audio/addition-subtraction/n100.mp3",
+          "label": "100 — сто",
+          "category": "Числа",
+          "version": "e6945925ca0b0bfd"
+        },
+        {
+          "id": "audio/addition-subtraction/minus.mp3",
+          "key": "minus",
+          "path": "audio/addition-subtraction/minus.mp3",
+          "url": "/audio/addition-subtraction/minus.mp3",
+          "label": "минус",
+          "category": "Знаки",
+          "version": "e533665bcbf62829"
+        },
+        {
+          "id": "audio/addition-subtraction/plus.mp3",
+          "key": "plus",
+          "path": "audio/addition-subtraction/plus.mp3",
+          "url": "/audio/addition-subtraction/plus.mp3",
+          "label": "плюс",
+          "category": "Знаки",
+          "version": "6a4729b74b8fa255"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/became.mp3",
+          "key": "phrases/became",
+          "path": "audio/addition-subtraction/phrases/became.mp3",
+          "url": "/audio/addition-subtraction/phrases/became.mp3",
+          "label": "стало",
+          "category": "Фразы",
+          "version": "cdc72dbe4847703f"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/correct_added_count.mp3",
+          "key": "phrases/correct_added_count",
+          "path": "audio/addition-subtraction/phrases/correct_added_count.mp3",
+          "url": "/audio/addition-subtraction/phrases/correct_added_count.mp3",
+          "label": "Правильно. Прибавили",
+          "category": "Фразы",
+          "version": "ce40e88c577563b5"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/correct_added.mp3",
+          "key": "phrases/correct_added",
+          "path": "audio/addition-subtraction/phrases/correct_added.mp3",
+          "url": "/audio/addition-subtraction/phrases/correct_added.mp3",
+          "label": "Правильно. Прибавили.",
+          "category": "Фразы",
+          "version": "fd9f48b7948e80e0"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/correct_less.mp3",
+          "key": "phrases/correct_less",
+          "path": "audio/addition-subtraction/phrases/correct_less.mp3",
+          "url": "/audio/addition-subtraction/phrases/correct_less.mp3",
+          "label": "Правильно. Стало меньше.",
+          "category": "Фразы",
+          "version": "6489c788a6a147cb"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/correct_more.mp3",
+          "key": "phrases/correct_more",
+          "path": "audio/addition-subtraction/phrases/correct_more.mp3",
+          "url": "/audio/addition-subtraction/phrases/correct_more.mp3",
+          "label": "Правильно. Стало больше.",
+          "category": "Фразы",
+          "version": "c4f20fba3f937a37"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/correct_removed_count.mp3",
+          "key": "phrases/correct_removed_count",
+          "path": "audio/addition-subtraction/phrases/correct_removed_count.mp3",
+          "url": "/audio/addition-subtraction/phrases/correct_removed_count.mp3",
+          "label": "Правильно. Убрали",
+          "category": "Фразы",
+          "version": "8c78104d0e789743"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/correct_removed.mp3",
+          "key": "phrases/correct_removed",
+          "path": "audio/addition-subtraction/phrases/correct_removed.mp3",
+          "url": "/audio/addition-subtraction/phrases/correct_removed.mp3",
+          "label": "Правильно. Убрали.",
+          "category": "Фразы",
+          "version": "452b0a45d7251036"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/count_again.mp3",
+          "key": "phrases/count_again",
+          "path": "audio/addition-subtraction/phrases/count_again.mp3",
+          "url": "/audio/addition-subtraction/phrases/count_again.mp3",
+          "label": "Посчитай ещё раз.",
+          "category": "Фразы",
+          "version": "5c3c0a64aaf3bc12"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/how_many_added.mp3",
+          "key": "phrases/how_many_added",
+          "path": "audio/addition-subtraction/phrases/how_many_added.mp3",
+          "url": "/audio/addition-subtraction/phrases/how_many_added.mp3",
+          "label": "Сколько прибавили?",
+          "category": "Фразы",
+          "version": "0fc1c058e486e5d1"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/how_many_removed.mp3",
+          "key": "phrases/how_many_removed",
+          "path": "audio/addition-subtraction/phrases/how_many_removed.mp3",
+          "url": "/audio/addition-subtraction/phrases/how_many_removed.mp3",
+          "label": "Сколько убрали?",
+          "category": "Фразы",
+          "version": "f37f951e902d5d33"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/look_again.mp3",
+          "key": "phrases/look_again",
+          "path": "audio/addition-subtraction/phrases/look_again.mp3",
+          "url": "/audio/addition-subtraction/phrases/look_again.mp3",
+          "label": "Посмотри ещё раз.",
+          "category": "Фразы",
+          "version": "dedc4766737c5b2c"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/more_or_less.mp3",
+          "key": "phrases/more_or_less",
+          "path": "audio/addition-subtraction/phrases/more_or_less.mp3",
+          "url": "/audio/addition-subtraction/phrases/more_or_less.mp3",
+          "label": "Стало больше или меньше?",
+          "category": "Фразы",
+          "version": "c9e8bd6e7aa470ee"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/was.mp3",
+          "key": "phrases/was",
+          "path": "audio/addition-subtraction/phrases/was.mp3",
+          "url": "/audio/addition-subtraction/phrases/was.mp3",
+          "label": "Было",
+          "category": "Фразы",
+          "version": "4965e170299953c4"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/what_was_done_say.mp3",
+          "key": "phrases/what_was_done_say",
+          "path": "audio/addition-subtraction/phrases/what_was_done_say.mp3",
+          "url": "/audio/addition-subtraction/phrases/what_was_done_say.mp3",
+          "label": "Что сделали? Скажи.",
+          "category": "Фразы",
+          "version": "91fa4c75c4ec738f"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/what_was_done.mp3",
+          "key": "phrases/what_was_done",
+          "path": "audio/addition-subtraction/phrases/what_was_done.mp3",
+          "url": "/audio/addition-subtraction/phrases/what_was_done.mp3",
+          "label": "Что сделали?",
+          "category": "Фразы",
+          "version": "9007910ec734a315"
+        },
+        {
+          "id": "audio/addition-subtraction/phrases/wrong_look_again.mp3",
+          "key": "phrases/wrong_look_again",
+          "path": "audio/addition-subtraction/phrases/wrong_look_again.mp3",
+          "url": "/audio/addition-subtraction/phrases/wrong_look_again.mp3",
+          "label": "Неправильно. Посмотри ещё раз.",
+          "category": "Фразы",
+          "version": "cf9fe0afd212f823"
+        }
+      ]
+    },
+    {
+      "id": "audio/addition-subtraction-review",
+      "title": "Плюс / минус — повторная проверка",
+      "items": [
+        {
+          "id": "audio/addition-subtraction-review/n1.mp3",
+          "key": "n1",
+          "path": "audio/addition-subtraction-review/n1.mp3",
+          "url": "/audio/addition-subtraction-review/n1.mp3",
+          "label": "1 — один — новая запись",
+          "category": "Числа",
+          "version": "b91b3ad610873dfb"
+        },
+        {
+          "id": "audio/addition-subtraction-review/n3.mp3",
+          "key": "n3",
+          "path": "audio/addition-subtraction-review/n3.mp3",
+          "url": "/audio/addition-subtraction-review/n3.mp3",
+          "label": "3 — три — новая запись",
+          "category": "Числа",
+          "version": "dda58c0e33f4d3df"
+        },
+        {
+          "id": "audio/addition-subtraction-review/n4.mp3",
+          "key": "n4",
+          "path": "audio/addition-subtraction-review/n4.mp3",
+          "url": "/audio/addition-subtraction-review/n4.mp3",
+          "label": "4 — четыре — новая запись",
+          "category": "Числа",
+          "version": "ee32912f06deaa4f"
+        },
+        {
+          "id": "audio/addition-subtraction-review/n5.mp3",
+          "key": "n5",
+          "path": "audio/addition-subtraction-review/n5.mp3",
+          "url": "/audio/addition-subtraction-review/n5.mp3",
+          "label": "5 — пять — новая запись",
+          "category": "Числа",
+          "version": "cda7067763904ae3"
+        },
+        {
+          "id": "audio/addition-subtraction-review/n6.mp3",
+          "key": "n6",
+          "path": "audio/addition-subtraction-review/n6.mp3",
+          "url": "/audio/addition-subtraction-review/n6.mp3",
+          "label": "6 — шесть — новая запись",
+          "category": "Числа",
+          "version": "bf6aaed8972d5a99"
+        },
+        {
+          "id": "audio/addition-subtraction-review/plus.mp3",
+          "key": "plus",
+          "path": "audio/addition-subtraction-review/plus.mp3",
+          "url": "/audio/addition-subtraction-review/plus.mp3",
+          "label": "плюс — новая запись",
+          "category": "Знаки",
+          "version": "6a4729b74b8fa255"
+        }
+      ]
+    },
+    {
+      "id": "audio/addition-subtraction-russian-review",
+      "title": "Плюс / минус — русский голос WaveNet",
+      "items": [
+        {
+          "id": "audio/addition-subtraction-russian-review/n1.mp3",
+          "key": "n1",
+          "path": "audio/addition-subtraction-russian-review/n1.mp3",
+          "url": "/audio/addition-subtraction-russian-review/n1.mp3",
+          "label": "1 — один — русский голос",
+          "category": "Числа",
+          "version": "61816ab09d8371ff"
+        },
+        {
+          "id": "audio/addition-subtraction-russian-review/n3.mp3",
+          "key": "n3",
+          "path": "audio/addition-subtraction-russian-review/n3.mp3",
+          "url": "/audio/addition-subtraction-russian-review/n3.mp3",
+          "label": "3 — три — русский голос",
+          "category": "Числа",
+          "version": "72cb7e237d61c83c"
+        },
+        {
+          "id": "audio/addition-subtraction-russian-review/n4.mp3",
+          "key": "n4",
+          "path": "audio/addition-subtraction-russian-review/n4.mp3",
+          "url": "/audio/addition-subtraction-russian-review/n4.mp3",
+          "label": "4 — четыре — русский голос",
+          "category": "Числа",
+          "version": "eaa21917006883b5"
+        },
+        {
+          "id": "audio/addition-subtraction-russian-review/n5.mp3",
+          "key": "n5",
+          "path": "audio/addition-subtraction-russian-review/n5.mp3",
+          "url": "/audio/addition-subtraction-russian-review/n5.mp3",
+          "label": "5 — пять — русский голос",
+          "category": "Числа",
+          "version": "bd6a16798985a530"
+        },
+        {
+          "id": "audio/addition-subtraction-russian-review/n6.mp3",
+          "key": "n6",
+          "path": "audio/addition-subtraction-russian-review/n6.mp3",
+          "url": "/audio/addition-subtraction-russian-review/n6.mp3",
+          "label": "6 — шесть — русский голос",
+          "category": "Числа",
+          "version": "1f14fe43de1531bc"
+        }
+      ]
+    },
+    {
+      "id": "audio/daily-orientation",
+      "title": "Ориентировка во времени",
+      "items": [
+        {
+          "id": "audio/daily-orientation/daypart_day.mp3",
+          "key": "daypart_day",
+          "path": "audio/daily-orientation/daypart_day.mp3",
+          "url": "/audio/daily-orientation/daypart_day.mp3",
+          "label": "день",
+          "category": "Слова и фразы",
+          "version": "ff8c15350909cfeb"
+        },
+        {
+          "id": "audio/daily-orientation/daypart_evening.mp3",
+          "key": "daypart_evening",
+          "path": "audio/daily-orientation/daypart_evening.mp3",
+          "url": "/audio/daily-orientation/daypart_evening.mp3",
+          "label": "вечер",
+          "category": "Слова и фразы",
+          "version": "3ced9cc7f517bd89"
+        },
+        {
+          "id": "audio/daily-orientation/daypart_morning.mp3",
+          "key": "daypart_morning",
+          "path": "audio/daily-orientation/daypart_morning.mp3",
+          "url": "/audio/daily-orientation/daypart_morning.mp3",
+          "label": "утро",
+          "category": "Слова и фразы",
+          "version": "87344294cf98be1f"
+        },
+        {
+          "id": "audio/daily-orientation/daypart_night.mp3",
+          "key": "daypart_night",
+          "path": "audio/daily-orientation/daypart_night.mp3",
+          "url": "/audio/daily-orientation/daypart_night.mp3",
+          "label": "ночь",
+          "category": "Слова и фразы",
+          "version": "b918b1105717b922"
+        },
+        {
+          "id": "audio/daily-orientation/hour_00.mp3",
+          "key": "hour_00",
+          "path": "audio/daily-orientation/hour_00.mp3",
+          "url": "/audio/daily-orientation/hour_00.mp3",
+          "label": "ноль часов",
+          "category": "Слова и фразы",
+          "version": "90dd909cb36e48a0"
+        },
+        {
+          "id": "audio/daily-orientation/hour_01.mp3",
+          "key": "hour_01",
+          "path": "audio/daily-orientation/hour_01.mp3",
+          "url": "/audio/daily-orientation/hour_01.mp3",
+          "label": "один час",
+          "category": "Слова и фразы",
+          "version": "42d35e5750b69b47"
+        },
+        {
+          "id": "audio/daily-orientation/hour_02.mp3",
+          "key": "hour_02",
+          "path": "audio/daily-orientation/hour_02.mp3",
+          "url": "/audio/daily-orientation/hour_02.mp3",
+          "label": "два часа",
+          "category": "Слова и фразы",
+          "version": "06710dccdf3f724f"
+        },
+        {
+          "id": "audio/daily-orientation/hour_03.mp3",
+          "key": "hour_03",
+          "path": "audio/daily-orientation/hour_03.mp3",
+          "url": "/audio/daily-orientation/hour_03.mp3",
+          "label": "три часа",
+          "category": "Слова и фразы",
+          "version": "25c256405e53c719"
+        },
+        {
+          "id": "audio/daily-orientation/hour_04.mp3",
+          "key": "hour_04",
+          "path": "audio/daily-orientation/hour_04.mp3",
+          "url": "/audio/daily-orientation/hour_04.mp3",
+          "label": "четыре часа",
+          "category": "Слова и фразы",
+          "version": "f4d861c1ef2ed654"
+        },
+        {
+          "id": "audio/daily-orientation/hour_05.mp3",
+          "key": "hour_05",
+          "path": "audio/daily-orientation/hour_05.mp3",
+          "url": "/audio/daily-orientation/hour_05.mp3",
+          "label": "пять часов",
+          "category": "Слова и фразы",
+          "version": "59f6ddcd2ae7de1a"
+        },
+        {
+          "id": "audio/daily-orientation/hour_06.mp3",
+          "key": "hour_06",
+          "path": "audio/daily-orientation/hour_06.mp3",
+          "url": "/audio/daily-orientation/hour_06.mp3",
+          "label": "шесть часов",
+          "category": "Слова и фразы",
+          "version": "d2cf5f87492c1737"
+        },
+        {
+          "id": "audio/daily-orientation/hour_07.mp3",
+          "key": "hour_07",
+          "path": "audio/daily-orientation/hour_07.mp3",
+          "url": "/audio/daily-orientation/hour_07.mp3",
+          "label": "семь часов",
+          "category": "Слова и фразы",
+          "version": "8e44a10c2ad1f7c8"
+        },
+        {
+          "id": "audio/daily-orientation/hour_08.mp3",
+          "key": "hour_08",
+          "path": "audio/daily-orientation/hour_08.mp3",
+          "url": "/audio/daily-orientation/hour_08.mp3",
+          "label": "восемь часов",
+          "category": "Слова и фразы",
+          "version": "1268016194d946da"
+        },
+        {
+          "id": "audio/daily-orientation/hour_09.mp3",
+          "key": "hour_09",
+          "path": "audio/daily-orientation/hour_09.mp3",
+          "url": "/audio/daily-orientation/hour_09.mp3",
+          "label": "девять часов",
+          "category": "Слова и фразы",
+          "version": "c086ea665c405c78"
+        },
+        {
+          "id": "audio/daily-orientation/hour_10.mp3",
+          "key": "hour_10",
+          "path": "audio/daily-orientation/hour_10.mp3",
+          "url": "/audio/daily-orientation/hour_10.mp3",
+          "label": "десять часов",
+          "category": "Слова и фразы",
+          "version": "a9e9957a3834d314"
+        },
+        {
+          "id": "audio/daily-orientation/hour_11.mp3",
+          "key": "hour_11",
+          "path": "audio/daily-orientation/hour_11.mp3",
+          "url": "/audio/daily-orientation/hour_11.mp3",
+          "label": "одиннадцать часов",
+          "category": "Слова и фразы",
+          "version": "8cafa04df4d251b4"
+        },
+        {
+          "id": "audio/daily-orientation/hour_12.mp3",
+          "key": "hour_12",
+          "path": "audio/daily-orientation/hour_12.mp3",
+          "url": "/audio/daily-orientation/hour_12.mp3",
+          "label": "двенадцать часов",
+          "category": "Слова и фразы",
+          "version": "624cbc4b90613db1"
+        },
+        {
+          "id": "audio/daily-orientation/hour_13.mp3",
+          "key": "hour_13",
+          "path": "audio/daily-orientation/hour_13.mp3",
+          "url": "/audio/daily-orientation/hour_13.mp3",
+          "label": "тринадцать часов",
+          "category": "Слова и фразы",
+          "version": "cf99657730781564"
+        },
+        {
+          "id": "audio/daily-orientation/hour_14.mp3",
+          "key": "hour_14",
+          "path": "audio/daily-orientation/hour_14.mp3",
+          "url": "/audio/daily-orientation/hour_14.mp3",
+          "label": "четырнадцать часов",
+          "category": "Слова и фразы",
+          "version": "e5d84117766609e4"
+        },
+        {
+          "id": "audio/daily-orientation/hour_15.mp3",
+          "key": "hour_15",
+          "path": "audio/daily-orientation/hour_15.mp3",
+          "url": "/audio/daily-orientation/hour_15.mp3",
+          "label": "пятнадцать часов",
+          "category": "Слова и фразы",
+          "version": "c4e056289ddea69e"
+        },
+        {
+          "id": "audio/daily-orientation/hour_16.mp3",
+          "key": "hour_16",
+          "path": "audio/daily-orientation/hour_16.mp3",
+          "url": "/audio/daily-orientation/hour_16.mp3",
+          "label": "шестнадцать часов",
+          "category": "Слова и фразы",
+          "version": "5f9e20255862d892"
+        },
+        {
+          "id": "audio/daily-orientation/hour_17.mp3",
+          "key": "hour_17",
+          "path": "audio/daily-orientation/hour_17.mp3",
+          "url": "/audio/daily-orientation/hour_17.mp3",
+          "label": "семнадцать часов",
+          "category": "Слова и фразы",
+          "version": "9e4ff394dd950325"
+        },
+        {
+          "id": "audio/daily-orientation/lead_now.mp3",
+          "key": "lead_now",
+          "path": "audio/daily-orientation/lead_now.mp3",
+          "url": "/audio/daily-orientation/lead_now.mp3",
+          "label": "Сейчас",
+          "category": "Слова и фразы",
+          "version": "dff6b2198fb46ef1"
+        },
+        {
+          "id": "audio/daily-orientation/lead_today.mp3",
+          "key": "lead_today",
+          "path": "audio/daily-orientation/lead_today.mp3",
+          "url": "/audio/daily-orientation/lead_today.mp3",
+          "label": "Сегодня",
+          "category": "Слова и фразы",
+          "version": "e68ae7c4484344c5"
+        },
+        {
+          "id": "audio/daily-orientation/lead_tomorrow.mp3",
+          "key": "lead_tomorrow",
+          "path": "audio/daily-orientation/lead_tomorrow.mp3",
+          "url": "/audio/daily-orientation/lead_tomorrow.mp3",
+          "label": "Завтра будет",
+          "category": "Слова и фразы",
+          "version": "3edfd80695d935c3"
+        },
+        {
+          "id": "audio/daily-orientation/lead_weather.mp3",
+          "key": "lead_weather",
+          "path": "audio/daily-orientation/lead_weather.mp3",
+          "url": "/audio/daily-orientation/lead_weather.mp3",
+          "label": "Погода",
+          "category": "Слова и фразы",
+          "version": "c2ac01ea34494e80"
+        },
+        {
+          "id": "audio/daily-orientation/lead_yesterday_f.mp3",
+          "key": "lead_yesterday_f",
+          "path": "audio/daily-orientation/lead_yesterday_f.mp3",
+          "url": "/audio/daily-orientation/lead_yesterday_f.mp3",
+          "label": "Вчера была",
+          "category": "Слова и фразы",
+          "version": "82244c4eb43aac4a"
+        },
+        {
+          "id": "audio/daily-orientation/lead_yesterday_m.mp3",
+          "key": "lead_yesterday_m",
+          "path": "audio/daily-orientation/lead_yesterday_m.mp3",
+          "url": "/audio/daily-orientation/lead_yesterday_m.mp3",
+          "label": "Вчера был",
+          "category": "Слова и фразы",
+          "version": "54f283baba738b10"
+        },
+        {
+          "id": "audio/daily-orientation/lead_yesterday_n.mp3",
+          "key": "lead_yesterday_n",
+          "path": "audio/daily-orientation/lead_yesterday_n.mp3",
+          "url": "/audio/daily-orientation/lead_yesterday_n.mp3",
+          "label": "Вчера было",
+          "category": "Слова и фразы",
+          "version": "4a13d51fd0d29cb3"
+        },
+        {
+          "id": "audio/daily-orientation/min_35.mp3",
+          "key": "min_35",
+          "path": "audio/daily-orientation/min_35.mp3",
+          "url": "/audio/daily-orientation/min_35.mp3",
+          "label": "тридцать пять минут",
+          "category": "Слова и фразы",
+          "version": "3e1f4a2bd25dff5f"
+        },
+        {
+          "id": "audio/daily-orientation/month_1.mp3",
+          "key": "month_1",
+          "path": "audio/daily-orientation/month_1.mp3",
+          "url": "/audio/daily-orientation/month_1.mp3",
+          "label": "январь",
+          "category": "Слова и фразы",
+          "version": "aad7575aef2730bf"
+        },
+        {
+          "id": "audio/daily-orientation/month_2.mp3",
+          "key": "month_2",
+          "path": "audio/daily-orientation/month_2.mp3",
+          "url": "/audio/daily-orientation/month_2.mp3",
+          "label": "февраль",
+          "category": "Слова и фразы",
+          "version": "7e1e50f56f36cd42"
+        },
+        {
+          "id": "audio/daily-orientation/month_3.mp3",
+          "key": "month_3",
+          "path": "audio/daily-orientation/month_3.mp3",
+          "url": "/audio/daily-orientation/month_3.mp3",
+          "label": "март",
+          "category": "Слова и фразы",
+          "version": "4ef073e42dbd0c91"
+        },
+        {
+          "id": "audio/daily-orientation/month_4.mp3",
+          "key": "month_4",
+          "path": "audio/daily-orientation/month_4.mp3",
+          "url": "/audio/daily-orientation/month_4.mp3",
+          "label": "апрель",
+          "category": "Слова и фразы",
+          "version": "c996c050c88520bf"
+        },
+        {
+          "id": "audio/daily-orientation/month_5.mp3",
+          "key": "month_5",
+          "path": "audio/daily-orientation/month_5.mp3",
+          "url": "/audio/daily-orientation/month_5.mp3",
+          "label": "май",
+          "category": "Слова и фразы",
+          "version": "ccbaa2363c770d97"
+        },
+        {
+          "id": "audio/daily-orientation/month_6.mp3",
+          "key": "month_6",
+          "path": "audio/daily-orientation/month_6.mp3",
+          "url": "/audio/daily-orientation/month_6.mp3",
+          "label": "июнь",
+          "category": "Слова и фразы",
+          "version": "58ae3029a187cec0"
+        },
+        {
+          "id": "audio/daily-orientation/month_7.mp3",
+          "key": "month_7",
+          "path": "audio/daily-orientation/month_7.mp3",
+          "url": "/audio/daily-orientation/month_7.mp3",
+          "label": "июль",
+          "category": "Слова и фразы",
+          "version": "688d69d0c4a38d29"
+        },
+        {
+          "id": "audio/daily-orientation/month_8.mp3",
+          "key": "month_8",
+          "path": "audio/daily-orientation/month_8.mp3",
+          "url": "/audio/daily-orientation/month_8.mp3",
+          "label": "август",
+          "category": "Слова и фразы",
+          "version": "fb6d50a198ed0418"
+        },
+        {
+          "id": "audio/daily-orientation/month_9.mp3",
+          "key": "month_9",
+          "path": "audio/daily-orientation/month_9.mp3",
+          "url": "/audio/daily-orientation/month_9.mp3",
+          "label": "сентябрь",
+          "category": "Слова и фразы",
+          "version": "f03661b444ef3c7e"
+        },
+        {
+          "id": "audio/daily-orientation/month_10.mp3",
+          "key": "month_10",
+          "path": "audio/daily-orientation/month_10.mp3",
+          "url": "/audio/daily-orientation/month_10.mp3",
+          "label": "октябрь",
+          "category": "Слова и фразы",
+          "version": "52b54ee17abeea5f"
+        },
+        {
+          "id": "audio/daily-orientation/month_11.mp3",
+          "key": "month_11",
+          "path": "audio/daily-orientation/month_11.mp3",
+          "url": "/audio/daily-orientation/month_11.mp3",
+          "label": "ноябрь",
+          "category": "Слова и фразы",
+          "version": "5a9f44c083b3313d"
+        },
+        {
+          "id": "audio/daily-orientation/month_12.mp3",
+          "key": "month_12",
+          "path": "audio/daily-orientation/month_12.mp3",
+          "url": "/audio/daily-orientation/month_12.mp3",
+          "label": "декабрь",
+          "category": "Слова и фразы",
+          "version": "ab63a91b30493a90"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_1.mp3",
+          "key": "month_gen_1",
+          "path": "audio/daily-orientation/month_gen_1.mp3",
+          "url": "/audio/daily-orientation/month_gen_1.mp3",
+          "label": "января",
+          "category": "Слова и фразы",
+          "version": "233973ead9b1e186"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_2.mp3",
+          "key": "month_gen_2",
+          "path": "audio/daily-orientation/month_gen_2.mp3",
+          "url": "/audio/daily-orientation/month_gen_2.mp3",
+          "label": "февраля",
+          "category": "Слова и фразы",
+          "version": "e1b024c15f234897"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_3.mp3",
+          "key": "month_gen_3",
+          "path": "audio/daily-orientation/month_gen_3.mp3",
+          "url": "/audio/daily-orientation/month_gen_3.mp3",
+          "label": "марта",
+          "category": "Слова и фразы",
+          "version": "a51915cb04e93aa0"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_4.mp3",
+          "key": "month_gen_4",
+          "path": "audio/daily-orientation/month_gen_4.mp3",
+          "url": "/audio/daily-orientation/month_gen_4.mp3",
+          "label": "апреля",
+          "category": "Слова и фразы",
+          "version": "43264f0071aa23d4"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_5.mp3",
+          "key": "month_gen_5",
+          "path": "audio/daily-orientation/month_gen_5.mp3",
+          "url": "/audio/daily-orientation/month_gen_5.mp3",
+          "label": "мая",
+          "category": "Слова и фразы",
+          "version": "e588b2a322c7fb72"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_6.mp3",
+          "key": "month_gen_6",
+          "path": "audio/daily-orientation/month_gen_6.mp3",
+          "url": "/audio/daily-orientation/month_gen_6.mp3",
+          "label": "июня",
+          "category": "Слова и фразы",
+          "version": "82b61d49a990f4a3"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_7.mp3",
+          "key": "month_gen_7",
+          "path": "audio/daily-orientation/month_gen_7.mp3",
+          "url": "/audio/daily-orientation/month_gen_7.mp3",
+          "label": "июля",
+          "category": "Слова и фразы",
+          "version": "a59ca7fe5ed04568"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_8.mp3",
+          "key": "month_gen_8",
+          "path": "audio/daily-orientation/month_gen_8.mp3",
+          "url": "/audio/daily-orientation/month_gen_8.mp3",
+          "label": "августа",
+          "category": "Слова и фразы",
+          "version": "d22e78b41987c346"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_9.mp3",
+          "key": "month_gen_9",
+          "path": "audio/daily-orientation/month_gen_9.mp3",
+          "url": "/audio/daily-orientation/month_gen_9.mp3",
+          "label": "сентября",
+          "category": "Слова и фразы",
+          "version": "241f1055003098a7"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_10.mp3",
+          "key": "month_gen_10",
+          "path": "audio/daily-orientation/month_gen_10.mp3",
+          "url": "/audio/daily-orientation/month_gen_10.mp3",
+          "label": "октября",
+          "category": "Слова и фразы",
+          "version": "2a74e72c433e8380"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_11.mp3",
+          "key": "month_gen_11",
+          "path": "audio/daily-orientation/month_gen_11.mp3",
+          "url": "/audio/daily-orientation/month_gen_11.mp3",
+          "label": "ноября",
+          "category": "Слова и фразы",
+          "version": "edddec80ba4c5402"
+        },
+        {
+          "id": "audio/daily-orientation/month_gen_12.mp3",
+          "key": "month_gen_12",
+          "path": "audio/daily-orientation/month_gen_12.mp3",
+          "url": "/audio/daily-orientation/month_gen_12.mp3",
+          "label": "декабря",
+          "category": "Слова и фразы",
+          "version": "e3a056c9fa2c3dc4"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_1.mp3",
+          "key": "ordinal_1",
+          "path": "audio/daily-orientation/ordinal_1.mp3",
+          "url": "/audio/daily-orientation/ordinal_1.mp3",
+          "label": "первое",
+          "category": "Слова и фразы",
+          "version": "5ddf442aaed5f8cf"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_2.mp3",
+          "key": "ordinal_2",
+          "path": "audio/daily-orientation/ordinal_2.mp3",
+          "url": "/audio/daily-orientation/ordinal_2.mp3",
+          "label": "второе",
+          "category": "Слова и фразы",
+          "version": "efd1fc72e65bb3a1"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_3.mp3",
+          "key": "ordinal_3",
+          "path": "audio/daily-orientation/ordinal_3.mp3",
+          "url": "/audio/daily-orientation/ordinal_3.mp3",
+          "label": "третье",
+          "category": "Слова и фразы",
+          "version": "994a18ddf7c04d84"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_4.mp3",
+          "key": "ordinal_4",
+          "path": "audio/daily-orientation/ordinal_4.mp3",
+          "url": "/audio/daily-orientation/ordinal_4.mp3",
+          "label": "четвёртое",
+          "category": "Слова и фразы",
+          "version": "cbcf9152f7018bf9"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_5.mp3",
+          "key": "ordinal_5",
+          "path": "audio/daily-orientation/ordinal_5.mp3",
+          "url": "/audio/daily-orientation/ordinal_5.mp3",
+          "label": "пятое",
+          "category": "Слова и фразы",
+          "version": "3f496c45d2f0fb98"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_6.mp3",
+          "key": "ordinal_6",
+          "path": "audio/daily-orientation/ordinal_6.mp3",
+          "url": "/audio/daily-orientation/ordinal_6.mp3",
+          "label": "шестое",
+          "category": "Слова и фразы",
+          "version": "59bce82e58a363d0"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_7.mp3",
+          "key": "ordinal_7",
+          "path": "audio/daily-orientation/ordinal_7.mp3",
+          "url": "/audio/daily-orientation/ordinal_7.mp3",
+          "label": "седьмое",
+          "category": "Слова и фразы",
+          "version": "ade5034cc91ee2ce"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_8.mp3",
+          "key": "ordinal_8",
+          "path": "audio/daily-orientation/ordinal_8.mp3",
+          "url": "/audio/daily-orientation/ordinal_8.mp3",
+          "label": "восьмое",
+          "category": "Слова и фразы",
+          "version": "2f4c16034b1a610f"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_9.mp3",
+          "key": "ordinal_9",
+          "path": "audio/daily-orientation/ordinal_9.mp3",
+          "url": "/audio/daily-orientation/ordinal_9.mp3",
+          "label": "девятое",
+          "category": "Слова и фразы",
+          "version": "65107e6a476b86e8"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_10.mp3",
+          "key": "ordinal_10",
+          "path": "audio/daily-orientation/ordinal_10.mp3",
+          "url": "/audio/daily-orientation/ordinal_10.mp3",
+          "label": "десятое",
+          "category": "Слова и фразы",
+          "version": "c46d01dcc4794e76"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_11.mp3",
+          "key": "ordinal_11",
+          "path": "audio/daily-orientation/ordinal_11.mp3",
+          "url": "/audio/daily-orientation/ordinal_11.mp3",
+          "label": "одиннадцатое",
+          "category": "Слова и фразы",
+          "version": "eb2f5be77fb0e67f"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_12.mp3",
+          "key": "ordinal_12",
+          "path": "audio/daily-orientation/ordinal_12.mp3",
+          "url": "/audio/daily-orientation/ordinal_12.mp3",
+          "label": "двенадцатое",
+          "category": "Слова и фразы",
+          "version": "397db5e8c2ec2628"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_13.mp3",
+          "key": "ordinal_13",
+          "path": "audio/daily-orientation/ordinal_13.mp3",
+          "url": "/audio/daily-orientation/ordinal_13.mp3",
+          "label": "тринадцатое",
+          "category": "Слова и фразы",
+          "version": "4e1723a3235dc3ee"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_14.mp3",
+          "key": "ordinal_14",
+          "path": "audio/daily-orientation/ordinal_14.mp3",
+          "url": "/audio/daily-orientation/ordinal_14.mp3",
+          "label": "четырнадцатое",
+          "category": "Слова и фразы",
+          "version": "ec9bd088c1553ce1"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_15.mp3",
+          "key": "ordinal_15",
+          "path": "audio/daily-orientation/ordinal_15.mp3",
+          "url": "/audio/daily-orientation/ordinal_15.mp3",
+          "label": "пятнадцатое",
+          "category": "Слова и фразы",
+          "version": "d8837ea8a5baa722"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_16.mp3",
+          "key": "ordinal_16",
+          "path": "audio/daily-orientation/ordinal_16.mp3",
+          "url": "/audio/daily-orientation/ordinal_16.mp3",
+          "label": "шестнадцатое",
+          "category": "Слова и фразы",
+          "version": "648550f3e5743117"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_17.mp3",
+          "key": "ordinal_17",
+          "path": "audio/daily-orientation/ordinal_17.mp3",
+          "url": "/audio/daily-orientation/ordinal_17.mp3",
+          "label": "семнадцатое",
+          "category": "Слова и фразы",
+          "version": "5e1efd686e37a944"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_18.mp3",
+          "key": "ordinal_18",
+          "path": "audio/daily-orientation/ordinal_18.mp3",
+          "url": "/audio/daily-orientation/ordinal_18.mp3",
+          "label": "восемнадцатое",
+          "category": "Слова и фразы",
+          "version": "934444f324f2f541"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_19.mp3",
+          "key": "ordinal_19",
+          "path": "audio/daily-orientation/ordinal_19.mp3",
+          "url": "/audio/daily-orientation/ordinal_19.mp3",
+          "label": "девятнадцатое",
+          "category": "Слова и фразы",
+          "version": "47eccc3b55a65033"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_20.mp3",
+          "key": "ordinal_20",
+          "path": "audio/daily-orientation/ordinal_20.mp3",
+          "url": "/audio/daily-orientation/ordinal_20.mp3",
+          "label": "двадцатое",
+          "category": "Слова и фразы",
+          "version": "a5f4a4c88f055c0e"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_21.mp3",
+          "key": "ordinal_21",
+          "path": "audio/daily-orientation/ordinal_21.mp3",
+          "url": "/audio/daily-orientation/ordinal_21.mp3",
+          "label": "двадцать первое",
+          "category": "Слова и фразы",
+          "version": "e2bf46a98e6c19cb"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_22.mp3",
+          "key": "ordinal_22",
+          "path": "audio/daily-orientation/ordinal_22.mp3",
+          "url": "/audio/daily-orientation/ordinal_22.mp3",
+          "label": "двадцать второе",
+          "category": "Слова и фразы",
+          "version": "f3a0ccc74b509a8b"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_23.mp3",
+          "key": "ordinal_23",
+          "path": "audio/daily-orientation/ordinal_23.mp3",
+          "url": "/audio/daily-orientation/ordinal_23.mp3",
+          "label": "двадцать третье",
+          "category": "Слова и фразы",
+          "version": "f9982a099ff5d1af"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_24.mp3",
+          "key": "ordinal_24",
+          "path": "audio/daily-orientation/ordinal_24.mp3",
+          "url": "/audio/daily-orientation/ordinal_24.mp3",
+          "label": "двадцать четвёртое",
+          "category": "Слова и фразы",
+          "version": "76de201983178804"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_25.mp3",
+          "key": "ordinal_25",
+          "path": "audio/daily-orientation/ordinal_25.mp3",
+          "url": "/audio/daily-orientation/ordinal_25.mp3",
+          "label": "двадцать пятое",
+          "category": "Слова и фразы",
+          "version": "747efec087454449"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_26.mp3",
+          "key": "ordinal_26",
+          "path": "audio/daily-orientation/ordinal_26.mp3",
+          "url": "/audio/daily-orientation/ordinal_26.mp3",
+          "label": "двадцать шестое",
+          "category": "Слова и фразы",
+          "version": "4eb7c3f3fa8aa700"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_27.mp3",
+          "key": "ordinal_27",
+          "path": "audio/daily-orientation/ordinal_27.mp3",
+          "url": "/audio/daily-orientation/ordinal_27.mp3",
+          "label": "двадцать седьмое",
+          "category": "Слова и фразы",
+          "version": "ab0552a9b26149d8"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_28.mp3",
+          "key": "ordinal_28",
+          "path": "audio/daily-orientation/ordinal_28.mp3",
+          "url": "/audio/daily-orientation/ordinal_28.mp3",
+          "label": "двадцать восьмое",
+          "category": "Слова и фразы",
+          "version": "2ec5e531f353b08b"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_29.mp3",
+          "key": "ordinal_29",
+          "path": "audio/daily-orientation/ordinal_29.mp3",
+          "url": "/audio/daily-orientation/ordinal_29.mp3",
+          "label": "двадцать девятое",
+          "category": "Слова и фразы",
+          "version": "9fc55c6f164a7b0e"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_30.mp3",
+          "key": "ordinal_30",
+          "path": "audio/daily-orientation/ordinal_30.mp3",
+          "url": "/audio/daily-orientation/ordinal_30.mp3",
+          "label": "тридцатое",
+          "category": "Слова и фразы",
+          "version": "9e1ab10b2207d2bc"
+        },
+        {
+          "id": "audio/daily-orientation/ordinal_31.mp3",
+          "key": "ordinal_31",
+          "path": "audio/daily-orientation/ordinal_31.mp3",
+          "url": "/audio/daily-orientation/ordinal_31.mp3",
+          "label": "тридцать первое",
+          "category": "Слова и фразы",
+          "version": "9290d2ae80712606"
+        },
+        {
+          "id": "audio/daily-orientation/season_autumn.mp3",
+          "key": "season_autumn",
+          "path": "audio/daily-orientation/season_autumn.mp3",
+          "url": "/audio/daily-orientation/season_autumn.mp3",
+          "label": "осень",
+          "category": "Слова и фразы",
+          "version": "502c8c67c5ad9a64"
+        },
+        {
+          "id": "audio/daily-orientation/season_spring.mp3",
+          "key": "season_spring",
+          "path": "audio/daily-orientation/season_spring.mp3",
+          "url": "/audio/daily-orientation/season_spring.mp3",
+          "label": "весна",
+          "category": "Слова и фразы",
+          "version": "7100f8ca033ab79a"
+        },
+        {
+          "id": "audio/daily-orientation/season_summer.mp3",
+          "key": "season_summer",
+          "path": "audio/daily-orientation/season_summer.mp3",
+          "url": "/audio/daily-orientation/season_summer.mp3",
+          "label": "лето",
+          "category": "Слова и фразы",
+          "version": "98c24063b9429b95"
+        },
+        {
+          "id": "audio/daily-orientation/season_winter.mp3",
+          "key": "season_winter",
+          "path": "audio/daily-orientation/season_winter.mp3",
+          "url": "/audio/daily-orientation/season_winter.mp3",
+          "label": "зима",
+          "category": "Слова и фразы",
+          "version": "c2559d7d4f7ffe04"
+        },
+        {
+          "id": "audio/daily-orientation/weather_cloudy.mp3",
+          "key": "weather_cloudy",
+          "path": "audio/daily-orientation/weather_cloudy.mp3",
+          "url": "/audio/daily-orientation/weather_cloudy.mp3",
+          "label": "пасмурная",
+          "category": "Слова и фразы",
+          "version": "9f9463dfae1243fb"
+        },
+        {
+          "id": "audio/daily-orientation/weather_fog.mp3",
+          "key": "weather_fog",
+          "path": "audio/daily-orientation/weather_fog.mp3",
+          "url": "/audio/daily-orientation/weather_fog.mp3",
+          "label": "туманная",
+          "category": "Слова и фразы",
+          "version": "39d4eff492202de1"
+        },
+        {
+          "id": "audio/daily-orientation/weather_rain.mp3",
+          "key": "weather_rain",
+          "path": "audio/daily-orientation/weather_rain.mp3",
+          "url": "/audio/daily-orientation/weather_rain.mp3",
+          "label": "дождливая",
+          "category": "Слова и фразы",
+          "version": "aeb74286098640a7"
+        },
+        {
+          "id": "audio/daily-orientation/weather_snow.mp3",
+          "key": "weather_snow",
+          "path": "audio/daily-orientation/weather_snow.mp3",
+          "url": "/audio/daily-orientation/weather_snow.mp3",
+          "label": "снежная",
+          "category": "Слова и фразы",
+          "version": "ce40e677b8804c31"
+        },
+        {
+          "id": "audio/daily-orientation/weather_sunny.mp3",
+          "key": "weather_sunny",
+          "path": "audio/daily-orientation/weather_sunny.mp3",
+          "url": "/audio/daily-orientation/weather_sunny.mp3",
+          "label": "солнечная",
+          "category": "Слова и фразы",
+          "version": "83e5bb1293d7e200"
+        },
+        {
+          "id": "audio/daily-orientation/weekday_0.mp3",
+          "key": "weekday_0",
+          "path": "audio/daily-orientation/weekday_0.mp3",
+          "url": "/audio/daily-orientation/weekday_0.mp3",
+          "label": "воскресенье",
+          "category": "Слова и фразы",
+          "version": "b3801f283ee9a20a"
+        },
+        {
+          "id": "audio/daily-orientation/weekday_1.mp3",
+          "key": "weekday_1",
+          "path": "audio/daily-orientation/weekday_1.mp3",
+          "url": "/audio/daily-orientation/weekday_1.mp3",
+          "label": "понедельник",
+          "category": "Слова и фразы",
+          "version": "1bee668ec12956a2"
+        },
+        {
+          "id": "audio/daily-orientation/weekday_2.mp3",
+          "key": "weekday_2",
+          "path": "audio/daily-orientation/weekday_2.mp3",
+          "url": "/audio/daily-orientation/weekday_2.mp3",
+          "label": "вторник",
+          "category": "Слова и фразы",
+          "version": "0a12b6a2b7992c7a"
+        },
+        {
+          "id": "audio/daily-orientation/weekday_3.mp3",
+          "key": "weekday_3",
+          "path": "audio/daily-orientation/weekday_3.mp3",
+          "url": "/audio/daily-orientation/weekday_3.mp3",
+          "label": "среда",
+          "category": "Слова и фразы",
+          "version": "eeee5399b3a480fa"
+        },
+        {
+          "id": "audio/daily-orientation/weekday_4.mp3",
+          "key": "weekday_4",
+          "path": "audio/daily-orientation/weekday_4.mp3",
+          "url": "/audio/daily-orientation/weekday_4.mp3",
+          "label": "четверг",
+          "category": "Слова и фразы",
+          "version": "0295ef033e2456b7"
+        },
+        {
+          "id": "audio/daily-orientation/weekday_5.mp3",
+          "key": "weekday_5",
+          "path": "audio/daily-orientation/weekday_5.mp3",
+          "url": "/audio/daily-orientation/weekday_5.mp3",
+          "label": "пятница",
+          "category": "Слова и фразы",
+          "version": "3ef75372ed3e4d36"
+        },
+        {
+          "id": "audio/daily-orientation/weekday_6.mp3",
+          "key": "weekday_6",
+          "path": "audio/daily-orientation/weekday_6.mp3",
+          "url": "/audio/daily-orientation/weekday_6.mp3",
+          "label": "суббота",
+          "category": "Слова и фразы",
+          "version": "551fb54a4d3e3b5c"
+        }
+      ]
+    },
+    {
+      "id": "audio/propis-dictation",
+      "title": "Прописи — диктант",
+      "items": [
+        {
+          "id": "audio/propis-dictation/case_lower.mp3",
+          "key": "case_lower",
+          "path": "audio/propis-dictation/case_lower.mp3",
+          "url": "/audio/propis-dictation/case_lower.mp3",
+          "label": "Строчная",
+          "category": "Прочее",
+          "version": "099aba98f5875cdb"
+        },
+        {
+          "id": "audio/propis-dictation/case_upper.mp3",
+          "key": "case_upper",
+          "path": "audio/propis-dictation/case_upper.mp3",
+          "url": "/audio/propis-dictation/case_upper.mp3",
+          "label": "Заглавная",
+          "category": "Прочее",
+          "version": "c8d8b770004fe598"
+        },
+        {
+          "id": "audio/propis-dictation/sound_а.mp3",
+          "key": "sound_а",
+          "path": "audio/propis-dictation/sound_а.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%B0.mp3",
+          "label": "Звук «а»",
+          "category": "Буквы",
+          "version": "8e97d2aeaec66483"
+        },
+        {
+          "id": "audio/propis-dictation/sound_б.mp3",
+          "key": "sound_б",
+          "path": "audio/propis-dictation/sound_б.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%B1.mp3",
+          "label": "Звук «б»",
+          "category": "Буквы",
+          "version": "72d7d2f5fc0a5669"
+        },
+        {
+          "id": "audio/propis-dictation/sound_в.mp3",
+          "key": "sound_в",
+          "path": "audio/propis-dictation/sound_в.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%B2.mp3",
+          "label": "Звук «в»",
+          "category": "Буквы",
+          "version": "4bbff2c6faa3292f"
+        },
+        {
+          "id": "audio/propis-dictation/sound_г.mp3",
+          "key": "sound_г",
+          "path": "audio/propis-dictation/sound_г.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%B3.mp3",
+          "label": "Звук «г»",
+          "category": "Буквы",
+          "version": "e6c5b5f64cccc47d"
+        },
+        {
+          "id": "audio/propis-dictation/sound_д.mp3",
+          "key": "sound_д",
+          "path": "audio/propis-dictation/sound_д.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%B4.mp3",
+          "label": "Звук «д»",
+          "category": "Буквы",
+          "version": "aade68b24a502ef1"
+        },
+        {
+          "id": "audio/propis-dictation/sound_е.mp3",
+          "key": "sound_е",
+          "path": "audio/propis-dictation/sound_е.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%B5.mp3",
+          "label": "Звук «е»",
+          "category": "Буквы",
+          "version": "409aa7394464d2c1"
+        },
+        {
+          "id": "audio/propis-dictation/sound_ё.mp3",
+          "key": "sound_ё",
+          "path": "audio/propis-dictation/sound_ё.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%91.mp3",
+          "label": "Звук «ё»",
+          "category": "Буквы",
+          "version": "3abaf2eee58e9e33"
+        },
+        {
+          "id": "audio/propis-dictation/sound_ж.mp3",
+          "key": "sound_ж",
+          "path": "audio/propis-dictation/sound_ж.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%B6.mp3",
+          "label": "Звук «ж»",
+          "category": "Буквы",
+          "version": "74a66aa7a4269141"
+        },
+        {
+          "id": "audio/propis-dictation/sound_з.mp3",
+          "key": "sound_з",
+          "path": "audio/propis-dictation/sound_з.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%B7.mp3",
+          "label": "Звук «з»",
+          "category": "Буквы",
+          "version": "bb1fa75ddcc88bf4"
+        },
+        {
+          "id": "audio/propis-dictation/sound_и.mp3",
+          "key": "sound_и",
+          "path": "audio/propis-dictation/sound_и.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%B8.mp3",
+          "label": "Звук «и»",
+          "category": "Буквы",
+          "version": "12d0af28fc6050ff"
+        },
+        {
+          "id": "audio/propis-dictation/sound_й.mp3",
+          "key": "sound_й",
+          "path": "audio/propis-dictation/sound_й.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%B9.mp3",
+          "label": "Звук «й»",
+          "category": "Буквы",
+          "version": "88b3d0c019ad6fd6"
+        },
+        {
+          "id": "audio/propis-dictation/sound_к.mp3",
+          "key": "sound_к",
+          "path": "audio/propis-dictation/sound_к.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%BA.mp3",
+          "label": "Звук «к»",
+          "category": "Буквы",
+          "version": "964c5b1d3a1363d7"
+        },
+        {
+          "id": "audio/propis-dictation/sound_л.mp3",
+          "key": "sound_л",
+          "path": "audio/propis-dictation/sound_л.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%BB.mp3",
+          "label": "Звук «л»",
+          "category": "Буквы",
+          "version": "98ff4d8950ea451b"
+        },
+        {
+          "id": "audio/propis-dictation/sound_м.mp3",
+          "key": "sound_м",
+          "path": "audio/propis-dictation/sound_м.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%BC.mp3",
+          "label": "Звук «м»",
+          "category": "Буквы",
+          "version": "38379aab1fdd8b03"
+        },
+        {
+          "id": "audio/propis-dictation/sound_н.mp3",
+          "key": "sound_н",
+          "path": "audio/propis-dictation/sound_н.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%BD.mp3",
+          "label": "Звук «н»",
+          "category": "Буквы",
+          "version": "22b26c66f5fb379f"
+        },
+        {
+          "id": "audio/propis-dictation/sound_о.mp3",
+          "key": "sound_о",
+          "path": "audio/propis-dictation/sound_о.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%BE.mp3",
+          "label": "Звук «о»",
+          "category": "Буквы",
+          "version": "c7a9700b77b1fc71"
+        },
+        {
+          "id": "audio/propis-dictation/sound_п.mp3",
+          "key": "sound_п",
+          "path": "audio/propis-dictation/sound_п.mp3",
+          "url": "/audio/propis-dictation/sound_%D0%BF.mp3",
+          "label": "Звук «п»",
+          "category": "Буквы",
+          "version": "a89b2f255b3701d2"
+        },
+        {
+          "id": "audio/propis-dictation/sound_р.mp3",
+          "key": "sound_р",
+          "path": "audio/propis-dictation/sound_р.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%80.mp3",
+          "label": "Звук «р»",
+          "category": "Буквы",
+          "version": "e3366875e45d30c9"
+        },
+        {
+          "id": "audio/propis-dictation/sound_с.mp3",
+          "key": "sound_с",
+          "path": "audio/propis-dictation/sound_с.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%81.mp3",
+          "label": "Звук «с»",
+          "category": "Буквы",
+          "version": "0e9320da545ef514"
+        },
+        {
+          "id": "audio/propis-dictation/sound_т.mp3",
+          "key": "sound_т",
+          "path": "audio/propis-dictation/sound_т.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%82.mp3",
+          "label": "Звук «т»",
+          "category": "Буквы",
+          "version": "c9917b2bc0163dc8"
+        },
+        {
+          "id": "audio/propis-dictation/sound_у.mp3",
+          "key": "sound_у",
+          "path": "audio/propis-dictation/sound_у.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%83.mp3",
+          "label": "Звук «у»",
+          "category": "Буквы",
+          "version": "ce021f0bbef8ad63"
+        },
+        {
+          "id": "audio/propis-dictation/sound_ф.mp3",
+          "key": "sound_ф",
+          "path": "audio/propis-dictation/sound_ф.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%84.mp3",
+          "label": "Звук «ф»",
+          "category": "Буквы",
+          "version": "e970367866099559"
+        },
+        {
+          "id": "audio/propis-dictation/sound_х.mp3",
+          "key": "sound_х",
+          "path": "audio/propis-dictation/sound_х.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%85.mp3",
+          "label": "Звук «х»",
+          "category": "Буквы",
+          "version": "07102be1e9d0567f"
+        },
+        {
+          "id": "audio/propis-dictation/sound_ц.mp3",
+          "key": "sound_ц",
+          "path": "audio/propis-dictation/sound_ц.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%86.mp3",
+          "label": "Звук «ц»",
+          "category": "Буквы",
+          "version": "4deaa5723931654a"
+        },
+        {
+          "id": "audio/propis-dictation/sound_ч.mp3",
+          "key": "sound_ч",
+          "path": "audio/propis-dictation/sound_ч.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%87.mp3",
+          "label": "Звук «ч»",
+          "category": "Буквы",
+          "version": "24b7b450fd5e7b2d"
+        },
+        {
+          "id": "audio/propis-dictation/sound_ш.mp3",
+          "key": "sound_ш",
+          "path": "audio/propis-dictation/sound_ш.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%88.mp3",
+          "label": "Звук «ш»",
+          "category": "Буквы",
+          "version": "0ba5867f41e61b34"
+        },
+        {
+          "id": "audio/propis-dictation/sound_щ.mp3",
+          "key": "sound_щ",
+          "path": "audio/propis-dictation/sound_щ.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%89.mp3",
+          "label": "Звук «щ»",
+          "category": "Буквы",
+          "version": "21d38d91ef5e9843"
+        },
+        {
+          "id": "audio/propis-dictation/sound_ъ.mp3",
+          "key": "sound_ъ",
+          "path": "audio/propis-dictation/sound_ъ.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%8A.mp3",
+          "label": "Звук «ъ»",
+          "category": "Буквы",
+          "version": "586bd62a7a5d04fe"
+        },
+        {
+          "id": "audio/propis-dictation/sound_ы.mp3",
+          "key": "sound_ы",
+          "path": "audio/propis-dictation/sound_ы.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%8B.mp3",
+          "label": "Звук «ы»",
+          "category": "Буквы",
+          "version": "93a97604756d2f2e"
+        },
+        {
+          "id": "audio/propis-dictation/sound_ь.mp3",
+          "key": "sound_ь",
+          "path": "audio/propis-dictation/sound_ь.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%8C.mp3",
+          "label": "Звук «ь»",
+          "category": "Буквы",
+          "version": "296a556d89f75931"
+        },
+        {
+          "id": "audio/propis-dictation/sound_э.mp3",
+          "key": "sound_э",
+          "path": "audio/propis-dictation/sound_э.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%8D.mp3",
+          "label": "Звук «э»",
+          "category": "Буквы",
+          "version": "10dfb46b87e25c5c"
+        },
+        {
+          "id": "audio/propis-dictation/sound_ю.mp3",
+          "key": "sound_ю",
+          "path": "audio/propis-dictation/sound_ю.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%8E.mp3",
+          "label": "Звук «ю»",
+          "category": "Буквы",
+          "version": "a89884dc1ead8644"
+        },
+        {
+          "id": "audio/propis-dictation/sound_я.mp3",
+          "key": "sound_я",
+          "path": "audio/propis-dictation/sound_я.mp3",
+          "url": "/audio/propis-dictation/sound_%D1%8F.mp3",
+          "label": "Звук «я»",
+          "category": "Буквы",
+          "version": "e667b09d50d9f66c"
+        },
+        {
+          "id": "audio/propis-dictation/word_w001.mp3",
+          "key": "word_w001",
+          "path": "audio/propis-dictation/word_w001.mp3",
+          "url": "/audio/propis-dictation/word_w001.mp3",
+          "label": "мама",
+          "category": "Слова",
+          "version": "b4787ea96bd00033"
+        },
+        {
+          "id": "audio/propis-dictation/word_w002.mp3",
+          "key": "word_w002",
+          "path": "audio/propis-dictation/word_w002.mp3",
+          "url": "/audio/propis-dictation/word_w002.mp3",
+          "label": "папа",
+          "category": "Слова",
+          "version": "797db0eeb406718f"
+        },
+        {
+          "id": "audio/propis-dictation/word_w003.mp3",
+          "key": "word_w003",
+          "path": "audio/propis-dictation/word_w003.mp3",
+          "url": "/audio/propis-dictation/word_w003.mp3",
+          "label": "лапа",
+          "category": "Слова",
+          "version": "7db616373e6f5381"
+        },
+        {
+          "id": "audio/propis-dictation/word_w004.mp3",
+          "key": "word_w004",
+          "path": "audio/propis-dictation/word_w004.mp3",
+          "url": "/audio/propis-dictation/word_w004.mp3",
+          "label": "липа",
+          "category": "Слова",
+          "version": "b29d02726d411e68"
+        },
+        {
+          "id": "audio/propis-dictation/word_w005.mp3",
+          "key": "word_w005",
+          "path": "audio/propis-dictation/word_w005.mp3",
+          "url": "/audio/propis-dictation/word_w005.mp3",
+          "label": "лето",
+          "category": "Слова",
+          "version": "d7821fe9062a6b11"
+        },
+        {
+          "id": "audio/propis-dictation/word_w006.mp3",
+          "key": "word_w006",
+          "path": "audio/propis-dictation/word_w006.mp3",
+          "url": "/audio/propis-dictation/word_w006.mp3",
+          "label": "лес",
+          "category": "Слова",
+          "version": "647674a49e0f2801"
+        },
+        {
+          "id": "audio/propis-dictation/word_w007.mp3",
+          "key": "word_w007",
+          "path": "audio/propis-dictation/word_w007.mp3",
+          "url": "/audio/propis-dictation/word_w007.mp3",
+          "label": "сом",
+          "category": "Слова",
+          "version": "ac0642d6e5a17658"
+        },
+        {
+          "id": "audio/propis-dictation/word_w008.mp3",
+          "key": "word_w008",
+          "path": "audio/propis-dictation/word_w008.mp3",
+          "url": "/audio/propis-dictation/word_w008.mp3",
+          "label": "стол",
+          "category": "Слова",
+          "version": "e04e7139b950cb95"
+        },
+        {
+          "id": "audio/propis-dictation/word_w009.mp3",
+          "key": "word_w009",
+          "path": "audio/propis-dictation/word_w009.mp3",
+          "url": "/audio/propis-dictation/word_w009.mp3",
+          "label": "мост",
+          "category": "Слова",
+          "version": "0c37f2dc74bd4ef8"
+        },
+        {
+          "id": "audio/propis-dictation/word_w010.mp3",
+          "key": "word_w010",
+          "path": "audio/propis-dictation/word_w010.mp3",
+          "url": "/audio/propis-dictation/word_w010.mp3",
+          "label": "масло",
+          "category": "Слова",
+          "version": "51ac7fcc0aaafe8b"
+        },
+        {
+          "id": "audio/propis-dictation/word_w011.mp3",
+          "key": "word_w011",
+          "path": "audio/propis-dictation/word_w011.mp3",
+          "url": "/audio/propis-dictation/word_w011.mp3",
+          "label": "тесто",
+          "category": "Слова",
+          "version": "5ef83a9cbeaca0b9"
+        },
+        {
+          "id": "audio/propis-dictation/word_w012.mp3",
+          "key": "word_w012",
+          "path": "audio/propis-dictation/word_w012.mp3",
+          "url": "/audio/propis-dictation/word_w012.mp3",
+          "label": "оса",
+          "category": "Слова",
+          "version": "6b3adcf4e8f836a3"
+        },
+        {
+          "id": "audio/propis-dictation/word_w013.mp3",
+          "key": "word_w013",
+          "path": "audio/propis-dictation/word_w013.mp3",
+          "url": "/audio/propis-dictation/word_w013.mp3",
+          "label": "пила",
+          "category": "Слова",
+          "version": "0f3f4edb566eeed8"
+        },
+        {
+          "id": "audio/propis-dictation/word_w014.mp3",
+          "key": "word_w014",
+          "path": "audio/propis-dictation/word_w014.mp3",
+          "url": "/audio/propis-dictation/word_w014.mp3",
+          "label": "сито",
+          "category": "Слова",
+          "version": "343b419942936e4c"
+        },
+        {
+          "id": "audio/propis-dictation/word_w015.mp3",
+          "key": "word_w015",
+          "path": "audio/propis-dictation/word_w015.mp3",
+          "url": "/audio/propis-dictation/word_w015.mp3",
+          "label": "салат",
+          "category": "Слова",
+          "version": "2942e3a0ecdbfee1"
+        },
+        {
+          "id": "audio/propis-dictation/word_w016.mp3",
+          "key": "word_w016",
+          "path": "audio/propis-dictation/word_w016.mp3",
+          "url": "/audio/propis-dictation/word_w016.mp3",
+          "label": "лист",
+          "category": "Слова",
+          "version": "32697414aacf7184"
+        },
+        {
+          "id": "audio/propis-dictation/word_w017.mp3",
+          "key": "word_w017",
+          "path": "audio/propis-dictation/word_w017.mp3",
+          "url": "/audio/propis-dictation/word_w017.mp3",
+          "label": "плита",
+          "category": "Слова",
+          "version": "9e9f612fcf031e83"
+        },
+        {
+          "id": "audio/propis-dictation/word_w018.mp3",
+          "key": "word_w018",
+          "path": "audio/propis-dictation/word_w018.mp3",
+          "url": "/audio/propis-dictation/word_w018.mp3",
+          "label": "лампа",
+          "category": "Слова",
+          "version": "c1043f39e116a607"
+        },
+        {
+          "id": "audio/propis-dictation/word_w019.mp3",
+          "key": "word_w019",
+          "path": "audio/propis-dictation/word_w019.mp3",
+          "url": "/audio/propis-dictation/word_w019.mp3",
+          "label": "солома",
+          "category": "Слова",
+          "version": "cb515334153b8c05"
+        },
+        {
+          "id": "audio/propis-dictation/word_w020.mp3",
+          "key": "word_w020",
+          "path": "audio/propis-dictation/word_w020.mp3",
+          "url": "/audio/propis-dictation/word_w020.mp3",
+          "label": "полёт",
+          "category": "Слова",
+          "version": "014404bc7abe26e9"
+        },
+        {
+          "id": "audio/propis-dictation/word_w021.mp3",
+          "key": "word_w021",
+          "path": "audio/propis-dictation/word_w021.mp3",
+          "url": "/audio/propis-dictation/word_w021.mp3",
+          "label": "полоса",
+          "category": "Слова",
+          "version": "e5568e2e9d1ffccc"
+        },
+        {
+          "id": "audio/propis-dictation/word_w022.mp3",
+          "key": "word_w022",
+          "path": "audio/propis-dictation/word_w022.mp3",
+          "url": "/audio/propis-dictation/word_w022.mp3",
+          "label": "поле",
+          "category": "Слова",
+          "version": "fc584c37d54bad65"
+        },
+        {
+          "id": "audio/propis-dictation/word_w023.mp3",
+          "key": "word_w023",
+          "path": "audio/propis-dictation/word_w023.mp3",
+          "url": "/audio/propis-dictation/word_w023.mp3",
+          "label": "метла",
+          "category": "Слова",
+          "version": "74d969b618e5fe67"
+        },
+        {
+          "id": "audio/propis-dictation/word_w024.mp3",
+          "key": "word_w024",
+          "path": "audio/propis-dictation/word_w024.mp3",
+          "url": "/audio/propis-dictation/word_w024.mp3",
+          "label": "место",
+          "category": "Слова",
+          "version": "e5e29d1f632078b6"
+        },
+        {
+          "id": "audio/propis-dictation/word_w025.mp3",
+          "key": "word_w025",
+          "path": "audio/propis-dictation/word_w025.mp3",
+          "url": "/audio/propis-dictation/word_w025.mp3",
+          "label": "лапша",
+          "category": "Слова",
+          "version": "1f22df814c646565"
+        },
+        {
+          "id": "audio/propis-dictation/word_w026.mp3",
+          "key": "word_w026",
+          "path": "audio/propis-dictation/word_w026.mp3",
+          "url": "/audio/propis-dictation/word_w026.mp3",
+          "label": "лицо",
+          "category": "Слова",
+          "version": "ca692c0a178748a6"
+        },
+        {
+          "id": "audio/propis-dictation/word_w027.mp3",
+          "key": "word_w027",
+          "path": "audio/propis-dictation/word_w027.mp3",
+          "url": "/audio/propis-dictation/word_w027.mp3",
+          "label": "плащ",
+          "category": "Слова",
+          "version": "ba71ee0bd36f0d80"
+        },
+        {
+          "id": "audio/propis-dictation/word_w028.mp3",
+          "key": "word_w028",
+          "path": "audio/propis-dictation/word_w028.mp3",
+          "url": "/audio/propis-dictation/word_w028.mp3",
+          "label": "поэт",
+          "category": "Слова",
+          "version": "a766711a3586870f"
+        },
+        {
+          "id": "audio/propis-dictation/word_w029.mp3",
+          "key": "word_w029",
+          "path": "audio/propis-dictation/word_w029.mp3",
+          "url": "/audio/propis-dictation/word_w029.mp3",
+          "label": "лапти",
+          "category": "Слова",
+          "version": "e5bccf35332f7384"
+        },
+        {
+          "id": "audio/propis-dictation/word_w030.mp3",
+          "key": "word_w030",
+          "path": "audio/propis-dictation/word_w030.mp3",
+          "url": "/audio/propis-dictation/word_w030.mp3",
+          "label": "спица",
+          "category": "Слова",
+          "version": "9021315ee866ef3a"
+        },
+        {
+          "id": "audio/propis-dictation/word_w031.mp3",
+          "key": "word_w031",
+          "path": "audio/propis-dictation/word_w031.mp3",
+          "url": "/audio/propis-dictation/word_w031.mp3",
+          "label": "паста",
+          "category": "Слова",
+          "version": "3b064e1691ba3dde"
+        },
+        {
+          "id": "audio/propis-dictation/word_w032.mp3",
+          "key": "word_w032",
+          "path": "audio/propis-dictation/word_w032.mp3",
+          "url": "/audio/propis-dictation/word_w032.mp3",
+          "label": "лиса",
+          "category": "Слова",
+          "version": "eff6099878100e7f"
+        },
+        {
+          "id": "audio/propis-dictation/word_w033.mp3",
+          "key": "word_w033",
+          "path": "audio/propis-dictation/word_w033.mp3",
+          "url": "/audio/propis-dictation/word_w033.mp3",
+          "label": "пилот",
+          "category": "Слова",
+          "version": "e44756279e52c6d5"
+        },
+        {
+          "id": "audio/propis-dictation/word_w034.mp3",
+          "key": "word_w034",
+          "path": "audio/propis-dictation/word_w034.mp3",
+          "url": "/audio/propis-dictation/word_w034.mp3",
+          "label": "самолёт",
+          "category": "Слова",
+          "version": "e34f9fc466197dbe"
+        },
+        {
+          "id": "audio/propis-dictation/word_w035.mp3",
+          "key": "word_w035",
+          "path": "audio/propis-dictation/word_w035.mp3",
+          "url": "/audio/propis-dictation/word_w035.mp3",
+          "label": "мел",
+          "category": "Слова",
+          "version": "6eee19488a818905"
+        },
+        {
+          "id": "audio/propis-dictation/word_w036.mp3",
+          "key": "word_w036",
+          "path": "audio/propis-dictation/word_w036.mp3",
+          "url": "/audio/propis-dictation/word_w036.mp3",
+          "label": "Маша",
+          "category": "Слова",
+          "version": "e52efdee3c31b397"
+        },
+        {
+          "id": "audio/propis-dictation/word_w037.mp3",
+          "key": "word_w037",
+          "path": "audio/propis-dictation/word_w037.mp3",
+          "url": "/audio/propis-dictation/word_w037.mp3",
+          "label": "Мила",
+          "category": "Слова",
+          "version": "ac04d91474367299"
+        },
+        {
+          "id": "audio/propis-dictation/word_w038.mp3",
+          "key": "word_w038",
+          "path": "audio/propis-dictation/word_w038.mp3",
+          "url": "/audio/propis-dictation/word_w038.mp3",
+          "label": "Тёма",
+          "category": "Слова",
+          "version": "ba9df87a4450193f"
+        },
+        {
+          "id": "audio/propis-dictation/word_w039.mp3",
+          "key": "word_w039",
+          "path": "audio/propis-dictation/word_w039.mp3",
+          "url": "/audio/propis-dictation/word_w039.mp3",
+          "label": "Сёма",
+          "category": "Слова",
+          "version": "b49e527f1f7210ad"
+        },
+        {
+          "id": "audio/propis-dictation/word_w040.mp3",
+          "key": "word_w040",
+          "path": "audio/propis-dictation/word_w040.mp3",
+          "url": "/audio/propis-dictation/word_w040.mp3",
+          "label": "Тоша",
+          "category": "Слова",
+          "version": "d3f73fe7afc278ee"
+        },
+        {
+          "id": "audio/propis-dictation/word_w041.mp3",
+          "key": "word_w041",
+          "path": "audio/propis-dictation/word_w041.mp3",
+          "url": "/audio/propis-dictation/word_w041.mp3",
+          "label": "Стёпа",
+          "category": "Слова",
+          "version": "5fcb395ed74f8603"
+        },
+        {
+          "id": "audio/propis-dictation/word_w042.mp3",
+          "key": "word_w042",
+          "path": "audio/propis-dictation/word_w042.mp3",
+          "url": "/audio/propis-dictation/word_w042.mp3",
+          "label": "Лёша",
+          "category": "Слова",
+          "version": "16206fe807db0ff8"
+        },
+        {
+          "id": "audio/propis-dictation/word_w043.mp3",
+          "key": "word_w043",
+          "path": "audio/propis-dictation/word_w043.mp3",
+          "url": "/audio/propis-dictation/word_w043.mp3",
+          "label": "Тимоша",
+          "category": "Слова",
+          "version": "18bfb514f9796b5f"
+        },
+        {
+          "id": "audio/propis-dictation/word_w044.mp3",
+          "key": "word_w044",
+          "path": "audio/propis-dictation/word_w044.mp3",
+          "url": "/audio/propis-dictation/word_w044.mp3",
+          "label": "Саша",
+          "category": "Слова",
+          "version": "3a516d236f6682f0"
+        },
+        {
+          "id": "audio/propis-dictation/word_w045.mp3",
+          "key": "word_w045",
+          "path": "audio/propis-dictation/word_w045.mp3",
+          "url": "/audio/propis-dictation/word_w045.mp3",
+          "label": "Миша",
+          "category": "Слова",
+          "version": "8cceb513a8bfe1a2"
+        },
+        {
+          "id": "audio/propis-dictation/word_w046.mp3",
+          "key": "word_w046",
+          "path": "audio/propis-dictation/word_w046.mp3",
+          "url": "/audio/propis-dictation/word_w046.mp3",
+          "label": "дом",
+          "category": "Слова",
+          "version": "3a9341224951f122"
+        },
+        {
+          "id": "audio/propis-dictation/word_w047.mp3",
+          "key": "word_w047",
+          "path": "audio/propis-dictation/word_w047.mp3",
+          "url": "/audio/propis-dictation/word_w047.mp3",
+          "label": "кот",
+          "category": "Слова",
+          "version": "410eae78693940ff"
+        },
+        {
+          "id": "audio/propis-dictation/word_w048.mp3",
+          "key": "word_w048",
+          "path": "audio/propis-dictation/word_w048.mp3",
+          "url": "/audio/propis-dictation/word_w048.mp3",
+          "label": "жук",
+          "category": "Слова",
+          "version": "8ba4f64c73eed470"
+        },
+        {
+          "id": "audio/propis-dictation/word_w049.mp3",
+          "key": "word_w049",
+          "path": "audio/propis-dictation/word_w049.mp3",
+          "url": "/audio/propis-dictation/word_w049.mp3",
+          "label": "ёж",
+          "category": "Слова",
+          "version": "b667b7764f331e09"
+        },
+        {
+          "id": "audio/propis-dictation/word_w050.mp3",
+          "key": "word_w050",
+          "path": "audio/propis-dictation/word_w050.mp3",
+          "url": "/audio/propis-dictation/word_w050.mp3",
+          "label": "гриб",
+          "category": "Слова",
+          "version": "802c2e1c1abe27ba"
+        },
+        {
+          "id": "audio/propis-dictation/word_w051.mp3",
+          "key": "word_w051",
+          "path": "audio/propis-dictation/word_w051.mp3",
+          "url": "/audio/propis-dictation/word_w051.mp3",
+          "label": "груша",
+          "category": "Слова",
+          "version": "79e421cb9fcee015"
+        },
+        {
+          "id": "audio/propis-dictation/word_w052.mp3",
+          "key": "word_w052",
+          "path": "audio/propis-dictation/word_w052.mp3",
+          "url": "/audio/propis-dictation/word_w052.mp3",
+          "label": "банан",
+          "category": "Слова",
+          "version": "6e734618334c4ffc"
+        },
+        {
+          "id": "audio/propis-dictation/word_w053.mp3",
+          "key": "word_w053",
+          "path": "audio/propis-dictation/word_w053.mp3",
+          "url": "/audio/propis-dictation/word_w053.mp3",
+          "label": "ведро",
+          "category": "Слова",
+          "version": "dc28f7b5eb227e11"
+        },
+        {
+          "id": "audio/propis-dictation/word_w054.mp3",
+          "key": "word_w054",
+          "path": "audio/propis-dictation/word_w054.mp3",
+          "url": "/audio/propis-dictation/word_w054.mp3",
+          "label": "ключ",
+          "category": "Слова",
+          "version": "1cd17d2c9099e71c"
+        },
+        {
+          "id": "audio/propis-dictation/word_w055.mp3",
+          "key": "word_w055",
+          "path": "audio/propis-dictation/word_w055.mp3",
+          "url": "/audio/propis-dictation/word_w055.mp3",
+          "label": "замок",
+          "category": "Слова",
+          "version": "555ee5f1001b9200"
+        },
+        {
+          "id": "audio/propis-dictation/word_w056.mp3",
+          "key": "word_w056",
+          "path": "audio/propis-dictation/word_w056.mp3",
+          "url": "/audio/propis-dictation/word_w056.mp3",
+          "label": "зима",
+          "category": "Слова",
+          "version": "584806fd9da55918"
+        },
+        {
+          "id": "audio/propis-dictation/word_w057.mp3",
+          "key": "word_w057",
+          "path": "audio/propis-dictation/word_w057.mp3",
+          "url": "/audio/propis-dictation/word_w057.mp3",
+          "label": "весна",
+          "category": "Слова",
+          "version": "0579ee9e32e3eb66"
+        },
+        {
+          "id": "audio/propis-dictation/word_w058.mp3",
+          "key": "word_w058",
+          "path": "audio/propis-dictation/word_w058.mp3",
+          "url": "/audio/propis-dictation/word_w058.mp3",
+          "label": "ветер",
+          "category": "Слова",
+          "version": "3622f5b2c141feee"
+        },
+        {
+          "id": "audio/propis-dictation/word_w059.mp3",
+          "key": "word_w059",
+          "path": "audio/propis-dictation/word_w059.mp3",
+          "url": "/audio/propis-dictation/word_w059.mp3",
+          "label": "рыба",
+          "category": "Слова",
+          "version": "192e1b3e31c7d367"
+        },
+        {
+          "id": "audio/propis-dictation/word_w060.mp3",
+          "key": "word_w060",
+          "path": "audio/propis-dictation/word_w060.mp3",
+          "url": "/audio/propis-dictation/word_w060.mp3",
+          "label": "крыша",
+          "category": "Слова",
+          "version": "0b5f9429f5ecc168"
+        },
+        {
+          "id": "audio/propis-dictation/word_w061.mp3",
+          "key": "word_w061",
+          "path": "audio/propis-dictation/word_w061.mp3",
+          "url": "/audio/propis-dictation/word_w061.mp3",
+          "label": "крыло",
+          "category": "Слова",
+          "version": "5dc33702b3f4d773"
+        },
+        {
+          "id": "audio/propis-dictation/word_w062.mp3",
+          "key": "word_w062",
+          "path": "audio/propis-dictation/word_w062.mp3",
+          "url": "/audio/propis-dictation/word_w062.mp3",
+          "label": "гнездо",
+          "category": "Слова",
+          "version": "38ac8edcb61f85fa"
+        },
+        {
+          "id": "audio/propis-dictation/word_w063.mp3",
+          "key": "word_w063",
+          "path": "audio/propis-dictation/word_w063.mp3",
+          "url": "/audio/propis-dictation/word_w063.mp3",
+          "label": "ковёр",
+          "category": "Слова",
+          "version": "a78cb5233c45b349"
+        },
+        {
+          "id": "audio/propis-dictation/word_w064.mp3",
+          "key": "word_w064",
+          "path": "audio/propis-dictation/word_w064.mp3",
+          "url": "/audio/propis-dictation/word_w064.mp3",
+          "label": "ложка",
+          "category": "Слова",
+          "version": "6c912cabb33bf838"
+        },
+        {
+          "id": "audio/propis-dictation/word_w065.mp3",
+          "key": "word_w065",
+          "path": "audio/propis-dictation/word_w065.mp3",
+          "url": "/audio/propis-dictation/word_w065.mp3",
+          "label": "вилка",
+          "category": "Слова",
+          "version": "97dbadba98080788"
+        },
+        {
+          "id": "audio/propis-dictation/word_w066.mp3",
+          "key": "word_w066",
+          "path": "audio/propis-dictation/word_w066.mp3",
+          "url": "/audio/propis-dictation/word_w066.mp3",
+          "label": "чашка",
+          "category": "Слова",
+          "version": "1f101fd635cfe03c"
+        },
+        {
+          "id": "audio/propis-dictation/word_w067.mp3",
+          "key": "word_w067",
+          "path": "audio/propis-dictation/word_w067.mp3",
+          "url": "/audio/propis-dictation/word_w067.mp3",
+          "label": "кружка",
+          "category": "Слова",
+          "version": "f07d47d469aabee6"
+        },
+        {
+          "id": "audio/propis-dictation/word_w068.mp3",
+          "key": "word_w068",
+          "path": "audio/propis-dictation/word_w068.mp3",
+          "url": "/audio/propis-dictation/word_w068.mp3",
+          "label": "окно",
+          "category": "Слова",
+          "version": "be9902f0b976c187"
+        },
+        {
+          "id": "audio/propis-dictation/word_w069.mp3",
+          "key": "word_w069",
+          "path": "audio/propis-dictation/word_w069.mp3",
+          "url": "/audio/propis-dictation/word_w069.mp3",
+          "label": "дверь",
+          "category": "Слова",
+          "version": "0b5d55882efde5e1"
+        },
+        {
+          "id": "audio/propis-dictation/word_w070.mp3",
+          "key": "word_w070",
+          "path": "audio/propis-dictation/word_w070.mp3",
+          "url": "/audio/propis-dictation/word_w070.mp3",
+          "label": "забор",
+          "category": "Слова",
+          "version": "e1de7309fe4f7de3"
+        },
+        {
+          "id": "audio/propis-dictation/word_w071.mp3",
+          "key": "word_w071",
+          "path": "audio/propis-dictation/word_w071.mp3",
+          "url": "/audio/propis-dictation/word_w071.mp3",
+          "label": "огонь",
+          "category": "Слова",
+          "version": "10ca031ad2dc8d8d"
+        },
+        {
+          "id": "audio/propis-dictation/word_w072.mp3",
+          "key": "word_w072",
+          "path": "audio/propis-dictation/word_w072.mp3",
+          "url": "/audio/propis-dictation/word_w072.mp3",
+          "label": "вода",
+          "category": "Слова",
+          "version": "71fbb6eb740f4833"
+        },
+        {
+          "id": "audio/propis-dictation/word_w073.mp3",
+          "key": "word_w073",
+          "path": "audio/propis-dictation/word_w073.mp3",
+          "url": "/audio/propis-dictation/word_w073.mp3",
+          "label": "звезда",
+          "category": "Слова",
+          "version": "62c83adb6abb1d54"
+        },
+        {
+          "id": "audio/propis-dictation/word_w074.mp3",
+          "key": "word_w074",
+          "path": "audio/propis-dictation/word_w074.mp3",
+          "url": "/audio/propis-dictation/word_w074.mp3",
+          "label": "луна",
+          "category": "Слова",
+          "version": "36563e6c514a20d3"
+        },
+        {
+          "id": "audio/propis-dictation/word_w075.mp3",
+          "key": "word_w075",
+          "path": "audio/propis-dictation/word_w075.mp3",
+          "url": "/audio/propis-dictation/word_w075.mp3",
+          "label": "туча",
+          "category": "Слова",
+          "version": "c4b8a0e462cc73f6"
+        },
+        {
+          "id": "audio/propis-dictation/word_w076.mp3",
+          "key": "word_w076",
+          "path": "audio/propis-dictation/word_w076.mp3",
+          "url": "/audio/propis-dictation/word_w076.mp3",
+          "label": "дождь",
+          "category": "Слова",
+          "version": "7288d2fff4b4fbe8"
+        },
+        {
+          "id": "audio/propis-dictation/word_w077.mp3",
+          "key": "word_w077",
+          "path": "audio/propis-dictation/word_w077.mp3",
+          "url": "/audio/propis-dictation/word_w077.mp3",
+          "label": "снег",
+          "category": "Слова",
+          "version": "13bb81b385bb1f67"
+        },
+        {
+          "id": "audio/propis-dictation/word_w078.mp3",
+          "key": "word_w078",
+          "path": "audio/propis-dictation/word_w078.mp3",
+          "url": "/audio/propis-dictation/word_w078.mp3",
+          "label": "лёд",
+          "category": "Слова",
+          "version": "0fe7ad97779aa01b"
+        },
+        {
+          "id": "audio/propis-dictation/word_w080.mp3",
+          "key": "word_w080",
+          "path": "audio/propis-dictation/word_w080.mp3",
+          "url": "/audio/propis-dictation/word_w080.mp3",
+          "label": "коньки",
+          "category": "Слова",
+          "version": "fac019ad692ca5fb"
+        },
+        {
+          "id": "audio/propis-dictation/word_w081.mp3",
+          "key": "word_w081",
+          "path": "audio/propis-dictation/word_w081.mp3",
+          "url": "/audio/propis-dictation/word_w081.mp3",
+          "label": "мяч",
+          "category": "Слова",
+          "version": "427e2be053b13e63"
+        },
+        {
+          "id": "audio/propis-dictation/word_w082.mp3",
+          "key": "word_w082",
+          "path": "audio/propis-dictation/word_w082.mp3",
+          "url": "/audio/propis-dictation/word_w082.mp3",
+          "label": "муха",
+          "category": "Слова",
+          "version": "de0032b1683d2d59"
+        },
+        {
+          "id": "audio/propis-dictation/word_w085.mp3",
+          "key": "word_w085",
+          "path": "audio/propis-dictation/word_w085.mp3",
+          "url": "/audio/propis-dictation/word_w085.mp3",
+          "label": "кролик",
+          "category": "Слова",
+          "version": "2a658a29af1e2884"
+        },
+        {
+          "id": "audio/propis-dictation/word_w086.mp3",
+          "key": "word_w086",
+          "path": "audio/propis-dictation/word_w086.mp3",
+          "url": "/audio/propis-dictation/word_w086.mp3",
+          "label": "мышь",
+          "category": "Слова",
+          "version": "2bbd75d8b1ec48fc"
+        },
+        {
+          "id": "audio/propis-dictation/word_w087.mp3",
+          "key": "word_w087",
+          "path": "audio/propis-dictation/word_w087.mp3",
+          "url": "/audio/propis-dictation/word_w087.mp3",
+          "label": "волк",
+          "category": "Слова",
+          "version": "0d91f942d72b31e7"
+        },
+        {
+          "id": "audio/propis-dictation/word_w089.mp3",
+          "key": "word_w089",
+          "path": "audio/propis-dictation/word_w089.mp3",
+          "url": "/audio/propis-dictation/word_w089.mp3",
+          "label": "заяц",
+          "category": "Слова",
+          "version": "8dca72da33a3811c"
+        },
+        {
+          "id": "audio/propis-dictation/word_w090.mp3",
+          "key": "word_w090",
+          "path": "audio/propis-dictation/word_w090.mp3",
+          "url": "/audio/propis-dictation/word_w090.mp3",
+          "label": "белка",
+          "category": "Слова",
+          "version": "c6b3914adf02f884"
+        },
+        {
+          "id": "audio/propis-dictation/word_w091.mp3",
+          "key": "word_w091",
+          "path": "audio/propis-dictation/word_w091.mp3",
+          "url": "/audio/propis-dictation/word_w091.mp3",
+          "label": "олень",
+          "category": "Слова",
+          "version": "742f0ce1a9ddc76d"
+        },
+        {
+          "id": "audio/propis-dictation/word_w094.mp3",
+          "key": "word_w094",
+          "path": "audio/propis-dictation/word_w094.mp3",
+          "url": "/audio/propis-dictation/word_w094.mp3",
+          "label": "слон",
+          "category": "Слова",
+          "version": "879818523007139f"
+        },
+        {
+          "id": "audio/propis-dictation/word_w095.mp3",
+          "key": "word_w095",
+          "path": "audio/propis-dictation/word_w095.mp3",
+          "url": "/audio/propis-dictation/word_w095.mp3",
+          "label": "жираф",
+          "category": "Слова",
+          "version": "9734d4525f9645d1"
+        },
+        {
+          "id": "audio/propis-dictation/word_w096.mp3",
+          "key": "word_w096",
+          "path": "audio/propis-dictation/word_w096.mp3",
+          "url": "/audio/propis-dictation/word_w096.mp3",
+          "label": "зебра",
+          "category": "Слова",
+          "version": "f08047c21cd591de"
+        },
+        {
+          "id": "audio/propis-dictation/word_w098.mp3",
+          "key": "word_w098",
+          "path": "audio/propis-dictation/word_w098.mp3",
+          "url": "/audio/propis-dictation/word_w098.mp3",
+          "label": "лягушка",
+          "category": "Слова",
+          "version": "6f69b79e0bd15ace"
+        },
+        {
+          "id": "audio/propis-dictation/word_w099.mp3",
+          "key": "word_w099",
+          "path": "audio/propis-dictation/word_w099.mp3",
+          "url": "/audio/propis-dictation/word_w099.mp3",
+          "label": "бабочка",
+          "category": "Слова",
+          "version": "5b722c4ed06d0273"
+        },
+        {
+          "id": "audio/propis-dictation/word_w102.mp3",
+          "key": "word_w102",
+          "path": "audio/propis-dictation/word_w102.mp3",
+          "url": "/audio/propis-dictation/word_w102.mp3",
+          "label": "улитка",
+          "category": "Слова",
+          "version": "5cbe5f1745b87f7a"
+        },
+        {
+          "id": "audio/propis-dictation/word_w103.mp3",
+          "key": "word_w103",
+          "path": "audio/propis-dictation/word_w103.mp3",
+          "url": "/audio/propis-dictation/word_w103.mp3",
+          "label": "курица",
+          "category": "Слова",
+          "version": "a5fc4a9e0634bf37"
+        },
+        {
+          "id": "audio/propis-dictation/word_w104.mp3",
+          "key": "word_w104",
+          "path": "audio/propis-dictation/word_w104.mp3",
+          "url": "/audio/propis-dictation/word_w104.mp3",
+          "label": "петух",
+          "category": "Слова",
+          "version": "4551d4835e00cc4e"
+        },
+        {
+          "id": "audio/propis-dictation/word_w105.mp3",
+          "key": "word_w105",
+          "path": "audio/propis-dictation/word_w105.mp3",
+          "url": "/audio/propis-dictation/word_w105.mp3",
+          "label": "корова",
+          "category": "Слова",
+          "version": "6cf340c0ec64c68b"
+        },
+        {
+          "id": "audio/propis-dictation/word_w107.mp3",
+          "key": "word_w107",
+          "path": "audio/propis-dictation/word_w107.mp3",
+          "url": "/audio/propis-dictation/word_w107.mp3",
+          "label": "свинья",
+          "category": "Слова",
+          "version": "7e771cb2c9968261"
+        },
+        {
+          "id": "audio/propis-dictation/word_w108.mp3",
+          "key": "word_w108",
+          "path": "audio/propis-dictation/word_w108.mp3",
+          "url": "/audio/propis-dictation/word_w108.mp3",
+          "label": "собака",
+          "category": "Слова",
+          "version": "f5813cb0caf03bc7"
+        },
+        {
+          "id": "audio/propis-dictation/word_w109.mp3",
+          "key": "word_w109",
+          "path": "audio/propis-dictation/word_w109.mp3",
+          "url": "/audio/propis-dictation/word_w109.mp3",
+          "label": "кошка",
+          "category": "Слова",
+          "version": "f53e8fcd9d2124bc"
+        },
+        {
+          "id": "audio/propis-dictation/word_w110.mp3",
+          "key": "word_w110",
+          "path": "audio/propis-dictation/word_w110.mp3",
+          "url": "/audio/propis-dictation/word_w110.mp3",
+          "label": "котёнок",
+          "category": "Слова",
+          "version": "97ce3174e39581ea"
+        },
+        {
+          "id": "audio/propis-dictation/word_w111.mp3",
+          "key": "word_w111",
+          "path": "audio/propis-dictation/word_w111.mp3",
+          "url": "/audio/propis-dictation/word_w111.mp3",
+          "label": "гусь",
+          "category": "Слова",
+          "version": "510c774fa0fa2084"
+        },
+        {
+          "id": "audio/propis-dictation/word_w112.mp3",
+          "key": "word_w112",
+          "path": "audio/propis-dictation/word_w112.mp3",
+          "url": "/audio/propis-dictation/word_w112.mp3",
+          "label": "утка",
+          "category": "Слова",
+          "version": "46439b7e3744864d"
+        },
+        {
+          "id": "audio/propis-dictation/word_w114.mp3",
+          "key": "word_w114",
+          "path": "audio/propis-dictation/word_w114.mp3",
+          "url": "/audio/propis-dictation/word_w114.mp3",
+          "label": "сестра",
+          "category": "Слова",
+          "version": "3400c2461c70d8fa"
+        },
+        {
+          "id": "audio/propis-dictation/word_w116.mp3",
+          "key": "word_w116",
+          "path": "audio/propis-dictation/word_w116.mp3",
+          "url": "/audio/propis-dictation/word_w116.mp3",
+          "label": "дедушка",
+          "category": "Слова",
+          "version": "1846e323f5bcca2f"
+        },
+        {
+          "id": "audio/propis-dictation/word_w117.mp3",
+          "key": "word_w117",
+          "path": "audio/propis-dictation/word_w117.mp3",
+          "url": "/audio/propis-dictation/word_w117.mp3",
+          "label": "тётя",
+          "category": "Слова",
+          "version": "2d215a1c912ef812"
+        },
+        {
+          "id": "audio/propis-dictation/word_w120.mp3",
+          "key": "word_w120",
+          "path": "audio/propis-dictation/word_w120.mp3",
+          "url": "/audio/propis-dictation/word_w120.mp3",
+          "label": "друг",
+          "category": "Слова",
+          "version": "53e5458ec86e3c36"
+        },
+        {
+          "id": "audio/propis-dictation/word_w122.mp3",
+          "key": "word_w122",
+          "path": "audio/propis-dictation/word_w122.mp3",
+          "url": "/audio/propis-dictation/word_w122.mp3",
+          "label": "девочка",
+          "category": "Слова",
+          "version": "1df863f025020b05"
+        },
+        {
+          "id": "audio/propis-dictation/word_w124.mp3",
+          "key": "word_w124",
+          "path": "audio/propis-dictation/word_w124.mp3",
+          "url": "/audio/propis-dictation/word_w124.mp3",
+          "label": "учитель",
+          "category": "Слова",
+          "version": "c26a92ce9a9217a9"
+        },
+        {
+          "id": "audio/propis-dictation/word_w126.mp3",
+          "key": "word_w126",
+          "path": "audio/propis-dictation/word_w126.mp3",
+          "url": "/audio/propis-dictation/word_w126.mp3",
+          "label": "Катя",
+          "category": "Слова",
+          "version": "0bd960ae1a5e6e40"
+        },
+        {
+          "id": "audio/propis-dictation/word_w129.mp3",
+          "key": "word_w129",
+          "path": "audio/propis-dictation/word_w129.mp3",
+          "url": "/audio/propis-dictation/word_w129.mp3",
+          "label": "Женя",
+          "category": "Слова",
+          "version": "0c2f9e9b74319bac"
+        },
+        {
+          "id": "audio/propis-dictation/word_w130.mp3",
+          "key": "word_w130",
+          "path": "audio/propis-dictation/word_w130.mp3",
+          "url": "/audio/propis-dictation/word_w130.mp3",
+          "label": "Витя",
+          "category": "Слова",
+          "version": "bd03ce90c85da054"
+        },
+        {
+          "id": "audio/propis-dictation/word_w131.mp3",
+          "key": "word_w131",
+          "path": "audio/propis-dictation/word_w131.mp3",
+          "url": "/audio/propis-dictation/word_w131.mp3",
+          "label": "Коля",
+          "category": "Слова",
+          "version": "2dcbc72ffe3a5bbd"
+        },
+        {
+          "id": "audio/propis-dictation/word_w132.mp3",
+          "key": "word_w132",
+          "path": "audio/propis-dictation/word_w132.mp3",
+          "url": "/audio/propis-dictation/word_w132.mp3",
+          "label": "Юра",
+          "category": "Слова",
+          "version": "5e92b92957467012"
+        },
+        {
+          "id": "audio/propis-dictation/word_w134.mp3",
+          "key": "word_w134",
+          "path": "audio/propis-dictation/word_w134.mp3",
+          "url": "/audio/propis-dictation/word_w134.mp3",
+          "label": "Гриша",
+          "category": "Слова",
+          "version": "2e5eebaa4550a6f1"
+        },
+        {
+          "id": "audio/propis-dictation/word_w136.mp3",
+          "key": "word_w136",
+          "path": "audio/propis-dictation/word_w136.mp3",
+          "url": "/audio/propis-dictation/word_w136.mp3",
+          "label": "Вася",
+          "category": "Слова",
+          "version": "ad7c0ca3242bfcd9"
+        },
+        {
+          "id": "audio/propis-dictation/word_w137.mp3",
+          "key": "word_w137",
+          "path": "audio/propis-dictation/word_w137.mp3",
+          "url": "/audio/propis-dictation/word_w137.mp3",
+          "label": "Лена",
+          "category": "Слова",
+          "version": "b129c126f0678fb0"
+        },
+        {
+          "id": "audio/propis-dictation/word_w138.mp3",
+          "key": "word_w138",
+          "path": "audio/propis-dictation/word_w138.mp3",
+          "url": "/audio/propis-dictation/word_w138.mp3",
+          "label": "Вера",
+          "category": "Слова",
+          "version": "15043906a7a41189"
+        },
+        {
+          "id": "audio/propis-dictation/word_w139.mp3",
+          "key": "word_w139",
+          "path": "audio/propis-dictation/word_w139.mp3",
+          "url": "/audio/propis-dictation/word_w139.mp3",
+          "label": "Надя",
+          "category": "Слова",
+          "version": "05125ee51a622f27"
+        },
+        {
+          "id": "audio/propis-dictation/word_w140.mp3",
+          "key": "word_w140",
+          "path": "audio/propis-dictation/word_w140.mp3",
+          "url": "/audio/propis-dictation/word_w140.mp3",
+          "label": "Люда",
+          "category": "Слова",
+          "version": "4a3461eaa6fe6845"
+        },
+        {
+          "id": "audio/propis-dictation/word_w141.mp3",
+          "key": "word_w141",
+          "path": "audio/propis-dictation/word_w141.mp3",
+          "url": "/audio/propis-dictation/word_w141.mp3",
+          "label": "Нина",
+          "category": "Слова",
+          "version": "1e1921d9beade617"
+        },
+        {
+          "id": "audio/propis-dictation/word_w142.mp3",
+          "key": "word_w142",
+          "path": "audio/propis-dictation/word_w142.mp3",
+          "url": "/audio/propis-dictation/word_w142.mp3",
+          "label": "Ира",
+          "category": "Слова",
+          "version": "5343b432db8a2a05"
+        },
+        {
+          "id": "audio/propis-dictation/word_w143.mp3",
+          "key": "word_w143",
+          "path": "audio/propis-dictation/word_w143.mp3",
+          "url": "/audio/propis-dictation/word_w143.mp3",
+          "label": "Юля",
+          "category": "Слова",
+          "version": "87e1f7535cd4e88b"
+        }
+      ]
+    },
+    {
+      "id": "sounds",
+      "title": "Сигналы ответа",
+      "items": [
+        {
+          "id": "sounds/correct.wav",
+          "key": "correct",
+          "path": "sounds/correct.wav",
+          "url": "/sounds/correct.wav",
+          "label": "correct",
+          "category": "Прочее",
+          "version": "ee378444c4b4255e"
+        },
+        {
+          "id": "sounds/incorrect.mp3",
+          "key": "incorrect",
+          "path": "sounds/incorrect.mp3",
+          "url": "/sounds/incorrect.mp3",
+          "label": "incorrect",
+          "category": "Прочее",
+          "version": "16688d6fc677359c"
+        },
+        {
+          "id": "sounds/incorrect.wav",
+          "key": "incorrect",
+          "path": "sounds/incorrect.wav",
+          "url": "/sounds/incorrect.wav",
+          "label": "incorrect",
+          "category": "Прочее",
+          "version": "ef625130fe066e3d"
+        }
+      ]
+    },
+    {
+      "id": "sounds/letters",
+      "title": "Звуки букв",
+      "items": [
+        {
+          "id": "sounds/letters/А.mp3",
+          "key": "А",
+          "path": "sounds/letters/А.mp3",
+          "url": "/sounds/letters/%D0%90.mp3",
+          "label": "А",
+          "category": "Прочее",
+          "version": "f3cfcd18999a1857"
+        },
+        {
+          "id": "sounds/letters/Б.mp3",
+          "key": "Б",
+          "path": "sounds/letters/Б.mp3",
+          "url": "/sounds/letters/%D0%91.mp3",
+          "label": "Б",
+          "category": "Прочее",
+          "version": "26e49b0c7fd26f3c"
+        },
+        {
+          "id": "sounds/letters/В.mp3",
+          "key": "В",
+          "path": "sounds/letters/В.mp3",
+          "url": "/sounds/letters/%D0%92.mp3",
+          "label": "В",
+          "category": "Прочее",
+          "version": "0b158e83ab9a3a41"
+        },
+        {
+          "id": "sounds/letters/Г.mp3",
+          "key": "Г",
+          "path": "sounds/letters/Г.mp3",
+          "url": "/sounds/letters/%D0%93.mp3",
+          "label": "Г",
+          "category": "Прочее",
+          "version": "24cee8a3999f44f7"
+        },
+        {
+          "id": "sounds/letters/Д.mp3",
+          "key": "Д",
+          "path": "sounds/letters/Д.mp3",
+          "url": "/sounds/letters/%D0%94.mp3",
+          "label": "Д",
+          "category": "Прочее",
+          "version": "7fb48b10a652e754"
+        },
+        {
+          "id": "sounds/letters/Е.mp3",
+          "key": "Е",
+          "path": "sounds/letters/Е.mp3",
+          "url": "/sounds/letters/%D0%95.mp3",
+          "label": "Е",
+          "category": "Прочее",
+          "version": "53368c896451f753"
+        },
+        {
+          "id": "sounds/letters/Ё.mp3",
+          "key": "Ё",
+          "path": "sounds/letters/Ё.mp3",
+          "url": "/sounds/letters/%D0%81.mp3",
+          "label": "Ё",
+          "category": "Прочее",
+          "version": "5a0897530c717989"
+        },
+        {
+          "id": "sounds/letters/Ж.mp3",
+          "key": "Ж",
+          "path": "sounds/letters/Ж.mp3",
+          "url": "/sounds/letters/%D0%96.mp3",
+          "label": "Ж",
+          "category": "Прочее",
+          "version": "edb67831e779c4f2"
+        },
+        {
+          "id": "sounds/letters/З.mp3",
+          "key": "З",
+          "path": "sounds/letters/З.mp3",
+          "url": "/sounds/letters/%D0%97.mp3",
+          "label": "З",
+          "category": "Прочее",
+          "version": "d7e71e5b16affb19"
+        },
+        {
+          "id": "sounds/letters/И.mp3",
+          "key": "И",
+          "path": "sounds/letters/И.mp3",
+          "url": "/sounds/letters/%D0%98.mp3",
+          "label": "И",
+          "category": "Прочее",
+          "version": "2727e8d5763004da"
+        },
+        {
+          "id": "sounds/letters/Й.mp3",
+          "key": "Й",
+          "path": "sounds/letters/Й.mp3",
+          "url": "/sounds/letters/%D0%99.mp3",
+          "label": "Й",
+          "category": "Прочее",
+          "version": "cccd67652a43f11b"
+        },
+        {
+          "id": "sounds/letters/К.mp3",
+          "key": "К",
+          "path": "sounds/letters/К.mp3",
+          "url": "/sounds/letters/%D0%9A.mp3",
+          "label": "К",
+          "category": "Прочее",
+          "version": "1a6f08ac44534a5e"
+        },
+        {
+          "id": "sounds/letters/Л.mp3",
+          "key": "Л",
+          "path": "sounds/letters/Л.mp3",
+          "url": "/sounds/letters/%D0%9B.mp3",
+          "label": "Л",
+          "category": "Прочее",
+          "version": "5411fb3406727de7"
+        },
+        {
+          "id": "sounds/letters/М.mp3",
+          "key": "М",
+          "path": "sounds/letters/М.mp3",
+          "url": "/sounds/letters/%D0%9C.mp3",
+          "label": "М",
+          "category": "Прочее",
+          "version": "e71d37712e18a181"
+        },
+        {
+          "id": "sounds/letters/Н.mp3",
+          "key": "Н",
+          "path": "sounds/letters/Н.mp3",
+          "url": "/sounds/letters/%D0%9D.mp3",
+          "label": "Н",
+          "category": "Прочее",
+          "version": "ee1d84c778290492"
+        },
+        {
+          "id": "sounds/letters/О_v1_ssml_A.mp3",
+          "key": "О_v1_ssml_A",
+          "path": "sounds/letters/О_v1_ssml_A.mp3",
+          "url": "/sounds/letters/%D0%9E_v1_ssml_A.mp3",
+          "label": "О_v1_ssml_A",
+          "category": "Прочее",
+          "version": "da63eeb8e786ce9e"
+        },
+        {
+          "id": "sounds/letters/О_v2_ssml_D.mp3",
+          "key": "О_v2_ssml_D",
+          "path": "sounds/letters/О_v2_ssml_D.mp3",
+          "url": "/sounds/letters/%D0%9E_v2_ssml_D.mp3",
+          "label": "О_v2_ssml_D",
+          "category": "Прочее",
+          "version": "91c78ebedd1db972"
+        },
+        {
+          "id": "sounds/letters/О_v3_slower_A.mp3",
+          "key": "О_v3_slower_A",
+          "path": "sounds/letters/О_v3_slower_A.mp3",
+          "url": "/sounds/letters/%D0%9E_v3_slower_A.mp3",
+          "label": "О_v3_slower_A",
+          "category": "Прочее",
+          "version": "8f769a2336050b49"
+        },
+        {
+          "id": "sounds/letters/О_v4_repeat_A.mp3",
+          "key": "О_v4_repeat_A",
+          "path": "sounds/letters/О_v4_repeat_A.mp3",
+          "url": "/sounds/letters/%D0%9E_v4_repeat_A.mp3",
+          "label": "О_v4_repeat_A",
+          "category": "Прочее",
+          "version": "cae35923205492fb"
+        },
+        {
+          "id": "sounds/letters/О.mp3",
+          "key": "О",
+          "path": "sounds/letters/О.mp3",
+          "url": "/sounds/letters/%D0%9E.mp3",
+          "label": "О",
+          "category": "Прочее",
+          "version": "8f769a2336050b49"
+        },
+        {
+          "id": "sounds/letters/П.mp3",
+          "key": "П",
+          "path": "sounds/letters/П.mp3",
+          "url": "/sounds/letters/%D0%9F.mp3",
+          "label": "П",
+          "category": "Прочее",
+          "version": "61ce8c93ac5eda2f"
+        },
+        {
+          "id": "sounds/letters/Р.mp3",
+          "key": "Р",
+          "path": "sounds/letters/Р.mp3",
+          "url": "/sounds/letters/%D0%A0.mp3",
+          "label": "Р",
+          "category": "Прочее",
+          "version": "4dcd455ee9a79a13"
+        },
+        {
+          "id": "sounds/letters/С.mp3",
+          "key": "С",
+          "path": "sounds/letters/С.mp3",
+          "url": "/sounds/letters/%D0%A1.mp3",
+          "label": "С",
+          "category": "Прочее",
+          "version": "9448381e9bc84034"
+        },
+        {
+          "id": "sounds/letters/Т.mp3",
+          "key": "Т",
+          "path": "sounds/letters/Т.mp3",
+          "url": "/sounds/letters/%D0%A2.mp3",
+          "label": "Т",
+          "category": "Прочее",
+          "version": "a7874fac8fe79fb7"
+        },
+        {
+          "id": "sounds/letters/У.mp3",
+          "key": "У",
+          "path": "sounds/letters/У.mp3",
+          "url": "/sounds/letters/%D0%A3.mp3",
+          "label": "У",
+          "category": "Прочее",
+          "version": "fc774dce74faa0d7"
+        },
+        {
+          "id": "sounds/letters/Ф.mp3",
+          "key": "Ф",
+          "path": "sounds/letters/Ф.mp3",
+          "url": "/sounds/letters/%D0%A4.mp3",
+          "label": "Ф",
+          "category": "Прочее",
+          "version": "61203f4b35682a28"
+        },
+        {
+          "id": "sounds/letters/Х.mp3",
+          "key": "Х",
+          "path": "sounds/letters/Х.mp3",
+          "url": "/sounds/letters/%D0%A5.mp3",
+          "label": "Х",
+          "category": "Прочее",
+          "version": "a95b590b3d30925b"
+        },
+        {
+          "id": "sounds/letters/Ц.mp3",
+          "key": "Ц",
+          "path": "sounds/letters/Ц.mp3",
+          "url": "/sounds/letters/%D0%A6.mp3",
+          "label": "Ц",
+          "category": "Прочее",
+          "version": "be70e27c2e9ed855"
+        },
+        {
+          "id": "sounds/letters/Ч.mp3",
+          "key": "Ч",
+          "path": "sounds/letters/Ч.mp3",
+          "url": "/sounds/letters/%D0%A7.mp3",
+          "label": "Ч",
+          "category": "Прочее",
+          "version": "fa346fab5532bba7"
+        },
+        {
+          "id": "sounds/letters/Ш.mp3",
+          "key": "Ш",
+          "path": "sounds/letters/Ш.mp3",
+          "url": "/sounds/letters/%D0%A8.mp3",
+          "label": "Ш",
+          "category": "Прочее",
+          "version": "46c548abd1c03818"
+        },
+        {
+          "id": "sounds/letters/Щ.mp3",
+          "key": "Щ",
+          "path": "sounds/letters/Щ.mp3",
+          "url": "/sounds/letters/%D0%A9.mp3",
+          "label": "Щ",
+          "category": "Прочее",
+          "version": "d9eccd74a08760a0"
+        },
+        {
+          "id": "sounds/letters/Ъ.mp3",
+          "key": "Ъ",
+          "path": "sounds/letters/Ъ.mp3",
+          "url": "/sounds/letters/%D0%AA.mp3",
+          "label": "Ъ",
+          "category": "Прочее",
+          "version": "2c8f79931be4da65"
+        },
+        {
+          "id": "sounds/letters/Ы.mp3",
+          "key": "Ы",
+          "path": "sounds/letters/Ы.mp3",
+          "url": "/sounds/letters/%D0%AB.mp3",
+          "label": "Ы",
+          "category": "Прочее",
+          "version": "ad2c28bbbb742d32"
+        },
+        {
+          "id": "sounds/letters/Ь.mp3",
+          "key": "Ь",
+          "path": "sounds/letters/Ь.mp3",
+          "url": "/sounds/letters/%D0%AC.mp3",
+          "label": "Ь",
+          "category": "Прочее",
+          "version": "2be062428dc0b43e"
+        },
+        {
+          "id": "sounds/letters/Э.mp3",
+          "key": "Э",
+          "path": "sounds/letters/Э.mp3",
+          "url": "/sounds/letters/%D0%AD.mp3",
+          "label": "Э",
+          "category": "Прочее",
+          "version": "8fd773f6f5ec2a60"
+        },
+        {
+          "id": "sounds/letters/Ю.mp3",
+          "key": "Ю",
+          "path": "sounds/letters/Ю.mp3",
+          "url": "/sounds/letters/%D0%AE.mp3",
+          "label": "Ю",
+          "category": "Прочее",
+          "version": "caf53b041867148b"
+        },
+        {
+          "id": "sounds/letters/Я.mp3",
+          "key": "Я",
+          "path": "sounds/letters/Я.mp3",
+          "url": "/sounds/letters/%D0%AF.mp3",
+          "label": "Я",
+          "category": "Прочее",
+          "version": "d8fecf42df861bdb"
+        }
+      ]
+    }
+  ]
+}

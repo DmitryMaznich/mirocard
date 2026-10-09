@@ -1,0 +1,15 @@
+{
+  "playlist": "audio/addition-subtraction-review",
+  "items": [
+    { "key": "n1", "version": "b91b3ad610873dfb", "status": "redo", "note": "Слышится Агин" },
+    { "key": "n3", "version": "dda58c0e33f4d3df", "status": "redo", "note": "Звучит Ти" },
+    { "key": "n4", "version": "ee32912f06deaa4f", "status": "redo", "note": "Снова Чепире!!!" },
+    { "key": "n5", "version": "cda7067763904ae3", "status": "redo", "note": "Старнный акцент" },
+    { "key": "n6", "version": "bf6aaed8972d5a99", "status": "redo", "note": "Странный акцент" }
+  ],
+  "unlisted": ["plus"],
+  "replacementProvider": "Google Cloud Text-to-Speech",
+  "replacementVoice": "ru-RU-Wavenet-A",
+  "replacementSpeakingRate": 0.95,
+  "replacementPlaylist": "audio/addition-subtraction-russian-review"
+}

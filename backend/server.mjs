@@ -1834,7 +1834,7 @@ function serveStaticFile(res, absPath) {
   // deployment, even though the server already has the current version.
   // The service worker and manifest must be checked fresh for the same reason.
   const fileName = path.basename(absPath);
-  const isAppShell = ["index.html", "sw.js", "manifest.json", "admin.html", "admin.js", "admin-model.js", "admin.css"].includes(fileName);
+  const isAppShell = ["index.html", "sw.js", "manifest.json", "admin.html", "admin.js", "admin-model.js", "admin.css", "audio-review.html", "audio-review.css", "audio-review-manifest.json", "admin-audio-review.js"].includes(fileName);
   // The catalog stays at one fixed URL while each deck ZIP has a versioned
   // filename. Cache the ZIPs, but always revalidate the catalog so a newly
   // published topic is visible as soon as the deployment switches over.
