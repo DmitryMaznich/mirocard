@@ -9,7 +9,8 @@ import {
   coordinateLetterAudioPath,
   coordinateNumberAudioPath,
   coordinateCommandText,
-  directionAudioPath,
+  cellsAudioPath,
+  directionAudioPaths,
   directionCommandText,
 } from "./dictation-audio.mjs";
 
@@ -21,7 +22,11 @@ test("the built deck carries every coordinate and navigator recording", async ()
   const paths = [
     ...Array.from({ length: 20 }, (_, index) => coordinateLetterAudioPath(index)),
     ...Array.from({ length: 20 }, (_, index) => coordinateNumberAudioPath(index + 1)),
-    ...["up", "down", "right", "left", "up_right", "down_right", "up_left", "down_left"].map((direction) => `audio/navigator/${direction}.mp3`),
+    ...Array.from({ length: 20 }, (_, index) => cellsAudioPath(index + 1)),
+    ...["up", "down", "right", "left", "up_right", "down_right", "up_left", "down_left"].flatMap((direction) => [
+      `audio/navigator/${direction}.mp3`,
+      `audio/dictation/directions/${direction}.mp3`,
+    ]),
   ];
   for (const path of paths) {
     assert.deepEqual(await zip.file(path)?.async("nodebuffer"), await readFile(new URL(`./${path}`, import.meta.url)), path);
@@ -31,12 +36,25 @@ test("the built deck carries every coordinate and navigator recording", async ()
 
 test("dictation audio names are safe and phrases stay child-readable", () => {
   assert.equal(directionCommandText({ direction: "right", cells: 2 }), "2 клетки вправо");
-  assert.equal(directionAudioPath({ direction: "right", cells: 2 }), "audio/dictation/directions/right_2.mp3");
+  assert.deepEqual(directionAudioPaths({ direction: "right", cells: 2 }), [
+    "audio/dictation/cells/2.mp3",
+    "audio/dictation/directions/right.mp3",
+  ]);
+  assert.throws(() => directionAudioPaths({ direction: "right", cells: 21 }), /must not exceed 20/);
+  assert.match(renderer, /`audio\/dictation\/cells\/\$\{command\.cells\}\.mp3`,\s*`audio\/dictation\/directions\/\$\{command\.direction\}\.mp3`/);
   assert.equal(coordinateCommandText({ col: 0, row: 2 }), "Точка А, 3");
   assert.deepEqual(coordinateAudioPaths({ col: 0, row: 2 }), [
     "audio/dictation/coordinate_letters/0.mp3",
     "audio/dictation/coordinate_numbers/3.mp3",
   ]);
+});
+
+test("every dictation command is voiced by a committed cells + direction pair", async () => {
+  for (const card of topic.cards.filter((entry) => entry.taskKind === "dictation")) {
+    for (const command of card.commands) {
+      for (const path of directionAudioPaths(command)) await readFile(new URL(`./${path}`, import.meta.url));
+    }
+  }
 });
 
 test("the coordinate dictation reuses letter and number recordings", () => {

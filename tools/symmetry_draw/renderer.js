@@ -231,8 +231,11 @@
   // These paths deliberately mirror dictation-audio.mjs. This renderer is
   // shipped as a raw script inside the topic ZIP, so importing the Node helper
   // here would make the downloaded deck fail to load.
-  function directionAudioPath(command) {
-    return `audio/dictation/directions/${command.direction}_${command.cells}.mp3`;
+  function directionAudioPaths(command) {
+    return [
+      `audio/dictation/cells/${command.cells}.mp3`,
+      `audio/dictation/directions/${command.direction}.mp3`,
+    ];
   }
 
   function coordinateAudioPaths(point) {
@@ -337,7 +340,7 @@
         speech: commandText(command),
         direction: command.direction,
         cells: command.cells,
-        audioPaths: [directionAudioPath(command)],
+        audioPaths: directionAudioPaths(command),
       };
     });
   }

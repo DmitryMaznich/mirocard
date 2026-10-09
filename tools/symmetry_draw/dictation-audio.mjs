@@ -13,6 +13,7 @@ const DIRECTION_LABELS = {
   down_left: "влево-вниз",
 };
 
+const MAX_COMMAND_CELLS = 20;
 const MAX_COORDINATE_LETTERS = 20;
 const MAX_COORDINATE_NUMBERS = 20;
 
@@ -27,12 +28,24 @@ function positiveInteger(value, label) {
   return number;
 }
 
-export function directionCommandText(command) {
+function commandCells(command) {
   const cells = positiveInteger(command?.cells, "command.cells");
-  const direction = DIRECTION_LABELS[command?.direction];
-  if (!direction) throw new Error(`Unknown dictation direction: ${command?.direction}`);
+  if (cells > MAX_COMMAND_CELLS) throw new Error(`command.cells must not exceed ${MAX_COMMAND_CELLS}: ${cells}`);
+  return cells;
+}
+
+function commandDirection(command) {
+  if (!DIRECTION_LABELS[command?.direction]) throw new Error(`Unknown dictation direction: ${command?.direction}`);
+  return command.direction;
+}
+
+function cellsText(cells) {
   const word = cells === 1 ? "клетка" : cells < 5 ? "клетки" : "клеток";
-  return `${cells} ${word} ${direction}`;
+  return `${cells} ${word}`;
+}
+
+export function directionCommandText(command) {
+  return `${cellsText(commandCells(command))} ${DIRECTION_LABELS[commandDirection(command)]}`;
 }
 
 export function coordinateCommandText(point) {
@@ -52,10 +65,19 @@ function coordinateColumn(col) {
   return index;
 }
 
-export function directionAudioPath(command) {
-  const cells = positiveInteger(command?.cells, "command.cells");
-  if (!DIRECTION_LABELS[command?.direction]) throw new Error(`Unknown dictation direction: ${command?.direction}`);
-  return `audio/dictation/directions/${command.direction}_${cells}.mp3`;
+// A command is spoken as two reusable recordings, "Две клетки" then
+// "вправо". Any new figure is voiced automatically (up to 20 cells per move):
+// do not go back to one recording per direction × count pair.
+export function cellsAudioPath(cells) {
+  return `audio/dictation/cells/${commandCells({ cells })}.mp3`;
+}
+
+export function directionWordAudioPath(direction) {
+  return `audio/dictation/directions/${commandDirection({ direction })}.mp3`;
+}
+
+export function directionAudioPaths(command) {
+  return [cellsAudioPath(command?.cells), directionWordAudioPath(command?.direction)];
 }
 
 export function coordinateLetterAudioPath(col) {
@@ -91,7 +113,11 @@ export function collectDictationAudioEntries(topic) {
 
   for (const card of topic?.cards ?? []) {
     if (card.taskKind === "dictation") {
-      for (const command of card.commands ?? []) add(directionAudioPath(command), directionCommandText(command));
+      for (const command of card.commands ?? []) {
+        directionCommandText(command); // validates both parts
+        add(cellsAudioPath(command.cells), cellsText(Number(command.cells)));
+        add(directionWordAudioPath(command.direction), DIRECTION_LABELS[command.direction]);
+      }
     }
     if (card.taskKind === "coordinate") {
       for (const point of card.points ?? []) {
@@ -102,12 +128,11 @@ export function collectDictationAudioEntries(topic) {
     }
   }
 
-  // The default direction-based dictation is the core drill. Generate that
-  // compact bank first, so a daily TTS cap never leaves the main mode half
-  // voiced while a larger coordinate bank is still being made.
+  // The default direction-based dictation is the core drill; list its
+  // recordings first.
   return [...entriesByPath.values()].sort((a, b) => {
-    const groupA = a.path.includes("/directions/") ? 0 : 1;
-    const groupB = b.path.includes("/directions/") ? 0 : 1;
+    const groupA = a.path.includes("/coordinate_") ? 1 : 0;
+    const groupB = b.path.includes("/coordinate_") ? 1 : 0;
     return groupA - groupB || a.path.localeCompare(b.path);
   });
 }
