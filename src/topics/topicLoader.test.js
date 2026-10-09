@@ -863,7 +863,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const exchange = record.modes.find((m) => m.id === "exchange_ten");
     expect(exchange.methodology.text).not.toContain("Число изменилось");
     expect(exchange.methodology.tips.some((t) => t.includes("Число изменилось"))).toBe(false);
-    expect(exchange.methodology.text).toContain("Отдай 5");
+    expect(exchange.methodology.text).toContain("32 − 4 = 32 − 2 − 2");
   });
 });
 

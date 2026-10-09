@@ -1,0 +1,73 @@
+/* «Плюс и минус через десяток» (ExchangeTenTask). The screen is group_ten.css
+   (sg-, fp-); here only the example, the «−k / +k» tray and the stacks that
+   can be opened. */
+
+.xt-example {
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.xt-sign--give { color: #c04040; }
+.xt-sign--get { color: #1f7a6f; }
+.xt-q { display: inline-block; min-width: 2ch; text-align: left; color: #64748b; } /* «?» then the answer, same room */
+
+/* The tray: what is taken away (empty places fill with the coins taken out
+   of the frame) or what is to be added (coins waiting to go into the frame). */
+.xt-tray {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 14px;
+  border-style: dashed;
+}
+
+.xt-tray--give { background: #fff7f7; border-color: #e7a3a3; }
+.xt-tray--get { background: #f0fbf8; border-color: #8fcfc3; }
+
+.xt-tray-label {
+  min-width: 2.2em;
+  font-size: 26px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.xt-tray--give .xt-tray-label { color: #c04040; }
+.xt-tray--get .xt-tray-label { color: #1f7a6f; }
+
+.xt-slots {
+  display: grid;
+  grid-template-columns: repeat(min(var(--xt-k), 9), var(--coin-size));
+  gap: calc(var(--coin-size) * 0.22);
+}
+
+.xt-tray .px-slot { color: #e7a3a3; }
+.xt-tray--get .px-slot { color: #8fcfc3; }
+.xt-slot--empty { opacity: 0.5; }
+.xt-gone { animation: px-pop 0.3s ease-out both; }
+
+/* Stacks: buttons that only work while a ten has to be opened. */
+.xt-stack {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 8px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.xt-stack:disabled { cursor: default; }
+.xt-stack--open { cursor: pointer; }
+
+.sg-screen--tablet .xt-example,
+.sg-screen--wide .xt-example { font-size: 40px; }
+.sg-screen--tablet .xt-tray-label,
+.sg-screen--wide .xt-tray-label { font-size: 32px; }
+
+/* The board: the bench and the tray share one width. */
+.xt-screen .sg-board {
+  width: min(100%, max(calc(var(--coin-size) * (var(--sg-stack-cols) * 1.3 + 6.8) + 64px),
+    calc(var(--coin-size) * var(--xt-k) * 1.25 + 120px)));
+}

@@ -8,12 +8,14 @@ import { Coin } from "./CoinBlocks.jsx";
 // growing stack with no places and no counter — the child counts ten alone;
 // tapping the pile takes its top coin back (with tapToClose it closes the
 // pile instead).
-export default function TenFrame({ coinIds, pendingIds = [], onReturn, onPileTap, onClose, disabled, glow, slots = true, title = "Собери десяток", tapToClose = false }) {
+export default function TenFrame({ coinIds, pendingIds = [], onReturn, onPileTap, onClose, disabled, glow, slots = true, title = "Собери десяток", tapToClose = false, closable = true }) {
   const count = coinIds.length;
   const full = slots ? count === 10 : count > 0;
   // tapToClose («Собери десяток»): no title, no counter, no button — a full
   // frame lights up and is itself the button that turns it into a stack.
-  const ready = tapToClose && slots && count === 10;
+  // `closable={false}`: ten coins in the frame are not to become a stack
+  // («Плюс и минус через десяток», taking away: a ten just opened into it).
+  const ready = tapToClose && closable && slots && count === 10;
   const cells = Array.from({ length: 10 }, (_, i) => {
     const id = coinIds[i];
     if (!id) return <span key={`slot-${i}`} className="px-tf-slot" />;
@@ -27,7 +29,7 @@ export default function TenFrame({ coinIds, pendingIds = [], onReturn, onPileTap
     {slots
       ? ready
         ? <button type="button" className="px-tf px-tf--full px-tf--ready" aria-label="Сложить в стопку" disabled={disabled} onClick={onClose}>{cells}</button>
-        : <div className={`px-tf${count === 10 ? " px-tf--full" : ""}`}>{cells}</div>
+        : <div className={`px-tf${count === 10 && closable ? " px-tf--full" : ""}`}>{cells}</div>
       : <button type="button" className="px-tf-pile" aria-label={tapToClose ? "Сложить в стопку" : "Собирается стопка — нажми, чтобы убрать монету"}
         disabled={disabled || !count} onClick={tapToClose ? onClose : onPileTap}>
         <span className="cb-ten-stack">{coinIds.map((id) => <span key={id} className="cb-stack-coin" />)}</span>

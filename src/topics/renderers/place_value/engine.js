@@ -136,7 +136,6 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       tasks.push({
         ...generateExchangeTask(exchangeCards[i % exchangeCards.length], params, flags[i]),
         supportMode: params.supportMode ?? "learning",
-        showColumn: Boolean(params.showColumn),
       });
     }
     return tasks;

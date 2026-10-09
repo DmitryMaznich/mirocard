@@ -137,7 +137,8 @@ describe("generateTasks – exchange_ten", () => {
 
   it("carries the adult's settings into each task", () => {
     const [task] = generateTasks("exchange_ten", PLACE_VALUE_CARDS, 1, { supportMode: "independent", showColumn: true });
-    expect(task).toMatchObject({ supportMode: "independent", showColumn: true, cardId: "exchange_ten" });
+    expect(task).toMatchObject({ supportMode: "independent", cardId: "exchange_ten" });
+    expect(task.showColumn).toBeUndefined(); // the column notation is gone from this mode
   });
 
   it("works with a single ten available", () => {
