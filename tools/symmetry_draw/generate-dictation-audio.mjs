@@ -4,6 +4,8 @@
 //   node tools/symmetry_draw/generate-dictation-audio.mjs [--dry-run] [--force] [--voice=Kore] [--only=path[,path...]]
 // The run is resumable: existing MP3s are preserved, and Gemini's daily
 // CreateVoice cap stops the script cleanly so it can continue tomorrow.
+// Direction phrases are now the owner's ElevenLabs-cloned voice (see
+// docs/testing/graphic-dictation-approved-audio.md): never run --force on them.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
