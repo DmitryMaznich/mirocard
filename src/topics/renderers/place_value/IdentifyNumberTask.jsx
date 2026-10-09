@@ -15,7 +15,7 @@ import "./identify.css";
 // loose coins. «Обучение» asks in three steps — tens, ones, the number — and
 // lets the child tick off what's been counted (a tap on a stack or coin; the
 // ticks clear at the next question); «Проверка» asks for the number only.
-// Same composed, still screen as «Сложи по десять» (group_ten.css): one coin
+// Same composed, still screen as «Собери десяток» (group_ten.css): one coin
 // size per task, every element's place reserved. See
 // docs/place-value-methodology.md, режим 2.
 

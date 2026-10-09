@@ -10,7 +10,7 @@ import "./coins.css";
 import "./exchange.css";
 import "./group_ten.css";
 
-// «Сложи по десять» — the topic's way in. A heap of loose coins and no number:
+// «Собери десяток» — the topic's way in. A heap of loose coins and no number:
 // the child moves coins into the ten-frame one by one, taps each full frame to
 // turn it into a stack, and answers how many tens, how many ones, what number.
 // The answer fields switch on by themselves once fewer than ten loose coins

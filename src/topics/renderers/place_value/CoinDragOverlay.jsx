@@ -3,7 +3,7 @@ import { Coin, TenStack } from "./CoinBlocks.jsx";
 import "./coins.css";
 
 // Only the dragged object follows the pointer (a stack dragged onto «Единицы»
-// in «Обмен десятка»); its source stays in place. Rendering outside the board
+// in «Плюс и минус через десяток»); its source stays in place. Rendering outside the board
 // also avoids clipping at zone boundaries.
 export function CoinDragOverlay() {
   const { active } = useDndContext();

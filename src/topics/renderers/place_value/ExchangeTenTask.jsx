@@ -11,13 +11,13 @@ import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
 
-// «Обмен десятка». The task gives a reason to exchange: «Отдай k» when there
+// «Плюс и минус через десяток». The task gives a reason to exchange: «Отдай k» when there
 // may not be enough loose coins (break a stack of ten — the column's заём),
 // «Получи k» when loose coins may reach ten (build a new stack — перенос).
 // The app never exchanges on its own and never hints before the child is
 // stuck; about half of the tasks need no exchange at all (generateExchangeTask).
 // Same coins and stacks as the rest of the topic — the topic later leads on to
-// money — and the same ten-frame as «Сложи по десять» for building a ten.
+// money — and the same ten-frame as «Собери десяток» for building a ten.
 // See docs/place-value-methodology.md, режим 4.
 
 const HINT_DELAY_MS = 4000;

@@ -145,7 +145,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   return [];
 }
 
-// «Обмен десятка»: the model of `number` plus an action with a reason —
+// «Плюс и минус через десяток»: the model of `number` plus an action with a reason —
 // «Отдай k» (give) or «Получи k» (get). generateTasks passes `needsExchange`
 // so that half of a session needs an exchange (break a ten when there aren't
 // enough ones / build a ten when ones reach ten) and half doesn't — the child
@@ -187,7 +187,7 @@ function exchangeFlags(count) {
   return flags;
 }
 
-// «Сложи по десять»: how many loose coins lie in the heap. Ranges follow the
+// «Собери десяток»: how many loose coins lie in the heap. Ranges follow the
 // methodology: 11–19 (one stack), 20–49, round tens (nothing left over), or a
 // mix. Nothing above 49 — the point is grouping, and counting 60 coins one by
 // one only tires the child. Numbers don't repeat until the pool runs out.

@@ -11,7 +11,7 @@ import { Coin } from "./CoinBlocks.jsx";
 export default function TenFrame({ coinIds, pendingIds = [], onReturn, onPileTap, onClose, disabled, glow, slots = true, title = "Собери десяток", tapToClose = false }) {
   const count = coinIds.length;
   const full = slots ? count === 10 : count > 0;
-  // tapToClose («Сложи по десять»): no title, no counter, no button — a full
+  // tapToClose («Собери десяток»): no title, no counter, no button — a full
   // frame lights up and is itself the button that turns it into a stack.
   const ready = tapToClose && slots && count === 10;
   const cells = Array.from({ length: 10 }, (_, i) => {

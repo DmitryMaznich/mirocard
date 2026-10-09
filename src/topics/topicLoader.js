@@ -1292,7 +1292,7 @@ const DEFAULT_MODES = {
       type: "group_ten",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Сложи по десять", instruction: "Сложи монеты стопками по десять и скажи, сколько их", icon: "media/icons/place_value_build.svg" },
+      ui: { title: "Собери десяток", instruction: "Собери монеты в десятки и скажи, сколько их", icon: "media/icons/place_value_build.svg" },
       hideConceptPicker: true,
       params: {
         numberRange: {
@@ -1431,7 +1431,7 @@ const DEFAULT_MODES = {
       type: "exchange_ten",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Обмен десятка", instruction: "Отдай или получи монеты — реши, нужен ли обмен", icon: "media/icons/place_value_regroup.svg" },
+      ui: { title: "Плюс и минус через десяток", instruction: "Отдай или получи монеты — реши, нужно ли менять десяток", icon: "media/icons/place_value_regroup.svg" },
       hideConceptPicker: true,
       params: {
         operation: {
