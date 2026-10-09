@@ -1,20 +1,26 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
-import { placeValuePhrase, numberWords, pluralTens, pluralOnes } from "./placeValueLabels.js";
-import NumberAnswer from "./NumberAnswer.jsx";
+import { numberWords, pluralTens, pluralOnes } from "./placeValueLabels.js";
+import { AnswerField, Keypad, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
-import "./group.css";
+import "./group_ten.css";
 import "./identify.css";
 
 // «Какое это число?» — read a ready model. Three layouts (task.layout, see
 // identifyLayout in engine.js): coins in their places, everything mixed in one
 // zone (loose coins sit left of the stacks on purpose), or more than nine
 // loose coins. «Обучение» asks in three steps — tens, ones, the number — and
-// offers «Посчитать» (tick off what's been counted); «Проверка» asks for the
-// number only. See docs/place-value-methodology.md, режим 2.
+// lets the child tick off what's been counted (a tap on a stack or coin; the
+// ticks clear at the next question); «Проверка» asks for the number only.
+// Same composed, still screen as «Сложи по десять» (group_ten.css): one coin
+// size per task, every element's place reserved. See
+// docs/place-value-methodology.md, режим 2.
+
+const WIDE_ANSWER = 320; // px, the answer column on a landscape tablet
+const COUNT_HINT_MS = 8000;
 
 function seededRandom(seed) {
   let value = seed % 233280;
@@ -49,8 +55,8 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   const { tens, ones } = task.model;
   const questions = teaching
     ? [
-      { key: "tens", label: "Сколько десятков?", tone: "tens", expected: tens },
-      { key: "ones", label: layout === "over9" ? "Сколько отдельных монет?" : "Сколько единиц?", tone: "ones", expected: ones },
+      { key: "tens", label: "Десятки", tone: "tens", expected: tens },
+      { key: "ones", label: layout === "over9" ? "Отдельных монет" : "Единицы", tone: "ones", expected: ones },
       { key: "total", label: "Какое это число?", tone: "total", expected: task.number },
     ]
     : [{ key: "total", label: "Какое это число?", tone: "total", expected: task.number }];
@@ -58,39 +64,57 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   const [answers, setAnswers] = useState({});
   const [solved, setSolved] = useState(false);
   const [note, setNote] = useState("");
-  const [counting, setCounting] = useState(false);
   const [counted, setCounted] = useState([]);
-  const [coinSize, setCoinSize] = useState(44);
-  const [narrow, setNarrow] = useState(false);
-  const mainRef = useRef(null);
-  const cols = narrow ? 5 : 8;
-  const mixed = useMemo(() => mixedLayout(tens, ones, task.seed, cols), [tens, ones, task.seed, cols]);
+  const [countHint, setCountHint] = useState(false);
+  const typed = useTypedAnswer(3); // three digits on purpose: «214» and «304» are the mistakes to catch
+  const [coinSize, setCoinSize] = useState(32);
+  const [mode, setMode] = useState("phone");
+  const appliedSize = useRef(32);
+  appliedSize.current = coinSize;
+  const screenRef = useRef(null);
+  const innerRef = useRef(null);
 
+  const cols = mode === "phone" ? 5 : 8;
+  const mixed = useMemo(() => mixedLayout(tens, ones, task.seed, cols), [tens, ones, task.seed, cols]);
+  const stackCols = Math.min(5, Math.max(1, tens)), stackRows = Math.max(1, Math.ceil(tens / 5));
+  const blocks = Math.max(1, Math.ceil(ones / 10));
+
+  // One coin size per task, fitted on the real layout (see GroupTenTask).
   useLayoutEffect(() => {
-    const main = mainRef.current;
-    if (!main) return undefined;
+    const screen = screenRef.current, inner = innerRef.current;
+    if (!screen || !inner) return undefined;
     const measure = () => {
-      const { width, height } = main.getBoundingClientRect();
-      if (!width || !height) return;
-      const isNarrow = width < 600;
-      const c = isNarrow ? 5 : 8;
-      const size = layout === "mixed"
-        ? Math.min((width - 40) / (c * 1.3), (height - 50) / (Math.max(2, Math.ceil(((tens + ones) * 1.4) / c)) * 2.4), 52)
-        : isNarrow
-          // Phones: two zones side by side; tall enough for two rows of stacks or two blocks of coins.
-          ? Math.min(((width - 12) / 2 - 24) / 6.3, (height - 52) / Math.max(tens > 5 ? 4.8 : 2.4, ones > 10 ? 5 : 2.4), 40)
-          : Math.min((width - 120) / 13.2, (height - 60) / 5.4, 56);
-      setNarrow(isNarrow);
-      setCoinSize(Math.max(20, size));
+      const W = screen.clientWidth, H = screen.clientHeight;
+      if (!W || !H) return;
+      const next = W >= 900 && W > H * 1.15 ? "wide" : W < 600 ? "phone" : "tablet";
+      if (next !== mode) { setMode(next); return; }
+      const cap = mode === "phone" ? 44 : 64;
+      const cs = getComputedStyle(screen);
+      const bw = W - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - (mode === "wide" ? WIDE_ANSWER + 32 : 0);
+      const byWidth = layout === "mixed" ? (bw - 32) / (cols * 1.35) : (bw - 56) / (stackCols * 1.3 + 7.4);
+      const room = H - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      const fits = (c) => { screen.style.setProperty("--coin-size", `${c}px`); return inner.offsetHeight <= room; };
+      let lo = 14, hi = Math.max(14, Math.min(cap, byWidth));
+      if (fits(hi)) lo = hi;
+      else for (let i = 0; i < 9; i++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; }
+      screen.style.setProperty("--coin-size", `${appliedSize.current}px`);
+      setCoinSize(Math.floor(lo * 10) / 10);
     };
     measure();
     const observer = new ResizeObserver(measure);
-    observer.observe(main);
+    observer.observe(screen);
     return () => observer.disconnect();
-  }, [layout, tens, ones]);
+  }, [mode, layout, cols, stackCols, stackRows, blocks, teaching, mixed.rows]);
+
+  // «Обучение»: if nothing happens for a while, say that items can be ticked off.
+  useEffect(() => {
+    if (!teaching || solved || counted.length || typed.digits) { setCountHint(false); return undefined; }
+    const timer = setTimeout(() => setCountHint(true), COUNT_HINT_MS);
+    return () => clearTimeout(timer);
+  }, [teaching, solved, counted.length, typed.digits, step]);
 
   function toggleCounted(key) {
-    if (!counting || solved) return;
+    if (!teaching || solved) return;
     setCounted((c) => (c.includes(key) ? c.filter((k) => k !== key) : [...c, key]));
   }
   function totalHint(guess) {
@@ -108,7 +132,8 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     if (guess === q.expected) {
       setAnswers((a) => ({ ...a, [q.key]: guess }));
       setNote("");
-      if (step === questions.length - 1) { setSolved(true); setCounting(false); } else setStep(step + 1);
+      setCounted([]);
+      if (step === questions.length - 1) setSolved(true); else setStep(step + 1);
       return true;
     }
     setNote(q.key === "tens" ? "Посчитай стопки — каждая стопка это десяток."
@@ -116,64 +141,72 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
     return false;
   }
+  function enter() {
+    if (!typed.digits || solved) return;
+    if (answer(Number(typed.digits))) typed.reset(); else typed.fail();
+  }
+  const field = (key, big) => {
+    const i = questions.findIndex((q) => q.key === key);
+    if (i < 0) return null;
+    const q = questions[i], ok = answers[q.key] !== undefined, active = !solved && i === step;
+    return <AnswerField label={q.label} tone={q.tone} big={big} bare={!big && q.label !== "Отдельных монет"} ok={ok} active={active}
+      wrong={typed.wrong} value={ok ? answers[q.key] : active ? typed.digits : ""} />;
+  };
 
+  // A stack or a coin: in «Обучение» a tap ticks it as counted.
   const item = (key, kind) => {
     const content = kind === "stack" ? <TenStack /> : <Coin />;
     const done = counted.includes(key);
-    const label = kind === "stack" ? "Десяток" : "Монета";
-    return counting
-      ? <button type="button" key={key} className={`${kind === "stack" ? "px-stack" : "px-coin"} id-item${done ? " id-item--counted" : ""}`}
-        aria-label={label} aria-pressed={done} onClick={() => toggleCounted(key)}>{content}</button>
-      : <span key={key} className={`${kind === "stack" ? "px-stack-wrap" : "px-coin px-coin--static"} id-item${done ? " id-item--counted" : ""}`}>{content}</span>;
+    const cls = `${kind === "stack" ? "px-stack-wrap" : "px-coin"} id-item${done ? " id-item--counted" : ""}`;
+    return teaching
+      ? <button type="button" key={key} className={cls} aria-label={kind === "stack" ? "Десяток" : "Монета"} aria-pressed={done}
+        disabled={solved} onClick={() => toggleCounted(key)}>{content}</button>
+      : <span key={key} className={cls}>{content}</span>;
   };
-  const coinBlocks = (count, prefix) => Array.from({ length: Math.ceil(count / 10) }, (_, b) => <div key={b} className="px-coin-block">
-    {Array.from({ length: Math.min(10, count - b * 10) }, (_, j) => item(`${prefix}:${b * 10 + j}`, "coin"))}
+  const coinBlocks = (count) => Array.from({ length: Math.ceil(count / 10) }, (_, b) => <div key={b} className="px-coin-block">
+    {Array.from({ length: Math.min(10, count - b * 10) }, (_, j) => item(`ones:${b * 10 + j}`, "coin"))}
   </div>);
+  const heads = <>
+    <h3 className="sg-head sg-head--tens"><span className="sg-chip" />Десятки</h3>
+    <h3 className="sg-head sg-head--ones"><span className="sg-chip" />Единицы</h3>
+  </>;
 
-  const countButton = teaching && <button type="button" className={`px-undo id-count${counting ? " id-count--on" : ""}`}
-    onClick={() => { setCounting((c) => !c); setCounted([]); }}>{counting ? "Закончить счёт" : "Посчитать"}</button>;
+  const status = solved ? null
+    : note ? <span className="sg-status-note">{note}</span>
+      : countHint ? <span className="sg-status-hint">Можно отмечать посчитанное — нажимай на стопки и монеты.</span> : null;
 
-  return <div className={`pv-screen px-screen gt-screen id-screen${narrow ? " gt-screen--narrow" : ""}`} style={{ "--coin-size": `${coinSize}px` }}>
-    <header className="gt-task"><b>Какое это число?</b></header>
-    <div className="gt-main gt-main--sorted id-main" ref={mainRef}>
-      {layout === "mixed"
-        ? <section className="px-zone id-mixed">
-          <h3>Монеты</h3>
-          <div className="id-grid" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${mixed.rows}, calc(var(--coin-size) * 2.3))` }}>
-            {mixed.items.map((it) => <span key={it.key} className="id-cell" style={{ gridColumn: it.col + 1, gridRow: it.row + 1, justifyContent: it.align }}>
-              {item(it.key, it.kind)}
-            </span>)}
-          </div>
-        </section>
-        : <>
-          <section className="px-zone px-zone--tens">
-            <h3><span className="px-chip" />Десятки</h3>
-            <div className="px-stacks">{Array.from({ length: tens }, (_, i) => item(`tens:${i}`, "stack"))}</div>
-          </section>
-          <section className="px-zone px-zone--ones">
-            <h3><span className="px-chip" />Единицы</h3>
-            <div className="px-coins">{coinBlocks(ones, "ones")}</div>
-          </section>
-        </>}
-    </div>
-    <div className="px-bottom">
-      {!solved ? <div className="gt-ask">
-        <div className="gt-questions">
-          {questions.map((q, i) => <div key={q.key} className={`gt-q gt-q--${q.tone}${i === step ? " gt-q--active" : ""}${answers[q.key] !== undefined ? " gt-q--ok" : ""}`}>
-            <span>{q.label}</span><span className="gt-q-value">{answers[q.key] ?? (i === step ? "?" : "")}</span>
-          </div>)}
-        </div>
-        {/* Three digits allowed on purpose: «214» and «203» are the mistakes to catch. */}
-        <NumberAnswer key={step} onSubmit={answer} maxDigits={3} extra={narrow && countButton} />
-        {!narrow && countButton}
-        {note && <div className="px-note" role="status">{note}</div>}
-        {counting && <p className="id-caption">Нажимай на то, что уже посчитал</p>}
+  return <div ref={screenRef} className={`pv-screen sg-screen sg-screen--${mode} id-screen`}
+    style={{ "--coin-size": `${coinSize}px`, "--sg-stack-cols": stackCols, "--sg-stack-rows": stackRows, "--id-cols": cols, "--id-blocks": blocks, "--sg-answer-w": `${WIDE_ANSWER}px` }}>
+    <div className="sg-inner" ref={innerRef}>
+      <h2 className="sg-title">Сколько здесь монет?</h2>
+      <div className="sg-board id-board">
+        {layout === "mixed"
+          ? <>
+            <section className="sg-card id-mixed">
+              <div className="id-grid" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${mixed.rows}, calc(var(--coin-size) * 2.3))` }}>
+                {mixed.items.map((it) => <span key={it.key} className="id-cell" style={{ gridColumn: it.col + 1, gridRow: it.row + 1, justifyContent: it.align }}>
+                  {item(it.key, it.kind)}
+                </span>)}
+              </div>
+            </section>
+            {teaching && <section className="sg-card sg-bench id-fields">{heads}{field("tens")}{field("ones")}</section>}
+          </>
+          : <section className="sg-card sg-bench">
+            {heads}
+            <div className="sg-stacks">{Array.from({ length: tens }, (_, i) => item(`tens:${i}`, "stack"))}</div>
+            <div className="id-ones">{coinBlocks(ones)}</div>
+            {teaching && field("tens")}
+            {teaching && field("ones")}
+          </section>}
       </div>
-        : <div className="px-done" role="status">
-          <span className="gt-number">{task.number}</span>
-          <div className="px-say">{placeValuePhrase(task.number)}</div>
-          <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-        </div>}
+      <div className="sg-answer">
+        <div className="sg-num">{field("total", true)}</div>
+        <div className="sg-status" role="status">{status}</div>
+        <div className="sg-slot">
+          {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
+            : <Keypad typed={typed} onEnter={enter} grid={mode !== "phone"} />}
+        </div>
+      </div>
     </div>
   </div>;
 }

@@ -8,30 +8,34 @@ describe("IdentifyNumberTask", () => {
   const h = coinHarness();
   const count = (sel) => h.container.querySelectorAll(sel).length;
   const answer = (n) => { for (const d of String(n)) h.click(d); h.click("Проверить"); };
-  const active = () => h.container.querySelector(".gt-q--active")?.textContent;
+  const active = () => h.container.querySelector(".fp-field--active output")?.getAttribute("aria-label");
+  const note = () => h.container.querySelector(".sg-status-note")?.textContent;
+  const value = (label) => h.container.querySelector(`output[aria-label="${label}"]`).textContent;
 
-  it("«Обучение»: tens → ones → number, then the spoken model", () => {
+  it("«Обучение»: tens → ones → number, typed straight into the fields under the columns", () => {
     const onCorrect = vi.fn(), onMistake = vi.fn();
     h.mount(IdentifyNumberTask, task(), { onCorrect, onMistake });
-    expect(count(".px-zone--tens .cb-ten-stack")).toBe(3);
-    expect(count(".px-zone--ones .cb-coin")).toBe(4);
-    expect(active()).toContain("Сколько десятков?");
-    answer(3); expect(active()).toContain("Сколько единиц?");
-    answer(4); expect(active()).toContain("Какое это число?");
+    expect(count(".sg-stacks .cb-ten-stack")).toBe(3);
+    expect(count(".id-ones .cb-coin")).toBe(4);
+    expect(Array.from(h.container.querySelectorAll(".sg-head")).map((e) => e.textContent)).toEqual(["Десятки", "Единицы"]);
+    expect(active()).toBe("Десятки");
+    answer(3); expect(active()).toBe("Единицы");
+    answer(4); expect(active()).toBe("Какое это число?");
     answer(34);
-    expect(h.container.querySelector(".px-say").textContent).toBe("3 десятка и 4 единицы — тридцать четыре");
+    expect(value("Какое это число?")).toBe("34");
+    expect(h.container.querySelector(".px-say")).toBeNull();
     expect(onMistake).not.toHaveBeenCalled();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("x", "x");
   });
 
-  it("«Проверка» asks only for the number and offers no counting help", () => {
+  it("«Проверка» asks only for the number, and the coins can't be ticked", () => {
     h.mount(IdentifyNumberTask, task({ supportMode: "independent" }));
-    expect(count(".gt-q")).toBe(1);
-    expect(active()).toContain("Какое это число?");
-    expect(h.button("Посчитать")).toBeUndefined();
+    expect(count(".fp-field")).toBe(1);
+    expect(active()).toBe("Какое это число?");
+    expect(count("button.id-item")).toBe(0);
     answer(43);
-    expect(h.container.querySelector(".px-note").textContent).toBe("Проверь число ещё раз.");
+    expect(note()).toBe("Проверь число ещё раз.");
   });
 
   it("names the typical mistakes in «Обучение»", () => {
@@ -39,39 +43,40 @@ describe("IdentifyNumberTask", () => {
     h.mount(IdentifyNumberTask, task(), { onMistake });
     answer(3); answer(4);
     answer(43);
-    expect(h.container.querySelector(".px-note").textContent).toContain("их пишут первыми");
-    expect(h.container.querySelector("output").textContent).toBe("43");
+    expect(note()).toContain("их пишут первыми");
+    expect(value("Какое это число?")).toBe("43");
     h.click("Стереть цифру"); h.click("Стереть цифру");
     answer(304);
-    expect(h.container.querySelector(".px-note").textContent).toBe("Тридцать четыре — это 3 десятка и 4 единицы. Сколько цифр нужно?");
+    expect(note()).toBe("Тридцать четыре — это 3 десятка и 4 единицы. Сколько цифр нужно?");
     expect(onMistake).toHaveBeenCalledTimes(2);
   });
 
   it("more than nine loose coins: asks for loose coins and explains «214»", () => {
     h.mount(IdentifyNumberTask, task({ layout: "over9", model: { tens: 2, ones: 14 } }));
-    expect(count(".px-zone--ones .cb-coin")).toBe(14);
+    expect(count(".id-ones .cb-coin")).toBe(14);
     answer(2);
-    expect(active()).toContain("Сколько отдельных монет?");
+    expect(active()).toBe("Отдельных монет");
     answer(14); answer(214);
-    expect(h.container.querySelector(".px-note").textContent).toContain("не может быть больше девяти");
+    expect(note()).toContain("не может быть больше девяти");
     h.click("Стереть цифру"); h.click("Стереть цифру"); h.click("Стереть цифру");
     answer(34);
-    expect(h.container.querySelector(".px-done")).not.toBeNull();
+    expect(h.button("Далее →")).toBeDefined();
   });
 
-  it("mixed: one zone, no tens/ones labels, loose coins left of the stacks", () => {
+  it("mixed: one zone, loose coins left of the stacks; the answer columns under it", () => {
     h.mount(IdentifyNumberTask, task({ layout: "mixed" }));
-    expect(h.container.querySelector(".px-zone--tens")).toBeNull();
     expect(count(".id-mixed .cb-ten-stack")).toBe(3);
     expect(count(".id-mixed .cb-coin")).toBe(4);
+    expect(count(".id-fields .fp-field")).toBe(2);
   });
 
-  it("«Посчитать» ticks items without counting for the child", () => {
+  it("a tap ticks a stack or coin as counted; the ticks clear at the next question", () => {
     h.mount(IdentifyNumberTask, task());
-    h.click("Посчитать"); h.click("Десяток"); h.click("Монета");
+    h.click("Десяток"); h.click("Монета");
     expect(count(".id-item--counted")).toBe(2);
-    expect(h.container.querySelector("output").textContent).toBe("?");
-    h.click("Закончить счёт");
+    h.click("Десяток");
+    expect(count(".id-item--counted")).toBe(1);
+    answer(3);
     expect(count(".id-item--counted")).toBe(0);
   });
 
@@ -79,7 +84,7 @@ describe("IdentifyNumberTask", () => {
     h.mount(IdentifyNumberTask, task({ number: 7, model: { tens: 0, ones: 7 }, supportMode: "independent" }));
     expect(count(".cb-ten-stack")).toBe(0);
     answer(7);
-    expect(h.container.querySelector(".px-say").textContent).toBe("7 единиц — семь");
+    expect(h.button("Далее →")).toBeDefined();
   });
 });
 

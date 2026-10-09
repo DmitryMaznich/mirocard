@@ -13,13 +13,19 @@
 }
 
 .sg-inner {
+  flex: 1 0 auto; /* at least the screen's height; taller only if it can't fit */
   width: 100%;
-  margin: 0 auto auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
   justify-items: center;
   row-gap: 10px;
 }
+
+/* When the model leaves room, the answer (number, keypad) sits at the bottom,
+   under the thumb, like a keyboard, and the model stands in the middle of
+   the space above it. A screen that fills up (99 coins) looks the same. */
+.sg-screen:not(.sg-screen--wide) .sg-board { align-self: center; }
 
 .sg-title {
   margin: 0;
@@ -355,6 +361,7 @@
 .sg-screen--wide { --sg-key-w: 84px; }
 .sg-screen--wide .sg-inner {
   grid-template-columns: minmax(0, 1fr) var(--sg-answer-w);
+  grid-template-rows: auto 1fr;
   grid-template-areas: "title title" "board answer";
   column-gap: 32px;
   align-items: center;
