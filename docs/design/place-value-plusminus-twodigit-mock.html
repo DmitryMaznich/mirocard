@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<title>Плюс и минус через десяток — двузначное второе число (макет)</title>
+<link rel="stylesheet" href="../../src/topics/renderers/place_value/coins.css">
+<link rel="stylesheet" href="../../src/topics/renderers/place_value/exchange.css">
+<link rel="stylesheet" href="../../src/topics/renderers/place_value/group_ten.css">
+<link rel="stylesheet" href="../../src/topics/renderers/place_value/exchange_ten.css">
+<style>
+  body { margin: 0; padding: 18px; background: #e2e8f0; font-family: Nunito, sans-serif; }
+  h1 { margin: 0 0 4px; font-size: 22px; } h2 { margin: 22px 0 8px; font-size: 18px; }
+  .row { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+  .frame { width: 360px; }
+  .frame .sg-screen { width: 360px; box-sizing: border-box; height: auto; padding: 8px 10px 10px; border-radius: 14px; overflow: visible; }
+  .frame .sg-inner { flex: none; grid-template-rows: auto auto auto; }
+  .cap { margin-top: 6px; font-size: 13.5px; line-height: 1.3; color: #1e293b; }
+  .cap b { color: #0f172a; }
+  .step { display: inline-block; min-width: 20px; height: 20px; border-radius: 10px; background: #1e293b; color: #fff; font-size: 12px; text-align: center; line-height: 20px; margin-right: 4px; }
+  .xt-tray { flex-wrap: wrap; row-gap: 6px; }
+  .tt-group { display: flex; gap: calc(var(--coin-size) * 0.3); align-items: flex-end; }
+  .tt-stackslot { width: var(--coin-size); height: calc(var(--coin-size) * 2.2); box-sizing: border-box; border: 2px dashed currentColor; border-radius: 8px; }
+  .xt-tray--give .tt-stackslot { color: #e7a3a3; } .xt-tray--get .tt-stackslot { color: #8fcfc3; }
+  .tt-coins { display: grid; grid-template-columns: repeat(5, var(--coin-size)); gap: calc(var(--coin-size) * 0.22); }
+  .glow { border-radius: 10px; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #93c5fd, 0 0 14px 6px rgba(96,165,250,.55); }
+  .q { font-size: 40px; font-weight: 900; color: #b45309; text-align: center; }
+  .problem .sg-screen { outline: 3px solid #ef4444; }
+</style></head>
+<body>
+<h1>«Плюс и минус через десяток»: второе число двузначное</h1>
+<div style="font-size:14px;color:#334155">Телефон. Порядок «сначала десятки, потом единицы» (вариант А). Внизу — почему без порядка неоднозначно и вариант Б.</div>
+<div id="root"></div>
+<script>
+const coin = () => '<div class="cb-coin"></div>';
+const stack = () => '<div class="cb-ten-stack">' + '<div class="cb-stack-coin"></div>'.repeat(10) + '</div>';
+function screen(o) {
+  const c = 22;
+  const stacks = Array.from({ length: o.stacks }, (_, i) => `<span class="px-stack-wrap ${o.glowStack && i === o.stacks - 1 ? 'glow' : ''}">${stack()}</span>`).join('');
+  const frame = '<div class="px-tenframe' + (o.glowFrame ? ' px-glow' : '') + '"><div class="px-tf' + (o.full ? ' px-tf--full' : '') + '">' +
+    Array.from({ length: 10 }, (_, i) => i < o.ones ? `<span class="px-coin${o.glowCoin && i === o.ones - 1 ? ' glow' : ''}">${coin()}</span>` : '<span class="px-tf-slot"></span>').join('') + '</div></div>';
+  const tens = Array.from({ length: o.kt }, (_, i) => i < o.trayTens ? `<span class="${o.glowTray && i === o.trayTens - 1 ? 'glow' : ''}">${stack()}</span>` : '<span class="tt-stackslot"></span>').join('');
+  const ones = Array.from({ length: o.ko }, (_, i) => i < o.trayOnes ? `<span class="px-coin">${coin()}</span>` : '<span class="px-slot"></span>').join('');
+  const tray = o.answer ? '<section class="sg-card xt-tray xt-tray--' + o.op + ' xt-tray--gone"></section>' :
+    `<section class="sg-card xt-tray xt-tray--${o.op}"><span class="xt-tray-label">${o.sign}${o.kt * 10 + o.ko}</span><div class="tt-group">${tens}</div><div class="tt-coins">${ones}</div></section>`;
+  const answer = o.answer ? `<div class="fp-field fp-field--big fp-field--total"><span class="fp-label">${o.op === 'give' ? 'Сколько осталось?' : 'Сколько стало?'}</span><output class="fp-value">${o.answer}</output></div>` : '';
+  return `<div class="pv-screen sg-screen sg-screen--phone xt-screen" style="--coin-size:${c}px;--sg-stack-cols:5;--sg-stack-rows:${o.rows || 1};--xt-k:7">
+    <div class="sg-inner"><h2 class="sg-title xt-example"><span>${o.a}</span> <span class="xt-sign xt-sign--${o.op}">${o.sign}</span> <span>${o.b}</span> <span>=</span> <span class="xt-q">${o.res || '?'}</span></h2>
+    <div class="sg-board xt-board" style="width:100%"><section class="sg-card sg-bench">
+      <h3 class="sg-head sg-head--tens"><span class="sg-chip"></span>Десятки</h3><h3 class="sg-head sg-head--ones"><span class="sg-chip"></span>Единицы</h3>
+      <div class="sg-stacks">${stacks}</div><div class="sg-frame">${frame}</div></section>${tray}</div>${answer}</div></div>`;
+}
+const F = (n, cap, o, cls = '') => `<div class="frame ${cls}">${screen(o)}<div class="cap"><span class="step">${n}</span>${cap}</div></div>`;
+const M = { a: 52, b: 27, sign: '−', op: 'give', kt: 2, ko: 7 };
+const P = { a: 38, b: 24, sign: '+', op: 'get', kt: 2, ko: 4 };
+document.getElementById('root').innerHTML = `
+<h2>Минус: 52 − 27</h2><div class="row">
+${F(1, '<b>Сначала десятки.</b> Нажми на стопку — она уходит в лоток. (Пока десятки не убраны, нажатие на стопку значит «убрать».)', { ...M, stacks: 5, ones: 2, trayTens: 0, trayOnes: 0, glowStack: 1 })}
+${F(2, '52 − 20 = 32. <b>Десятки убраны — теперь единицы:</b> монеты из рамки в лоток.', { ...M, stacks: 3, ones: 2, trayTens: 2, trayOnes: 0, glowCoin: 1 })}
+${F(3, 'Рамка пуста, а убрать ещё 5. Нажми на стопку — <b>теперь она рассыпается в рамку</b> (десятки уже убраны).', { ...M, stacks: 3, ones: 0, trayTens: 2, trayOnes: 2, glowStack: 1 })}
+${F(4, 'Десяток рассыпался: в рамке 10 монет. Убираем оставшиеся 5.', { ...M, stacks: 2, ones: 10, trayTens: 2, trayOnes: 2, glowCoin: 1 })}
+${F(5, '32 − 7 = 25. Лоток исчезает, вопрос — что осталось.', { ...M, stacks: 2, ones: 5, trayTens: 2, trayOnes: 7, answer: '25' })}
+</div>
+<h2>Плюс: 38 + 24</h2><div class="row">
+${F(1, '<b>Сначала десятки.</b> Нажми на стопку в лотке — она встаёт на склад.', { ...P, stacks: 3, ones: 8, trayTens: 2, trayOnes: 4, glowTray: 1 })}
+${F(2, '38 + 20 = 58. <b>Теперь единицы:</b> монеты из лотка в рамку.', { ...P, stacks: 5, ones: 8, trayTens: 0, trayOnes: 4 })}
+${F(3, 'Две монеты — и рамка полная. Нажми на неё — станет стопкой (как в «Собери десяток»).', { ...P, stacks: 5, ones: 10, full: 1, glowFrame: 1, trayTens: 0, trayOnes: 2 })}
+${F(4, '60 — и ещё две монеты в пустую рамку.', { ...P, stacks: 6, ones: 0, trayTens: 0, trayOnes: 2, rows: 2 })}
+${F(5, '58 + 4 = 62.', { ...P, stacks: 6, ones: 2, trayTens: 0, trayOnes: 0, rows: 2, answer: '62' })}
+</div>
+<h2>Почему нужен порядок</h2><div class="row">
+${F('?', '<b>Без порядка:</b> ребёнок сначала убрал 2 единицы, рамка пуста. Он нажимает на стопку — что должно случиться: <b>убрать её целиком</b> (это один из двух десятков) или <b>рассыпать в рамку</b> (чтобы убрать ещё 5 единиц)? Одно нажатие — два разных смысла.', { ...M, stacks: 5, ones: 0, trayTens: 0, trayOnes: 2, glowStack: 1 }, 'problem')}
+<div class="frame" style="width:560px"><div class="cap" style="font-size:15px">
+<p><b>Вариант А (на кадрах выше): порядок «сначала десятки».</b> Пока десятки второго числа не убраны/не добавлены, монеты в рамке и лотке не нажимаются, а нажатие на стопку значит «убрать». Потом — единицы, и нажатие на стопку значит «рассыпать». Ребёнок идёт школьным путём (52 − 20 − 7), ошибиться в жесте нельзя.</p>
+<p><b>Вариант Б: свободный порядок, два разных жеста.</b> Стопку <b>перетаскивают в лоток</b> — убрать десяток; <b>нажимают</b> — рассыпать в рамку. Свободнее, но жесты надо различать, а перетаскивание труднее для пальцев и для детей с плохой координацией.</p>
+<p>Рекомендую <b>А</b>.</p></div></div>
+</div>`;
+</script>
+</body></html>
