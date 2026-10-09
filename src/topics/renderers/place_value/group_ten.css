@@ -304,7 +304,9 @@
 .fp-key--erase { color: #64748b; }
 .fp-key--enter { background: #16a34a; border-color: #16a34a; box-shadow: 0 3px 0 #15803d; color: #fff; }
 
-/* ── Tablets: bigger type and keys, the number's label above it ── */
+/* ── Tablets: bigger type, the 3 × 4 keypad, the number beside it ── */
+
+.fp-keys--grid { grid-template-columns: repeat(3, var(--sg-key-w, 76px)); gap: 10px; }
 
 .sg-screen--tablet,
 .sg-screen--wide { padding: 10px 24px calc(16px + var(--app-safe-bottom, 0px)); }
@@ -314,26 +316,43 @@
 .sg-screen--wide .sg-inner { row-gap: 14px; }
 .sg-screen--tablet .sg-board,
 .sg-screen--wide .sg-board { row-gap: 14px; }
-.sg-screen--tablet .fp-field,
-.sg-screen--wide .fp-field,
+.sg-screen--tablet .sg-bench,
+.sg-screen--wide .sg-bench { padding: 14px 18px 16px; row-gap: 10px; }
 .sg-screen--tablet .sg-head,
-.sg-screen--wide .sg-head { font-size: 18px; }
+.sg-screen--wide .sg-head { font-size: 20px; gap: 8px; }
+.sg-screen--tablet .sg-chip,
+.sg-screen--wide .sg-chip { width: 14px; height: 14px; }
 .sg-screen--tablet .fp-value,
-.sg-screen--wide .fp-value { width: 84px; height: 58px; font-size: 36px; border-radius: 14px; }
+.sg-screen--wide .fp-value { width: 88px; height: 60px; font-size: 38px; border-radius: 14px; }
 .sg-screen--tablet .fp-field--big,
-.sg-screen--wide .fp-field--big { flex-direction: column; gap: 6px; font-size: 24px; }
+.sg-screen--wide .fp-field--big { flex-direction: column; gap: 8px; font-size: 24px; }
 .sg-screen--tablet .fp-field--big .fp-value,
-.sg-screen--wide .fp-field--big .fp-value { width: 180px; height: 104px; font-size: 76px; border-radius: 20px; }
-.sg-screen--tablet .fp-keys,
-.sg-screen--wide .fp-keys { grid-template-columns: repeat(6, 60px); gap: 8px; }
+.sg-screen--wide .fp-field--big .fp-value { width: 196px; height: 112px; font-size: 80px; border-radius: 22px; }
 .sg-screen--tablet .fp-keys .px-key,
-.sg-screen--wide .fp-keys .px-key { height: 56px; font-size: 26px; }
-.sg-screen--tablet .sg-slot,
-.sg-screen--wide .sg-slot { height: 124px; }
+.sg-screen--wide .fp-keys .px-key { height: 60px; font-size: 30px; border-radius: 14px; }
 .sg-screen--tablet .sg-status,
 .sg-screen--wide .sg-status { font-size: 17px; min-height: 46px; }
+.sg-screen--tablet .sg-slot,
+.sg-screen--wide .sg-slot { height: 280px; }
+.sg-screen--tablet .sg-slot > button,
+.sg-screen--wide .sg-slot > button { min-width: 220px; min-height: 64px; font-size: 22px; }
 
-/* Landscape tablet: coins on the left, the answer column on the right. */
+/* Portrait tablet: the hint line on top, then the number and the keypad
+   side by side — the eye goes from the number straight to the keys. */
+.sg-screen--tablet .sg-answer {
+  grid-template-columns: auto auto;
+  grid-template-areas: "status status" "num keys";
+  justify-content: center;
+  align-items: center;
+  column-gap: 64px;
+}
+.sg-screen--tablet .sg-num { grid-area: num; }
+.sg-screen--tablet .sg-status { grid-area: status; }
+.sg-screen--tablet .sg-slot { grid-area: keys; width: calc(var(--sg-key-w, 76px) * 3 + 20px); }
+
+/* Landscape tablet: coins on the left; on the right the number, the hint
+   line and the keypad, one column. */
+.sg-screen--wide { --sg-key-w: 84px; }
 .sg-screen--wide .sg-inner {
   grid-template-columns: minmax(0, 1fr) var(--sg-answer-w);
   grid-template-areas: "title title" "board answer";

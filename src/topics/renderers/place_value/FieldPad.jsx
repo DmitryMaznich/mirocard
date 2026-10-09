@@ -26,12 +26,15 @@ export function AnswerField({ label, tone, value, active, ok, wrong, big = false
   </div>;
 }
 
-export function Keypad({ off, typed, onEnter }) {
+// Phones: one strip of two rows (1–5 ⌫ / 6–0 ↵), which saves height.
+// Tablets (`grid`): the familiar 3 × 4 calculator pad with big keys.
+export function Keypad({ off, typed, onEnter, grid = false }) {
   const key = (d) => <button type="button" key={d} className="px-key" disabled={off} onClick={() => typed.type(d)}>{d}</button>;
-  return <div className={`fp-keys${off ? " fp-keys--off" : ""}`}>
-    {[1, 2, 3, 4, 5].map(key)}
-    <button type="button" className="px-key fp-key--erase" aria-label="Стереть цифру" disabled={off || !typed.digits} onClick={typed.erase}>⌫</button>
-    {[6, 7, 8, 9, 0].map(key)}
-    <button type="button" className="px-key fp-key--enter" aria-label="Проверить" disabled={off || !typed.digits} onClick={onEnter}>↵</button>
+  const erase = <button type="button" key="erase" className="px-key fp-key--erase" aria-label="Стереть цифру" disabled={off || !typed.digits} onClick={typed.erase}>⌫</button>;
+  const enter = <button type="button" key="enter" className="px-key fp-key--enter" aria-label="Проверить" disabled={off || !typed.digits} onClick={onEnter}>↵</button>;
+  return <div className={`fp-keys${grid ? " fp-keys--grid" : ""}${off ? " fp-keys--off" : ""}`}>
+    {grid
+      ? <>{[1, 2, 3, 4, 5, 6, 7, 8, 9].map(key)}{erase}{key(0)}{enter}</>
+      : <>{[1, 2, 3, 4, 5].map(key)}{erase}{[6, 7, 8, 9, 0].map(key)}{enter}</>}
   </div>;
 }

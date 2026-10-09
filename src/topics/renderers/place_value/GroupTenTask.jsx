@@ -21,7 +21,7 @@ import "./group_ten.css";
 
 const HINT_DELAY_MS = 6000;
 const HAND_DELAY_MS = 3000;
-const WIDE_ANSWER = 420; // px, the answer column on a landscape tablet (group_ten.css)
+const WIDE_ANSWER = 320; // px, the answer column on a landscape tablet (group_ten.css)
 const PILE_LIMIT = 15;
 
 function seededRandom(seed) {
@@ -298,11 +298,11 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
         </section>
       </div>
       <div className="sg-answer">
-        <div className={`sg-reveal${show}`}>{field(2, true)}</div>
+        <div className={`sg-num sg-reveal${show}`}>{field(2, true)}</div>
         <div className="sg-status" role="status">{status}</div>
         <div className="sg-slot">
           {done ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-            : <div className={`sg-reveal${show}`}><Keypad off={!canAnswer || exchange.busy} typed={typed} onEnter={enter} /></div>}
+            : <div className={`sg-reveal${show}`}><Keypad off={!canAnswer || exchange.busy} typed={typed} onEnter={enter} grid={mode !== "phone"} /></div>}
         </div>
       </div>
     </div>
