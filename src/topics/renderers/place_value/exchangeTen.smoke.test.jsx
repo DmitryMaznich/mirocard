@@ -83,6 +83,51 @@ describe("ExchangeTenTask — «Плюс и минус через десяток
     expect(count(".sg-reveal.sg-show")).toBe(2);
   });
 
+  it("two-digit minus, tens first: 52 − 27 = 52 − 20 − 2 − 5", () => {
+    h.mount(ExchangeTenTask, { ...minus, k: 27, number: 52, start: { tens: 5, ones: 2 }, result: 25 });
+    expect(h.container.querySelector(".xt-tray-label").textContent).toBe("−27");
+    expect(count(".xt-stackslot")).toBe(2);
+    // While the tens are owed the coins wait and a stack tap takes a whole ten away.
+    expect(h.button("Монета в рамке 1").disabled).toBe(true);
+    h.click("Десяток 5"); h.click("Десяток 4");
+    expect(count(".sg-stacks .cb-ten-stack")).toBe(3);
+    // Now the ones: the frame first, then a stack opens into it.
+    h.click("Монета в рамке 2"); h.click("Монета в рамке 1");
+    h.click("Десяток 3"); h.flush();
+    expect(count(".sg-stacks .cb-ten-stack")).toBe(2);
+    expect(frameCoins()).toBe(10);
+    for (let i = 10; i > 5; i--) h.click(`Монета в рамке ${i}`);
+    expect(frameCoins()).toBe(5);
+    expect(count(".sg-reveal.sg-show")).toBe(2);
+    answer(25);
+    expect(h.container.querySelector(".xt-q").textContent).toBe("25");
+  });
+
+  it("two-digit plus, tens first: 38 + 24 = 38 + 20 + 2 + 2", () => {
+    h.mount(ExchangeTenTask, { ...plus, k: 24, result: 62 });
+    expect(h.button("Монета из лотка").disabled).toBe(true);
+    h.click("Десяток из лотка"); h.click("Десяток из лотка");
+    expect(count(".sg-stacks .cb-ten-stack")).toBe(5);
+    h.click("Монета из лотка"); h.click("Монета из лотка");
+    h.click("Сложить в стопку"); h.flush();
+    expect(count(".sg-stacks .cb-ten-stack")).toBe(6);
+    h.click("Монета из лотка"); h.click("Монета из лотка");
+    expect(frameCoins()).toBe(2);
+    answer(62);
+    expect(h.container.querySelector(".xt-q").textContent).toBe("62");
+  });
+
+  it("32 − 27: after the two tens the last stack still opens for the ones", () => {
+    h.mount(ExchangeTenTask, { ...minus, k: 27, result: 5 });
+    h.click("Десяток 3"); h.click("Десяток 2");
+    h.click("Монета в рамке 2"); h.click("Монета в рамке 1");
+    h.click("Десяток 1"); h.flush();
+    for (let i = 10; i > 5; i--) h.click(`Монета в рамке ${i}`);
+    expect(count(".sg-stacks .cb-ten-stack")).toBe(0);
+    expect(frameCoins()).toBe(5);
+    expect(count(".sg-reveal.sg-show")).toBe(2);
+  });
+
   it("a wrong answer is a mistake and stays on screen", () => {
     const onMistake = vi.fn();
     h.mount(ExchangeTenTask, { ...minus, k: 1, result: 31, needsExchange: false }, { onMistake });

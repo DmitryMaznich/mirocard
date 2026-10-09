@@ -148,6 +148,23 @@ describe("generateTasks – exchange_ten", () => {
   });
 });
 
+describe("generateTasks – exchange_ten, two-digit second number", () => {
+  it("52 − 27-like tasks: a two-digit, non-round second number, results in 1..99, half with a crossing", () => {
+    for (const operation of ["give", "get"]) {
+      const tasks = generateTasks("exchange_ten", PLACE_VALUE_CARDS, 40, { operation, secondNumber: "two", maxTens: 9 });
+      for (const t of tasks) {
+        expect(t.k).toBeGreaterThanOrEqual(11);
+        expect(t.k % 10).not.toBe(0);
+        expect(t.result).toBe(operation === "give" ? t.number - t.k : t.number + t.k);
+        expect(t.result).toBeGreaterThanOrEqual(1);
+        expect(t.result).toBeLessThanOrEqual(99);
+        expect(t.needsExchange).toBe(operation === "give" ? t.k % 10 > t.start.ones : t.start.ones + (t.k % 10) >= 10);
+      }
+      expect(tasks.filter((t) => t.needsExchange).length).toBe(20);
+    }
+  });
+});
+
 describe("generateTasks – group_ten", () => {
   it("keeps each range inside its bounds and splits the number into tens and ones", () => {
     const bounds = { teens: [11, 19], to49: [21, 49], to99: [51, 99], round: [20, 40], mixed: [11, 49] };

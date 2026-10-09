@@ -19,6 +19,12 @@ import "./exchange_ten.css";
 //    coins (32 − 2 = 30, then 30 − 2 = 28);
 //  + take coins from the «+4» tray into the frame; a full frame is tapped and
 //    becomes a stack, exactly as in «Собери десяток» (38 + 2 = 40, 40 + 2 = 42).
+// A two-digit second number (52 − 27, 38 + 24; setting «Второе число») lies in
+// the tray as stacks and coins and is worked tens first, the school way
+// (52 − 20 − 7): while its tens are owed, a stack tap means «this ten goes»
+// (− a stack from the store into the tray; + a tray stack onto the store) and
+// the coins wait; then the ones, as above. So a stack tap always means one
+// thing at a time.
 // A stack opens only into an empty frame and only while more must go, so a
 // needless exchange can't happen; about half of the tasks need none at all
 // (generateExchangeTask). Then the child types the result. In «Обучение» a
@@ -32,7 +38,8 @@ function initialModel(task) {
   return {
     tens: Array.from({ length: task.start.tens }, (_, i) => `t${i}`),
     frame: Array.from({ length: task.start.ones }, (_, i) => `o${i}`),
-    tray: task.op === "get" ? Array.from({ length: task.k }, (_, i) => `g${i}`) : [],
+    tray: task.op === "get" ? Array.from({ length: task.k % 10 }, (_, i) => `g${i}`) : [],
+    movedTens: 0, // − stacks taken into the tray; + tray stacks put on the store
     moved: 0, // − coins taken out; + coins brought in
     serial: 0,
   };
@@ -60,9 +67,12 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
   // Room in the stack store for every stack the task can have.
   const maxStacks = Math.max(1, task.start.tens, Math.floor(task.result / 10));
   const stackCols = Math.min(5, maxStacks), stackRows = Math.ceil(maxStacks / 5);
-  const left = task.k - model.moved;
+  const kTens = Math.floor(task.k / 10), kOnes = task.k % 10;
+  const tensLeft = kTens - model.movedTens;
+  const left = tensLeft > 0 ? kOnes : kOnes - model.moved; // ones still owed (all of them while tens come first)
+  const onesStage = tensLeft === 0;
   const frameFull = model.frame.length === 10;
-  const actionDone = left === 0 && !frameFull;
+  const actionDone = onesStage && left === 0 && !frameFull;
   const done = phase === "done";
 
   // One coin size per task, fitted on the real layout (see GroupTenTask).
@@ -77,7 +87,7 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
       const cap = mode === "phone" ? 44 : 64;
       const cs = getComputedStyle(screen);
       const bw = W - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - (mode === "wide" ? WIDE_ANSWER + 32 : 0);
-      const byWidth = Math.min((bw - 52) / (stackCols * 1.3 + 6.8), (bw - 40) / (Math.max(task.k, 5) * 1.25));
+      const byWidth = Math.min((bw - 52) / (stackCols * 1.3 + 6.8), (bw - 110) / (kTens * 1.3 + Math.max(Math.min(kOnes, 5), 3) * 1.25));
       const room = H - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
       const fits = (c) => { screen.style.setProperty("--coin-size", `${c}px`); return inner.offsetHeight <= room; };
       let lo = 14, hi = Math.max(14, Math.min(cap, byWidth));
@@ -90,12 +100,13 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     const observer = new ResizeObserver(measure);
     observer.observe(screen);
     return () => observer.disconnect();
-  }, [mode, stackCols, stackRows, task.k]);
+  }, [mode, stackCols, stackRows, kTens, kOnes]);
 
   // «Обучение»: after a pause, a hand shows the next move.
   const idleReason = !teaching || phase !== "act" || exchange.busy ? null
-    : give ? (left > 0 ? (model.frame.length ? "take" : "break") : null)
-      : frameFull ? "full" : left > 0 ? "bring" : null;
+    : !onesStage ? (give ? "dropTen" : "bringTen")
+      : give ? (left > 0 ? (model.frame.length ? "take" : "break") : null)
+        : frameFull ? "full" : left > 0 ? "bring" : null;
   useEffect(() => {
     setHint(null);
     if (!idleReason) return undefined;
@@ -115,7 +126,9 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     };
     const tap = (el) => (el ? { kind: "tap", ...at(el) } : null);
     const frameCoins = screen.querySelectorAll(".sg-frame .px-tf button.px-coin");
-    setHand(hint === "take" ? move(frameCoins[frameCoins.length - 1], q(".xt-tray .px-slot"))
+    setHand(hint === "dropTen" ? move(q(".sg-stacks .xt-stack:last-child"), q(".xt-tray .xt-stackslot"))
+      : hint === "bringTen" ? move(q(".xt-tray button.xt-traystack"), q(".sg-stacks"))
+      : hint === "take" ? move(frameCoins[frameCoins.length - 1], q(".xt-tray .px-slot"))
       : hint === "bring" ? move(q(".xt-tray button.px-coin"), q(".sg-frame .px-tf-slot"))
         : hint === "break" ? tap(q(".sg-stacks .xt-stack:last-child"))
           : hint === "full" ? tap(q(".px-tf--ready")) : null);
@@ -127,19 +140,29 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     setNote("");
     setHint(null);
   }
+  // −, tens first: a stack from the store into the tray.
+  function dropTen(stackId) {
+    if (!give || onesStage) return;
+    change((m) => ({ ...m, tens: m.tens.filter((x) => x !== stackId), movedTens: m.movedTens + 1 }));
+  }
+  // +, tens first: a tray stack onto the store.
+  function bringTen() {
+    if (give || onesStage) return;
+    change((m) => ({ ...m, tens: [...m.tens, `a${m.serial}`], movedTens: m.movedTens + 1, serial: m.serial + 1 }));
+  }
   // −: a coin out of the frame, into the tray.
   function takeOut(id) {
-    if (!give || left === 0) return;
+    if (!give || !onesStage || left === 0) return;
     change((m) => ({ ...m, frame: m.frame.filter((x) => x !== id), moved: m.moved + 1 }));
   }
   // +: a coin from the tray into the frame (only while the frame has room).
   function bringIn() {
-    if (give || left === 0 || frameFull) return;
+    if (give || !onesStage || left === 0 || frameFull) return;
     change((m) => ({ ...m, tray: m.tray.slice(1), frame: [...m.frame, m.tray[0]], moved: m.moved + 1 }));
   }
   // −: a stack opens into the empty frame as ten coins.
   function breakStack(stackId) {
-    if (!give || phase !== "act" || exchange.busy || left === 0 || model.frame.length) return;
+    if (!give || !onesStage || phase !== "act" || exchange.busy || left === 0 || model.frame.length) return;
     const coinIds = Array.from({ length: 10 }, (_, i) => `b${model.serial}-${i}`);
     const apply = (m) => ({ ...m, tens: m.tens.filter((x) => x !== stackId), frame: coinIds, serial: m.serial + 1 });
     const started = exchange.start({ direction: "ungroup", stackId, coinIds, commit: () => { setModel(apply); setHint(null); } });
@@ -168,6 +191,8 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
   const answering = phase !== "act";
   const show = answering ? " sg-show" : "";
   const hintText = {
+    dropTen: "Сначала десятки: нажми на стопку — она уйдёт в лоток.",
+    bringTen: "Сначала десятки: нажми на стопку в лотке — она встанет к десяткам.",
     take: "Убери монету из рамки — нажми на неё.",
     break: "В рамке пусто, а убрать нужно ещё. Нажми на стопку — она рассыпется в рамку.",
     bring: "Перенеси монету в рамку — нажми на неё.",
@@ -175,10 +200,11 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
   }[hint];
   const status = done ? null : note ? <span className="sg-status-note">{note}</span>
     : hintText ? <span className="sg-status-hint">{hintText}</span> : null;
-  const canBreak = give && left > 0 && !model.frame.length && phase === "act" && !exchange.busy;
+  const canBreak = give && onesStage && left > 0 && !model.frame.length && phase === "act" && !exchange.busy;
+  const canDropTen = give && !onesStage && phase === "act" && !exchange.busy;
 
   return <div ref={screenRef} className={`pv-screen sg-screen sg-screen--${mode} xt-screen`}
-    style={{ "--coin-size": `${coinSize}px`, "--sg-stack-cols": stackCols, "--sg-stack-rows": stackRows, "--sg-answer-w": `${WIDE_ANSWER}px`, "--xt-k": task.k }}>
+    style={{ "--coin-size": `${coinSize}px`, "--sg-stack-cols": stackCols, "--sg-stack-rows": stackRows, "--sg-answer-w": `${WIDE_ANSWER}px`, "--xt-k": Math.max(kOnes, 1) }}>
     <div className="sg-inner" ref={innerRef}>
       <h2 className="sg-title xt-example">
         <span>{task.number}</span> <span className={`xt-sign xt-sign--${task.op}`}>{sign}</span> <span>{task.k}</span> <span>=</span> <span className="xt-q">{done ? task.result : "?"}</span>
@@ -189,26 +215,35 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
           <h3 className="sg-head sg-head--ones"><span className="sg-chip" />Единицы</h3>
           <div className="sg-stacks">
             {model.tens.map((id, i) => <button type="button" key={id} data-stack-id={id}
-              className={`xt-stack px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}${canBreak ? " xt-stack--open" : ""}`}
-              aria-label={`Десяток ${i + 1}`} disabled={!canBreak} onClick={() => breakStack(id)}><TenStack /></button>)}
+              className={`xt-stack px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}${canBreak || canDropTen ? " xt-stack--open" : ""}`}
+              aria-label={`Десяток ${i + 1}`} disabled={!canBreak && !canDropTen} onClick={() => (canDropTen ? dropTen(id) : breakStack(id))}><TenStack /></button>)}
           </div>
           <div className="sg-frame">
             <TenFrame coinIds={model.frame} pendingIds={exchange.pendingCoins} onReturn={takeOut} onClose={closeFrame} tapToClose closable={!give}
-              disabled={phase !== "act" || exchange.busy || (give ? left === 0 : !frameFull)} glow={hint === "full"} />
+              disabled={phase !== "act" || exchange.busy || (give ? !onesStage || left === 0 : !frameFull)} glow={hint === "full"} />
           </div>
         </section>
         {/* Once the action is done the tray fades (its place stays): the
             question is about what is left on the board, not what was moved. */}
         <section className={`sg-card xt-tray xt-tray--${task.op}${answering ? " xt-tray--gone" : ""}`} aria-hidden={answering}>
           <span className="xt-tray-label">{sign}{task.k}</span>
+          {kTens > 0 && <div className="xt-tens">
+            {Array.from({ length: kTens }, (_, i) => {
+              const moved = i < model.movedTens;
+              if (give) return moved ? <span key={i} className="xt-traystack xt-gone"><TenStack /></span> : <span key={i} className="xt-stackslot" />;
+              return moved ? <span key={i} className="xt-stackslot xt-slot--empty" />
+                : <button type="button" key={i} className="xt-traystack" aria-label="Десяток из лотка"
+                  disabled={phase !== "act" || exchange.busy || onesStage} onClick={bringTen}><TenStack /></button>;
+            })}
+          </div>}
           <div className="xt-slots">
-            {Array.from({ length: task.k }, (_, i) => {
+            {Array.from({ length: kOnes }, (_, i) => {
               if (give) return i < model.moved
                 ? <span key={i} className="px-coin px-coin--static xt-gone" aria-label={`Убрана монета ${i + 1}`}><Coin /></span>
                 : <span key={i} className="px-slot" />;
               const id = model.tray[i - model.moved];
               return i < model.moved ? <span key={i} className="px-slot xt-slot--empty" />
-                : <button type="button" key={id} className="px-coin" aria-label="Монета из лотка" disabled={phase !== "act" || exchange.busy || frameFull}
+                : <button type="button" key={id} className="px-coin" aria-label="Монета из лотка" disabled={phase !== "act" || exchange.busy || frameFull || !onesStage}
                   onClick={bringIn}><Coin /></button>;
             })}
           </div>

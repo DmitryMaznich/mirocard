@@ -41,9 +41,37 @@
 
 .xt-slots {
   display: grid;
-  grid-template-columns: repeat(min(var(--xt-k), 9), var(--coin-size));
+  grid-template-columns: repeat(min(var(--xt-k), 5), var(--coin-size));
   gap: calc(var(--coin-size) * 0.22);
 }
+
+/* A two-digit second number: its tens as stacks (places for them in «−»). */
+.xt-tens { display: flex; align-items: flex-end; gap: calc(var(--coin-size) * 0.3); }
+
+.xt-stackslot {
+  width: var(--coin-size);
+  height: calc(var(--coin-size) * 2.2);
+  box-sizing: border-box;
+  border: 2px dashed currentColor;
+  border-radius: 8px;
+}
+
+.xt-tray--give .xt-stackslot { color: #e7a3a3; }
+.xt-tray--get .xt-stackslot { color: #8fcfc3; }
+
+.xt-traystack {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  display: flex;
+  align-items: flex-end;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button.xt-traystack { cursor: pointer; }
+button.xt-traystack:disabled { cursor: default; }
 
 .xt-tray .px-slot { color: #e7a3a3; }
 .xt-tray--get .px-slot { color: #8fcfc3; }

@@ -149,15 +149,21 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
 // so that half of a session needs an exchange (break a ten when there aren't
 // enough ones / build a ten when ones reach ten) and half doesn't — the child
 // has to decide each time. Results stay within 1..99.
+// `secondNumber: "two"` makes the second number two-digit (52 − 27, 38 + 24;
+// never a round ten, so there are always ones to work); the crossing then
+// depends on its ones only.
 export function generateExchangeTask(card, params = {}, needsExchange = true) {
   const maxTens = Math.min(9, Math.max(1, Number(params.maxTens ?? 5)));
   const operation = params.operation ?? "give";
+  const twoDigit = params.secondNumber === "two";
   const op = operation === "mixed" ? (Math.random() < 0.5 ? "give" : "get") : operation === "get" ? "get" : "give";
-  const exchangeOf = (tens, ones, k) => (op === "give" ? k > ones : ones + k >= 10);
+  const exchangeOf = (tens, ones, k) => (op === "give" ? k % 10 > ones : ones + (k % 10) >= 10);
   const resultOf = (tens, ones, k) => (op === "give" ? tens * 10 + ones - k : tens * 10 + ones + k);
-  let tens = 1, ones = 0, k = 1;
-  for (let attempt = 0; attempt < 500; attempt++) {
-    const t = randomInt(1, maxTens), o = randomInt(0, 9), n = randomInt(1, 9);
+  let tens = twoDigit ? 2 : 1, ones = 0, k = twoDigit ? 11 : 1;
+  for (let attempt = 0; attempt < 2000; attempt++) {
+    const t = randomInt(twoDigit ? 2 : 1, Math.max(twoDigit ? 2 : 1, maxTens)), o = randomInt(0, 9);
+    const n = twoDigit ? randomInt(11, 89) : randomInt(1, 9);
+    if (n % 10 === 0) continue;
     const result = resultOf(t, o, n);
     if (exchangeOf(t, o, n) !== needsExchange || result < 1 || result > 99) continue;
     tens = t; ones = o; k = n;
