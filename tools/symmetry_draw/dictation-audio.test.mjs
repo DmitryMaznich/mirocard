@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { coordinateAudioSources } from "./sync-coordinate-audio.mjs";
+import { createSymmetryDrawDeckBuffer } from "./build.mjs";
+import JSZip from "jszip";
 import {
   collectDictationAudioEntries,
   coordinateAudioPaths,
@@ -13,6 +16,16 @@ import {
 
 const topic = JSON.parse(await readFile(new URL("./topic.json", import.meta.url), "utf8"));
 const renderer = await readFile(new URL("./renderer.js", import.meta.url), "utf8");
+
+test("the built deck contains the exact human letter sounds and approved numbers", async () => {
+  const zip = await JSZip.loadAsync(await createSymmetryDrawDeckBuffer());
+  assert.equal(coordinateAudioSources().length, 40);
+  for (const { path, source } of coordinateAudioSources()) {
+    assert.deepEqual(await zip.file(path).async("nodebuffer"), await readFile(new URL(`../../${source}`, import.meta.url)), path);
+  }
+  // Columns skip Ё and З: column 8 must play the human К, not another letter.
+  assert.equal(coordinateAudioSources().find((entry) => entry.path === coordinateLetterAudioPath(8)).source, "public/audio/propis-dictation/sound_к.mp3");
+});
 
 test("dictation audio names are safe and phrases stay child-readable", () => {
   assert.equal(directionCommandText({ direction: "right", cells: 2 }), "2 клетки вправо");

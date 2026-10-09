@@ -1,4 +1,5 @@
-// Creates the high-quality prerecorded command bank for Graphic Dictation.
+// Creates direction phrases for Graphic Dictation. Coordinates are copied
+// from the approved number bank and human-recorded propis letter sounds.
 // Usage:
 //   node tools/symmetry_draw/generate-dictation-audio.mjs [--dry-run] [--force] [--voice=Kore] [--only=path[,path...]]
 // The run is resumable: existing MP3s are preserved, and Gemini's daily
@@ -10,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { Mp3Encoder } from "@breezystack/lamejs";
 import { getGeminiApiKey } from "../../scripts/lib/gemini-key.mjs";
 import { collectDictationAudioEntries } from "./dictation-audio.mjs";
+import { syncCoordinateAudio } from "./sync-coordinate-audio.mjs";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const TOPIC = JSON.parse(readFileSync(join(DIR, "topic.json"), "utf8"));
@@ -57,24 +59,8 @@ function pcmToMp3(pcmBytes) {
 class DailyQuotaExhausted extends Error {}
 class InvalidApiKey extends Error {}
 
-const NUMBER_WORDS = [
-  "", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять",
-  "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать",
-  "восемнадцать", "девятнадцать", "двадцать",
-];
-
 function promptFor(entry) {
-  const { path, text } = entry;
-  let transcript = text;
-  if (path.startsWith("audio/dictation/coordinate_letters/")) {
-    transcript = { "К": "ка" }[text] ?? text;
-  }
-  if (path.startsWith("audio/dictation/coordinate_numbers/")) {
-    const number = Number(text);
-    transcript = NUMBER_WORDS[number];
-    if (!transcript) throw new Error(`Unsupported coordinate number: ${text}`);
-  }
-  return `Прочитай короткую команду графического диктанта по-русски. Спокойно, чётко и дружелюбно, как для ребёнка. Не добавляй вступление или пояснение. Команда: ${transcript}`;
+  return `Прочитай короткую команду графического диктанта по-русски. Спокойно, чётко и дружелюбно, как для ребёнка. Не добавляй вступление или пояснение. Команда: ${entry.text}`;
 }
 
 async function synthesizeOnce(apiKey, entry) {
@@ -130,20 +116,28 @@ if (dryRun) {
   process.exit(0);
 }
 
+// Coordinates use the human letter sounds and approved number bank, even
+// with --force. Only complete direction phrases are synthesized below.
+syncCoordinateAudio();
+const generatedEntries = entries.filter((entry) => !entry.path.includes("/coordinate_"));
+if (!generatedEntries.length) {
+  console.log("Coordinate recordings copied from approved banks; no synthesis needed.");
+  process.exit(0);
+}
 const apiKey = getGeminiApiKey();
 let generated = 0;
 let skipped = 0;
 let failed = 0;
 let stoppedOnQuota = false;
 
-for (const entry of entries) {
+for (const entry of generatedEntries) {
   const output = join(DIR, entry.path);
   if (!force && existsSync(output)) {
     skipped += 1;
     continue;
   }
   mkdirSync(dirname(output), { recursive: true });
-  process.stdout.write(`  gen   ${entry.path}  \"${entry.text}\"... `);
+  process.stdout.write(`  gen   ${entry.path}  "${entry.text}"... `);
   try {
     const mp3 = await synthesize(apiKey, entry);
     writeFileSync(output, mp3);

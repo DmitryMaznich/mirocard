@@ -16,7 +16,7 @@ const DIRECTION_LABELS = {
 const MAX_COORDINATE_LETTERS = 20;
 const MAX_COORDINATE_NUMBERS = 20;
 
-const COLUMN_LETTERS = [
+export const COLUMN_LETTERS = [
   "А", "Б", "В", "Г", "Д", "Е", "Ж", "И", "К", "Л", "М", "Н",
   "О", "П", "Р", "С", "Т", "У", "Ф", "Х",
 ].slice(0, MAX_COORDINATE_LETTERS);

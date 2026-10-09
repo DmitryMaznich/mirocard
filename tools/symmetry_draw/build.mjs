@@ -2,6 +2,7 @@ import JSZip from "jszip";
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { syncCoordinateAudio } from "./sync-coordinate-audio.mjs";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 
@@ -16,6 +17,7 @@ function addDirectory(zip, source, relative = "") {
 }
 
 export async function createSymmetryDrawDeckBuffer(topicJson = readFileSync(join(dir, "topic.json"))) {
+  syncCoordinateAudio();
   const zip = new JSZip();
   zip.file("topic.json", topicJson);
   zip.file("renderer", readFileSync(join(dir, "renderer.js")));
