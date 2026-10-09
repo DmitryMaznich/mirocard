@@ -2875,8 +2875,59 @@
       ]
     },
     {
+      "id": "audio/propis-natural-pilot",
+      "title": "Прописи — 5 звуков без обрезки",
+      "items": [
+        {
+          "id": "audio/propis-natural-pilot/sound_с.wav",
+          "key": "sound_с",
+          "path": "audio/propis-natural-pilot/sound_с.wav",
+          "url": "/audio/propis-natural-pilot/sound_%D1%81.wav",
+          "label": "С — звук [с]",
+          "category": "Проба без обрезки",
+          "version": "b086c1100eb0c524"
+        },
+        {
+          "id": "audio/propis-natural-pilot/sound_ш.wav",
+          "key": "sound_ш",
+          "path": "audio/propis-natural-pilot/sound_ш.wav",
+          "url": "/audio/propis-natural-pilot/sound_%D1%88.wav",
+          "label": "Ш — звук [ш]",
+          "category": "Проба без обрезки",
+          "version": "b9880fa2b749dafb"
+        },
+        {
+          "id": "audio/propis-natural-pilot/sound_м.wav",
+          "key": "sound_м",
+          "path": "audio/propis-natural-pilot/sound_м.wav",
+          "url": "/audio/propis-natural-pilot/sound_%D0%BC.wav",
+          "label": "М — звук [м]",
+          "category": "Проба без обрезки",
+          "version": "f4d53dcf11464d72"
+        },
+        {
+          "id": "audio/propis-natural-pilot/sound_к.wav",
+          "key": "sound_к",
+          "path": "audio/propis-natural-pilot/sound_к.wav",
+          "url": "/audio/propis-natural-pilot/sound_%D0%BA.wav",
+          "label": "К — звук [к]",
+          "category": "Проба без обрезки",
+          "version": "9d6c8eb927ea30be"
+        },
+        {
+          "id": "audio/propis-natural-pilot/sound_б.wav",
+          "key": "sound_б",
+          "path": "audio/propis-natural-pilot/sound_б.wav",
+          "url": "/audio/propis-natural-pilot/sound_%D0%B1.wav",
+          "label": "Б — звук [б]",
+          "category": "Проба без обрезки",
+          "version": "adadc21663dea4e0"
+        }
+      ]
+    },
+    {
       "id": "audio/propis-phoneme-review",
-      "title": "Прописи — звуки букв WaveNet",
+      "title": "Прописи — WaveNet с обрезкой (отклонён)",
       "items": [
         {
           "id": "audio/propis-phoneme-review/sound_а.mp3",
