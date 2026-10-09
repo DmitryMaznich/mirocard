@@ -1,5 +1,5 @@
-// Creates direction phrases for Graphic Dictation. Coordinates are copied
-// from the approved number bank and human-recorded propis letter sounds.
+// Creates direction phrases for Graphic Dictation. Coordinate letters/numbers
+// and navigator commands are committed recordings, never synthesized here.
 // Usage:
 //   node tools/symmetry_draw/generate-dictation-audio.mjs [--dry-run] [--force] [--voice=Kore] [--only=path[,path...]]
 // The run is resumable: existing MP3s are preserved, and Gemini's daily
@@ -13,7 +13,6 @@ import { fileURLToPath } from "node:url";
 import { Mp3Encoder } from "@breezystack/lamejs";
 import { getGeminiApiKey } from "../../scripts/lib/gemini-key.mjs";
 import { collectDictationAudioEntries } from "./dictation-audio.mjs";
-import { syncCoordinateAudio } from "./sync-coordinate-audio.mjs";
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const TOPIC = JSON.parse(readFileSync(join(DIR, "topic.json"), "utf8"));
@@ -118,12 +117,11 @@ if (dryRun) {
   process.exit(0);
 }
 
-// Coordinates use the human letter sounds and approved number bank, even
-// with --force. Only complete direction phrases are synthesized below.
-syncCoordinateAudio();
+// Coordinates are committed recordings in the owner's voice, even with
+// --force. Only complete direction phrases are synthesized below.
 const generatedEntries = entries.filter((entry) => !entry.path.includes("/coordinate_"));
 if (!generatedEntries.length) {
-  console.log("Coordinate recordings copied from approved banks; no synthesis needed.");
+  console.log("Coordinate recordings are committed; no synthesis needed.");
   process.exit(0);
 }
 const apiKey = getGeminiApiKey();

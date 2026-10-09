@@ -15,8 +15,9 @@ test("the bundled drawing renderer is valid JavaScript", () => {
   assert.doesNotThrow(() => new Function(renderer));
 });
 
-test("listening navigator shows the command if speech synthesis is unavailable", () => {
-  assert.match(renderer, /const usesAuditoryPrompt = isListening && canSpeak;/);
+test("listening navigator shows the command if neither recording nor speech synthesis can play", () => {
+  assert.match(renderer, /const canVoice = canSpeak \|\| canPlayRecording;/);
+  assert.match(renderer, /const usesAuditoryPrompt = isListening && canVoice;/);
   assert.match(renderer, /usesAuditoryPrompt\s*\? h\("button"/);
   assert.match(renderer, /Озвучка недоступна — команда показана текстом/);
 });

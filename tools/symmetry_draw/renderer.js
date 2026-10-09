@@ -768,7 +768,7 @@
   // The eight arrows are visual orientation cues. The child always starts from
   // the single centre marker, then a broad directional swipe is enough — this
   // is a spatial-language exercise, not a test of tracing an arrow precisely.
-  function NavigatorPracticeTask({ task, onCorrect, onMistake, streakCount = 0, bestStreak = 0, answersPerStar = 1, sessionParams, taskRetry = 0 }) {
+  function NavigatorPracticeTask({ task, onCorrect, onMistake, streakCount = 0, bestStreak = 0, answersPerStar = 1, sessionParams, taskRetry = 0, topicId, soundEnabled, playTopicFiles }) {
     const svgRef = useRef(null);
     const drawingRef = useRef(false);
     const startRef = useRef(null);
@@ -779,10 +779,12 @@
     const retryTimerRef = useRef(null);
     const isListening = sessionParams?.navigatorPractice === "listening";
     const canSpeak = Boolean(window.speechSynthesis && typeof window.SpeechSynthesisUtterance === "function");
-    // A listening task must still be solvable in browsers without the Web
-    // Speech API (or where it was disabled by a parent/device policy).
-    const usesAuditoryPrompt = isListening && canSpeak;
-    const [waitingForInitialCommand, setWaitingForInitialCommand] = useState(() => isListening && canSpeak);
+    const canPlayRecording = Boolean(soundEnabled && topicId && playTopicFiles);
+    // A listening task must still be solvable without any voice at all (no
+    // recording and no Web Speech API, e.g. disabled by a device policy).
+    const canVoice = canSpeak || canPlayRecording;
+    const usesAuditoryPrompt = isListening && canVoice;
+    const [waitingForInitialCommand, setWaitingForInitialCommand] = useState(() => isListening && canVoice);
     // With the timer off, a slow-processing child never has a timeout silently
     // scored as a wrong answer alongside genuine mistakes.
     const unlimitedTime = Boolean(sessionParams?.unlimitedResponseTime);
@@ -791,6 +793,7 @@
     const remainingRef = useRef(durationMs);
     const [remaining, setRemaining] = useState(durationMs);
     const direction = DIRECTION[task.direction] ?? DIRECTION.up;
+    const navigatorDirection = DIRECTION[task.direction] ? task.direction : "up";
     const isGridRoute = sessionParams?.navigatorPractice === "grid_route";
     const gridSize = isGridRoute ? 8 : 12;
     const cells = Math.max(1, Math.min(3, Math.round(Number(task.cells) || 1)));
@@ -816,8 +819,8 @@
       setRemaining(durationMs);
       remainingRef.current = durationMs;
       setPaused(document.hidden || !document.hasFocus());
-      setWaitingForInitialCommand(isListening && canSpeak);
-    }, [task.id, durationMs, isListening, canSpeak]); // Each generated task has a unique id; retries remount it after feedback.
+      setWaitingForInitialCommand(isListening && canVoice);
+    }, [task.id, durationMs, isListening, canVoice]); // Each generated task has a unique id; retries remount it after feedback.
 
     useEffect(() => () => window.clearTimeout(retryTimerRef.current), []);
 
@@ -869,17 +872,14 @@
       return () => window.clearInterval(ticker);
     }, [unlimitedTime, paused, waitingForInitialCommand, task.id, retryAfterMistake]);
 
-    const speakCommand = useCallback((releasesInitialTimer = false) => {
+    const speakWithSynthesis = useCallback((releaseTimer) => {
       if (!canSpeak) {
-        if (releasesInitialTimer) setWaitingForInitialCommand(false);
+        releaseTimer();
         return;
       }
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(command);
       utterance.lang = "ru-RU";
-      const releaseTimer = () => {
-        if (releasesInitialTimer) setWaitingForInitialCommand(false);
-      };
       utterance.onend = releaseTimer;
       utterance.onerror = releaseTimer;
       try {
@@ -889,22 +889,45 @@
       }
     }, [canSpeak, command]);
 
+    // Listening commands are recorded in the same voice as the dictation;
+    // browser speech is only the fallback when the recording cannot play.
+    const speakRequestRef = useRef(0);
+    // Any finished command starts the answer timer: a replay pressed during
+    // the first command supersedes it and must not leave the timer stuck.
+    const speakCommand = useCallback(() => {
+      const request = ++speakRequestRef.current;
+      const releaseTimer = () => setWaitingForInitialCommand(false);
+      if (!canPlayRecording) {
+        speakWithSynthesis(releaseTimer);
+        return;
+      }
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      Promise.resolve(playTopicFiles(topicId, ["audio/navigator/" + navigatorDirection + ".mp3"]))
+        .catch(() => false)
+        .then((played) => {
+          if (request !== speakRequestRef.current) return;
+          if (played) releaseTimer();
+          else speakWithSynthesis(releaseTimer);
+        });
+    }, [canPlayRecording, playTopicFiles, topicId, navigatorDirection, speakWithSynthesis]);
+
     useEffect(() => {
       if (!isListening) {
         setWaitingForInitialCommand(false);
         return undefined;
       }
-      if (!canSpeak) {
+      if (!canVoice) {
         setWaitingForInitialCommand(false);
         return undefined;
       }
       setWaitingForInitialCommand(true);
-      const timer = window.setTimeout(() => speakCommand(true), 120);
+      const timer = window.setTimeout(() => speakCommand(), 120);
       return () => {
         window.clearTimeout(timer);
-        window.speechSynthesis.cancel();
+        speakRequestRef.current += 1;
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
       };
-    }, [isListening, canSpeak, task.id, speakCommand]);
+    }, [isListening, canVoice, task.id, speakCommand]);
 
     function localPoint(event) {
       const svg = svgRef.current;
@@ -1025,10 +1048,10 @@
       h("div", { className: "navigator__instruction" },
         h("div", { className: "navigator__star", style: { "--navigator-star-fill": `${filledRays * 72}deg` }, "aria-label": `Серия: ${Math.min(streakCount, streakTarget)} из ${streakTarget}` }, "★"),
         h("div", { className: "navigator__command" }, usesAuditoryPrompt
-          ? h("button", { type: "button", className: "navigator__listen", onClick: () => speakCommand(false), "aria-label": "Повторить направление" }, "🔊 Послушай ещё раз")
+          ? h("button", { type: "button", className: "navigator__listen", onClick: () => speakCommand(), "aria-label": "Повторить направление" }, "🔊 Послушай ещё раз")
           : command,
         ),
-        isListening && !canSpeak
+        isListening && !canVoice
           ? h("p", { className: "navigator__audio-fallback", role: "status" }, "Озвучка недоступна — команда показана текстом")
           : null,
       ),
