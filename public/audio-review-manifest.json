@@ -2875,6 +2875,120 @@
       ]
     },
     {
+      "id": "audio/propis-elevenlabs-alphabet",
+      "title": "Прописи — Б, В, Г, Д как буквы алфавита (ElevenLabs)",
+      "items": [
+        {
+          "id": "audio/propis-elevenlabs-alphabet/row_1.mp3",
+          "key": "row_1",
+          "path": "audio/propis-elevenlabs-alphabet/row_1.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/row_1.mp3",
+          "label": "«А, Б, В, Г, Д.» — дубль 1",
+          "category": "Подряд",
+          "version": "57b9005fd48c7a40"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/row_2.mp3",
+          "key": "row_2",
+          "path": "audio/propis-elevenlabs-alphabet/row_2.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/row_2.mp3",
+          "label": "«А, Б, В, Г, Д.» — дубль 2",
+          "category": "Подряд",
+          "version": "5904dbd458a1f566"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/row_3.mp3",
+          "key": "row_3",
+          "path": "audio/propis-elevenlabs-alphabet/row_3.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/row_3.mp3",
+          "label": "«А, Б, В, Г, Д.» — дубль 3",
+          "category": "Подряд",
+          "version": "f3d630af63661a01"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/row_4.mp3",
+          "key": "row_4",
+          "path": "audio/propis-elevenlabs-alphabet/row_4.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/row_4.mp3",
+          "label": "«А, Б, В, Г, Д.» — дубль 4",
+          "category": "Подряд",
+          "version": "ac37ab9d92ff4272"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/b.mp3",
+          "key": "b",
+          "path": "audio/propis-elevenlabs-alphabet/b.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/b.mp3",
+          "label": "«Б.» — дубль 1",
+          "category": "По одной",
+          "version": "383faa5df7546eca"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/b__2.mp3",
+          "key": "b__2",
+          "path": "audio/propis-elevenlabs-alphabet/b__2.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/b__2.mp3",
+          "label": "«Б.» — дубль 2",
+          "category": "По одной",
+          "version": "c0eb7bc8731af682"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/v.mp3",
+          "key": "v",
+          "path": "audio/propis-elevenlabs-alphabet/v.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/v.mp3",
+          "label": "«В.» — дубль 1",
+          "category": "По одной",
+          "version": "c55fd63374082aed"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/v__2.mp3",
+          "key": "v__2",
+          "path": "audio/propis-elevenlabs-alphabet/v__2.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/v__2.mp3",
+          "label": "«В.» — дубль 2",
+          "category": "По одной",
+          "version": "150f1610aa531beb"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/g.mp3",
+          "key": "g",
+          "path": "audio/propis-elevenlabs-alphabet/g.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/g.mp3",
+          "label": "«Г.» — дубль 1",
+          "category": "По одной",
+          "version": "45a421b7c243e9fd"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/g__2.mp3",
+          "key": "g__2",
+          "path": "audio/propis-elevenlabs-alphabet/g__2.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/g__2.mp3",
+          "label": "«Г.» — дубль 2",
+          "category": "По одной",
+          "version": "7f29bf5e524e9cd9"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/d.mp3",
+          "key": "d",
+          "path": "audio/propis-elevenlabs-alphabet/d.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/d.mp3",
+          "label": "«Д.» — дубль 1",
+          "category": "По одной",
+          "version": "39df6602042602ea"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/d__2.mp3",
+          "key": "d__2",
+          "path": "audio/propis-elevenlabs-alphabet/d__2.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/d__2.mp3",
+          "label": "«Д.» — дубль 2",
+          "category": "По одной",
+          "version": "880a322f2d9f69f7"
+        }
+      ]
+    },
+    {
       "id": "audio/propis-elevenlabs-e-pilot",
       "title": "Прописи — Б, В, Г с Э (ElevenLabs)",
       "items": [

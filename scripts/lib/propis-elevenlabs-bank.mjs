@@ -46,3 +46,14 @@ export const PROPIS_ELEVENLABS_E_PILOT = E_PILOT_LETTERS.flatMap(([latin, letter
     key: `${latin}_${shape}`, prompt: make(letter), order: li * E_PILOT_SHAPES.length + si,
     label: `${letter}: «${make(letter)}»`, category: letter,
   })));
+
+// Pilot (2026-10-10, owner's request): just let the voice say alphabet letters
+// the way it normally would. "А, Б, В, Г, Д." in one breath (four takes,
+// row_1..4) and each letter on its own ("Б." — b / b__2, etc.). No tags.
+export const PROPIS_ELEVENLABS_ALPHABET = [
+  ...[1, 2, 3, 4].map((n) => ({ key: `row_${n}`, prompt: "А, Б, В, Г, Д.", label: `«А, Б, В, Г, Д.» — дубль ${n}`, category: "Подряд", order: n - 1 })),
+  ...[["b", "Б"], ["v", "В"], ["g", "Г"], ["d", "Д"]].flatMap(([latin, letter], i) => [
+    { key: latin, prompt: `${letter}.`, label: `«${letter}.» — дубль 1`, category: "По одной", order: 4 + i * 2 },
+    { key: `${latin}__2`, prompt: `${letter}.`, label: `«${letter}.» — дубль 2`, category: "По одной", order: 5 + i * 2 },
+  ]),
+];

@@ -92,3 +92,13 @@ https://ai.google.dev/gemini-api/docs/speech-generation.
 для В, Г). Плейлист `/audio-review.html?set=audio/propis-elevenlabs-e-pilot`,
 тексты — `PROPIS_ELEVENLABS_E_PILOT` в `scripts/lib/propis-elevenlabs-bank.mjs`.
 На слух не проверено.
+
+### Пилот: Б, В, Г, Д как буквы алфавита (10.10.2026)
+
+По просьбе владельца — без попыток выжать «чистый звук»: голос просто читает
+буквы алфавита, как прочитал бы их сам. «А, Б, В, Г, Д.» подряд (4 дубля, А —
+для контекста алфавита) и каждая буква отдельно («Б.» и т.д., по 2 дубля).
+Без тегов. Плейлист `/audio-review.html?set=audio/propis-elevenlabs-alphabet`,
+тексты — `PROPIS_ELEVENLABS_ALPHABET`. Паузы в записях «подряд» короткие
+(в 3 из 4 дублей детектор тишины их не находит) — резать их на буквы
+автоматически ненадёжно. На слух не проверено.
