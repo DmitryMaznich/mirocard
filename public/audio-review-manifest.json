@@ -1529,7 +1529,7 @@
           "url": "/audio/propis-dictation/lo_%D0%B6.mp3",
           "label": "Строчная ж",
           "category": "Буквы",
-          "version": "c7922ea8bea44abb"
+          "version": "9146c80845f101fe"
         },
         {
           "id": "audio/propis-dictation/lo_з.mp3",
@@ -1961,7 +1961,7 @@
           "url": "/audio/propis-dictation/up_%D1%85.mp3",
           "label": "Заглавная Х",
           "category": "Буквы",
-          "version": "2eba8170b211090d"
+          "version": "ebbfcc7e56a07ce9"
         },
         {
           "id": "audio/propis-dictation/up_ц.mp3",
@@ -4362,6 +4362,84 @@
           "label": "Строчная — дубль 2",
           "category": "Регистр",
           "version": "c27b190eaed74f57"
+        }
+      ]
+    },
+    {
+      "id": "audio/propis-letter-retake",
+      "title": "Прописи — пересъёмка строчной ж и заглавной Х",
+      "items": [
+        {
+          "id": "audio/propis-letter-retake/lo_zh_name_1.mp3",
+          "key": "lo_zh_name_1",
+          "path": "audio/propis-letter-retake/lo_zh_name_1.mp3",
+          "url": "/audio/propis-letter-retake/lo_zh_name_1.mp3",
+          "label": "Строчная «жэ» — дубль 1 (стоит в диктанте)",
+          "category": "ж",
+          "version": "9146c80845f101fe"
+        },
+        {
+          "id": "audio/propis-letter-retake/lo_zh_name_2.mp3",
+          "key": "lo_zh_name_2",
+          "path": "audio/propis-letter-retake/lo_zh_name_2.mp3",
+          "url": "/audio/propis-letter-retake/lo_zh_name_2.mp3",
+          "label": "Строчная «жэ» — дубль 2",
+          "category": "ж",
+          "version": "a49ac48f9b1efac7"
+        },
+        {
+          "id": "audio/propis-letter-retake/lo_zh_plain_1.mp3",
+          "key": "lo_zh_plain_1",
+          "path": "audio/propis-letter-retake/lo_zh_plain_1.mp3",
+          "url": "/audio/propis-letter-retake/lo_zh_plain_1.mp3",
+          "label": "Строчная ж — дубль 1",
+          "category": "ж",
+          "version": "5233101268b5fa67"
+        },
+        {
+          "id": "audio/propis-letter-retake/lo_zh_plain_2.mp3",
+          "key": "lo_zh_plain_2",
+          "path": "audio/propis-letter-retake/lo_zh_plain_2.mp3",
+          "url": "/audio/propis-letter-retake/lo_zh_plain_2.mp3",
+          "label": "Строчная ж — дубль 2",
+          "category": "ж",
+          "version": "7dd67c87a9361abb"
+        },
+        {
+          "id": "audio/propis-letter-retake/up_kh_name_1.mp3",
+          "key": "up_kh_name_1",
+          "path": "audio/propis-letter-retake/up_kh_name_1.mp3",
+          "url": "/audio/propis-letter-retake/up_kh_name_1.mp3",
+          "label": "Заглавная «ха» — дубль 1 (стоит в диктанте)",
+          "category": "Х",
+          "version": "ebbfcc7e56a07ce9"
+        },
+        {
+          "id": "audio/propis-letter-retake/up_kh_name_2.mp3",
+          "key": "up_kh_name_2",
+          "path": "audio/propis-letter-retake/up_kh_name_2.mp3",
+          "url": "/audio/propis-letter-retake/up_kh_name_2.mp3",
+          "label": "Заглавная «ха» — дубль 2",
+          "category": "Х",
+          "version": "4bf29f673f4db8b2"
+        },
+        {
+          "id": "audio/propis-letter-retake/up_kh_plain_1.mp3",
+          "key": "up_kh_plain_1",
+          "path": "audio/propis-letter-retake/up_kh_plain_1.mp3",
+          "url": "/audio/propis-letter-retake/up_kh_plain_1.mp3",
+          "label": "Заглавная Х — дубль 1",
+          "category": "Х",
+          "version": "3aa09403e744faf7"
+        },
+        {
+          "id": "audio/propis-letter-retake/up_kh_plain_2.mp3",
+          "key": "up_kh_plain_2",
+          "path": "audio/propis-letter-retake/up_kh_plain_2.mp3",
+          "url": "/audio/propis-letter-retake/up_kh_plain_2.mp3",
+          "label": "Заглавная Х — дубль 2",
+          "category": "Х",
+          "version": "63f0835f2cfa4e65"
         }
       ]
     },

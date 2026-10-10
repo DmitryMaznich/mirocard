@@ -52,6 +52,12 @@ for (const entry of PROPIS_ELEVENLABS_CASE_PILOT) {
   setLabel(`audio/propis-elevenlabs-case-pilot/${entry.key}.mp3`, `${entry.label} — дубль 1`, entry.category);
   setLabel(`audio/propis-elevenlabs-case-pilot/${entry.key}__2.mp3`, `${entry.label} — дубль 2`, entry.category);
 }
+for (const [key, label] of [
+  ["lo_zh_name_1", "Строчная «жэ» — дубль 1 (стоит в диктанте)"], ["lo_zh_name_2", "Строчная «жэ» — дубль 2"],
+  ["lo_zh_plain_1", "Строчная ж — дубль 1"], ["lo_zh_plain_2", "Строчная ж — дубль 2"],
+  ["up_kh_name_1", "Заглавная «ха» — дубль 1 (стоит в диктанте)"], ["up_kh_name_2", "Заглавная «ха» — дубль 2"],
+  ["up_kh_plain_1", "Заглавная Х — дубль 1"], ["up_kh_plain_2", "Заглавная Х — дубль 2"],
+]) setLabel(`audio/propis-letter-retake/${key}.mp3`, label, key.startsWith("lo_") ? "ж" : "Х");
 for (const entry of PROPIS_NATURAL_PILOT) setLabel(`audio/propis-natural-pilot/${entry.key}.wav`, entry.label, entry.category);
 const names = {
   "audio/addition-subtraction": "Плюс / минус — слушаем и считаем",
@@ -64,6 +70,7 @@ const names = {
   "audio/propis-elevenlabs-review": "Прописи — диктант букв, ElevenLabs (2 дубля)",
   "audio/propis-elevenlabs-e-pilot": "Прописи — Б, В, Г с Э (ElevenLabs)",
   "audio/propis-elevenlabs-alphabet": "Прописи — Б, В, Г, Д как буквы алфавита (ElevenLabs)",
+  "audio/propis-letter-retake": "Прописи — пересъёмка строчной ж и заглавной Х",
   "audio/propis-elevenlabs-case-pilot": "Прописи — «Заглавная Б» / «Строчная б», диктант (ElevenLabs)",
   "sounds/letters": "Звуки букв",
   sounds: "Сигналы ответа",
