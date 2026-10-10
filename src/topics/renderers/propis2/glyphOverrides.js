@@ -43,6 +43,7 @@ const MARKED_CAPITALS = [
   { label: "Й", base: "И", marksFrom: "й", lower: "и" },
 ];
 const MARK_SCALE = 1.25;
+const SLANT = 0.4663; // tan of the grid's slant (23 units of lean per 50 of height)
 // the coordinate pairs of the paths (end and control points): bounds good enough to place marks; samplePath reads only M and C, and
 // these glyphs also have L and Q
 const pointsOf = (strokes) => strokes.flatMap((s) => { const n = (String(s.d).match(/-?\d*\.?\d+(?:e-?\d+)?/gi) ?? []).map(Number); return n.flatMap((v, i) => (i % 2 ? [] : [[v, n[i + 1]]])); });
@@ -72,7 +73,10 @@ export function markedCapital(baseGlyph, markedLower, plainLower, label) {
   const top = cp.filter((q) => q[1] < capTop + 12);
   const cx = (Math.min(...top.map((q) => q[0])) + Math.max(...top.map((q) => q[0]))) / 2;
   const cy = capTop - (lowerTop - my) * MARK_SCALE;
-  const moved = marks.map((s) => ({ ...s, d: mapPoints(s.d, (x, y) => [cx + (x - mx) * MARK_SCALE, cy + (y - my) * MARK_SCALE]) }));
+  // The letter leans along the grid's slant (SLANT = dx per unit of height), so «centred over the top» means centred on the lean
+  // axis through the top: the marks stand higher, hence further right by SLANT per unit. Without it they looked shifted left.
+  const cxLean = cx + SLANT * (capTop - cy);
+  const moved = marks.map((s) => ({ ...s, d: mapPoints(s.d, (x, y) => [cxLean + (x - mx) * MARK_SCALE, cy + (y - my) * MARK_SCALE]) }));
   const dots = markedLower.noDotStrokes ? { noDotStrokes: moved.map((_, i) => baseGlyph.strokes.length + i) } : {};
   return { ...baseGlyph, label, aliases: undefined, strokes: [...baseGlyph.strokes, ...moved], sourceLabel: `${label}: ${baseGlyph.label} + отметки ${markedLower.label}`, ...dots };
 }
