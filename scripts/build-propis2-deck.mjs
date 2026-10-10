@@ -35,8 +35,8 @@ const entry = {
   version: VERSION,
   title: { ru: "Прописи 2", en: "Copybook 2" },
   description: {
-    ru: "Конструктор страниц прописей: соберите страницу из элементов, букв, слов и текстов; ребёнок пишет на бумаге и смотрит анимацию написания.",
-    en: "Copybook page builder: compose a page of elements, letters, words and texts; the child writes on paper and watches the pen animation.",
+    ru: "Конструктор тетрадей по письму и тренажёры письменных букв: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
+    en: "Handwriting notebook builder and written-letter trainers: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation.",
   },
   url: `./decks/propis2_v${VERSION}.zip`,
   status: "beta",
