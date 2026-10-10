@@ -41,7 +41,7 @@ const MAP_ROWS = [
     { id: "season", label: "Время года", sample: "ОСЕНЬ", keys: ["showSeason"], flex: 3, tone: "amber" },
   ],
   [
-    { id: "daypart", label: "Время суток", sample: "УТРО", keys: ["showDaypart"], flex: 4, tone: "peach" },
+    { id: "daypart", label: "Сейчас", sample: "УТРО", keys: ["showDaypart"], flex: 4, tone: "peach" },
     { id: "weather", label: "Погода", sample: "☁", keys: ["showWeather"], flex: 2, tone: "sand" },
     { id: "time", label: "Время", sample: "10:35", keys: CLOCK_PARTS.map((p) => p.key), flex: 5, tone: "blue" },
   ],
@@ -318,8 +318,8 @@ export default function DailyOrientationSettings({ params, setParams, student, o
           <h2 className="dos-section__title" id="dos-day-title">Режим дня</h2>
           <p className="dos-section__hint">
             {daypartOn
-              ? "Когда начинается утро и ночь на карточке «Время суток»"
-              : "Включите карточку «Время суток», чтобы режим дня был виден ребёнку"}
+              ? "Когда начинается утро и ночь на карточке «Сейчас»"
+              : "Включите карточку «Сейчас», чтобы режим дня был виден ребёнку"}
           </p>
         </header>
 
