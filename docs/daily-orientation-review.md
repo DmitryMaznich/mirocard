@@ -31,6 +31,13 @@ feature — see `docs/important-dates.md`. This file is the rest of the review.
   (`getSpokenClockWordParts` in `timeUtils.js`). Spoken with TTS when sound
   is on (no recorded clips for these).
 
+- **Время года** (2026-10-10): the picture is the whole card's background
+  (cover), its lower part fades into the season tint and the name sits on
+  that "ground" -- no separate band under a letterboxed picture.
+- **Погода** (2026-10-10): the pictogram shrinks to the room left under the
+  caption; on a shorter row (Важные даты ribbon) it used to spill over
+  "Погода".
+
 ## Not done (bigger, discussed but not started)
 
 - "Сейчас → потом" (first–then) strip from a daily schedule.

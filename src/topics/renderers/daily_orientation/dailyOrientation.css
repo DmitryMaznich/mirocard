@@ -364,29 +364,46 @@
   font-size: 78px;
 }
 
-/* Время года: a full-bleed illustration on the top two thirds, muted to
-   ~55% so it stays calm next to the other cards, and the season's name on a
-   plain band below in that season's tint, with a small "Время года" above
-   the name (not on the picture, where it only repeated what it shows). */
+/* Время года: the illustration is the card's whole background (object-fit:
+   cover, nothing letterboxed), and its lower part dissolves into the
+   season's own tint, so the name sits on the picture's "ground" -- part of
+   the scene, not a separate band under it. The picture keeps its colours
+   (it's the answer, shown) but the fade makes a calm, even backdrop for the
+   word, so the text needs no box or shadow to stay readable. */
 .daily-orientation__card.daily-orientation__card--season.daily-orientation__card--stacked {
   /* beats the --wide side padding and --stacked top padding */
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   padding: 0;
   background: var(--season-band, var(--orientation-amber));
 }
 .daily-orientation__season-picture {
-  position: relative;
-  flex: 0 0 66%;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 .daily-orientation__season-picture img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: .55;
+  /* the scenes' subject (tree, sun, hills) sits in the upper half */
+  object-position: center 30%;
   user-select: none;
   -webkit-user-drag: none;
+}
+.daily-orientation__season-picture::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 38%,
+    color-mix(in srgb, var(--season-band, var(--orientation-amber)) 72%, transparent) 60%,
+    var(--season-band, var(--orientation-amber)) 82%
+  );
 }
 .daily-orientation__season-caption {
   margin: 0;
@@ -397,15 +414,14 @@
   text-align: center;
 }
 .daily-orientation__season-band {
-  flex: 1 1 auto;
-  min-height: 0;
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
   align-items: center;
-  justify-content: center;
-  padding: 0 28px;
-  background: var(--season-band, var(--orientation-amber));
+  justify-content: flex-end;
+  padding: 0 28px 34px;
 }
 .daily-orientation__season-band .daily-orientation__answer { --fit-pad: 56px; }
 .daily-orientation__card--season-winter { --season-band: #e6f1fa; }
@@ -586,9 +602,25 @@
   text-align: center;
 }
 
+/* The pictogram takes only the height the card has left under the caption
+   (up to 120px) and the word keeps its own row: on a shorter row (the
+   "Важные даты" ribbon above, a wide screen) the cloud used to spill out of
+   the grid cell upwards and over "Погода". */
+.daily-orientation__weather-display--set {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: center;
+  align-items: center;
+  row-gap: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
 .daily-orientation__weather-display .daily-orientation__weather-mark {
-  width: 120px;
-  height: 120px;
+  width: auto;
+  height: 100%;
+  max-height: 120px;
+  min-height: 0;
+  aspect-ratio: 1;
 }
 
 .daily-orientation__weather-mark { width: 30px; height: 30px; flex: 0 0 auto; }
@@ -971,10 +1003,21 @@
   padding: 0;
   gap: 10px;
 }
+.daily-orientation__weather-display--unset {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  justify-items: center;
+  align-items: center;
+  min-height: 0;
+  overflow: hidden;
+}
 .daily-orientation__weather-unset-mark {
   display: grid;
-  width: 120px;
-  height: 120px;
+  width: auto;
+  height: 100%;
+  max-height: 120px;
+  min-height: 0;
+  aspect-ratio: 1;
   place-items: center;
   border-radius: 50%;
   background: rgba(7, 61, 79, .06);
