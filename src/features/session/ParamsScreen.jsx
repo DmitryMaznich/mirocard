@@ -1646,7 +1646,7 @@ export default function ParamsScreen() {
   const isReadingInstruction  = isReading && (activeText?.kind === "instruction" || activeText?.kind === "shopping_list");
   const isReadingSafeCode     = isReading && activeText?.kind === "safe_code";
   // Letter-recognition modes merged into propis from "Письменные буквы" (2026-09-29).
-  const isLettersCase         = topicRecord?.meta.renderer === "propis" && mode?.type === "letters_case";
+  const isLettersCase         = ["propis", "propis2"].includes(topicRecord?.meta.renderer) && mode?.type === "letters_case";
   const isAlphabetPairs       = topicRecord?.meta.renderer === "propis" && mode?.type === "letters_alphabet";
   // Coordinate dictations need their own printable layout, so the print panel is
   // available for the directions variant only.
@@ -1821,7 +1821,7 @@ export default function ParamsScreen() {
   // surfaces correctly without touching this flag (confirmed via a live dev-preview render).
   // Scoped to the evaluation:"none" modes: the letter-recognition modes merged in from
   // "Письменные буквы" (2026-09-29) are auto-evaluated and keep the video reward they had there.
-  const isPropis = topicRecord?.meta.renderer === "propis" && mode?.evaluation === "none";
+  const isPropis = ["propis", "propis2"].includes(topicRecord?.meta.renderer) && mode?.evaluation === "none";
 
   const allModes = topicRecord?.modes ?? [];
   // Shared reading is deliberately not a rewarded exercise. The separate

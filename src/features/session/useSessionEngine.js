@@ -166,13 +166,14 @@ function buildGeneratedSessionState({
   } else if (renderer === "print_materials") {
     const generateTasks = ENGINE_REGISTRY.print_materials;
     tasks = generateTasks ? generateTasks(mode, topicRecord) : [];
-  } else if (renderer === "propis") {
+  } else if (renderer === "propis" || renderer === "propis2") {
     // Own branch (not the generic `else` below) because "Диктант" needs the full word/text
     // banks (topicRecord.words/texts) to draw a random session from, not just topicRecord.cards
     // -- every other propis mode still only reads .cards off this same object, so passing the
     // whole topicRecord through changes nothing for them (propis/engine.js's own
     // `Array.isArray(cards) ? cards : (cards?.cards ?? [])` already tolerates either shape).
-    const generateTasks = ENGINE_REGISTRY.propis;
+    // «Прописи 2» copied «Узнай букву», «Строчная и заглавная», «Диктант» from it (2026-10-10): the same whole-record call
+    const generateTasks = ENGINE_REGISTRY[renderer];
     const sessionSize = 500;
     tasks = generateTasks ? generateTasks(mode, topicRecord, sessionSize, sessionParams) : [];
   } else if (renderer === "my_people") {

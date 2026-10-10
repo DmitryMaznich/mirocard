@@ -42,7 +42,7 @@ const FALLBACK_FONT_SIZE = 34;
 // тетрадный лист, а не так как ты сделал". No tap-to-animate/Prev-Next here though -- this
 // screen shows every item at once (it can run to ~40), unlike ReadTextView's one-text-at-a-
 // time browsing.
-export default function DictationReviewScreen({ task, onClose }) {
+export default function DictationReviewScreen({ task, onClose, Answers = null }) {
   const items = task?.items ?? [];
   const level = task?.level ?? "letters";
 
@@ -132,6 +132,7 @@ export default function DictationReviewScreen({ task, onClose }) {
           </p>
         </div>
 
+        {Answers ? <Answers items={items} level={level} /> : (
         <div className="propis-text-grid-scroll" ref={wrapRef}>
           <svg
             className="propis-text-grid-svg"
@@ -177,6 +178,7 @@ export default function DictationReviewScreen({ task, onClose }) {
             ))}
           </svg>
         </div>
+        )}
 
         <div className="propis-dictation-review-footer">
           {task?.videoRewardEnabled ? (

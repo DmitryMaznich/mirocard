@@ -9,7 +9,9 @@ import { useDictationPlayer } from "./useDictationPlayer";
 // the whole text read in one breath.
 const SENTENCE_PAUSE_MS = 2500;
 
-export default function DictationView({ task, onClose }) {
+// `Answers` (optional): a component that draws the answer sheet of the review screen ({ items, level }); «Прописи 2» passes its own
+// (its letters); without it the review draws this topic's own ink.
+export default function DictationView({ task, onClose, Answers = null }) {
   const items = task?.items ?? [];
   const total = items.length;
 
@@ -69,7 +71,7 @@ export default function DictationView({ task, onClose }) {
   }
 
   if (done) {
-    return <ReviewScreen task={task} onClose={onClose} />;
+    return <ReviewScreen task={task} onClose={onClose} Answers={Answers} />;
   }
 
   return (

@@ -76,13 +76,15 @@ class ErrorBoundary extends Component {
   }
 }
 
-// «Прописи 2» owns its home screen (the page constructor); every other topic keeps the generic
-// settings screen.
+// «Прописи 2» owns its home screen for its constructor mode; its other modes (copied from «Прописи», 2026-10-10) and every other
+// topic keep the generic settings screen.
 function ParamsRoute() {
   const activeTopicId = useAppStore((s) => s.activeTopicId);
+  const activeModeId = useAppStore((s) => s.activeModeId);
   const topicRecords = useAppStore((s) => s.topicRecords);
-  const renderer = topicRecords.find((r) => r.meta.id === activeTopicId)?.meta.renderer;
-  return renderer === "propis2" ? <Propis2Home /> : <ParamsScreen />;
+  const record = topicRecords.find((r) => r.meta.id === activeTopicId);
+  const mode = record?.modes?.find((m) => m.id === activeModeId);
+  return record?.meta.renderer === "propis2" && (!mode || mode.type === "builder") ? <Propis2Home /> : <ParamsScreen />;
 }
 
 const SCREENS = {

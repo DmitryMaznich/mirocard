@@ -63,7 +63,8 @@ describe("Прописи 2 (zip topic)", () => {
     expect(ENGINE_REGISTRY.propis2().length).toBe(1);
     const rec = deckRecord();
     expect(rec.meta.renderer).toBe("propis2");
-    expect(rec.modes).toHaveLength(1);
+    // the constructor, and «Узнай букву», «Строчная и заглавная», «Диктант» copied from «Прописи» (2026-10-10)
+    expect(rec.modes.map((m) => m.type)).toEqual(["builder", "letters_recognize", "letters_case", "dictation"]);
   });
 
   it("lays out a ready sheet from the deck's own glyph data", () => {

@@ -1,0 +1,5 @@
+/* «Диктант» review in «Прописи 2»: the answer page sits inside the review column (under its header) instead of covering the screen. */
+.propis2-dictation-answers { flex: 0 1 auto; min-height: 0; overflow: auto; border-radius: 12px; background: #cabfa9; }
+.propis2-dictation-answers .propis-practice-stage { position: static; inset: auto; height: auto; background: transparent; touch-action: auto; }
+.propis2-dictation-answers .propis-print-frame { height: auto; background: transparent; }
+.propis2-dictation-answers .propis-print-page-wrap { padding: 8px; background: transparent; overflow: visible; touch-action: auto; }

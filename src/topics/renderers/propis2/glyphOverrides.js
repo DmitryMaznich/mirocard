@@ -35,8 +35,55 @@ export const P2_GLYPH_OVERRIDES = {
 // Digits and signs (+ - = < >) captured on 2026-10-06 (tools/propis/captures/digits_signs_raw_2026-10-06.json). Their labels carry a «№»
 // (№5, №+): the wide.json already has ELEMENTS called 5 6 7 8, and «+» is the engine's chain operator, so a plain character cannot name them.
 // The text field shows and takes ordinary digits (fieldText.js turns them into these labels and back). Never joined to a neighbour.
+// Capitals Ё and Й were never captured (2026-10-10, needed by «Строчная и заглавная» / «Узнай букву»): they are made from Е and И with
+// the marks of ё and й (its dot strokes / its breve) set above the capital: centred over the top of the capital, as far above its top
+// as they are above the lowercase letter, a quarter larger. Built only when the capture lacks them.
+const MARKED_CAPITALS = [
+  { label: "Ё", base: "Е", marksFrom: "ё", lower: "е" },
+  { label: "Й", base: "И", marksFrom: "й", lower: "и" },
+];
+const MARK_SCALE = 1.25;
+// the coordinate pairs of the paths (end and control points): bounds good enough to place marks; samplePath reads only M and C, and
+// these glyphs also have L and Q
+const pointsOf = (strokes) => strokes.flatMap((s) => { const n = (String(s.d).match(/-?\d*\.?\d+(?:e-?\d+)?/gi) ?? []).map(Number); return n.flatMap((v, i) => (i % 2 ? [] : [[v, n[i + 1]]])); });
+// every coordinate pair of an absolute M/C/L path, mapped
+const mapPoints = (d, fn) => {
+  const nums = String(d).match(/-?\d*\.?\d+(?:e-?\d+)?/gi) ?? [];
+  let i = 0;
+  return String(d).replace(/-?\d*\.?\d+(?:e-?\d+)?/gi, () => {
+    const k = i;
+    i += 1;
+    if (k % 2 === 1) return "";
+    const [x, y] = fn(Number(nums[k]), Number(nums[k + 1]));
+    return `${x.toFixed(2)} ${y.toFixed(2)}`;
+  }).replace(/ +/g, " ");
+};
+export function markedCapital(baseGlyph, markedLower, plainLower, label) {
+  if (!baseGlyph || !markedLower || !plainLower) return null;
+  const n = plainLower.strokes.length;
+  const marks = markedLower.strokes.slice(n);
+  if (!marks.length) return null;
+  const mp = pointsOf(marks);
+  const mx = (Math.min(...mp.map((q) => q[0])) + Math.max(...mp.map((q) => q[0]))) / 2;
+  const my = (Math.min(...mp.map((q) => q[1])) + Math.max(...mp.map((q) => q[1]))) / 2;
+  const lowerTop = Math.min(...pointsOf(plainLower.strokes).map((q) => q[1]));
+  const cp = pointsOf(baseGlyph.strokes);
+  const capTop = Math.min(...cp.map((q) => q[1]));
+  const top = cp.filter((q) => q[1] < capTop + 12);
+  const cx = (Math.min(...top.map((q) => q[0])) + Math.max(...top.map((q) => q[0]))) / 2;
+  const cy = capTop - (lowerTop - my) * MARK_SCALE;
+  const moved = marks.map((s) => ({ ...s, d: mapPoints(s.d, (x, y) => [cx + (x - mx) * MARK_SCALE, cy + (y - my) * MARK_SCALE]) }));
+  const dots = markedLower.noDotStrokes ? { noDotStrokes: moved.map((_, i) => baseGlyph.strokes.length + i) } : {};
+  return { ...baseGlyph, label, aliases: undefined, strokes: [...baseGlyph.strokes, ...moved], sourceLabel: `${label}: ${baseGlyph.label} + отметки ${markedLower.label}`, ...dots };
+}
+const withMarkedCapitals = (glyphs) => {
+  const byLabel = new Map(glyphs.map((g) => [g.label, g]));
+  const made = MARKED_CAPITALS.filter((m) => !byLabel.has(m.label)).map((m) => markedCapital(byLabel.get(m.base), byLabel.get(m.marksFrom), byLabel.get(m.lower), m.label)).filter(Boolean);
+  return made.length ? [...glyphs, ...made] : glyphs;
+};
+
 export const withGlyphOverrides = (glyphs) => {
-  const patched = [...(glyphs ?? []).map((g) => (P2_GLYPH_OVERRIDES[g.label] ? { ...g, ...P2_GLYPH_OVERRIDES[g.label] } : g)), ...(glyphs?.length ? DIGIT_GLYPHS : [])];
+  const patched = [...withMarkedCapitals((glyphs ?? []).map((g) => (P2_GLYPH_OVERRIDES[g.label] ? { ...g, ...P2_GLYPH_OVERRIDES[g.label] } : g))), ...(glyphs?.length ? DIGIT_GLYPHS : [])];
   // `joinLikeLabel` -> the (already patched) glyph whose connector is borrowed
   return patched.map((g) => (g.joinLikeLabel ? { ...g, joinLike: patched.find((x) => x.label === g.joinLikeLabel), joinEndLike: patched.find((x) => x.label === g.joinEndLikeLabel) } : g));
 };

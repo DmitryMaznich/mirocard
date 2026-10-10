@@ -464,7 +464,7 @@ export default function Propis2Home({ db }) {
       onResumeDraft={resumeDraft}
       onDropDraft={() => { setDraft(null); clearDraft(db).catch(() => {}); }}
       onDropBlank={() => persist(blankIds.reduce((lib, id) => removeSet(lib, id), library))}
-      onBack={() => setScreen("home")}
+      onBack={() => setScreen((topicRecord?.modes?.length ?? 0) > 1 ? "modes" : "home")} // with the copied modes the topic has a mode list to go back to
       onNew={() => createPage(newPage("Новая тетрадь"))}
       ready={ready}
       onOpenReady={openReady}
