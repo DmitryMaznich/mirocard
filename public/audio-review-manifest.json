@@ -2989,6 +2989,264 @@
       ]
     },
     {
+      "id": "audio/propis-elevenlabs-case-pilot",
+      "title": "Прописи — «Заглавная Б» / «Строчная б», диктант (ElevenLabs)",
+      "items": [
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_b.mp3",
+          "key": "up_b",
+          "path": "audio/propis-elevenlabs-case-pilot/up_b.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_b.mp3",
+          "label": "Заглавная Б — дубль 1",
+          "category": "Б",
+          "version": "6edb2eb7e671c0df"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_b__2.mp3",
+          "key": "up_b__2",
+          "path": "audio/propis-elevenlabs-case-pilot/up_b__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_b__2.mp3",
+          "label": "Заглавная Б — дубль 2",
+          "category": "Б",
+          "version": "7fa84af69a635ef0"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_b.mp3",
+          "key": "lo_b",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_b.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_b.mp3",
+          "label": "Строчная б — дубль 1",
+          "category": "Б",
+          "version": "f925bd252d4a60bb"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_b__2.mp3",
+          "key": "lo_b__2",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_b__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_b__2.mp3",
+          "label": "Строчная б — дубль 2",
+          "category": "Б",
+          "version": "f9ebc6740df6f332"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_v.mp3",
+          "key": "up_v",
+          "path": "audio/propis-elevenlabs-case-pilot/up_v.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_v.mp3",
+          "label": "Заглавная В — дубль 1",
+          "category": "В",
+          "version": "8fc615ea3f6ddf12"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_v__2.mp3",
+          "key": "up_v__2",
+          "path": "audio/propis-elevenlabs-case-pilot/up_v__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_v__2.mp3",
+          "label": "Заглавная В — дубль 2",
+          "category": "В",
+          "version": "aa1b6da99d29c772"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_v.mp3",
+          "key": "lo_v",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_v.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_v.mp3",
+          "label": "Строчная в — дубль 1",
+          "category": "В",
+          "version": "e521b6165d22d99f"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_v__2.mp3",
+          "key": "lo_v__2",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_v__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_v__2.mp3",
+          "label": "Строчная в — дубль 2",
+          "category": "В",
+          "version": "163d204c53baf4ec"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_g.mp3",
+          "key": "up_g",
+          "path": "audio/propis-elevenlabs-case-pilot/up_g.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_g.mp3",
+          "label": "Заглавная Г — дубль 1",
+          "category": "Г",
+          "version": "60ea218b25f9671c"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_g__2.mp3",
+          "key": "up_g__2",
+          "path": "audio/propis-elevenlabs-case-pilot/up_g__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_g__2.mp3",
+          "label": "Заглавная Г — дубль 2",
+          "category": "Г",
+          "version": "093a6c9354aea173"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_g.mp3",
+          "key": "lo_g",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_g.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_g.mp3",
+          "label": "Строчная г — дубль 1",
+          "category": "Г",
+          "version": "659c6db2820933ac"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_g__2.mp3",
+          "key": "lo_g__2",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_g__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_g__2.mp3",
+          "label": "Строчная г — дубль 2",
+          "category": "Г",
+          "version": "471b93751015906a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_d.mp3",
+          "key": "up_d",
+          "path": "audio/propis-elevenlabs-case-pilot/up_d.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_d.mp3",
+          "label": "Заглавная Д — дубль 1",
+          "category": "Д",
+          "version": "a950b6344d83bc69"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_d__2.mp3",
+          "key": "up_d__2",
+          "path": "audio/propis-elevenlabs-case-pilot/up_d__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_d__2.mp3",
+          "label": "Заглавная Д — дубль 2",
+          "category": "Д",
+          "version": "1d44d87980c0fb51"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_d.mp3",
+          "key": "lo_d",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_d.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_d.mp3",
+          "label": "Строчная д — дубль 1",
+          "category": "Д",
+          "version": "7158229e875c2fc4"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_d__2.mp3",
+          "key": "lo_d__2",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_d__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_d__2.mp3",
+          "label": "Строчная д — дубль 2",
+          "category": "Д",
+          "version": "78020d2646232653"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_e.mp3",
+          "key": "up_e",
+          "path": "audio/propis-elevenlabs-case-pilot/up_e.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_e.mp3",
+          "label": "Заглавная Е — дубль 1",
+          "category": "Е",
+          "version": "427f1b418f4ea311"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_e__2.mp3",
+          "key": "up_e__2",
+          "path": "audio/propis-elevenlabs-case-pilot/up_e__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_e__2.mp3",
+          "label": "Заглавная Е — дубль 2",
+          "category": "Е",
+          "version": "361469b3f5a0e54a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_e.mp3",
+          "key": "lo_e",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_e.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_e.mp3",
+          "label": "Строчная е — дубль 1",
+          "category": "Е",
+          "version": "1b3564fc0c5089df"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_e__2.mp3",
+          "key": "lo_e__2",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_e__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_e__2.mp3",
+          "label": "Строчная е — дубль 2",
+          "category": "Е",
+          "version": "184c7660d8351b9b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_i.mp3",
+          "key": "up_i",
+          "path": "audio/propis-elevenlabs-case-pilot/up_i.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_i.mp3",
+          "label": "Заглавная И — дубль 1",
+          "category": "И",
+          "version": "8297f0d1a0aef4b5"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_i__2.mp3",
+          "key": "up_i__2",
+          "path": "audio/propis-elevenlabs-case-pilot/up_i__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_i__2.mp3",
+          "label": "Заглавная И — дубль 2",
+          "category": "И",
+          "version": "59bfecc8b6b954a9"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_i.mp3",
+          "key": "lo_i",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_i.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_i.mp3",
+          "label": "Строчная и — дубль 1",
+          "category": "И",
+          "version": "8ea34be22e8f3802"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_i__2.mp3",
+          "key": "lo_i__2",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_i__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_i__2.mp3",
+          "label": "Строчная и — дубль 2",
+          "category": "И",
+          "version": "0ed610b0a66a8f2c"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_u.mp3",
+          "key": "up_u",
+          "path": "audio/propis-elevenlabs-case-pilot/up_u.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_u.mp3",
+          "label": "Заглавная У — дубль 1",
+          "category": "У",
+          "version": "7db403e7ff006d39"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/up_u__2.mp3",
+          "key": "up_u__2",
+          "path": "audio/propis-elevenlabs-case-pilot/up_u__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/up_u__2.mp3",
+          "label": "Заглавная У — дубль 2",
+          "category": "У",
+          "version": "0c89352d65335556"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_u.mp3",
+          "key": "lo_u",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_u.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_u.mp3",
+          "label": "Строчная у — дубль 1",
+          "category": "У",
+          "version": "878357350de028aa"
+        },
+        {
+          "id": "audio/propis-elevenlabs-case-pilot/lo_u__2.mp3",
+          "key": "lo_u__2",
+          "path": "audio/propis-elevenlabs-case-pilot/lo_u__2.mp3",
+          "url": "/audio/propis-elevenlabs-case-pilot/lo_u__2.mp3",
+          "label": "Строчная у — дубль 2",
+          "category": "У",
+          "version": "7f8012828a884831"
+        }
+      ]
+    },
+    {
       "id": "audio/propis-elevenlabs-e-pilot",
       "title": "Прописи — Б, В, Г с Э (ElevenLabs)",
       "items": [

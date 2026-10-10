@@ -57,3 +57,14 @@ export const PROPIS_ELEVENLABS_ALPHABET = [
     { key: `${latin}__2`, prompt: `${letter}.`, label: `«${letter}.» — дубль 2`, category: "По одной", order: 5 + i * 2 },
   ]),
 ];
+
+// Pilot (2026-10-10, owner's decision): the case word stays in the same clip as
+// the letter — "Заглавная Б." / "Строчная б." — two files per letter (Ъ/Ь will
+// differ). Sample: Б, В, Г, Д + vowels Е, И, У, two takes each, with a
+// dictation-style direction tag. Files: public/audio/propis-elevenlabs-case-pilot.
+const CASE_PILOT_TAG = "[calm, clear, like a teacher dictating to a class]";
+export const PROPIS_ELEVENLABS_CASE_PILOT = [["b", "Б"], ["v", "В"], ["g", "Г"], ["d", "Д"], ["e", "Е"], ["i", "И"], ["u", "У"]]
+  .flatMap(([latin, letter], i) => [
+    { key: `up_${latin}`, prompt: `${CASE_PILOT_TAG} Заглавная ${letter}.`, label: `Заглавная ${letter}`, category: letter, order: i * 2 },
+    { key: `lo_${latin}`, prompt: `${CASE_PILOT_TAG} Строчная ${letter.toLowerCase()}.`, label: `Строчная ${letter.toLowerCase()}`, category: letter, order: i * 2 + 1 },
+  ]);
