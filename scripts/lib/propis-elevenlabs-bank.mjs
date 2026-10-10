@@ -68,3 +68,15 @@ export const PROPIS_ELEVENLABS_CASE_PILOT = [["b", "Б"], ["v", "В"], ["g", "Г
     { key: `up_${latin}`, prompt: `${CASE_PILOT_TAG} Заглавная ${letter}.`, label: `Заглавная ${letter}`, category: letter, order: i * 2 },
     { key: `lo_${latin}`, prompt: `${CASE_PILOT_TAG} Строчная ${letter.toLowerCase()}.`, label: `Строчная ${letter.toLowerCase()}`, category: letter, order: i * 2 + 1 },
   ]);
+
+// Pilot (2026-10-10): dictation WORDS in the same voice and delivery as the
+// approved letter clips — one utterance per file ("Мама."), the on-screen
+// repeat button replays it. 14 words picked for spread (short/long, ё, щ, ь,
+// a name, a number word), two takes each. Files:
+// public/audio/propis-elevenlabs-words-pilot/word_<id>.mp3 (+ __2), keyed like
+// wordDictationKey so an approved take can be copied into propis-dictation as is.
+export const PROPIS_ELEVENLABS_WORDS_PILOT = [
+  ["w001", "Мама"], ["w006", "Лес"], ["w020", "Полёт"], ["w025", "Лапша"], ["w027", "Плащ"],
+  ["w028", "Поэт"], ["w043", "Тимоша"], ["w049", "Ёж"], ["w054", "Ключ"], ["w069", "Дверь"],
+  ["w088", "Медведь"], ["w101", "Муравей"], ["w204", "Велосипед"], ["w233", "Четыре"],
+].map(([id, word], order) => ({ key: `word_${id}`, prompt: `${CASE_PILOT_TAG} ${word}.`, label: word, category: "Слова", order }));

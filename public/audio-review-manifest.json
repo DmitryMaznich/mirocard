@@ -4366,6 +4366,264 @@
       ]
     },
     {
+      "id": "audio/propis-elevenlabs-words-pilot",
+      "title": "Прописи — диктант слов, пилот (ElevenLabs)",
+      "items": [
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w001.mp3",
+          "key": "word_w001",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w001.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w001.mp3",
+          "label": "Мама — дубль 1",
+          "category": "Слова",
+          "version": "fbccd66dff6d5b20"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w001__2.mp3",
+          "key": "word_w001__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w001__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w001__2.mp3",
+          "label": "Мама — дубль 2",
+          "category": "Слова",
+          "version": "902e96bd75c00358"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w006.mp3",
+          "key": "word_w006",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w006.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w006.mp3",
+          "label": "Лес — дубль 1",
+          "category": "Слова",
+          "version": "f9d2713e38f15d77"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w006__2.mp3",
+          "key": "word_w006__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w006__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w006__2.mp3",
+          "label": "Лес — дубль 2",
+          "category": "Слова",
+          "version": "4baf26e097af269f"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w020.mp3",
+          "key": "word_w020",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w020.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w020.mp3",
+          "label": "Полёт — дубль 1",
+          "category": "Слова",
+          "version": "230436e7cb06ffc9"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w020__2.mp3",
+          "key": "word_w020__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w020__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w020__2.mp3",
+          "label": "Полёт — дубль 2",
+          "category": "Слова",
+          "version": "b82000f9daf8129a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w025.mp3",
+          "key": "word_w025",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w025.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w025.mp3",
+          "label": "Лапша — дубль 1",
+          "category": "Слова",
+          "version": "1ad87eba4430e961"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w025__2.mp3",
+          "key": "word_w025__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w025__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w025__2.mp3",
+          "label": "Лапша — дубль 2",
+          "category": "Слова",
+          "version": "623f03c761267c1a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w027.mp3",
+          "key": "word_w027",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w027.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w027.mp3",
+          "label": "Плащ — дубль 1",
+          "category": "Слова",
+          "version": "1fed95b4db10e4cb"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w027__2.mp3",
+          "key": "word_w027__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w027__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w027__2.mp3",
+          "label": "Плащ — дубль 2",
+          "category": "Слова",
+          "version": "eaa3dde754bc2f10"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w028.mp3",
+          "key": "word_w028",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w028.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w028.mp3",
+          "label": "Поэт — дубль 1",
+          "category": "Слова",
+          "version": "238403afe3887fd6"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w028__2.mp3",
+          "key": "word_w028__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w028__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w028__2.mp3",
+          "label": "Поэт — дубль 2",
+          "category": "Слова",
+          "version": "5c9be239d88f0560"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w043.mp3",
+          "key": "word_w043",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w043.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w043.mp3",
+          "label": "Тимоша — дубль 1",
+          "category": "Слова",
+          "version": "d6b99a141894489c"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w043__2.mp3",
+          "key": "word_w043__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w043__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w043__2.mp3",
+          "label": "Тимоша — дубль 2",
+          "category": "Слова",
+          "version": "0e14d2ac9a331304"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w049.mp3",
+          "key": "word_w049",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w049.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w049.mp3",
+          "label": "Ёж — дубль 1",
+          "category": "Слова",
+          "version": "91515bbfc3565b78"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w049__2.mp3",
+          "key": "word_w049__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w049__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w049__2.mp3",
+          "label": "Ёж — дубль 2",
+          "category": "Слова",
+          "version": "2f47d95ab47f3836"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w054.mp3",
+          "key": "word_w054",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w054.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w054.mp3",
+          "label": "Ключ — дубль 1",
+          "category": "Слова",
+          "version": "51aefc696667a702"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w054__2.mp3",
+          "key": "word_w054__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w054__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w054__2.mp3",
+          "label": "Ключ — дубль 2",
+          "category": "Слова",
+          "version": "21546700a7e897ab"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w069.mp3",
+          "key": "word_w069",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w069.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w069.mp3",
+          "label": "Дверь — дубль 1",
+          "category": "Слова",
+          "version": "35a3a6a0f71d742d"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w069__2.mp3",
+          "key": "word_w069__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w069__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w069__2.mp3",
+          "label": "Дверь — дубль 2",
+          "category": "Слова",
+          "version": "a26008d3db112fc7"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w088.mp3",
+          "key": "word_w088",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w088.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w088.mp3",
+          "label": "Медведь — дубль 1",
+          "category": "Слова",
+          "version": "a23040df38cfbb8b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w088__2.mp3",
+          "key": "word_w088__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w088__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w088__2.mp3",
+          "label": "Медведь — дубль 2",
+          "category": "Слова",
+          "version": "2285ce65e6f0bfa9"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w101.mp3",
+          "key": "word_w101",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w101.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w101.mp3",
+          "label": "Муравей — дубль 1",
+          "category": "Слова",
+          "version": "4624d981662bf8dd"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w101__2.mp3",
+          "key": "word_w101__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w101__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w101__2.mp3",
+          "label": "Муравей — дубль 2",
+          "category": "Слова",
+          "version": "6842909b7cae92fe"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w204.mp3",
+          "key": "word_w204",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w204.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w204.mp3",
+          "label": "Велосипед — дубль 1",
+          "category": "Слова",
+          "version": "80f5aa8c5776934e"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w204__2.mp3",
+          "key": "word_w204__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w204__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w204__2.mp3",
+          "label": "Велосипед — дубль 2",
+          "category": "Слова",
+          "version": "e03e8b215afac4db"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w233.mp3",
+          "key": "word_w233",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w233.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w233.mp3",
+          "label": "Четыре — дубль 1",
+          "category": "Слова",
+          "version": "404ec23646b513de"
+        },
+        {
+          "id": "audio/propis-elevenlabs-words-pilot/word_w233__2.mp3",
+          "key": "word_w233__2",
+          "path": "audio/propis-elevenlabs-words-pilot/word_w233__2.mp3",
+          "url": "/audio/propis-elevenlabs-words-pilot/word_w233__2.mp3",
+          "label": "Четыре — дубль 2",
+          "category": "Слова",
+          "version": "ef77a0c3cec2c881"
+        }
+      ]
+    },
+    {
       "id": "audio/propis-letter-retake",
       "title": "Прописи — пересъёмка строчной ж и заглавной Х",
       "items": [
