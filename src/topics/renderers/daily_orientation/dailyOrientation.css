@@ -787,7 +787,9 @@
     linear-gradient(180deg, #fff3e2 0%, #fde9da 100%);
 }
 .daily-orientation__canvas { position: relative; }
-.daily-orientation--festive .daily-orientation__canvas { gap: 26px; padding-top: 76px; padding-bottom: 46px; }
+/* padding-top clears the flags' lowest tips (y 86 mid-sag) so they hang
+   above "СЕГОДНЯ", not over it. */
+.daily-orientation--festive .daily-orientation__canvas { gap: 26px; padding-top: 96px; padding-bottom: 40px; }
 .daily-orientation__garland {
   position: absolute;
   top: 0;
@@ -796,7 +798,7 @@
   height: 70px;
   pointer-events: none;
   /* in front of the carousel and the cards: the flags hang over them */
-  z-index: 5;
+  z-index: 30; /* below the modals (50), above everything on the canvas */
 }
 .daily-orientation__garland path:not(:first-child) { opacity: .9; }
 
@@ -1058,25 +1060,28 @@
   gap: 10px;
 }
 .daily-orientation__weather-display--unset {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  justify-items: center;
+  /* sized by its grid cell, so the "?" can size itself to the room left */
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
+  gap: 8px;
   min-height: 0;
   overflow: hidden;
 }
 .daily-orientation__weather-unset-mark {
+  --unset-size: min(120px, calc(100cqh - 40px));
   display: grid;
-  width: auto;
-  height: 100%;
-  max-height: 120px;
-  min-height: 0;
-  aspect-ratio: 1;
+  flex: 0 0 auto;
+  width: var(--unset-size);
+  height: var(--unset-size);
   place-items: center;
   border-radius: 50%;
   background: rgba(7, 61, 79, .06);
   color: rgba(7, 61, 79, .35);
-  font-size: 72px;
+  font-size: calc(var(--unset-size) * .6);
+  line-height: 1;
   font-weight: 900;
 }
 .daily-orientation__weather-unset-label { font-size: 24px; font-weight: 800; }

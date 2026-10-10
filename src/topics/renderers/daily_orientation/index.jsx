@@ -954,7 +954,6 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
     <main className={`daily-orientation${isFestive ? " daily-orientation--festive" : ""}${sentenceCase ? " daily-orientation--sentence-case" : ""}`} aria-label="Экран ориентации во времени">
       <div className="daily-orientation__viewport" ref={viewportRef}>
         <div className={`daily-orientation__canvas${display.showCarousel ? "" : " daily-orientation__canvas--without-carousel"}`} style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px`, transform: `scale(${scale})` }}>
-          {isFestive && <Garland width={canvasWidth} />}
           {display.showCarousel && (
             <nav
               className="daily-orientation__carousel"
@@ -1195,6 +1194,8 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
               </div>
             )}
           </div>
+          {/* Last child and z-index: the flags hang in front of the carousel and cards. */}
+          {isFestive && <Garland width={canvasWidth} />}
         </div>
       </div>
       <div className="daily-orientation__rotate-notice" role="status">
