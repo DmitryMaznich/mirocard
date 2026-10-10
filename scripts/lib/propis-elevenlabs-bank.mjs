@@ -1,37 +1,32 @@
-// ElevenLabs take on the propis letter dictation (2026-10-10): the owner's
-// cloned voice «Дмитрий Мазниченко», model eleven_v4, the same friendly,
-// unhurried delivery approved for «Рисуем по клеткам». Two takes per key:
-// <key>.mp3 and <key>__2.mp3 in public/audio/propis-elevenlabs-review, for
-// review in /audio-review.html before anything replaces public/audio/propis-dictation.
-// Consonants are prompted as isolated sounds (continuants drawn out, e.g.
-// "Сссс."), vowels as the letter in quotes, Ъ/Ь by name.
-const STYLE = "[friendly] [unhurried]";
-const SOUND = "[only the isolated consonant sound, no vowel after it]";
-
+// ElevenLabs take on the propis letter dictation: the owner's cloned voice
+// «Дмитрий Мазниченко», model eleven_v4. Two takes per key — <key>.mp3 and
+// <key>__2.mp3 in public/audio/propis-elevenlabs-review — for review in
+// /audio-review.html before anything replaces public/audio/propis-dictation.
+//
+// Round 2 (2026-10-10, owner's call after round 1 was rejected): a plain
+// drawn-out letter, no audio tags at all. Round 1's [friendly]/[unhurried]/
+// "[only the isolated consonant sound…]" tags produced breathy, Gemini-like
+// clips; repeating the letter ("Ссссс.") asks for a longer sound instead.
 const LETTERS = [
-  ["а", "vowel", "«А»."], ["б", "stop", "б"], ["в", "long", "Вввв."], ["г", "stop", "г"],
-  ["д", "stop", "д"], ["е", "vowel", "«Е»."], ["ё", "vowel", "«Ё»."], ["ж", "long", "Жжжж."],
-  ["з", "long", "Зззз."], ["и", "vowel", "«И»."], ["й", "long", "Йййй."], ["к", "stop", "к"],
-  ["л", "long", "Лллл."], ["м", "long", "Мммм."], ["н", "long", "Нннн."], ["о", "vowel", "«О»."],
-  ["п", "stop", "п"], ["р", "long", "Рррр."], ["с", "long", "Сссс."], ["т", "stop", "т"],
-  ["у", "vowel", "«У»."], ["ф", "long", "Фффф."], ["х", "long", "Хххх."], ["ц", "stop", "ц"],
-  ["ч", "stop", "ч"], ["ш", "long", "Шшшш."],
-  ["щ", "soft", "Щщщщ."], ["ъ", "name", "Твёрдый знак."], ["ы", "vowel", "«Ы»."],
-  ["ь", "name", "Мягкий знак."], ["э", "vowel", "«Э»."], ["ю", "vowel", "«Ю»."], ["я", "vowel", "«Я»."],
+  ["а", "Ааааа."], ["б", "Ббббб."], ["в", "Ввввв."], ["г", "Ггггг."], ["д", "Ддддд."],
+  ["е", "Еееее."], ["ё", "Ёёёёё."], ["ж", "Жжжжж."], ["з", "Ззззз."], ["и", "Иииии."],
+  ["й", "Йййййй."], ["к", "Ккккк."], ["л", "Ллллл."], ["м", "Ммммм."], ["н", "Ннннн."],
+  ["о", "Ооооо."], ["п", "Ппппп."], ["р", "Ррррр."], ["с", "Ссссс."], ["т", "Ттттт."],
+  ["у", "Ууууу."], ["ф", "Ффффф."], ["х", "Ххххх."], ["ц", "Ццццц."], ["ч", "Ччччч."],
+  ["ш", "Шшшшш."], ["щ", "Щщщщщ."], ["ъ", "Твёрдый знак."], ["ы", "Ыыыыы."],
+  ["ь", "Мягкий знак."], ["э", "Эээээ."], ["ю", "Юююююю."], ["я", "Яяяяя."],
 ];
-
-function prompt(kind, text) {
-  if (kind === "stop" || kind === "long") return `${STYLE} ${SOUND} ${text}`;
-  if (kind === "soft") return `${STYLE} [only the isolated soft consonant sound, no vowel after it] ${text}`;
-  return `${STYLE} ${text}`;
-}
+const VOWELS = new Set([..."аеёиоуыэюя"]);
 
 export const PROPIS_ELEVENLABS_ENTRIES = [
-  ...LETTERS.map(([letter, kind, text], order) => ({
-    key: `sound_${letter}`, prompt: prompt(kind, text), order,
-    label: kind === "name" ? `${letter.toUpperCase()} — ${text.replace(".", "").toLowerCase()}` : `${letter.toUpperCase()} — звук`,
-    category: kind === "name" ? "Знаки" : kind === "vowel" ? "Гласные" : "Согласные",
-  })),
-  { key: "case_upper", prompt: `${STYLE} Заглавная`, order: 33, label: "Заглавная", category: "Регистр" },
-  { key: "case_lower", prompt: `${STYLE} Строчная`, order: 34, label: "Строчная", category: "Регистр" },
+  ...LETTERS.map(([letter, prompt], order) => {
+    const isSign = letter === "ъ" || letter === "ь";
+    return {
+      key: `sound_${letter}`, prompt, order,
+      label: isSign ? `${letter.toUpperCase()} — ${prompt.replace(".", "").toLowerCase()}` : `${letter.toUpperCase()} — звук`,
+      category: isSign ? "Знаки" : VOWELS.has(letter) ? "Гласные" : "Согласные",
+    };
+  }),
+  { key: "case_upper", prompt: "Заглавная", order: 33, label: "Заглавная", category: "Регистр" },
+  { key: "case_lower", prompt: "Строчная", order: 34, label: "Строчная", category: "Регистр" },
 ];
