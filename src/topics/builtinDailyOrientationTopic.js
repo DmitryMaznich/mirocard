@@ -62,7 +62,7 @@ export function buildDailyOrientationTopicRecord() {
           },
           showDaypart: {
             type: "boolean",
-            label: { ru: "Время суток" },
+            label: { ru: "Сейчас (утро, день, вечер, ночь)" },
             default: true,
             section: "Что показывать",
           },

@@ -46,7 +46,7 @@ describe("DailyOrientationRenderer", () => {
     expect(container.textContent).toContain("Месяц");
     expect(container.textContent).toContain("Время года");
     expect(container.textContent).toContain("Погода");
-    expect(container.textContent).toContain("Время суток");
+    expect(container.textContent).toContain("Сейчас");
     expect(container.textContent).toContain("Время");
     expect(container.querySelectorAll(".daily-orientation__card")).toHaveLength(7);
 

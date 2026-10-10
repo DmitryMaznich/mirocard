@@ -155,7 +155,12 @@ const CAPTION_DATE_NUMBER = "Число";
 const CAPTION_MONTH = "Месяц";
 const CAPTION_SEASON = "Время года";
 const CAPTION_WEATHER = "Погода";
-const CAPTION_DAYPART = "Время суток";
+// "Сейчас — УТРО": caption and answer read as the phrase itself (and match
+// the speaker's "Сейчас утро."). "Сутки" is an abstract word nobody uses
+// with a child, and the clock card's "Время" doesn't clash: about the clock
+// people ask "Сколько время?", without "сейчас". The concept modal keeps
+// the name "Время суток" for the whole утро-день-вечер-ночь cycle.
+const CAPTION_DAYPART = "Сейчас";
 const CAPTION_TIME = "Время";
 
 const DISPLAY_OPTION_KEYS = [

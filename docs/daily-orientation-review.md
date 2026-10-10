@@ -37,6 +37,10 @@ feature — see `docs/important-dates.md`. This file is the rest of the review.
 - **Погода** (2026-10-10): the pictogram shrinks to the room left under the
   caption; on a shorter row (Важные даты ribbon) it used to spill over
   "Погода".
+- **«Время суток» → «Сейчас»** (2026-10-10): caption + answer read as the
+  phrase "Сейчас — утро" (same as the speaker). The clock card stays
+  "Время" -- about the clock people ask "Сколько время?", without "сейчас".
+  The concept modal keeps the title "Время суток" for the whole cycle.
 
 ## Not done (bigger, discussed but not started)
 
