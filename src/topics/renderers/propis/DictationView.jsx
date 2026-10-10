@@ -1,19 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ProgressBar from "@/shared/components/ProgressBar";
 import ReviewScreen from "./DictationReviewScreen";
-import { dictationAudioUrl, caseWordDictationKey } from "./dictationAudio";
+import { dictationAudioUrl } from "./dictationAudio";
 import { useDictationPlayer } from "./useDictationPlayer";
 
 // Gap after each sentence within a text, so the child has time to write it before the next
 // one starts -- user's explicit call (2026-09-17): sentence by sentence, with a pause, not
 // the whole text read in one breath.
 const SENTENCE_PAUSE_MS = 2500;
-// No added gap between "заглавная"/"строчная" and the letter's own sound -- 0ms, user's
-// explicit call 2026-09-30 (went 500ms -> 250ms -> 0ms same day). The human-recorded clips
-// already carry their own natural trailing/leading silence, so stacking an extra artificial
-// pause on top just made the two words sound further apart than a person saying them
-// naturally back to back.
-const CASE_WORD_PAUSE_MS = 0;
 
 export default function DictationView({ task, onClose }) {
   const items = task?.items ?? [];
@@ -26,20 +20,13 @@ export default function DictationView({ task, onClose }) {
 
   const item = items[index];
 
-  // Three shapes: one clip per sentence (with a pause after each) for texts (item.sentences
-  // only exists on text-level items); two clips -- case word, then the letter's own sound --
-  // for letters (item.soundKey only exists there, see engine.js's dictation branch); a
-  // single clip for words.
+  // Two shapes: one clip per sentence (with a pause after each) for texts (item.sentences
+  // only exists on text-level items); a single clip for words and letters (a letter's clip
+  // is the whole "Заглавная Б." / "Строчная б." phrase).
   const playbackItems = useMemo(() => {
     if (!item) return [];
     if (item.sentences?.length) {
       return item.sentences.map((s) => ({ url: dictationAudioUrl(s.key), pauseAfterMs: SENTENCE_PAUSE_MS }));
-    }
-    if (item.soundKey) {
-      return [
-        { url: dictationAudioUrl(caseWordDictationKey(item.isUpper)), pauseAfterMs: CASE_WORD_PAUSE_MS },
-        { url: dictationAudioUrl(item.soundKey) },
-      ];
     }
     return [{ url: dictationAudioUrl(item.key) }];
   }, [item]);

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { NUMBER_WORDS } from "../src/topics/renderers/addition_subtraction/audioNumbers.js";
 import { PHRASE_ENTRIES } from "../src/topics/renderers/addition_subtraction/audioPhraseBank.js";
 import { AUDIO_ENTRIES } from "../src/topics/renderers/daily_orientation/audioBank.js";
-import { splitIntoSentences, textSentenceDictationKey, wordDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
+import { letterDictationKey, splitIntoSentences, textSentenceDictationKey, wordDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
 import { PROPIS_PHONEME_ENTRIES } from "./lib/propis-phoneme-bank.mjs";
 import { PROPIS_NATURAL_PILOT } from "./lib/propis-natural-pilot-bank.mjs";
 import { PROPIS_ELEVENLABS_ALPHABET, PROPIS_ELEVENLABS_CASE_PILOT, PROPIS_ELEVENLABS_ENTRIES, PROPIS_ELEVENLABS_E_PILOT } from "./lib/propis-elevenlabs-bank.mjs";
@@ -29,6 +29,11 @@ for (const [path, entry] of [...labels]) {
 }
 for (const { key, text } of AUDIO_ENTRIES) setLabel(`audio/daily-orientation/${key}.mp3`, text, "Слова и фразы");
 const propis = JSON.parse(readFileSync(join(root, "tools/propis/topic.json"), "utf8"));
+for (const card of propis.cards.filter((c) => /^[А-Яа-яЁё]$/.test(c.label ?? ""))) {
+  const key = letterDictationKey(card);
+  const label = key === "lo_ъ" ? "Твёрдый знак" : key === "lo_ь" ? "Мягкий знак" : `${key.startsWith("up_") ? "Заглавная" : "Строчная"} ${card.label}`;
+  setLabel(`audio/propis-dictation/${key}.mp3`, label, "Буквы");
+}
 for (const word of propis.words) setLabel(`audio/propis-dictation/${wordDictationKey(word)}.mp3`, word.word, "Слова");
 for (const entry of propis.texts) {
   splitIntoSentences(entry.text).forEach((text, index) => setLabel(`audio/propis-dictation/${textSentenceDictationKey(entry, index)}.mp3`, text, "Предложения"));

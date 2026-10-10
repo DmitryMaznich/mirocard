@@ -20,7 +20,9 @@
 // public/audio/propis-dictation/{case_upper,case_lower,sound_<letter>}.mp3) --
 // same fix real speech-therapy materials use for isolated phonemes, and the
 // only thing that actually gave a consistent, correct reference sound for a
-// child on the autism spectrum.
+// child on the autism spectrum. Since 2026-10-10 letters are one clip per card
+("Заглавная Б." / "Строчная б.", public/audio/propis-dictation/{up,lo}_<letter>.mp3)
+in the owner's ElevenLabs voice -- see scripts/lib/propis-elevenlabs-bank.mjs.
 //
 // Content is read straight from tools/propis/topic.json -- the same source
 // dictationAudio.js's key functions and engine.js's dictation branch use, so
@@ -152,7 +154,7 @@ function buildEntries() {
     // {case_upper,case_lower,sound_<letter>}.mp3 by hand -- not by this script). Letting
     // `--only=letters` silently regenerate over them via TTS would be a real regression, so
     // this refuses instead of running.
-    console.log("letters are human-recorded now (see LetterSoundSource/), not TTS -- nothing to do here. Use --only=words or --only=texts.");
+    console.log("letters are recorded separately now (ElevenLabs up_/lo_ clips), not by this script -- nothing to do here. Use --only=words or --only=texts.");
     return entries;
   }
   if (!ONLY || ONLY === "words") {

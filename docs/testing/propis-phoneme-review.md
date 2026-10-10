@@ -113,3 +113,16 @@ https://ai.google.dev/gemini-api/docs/speech-generation.
 `PROPIS_ELEVENLABS_CASE_PILOT`. Для перехода на эту схему в диктанте нужно будет
 поменять `useDictationPlayer`/`dictationAudio.js` (сейчас играются два файла:
 `case_*` + `sound_*`). На слух не проверено.
+
+## Итог: установлено в диктант (10.10.2026)
+
+Владелец утвердил схему «слово регистра + буква одной записью». В
+`public/audio/propis-dictation/` теперь 64 записи `up_<буква>.mp3` /
+`lo_<буква>.mp3` («Заглавная Б.» / «Строчная б.»; у Ъ/Ь только `lo_` —
+«Твёрдый знак.» / «Мягкий знак.»), тег `[calm, clear, like a teacher dictating
+to a class]`, голос владельца, `eleven_v4`, по одному дублю. 14 из них (Б, В, Г,
+Д, Е, И, У) — первые дубли пилота `propis-elevenlabs-case-pilot`, остальные 50
+сгенерированы тем же промптом. `DictationView` играет одну запись на букву;
+старые `case_upper`/`case_lower`/`sound_*` удалены (есть в истории git).
+Тест `src/topics/renderers/propis/dictationAudio.test.js` проверяет, что у
+каждой карточки-буквы есть файл.

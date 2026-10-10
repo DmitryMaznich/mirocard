@@ -1460,319 +1460,580 @@
       "title": "Прописи — диктант",
       "items": [
         {
-          "id": "audio/propis-dictation/case_lower.mp3",
-          "key": "case_lower",
-          "path": "audio/propis-dictation/case_lower.mp3",
-          "url": "/audio/propis-dictation/case_lower.mp3",
-          "label": "Строчная",
-          "category": "Прочее",
-          "version": "099aba98f5875cdb"
-        },
-        {
-          "id": "audio/propis-dictation/case_upper.mp3",
-          "key": "case_upper",
-          "path": "audio/propis-dictation/case_upper.mp3",
-          "url": "/audio/propis-dictation/case_upper.mp3",
-          "label": "Заглавная",
-          "category": "Прочее",
-          "version": "c8d8b770004fe598"
-        },
-        {
-          "id": "audio/propis-dictation/sound_а.mp3",
-          "key": "sound_а",
-          "path": "audio/propis-dictation/sound_а.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%B0.mp3",
-          "label": "Звук «а»",
+          "id": "audio/propis-dictation/lo_а.mp3",
+          "key": "lo_а",
+          "path": "audio/propis-dictation/lo_а.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%B0.mp3",
+          "label": "Строчная а",
           "category": "Буквы",
-          "version": "8e97d2aeaec66483"
+          "version": "39629c859f00aef7"
         },
         {
-          "id": "audio/propis-dictation/sound_б.mp3",
-          "key": "sound_б",
-          "path": "audio/propis-dictation/sound_б.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%B1.mp3",
-          "label": "Звук «б»",
+          "id": "audio/propis-dictation/lo_б.mp3",
+          "key": "lo_б",
+          "path": "audio/propis-dictation/lo_б.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%B1.mp3",
+          "label": "Строчная б",
           "category": "Буквы",
-          "version": "72d7d2f5fc0a5669"
+          "version": "f925bd252d4a60bb"
         },
         {
-          "id": "audio/propis-dictation/sound_в.mp3",
-          "key": "sound_в",
-          "path": "audio/propis-dictation/sound_в.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%B2.mp3",
-          "label": "Звук «в»",
+          "id": "audio/propis-dictation/lo_в.mp3",
+          "key": "lo_в",
+          "path": "audio/propis-dictation/lo_в.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%B2.mp3",
+          "label": "Строчная в",
           "category": "Буквы",
-          "version": "4bbff2c6faa3292f"
+          "version": "e521b6165d22d99f"
         },
         {
-          "id": "audio/propis-dictation/sound_г.mp3",
-          "key": "sound_г",
-          "path": "audio/propis-dictation/sound_г.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%B3.mp3",
-          "label": "Звук «г»",
+          "id": "audio/propis-dictation/lo_г.mp3",
+          "key": "lo_г",
+          "path": "audio/propis-dictation/lo_г.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%B3.mp3",
+          "label": "Строчная г",
           "category": "Буквы",
-          "version": "e6c5b5f64cccc47d"
+          "version": "659c6db2820933ac"
         },
         {
-          "id": "audio/propis-dictation/sound_д.mp3",
-          "key": "sound_д",
-          "path": "audio/propis-dictation/sound_д.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%B4.mp3",
-          "label": "Звук «д»",
+          "id": "audio/propis-dictation/lo_д.mp3",
+          "key": "lo_д",
+          "path": "audio/propis-dictation/lo_д.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%B4.mp3",
+          "label": "Строчная д",
           "category": "Буквы",
-          "version": "aade68b24a502ef1"
+          "version": "7158229e875c2fc4"
         },
         {
-          "id": "audio/propis-dictation/sound_е.mp3",
-          "key": "sound_е",
-          "path": "audio/propis-dictation/sound_е.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%B5.mp3",
-          "label": "Звук «е»",
+          "id": "audio/propis-dictation/lo_е.mp3",
+          "key": "lo_е",
+          "path": "audio/propis-dictation/lo_е.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%B5.mp3",
+          "label": "Строчная е",
           "category": "Буквы",
-          "version": "409aa7394464d2c1"
+          "version": "1b3564fc0c5089df"
         },
         {
-          "id": "audio/propis-dictation/sound_ё.mp3",
-          "key": "sound_ё",
-          "path": "audio/propis-dictation/sound_ё.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%91.mp3",
-          "label": "Звук «ё»",
+          "id": "audio/propis-dictation/lo_ё.mp3",
+          "key": "lo_ё",
+          "path": "audio/propis-dictation/lo_ё.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%91.mp3",
+          "label": "Строчная ё",
           "category": "Буквы",
-          "version": "3abaf2eee58e9e33"
+          "version": "5e4ad02c67495d66"
         },
         {
-          "id": "audio/propis-dictation/sound_ж.mp3",
-          "key": "sound_ж",
-          "path": "audio/propis-dictation/sound_ж.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%B6.mp3",
-          "label": "Звук «ж»",
+          "id": "audio/propis-dictation/lo_ж.mp3",
+          "key": "lo_ж",
+          "path": "audio/propis-dictation/lo_ж.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%B6.mp3",
+          "label": "Строчная ж",
           "category": "Буквы",
-          "version": "74a66aa7a4269141"
+          "version": "c7922ea8bea44abb"
         },
         {
-          "id": "audio/propis-dictation/sound_з.mp3",
-          "key": "sound_з",
-          "path": "audio/propis-dictation/sound_з.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%B7.mp3",
-          "label": "Звук «з»",
+          "id": "audio/propis-dictation/lo_з.mp3",
+          "key": "lo_з",
+          "path": "audio/propis-dictation/lo_з.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%B7.mp3",
+          "label": "Строчная з",
           "category": "Буквы",
-          "version": "bb1fa75ddcc88bf4"
+          "version": "55e132486fc3e61e"
         },
         {
-          "id": "audio/propis-dictation/sound_и.mp3",
-          "key": "sound_и",
-          "path": "audio/propis-dictation/sound_и.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%B8.mp3",
-          "label": "Звук «и»",
+          "id": "audio/propis-dictation/lo_и.mp3",
+          "key": "lo_и",
+          "path": "audio/propis-dictation/lo_и.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%B8.mp3",
+          "label": "Строчная и",
           "category": "Буквы",
-          "version": "12d0af28fc6050ff"
+          "version": "8ea34be22e8f3802"
         },
         {
-          "id": "audio/propis-dictation/sound_й.mp3",
-          "key": "sound_й",
-          "path": "audio/propis-dictation/sound_й.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%B9.mp3",
-          "label": "Звук «й»",
+          "id": "audio/propis-dictation/lo_й.mp3",
+          "key": "lo_й",
+          "path": "audio/propis-dictation/lo_й.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%B9.mp3",
+          "label": "Строчная й",
           "category": "Буквы",
-          "version": "88b3d0c019ad6fd6"
+          "version": "cd0770f5889b7c23"
         },
         {
-          "id": "audio/propis-dictation/sound_к.mp3",
-          "key": "sound_к",
-          "path": "audio/propis-dictation/sound_к.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%BA.mp3",
-          "label": "Звук «к»",
+          "id": "audio/propis-dictation/lo_к.mp3",
+          "key": "lo_к",
+          "path": "audio/propis-dictation/lo_к.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%BA.mp3",
+          "label": "Строчная к",
           "category": "Буквы",
-          "version": "964c5b1d3a1363d7"
+          "version": "0413202ca6f81b3e"
         },
         {
-          "id": "audio/propis-dictation/sound_л.mp3",
-          "key": "sound_л",
-          "path": "audio/propis-dictation/sound_л.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%BB.mp3",
-          "label": "Звук «л»",
+          "id": "audio/propis-dictation/lo_л.mp3",
+          "key": "lo_л",
+          "path": "audio/propis-dictation/lo_л.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%BB.mp3",
+          "label": "Строчная л",
           "category": "Буквы",
-          "version": "98ff4d8950ea451b"
+          "version": "2d6858036a21064e"
         },
         {
-          "id": "audio/propis-dictation/sound_м.mp3",
-          "key": "sound_м",
-          "path": "audio/propis-dictation/sound_м.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%BC.mp3",
-          "label": "Звук «м»",
+          "id": "audio/propis-dictation/lo_м.mp3",
+          "key": "lo_м",
+          "path": "audio/propis-dictation/lo_м.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%BC.mp3",
+          "label": "Строчная м",
           "category": "Буквы",
-          "version": "38379aab1fdd8b03"
+          "version": "3372df0c0c04f6c7"
         },
         {
-          "id": "audio/propis-dictation/sound_н.mp3",
-          "key": "sound_н",
-          "path": "audio/propis-dictation/sound_н.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%BD.mp3",
-          "label": "Звук «н»",
+          "id": "audio/propis-dictation/lo_н.mp3",
+          "key": "lo_н",
+          "path": "audio/propis-dictation/lo_н.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%BD.mp3",
+          "label": "Строчная н",
           "category": "Буквы",
-          "version": "22b26c66f5fb379f"
+          "version": "874b1d4238719c31"
         },
         {
-          "id": "audio/propis-dictation/sound_о.mp3",
-          "key": "sound_о",
-          "path": "audio/propis-dictation/sound_о.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%BE.mp3",
-          "label": "Звук «о»",
+          "id": "audio/propis-dictation/lo_о.mp3",
+          "key": "lo_о",
+          "path": "audio/propis-dictation/lo_о.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%BE.mp3",
+          "label": "Строчная о",
           "category": "Буквы",
-          "version": "c7a9700b77b1fc71"
+          "version": "7fef80ab2684cd03"
         },
         {
-          "id": "audio/propis-dictation/sound_п.mp3",
-          "key": "sound_п",
-          "path": "audio/propis-dictation/sound_п.mp3",
-          "url": "/audio/propis-dictation/sound_%D0%BF.mp3",
-          "label": "Звук «п»",
+          "id": "audio/propis-dictation/lo_п.mp3",
+          "key": "lo_п",
+          "path": "audio/propis-dictation/lo_п.mp3",
+          "url": "/audio/propis-dictation/lo_%D0%BF.mp3",
+          "label": "Строчная п",
           "category": "Буквы",
-          "version": "a89b2f255b3701d2"
+          "version": "17e8eb8989df6e52"
         },
         {
-          "id": "audio/propis-dictation/sound_р.mp3",
-          "key": "sound_р",
-          "path": "audio/propis-dictation/sound_р.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%80.mp3",
-          "label": "Звук «р»",
+          "id": "audio/propis-dictation/lo_р.mp3",
+          "key": "lo_р",
+          "path": "audio/propis-dictation/lo_р.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%80.mp3",
+          "label": "Строчная р",
           "category": "Буквы",
-          "version": "e3366875e45d30c9"
+          "version": "a16eb60f1157b89f"
         },
         {
-          "id": "audio/propis-dictation/sound_с.mp3",
-          "key": "sound_с",
-          "path": "audio/propis-dictation/sound_с.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%81.mp3",
-          "label": "Звук «с»",
+          "id": "audio/propis-dictation/lo_с.mp3",
+          "key": "lo_с",
+          "path": "audio/propis-dictation/lo_с.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%81.mp3",
+          "label": "Строчная с",
           "category": "Буквы",
-          "version": "0e9320da545ef514"
+          "version": "608f9070d16e5716"
         },
         {
-          "id": "audio/propis-dictation/sound_т.mp3",
-          "key": "sound_т",
-          "path": "audio/propis-dictation/sound_т.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%82.mp3",
-          "label": "Звук «т»",
+          "id": "audio/propis-dictation/lo_т.mp3",
+          "key": "lo_т",
+          "path": "audio/propis-dictation/lo_т.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%82.mp3",
+          "label": "Строчная т",
           "category": "Буквы",
-          "version": "c9917b2bc0163dc8"
+          "version": "9805bf13c3bca4d7"
         },
         {
-          "id": "audio/propis-dictation/sound_у.mp3",
-          "key": "sound_у",
-          "path": "audio/propis-dictation/sound_у.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%83.mp3",
-          "label": "Звук «у»",
+          "id": "audio/propis-dictation/lo_у.mp3",
+          "key": "lo_у",
+          "path": "audio/propis-dictation/lo_у.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%83.mp3",
+          "label": "Строчная у",
           "category": "Буквы",
-          "version": "ce021f0bbef8ad63"
+          "version": "878357350de028aa"
         },
         {
-          "id": "audio/propis-dictation/sound_ф.mp3",
-          "key": "sound_ф",
-          "path": "audio/propis-dictation/sound_ф.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%84.mp3",
-          "label": "Звук «ф»",
+          "id": "audio/propis-dictation/lo_ф.mp3",
+          "key": "lo_ф",
+          "path": "audio/propis-dictation/lo_ф.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%84.mp3",
+          "label": "Строчная ф",
           "category": "Буквы",
-          "version": "e970367866099559"
+          "version": "07240d00cb9036de"
         },
         {
-          "id": "audio/propis-dictation/sound_х.mp3",
-          "key": "sound_х",
-          "path": "audio/propis-dictation/sound_х.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%85.mp3",
-          "label": "Звук «х»",
+          "id": "audio/propis-dictation/lo_х.mp3",
+          "key": "lo_х",
+          "path": "audio/propis-dictation/lo_х.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%85.mp3",
+          "label": "Строчная х",
           "category": "Буквы",
-          "version": "07102be1e9d0567f"
+          "version": "3f2f04f197991ed1"
         },
         {
-          "id": "audio/propis-dictation/sound_ц.mp3",
-          "key": "sound_ц",
-          "path": "audio/propis-dictation/sound_ц.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%86.mp3",
-          "label": "Звук «ц»",
+          "id": "audio/propis-dictation/lo_ц.mp3",
+          "key": "lo_ц",
+          "path": "audio/propis-dictation/lo_ц.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%86.mp3",
+          "label": "Строчная ц",
           "category": "Буквы",
-          "version": "4deaa5723931654a"
+          "version": "76b51cdb8d18ae03"
         },
         {
-          "id": "audio/propis-dictation/sound_ч.mp3",
-          "key": "sound_ч",
-          "path": "audio/propis-dictation/sound_ч.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%87.mp3",
-          "label": "Звук «ч»",
+          "id": "audio/propis-dictation/lo_ч.mp3",
+          "key": "lo_ч",
+          "path": "audio/propis-dictation/lo_ч.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%87.mp3",
+          "label": "Строчная ч",
           "category": "Буквы",
-          "version": "24b7b450fd5e7b2d"
+          "version": "ae5889d6d4678362"
         },
         {
-          "id": "audio/propis-dictation/sound_ш.mp3",
-          "key": "sound_ш",
-          "path": "audio/propis-dictation/sound_ш.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%88.mp3",
-          "label": "Звук «ш»",
+          "id": "audio/propis-dictation/lo_ш.mp3",
+          "key": "lo_ш",
+          "path": "audio/propis-dictation/lo_ш.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%88.mp3",
+          "label": "Строчная ш",
           "category": "Буквы",
-          "version": "0ba5867f41e61b34"
+          "version": "fd75e71c0c789646"
         },
         {
-          "id": "audio/propis-dictation/sound_щ.mp3",
-          "key": "sound_щ",
-          "path": "audio/propis-dictation/sound_щ.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%89.mp3",
-          "label": "Звук «щ»",
+          "id": "audio/propis-dictation/lo_щ.mp3",
+          "key": "lo_щ",
+          "path": "audio/propis-dictation/lo_щ.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%89.mp3",
+          "label": "Строчная щ",
           "category": "Буквы",
-          "version": "21d38d91ef5e9843"
+          "version": "f2c176cbad9b332c"
         },
         {
-          "id": "audio/propis-dictation/sound_ъ.mp3",
-          "key": "sound_ъ",
-          "path": "audio/propis-dictation/sound_ъ.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%8A.mp3",
-          "label": "Звук «ъ»",
+          "id": "audio/propis-dictation/lo_ъ.mp3",
+          "key": "lo_ъ",
+          "path": "audio/propis-dictation/lo_ъ.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%8A.mp3",
+          "label": "Твёрдый знак",
           "category": "Буквы",
-          "version": "586bd62a7a5d04fe"
+          "version": "c636a43ee4f0693e"
         },
         {
-          "id": "audio/propis-dictation/sound_ы.mp3",
-          "key": "sound_ы",
-          "path": "audio/propis-dictation/sound_ы.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%8B.mp3",
-          "label": "Звук «ы»",
+          "id": "audio/propis-dictation/lo_ы.mp3",
+          "key": "lo_ы",
+          "path": "audio/propis-dictation/lo_ы.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%8B.mp3",
+          "label": "Строчная ы",
           "category": "Буквы",
-          "version": "93a97604756d2f2e"
+          "version": "807c8326141b4935"
         },
         {
-          "id": "audio/propis-dictation/sound_ь.mp3",
-          "key": "sound_ь",
-          "path": "audio/propis-dictation/sound_ь.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%8C.mp3",
-          "label": "Звук «ь»",
+          "id": "audio/propis-dictation/lo_ь.mp3",
+          "key": "lo_ь",
+          "path": "audio/propis-dictation/lo_ь.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%8C.mp3",
+          "label": "Мягкий знак",
           "category": "Буквы",
-          "version": "296a556d89f75931"
+          "version": "3edef91fe21d29e8"
         },
         {
-          "id": "audio/propis-dictation/sound_э.mp3",
-          "key": "sound_э",
-          "path": "audio/propis-dictation/sound_э.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%8D.mp3",
-          "label": "Звук «э»",
+          "id": "audio/propis-dictation/lo_э.mp3",
+          "key": "lo_э",
+          "path": "audio/propis-dictation/lo_э.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%8D.mp3",
+          "label": "Строчная э",
           "category": "Буквы",
-          "version": "10dfb46b87e25c5c"
+          "version": "a3427b4e2caf68c1"
         },
         {
-          "id": "audio/propis-dictation/sound_ю.mp3",
-          "key": "sound_ю",
-          "path": "audio/propis-dictation/sound_ю.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%8E.mp3",
-          "label": "Звук «ю»",
+          "id": "audio/propis-dictation/lo_ю.mp3",
+          "key": "lo_ю",
+          "path": "audio/propis-dictation/lo_ю.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%8E.mp3",
+          "label": "Строчная ю",
           "category": "Буквы",
-          "version": "a89884dc1ead8644"
+          "version": "65791f64a8cd2e04"
         },
         {
-          "id": "audio/propis-dictation/sound_я.mp3",
-          "key": "sound_я",
-          "path": "audio/propis-dictation/sound_я.mp3",
-          "url": "/audio/propis-dictation/sound_%D1%8F.mp3",
-          "label": "Звук «я»",
+          "id": "audio/propis-dictation/lo_я.mp3",
+          "key": "lo_я",
+          "path": "audio/propis-dictation/lo_я.mp3",
+          "url": "/audio/propis-dictation/lo_%D1%8F.mp3",
+          "label": "Строчная я",
           "category": "Буквы",
-          "version": "e667b09d50d9f66c"
+          "version": "30ce90c728dc4636"
+        },
+        {
+          "id": "audio/propis-dictation/up_а.mp3",
+          "key": "up_а",
+          "path": "audio/propis-dictation/up_а.mp3",
+          "url": "/audio/propis-dictation/up_%D0%B0.mp3",
+          "label": "Заглавная А",
+          "category": "Буквы",
+          "version": "f698084f1ad7e8f1"
+        },
+        {
+          "id": "audio/propis-dictation/up_б.mp3",
+          "key": "up_б",
+          "path": "audio/propis-dictation/up_б.mp3",
+          "url": "/audio/propis-dictation/up_%D0%B1.mp3",
+          "label": "Заглавная Б",
+          "category": "Буквы",
+          "version": "6edb2eb7e671c0df"
+        },
+        {
+          "id": "audio/propis-dictation/up_в.mp3",
+          "key": "up_в",
+          "path": "audio/propis-dictation/up_в.mp3",
+          "url": "/audio/propis-dictation/up_%D0%B2.mp3",
+          "label": "Заглавная В",
+          "category": "Буквы",
+          "version": "8fc615ea3f6ddf12"
+        },
+        {
+          "id": "audio/propis-dictation/up_г.mp3",
+          "key": "up_г",
+          "path": "audio/propis-dictation/up_г.mp3",
+          "url": "/audio/propis-dictation/up_%D0%B3.mp3",
+          "label": "Заглавная Г",
+          "category": "Буквы",
+          "version": "60ea218b25f9671c"
+        },
+        {
+          "id": "audio/propis-dictation/up_д.mp3",
+          "key": "up_д",
+          "path": "audio/propis-dictation/up_д.mp3",
+          "url": "/audio/propis-dictation/up_%D0%B4.mp3",
+          "label": "Заглавная Д",
+          "category": "Буквы",
+          "version": "a950b6344d83bc69"
+        },
+        {
+          "id": "audio/propis-dictation/up_е.mp3",
+          "key": "up_е",
+          "path": "audio/propis-dictation/up_е.mp3",
+          "url": "/audio/propis-dictation/up_%D0%B5.mp3",
+          "label": "Заглавная Е",
+          "category": "Буквы",
+          "version": "427f1b418f4ea311"
+        },
+        {
+          "id": "audio/propis-dictation/up_ё.mp3",
+          "key": "up_ё",
+          "path": "audio/propis-dictation/up_ё.mp3",
+          "url": "/audio/propis-dictation/up_%D1%91.mp3",
+          "label": "Заглавная Ё",
+          "category": "Буквы",
+          "version": "a347df91079ffb07"
+        },
+        {
+          "id": "audio/propis-dictation/up_ж.mp3",
+          "key": "up_ж",
+          "path": "audio/propis-dictation/up_ж.mp3",
+          "url": "/audio/propis-dictation/up_%D0%B6.mp3",
+          "label": "Заглавная Ж",
+          "category": "Буквы",
+          "version": "9e0df428040cfbbe"
+        },
+        {
+          "id": "audio/propis-dictation/up_з.mp3",
+          "key": "up_з",
+          "path": "audio/propis-dictation/up_з.mp3",
+          "url": "/audio/propis-dictation/up_%D0%B7.mp3",
+          "label": "Заглавная З",
+          "category": "Буквы",
+          "version": "dbbc9c03c6a2147a"
+        },
+        {
+          "id": "audio/propis-dictation/up_и.mp3",
+          "key": "up_и",
+          "path": "audio/propis-dictation/up_и.mp3",
+          "url": "/audio/propis-dictation/up_%D0%B8.mp3",
+          "label": "Заглавная И",
+          "category": "Буквы",
+          "version": "8297f0d1a0aef4b5"
+        },
+        {
+          "id": "audio/propis-dictation/up_й.mp3",
+          "key": "up_й",
+          "path": "audio/propis-dictation/up_й.mp3",
+          "url": "/audio/propis-dictation/up_%D0%B9.mp3",
+          "label": "Заглавная Й",
+          "category": "Буквы",
+          "version": "97b293166feb9125"
+        },
+        {
+          "id": "audio/propis-dictation/up_к.mp3",
+          "key": "up_к",
+          "path": "audio/propis-dictation/up_к.mp3",
+          "url": "/audio/propis-dictation/up_%D0%BA.mp3",
+          "label": "Заглавная К",
+          "category": "Буквы",
+          "version": "05ddaee25d60d783"
+        },
+        {
+          "id": "audio/propis-dictation/up_л.mp3",
+          "key": "up_л",
+          "path": "audio/propis-dictation/up_л.mp3",
+          "url": "/audio/propis-dictation/up_%D0%BB.mp3",
+          "label": "Заглавная Л",
+          "category": "Буквы",
+          "version": "806441fe4e206649"
+        },
+        {
+          "id": "audio/propis-dictation/up_м.mp3",
+          "key": "up_м",
+          "path": "audio/propis-dictation/up_м.mp3",
+          "url": "/audio/propis-dictation/up_%D0%BC.mp3",
+          "label": "Заглавная М",
+          "category": "Буквы",
+          "version": "c3df474e8e2e4bd4"
+        },
+        {
+          "id": "audio/propis-dictation/up_н.mp3",
+          "key": "up_н",
+          "path": "audio/propis-dictation/up_н.mp3",
+          "url": "/audio/propis-dictation/up_%D0%BD.mp3",
+          "label": "Заглавная Н",
+          "category": "Буквы",
+          "version": "3f7c7503b383d8f6"
+        },
+        {
+          "id": "audio/propis-dictation/up_о.mp3",
+          "key": "up_о",
+          "path": "audio/propis-dictation/up_о.mp3",
+          "url": "/audio/propis-dictation/up_%D0%BE.mp3",
+          "label": "Заглавная О",
+          "category": "Буквы",
+          "version": "a4ca90691aa4f1ca"
+        },
+        {
+          "id": "audio/propis-dictation/up_п.mp3",
+          "key": "up_п",
+          "path": "audio/propis-dictation/up_п.mp3",
+          "url": "/audio/propis-dictation/up_%D0%BF.mp3",
+          "label": "Заглавная П",
+          "category": "Буквы",
+          "version": "5007c7a3bc32ff8a"
+        },
+        {
+          "id": "audio/propis-dictation/up_р.mp3",
+          "key": "up_р",
+          "path": "audio/propis-dictation/up_р.mp3",
+          "url": "/audio/propis-dictation/up_%D1%80.mp3",
+          "label": "Заглавная Р",
+          "category": "Буквы",
+          "version": "a5a445c9cef347f6"
+        },
+        {
+          "id": "audio/propis-dictation/up_с.mp3",
+          "key": "up_с",
+          "path": "audio/propis-dictation/up_с.mp3",
+          "url": "/audio/propis-dictation/up_%D1%81.mp3",
+          "label": "Заглавная С",
+          "category": "Буквы",
+          "version": "4e1da03b61e06e75"
+        },
+        {
+          "id": "audio/propis-dictation/up_т.mp3",
+          "key": "up_т",
+          "path": "audio/propis-dictation/up_т.mp3",
+          "url": "/audio/propis-dictation/up_%D1%82.mp3",
+          "label": "Заглавная Т",
+          "category": "Буквы",
+          "version": "bd0d2cf9c57094ff"
+        },
+        {
+          "id": "audio/propis-dictation/up_у.mp3",
+          "key": "up_у",
+          "path": "audio/propis-dictation/up_у.mp3",
+          "url": "/audio/propis-dictation/up_%D1%83.mp3",
+          "label": "Заглавная У",
+          "category": "Буквы",
+          "version": "7db403e7ff006d39"
+        },
+        {
+          "id": "audio/propis-dictation/up_ф.mp3",
+          "key": "up_ф",
+          "path": "audio/propis-dictation/up_ф.mp3",
+          "url": "/audio/propis-dictation/up_%D1%84.mp3",
+          "label": "Заглавная Ф",
+          "category": "Буквы",
+          "version": "22dcebe3f641ed20"
+        },
+        {
+          "id": "audio/propis-dictation/up_х.mp3",
+          "key": "up_х",
+          "path": "audio/propis-dictation/up_х.mp3",
+          "url": "/audio/propis-dictation/up_%D1%85.mp3",
+          "label": "Заглавная Х",
+          "category": "Буквы",
+          "version": "2eba8170b211090d"
+        },
+        {
+          "id": "audio/propis-dictation/up_ц.mp3",
+          "key": "up_ц",
+          "path": "audio/propis-dictation/up_ц.mp3",
+          "url": "/audio/propis-dictation/up_%D1%86.mp3",
+          "label": "Заглавная Ц",
+          "category": "Буквы",
+          "version": "b5512a082c124501"
+        },
+        {
+          "id": "audio/propis-dictation/up_ч.mp3",
+          "key": "up_ч",
+          "path": "audio/propis-dictation/up_ч.mp3",
+          "url": "/audio/propis-dictation/up_%D1%87.mp3",
+          "label": "Заглавная Ч",
+          "category": "Буквы",
+          "version": "aaa0814f5a32c5e1"
+        },
+        {
+          "id": "audio/propis-dictation/up_ш.mp3",
+          "key": "up_ш",
+          "path": "audio/propis-dictation/up_ш.mp3",
+          "url": "/audio/propis-dictation/up_%D1%88.mp3",
+          "label": "Заглавная Ш",
+          "category": "Буквы",
+          "version": "36381c8b92c39169"
+        },
+        {
+          "id": "audio/propis-dictation/up_щ.mp3",
+          "key": "up_щ",
+          "path": "audio/propis-dictation/up_щ.mp3",
+          "url": "/audio/propis-dictation/up_%D1%89.mp3",
+          "label": "Заглавная Щ",
+          "category": "Буквы",
+          "version": "8a0549b5892f69de"
+        },
+        {
+          "id": "audio/propis-dictation/up_ы.mp3",
+          "key": "up_ы",
+          "path": "audio/propis-dictation/up_ы.mp3",
+          "url": "/audio/propis-dictation/up_%D1%8B.mp3",
+          "label": "Заглавная Ы",
+          "category": "Буквы",
+          "version": "1ad286805404cd93"
+        },
+        {
+          "id": "audio/propis-dictation/up_э.mp3",
+          "key": "up_э",
+          "path": "audio/propis-dictation/up_э.mp3",
+          "url": "/audio/propis-dictation/up_%D1%8D.mp3",
+          "label": "Заглавная Э",
+          "category": "Буквы",
+          "version": "d360ca3046103296"
+        },
+        {
+          "id": "audio/propis-dictation/up_ю.mp3",
+          "key": "up_ю",
+          "path": "audio/propis-dictation/up_ю.mp3",
+          "url": "/audio/propis-dictation/up_%D1%8E.mp3",
+          "label": "Заглавная Ю",
+          "category": "Буквы",
+          "version": "fce5e1912c29b68d"
+        },
+        {
+          "id": "audio/propis-dictation/up_я.mp3",
+          "key": "up_я",
+          "path": "audio/propis-dictation/up_я.mp3",
+          "url": "/audio/propis-dictation/up_%D1%8F.mp3",
+          "label": "Заглавная Я",
+          "category": "Буквы",
+          "version": "c75e866f59f917f6"
         },
         {
           "id": "audio/propis-dictation/word_w001.mp3",

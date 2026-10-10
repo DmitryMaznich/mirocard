@@ -1,8 +1,6 @@
 import { shuffle } from "@/shared/utils/shuffle";
 import {
   letterDictationKey,
-  isUpperCaseLetterCard,
-  letterSoundDictationKey,
   wordDictationKey,
   textDictationKey,
   textSentenceDictationKey,
@@ -196,14 +194,11 @@ export function generateTasks(mode, cards, sessionSize, sessionParams) {
         })),
       }));
     } else {
-      // isUpper/soundKey let DictationView play "заглавная"/"строчная" (case word, shared
-      // across every letter) then the letter's own sound as two clips back to back -- see
-      // dictationAudio.js's caseWordDictationKey/letterSoundDictationKey.
+      // One clip per card: "Заглавная Б." / "Строчная б." spoken as one phrase
+      // (ElevenLabs, 2026-10-10) -- see dictationAudio.js's letterDictationKey.
       pool = standaloneLetters.map((l) => ({
         key: letterDictationKey(l),
         display: l.label,
-        isUpper: isUpperCaseLetterCard(l),
-        soundKey: letterSoundDictationKey(l),
       }));
     }
 

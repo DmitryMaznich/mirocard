@@ -9,6 +9,13 @@ explicit design decision. Don't touch `letter_writing` while working on this.
 
 ## Status
 
+- **Диктант, буквы — озвучка заменена 2026-10-10.** Одна запись на карточку:
+  «Заглавная Б.» (`up_б.mp3`) / «Строчная б.» (`lo_б.mp3`), Ъ/Ь — «Твёрдый
+  знак.» / «Мягкий знак.» (`lo_ъ`, `lo_ь`); голос владельца в ElevenLabs,
+  «спокойно, как учитель диктует классу». Двухфайловая схема «заглавная/строчная
+  + звук буквы» (`case_*`, `sound_*`) удалена. История проб и почему так —
+  `docs/testing/propis-phoneme-review.md`.
+
 - **Mode "Учим буквы" (practice) and "Написание слов" (write_words) — removed
   from the mode picker 2026-09-13 (`tools/propis/topic.json` deck v1.25.0),
   soft removal only.** User request: only `write_text`/`read_text`/`read_lines`
