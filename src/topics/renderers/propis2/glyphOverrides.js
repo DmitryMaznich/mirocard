@@ -59,7 +59,7 @@ const mapPoints = (d, fn) => {
     return `${x.toFixed(2)} ${y.toFixed(2)}`;
   }).replace(/ +/g, " ");
 };
-export function markedCapital(baseGlyph, markedLower, plainLower, label) {
+export function markedCapital(baseGlyph, markedLower, plainLower, label, markScale = MARK_SCALE) {
   if (!baseGlyph || !markedLower || !plainLower) return null;
   const n = plainLower.strokes.length;
   const marks = markedLower.strokes.slice(n);
@@ -70,19 +70,29 @@ export function markedCapital(baseGlyph, markedLower, plainLower, label) {
   const lowerTop = Math.min(...pointsOf(plainLower.strokes).map((q) => q[1]));
   const cp = pointsOf(baseGlyph.strokes);
   const capTop = Math.min(...cp.map((q) => q[1]));
-  const top = cp.filter((q) => q[1] < capTop + 12);
-  const cx = (Math.min(...top.map((q) => q[0])) + Math.max(...top.map((q) => q[0]))) / 2;
-  const cy = capTop - (lowerTop - my) * MARK_SCALE;
-  // The letter leans along the grid's slant (SLANT = dx per unit of height), so «centred over the top» means centred on the lean
-  // axis through the top: the marks stand higher, hence further right by SLANT per unit. Without it they looked shifted left.
-  const cxLean = cx + SLANT * (capTop - cy);
-  const moved = marks.map((s) => ({ ...s, d: mapPoints(s.d, (x, y) => [cxLean + (x - mx) * MARK_SCALE, cy + (y - my) * MARK_SCALE]) }));
+  const cy = capTop - (lowerTop - my) * markScale;
+  // Where the marks stand: centred BETWEEN the two slanted lines that bound the top of the letter, taken at the height of the marks.
+  // A point (x, y) lies on the slant line that is at x + SLANT * (y - cy) at height cy. Й: the two stems of И (the line of the left stem
+  // through the foot of the hook, and of the right stem through its top). Ё: the left and the right edge of Е's upper loop (its «hat»,
+  // everything above the waist). Without the slant the marks looked shifted left (2026-10-10).
+  const onLine = (q) => q[0] + SLANT * (q[1] - cy);
+  let left, right;
+  if (label === "Й") {
+    const topRight = cp.filter((q) => q[1] < capTop + 6).reduce((a, q) => (q[0] > a[0] ? q : a));
+    const apexLeft = cp.filter((q) => q[1] < capTop + 14 && q[0] < topRight[0] - 12).reduce((a, q) => (q[1] > a[1] ? q : a)); // the lowest top-left point = where the hook turns into the left stem
+    left = onLine(apexLeft); right = onLine(topRight);
+  } else {
+    const hat = cp.filter((q) => q[1] < capTop + 40);
+    left = Math.min(...hat.map(onLine)); right = Math.max(...hat.map(onLine));
+  }
+  const cxLean = (left + right) / 2;
+  const moved = marks.map((s) => ({ ...s, d: mapPoints(s.d, (x, y) => [cxLean + (x - mx) * markScale, cy + (y - my) * markScale]) }));
   const dots = markedLower.noDotStrokes ? { noDotStrokes: moved.map((_, i) => baseGlyph.strokes.length + i) } : {};
   return { ...baseGlyph, label, aliases: undefined, strokes: [...baseGlyph.strokes, ...moved], sourceLabel: `${label}: ${baseGlyph.label} + отметки ${markedLower.label}`, ...dots };
 }
 const withMarkedCapitals = (glyphs) => {
   const byLabel = new Map(glyphs.map((g) => [g.label, g]));
-  const made = MARKED_CAPITALS.filter((m) => !byLabel.has(m.label)).map((m) => markedCapital(byLabel.get(m.base), byLabel.get(m.marksFrom), byLabel.get(m.lower), m.label)).filter(Boolean);
+  const made = MARKED_CAPITALS.filter((m) => !byLabel.has(m.label)).map((m) => markedCapital(byLabel.get(m.base), byLabel.get(m.marksFrom), byLabel.get(m.lower), m.label, m.scale)).filter(Boolean);
   return made.length ? [...glyphs, ...made] : glyphs;
 };
 
