@@ -194,6 +194,29 @@ function resolveDisplayOptions(sessionParams = {}) {
     : { ...options, showWeekday: true };
 }
 
+// The screen hangs on the wall as a display: the first touch puts it in
+// fullscreen, so the tablet's status and navigation bars (a grey band over
+// the garland on Android) go away and the canvas grows into that space --
+// useDashboardScale re-measures on resize. Browsers only allow this from a
+// tap, hence the listener; where it's unsupported (iPhone) nothing happens.
+// Leaving the screen leaves fullscreen.
+function useFullscreenOnFirstTouch() {
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!document.fullscreenEnabled || typeof root.requestFullscreen !== "function") return undefined;
+    let entered = false;
+    function enter() {
+      if (document.fullscreenElement) return;
+      root.requestFullscreen({ navigationUI: "hide" }).then(() => { entered = true; }).catch(() => {});
+    }
+    document.addEventListener("pointerdown", enter, { once: true });
+    return () => {
+      document.removeEventListener("pointerdown", enter);
+      if (entered && document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+    };
+  }, []);
+}
+
 // Text and icons are sized once for a 1600x1000 design and scaled uniformly
 // (so type never gets squashed), but the canvas itself then grows to cover
 // the whole screen: on a screen wider than 16:10 the extra width goes into
@@ -564,10 +587,12 @@ function DaypartCard({ daypartId, hidden, speakerButton, cardProps, caseText }) 
       {...(hidden ? {} : cardProps)}
     >
       {speakerButton}
-      <p className="daily-orientation__question">{CAPTION_DAYPART}</p>
       <img className="daily-orientation__daypart-picture" src={`/daily-orientation/daypart_${daypartId}.webp`} alt="" draggable="false" />
-      {/* The whole cycle, current part emphasised: shows both "what now" and
-          what comes before/after, the same idea as вчера→сегодня→завтра. */}
+      <div className="daily-orientation__daypart-side">
+      <p className="daily-orientation__question">{CAPTION_DAYPART}</p>
+      {/* The whole cycle top to bottom, current part emphasised: shows both
+          "what now" and what comes before/after, the same idea as
+          вчера→сегодня→завтра. */}
       <ol className="daily-orientation__daypart-strip">
         {DAYPARTS.map((part) => (
           <li
@@ -579,6 +604,7 @@ function DaypartCard({ daypartId, hidden, speakerButton, cardProps, caseText }) 
           </li>
         ))}
       </ol>
+      </div>
     </article>
   );
 }
@@ -790,6 +816,7 @@ function DigitalClock({ now }) {
 export default function DailyOrientationRenderer({ sessionParams, soundEnabled }) {
   const now = useCurrentTime();
   const { viewportRef, scale, width: canvasWidth, height: canvasHeight } = useDashboardScale();
+  useFullscreenOnFirstTouch();
   const { speak } = useSpeech();
   const { play: playClips } = useClipPlayer();
   const [offset, setOffset] = useState(0);
@@ -1091,7 +1118,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
 
                 {display.showWeather && (
                   <article
-                    className={`daily-orientation__card daily-orientation__card--narrow daily-orientation__card--stacked daily-orientation__card--weather daily-orientation__card--speakable${hideCurrentTime ? " daily-orientation__card--weather-hidden" : ""}`}
+                    className={`daily-orientation__card daily-orientation__card--narrow daily-orientation__card--stacked daily-orientation__card--weather${weatherId ? ` daily-orientation__card--weather-${weatherId}` : ""} daily-orientation__card--speakable${hideCurrentTime ? " daily-orientation__card--weather-hidden" : ""}`}
                     role="button"
                     tabIndex={hideCurrentTime ? -1 : 0}
                     aria-hidden={hideCurrentTime}
@@ -1108,13 +1135,15 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
                         speakCard(getSpokenWeather(weatherId));
                       }} />
                     )}
+                    {weatherId && (
+                      <div className="daily-orientation__weather-backdrop" aria-hidden="true">
+                        <WeatherMark id={weatherId} />
+                      </div>
+                    )}
                     <p className="daily-orientation__question">{CAPTION_WEATHER}</p>
                     <div className={`daily-orientation__weather-display${weatherId ? " daily-orientation__weather-display--set" : " daily-orientation__weather-display--unset"}`}>
                       {weatherId ? (
-                        <>
-                          <WeatherMark id={weatherId} />
-                          <span>{caseText(WEATHER_LABEL_BY_ID[weatherId])}</span>
-                        </>
+                        <span style={{ "--fit-chars": WEATHER_LABEL_BY_ID[weatherId].length }}>{caseText(WEATHER_LABEL_BY_ID[weatherId])}</span>
                       ) : (
                         <>
                           <span className="daily-orientation__weather-unset-mark" aria-hidden="true">?</span>

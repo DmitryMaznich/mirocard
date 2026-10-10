@@ -42,6 +42,16 @@ feature — see `docs/important-dates.md`. This file is the rest of the review.
   "Время" -- about the clock people ask "Сколько время?", without "сейчас".
   The concept modal keeps the title "Время суток" for the whole cycle.
 
+- **Second pass on the "right now" row** (2026-10-10, from a photo of the
+  wall tablet): «Сейчас» — pictogram on the left ~40% at full height,
+  утро/день/вечер/ночь as a vertical column on the right; «Погода» — the
+  pictogram is the card's background on a weather tint, the word on one
+  line at the bottom; the clock sizes itself to the card's height
+  (`container-type: size` + `--dial-room`) and no longer sticks out on short
+  rows (ribbon + garland); the garland is in front of everything (z-index);
+  the first touch puts the screen in fullscreen (`useFullscreenOnFirstTouch`)
+  so the Android status bar band goes away and the canvas fills it.
+
 ## Not done (bigger, discussed but not started)
 
 - "Сейчас → потом" (first–then) strip from a daily schedule.

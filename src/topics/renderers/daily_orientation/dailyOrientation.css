@@ -235,6 +235,43 @@
    weekly-plan day cells and the weather picker's own option buttons. */
 .daily-orientation__card--weather { background: #f4f1e9; }
 
+/* Weather marked: the pictogram is the card's background -- as big as the
+   card, on a tint of that weather, softened so the caption and the word
+   read on top of it without boxes or shadows. */
+.daily-orientation__card--weather-sunny { --weather-tint: #fff4d1; }
+.daily-orientation__card--weather-cloudy { --weather-tint: #eef1f5; }
+.daily-orientation__card--weather-rain { --weather-tint: #e6eef6; }
+.daily-orientation__card--weather-snow { --weather-tint: #eef5fb; }
+.daily-orientation__card--weather-fog { --weather-tint: #f1f3f4; }
+.daily-orientation__card.daily-orientation__card--weather[class*="daily-orientation__card--weather-"] {
+  background: var(--weather-tint, #f4f1e9);
+  grid-template-rows: auto minmax(0, 1fr);
+  padding-bottom: 30px;
+}
+.daily-orientation__weather-backdrop {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.daily-orientation__weather-backdrop .daily-orientation__weather-mark {
+  width: 108%;
+  height: 108%;
+  opacity: .55;
+  /* the marks sit high in their 32x32 box; centre the cloud on the card */
+  transform: translateY(2%);
+}
+/* The word sits at the bottom on the picture's fade, as on the season card. */
+.daily-orientation__weather-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 66%, color-mix(in srgb, var(--weather-tint) 85%, transparent) 80%, var(--weather-tint) 94%);
+}
+.daily-orientation__card--weather > .daily-orientation__question,
+.daily-orientation__card--weather > .daily-orientation__weather-display { position: relative; z-index: 1; }
+
 /* Answer words that must stay on one line and shrink instead (FitText). */
 .daily-orientation__fit-text {
   box-sizing: border-box;
@@ -254,15 +291,18 @@
    Each part gets its own soft tint; night stays light too (a dark card would
    again be the loudest thing on the screen). */
 .daily-orientation__card--daypart {
-  /* Wider than a plain --wide card: the pictogram plus the four-word strip
-     need the room more than the clock card needs its last few pixels. */
+  /* Wider than a plain --wide card: the pictogram plus the cycle need the
+     room more than the clock card needs its last few pixels. */
   flex: 4 1 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  justify-items: center;
-  row-gap: 10px;
-  padding: 46px 24px 26px;
+  /* The pictogram gets the left ~40% of the card at full height; the
+     caption and the утро-день-вечер-ночь column sit to its right. */
+  grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
+  align-items: stretch;
+  column-gap: 18px;
+  padding: 26px 30px 26px 26px;
   background: var(--orientation-blue);
+  container-type: size;
 }
 .daily-orientation__card--daypart-morning { background: #fff0e6; }
 .daily-orientation__card--daypart-evening { background: #f1eafa; }
@@ -274,16 +314,29 @@
 .daily-orientation__daypart-picture {
   width: 100%;
   height: 100%;
+  min-width: 0;
   min-height: 0;
   object-fit: contain;
   user-select: none;
   -webkit-user-drag: none;
 }
+.daily-orientation__daypart-side {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  justify-items: center;
+  /* caption at the same height as the other cards' captions */
+  padding-top: 20px;
+  container-type: inline-size;
+}
+/* Top to bottom, like the day goes: the current part big, the others small. */
 .daily-orientation__daypart-strip {
   display: flex;
-  align-items: baseline;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 18px;
+  gap: min(8px, 2cqh);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -291,7 +344,7 @@
 .daily-orientation__daypart-step {
   color: var(--orientation-muted);
   opacity: .7;
-  font-size: 20px;
+  font-size: min(24px, 9cqh);
   font-weight: 800;
   line-height: 1;
   letter-spacing: .02em;
@@ -311,6 +364,11 @@
    caption + time-in-words on the right. Both columns always stay in this
    order, so the child's eye learns one route: clock -> numbers -> words. */
 .daily-orientation__card--time {
+  /* Its height is set by the row, so the dial can size itself to it: on a
+     shorter row (Важные даты ribbon, garland) a fixed 210px clock plus the
+     digital clock under it used to stick out of the card at both ends. */
+  container-type: size;
+  --dial-room: calc(100cqh - 12px - 64px); /* cqh = content box, padding already out */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -321,7 +379,9 @@
 
 /* Without words the readout column only holds the caption, so it moves on
    top of the (now horizontal) clock + digital pair, like the other cards. */
-.daily-orientation__card--time-no-words { flex-direction: column-reverse; gap: 8px; padding: 26px 54px; }
+.daily-orientation__card--time-no-words { flex-direction: column-reverse; gap: 8px; padding: 26px 54px; --dial-room: calc(100cqh - 8px - 56px); }
+.daily-orientation__card--time-no-clock { --dial-room: 210px; }
+.daily-orientation__card--time:not(:has(.daily-orientation__digital-time)) { --dial-room: 100cqh; }
 .daily-orientation__card--time-no-words .daily-orientation__time-readout { flex: 0 0 auto; align-self: center; overflow: visible; }
 .daily-orientation__card--time-no-words .daily-orientation__time-dial { flex-direction: row; gap: 36px; }
 .daily-orientation__card--time-no-clock .daily-orientation__digital-time { font-size: 64px; padding: 8px 24px 10px; }
@@ -439,8 +499,8 @@
 
 .daily-orientation__clock {
   display: block;
-  width: 210px;
-  height: 210px;
+  width: min(210px, var(--dial-room, 210px));
+  height: min(210px, var(--dial-room, 210px));
   filter: drop-shadow(0 6px 10px rgba(22, 66, 92, .16));
 }
 
@@ -602,26 +662,16 @@
   text-align: center;
 }
 
-/* The pictogram takes only the height the card has left under the caption
-   (up to 120px) and the word keeps its own row: on a shorter row (the
-   "Важные даты" ribbon above, a wide screen) the cloud used to spill out of
-   the grid cell upwards and over "Погода". */
 .daily-orientation__weather-display--set {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  justify-items: center;
-  align-items: center;
-  row-gap: 12px;
-  min-height: 0;
-  overflow: hidden;
+  align-self: end;
+  height: auto;
+  /* one line, shrunk to the card's width, so the word never covers the
+     rain drops / snowflakes */
+  font-size: min(40px, 100cqi / (var(--fit-chars, 8) * .74));
+  line-height: 1.05;
+  white-space: nowrap;
 }
-.daily-orientation__weather-display .daily-orientation__weather-mark {
-  width: auto;
-  height: 100%;
-  max-height: 120px;
-  min-height: 0;
-  aspect-ratio: 1;
-}
+.daily-orientation__weather-display--set span { font-size: min(40px, 100cqi / (var(--fit-chars, 8) * .74)); }
 
 .daily-orientation__weather-mark { width: 30px; height: 30px; flex: 0 0 auto; }
 
@@ -745,6 +795,8 @@
   width: 100%;
   height: 70px;
   pointer-events: none;
+  /* in front of the carousel and the cards: the flags hang over them */
+  z-index: 5;
 }
 .daily-orientation__garland path:not(:first-child) { opacity: .9; }
 
@@ -994,8 +1046,10 @@
 .daily-orientation__plan-icon { font-size: 120px; line-height: 1; }
 .daily-orientation__card--plan .daily-orientation__answer { font-size: 96px; }
 
-/* Время суток: the current part is the answer -- as big as the other cards'. */
-.daily-orientation__daypart-step--current { font-size: 60px; }
+/* Время суток: the current part is the answer -- as big as the other cards'
+   (60px), but never wider than its column (ВЕЧЕР, 5 letters) or taller than
+   the card allows. */
+.daily-orientation__daypart-step--current { font-size: min(64px, 100cqi / (5 * .76), 22cqh); }
 
 /* Weather not marked yet: a quiet "?" instead of a dashed empty box. */
 .daily-orientation__weather-display--unset {
