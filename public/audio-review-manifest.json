@@ -2875,6 +2875,978 @@
       ]
     },
     {
+      "id": "audio/propis-elevenlabs-alphabet",
+      "title": "Прописи — Б, В, Г, Д как буквы алфавита (ElevenLabs)",
+      "items": [
+        {
+          "id": "audio/propis-elevenlabs-alphabet/row_1.mp3",
+          "key": "row_1",
+          "path": "audio/propis-elevenlabs-alphabet/row_1.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/row_1.mp3",
+          "label": "«А, Б, В, Г, Д.» — дубль 1",
+          "category": "Подряд",
+          "version": "57b9005fd48c7a40"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/row_2.mp3",
+          "key": "row_2",
+          "path": "audio/propis-elevenlabs-alphabet/row_2.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/row_2.mp3",
+          "label": "«А, Б, В, Г, Д.» — дубль 2",
+          "category": "Подряд",
+          "version": "5904dbd458a1f566"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/row_3.mp3",
+          "key": "row_3",
+          "path": "audio/propis-elevenlabs-alphabet/row_3.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/row_3.mp3",
+          "label": "«А, Б, В, Г, Д.» — дубль 3",
+          "category": "Подряд",
+          "version": "f3d630af63661a01"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/row_4.mp3",
+          "key": "row_4",
+          "path": "audio/propis-elevenlabs-alphabet/row_4.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/row_4.mp3",
+          "label": "«А, Б, В, Г, Д.» — дубль 4",
+          "category": "Подряд",
+          "version": "ac37ab9d92ff4272"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/b.mp3",
+          "key": "b",
+          "path": "audio/propis-elevenlabs-alphabet/b.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/b.mp3",
+          "label": "«Б.» — дубль 1",
+          "category": "По одной",
+          "version": "383faa5df7546eca"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/b__2.mp3",
+          "key": "b__2",
+          "path": "audio/propis-elevenlabs-alphabet/b__2.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/b__2.mp3",
+          "label": "«Б.» — дубль 2",
+          "category": "По одной",
+          "version": "c0eb7bc8731af682"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/v.mp3",
+          "key": "v",
+          "path": "audio/propis-elevenlabs-alphabet/v.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/v.mp3",
+          "label": "«В.» — дубль 1",
+          "category": "По одной",
+          "version": "c55fd63374082aed"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/v__2.mp3",
+          "key": "v__2",
+          "path": "audio/propis-elevenlabs-alphabet/v__2.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/v__2.mp3",
+          "label": "«В.» — дубль 2",
+          "category": "По одной",
+          "version": "150f1610aa531beb"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/g.mp3",
+          "key": "g",
+          "path": "audio/propis-elevenlabs-alphabet/g.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/g.mp3",
+          "label": "«Г.» — дубль 1",
+          "category": "По одной",
+          "version": "45a421b7c243e9fd"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/g__2.mp3",
+          "key": "g__2",
+          "path": "audio/propis-elevenlabs-alphabet/g__2.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/g__2.mp3",
+          "label": "«Г.» — дубль 2",
+          "category": "По одной",
+          "version": "7f29bf5e524e9cd9"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/d.mp3",
+          "key": "d",
+          "path": "audio/propis-elevenlabs-alphabet/d.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/d.mp3",
+          "label": "«Д.» — дубль 1",
+          "category": "По одной",
+          "version": "39df6602042602ea"
+        },
+        {
+          "id": "audio/propis-elevenlabs-alphabet/d__2.mp3",
+          "key": "d__2",
+          "path": "audio/propis-elevenlabs-alphabet/d__2.mp3",
+          "url": "/audio/propis-elevenlabs-alphabet/d__2.mp3",
+          "label": "«Д.» — дубль 2",
+          "category": "По одной",
+          "version": "880a322f2d9f69f7"
+        }
+      ]
+    },
+    {
+      "id": "audio/propis-elevenlabs-e-pilot",
+      "title": "Прописи — Б, В, Г с Э (ElevenLabs)",
+      "items": [
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_e.mp3",
+          "key": "b_e",
+          "path": "audio/propis-elevenlabs-e-pilot/b_e.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_e.mp3",
+          "label": "Б: «Бэ.» — дубль 1",
+          "category": "Б",
+          "version": "9ea187da4e8dcbcb"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_e__2.mp3",
+          "key": "b_e__2",
+          "path": "audio/propis-elevenlabs-e-pilot/b_e__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_e__2.mp3",
+          "label": "Б: «Бэ.» — дубль 2",
+          "category": "Б",
+          "version": "32768cf70156d0bd"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_eeee.mp3",
+          "key": "b_eeee",
+          "path": "audio/propis-elevenlabs-e-pilot/b_eeee.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_eeee.mp3",
+          "label": "Б: «Бээээ.» — дубль 1",
+          "category": "Б",
+          "version": "4e6780fe7d18304b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_eeee__2.mp3",
+          "key": "b_eeee__2",
+          "path": "audio/propis-elevenlabs-e-pilot/b_eeee__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_eeee__2.mp3",
+          "label": "Б: «Бээээ.» — дубль 2",
+          "category": "Б",
+          "version": "736b71bf0cb673c0"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_lead.mp3",
+          "key": "b_lead",
+          "path": "audio/propis-elevenlabs-e-pilot/b_lead.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_lead.mp3",
+          "label": "Б: «Бббэ.» — дубль 1",
+          "category": "Б",
+          "version": "dd372801de17d96b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_lead__2.mp3",
+          "key": "b_lead__2",
+          "path": "audio/propis-elevenlabs-e-pilot/b_lead__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_lead__2.mp3",
+          "label": "Б: «Бббэ.» — дубль 2",
+          "category": "Б",
+          "version": "83d17dc30150062c"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_x3.mp3",
+          "key": "b_x3",
+          "path": "audio/propis-elevenlabs-e-pilot/b_x3.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_x3.mp3",
+          "label": "Б: «Бэ, бэ, бэ.» — дубль 1",
+          "category": "Б",
+          "version": "48450ca4f6813706"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_x3__2.mp3",
+          "key": "b_x3__2",
+          "path": "audio/propis-elevenlabs-e-pilot/b_x3__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_x3__2.mp3",
+          "label": "Б: «Бэ, бэ, бэ.» — дубль 2",
+          "category": "Б",
+          "version": "3ff90f0f6916194a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_e.mp3",
+          "key": "v_e",
+          "path": "audio/propis-elevenlabs-e-pilot/v_e.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_e.mp3",
+          "label": "В: «Вэ.» — дубль 1",
+          "category": "В",
+          "version": "268823029ef4c566"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_e__2.mp3",
+          "key": "v_e__2",
+          "path": "audio/propis-elevenlabs-e-pilot/v_e__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_e__2.mp3",
+          "label": "В: «Вэ.» — дубль 2",
+          "category": "В",
+          "version": "96aa826b63069bdb"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_eeee.mp3",
+          "key": "v_eeee",
+          "path": "audio/propis-elevenlabs-e-pilot/v_eeee.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_eeee.mp3",
+          "label": "В: «Вээээ.» — дубль 1",
+          "category": "В",
+          "version": "8c92d964e0f7c40b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_eeee__2.mp3",
+          "key": "v_eeee__2",
+          "path": "audio/propis-elevenlabs-e-pilot/v_eeee__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_eeee__2.mp3",
+          "label": "В: «Вээээ.» — дубль 2",
+          "category": "В",
+          "version": "c12217064e931777"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_lead.mp3",
+          "key": "v_lead",
+          "path": "audio/propis-elevenlabs-e-pilot/v_lead.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_lead.mp3",
+          "label": "В: «Вввэ.» — дубль 1",
+          "category": "В",
+          "version": "659199c3e55463ff"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_lead__2.mp3",
+          "key": "v_lead__2",
+          "path": "audio/propis-elevenlabs-e-pilot/v_lead__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_lead__2.mp3",
+          "label": "В: «Вввэ.» — дубль 2",
+          "category": "В",
+          "version": "0cc21c4c9aeb39a6"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_x3.mp3",
+          "key": "v_x3",
+          "path": "audio/propis-elevenlabs-e-pilot/v_x3.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_x3.mp3",
+          "label": "В: «Вэ, вэ, вэ.» — дубль 1",
+          "category": "В",
+          "version": "82ede27b751621aa"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_x3__2.mp3",
+          "key": "v_x3__2",
+          "path": "audio/propis-elevenlabs-e-pilot/v_x3__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_x3__2.mp3",
+          "label": "В: «Вэ, вэ, вэ.» — дубль 2",
+          "category": "В",
+          "version": "2bd43f7b9e198612"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_e.mp3",
+          "key": "g_e",
+          "path": "audio/propis-elevenlabs-e-pilot/g_e.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_e.mp3",
+          "label": "Г: «Гэ.» — дубль 1",
+          "category": "Г",
+          "version": "e687d1420045db30"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_e__2.mp3",
+          "key": "g_e__2",
+          "path": "audio/propis-elevenlabs-e-pilot/g_e__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_e__2.mp3",
+          "label": "Г: «Гэ.» — дубль 2",
+          "category": "Г",
+          "version": "330eb06e7a2ab51b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_eeee.mp3",
+          "key": "g_eeee",
+          "path": "audio/propis-elevenlabs-e-pilot/g_eeee.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_eeee.mp3",
+          "label": "Г: «Гээээ.» — дубль 1",
+          "category": "Г",
+          "version": "450db91b4bbe22c0"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_eeee__2.mp3",
+          "key": "g_eeee__2",
+          "path": "audio/propis-elevenlabs-e-pilot/g_eeee__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_eeee__2.mp3",
+          "label": "Г: «Гээээ.» — дубль 2",
+          "category": "Г",
+          "version": "29613ec83174297c"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_lead.mp3",
+          "key": "g_lead",
+          "path": "audio/propis-elevenlabs-e-pilot/g_lead.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_lead.mp3",
+          "label": "Г: «Гггэ.» — дубль 1",
+          "category": "Г",
+          "version": "9dfe3685f403cc8f"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_lead__2.mp3",
+          "key": "g_lead__2",
+          "path": "audio/propis-elevenlabs-e-pilot/g_lead__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_lead__2.mp3",
+          "label": "Г: «Гггэ.» — дубль 2",
+          "category": "Г",
+          "version": "5d23698954be277a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_x3.mp3",
+          "key": "g_x3",
+          "path": "audio/propis-elevenlabs-e-pilot/g_x3.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_x3.mp3",
+          "label": "Г: «Гэ, гэ, гэ.» — дубль 1",
+          "category": "Г",
+          "version": "84909de37bd8a0ee"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_x3__2.mp3",
+          "key": "g_x3__2",
+          "path": "audio/propis-elevenlabs-e-pilot/g_x3__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_x3__2.mp3",
+          "label": "Г: «Гэ, гэ, гэ.» — дубль 2",
+          "category": "Г",
+          "version": "214567d921540082"
+        }
+      ]
+    },
+    {
+      "id": "audio/propis-elevenlabs-review",
+      "title": "Прописи — диктант букв, ElevenLabs (2 дубля)",
+      "items": [
+        {
+          "id": "audio/propis-elevenlabs-review/sound_а.mp3",
+          "key": "sound_а",
+          "path": "audio/propis-elevenlabs-review/sound_а.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B0.mp3",
+          "label": "А — звук — дубль 1",
+          "category": "Гласные",
+          "version": "ef58e4a08db79f7a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_а__2.mp3",
+          "key": "sound_а__2",
+          "path": "audio/propis-elevenlabs-review/sound_а__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B0__2.mp3",
+          "label": "А — звук — дубль 2",
+          "category": "Гласные",
+          "version": "cc6b105fee780476"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_б.mp3",
+          "key": "sound_б",
+          "path": "audio/propis-elevenlabs-review/sound_б.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B1.mp3",
+          "label": "Б — звук — дубль 1",
+          "category": "Согласные",
+          "version": "8d844441d3d93c8d"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_б__2.mp3",
+          "key": "sound_б__2",
+          "path": "audio/propis-elevenlabs-review/sound_б__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B1__2.mp3",
+          "label": "Б — звук — дубль 2",
+          "category": "Согласные",
+          "version": "22e8655692b2d681"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_в.mp3",
+          "key": "sound_в",
+          "path": "audio/propis-elevenlabs-review/sound_в.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B2.mp3",
+          "label": "В — звук — дубль 1",
+          "category": "Согласные",
+          "version": "c0288752e88c2fd5"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_в__2.mp3",
+          "key": "sound_в__2",
+          "path": "audio/propis-elevenlabs-review/sound_в__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B2__2.mp3",
+          "label": "В — звук — дубль 2",
+          "category": "Согласные",
+          "version": "f7eefc318bd15650"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_г.mp3",
+          "key": "sound_г",
+          "path": "audio/propis-elevenlabs-review/sound_г.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B3.mp3",
+          "label": "Г — звук — дубль 1",
+          "category": "Согласные",
+          "version": "9f7368235339f769"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_г__2.mp3",
+          "key": "sound_г__2",
+          "path": "audio/propis-elevenlabs-review/sound_г__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B3__2.mp3",
+          "label": "Г — звук — дубль 2",
+          "category": "Согласные",
+          "version": "dccc998573c9b268"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_д.mp3",
+          "key": "sound_д",
+          "path": "audio/propis-elevenlabs-review/sound_д.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B4.mp3",
+          "label": "Д — звук — дубль 1",
+          "category": "Согласные",
+          "version": "7f388b4575c18702"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_д__2.mp3",
+          "key": "sound_д__2",
+          "path": "audio/propis-elevenlabs-review/sound_д__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B4__2.mp3",
+          "label": "Д — звук — дубль 2",
+          "category": "Согласные",
+          "version": "ad9e5a88c5a69301"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_е.mp3",
+          "key": "sound_е",
+          "path": "audio/propis-elevenlabs-review/sound_е.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B5.mp3",
+          "label": "Е — звук — дубль 1",
+          "category": "Гласные",
+          "version": "ca7e7fac691a224a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_е__2.mp3",
+          "key": "sound_е__2",
+          "path": "audio/propis-elevenlabs-review/sound_е__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B5__2.mp3",
+          "label": "Е — звук — дубль 2",
+          "category": "Гласные",
+          "version": "196c5760f712a559"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ё.mp3",
+          "key": "sound_ё",
+          "path": "audio/propis-elevenlabs-review/sound_ё.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%91.mp3",
+          "label": "Ё — звук — дубль 1",
+          "category": "Гласные",
+          "version": "36c5b240a20a8c08"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ё__2.mp3",
+          "key": "sound_ё__2",
+          "path": "audio/propis-elevenlabs-review/sound_ё__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%91__2.mp3",
+          "label": "Ё — звук — дубль 2",
+          "category": "Гласные",
+          "version": "92091ff18eefe6fd"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ж.mp3",
+          "key": "sound_ж",
+          "path": "audio/propis-elevenlabs-review/sound_ж.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B6.mp3",
+          "label": "Ж — звук — дубль 1",
+          "category": "Согласные",
+          "version": "0b32e1304b4eed07"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ж__2.mp3",
+          "key": "sound_ж__2",
+          "path": "audio/propis-elevenlabs-review/sound_ж__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B6__2.mp3",
+          "label": "Ж — звук — дубль 2",
+          "category": "Согласные",
+          "version": "aaabc96a6ef0e362"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_з.mp3",
+          "key": "sound_з",
+          "path": "audio/propis-elevenlabs-review/sound_з.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B7.mp3",
+          "label": "З — звук — дубль 1",
+          "category": "Согласные",
+          "version": "c4aab5b16b2a37a1"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_з__2.mp3",
+          "key": "sound_з__2",
+          "path": "audio/propis-elevenlabs-review/sound_з__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B7__2.mp3",
+          "label": "З — звук — дубль 2",
+          "category": "Согласные",
+          "version": "64f7ac226a7ef5ab"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_и.mp3",
+          "key": "sound_и",
+          "path": "audio/propis-elevenlabs-review/sound_и.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B8.mp3",
+          "label": "И — звук — дубль 1",
+          "category": "Гласные",
+          "version": "ccae77cf0c6a322f"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_и__2.mp3",
+          "key": "sound_и__2",
+          "path": "audio/propis-elevenlabs-review/sound_и__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B8__2.mp3",
+          "label": "И — звук — дубль 2",
+          "category": "Гласные",
+          "version": "c58b37d53ccf8e71"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_й.mp3",
+          "key": "sound_й",
+          "path": "audio/propis-elevenlabs-review/sound_й.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B9.mp3",
+          "label": "Й — звук — дубль 1",
+          "category": "Согласные",
+          "version": "fbf5c68591c10d0f"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_й__2.mp3",
+          "key": "sound_й__2",
+          "path": "audio/propis-elevenlabs-review/sound_й__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%B9__2.mp3",
+          "label": "Й — звук — дубль 2",
+          "category": "Согласные",
+          "version": "cc1c67f5907b60cd"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_к.mp3",
+          "key": "sound_к",
+          "path": "audio/propis-elevenlabs-review/sound_к.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BA.mp3",
+          "label": "К — звук — дубль 1",
+          "category": "Согласные",
+          "version": "a290f4dd17ab489e"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_к__2.mp3",
+          "key": "sound_к__2",
+          "path": "audio/propis-elevenlabs-review/sound_к__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BA__2.mp3",
+          "label": "К — звук — дубль 2",
+          "category": "Согласные",
+          "version": "a41a326e2c3be6e0"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_л.mp3",
+          "key": "sound_л",
+          "path": "audio/propis-elevenlabs-review/sound_л.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BB.mp3",
+          "label": "Л — звук — дубль 1",
+          "category": "Согласные",
+          "version": "13b2d54a1106a64a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_л__2.mp3",
+          "key": "sound_л__2",
+          "path": "audio/propis-elevenlabs-review/sound_л__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BB__2.mp3",
+          "label": "Л — звук — дубль 2",
+          "category": "Согласные",
+          "version": "283a164647bdb410"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_м.mp3",
+          "key": "sound_м",
+          "path": "audio/propis-elevenlabs-review/sound_м.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BC.mp3",
+          "label": "М — звук — дубль 1",
+          "category": "Согласные",
+          "version": "c6fd33de255c200d"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_м__2.mp3",
+          "key": "sound_м__2",
+          "path": "audio/propis-elevenlabs-review/sound_м__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BC__2.mp3",
+          "label": "М — звук — дубль 2",
+          "category": "Согласные",
+          "version": "d1e5fcb1dda34309"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_н.mp3",
+          "key": "sound_н",
+          "path": "audio/propis-elevenlabs-review/sound_н.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BD.mp3",
+          "label": "Н — звук — дубль 1",
+          "category": "Согласные",
+          "version": "a1f9cc22522d0c5c"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_н__2.mp3",
+          "key": "sound_н__2",
+          "path": "audio/propis-elevenlabs-review/sound_н__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BD__2.mp3",
+          "label": "Н — звук — дубль 2",
+          "category": "Согласные",
+          "version": "c7e8d487980ad91a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_о.mp3",
+          "key": "sound_о",
+          "path": "audio/propis-elevenlabs-review/sound_о.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BE.mp3",
+          "label": "О — звук — дубль 1",
+          "category": "Гласные",
+          "version": "d109db1cbe1cac6d"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_о__2.mp3",
+          "key": "sound_о__2",
+          "path": "audio/propis-elevenlabs-review/sound_о__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BE__2.mp3",
+          "label": "О — звук — дубль 2",
+          "category": "Гласные",
+          "version": "8ba05bea13c00d46"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_п.mp3",
+          "key": "sound_п",
+          "path": "audio/propis-elevenlabs-review/sound_п.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BF.mp3",
+          "label": "П — звук — дубль 1",
+          "category": "Согласные",
+          "version": "8e9c5fe3d3847472"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_п__2.mp3",
+          "key": "sound_п__2",
+          "path": "audio/propis-elevenlabs-review/sound_п__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D0%BF__2.mp3",
+          "label": "П — звук — дубль 2",
+          "category": "Согласные",
+          "version": "c733599cd7acb9eb"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_р.mp3",
+          "key": "sound_р",
+          "path": "audio/propis-elevenlabs-review/sound_р.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%80.mp3",
+          "label": "Р — звук — дубль 1",
+          "category": "Согласные",
+          "version": "bbc3a59c261767bc"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_р__2.mp3",
+          "key": "sound_р__2",
+          "path": "audio/propis-elevenlabs-review/sound_р__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%80__2.mp3",
+          "label": "Р — звук — дубль 2",
+          "category": "Согласные",
+          "version": "7a0ec59f0ef16c8b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_с.mp3",
+          "key": "sound_с",
+          "path": "audio/propis-elevenlabs-review/sound_с.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%81.mp3",
+          "label": "С — звук — дубль 1",
+          "category": "Согласные",
+          "version": "8b70f25fa1eb7462"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_с__2.mp3",
+          "key": "sound_с__2",
+          "path": "audio/propis-elevenlabs-review/sound_с__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%81__2.mp3",
+          "label": "С — звук — дубль 2",
+          "category": "Согласные",
+          "version": "bfe5c1a144f1a4e2"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_т.mp3",
+          "key": "sound_т",
+          "path": "audio/propis-elevenlabs-review/sound_т.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%82.mp3",
+          "label": "Т — звук — дубль 1",
+          "category": "Согласные",
+          "version": "df3590faea1cbaf8"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_т__2.mp3",
+          "key": "sound_т__2",
+          "path": "audio/propis-elevenlabs-review/sound_т__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%82__2.mp3",
+          "label": "Т — звук — дубль 2",
+          "category": "Согласные",
+          "version": "755a771393eac629"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_у.mp3",
+          "key": "sound_у",
+          "path": "audio/propis-elevenlabs-review/sound_у.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%83.mp3",
+          "label": "У — звук — дубль 1",
+          "category": "Гласные",
+          "version": "560dbec77386ae13"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_у__2.mp3",
+          "key": "sound_у__2",
+          "path": "audio/propis-elevenlabs-review/sound_у__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%83__2.mp3",
+          "label": "У — звук — дубль 2",
+          "category": "Гласные",
+          "version": "e8ceedbf77d602b4"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ф.mp3",
+          "key": "sound_ф",
+          "path": "audio/propis-elevenlabs-review/sound_ф.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%84.mp3",
+          "label": "Ф — звук — дубль 1",
+          "category": "Согласные",
+          "version": "6f76f20ddc88dff0"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ф__2.mp3",
+          "key": "sound_ф__2",
+          "path": "audio/propis-elevenlabs-review/sound_ф__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%84__2.mp3",
+          "label": "Ф — звук — дубль 2",
+          "category": "Согласные",
+          "version": "2f3526eba706dbd0"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_х.mp3",
+          "key": "sound_х",
+          "path": "audio/propis-elevenlabs-review/sound_х.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%85.mp3",
+          "label": "Х — звук — дубль 1",
+          "category": "Согласные",
+          "version": "1ff8daaf30a2baa7"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_х__2.mp3",
+          "key": "sound_х__2",
+          "path": "audio/propis-elevenlabs-review/sound_х__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%85__2.mp3",
+          "label": "Х — звук — дубль 2",
+          "category": "Согласные",
+          "version": "4d573574a96329d4"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ц.mp3",
+          "key": "sound_ц",
+          "path": "audio/propis-elevenlabs-review/sound_ц.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%86.mp3",
+          "label": "Ц — звук — дубль 1",
+          "category": "Согласные",
+          "version": "6fbd6704d8f55c6d"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ц__2.mp3",
+          "key": "sound_ц__2",
+          "path": "audio/propis-elevenlabs-review/sound_ц__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%86__2.mp3",
+          "label": "Ц — звук — дубль 2",
+          "category": "Согласные",
+          "version": "fea156ab6f6274b6"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ч.mp3",
+          "key": "sound_ч",
+          "path": "audio/propis-elevenlabs-review/sound_ч.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%87.mp3",
+          "label": "Ч — звук — дубль 1",
+          "category": "Согласные",
+          "version": "9939e3b2131b6894"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ч__2.mp3",
+          "key": "sound_ч__2",
+          "path": "audio/propis-elevenlabs-review/sound_ч__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%87__2.mp3",
+          "label": "Ч — звук — дубль 2",
+          "category": "Согласные",
+          "version": "2276dd274e92f3a5"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ш.mp3",
+          "key": "sound_ш",
+          "path": "audio/propis-elevenlabs-review/sound_ш.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%88.mp3",
+          "label": "Ш — звук — дубль 1",
+          "category": "Согласные",
+          "version": "7121d1cb884ac85d"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ш__2.mp3",
+          "key": "sound_ш__2",
+          "path": "audio/propis-elevenlabs-review/sound_ш__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%88__2.mp3",
+          "label": "Ш — звук — дубль 2",
+          "category": "Согласные",
+          "version": "f8ccbb0b72e070b2"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_щ.mp3",
+          "key": "sound_щ",
+          "path": "audio/propis-elevenlabs-review/sound_щ.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%89.mp3",
+          "label": "Щ — звук — дубль 1",
+          "category": "Согласные",
+          "version": "4b0cfdc65d4f40bc"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_щ__2.mp3",
+          "key": "sound_щ__2",
+          "path": "audio/propis-elevenlabs-review/sound_щ__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%89__2.mp3",
+          "label": "Щ — звук — дубль 2",
+          "category": "Согласные",
+          "version": "23f7fd31462f7b91"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ъ.mp3",
+          "key": "sound_ъ",
+          "path": "audio/propis-elevenlabs-review/sound_ъ.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8A.mp3",
+          "label": "Ъ — твёрдый знак — дубль 1",
+          "category": "Знаки",
+          "version": "592ffba360dbc08d"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ъ__2.mp3",
+          "key": "sound_ъ__2",
+          "path": "audio/propis-elevenlabs-review/sound_ъ__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8A__2.mp3",
+          "label": "Ъ — твёрдый знак — дубль 2",
+          "category": "Знаки",
+          "version": "df97ac8e8a6206e9"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ы.mp3",
+          "key": "sound_ы",
+          "path": "audio/propis-elevenlabs-review/sound_ы.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8B.mp3",
+          "label": "Ы — звук — дубль 1",
+          "category": "Гласные",
+          "version": "13fb8694e1200d35"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ы__2.mp3",
+          "key": "sound_ы__2",
+          "path": "audio/propis-elevenlabs-review/sound_ы__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8B__2.mp3",
+          "label": "Ы — звук — дубль 2",
+          "category": "Гласные",
+          "version": "b47a54f7af9a7267"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ь.mp3",
+          "key": "sound_ь",
+          "path": "audio/propis-elevenlabs-review/sound_ь.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8C.mp3",
+          "label": "Ь — мягкий знак — дубль 1",
+          "category": "Знаки",
+          "version": "9e739254f6ce4740"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ь__2.mp3",
+          "key": "sound_ь__2",
+          "path": "audio/propis-elevenlabs-review/sound_ь__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8C__2.mp3",
+          "label": "Ь — мягкий знак — дубль 2",
+          "category": "Знаки",
+          "version": "7479ed181aea959e"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_э.mp3",
+          "key": "sound_э",
+          "path": "audio/propis-elevenlabs-review/sound_э.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8D.mp3",
+          "label": "Э — звук — дубль 1",
+          "category": "Гласные",
+          "version": "44f350ef627f0d06"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_э__2.mp3",
+          "key": "sound_э__2",
+          "path": "audio/propis-elevenlabs-review/sound_э__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8D__2.mp3",
+          "label": "Э — звук — дубль 2",
+          "category": "Гласные",
+          "version": "5d65a9d495dbeabc"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ю.mp3",
+          "key": "sound_ю",
+          "path": "audio/propis-elevenlabs-review/sound_ю.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8E.mp3",
+          "label": "Ю — звук — дубль 1",
+          "category": "Гласные",
+          "version": "9858fe82892a52a8"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_ю__2.mp3",
+          "key": "sound_ю__2",
+          "path": "audio/propis-elevenlabs-review/sound_ю__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8E__2.mp3",
+          "label": "Ю — звук — дубль 2",
+          "category": "Гласные",
+          "version": "b2a9b6347d9f220e"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_я.mp3",
+          "key": "sound_я",
+          "path": "audio/propis-elevenlabs-review/sound_я.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8F.mp3",
+          "label": "Я — звук — дубль 1",
+          "category": "Гласные",
+          "version": "6cfc8c65dc8b489e"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/sound_я__2.mp3",
+          "key": "sound_я__2",
+          "path": "audio/propis-elevenlabs-review/sound_я__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/sound_%D1%8F__2.mp3",
+          "label": "Я — звук — дубль 2",
+          "category": "Гласные",
+          "version": "162207179b7c43b1"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/case_upper.mp3",
+          "key": "case_upper",
+          "path": "audio/propis-elevenlabs-review/case_upper.mp3",
+          "url": "/audio/propis-elevenlabs-review/case_upper.mp3",
+          "label": "Заглавная — дубль 1",
+          "category": "Регистр",
+          "version": "122c021835e021df"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/case_upper__2.mp3",
+          "key": "case_upper__2",
+          "path": "audio/propis-elevenlabs-review/case_upper__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/case_upper__2.mp3",
+          "label": "Заглавная — дубль 2",
+          "category": "Регистр",
+          "version": "6241f7b446ff2ce1"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/case_lower.mp3",
+          "key": "case_lower",
+          "path": "audio/propis-elevenlabs-review/case_lower.mp3",
+          "url": "/audio/propis-elevenlabs-review/case_lower.mp3",
+          "label": "Строчная — дубль 1",
+          "category": "Регистр",
+          "version": "a39ccc4eb7881e35"
+        },
+        {
+          "id": "audio/propis-elevenlabs-review/case_lower__2.mp3",
+          "key": "case_lower__2",
+          "path": "audio/propis-elevenlabs-review/case_lower__2.mp3",
+          "url": "/audio/propis-elevenlabs-review/case_lower__2.mp3",
+          "label": "Строчная — дубль 2",
+          "category": "Регистр",
+          "version": "c27b190eaed74f57"
+        }
+      ]
+    },
+    {
       "id": "audio/propis-natural-pilot",
       "title": "Прописи — 5 звуков без обрезки",
       "items": [
