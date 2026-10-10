@@ -1,0 +1,8 @@
+/* «Узнай букву» in «Прописи 2»: «Прописи» draws a written letter at a fixed 70 px (100 px on the top card), which leaves it tiny in
+   the big answer tiles. Here the letter grows with its tile; the wrapper takes no box of its own, so the views' layout is unchanged. */
+.propis2-letters { display: contents; }
+.propis2-letters .wl-option > svg { width: auto; height: 88%; max-width: 100%; max-height: 360px; }
+.propis2-letters .wl-stimulus .wl-letter-card--lines > svg { width: auto; height: min(24vh, 220px); }
+/* the pen stays a pen: the stroke would grow with the letter (3.4 units ≈ 2.4 px at 70 px), here it is ≈ 3 px again */
+.propis2-letters .wl-option > svg path,
+.propis2-letters .wl-stimulus .wl-letter-card--lines > svg path { stroke-width: 2; }
