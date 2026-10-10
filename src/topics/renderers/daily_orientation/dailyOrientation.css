@@ -1,4 +1,5 @@
 .daily-orientation {
+  --caption-top: 24px;
   --orientation-ink: #073d4f;
   --orientation-muted: #647d85;
   --orientation-sage: #e7f4ef;
@@ -14,6 +15,11 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  /* Keep the canvas out from under a system status bar drawn over the page
+     (Android tablet edge-to-edge, iPad standalone); 0 elsewhere and in
+     fullscreen. The background still runs up to the edge. */
+  box-sizing: border-box;
+  padding-top: var(--app-safe-top, 0px);
   color: var(--orientation-ink);
   background:
     radial-gradient(circle at 50% -20%, rgba(255, 255, 255, .98), transparent 55%),
@@ -178,8 +184,11 @@
   align-items: center;
   justify-items: center;
   row-gap: 18px;
-  padding-top: 46px;
 }
+/* Every card's caption sits at this same height near the top edge
+   (--caption-top), Время года aside; the answer gets the rest. Two classes
+   to beat .daily-orientation__card's own padding further down. */
+.daily-orientation__card.daily-orientation__card--stacked { padding-top: var(--caption-top); }
 
 .daily-orientation__card {
   position: relative;
@@ -300,7 +309,7 @@
   grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
   align-items: stretch;
   column-gap: 18px;
-  padding: 26px 30px 26px 26px;
+  padding: var(--caption-top) 30px 26px 26px;
   background: var(--orientation-blue);
   container-type: size;
 }
@@ -326,8 +335,7 @@
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   justify-items: center;
-  /* caption at the same height as the other cards' captions */
-  padding-top: 20px;
+  row-gap: 6px;
   container-type: inline-size;
 }
 /* Top to bottom, like the day goes: the current part big, the others small. */
@@ -373,19 +381,19 @@
   align-items: center;
   justify-content: center;
   gap: 28px;
-  padding: 26px 56px 26px 30px;
+  padding: var(--caption-top) 56px 26px 30px;
   background: var(--orientation-blue);
 }
 
 /* Without words the readout column only holds the caption, so it moves on
    top of the (now horizontal) clock + digital pair, like the other cards. */
-.daily-orientation__card--time-no-words { flex-direction: column-reverse; gap: 8px; padding: 26px 54px; --dial-room: calc(100cqh - 8px - 56px); }
+.daily-orientation__card--time-no-words { flex-direction: column-reverse; justify-content: flex-end; gap: 8px; padding: var(--caption-top) 54px 26px; --dial-room: calc(100cqh - 8px - 56px); }
 .daily-orientation__card--time-no-clock { --dial-room: 210px; }
 .daily-orientation__card--time:not(:has(.daily-orientation__digital-time)) { --dial-room: 100cqh; }
 .daily-orientation__card--time-no-words .daily-orientation__time-readout { flex: 0 0 auto; align-self: center; overflow: visible; }
-.daily-orientation__card--time-no-words .daily-orientation__time-dial { flex-direction: row; gap: 36px; }
+.daily-orientation__card--time-no-words .daily-orientation__time-dial { flex-direction: row; gap: 36px; margin-block: auto; }
 .daily-orientation__card--time-no-clock .daily-orientation__digital-time { font-size: 64px; padding: 8px 24px 10px; }
-.daily-orientation__card--time-no-dial { padding: 54px; }
+.daily-orientation__card--time-no-dial { padding: var(--caption-top) 54px 54px; }
 .daily-orientation__card--time-no-dial .daily-orientation__time-readout { align-items: center; text-align: center; }
 
 .daily-orientation__card--time-hidden {
@@ -401,7 +409,7 @@
 }
 
 .daily-orientation__question { font-size: 47px; text-align: center; }
-.daily-orientation__question--time { font-size: 42px; }
+.daily-orientation__question--time { font-size: 47px; }
 
 .daily-orientation__answer,
 .daily-orientation__date-number {
@@ -531,10 +539,12 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
   gap: 14px;
 }
+/* Caption at the shared --caption-top, the words centred in what's left. */
+.daily-orientation__time-readout .daily-orientation__time-words { margin-block: auto; }
 
 .daily-orientation__time-words {
   width: 100%;
