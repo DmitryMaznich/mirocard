@@ -209,9 +209,12 @@ function useFullscreenOnFirstTouch() {
       if (document.fullscreenElement) return;
       root.requestFullscreen({ navigationUI: "hide" }).then(() => { entered = true; }).catch(() => {});
     }
-    document.addEventListener("pointerdown", enter, { once: true });
+    // "click", not "pointerdown": a finger's pointerdown doesn't count as a
+    // user gesture on Android, so the request was silently refused there.
+    // Keeps trying on every tap until it's in (no-op once it is).
+    document.addEventListener("click", enter, true);
     return () => {
-      document.removeEventListener("pointerdown", enter);
+      document.removeEventListener("click", enter, true);
       if (entered && document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     };
   }, []);
