@@ -8,7 +8,7 @@ import { AUDIO_ENTRIES } from "../src/topics/renderers/daily_orientation/audioBa
 import { splitIntoSentences, textSentenceDictationKey, wordDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
 import { PROPIS_PHONEME_ENTRIES } from "./lib/propis-phoneme-bank.mjs";
 import { PROPIS_NATURAL_PILOT } from "./lib/propis-natural-pilot-bank.mjs";
-import { PROPIS_ELEVENLABS_ENTRIES } from "./lib/propis-elevenlabs-bank.mjs";
+import { PROPIS_ELEVENLABS_ENTRIES, PROPIS_ELEVENLABS_E_PILOT } from "./lib/propis-elevenlabs-bank.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = join(root, "public");
@@ -38,6 +38,10 @@ for (const entry of PROPIS_ELEVENLABS_ENTRIES) {
   setLabel(`audio/propis-elevenlabs-review/${entry.key}.mp3`, `${entry.label} — дубль 1`, entry.category);
   setLabel(`audio/propis-elevenlabs-review/${entry.key}__2.mp3`, `${entry.label} — дубль 2`, entry.category);
 }
+for (const entry of PROPIS_ELEVENLABS_E_PILOT) {
+  setLabel(`audio/propis-elevenlabs-e-pilot/${entry.key}.mp3`, `${entry.label} — дубль 1`, entry.category);
+  setLabel(`audio/propis-elevenlabs-e-pilot/${entry.key}__2.mp3`, `${entry.label} — дубль 2`, entry.category);
+}
 for (const entry of PROPIS_NATURAL_PILOT) setLabel(`audio/propis-natural-pilot/${entry.key}.wav`, entry.label, entry.category);
 const names = {
   "audio/addition-subtraction": "Плюс / минус — слушаем и считаем",
@@ -48,6 +52,7 @@ const names = {
   "audio/propis-phoneme-review": "Прописи — WaveNet с обрезкой (отклонён)",
   "audio/propis-natural-pilot": "Прописи — 5 звуков без обрезки",
   "audio/propis-elevenlabs-review": "Прописи — диктант букв, ElevenLabs (2 дубля)",
+  "audio/propis-elevenlabs-e-pilot": "Прописи — Б, В, Г с Э (ElevenLabs)",
   "sounds/letters": "Звуки букв",
   sounds: "Сигналы ответа",
 };
@@ -72,8 +77,8 @@ walk(join(publicDir, "audio"));
 walk(join(publicDir, "sounds"));
 const categoryOrder = ["Числа", "Знаки", "Фразы"];
 for (const group of groups.values()) {
-  if (["audio/propis-phoneme-review", "audio/propis-natural-pilot", "audio/propis-elevenlabs-review"].includes(group.id)) {
-    const entries = { "audio/propis-natural-pilot": PROPIS_NATURAL_PILOT, "audio/propis-elevenlabs-review": PROPIS_ELEVENLABS_ENTRIES }[group.id] ?? PROPIS_PHONEME_ENTRIES;
+  if (["audio/propis-phoneme-review", "audio/propis-natural-pilot", "audio/propis-elevenlabs-review", "audio/propis-elevenlabs-e-pilot"].includes(group.id)) {
+    const entries = { "audio/propis-natural-pilot": PROPIS_NATURAL_PILOT, "audio/propis-elevenlabs-review": PROPIS_ELEVENLABS_ENTRIES, "audio/propis-elevenlabs-e-pilot": PROPIS_ELEVENLABS_E_PILOT }[group.id] ?? PROPIS_PHONEME_ENTRIES;
     const order = new Map(entries.map((entry) => [entry.key, entry.order]));
     const rank = (item) => order.get(item.key.replace(/__2$/, "")) * 2 + (item.key.endsWith("__2") ? 1 : 0);
     group.items.sort((a, b) => rank(a) - rank(b));

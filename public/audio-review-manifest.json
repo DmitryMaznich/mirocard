@@ -2875,6 +2875,228 @@
       ]
     },
     {
+      "id": "audio/propis-elevenlabs-e-pilot",
+      "title": "Прописи — Б, В, Г с Э (ElevenLabs)",
+      "items": [
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_e.mp3",
+          "key": "b_e",
+          "path": "audio/propis-elevenlabs-e-pilot/b_e.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_e.mp3",
+          "label": "Б: «Бэ.» — дубль 1",
+          "category": "Б",
+          "version": "9ea187da4e8dcbcb"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_e__2.mp3",
+          "key": "b_e__2",
+          "path": "audio/propis-elevenlabs-e-pilot/b_e__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_e__2.mp3",
+          "label": "Б: «Бэ.» — дубль 2",
+          "category": "Б",
+          "version": "32768cf70156d0bd"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_eeee.mp3",
+          "key": "b_eeee",
+          "path": "audio/propis-elevenlabs-e-pilot/b_eeee.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_eeee.mp3",
+          "label": "Б: «Бээээ.» — дубль 1",
+          "category": "Б",
+          "version": "4e6780fe7d18304b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_eeee__2.mp3",
+          "key": "b_eeee__2",
+          "path": "audio/propis-elevenlabs-e-pilot/b_eeee__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_eeee__2.mp3",
+          "label": "Б: «Бээээ.» — дубль 2",
+          "category": "Б",
+          "version": "736b71bf0cb673c0"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_lead.mp3",
+          "key": "b_lead",
+          "path": "audio/propis-elevenlabs-e-pilot/b_lead.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_lead.mp3",
+          "label": "Б: «Бббэ.» — дубль 1",
+          "category": "Б",
+          "version": "dd372801de17d96b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_lead__2.mp3",
+          "key": "b_lead__2",
+          "path": "audio/propis-elevenlabs-e-pilot/b_lead__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_lead__2.mp3",
+          "label": "Б: «Бббэ.» — дубль 2",
+          "category": "Б",
+          "version": "83d17dc30150062c"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_x3.mp3",
+          "key": "b_x3",
+          "path": "audio/propis-elevenlabs-e-pilot/b_x3.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_x3.mp3",
+          "label": "Б: «Бэ, бэ, бэ.» — дубль 1",
+          "category": "Б",
+          "version": "48450ca4f6813706"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/b_x3__2.mp3",
+          "key": "b_x3__2",
+          "path": "audio/propis-elevenlabs-e-pilot/b_x3__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/b_x3__2.mp3",
+          "label": "Б: «Бэ, бэ, бэ.» — дубль 2",
+          "category": "Б",
+          "version": "3ff90f0f6916194a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_e.mp3",
+          "key": "v_e",
+          "path": "audio/propis-elevenlabs-e-pilot/v_e.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_e.mp3",
+          "label": "В: «Вэ.» — дубль 1",
+          "category": "В",
+          "version": "268823029ef4c566"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_e__2.mp3",
+          "key": "v_e__2",
+          "path": "audio/propis-elevenlabs-e-pilot/v_e__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_e__2.mp3",
+          "label": "В: «Вэ.» — дубль 2",
+          "category": "В",
+          "version": "96aa826b63069bdb"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_eeee.mp3",
+          "key": "v_eeee",
+          "path": "audio/propis-elevenlabs-e-pilot/v_eeee.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_eeee.mp3",
+          "label": "В: «Вээээ.» — дубль 1",
+          "category": "В",
+          "version": "8c92d964e0f7c40b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_eeee__2.mp3",
+          "key": "v_eeee__2",
+          "path": "audio/propis-elevenlabs-e-pilot/v_eeee__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_eeee__2.mp3",
+          "label": "В: «Вээээ.» — дубль 2",
+          "category": "В",
+          "version": "c12217064e931777"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_lead.mp3",
+          "key": "v_lead",
+          "path": "audio/propis-elevenlabs-e-pilot/v_lead.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_lead.mp3",
+          "label": "В: «Вввэ.» — дубль 1",
+          "category": "В",
+          "version": "659199c3e55463ff"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_lead__2.mp3",
+          "key": "v_lead__2",
+          "path": "audio/propis-elevenlabs-e-pilot/v_lead__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_lead__2.mp3",
+          "label": "В: «Вввэ.» — дубль 2",
+          "category": "В",
+          "version": "0cc21c4c9aeb39a6"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_x3.mp3",
+          "key": "v_x3",
+          "path": "audio/propis-elevenlabs-e-pilot/v_x3.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_x3.mp3",
+          "label": "В: «Вэ, вэ, вэ.» — дубль 1",
+          "category": "В",
+          "version": "82ede27b751621aa"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/v_x3__2.mp3",
+          "key": "v_x3__2",
+          "path": "audio/propis-elevenlabs-e-pilot/v_x3__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/v_x3__2.mp3",
+          "label": "В: «Вэ, вэ, вэ.» — дубль 2",
+          "category": "В",
+          "version": "2bd43f7b9e198612"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_e.mp3",
+          "key": "g_e",
+          "path": "audio/propis-elevenlabs-e-pilot/g_e.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_e.mp3",
+          "label": "Г: «Гэ.» — дубль 1",
+          "category": "Г",
+          "version": "e687d1420045db30"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_e__2.mp3",
+          "key": "g_e__2",
+          "path": "audio/propis-elevenlabs-e-pilot/g_e__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_e__2.mp3",
+          "label": "Г: «Гэ.» — дубль 2",
+          "category": "Г",
+          "version": "330eb06e7a2ab51b"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_eeee.mp3",
+          "key": "g_eeee",
+          "path": "audio/propis-elevenlabs-e-pilot/g_eeee.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_eeee.mp3",
+          "label": "Г: «Гээээ.» — дубль 1",
+          "category": "Г",
+          "version": "450db91b4bbe22c0"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_eeee__2.mp3",
+          "key": "g_eeee__2",
+          "path": "audio/propis-elevenlabs-e-pilot/g_eeee__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_eeee__2.mp3",
+          "label": "Г: «Гээээ.» — дубль 2",
+          "category": "Г",
+          "version": "29613ec83174297c"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_lead.mp3",
+          "key": "g_lead",
+          "path": "audio/propis-elevenlabs-e-pilot/g_lead.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_lead.mp3",
+          "label": "Г: «Гггэ.» — дубль 1",
+          "category": "Г",
+          "version": "9dfe3685f403cc8f"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_lead__2.mp3",
+          "key": "g_lead__2",
+          "path": "audio/propis-elevenlabs-e-pilot/g_lead__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_lead__2.mp3",
+          "label": "Г: «Гггэ.» — дубль 2",
+          "category": "Г",
+          "version": "5d23698954be277a"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_x3.mp3",
+          "key": "g_x3",
+          "path": "audio/propis-elevenlabs-e-pilot/g_x3.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_x3.mp3",
+          "label": "Г: «Гэ, гэ, гэ.» — дубль 1",
+          "category": "Г",
+          "version": "84909de37bd8a0ee"
+        },
+        {
+          "id": "audio/propis-elevenlabs-e-pilot/g_x3__2.mp3",
+          "key": "g_x3__2",
+          "path": "audio/propis-elevenlabs-e-pilot/g_x3__2.mp3",
+          "url": "/audio/propis-elevenlabs-e-pilot/g_x3__2.mp3",
+          "label": "Г: «Гэ, гэ, гэ.» — дубль 2",
+          "category": "Г",
+          "version": "214567d921540082"
+        }
+      ]
+    },
+    {
       "id": "audio/propis-elevenlabs-review",
       "title": "Прописи — диктант букв, ElevenLabs (2 дубля)",
       "items": [

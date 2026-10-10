@@ -84,3 +84,11 @@ https://ai.google.dev/gemini-api/docs/speech-generation.
   На слух не проверено.
 
 Основная озвучка `public/audio/propis-dictation` не изменена.
+
+### Пилот: Б, В, Г с Э (10.10.2026)
+
+По просьбе владельца — только Б, В, Г в сочетании с Э, четыре формы на букву,
+по два дубля, без тегов: «Бэ.», «Бээээ.», «Бббэ.», «Бэ, бэ, бэ.» (и так же
+для В, Г). Плейлист `/audio-review.html?set=audio/propis-elevenlabs-e-pilot`,
+тексты — `PROPIS_ELEVENLABS_E_PILOT` в `scripts/lib/propis-elevenlabs-bank.mjs`.
+На слух не проверено.

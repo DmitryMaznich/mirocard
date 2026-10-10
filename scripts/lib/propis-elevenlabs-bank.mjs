@@ -30,3 +30,19 @@ export const PROPIS_ELEVENLABS_ENTRIES = [
   { key: "case_upper", prompt: "Заглавная", order: 33, label: "Заглавная", category: "Регистр" },
   { key: "case_lower", prompt: "Строчная", order: 34, label: "Строчная", category: "Регистр" },
 ];
+
+// Pilot (2026-10-10, owner's request): Б, В, Г paired with Э, four shapes each,
+// to compare against the drawn-out letters above. Two takes per key in
+// public/audio/propis-elevenlabs-e-pilot, no audio tags.
+const E_PILOT_LETTERS = [["b", "Б"], ["v", "В"], ["g", "Г"]];
+const E_PILOT_SHAPES = [
+  ["e", (u) => `${u}э.`],
+  ["eeee", (u) => `${u}ээээ.`],
+  ["lead", (u) => `${u}${u.toLowerCase()}${u.toLowerCase()}э.`],
+  ["x3", (u) => `${u}э, ${u.toLowerCase()}э, ${u.toLowerCase()}э.`],
+];
+export const PROPIS_ELEVENLABS_E_PILOT = E_PILOT_LETTERS.flatMap(([latin, letter], li) =>
+  E_PILOT_SHAPES.map(([shape, make], si) => ({
+    key: `${latin}_${shape}`, prompt: make(letter), order: li * E_PILOT_SHAPES.length + si,
+    label: `${letter}: «${make(letter)}»`, category: letter,
+  })));
