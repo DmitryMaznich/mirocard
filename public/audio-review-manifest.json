@@ -5509,6 +5509,192 @@
       ]
     },
     {
+      "id": "audio/propis-elevenlabs-texts-pilot",
+      "title": "Прописи — диктант предложений, пилот (ElevenLabs)",
+      "items": [
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t01_s1.mp3",
+          "key": "text_t01_s1",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t01_s1.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t01_s1.mp3",
+          "label": "У нас есть кот. — дубль 1",
+          "category": "t01",
+          "version": "17b3780a1185742c"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t01_s1__2.mp3",
+          "key": "text_t01_s1__2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t01_s1__2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t01_s1__2.mp3",
+          "label": "У нас есть кот. — дубль 2",
+          "category": "t01",
+          "version": "3b4bc3ee932948d8"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t01_s2.mp3",
+          "key": "text_t01_s2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t01_s2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t01_s2.mp3",
+          "label": "Кот любит спать. — дубль 1",
+          "category": "t01",
+          "version": "7cf0ac8c827b05ce"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t01_s2__2.mp3",
+          "key": "text_t01_s2__2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t01_s2__2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t01_s2__2.mp3",
+          "label": "Кот любит спать. — дубль 2",
+          "category": "t01",
+          "version": "449cce9e8f4e63ef"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t01_s3.mp3",
+          "key": "text_t01_s3",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t01_s3.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t01_s3.mp3",
+          "label": "Кот пьёт молоко. — дубль 1",
+          "category": "t01",
+          "version": "4e9011fd2659c4c6"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t01_s3__2.mp3",
+          "key": "text_t01_s3__2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t01_s3__2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t01_s3__2.mp3",
+          "label": "Кот пьёт молоко. — дубль 2",
+          "category": "t01",
+          "version": "1f08323f2c659c8c"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t01_s4.mp3",
+          "key": "text_t01_s4",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t01_s4.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t01_s4.mp3",
+          "label": "Кот мягкий и пушистый. — дубль 1",
+          "category": "t01",
+          "version": "1e7bcb20aba2a9f7"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t01_s4__2.mp3",
+          "key": "text_t01_s4__2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t01_s4__2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t01_s4__2.mp3",
+          "label": "Кот мягкий и пушистый. — дубль 2",
+          "category": "t01",
+          "version": "3ec662eef37570b3"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t01_s5.mp3",
+          "key": "text_t01_s5",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t01_s5.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t01_s5.mp3",
+          "label": "Мы гладим кота каждый день. — дубль 1",
+          "category": "t01",
+          "version": "8080cae5a5430623"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t01_s5__2.mp3",
+          "key": "text_t01_s5__2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t01_s5__2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t01_s5__2.mp3",
+          "label": "Мы гладим кота каждый день. — дубль 2",
+          "category": "t01",
+          "version": "1d322bfee084d4e6"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t13_s1.mp3",
+          "key": "text_t13_s1",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t13_s1.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t13_s1.mp3",
+          "label": "Наступила весна. — дубль 1",
+          "category": "t13",
+          "version": "c94a40207f199999"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t13_s1__2.mp3",
+          "key": "text_t13_s1__2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t13_s1__2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t13_s1__2.mp3",
+          "label": "Наступила весна. — дубль 2",
+          "category": "t13",
+          "version": "25fb5513bcd8f122"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t13_s2.mp3",
+          "key": "text_t13_s2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t13_s2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t13_s2.mp3",
+          "label": "Тает снег на дорожках. — дубль 1",
+          "category": "t13",
+          "version": "fbfda5b8673b8c4f"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t13_s2__2.mp3",
+          "key": "text_t13_s2__2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t13_s2__2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t13_s2__2.mp3",
+          "label": "Тает снег на дорожках. — дубль 2",
+          "category": "t13",
+          "version": "bcdad5da39957b28"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t13_s3.mp3",
+          "key": "text_t13_s3",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t13_s3.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t13_s3.mp3",
+          "label": "Прилетают первые птицы. — дубль 1",
+          "category": "t13",
+          "version": "97ec2fbb9863deb7"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t13_s3__2.mp3",
+          "key": "text_t13_s3__2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t13_s3__2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t13_s3__2.mp3",
+          "label": "Прилетают первые птицы. — дубль 2",
+          "category": "t13",
+          "version": "37e338a75862779d"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t13_s4.mp3",
+          "key": "text_t13_s4",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t13_s4.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t13_s4.mp3",
+          "label": "На деревьях набухают почки. — дубль 1",
+          "category": "t13",
+          "version": "42d57c5cd5d25a30"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t13_s4__2.mp3",
+          "key": "text_t13_s4__2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t13_s4__2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t13_s4__2.mp3",
+          "label": "На деревьях набухают почки. — дубль 2",
+          "category": "t13",
+          "version": "b81359ffea42b1a1"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t13_s5.mp3",
+          "key": "text_t13_s5",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t13_s5.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t13_s5.mp3",
+          "label": "Скоро появятся первые цветы. — дубль 1",
+          "category": "t13",
+          "version": "ca0f0e02edbe3e80"
+        },
+        {
+          "id": "audio/propis-elevenlabs-texts-pilot/text_t13_s5__2.mp3",
+          "key": "text_t13_s5__2",
+          "path": "audio/propis-elevenlabs-texts-pilot/text_t13_s5__2.mp3",
+          "url": "/audio/propis-elevenlabs-texts-pilot/text_t13_s5__2.mp3",
+          "label": "Скоро появятся первые цветы. — дубль 2",
+          "category": "t13",
+          "version": "88871609d28f5f00"
+        }
+      ]
+    },
+    {
       "id": "audio/propis-elevenlabs-words-pilot",
       "title": "Прописи — диктант слов, пилот (ElevenLabs)",
       "items": [
