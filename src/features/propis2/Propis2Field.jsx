@@ -60,8 +60,9 @@ export default function Propis2Field({ value, onChange, onCaret, disabled, singl
   return (
     <div className="p2-fieldwrap" ref={wrapRef}>
       <div className="p2-pick p2-elements">
-        <button type="button" className={`p2-ib${open ? " is-on" : ""}`} aria-label="Элементы" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
-          <I.IconElement />
+        <button type="button" className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label="Элементы" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
+          <span className="p2-tool-ico"><I.IconElement /></span>
+          <span className="p2-cap">Элемент</span>
           {tip}
         </button>
         {open && (
