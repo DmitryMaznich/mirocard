@@ -181,6 +181,10 @@
   .notice.is-error { color: var(--bad); }
   .notice.is-good { color: var(--good); }
 
+  .mobile-tabs { display: none; }
+  .mobile-tabs button { flex: 0 0 auto; min-height: 36px; padding: 7px 12px; border: 1px solid #bed4ea; border-radius: 999px; color: #275389; background: #fff; font-size: 13px; font-weight: 850; line-height: 1; }
+  .mobile-tabs button[aria-selected="true"] { border-color: var(--accent); color: #fff; background: var(--accent); }
+
   @media (max-width: 1120px) {
     .workspace { grid-template-columns: minmax(220px, 270px) minmax(0, 1fr); }
     .right-column { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr); gap: 14px; align-items: start; }
@@ -195,9 +199,44 @@
     .drawing-toolbar { justify-content: center; }
     #board { min-height: 41.6vh; }
   }
+  /* Phone portrait: the board stays on screen and the settings live in a
+     tabbed, independently scrolling area below it — nudging the raster or
+     the grid must never require scrolling the board out of view. */
   @media (max-width: 720px) and (orientation: portrait) {
-    .canvas-wrap { height: calc(100svh - 248px); min-height: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    .app { display: flex; flex-direction: column; height: 100vh; height: 100svh; padding: calc(6px + env(safe-area-inset-top, 0px)) calc(8px + env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) calc(8px + env(safe-area-inset-left, 0px)); }
+    .app-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    h1 { font-size: 18px; white-space: nowrap; }
+    .head-actions { flex-wrap: nowrap; gap: 5px; }
+    .head-actions .icon-button { width: 36px; min-width: 36px; height: 36px; min-height: 36px; font-size: 18px; }
+    .workspace { display: flex; flex-direction: column; align-items: stretch; flex: 1 1 auto; min-height: 0; gap: 6px; }
+    .workspace > * { min-width: 0; }
+    .work-panel { order: 0; flex: 0 0 auto; padding: 6px; }
+    .work-head, .legend { display: none; }
+    .drawing-toolbar { flex-wrap: nowrap; justify-content: flex-start; gap: 7px; overflow-x: auto; margin-bottom: 6px; padding: 5px; scrollbar-width: none; }
+    .drawing-toolbar .tool-row, .drawing-toolbar .action-grid { flex: 0 0 auto; flex-wrap: nowrap; }
+    .drawing-toolbar .icon-button::after { display: none; }
+    .canvas-wrap { height: 44vh; height: 44svh; min-height: 0; }
     #board { height: 100%; min-height: 0; max-height: none; }
+    .notice { margin-top: 4px; min-height: 0; }
+    .notice:empty { display: none; }
+    .mobile-tabs { order: 1; display: flex; flex: 0 0 auto; gap: 6px; overflow-x: auto; padding: 1px 1px 3px; scrollbar-width: none; }
+    .left-column { order: 2; }
+    .right-column { order: 3; }
+    .left-column, .right-column { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+    .right-column > .panel { margin-top: 0 !important; }
+    .panel-section { padding: 12px; }
+    /* Arrows first: they are what you reach for while watching the board. */
+    .panel-section[data-mtab="raster"], .panel-section[data-mtab="grid"] { display: flex; flex-direction: column; }
+    .panel-section > .section-title { order: -2; }
+    .panel-section > .nudge-controls { order: -1; margin: 0 0 6px; }
+    .panel-section > .hint, .panel-section > .calibration { order: 1; }
+    .is-mobile-hidden { display: none !important; }
+    .nudge-controls { grid-template-columns: repeat(3, 52px); grid-template-rows: repeat(2, 46px); gap: 6px; }
+    .nudge-controls .icon-button.button--small { width: 52px; min-width: 52px; height: 46px; min-height: 46px; font-size: 22px; }
+    .icon-grid { grid-template-columns: repeat(2, 44px); }
+    .action-grid.icon-grid .icon-button.button--small { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
+    .range-row input { min-height: 32px; }
   }
 </style>
 
@@ -219,7 +258,7 @@
 
   <div class="workspace">
     <aside class="panel side-panel left-column" aria-label="Настройка фигуры">
-      <section class="panel-section">
+      <section class="panel-section" data-mtab="raster">
         <h2 class="section-title">1. Растровая подложка</h2>
         <label class="field">Масштаб растра (пропорционально)
           <span class="range-row"><input id="rasterScale" type="range" min="1" max="250" step="1" value="100"><output class="range-value" id="rasterScaleValue">100%</output></span>
@@ -243,7 +282,7 @@
         </div>
       </section>
 
-      <section class="panel-section">
+      <section class="panel-section" data-mtab="grid">
         <h2 class="section-title">2. Сетка</h2>
         <label class="field">Шаг сетки
           <span class="range-row"><input id="gridScale" type="range" min="20" max="120" step="1" value="48"><output class="range-value" id="gridScaleValue">48 px</output></span>
@@ -262,7 +301,7 @@
         </div>
       </section>
 
-      <section class="panel-section">
+      <section class="panel-section" data-mtab="card">
         <h2 class="section-title">3. Карточка</h2>
         <label class="button icon-button" data-tooltip="Открыть JSON фигуры" title="Открыть JSON фигуры" aria-label="Открыть JSON фигуры">⇧
           <input id="figureJsonInput" type="file" accept="application/json,.json">
@@ -278,7 +317,7 @@
         <p class="hint" id="cardGeometryHint">Итоговая карточка: 20 × 10 клеток; граница после 10-й клетки.</p>
       </section>
 
-      <section class="panel-section">
+      <section class="panel-section" data-mtab="trace">
         <h2 class="section-title">4. Обводка</h2>
         <div class="stack">
           <label class="field">Привязка<select id="snapStep"><option value="1">Только узлы</option><option value="0.5">Узлы и полклетки</option><option value="0">Точные точки из JSON</option></select></label>
@@ -289,7 +328,7 @@
         <p class="hint">Все инструменты находятся в панели над сеткой. «▣» переключает слой готовых элементов: они будут напечатаны в поле ребёнка, а красные линии ребёнок обводит сам.</p>
       </section>
 
-      <section class="panel-section">
+      <section class="panel-section" data-mtab="layers">
         <h2 class="section-title">Слои</h2>
         <label class="toggle"><input id="showSource" type="checkbox" checked> Растровый прототип</label>
         <label class="field">Прозрачность прототипа
@@ -343,13 +382,24 @@
       <div class="notice" id="notice" aria-live="polite"></div>
     </section>
 
+    <nav class="mobile-tabs" id="mobileTabs" role="tablist" aria-label="Разделы настроек">
+      <button type="button" role="tab" data-mtab-btn="raster">Растр</button>
+      <button type="button" role="tab" data-mtab-btn="grid">Сетка</button>
+      <button type="button" role="tab" data-mtab-btn="card">Карточка</button>
+      <button type="button" role="tab" data-mtab-btn="trace">Обводка</button>
+      <button type="button" role="tab" data-mtab-btn="layers">Слои</button>
+      <button type="button" role="tab" data-mtab-btn="check">Проверка</button>
+      <button type="button" role="tab" data-mtab-btn="export">Экспорт</button>
+      <button type="button" role="tab" data-mtab-btn="set">Набор</button>
+    </nav>
+
     <aside class="right-column" aria-label="Проверка и экспорт">
       <section class="panel side-panel">
-        <div class="panel-section">
+        <div class="panel-section" data-mtab="check">
           <h2 class="section-title">Проверка</h2>
           <div class="validation" id="validation"></div>
         </div>
-        <div class="panel-section">
+        <div class="panel-section" data-mtab="check">
           <h2 class="section-title">Предпросмотр задания</h2>
           <div class="preview-wrap"><svg id="preview" viewBox="0 0 22 11" role="img" aria-label="Чистый векторный предпросмотр"></svg></div>
           <p class="hint">Здесь используется именно тот же набор точек, который попадёт в карточку; растра здесь нет.</p>
@@ -357,7 +407,7 @@
       </section>
 
       <section class="panel side-panel" style="margin-top:14px">
-        <div class="panel-section">
+        <div class="panel-section" data-mtab="export">
           <h2 class="section-title">Экспорт</h2>
           <textarea id="cardOutput" readonly aria-label="JSON карточки"></textarea>
           <div class="action-grid icon-grid">
@@ -366,7 +416,7 @@
           </div>
           <div class="action-grid icon-grid"><button class="button button--teal icon-button" type="button" id="addToSetBtn" data-tooltip="Добавить фигуру в набор" title="Добавить фигуру в набор" aria-label="Добавить фигуру в набор">⊕</button></div>
         </div>
-        <div class="panel-section">
+        <div class="panel-section" data-mtab="set">
           <h2 class="section-title">Набор <span id="setCount">0</span></h2>
           <div class="set-list" id="setList"></div>
           <div class="action-grid icon-grid"><button class="button button--primary icon-button" type="button" id="downloadSetBtn" data-tooltip="Скачать набор карточек" title="Скачать набор карточек" aria-label="Скачать набор карточек">⇩</button></div>
@@ -2247,6 +2297,38 @@
     if (key === "f" && taskKind() !== "dictation") { state.fixedLayer = !state.fixedLayer; clearSelection(); render(); }
     if (event.key === "Escape" && state.alignMode) { state.alignMode = null; render(); }
   });
+
+  function selectMobileTab(tab) {
+    const known = [...document.querySelectorAll("[data-mtab-btn]")].map((button) => button.dataset.mtabBtn);
+    const active = known.includes(tab) ? tab : known[0];
+    document.querySelectorAll("[data-mtab-btn]").forEach((button) => {
+      button.setAttribute("aria-selected", String(button.dataset.mtabBtn === active));
+    });
+    document.querySelectorAll("[data-mtab]").forEach((section) => {
+      section.classList.toggle("is-mobile-hidden", section.dataset.mtab !== active);
+    });
+    // Hide wrappers that end up empty so the visible one gets all the room.
+    document.querySelectorAll(".left-column, .right-column, .right-column > .panel").forEach((container) => {
+      container.classList.toggle("is-mobile-hidden", !container.querySelector(`[data-mtab="${active}"]`));
+    });
+    try { localStorage.setItem("figureCaptureMobileTab", active); } catch {}
+    // Scroll only the tab strip; scrollIntoView would also shift the page.
+    const strip = $("mobileTabs");
+    const chip = strip.querySelector(`[data-mtab-btn="${active}"]`);
+    if (chip && strip.clientWidth) {
+      const left = chip.offsetLeft - strip.offsetLeft;
+      if (left < strip.scrollLeft) strip.scrollLeft = left;
+      else if (left + chip.offsetWidth > strip.scrollLeft + strip.clientWidth) strip.scrollLeft = left + chip.offsetWidth - strip.clientWidth;
+    }
+  }
+
+  $("mobileTabs").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-mtab-btn]");
+    if (button) selectMobileTab(button.dataset.mtabBtn);
+  });
+  let savedMobileTab = null;
+  try { savedMobileTab = localStorage.getItem("figureCaptureMobileTab"); } catch {}
+  selectMobileTab(savedMobileTab);
 
   syncCalibrationPoints();
   updateDraftDimensionsForGrid();
