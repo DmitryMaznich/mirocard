@@ -18,4 +18,13 @@ describe("propis letter dictation audio", () => {
       expect(existsSync(publicFile(dictationAudioUrl(item.key))), item.key).toBe(true);
     }
   });
+
+  it("plays one shipped clip per dictation word (ElevenLabs, 2026-10-11)", () => {
+    const [task] = generateTasks({ type: "dictation" }, topic, 1000, { level: "words", itemCount: 1000 });
+    expect(task.items.length).toBe(topic.words.length);
+    for (const item of task.items) {
+      expect(item.key).toMatch(/^word_w\d{3}$/);
+      expect(existsSync(publicFile(dictationAudioUrl(item.key))), item.key).toBe(true);
+    }
+  });
 });
