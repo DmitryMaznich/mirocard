@@ -117,6 +117,33 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const selectedIndex = page.rows.findIndex((r) => r.id === selectedId);
   const selected = selectedIndex >= 0 ? page.rows[selectedIndex] : null;
   const selectedInfo = selectedIndex >= 0 ? analysis.rows[selectedIndex] : null;
+  // What the red marks under the page mean: one chip per kind of problem; a tap opens a note with the cause and the way out
+  const [warnOpen, setWarnOpen] = useState(null);
+  const shownChars = (list) => list.map((c) => c.replace("№", "")).join(" ");
+  const warnChips = [];
+  if (selectedInfo?.unsupported.length > 0) {
+    const chars = shownChars(selectedInfo.unsupported);
+    warnChips.push({ kind: "unsupported", label: `Нет начертания: ${chars}. Нажмите, чтобы узнать подробнее`, icon: selectedInfo.unsupported.map((c) => <b key={c}>{c}</b>), title: `Нет начертания: ${chars}`,
+      what: "Этих символов нет в прописях, поэтому в строке они не рисуются. Поддерживаются русские буквы (строчные и заглавные), цифры, знаки + − = < >, точка, запятая, ! ? и элементы из кнопки «Элемент». Дефис и тире внутри слова, кавычки, скобки и латинские буквы не пишутся.",
+      fix: "замените эти символы другими или удалите их из строки." });
+  }
+  if (selectedInfo?.outside?.length > 0) {
+    const chars = shownChars(selectedInfo.outside);
+    warnChips.push({ kind: "outside", label: `На широкой строке нельзя: ${chars}. Нажмите, чтобы узнать подробнее`, icon: <><I.IconRowWide />{selectedInfo.outside.map((c) => <b key={c}>{c.replace("№", "")}</b>)}</>, title: `На широкой строке нельзя: ${chars}`,
+      what: "Широкая строка рассчитана на строчные буквы, которые целиком помещаются в строку, как в методике. Заглавные буквы, б, в, д, з, р, у, ф, ц, щ, цифры и знаки ! ? выходят за строку, поэтому здесь не пишутся.",
+      fix: "переключите страницу на узкую строку (кнопка «Строки») или замените эти буквы." });
+  }
+  if (selectedInfo?.overflow) {
+    warnChips.push({ kind: "overflow", label: "Строка не помещается по ширине. Нажмите, чтобы узнать подробнее", icon: <span className="p2-cut" aria-hidden="true" />, title: "Строка не помещается по ширине",
+      what: "Запись длиннее, чем помещается в строке между краями листа и полями: конец строки уходит за лист и не будет виден и напечатан.",
+      fix: "сократите запись, разбейте её на две строки клавишей Enter или включите кнопку «Текст»: тогда длинная фраза сама перенесётся на следующие строки. Помогут также формат А4 и страница без полей." });
+  }
+  if (analysis.problems > 0) {
+    warnChips.push({ kind: "summary", label: `Строк с проблемами: ${analysis.problems}. Нажмите, чтобы узнать подробнее`, icon: <b>{analysis.problems}</b>, title: `Строк с проблемами: ${analysis.problems}`,
+      what: "Такие строки на странице подсвечены красным. Это строки, где есть символы без начертания, буквы, которые нельзя на широкой строке, или запись, которая не помещается по ширине.",
+      fix: "нажмите на красную строку на странице: под страницей появятся значки с причиной, нажатие на значок объяснит её." });
+  }
+  const openWarn = warnOpen && warnOpen.row === selectedId && warnChips.some((w) => w.kind === warnOpen.kind) ? warnOpen.kind : null;
   const rowEditable = !locked && Boolean(selected) && (selected.kind === "text" || selected.kind === "element");
   const rowOpts = (() => {
     if (!selected) return null;
@@ -311,16 +338,18 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         <div className="propis2-dock">
           {(selectedInfo?.unsupported.length > 0 || selectedInfo?.outside?.length > 0 || selectedInfo?.overflow || analysis.problems > 0) && (
             <div className="p2-warns">
-              {selectedInfo?.unsupported.length > 0 && (
-                <div className="p2-warn" role="alert" aria-label={`Нет начертания: ${selectedInfo.unsupported.join(" ")}`}><I.IconWarn />{selectedInfo.unsupported.map((c) => <b key={c}>{c}</b>)}</div>
+              {warnChips.map((w) => (
+                <button key={w.kind} type="button" className={`p2-warn${w.kind === "summary" ? " p2-warn--summary" : ""}${openWarn === w.kind ? " is-open" : ""}`} aria-label={w.label} aria-expanded={openWarn === w.kind} aria-controls="p2-warn-note" onClick={() => setWarnOpen(openWarn === w.kind ? null : { kind: w.kind, row: selectedId })}>
+                  <I.IconWarn />{w.icon}
+                </button>
+              ))}
+              {openWarn && warnChips.find((w) => w.kind === openWarn) && (
+                <div className="p2-warn-note" id="p2-warn-note" role="status">
+                  <b className="p2-warn-note-title">{warnChips.find((w) => w.kind === openWarn).title}</b>
+                  <p>{warnChips.find((w) => w.kind === openWarn).what}</p>
+                  <p className="p2-warn-note-fix"><b>Что сделать:</b> {warnChips.find((w) => w.kind === openWarn).fix}</p>
+                </div>
               )}
-              {selectedInfo?.outside?.length > 0 && (
-                <div className="p2-warn" role="alert" aria-label={`На широкой строке нельзя: ${selectedInfo.outside.map((c) => c.replace("№", "")).join(" ")}`}><I.IconWarn /><I.IconRowWide />{selectedInfo.outside.map((c) => <b key={c}>{c.replace("№", "")}</b>)}</div>
-              )}
-              {selectedInfo?.overflow && (
-                <div className="p2-warn" role="alert" aria-label="Строка не помещается по ширине"><I.IconWarn /><span className="p2-cut" aria-hidden="true" /></div>
-              )}
-              {analysis.problems > 0 && <div className="p2-warn p2-warn--summary" role="status" aria-label={`Строк с проблемами: ${analysis.problems}`}><I.IconWarn /><b>{analysis.problems}</b></div>}
             </div>
           )}
           <Propis2Field

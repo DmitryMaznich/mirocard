@@ -104,9 +104,17 @@ describe("Прописи 2 (zip topic)", () => {
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await type(host.querySelector('[aria-label="Название тетради"]'), "Мои буквы");
     await typeInField(host, "кот@");
-    expect(host.querySelector("[role=alert]")?.textContent).toContain("@");
+    // the red mark under the page is a button: a tap opens what is wrong and what to do
+    const chip = host.querySelector("button.p2-warn:not(.p2-warn--summary)");
+    expect(chip.textContent).toContain("@");
+    expect(host.querySelector(".p2-warn-note")).toBeNull();
+    await click(chip);
+    expect(host.querySelector(".p2-warn-note").textContent).toContain("Нет начертания: @");
+    expect(host.querySelector(".p2-warn-note").textContent).toContain("Что сделать");
+    await click(host.querySelector("button.p2-warn:not(.p2-warn--summary)"));
+    expect(host.querySelector(".p2-warn-note")).toBeNull(); // a second tap closes it
     await typeInField(host, "кот");
-    expect(host.querySelector("[role=alert]")).toBeNull();
+    expect(host.querySelector("button.p2-warn")).toBeNull();
 
     await click(btn(host, "Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
