@@ -10,7 +10,8 @@ const WIDE_PATH = "tools/propis/wide.json";
 const CATALOG_PATH = "public/decks/catalog.json";
 
 const topic = JSON.parse(readFileSync(TOPIC_PATH, "utf-8"));
-if (existsSync(ELEMENTS_PATH)) topic.elements = JSON.parse(readFileSync(ELEMENTS_PATH, "utf-8")).elements;
+const DROPPED = new Set(JSON.parse(readFileSync("tools/propis2/dropped_elements.json", "utf-8")).ids);
+if (existsSync(ELEMENTS_PATH)) topic.elements = JSON.parse(readFileSync(ELEMENTS_PATH, "utf-8")).elements.filter((el) => !DROPPED.has(el.id));
 if (existsSync(WIDE_PATH)) {
   const wideData = JSON.parse(readFileSync(WIDE_PATH, "utf-8"));
   topic.wide = wideData.glyphs;
@@ -35,8 +36,8 @@ const entry = {
   version: VERSION,
   title: { ru: "Прописи 2", en: "Copybook 2" },
   description: {
-    ru: "Конструктор страниц прописей: соберите страницу из элементов, букв, слов и текстов; ребёнок пишет на бумаге и смотрит анимацию написания.",
-    en: "Copybook page builder: compose a page of elements, letters, words and texts; the child writes on paper and watches the pen animation.",
+    ru: "Конструктор тетрадей по письму и тренажёры письменных букв: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
+    en: "Handwriting notebook builder and written-letter trainers: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation.",
   },
   url: `./decks/propis2_v${VERSION}.zip`,
   status: "beta",

@@ -1,0 +1,17 @@
+{
+  "note": "Elements of tools/propis/elements.json that «Прописи 2» does not ship (owner, 2026-10-11: faulty). The file is shared with the frozen v1, so the elements are cut out only when the P2 deck is built (scripts/build-propis2-deck.mjs). The «_uzkaya» ones and 02b were captured in the narrow strip (y 60–88) and stand under the baseline; the flat / sharp fences and the hooks (03, 04, 05, 06) and the double straight line (01) are rejected as faulty.",
+  "ids": [
+    "01_pryamaya_liniya",
+    "02b_naklonnaya_korotkaya",
+    "03_zaborchik_ploskie",
+    "03_zaborchik_ploskie_uzkaya",
+    "04_zaborchik_ostrye",
+    "04_zaborchik_ostrye_uzkaya",
+    "05_kryuchok_vlevo",
+    "05_kryuchok_vlevo_uzkaya",
+    "06_kryuchok_vpravo",
+    "06_kryuchok_vpravo_uzkaya",
+    "21_zaborchik_vysokiy",
+    "23_palochka_vysokaya"
+  ]
+}
