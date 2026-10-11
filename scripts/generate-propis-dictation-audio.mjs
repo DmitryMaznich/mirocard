@@ -1,5 +1,7 @@
 // Synthesizes one .mp3 per "Диктант" dictation item (words, text sentences) via
-// Gemini's native TTS. Output feeds dictationAudioUrl() in
+// Gemini's native TTS. Since 2026-10-11 the WORDS are voiced in the owner's
+// ElevenLabs voice by generate-propis-dictation-elevenlabs.mjs instead — don't
+// run --only=words here, it would overwrite them with Gemini takes. Output feeds dictationAudioUrl() in
 // src/topics/renderers/propis/dictationAudio.js -- these are static assets
 // shipped with the app itself (like addition_subtraction's number words),
 // NOT part of propis's deck zip, so nothing here touches build-propis-deck.mjs.
