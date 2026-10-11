@@ -17,6 +17,9 @@ describe("propis2 deck install", () => {
     expect(rec.wideSheets.page18).toBeTruthy();
     expect(rec.elements.length).toBeGreaterThan(0);
     expect(rec.modes[0].type).toBe("builder");
+    // «Диктант» draws from these banks; without them the words level was empty (2026-10-11)
+    expect(rec.words.length).toBe(249);
+    expect(rec.texts.length).toBeGreaterThan(0);
   });
 
   it("the v1 propis deck keeps its wide-row data through the same installer", async () => {
@@ -26,5 +29,6 @@ describe("propis2 deck install", () => {
     const rec = await getTopicRecord(db, "propis");
     expect(rec.wide.length).toBeGreaterThan(50);
     expect(rec.wideSheets.page18).toBeTruthy();
+    expect(rec.words.length).toBe(249);
   });
 });

@@ -2087,6 +2087,9 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
     }),
     groups:    manifest.groups    ?? undefined,
     texts:     manifest.texts     ?? undefined,
+    // The «Диктант» word bank (propis, propis2): without it the installed record has no words and
+    // the words level starts with an empty list ("Нет элементов для диктанта", 2026-10-11).
+    words:     manifest.words     ?? undefined,
     turns:     manifest.turns     ?? undefined,
     contact:   manifest.contact   ?? undefined,
     scripts:   manifest.scripts   ?? undefined,
