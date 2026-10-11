@@ -10,7 +10,8 @@ const WIDE_PATH = "tools/propis/wide.json";
 const CATALOG_PATH = "public/decks/catalog.json";
 
 const topic = JSON.parse(readFileSync(TOPIC_PATH, "utf-8"));
-if (existsSync(ELEMENTS_PATH)) topic.elements = JSON.parse(readFileSync(ELEMENTS_PATH, "utf-8")).elements;
+const DROPPED = new Set(JSON.parse(readFileSync("tools/propis2/dropped_elements.json", "utf-8")).ids);
+if (existsSync(ELEMENTS_PATH)) topic.elements = JSON.parse(readFileSync(ELEMENTS_PATH, "utf-8")).elements.filter((el) => !DROPPED.has(el.id));
 if (existsSync(WIDE_PATH)) {
   const wideData = JSON.parse(readFileSync(WIDE_PATH, "utf-8"));
   topic.wide = wideData.glyphs;

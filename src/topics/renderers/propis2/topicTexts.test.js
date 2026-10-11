@@ -43,3 +43,16 @@ describe("«Прописи 2»: topic, mode and parameter texts", () => {
     expect(ru(topic.modes[0].ui.title)).toBe("Конструктор тетрадей");
   });
 });
+
+describe("«Прописи 2»: elements the owner threw out are not in the deck", () => {
+  it("the dropped ids are not shipped, the rest are", async () => {
+    const { default: JSZip } = await import("jszip");
+    const dropped = JSON.parse(readFileSync("tools/propis2/dropped_elements.json", "utf-8")).ids;
+    const zip = await JSZip.loadAsync(readFileSync(`public/decks/propis2_v${topic.meta.version}.zip`));
+    const deck = JSON.parse(await zip.file("topic.json").async("string"));
+    const ids = deck.elements.map((e) => e.id);
+    for (const id of dropped) expect(ids).not.toContain(id);
+    expect(ids).toContain("02a_naklonnaya_dlinnaya");
+    expect(ids.length).toBe(16 - dropped.length);
+  });
+});
