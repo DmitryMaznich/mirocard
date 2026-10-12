@@ -60,3 +60,48 @@ describe("«Названия чисел»", () => {
     for (let i = 0; i < 200; i++) { const v = numberNamesNumber("three_digit"); expect(v >= 101 && v <= 999 && v % 100 !== 0).toBe(true); }
   });
 });
+
+describe("«Названия чисел» — «Услышь и напиши»", () => {
+  const h = coinHarness();
+  const text = (sel) => h.container.querySelector(sel)?.textContent;
+  const type = (n) => { for (const d of String(n)) h.click(d); };
+  const answer = (n) => { type(n); h.click("Проверить"); };
+  const write = (extra = {}) => ({ type: "number_names", cardId: "n", conceptId: "n", number: 90, options: [19, 90, 900], task: "write", supportMode: "learning", ...extra });
+
+  it("the child types the number", () => {
+    const onCorrect = vi.fn(), onMistake = vi.fn();
+    h.mount(NumberNamesTask, write(), { onCorrect, onMistake });
+    expect(text(".sg-title")).toBe("Услышь и напиши число");
+    expect(h.container.querySelector(".nn-option")).toBeNull();
+    answer(90);
+    expect(text(".sg-status-say")).toBe("90 — девяносто");
+    h.click("Далее →");
+    expect(onCorrect).toHaveBeenCalled();
+    expect(onMistake).not.toHaveBeenCalled();
+  });
+
+  it("«Обучение»: a wrong number is named, a wrong digit count names the places, two misses bring the choices back", () => {
+    const onMistake = vi.fn();
+    h.mount(NumberNamesTask, write({ number: 305, options: [350, 305, 35] }), { onMistake });
+    answer(3005);
+    expect(text(".sg-status-note")).toBe("Триста пять — это 3 сотни, 0 десятков и 5 единиц. Сколько цифр нужно?");
+    h.flush(); answer(350);
+    expect(text(".sg-status-note")).toBe("350 — это «триста пятьдесят». А звучало другое число. Послушай ещё раз.");
+    expect(text(".nn-choose-hint")).toBe("Какое число звучит? Выбери.");
+    h.click("305");
+    expect(text(".sg-status-say")).toBe("305 — триста пять");
+    expect(onMistake).toHaveBeenCalledTimes(2);
+  });
+
+  it("«Проверка»: no hints beyond «listen again», no choices", () => {
+    h.mount(NumberNamesTask, write({ supportMode: "independent" }));
+    answer(19); h.flush(); answer(9);
+    expect(text(".sg-status-note")).toBe("Послушай ещё раз.");
+    expect(h.container.querySelector(".nn-option")).toBeNull();
+  });
+
+  it("engine passes the task kind", () => {
+    expect(generateTasks("number_names", [], 3, { task: "write" }).every((t) => t.task === "write")).toBe(true);
+    expect(generateTasks("number_names", [], 3, {}).every((t) => t.task === "choose")).toBe(true);
+  });
+});

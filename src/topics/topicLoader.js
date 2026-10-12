@@ -1319,9 +1319,22 @@ const DEFAULT_MODES = {
       type: "number_names",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Названия чисел", instruction: "Послушай число и найди, как оно пишется", icon: "media/icons/place_value_identify.svg" },
+      ui: { title: "Названия чисел", instruction: "Послушай число и найди или напиши, как оно пишется", icon: "media/icons/place_value_identify.svg" },
       hideConceptPicker: true,
       params: {
+        task: {
+          type: "enum",
+          values: ["choose", "write"],
+          labels: { ru: { choose: "Услышь и выбери", write: "Услышь и напиши" } },
+          default: "choose",
+          label: { ru: "Задание" },
+          info: {
+            ru: {
+              text: "«Услышь и выбери» — ребёнок узнаёт запись среди трёх похожих на слух. «Услышь и напиши» — диктант: ребёнок сам набирает число. В обучении после ошибки звучит написанное число, а за ним правильное; при неверном количестве цифр подсказка называет разряды («Девяносто — это 9 десятков и 0 единиц. Сколько цифр нужно?»); после двух ошибок возвращаются три варианта на выбор.",
+              tip: "Переходите к диктанту на том же наборе чисел, когда ребёнок уверенно выбирает (8 из 10 в проверке).",
+            },
+          },
+        },
         set: {
           type: "enum",
           values: ["tens", "teens_tens", "hundreds", "two_digit", "three_digit", "mix"],

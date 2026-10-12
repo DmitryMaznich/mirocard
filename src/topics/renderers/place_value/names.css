@@ -41,3 +41,16 @@
 .nn-bar:nth-child(4) { animation-delay: 420ms; }
 @keyframes nn-bounce { 0%, 100% { height: 26%; opacity: 0.7; } 50% { height: 70%; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .nn-ripple, .nn-bar { animation: none !important; } }
+
+/* «Услышь и напиши»: the answer field under the «диктор». */
+.nn-answer { display: grid; justify-items: center; }
+.nn-choose-hint { font-size: 18px; font-weight: 800; color: #1d4ed8; text-align: center; }
+.nn-slot .fp-keys { width: min(100%, 420px); }
+/* Four digits («3005» — the mistake to catch) must fit the field. */
+.nn-answer .fp-field--big .fp-value { width: auto; min-width: 130px; padding: 0 14px; }
+/* Three three-digit options in one phone row. */
+.nn-screen--phone .nn-options { gap: 10px; }
+.nn-screen--phone .nn-option { min-width: 96px; padding: 8px 10px; font-size: clamp(34px, 9.5vw, 56px); }
+/* The compact two-row keypad everywhere: the screen already holds the «диктор». */
+.nn-screen--tablet .nn-inner, .nn-screen--wide .nn-inner { gap: 20px; }
+.nn-screen--tablet .nn-diktor-wrap, .nn-screen--wide .nn-diktor-wrap { width: 130px; height: 130px; }

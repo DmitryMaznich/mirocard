@@ -168,7 +168,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       let number;
       do number = numberNamesNumber(params.set ?? "tens"); while (number === last);
       last = number;
-      tasks.push({ type: "number_names", cardId: card(i).id, conceptId: card(i).conceptId, number, options: numberNameOptions(number), supportMode: params.supportMode ?? "learning" });
+      tasks.push({ type: "number_names", cardId: card(i).id, conceptId: card(i).conceptId, number, options: numberNameOptions(number), task: params.task === "write" ? "write" : "choose", supportMode: params.supportMode ?? "learning" });
     }
     return tasks;
   }
