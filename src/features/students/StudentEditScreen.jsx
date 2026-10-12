@@ -8,6 +8,7 @@ import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials, extractYoutubeId } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rewardVideoViewCount } from "@/shared/utils/rewardVideoViews";
+import StudentDataInfo from "./StudentDataInfo";
 
 function generateStudentId() {
   return "student_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
@@ -270,6 +271,7 @@ export default function StudentEditScreen() {
 
         {/* ── Профиль ── */}
         <div className="settings-section">
+          <div className="settings-section-title student-data-heading">Имя и фото <StudentDataInfo kind="profile" /></div>
           <div className="se-profile-row">
             <button
               type="button"
@@ -301,6 +303,7 @@ export default function StudentEditScreen() {
           </div>
           {nameError && <div className="se-name-error">{nameError}</div>}
           {photoError && <div className="se-name-error" role="alert">{photoError}</div>}
+          <div className="settings-section-title student-data-heading">Заметки <StudentDataInfo kind="notes" /></div>
           <textarea
             className="se-comment-input"
             value={comment}
@@ -324,7 +327,7 @@ export default function StudentEditScreen() {
 
         {/* ── Пол ── */}
         <div className="settings-section">
-          <div className="settings-section-title">Пол</div>
+          <div className="settings-section-title student-data-heading">Пол <StudentDataInfo kind="sex" /></div>
           {SEXES.map(({ value, label }) => (
             <button
               key={value}
@@ -340,7 +343,7 @@ export default function StudentEditScreen() {
 
         {/* ── Язык ── */}
         <div className="settings-section">
-          <div className="settings-section-title">Язык</div>
+          <div className="settings-section-title student-data-heading">Язык <StudentDataInfo kind="language" /></div>
           {LANGS.map(({ value, label }) => (
             <button
               key={value}
@@ -360,7 +363,7 @@ export default function StudentEditScreen() {
         {/* ── Мои люди ── */}
         {isEdit && (
           <div className="settings-section se-my-people-card">
-            <div className="settings-section-title">Мои люди</div>
+            <div className="settings-section-title student-data-heading">Мои люди <StudentDataInfo kind="people" /></div>
             <p>Семья, люди дома, школа и личные ответы для индивидуальной темы.</p>
             <button type="button" className="se-add-row" onClick={() => { useAppStore.getState().setMyPeopleReturnScreen("student_edit"); setScreen("my_people_settings"); }}>
               {initial.myPeople?.some((person) => !person.deletedAt) ? "Настроить тему" : "Заполнить тему"}
@@ -371,7 +374,7 @@ export default function StudentEditScreen() {
         {/* ── Важные даты ── */}
         {isEdit && (
           <div className="settings-section se-my-people-card">
-            <div className="settings-section-title">Важные даты</div>
+            <div className="settings-section-title student-data-heading">Важные даты <StudentDataInfo kind="dates" /></div>
             <p>Дни рождения, праздники и события — для экрана «Сегодня».</p>
             <button type="button" className="se-add-row" onClick={() => { useAppStore.getState().setImportantDatesReturnScreen("student_edit"); setScreen("important_dates_settings"); }}>
               {initial.importantDates?.some((item) => !item.deletedAt) ? "Настроить даты" : "Добавить даты"}
@@ -381,7 +384,7 @@ export default function StudentEditScreen() {
 
         {/* ── Близкие взрослые ── */}
         <div className="settings-section">
-          <div className="settings-section-title">Близкие взрослые</div>
+          <div className="settings-section-title student-data-heading">Близкие взрослые <StudentDataInfo kind="adults" /></div>
           {adults.map((adult) => (
             <div key={adult.id} className="se-list-row">
               {adult.photo
@@ -405,7 +408,7 @@ export default function StudentEditScreen() {
 
         {/* ── Видео-награды ── */}
         <div className="settings-section">
-          <div className="settings-section-title">Видео-награды</div>
+          <div className="settings-section-title student-data-heading">Видео-награды <StudentDataInfo kind="videos" /></div>
           {videos.map((v, idx) => (
             <div key={idx} className="se-list-row">
               <span className="se-video-icon">▶</span>

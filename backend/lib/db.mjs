@@ -17,6 +17,14 @@ export function initDb(dbPath = DB_PATH) {
   db.exec("PRAGMA foreign_keys=ON");
 
   db.exec(`
+    CREATE TABLE IF NOT EXISTS topic_catalog_overrides (
+      topic_id TEXT PRIMARY KEY, settings_json TEXT NOT NULL,
+      revision INTEGER NOT NULL, updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS admin_topic_events (
+      id TEXT PRIMARY KEY, topic_id TEXT NOT NULL, action TEXT NOT NULL,
+      settings_json TEXT NOT NULL, created_at TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS accounts (
       id            TEXT PRIMARY KEY,
       email         TEXT UNIQUE NOT NULL,

@@ -257,3 +257,26 @@ no credential identifiers are exposed. Cached clients must load the updated app
 once; signing out is not required. Activity before collection began cannot be
 recovered from login/logout records. Mobile pagehide/visibility/freeze events
 flush pending time, and pageshow resumes the timer without counting suspension.
+
+
+### Topic administration
+
+The Topics section of /admin.html lists repository topic manifests, latest
+published ZIP manifests, catalog entries, standalone renderer drafts and
+built-in topics. scripts/build-topic-inventory.mjs generates the private
+backend/generated/topic-inventory.json before builds when Git is present.
+Source dates come from Git history, never container file modification times.
+Deployments without .git use the committed inventory; regenerate and commit it
+whenever topic sources/packages change. Unknown dates are shown as unknown.
+Built-ins are read-only here because their installation is controlled by app code.
+
+GET /api/admin/topics returns the full registry. POST /api/admin/topics/:id
+changes listed, status (release/beta/individual/hidden), and access (paid/free).
+Overrides and audit history live on the persistent SQLite volume and survive
+redeployments. All catalog reads, grants, claims, download authorization and
+public catalog responses use the effective catalog. Conflicting revision writes
+return 409. Missing packages cannot be made visible to users. Removing from the
+catalog does not erase repository source, cached installed copies or lesson
+history; new downloads/claims become unavailable. The registry retains the topic
+for restoration. Version metadata is read-only; uploading/building new packages
+continues through the repository. Source and catalog versions are shown separately.

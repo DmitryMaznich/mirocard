@@ -1,3 +1,4 @@
+import { createAdminTopics } from "./admin-topics.js";
 import {
   accountName,
   isOnline,
@@ -17,6 +18,7 @@ const esc = (value) =>
         c
       ],
   );
+const topicManager = createAdminTopics({api,confirmAction,onChanged:async()=>{catalog=(await api("/catalog")).decks??[];catalogLoaded=true;}});
 const FLAGS = [
   ["planner", "Меню и магазин"],
   ["lesson_plan", "План занятий"],
@@ -137,6 +139,7 @@ async function api(path, options = {}) {
 }
 function logout() {
   generation++;
+  topicManager.clear();
   clearInterval(refreshTimer);
   sessionStorage.removeItem("mrc_admin_token");
   token = "";
@@ -350,6 +353,7 @@ function renderAccounts() {
 $("refresh").addEventListener("click", () => {
   loadData();
   if (!$("promos-view").hidden) loadPromos();
+  if (!$("topics-view").hidden) topicManager.load();
 });
 for (const id of [
   "search",
@@ -398,10 +402,10 @@ $("export").addEventListener("click", () => {
 });
 document.querySelectorAll("[data-view]").forEach((button) =>
   button.addEventListener("click", () => {
-    const promos = button.dataset.view === "promos";
-    $("users-view").hidden = promos;
-    $("promos-view").hidden = !promos;
-    $("breadcrumb").textContent = promos ? "Промокоды" : "Пользователи";
+    const view = button.dataset.view;
+    const promos = view === "promos";
+    for (const id of ["users","promos","topics"]) $(id+"-view").hidden = id!==view;
+    $("breadcrumb").textContent = {users:"Пользователи",promos:"Промокоды",topics:"Темы"}[view];
     document.querySelectorAll("[data-view]").forEach((b) => {
       const current = b === button;
       b.classList.toggle("selected", current);
@@ -409,6 +413,7 @@ document.querySelectorAll("[data-view]").forEach((button) =>
       else b.removeAttribute("aria-current");
     });
     if (promos) loadPromos();
+    if (view==="topics") topicManager.load();
   }),
 );
 function openAccount(id) {

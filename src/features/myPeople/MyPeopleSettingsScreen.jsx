@@ -8,6 +8,7 @@ import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { PHOTO_ACCEPT, PhotoPrepareError, squarePhotoDataUrl } from "@/shared/utils/squarePhoto";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { getInitials, pluralRu } from "@/shared/utils/format";
+import StudentDataInfo from "@/features/students/StudentDataInfo";
 
 const TABS = [
   ["family", "Семья и питомцы"],
@@ -525,18 +526,18 @@ export default function MyPeopleSettingsScreen() {
             <div className="mp-section-head mp-section-head--stacked"><div><span className="mp-section-head__eyebrow">Шаг 4 из 5</span><h2>Личные данные</h2><p>Добавьте только те ответы, которые хотите отрабатывать с {student.name}.</p></div></div>
             <div className="mp-personal__grid">
             <div className="mp-form-card mp-form-card--identity">
-              <h3>Имя и фамилия</h3>
+              <h3 className="student-data-heading">Имя и фамилия <StudentDataInfo kind="identity" /></h3>
               <p className="mp-form-card__lead">Фамилия ребёнка и название семьи — разные ответы в задании.</p>
               <label className="mp-field"><span>Фамилия ребёнка</span><input value={profile.familyName} onChange={(event) => updateProfile({ familyName: event.target.value })} /></label>
               <label className="mp-field"><span>Как называть семью</span><input value={profile.familyLabel} onChange={(event) => updateProfile({ familyLabel: event.target.value })} placeholder="Например, семья Петровых" /></label>
               <label className="mp-field">
-                <span>Дата рождения</span>
+                <span className="student-data-heading">Дата рождения <StudentDataInfo kind="age" /></span>
                 <input type="date" value={profile.birthDate} max={new Date().toISOString().slice(0, 10)} onChange={(event) => updateProfile({ birthDate: event.target.value })} />
                 <small className="mp-field__hint">Для вопроса «Сколько тебе лет?» — возраст считается сам.</small>
               </label>
             </div>
             <div className="mp-form-card">
-              <h3>Где я живу</h3>
+              <h3 className="student-data-heading">Где я живу <StudentDataInfo kind="address" /></h3>
               <p className="mp-form-card__lead">Адрес можно оставить выключенным и использовать только со взрослым.</p>
               <label className="mp-field"><span>Город</span><input value={profile.city} onChange={(event) => updateProfile({ city: event.target.value })} /></label>
               <label className="mp-field"><span>Адрес — необязательно</span><input value={profile.address} onChange={(event) => updateProfile({ address: event.target.value })} /></label>

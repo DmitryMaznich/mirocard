@@ -1,4 +1,5 @@
 import { getUsageReport } from "./lib/usage-repository.mjs";
+import { applyCatalogOverrides, topicRegistry, updateTopicCatalog } from "./lib/topic-catalog.mjs";
 import { createServer } from "node:http";
 import { randomUUID, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync, createReadStream, statSync, readdirSync } from "node:fs";
@@ -133,8 +134,11 @@ function requireAdmin(req) {
 
 const DECKS_DIR = path.join(DEPLOY_FRONTEND_DIR, "decks");
 
-function loadCatalog() {
+function loadBaseCatalog() {
   return JSON.parse(readFileSync(path.join(DECKS_DIR, "catalog.json"), "utf8"));
+}
+function loadCatalog() {
+  return applyCatalogOverrides(db, loadBaseCatalog());
 }
 
 function getCatalogEntry(topicId) {
@@ -1840,7 +1844,7 @@ function serveStaticFile(res, absPath) {
   // deployment, even though the server already has the current version.
   // The service worker and manifest must be checked fresh for the same reason.
   const fileName = path.basename(absPath);
-  const isAppShell = ["index.html", "sw.js", "manifest.json", "admin.html", "admin.js", "admin-model.js", "admin.css", "audio-review.html", "audio-review.css", "audio-review-manifest.json", "admin-audio-review.js"].includes(fileName);
+  const isAppShell = ["index.html", "sw.js", "manifest.json", "admin.html", "admin.js", "admin-model.js", "admin-topics.js", "admin.css", "audio-review.html", "audio-review.css", "audio-review-manifest.json", "admin-audio-review.js"].includes(fileName);
   // The catalog stays at one fixed URL while each deck ZIP has a versioned
   // filename. Cache the ZIPs, but always revalidate the catalog so a newly
   // published topic is visible as soon as the deployment switches over.
@@ -2021,6 +2025,16 @@ async function router(req, res) {
     }
     if (method === "GET"    && p === "/admin/accounts")                            return await handleAdminListAccounts(req, res);
     if (method === "GET"    && p === "/admin/catalog")                             return await handleAdminCatalog(req, res);
+    if (p === "/admin/topics" && method === "GET") {
+      requireAdmin(req);
+      return writeJson(res,200,{topics:topicRegistry(db,loadBaseCatalog(),DECKS_DIR)});
+    }
+    { const m=p.match(/^\/admin\/topics\/([^/]+)$/);
+      if(m && method === "POST") {
+        requireAdmin(req);
+        return writeJson(res,200,updateTopicCatalog(db,loadBaseCatalog(),DECKS_DIR,m[1],await readJsonBody(req)));
+      }
+    }
     { const m = p.match(/^\/admin\/accounts\/([^/]+)\/sessions$/);
       if (method === "GET" && m) return await handleAdminGetAccountSessions(req, res, m[1]); }
     if (method === "POST"   && p === "/admin/account/flags")                       return await handleAdminSetFlags(req, res);
