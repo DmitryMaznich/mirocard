@@ -60,8 +60,22 @@ const UNIT_WORDS = ["ноль", "один", "два", "три", "четыре", 
 const TEEN_WORDS = ["десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать"];
 const TENS_WORDS = ["", "десять", "двадцать", "тридцать", "сорок", "пятьдесят", "шестьдесят", "семьдесят", "восемьдесят", "девяносто"];
 
-// 0..99 spelled out, for the spoken model «2 десятка и 7 единиц — двадцать семь».
+const HUNDRED_WORDS = ["", "сто", "двести", "триста", "четыреста", "пятьсот", "шестьсот", "семьсот", "восемьсот", "девятьсот"];
+
+export function pluralHundreds(n) {
+  if (n % 100 >= 11 && n % 100 <= 14) return "сотен";
+  const mod10 = n % 10;
+  if (mod10 === 1) return "сотня";
+  if (mod10 >= 2 && mod10 <= 4) return "сотни";
+  return "сотен";
+}
+
+// 0..999 spelled out, for the spoken model «2 десятка и 7 единиц — двадцать семь».
 export function numberWords(n) {
+  if (n >= 100) {
+    const rest = n % 100;
+    return rest ? `${HUNDRED_WORDS[Math.floor(n / 100)]} ${numberWords(rest)}` : HUNDRED_WORDS[Math.floor(n / 100)];
+  }
   if (n < 10) return UNIT_WORDS[n];
   if (n < 20) return TEEN_WORDS[n - 10];
   const tens = Math.floor(n / 10), ones = n % 10;
@@ -71,6 +85,12 @@ export function numberWords(n) {
 // The one speech pattern every place-value answer ends with. Zero ones are
 // named on purpose («3 десятка и 0 единиц») — that's the placeholder zero.
 export function placeValuePhrase(n) {
+  if (n >= 100) {
+    // Zero places are named too («3 сотни, 0 десятков и 5 единиц») — the
+    // placeholder zero is exactly what 305 is about.
+    const h = Math.floor(n / 100), t = Math.floor(n / 10) % 10, o = n % 10;
+    return `${h} ${pluralHundreds(h)}, ${t} ${pluralTens(t)} и ${o} ${pluralOnes(o)} — ${numberWords(n)}`;
+  }
   const tens = Math.floor(n / 10), ones = n % 10;
   const parts = tens ? `${tens} ${pluralTens(tens)} и ${ones} ${pluralOnes(ones)}` : `${ones} ${pluralOnes(ones)}`;
   return `${parts} — ${numberWords(n)}`;

@@ -80,6 +80,33 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const exchangeCards       = allCards.filter(c => c.params?.mode === "exchange_ten");
   const groupTenCards       = allCards.filter(c => c.params?.mode === "group_ten");
 
+  // «Числа: до 1000» — three-digit numbers for «Какое это число?» and «Собери
+  // число» (HundredsTasks.jsx). On coins at most 5 hundreds (up to 599: more
+  // plates don't fit a phone). A quarter have no tens and some no ones — the
+  // placeholder zero (305, 340) is the point.
+  if ((mode === "build_number" || mode === "identify_number") && params.range === "to1000") {
+    const cards = mode === "build_number" ? buildNumberCards : identifyNumberCards;
+    if (!cards.length) return [];
+    const view = ["scheme", "table", "number"].includes(params.view) && !(mode === "identify_number" && params.view === "number") ? params.view : "coins";
+    const maxHundreds = view === "coins" ? 5 : 9;
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      const hundreds = randomInt(1, maxHundreds);
+      const r = Math.random();
+      const tens = r < 0.25 ? 0 : randomInt(1, 9);
+      const ones = r >= 0.25 && r < 0.4 ? 0 : randomInt(r < 0.25 ? 1 : 0, 9);
+      const number = hundreds * 100 + tens * 10 + ones;
+      const counts = { hundreds, tens, ones };
+      const prompt = params.prompt ?? "digits";
+      tasks.push({
+        type: mode, cardId: cards[i % cards.length].id, conceptId: cards[i % cards.length].conceptId, number,
+        ...(mode === "build_number" ? { target: counts, prompt: prompt === "mix" ? (Math.random() < 0.5 ? "digits" : "words") : prompt === "words" ? "words" : "digits" } : { model: counts, layout: "places" }),
+        view, supportMode: params.supportMode ?? "learning",
+      });
+    }
+    return tasks;
+  }
+
   if (mode === "build_number") {
     if (!buildNumberCards.length) return [];
     const maxOnes = Number(params.maxOnes ?? 9);

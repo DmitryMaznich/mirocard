@@ -25,3 +25,22 @@
 .cb-dot { width: 54%; height: 54%; border-radius: 50%; background: #2563eb; }
 .cb-stick-cell { width: var(--coin-size, 30px); height: calc(var(--coin-size, 30px) * 2.1); display: grid; place-items: center; flex-shrink: 0; }
 .cb-stick { width: max(8px, calc(var(--coin-size, 30px) * .28)); height: 92%; border-radius: 999px; background: #d97706; }
+
+/* Hundreds (HundredsTasks.jsx). A plate of ten stacks at half the coin size;
+   the «Схема» hundred is a green square, the hundreds colour. */
+.cb-plate {
+  --coin-size: calc(var(--plate-coin, 14px));
+  display: grid;
+  grid-template-columns: repeat(5, var(--coin-size));
+  column-gap: calc(var(--coin-size) * 0.12);
+  row-gap: 2px;
+  padding: 4px 6px 7px;
+  border-radius: 14px;
+  background: radial-gradient(ellipse at 50% 40%, #fff, #e8eef5);
+  border: 2px solid #b6c3d1;
+  box-shadow: 0 3px 0 #b6c3d1;
+  flex-shrink: 0;
+}
+.cb-plate .cb-ten-stack { padding-top: 0; }
+.cb-square-cell { width: calc(var(--coin-size, 30px) * 2.1); height: calc(var(--coin-size, 30px) * 2.1); display: grid; place-items: center; flex-shrink: 0; }
+.cb-square { width: 88%; height: 88%; border-radius: 6px; background: #16a34a; }

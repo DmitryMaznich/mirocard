@@ -61,7 +61,8 @@ button.id-item {
 /* «Схема» + «Обучение»: the bridge to digits. The picture fades, the tens and
    ones digits fly into the number and keep their place colour there. */
 .id-board--faded .cb-stick,
-.id-board--faded .cb-dot { opacity: 0.25; transition: opacity 0.5s ease; }
+.id-board--faded .cb-dot,
+.id-board--faded .cb-square { opacity: 0.25; transition: opacity 0.5s ease; }
 /* Same colours as the digits in the tens / ones fields they came from. */
 .id-dig--tens { color: #b45309; }
 .id-dig--ones { color: #1d4ed8; }

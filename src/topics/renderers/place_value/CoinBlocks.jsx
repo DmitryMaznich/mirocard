@@ -29,6 +29,18 @@ export function SchemeTen() {
   return <div className="cb-stick-cell"><div className="cb-stick" /></div>;
 }
 
+// A hundred: a plate holding ten stacks, two rows of five like the ten-frame —
+// visibly ten tens, still countable. Its stacks are drawn at half the coin
+// size (--coin-size is re-set inside the plate).
+export function HundredPlate() {
+  return <div className="cb-plate">{Array.from({ length: 10 }, (_, i) => <TenStack key={i} />)}</div>;
+}
+
+// «Схема»: a hundred is a square (the school notation: dot, stick, square).
+export function SchemeHundred() {
+  return <div className="cb-square-cell"><div className="cb-square" /></div>;
+}
+
 export function modelPieces(view) {
-  return view === "scheme" ? { One: SchemeOne, Ten: SchemeTen } : { One: Coin, Ten: TenStack };
+  return view === "scheme" ? { One: SchemeOne, Ten: SchemeTen, Hundred: SchemeHundred } : { One: Coin, Ten: TenStack, Hundred: HundredPlate };
 }

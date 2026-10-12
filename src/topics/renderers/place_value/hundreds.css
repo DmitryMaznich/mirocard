@@ -1,0 +1,48 @@
+/* Three-digit numbers (HundredsTasks.jsx): three columns — hundreds (plates /
+   squares), tens (stacks / sticks), ones (coins / dots in blocks of ten). */
+
+.hd-board { justify-items: center; row-gap: 12px; width: min(100%, 720px); }
+
+.hd-bench {
+  width: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: space-evenly;
+  align-items: end;
+  column-gap: 8px;
+  row-gap: 10px;
+  padding: 12px 8px 14px;
+}
+.hd-headcell, .hd-fieldcell { justify-self: center; align-self: start; }
+.hd-fieldcell { align-self: end; }
+
+.hd-zone {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: flex-end;
+  align-items: flex-end;
+  gap: calc(var(--coin-size) * 0.3);
+  min-height: calc(var(--coin-size) * 2.2);
+}
+/* Two plates per row (five fit in three rows), three tens per row on phones. */
+/* Explicit widths: inside an auto-sized grid column a wrapping flex box would
+   shrink to one item per row. Plate ≈ 5.6 plate-coins + 16px. */
+.hd-zone--hundreds { width: calc(var(--plate-coin) * 11.2 + 32px + var(--coin-size) * 0.3); }
+.hd-scheme .hd-zone--hundreds { width: calc(var(--coin-size) * 2.1 * 3 + var(--coin-size) * 0.6); }
+.hd-zone--tens { width: calc(var(--coin-size) * 3 + var(--coin-size) * 0.6); }
+.sg-screen--tablet .hd-zone--tens,
+.sg-screen--wide .hd-zone--tens { width: calc(var(--coin-size) * 5 + var(--coin-size) * 1.2); }
+.hd-zone--ones { flex-direction: column; flex-wrap: nowrap; align-items: center; min-width: calc(var(--coin-size) * 5 + var(--coin-size) * 0.88); }
+
+.hd-piece { display: inline-flex; padding: 0; border: 0; background: none; cursor: default; }
+button.hd-piece { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+.hd-table { grid-template-columns: repeat(3, 1fr); }
+.hd-table .tb-digit { font-size: clamp(48px, 13vw, 88px); }
+.hd-support--hundreds, .hd-support--tens { --coin-size: 16px; }
+
+.hd-take { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.hd-take .bn-take .cb-plate { --plate-coin: 9px; }
+.hd-actions { display: flex; gap: 12px; align-items: center; justify-content: center; height: auto; }

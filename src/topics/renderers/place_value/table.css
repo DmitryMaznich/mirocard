@@ -135,3 +135,5 @@
 .nl-choices { display: flex; gap: 12px; justify-content: center; }
 .nl-choice { min-width: 88px; font-size: 32px; font-weight: 900; }
 .nl-choice--wrong { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
+.tb-col--hundreds { background: #f0fdf4; }
+.tb-digit--hundreds { color: #15803d; }

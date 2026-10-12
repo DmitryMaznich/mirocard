@@ -399,3 +399,9 @@
 .sg-screen--wide .sg-title { grid-area: title; }
 .sg-screen--wide .sg-board { grid-area: board; }
 .sg-screen--wide .sg-answer { grid-area: answer; }
+
+/* Hundreds — green, the third place colour (HundredsTasks.jsx). */
+.sg-head--hundreds { background: #16a34a; }
+.fp-field--hundreds { color: #166534; }
+.fp-field--hundreds .fp-value { color: #15803d; }
+.fp-field--ok.fp-field--hundreds .fp-value { border-color: #22c55e; background: #f0fdf4; }
