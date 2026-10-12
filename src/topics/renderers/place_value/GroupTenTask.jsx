@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { Coin, TenStack } from "./CoinBlocks.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
-import { numberWords } from "./placeValueLabels.js";
+import { numberWords, pluralTens } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import TenFrame from "./TenFrame.jsx";
 import "./place_value.css";
@@ -208,7 +208,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       // The pile is the button, so it can't also take coins back: the coins
       // return to the heap and the child counts ten again.
       change((m) => ({ ...m, heap: [...m.heap, ...m.frame], frame: [] }));
-      mistake("В стопке должно быть ровно десять монет. Посчитай ещё раз.");
+      mistake("В десятке должно быть ровно десять монет. Посчитай ещё раз.");
       return;
     }
     const stackId = `s${model.serial}`;
@@ -237,9 +237,9 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       return true;
     }
     const messages = {
-      tens: "Посчитай стопки ещё раз — каждая стопка это десяток.",
-      ones: "Единицы — монеты, которые не сложились в стопку. Посчитай их ещё раз.",
-      total: `Стопок ${tens} — это ${numberWords(tens * 10)}. И ещё ${ones} ${ones === 1 ? "монета" : ones >= 2 && ones <= 4 ? "монеты" : "монет"}.`,
+      tens: "Посчитай десятки ещё раз.",
+      ones: "Единицы — монеты, которые не сложились в десяток. Посчитай их ещё раз.",
+      total: `${tens} ${pluralTens(tens)} — это ${numberWords(tens * 10)}. И ещё ${ones} ${ones === 1 ? "монета" : ones >= 2 && ones <= 4 ? "монеты" : "монет"}.`,
     };
     setHint(null);
     setNote(messages[key]);
@@ -263,7 +263,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   const hintText = {
     start: "Перенеси монету в рамку — нажми на неё или потяни.",
     more: "Перенеси в рамку все оставшиеся монеты.",
-    full: "В рамке десять монет — нажми на рамку, и они сложатся в стопку.",
+    full: "В рамке десять монет — нажми на рамку, и они сложатся в десяток.",
   }[hint];
   const stackList = model.tens.map((id) => <div key={id} data-stack-id={id} className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>
     <TenStack />

@@ -2,7 +2,7 @@ import { Coin } from "./CoinBlocks.jsx";
 
 // «Собери десяток»: the ten-frame (two rows of five) both coin modes collect
 // a ten in. Ten is visible at a glance and easy to recount; the child closes
-// it into a stack themselves («Сложить в стопку»), the app never does.
+// it into a stack themselves («Сложить десяток»), the app never does.
 // Coins carry data-coin-id so useCoinExchange can fly them into the new stack.
 // With `slots={false}` («Проверка» without the frame) the coins pile up as a
 // growing stack with no places and no counter — the child counts ten alone;
@@ -28,16 +28,16 @@ export default function TenFrame({ coinIds, pendingIds = [], onReturn, onPileTap
     {!tapToClose && <h3>{title}</h3>}
     {slots
       ? ready
-        ? <button type="button" className="px-tf px-tf--full px-tf--ready" aria-label="Сложить в стопку" disabled={disabled} onClick={onClose}>{cells}</button>
+        ? <button type="button" className="px-tf px-tf--full px-tf--ready" aria-label="Сложить десяток" disabled={disabled} onClick={onClose}>{cells}</button>
         : <div className={`px-tf${count === 10 && closable ? " px-tf--full" : ""}`}>{cells}</div>
-      : <button type="button" className="px-tf-pile" aria-label={tapToClose ? "Сложить в стопку" : "Собирается стопка — нажми, чтобы убрать монету"}
+      : <button type="button" className="px-tf-pile" aria-label={tapToClose ? "Сложить десяток" : "Собирается десяток — нажми, чтобы убрать монету"}
         disabled={disabled || !count} onClick={tapToClose ? onClose : onPileTap}>
         <span className="cb-ten-stack">{coinIds.map((id) => <span key={id} className="cb-stack-coin" />)}</span>
       </button>}
     {!tapToClose && <div className="px-tf-foot">
       {slots && <span className={`px-tf-count${count === 10 ? " px-tf-count--full" : ""}`}>{count} из 10</span>}
       <button type="button" className={`px-close${count === 10 || !slots ? " px-close--ready" : ""}`}
-        disabled={disabled || !full} onClick={onClose}>Сложить в стопку</button>
+        disabled={disabled || !full} onClick={onClose}>Сложить десяток</button>
     </div>}
   </div>;
 }

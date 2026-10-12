@@ -44,7 +44,7 @@ describe("IdentifyNumberTask", () => {
     h.mount(IdentifyNumberTask, task(), { onMistake });
     answer(3); answer(4);
     answer(43);
-    expect(note()).toContain("их пишут первыми");
+    expect(note()).toContain("Десятки пишут первыми");
     expect(value("Какое это число?")).toBe("43");
     h.click("Стереть цифру"); h.click("Стереть цифру");
     answer(304);
@@ -101,7 +101,7 @@ describe("IdentifyNumberTask", () => {
     h.mount(IdentifyNumberTask, task(), { onMistake });
     h.click("5");
     expect(onMistake).toHaveBeenCalledTimes(1);
-    expect(note()).toContain("Посчитай стопки");
+    expect(note()).toContain("Посчитай десятки");
     expect(h.container.querySelector(".fp-field--wrong")).not.toBeNull();
     act(() => vi.advanceTimersByTime(800));
     expect(value("Десятки")).toBe("");

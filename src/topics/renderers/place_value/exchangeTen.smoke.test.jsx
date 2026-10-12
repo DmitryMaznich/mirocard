@@ -63,7 +63,7 @@ describe("ExchangeTenTask — «Плюс и минус через десяток
     expect(frameCoins()).toBe(10);
     // The frame is full: the tray waits, the frame is the button.
     expect(h.button("Монета из лотка").disabled).toBe(true);
-    h.click("Сложить в стопку"); h.flush();
+    h.click("Сложить десяток"); h.flush();
     expect(stacks()).toBe(4);
     expect(frameCoins()).toBe(0);
     h.click("Монета из лотка"); h.click("Монета из лотка");
@@ -79,7 +79,7 @@ describe("ExchangeTenTask — «Плюс и минус через десяток
     h.mount(ExchangeTenTask, { ...plus, k: 2, result: 40 });
     h.click("Монета из лотка"); h.click("Монета из лотка");
     expect(count(".sg-reveal.sg-show")).toBe(0);
-    h.click("Сложить в стопку"); h.flush();
+    h.click("Сложить десяток"); h.flush();
     expect(count(".sg-reveal.sg-show")).toBe(2);
   });
 
@@ -109,7 +109,7 @@ describe("ExchangeTenTask — «Плюс и минус через десяток
     h.click("Десяток из лотка"); h.click("Десяток из лотка");
     expect(count(".sg-stacks .cb-ten-stack")).toBe(5);
     h.click("Монета из лотка"); h.click("Монета из лотка");
-    h.click("Сложить в стопку"); h.flush();
+    h.click("Сложить десяток"); h.flush();
     expect(count(".sg-stacks .cb-ten-stack")).toBe(6);
     h.click("Монета из лотка"); h.click("Монета из лотка");
     expect(frameCoins()).toBe(2);
@@ -144,7 +144,7 @@ describe("ExchangeTenTask — «Плюс и минус через десяток
     expect(h.container.querySelector(".sg-status-hint").textContent).toContain("Убери монету");
     h.click("Монета в рамке 2"); h.click("Монета в рамке 1");
     act(() => vi.advanceTimersByTime(5000));
-    expect(h.container.querySelector(".sg-status-hint").textContent).toContain("Нажми на стопку");
+    expect(h.container.querySelector(".sg-status-hint").textContent).toContain("Нажми на десяток");
     h.unmount();
     h.mount(ExchangeTenTask, { ...minus, supportMode: "independent" });
     act(() => vi.advanceTimersByTime(20000));

@@ -184,19 +184,19 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     if (!typed.digits || phase !== "answer") return;
     if (Number(typed.digits) === task.result) { typed.reset(); setPhase("done"); setNote(""); return; }
     typed.fail();
-    setNote(teaching ? "Посчитай стопки и монеты в рамке ещё раз." : "Проверь число ещё раз.");
+    setNote(teaching ? "Посчитай десятки и монеты в рамке ещё раз." : "Проверь число ещё раз.");
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
   }
 
   const answering = phase !== "act";
   const show = answering ? " sg-show" : "";
   const hintText = {
-    dropTen: "Сначала десятки: нажми на стопку — она уйдёт в лоток.",
-    bringTen: "Сначала десятки: нажми на стопку в лотке — она встанет к десяткам.",
+    dropTen: "Сначала десятки: нажми на десяток — он уйдёт в лоток.",
+    bringTen: "Сначала десятки: нажми на десяток в лотке — он встанет к десяткам.",
     take: "Убери монету из рамки — нажми на неё.",
-    break: "В рамке пусто, а убрать нужно ещё. Нажми на стопку — она рассыпется в рамку.",
+    break: "В рамке пусто, а убрать нужно ещё. Нажми на десяток — он рассыпется в рамку.",
     bring: "Перенеси монету в рамку — нажми на неё.",
-    full: "Рамка полная — нажми на неё, и монеты станут стопкой.",
+    full: "Рамка полная — нажми на неё, и монеты станут десятком.",
   }[hint];
   const status = done ? null : note ? <span className="sg-status-note">{note}</span>
     : hintText ? <span className="sg-status-hint">{hintText}</span> : null;

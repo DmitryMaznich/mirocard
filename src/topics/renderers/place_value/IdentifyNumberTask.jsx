@@ -120,12 +120,12 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   function totalHint(guess) {
     if (!teaching) return "Проверь число ещё раз.";
     if (layout === "over9" && String(guess) === `${tens}${ones}`) return "Единиц не может быть больше девяти. Что можно сложить из десяти монет?";
-    if (tens !== ones && ones <= 9 && guess === ones * 10 + tens) return "Сколько стопок? Стопки — это десятки, их пишут первыми.";
+    if (tens !== ones && ones <= 9 && guess === ones * 10 + tens) return "Сколько десятков? Десятки пишут первыми.";
     if (tens && ones && ones <= 9 && guess === tens * 100 + ones) {
       const words = numberWords(task.number);
       return `${words[0].toUpperCase()}${words.slice(1)} — это ${tens} ${pluralTens(tens)} и ${ones} ${pluralOnes(ones)}. Сколько цифр нужно?`;
     }
-    return "Посчитай стопки и отдельные монеты ещё раз.";
+    return "Посчитай десятки и отдельные монеты ещё раз.";
   }
   function answer(guess) {
     const q = questions[step];
@@ -136,7 +136,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
       if (step === questions.length - 1) setSolved(true); else setStep(step + 1);
       return true;
     }
-    setNote(q.key === "tens" ? "Посчитай стопки — каждая стопка это десяток."
+    setNote(q.key === "tens" ? "Посчитай десятки."
       : q.key === "ones" ? "Посчитай отдельные монеты." : totalHint(guess));
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
     return false;
@@ -176,7 +176,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
 
   const status = solved ? null
     : note ? <span className="sg-status-note">{note}</span>
-      : countHint ? <span className="sg-status-hint">Можно отмечать посчитанное — нажимай на стопки и монеты.</span> : null;
+      : countHint ? <span className="sg-status-hint">Можно отмечать посчитанное — нажимай на десятки и монеты.</span> : null;
 
   return <div ref={screenRef} className={`pv-screen sg-screen sg-screen--${mode} id-screen`}
     style={{ "--coin-size": `${coinSize}px`, "--sg-stack-cols": stackCols, "--sg-stack-rows": stackRows, "--id-cols": cols, "--id-blocks": blocks, "--sg-answer-w": `${WIDE_ANSWER}px` }}>

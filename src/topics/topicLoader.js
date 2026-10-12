@@ -1377,7 +1377,7 @@ const DEFAULT_MODES = {
       type: "build_number",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Собери число", instruction: "Положи нужное число стопок и монет", icon: "media/icons/place_value_build.svg" },
+      ui: { title: "Собери число", instruction: "Положи нужное число десятков и монет", icon: "media/icons/place_value_build.svg" },
       hideConceptPicker: true,
       params: {
         prompt: {
