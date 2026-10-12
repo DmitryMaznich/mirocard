@@ -5,10 +5,10 @@ import { getDb, kv } from "@/core/db";
 import { completeLogin } from "./completeLogin";
 import { hasActiveEntitlement } from "@/features/billing/entitlement";
 
-function mockServer({ students = [{ id: "s-server", name: "С сервера" }], subscription = null } = {}) {
+function mockServer({ students = [{ id: "s-server", name: "С сервера" }], subscription = null, builtinVisibility = {}, erasedStudentIds = [] } = {}) {
   vi.spyOn(apiModule.api, "get").mockImplementation(async (path) => {
     if (path === "/account/bootstrap") {
-      return { students, ownedTopics: [], studentTopicLinks: [], conceptProgress: [], settings: {}, subscription };
+      return { students, ownedTopics: [], studentTopicLinks: [], conceptProgress: [], settings: {}, subscription, builtinVisibility, erasedStudentIds };
     }
     if (path.startsWith("/sessions")) return [];
     throw new Error(`unexpected GET ${path}`);
@@ -69,4 +69,13 @@ describe("completeLogin", () => {
     const sync = post.mock.calls.find(([p]) => p === "/sync");
     expect(sync[1].operations.some((op) => op.type === "student.upsert" && op.data.id === "s-offline")).toBe(true);
   });
+  it("login forwards admin visibility and erased-student policy to memory and offline storage",async()=>{
+    mockServer({builtinVisibility:{streak_tracker:false},erasedStudentIds:["s-gone"],students:[{id:"s-gone"},{id:"s-keep"}]});
+    await completeLogin({account:{id:"policy-account"},token:"policy-token"});
+    expect(useAppStore.getState().topicRecords.some(t=>t.meta.id==="streak_tracker")).toBe(false);
+    expect(useAppStore.getState().students.map(s=>s.id)).toEqual(["s-keep"]);
+    expect(await kv.get(db,"builtinVisibility")).toEqual({streak_tracker:false});
+    expect((await kv.get(db,"students")).map(s=>s.id)).toEqual(["s-keep"]);
+  });
+
 });

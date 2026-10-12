@@ -329,8 +329,8 @@ export function applyBootstrapToStore(raw) {
 
   useAppStore.setState((state) => ({
     ...state,
-    token: bootstrap.token,
-    account: bootstrap.account,
+    token: "token" in raw ? bootstrap.token : state.token,
+    account: "account" in raw ? bootstrap.account : state.account,
     settings: (() => {
       const merged = { ...state.settings, ...(bootstrap.settings ?? {}) };
       // Server null must not overwrite a locally-held PIN that hasn't synced yet.

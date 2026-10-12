@@ -305,7 +305,9 @@ export default function App() {
               const payload = {
                 token: bootstrap.token,
                 account: serverBootstrap.account,
-                subscription: serverBootstrap.subscription,
+                builtinVisibility: serverBootstrap.builtinVisibility ?? {},
+          erasedStudentIds: serverBootstrap.erasedStudentIds ?? [],
+          subscription: serverBootstrap.subscription,
                 settings: serverBootstrap.settings,
                 students: merged,
                 ownedTopics: serverBootstrap.ownedTopics,
@@ -358,6 +360,8 @@ export default function App() {
         const merged = mergeStudents(localStudents, serverBootstrap.students);
         const payload = {
           account: serverBootstrap.account,
+          builtinVisibility: serverBootstrap.builtinVisibility ?? {},
+          erasedStudentIds: serverBootstrap.erasedStudentIds ?? [],
           subscription: serverBootstrap.subscription,
           settings: serverBootstrap.settings,
           students: merged,
