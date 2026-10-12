@@ -822,6 +822,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     });
     expect(buildNumber.ui.instruction).toBe("Положи нужное число десятков и монет");
     expect(buildNumber.params.prompt.default).toBe("digits");
+    expect(buildNumber.params.view).toMatchObject({ type: "enum", values: ["coins", "scheme"], default: "coins" });
     // Dropped in the rework: building tens from single coins moved to «Сложи по
     // десять», and the extra composition question was removed.
     expect(buildNumber.params).not.toHaveProperty("buildApproach");

@@ -18,3 +18,10 @@
 .cb-stack-badge { position: absolute; top: -4px; right: -8px; background: #8a5a1c; color: #fff6da; border-radius: 50%; padding: 4px; }
 .cb-coin-fly-ghost { position: fixed; pointer-events: none; z-index: 500; transform: translate(-50%, -50%); animation: none; }
 .cm-drag-object { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; filter: drop-shadow(0 5px 5px #63451433); pointer-events: none; }
+
+/* «Схема»: ten = stick, one = dot, coloured like the zone heads (tens orange,
+   ones blue) so the place colour carries over to the digits. */
+.cb-dot-cell { width: var(--coin-size, 30px); height: var(--coin-size, 30px); display: grid; place-items: center; flex-shrink: 0; }
+.cb-dot { width: 54%; height: 54%; border-radius: 50%; background: #2563eb; }
+.cb-stick-cell { width: var(--coin-size, 30px); height: calc(var(--coin-size, 30px) * 2.1); display: grid; place-items: center; flex-shrink: 0; }
+.cb-stick { width: max(8px, calc(var(--coin-size, 30px) * .28)); height: 92%; border-radius: 999px; background: #d97706; }

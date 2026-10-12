@@ -17,3 +17,18 @@ export function TenStack({ numeric = false }) {
     </div>
   );
 }
+
+// «Схема» — the step from coins to digits (docs/place-value-methodology.md,
+// раздел 8): a ten is a stick, a one is a dot. Same cell sizes as the stack and
+// the coin, so every layout built for coins holds unchanged.
+export function SchemeOne() {
+  return <div className="cb-dot-cell"><div className="cb-dot" /></div>;
+}
+
+export function SchemeTen() {
+  return <div className="cb-stick-cell"><div className="cb-stick" /></div>;
+}
+
+export function modelPieces(view) {
+  return view === "scheme" ? { One: SchemeOne, Ten: SchemeTen } : { One: Coin, Ten: TenStack };
+}

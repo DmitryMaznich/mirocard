@@ -1328,6 +1328,19 @@ const DEFAULT_MODES = {
       ui: { title: "Какое это число?", instruction: "Посмотри на десятки и единицы и введи число", icon: "media/icons/place_value_identify.svg" },
       hideConceptPicker: true,
       params: {
+        view: {
+          type: "enum",
+          values: ["coins", "scheme"],
+          labels: { ru: { coins: "Монеты", scheme: "Схема" } },
+          default: "coins",
+          label: { ru: "Картинка" },
+          info: {
+            ru: {
+              text: "«Монеты» — десяток это стопка из десяти монет, единица — монета. «Схема» — десяток это палочка, единица — точка: картинка остаётся, но по одной её не пересчитать, ребёнок должен помнить, что палочка — это десять. Шаг от монет к цифрам.",
+              tip: "Переходите на схему, когда ребёнок уверенно работает с монетами в проверке. Если на схеме много ошибок — вернитесь к монетам.",
+            },
+          },
+        },
         numberSet: { type: "enum", values: ["two_digit", "round", "single", "mixed"], labels: { ru: { two_digit: "Десятки и единицы", round: "Круглые десятки", single: "Только единицы", mixed: "Смешанный набор" } }, default: "two_digit", label: { ru: "Набор чисел" } },
         layout: {
           type: "enum",
@@ -1380,6 +1393,19 @@ const DEFAULT_MODES = {
       ui: { title: "Собери число", instruction: "Положи нужное число десятков и монет", icon: "media/icons/place_value_build.svg" },
       hideConceptPicker: true,
       params: {
+        view: {
+          type: "enum",
+          values: ["coins", "scheme"],
+          labels: { ru: { coins: "Монеты", scheme: "Схема" } },
+          default: "coins",
+          label: { ru: "Картинка" },
+          info: {
+            ru: {
+              text: "«Монеты» — десяток это стопка из десяти монет, единица — монета. «Схема» — десяток это палочка, единица — точка: картинка остаётся, но по одной её не пересчитать, ребёнок должен помнить, что палочка — это десять. Шаг от монет к цифрам.",
+              tip: "Переходите на схему, когда ребёнок уверенно работает с монетами в проверке. Если на схеме много ошибок — вернитесь к монетам.",
+            },
+          },
+        },
         prompt: {
           type: "enum",
           values: ["digits", "words", "mix"],

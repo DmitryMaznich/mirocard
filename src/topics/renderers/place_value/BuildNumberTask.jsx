@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
-import { Coin, TenStack } from "./CoinBlocks.jsx";
+import { modelPieces } from "./CoinBlocks.jsx";
 import { placeValuePhrase, numberWords, pluralTens } from "./placeValueLabels.js";
 import "./place_value.css";
 import "./coins.css";
@@ -22,6 +22,8 @@ const MAX_ONES = 19;
 export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const teaching = task.supportMode !== "independent";
   const words = task.prompt === "words";
+  const scheme = task.view === "scheme";
+  const { One, Ten } = modelPieces(task.view);
   const [tens, setTens] = useState(0);
   const [ones, setOnes] = useState(0);
   const [solved, setSolved] = useState(false);
@@ -60,7 +62,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
       if (tens > 0 && tens !== target.tens && tens === target.ones && ones === target.tens) {
         message = `Ты положил ${tens} ${pluralTens(tens)} — это ${numberWords(tens * 10)}. А нужно ${numberWords(task.number)}.`;
       } else if (ones > 9) {
-        message = "Отдельных монет больше девяти. Десять монет — это сколько десятков?";
+        message = scheme ? "Отдельных точек больше девяти. Десять точек — это сколько десятков?" : "Отдельных монет больше девяти. Десять монет — это сколько десятков?";
       } else if (tens !== target.tens) {
         message = "Проверь десятки.";
       } else {
@@ -85,7 +87,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
           <h3><span className="px-chip" />Десятки</h3>
           <div className="px-stacks">
             {Array.from({ length: tens }, (_, i) => <button type="button" key={i} className="px-stack bn-placed" aria-label={`Убрать десяток ${i + 1}`}
-              disabled={solved} onClick={() => edit(() => setTens((t) => t - 1))}><TenStack /></button>)}
+              disabled={solved} onClick={() => edit(() => setTens((t) => t - 1))}><Ten /></button>)}
           </div>
         </section>
         <section className="px-zone px-zone--ones">
@@ -93,7 +95,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
           <div className="px-coins">
             {Array.from({ length: blocks }, (_, b) => <div key={b} className="px-coin-block">
               {Array.from({ length: Math.min(10, ones - b * 10) }, (_, j) => <button type="button" key={j} className="px-coin bn-placed"
-                aria-label={`Убрать монету ${b * 10 + j + 1}`} disabled={solved} onClick={() => edit(() => setOnes((o) => o - 1))}><Coin /></button>)}
+                aria-label={`Убрать ${scheme ? "точку" : "монету"} ${b * 10 + j + 1}`} disabled={solved} onClick={() => edit(() => setOnes((o) => o - 1))}><One /></button>)}
             </div>)}
           </div>
         </section>
@@ -103,12 +105,12 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
           <h3>Возьми</h3>
           <div className="bn-source-row">
             <button type="button" className="bn-take" aria-label="Взять десяток" disabled={tens >= MAX_TENS}
-              onClick={() => edit(() => setTens((t) => Math.min(MAX_TENS, t + 1)))}><TenStack /><span>1 десяток</span></button>
-            <button type="button" className="bn-take" aria-label="Взять монету" disabled={ones >= MAX_ONES}
-              onClick={() => edit(() => setOnes((o) => Math.min(MAX_ONES, o + 1)))}><Coin /><span>1 монету</span></button>
+              onClick={() => edit(() => setTens((t) => Math.min(MAX_TENS, t + 1)))}><Ten />{!scheme && <span>1 десяток</span>}</button>
+            <button type="button" className="bn-take" aria-label={scheme ? "Взять точку" : "Взять монету"} disabled={ones >= MAX_ONES}
+              onClick={() => edit(() => setOnes((o) => Math.min(MAX_ONES, o + 1)))}><One />{!scheme && <span>1 монету</span>}</button>
           </div>
         </div>
-        <p className="bn-caption">Нажми на десяток или монету в зоне, чтобы убрать</p>
+        <p className="bn-caption">{`Нажми на десяток или ${scheme ? "точку" : "монету"} в зоне, чтобы убрать`}</p>
       </aside>}
     </div>
     <div className="px-bottom">

@@ -115,6 +115,14 @@ describe("IdentifyNumberTask", () => {
     answer(7);
     expect(h.button("Далее →")).toBeDefined();
   });
+  it("«Схема»: sticks and dots, its own title, «Отдельных точек» for more than nine", () => {
+    h.mount(IdentifyNumberTask, task({ view: "scheme", layout: "over9", model: { tens: 2, ones: 14 } }));
+    expect(count(".sg-stacks .cb-stick")).toBe(2);
+    expect(count(".id-ones .cb-dot")).toBe(14);
+    expect(count(".cb-coin, .cb-ten-stack")).toBe(0);
+    expect(h.container.querySelector(".sg-title").textContent).toBe("Какое число на схеме?");
+    expect(h.container.querySelector('output[aria-label="Отдельных точек"]')).not.toBeNull();
+  });
 });
 
 describe("mixedLayout", () => {

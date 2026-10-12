@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
-import { Coin, TenStack } from "./CoinBlocks.jsx";
+import { modelPieces } from "./CoinBlocks.jsx";
 import { numberWords, pluralTens, pluralOnes } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
@@ -53,10 +53,13 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   const teaching = task.supportMode !== "independent";
   const layout = task.layout ?? "places";
   const { tens, ones } = task.model;
+  const scheme = task.view === "scheme";
+  const { One, Ten } = modelPieces(task.view);
+  const loose = scheme ? "точек" : "монет";
   const questions = teaching
     ? [
       { key: "tens", label: "Десятки", tone: "tens", expected: tens },
-      { key: "ones", label: layout === "over9" ? "Отдельных монет" : "Единицы", tone: "ones", expected: ones },
+      { key: "ones", label: layout === "over9" ? `Отдельных ${loose}` : "Единицы", tone: "ones", expected: ones },
       { key: "total", label: "Какое это число?", tone: "total", expected: task.number },
     ]
     : [{ key: "total", label: "Какое это число?", tone: "total", expected: task.number }];
@@ -119,13 +122,13 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   }
   function totalHint(guess) {
     if (!teaching) return "Проверь число ещё раз.";
-    if (layout === "over9" && String(guess) === `${tens}${ones}`) return "Единиц не может быть больше девяти. Что можно сложить из десяти монет?";
+    if (layout === "over9" && String(guess) === `${tens}${ones}`) return `Единиц не может быть больше девяти. Что можно сложить из десяти ${loose}?`;
     if (tens !== ones && ones <= 9 && guess === ones * 10 + tens) return "Сколько десятков? Десятки пишут первыми.";
     if (tens && ones && ones <= 9 && guess === tens * 100 + ones) {
       const words = numberWords(task.number);
       return `${words[0].toUpperCase()}${words.slice(1)} — это ${tens} ${pluralTens(tens)} и ${ones} ${pluralOnes(ones)}. Сколько цифр нужно?`;
     }
-    return "Посчитай десятки и отдельные монеты ещё раз.";
+    return `Посчитай десятки и отдельные ${scheme ? "точки" : "монеты"} ещё раз.`;
   }
   function answer(guess) {
     const q = questions[step];
@@ -137,7 +140,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
       return true;
     }
     setNote(q.key === "tens" ? "Посчитай десятки."
-      : q.key === "ones" ? "Посчитай отдельные монеты." : totalHint(guess));
+      : q.key === "ones" ? `Посчитай отдельные ${scheme ? "точки" : "монеты"}.` : totalHint(guess));
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
     return false;
   }
@@ -152,17 +155,17 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     const i = questions.findIndex((q) => q.key === key);
     if (i < 0) return null;
     const q = questions[i], ok = answers[q.key] !== undefined, active = !solved && i === step;
-    return <AnswerField label={q.label} tone={q.tone} big={big} bare={!big && q.label !== "Отдельных монет"} ok={ok} active={active}
+    return <AnswerField label={q.label} tone={q.tone} big={big} bare={!big && !(q.key === "ones" && layout === "over9")} ok={ok} active={active}
       wrong={typed.wrong} value={ok ? answers[q.key] : active ? typed.digits : ""} />;
   };
 
   // A stack or a coin: in «Обучение» a tap ticks it as counted.
   const item = (key, kind) => {
-    const content = kind === "stack" ? <TenStack /> : <Coin />;
+    const content = kind === "stack" ? <Ten /> : <One />;
     const done = counted.includes(key);
     const cls = `${kind === "stack" ? "px-stack-wrap" : "px-coin"} id-item${done ? " id-item--counted" : ""}`;
     return teaching
-      ? <button type="button" key={key} className={cls} aria-label={kind === "stack" ? "Десяток" : "Монета"} aria-pressed={done}
+      ? <button type="button" key={key} className={cls} aria-label={kind === "stack" ? "Десяток" : scheme ? "Точка" : "Монета"} aria-pressed={done}
         disabled={solved} onClick={() => toggleCounted(key)}>{content}</button>
       : <span key={key} className={cls}>{content}</span>;
   };
@@ -176,12 +179,12 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
 
   const status = solved ? null
     : note ? <span className="sg-status-note">{note}</span>
-      : countHint ? <span className="sg-status-hint">Можно отмечать посчитанное — нажимай на десятки и монеты.</span> : null;
+      : countHint ? <span className="sg-status-hint">{`Можно отмечать посчитанное — нажимай на десятки и ${scheme ? "точки" : "монеты"}.`}</span> : null;
 
   return <div ref={screenRef} className={`pv-screen sg-screen sg-screen--${mode} id-screen`}
     style={{ "--coin-size": `${coinSize}px`, "--sg-stack-cols": stackCols, "--sg-stack-rows": stackRows, "--id-cols": cols, "--id-blocks": blocks, "--sg-answer-w": `${WIDE_ANSWER}px` }}>
     <div className="sg-inner" ref={innerRef}>
-      <h2 className="sg-title">Сколько здесь монет?</h2>
+      <h2 className="sg-title">{scheme ? "Какое число на схеме?" : "Сколько здесь монет?"}</h2>
       <div className="sg-board id-board">
         {layout === "mixed"
           ? <>

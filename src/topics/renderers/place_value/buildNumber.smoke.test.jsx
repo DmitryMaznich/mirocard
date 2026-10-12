@@ -69,4 +69,15 @@ describe("BuildNumberTask", () => {
     expect(h.container.querySelector(".bn-target").textContent).toBe("сорок семь");
     expect(h.container.textContent).not.toContain("47");
   });
+
+  it("«Схема»: sticks and dots, no captions on the take buttons, hints speak of dots", () => {
+    h.mount(BuildNumberTask, task({ view: "scheme" }));
+    take("Взять десяток", 3); take("Взять точку", 12);
+    expect(count(".px-zone--tens .cb-stick")).toBe(3);
+    expect(count(".px-zone--ones .cb-dot")).toBe(12);
+    expect(count(".cb-coin, .cb-ten-stack")).toBe(0);
+    expect(count(".bn-take span")).toBe(0);
+    h.click("Проверить");
+    expect(note()).toContain("Десять точек — это сколько десятков?");
+  });
 });
