@@ -441,4 +441,18 @@ describe("bootstrap helpers", () => {
     expect(userRecords).toHaveLength(1);
     expect(userRecords[0].meta.id).toBe("topic-1");
   });
+  it("admin-erased pupils disappear from store and disk despite stale local records", async () => {
+    const db=await freshDb();
+    await kv.set(db,"students",[{id:"gone",name:"Old"},{id:"keep",name:"Keep"}]);
+    await kv.set(db,"lastContext",{studentId:"gone",topicId:"t"});
+    useAppStore.setState({students:[{id:"gone"},{id:"keep"}],activeStudentId:"gone",screen:"session"});
+    const raw={students:[{id:"keep"}],erasedStudentIds:["gone"]};
+    applyBootstrapToStore(raw);
+    expect(useAppStore.getState().students.map(s=>s.id)).toEqual(["keep"]);
+    expect(useAppStore.getState().activeStudentId).toBeNull();
+    await persistBootstrap(db,raw);
+    expect((await kv.get(db,"students")).map(s=>s.id)).toEqual(["keep"]);
+    expect(await kv.get(db,"lastContext")).toBeNull();
+  });
+
 });

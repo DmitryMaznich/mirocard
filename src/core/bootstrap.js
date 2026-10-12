@@ -213,14 +213,14 @@ export function markStudentDeleted(students, id, deletedAt = new Date().toISOStr
 
 // Atomic IDB read→merge→write: prevents a concurrent save from being overwritten.
 // Opens a single readwrite transaction so no other write can slip in between the read and put.
-function atomicMergeStudents(db, serverStudents) {
+function atomicMergeStudents(db, serverStudents, erasedIds = []) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction("keyval", "readwrite");
     const store = tx.objectStore("keyval");
     const getReq = store.get("students");
     getReq.onsuccess = () => {
       const current = Array.isArray(getReq.result) ? getReq.result : [];
-      const merged = mergeStudentRecords(current, serverStudents);
+      const merged = mergeStudentRecords(current, serverStudents).filter(s => !erasedIds.includes(s.id));
       const putReq = store.put(merged, "students");
       putReq.onsuccess = () => resolve(merged);
       putReq.onerror  = () => reject(putReq.error);
@@ -311,6 +311,7 @@ export function normalizeBootstrap(raw = {}) {
     subscription: raw.subscription ?? null,
     settings: raw.settings ?? null,
     students: Array.isArray(raw.students) ? raw.students : [],
+    erasedStudentIds: Array.isArray(raw.erasedStudentIds) ? raw.erasedStudentIds : [],
     ownedTopics: Array.isArray(raw.ownedTopics) ? raw.ownedTopics : [],
     topicRecords: [
       ...BUILTIN_TOPICS,
@@ -341,7 +342,8 @@ export function applyBootstrapToStore(raw) {
       return merged;
     })(),
     // Merge with current store state so a concurrent local save isn't overwritten in memory.
-    students: mergeStudents(state.students, bootstrap.students),
+    students: mergeStudents(state.students, bootstrap.students).filter(s => !bootstrap.erasedStudentIds.includes(s.id)),
+    ...(bootstrap.erasedStudentIds.includes(state.activeStudentId) ? {activeStudentId:null, activeSessionSnapshot:null, screen:"students"} : {}),
     ownedTopics: "ownedTopics" in raw ? mergeOwnedTopics(state.ownedTopics, bootstrap.ownedTopics) : state.ownedTopics,
     topicRecords: "topicRecords" in raw ? bootstrap.topicRecords : state.topicRecords,
     subscription: "subscription" in raw ? bootstrap.subscription : state.subscription,
@@ -444,7 +446,7 @@ export async function persistBootstrap(db, raw) {
     }
     writes.push(kv.set(db, "settings", settings));
   }
-  if ("students" in raw) writes.push(atomicMergeStudents(db, bootstrap.students));
+  if ("students" in raw) writes.push(atomicMergeStudents(db, bootstrap.students, bootstrap.erasedStudentIds));
   if ("ownedTopics" in raw) writes.push(atomicMergeOwnedTopics(db, bootstrap.ownedTopics));
   if ("studentTopicLinks" in raw) writes.push(kv.set(db, "studentTopicLinks", bootstrap.studentTopicLinks));
   if ("conceptProgress" in raw) writes.push(kv.set(db, "conceptProgress", bootstrap.conceptProgress));
@@ -458,4 +460,11 @@ export async function persistBootstrap(db, raw) {
   }
 
   await Promise.all(writes);
+  if (bootstrap.erasedStudentIds.length) {
+    for (const key of ["lastContext", "activeSession"]) {
+      const value = await kv.get(db, key);
+      const studentId = value?.context?.studentId ?? value?.studentId;
+      if (bootstrap.erasedStudentIds.includes(studentId)) await kv.set(db,key,null);
+    }
+  }
 }

@@ -92,9 +92,10 @@ async function fixture(viewport) {
       }
 
       if (path.endsWith("/lifecycle")) {
-        a.status = body.action === "block" ? "blocked" : "active";
+        a.status = body.action === "archive" ? "archived" : body.action === "block" ? "blocked" : "active";
         if (body.action === "block") a.activeSessions = [];
       }
+      if (path.endsWith("/erase") && !path.includes("/students/")) accounts = accounts.filter((x) => x.id !== id);
       if (path.endsWith("/flags")) a.featureFlags = body.flags;
       if (path.endsWith("/revoke"))
         a.topicAssignments = a.topicAssignments.filter(
@@ -106,6 +107,7 @@ async function fixture(viewport) {
       await route.fulfill({ json: { ok: true } });
       return;
     }
+    if (path.endsWith("/students")) { await route.fulfill({json:[{id:"kid",name:"Тестовый ученик"}]}); return; }
     if (path.endsWith("/usage")) {
       usageReads++;
       await route.fulfill({
@@ -364,67 +366,32 @@ test("mobile layout contains page width; logout stops refresh and clears sensiti
   await page.close();
 });
 
-test("archive requires three stages and cancellation never sends a delete operation", async () => {
-  const { page, writes, errors } = await fixture({ width: 390, height: 844 });
+test("admin deletion uses a single confirmation, cancel is safe and permanent deletion closes the account", async () => {
+  const {page,writes,errors} = await fixture({width:390,height:844});
   await page.locator("#search").fill("user1@example.test");
   await page.locator("#accounts-body .name-button").click();
-  await page.locator('[data-action="archive"]').click();
-  await page.locator("#deletion-dialog").waitFor();
-  assert.equal(await page.locator("#deletion-fields").isVisible(), false);
-  await page.screenshot({
-    path: "output/admin-qa/deletion-preview-mobile.png",
-    fullPage: false,
-  });
-  await page.locator("#deletion-next").click();
-  assert.equal(await page.locator("#deletion-submit").isDisabled(), true);
-  await page.locator("#deletion-reason").fill("Тестовый аккаунт");
-  await page.locator("#deletion-email").fill("wrong@example.test");
-  await page.locator("#deletion-word").fill("УДАЛИТЬ");
-  await page.locator("#deletion-ack-data").check();
-  await page.locator("#deletion-ack-retention").check();
-  assert.equal(await page.locator("#deletion-submit").isDisabled(), true);
-  await page.locator("#deletion-email").fill("user1@example.test");
-  assert.equal(await page.locator("#deletion-submit").isEnabled(), true);
-  assert.ok(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  );
-  await page.screenshot({
-    path: "output/admin-qa/deletion-confirm-mobile.png",
-    fullPage: false,
-  });
-  await page.locator("#deletion-submit").click();
+  await page.locator('[data-action="erase-student"]').waitFor();
+  await page.locator('[data-action="erase-student"]').click();
+  assert.ok((await page.locator("#confirm-text").textContent()).includes("Тестовый ученик"));
   await page.locator('#confirm-dialog button[value="cancel"]').click();
-  assert.equal(writes.filter((w) => w.path.endsWith("/delete")).length, 0);
-  await page.locator("#deletion-submit").click();
+  assert.equal(writes.length,0);
+  await page.locator('[data-action="erase-student"]').click();
   await page.locator("#confirm-submit").click();
-  await page.waitForFunction(() =>
-    document.querySelector("#toast").textContent.includes("сохранены"),
-  );
-  assert.equal(writes.filter((w) => w.path.endsWith("/delete")).length, 1);
-  const operation = writes.find((w) => w.path.endsWith("/delete"));
-  assert.equal(operation.body.confirmEmail, "user1@example.test");
-  assert.equal(operation.body.confirmWord, "УДАЛИТЬ");
+  await page.waitForFunction(() => document.querySelector("#toast").textContent.includes("Ученик удалён"));
+  assert.equal(writes[0].body.confirmed,true);
+  await page.locator('[data-action="archive"]').click();
+  await page.locator("#confirm-submit").click();
   await page.locator('[data-action="restore"]').waitFor();
-  assert.equal(await page.locator('[data-action="archive"]').count(), 0);
-  assert.ok(
-    (await page.locator("#account-title").textContent()).includes(
-      "Пользователь",
-    ),
-  );
-  await page.locator('[data-action="close"]').click();
-  assert.equal(await page.locator("#accounts-body tr").count(), 0);
-  await page.locator('[data-scope="removed"]').click();
-  assert.equal(await page.locator("#accounts-body tr").count(), 1);
-  await page.locator("#accounts-body .name-button").click();
-  await page.locator("#lifecycle-reason").fill("Вернуть доступ");
-  await page.locator('[data-action="restore"]').click();
+  assert.equal(writes.filter(w=>w.path.endsWith("/deletion-preview")).length,0);
+  await page.locator('[data-action="erase-account"]').click();
+  assert.ok((await page.locator("#confirm-text").textContent()).includes("user1@example.test"));
   await page.locator("#confirm-submit").click();
-  await page.locator('[data-action="archive"]').waitFor();
-  assert.deepEqual(errors, []);
+  await page.waitForFunction(() => !document.querySelector("#account-dialog").open);
+  assert.equal(writes.filter(w=>w.path.endsWith("/erase")).length,2);
+  assert.deepEqual(errors,[]);
   await page.close();
 });
+
 test("mobile cards fit narrow screens and preserve sorting and account actions", async () => {
   const { page, errors } = await fixture({ width: 320, height: 740 });
   assert.equal(await page.locator(".mobile-sort").isVisible(), true);

@@ -418,6 +418,17 @@ function openAccount(id) {
   renderDetail(a);
   if (!$("account-dialog").open) $("account-dialog").showModal();
 }
+async function loadAdminStudents(id) {
+  const target = $("admin-students"), epoch = generation;
+  if (!target) return;
+  try {
+    const students = await api(`/accounts/${encodeURIComponent(id)}/students`);
+    if (selectedId !== id || epoch !== generation || !target.isConnected) return;
+    target.innerHTML = students.length ? students.map((s) => `<div class="topic-item"><div><strong>${esc(s.name)}</strong><small>${s.deletedAt ? "Скрыт пользователем" : "Активный ученик"}</small></div><button class="btn danger small" data-action="erase-student" data-student="${esc(s.id)}" data-name="${esc(s.name)}">Удалить навсегда</button></div>`).join("") : '<p class="empty-note">Учеников нет.</p>';
+  } catch (e) {
+    if (selectedId === id && epoch === generation && target.isConnected) target.innerHTML = `<p class="error">${esc(e.message)}</p><button class="btn small" data-action="students-retry">Повторить загрузку</button>`;
+  }
+}
 function renderDetail(a) {
   const deleted = !["active", "pending"].includes(a.status),
     assigned = topicAccess(a);
@@ -433,10 +444,12 @@ function renderDetail(a) {
     ${deleted ? '<p class="access-note">Доступ к аккаунту закрыт. Изменение функций и назначений недоступно.</p>' : a.status === "pending" ? '<div class="detail-section access-note">Email не подтверждён. Подтвердите его вручную, если личность пользователя проверена.<br><button class="btn small" data-action="verify">Подтвердить email</button></div>' : ""}
     <section class="detail-section"><div class="section-title"><h3>Активность</h3><button class="btn small" data-action="sessions">История занятий</button></div><div class="detail-stats"><div class="detail-stat"><strong>${a.openCount ?? 0}</strong><small>открытий приложения</small></div><div class="detail-stat"><strong>${a.sessions7d ?? 0}</strong><small>занятий за 7 дней</small></div><div class="detail-stat"><strong>${a.sessionsTotal ?? 0}</strong><small>занятий всего</small></div></div>
     ${(a.activeSessions ?? []).length ? `<p class="empty-note"><span class="online-indicator"></span>Сейчас онлайн: ${a.activeSessions.map((s) => esc(s.device || "Устройство не указано") + (s.topicId ? " · " + esc(topicLabel(s.topicId)) : "")).join("; ")}</p>` : ""}<div id="sessions-container" hidden></div></section>
+    <section class="detail-section"><div class="section-title"><h3>Ученики</h3></div><div id="admin-students"><p class="empty-note">Загрузка учеников…</p></div></section>
     <section class="detail-section"><div class="section-title"><h3>Подписка и доступ</h3></div><div class="access-note"><strong>${esc(plan(a))}</strong>${a.subscription && a.subscription.plan !== "all_access" ? ` · до ${date(a.subscription.currentPeriodEnd, true)}${a.subscription.cancelAtPeriodEnd ? " · отмена в конце периода" : ""}` : ""}<br>Подписка открывает опубликованные платные темы. Отдельные назначения ниже дают доступ к beta- и индивидуальным темам.</div>
     <div class="topic-list">${assigned.length ? assigned.map((t) => `<div class="topic-item"><div>${esc(topicLabel(t.topicId))}<small>${t.assignment ? "Назначение администратора" : t.source === "paid" ? "Покупка" : t.source === "free" ? "Бесплатная тема" : "Выданный доступ"} · ${date(t.assignedAt ?? t.acquiredAt)}</small></div>${!deleted && (t.assignment || ["grant", "assigned"].includes(t.source)) ? `<button class="btn small" data-action="revoke" data-topic="${esc(t.topicId)}">Отозвать</button>` : ""}</div>`).join("") : '<p class="empty-note">Отдельных назначений нет.</p>'}</div>
     ${!deleted ? `<div class="grant-form"><select id="grant-topic" aria-label="Тема для назначения" ${!catalogLoaded || !available.length ? "disabled" : ""}><option value="">${catalogLoaded ? (available.length ? "Выберите beta- или индивидуальную тему" : "Нет тем для назначения") : "Каталог недоступен — обновите данные"}</option>${available.map((t) => `<option value="${esc(t.id)}">${esc(topicLabel(t.id))} · ${t.publication === "beta" ? "Beta" : "Индивидуальная"}</option>`).join("")}</select><button class="btn primary small" data-action="grant" disabled>Назначить тему</button></div>` : ""}</section>
     <section class="detail-section"><div class="section-title"><h3>Дополнительные функции</h3></div><p class="empty-note">Изменения применяются после сохранения. Доступ к beta-темам выдаётся отдельным назначением выше.</p><div class="flag-list">${FLAGS.map(([key, label]) => `<label class="flag-item"><input type="checkbox" data-flag="${key}" ${(a.featureFlags ?? []).includes(key) ? "checked" : ""} ${deleted ? "disabled" : ""}>${label}</label>`).join("")}</div>${!deleted ? '<div class="flags-actions"><button class="btn primary small" data-action="flags" disabled>Сохранить функции</button><span id="flags-hint" class="caption">Нет несохранённых изменений</span></div>' : ""}</section>${lifecycleSection(a)}</div><section id="account-usage" class="detail-body" hidden><div class="usage-heading"><h3>Использование приложения</h3><select id="usage-period" aria-label="Период статистики"><option value="today">Сегодня</option><option value="7">7 дней</option><option value="30" selected>30 дней</option><option value="all">Всё время</option></select></div><div class="usage-updates"><span id="usage-live-status" class="caption" role="status">Автообновление каждые 15 секунд</span><button class="btn small" data-action="usage-retry">Обновить статистику</button></div><div id="usage-content"></div></section>`;
+  loadAdminStudents(a.id);
 }
 $("account-dialog").addEventListener("close", () => {
   selectedId = null;
@@ -500,7 +513,11 @@ async function mutate(path, body, message, id) {
         );
       return;
     }
-    if (selectedId === id) renderDetail(accounts.find((a) => a.id === id));
+    if (selectedId === id) {
+      const current = accounts.find((a) => a.id === id);
+      if (current) renderDetail(current);
+      else $("account-dialog").close();
+    }
   } catch (e) {
     if (epoch === generation) error(e.message);
     else error(e.message, true);
@@ -518,6 +535,7 @@ $("account-content").addEventListener("click", async (e) => {
   const a = accounts.find((a) => a.id === selectedId);
   if (!a) return;
   const action = button.dataset.action;
+  if (action === "students-retry") loadAdminStudents(a.id);
   if (action === "close") {
     if (
       [...document.querySelectorAll("[data-flag]")].some(
@@ -560,7 +578,18 @@ $("account-content").addEventListener("click", async (e) => {
       );
     }
   }
-  if (action === "archive") beginDeletion(a, "archive");
+  if (["archive", "erase-account"].includes(action)) {
+    const permanent = action === "erase-account";
+    if (await confirmAction(
+      permanent ? "Удалить аккаунт навсегда?" : "Перенести аккаунт в удалённые?",
+      permanent ? `${a.email}. Аккаунт, все ученики, занятия, материалы и записи платежей будут удалены из рабочей базы немедленно. Восстановление через панель невозможно. Удаление не отменяет платежи у внешнего провайдера.` : `${a.email}. Вход будет закрыт на всех устройствах. Все данные сохранятся; аккаунт можно восстановить.`,
+      permanent ? "Удалить навсегда" : "Перенести в удалённые",
+    )) await mutate(`/accounts/${encodeURIComponent(a.id)}/${permanent ? "erase" : "lifecycle"}`, {action:"archive",confirmed:true}, permanent ? "Аккаунт удалён навсегда." : "Аккаунт перенесён в удалённые.", a.id);
+  }
+  if (action === "erase-student") {
+    if (await confirmAction("Удалить ученика навсегда?", `${button.dataset.name}. Профиль ученика, его занятия и прогресс будут удалены немедленно. Остальные ученики и аккаунт сохранятся.`, "Удалить навсегда"))
+      await mutate(`/accounts/${encodeURIComponent(a.id)}/students/${encodeURIComponent(button.dataset.student)}/erase`, {confirmed:true}, "Ученик удалён навсегда.", a.id);
+  }
   if (["manage-tab", "usage-tab"].includes(action)) {
     const usage = action === "usage-tab";
     $("account-management").hidden = usage;
@@ -749,6 +778,7 @@ function lifecycleSection(a) {
     block: "Блокировка",
     unblock: "Разблокировка",
     archive: "Перенос в удалённые",
+    erase_student: "Удаление ученика навсегда",
     restore: "Восстановление",
     purge: "Личные данные удалены",
     "schedule-deletion": "Прежнее удаление запланировано",
@@ -760,102 +790,13 @@ function lifecycleSection(a) {
   return `<section class="detail-section danger-zone"><div class="section-title"><h3>Управление аккаунтом</h3></div>
     ${
       a.status === "purged"
-        ? '<p class="empty-note">Данные были очищены по прежним правилам. Восстановление через панель невозможно.</p>'
+        ? '<p class="empty-note">Данные были очищены по прежним правилам. Восстановление через панель невозможно.</p><button class="btn danger" data-action="erase-account">Удалить аккаунт навсегда</button>'
         : `${removed ? '<p class="access-note">Аккаунт в разделе «Удалённые». Данные сохранены, автоматической очистки нет. Можно восстановить доступ.</p>' : '<p class="empty-note">Блокировка и перенос в удалённые закрывают вход на всех устройствах. Данные сохраняются, срок подписки продолжает идти.</p>'}
       <label>Причина блокировки или восстановления<textarea id="lifecycle-reason" rows="2" minlength="3" maxlength="500" placeholder="Кратко опишите причину"></textarea></label>
-      <div class="lifecycle-actions">${removed ? '<button class="btn primary" data-action="restore">Восстановить аккаунт</button>' : `${a.status === "blocked" ? '<button class="btn" data-action="unblock">Разблокировать</button>' : '<button class="btn" data-action="block">Заблокировать аккаунт</button>'}<button class="btn danger" data-action="archive">Перенести в удалённые…</button>`}</div>`
+      <div class="lifecycle-actions">${removed ? '<button class="btn primary" data-action="restore">Восстановить аккаунт</button>' : `${a.status === "blocked" ? '<button class="btn" data-action="unblock">Разблокировать</button>' : '<button class="btn" data-action="block">Заблокировать аккаунт</button>'}<button class="btn danger" data-action="archive">Перенести в удалённые…</button>`}<button class="btn danger" data-action="erase-account">Удалить аккаунт навсегда</button></div>`
     }
-    ${(a.adminEvents ?? []).length ? `<h3 class="audit-heading">Последние действия администратора</h3><ul class="audit-list">${a.adminEvents.map((e) => `<li><strong>${esc(labels[e.action] ?? e.action)}</strong><small>${date(e.createdAt, true)} · ${e.actor === "admin_token" ? "администратор" : "автоматически"}</small><p>${esc(e.reason)}</p></li>`).join("")}</ul>` : ""}</section>`;
+    ${(a.adminEvents ?? []).length ? `<h3 class="audit-heading">Последние действия администратора</h3><ul class="audit-list">${a.adminEvents.map((e) => `<li><strong>${esc(labels[e.action] ?? e.action)}</strong><small>${date(e.createdAt, true)} · ${e.actor === "admin_token" ? "администратор" : e.actor === "self" ? "пользователь" : "автоматически"}</small><p>${esc(e.reason)}</p></li>`).join("")}</ul>` : ""}</section>`;
 }
-let deletionPreview = null;
-async function beginDeletion(a, mode) {
-  if (mutating) return;
-  try {
-    const preview = await api(
-      `/accounts/${encodeURIComponent(a.id)}/deletion-preview`,
-      { method: "POST", body: JSON.stringify({ mode }) },
-    );
-    if (selectedId !== a.id) return;
-    deletionPreview = preview;
-    $("deletion-form").reset();
-    $("deletion-fields")
-      .querySelectorAll("input,textarea")
-      .forEach((el) => {
-        el.disabled = true;
-      });
-    $("deletion-fields").hidden = true;
-    $("deletion-submit").hidden = true;
-    $("deletion-submit").disabled = true;
-    $("deletion-next").hidden = false;
-    $("deletion-title").textContent = "Перенести в удалённые";
-    $("deletion-summary").innerHTML =
-      `<p class="deletion-identity"><strong>${esc(accountName(a))}</strong><br>${esc(preview.email)}</p><div class="deletion-counts"><span><strong>${preview.students}</strong> учеников</span><span><strong>${preview.sessions}</strong> занятий</span><span><strong>${preview.audio}</strong> аудиозаписей</span><span><strong>${preview.materials}</strong> записей материалов</span></div><p class="empty-note">Платёжных заказов: ${preview.orders}, из них оплачено: ${preview.paidOrders}. ${preview.activeAccess || preview.hasUnlimitedAccess ? "Есть действующий доступ." : "Действующий доступ не обнаружен."}</p><p class="empty-note">Все данные сохранятся. Восстановление доступно в разделе «Удалённые».</p>`;
-    $("deletion-dialog").showModal();
-  } catch (e) {
-    error(e.message, !token);
-  }
-}
-$("deletion-cancel").addEventListener("click", () =>
-  $("deletion-dialog").close(),
-);
-$("deletion-dialog").addEventListener("close", () => {
-  deletionPreview = null;
-  $("deletion-form").reset();
-  $("deletion-summary").replaceChildren();
-});
-$("deletion-next").addEventListener("click", () => {
-  $("deletion-fields")
-    .querySelectorAll("input,textarea")
-    .forEach((el) => {
-      el.disabled = false;
-    });
-  $("deletion-fields").hidden = false;
-  $("deletion-submit").hidden = false;
-  $("deletion-next").hidden = true;
-  $("deletion-reason").focus();
-});
-$("deletion-form").addEventListener("input", () => {
-  $("deletion-submit").disabled =
-    !deletionPreview ||
-    $("deletion-reason").value.trim().length < 3 ||
-    $("deletion-email").value.trim() !== deletionPreview.email ||
-    $("deletion-word").value.trim() !== "УДАЛИТЬ" ||
-    !$("deletion-ack-data").checked ||
-    !$("deletion-ack-retention").checked;
-});
-$("deletion-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-  if (!deletionPreview || $("deletion-submit").disabled || mutating) return;
-  const preview = deletionPreview,
-    epoch = generation;
-  const body = {
-    mode: preview.mode,
-    confirmationToken: preview.confirmationToken,
-    confirmEmail: $("deletion-email").value.trim(),
-    confirmWord: $("deletion-word").value.trim(),
-    reason: $("deletion-reason").value.trim(),
-    acknowledgeData: $("deletion-ack-data").checked,
-    acknowledgeRetention: $("deletion-ack-retention").checked,
-  };
-  if (
-    !(await confirmAction(
-      "Последнее подтверждение",
-      `${preview.email}: доступ будет закрыт, аккаунт переместится в «Удалённые». Данные сохранятся.`,
-      "Да, перенести в удалённые",
-    ))
-  )
-    return;
-  if (epoch !== generation || selectedId !== preview.accountId) return;
-  $("deletion-dialog").close();
-  sessionsCache.delete(preview.accountId);
-  mutate(
-    `/accounts/${encodeURIComponent(preview.accountId)}/delete`,
-    body,
-    "Аккаунт перенесён в удалённые. Данные сохранены.",
-    preview.accountId,
-  );
-});
-
 $("mobile-sort").addEventListener("change", (e) => {
   [sortKey, sortDir] = e.target.value.split(":");
   page = 1;

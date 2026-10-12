@@ -79,14 +79,22 @@ reserved. Restoration returns the previous active, pending or blocked status;
 legacy deleted accounts without recorded previous status return to pending.
 Subscriptions keep running and external payment mandates are not cancelled.
 
-The transfer requires a five-minute account-bound preview, exact email,
-`УДАЛИТЬ`, a reason, two acknowledgements and final confirmation. All actions
-are audited. Current users and Deleted are separate directory filters.
+The panel offers direct Archive, Erase account permanently, and Erase student
+permanently actions, each with one confirmation naming the selected target.
+There are no deadlines, subscription checks, preview tokens or typed phrases.
+Permanent erasure removes the account row and its working-database resources,
+including financial rows and identities; the email can be registered again.
+Shared photos are retained if another record references them. Existing backups
+are not rewritten; external payment contracts are not cancelled by erasure.
+Only a minimal administrative operation record remains. Student erasure retains
+an ID-only tombstone to prevent stale clients from re-creating the pupil.
 
-Permanent erasure and the deletion timer are disabled. On startup every old
-`deletion_pending` account moves to the archive and all deadlines are cancelled,
-including overdue deadlines. Formerly purged data cannot be recovered in the
-panel. There is no new retention or automated erasure policy.
+Self-service DELETE /account archives the account, revokes every login and
+recovery credential, retains data, and records actor=self. It appears in Deleted
+and can be restored by the administrator. The device clears local account data
+and logs out after success. There is no scheduled permanent erasure. Restoring
+requires a fresh login; original active/pending/blocked status is preserved.
+Legacy deleted accounts with no lifecycle history restore to pending.
 
 ### Email delivery
 

@@ -18,7 +18,7 @@ import { setMarketingConsent } from "./lib/marketing-consent.mjs";
 import { getDb } from "./lib/db.mjs";
 import {
   createAccount, findAccountByEmail, findAccountByEmailAny, findAccountById,
-  updateAccount, updateAccountPasswordHash, deleteAccount, activateAccount,
+  updateAccount, updateAccountPasswordHash, activateAccount,
   serializeAccount,
   storeAuthToken, findAccountByToken, deleteAuthToken,
   getAccountSettings, updateAccountSettings,
@@ -67,7 +67,7 @@ import {
 } from "./lib/billing-providers/lava-top.mjs";
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
 import { gitSha } from "../scripts/git-sha.mjs";
-import { prepareDeletion, confirmDeletion, blockAccount, restoreAccount, cancelScheduledErasure } from "./lib/account-lifecycle.mjs";
+import { prepareDeletion, confirmDeletion, blockAccount, restoreAccount, cancelScheduledErasure, archiveAccount, eraseAccount, eraseStudent } from "./lib/account-lifecycle.mjs";
 import { reportError, trackEvent } from "./lib/observability.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
@@ -720,9 +720,7 @@ async function handleChangePassword(req, res) {
 
 async function handleDeleteAccount(req, res) {
   const account = requireAuth(req);
-  deleteAccount(db, account.id);
-  const raw = getBearerToken(req);
-  if (raw) deleteAuthToken(db, hashToken(raw));
+  archiveAccount(db, account.id, "self");
   writeNoContent(res);
 }
 
@@ -1180,6 +1178,14 @@ async function handleAdminGetAccountSessions(req, res, accountId) {
 async function handleAdminLifecycle(req, res, accountId, operation) {
   requireAdmin(req);
   const body = await readJsonBody(req) ?? {};
+  if (operation === "erase") {
+    if (body.confirmed !== true) throw {status:400,message:"Подтвердите удаление навсегда."};
+    return writeJson(res, 200, eraseAccount(db, accountId));
+  }
+  if (body.action === "archive") {
+    if (body.confirmed !== true) throw {status:400,message:"Подтвердите перенос в удалённые."};
+    return writeJson(res, 200, archiveAccount(db, accountId));
+  }
   if (operation === "deletion-preview") return writeJson(res, 200, prepareDeletion(db, accountId, body.mode));
   if (operation === "delete") return writeJson(res, 200, confirmDeletion(db, accountId, body));
   if (body.action === "block") return writeJson(res, 200, blockAccount(db, accountId, body.reason));
@@ -1990,10 +1996,22 @@ async function router(req, res) {
     if (method === "GET"    && /^\/decks\/[^/]+\/download$/.test(p))              return await handleDownloadDeck(req, res);
 
     // Materials (free PDF library, landing page)
+    { const m = p.match(/^\/admin\/accounts\/([^/]+)\/students(?:\/([^/]+)\/erase)?$/);
+      if (m && (method === "GET" || method === "POST")) {
+        requireAdmin(req);
+        if (!db.prepare("SELECT id FROM accounts WHERE id=?").get(m[1])) return writeJson(res,404,{error:"Аккаунт не найден."});
+        if (method === "GET" && !m[2]) return writeJson(res,200,db.prepare("SELECT id,name,deleted_at AS deletedAt FROM students WHERE account_id=? ORDER BY created_at").all(m[1]));
+        if (method === "POST" && m[2]) {
+          const body = await readJsonBody(req);
+          if (body?.confirmed !== true) return writeJson(res,400,{error:"Подтвердите удаление ученика."});
+          return writeJson(res,200,eraseStudent(db,m[1],m[2]));
+        }
+      }
+    }
     if (method === "GET"    && p === "/materials/catalog")                        return await handleGetMaterialsCatalog(req, res);
     if (method === "POST"   && p === "/materials/request")                        return await handleRequestMaterial(req, res);
     if (method === "GET"    && p === "/materials/download")                       return await handleDownloadMaterial(req, res);
-    { const m = p.match(/^\/admin\/accounts\/([^/]+)\/(lifecycle|deletion-preview|delete)$/);
+    { const m = p.match(/^\/admin\/accounts\/([^/]+)\/(lifecycle|deletion-preview|delete|erase)$/);
       if (method === "POST" && m) return await handleAdminLifecycle(req, res, m[1], m[2]); }
     if (method === "GET" && /^\/admin\/accounts\/[^/]+\/usage$/.test(p)) {
       requireAdmin(req);

@@ -341,3 +341,34 @@ test("usage report is admin-only and validates the account and period", async ()
   );
   assert.equal((await request(`/accounts/missing/usage`)).status, 404);
 });
+
+
+test("direct erasure requires admin authorization, confirmation and scoped student ownership", async () => {
+  const {upsertStudent}=await import("../lib/account-repository.mjs");
+  const owner=createAccount(db,{email:"erase-test@example.test",passwordHash:"h"});
+  const neighbor=createAccount(db,{email:"erase-other@example.test",passwordHash:"h"});
+  upsertStudent(db,owner.id,{id:"erase-child",name:"Child"});
+  const path=`/accounts/${owner.id}/erase`;
+  assert.equal((await fetch(base+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({confirmed:true})})).status,403);
+  assert.equal((await request(path,{})).status,400);
+  assert.equal((await request(`/accounts/${neighbor.id}/students/erase-child/erase`,{confirmed:true})).status,404);
+  assert.equal((await request(`/accounts/${owner.id}/students`)).status,200);
+  assert.equal((await request(`/accounts/${owner.id}/students/erase-child/erase`,{confirmed:true})).status,200);
+  assert.equal((await request(path,{confirmed:true})).status,200);
+  assert.equal(db.prepare("SELECT id FROM accounts WHERE id=?").get(owner.id),undefined);
+});
+
+test("self deletion archives and invalidates all devices instead of permanently erasing data", async () => {
+  const {storeAuthToken,upsertStudent}=await import("../lib/account-repository.mjs");
+  const {createHash}=await import("node:crypto");
+  const owner=createAccount(db,{email:"self-erase@example.test",passwordHash:"h"});
+  activateAccount(db,owner.id);
+  const token="self-test-token";
+  storeAuthToken(db,{accountId:owner.id,tokenHash:createHash("sha256").update(token).digest("hex"),expiresAt:"2099-01-01T00:00:00Z"});
+  storeAuthToken(db,{accountId:owner.id,tokenHash:"another-device",expiresAt:"2099-01-01T00:00:00Z"});
+  upsertStudent(db,owner.id,{id:"self-child",name:"Child"});
+  assert.equal((await fetch(base.replace("/api/admin","/api/account"),{method:"DELETE",headers:{Authorization:`Bearer ${token}`}})).status,204);
+  assert.equal(db.prepare("SELECT status FROM accounts WHERE id=?").get(owner.id).status,"archived");
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM auth_tokens WHERE account_id=?").get(owner.id).n,0);
+  assert.ok(db.prepare("SELECT id FROM students WHERE id='self-child'").get());
+});

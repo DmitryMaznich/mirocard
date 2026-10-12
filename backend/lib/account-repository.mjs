@@ -30,6 +30,7 @@ function safeJson(value, fallback) {
 // through as before: the client can sync a lesson before the student record
 // itself arrives, and dropping it then would lose real data.
 function studentOwnedByAnother(db, accountId, studentId) {
+  if (db.prepare("SELECT 1 FROM erased_students WHERE student_id=?").get(studentId)) return true;
   const row = db.prepare("SELECT account_id FROM students WHERE id = ?").get(studentId);
   return Boolean(row && row.account_id !== accountId);
 }
@@ -430,6 +431,8 @@ export function findMaterialsLeadByToken(db, tokenHash) {
 // ─── Account KV ───────────────────────────────────────────────────────────────
 
 export function upsertAccountKv(db, accountId, key, value) {
+  const erased = db.prepare("SELECT student_id FROM erased_students WHERE account_id=?").all(accountId);
+  if (erased.some((s) => key.split(":").includes(s.student_id))) return;
   db.prepare(`
     INSERT INTO account_kv (account_id, key, value, updated_at)
     VALUES (?, ?, ?, ?)
@@ -486,6 +489,7 @@ export function upsertStudent(db, accountId, {
   updatedAt = null,
 }) {
   const serverNow = now();
+  if (db.prepare("SELECT 1 FROM erased_students WHERE student_id=?").get(id)) return;
   const created = createdAt || serverNow;
   const updated = updatedAt || serverNow;
   // Photo, rewardVideos and closeAdults are each managed independently via their

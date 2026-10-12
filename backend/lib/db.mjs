@@ -67,6 +67,12 @@ export function initDb(dbPath = DB_PATH) {
       deleted_at       TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS erased_students (
+      account_id TEXT NOT NULL REFERENCES accounts(id),
+      student_id TEXT NOT NULL,
+      PRIMARY KEY(account_id,student_id)
+    );
+
     CREATE TABLE IF NOT EXISTS sessions (
       id               TEXT PRIMARY KEY,
       account_id       TEXT NOT NULL REFERENCES accounts(id),
