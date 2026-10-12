@@ -30,11 +30,13 @@ export const P2_GLYPH_OVERRIDES = {
   "э": { tailStroke: 2, tailLift: true },
   // capital У: whole, with its hook; the connector leaves its lowest point like о's and arrives where Ч's exit does (У is «как Ч»)
   "У": { joinFrom: { stroke: 0 }, joinLikeLabel: "о", joinEndLikeLabel: "Ч" },
-  // startLift (capture units): the letter starts that much higher, on its own opening line (г: the start was on the dashed middle line,
-  // the connector from о ran far right along it before turning up; 2026-10-12)
-  // (13 = 1 mm on the narrow ruling.) г is an alias of the element «г1» in wide.json: an override keyed by an alias makes the letter a
-  // glyph of its own, the element stays as captured
-  "г": { startLift: 13 },
+  // startLift (capture units): the letter starts that much higher, on its own opening line. г: it starts exactly where the exit of
+  // the letter before it ends when nothing stretches that exit: 2.2 engine units above the dashed middle line (wordEngine's exit lift),
+  // = 2.2 / WIDE_SCALE (48/52) capture units above the capture's mid line (y 36). Two letters written apart then glue into one line
+  // (а + г = «аг»), no connector is pulled up to г. (A 1 mm lift, 13, tried first on 2026-10-12, made every previous exit stretch.)
+  // г is an alias of the element «г1» in wide.json: an override keyed by an alias makes the letter a glyph of its own, the element
+  // stays as captured. joinAtStart: a previous exit that ends a little lower (ш) is still brought to that start (no gap)
+  "г": { startLift: 2.2 * 52 / 48, joinAtStart: true },
 };
 
 // Digits and signs (+ - = < >) captured on 2026-10-06 (tools/propis/captures/digits_signs_raw_2026-10-06.json). Their labels carry a «№»
@@ -109,7 +111,7 @@ export function liftStart(glyph, lift) {
   if (y0 - y1 <= lift) return glyph;
   const t = lift / (y0 - y1);
   const d = `M ${(x0 + (x1 - x0) * t).toFixed(2)} ${(y0 - lift).toFixed(2)} ${glyph.strokes[0].d.slice(glyph.strokes[0].d.indexOf("L"))}`;
-  return { ...glyph, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
+  return { ...glyph, anchorY: y0, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
 }
 const applyOverride = (g, { startLift, ...rest }) => liftStart({ ...g, ...rest }, startLift);
 const withOverride = (g) => {
