@@ -59,14 +59,23 @@ export default function IdentifyNumberTask(props) {
 function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const teaching = task.supportMode !== "independent";
   const layout = task.layout ?? "places";
-  const { tens, ones } = task.model;
   const scheme = task.view === "scheme";
   const { One, Ten } = modelPieces(task.view);
   const loose = scheme ? "точек" : "монет";
+  // «Больше девяти» in «Обучение» teaches the exchange instead of testing it:
+  // the full block of ten loose ones is framed, the child taps it, it turns
+  // into one more ten, and only then the usual tens → ones → number steps run
+  // on the regrouped model. In «Проверка» the model stays as given.
+  const groupStep = teaching && layout === "over9";
+  const [grouped, setGrouped] = useState(false);
+  const [grouping, setGrouping] = useState(false);
+  const extra = groupStep && grouped ? 1 : 0;
+  const tens = task.model.tens + extra, ones = task.model.ones - extra * 10;
+  const waitGroup = groupStep && !grouped;
   const questions = teaching
     ? [
       { key: "tens", label: "Десятки", tone: "tens", expected: tens },
-      { key: "ones", label: layout === "over9" ? `Отдельных ${loose}` : "Единицы", tone: "ones", expected: ones },
+      { key: "ones", label: "Единицы", tone: "ones", expected: ones },
       { key: "total", label: "Какое это число?", tone: "total", expected: task.number },
     ]
     : [{ key: "total", label: "Какое это число?", tone: "total", expected: task.number }];
@@ -81,7 +90,7 @@ function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect 
   // digits travel from their columns into the number, keeping their place
   // colour — the bridge from the picture to the digits
   // (docs/place-value-methodology.md, раздел 8, кадр 2).
-  const bridge = scheme && teaching && layout !== "over9";
+  const bridge = scheme && teaching;
   const [bridging, setBridging] = useState(false);
   const typed = useTypedAnswer(3); // three digits on purpose: «214» and «304» are the mistakes to catch
   const [coinSize, setCoinSize] = useState(32);
@@ -125,10 +134,10 @@ function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect 
 
   // «Обучение»: if nothing happens for a while, say that items can be ticked off.
   useEffect(() => {
-    if (!teaching || solved || counted.length || typed.digits) { setCountHint(false); return undefined; }
+    if (!teaching || waitGroup || solved || counted.length || typed.digits) { setCountHint(false); return undefined; }
     const timer = setTimeout(() => setCountHint(true), COUNT_HINT_MS);
     return () => clearTimeout(timer);
-  }, [teaching, solved, counted.length, typed.digits, step]);
+  }, [teaching, waitGroup, solved, counted.length, typed.digits, step]);
 
   function toggleCounted(key) {
     if (!teaching || solved) return;
@@ -197,11 +206,11 @@ function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect 
   const field = (key, big) => {
     const i = questions.findIndex((q) => q.key === key);
     if (i < 0) return null;
-    const q = questions[i], ok = answers[q.key] !== undefined, active = !solved && !bridging && i === step;
+    const q = questions[i], ok = answers[q.key] !== undefined, active = !solved && !bridging && !waitGroup && i === step;
     const value = !ok ? (active ? typed.digits : "")
       : bridge && q.key === "total" ? <span className="id-dig-pair"><span className="id-dig--tens">{tens}</span><span className="id-dig--ones">{ones}</span></span>
       : answers[q.key];
-    return <AnswerField label={q.label} tone={q.tone} big={big} bare={!big && !(q.key === "ones" && layout === "over9")} ok={ok} active={active}
+    return <AnswerField label={q.label} tone={q.tone} big={big} bare={!big} ok={ok} active={active}
       wrong={typed.wrong} value={value} />;
   };
 
@@ -215,7 +224,20 @@ function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect 
         disabled={solved} onClick={() => toggleCounted(key)}>{content}</button>
       : <span key={key} className={cls}>{content}</span>;
   };
-  const coinBlocks = (count) => Array.from({ length: Math.ceil(count / 10) }, (_, b) => <div key={b} className="px-coin-block">
+  function group(e) {
+    if (!waitGroup || grouping) return;
+    setGrouping(true);
+    const done = () => { setGrouped(true); setGrouping(false); setCounted([]); };
+    const still = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    if (still || !e.currentTarget.animate) { done(); return; }
+    e.currentTarget.animate([{ transform: "scale(1)", opacity: 1 }, { transform: "scale(0.2)", opacity: 0 }],
+      { duration: 450, easing: "ease-in", fill: "forwards" }).onfinish = done;
+  }
+  const coinBlocks = (count) => Array.from({ length: Math.ceil(count / 10) }, (_, b) => waitGroup && b === 0
+    ? <button type="button" key={b} className="px-coin-block id-group" aria-label="Собрать десяток" disabled={grouping} onClick={group}>
+      {Array.from({ length: 10 }, (_, j) => <span key={j} className="px-coin id-item">{<One />}</span>)}
+    </button>
+    : <div key={b} className="px-coin-block">
     {Array.from({ length: Math.min(10, count - b * 10) }, (_, j) => item(`ones:${b * 10 + j}`, "coin"))}
   </div>);
   const heads = <>
@@ -224,6 +246,7 @@ function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect 
   </>;
 
   const status = solved ? (bridge ? <span className="sg-status-say">{placeValuePhrase(task.number)}</span> : null)
+    : waitGroup ? <span className="sg-status-hint">{`Здесь больше девяти ${loose}. Десять ${loose} — это десяток. Нажми на них.`}</span>
     : note ? <span className="sg-status-note">{note}</span>
       : countHint ? <span className="sg-status-hint">{`Можно отмечать посчитанное — нажимай на десятки и ${scheme ? "точки" : "монеты"}.`}</span> : null;
 
@@ -245,7 +268,7 @@ function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect 
           </>
           : <section className="sg-card sg-bench">
             {heads}
-            <div className="sg-stacks">{Array.from({ length: tens }, (_, i) => item(`tens:${i}`, "stack"))}</div>
+            <div className={`sg-stacks${extra ? " id-stacks--new" : ""}`}>{Array.from({ length: tens }, (_, i) => item(`tens:${i}`, "stack"))}</div>
             <div className="id-ones">{coinBlocks(ones)}</div>
             {teaching && field("tens")}
             {teaching && field("ones")}
@@ -256,7 +279,7 @@ function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect 
         <div className="sg-status" role="status">{status}</div>
         <div className="sg-slot">
           {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-            : <Keypad off={bridging} typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={!autoField} />}
+            : <Keypad off={bridging || waitGroup} typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={!autoField} />}
         </div>
       </div>
     </div>

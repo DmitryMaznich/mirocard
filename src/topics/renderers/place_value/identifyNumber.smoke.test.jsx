@@ -52,16 +52,30 @@ describe("IdentifyNumberTask", () => {
     expect(onMistake).toHaveBeenCalledTimes(2);
   });
 
-  it("more than nine loose coins: asks for loose coins and explains «214»", () => {
-    h.mount(IdentifyNumberTask, task({ layout: "over9", model: { tens: 2, ones: 14 } }));
+  it("«Больше девяти» in «Обучение»: first the full ten is gathered into a stack, then the usual steps", () => {
+    const onMistake = vi.fn();
+    h.mount(IdentifyNumberTask, task({ layout: "over9", model: { tens: 2, ones: 14 } }), { onMistake });
     expect(count(".id-ones .cb-coin")).toBe(14);
-    answer(2);
-    expect(active()).toBe("Отдельных монет");
-    answer(14); answer(214);
-    expect(note()).toContain("не может быть больше девяти");
-    h.click("Стереть цифру"); h.click("Стереть цифру"); h.click("Стереть цифру");
-    answer(34);
+    expect(h.container.querySelector(".sg-status-hint").textContent).toBe("Здесь больше девяти монет. Десять монет — это десяток. Нажми на них.");
+    expect(active()).toBeUndefined();
+    expect(h.button("1").disabled).toBe(true);
+    h.click("Собрать десяток"); h.flush();
+    expect(count(".sg-stacks .cb-ten-stack")).toBe(3);
+    expect(count(".id-ones .cb-coin")).toBe(4);
+    expect(h.button("Собрать десяток")).toBeUndefined();
+    expect(active()).toBe("Десятки");
+    answer(3); expect(active()).toBe("Единицы");
+    answer(4); answer(34);
     expect(h.button("Далее →")).toBeDefined();
+    expect(onMistake).not.toHaveBeenCalled();
+  });
+
+  it("«Больше девяти» in «Проверка»: no gathering step; «214» is just wrong", () => {
+    h.mount(IdentifyNumberTask, task({ layout: "over9", model: { tens: 2, ones: 14 }, supportMode: "independent" }));
+    expect(h.button("Собрать десяток")).toBeUndefined();
+    expect(count(".id-ones .cb-coin")).toBe(14);
+    answer(214);
+    expect(note()).toBe("Проверь число ещё раз.");
   });
 
   it("mixed: one zone, loose coins left of the stacks; the answer columns under it", () => {
@@ -83,16 +97,14 @@ describe("IdentifyNumberTask", () => {
 
   it("tens and ones check themselves; only the number needs «Проверить»", () => {
     const onMistake = vi.fn();
-    h.mount(IdentifyNumberTask, task({ layout: "over9", model: { tens: 2, ones: 14 } }), { onMistake });
+    h.mount(IdentifyNumberTask, task({ model: { tens: 1, ones: 4 }, number: 14 }), { onMistake });
     expect(h.button("Проверить").disabled).toBe(true);
-    h.click("2");
-    expect(active()).toBe("Отдельных монет");
     h.click("1");
-    expect(active()).toBe("Отдельных монет"); // «1» may still become 14
+    expect(active()).toBe("Единицы");
     h.click("4");
     expect(active()).toBe("Какое это число?");
     expect(onMistake).not.toHaveBeenCalled();
-    h.click("3");
+    h.click("1");
     expect(h.button("Проверить").disabled).toBe(false);
   });
 
@@ -115,13 +127,16 @@ describe("IdentifyNumberTask", () => {
     answer(7);
     expect(h.button("Далее →")).toBeDefined();
   });
-  it("«Схема»: sticks and dots, its own title, «Отдельных точек» for more than nine", () => {
+  it("«Схема»: sticks and dots, its own title; ten dots gather into a stick", () => {
     h.mount(IdentifyNumberTask, task({ view: "scheme", layout: "over9", model: { tens: 2, ones: 14 } }));
     expect(count(".sg-stacks .cb-stick")).toBe(2);
     expect(count(".id-ones .cb-dot")).toBe(14);
     expect(count(".cb-coin, .cb-ten-stack")).toBe(0);
     expect(h.container.querySelector(".sg-title").textContent).toBe("Какое число на схеме?");
-    expect(h.container.querySelector('output[aria-label="Отдельных точек"]')).not.toBeNull();
+    expect(h.container.querySelector(".sg-status-hint").textContent).toContain("Десять точек — это десяток");
+    h.click("Собрать десяток"); h.flush();
+    expect(count(".sg-stacks .cb-stick")).toBe(3);
+    expect(count(".id-ones .cb-dot")).toBe(4);
   });
   it("«Схема» + «Обучение»: after tens and ones the digits fly into the number by themselves, then the spoken model", () => {
     const onMistake = vi.fn();
@@ -138,11 +153,12 @@ describe("IdentifyNumberTask", () => {
     expect(h.button("Далее →")).toBeDefined();
   });
 
-  it("«Схема», «Больше девяти»: no flight — composing the number is the child's job", () => {
+  it("«Схема», «Больше девяти»: after the gathering step the digits fly in as usual", () => {
     h.mount(IdentifyNumberTask, task({ view: "scheme", layout: "over9", model: { tens: 2, ones: 14 } }));
-    answer(2); answer(14); h.flush();
-    expect(active()).toBe("Какое это число?");
-    expect(h.container.querySelector(".id-board--faded")).toBeNull();
+    h.click("Собрать десяток"); h.flush();
+    answer(3); answer(4); h.flush();
+    expect(value("Какое это число?")).toBe("34");
+    expect(h.container.querySelector(".sg-status-say").textContent).toBe("3 десятка и 4 единицы — тридцать четыре");
   });
 });
 
