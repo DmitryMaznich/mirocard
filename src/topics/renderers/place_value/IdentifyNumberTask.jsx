@@ -213,8 +213,8 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     {Array.from({ length: Math.min(10, count - b * 10) }, (_, j) => item(`ones:${b * 10 + j}`, "coin"))}
   </div>);
   const heads = <>
-    <h3 className="sg-head sg-head--tens"><span className="sg-chip" />Десятки</h3>
-    <h3 className="sg-head sg-head--ones"><span className="sg-chip" />Единицы</h3>
+    <h3 className="sg-head sg-head--tens">Десятки</h3>
+    <h3 className="sg-head sg-head--ones">Единицы</h3>
   </>;
 
   const status = solved ? (bridge ? <span className="sg-status-say">{placeValuePhrase(task.number)}</span> : null)

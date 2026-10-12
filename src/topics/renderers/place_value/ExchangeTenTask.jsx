@@ -211,8 +211,8 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
       </h2>
       <div className="sg-board xt-board" ref={boardRef}>
         <section className="sg-card sg-bench">
-          <h3 className="sg-head sg-head--tens"><span className="sg-chip" />Десятки</h3>
-          <h3 className="sg-head sg-head--ones"><span className="sg-chip" />Единицы</h3>
+          <h3 className="sg-head sg-head--tens">Десятки</h3>
+          <h3 className="sg-head sg-head--ones">Единицы</h3>
           <div className="sg-stacks">
             {model.tens.map((id, i) => <button type="button" key={id} data-stack-id={id}
               className={`xt-stack px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}${canBreak || canDropTen ? " xt-stack--open" : ""}`}

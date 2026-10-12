@@ -84,14 +84,14 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
     <div className="gt-main bn-main" ref={mainRef}>
       <div className={`bn-zones${shake ? " bn-zones--wrong" : ""}`}>
         <section className="px-zone px-zone--tens">
-          <h3><span className="px-chip" />Десятки</h3>
+          <h3>Десятки</h3>
           <div className="px-stacks">
             {Array.from({ length: tens }, (_, i) => <button type="button" key={i} className="px-stack bn-placed" aria-label={`Убрать десяток ${i + 1}`}
               disabled={solved} onClick={() => edit(() => setTens((t) => t - 1))}><Ten /></button>)}
           </div>
         </section>
         <section className="px-zone px-zone--ones">
-          <h3><span className="px-chip" />Единицы</h3>
+          <h3>Единицы</h3>
           <div className="px-coins">
             {Array.from({ length: blocks }, (_, b) => <div key={b} className="px-coin-block">
               {Array.from({ length: Math.min(10, ones - b * 10) }, (_, j) => <button type="button" key={j} className="px-coin bn-placed"

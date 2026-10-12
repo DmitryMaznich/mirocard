@@ -92,18 +92,17 @@
 .sg-head {
   justify-self: center;
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 15px;
+  padding: 3px 12px;
+  border-radius: 8px;
+  font-size: 18px;
   font-weight: 800;
+  line-height: 1.25;
+  color: #fff;
 }
 
-.sg-head--tens { color: #92400e; }
-.sg-head--ones { color: #1e40af; }
-.sg-chip { width: 12px; height: 12px; border-radius: 4px; }
-.sg-head--tens .sg-chip { background: #d97706; }
-.sg-head--ones .sg-chip { background: #2563eb; }
+/* Flat marker in the place colour, white text — see .px-zone h3 (exchange.css). */
+.sg-head--tens { background: #d97706; }
+.sg-head--ones { background: #2563eb; }
 
 .sg-bench > .sg-reveal { justify-self: center; }
 
@@ -356,9 +355,7 @@
 .sg-screen--tablet .sg-bench,
 .sg-screen--wide .sg-bench { padding: 14px 18px 16px; row-gap: 10px; }
 .sg-screen--tablet .sg-head,
-.sg-screen--wide .sg-head { font-size: 20px; gap: 8px; }
-.sg-screen--tablet .sg-chip,
-.sg-screen--wide .sg-chip { width: 14px; height: 14px; }
+.sg-screen--wide .sg-head { font-size: 20px; }
 .sg-screen--tablet .fp-value,
 .sg-screen--wide .fp-value { width: 88px; height: 60px; font-size: 38px; border-radius: 14px; }
 .sg-screen--tablet .fp-field--big,

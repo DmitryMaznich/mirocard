@@ -290,8 +290,8 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
         {/* Tens left, ones right — the order of the digits: the stacks, then the
             frame they come out of, each with its answer field under it. */}
         <section className="sg-card sg-bench">
-          <h3 className="sg-head sg-head--tens"><span className="sg-chip" />Десятки</h3>
-          <h3 className="sg-head sg-head--ones"><span className="sg-chip" />Единицы</h3>
+          <h3 className="sg-head sg-head--tens">Десятки</h3>
+          <h3 className="sg-head sg-head--ones">Единицы</h3>
           <div className="sg-stacks">{stackList}</div>
           <div className="sg-frame">
             <TenFrame coinIds={model.frame} onReturn={returnCoin} onClose={closeFrame} slots={slots} tapToClose
