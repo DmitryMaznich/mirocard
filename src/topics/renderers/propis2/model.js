@@ -227,17 +227,19 @@ const cacheOf = (store, glyphMap, snap) => {
   if (m.size > 20000) m.clear();
   return m;
 };
-export const lineWidth = (text, glyphMap, ruling, snap) => {
+// `maxX` (optional): the right edge the page allows. Only a closed pattern (a fence) cares: the engine runs it to that edge, so it is
+// laid out against the page's own edge, not the default one (otherwise a fence that fills a page with margins read as too wide).
+export const lineWidth = (text, glyphMap, ruling, snap, maxX) => {
   const cache = glyphMap ? cacheOf(WIDTH_CACHE, glyphMap, snap) : null;
-  const key = `${ruling}|${text}`;
+  const key = `${ruling}|${maxX ?? ""}|${text}`;
   if (cache?.has(key)) return cache.get(key);
-  const w = lineWidthNow(text, glyphMap, ruling, snap);
+  const w = lineWidthNow(text, glyphMap, ruling, snap, maxX);
   cache?.set(key, w);
   return w;
 };
-const lineWidthNow = (text, glyphMap, ruling, snap) => {
+const lineWidthNow = (text, glyphMap, ruling, snap, maxX) => {
   const rowSnap = snap ? Object.assign((_row, x, y) => snap(0, x, y), snap.cell ? { cell: { ...snap.cell, origin: () => snap.cell.origin(0) } } : {}, snap.hidden ? { hidden: true } : {}) : undefined;
-  const { placed } = layoutWideLinesIntoRows([text], glyphMap, rowSnap, false, ruling === "narrow" ? 0.5 : 1);
+  const { placed } = layoutWideLinesIntoRows([text], glyphMap, rowSnap, false, ruling === "narrow" ? 0.5 : 1, maxX);
   return placed[0]?.segments?.[0]?.width ?? 0;
 };
 
@@ -469,7 +471,7 @@ export function analyzeRow(row, glyphMap, ruling = "narrow", maxX = WIDE_ROW_MAX
   let overflow = false;
   if (!unsupported.length || wideTokenToLabels(text.split(/\s+/)[0], glyphMap).length) {
     try {
-      overflow = lineWidth(text, glyphMap, ruling, snap) > maxX;
+      overflow = lineWidth(text, glyphMap, ruling, snap, maxX) > maxX;
     } catch {
       overflow = false;
     }
