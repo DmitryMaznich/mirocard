@@ -138,7 +138,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       tasks.push({
         ...generateExchangeTask(exchangeCards[i % exchangeCards.length], params, flags[i]),
         supportMode: params.supportMode ?? "learning",
-        view: params.view === "scheme" ? "scheme" : "coins",
+        view: ["scheme", "table"].includes(params.view) ? params.view : "coins",
       });
     }
     return tasks;

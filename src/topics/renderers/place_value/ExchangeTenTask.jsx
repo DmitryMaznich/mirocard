@@ -4,6 +4,7 @@ import { modelPieces } from "./CoinBlocks.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { AnswerField, Keypad, useTypedAnswer } from "./FieldPad.jsx";
 import TenFrame from "./TenFrame.jsx";
+import ExchangeTable from "./ExchangeTable.jsx";
 import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
@@ -45,7 +46,12 @@ function initialModel(task) {
   };
 }
 
-export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+// «Таблица» has its own screen (ExchangeTable.jsx); coins and the scheme share this one.
+export default function ExchangeTenTask(props) {
+  return props.task.view === "table" ? <ExchangeTable {...props} /> : <ExchangeTenModel {...props} />;
+}
+
+function ExchangeTenModel({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const give = task.op === "give";
   const teaching = task.supportMode !== "independent";
   const sign = give ? "−" : "+";
