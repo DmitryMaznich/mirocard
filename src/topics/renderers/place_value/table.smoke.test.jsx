@@ -73,4 +73,28 @@ describe("«Таблица»", () => {
     type(7);
     expect(note()).toBe("Сорок семь: сколько здесь десятков?");
   });
+
+  it("«Число»: reads the places from the written number; «47» as tens is the whole number", () => {
+    const onCorrect = vi.fn(), onMistake = vi.fn();
+    h.mount(BuildNumberTask, build({ view: "number" }), { onCorrect, onMistake });
+    expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько десятков в числе 47?");
+    expect(Array.from(h.container.querySelectorAll(".nl-choice")).map((b) => b.textContent).sort()).toEqual(["4", "47", "7"]);
+    h.click("47");
+    expect(note()).toBe("47 — это всё число. А десятков в нём сколько?");
+    expect(h.container.querySelector(".pp-support")).not.toBeNull();
+    h.click("4");
+    expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько единиц в числе 47?");
+    h.click("7");
+    expect(h.container.querySelector(".sg-status-say").textContent).toBe("4 десятка и 7 единиц — сорок семь");
+    h.click("Далее →");
+    expect(onCorrect).toHaveBeenCalledWith("b", "b");
+    expect(onMistake).toHaveBeenCalledTimes(1);
+  });
+
+  it("«Число» словами: 40 instead of 4 tens is explained", () => {
+    h.mount(BuildNumberTask, build({ view: "number", prompt: "words" }));
+    expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько десятков в числе «сорок семь»?");
+    h.click("40");
+    expect(note()).toBe("40 — это 4 десятка. Сколько десятков?");
+  });
 });
