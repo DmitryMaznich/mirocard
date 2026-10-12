@@ -14,10 +14,12 @@
 import DIGIT_GLYPHS from "./digitGlyphs.json";
 
 export const P2_GLYPH_OVERRIDES = {
-  "о": { tailSplit: 0, tailLift: true, tailContinuous: true },
-  "ю": { tailSplit: 0, tailLift: true, tailContinuous: true },
-  "ф": { tailSplit: 0, tailLift: true, tailContinuous: true },
-  "в": { tailSplit: 0, tailLift: true, tailContinuous: true },
+  // steepExit: the connector runs a little along the bottom and then rises STRAIGHT at the angle of а's exit, into the same end point
+  // (it was one flat curve from the bottom of the oval, the joins after о lay much flatter than after а и; 2026-10-12)
+  "о": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
+  "ю": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
+  "ф": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
+  "в": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24 },
@@ -25,6 +27,9 @@ export const P2_GLYPH_OVERRIDES = {
   // letter itself, the copies ran into each other (gap -0.15..-0.28 of a cell); one cell more gives them the gap of the other letters (~0.7)
   "б": { tailStroke: 1, tailLift: true, repeatCells: 4 },
   "р": { repeatCells: 4 },
+  "у": { straightTail: 32 },
+  "д": { straightTail: 31 },
+  "з": { straightTail: 57 },
   "х": { repeatCells: 4 },
   "ж": { repeatCells: 5 },
   "э": { tailStroke: 2, tailLift: true },
@@ -113,7 +118,59 @@ export function liftStart(glyph, lift) {
   const d = `M ${(x0 + (x1 - x0) * t).toFixed(2)} ${(y0 - lift).toFixed(2)} ${glyph.strokes[0].d.slice(glyph.strokes[0].d.indexOf("L"))}`;
   return { ...glyph, anchorY: y0, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
 }
-const applyOverride = (g, { startLift, ...rest }) => liftStart({ ...g, ...rest }, startLift);
+// The exit of а in the capture: its last straight piece, (135.46, 56.28) -> (153.61, 36) — the angle every connector should rise at.
+const EXIT_RUN = 153.61 - 135.46;
+const EXIT_RISE = 56.28 - 36;
+// `steepExit`: the LAST cubic of the stroke (`tailSplit`, the connector from the bottom of the letter to the exit point E) is redrawn:
+// it leaves the bottom of the letter rising a little (EXIT_LEAVE_DEG; the captured one left flat along the bottom) and arrives at E
+// along а's exit, so it meets the mid dashed line at the angle of и г ш. One cubic, end point unchanged. (A first try, a run along
+// the bottom and then a straight rise, looked broken; 2026-10-12.)
+const EXIT_LEAVE_DEG = 15;
+export function steepenExit(glyph) {
+  const si = glyph.tailSplit ?? 0;
+  const d = String(glyph.strokes?.[si]?.d ?? "");
+  const at = d.lastIndexOf("C");
+  if (at < 0) return glyph;
+  const before = (d.slice(0, at).match(/-?\d*\.?\d+(?:e-?\d+)?/gi) ?? []).map(Number);
+  const [x0, y0] = before.slice(-2);
+  const [ex, ey] = (d.slice(at).match(/-?\d*\.?\d+(?:e-?\d+)?/gi) ?? []).map(Number).slice(-2);
+  const len = Math.hypot(EXIT_RUN, EXIT_RISE);
+  const ux = EXIT_RUN / len, uy = -EXIT_RISE / len;
+  const th = (EXIT_LEAVE_DEG * Math.PI) / 180;
+  const chord = Math.hypot(ex - x0, ey - y0);
+  const k1 = chord * 0.35, k2 = chord * 0.35;
+  const f = (v) => v.toFixed(2);
+  const c = `C ${f(x0 + Math.cos(th) * k1)} ${f(y0 - Math.sin(th) * k1)} ${f(ex - ux * k2)} ${f(ey - uy * k2)} ${f(ex)} ${f(ey)}`;
+  const strokes = glyph.strokes.map((st, i) => (i === si ? { ...st, d: `${d.slice(0, at)}${c}` } : st));
+  return { ...glyph, strokes };
+}
+// `straightTail` {from}: the descender's tail (у д з) leaves the loop at the `from`-th coordinate pair of the LAST stroke and runs
+// to the exit point in one cubic, arriving along а's exit (the tail ran flat from deep under the line; 2026-10-12)
+export function straightenTail(glyph, from) {
+  const si = glyph.strokes.length - 1;
+  const d = String(glyph.strokes[si].d);
+  const re = /-?\d*\.?\d+(?:e-?\d+)?/gi;
+  const all = [...d.matchAll(re)];
+  const ix = all[from * 2], iy = all[from * 2 + 1];
+  const [x0, y0] = [Number(ix[0]), Number(iy[0])];
+  const [ex, ey] = all.slice(-2).map((m) => Number(m[0]));
+  const head = d.slice(0, iy.index + iy[0].length);
+  const f = (v) => v.toFixed(2);
+  // leaves the loop along the loop's own direction there (from the previous pair), arrives along а's exit
+  const [px, py] = [Number(all[from * 2 - 2][0]), Number(all[from * 2 - 1][0])];
+  const chord = Math.hypot(ex - x0, ey - y0);
+  const il = Math.hypot(x0 - px, y0 - py) || 1;
+  const k = chord * 0.3;
+  const len = Math.hypot(EXIT_RUN, EXIT_RISE);
+  const tail = `C ${f(x0 + ((x0 - px) / il) * k)} ${f(y0 + ((y0 - py) / il) * k)} ${f(ex - (EXIT_RUN / len) * k)} ${f(ey + (EXIT_RISE / len) * k)} ${f(ex)} ${f(ey)}`;
+  return { ...glyph, strokes: glyph.strokes.map((st, i) => (i === si ? { ...st, d: `${head} ${tail}` } : st)) };
+}
+const applyOverride = (g, { startLift, steepExit, straightTail, ...rest }) => {
+  let out = liftStart({ ...g, ...rest }, startLift);
+  if (steepExit) out = steepenExit(out);
+  if (straightTail != null) out = straightenTail(out, straightTail);
+  return out;
+};
 const withOverride = (g) => {
   const own = P2_GLYPH_OVERRIDES[g.label] ? applyOverride(g, P2_GLYPH_OVERRIDES[g.label]) : g;
   const split = (g.aliases ?? []).filter((a) => P2_GLYPH_OVERRIDES[a]);

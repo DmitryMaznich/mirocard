@@ -1167,6 +1167,19 @@ function retargetTailEndD(d, target, dirUnit, pull = 0.3) {
   return segs.map((sg) => `${sg.c} ${sg.v.map(f).join(" ")}`).join(" ");
 }
 
+// The last cubic's end (and its second control, by the same amount) moved onto `target`: the shape is kept.
+function moveTailEndD(d, target) {
+  const toks = d.match(/[MC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?/g) || [];
+  if (toks.length < 7 || toks[toks.length - 7] !== "C") return null;
+  const n = toks.length;
+  const dx = target[0] - parseFloat(toks[n - 2]), dy = target[1] - parseFloat(toks[n - 1]);
+  const out = toks.slice();
+  const f = (x) => String(Number(x.toFixed(3)));
+  out[n - 4] = f(parseFloat(toks[n - 4]) + dx); out[n - 3] = f(parseFloat(toks[n - 3]) + dy);
+  out[n - 2] = f(target[0]); out[n - 1] = f(target[1]);
+  return out.join(" ");
+}
+
 function pathXsAtY(d, y) {
   const pts = samplePath(d, 40);
   const xs = [];
@@ -1680,7 +1693,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const q = samplePath(moved[0].d, 40).find((p) => Math.hypot(p[0] - st0h[0], p[1] - st0h[1]) > 4 * scale);
             if (q) {
               const dl = Math.hypot(q[0] - st0h[0], q[1] - st0h[1]);
-              const d3 = retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]);
+              // the tail already ends (almost) at that start («Прописи 2» г starts where exits end): keep the tail's own shape, only
+              // move its end there; reshaping it from its launch flattened о's connector into a long low line
+              const near = Math.hypot(prevExit[0] - st0h[0], prevExit[1] - st0h[1]) < 3 * scale;
+              const d3 = near ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]);
               if (d3) { strokes[prevExitStroke] = { ...strokes[prevExitStroke], d: d3 }; highJoined = true; }
             }
           }
