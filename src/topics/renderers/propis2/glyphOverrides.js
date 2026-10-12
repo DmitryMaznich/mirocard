@@ -30,6 +30,11 @@ export const P2_GLYPH_OVERRIDES = {
   "э": { tailStroke: 2, tailLift: true },
   // capital У: whole, with its hook; the connector leaves its lowest point like о's and arrives where Ч's exit does (У is «как Ч»)
   "У": { joinFrom: { stroke: 0 }, joinLikeLabel: "о", joinEndLikeLabel: "Ч" },
+  // startLift (capture units): the letter starts that much higher, on its own opening line (г: the start was on the dashed middle line,
+  // the connector from о ran far right along it before turning up; 2026-10-12)
+  // (13 = 1 mm on the narrow ruling.) г is an alias of the element «г1» in wide.json: an override keyed by an alias makes the letter a
+  // glyph of its own, the element stays as captured
+  "г": { startLift: 13 },
 };
 
 // Digits and signs (+ - = < >) captured on 2026-10-06 (tools/propis/captures/digits_signs_raw_2026-10-06.json). Their labels carry a «№»
@@ -96,8 +101,27 @@ const withMarkedCapitals = (glyphs) => {
   return made.length ? [...glyphs, ...made] : glyphs;
 };
 
+// `startLift`: the first stroke opens with a straight line (M x y L ...): its start point moves up that line by `lift` units of height
+export function liftStart(glyph, lift) {
+  const m = String(glyph.strokes?.[0]?.d ?? "").match(/^M\s*(-?[\d.]+)\s+(-?[\d.]+)\s*L\s*(-?[\d.]+)\s+(-?[\d.]+)/);
+  if (!m || !(lift > 0)) return glyph;
+  const [x0, y0, x1, y1] = m.slice(1).map(Number);
+  if (y0 - y1 <= lift) return glyph;
+  const t = lift / (y0 - y1);
+  const d = `M ${(x0 + (x1 - x0) * t).toFixed(2)} ${(y0 - lift).toFixed(2)} ${glyph.strokes[0].d.slice(glyph.strokes[0].d.indexOf("L"))}`;
+  return { ...glyph, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
+}
+const applyOverride = (g, { startLift, ...rest }) => liftStart({ ...g, ...rest }, startLift);
+const withOverride = (g) => {
+  const own = P2_GLYPH_OVERRIDES[g.label] ? applyOverride(g, P2_GLYPH_OVERRIDES[g.label]) : g;
+  const split = (g.aliases ?? []).filter((a) => P2_GLYPH_OVERRIDES[a]);
+  if (!split.length) return [own];
+  const aliases = g.aliases.filter((a) => !split.includes(a));
+  return [{ ...own, aliases: aliases.length ? aliases : undefined }, ...split.map((a) => applyOverride({ ...g, label: a, aliases: undefined }, P2_GLYPH_OVERRIDES[a]))];
+};
+
 export const withGlyphOverrides = (glyphs) => {
-  const patched = [...withMarkedCapitals((glyphs ?? []).map((g) => (P2_GLYPH_OVERRIDES[g.label] ? { ...g, ...P2_GLYPH_OVERRIDES[g.label] } : g))), ...(glyphs?.length ? DIGIT_GLYPHS : [])];
+  const patched = [...withMarkedCapitals((glyphs ?? []).flatMap(withOverride)), ...(glyphs?.length ? DIGIT_GLYPHS : [])];
   // `joinLikeLabel` -> the (already patched) glyph whose connector is borrowed
   return patched.map((g) => (g.joinLikeLabel ? { ...g, joinLike: patched.find((x) => x.label === g.joinLikeLabel), joinEndLike: patched.find((x) => x.label === g.joinEndLikeLabel) } : g));
 };
