@@ -610,3 +610,7 @@
   .px-col h3 { display: none; }
   .px-nb { --nb-cell: 26px; }
 }
+
+/* Through the hundred (ExchangeHundred.jsx): the frame holds ten sticks. */
+.px-tenframe--tall .px-tf { grid-auto-rows: calc(var(--coin-size) * 2.1); }
+.px-tenframe--tall .px-tf-slot { height: calc(var(--coin-size) * 2.1); border-radius: 10px; }

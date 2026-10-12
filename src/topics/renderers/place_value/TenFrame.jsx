@@ -8,7 +8,7 @@ import { Coin } from "./CoinBlocks.jsx";
 // growing stack with no places and no counter — the child counts ten alone;
 // tapping the pile takes its top coin back (with tapToClose it closes the
 // pile instead).
-export default function TenFrame({ One = Coin, oneName = "Монета", coinIds, pendingIds = [], onReturn, onPileTap, onClose, disabled, glow, slots = true, title = "Собери десяток", tapToClose = false, closable = true }) {
+export default function TenFrame({ One = Coin, oneName = "Монета", closeLabel = "Сложить десяток", tall = false, coinIds, pendingIds = [], onReturn, onPileTap, onClose, disabled, glow, slots = true, title = "Собери десяток", tapToClose = false, closable = true }) {
   const count = coinIds.length;
   const full = slots ? count === 10 : count > 0;
   // tapToClose («Собери десяток»): no title, no counter, no button — a full
@@ -24,11 +24,11 @@ export default function TenFrame({ One = Coin, oneName = "Монета", coinIds
       : <button type="button" key={id} data-coin-id={id} className={`px-coin${pendingIds.includes(id) ? " px-pending" : ""}`}
         aria-label={`${oneName} в рамке ${i + 1}`} disabled={disabled} onClick={() => onReturn(id)}><One /></button>;
   });
-  return <div className={`px-tenframe${tapToClose ? " px-tenframe--tap" : ""}${glow ? " px-glow" : ""}`}>
+  return <div className={`px-tenframe${tapToClose ? " px-tenframe--tap" : ""}${tall ? " px-tenframe--tall" : ""}${glow ? " px-glow" : ""}`}>
     {!tapToClose && <h3>{title}</h3>}
     {slots
       ? ready
-        ? <button type="button" className="px-tf px-tf--full px-tf--ready" aria-label="Сложить десяток" disabled={disabled} onClick={onClose}>{cells}</button>
+        ? <button type="button" className="px-tf px-tf--full px-tf--ready" aria-label={closeLabel} disabled={disabled} onClick={onClose}>{cells}</button>
         : <div className={`px-tf${count === 10 && closable ? " px-tf--full" : ""}`}>{cells}</div>
       : <button type="button" className="px-tf-pile" aria-label={tapToClose ? "Сложить десяток" : "Собирается десяток — нажми, чтобы убрать монету"}
         disabled={disabled || !count} onClick={tapToClose ? onClose : onPileTap}>

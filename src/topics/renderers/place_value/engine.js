@@ -186,6 +186,30 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
 
   if (mode === "exchange_ten") {
     if (!exchangeCards.length) return [];
+    // «Числа: до 1000»: one crossing of a hundred, the second number round
+    // tens (190 + 20, 210 − 30); half the tasks cross, half don't. Scheme or
+    // table only — on coins a hundred-exchange doesn't fit a phone.
+    if (params.range === "to1000") {
+      const flags = exchangeFlags(count);
+      return flags.map((cross, i) => {
+        const op = params.operation === "get" ? "get" : params.operation === "mixed" ? (Math.random() < 0.5 ? "get" : "give") : "give";
+        const kT = randomInt(1, 9);
+        let h, t;
+        if (op === "get") {
+          h = randomInt(1, 8);
+          t = cross ? randomInt(Math.max(1, 10 - kT), 9) : randomInt(0, 9 - kT);
+        } else {
+          h = randomInt(cross ? 2 : 1, 9);
+          t = cross ? randomInt(0, kT - 1) : randomInt(kT, 9);
+        }
+        const o = randomInt(0, 9);
+        const number = h * 100 + t * 10 + o, k = kT * 10;
+        const card = exchangeCards[i % exchangeCards.length];
+        return { type: "exchange_ten", cardId: card.id, conceptId: card.conceptId, op, k, number, start: { hundreds: h, tens: t, ones: o },
+          result: op === "get" ? number + k : number - k, needsExchange: cross, view: params.view === "table" ? "table" : "scheme",
+          supportMode: params.supportMode ?? "learning" };
+      });
+    }
     const flags = exchangeFlags(count);
     const tasks = [];
     for (let i = 0; i < count; i++) {

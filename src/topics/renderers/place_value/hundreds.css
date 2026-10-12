@@ -46,3 +46,15 @@ button.hd-piece { cursor: pointer; touch-action: manipulation; -webkit-tap-highl
 .hd-take { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .hd-take .bn-take .cb-plate { --plate-coin: 9px; }
 .hd-actions { display: flex; gap: 12px; align-items: center; justify-content: center; height: auto; }
+
+/* Through the hundred (ExchangeHundred.jsx). */
+.xh-board { width: min(100%, 760px); }
+.xh-frame { align-self: end; justify-self: center; }
+.xh-frame .px-tenframe { margin-top: 0; }
+.xh-tray { display: flex; flex-wrap: wrap; gap: calc(var(--coin-size) * 0.3); align-items: flex-end; }
+.xh-slot { width: var(--coin-size); height: calc(var(--coin-size) * 2.1); box-sizing: border-box; border: 2px dashed #cbd5e1; border-radius: 8px; }
+.xh-table { grid-template-columns: 34px 1fr 1fr 1fr; }
+.xb-over--hundreds .xb-carry { color: #15803d; }
+.xb-step-head--hundreds { background: #16a34a; }
+.xh-support { --coin-size: 16px; }
+.xh-dots { display: flex; flex-wrap: wrap; max-width: 150px; gap: 2px; }

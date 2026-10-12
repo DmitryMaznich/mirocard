@@ -4,14 +4,15 @@ const center = (el) => {
   const r = el.getBoundingClientRect();
   return { x: r.left + r.width / 2, y: r.top + r.height / 2, width: r.width };
 };
-const coin = (board, id) => board.querySelector(`[data-coin-id="${id}"] .cb-coin, [data-coin-id="${id}"] .cb-dot`);
+const coin = (board, id) => board.querySelector(`[data-coin-id="${id}"] .cb-coin, [data-coin-id="${id}"] .cb-dot, [data-coin-id="${id}"] .cb-stick`);
 // A stack's ten layers; on the «Схема» a ten is one stick, so all ten dots
 // fly into (or out of) that same stick.
 const layers = (board, id) => {
   const coins = Array.from(board.querySelectorAll(`[data-stack-id="${id}"] .cb-stack-coin`));
   if (coins.length) return coins;
-  const stick = board.querySelector(`[data-stack-id="${id}"] .cb-stick`);
-  return stick ? Array(10).fill(stick) : [];
+  // …and a hundred square takes or gives ten sticks (through the hundred).
+  const whole = board.querySelector(`[data-stack-id="${id}"] .cb-stick, [data-stack-id="${id}"] .cb-square`);
+  return whole ? Array(10).fill(whole) : [];
 };
 
 // Preserve the staggered ten-for-one flight in both modes. Real layer positions
@@ -28,9 +29,12 @@ export function useCoinExchange(boardRef) {
     // «Схема»: the ghosts are dots (0.54 of a cell, see .cb-dot), even when
     // no dot is on the board yet (a ten opening into an empty frame).
     const scheme = boardRef.current.querySelector(".cb-stick, .cb-dot");
-    const dot = scheme ? (parseFloat(getComputedStyle(boardRef.current).getPropertyValue("--coin-size")) || 30) * 0.54 : 0;
+    const cell = parseFloat(getComputedStyle(boardRef.current).getPropertyValue("--coin-size")) || 30;
+    const dot = scheme ? cell * 0.54 : 0;
+    // Through the hundred the flying pieces are sticks, not dots.
+    const stick = boardRef.current.querySelector(".cb-square") ? { w: Math.max(8, cell * 0.28), h: cell * 2.1 * 0.92 } : null;
     commit();
-    setFlight({ direction, stackId, coinIds, from, dot });
+    setFlight({ direction, stackId, coinIds, from, dot, stick });
     return true;
   };
   useLayoutEffect(() => {
@@ -49,8 +53,9 @@ export function useCoinExchange(boardRef) {
         const from = flight.from[i], to = center(el);
         const ghost = document.createElement("div");
         const size = flight.dot || to.width || from.width;
-        ghost.className = `${flight.dot ? "cb-dot" : "cb-coin"} cb-coin-fly-ghost`;
-        ghost.style.cssText = `left:${from.x}px;top:${from.y}px;width:${size}px;height:${size}px`;
+        ghost.className = `${flight.stick ? "cb-stick" : flight.dot ? "cb-dot" : "cb-coin"} cb-coin-fly-ghost`;
+        ghost.style.cssText = flight.stick ? `left:${from.x}px;top:${from.y}px;width:${flight.stick.w}px;height:${flight.stick.h}px`
+          : `left:${from.x}px;top:${from.y}px;width:${size}px;height:${size}px`;
         document.body.appendChild(ghost);
         ghosts.push(ghost);
         const anim = ghost.animate([
