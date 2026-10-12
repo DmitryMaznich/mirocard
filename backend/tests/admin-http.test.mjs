@@ -372,3 +372,21 @@ test("self deletion archives and invalidates all devices instead of permanently 
   assert.equal(db.prepare("SELECT COUNT(*) n FROM auth_tokens WHERE account_id=?").get(owner.id).n,0);
   assert.ok(db.prepare("SELECT id FROM students WHERE id='self-child'").get());
 });
+
+
+test("topic controls are admin-only, change the actual public catalog and support removal and restoration", async () => {
+  assert.equal((await fetch(base+"/topics")).status,403);
+  const registry=await request("/topics");assert.equal(registry.status,200);
+  const catalogFile=path.join(frontend,"decks/catalog.json"),catalog=JSON.parse(readFileSync(catalogFile,"utf8"));
+  catalog.decks.push({id:"admin-fixture-topic",title:{ru:"Fixture"},version:"1.0",status:"beta",access:"paid",url:"./decks/fixture.zip"});writeFileSync(catalogFile,JSON.stringify(catalog));writeFileSync(path.join(frontend,"decks/fixture.zip"),"fixture");
+  const route="/topics/admin-fixture-topic",patch={listed:true,status:"release",access:"free",expectedRevision:0};
+  assert.equal((await fetch(base+route,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(patch)})).status,403);
+  assert.equal((await request(route,patch)).status,200);
+  const publicCatalog=()=>fetch(base.replace("/admin","/decks/catalog")).then(r=>r.json());
+  assert.ok((await publicCatalog()).decks.find(t=>t.id==="admin-fixture-topic"&&t.access==="free"&&t.status==="release"));
+  assert.equal((await request(route,patch)).status,409);
+  assert.equal((await request(route,{...patch,listed:false,expectedRevision:1})).status,200);
+  assert.equal((await publicCatalog()).decks.some(t=>t.id==="admin-fixture-topic"),false);
+  assert.equal((await request(route,{...patch,expectedRevision:2})).status,200);
+  assert.ok((await publicCatalog()).decks.find(t=>t.id==="admin-fixture-topic"));
+});
