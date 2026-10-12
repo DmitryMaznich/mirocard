@@ -1,0 +1,37 @@
+.student-data-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-data-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #377b71;
+  background: transparent;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.student-data-info span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font: bold 14px Georgia, serif;
+  text-transform: none;
+}
+
+.student-data-info:hover { background: #e6f2ef; }
+.student-data-info:focus-visible { outline: 2px solid #377b71; outline-offset: 2px; }
+.student-data-info-text { margin: 0; line-height: 1.6; }
