@@ -56,7 +56,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
+      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
     },
     {
       "id": "chat_with_mom",
@@ -83,7 +83,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-06-24T06:22:59+02:00"
+      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
     },
     {
       "id": "clothes_basic",
@@ -277,7 +277,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
+      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
     },
     {
       "id": "first_then",
@@ -333,7 +333,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
+      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
     },
     {
       "id": "help_me",
@@ -354,7 +354,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
+      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
     },
     {
       "id": "im_hungry",
@@ -375,7 +375,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
+      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
     },
     {
       "id": "letter_writing",
@@ -512,7 +512,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
+      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
     },
     {
       "id": "my_people",
@@ -976,7 +976,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
+      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
     },
     {
       "id": "spatial_prepositions_ru",
@@ -1031,7 +1031,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-03T08:41:52Z"
+      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
     },
     {
       "id": "symmetry_draw",
