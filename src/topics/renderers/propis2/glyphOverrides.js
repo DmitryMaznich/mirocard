@@ -16,10 +16,10 @@ import DIGIT_GLYPHS from "./digitGlyphs.json";
 export const P2_GLYPH_OVERRIDES = {
   // steepExit: the connector runs a little along the bottom and then rises STRAIGHT at the angle of а's exit, into the same end point
   // (it was one flat curve from the bottom of the oval, the joins after о lay much flatter than after а и; 2026-10-12)
-  "о": { tailSplit: 0, tailSplitCount: 2, steepExit: true, tailLift: true, tailContinuous: true },
-  "ю": { tailSplit: 0, tailSplitCount: 2, steepExit: true, tailLift: true, tailContinuous: true },
-  "ф": { tailSplit: 0, tailSplitCount: 2, steepExit: true, tailLift: true, tailContinuous: true },
-  "в": { tailSplit: 0, tailSplitCount: 2, steepExit: true, tailLift: true, tailContinuous: true },
+  "о": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
+  "ю": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
+  "ф": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
+  "в": { tailSplit: 0, steepExit: true, tailLift: true, tailContinuous: true },
   "ь": { tailSplit: 0, tailSplitCount: 5, tailLift: true, tailContinuous: true, joinAtStart: true, joinStraight: true },
   // ъ: the connector of the previous letter goes up to the START of ъ, its flag, not to the stem
   "ъ": { tailSplit: 0, tailLift: true, tailContinuous: true, joinAtStart: true, exitNudge: 24 },
@@ -121,9 +121,11 @@ export function liftStart(glyph, lift) {
 // The exit of а in the capture: its last straight piece, (135.46, 56.28) -> (153.61, 36) — the angle every connector should rise at.
 const EXIT_RUN = 153.61 - 135.46;
 const EXIT_RISE = 56.28 - 36;
-// `steepExit`: the LAST cubic of the stroke (`tailSplit`, the connector from the bottom of the letter to the exit point E) is
-// replaced by two: along the bottom (horizontal start) to the point a straight of а's exit below E, then that straight up to E
-// (written as a cubic with its controls on the line: the connector is cut off by counting cubics, `tailSplitCount: 2`)
+// `steepExit`: the LAST cubic of the stroke (`tailSplit`, the connector from the bottom of the letter to the exit point E) is redrawn:
+// it leaves the bottom of the letter rising a little (EXIT_LEAVE_DEG; the captured one left flat along the bottom) and arrives at E
+// along а's exit, so it meets the mid dashed line at the angle of и г ш. One cubic, end point unchanged. (A first try, a run along
+// the bottom and then a straight rise, looked broken; 2026-10-12.)
+const EXIT_LEAVE_DEG = 15;
 export function steepenExit(glyph) {
   const si = glyph.tailSplit ?? 0;
   const d = String(glyph.strokes?.[si]?.d ?? "");
@@ -132,13 +134,14 @@ export function steepenExit(glyph) {
   const before = (d.slice(0, at).match(/-?\d*\.?\d+(?:e-?\d+)?/gi) ?? []).map(Number);
   const [x0, y0] = before.slice(-2);
   const [ex, ey] = (d.slice(at).match(/-?\d*\.?\d+(?:e-?\d+)?/gi) ?? []).map(Number).slice(-2);
-  const mx = ex - EXIT_RUN, my = ey + EXIT_RISE;
   const len = Math.hypot(EXIT_RUN, EXIT_RISE);
   const ux = EXIT_RUN / len, uy = -EXIT_RISE / len;
+  const th = (EXIT_LEAVE_DEG * Math.PI) / 180;
+  const chord = Math.hypot(ex - x0, ey - y0);
+  const k1 = chord * 0.35, k2 = chord * 0.35;
   const f = (v) => v.toFixed(2);
-  const hug = `C ${f(x0 + (mx - x0) * 0.4)} ${f(y0)} ${f(mx - ux * 11)} ${f(my - uy * 11)} ${f(mx)} ${f(my)}`;
-  const rise = `C ${f(mx + EXIT_RUN / 3)} ${f(my - EXIT_RISE / 3)} ${f(mx + (2 * EXIT_RUN) / 3)} ${f(my - (2 * EXIT_RISE) / 3)} ${f(ex)} ${f(ey)}`;
-  const strokes = glyph.strokes.map((st, i) => (i === si ? { ...st, d: `${d.slice(0, at)}${hug} ${rise}` } : st));
+  const c = `C ${f(x0 + Math.cos(th) * k1)} ${f(y0 - Math.sin(th) * k1)} ${f(ex - ux * k2)} ${f(ey - uy * k2)} ${f(ex)} ${f(ey)}`;
+  const strokes = glyph.strokes.map((st, i) => (i === si ? { ...st, d: `${d.slice(0, at)}${c}` } : st));
   return { ...glyph, strokes };
 }
 // `straightTail` {from}: the descender's tail (у д з) leaves the loop at the `from`-th coordinate pair of the LAST stroke and runs
