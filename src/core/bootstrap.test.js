@@ -465,4 +465,14 @@ describe("bootstrap helpers", () => {
     applyBootstrapToStore({builtinVisibility:{streak_tracker:true}});expect(useAppStore.getState().topicRecords.some(t=>t.meta.id==="streak_tracker")).toBe(true);
   });
 
+  it("periodic server refresh retains the current login when no replacement token is supplied",()=>{
+    useAppStore.setState({token:"persistent-login",account:{id:"owner"}});
+    applyBootstrapToStore({account:{id:"owner"},builtinVisibility:{streak_tracker:false}});
+    expect(useAppStore.getState().token).toBe("persistent-login");
+    applyBootstrapToStore({builtinVisibility:{streak_tracker:true}});
+    expect(useAppStore.getState().account.id).toBe("owner");
+    applyBootstrapToStore({token:null,account:null});
+    expect(useAppStore.getState().token).toBeNull();
+  });
+
 });
