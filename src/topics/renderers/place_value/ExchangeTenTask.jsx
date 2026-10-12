@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
-import { Coin, TenStack } from "./CoinBlocks.jsx";
+import { modelPieces } from "./CoinBlocks.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { AnswerField, Keypad, useTypedAnswer } from "./FieldPad.jsx";
 import TenFrame from "./TenFrame.jsx";
@@ -49,6 +49,10 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
   const give = task.op === "give";
   const teaching = task.supportMode !== "independent";
   const sign = give ? "−" : "+";
+  const scheme = task.view === "scheme";
+  const { One, Ten } = modelPieces(task.view);
+  const oneName = scheme ? "Точка" : "Монета";
+  const ones = scheme ? "точки" : "монеты";
   const [model, setModel] = useState(() => initialModel(task));
   const [phase, setPhase] = useState("act");
   const [note, setNote] = useState("");
@@ -184,7 +188,7 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     if (!typed.digits || phase !== "answer") return;
     if (Number(typed.digits) === task.result) { typed.reset(); setPhase("done"); setNote(""); return; }
     typed.fail();
-    setNote(teaching ? "Посчитай десятки и монеты в рамке ещё раз." : "Проверь число ещё раз.");
+    setNote(teaching ? `Посчитай десятки и ${ones} в рамке ещё раз.` : "Проверь число ещё раз.");
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
   }
 
@@ -193,10 +197,10 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
   const hintText = {
     dropTen: "Сначала десятки: нажми на десяток — он уйдёт в лоток.",
     bringTen: "Сначала десятки: нажми на десяток в лотке — он встанет к десяткам.",
-    take: "Убери монету из рамки — нажми на неё.",
+    take: `Убери ${scheme ? "точку" : "монету"} из рамки — нажми на неё.`,
     break: "В рамке пусто, а убрать нужно ещё. Нажми на десяток — он рассыпется в рамку.",
-    bring: "Перенеси монету в рамку — нажми на неё.",
-    full: "Рамка полная — нажми на неё, и монеты станут десятком.",
+    bring: `Перенеси ${scheme ? "точку" : "монету"} в рамку — нажми на неё.`,
+    full: `Рамка полная — нажми на неё, и ${ones} станут десятком.`,
   }[hint];
   const status = done ? null : note ? <span className="sg-status-note">{note}</span>
     : hintText ? <span className="sg-status-hint">{hintText}</span> : null;
@@ -216,10 +220,10 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
           <div className="sg-stacks">
             {model.tens.map((id, i) => <button type="button" key={id} data-stack-id={id}
               className={`xt-stack px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}${canBreak || canDropTen ? " xt-stack--open" : ""}`}
-              aria-label={`Десяток ${i + 1}`} disabled={!canBreak && !canDropTen} onClick={() => (canDropTen ? dropTen(id) : breakStack(id))}><TenStack /></button>)}
+              aria-label={`Десяток ${i + 1}`} disabled={!canBreak && !canDropTen} onClick={() => (canDropTen ? dropTen(id) : breakStack(id))}><Ten /></button>)}
           </div>
           <div className="sg-frame">
-            <TenFrame coinIds={model.frame} pendingIds={exchange.pendingCoins} onReturn={takeOut} onClose={closeFrame} tapToClose closable={!give}
+            <TenFrame One={One} oneName={oneName} coinIds={model.frame} pendingIds={exchange.pendingCoins} onReturn={takeOut} onClose={closeFrame} tapToClose closable={!give}
               disabled={phase !== "act" || exchange.busy || (give ? !onesStage || left === 0 : !frameFull)} glow={hint === "full"} />
           </div>
         </section>
@@ -230,21 +234,21 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
           {kTens > 0 && <div className="xt-tens">
             {Array.from({ length: kTens }, (_, i) => {
               const moved = i < model.movedTens;
-              if (give) return moved ? <span key={i} className="xt-traystack xt-gone"><TenStack /></span> : <span key={i} className="xt-stackslot" />;
+              if (give) return moved ? <span key={i} className="xt-traystack xt-gone"><Ten /></span> : <span key={i} className="xt-stackslot" />;
               return moved ? <span key={i} className="xt-stackslot xt-slot--empty" />
                 : <button type="button" key={i} className="xt-traystack" aria-label="Десяток из лотка"
-                  disabled={phase !== "act" || exchange.busy || onesStage} onClick={bringTen}><TenStack /></button>;
+                  disabled={phase !== "act" || exchange.busy || onesStage} onClick={bringTen}><Ten /></button>;
             })}
           </div>}
           <div className="xt-slots">
             {Array.from({ length: kOnes }, (_, i) => {
               if (give) return i < model.moved
-                ? <span key={i} className="px-coin px-coin--static xt-gone" aria-label={`Убрана монета ${i + 1}`}><Coin /></span>
+                ? <span key={i} className="px-coin px-coin--static xt-gone" aria-label={`Убрана ${oneName.toLowerCase()} ${i + 1}`}><One /></span>
                 : <span key={i} className="px-slot" />;
               const id = model.tray[i - model.moved];
               return i < model.moved ? <span key={i} className="px-slot xt-slot--empty" />
-                : <button type="button" key={id} className="px-coin" aria-label="Монета из лотка" disabled={phase !== "act" || exchange.busy || frameFull || !onesStage}
-                  onClick={bringIn}><Coin /></button>;
+                : <button type="button" key={id} className="px-coin" aria-label={`${oneName} из лотка`} disabled={phase !== "act" || exchange.busy || frameFull || !onesStage}
+                  onClick={bringIn}><One /></button>;
             })}
           </div>
         </section>
@@ -263,7 +267,7 @@ export default function ExchangeTenTask({ task, onCorrect, onMistake, onFlashInc
     </div>
     {hand && <div className={`sg-hand sg-hand--${hand.kind}`} aria-hidden="true"
       style={{ left: hand.x, top: hand.y, "--dx": `${hand.dx ?? 0}px`, "--dy": `${hand.dy ?? 0}px` }}>
-      {hand.kind === "move" && <span className="sg-hand-coin"><Coin /></span>}
+      {hand.kind === "move" && <span className="sg-hand-coin"><One /></span>}
       {hand.kind === "tap" && <span className="sg-hand-ripple" />}
       <span className="sg-hand-finger">👆</span>
     </div>}

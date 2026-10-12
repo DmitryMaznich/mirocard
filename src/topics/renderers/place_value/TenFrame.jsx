@@ -8,7 +8,7 @@ import { Coin } from "./CoinBlocks.jsx";
 // growing stack with no places and no counter — the child counts ten alone;
 // tapping the pile takes its top coin back (with tapToClose it closes the
 // pile instead).
-export default function TenFrame({ coinIds, pendingIds = [], onReturn, onPileTap, onClose, disabled, glow, slots = true, title = "Собери десяток", tapToClose = false, closable = true }) {
+export default function TenFrame({ One = Coin, oneName = "Монета", coinIds, pendingIds = [], onReturn, onPileTap, onClose, disabled, glow, slots = true, title = "Собери десяток", tapToClose = false, closable = true }) {
   const count = coinIds.length;
   const full = slots ? count === 10 : count > 0;
   // tapToClose («Собери десяток»): no title, no counter, no button — a full
@@ -20,9 +20,9 @@ export default function TenFrame({ coinIds, pendingIds = [], onReturn, onPileTap
     const id = coinIds[i];
     if (!id) return <span key={`slot-${i}`} className="px-tf-slot" />;
     return ready
-      ? <span key={id} data-coin-id={id} className={`px-coin px-coin--static${pendingIds.includes(id) ? " px-pending" : ""}`}><Coin /></span>
+      ? <span key={id} data-coin-id={id} className={`px-coin px-coin--static${pendingIds.includes(id) ? " px-pending" : ""}`}><One /></span>
       : <button type="button" key={id} data-coin-id={id} className={`px-coin${pendingIds.includes(id) ? " px-pending" : ""}`}
-        aria-label={`Монета в рамке ${i + 1}`} disabled={disabled} onClick={() => onReturn(id)}><Coin /></button>;
+        aria-label={`${oneName} в рамке ${i + 1}`} disabled={disabled} onClick={() => onReturn(id)}><One /></button>;
   });
   return <div className={`px-tenframe${tapToClose ? " px-tenframe--tap" : ""}${glow ? " px-glow" : ""}`}>
     {!tapToClose && <h3>{title}</h3>}

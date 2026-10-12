@@ -4,8 +4,15 @@ const center = (el) => {
   const r = el.getBoundingClientRect();
   return { x: r.left + r.width / 2, y: r.top + r.height / 2, width: r.width };
 };
-const coin = (board, id) => board.querySelector(`[data-coin-id="${id}"] .cb-coin`);
-const layers = (board, id) => Array.from(board.querySelectorAll(`[data-stack-id="${id}"] .cb-stack-coin`));
+const coin = (board, id) => board.querySelector(`[data-coin-id="${id}"] .cb-coin, [data-coin-id="${id}"] .cb-dot`);
+// A stack's ten layers; on the «Схема» a ten is one stick, so all ten dots
+// fly into (or out of) that same stick.
+const layers = (board, id) => {
+  const coins = Array.from(board.querySelectorAll(`[data-stack-id="${id}"] .cb-stack-coin`));
+  if (coins.length) return coins;
+  const stick = board.querySelector(`[data-stack-id="${id}"] .cb-stick`);
+  return stick ? Array(10).fill(stick) : [];
+};
 
 // Preserve the staggered ten-for-one flight in both modes. Real layer positions
 // replace the old hardcoded stack pitch; ghosts inherit the actual coin size.
@@ -18,8 +25,12 @@ export function useCoinExchange(boardRef) {
     if (origins.length !== 10 || origins.some((el) => !el)) return false;
     lock.current = true;
     const from = origins.map(center);
+    // «Схема»: the ghosts are dots (0.54 of a cell, see .cb-dot), even when
+    // no dot is on the board yet (a ten opening into an empty frame).
+    const scheme = boardRef.current.querySelector(".cb-stick, .cb-dot");
+    const dot = scheme ? (parseFloat(getComputedStyle(boardRef.current).getPropertyValue("--coin-size")) || 30) * 0.54 : 0;
     commit();
-    setFlight({ direction, stackId, coinIds, from });
+    setFlight({ direction, stackId, coinIds, from, dot });
     return true;
   };
   useLayoutEffect(() => {
@@ -37,8 +48,9 @@ export function useCoinExchange(boardRef) {
       destinations.forEach((el, i) => {
         const from = flight.from[i], to = center(el);
         const ghost = document.createElement("div");
-        ghost.className = "cb-coin cb-coin-fly-ghost";
-        ghost.style.cssText = `left:${from.x}px;top:${from.y}px;width:${to.width || from.width}px;height:${to.width || from.width}px`;
+        const size = flight.dot || to.width || from.width;
+        ghost.className = `${flight.dot ? "cb-dot" : "cb-coin"} cb-coin-fly-ghost`;
+        ghost.style.cssText = `left:${from.x}px;top:${from.y}px;width:${size}px;height:${size}px`;
         document.body.appendChild(ghost);
         ghosts.push(ghost);
         const anim = ghost.animate([

@@ -150,4 +150,21 @@ describe("ExchangeTenTask — «Плюс и минус через десяток
     act(() => vi.advanceTimersByTime(20000));
     expect(h.container.querySelector(".sg-status-hint")).toBeNull();
   });
+
+  it("«Схема»: sticks and dots; minus opens a stick into ten dots, plus folds ten dots into a stick", () => {
+    h.mount(ExchangeTenTask, { ...minus, view: "scheme" });
+    expect(count(".sg-stacks .cb-stick")).toBe(3);
+    expect(count(".sg-frame .cb-dot")).toBe(2);
+    expect(count(".cb-coin, .cb-ten-stack")).toBe(0);
+    h.click("Точка в рамке 2"); h.click("Точка в рамке 1");
+    h.click("Десяток 3"); h.flush();
+    expect(count(".sg-stacks .cb-stick")).toBe(2);
+    expect(count(".sg-frame .cb-dot")).toBe(10);
+    h.unmount();
+    h.mount(ExchangeTenTask, { ...plus, view: "scheme" });
+    h.click("Точка из лотка"); h.click("Точка из лотка");
+    h.click("Сложить десяток"); h.flush();
+    expect(count(".sg-stacks .cb-stick")).toBe(4);
+    expect(count(".sg-frame .cb-dot")).toBe(0);
+  });
 });
