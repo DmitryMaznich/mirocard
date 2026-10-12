@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Схема → цифры</title>
+<style>
+  :root { --t: #d97706; --t-ink: #92400e; --t-bg: #fff7ed; --o: #2563eb; --o-ink: #1e40af; --o-bg: #eff6ff; --ink: #1e293b; --mute: #64748b; --line: #e2e8f0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px 16px 40px; background: #f0f6ff; font-family: Nunito, system-ui, sans-serif; color: var(--ink); }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  .lead { margin: 0 0 20px; color: var(--mute); font-size: 14px; max-width: 900px; }
+  .row { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .frame { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .tag { font-size: 12px; font-weight: 800; color: var(--mute); text-transform: uppercase; letter-spacing: .04em; }
+  .tag b { color: var(--ink); }
+  .q { text-align: center; font-weight: 800; font-size: 17px; }
+  .board { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .col { padding: 10px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: 150px; }
+  .col.t { background: var(--t-bg); } .col.o { background: var(--o-bg); }
+  .head { font-size: 13px; font-weight: 800; } .t .head { color: var(--t-ink); } .o .head { color: var(--o-ink); }
+  .pic { flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; max-width: 120px; }
+  .stick { width: 8px; height: 58px; border-radius: 99px; background: var(--t); }
+  .dot { width: 16px; height: 16px; border-radius: 50%; background: var(--o); }
+  .faded .stick, .faded .dot { opacity: .22; }
+  .digit { font-size: 44px; font-weight: 900; line-height: 1; }
+  .t .digit { color: var(--t); } .o .digit { color: var(--o); }
+  .box { width: 56px; height: 52px; border: 2px solid #cbd5e1; border-radius: 10px; display: grid; place-items: center; background: #fff; }
+  .box.active { border-color: #3b82f6; box-shadow: 0 0 0 3px #3b82f633; }
+  .num { display: flex; justify-content: center; gap: 2px; font-size: 64px; font-weight: 900; line-height: 1; }
+  .num .t { color: var(--t); } .num .o { color: var(--o); } .num .k { color: var(--ink); }
+  .under { display: flex; justify-content: center; gap: 22px; font-size: 12px; font-weight: 800; margin-top: -4px; }
+  .under .t { color: var(--t-ink); } .under .o { color: var(--o-ink); }
+  .say { background: #f8fafc; border-radius: 10px; padding: 8px 10px; font-size: 14px; font-weight: 700; text-align: center; }
+  .note { font-size: 13px; color: var(--mute); line-height: 1.4; }
+  .arrow { font-size: 22px; color: var(--mute); text-align: center; margin: -4px 0; }
+  .choices { display: flex; justify-content: center; gap: 8px; }
+  .chip { min-width: 52px; padding: 10px 12px; border-radius: 12px; border: 2px solid #cbd5e1; background: #fff; font-weight: 900; font-size: 20px; text-align: center; }
+  .chip.ok { border-color: #22c55e; background: #dcfce7; }
+  h2 { font-size: 16px; margin: 28px 0 10px; }
+</style>
+
+<h1>Как схема переходит в цифры — на числе 34</h1>
+<p class="lead">Одна лестница, четыре кадра. Слева направо картинка теряет вес, цифра набирает. Связь держат два якоря: цвет разряда (десятки оранжевые, единицы синие) и место (десятки слева). Картинку убираем только на следующем уровне, внутри одного задания она не исчезает.</p>
+
+<div class="row">
+  <!-- 1 -->
+  <div class="frame">
+    <div class="tag">Кадр 1 · <b>Схема</b> (уже сделано)</div>
+    <div class="q">Какое число на схеме?</div>
+    <div class="board">
+      <div class="col t"><div class="head">Десятки</div><div class="pic"><i class="stick"></i><i class="stick"></i><i class="stick"></i></div><div class="box active"></div></div>
+      <div class="col o"><div class="head">Единицы</div><div class="pic"><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div><div class="box"></div></div>
+    </div>
+    <div class="note">Ребёнок считает палочки и пишет 3, считает точки и пишет 4.</div>
+  </div>
+
+  <!-- 2 -->
+  <div class="frame">
+    <div class="tag">Кадр 2 · <b>Цифра из группы</b> (новое)</div>
+    <div class="board">
+      <div class="col t"><div class="head">Десятки</div><div class="pic faded"><i class="stick"></i><i class="stick"></i><i class="stick"></i></div><div class="digit">3</div></div>
+      <div class="col o"><div class="head">Единицы</div><div class="pic faded"><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div><div class="digit">4</div></div>
+    </div>
+    <div class="arrow">↓ цифры съезжают в число ↓</div>
+    <div class="num"><span class="t">3</span><span class="o">4</span></div>
+    <div class="say">«3 десятка и 4 единицы — тридцать четыре»</div>
+    <div class="note">Ключевой момент. Ответ «34» ребёнок не набирает с нуля: цифры, которые он уже написал, переезжают из своих колонок в число и сохраняют цвет. Группа бледнеет, цифра остаётся. Так видно, что «3» в числе — это те же три палочки.</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="frame">
+    <div class="tag">Кадр 3 · <b>Таблица</b> (следующий уровень)</div>
+    <div class="q">Запиши число</div>
+    <div class="board">
+      <div class="col t"><div class="head">Десятки</div><div class="pic"></div><div class="digit">3</div></div>
+      <div class="col o"><div class="head">Единицы</div><div class="pic"></div><div class="digit">4</div></div>
+    </div>
+    <div class="num"><span class="box active" style="width:110px;height:72px"></span></div>
+    <div class="note">Картинки нет, только разряды и цифры в цвете. Ребёнок пишет число. Обратное задание тоже на этом уровне: дано 34, разложи по колонкам. Если ошибся, этот пример показывается со схемой (кадр 2), опора возвращается по ошибке.</div>
+  </div>
+
+  <!-- 4 -->
+  <div class="frame">
+    <div class="tag">Кадр 4 · <b>Только число</b> (цель)</div>
+    <div class="num"><span class="t">3</span><span class="o">4</span></div>
+    <div class="under"><span class="t">дес.</span><span class="o">ед.</span></div>
+    <div class="q">Сколько десятков в числе?</div>
+    <div class="choices"><span class="chip ok">3</span><span class="chip">4</span><span class="chip">34</span></div>
+    <div class="note">Колонок больше нет, цвет остаётся. Ребёнок читает разряды прямо в записи. Потом цвет тоже уходит (последний уровень), и это уже обычное число из учебника. «34» среди вариантов ответа ловит типичную ошибку «десятков 34».</div>
+  </div>
+</div>
+
+<h2>Обратное направление («Собери число»): цифра → группа</h2>
+<div class="row">
+  <div class="frame">
+    <div class="tag">Схема</div>
+    <div class="num"><span class="t">4</span><span class="o">7</span></div>
+    <div class="board">
+      <div class="col t"><div class="head">Десятки</div><div class="pic"><i class="stick"></i><i class="stick"></i><i class="stick"></i><i class="stick"></i></div></div>
+      <div class="col o"><div class="head">Единицы</div><div class="pic"><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i><i class="dot"></i></div></div>
+    </div>
+    <div class="note">Число задано в цвете разрядов: оранжевая «4» подсказывает, что палочек четыре. Пока цифра читается, ребёнок кладёт группы.</div>
+  </div>
+  <div class="frame">
+    <div class="tag">Таблица</div>
+    <div class="num"><span class="t">4</span><span class="o">7</span></div>
+    <div class="board">
+      <div class="col t"><div class="head">Десятки</div><div class="pic"></div><div class="box active"></div></div>
+      <div class="col o"><div class="head">Единицы</div><div class="pic"></div><div class="box"></div></div>
+    </div>
+    <div class="note">Вместо того чтобы класть палочки, ребёнок пишет цифру в колонку. Это то же действие, что в кадре 3, только в обратную сторону.</div>
+  </div>
+</div>
+</html>
