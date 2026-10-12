@@ -1,3 +1,4 @@
+import { getBuiltinVisibility } from "./topic-catalog.mjs";
 import {
   findAccountById, getAccountSettings, getRevision,
   getStudents, getAccountTopics,
@@ -25,6 +26,7 @@ export function buildBootstrap(db, accountId) {
 
   return {
     account: serializeAccount(account),
+    builtinVisibility: getBuiltinVisibility(db),
     subscription,
     settings: {
       uiLanguage:       settings?.ui_language ?? "ru",

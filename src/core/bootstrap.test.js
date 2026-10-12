@@ -37,6 +37,7 @@ describe("bootstrap helpers", () => {
       students: [],
       ownedTopics: [],
       topicRecords: [],
+      builtinVisibility: {},
       activeStudentId: null,
       activeTopicId: null,
       activeModeId: null,
@@ -453,6 +454,15 @@ describe("bootstrap helpers", () => {
     await persistBootstrap(db,raw);
     expect((await kv.get(db,"students")).map(s=>s.id)).toEqual(["keep"]);
     expect(await kv.get(db,"lastContext")).toBeNull();
+  });
+
+  it("hidden builtin topics stay hidden across store updates and offline reload, then can be restored",async()=>{
+    const db=await freshDb();const hidden={builtinVisibility:{streak_tracker:false}};
+    applyBootstrapToStore(hidden);expect(useAppStore.getState().topicRecords.some(t=>t.meta.id==="streak_tracker")).toBe(false);
+    useAppStore.getState().setTopicRecords([]);expect(useAppStore.getState().topicRecords.some(t=>t.meta.id==="streak_tracker")).toBe(false);
+    await persistBootstrap(db,hidden);
+    expect((await loadLocalBootstrap(db)).topicRecords.some(t=>t.meta.id==="streak_tracker")).toBe(false);
+    applyBootstrapToStore({builtinVisibility:{streak_tracker:true}});expect(useAppStore.getState().topicRecords.some(t=>t.meta.id==="streak_tracker")).toBe(true);
   });
 
 });

@@ -43,11 +43,20 @@
       "version": "1.0.1",
       "renderer": "chat_practice",
       "sources": [
-        "content/topics/can_i_watch_tv/topic.json"
+        "content/topics/can_i_watch_tv/topic.json",
+        "public/decks/can_i_watch_tv_v1.0.1.zip"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "1.0.1",
+        "url": "./decks/can_i_watch_tv_v1.0.1.zip",
+        "title": "Можно мультики?",
+        "description": "Учимся просить разрешения посмотреть телевизор",
+        "renderer": "chat_practice",
+        "modes": null,
+        "cards": null
+      },
       "builtin": false,
-      "sourceUpdatedAt": "2026-06-23T20:44:17+02:00"
+      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
     },
     {
       "id": "chat_with_mom",
@@ -57,9 +66,22 @@
       "version": "1.0.2",
       "renderer": "chat_practice",
       "sources": [
-        "content/topics/chat_with_mom/topic.json"
+        "content/topics/chat_with_mom/topic.json",
+        "public/decks/chat_with_mom_v1.0.2.zip"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "1.0.2",
+        "url": "./decks/chat_with_mom_v1.0.2.zip",
+        "title": {
+          "ru": "Учебный чат"
+        },
+        "description": {
+          "ru": "5 диалогов с мамой — учимся общаться в мессенджере в разных ситуациях дома"
+        },
+        "renderer": "chat_practice",
+        "modes": 6,
+        "cards": null
+      },
       "builtin": false,
       "sourceUpdatedAt": "2026-06-24T06:22:59+02:00"
     },
@@ -242,11 +264,20 @@
       "version": "1.0.1",
       "renderer": "chat_practice",
       "sources": [
-        "content/topics/feel_sick/topic.json"
+        "content/topics/feel_sick/topic.json",
+        "public/decks/feel_sick_v1.0.1.zip"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "1.0.1",
+        "url": "./decks/feel_sick_v1.0.1.zip",
+        "title": "Мне плохо",
+        "description": "Учимся говорить маме, что плохо себя чувствуешь",
+        "renderer": "chat_practice",
+        "modes": null,
+        "cards": null
+      },
       "builtin": false,
-      "sourceUpdatedAt": "2026-06-23T20:44:17+02:00"
+      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
     },
     {
       "id": "first_then",
@@ -289,11 +320,20 @@
       "version": "1.0.1",
       "renderer": "chat_practice",
       "sources": [
-        "content/topics/good_night/topic.json"
+        "content/topics/good_night/topic.json",
+        "public/decks/good_night_v1.0.1.zip"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "1.0.1",
+        "url": "./decks/good_night_v1.0.1.zip",
+        "title": "Спокойной ночи",
+        "description": "Вечерний ритуал — прощаемся перед сном",
+        "renderer": "chat_practice",
+        "modes": null,
+        "cards": null
+      },
       "builtin": false,
-      "sourceUpdatedAt": "2026-06-23T20:44:17+02:00"
+      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
     },
     {
       "id": "help_me",
@@ -301,11 +341,20 @@
       "version": "1.0.1",
       "renderer": "chat_practice",
       "sources": [
-        "content/topics/help_me/topic.json"
+        "content/topics/help_me/topic.json",
+        "public/decks/help_me_v1.0.1.zip"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "1.0.1",
+        "url": "./decks/help_me_v1.0.1.zip",
+        "title": "Помоги мне",
+        "description": "Учимся просить маму о помощи",
+        "renderer": "chat_practice",
+        "modes": null,
+        "cards": null
+      },
       "builtin": false,
-      "sourceUpdatedAt": "2026-06-23T20:44:17+02:00"
+      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
     },
     {
       "id": "im_hungry",
@@ -313,11 +362,20 @@
       "version": "1.0.0",
       "renderer": "chat_practice",
       "sources": [
-        "content/topics/im_hungry/topic.json"
+        "content/topics/im_hungry/topic.json",
+        "public/decks/im_hungry_v1.0.0.zip"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "1.0.0",
+        "url": "./decks/im_hungry_v1.0.0.zip",
+        "title": "Я хочу есть",
+        "description": "Просим маму дать поесть",
+        "renderer": "chat_practice",
+        "modes": null,
+        "cards": null
+      },
       "builtin": false,
-      "sourceUpdatedAt": "2026-06-23T19:40:02+02:00"
+      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
     },
     {
       "id": "letter_writing",
@@ -441,11 +499,20 @@
       "version": "1.0.1",
       "renderer": "chat_practice",
       "sources": [
-        "content/topics/morning_greeting/topic.json"
+        "content/topics/morning_greeting/topic.json",
+        "public/decks/morning_greeting_v1.0.1.zip"
       ],
-      "bundle": null,
+      "bundle": {
+        "version": "1.0.1",
+        "url": "./decks/morning_greeting_v1.0.1.zip",
+        "title": "Утреннее приветствие",
+        "description": "Учимся здороваться и узнавать как дела",
+        "renderer": "chat_practice",
+        "modes": null,
+        "cards": null
+      },
       "builtin": false,
-      "sourceUpdatedAt": "2026-06-23T18:24:14+02:00"
+      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
     },
     {
       "id": "my_people",
@@ -635,7 +702,9 @@
         "title": {
           "ru": "Печатные материалы"
         },
-        "description": null,
+        "description": {
+          "ru": "Тетради и рабочие листы для печати"
+        },
         "renderer": "print_materials",
         "modes": 1,
         "cards": null
@@ -792,7 +861,10 @@
           "ru": "Чтение: Стихи",
           "en": "Reading: Poems"
         },
-        "description": null,
+        "description": {
+          "ru": "Совместное чтение, вопросы по смыслу и сборка стихотворения из слов.",
+          "en": "Shared reading, comprehension questions, and poem assembly."
+        },
         "renderer": "reading",
         "modes": 5,
         "cards": 0
@@ -875,23 +947,23 @@
       "version": "1.10.0",
       "renderer": "sentence_puzzle",
       "sources": [
-        "public/decks/sentence_puzzle_v1.9.19.zip",
+        "public/decks/sentence_puzzle_v1.10.0.zip",
         "src/topics/renderers/sentence_puzzle",
         "tools/sentence_puzzle/topic.json"
       ],
       "bundle": {
-        "version": "1.9.19",
-        "url": "./decks/sentence_puzzle_v1.9.19.zip",
+        "version": "1.10.0",
+        "url": "./decks/sentence_puzzle_v1.10.0.zip",
         "title": "Конструктор предложений",
         "description": null,
         "renderer": "sentence_puzzle",
-        "modes": 2,
+        "modes": 3,
         "cards": 43
       },
       "builtin": false,
       "catalogEntry": {
         "id": "sentence_puzzle",
-        "version": "1.9.19",
+        "version": "1.10.0",
         "title": {
           "ru": "Конструктор предложений",
           "en": "Sentence Builder"
@@ -900,11 +972,11 @@
           "ru": "Собираем пазл из слов и слушаем предложения. Цветовое кодирование ролей.",
           "en": "Assemble sentences from word cards. Color-coded roles. Listen-and-build mode."
         },
-        "url": "./decks/sentence_puzzle_v1.9.19.zip",
+        "url": "./decks/sentence_puzzle_v1.10.0.zip",
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-07-03T07:35:51+02:00"
+      "sourceUpdatedAt": "2026-08-23T08:32:42+02:00"
     },
     {
       "id": "spatial_prepositions_ru",
