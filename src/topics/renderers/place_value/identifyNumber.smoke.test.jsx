@@ -123,6 +123,27 @@ describe("IdentifyNumberTask", () => {
     expect(h.container.querySelector(".sg-title").textContent).toBe("Какое число на схеме?");
     expect(h.container.querySelector('output[aria-label="Отдельных точек"]')).not.toBeNull();
   });
+  it("«Схема» + «Обучение»: after tens and ones the digits fly into the number by themselves, then the spoken model", () => {
+    const onMistake = vi.fn();
+    h.mount(IdentifyNumberTask, task({ view: "scheme" }), { onMistake });
+    answer(3); answer(4);
+    expect(h.container.querySelector(".id-board--faded")).not.toBeNull();
+    expect(h.button("Далее →")).toBeUndefined();
+    h.flush();
+    expect(value("Какое это число?")).toBe("34");
+    expect(h.container.querySelector(".fp-field--total .id-dig--tens").textContent).toBe("3");
+    expect(h.container.querySelector(".sg-status-say").textContent).toBe("3 десятка и 4 единицы — тридцать четыре");
+    expect(document.querySelector(".id-fly")).toBeNull();
+    expect(onMistake).not.toHaveBeenCalled();
+    expect(h.button("Далее →")).toBeDefined();
+  });
+
+  it("«Схема», «Больше девяти»: no flight — composing the number is the child's job", () => {
+    h.mount(IdentifyNumberTask, task({ view: "scheme", layout: "over9", model: { tens: 2, ones: 14 } }));
+    answer(2); answer(14); h.flush();
+    expect(active()).toBe("Какое это число?");
+    expect(h.container.querySelector(".id-board--faded")).toBeNull();
+  });
 });
 
 describe("mixedLayout", () => {

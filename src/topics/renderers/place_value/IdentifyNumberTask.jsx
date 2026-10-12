@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { modelPieces } from "./CoinBlocks.jsx";
-import { numberWords, pluralTens, pluralOnes } from "./placeValueLabels.js";
+import { numberWords, pluralTens, pluralOnes, placeValuePhrase } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
 import "./coins.css";
@@ -21,6 +21,7 @@ import "./identify.css";
 
 const WIDE_ANSWER = 320; // px, the answer column on a landscape tablet
 const COUNT_HINT_MS = 8000;
+const FLY_MS = 800; // «Схема»: the tens and ones digits travel into the number
 
 function seededRandom(seed) {
   let value = seed % 233280;
@@ -69,6 +70,13 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   const [note, setNote] = useState("");
   const [counted, setCounted] = useState([]);
   const [countHint, setCountHint] = useState(false);
+  // «Схема» + «Обучение» (not «Больше девяти», where composing the number IS the
+  // exchange): once tens and ones are written, the picture fades and the two
+  // digits travel from their columns into the number, keeping their place
+  // colour — the bridge from the picture to the digits
+  // (docs/place-value-methodology.md, раздел 8, кадр 2).
+  const bridge = scheme && teaching && layout !== "over9";
+  const [bridging, setBridging] = useState(false);
   const typed = useTypedAnswer(3); // three digits on purpose: «214» and «304» are the mistakes to catch
   const [coinSize, setCoinSize] = useState(32);
   const [mode, setMode] = useState("phone");
@@ -137,6 +145,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
       setNote("");
       setCounted([]);
       if (step === questions.length - 1) setSolved(true); else setStep(step + 1);
+      if (bridge && q.key === "ones") setBridging(true);
       return true;
     }
     setNote(q.key === "tens" ? "Посчитай десятки."
@@ -144,6 +153,34 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
     return false;
   }
+  useEffect(() => {
+    if (!bridging) return undefined;
+    const finish = () => { setAnswers((a) => ({ ...a, total: task.number })); setSolved(true); setBridging(false); };
+    const screen = screenRef.current;
+    const from = ["tens", "ones"].map((k) => screen?.querySelector(`.fp-field--${k} .fp-value`));
+    const to = screen?.querySelector(".fp-field--total .fp-value");
+    const still = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    if (still || !to || from.some((el) => !el)) { finish(); return undefined; }
+    const target = to.getBoundingClientRect(), size = getComputedStyle(to).fontSize;
+    const ghosts = from.map((el, i) => {
+      const r = el.getBoundingClientRect();
+      const ghost = document.createElement("span");
+      ghost.className = `id-fly id-dig--${i ? "ones" : "tens"}`;
+      ghost.textContent = el.textContent;
+      ghost.style.fontSize = size;
+      document.body.append(ghost);
+      const x0 = r.left + r.width / 2, y0 = r.top + r.height / 2;
+      const x1 = target.left + target.width * (i ? 0.64 : 0.36), y1 = target.top + target.height / 2;
+      const animation = ghost.animate([
+        { transform: `translate(${x0}px, ${y0}px) translate(-50%, -50%) scale(.6)` },
+        { transform: `translate(${x1}px, ${y1}px) translate(-50%, -50%)` },
+      ], { duration: FLY_MS, delay: 300, easing: "ease-in-out", fill: "both" });
+      return { ghost, animation };
+    });
+    ghosts[1].animation.onfinish = () => { ghosts.forEach((g) => g.ghost.remove()); finish(); };
+    return () => ghosts.forEach((g) => { g.animation.cancel(); g.ghost.remove(); });
+  }, [bridging]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function enter() {
     if (!typed.digits || solved) return;
     if (answer(Number(typed.digits))) typed.reset(); else typed.fail();
@@ -154,9 +191,12 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
   const field = (key, big) => {
     const i = questions.findIndex((q) => q.key === key);
     if (i < 0) return null;
-    const q = questions[i], ok = answers[q.key] !== undefined, active = !solved && i === step;
+    const q = questions[i], ok = answers[q.key] !== undefined, active = !solved && !bridging && i === step;
+    const value = !ok ? (active ? typed.digits : "")
+      : bridge && q.key === "total" ? <span className="id-dig-pair"><span className="id-dig--tens">{tens}</span><span className="id-dig--ones">{ones}</span></span>
+      : answers[q.key];
     return <AnswerField label={q.label} tone={q.tone} big={big} bare={!big && !(q.key === "ones" && layout === "over9")} ok={ok} active={active}
-      wrong={typed.wrong} value={ok ? answers[q.key] : active ? typed.digits : ""} />;
+      wrong={typed.wrong} value={value} />;
   };
 
   // A stack or a coin: in «Обучение» a tap ticks it as counted.
@@ -177,7 +217,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     <h3 className="sg-head sg-head--ones"><span className="sg-chip" />Единицы</h3>
   </>;
 
-  const status = solved ? null
+  const status = solved ? (bridge ? <span className="sg-status-say">{placeValuePhrase(task.number)}</span> : null)
     : note ? <span className="sg-status-note">{note}</span>
       : countHint ? <span className="sg-status-hint">{`Можно отмечать посчитанное — нажимай на десятки и ${scheme ? "точки" : "монеты"}.`}</span> : null;
 
@@ -185,7 +225,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
     style={{ "--coin-size": `${coinSize}px`, "--sg-stack-cols": stackCols, "--sg-stack-rows": stackRows, "--id-cols": cols, "--id-blocks": blocks, "--sg-answer-w": `${WIDE_ANSWER}px` }}>
     <div className="sg-inner" ref={innerRef}>
       <h2 className="sg-title">{scheme ? "Какое число на схеме?" : "Сколько здесь монет?"}</h2>
-      <div className="sg-board id-board">
+      <div className={`sg-board id-board${bridge && (bridging || solved) ? " id-board--faded" : ""}`}>
         {layout === "mixed"
           ? <>
             <section className="sg-card id-mixed">
@@ -210,7 +250,7 @@ export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlash
         <div className="sg-status" role="status">{status}</div>
         <div className="sg-slot">
           {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-            : <Keypad typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={!autoField} />}
+            : <Keypad off={bridging} typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={!autoField} />}
         </div>
       </div>
     </div>

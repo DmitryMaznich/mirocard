@@ -57,3 +57,14 @@ button.id-item {
   width: min(100%, max(calc(var(--coin-size) * var(--id-cols) * 1.6 + 28px),
     calc(var(--coin-size) * (var(--sg-stack-cols) * 1.3 + 7.4) + 64px)));
 }
+
+/* «Схема» + «Обучение»: the bridge to digits. The picture fades, the tens and
+   ones digits fly into the number and keep their place colour there. */
+.id-board--faded .cb-stick,
+.id-board--faded .cb-dot { opacity: 0.25; transition: opacity 0.5s ease; }
+/* Same colours as the digits in the tens / ones fields they came from. */
+.id-dig--tens { color: #b45309; }
+.id-dig--ones { color: #1d4ed8; }
+.id-dig-pair { display: inline-flex; }
+.id-fly { position: fixed; left: 0; top: 0; z-index: 500; pointer-events: none; font-weight: 900; line-height: 1; }
+.sg-status-say { color: #1e293b; font-weight: 800; }
