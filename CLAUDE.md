@@ -104,7 +104,7 @@ git add tools/<id>/topic.json tools/<id>/*.zip public/decks/catalog.json public/
 
 Commit this alongside (or right before) the `package.json` version-bump commit above, then push.
 
-**Delete the previous version's ZIP in the same commit** (`git rm public/decks/<id>_v<old-version>.zip`). Only the catalog's current version (and, for hidden topics, the latest one listed in `backend/generated/topic-inventory.json`) is ever served — the server 404s any other filename under `decks/` — and every old ZIP lands in the Docker image. 214 stale versions (756 MB) had piled up by 2026-10-12 and made each deploy push ~1.9 GB; they're still in git history if one is ever needed.
+**Delete the previous version's ZIP in the same commit** (`git rm public/decks/<id>_v<old-version>.zip`). Only the catalog's current version (and, for hidden topics, the latest one listed in `backend/generated/topic-inventory.json`) is ever served — the server 404s any other filename under `decks/` — and every old ZIP lands in the Docker image. 214 stale versions (756 MB) had piled up by 2026-10-12 and made each deploy push ~1.9 GB; they're still in git history if one is ever needed. A test that imports a specific old ZIP must read it from `test-fixtures/decks/` (outside the image) — `git grep` the old filename before deleting it.
 
 Sanity-check the rebuilt ZIP actually contains your change before pushing: `unzip -p public/decks/<id>_v<new-version>.zip mirocard2.css | grep <a class or string you just added>`.
 

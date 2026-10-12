@@ -54,3 +54,11 @@
 /* The compact two-row keypad everywhere: the screen already holds the «диктор». */
 .nn-screen--tablet .nn-inner, .nn-screen--wide .nn-inner { gap: 20px; }
 .nn-screen--tablet .nn-diktor-wrap, .nn-screen--wide .nn-diktor-wrap { width: 130px; height: 130px; }
+
+/* «Прочитай и выбери название»: the written number and three names. */
+.nn-number { font-size: clamp(72px, 22vw, 128px); font-weight: 900; line-height: 1; color: #1a1a2e; font-variant-numeric: tabular-nums; }
+.nn-options--words { flex-direction: column; align-items: stretch; width: min(100%, 420px); }
+.nn-option.nn-word { min-height: 64px; font-size: clamp(24px, 6.5vw, 32px); font-weight: 800; display: block; text-align: center; }
+.nn-w--hundreds { color: #15803d; }
+.nn-w--tens { color: #b45309; }
+.nn-w--ones { color: #1d4ed8; }

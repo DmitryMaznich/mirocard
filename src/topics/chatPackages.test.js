@@ -31,7 +31,7 @@ for (const [id, version] of [
 
 test("published sentence builder package exposes the new letter-writing mode",async()=>{
   const db=await openDb(`sentence-package-${Math.random()}`);
-  const bytes=readFileSync(path.resolve("public/decks/sentence_puzzle_v1.10.0.zip"));
+  const bytes=readFileSync(path.resolve("test-fixtures/decks/sentence_puzzle_v1.10.0.zip"));
   const record=await importTopic(db,bytes,"1.0.9999");
   expect(record.meta.version).toBe("1.10.0");expect(record.modes.map(m=>m.id)).toContain("listen_write_letters");db.close();
 });

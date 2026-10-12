@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { act } from "react";
 import NumberNamesTask from "./NumberNamesTask.jsx";
 import { confusables, numberNameOptions, numberNamesNumber } from "./numberNames.js";
 import { numberAudioParts, NUMBER_AUDIO_WORDS } from "./numberAudio.js";
@@ -103,5 +104,46 @@ describe("«Названия чисел» — «Услышь и напиши»",
   it("engine passes the task kind", () => {
     expect(generateTasks("number_names", [], 3, { task: "write" }).every((t) => t.task === "write")).toBe(true);
     expect(generateTasks("number_names", [], 3, {}).every((t) => t.task === "choose")).toBe(true);
+  });
+});
+
+describe("«Названия чисел» — «Прочитай и выбери»", () => {
+  const h = coinHarness();
+  const text = (sel) => h.container.querySelector(sel)?.textContent;
+  const read = (extra = {}) => ({ type: "number_names", cardId: "n", conceptId: "n", number: 305, options: [350, 305, 35], task: "read", supportMode: "learning", ...extra });
+  const word = (w) => Array.from(h.container.querySelectorAll(".nn-word")).find((b) => b.textContent.replace(/\s+/g, " ").trim() === w);
+
+  it("the number is written, the options are names with the same root; words carry place colours", () => {
+    h.mount(NumberNamesTask, read());
+    expect(text(".sg-title")).toBe("Прочитай и выбери название");
+    expect(text(".nn-number")).toBe("305");
+    expect(h.container.querySelector(".nn-diktor")).toBeNull();
+    expect(Array.from(h.container.querySelectorAll(".nn-word")).map((b) => b.textContent.replace(/\s+/g, " ").trim()).sort())
+      .toEqual(["тридцать пять", "триста пять", "триста пятьдесят"]);
+    expect(word("триста пятьдесят").querySelector(".nn-w--hundreds").textContent).toBe("триста");
+    expect(word("триста пятьдесят").querySelector(".nn-w--tens").textContent).toBe("пятьдесят");
+  });
+
+  it("«Обучение»: a wrong name is tied to its own number; the right one finishes", () => {
+    const onMistake = vi.fn(), onCorrect = vi.fn();
+    h.mount(NumberNamesTask, read(), { onMistake, onCorrect });
+    act(() => word("тридцать пять").click());
+    expect(text(".sg-status-note")).toBe("«тридцать пять» — это 35. Прочитай число ещё раз.");
+    act(() => word("триста пять").click());
+    expect(text(".sg-status-say")).toBe("305 — триста пять");
+    expect(onMistake).toHaveBeenCalledTimes(1);
+    h.click("Далее →");
+    expect(onCorrect).toHaveBeenCalled();
+  });
+
+  it("«Проверка»: words without colours", () => {
+    h.mount(NumberNamesTask, read({ supportMode: "independent" }));
+    expect(h.container.querySelector(".nn-w--hundreds")).toBeNull();
+    act(() => word("тридцать пять").click());
+    expect(text(".sg-status-note")).toBe("Прочитай ещё раз.");
+  });
+
+  it("engine passes «read»", () => {
+    expect(generateTasks("number_names", [], 3, { task: "read" }).every((t) => t.task === "read")).toBe(true);
   });
 });
