@@ -1,4 +1,5 @@
 import { useAppStore } from "@/core/store";
+import { migrateStudentPeople } from "../../../shared/student-people.mjs";
 import { api, setApiToken } from "@/core/api";
 import { getDb, kv } from "@/core/db";
 import { persistBootstrap, applyBootstrapToStore, indexStudentTopicLinks, mergeStudents, clearUserIdbData } from "@/core/bootstrap";
@@ -30,10 +31,17 @@ export async function completeLogin({ account, token }) {
 
     // Push local data to server before fetching bootstrap (so it isn't lost)
     const uploadOps = [];
-    for (const s of (localStudents ?? [])) {
-      const { photo, closeAdults, ...rest } = s;
+    for (const rawStudent of (localStudents ?? [])) {
+      const s = migrateStudentPeople(rawStudent);
+      const { photo, closeAdults, myPeople: _people, myPeopleProfile: _profile, ...rest } = s;
       const adultsNoPhoto = (closeAdults ?? []).map(({ photo: _p, ...a }) => a);
       uploadOps.push({ type: "student.upsert", data: { ...rest, closeAdults: adultsNoPhoto } });
+      if (s.myPeople?.length) uploadOps.push({ type: 'student.my_people.upsert', data: {
+        studentId: s.id, people: s.myPeople, updatedAt: s.myPeopleUpdatedAt ?? s.closeAdultsUpdatedAt ?? s.updatedAt,
+      } });
+      if (s.myPeopleProfile) uploadOps.push({ type: 'student.my_people_profile.upsert', data: {
+        studentId: s.id, profile: s.myPeopleProfile, updatedAt: s.myPeopleProfileUpdatedAt ?? s.updatedAt,
+      } });
     }
     for (const sess of (localSessions ?? [])) {
       uploadOps.push({ type: "session.append", data: { ...sess, mode: sess.modeId } });

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { peopleFor } from "../../../shared/student-people.mjs";
 import { useAppStore } from "@/core/store";
 import { scriptToText, textToScript } from "./scriptFormat";
 import Modal from "@/shared/components/Modal";
@@ -21,7 +22,7 @@ export default function ChatParamsScreen() {
   const studentTopicLinks     = useAppStore((s) => s.studentTopicLinks);
 
   const student     = students.find((s) => s.id === activeStudentId);
-  const closeAdults = student?.closeAdults ?? [];
+  const closeAdults = peopleFor(student, 'chat');
   const hasVideos   = (student?.rewardVideos?.length ?? 0) > 0;
   const linkKey     = `${activeStudentId}_${activeTopicId}`;
   const link        = studentTopicLinks[linkKey] ?? {};

@@ -1,4 +1,5 @@
 import { randomUUID, createHash } from "node:crypto";
+import { studentPeople, legacyAdults, applyLegacyAdults, mergePeopleRecords } from "../../shared/student-people.mjs";
 import { mergeRewardVideoViews } from "../../src/shared/utils/rewardVideoViews.js";
 
 export function recordStudentVideoViews(db, accountId, { studentId, views }) {
@@ -60,8 +61,7 @@ function processCloseAdultPhotos(db, adults) {
   }));
 }
 
-// "Мои люди" is a separate domain from closeAdults (which belongs to the
-// sentence-puzzle topic).  A person may have several photo variations; store
+// The unified environment can have several photo variations; store
 // data URLs through the shared photo store before the record is synced back to
 // other devices.
 function processMyPeoplePhotos(db, people) {
@@ -80,32 +80,11 @@ function personChangeTime(person) {
   return person?.deletedAt ?? person?.updatedAt ?? person?.createdAt ?? "";
 }
 
-function isResolvedPhotoList(person) {
-  return (person?.photos ?? []).some((photo) => typeof photo === "string" && photo.startsWith("/api/photos/"));
-}
-
-function isLocalPhotoList(person) {
-  return (person?.photos ?? []).some((photo) => typeof photo === "string" && photo.startsWith("data:"));
-}
-
 // Merge by person id instead of last-writing the complete list.  This lets two
 // devices add or edit different people without erasing each other's work;
 // deleted records remain as tombstones until every replica has received them.
 function mergeMyPeople(existing, incoming) {
-  const byId = new Map();
-  for (const person of [...(existing ?? []), ...(incoming ?? [])]) {
-    if (!person?.id) continue;
-    const current = byId.get(person.id);
-    const sameEdit = current && personChangeTime(person) === personChangeTime(current);
-    // The server turns data URLs into durable photo URLs without changing the
-    // child's edit timestamp.  On that exact tie, retain the resolved URL so
-    // an older local data URL cannot keep overwriting the canonical reference.
-    if (current && sameEdit && isResolvedPhotoList(current) && isLocalPhotoList(person)) continue;
-    if (!current || personChangeTime(person) >= personChangeTime(current)) {
-      byId.set(person.id, person);
-    }
-  }
-  return [...byId.values()];
+  return mergePeopleRecords(existing, incoming);
 }
 
 // Important dates (the "Сегодня" screen's birthdays/holidays/events) are
@@ -483,6 +462,7 @@ export function upsertStudent(db, accountId, {
   photo = null,
   rewardVideos = [],
   closeAdults = [],
+  myPeople = [],
   healthDataConsent = false,
   healthDataConsentAt = null,
   createdAt = null,
@@ -492,6 +472,7 @@ export function upsertStudent(db, accountId, {
   if (db.prepare("SELECT 1 FROM erased_students WHERE student_id=?").get(id)) return;
   const created = createdAt || serverNow;
   const updated = updatedAt || serverNow;
+  const wasExisting = Boolean(db.prepare('SELECT 1 FROM students WHERE id = ?').get(id));
   // Photo, rewardVideos and closeAdults are each managed independently via their
   // own upsert* functions / sync ops (student.photo.upsert, student.videos.upsert,
   // student.adults.upsert). On INSERT (new student) we set their initial values;
@@ -531,6 +512,10 @@ export function upsertStudent(db, accountId, {
     created,
     updated,
   );
+  if (!wasExisting) {
+    const people = studentPeople({ myPeople, closeAdults: processedAdults, closeAdultsUpdatedAt: updated });
+    if (people.length) upsertStudentMyPeople(db, accountId, { studentId: id, people, updatedAt: updated });
+  }
 }
 
 export function upsertStudentPhoto(db, accountId, { studentId, photo, photoUpdatedAt }) {
@@ -560,14 +545,15 @@ export function upsertStudentVideos(db, accountId, { studentId, rewardVideos, up
 
 export function upsertStudentAdults(db, accountId, { studentId, closeAdults, updatedAt }) {
   const existing = db.prepare(
-    "SELECT close_adults_updated_at FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
+    "SELECT * FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
   ).get(studentId, accountId);
   if (!existing) return;
   if (existing.close_adults_updated_at && updatedAt < existing.close_adults_updated_at) return;
   const processedAdults = processCloseAdultPhotos(db, Array.isArray(closeAdults) ? closeAdults : []);
+  const people = applyLegacyAdults({ myPeople: safeJson(existing.my_people, []), closeAdults: safeJson(existing.close_adults, []), closeAdultsUpdatedAt: existing.close_adults_updated_at }, processedAdults, updatedAt);
   db.prepare(
-    "UPDATE students SET close_adults = ?, close_adults_updated_at = ? WHERE id = ?"
-  ).run(JSON.stringify(processedAdults), updatedAt, studentId);
+    "UPDATE students SET close_adults = ?, close_adults_updated_at = ?, my_people = ?, my_people_updated_at = ? WHERE id = ?"
+  ).run(JSON.stringify(legacyAdults(people)), updatedAt, JSON.stringify(people), updatedAt, studentId);
 }
 
 export function upsertStudentMyPeopleProfile(db, accountId, { studentId, profile, updatedAt }) {
@@ -583,15 +569,34 @@ export function upsertStudentMyPeopleProfile(db, accountId, { studentId, profile
 
 export function upsertStudentMyPeople(db, accountId, { studentId, people, updatedAt }) {
   const existing = db.prepare(
-    "SELECT my_people, my_people_updated_at FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
+    "SELECT * FROM students WHERE id = ? AND account_id = ? AND deleted_at IS NULL"
   ).get(studentId, accountId);
   if (!existing) return;
-  const currentPeople = safeJson(existing.my_people, []);
+  const currentPeople = studentPeople({ myPeople: safeJson(existing.my_people, []), closeAdults: safeJson(existing.close_adults, []), closeAdultsUpdatedAt: existing.close_adults_updated_at });
   const merged = mergeMyPeople(currentPeople, processMyPeoplePhotos(db, people));
   const newest = [existing.my_people_updated_at, updatedAt].filter(Boolean).sort().at(-1) ?? updatedAt;
   db.prepare(
-    "UPDATE students SET my_people = ?, my_people_updated_at = ? WHERE id = ?"
-  ).run(JSON.stringify(merged), newest, studentId);
+    "UPDATE students SET my_people = ?, my_people_updated_at = ?, close_adults = ?, close_adults_updated_at = ? WHERE id = ?"
+  ).run(JSON.stringify(merged), newest, JSON.stringify(legacyAdults(merged)), newest, studentId);
+}
+
+// Run on startup after schema/photo migrations. Stable ids make repeated runs
+// safe. Keep close_adults as an old-client projection during the transition.
+export function migrateStudentPeopleData(db) {
+  const rows = db.prepare('SELECT * FROM students WHERE deleted_at IS NULL').all();
+  const save = db.prepare('UPDATE students SET my_people = ?, close_adults = ? WHERE id = ?');
+  db.exec('SAVEPOINT migrate_student_people');
+  try {
+    for (const row of rows) {
+      const people = studentPeople({ myPeople: safeJson(row.my_people, []), closeAdults: safeJson(row.close_adults, []), closeAdultsUpdatedAt: row.close_adults_updated_at, createdAt: row.created_at });
+      save.run(JSON.stringify(people), JSON.stringify(legacyAdults(people)), row.id);
+    }
+    db.exec('RELEASE migrate_student_people');
+  } catch (error) {
+    db.exec('ROLLBACK TO migrate_student_people');
+    db.exec('RELEASE migrate_student_people');
+    throw error;
+  }
 }
 
 export function upsertStudentImportantDates(db, accountId, { studentId, dates, updatedAt }) {

@@ -1,4 +1,5 @@
 import { useState }                                                                   from "react";
+import { peopleFor } from "../../../../shared/student-people.mjs";
 import { ForwardArrowIcon } from "@/shared/components/ArrowIcons";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { shuffle }    from "@/shared/utils/shuffle";
@@ -12,7 +13,7 @@ function pickN(arr, n) {
 }
 
 function adultsAsSubjects(student) {
-  const adults = student?.closeAdults;
+  const adults = peopleFor(student, 'sentences');
   if (!Array.isArray(adults) || adults.length === 0) return null;
   return adults.map((a) => ({
     id:    `adult_${a.id}`,
