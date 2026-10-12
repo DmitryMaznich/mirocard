@@ -1500,6 +1500,14 @@ const DEFAULT_MODES = {
       ui: { title: "Разрядные слагаемые", instruction: "Разложи число на десятки и единицы или сложи их обратно", icon: "media/icons/place_value_identify.svg" },
       hideConceptPicker: true,
       params: {
+        range: {
+          type: "enum",
+          values: ["to100", "to1000"],
+          labels: { ru: { to100: "До 100", to1000: "До 1000" } },
+          default: "to100",
+          label: { ru: "Числа" },
+          info: { ru: { text: "«До 1000»: 347 = 300 + 40 + 7. Нулевой разряд слагаемого не даёт: 305 = 300 + 5, 340 = 300 + 40 — каждое четвёртое число без десятков. «Максимум десятков» действует только для чисел до 100." } },
+        },
         direction: {
           type: "enum",
           values: ["split", "join", "mix"],

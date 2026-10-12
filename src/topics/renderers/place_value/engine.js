@@ -168,7 +168,12 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     for (let i = 0; i < count; i++) {
       let number = 0;
       for (let tries = 0; tries < 20; tries++) {
-        number = randomInt(1, maxTens) * 10 + randomInt(1, 9); // no round tens: «40 = 40 + 0» teaches nothing
+        // No round tens («40 = 40 + 0» teaches nothing); up to 1000 a quarter
+        // have no tens (305 = 300 + 5) and none is a round hundred.
+        if (params.range === "to1000") {
+          const r = Math.random();
+          number = randomInt(1, 9) * 100 + (r < 0.25 ? 0 : randomInt(1, 9)) * 10 + (r >= 0.25 && r < 0.35 ? 0 : randomInt(1, 9));
+        } else number = randomInt(1, maxTens) * 10 + randomInt(1, 9);
         if (!seen.has(number)) break;
       }
       seen.add(number);

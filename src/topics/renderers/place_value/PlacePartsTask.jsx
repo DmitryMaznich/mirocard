@@ -1,10 +1,11 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
-import { numberWords, pluralTens, pluralOnes } from "./placeValueLabels.js";
+import { numberWords, pluralHundreds, pluralTens, pluralOnes } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
 import "./group_ten.css";
 import "./table.css";
+import "./hundreds.css";
 
 // «Разрядные слагаемые»: 47 = 40 + 7 («Разложи») and 40 + 7 = 47 («Сложи»).
 // Digits only — the step after the «Таблица»; it prepares adding and taking
@@ -35,28 +36,46 @@ function useScreenMode() {
 
 const cap = (s) => `${s[0].toUpperCase()}${s.slice(1)}`;
 
+const PLACE = {
+  hundreds: { label: "Сотни", gen: "сотен", unit: 100, plural: pluralHundreds },
+  tens: { label: "Десятки", gen: "десятков", unit: 10, plural: pluralTens },
+  ones: { label: "Единицы", gen: "единиц", unit: 1, plural: pluralOnes },
+};
+// «a, b и c» / «a и b».
+const list = (items) => (items.length > 1 ? `${items.slice(0, -1).join(", ")} и ${items[items.length - 1]}` : items[0]);
+
 export default function PlacePartsTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const teaching = task.supportMode !== "independent";
   const split = task.direction === "split";
   const words = split && task.prompt === "words";
-  const n = task.number, tens = Math.floor(n / 10), ones = n % 10;
+  const n = task.number;
+  const digit = { hundreds: Math.floor(n / 100), tens: Math.floor(n / 10) % 10, ones: n % 10 };
+  // Places shown in the table (all of the number's places) and the non-zero
+  // parts (305 = 300 + 5: a zero place has no part).
+  const places = (n >= 100 ? ["hundreds", "tens", "ones"] : ["tens", "ones"]);
+  const parts = places.filter((k) => digit[k]).map((k) => ({ key: k, value: digit[k] * PLACE[k].unit }));
   const fields = split
-    ? [{ key: "tensPart", label: "Десятки", tone: "tens", expected: tens * 10 }, { key: "onesPart", label: "Единицы", tone: "ones", expected: ones }]
+    ? parts.map((p) => ({ key: p.key, label: PLACE[p.key].label, tone: p.key, expected: p.value }))
     : [{ key: "total", label: "Число", tone: "total", expected: n }];
   const [ref, mode] = useScreenMode();
-  const typed = useTypedAnswer(3); // «407» for 40 + 7 is the mistake to catch
+  const typed = useTypedAnswer(5); // «407» for 40 + 7, «30047» for 300 + 40 + 7
   const [step, setStep] = useState(0);
   const [note, setNote] = useState("");
   const [support, setSupport] = useState(false);
   const solved = step >= fields.length;
+  const named = words ? numberWords(n) : n;
+  const composition = list(places.map((k) => `${digit[k]} ${PLACE[k].plural(digit[k])}`));
 
   function hint(f, guess) {
     if (!teaching) return "Проверь ещё раз.";
-    if (f.key === "tensPart" && guess === tens) return `${tens} ${pluralTens(tens)} — это ${numberWords(tens * 10)}. Сколько это?`;
-    if (f.key === "tensPart") return `Сколько десятков в числе ${words ? numberWords(n) : n}? Десятки пишем круглым числом.`;
-    if (f.key === "onesPart") return `Сколько единиц в числе ${words ? numberWords(n) : n}?`;
-    if (guess === tens * 100 + ones) return `${cap(numberWords(n))} — это ${tens} ${pluralTens(tens)} и ${ones} ${pluralOnes(ones)}. Сколько цифр нужно?`;
-    return `${tens * 10} — это ${tens} ${pluralTens(tens)}, ${ones} — ${ones} ${pluralOnes(ones)}. Какое это число?`;
+    if (f.key === "total") {
+      if (String(guess).length !== String(n).length) return `${cap(numberWords(n))} — это ${composition}. Сколько цифр нужно?`;
+      return `${list(parts.map((p) => `${p.value} — это ${digit[p.key]} ${PLACE[p.key].plural(digit[p.key])}`))}. Какое это число?`;
+    }
+    const d = digit[f.key];
+    if (f.key !== "ones" && guess === d) return `${d} ${PLACE[f.key].plural(d)} — это ${numberWords(f.expected)}. Сколько это?`;
+    if (f.key !== "ones") return `Сколько ${PLACE[f.key].gen} в числе ${named}? ${PLACE[f.key].label} пишем круглым числом.`;
+    return `Сколько единиц в числе ${named}?`;
   }
   function submit(guess) {
     const f = fields[step];
@@ -66,8 +85,8 @@ export default function PlacePartsTask({ task, onCorrect, onMistake, onFlashInco
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
     return false;
   }
-  // The two parts check themselves as they are typed; «Проверить» is live too,
-  // so a child who stops at «4» for 40 gets the «4 десятка — это сорок» hint.
+  // The parts check themselves as they are typed; «Проверить» is live too, so
+  // a child who stops at «4» for 40 gets the «4 десятка — это сорок» hint.
   const auto = !solved && split;
   useAutoCheck(typed, { auto, expected: solved ? "" : fields[step].expected, submit });
   function enter() {
@@ -77,27 +96,29 @@ export default function PlacePartsTask({ task, onCorrect, onMistake, onFlashInco
 
   const colored = (value, kind) => (teaching ? <span className={`tb-digit--${kind}`}>{value}</span> : value);
   const numberShown = words ? <span className="pp-words">{numberWords(n)}</span>
-    : <span className="pp-num">{colored(tens, "tens")}{colored(ones, "ones")}</span>;
+    : <span className="pp-num">{places.map((k) => <span key={k}>{colored(digit[k], k)}</span>)}</span>;
   const field = (i) => {
     const f = fields[i];
     return <AnswerField key={f.key} label={f.label} tone={f.tone} bare ok={step > i} active={step === i} wrong={typed.wrong}
       value={step > i ? f.expected : step === i ? typed.digits : ""} />;
   };
-  const parts = <><span className="pp-part">{colored(tens * 10, "tens")}</span><span className="pp-op">+</span><span className="pp-part">{colored(ones, "ones")}</span></>;
-  const say = split ? `${n} = ${tens * 10} + ${ones}. ${cap(numberWords(n))} — это ${numberWords(tens * 10)} и ${numberWords(ones)}.`
-    : `${tens * 10} + ${ones} = ${n}. ${cap(numberWords(tens * 10))} и ${numberWords(ones)} — ${numberWords(n)}.`;
+  const plusJoined = (items) => items.flatMap((item, i) => (i ? [<span key={`op${i}`} className="pp-op">+</span>, item] : [item]));
+  const sumWords = list(parts.map((p) => numberWords(p.value)));
+  const sum = parts.map((p) => p.value).join(" + ");
+  const say = split ? `${n} = ${sum}. ${cap(numberWords(n))} — это ${sumWords}.` : `${sum} = ${n}. ${cap(sumWords)} — ${numberWords(n)}.`;
+  const title = n >= 100 ? (split ? "Разложи на сотни, десятки и единицы" : "Сложи сотни, десятки и единицы")
+    : split ? "Разложи на десятки и единицы" : "Сложи десятки и единицы";
 
   return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} tb-screen pp-screen`} style={{ "--sg-answer-w": "340px" }}>
     <div className="sg-inner">
-      <h2 className="sg-title">{split ? "Разложи на десятки и единицы" : "Сложи десятки и единицы"}</h2>
+      <h2 className="sg-title">{title}</h2>
       <div className="sg-board pp-board">
-        <div className="pp-row">
-          {split ? <>{numberShown}<span className="pp-op">=</span>{field(0)}<span className="pp-op">+</span>{field(1)}</>
-            : <>{parts}<span className="pp-op">=</span>{field(0)}</>}
+        <div className={`pp-row${parts.length > 2 ? " pp-row--long" : ""}${words ? " pp-row--words" : ""}`}>
+          {split ? <>{numberShown}<span className="pp-op">=</span>{plusJoined(fields.map((_, i) => field(i)))}</>
+            : <>{plusJoined(parts.map((p) => <span key={p.key} className="pp-part">{colored(p.value, p.key)}</span>))}<span className="pp-op">=</span>{field(0)}</>}
         </div>
-        {support && <section className="sg-card tb-table pp-support" aria-hidden="true">
-          <div className="tb-col tb-col--tens"><h3 className="sg-head sg-head--tens">Десятки</h3><div className="tb-digit tb-digit--tens">{tens}</div></div>
-          <div className="tb-col tb-col--ones"><h3 className="sg-head sg-head--ones">Единицы</h3><div className="tb-digit tb-digit--ones">{ones}</div></div>
+        {support && <section className={`sg-card tb-table pp-support${places.length === 3 ? " hd-table" : ""}`} aria-hidden="true">
+          {places.map((k) => <div key={k} className={`tb-col tb-col--${k}`}><h3 className={`sg-head sg-head--${k}`}>{PLACE[k].label}</h3><div className={`tb-digit tb-digit--${k}`}>{digit[k]}</div></div>)}
         </section>}
       </div>
       <div className="sg-answer">

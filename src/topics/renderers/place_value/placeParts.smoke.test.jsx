@@ -56,4 +56,32 @@ describe("«Разрядные слагаемые»", () => {
     expect(tasks.every((t) => t.number % 10 !== 0 && t.number >= 11 && t.number <= 39 && t.cardId === "place_parts")).toBe(true);
     expect(new Set(tasks.map((t) => t.direction))).toEqual(new Set(["split", "join"]));
   });
+
+  it("до 1000: 347 = [300] + [40] + [7]; «3» for 300 is explained", () => {
+    h.mount(PlacePartsTask, task({ number: 347 }));
+    expect(text(".sg-title")).toBe("Разложи на сотни, десятки и единицы");
+    type(3); h.click("Проверить");
+    expect(text(".sg-status-note")).toBe("3 сотни — это триста. Сколько это?");
+    expect(h.container.querySelectorAll(".pp-support .tb-col")).toHaveLength(3);
+    h.flush(); type(300); type(40); type(7);
+    expect(text(".sg-status-say")).toBe("347 = 300 + 40 + 7. Триста сорок семь — это триста, сорок и семь.");
+  });
+
+  it("до 1000: a zero place gives no part (305 = 300 + 5); joining «3005» gets the digits hint", () => {
+    h.mount(PlacePartsTask, task({ number: 305 }));
+    expect(h.container.querySelectorAll(".fp-field")).toHaveLength(2);
+    type(300); type(5);
+    expect(text(".sg-status-say")).toBe("305 = 300 + 5. Триста пять — это триста и пять.");
+    h.unmount();
+    h.mount(PlacePartsTask, task({ number: 305, direction: "join" }));
+    expect(text(".pp-row").replace(/\s+/g, "")).toBe("300+5=");
+    type(3005); h.click("Проверить");
+    expect(text(".sg-status-note")).toBe("Триста пять — это 3 сотни, 0 десятков и 5 единиц. Сколько цифр нужно?");
+  });
+
+  it("engine «до 1000»: three-digit, never a round hundred", () => {
+    const tasks = generateTasks("place_parts", [], 200, { range: "to1000" });
+    expect(tasks.every((t) => t.number >= 101 && t.number <= 999 && t.number % 100 !== 0)).toBe(true);
+    expect(tasks.some((t) => Math.floor(t.number / 10) % 10 === 0)).toBe(true);
+  });
 });
