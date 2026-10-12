@@ -239,7 +239,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     const messages = {
       tens: "Посчитай десятки ещё раз.",
       ones: "Единицы — монеты, которые не сложились в десяток. Посчитай их ещё раз.",
-      total: `${tens} ${pluralTens(tens)} — это ${numberWords(tens * 10)}. И ещё ${ones} ${ones === 1 ? "монета" : ones >= 2 && ones <= 4 ? "монеты" : "монет"}.`,
+      total: `${tens} ${pluralTens(tens)} — это ${numberWords(tens * 10)}. ${ones ? `И ещё ${ones} ${ones === 1 ? "монета" : ones >= 2 && ones <= 4 ? "монеты" : "монет"}` : "И 0 единиц"}.`,
     };
     setHint(null);
     setNote(messages[key]);

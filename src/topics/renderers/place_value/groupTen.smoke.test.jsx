@@ -108,7 +108,7 @@ describe("GroupTenTask", () => {
     take(10); h.click("Сложить десяток"); h.flush();
     answer(2); answer(0); answer(2);
     expect(onMistake).toHaveBeenCalledTimes(1);
-    expect(h.container.querySelector(".sg-status").textContent).toContain("2 десятка — это двадцать");
+    expect(h.container.querySelector(".sg-status").textContent).toContain("2 десятка — это двадцать. И 0 единиц.");
     h.click("Стереть цифру"); answer(20);
     expect(field("Единицы")).toBe("0");
     expect(field("Какое это число?")).toBe("20");
