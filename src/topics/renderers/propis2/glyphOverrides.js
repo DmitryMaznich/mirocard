@@ -109,7 +109,7 @@ export function liftStart(glyph, lift) {
   if (y0 - y1 <= lift) return glyph;
   const t = lift / (y0 - y1);
   const d = `M ${(x0 + (x1 - x0) * t).toFixed(2)} ${(y0 - lift).toFixed(2)} ${glyph.strokes[0].d.slice(glyph.strokes[0].d.indexOf("L"))}`;
-  return { ...glyph, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
+  return { ...glyph, anchorY: y0, strokes: [{ ...glyph.strokes[0], d }, ...glyph.strokes.slice(1)] };
 }
 const applyOverride = (g, { startLift, ...rest }) => liftStart({ ...g, ...rest }, startLift);
 const withOverride = (g) => {

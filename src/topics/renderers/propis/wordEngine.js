@@ -1356,7 +1356,15 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
       tail = { d: transformPathD(like.tail.d, { scaleX: k, translateX: low[0] - k * likeStart[0], translateY: low[1] - likeStart[1] }) };
     }
   }
-  const start = getPathEndpoints(strokes[0].d).start;
+  let start = getPathEndpoints(strokes[0].d).start;
+  // `anchorY` («Прописи 2», г): the drawn start was moved up the letter's opening line (glyphOverrides.js `startLift`); the letter is
+  // still set on the grid by its captured start, on the same line further down at that capture height, so it keeps its place and so do
+  // the letters after it. `start` is that anchor; the strokes keep the lifted start.
+  if (Number.isFinite(glyph.anchorY)) {
+    const ay = WIDE_BASELINE_Y - (WIDE_CAPTURE_BASELINE - glyph.anchorY) * WIDE_SCALE * scale;
+    const q = samplePath(strokes[0].d, 40)[1];
+    if (q && Math.abs(q[1] - start[1]) > 1e-6) start = [start[0] + ((ay - start[1]) * (q[0] - start[0])) / (q[1] - start[1]), ay];
+  }
   // Exit = end of the stroke that reaches furthest right ("й": the main stroke, not the breve;
   // "к": the second stroke) -- the real continuation point of the pen.
   let end = getPathEndpoints(strokes[0].d).end;
