@@ -122,7 +122,7 @@ async function makeReadingTopicZip({ id = "reading_test", version = "1.0.0", sto
 
 describe("importTopic — valid cases", () => {
   it("imports the shipped people-and-names deck end-to-end", async () => {
-    const bytes = await readFile(resolve("public/decks/people_names_v1.0.1.zip"));
+    const bytes = await readFile(resolve("test-fixtures/decks/people_names_v1.0.1.zip"));
     const db = await freshDb();
     const record = await importTopic(db, bytes, "1.0.2046");
 

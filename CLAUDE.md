@@ -102,9 +102,17 @@ cp tools/<id>/comparison.zip public/decks/<id>_v<new-version>.zip   # filename p
 git add tools/<id>/topic.json tools/<id>/*.zip public/decks/catalog.json public/decks/<id>_v<new-version>.zip
 ```
 
-Commit this alongside (or right before) the `package.json` version-bump commit above, then push. Sanity-check the rebuilt ZIP actually contains your change before pushing: `unzip -p public/decks/<id>_v<new-version>.zip mirocard2.css | grep <a class or string you just added>`.
+Commit this alongside (or right before) the `package.json` version-bump commit above, then push.
+
+**Delete the previous version's ZIP in the same commit** (`git rm public/decks/<id>_v<old-version>.zip`). Only the catalog's current version (and, for hidden topics, the latest one listed in `backend/generated/topic-inventory.json`) is ever served — the server 404s any other filename under `decks/` — and every old ZIP lands in the Docker image. 214 stale versions (756 MB) had piled up by 2026-10-12 and made each deploy push ~1.9 GB; they're still in git history if one is ever needed.
+
+Sanity-check the rebuilt ZIP actually contains your change before pushing: `unzip -p public/decks/<id>_v<new-version>.zip mirocard2.css | grep <a class or string you just added>`.
 
 **The ZIP only contains the renderer's own entry graph — not `engine.js` if nothing else in the renderer imports it.** `tools/<id>/build.mjs` bundles exactly `src/topics/renderers/<id>/index.jsx` and whatever it transitively imports (the `*.jsx`/`.css` UI). Task *generation* (`engine.js`'s `generateTasks`) is registered separately in `src/topics/renderers/engineRegistry.js` and runs from the **main app bundle** via `ENGINE_REGISTRY`, regardless of which renderer ZIP is installed — `index.jsx` typically doesn't import its own topic's `engine.js` at all (the task object arrives as a prop, already built). So a change confined to `engine.js` (or a data module only `engine.js` imports, e.g. `comparison`'s `realLifeScenes.js`) needs **only** the normal `package.json` version bump + push — no deck-zip rebuild, and rebuilding one anyway just re-packages identical renderer code under a new, misleading version number. Only rebuild the zip when the change actually touches a file the renderer's `index.jsx` imports (its own `*.jsx`/`.css`). Confirmed 2026-08-28: `unzip`-inspecting `tools/comparison/dist/renderer` after adding scenes to `realLifeScenes.js` showed zero trace of the new data — expected, not a bug, because `CompareRealLife.jsx` never imports `engine.js`.
+
+### Docker image (Railway)
+
+`Dockerfile` is two-stage: the build stage installs everything and runs `npm run build`; the final image gets only `dist/`, `backend/` (with its own `node_modules`), `scripts/`, `src/` and `package.json` — exactly what `node backend/server.mjs` reads at runtime. If the backend starts importing or reading a file outside those paths, add it to the final stage or the server won't start on Railway. `.dockerignore` keeps `.git`, `docs/`, `landing/`, `test-fixtures/` etc. out of the build context; the git SHA comes from Railway's `RAILWAY_GIT_COMMIT_SHA` (`scripts/git-sha.mjs` falls back to it). A normal deploy pushes ~130 MB (mostly `dist/`), the whole image is ~580 MB including the Node base.
 
 ## Backend (Node.js)
 

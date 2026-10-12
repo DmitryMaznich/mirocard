@@ -20,7 +20,9 @@ import path from "node:path";
 export function gitSha(repoRoot) {
   try {
     const dotGitPath = path.join(repoRoot, ".git");
-    if (!existsSync(dotGitPath)) return "unknown";
+    // Railway builds without .git (.dockerignore) but provides the commit SHA
+    // as an env var (a build arg in the Dockerfile, injected at runtime).
+    if (!existsSync(dotGitPath)) return process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) || "unknown";
 
     let gitDir = dotGitPath;
     if (!statSync(dotGitPath).isDirectory()) {
