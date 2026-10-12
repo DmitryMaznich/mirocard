@@ -31,22 +31,71 @@ export function numberAudioParts(n) {
 
 export const numberAudioUrl = (part) => `/audio/place-value-numbers/n${part}.mp3`;
 
-// Plays the words of `n` one after another; resolves when done (or on error).
-// Returns a stop() so a new tap can cut the previous playback short.
+// Plays the words of `n` back to back; returns { done, stop }. The clips are
+// trimmed of their silence (scripts/trim-place-value-numbers.mjs) and played
+// through Web Audio: all parts are fetched and decoded first, then scheduled
+// end to end on one clock — no gap for loading the next file, so «восемьдесят»
+// + «четыре» sound as one number. Where Web Audio isn't usable (no
+// AudioContext, or it stays suspended before a user gesture) the parts are
+// preloaded as <audio> elements and chained on «ended».
+const buffers = new Map();
+let context = null;
+function audioContext() {
+  const Ctx = typeof window !== "undefined" ? window.AudioContext || window.webkitAudioContext : null;
+  if (!Ctx) return null;
+  if (!context) context = new Ctx();
+  return context;
+}
+async function decoded(ctx, url) {
+  if (!buffers.has(url)) {
+    buffers.set(url, fetch(url).then((r) => r.arrayBuffer()).then((data) => ctx.decodeAudioData(data))
+      .catch((err) => { buffers.delete(url); throw err; }));
+  }
+  return buffers.get(url);
+}
+async function running(ctx) {
+  if (ctx.state === "running") return true;
+  try { await Promise.race([ctx.resume(), new Promise((r) => setTimeout(r, 300))]); } catch { /* fall back */ }
+  return ctx.state === "running";
+}
+
 export function playNumber(n) {
-  let stopped = false, current = null;
+  let stopped = false;
+  const stops = [];
   const urls = numberAudioParts(n).map(numberAudioUrl);
-  const run = (async () => {
-    for (const url of urls) {
+  const viaWebAudio = async () => {
+    const ctx = audioContext();
+    if (!ctx || !(await running(ctx))) return false;
+    const list = await Promise.all(urls.map((url) => decoded(ctx, url)));
+    if (stopped) return true;
+    let at = ctx.currentTime + 0.02;
+    let last = null;
+    for (const buffer of list) {
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(at);
+      at += buffer.duration;
+      stops.push(() => { try { source.stop(); } catch { /* already ended */ } });
+      last = source;
+    }
+    await new Promise((resolve) => { last.onended = resolve; stops.push(resolve); });
+    return true;
+  };
+  const viaElements = async () => {
+    const clips = urls.map((url) => { const a = new Audio(url); a.preload = "auto"; return a; });
+    for (const clip of clips) {
       if (stopped) return;
-      current = new Audio(url);
+      stops.push(() => clip.pause());
       await new Promise((resolve) => {
-        current.onended = resolve;
-        current.onerror = resolve;
+        clip.onended = resolve;
+        clip.onerror = resolve;
+        stops.push(resolve);
         // play() rejects when autoplay is blocked; jsdom has no playback at all.
-        try { const started = current.play(); if (started?.catch) started.catch(resolve); else resolve(); } catch { resolve(); }
+        try { const started = clip.play(); if (started?.catch) started.catch(resolve); else resolve(); } catch { resolve(); }
       });
     }
-  })();
-  return { done: run, stop: () => { stopped = true; current?.pause(); } };
+  };
+  const done = viaWebAudio().catch(() => false).then((ok) => (ok || stopped ? undefined : viaElements()));
+  return { done, stop: () => { stopped = true; stops.forEach((f) => f()); } };
 }
