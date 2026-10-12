@@ -648,15 +648,15 @@
         "ru": "Разряды числа",
         "en": "Place Value"
       },
-      "version": "1.0.4",
+      "version": "1.0.5",
       "renderer": "place_value",
       "sources": [
-        "public/decks/place_value_v1.0.4.zip",
+        "public/decks/place_value_v1.0.5.zip",
         "src/topics/renderers/place_value"
       ],
       "bundle": {
-        "version": "1.0.4",
-        "url": "./decks/place_value_v1.0.4.zip",
+        "version": "1.0.5",
+        "url": "./decks/place_value_v1.0.5.zip",
         "title": {
           "ru": "Разряды числа",
           "en": "Place Value"
@@ -664,13 +664,13 @@
         "description": "Как устроено число: отдельные монеты — единицы, стопка из десяти монет — десяток. Ребёнок сам складывает россыпь монет стопками по десять и называет число, собирает число и читает готовую модель, а затем сам решает, когда нужен обмен десятка: раскладывает стопку, если единиц не хватает, и складывает новую, если единиц набралось десять.",
         "renderer": "place_value",
         "modes": 0,
-        "cards": 5
+        "cards": 6
       },
       "builtin": false,
       "catalogEntry": {
         "id": "place_value",
-        "version": "1.0.4",
-        "url": "./decks/place_value_v1.0.4.zip",
+        "version": "1.0.5",
+        "url": "./decks/place_value_v1.0.5.zip",
         "title": {
           "ru": "Разряды числа",
           "en": "Place Value"
@@ -682,7 +682,7 @@
           "en": "Tens and ones with coins: group a heap into stacks of ten, build and read a number, and decide when a ten must be exchanged (carry and borrow)."
         }
       },
-      "sourceUpdatedAt": "2026-10-12T12:47:30Z"
+      "sourceUpdatedAt": "2026-10-12T13:22:22Z"
     },
     {
       "id": "print_materials",

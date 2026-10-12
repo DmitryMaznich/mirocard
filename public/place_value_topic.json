@@ -2,13 +2,21 @@
   "meta": {
     "id": "place_value",
     "renderer": "place_value",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "title": {
       "ru": "Разряды числа",
       "en": "Place Value"
     }
   },
   "cards": [
+    {
+      "id": "number_names",
+      "conceptId": "number_names",
+      "renderer": "place_value",
+      "params": {
+        "mode": "number_names"
+      }
+    },
     {
       "id": "group_ten",
       "conceptId": "group_ten",

@@ -3,6 +3,7 @@ import IdentifyNumberTask from "./IdentifyNumberTask.jsx";
 import ExchangeTenTask from "./ExchangeTenTask.jsx";
 import GroupTenTask from "./GroupTenTask.jsx";
 import PlacePartsTask from "./PlacePartsTask.jsx";
+import NumberNamesTask from "./NumberNamesTask.jsx";
 
 const TASKS = {
   group_ten: GroupTenTask,
@@ -10,6 +11,7 @@ const TASKS = {
   identify_number: IdentifyNumberTask,
   exchange_ten: ExchangeTenTask,
   place_parts: PlacePartsTask,
+  number_names: NumberNamesTask,
 };
 
 // A wrong answer here is one step inside a multi-step task (questions already

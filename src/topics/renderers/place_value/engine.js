@@ -1,3 +1,4 @@
+import { numberNameOptions, numberNamesNumber } from "./numberNames.js";
 // "Разряды числа" (place_value): number models built from coins (единицы) and
 // stacks of ten (десятки). Split out of column_addition, where these three
 // modes used to live as a warm-up before the column trainer.
@@ -155,6 +156,21 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       seed: randomInt(1, 100000),
       showFrame: params.showFrame !== false,
     }));
+  }
+
+  if (mode === "number_names") {
+    // Added after the deck shipped — same card fallback as place_parts.
+    const cards = allCards.filter((c) => c.params?.mode === "number_names");
+    const card = (i) => cards[i % cards.length] ?? { id: "number_names", conceptId: "number_names" };
+    const tasks = [];
+    let last = null;
+    for (let i = 0; i < count; i++) {
+      let number;
+      do number = numberNamesNumber(params.set ?? "tens"); while (number === last);
+      last = number;
+      tasks.push({ type: "number_names", cardId: card(i).id, conceptId: card(i).conceptId, number, options: numberNameOptions(number), supportMode: params.supportMode ?? "learning" });
+    }
+    return tasks;
   }
 
   if (mode === "place_parts") {
