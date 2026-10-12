@@ -101,7 +101,7 @@ export default function StudentDataInfo({ kind }) {
         aria-haspopup="dialog"
         onClick={(event) => { event.preventDefault(); setOpen(true); }}
       >
-        <span aria-hidden="true">i</span>
+        <span aria-hidden="true">Зачем?</span>
       </button>
       {open && createPortal(
         <div ref={dialog} className="student-data-info-dialog">

@@ -8,27 +8,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 36px;
-  width: 36px;
+  flex: 0 0 auto;
   height: 36px;
-  padding: 0;
+  padding: 0 10px;
   border: 0;
-  border-radius: 50%;
+  border-radius: 10px;
   color: #377b71;
-  background: transparent;
+  background: #edf6f3;
   cursor: pointer;
   vertical-align: middle;
 }
 
 .student-data-info span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 21px;
-  height: 21px;
-  border: 1.5px solid currentColor;
-  border-radius: 50%;
-  font: bold 14px Georgia, serif;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: normal;
   text-transform: none;
 }
 
