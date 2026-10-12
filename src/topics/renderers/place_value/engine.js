@@ -92,7 +92,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
         // «Цифрами» / «Словами» / «Микс» — how the number is given (see BuildNumberTask).
         prompt: prompt === "mix" ? (Math.random() < 0.5 ? "digits" : "words") : prompt === "words" ? "words" : "digits",
         supportMode: params.supportMode ?? "learning",
-        view: params.view === "scheme" ? "scheme" : "coins",
+        view: ["scheme", "table"].includes(params.view) ? params.view : "coins",
       });
     }
     return tasks;
@@ -109,7 +109,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
         ...identifyLayout(task.number, params.layout ?? "places"),
         seed: randomInt(1, 100000),
         supportMode: params.supportMode ?? "learning",
-        view: params.view === "scheme" ? "scheme" : "coins",
+        view: ["scheme", "table"].includes(params.view) ? params.view : "coins",
       });
     }
     return tasks;

@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { modelPieces } from "./CoinBlocks.jsx";
+import { IdentifyTableTask } from "./TableTasks.jsx";
 import { numberWords, pluralTens, pluralOnes, placeValuePhrase } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
@@ -50,7 +51,12 @@ export function mixedLayout(tens, ones, seed, cols) {
   return { rows, items };
 }
 
-export default function IdentifyNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+// «Таблица» has its own screen (TableTasks.jsx); coins and the scheme share this one.
+export default function IdentifyNumberTask(props) {
+  return props.task.view === "table" ? <IdentifyTableTask {...props} /> : <IdentifyNumberTaskModel {...props} />;
+}
+
+function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const teaching = task.supportMode !== "independent";
   const layout = task.layout ?? "places";
   const { tens, ones } = task.model;

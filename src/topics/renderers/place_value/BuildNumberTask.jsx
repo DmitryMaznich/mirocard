@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { modelPieces } from "./CoinBlocks.jsx";
+import { BuildTableTask } from "./TableTasks.jsx";
 import { placeValuePhrase, numberWords, pluralTens } from "./placeValueLabels.js";
 import "./place_value.css";
 import "./coins.css";
@@ -19,7 +20,12 @@ import "./build.css";
 const MAX_TENS = 9;
 const MAX_ONES = 19;
 
-export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+// «Таблица» has its own screen (TableTasks.jsx); coins and the scheme share this one.
+export default function BuildNumberTask(props) {
+  return props.task.view === "table" ? <BuildTableTask {...props} /> : <BuildNumberTaskModel {...props} />;
+}
+
+function BuildNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const teaching = task.supportMode !== "independent";
   const words = task.prompt === "words";
   const scheme = task.view === "scheme";

@@ -1,0 +1,51 @@
+/* «Таблица» (TableTasks.jsx): the place-value columns with digits, no picture.
+   Column heads are the same flat markers as in every coin mode (.sg-head). */
+
+.tb-screen .sg-board { width: min(100%, 520px); align-self: center; }
+
+.tb-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+
+.tb-col {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  row-gap: 10px;
+  padding: 14px 10px 16px;
+}
+.tb-col--tens { background: #fff7ed; }
+.tb-col--ones { background: #eff6ff; }
+
+.tb-digit {
+  font-size: clamp(56px, 14vw, 96px);
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tb-digit--tens { color: #b45309; }
+.tb-digit--ones { color: #1d4ed8; }
+
+/* The step below, back after a mistake: the scheme under the digit. */
+.tb-support {
+  --coin-size: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 4px;
+  max-width: 150px;
+}
+.tb-support--ones { max-width: calc(22px * 5 + 16px); }
+
+/* «Собери число»: the number above the table. */
+.tb-build-board { justify-items: center; }
+.tb-target {
+  font-size: clamp(48px, 12vw, 80px);
+  font-weight: 900;
+  line-height: 1;
+  color: #1a1a2e;
+}
+.tb-target--words { font-size: clamp(28px, 7vw, 44px); text-align: center; }
+.tb-screen--build .tb-table { width: 100%; }
