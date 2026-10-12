@@ -34,10 +34,13 @@ export const numberAudioUrl = (part) => `/audio/place-value-numbers/n${part}.mp3
 // Plays the words of `n` back to back; returns { done, stop }. The clips are
 // trimmed of their silence (scripts/trim-place-value-numbers.mjs) and played
 // through Web Audio: all parts are fetched and decoded first, then scheduled
-// end to end on one clock — no gap for loading the next file, so «восемьдесят»
+// on one clock with a fixed short gap (PART_GAP_SECONDS), not a loading delay, so «восемьдесят»
 // + «четыре» sound as one number. Where Web Audio isn't usable (no
 // AudioContext, or it stays suspended before a user gesture) the parts are
 // preloaded as <audio> elements and chained on «ended».
+// A short breath between the words of one number («восемьдесят · четыре»):
+// end to end with no gap sounded unnatural (the owner's ear, 2026-10-12).
+export const PART_GAP_SECONDS = 0.12;
 const buffers = new Map();
 let context = null;
 function audioContext() {
@@ -75,7 +78,7 @@ export function playNumber(n) {
       source.buffer = buffer;
       source.connect(ctx.destination);
       source.start(at);
-      at += buffer.duration;
+      at += buffer.duration + PART_GAP_SECONDS;
       stops.push(() => { try { source.stop(); } catch { /* already ended */ } });
       last = source;
     }
@@ -84,8 +87,9 @@ export function playNumber(n) {
   };
   const viaElements = async () => {
     const clips = urls.map((url) => { const a = new Audio(url); a.preload = "auto"; return a; });
-    for (const clip of clips) {
+    for (const [i, clip] of clips.entries()) {
       if (stopped) return;
+      if (i) await new Promise((r) => setTimeout(r, PART_GAP_SECONDS * 1000));
       stops.push(() => clip.pause());
       await new Promise((resolve) => {
         clip.onended = resolve;
