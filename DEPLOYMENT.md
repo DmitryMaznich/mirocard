@@ -268,7 +268,10 @@ backend/generated/topic-inventory.json before builds when Git is present.
 Source dates come from Git history, never container file modification times.
 Deployments without .git use the committed inventory; regenerate and commit it
 whenever topic sources/packages change. Unknown dates are shown as unknown.
-Built-ins are read-only here because their installation is controlled by app code.
+Built-ins expose a global show/hide setting. Bootstrap propagates this policy to
+clients; the client stores it for offline startup and applies it whenever topic
+records are refreshed. Updating an older client is required to honor the policy.
+Hiding a builtin does not erase lesson history or create a downloadable catalog entry.
 
 GET /api/admin/topics returns the full registry. POST /api/admin/topics/:id
 changes listed, status (release/beta/individual/hidden), and access (paid/free).
@@ -280,3 +283,10 @@ catalog does not erase repository source, cached installed copies or lesson
 history; new downloads/claims become unavailable. The registry retains the topic
 for restoration. Version metadata is read-only; uploading/building new packages
 continues through the repository. Source and catalog versions are shown separately.
+
+
+Chat-practice manifests under content/topics are packaged with
+scripts/build-chat-practice-decks.mjs. Prepared public/decks ZIPs remain outside
+the catalog until an administrator explicitly adds them and chooses publication
+and access flags. These scripts run locally with predefined dialogue choices,
+not a remote AI service. Source files remain authoritative.

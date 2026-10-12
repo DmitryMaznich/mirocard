@@ -390,3 +390,16 @@ test("topic controls are admin-only, change the actual public catalog and suppor
   assert.equal((await request(route,{...patch,expectedRevision:2})).status,200);
   assert.ok((await publicCatalog()).decks.find(t=>t.id==="admin-fixture-topic"));
 });
+
+
+test("builtin visibility reaches authenticated bootstrap and never enters the downloadable catalog",async()=>{
+  const {storeAuthToken}=await import("../lib/account-repository.mjs");const {createHash}=await import("node:crypto");
+  const account=createAccount(db,{email:"builtin-visibility@example.test",passwordHash:"h"});activateAccount(db,account.id);
+  const token="builtin-test";storeAuthToken(db,{accountId:account.id,tokenHash:createHash("sha256").update(token).digest("hex"),expiresAt:"2099-01-01T00:00:00Z"});
+  const patch={listed:true,status:"hidden",access:"free",expectedRevision:0};
+  assert.equal((await request("/topics/streak_tracker",patch)).status,200);
+  const bootstrap=await fetch(base.replace("/admin","/account/bootstrap"),{headers:{Authorization:`Bearer ${token}`}}).then(r=>r.json());
+  assert.equal(bootstrap.builtinVisibility.streak_tracker,false);
+  assert.equal((await fetch(base.replace("/admin","/decks/catalog")).then(r=>r.json())).decks.some(t=>t.id==="streak_tracker"),false);
+  assert.equal((await request("/topics/streak_tracker",{...patch,status:"release",expectedRevision:1})).status,200);
+});

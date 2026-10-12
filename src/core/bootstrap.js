@@ -3,7 +3,7 @@ import { mergeRewardVideoViews } from "@/shared/utils/rewardVideoViews";
 import { useAppStore } from "@/core/store";
 import { listTopicRecords, installFirstPartyDeckIfNeeded } from "@/topics/topicLoader";
 import { normalizeActiveSessionSnapshot } from "@/features/session/activeSession";
-import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS, FIRST_PARTY_DECK_IDS } from "@/topics/builtinTopics";
+import { FIRST_PARTY_DECK_IDS, applyBuiltinVisibility } from "@/topics/builtinTopics";
 
 export function isDeletedStudent(student) {
   return Boolean(student?.deletedAt);
@@ -313,10 +313,8 @@ export function normalizeBootstrap(raw = {}) {
     students: Array.isArray(raw.students) ? raw.students : [],
     erasedStudentIds: Array.isArray(raw.erasedStudentIds) ? raw.erasedStudentIds : [],
     ownedTopics: Array.isArray(raw.ownedTopics) ? raw.ownedTopics : [],
-    topicRecords: [
-      ...BUILTIN_TOPICS,
-      ...(Array.isArray(raw.topicRecords) ? raw.topicRecords.filter((r) => !BUILTIN_TOPIC_IDS.has(r.meta?.id)) : []),
-    ],
+    builtinVisibility: raw.builtinVisibility ?? {},
+    topicRecords: applyBuiltinVisibility(Array.isArray(raw.topicRecords)?raw.topicRecords:[],raw.builtinVisibility??{}),
     studentTopicLinks: indexStudentTopicLinks(raw.studentTopicLinks),
     conceptProgress: indexConceptProgress(raw.conceptProgress),
     sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-200) : [],
@@ -345,7 +343,9 @@ export function applyBootstrapToStore(raw) {
     students: mergeStudents(state.students, bootstrap.students).filter(s => !bootstrap.erasedStudentIds.includes(s.id)),
     ...(bootstrap.erasedStudentIds.includes(state.activeStudentId) ? {activeStudentId:null, activeSessionSnapshot:null, screen:"students"} : {}),
     ownedTopics: "ownedTopics" in raw ? mergeOwnedTopics(state.ownedTopics, bootstrap.ownedTopics) : state.ownedTopics,
-    topicRecords: "topicRecords" in raw ? bootstrap.topicRecords : state.topicRecords,
+    builtinVisibility: "builtinVisibility" in raw ? bootstrap.builtinVisibility : state.builtinVisibility??{},
+    topicRecords: "topicRecords" in raw ? applyBuiltinVisibility(bootstrap.topicRecords,"builtinVisibility" in raw ? bootstrap.builtinVisibility : state.builtinVisibility??{}) : "builtinVisibility" in raw ? applyBuiltinVisibility(state.topicRecords,bootstrap.builtinVisibility) : state.topicRecords,
+    ...(bootstrap.builtinVisibility[state.activeTopicId]===false ? {activeTopicId:null,activeModeId:null,activeSessionSnapshot:null,screen:"topics"} : {}),
     subscription: "subscription" in raw ? bootstrap.subscription : state.subscription,
     studentTopicLinks: bootstrap.studentTopicLinks,
     conceptProgress: bootstrap.conceptProgress,
@@ -353,7 +353,7 @@ export function applyBootstrapToStore(raw) {
     ...("activeSession" in raw ? { activeSessionSnapshot: bootstrap.activeSession } : {}),
     // Only restore active context from local bootstrap artifacts.
     // A server-side apply without lastContext/activeSession must not clear current navigation.
-    ...((bootstrap.activeSession != null || bootstrap.lastContext != null) ? {
+    ...((bootstrap.activeSession != null || bootstrap.lastContext != null) && bootstrap.builtinVisibility[resumeContext?.topicId]!==false ? {
       activeStudentId: resumeContext?.studentId ?? null,
       activeTopicId:   resumeContext?.topicId   ?? null,
       activeTextId:    resumeContext?.textId    ?? null,
@@ -382,6 +382,7 @@ export async function loadLocalBootstrap(db) {
     ]);
 
   return normalizeBootstrap({
+    builtinVisibility: await kv.get(db,"builtinVisibility")??{},
     token,
     account,
     settings,
@@ -401,7 +402,7 @@ export async function loadLocalBootstrap(db) {
 const USER_IDB_KEYS = [
   "token", "account", "accountId",
   "students", "sessions", "studentTopicLinks", "conceptProgress",
-  "ownedTopics", "lastContext", "activeSession", "settings",
+  "ownedTopics", "lastContext", "activeSession", "settings", "builtinVisibility",
 ];
 
 // public/sw.js serves /api/photos/* cache-first, keyed by URL alone, so a
@@ -435,6 +436,7 @@ export async function persistBootstrap(db, raw) {
   const bootstrap = normalizeBootstrap(raw);
   const writes = [];
 
+  if ("builtinVisibility" in raw) writes.push(kv.set(db,"builtinVisibility",bootstrap.builtinVisibility));
   if ("token" in raw) writes.push(kv.set(db, "token", bootstrap.token));
   if ("account" in raw) writes.push(kv.set(db, "account", bootstrap.account));
   if ("settings" in raw) {

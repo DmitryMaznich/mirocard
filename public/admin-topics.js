@@ -17,6 +17,7 @@ const labels = {
   draft: "Вне каталога",
   removed: "Удалена из каталога",
   builtin: "Встроенная",
+  builtin_hidden: "Встроенная скрыта",
 };
 const historySettings = (value) => {
   try {
@@ -46,7 +47,8 @@ export function createAdminTopics({ api, confirmAction, onChanged }) {
       .filter(
         (t) =>
           (!q || `${title(t)} ${t.id}`.toLowerCase().includes(q)) &&
-          (status === "all" || t.publication === status),
+          (status === "all" ||
+            (status === "builtin" ? t.builtin : t.publication === status)),
       )
       .sort((a, b) =>
         $("topics-sort").value === "updated"
@@ -103,7 +105,7 @@ export function createAdminTopics({ api, confirmAction, onChanged }) {
     if (!selected) return;
     const t = selected;
     $("topic-detail").innerHTML =
-      `<header class="detail-header"><div><p class="eyebrow">УПРАВЛЕНИЕ ТЕМОЙ</p><h2>${esc(title(t))}</h2><p class="caption">${esc(t.id)}</p></div><button class="btn small" data-topic-action="close" aria-label="Закрыть тему">✕</button></header><div class="detail-body"><p id="topic-error" class="error" role="alert"></p><dl class="detail-meta"><div><dt>Версия в каталоге</dt><dd>${esc(t.catalogVersion ?? "Нет")}</dd></div><div><dt>Версия разработки</dt><dd>${esc(t.sourceVersion ?? "Нет")}</dd></div><div><dt>Изменения исходников</dt><dd>${date(t.sourceUpdatedAt)}</dd></div><div><dt>Ручные изменения</dt><dd>${date(t.adminUpdatedAt)}</dd></div></dl>${t.reason ? `<p class="access-note">${esc(t.reason)}</p>` : ""}${t.canManage ? `<form id="topic-form"><label>Статус публикации<select id="topic-status">${["release", "beta", "individual", "hidden"].map((s) => `<option value="${s}" ${t.settings.status === s ? "selected" : ""}>${labels[s]}</option>`).join("")}</select></label><label>Доступ<select id="topic-access"><option value="paid" ${t.access === "paid" ? "selected" : ""}>Платная</option><option value="free" ${t.access === "free" ? "selected" : ""}>Бесплатная</option></select></label><p class="empty-note">Опубликована — видна всем. Beta и индивидуальная — по назначению. Скрыта — обычным пользователям не показывается. Оплата и видимость задаются отдельно.</p><div class="lifecycle-actions"><button class="btn primary" type="submit">${t.inCatalog ? "Сохранить флаги" : "Добавить в каталог"}</button>${t.inCatalog ? '<button class="btn danger" type="button" data-topic-action="remove">Удалить из каталога</button>' : ""}</div></form>` : '<p class="empty-note">Флаги каталога здесь недоступны: требуется отдельный ZIP-пакет либо изменение встроенной темы в коде приложения.</p>'}<section class="detail-section"><h3>Источники</h3><ul class="topic-sources">${(t.sources ?? []).map((s) => `<li>${esc(s)}</li>`).join("") || "<li>Только запись каталога</li>"}</ul></section><section class="detail-section"><h3>Последние ручные изменения</h3><ul class="audit-list">${t.history.map((e) => `<li><strong>${e.action === "remove" ? "Удаление из каталога" : e.action === "restore" ? "Добавление в каталог" : "Изменение флагов"}</strong><small>${date(e.createdAt)}</small><p>${esc(historySettings(e.settings))}</p></li>`).join("") || "<li>Ручных изменений ещё нет.</li>"}</ul></section></div>`;
+      `<header class="detail-header"><div><p class="eyebrow">УПРАВЛЕНИЕ ТЕМОЙ</p><h2>${esc(title(t))}</h2><p class="caption">${esc(t.id)}</p></div><button class="btn small" data-topic-action="close" aria-label="Закрыть тему">✕</button></header><div class="detail-body"><p id="topic-error" class="error" role="alert"></p><dl class="detail-meta"><div><dt>Версия в каталоге</dt><dd>${esc(t.catalogVersion ?? "Нет")}</dd></div><div><dt>Версия разработки</dt><dd>${esc(t.sourceVersion ?? "Нет")}</dd></div><div><dt>Изменения исходников</dt><dd>${date(t.sourceUpdatedAt)}</dd></div><div><dt>Ручные изменения</dt><dd>${date(t.adminUpdatedAt)}</dd></div></dl>${t.reason ? `<p class="access-note">${esc(t.reason)}</p>` : ""}${t.builtin ? `<form id="topic-form"><label>Видимость встроенной темы<select id="topic-status"><option value="release" ${t.builtinEnabled !== false ? "selected" : ""}>Показывать пользователям</option><option value="hidden" ${t.builtinEnabled === false ? "selected" : ""}>Скрыть у пользователей</option></select></label><input id="topic-access" type="hidden" value="free"><p class="empty-note">Настройка действует для всех пользователей после синхронизации приложения. Скрытие не удаляет тему, историю и данные учеников.</p><button class="btn primary" type="submit">Сохранить видимость</button></form>` : t.canManage ? `<form id="topic-form"><label>Статус публикации<select id="topic-status">${["release", "beta", "individual", "hidden"].map((s) => `<option value="${s}" ${t.settings.status === s ? "selected" : ""}>${labels[s]}</option>`).join("")}</select></label><label>Доступ<select id="topic-access"><option value="paid" ${t.access === "paid" ? "selected" : ""}>Платная</option><option value="free" ${t.access === "free" ? "selected" : ""}>Бесплатная</option></select></label><p class="empty-note">Опубликована — видна всем. Beta и индивидуальная — по назначению. Скрыта — обычным пользователям не показывается. Оплата и видимость задаются отдельно.</p><div class="lifecycle-actions"><button class="btn primary" type="submit">${t.inCatalog ? "Сохранить флаги" : "Добавить в каталог"}</button>${t.inCatalog ? '<button class="btn danger" type="button" data-topic-action="remove">Удалить из каталога</button>' : ""}</div></form>` : '<p class="empty-note">Флаги каталога здесь недоступны: требуется отдельный ZIP-пакет либо изменение встроенной темы в коде приложения.</p>'}<section class="detail-section"><h3>Источники</h3><ul class="topic-sources">${(t.sources ?? []).map((s) => `<li>${esc(s)}</li>`).join("") || "<li>Только запись каталога</li>"}</ul></section><section class="detail-section"><h3>Последние ручные изменения</h3><ul class="audit-list">${t.history.map((e) => `<li><strong>${e.action === "hide_builtin" ? "Скрытие встроенной темы" : e.action === "show_builtin" ? "Показ встроенной темы" : e.action === "remove" ? "Удаление из каталога" : e.action === "restore" ? "Добавление в каталог" : "Изменение флагов"}</strong><small>${date(e.createdAt)}</small><p>${esc(historySettings(e.settings))}</p></li>`).join("") || "<li>Ручных изменений ещё нет.</li>"}</ul></section></div>`;
     if (!$("topic-dialog").open) $("topic-dialog").showModal();
     $("topic-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -118,10 +120,16 @@ export function createAdminTopics({ api, confirmAction, onChanged }) {
       access = $("topic-access").value;
     if (
       !(await confirmAction(
-        listed ? "Применить настройки темы?" : "Удалить тему из каталога?",
-        listed
-          ? `${title(t)}: ${labels[status]}, ${access === "paid" ? "платная" : "бесплатная"}. Эти настройки изменят выдачу каталога и условия новых установок.`
-          : `${title(t)}. Тема исчезнет из каталога и новых установок. Исходники, установленные копии и история занятий не удаляются. Вернуть тему можно в этом реестре.`,
+        t.builtin
+          ? "Изменить видимость встроенной темы?"
+          : listed
+            ? "Применить настройки темы?"
+            : "Удалить тему из каталога?",
+        t.builtin
+          ? `${title(t)}: ${status === "hidden" ? "скрыть" : "показать"} у пользователей. История и данные сохраняются.`
+          : listed
+            ? `${title(t)}: ${labels[status]}, ${access === "paid" ? "платная" : "бесплатная"}. Эти настройки изменят выдачу каталога и условия новых установок.`
+            : `${title(t)}. Тема исчезнет из каталога и новых установок. Исходники, установленные копии и история занятий не удаляются. Вернуть тему можно в этом реестре.`,
         listed ? "Применить" : "Удалить из каталога",
       ))
     )

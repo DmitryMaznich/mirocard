@@ -37,6 +37,7 @@ export function applyCatalogOverrides(
 ) {
   const entries = new Map((base.decks ?? []).map((e) => [e.id, { ...e }]));
   for (const row of db.prepare("SELECT * FROM topic_catalog_overrides").all()) {
+    if (inventory.some((t) => t.id === row.topic_id && t.builtin)) continue;
     const patch = JSON.parse(row.settings_json);
     if (patch.listed === false) {
       entries.delete(row.topic_id);
@@ -84,6 +85,8 @@ export function topicRegistry(
         .prepare("SELECT * FROM topic_catalog_overrides WHERE topic_id=?")
         .get(id);
       const settings = control ? JSON.parse(control.settings_json) : null;
+      const builtinEnabled =
+        !settings || (settings.listed && settings.status !== "hidden");
       const url =
         entry?.url ??
         entry?.zipUrl ??
@@ -99,24 +102,35 @@ export function topicRegistry(
         catalogVersion: entry?.version ?? null,
         sourceVersion: source.version,
         inCatalog: Boolean(entry),
-        removed: settings?.listed === false,
+        removed: !source.builtin && settings?.listed === false,
+        builtinEnabled: source.builtin ? builtinEnabled : null,
         publication: entry
           ? publication(entry)
           : source.builtin
-            ? "builtin"
+            ? builtinEnabled
+              ? "builtin"
+              : "builtin_hidden"
             : settings?.listed === false
               ? "removed"
               : "draft",
-        access: entry?.access ?? settings?.access ?? "paid",
-        hidden: entry ? publication(entry) === "hidden" : false,
+        access: source.builtin
+          ? "free"
+          : (entry?.access ?? settings?.access ?? "paid"),
+        hidden: source.builtin
+          ? !builtinEnabled
+          : entry
+            ? publication(entry) === "hidden"
+            : false,
         bundleAvailable,
         canManage:
-          !source.builtin && (Boolean(original) || Boolean(source.bundle)),
+          source.builtin || Boolean(original) || Boolean(source.bundle),
         overrideRevision: control?.revision ?? 0,
         adminUpdatedAt: control?.updated_at ?? null,
         sourceUpdatedAt: source.sourceUpdatedAt ?? null,
         reason: source.builtin
-          ? "Встроена в приложение; каталог не управляет её показом"
+          ? builtinEnabled
+            ? "Встроена в приложение и доступна пользователям"
+            : "Встроенная тема скрыта администратором"
           : settings?.listed === false
             ? "Удалена администратором из каталога"
             : !entry
@@ -127,9 +141,17 @@ export function topicRegistry(
                 ? "Запись в каталоге есть, ZIP отсутствует"
                 : null,
         settings: {
-          listed: Boolean(entry),
-          status: entry ? publication(entry) : (settings?.status ?? "hidden"),
-          access: entry?.access ?? settings?.access ?? "paid",
+          listed: source.builtin ? builtinEnabled : Boolean(entry),
+          status: source.builtin
+            ? builtinEnabled
+              ? "release"
+              : "hidden"
+            : entry
+              ? publication(entry)
+              : (settings?.status ?? "hidden"),
+          access: source.builtin
+            ? "free"
+            : (entry?.access ?? settings?.access ?? "paid"),
         },
         history: db
           .prepare(
@@ -170,7 +192,21 @@ export function updateTopicCatalog(
       !["paid", "free"].includes(body.access)
     )
       throw { status: 400, message: "Некорректные флаги темы." };
-    if (body.listed && body.status !== "hidden" && !topic.bundleAvailable)
+    if (
+      topic.builtin &&
+      (!["release", "hidden"].includes(body.status) || body.access !== "free")
+    )
+      throw {
+        status: 400,
+        message:
+          "Для встроенной темы доступны показ и скрытие, доступ бесплатный.",
+      };
+    if (
+      !topic.builtin &&
+      body.listed &&
+      body.status !== "hidden" &&
+      !topic.bundleAvailable
+    )
       throw {
         status: 409,
         message: "Нельзя опубликовать тему: ZIP отсутствует.",
@@ -188,7 +224,15 @@ export function updateTopicCatalog(
     db.prepare("INSERT INTO admin_topic_events VALUES (?,?,?,?,?)").run(
       randomUUID(),
       id,
-      body.listed ? (topic.inCatalog ? "update" : "restore") : "remove",
+      topic.builtin
+        ? body.status === "hidden"
+          ? "hide_builtin"
+          : "show_builtin"
+        : body.listed
+          ? topic.inCatalog
+            ? "update"
+            : "restore"
+          : "remove",
       JSON.stringify(settings),
       now,
     );
@@ -199,4 +243,22 @@ export function updateTopicCatalog(
       ),
     };
   });
+}
+
+export function getBuiltinVisibility(db, inventory = readTopicInventory()) {
+  const visibility = {};
+  for (const t of inventory.filter((t) => t.builtin)) {
+    const row = db
+      .prepare(
+        "SELECT settings_json FROM topic_catalog_overrides WHERE topic_id=?",
+      )
+      .get(t.id);
+    if (row) {
+      const settings = JSON.parse(row.settings_json);
+      visibility[t.id] = Boolean(
+        settings.listed && settings.status !== "hidden",
+      );
+    }
+  }
+  return visibility;
 }

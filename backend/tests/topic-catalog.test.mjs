@@ -127,7 +127,7 @@ test("ready uncatalogued package can be added, unfinished and built-in topics ca
     ).url,
     "./decks/draft.zip",
   );
-  for (const id of ["unfinished", "builtin"])
+  for (const id of ["unfinished"])
     assert.throws(
       () => updateTopicCatalog(db, base, dir, id, patch(), inventory),
       (e) => e.status === 409,
@@ -171,4 +171,15 @@ test("manual controls survive reopening the persistent database", () => {
     1,
   );
   persisted.close();
+});
+
+
+test("builtin visibility affects bootstrap policy without creating catalog entries or deleting data",async()=>{
+  const {getBuiltinVisibility}=await import("../lib/topic-catalog.mjs");const {db,base,dir,inventory}=fixture();
+  updateTopicCatalog(db,base,dir,"builtin",patch({status:"hidden",access:"free"}),inventory);
+  assert.equal(getBuiltinVisibility(db,inventory).builtin,false);
+  assert.equal(topicRegistry(db,base,dir,inventory).find(t=>t.id==="builtin").publication,"builtin_hidden");
+  assert.equal(applyCatalogOverrides(db,base,inventory).decks.length,1);
+  updateTopicCatalog(db,base,dir,"builtin",patch({status:"release",access:"free",expectedRevision:1}),inventory);
+  assert.equal(getBuiltinVisibility(db,inventory).builtin,true);db.close();
 });

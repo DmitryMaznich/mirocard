@@ -70,7 +70,7 @@ async function fixture(viewport) {
     if (path.endsWith("/topics")) {await route.fulfill({json:{topics}});return;}
     if (path.includes("/topics/") && route.request().method()==="POST") {
       const body=route.request().postDataJSON(),id=path.split("/").at(-1);writes.push({path,body});
-      topics=topics.map(t=>t.id===id?{...t,settings:body,overrideRevision:t.overrideRevision+1,inCatalog:body.listed,publication:body.listed?body.status:"removed",removed:!body.listed,access:body.access,hidden:body.status==="hidden",adminUpdatedAt:new Date().toISOString()}:t);
+      topics=topics.map(t=>t.id===id?{...t,settings:body,overrideRevision:t.overrideRevision+1,inCatalog:body.listed,publication:t.builtin?(body.status==="hidden"?"builtin_hidden":"builtin"):body.listed?body.status:"removed",builtinEnabled:t.builtin?body.status!=="hidden":undefined,removed:!body.listed,access:body.access,hidden:body.status==="hidden",adminUpdatedAt:new Date().toISOString()}:t);
       await route.fulfill({json:{ok:true,topic:topics.find(t=>t.id===id)}});return;
     }
     if (route.request().method() === "POST") {
@@ -536,5 +536,19 @@ test("topic registry desktop table fits the workspace and supports search and CS
   await page.locator("#topics-search").fill("alpha");assert.equal(await page.locator("#topics-body tr").count(),1);
   const download=page.waitForEvent("download");await page.locator("#topics-export").click();assert.equal((await download).suggestedFilename(),"topics.csv");
   await page.locator('#topics-body button[data-topic="alpha"]').first().click();await page.screenshot({path:"output/admin-qa/topic-detail-desktop.png"});
+  assert.deepEqual(errors,[]);await page.close();
+});
+
+
+test("builtin topic has a visibility control rather than catalog publication or pricing", async()=>{
+  const {page,writes,errors}=await fixture({width:390,height:844});
+  await page.locator('[data-view="topics"]').click();await page.locator('#topics-body button[data-topic="builtin"]').first().click();
+  assert.equal(await page.locator("#topic-access").inputValue(),"free");
+  assert.equal(await page.locator('[data-topic-action="remove"]').count(),0);
+  await page.locator("#topic-status").selectOption("hidden");await page.locator('#topic-form button[type="submit"]').click();await page.locator("#confirm-submit").click();
+  await page.waitForFunction(()=>document.querySelector("#topic-status").value==="hidden"&&!document.querySelector('#topic-form button[type="submit"]').disabled);
+  assert.equal(writes.at(-1).body.access,"free");
+  await page.locator("#topic-status").selectOption("release");await page.locator('#topic-form button[type="submit"]').click();await page.locator("#confirm-submit").click();
+  await page.waitForFunction(()=>document.querySelector("#topic-status").value==="release"&&!document.querySelector('#topic-form button[type="submit"]').disabled);
   assert.deepEqual(errors,[]);await page.close();
 });

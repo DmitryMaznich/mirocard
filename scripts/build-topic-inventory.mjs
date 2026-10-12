@@ -67,7 +67,7 @@ function add(meta, source, zipUrl = null, record = {}) {
       version: meta.version,
       url: zipUrl,
       title: meta.title ?? meta.id,
-      description: meta.about?.description ?? null,
+      description: meta.about?.description ?? meta.description ?? null,
       renderer: meta.renderer ?? null,
       modes: record.modes?.length ?? null,
       cards: record.cards?.length ?? null,
