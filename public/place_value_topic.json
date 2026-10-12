@@ -2,7 +2,7 @@
   "meta": {
     "id": "place_value",
     "renderer": "place_value",
-    "version": "1.0.1",
+    "version": "1.0.4",
     "title": {
       "ru": "Разряды числа",
       "en": "Place Value"
@@ -31,6 +31,14 @@
       "renderer": "place_value",
       "params": {
         "mode": "identify_number"
+      }
+    },
+    {
+      "id": "place_parts",
+      "conceptId": "place_parts",
+      "renderer": "place_value",
+      "params": {
+        "mode": "place_parts"
       }
     },
     {

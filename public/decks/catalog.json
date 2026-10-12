@@ -197,8 +197,8 @@
     },
     {
       "id": "place_value",
-      "version": "1.0.3",
-      "url": "./decks/place_value_v1.0.3.zip",
+      "version": "1.0.4",
+      "url": "./decks/place_value_v1.0.4.zip",
       "title": {
         "ru": "Разряды числа",
         "en": "Place Value"

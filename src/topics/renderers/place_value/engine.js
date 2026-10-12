@@ -130,6 +130,28 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     }));
   }
 
+  if (mode === "place_parts") {
+    // Added after the deck shipped: installed records may have no card for it
+    // yet, so fall back to a card of the same id (stats key on conceptId).
+    const cards = allCards.filter((c) => c.params?.mode === "place_parts");
+    const card = (i) => cards[i % cards.length] ?? { id: "place_parts", conceptId: "place_parts" };
+    const maxTens = Math.min(9, Math.max(1, Number(params.maxTens ?? 9)));
+    const seen = new Set();
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      let number = 0;
+      for (let tries = 0; tries < 20; tries++) {
+        number = randomInt(1, maxTens) * 10 + randomInt(1, 9); // no round tens: «40 = 40 + 0» teaches nothing
+        if (!seen.has(number)) break;
+      }
+      seen.add(number);
+      const direction = params.direction === "join" ? "join" : params.direction === "mix" ? (Math.random() < 0.5 ? "split" : "join") : "split";
+      const prompt = params.prompt === "words" ? "words" : params.prompt === "mix" ? (Math.random() < 0.5 ? "words" : "digits") : "digits";
+      tasks.push({ type: "place_parts", cardId: card(i).id, conceptId: card(i).conceptId, number, direction, prompt, supportMode: params.supportMode ?? "learning" });
+    }
+    return tasks;
+  }
+
   if (mode === "exchange_ten") {
     if (!exchangeCards.length) return [];
     const flags = exchangeFlags(count);
