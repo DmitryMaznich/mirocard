@@ -10,7 +10,7 @@ import "./build.css";
 
 // «Собери число» — turn a number into a model. The number is given in digits
 // («47») or in words («сорок семь»); the child takes ready stacks and loose
-// coins (one tap = one stack / one coin, a tap on a placed item takes it back)
+// coins (one tap = one ten / one coin, a tap on a placed item takes it back)
 // and presses «Проверить». No grouping of loose coins here (that's «Сложи по
 // десять») and no «here are ten» highlight: ten loose coins instead of a stack
 // is the child's own mistake to notice. See docs/place-value-methodology.md,
@@ -60,7 +60,7 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
       if (tens > 0 && tens !== target.tens && tens === target.ones && ones === target.tens) {
         message = `Ты положил ${tens} ${pluralTens(tens)} — это ${numberWords(tens * 10)}. А нужно ${numberWords(task.number)}.`;
       } else if (ones > 9) {
-        message = "Отдельных монет больше девяти. Десять монет — это сколько стопок?";
+        message = "Отдельных монет больше девяти. Десять монет — это сколько десятков?";
       } else if (tens !== target.tens) {
         message = "Проверь десятки.";
       } else {
@@ -102,13 +102,13 @@ export default function BuildNumberTask({ task, onCorrect, onMistake, onFlashInc
         <div className="bn-source">
           <h3>Возьми</h3>
           <div className="bn-source-row">
-            <button type="button" className="bn-take" aria-label="Взять стопку" disabled={tens >= MAX_TENS}
-              onClick={() => edit(() => setTens((t) => Math.min(MAX_TENS, t + 1)))}><TenStack /><span>Стопку</span></button>
+            <button type="button" className="bn-take" aria-label="Взять десяток" disabled={tens >= MAX_TENS}
+              onClick={() => edit(() => setTens((t) => Math.min(MAX_TENS, t + 1)))}><TenStack /><span>1 десяток</span></button>
             <button type="button" className="bn-take" aria-label="Взять монету" disabled={ones >= MAX_ONES}
-              onClick={() => edit(() => setOnes((o) => Math.min(MAX_ONES, o + 1)))}><Coin /><span>Монету</span></button>
+              onClick={() => edit(() => setOnes((o) => Math.min(MAX_ONES, o + 1)))}><Coin /><span>1 монету</span></button>
           </div>
         </div>
-        <p className="bn-caption">Нажми на стопку или монету в зоне, чтобы убрать её</p>
+        <p className="bn-caption">Нажми на десяток или монету в зоне, чтобы убрать</p>
       </aside>}
     </div>
     <div className="px-bottom">
