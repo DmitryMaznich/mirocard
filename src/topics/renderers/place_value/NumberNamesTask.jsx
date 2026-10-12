@@ -79,9 +79,19 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
   return <div ref={ref} className={`pv-screen nn-screen nn-screen--${mode}`}>
     <div className="nn-inner">
       <h2 className="sg-title">Услышь и выбери число</h2>
-      <button type="button" className={`nn-listen${playing ? " nn-listen--on" : ""}`} aria-label="Послушать" onClick={() => play(n)}>
-        <span aria-hidden="true">🔊</span>
-      </button>
+      {/* The «диктор» button of the dictation and «Слушай и посчитай» (styles
+          copied into names.css): bars bounce and ripples spread while it speaks. */}
+      <div className={`nn-diktor-wrap${playing ? " nn-diktor-wrap--playing" : ""}`}>
+        <span className="nn-ripple" />
+        <span className="nn-ripple" />
+        <span className="nn-ripple" />
+        <button type="button" className={`nn-diktor${playing ? " nn-diktor--playing" : ""}`} aria-label="Послушать" disabled={playing} onClick={() => play(n)}>
+          <span className="nn-bar" />
+          <span className="nn-bar" />
+          <span className="nn-bar" />
+          <span className="nn-bar" />
+        </button>
+      </div>
       <div className="nn-options">
         {task.options.map((value) => {
           const state = solved && value === n ? " nn-option--right" : wrong.includes(value) ? " nn-option--wrong" : "";
