@@ -1,4 +1,5 @@
 import { kv } from "@/core/db";
+import { migrateStudentPeople, mergePeopleRecords } from "../../shared/student-people.mjs";
 import { mergeRewardVideoViews } from "@/shared/utils/rewardVideoViews";
 import { useAppStore } from "@/core/store";
 import { listTopicRecords, installFirstPartyDeckIfNeeded } from "@/topics/topicLoader";
@@ -17,32 +18,11 @@ function myPersonChangeTime(person) {
   return person?.deletedAt ?? person?.updatedAt ?? person?.createdAt ?? "";
 }
 
-function hasResolvedMyPeoplePhoto(person) {
-  return (person?.photos ?? []).some((photo) => typeof photo === "string" && photo.startsWith("/api/photos/"));
-}
-
-function hasLocalMyPeoplePhoto(person) {
-  return (person?.photos ?? []).some((photo) => typeof photo === "string" && photo.startsWith("data:"));
-}
-
 // A personal network is edited as individual cards.  Merge its item records
 // rather than treating the whole array as one last-write-wins field, so a
 // stale device cannot make another device's newly added person disappear.
 export function mergeMyPeople(local, server) {
-  const byId = new Map();
-  for (const person of [...(local ?? []), ...(server ?? [])]) {
-    if (!person?.id) continue;
-    const current = byId.get(person.id);
-    const sameEdit = current && myPersonChangeTime(person) === myPersonChangeTime(current);
-    // A server snapshot resolves locally-uploaded data URLs to /api/photos
-    // while intentionally retaining the item's edit timestamp.  Keep that
-    // canonical reference when a stale local copy ties on time.
-    if (current && sameEdit && hasResolvedMyPeoplePhoto(current) && hasLocalMyPeoplePhoto(person)) continue;
-    if (!current || myPersonChangeTime(person) >= myPersonChangeTime(current)) {
-      byId.set(person.id, person);
-    }
-  }
-  return [...byId.values()];
+  return mergePeopleRecords(local, server);
 }
 
 // Important dates (birthdays/holidays/events for the "Сегодня" screen) are
@@ -73,6 +53,7 @@ export function mergeStudentRecords(local, server) {
 
   function put(student) {
     if (!student?.id) return;
+    student = migrateStudentPeople(student);
 
     const current = byId.get(student.id);
     if (!current) {
@@ -310,7 +291,7 @@ export function normalizeBootstrap(raw = {}) {
     account: raw.account ?? null,
     subscription: raw.subscription ?? null,
     settings: raw.settings ?? null,
-    students: Array.isArray(raw.students) ? raw.students : [],
+    students: Array.isArray(raw.students) ? raw.students.map(migrateStudentPeople) : [],
     erasedStudentIds: Array.isArray(raw.erasedStudentIds) ? raw.erasedStudentIds : [],
     ownedTopics: Array.isArray(raw.ownedTopics) ? raw.ownedTopics : [],
     builtinVisibility: raw.builtinVisibility ?? {},
@@ -381,12 +362,16 @@ export async function loadLocalBootstrap(db) {
       })(),
     ]);
 
+  const migratedStudents = (students ?? []).map(migrateStudentPeople);
+  if (JSON.stringify(migratedStudents) !== JSON.stringify(students ?? [])) {
+    await kv.set(db, 'students', migratedStudents);
+  }
   return normalizeBootstrap({
     builtinVisibility: await kv.get(db,"builtinVisibility")??{},
     token,
     account,
     settings,
-    students,
+    students: migratedStudents,
     ownedTopics,
     topicRecords,
     studentTopicLinks,

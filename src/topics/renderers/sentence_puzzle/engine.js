@@ -1,7 +1,8 @@
 import { shuffle } from "@/shared/utils/shuffle";
+import { peopleFor } from "../../../../shared/student-people.mjs";
 
 function adultsFromStudent(student) {
-  const adults = student?.closeAdults;
+  const adults = peopleFor(student, 'sentences');
   if (!Array.isArray(adults) || adults.length === 0) return null;
   return adults.map((a) => ({
     id:    `adult_${a.id}`,
@@ -57,7 +58,7 @@ export function generateTasks(mode, topicRecord, sessionParams, student = null, 
         type:      "listen_write_letters",
         structure,
         target,
-        audioPath: sentence.audio ?? null,
+        audioPath: adultCards ? null : (sentence.audio ?? null),
       };
     });
   }
@@ -108,7 +109,7 @@ export function generateTasks(mode, topicRecord, sessionParams, student = null, 
         structure,
         target,
         pool:      shuffle(pool),
-        audioPath: sentence.audio ?? null,
+        audioPath: adultCards ? null : (sentence.audio ?? null),
       };
     });
   }

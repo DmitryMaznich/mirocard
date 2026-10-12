@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { resolvePerson } from "../../../shared/student-people.mjs";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
@@ -90,12 +91,12 @@ function DatePicture({ item, myPeople, className }) {
 
 function DateCard({ item, myPeople, today, onEdit, onToggle }) {
   const when = whenLabel(item, today);
-  const person = item.personId ? myPeople.find((candidate) => candidate.id === item.personId && !candidate.deletedAt) : null;
+  const person = resolvePerson(myPeople, item.personId);
   const meta = [
     formatDayMonth(item),
     item.repeat === "once" ? "один раз" : "каждый год",
     item.type === "own_birthday" ? ageNextTime(item, today) : null,
-    person ? `${person.relation || person.name} из «Моих людей»` : null,
+    person ? `${person.relation || person.name} из окружения ребёнка` : null,
     item.countdownDays ? `отсчёт за ${daysWord(item.countdownDays)}` : "без отсчёта",
   ].filter(Boolean).join(" · ");
   return (
@@ -208,7 +209,7 @@ function DateEditor({ item, myPeople, onChange, onPatch, onDelete, onClose }) {
   const [photoError, setPhotoError] = useState("");
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const people = myPeople.filter((person) => !person.deletedAt && (person.name?.trim() || person.relation?.trim()));
-  const linkedPerson = item.personId ? people.find((person) => person.id === item.personId) : null;
+  const linkedPerson = resolvePerson(myPeople, item.personId);
   const shownPhoto = cardPhoto(item, myPeople);
   const complete = isCompleteDraft(item);
   const isOwn = item.type === "own_birthday";
@@ -365,7 +366,7 @@ function DateEditor({ item, myPeople, onChange, onPatch, onDelete, onClose }) {
           {!isOwn && (
             <label className="mp-field idates-field">
               <span>Человек из «Моих людей» — необязательно</span>
-              <select value={item.personId ?? ""} onChange={(event) => changePerson(event.target.value || null)}>
+              <select value={linkedPerson?.id ?? ""} onChange={(event) => changePerson(event.target.value || null)}>
                 <option value="">Не выбран</option>
                 {people.map((person) => (
                   <option key={person.id} value={person.id}>

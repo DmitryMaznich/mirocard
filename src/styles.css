@@ -22755,6 +22755,7 @@ body { background: #eef0ef; }
 .mp-field input, .mp-field select { min-height: 42px; border-color: #d9e0da; border-radius: 12px; padding: 9px 10px; background: #fff; font-size: .9rem; }
 .mp-contexts { margin: 16px 0; padding: 13px; border-color: #dce6e1; border-radius: 15px; background: #fbfcfa; }
 .mp-contexts legend { color: #304a46; font-size: .8rem; }
+.mp-contexts select { width: 100%; min-width: 0; box-sizing: border-box; padding: 9px 10px; margin-bottom: 10px; border: 1px solid #d9e0da; border-radius: 12px; background: #fff; color: #263131; font: inherit; }
 .mp-contexts p { color: #73827e; font-size: .72rem; line-height: 1.35; }
 .mp-context-chip { min-height: 34px; padding: 6px 11px; border-color: #d4dfda; background: #fff; color: #647772; font-size: .76rem; }
 .mp-context-chip--active { border-color: #4a9b8f; background: #e4f1ed; color: #267369; }
@@ -22798,7 +22799,8 @@ body { background: #eef0ef; }
   .mp-intro strong { font-size: .88rem; }
   .mp-intro > div > span { font-size: .7rem; }
   .mp-intro { flex-wrap: wrap; }
-  .mp-intro__sync { flex-basis: 100%; margin-left: 44px; font-size: .66rem; }
+  .mp-intro > div { flex: 1; }
+  .mp-intro__sync { flex-basis: calc(100% - 44px); margin-left: 44px; font-size: .66rem; }
 
   .mp-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
   .mp-tab { min-height: 58px; gap: 7px; padding: 8px; border-radius: 14px; }

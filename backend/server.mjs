@@ -35,7 +35,7 @@ import {
   upsertStudentTopicLink, getStudentTopicLinks,
   upsertConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
-  getPhoto, migratePhotoData, extractAndStorePhoto,
+  getPhoto, migratePhotoData, extractAndStorePhoto, migrateStudentPeopleData,
   getAccountKvByPrefixes,
   incrementRevision,
   createMaterialsLead, findMaterialsLeadByToken,
@@ -93,6 +93,7 @@ function signupPaused() {
 }
 
 migratePhotoData(db);
+migrateStudentPeopleData(db);
 
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   configureWebPush(VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT);
@@ -309,6 +310,10 @@ function serializeStudent(row) {
     rewardVideosUpdatedAt: row.reward_videos_updated_at ?? null,
     closeAdults:  safeJson(row.close_adults, []),
     closeAdultsUpdatedAt: row.close_adults_updated_at ?? null,
+    myPeople: safeJson(row.my_people, []),
+    myPeopleUpdatedAt: row.my_people_updated_at ?? null,
+    myPeopleProfile: safeJson(row.my_people_profile, {}),
+    myPeopleProfileUpdatedAt: row.my_people_profile_updated_at ?? null,
     healthDataConsent: !!row.health_data_consent,
     healthDataConsentAt: row.health_data_consent_at ?? null,
     createdAt: row.created_at,
