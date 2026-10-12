@@ -3,6 +3,19 @@ import { numberNameOptions, numberNamesNumber } from "./numberNames.js";
 // stacks of ten (десятки). Split out of column_addition, where these three
 // modes used to live as a warm-up before the column trainer.
 
+// «Какое число дальше?» after `n` (counting by tens): the right one and the two
+// mistakes that matter — a unit added instead of a ten (91), and the one of
+// this number: 90 → 900 (heard «девяносто» → «девятьсот»), 100 → 1010 («сто
+// десять» written as heard), elsewhere a hundred added instead of a ten
+// (190 → 290: the first digit taken for «the one that grows»).
+export function countTensOptions(n) {
+  const right = n + 10;
+  const special = n === 90 ? 900 : n % 100 === 0 ? Number(`${n / 10}10`) : n + 100;
+  const options = [right, n + 1, special];
+  for (let i = options.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [options[i], options[j]] = [options[j], options[i]]; }
+  return options;
+}
+
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -156,6 +169,38 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       seed: randomInt(1, 100000),
       showFrame: params.showFrame !== false,
     }));
+  }
+
+  if (mode === "count_tens") {
+    // «Считаем десятками»: short stretches of counting by tens across a round
+    // hundred (70 → 130), the crossing in the middle — that is where the child
+    // goes wrong, so it comes 4–5 times a session instead of twice in one long
+    // count. The very first task of «Смотри и считай» counts 0 → 100 so the
+    // first hundred is seen being born whole.
+    const cards = allCards.filter((c) => c.params?.mode === "count_tens");
+    const card = (i) => cards[i % cards.length] ?? { id: "count_tens", conceptId: "count_tens" };
+    const next = params.task === "next";
+    const top = params.range === "to1000" ? 9 : 2;
+    const tasks = [];
+    let lastH = null;
+    for (let i = 0; i < count; i++) {
+      let h;
+      do h = randomInt(1, top) * 100; while (top > 1 && h === lastH);
+      lastH = h;
+      const base = { type: "count_tens", cardId: card(i).id, conceptId: card(i).conceptId, supportMode: params.supportMode ?? "learning" };
+      if (next) {
+        // Half on the crossing itself (90 → ?), a quarter just after it
+        // (100 → ?, where «1010» lives), a quarter in between (130 → ?).
+        const roll = Math.random();
+        const number = roll < 0.5 ? h - 10 : roll < 0.75 ? h : h + 10 * randomInt(1, 8);
+        tasks.push({ ...base, task: "next", number, options: countTensOptions(number) });
+      } else {
+        const start = i === 0 ? 0 : h - 10 * randomInt(3, 5);
+        const end = i === 0 ? 100 : h + 10 * randomInt(2, 3);
+        tasks.push({ ...base, task: "count", number: start, start, end });
+      }
+    }
+    return tasks;
   }
 
   if (mode === "number_names") {

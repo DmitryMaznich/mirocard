@@ -31,6 +31,17 @@ export function numberAudioParts(n) {
 
 export const numberAudioUrl = (part) => `/audio/place-value-numbers/n${part}.mp3`;
 
+// Whole phrases in the same voice, for «Считаем десятками» (CountTensTask).
+// «Десять десятков — это сотня» deliberately has no «сто» in it: «сто десять»
+// and «сто десятков» sound almost alike, so the word «сто» is only ever heard
+// on its own, when the number 100 appears.
+export const PHRASE_AUDIO = {
+  full: "Десять десятков! Сложи сотню.",
+  fold: "Десять десятков — это сотня.",
+  ask: "Сколько стало?",
+};
+export const phraseAudioUrl = (key) => `/audio/place-value-numbers/p-${key}.mp3`;
+
 // Plays the words of `n` back to back; returns { done, stop }. The clips are
 // trimmed of their silence (scripts/trim-place-value-numbers.mjs) and played
 // through Web Audio: all parts are fetched and decoded first, then scheduled
@@ -62,10 +73,12 @@ async function running(ctx) {
   return ctx.state === "running";
 }
 
-export function playNumber(n) {
+export const playNumber = (n) => playUrls(numberAudioParts(n).map(numberAudioUrl));
+export const playPhrase = (key) => playUrls([phraseAudioUrl(key)]);
+
+function playUrls(urls) {
   let stopped = false;
   const stops = [];
-  const urls = numberAudioParts(n).map(numberAudioUrl);
   const viaWebAudio = async () => {
     const ctx = audioContext();
     if (!ctx || !(await running(ctx))) return false;

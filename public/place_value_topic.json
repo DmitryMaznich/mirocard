@@ -2,7 +2,7 @@
   "meta": {
     "id": "place_value",
     "renderer": "place_value",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "title": {
       "ru": "Разряды числа",
       "en": "Place Value"
@@ -23,6 +23,14 @@
       "renderer": "place_value",
       "params": {
         "mode": "group_ten"
+      }
+    },
+    {
+      "id": "count_tens",
+      "conceptId": "count_tens",
+      "renderer": "place_value",
+      "params": {
+        "mode": "count_tens"
       }
     },
     {

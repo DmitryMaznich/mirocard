@@ -1,0 +1,168 @@
+/* «Считаем десятками» (CountTensTask.jsx). Place colours as everywhere in the
+   topic: hundreds #16a34a (digits #15803d), tens #d97706 (digits #b45309),
+   ones #1d4ed8. Nothing here is pinned to a screen edge. */
+.ct-screen {
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: safe center;
+  padding: 10px 16px 16px;
+  box-sizing: border-box;
+}
+.ct-inner {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.ct-inner .sg-title { text-align: center; }
+
+.ct-board {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: 10px;
+  --ct-sq: 58px;
+  --ct-stick-h: 62px;
+}
+.ct-board--many { --ct-sq: 40px; }
+.ct-card {
+  background: #fff;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 8px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+}
+.ct-squares, .ct-sticks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.ct-sticks { gap: 6px 8px; padding-top: 4px; }
+
+.ct-square {
+  width: var(--ct-sq);
+  height: var(--ct-sq);
+  border-radius: 8px;
+  background: #16a34a;
+  padding: 4px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 2px;
+}
+.ct-stripe { background: #4ade80; border-radius: 2px; transition: background-color .1s; }
+.ct-square--building { background: #f0fdf4; outline: 2px dashed #16a34a; outline-offset: -2px; }
+.ct-square--building .ct-stripe { background: #16a34a; }
+.ct-square--building .ct-stripe--off { background: transparent; }
+
+.ct-stick {
+  width: 10px;
+  height: var(--ct-stick-h);
+  border-radius: 999px;
+  background: #d97706;
+  transition: opacity .1s, transform .1s;
+}
+.ct-stick--new { box-shadow: 0 0 0 4px #fde68a; }
+.ct-stick--gone { opacity: 0; transform: translateX(-24px) scaleY(.4); }
+.ct-stick--ghost { background: transparent; border: 2px dashed #d97706; box-sizing: border-box; }
+
+.ct-number { font-size: 64px; font-weight: 900; line-height: 1; letter-spacing: 2px; min-height: 64px; }
+.ct-number--hidden { color: #94a3b8; animation: ct-wait 1.2s ease-in-out infinite; }
+@keyframes ct-wait { 50% { opacity: .45; } }
+.ct-d--hundreds { color: #15803d; }
+.ct-d--tens { color: #b45309; }
+.ct-d--ones { color: #1d4ed8; }
+.ct-caption { min-height: 24px; font-size: 18px; color: #334155; text-align: center; }
+
+.ct-status { text-align: center; font-size: 16px; min-height: 44px; }
+.ct-fold-say {
+  display: inline-block;
+  background: #ecfdf5;
+  border: 2px solid #86efac;
+  color: #14532d;
+  border-radius: 14px;
+  padding: 6px 14px;
+  font-weight: 800;
+}
+.ct-chain-say { color: #334155; }
+.ct-chain-hundred { color: #15803d; font-weight: 900; }
+
+.ct-slot { min-height: 64px; display: flex; align-items: center; justify-content: center; }
+.ct-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  border-radius: 16px;
+  padding: 14px 26px;
+  background: #d97706;
+  color: #fff;
+  font: inherit;
+  font-size: 20px;
+  font-weight: 800;
+  box-shadow: 0 4px 0 #92400e;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.ct-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #92400e; }
+.ct-btn:disabled { opacity: .55; cursor: default; }
+.ct-btn-stick { width: 7px; height: 26px; border-radius: 999px; background: #fff; }
+.ct-btn--fold { background: #16a34a; box-shadow: 0 4px 0 #166534; animation: ct-pulse 1.4s ease-in-out infinite; }
+.ct-btn--fold:disabled { animation: none; }
+@keyframes ct-pulse { 50% { transform: scale(1.06); } }
+
+.ct-chain { font-size: 22px; font-weight: 700; color: #94a3b8; letter-spacing: 1px; }
+.ct-chain b { color: #1e293b; }
+.ct-chain .ct-chain-right { color: #15803d; }
+.ct-ask { font-size: 21px; font-weight: 700; color: #334155; text-align: center; }
+.ct-options { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.ct-option {
+  min-width: 96px;
+  height: 72px;
+  padding: 0 12px;
+  border-radius: 16px;
+  border: 3px solid #cbd5e1;
+  background: #fff;
+  color: #1e293b;
+  font: inherit;
+  font-size: 32px;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.ct-option--right { border-color: #22c55e; background: #f0fdf4; color: #15803d; }
+.ct-option--wrong { border-color: #fca5a5; color: #b91c1c; text-decoration: line-through; opacity: .6; }
+
+.ct-screen--tablet .ct-inner,
+.ct-screen--wide .ct-inner { max-width: 720px; gap: 14px; }
+.ct-screen--tablet .sg-title,
+.ct-screen--wide .sg-title { font-size: 30px; }
+.ct-screen--tablet .ct-board,
+.ct-screen--wide .ct-board { --ct-sq: 76px; --ct-stick-h: 84px; }
+.ct-screen--tablet .ct-board--many,
+.ct-screen--wide .ct-board--many { --ct-sq: 54px; }
+.ct-screen--tablet .ct-card,
+.ct-screen--wide .ct-card { min-height: 210px; }
+.ct-screen--tablet .ct-stick,
+.ct-screen--wide .ct-stick { width: 13px; }
+.ct-screen--tablet .ct-number,
+.ct-screen--wide .ct-number { font-size: 84px; min-height: 84px; }
+.ct-screen--tablet .ct-caption,
+.ct-screen--wide .ct-caption { font-size: 22px; }
+.ct-screen--tablet .ct-status,
+.ct-screen--wide .ct-status { font-size: 20px; }
+.ct-screen--tablet .ct-fold-say,
+.ct-screen--wide .ct-fold-say { font-size: 24px; padding: 8px 20px; }
+.ct-screen--tablet .ct-btn,
+.ct-screen--wide .ct-btn { font-size: 24px; padding: 16px 32px; }
