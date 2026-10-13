@@ -15,7 +15,8 @@ import "./count_tens.css";
 // move (never 11 tens in the column — that is the «1010» mistake).
 // «Смотри и считай» (task "count") counts a short stretch across a hundred;
 // «Считаем назад» (task "back") is the mirror: the square unfolds into
-// ten sticks. «Какое число дальше?» (task "next") asks for the next number with the two
+// ten sticks. «Какое число перед?» (task "prev") asks the reverse question.
+// «Какое число дальше?» (task "next") asks for the next number with the two
 // mistakes that matter among the choices (91 / 900 after 90, 1010 after 100).
 // See docs/place-value-methodology.md, «Считаем десятками».
 
@@ -84,7 +85,7 @@ function Square({ lit = 10 }) {
   </div>;
 }
 
-function Board({ hundreds, sticks, building = null, gone = 0, fresh = false, ghost = false, empty = false }) {
+function Board({ hundreds, sticks, building = null, gone = 0, fresh = false, ghost = false, ghostLast = false, empty = false }) {
   return <div className={`ct-board${hundreds > 4 ? " ct-board--many" : ""}`}>
     <section className="ct-card ct-card--hundreds">
       <h3 className="sg-head sg-head--hundreds">Сотни</h3>
@@ -97,7 +98,7 @@ function Board({ hundreds, sticks, building = null, gone = 0, fresh = false, gho
       <h3 className="sg-head sg-head--tens">Десятки</h3>
       <div className="ct-sticks">
         {Array.from({ length: sticks }, (_, i) => <span key={i}
-          className={`ct-stick${i < gone ? " ct-stick--gone" : ""}${fresh && i === sticks - 1 ? " ct-stick--new" : ""}`} />)}
+          className={`ct-stick${i < gone ? " ct-stick--gone" : ""}${fresh && i === sticks - 1 ? " ct-stick--new" : ""}${ghostLast && i === sticks - 1 ? " ct-stick--ghost" : ""}`} />)}
         {ghost && <span className="ct-stick ct-stick--ghost" />}
       </div>
     </section>
@@ -107,6 +108,7 @@ function Board({ hundreds, sticks, building = null, gone = 0, fresh = false, gho
 export default function CountTensTask(props) {
   if (props.task.task === "next") return <NextNumber {...props} />;
   if (props.task.task === "back") return <CountBack {...props} />;
+  if (props.task.task === "prev") return <PrevNumber {...props} />;
   return <CountAlong {...props} />;
 }
 
@@ -350,6 +352,74 @@ function NextNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
       <div className="sg-status ct-status" role="status">
         {solved ? <span className="sg-status-say">{crossing ? `10 десятков = 1 сотня. ${n} и ещё десяток — ${right}, ${numberWords(right)}.` : `${n} и ещё десяток — ${right}, ${numberWords(right)}.`}</span>
           : note ? <span className="sg-status-note">{note}{support && crossing ? " Десять десятков — это сотня." : ""}</span> : null}
+      </div>
+      <div className="ct-slot">{solved && <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>}</div>
+    </div>
+  </div>;
+}
+
+// «Какое число перед?» — the reverse question, after «Считаем назад»:
+// «120 · 110 · 100 · ?» counted down, then «100 без одного десятка — это…».
+// The choices: the right one, a unit taken instead of a ten (99 — the main
+// mistake) and a hundred taken instead (0 after 100, 10 after 110). In
+// «Обучение» a mistake shows the ten to take as a dashed stick; at a round
+// hundred the square is shown unfolded into ten sticks first.
+function PrevNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
+  const teaching = task.supportMode !== "independent";
+  const n = task.number;
+  const right = n - 10;
+  const [ref, mode] = useScreenMode();
+  const player = usePlayer();
+  const { guard } = useSpeechGuard();
+  const [solved, setSolved] = useState(false);
+  const [wrong, setWrong] = useState([]);
+  const [note, setNote] = useState("");
+  const [support, setSupport] = useState(false);
+  const chain = [n + 20, n + 10, n];
+  const crossing = n % 100 === 0;
+
+  useEffect(() => {
+    player.run(chain.flatMap((x, i) => (i ? [350, () => playNumber(x)] : [() => playNumber(x)])));
+  }, [n]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function hint(v) {
+    if (!teaching) return "Посчитай ещё раз.";
+    if (v === n - 1) return `${v} — это ${n} без 1 единицы. А убираем 1 десяток.`;
+    return `${v} — это ${n} без 1 сотни. А убираем 1 десяток.`;
+  }
+  function choose(v) {
+    if (solved || wrong.includes(v)) return;
+    if (v === right) {
+      setSolved(true); setNote("");
+      player.run([() => playNumber(right)]);
+      return;
+    }
+    setWrong((w) => [...w, v]);
+    setNote(hint(v));
+    if (teaching) setSupport(true);
+    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+  }
+
+  // Support at a round hundred: the last hundred laid out as ten sticks, the
+  // one to take dashed — the same move as «Разложи сотню».
+  const opened = support && crossing && !solved;
+  const shown = solved ? right : n;
+  const board = opened ? { hundreds: n / 100 - 1, sticks: 10 } : { hundreds: Math.floor(shown / 100), sticks: Math.floor(shown / 10) % 10 };
+  const say = `${n} без десятка — ${right}, ${numberWords(right)}.`;
+  return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`} {...guard}>
+    <div className="ct-inner">
+      <h2 className="sg-title">Какое число перед?</h2>
+      <div className="ct-chain">{chain.map((x, i) => <span key={x}>{i ? " · " : ""}{x === n ? <b>{x}</b> : x}</span>)}<span> · {solved ? <b className="ct-chain-right">{right}</b> : "?"}</span></div>
+      <Board {...board} ghostLast={support && !solved} />
+      <div className="ct-ask">{n} без одного десятка — это…</div>
+      <div className="ct-options">
+        {task.options.map((v) => <button type="button" key={v} disabled={solved || wrong.includes(v)}
+          className={`ct-option${solved && v === right ? " ct-option--right" : ""}${wrong.includes(v) ? " ct-option--wrong" : ""}`}
+          onClick={() => choose(v)}>{v}</button>)}
+      </div>
+      <div className="sg-status ct-status" role="status">
+        {solved ? <span className="sg-status-say">{crossing ? `Сотня — это 10 десятков. ${say}` : say}</span>
+          : note ? <span className="sg-status-note">{note}{opened ? " Сотня — это 10 десятков." : ""}</span> : null}
       </div>
       <div className="ct-slot">{solved && <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>}</div>
     </div>

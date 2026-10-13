@@ -214,3 +214,48 @@ describe("Taps wait for the voice", () => {
     });
   });
 });
+
+describe("«Считаем десятками» — «Какое число перед?»", () => {
+  const h = coinHarness();
+  const text = (sel) => h.container.querySelector(sel)?.textContent;
+  const count = (sel) => h.container.querySelectorAll(sel).length;
+  const task = (extra = {}) => ({ type: "count_tens", cardId: "c", conceptId: "c", task: "prev", number: 100, options: [99, 90, 0], supportMode: "learning", ...extra });
+
+  it("the mistakes that matter are among the choices", async () => {
+    const { countTensPrevOptions } = await import("./engine.js");
+    expect(countTensPrevOptions(100).sort((a, b) => a - b)).toEqual([0, 90, 99]);
+    expect(countTensPrevOptions(110).sort((a, b) => a - b)).toEqual([10, 100, 109]);
+    expect(countTensPrevOptions(240).sort((a, b) => a - b)).toEqual([140, 230, 239]);
+  });
+
+  it("«Обучение»: 99 is explained, the hundred is shown unfolded with the ten to take dashed", async () => {
+    const onMistake = vi.fn(), onCorrect = vi.fn();
+    h.mount(CountTensTask, task(), { onMistake, onCorrect });
+    await wait();
+    expect(text(".sg-title")).toBe("Какое число перед?");
+    expect(text(".ct-chain")).toBe("120 · 110 · 100 · ?");
+    expect(count(".ct-square")).toBe(1);
+    h.click("99");
+    await wait();
+    expect(text(".sg-status-note")).toBe("99 — это 100 без 1 единицы. А убираем 1 десяток. Сотня — это 10 десятков.");
+    expect(count(".ct-square")).toBe(0);
+    expect(count(".ct-stick")).toBe(10);
+    expect(count(".ct-stick--ghost")).toBe(1);
+    h.click("0");
+    await wait();
+    expect(text(".sg-status-note")).toBe("0 — это 100 без 1 сотни. А убираем 1 десяток. Сотня — это 10 десятков.");
+    h.click("90");
+    await wait();
+    expect(text(".sg-status-say")).toBe("Сотня — это 10 десятков. 100 без десятка — 90, девяносто.");
+    expect(count(".ct-stick")).toBe(9);
+    expect(onMistake).toHaveBeenCalledTimes(2);
+    h.click("Далее →");
+    expect(onCorrect).toHaveBeenCalled();
+  });
+
+  it("engine: numbers from 100 up, half of them round hundreds", () => {
+    const tasks = generateTasks("count_tens", [], 80, { task: "prev", range: "to1000" });
+    expect(tasks.every((t) => t.task === "prev" && t.number >= 100 && t.options.includes(t.number - 10) && t.options.every((o) => o >= 0))).toBe(true);
+    expect(tasks.filter((t) => t.number % 100 === 0).length).toBeGreaterThan(20);
+  });
+});
