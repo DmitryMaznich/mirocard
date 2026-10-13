@@ -312,7 +312,7 @@ function CloseIcon() {
 }
 
 const CONCEPT_MODAL_LABELS = {
-  week: "Дни недели",
+  week: "Неделя",
   date: "Календарь месяца",
   month: "Месяцы",
   season: "Времена года",
@@ -927,6 +927,20 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
     });
   }, [speak, playClips]);
 
+  // The week modal's count is a demonstration, so it follows the topic's sound
+  // switch; a tapped day is only named aloud when the card speakers are on
+  // (otherwise the child says it). No cooldown: the count's steps come 1.4s
+  // apart on purpose.
+  const speakInModal = useCallback((text, clipKeys) => {
+    if (!clipsSupported()) {
+      speak(text);
+      return;
+    }
+    playClips(clipKeys).then((played) => {
+      if (!played) speak(text);
+    });
+  }, [speak, playClips]);
+
   function beginSwipe(event) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
     dragStart.current = { x: event.clientX, pointerId: event.pointerId, captured: false };
@@ -1207,7 +1221,7 @@ export default function DailyOrientationRenderer({ sessionParams, soundEnabled }
       </div>
       {openConcept && (
         <DailyOrientationModal label={CONCEPT_MODAL_LABELS[openConcept]} onClose={closeConcept}>
-          {openConcept === "week" && <WeekContent activeDate={activeDate} today={now} plan={weeklyPlan} importantDates={importantDates} />}
+          {openConcept === "week" && <WeekContent activeDate={activeDate} today={now} plan={weeklyPlan} importantDates={importantDates} onSpeak={soundEnabled ? speakInModal : null} speakDays={cardSound} />}
           {openConcept === "date" && <DateContent activeDate={activeDate} offset={offset} today={now} importantDates={importantDates} />}
           {openConcept === "month" && <MonthContent activeDate={activeDate} />}
           {openConcept === "season" && <SeasonContent activeDate={activeDate} />}

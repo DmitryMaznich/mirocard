@@ -248,19 +248,24 @@ describe("DailyOrientationRenderer", () => {
       expect(container.querySelector('[role="dialog"]')).not.toBeNull();
     });
 
-    it("shows the whole week with full day names, today outlined, weekends marked and each day's plan", () => {
+    it("shows this week as a train with full day names, today outlined, weekends marked and each day's plan", () => {
       mountAt(new Date(2026, 8, 22, 14, 35), {
         weeklyPlan: "Пн: Школа\nВт: Школа\nСр: Школа\nЧт: Школа\nПт: Школа\nСб: Поездка в парк",
       });
 
       act(() => container.querySelector(".daily-orientation__card--weekday").click());
 
-      const days = Array.from(container.querySelectorAll(".dom-week__day"));
+      const trains = Array.from(container.querySelectorAll(".dom-train"));
+      expect(trains.map((t) => t.querySelector(".dom-train__label").textContent)).toEqual([
+        "2 недели назад", "Прошлая неделя", "Эта неделя", "Следующая неделя", "Через 2 недели",
+      ]);
+      const current = container.querySelector(".dom-train--current");
+      expect(current.querySelector(".dom-train__range").textContent).toBe("21–27 сентября");
+
+      const days = Array.from(current.querySelectorAll(".dom-week__day"));
       expect(days.map((d) => d.querySelector(".dom-week__name").textContent)).toEqual([
         "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье",
       ]);
-      // short forms only as a caption under the full name
-      expect(days[0].querySelector(".dom-week__short").textContent).toBe("пн");
 
       const tuesday = days[1];
       expect(tuesday.classList.contains("dom-week__day--active")).toBe(true);
@@ -273,6 +278,53 @@ describe("DailyOrientationRenderer", () => {
       expect(days[5].textContent).toContain("Поездка в парк");
       expect(days[6].classList.contains("dom-week__day--weekend")).toBe(true);
       expect(days[6].querySelector(".dom-week__plan")).toBeNull();
+      // the plan repeats every week
+      const nextTuesday = trains[3].querySelectorAll(".dom-week__day")[1];
+      expect(nextTuesday.textContent).toContain("Школа");
+    });
+
+    it("steps from Sunday into next week's Monday and turns the ring forward", () => {
+      mountAt(new Date(2026, 8, 27, 14, 35)); // воскресенье
+      act(() => container.querySelector(".daily-orientation__card--weekday").click());
+
+      const hand = container.querySelector(".dom-ring__hand");
+      expect(hand.style.transform).toBe(`rotate(${6 * 360 / 7}deg)`);
+
+      act(() => container.querySelector(".dom-week__nav--next").click());
+
+      const selected = container.querySelector(".dom-week__day--active");
+      expect(selected.querySelector(".dom-week__name").textContent).toBe("Понедельник");
+      expect(selected.closest(".dom-train").querySelector(".dom-train__label").textContent).toBe("Следующая неделя");
+      expect(hand.style.transform).toBe("rotate(360deg)");
+      expect(container.querySelector(".dom-week__say").textContent).toContain("Снова понедельник");
+    });
+
+    it("counts the seven wagons, says it's a week, then starts over on Monday", () => {
+      const speakSpy = vi.fn();
+      vi.stubGlobal("speechSynthesis", { cancel: vi.fn(), speak: speakSpy, getVoices: () => [] });
+      vi.stubGlobal("SpeechSynthesisUtterance", class { constructor(text) { this.text = text; } });
+      mountAt(new Date(2026, 8, 24, 14, 35), undefined, true); // четверг
+      act(() => container.querySelector(".daily-orientation__card--weekday").click());
+
+      act(() => container.querySelector(".dom-week__count").click());
+      act(() => { vi.advanceTimersByTime(0); });
+      expect(container.querySelector(".dom-week__say").textContent).toContain("понедельник");
+      expect(speakSpy.mock.calls.at(-1)[0].text).toBe("один, понедельник");
+
+      act(() => { vi.advanceTimersByTime(6 * 1400); });
+      expect(container.querySelectorAll(".dom-train--current .dom-week__number")).toHaveLength(7);
+      expect(speakSpy.mock.calls.at(-1)[0].text).toBe("семь, воскресенье");
+
+      act(() => { vi.advanceTimersByTime(1400); });
+      expect(container.querySelector(".dom-train--counted")).not.toBeNull();
+      expect(speakSpy.mock.calls.at(-1)[0].text).toBe("Семь дней — это неделя.");
+
+      act(() => { vi.advanceTimersByTime(2000); });
+      const selected = container.querySelector(".dom-week__day--active");
+      expect(selected.closest(".dom-train").querySelector(".dom-train__label").textContent).toBe("Следующая неделя");
+      expect(selected.querySelector(".dom-week__name").textContent).toBe("Понедельник");
+      expect(container.querySelector(".dom-week__count").disabled).toBe(false);
+      vi.unstubAllGlobals();
     });
 
     it("closes via the close button", () => {

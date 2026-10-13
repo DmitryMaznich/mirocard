@@ -52,6 +52,21 @@ feature — see `docs/important-dates.md`. This file is the rest of the review.
   the first touch puts the screen in fullscreen (`useFullscreenOnFirstTouch`)
   so the Android status bar band goes away and the canvas fills it.
 
+- **The week modal is now «Неделя»** (2026-10-13): there were weekdays but
+  no notion of a *week*. Tapping the weekday card (or the plan) opens trains
+  of 7 wagons Mon..Sun (a small locomotive marks where a week starts) on a
+  track that swipes ±2 weeks around today, with the weekly plan repeating in
+  every train. A 7-day ring in the header has a hand that only turns forward
+  (Sun → Mon keeps going, one week = one full turn). «Сколько дней в
+  неделе?» numbers the wagons 1-7 aloud, says «Семь дней — это неделя» and
+  moves on to next Monday («Потом всё сначала»). The count follows the
+  topic's sound switch; a tapped day is only spoken with «Озвучка карточек»
+  on. Clips `count_1..7`, `week_is_seven`, `week_again` are in the bank but
+  not recorded yet (no `GEMINI_API_KEY` in that session) -- until they are,
+  the count speaks via browser TTS. Re-run
+  `node scripts/generate-daily-orientation-audio.mjs` and drop them from
+  `NOT_YET_RECORDED` in `audioBank.test.js`.
+
 ## Not done (bigger, discussed but not started)
 
 - "Сейчас → потом" (first–then) strip from a daily schedule.

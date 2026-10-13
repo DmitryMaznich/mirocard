@@ -29,63 +29,275 @@
   box-shadow: 0 0 0 3px var(--dom-active), 0 8px 20px rgba(7, 61, 79, .14);
 }
 
-/* ── День недели ─────────────────────────────────────────────────── */
+/* ── Неделя ───────────────────────────────────────────────────────── */
+/* Trains of seven wagons on one rail track that scrolls sideways and snaps
+   one week to the middle; the neighbouring weeks peek in at the edges. */
+.dom--week { --dom-rail: #8f8a83; --dom-wheel: #3d3a36; --dom-count: #ffe08a; }
+
+.dom-week__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(12px, 2vw, 32px);
+  padding-right: clamp(48px, 5vw, 70px); /* clear of the close button */
+}
+.dom-week__head .dom-title { padding-right: 0; }
+.dom-week__head-text { flex: 1 1 220px; min-width: 0; }
+.dom-week__lead {
+  margin: 4px 0 0;
+  font-size: clamp(14px, 1.3vw, 19px);
+  font-weight: 700;
+  color: var(--dom-muted);
+}
+.dom-week__count {
+  padding: clamp(10px, 1vw, 14px) clamp(16px, 1.8vw, 26px);
+  border: 0;
+  border-radius: 999px;
+  background: var(--dom-active);
+  box-shadow: 0 4px 0 #1f6358;
+  color: #fff;
+  font: inherit;
+  font-size: clamp(15px, 1.4vw, 20px);
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.dom-week__count:active { transform: translateY(2px); box-shadow: 0 2px 0 #1f6358; }
+.dom-week__count:disabled { opacity: .55; cursor: default; }
+
+/* the ring: seven days as a cycle, the hand only ever turns forward */
+.dom-ring { width: clamp(110px, 11vw, 160px); flex: none; }
+.dom-ring__loop { fill: none; stroke: #d9d1c0; stroke-width: 2; stroke-dasharray: 3 5; }
+.dom-ring__again { fill: none; stroke: var(--dom-date); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.dom-ring__day circle { fill: var(--dom-plate); stroke: #e2dccd; stroke-width: 1.5; transition: fill .3s; }
+.dom-ring__day--weekend circle { fill: #fbe1d4; }
+.dom-ring__day--on circle { fill: var(--dom-active); stroke: var(--dom-active); }
+.dom-ring__day text {
+  font-size: 11px;
+  font-weight: 800;
+  fill: var(--dom-muted);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.dom-ring__day--on text { fill: #fff; }
+.dom-ring__hand { transform-origin: 80px 80px; transition: transform .9s cubic-bezier(.45, .05, .25, 1); }
+.dom-ring__hand line { stroke: var(--dom-ink); stroke-width: 4; stroke-linecap: round; }
+.dom-ring__hub { fill: var(--dom-ink); }
+
+/* the track */
+.dom-week__track-wrap { position: relative; container-type: inline-size; }
+.dom-week__track {
+  --dom-peek: clamp(28px, 6cqi, 72px);
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  padding: 46px var(--dom-peek) 26px;
+  scrollbar-width: none;
+  background:
+    linear-gradient(var(--dom-rail), var(--dom-rail)) 0 calc(100% - 14px) / 100% 5px no-repeat,
+    repeating-linear-gradient(90deg, transparent 0 18px, #c79a6b 18px 30px) 0 calc(100% - 8px) / 100% 12px no-repeat;
+}
+.dom-week__track::-webkit-scrollbar { display: none; }
+.dom-week__nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: clamp(38px, 3.6vw, 52px);
+  height: clamp(38px, 3.6vw, 52px);
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(7, 61, 79, .2);
+  color: var(--dom-ink);
+  font: inherit;
+  font-size: clamp(22px, 2vw, 30px);
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.dom-week__nav:disabled { opacity: .35; cursor: default; }
+.dom-week__nav--prev { left: -6px; }
+.dom-week__nav--next { right: -6px; }
+
+.dom-train {
+  --dom-loco: clamp(56px, 6.5cqi, 92px);
+  --dom-gap: clamp(6px, .9cqi, 12px);
+  position: relative;
+  flex: none;
+  width: max(calc(100cqi - 2 * var(--dom-peek)), 760px);
+  display: flex;
+  align-items: flex-end;
+  gap: var(--dom-gap);
+  padding: 0 clamp(10px, 1.6cqi, 22px);
+  box-sizing: border-box;
+  scroll-snap-align: center;
+  opacity: .5;
+  transition: opacity .4s;
+}
+.dom-train--selected { opacity: 1; }
+.dom-train__plate {
+  position: absolute;
+  top: -40px;
+  left: calc(clamp(10px, 1.6cqi, 22px) + var(--dom-loco) + var(--dom-gap));
+  right: clamp(10px, 1.6cqi, 22px);
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 3px solid currentColor;
+  color: var(--dom-muted);
+  font-size: clamp(14px, 1.5vw, 20px);
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.dom-train--current .dom-train__plate { color: var(--dom-ink); }
+.dom-train__range { font-size: .85em; font-weight: 700; color: var(--dom-muted); }
+.dom-train__seven { margin-left: auto; color: var(--dom-date); opacity: 0; transition: opacity .3s; }
+.dom-train--counted .dom-train__seven { opacity: 1; }
+
+.dom-train__loco { flex: none; width: var(--dom-loco); height: auto; margin-bottom: 2px; overflow: visible; }
+.dom-train__loco-body { fill: #c9b9a5; }
+.dom-train--current .dom-train__loco-body { fill: var(--dom-date); }
+
 .dom-week {
+  flex: 1 1 0;
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: clamp(6px, .9vw, 14px);
+  gap: var(--dom-gap);
   margin: 0;
   padding: 0;
   list-style: none;
 }
+.dom-week__slot { min-width: 0; display: flex; }
 .dom-week__day {
   container-type: inline-size;
+  position: relative;
+  flex: 1;
   min-width: 0;
-  min-height: clamp(150px, 20vw, 280px);
+  min-height: clamp(140px, 15vw, 210px);
+  margin: 6px 0 14px; /* the rim above, the wheels on the rails below */
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(4px, .6vw, 10px);
-  padding: clamp(10px, 1.2vw, 18px) clamp(4px, .6vw, 10px);
-  border-radius: clamp(14px, 1.6vw, 24px);
+  gap: clamp(3px, .5vw, 8px);
+  padding: clamp(10px, 1.1vw, 16px) clamp(4px, .6vw, 10px) clamp(14px, 1.5vw, 22px);
+  border: 0;
+  border-radius: clamp(10px, 1.2vw, 18px) clamp(10px, 1.2vw, 18px) 6px 6px;
   background: var(--dom-plate);
+  color: var(--dom-ink);
+  font: inherit;
   text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .25s, background .25s, box-shadow .25s;
 }
+/* open-top rim, so it reads as a wagon rather than a card */
+.dom-week__day > .dom-week__tag::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: -3px;
+  right: -3px;
+  height: 12px;
+  border-radius: 6px;
+  background: #e3dccd;
+}
+/* wheels */
+.dom-week__day::before,
+.dom-week__day::after {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  width: clamp(14px, 1.7vw, 22px);
+  aspect-ratio: 1;
+  border: 3px solid #fffdf8;
+  border-radius: 50%;
+  background: radial-gradient(circle, #9a9184 0 22%, var(--dom-wheel) 24%);
+}
+.dom-week__day::before { left: 16%; }
+.dom-week__day::after { right: 16%; }
 .dom-week__day--weekend { background: #fbe1d4; }
-.dom-week__day--active { background: #d8efe7; transform: translateY(-4px); }
+.dom-week__day--weekend > .dom-week__tag::before { background: #f5c9b3; }
+.dom-week__day--active {
+  background: #d8efe7;
+  transform: translateY(-6px);
+  box-shadow: 0 0 0 3px var(--dom-active), 0 10px 22px rgba(7, 61, 79, .16);
+}
+.dom-week__day--active > .dom-week__tag::before { background: #b5e0d3; }
+.dom-week__day--counting { background: var(--dom-count); transform: translateY(-6px); }
 .dom-week__tag {
   min-height: 1.2em;
-  font-size: clamp(11px, 1.05vw, 16px);
-  font-weight: 800;
-  letter-spacing: .04em;
+  font-size: clamp(10px, 1vw, 14px);
+  font-weight: 900;
+  letter-spacing: .05em;
   text-transform: uppercase;
   color: var(--dom-active);
 }
-/* Fits the longest name (Понедельник, Воскресенье: 11 letters) in its column */
+/* Fits the longest name (Понедельник, Воскресенье: 11 letters) in its wagon */
 .dom-week__name {
   max-width: 100%;
-  font-size: min(clamp(14px, 1.9vw, 28px), calc(100cqi / 7.6));
+  font-size: min(clamp(14px, 1.9vw, 26px), calc(100cqi / 7.2));
   font-weight: 900;
   line-height: 1.1;
   white-space: nowrap;
 }
 .dom-week__day--weekend .dom-week__name { color: #9c4424; }
-.dom-week__short {
-  font-size: clamp(11px, 1vw, 15px);
+.dom-week__date {
+  font-size: clamp(11px, 1.05vw, 15px);
   font-weight: 700;
   color: var(--dom-muted);
-  opacity: .8;
 }
 .dom-week__plan {
-  margin-top: auto;
   width: 100%;
-  padding: clamp(6px, .7vw, 10px) clamp(4px, .5vw, 8px);
-  border-radius: clamp(8px, 1vw, 14px);
-  background: rgba(255, 255, 255, .75);
-  font-size: clamp(12px, 1.25vw, 18px);
-  font-weight: 700;
-  line-height: 1.25;
+  box-sizing: border-box;
+  padding: clamp(5px, .6vw, 8px) clamp(3px, .4vw, 6px);
+  border-radius: clamp(8px, 1vw, 12px);
+  background: rgba(255, 255, 255, .8);
+  font-size: clamp(12px, 1.2vw, 17px);
+  font-weight: 800;
+  line-height: 1.2;
   overflow-wrap: anywhere;
+}
+.dom-week__plan { margin-top: auto; }
+.dom-week__number {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  z-index: 1;
+  width: clamp(30px, 3vw, 44px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: var(--dom-date);
+  color: #fff;
+  font-size: clamp(16px, 1.7vw, 24px);
+  font-weight: 900;
+  animation: dom-pop .25s cubic-bezier(.3, 1.6, .5, 1);
+}
+@keyframes dom-pop { from { transform: translateX(-50%) scale(0); } }
+
+.dom-week__say {
+  min-height: 1.3em;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(18px, 2.2vw, 30px);
+  font-weight: 900;
+}
+.dom-week__say em { font-style: normal; color: var(--dom-date); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dom-ring__hand, .dom-week__day, .dom-train { transition: none; }
+  .dom-week__number { animation: none; }
 }
 
 /* ── Число ────────────────────────────────────────────────────────── */
@@ -340,6 +552,6 @@
 }
 /* The plan sits at the bottom of the day (margin-top: auto); a date's tag
    goes just above it, so the first tag takes over the push. */
-.dom-week__short + .dom-week__event { margin-top: auto; }
+.dom-week__date + .dom-week__event { margin-top: auto; }
 .dom-week__event ~ .dom-week__plan { margin-top: 6px; }
 .dom-week__plan-icon { display: block; margin-bottom: 2px; font-size: clamp(24px, 3vw, 40px); line-height: 1.1; }
