@@ -108,3 +108,55 @@ describe("«Считаем десятками» — «Какое число да
     expect(next.some((t) => t.number % 100 === 90)).toBe(true);
   });
 });
+
+describe("«Считаем десятками» — «Считаем назад»", () => {
+  const h = coinHarness();
+  const text = (sel) => h.container.querySelector(sel)?.textContent;
+  const count = (sel) => h.container.querySelectorAll(sel).length;
+  const task = (extra = {}) => ({ type: "count_tens", cardId: "c", conceptId: "c", task: "back", number: 120, start: 120, end: 80, supportMode: "independent", ...extra });
+
+  it("at a round hundred there are no tens: the child unfolds the hundred, the number stays", async () => {
+    const onCorrect = vi.fn();
+    h.mount(CountTensTask, task(), { onCorrect });
+    expect(text(".sg-title")).toBe("Считаем назад");
+    h.click("−1 десяток"); await wait();
+    h.click("−1 десяток"); await wait();
+    expect(text(".ct-number")).toBe("100");
+    expect(count(".ct-stick")).toBe(0);
+    h.click("−1 десяток"); await wait();
+    // Nothing taken: the column is empty, the number is still 100.
+    expect(text(".ct-number")).toBe("100");
+    expect(text(".sg-status-note")).toBe("Десятков нет. Разложи сотню.");
+    expect(h.button("−1 десяток")).toBeUndefined();
+    h.click("Разложи сотню"); await wait();
+    expect(count(".ct-square")).toBe(0);
+    expect(count(".ct-stick")).toBe(10);
+    expect(text(".ct-number")).toBe("100");
+    expect(text(".ct-caption")).toBe("сто · 10 десятков");
+    expect(text(".ct-fold-say")).toBe("1 сотня = 10 десятков");
+    h.click("−1 десяток"); await wait();
+    expect(text(".ct-number")).toBe("90");
+    expect(count(".ct-stick")).toBe(9);
+    h.click("−1 десяток"); await wait();
+    expect(text(".sg-status-say")).toBe("120 · 110 · 100 · 90 · 80");
+    h.click("Далее →");
+    expect(onCorrect).toHaveBeenCalled();
+  });
+
+  it("200 unfolded is «1 сотня и 10 десятков»", async () => {
+    h.mount(CountTensTask, task({ number: 200, start: 200, end: 170 }));
+    h.click("−1 десяток"); await wait();
+    h.click("Разложи сотню"); await wait();
+    expect(text(".ct-caption")).toBe("двести · 1 сотня и 10 десятков");
+    expect(count(".ct-square")).toBe(1);
+  });
+
+  it("engine: stretches go down across a hundred", () => {
+    const tasks = generateTasks("count_tens", [], 30, { task: "back", range: "to1000" });
+    for (const t of tasks) {
+      const h100 = Math.floor((t.start - 1) / 100) * 100;
+      expect(t.task).toBe("back");
+      expect(t.start > h100 && t.end < h100 && h100 >= 100).toBe(true);
+    }
+  });
+});

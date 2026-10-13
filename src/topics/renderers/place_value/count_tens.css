@@ -75,6 +75,8 @@
 }
 .ct-stick--new { box-shadow: 0 0 0 4px #fde68a; }
 .ct-stick--gone { opacity: 0; transform: translateX(-24px) scaleY(.4); }
+.ct-card--empty { border-color: #fdba74; animation: ct-empty .5s ease-in-out 2; }
+@keyframes ct-empty { 50% { background: #fff7ed; } }
 .ct-stick--ghost { background: transparent; border: 2px dashed #d97706; box-sizing: border-box; }
 
 .ct-number { font-size: 64px; font-weight: 900; line-height: 1; letter-spacing: 2px; min-height: 64px; }

@@ -194,6 +194,11 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
         const roll = Math.random();
         const number = roll < 0.5 ? h - 10 : roll < 0.75 ? h : h + 10 * randomInt(1, 8);
         tasks.push({ ...base, task: "next", number, options: countTensOptions(number) });
+      } else if (params.task === "back") {
+        // The mirror: from just above a hundred down across it (230 → 170).
+        const start = h + 10 * randomInt(2, 3);
+        const end = h - 10 * randomInt(3, 5);
+        tasks.push({ ...base, task: "back", number: start, start, end });
       } else {
         const start = i === 0 ? 0 : h - 10 * randomInt(3, 5);
         const end = i === 0 ? 100 : h + 10 * randomInt(2, 3);

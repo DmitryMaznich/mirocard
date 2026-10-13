@@ -13,7 +13,8 @@ import "./count_tens.css";
 // «Сложи сотню», and the folding into a green square is the child's own
 // move (never 11 tens in the column — that is the «1010» mistake).
 // «Смотри и считай» (task "count") counts a short stretch across a hundred;
-// «Какое число дальше?» (task "next") asks for the next number with the two
+// «Считаем назад» (task "back") is the mirror: the square unfolds into
+// ten sticks. «Какое число дальше?» (task "next") asks for the next number with the two
 // mistakes that matter among the choices (91 / 900 after 90, 1010 after 100).
 // See docs/place-value-methodology.md, «Считаем десятками».
 
@@ -79,7 +80,7 @@ function Square({ lit = 10 }) {
   </div>;
 }
 
-function Board({ hundreds, sticks, building = null, gone = 0, fresh = false, ghost = false }) {
+function Board({ hundreds, sticks, building = null, gone = 0, fresh = false, ghost = false, empty = false }) {
   return <div className={`ct-board${hundreds > 4 ? " ct-board--many" : ""}`}>
     <section className="ct-card ct-card--hundreds">
       <h3 className="sg-head sg-head--hundreds">Сотни</h3>
@@ -88,7 +89,7 @@ function Board({ hundreds, sticks, building = null, gone = 0, fresh = false, gho
         {building !== null && <Square lit={building} />}
       </div>
     </section>
-    <section className="ct-card ct-card--tens">
+    <section className={`ct-card ct-card--tens${empty ? " ct-card--empty" : ""}`}>
       <h3 className="sg-head sg-head--tens">Десятки</h3>
       <div className="ct-sticks">
         {Array.from({ length: sticks }, (_, i) => <span key={i}
@@ -100,7 +101,9 @@ function Board({ hundreds, sticks, building = null, gone = 0, fresh = false, gho
 }
 
 export default function CountTensTask(props) {
-  return props.task.task === "next" ? <NextNumber {...props} /> : <CountAlong {...props} />;
+  if (props.task.task === "next") return <NextNumber {...props} />;
+  if (props.task.task === "back") return <CountBack {...props} />;
+  return <CountAlong {...props} />;
 }
 
 const ASK_PAUSE_MS = 1500;
@@ -187,6 +190,96 @@ function CountAlong({ task, onCorrect }) {
         {done ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
           : pending ? <button type="button" className="ct-btn ct-btn--fold" disabled={phase === "folding"} onClick={fold}>Сложи сотню</button>
             : <button type="button" className="ct-btn" disabled={phase !== "idle"} onClick={add}><span className="ct-btn-stick" />+1 десяток</button>}
+      </div>
+    </div>
+  </div>;
+}
+
+// «Считаем назад»: «−1 десяток» takes a stick away. At a round hundred there
+// are no tens left: the tap finds the column empty («Десятков нет. Разложи
+// сотню.»), and the child unfolds the square into ten sticks — the number
+// stays the same (100 is still 100, now as 10 десятков), and only then the
+// count goes on: 90. The mirror of folding, and the base of borrowing.
+function CountBack({ task, onCorrect }) {
+  const teaching = task.supportMode !== "independent";
+  const [ref, mode] = useScreenMode();
+  const player = usePlayer();
+  const [value, setValue] = useState(task.start);
+  // idle / ask as in CountAlong; empty — «−1» found no tens, waiting for
+  // «Разложи сотню»; unfolding — the square's stripes go out as sticks appear.
+  const [phase, setPhase] = useState("idle");
+  // The last hundred is shown as 10 sticks (after unfolding, until the next «−1»).
+  const [split, setSplit] = useState(false);
+  const [unfolded, setUnfolded] = useState(0);
+  const [taps, setTaps] = useState(0);
+  const [visited, setVisited] = useState([task.start]);
+  const done = value <= task.end && phase === "idle";
+
+  const opened = split || phase === "unfolding";
+  const hundreds = Math.floor(value / 100) - (opened ? 1 : 0);
+  const sticks = phase === "unfolding" ? unfolded : split ? 10 : Math.floor(value / 10) % 10;
+
+  function reveal(n) {
+    setPhase("idle");
+    setVisited((v) => [...v, n]);
+    player.run([() => playNumber(n)]);
+  }
+
+  async function take() {
+    if (phase !== "idle" || done) return;
+    if (!split && value % 100 === 0) {
+      setPhase("empty");
+      player.run([() => playPhrase("empty")]);
+      return;
+    }
+    const n = value - 10;
+    setValue(n);
+    setSplit(false);
+    setTaps((t) => t + 1);
+    if (!teaching) { reveal(n); return; }
+    setPhase("ask");
+    const finished = await player.run([...(taps < 2 ? [() => playPhrase("ask")] : []), ASK_PAUSE_MS]);
+    if (finished) reveal(n);
+  }
+
+  async function unfold() {
+    if (phase !== "empty") return;
+    player.stop();
+    setUnfolded(0);
+    setPhase("unfolding");
+    for (let i = 1; i <= 10; i++) {
+      await new Promise((r) => setTimeout(r, FOLD_STEP_MS));
+      setUnfolded(i);
+    }
+    await new Promise((r) => setTimeout(r, FOLD_STEP_MS * 2));
+    setSplit(true);
+    setPhase("idle");
+    // The number doesn't change — only how it is laid out.
+    player.run([() => playPhrase("unfold")]);
+  }
+
+  const h = Math.floor(value / 100);
+  const splitCaption = `${numberWords(value)} · ${h > 1 ? `${h - 1} ${pluralHundreds(h - 1)} и ` : ""}10 десятков`;
+  const hidden = phase === "ask";
+  const status = done
+    ? <span className="sg-status-say ct-chain-say">{visited.map((n, i) => <span key={i} className={n % 100 === 0 && n ? "ct-chain-hundred" : ""}>{i ? " · " : ""}{n}</span>)}</span>
+    : split ? <span className="ct-fold-say">1 сотня = 10 десятков</span>
+      : phase === "empty" || phase === "unfolding" ? <span className="sg-status-note">Десятков нет. Разложи сотню.</span>
+        : taps === 0 ? <span className="sg-status-hint">Нажимай «−1 десяток» и считай назад.</span> : null;
+
+  return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`}>
+    <div className="ct-inner">
+      <h2 className="sg-title">Считаем назад</h2>
+      <Board hundreds={hundreds} sticks={sticks} building={phase === "unfolding" ? 10 - unfolded : null}
+        ghost={phase === "ask"} empty={phase === "empty"} />
+      <div className={`ct-number${hidden ? " ct-number--hidden" : ""}`} aria-live="polite">{hidden ? "?" : <Digits n={value} />}</div>
+      <div className="ct-caption">{hidden ? " " : value === 0 ? "ноль" : split ? splitCaption : caption(value)}</div>
+      <div className="sg-status ct-status" role="status">{status}</div>
+      <div className="ct-slot">
+        {done ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
+          : phase === "empty" || phase === "unfolding"
+            ? <button type="button" className="ct-btn ct-btn--fold" disabled={phase === "unfolding"} onClick={unfold}>Разложи сотню</button>
+            : <button type="button" className="ct-btn" disabled={phase !== "idle"} onClick={take}><span className="ct-btn-stick" />−1 десяток</button>}
       </div>
     </div>
   </div>;

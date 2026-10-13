@@ -39,6 +39,8 @@ export const PHRASE_AUDIO = {
   full: "Десять десятков! Сложи сотню.",
   fold: "Десять десятков — это сотня.",
   ask: "Сколько стало?",
+  empty: "Десятков нет. Разложи сотню.",
+  unfold: "Сотня — это десять десятков.",
 };
 export const phraseAudioUrl = (key) => `/audio/place-value-numbers/p-${key}.mp3`;
 
