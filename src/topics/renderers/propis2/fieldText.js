@@ -5,11 +5,12 @@ import { newRow } from "./model.js";
 
 const isEmptyRow = (r) => r.kind === "blank" || (r.kind !== "passage" && !String(r.text ?? "").trim());
 
-// Rows shown in the field: from `startIndex` on, trailing empty rows left out.
-export function fieldFromRows(rows, startIndex) {
+// Rows shown in the field: from `startIndex` on, trailing empty rows left out (`keepEmpty`: kept, the whole page as it is: the full-page
+// editor on wide screens shows an empty line for every row, so any row of the sheet has a line to put the caret on).
+export function fieldFromRows(rows, startIndex, keepEmpty = false) {
   const tail = rows.slice(Math.max(0, startIndex));
   let end = tail.length;
-  while (end > 0 && isEmptyRow(tail[end - 1])) end -= 1;
+  while (!keepEmpty && end > 0 && isEmptyRow(tail[end - 1])) end -= 1;
   return tail.slice(0, end).map((r) => (r.kind === "blank" ? "" : String(r.text ?? "").replace(/\s*\n\s*/g, " "))).join("\n");
 }
 

@@ -5,13 +5,45 @@ import { useHint } from "./Propis2Hint";
 
 // The constructor's one input: a multi-line field that grows with its text up to the room it has (then it scrolls) and
 // a button with the list of the deck's elements. The system keyboard does the typing: no letter tiles.
-export default function Propis2Field({ value, onChange, onCaret, disabled, singleLine, placeholder, elements, onInsertElement, caretRequest }) {
-  const ref = useRef(null);
+// The button «Элемент» with the list of the deck's elements (each tile shows its code in braces: what lands in the text). Shared by the compact
+// field (phone) and the full-page text editor (wide screens).
+export function ElementPicker({ elements, disabled, onInsert }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
-  const [focused, setFocused] = useState(false);
   const { bind, tip } = useHint("Элементы");
+  useEffect(() => {
+    if (!open) return undefined;
+    const away = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
+    const esc = (e) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("pointerdown", away);
+    document.addEventListener("keydown", esc);
+    return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
+  }, [open]);
+  return (
+    <div className="p2-pick p2-elements" ref={wrapRef}>
+      <button type="button" className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label="Элементы" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
+        <span className="p2-tool-ico"><I.IconElement /></span>
+        <span className="p2-cap">Элемент</span>
+        {tip}
+      </button>
+      {open && (
+        <div className="p2-elements-panel" role="dialog" aria-label="Элементы">
+          {elements.map((tile) => (
+            <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={tile.caption} onClick={() => { setOpen(false); onInsert(`{${tile.code}}`); }}>
+              <TileGlyph tile={tile} size={64} />
+              <span className="p2-el-id" aria-hidden="true">{`{${tile.code}}`}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
+export default function Propis2Field({ value, onChange, onCaret, disabled, singleLine, placeholder, elements, onInsertElement, caretRequest }) {
+  const ref = useRef(null);
+  const wrapRef = useRef(null);
+  const [focused, setFocused] = useState(false);
   // while typing the field grows with its text (CSS max-height stops it and it scrolls); when not in use it folds to one line
   useLayoutEffect(() => {
     const el = ref.current;
@@ -41,15 +73,6 @@ export default function Propis2Field({ value, onChange, onCaret, disabled, singl
     el.setSelectionRange(caretRequest.pos, caretRequest.pos);
   }, [caretRequest]);
 
-  useEffect(() => {
-    if (!open) return undefined;
-    const away = (e) => { if (!wrapRef.current?.contains(e.target)) setOpen(false); };
-    const esc = (e) => { if (e.key === "Escape") setOpen(false); };
-    document.addEventListener("pointerdown", away);
-    document.addEventListener("keydown", esc);
-    return () => { document.removeEventListener("pointerdown", away); document.removeEventListener("keydown", esc); };
-  }, [open]);
-
   const report = () => { const el = ref.current; if (el) onCaret?.(el.selectionStart ?? 0); };
   const change = (e) => {
     let v = e.target.value;
@@ -59,23 +82,7 @@ export default function Propis2Field({ value, onChange, onCaret, disabled, singl
 
   return (
     <div className="p2-fieldwrap" ref={wrapRef}>
-      <div className="p2-pick p2-elements">
-        <button type="button" className={`p2-ib p2-tool${open ? " is-on" : ""}`} aria-label="Элементы" aria-haspopup="dialog" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)} {...bind}>
-          <span className="p2-tool-ico"><I.IconElement /></span>
-          <span className="p2-cap">Элемент</span>
-          {tip}
-        </button>
-        {open && (
-          <div className="p2-elements-panel" role="dialog" aria-label="Элементы">
-            {elements.map((tile) => (
-              <button key={tile.key} type="button" className="propis2-tile" data-tile={tile.text} aria-label={tile.caption} onClick={() => { setOpen(false); onInsertElement(`{${tile.code}}`, ref.current?.selectionStart ?? value.length); }}>
-                <TileGlyph tile={tile} size={64} />
-                <span className="p2-el-id" aria-hidden="true">{`{${tile.code}}`}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      <ElementPicker elements={elements} disabled={disabled} onInsert={(text) => onInsertElement(text, ref.current?.selectionStart ?? value.length)} />
       <textarea
         ref={ref}
         className="p2-textarea"

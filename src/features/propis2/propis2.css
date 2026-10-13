@@ -435,3 +435,23 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-warn-note p { margin: 4px 0 0; }
 .p2-warn-note-title { font-size: .95rem; }
 .p2-warn-note-fix b { font-weight: 800; }
+
+/* ---- wide screens: the whole page's text as a mini text editor in the free area of the side panel ---- */
+.propis2-editor2--side .propis2-dock { justify-content: flex-start; gap: 8px; }
+.p2-ed { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 8px; }
+.p2-ed-bar { flex: 0 0 auto; display: flex; align-items: flex-start; gap: 10px; }
+.p2-ed-bar-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; position: relative; padding-top: 6px; }
+.p2-ed-title { font-size: .95rem; color: var(--p2-ink); }
+.p2-ed .p2-warns { position: relative; }
+.p2-ed .p2-warn-note { bottom: auto; top: calc(100% + 6px); }
+.p2-ed .p2-elements-panel { bottom: auto; top: calc(100% + 8px); left: 0; right: auto; max-height: 60dvh; }
+.p2-ed-body { position: relative; flex: 1 1 auto; min-height: 0; display: flex; border: 1px solid var(--p2-line); border-radius: 12px; background: var(--p2-bg); overflow: hidden; }
+.p2-ed-body:focus-within { border-color: var(--p2-teal); }
+.p2-ed-gutter { flex: 0 0 auto; width: 42px; overflow: hidden; background: #f3efe3; border-right: 1px solid var(--p2-line); padding-top: 10px; box-sizing: border-box; user-select: none; }
+.p2-ed-num { box-sizing: border-box; padding-right: 9px; text-align: right; font: 600 .78rem/1.75rem inherit; font-family: inherit; color: #9a9384; }
+.p2-ed-num.is-active { color: var(--p2-teal-dark); font-weight: 800; background: rgba(74, 155, 143, .14); }
+.p2-ed-text, .p2-ed-measure { box-sizing: border-box; font: 700 1.25rem/1.75rem inherit; font-family: inherit; white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; }
+.p2-ed-text { flex: 1 1 auto; min-width: 0; resize: none; border: none; outline: none; background: transparent; padding: 10px 12px; color: var(--p2-blue); overflow-y: auto; }
+.p2-ed-measure { position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; padding: 0 12px; }
+.p2-ed-hint { flex: 0 0 auto; margin: 0; font-size: .78rem; line-height: 1.35; color: var(--p2-muted); }
+.p2-ed-locked { margin: 0; padding: 8px 10px; border-radius: 10px; background: #fff7e6; color: #5b4a1f; font-size: .85rem; line-height: 1.35; }
