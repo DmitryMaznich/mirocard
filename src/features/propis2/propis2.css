@@ -139,10 +139,10 @@
 .propis2-editor2--phone .propis2-editor2 .screen-header, .propis2-editor2--phone .screen-header { padding-left: 8px; padding-right: 8px; gap: 8px; }
 
 /* landscape tablet: the canvas takes the whole height on the left, the tools sit on the right */
-.propis2-editor2--side .propis2-main { grid-template-columns: minmax(0, 1fr) minmax(380px, 440px); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "page settings" "page rowset" "page dock"; }
-.propis2-editor2--side .propis2-settings--row { flex-wrap: wrap; overflow: visible; border-left: 1px solid var(--p2-line); min-height: 0; padding: 10px 12px; }
-.propis2-editor2--side .propis2-settings { flex-wrap: wrap; overflow: visible; border-left: 1px solid var(--p2-line); min-height: 0; padding: 10px 12px; }
-.propis2-editor2--side .propis2-dock { height: auto; min-height: 0; border-radius: 0; box-shadow: none; border-left: 1px solid var(--p2-line); }
+.propis2-editor2--side .propis2-main { grid-template-columns: minmax(380px, 440px) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "settings page" "rowset page" "dock page"; }
+.propis2-editor2--side .propis2-settings--row { flex-wrap: wrap; overflow: visible; border-right: 1px solid var(--p2-line); min-height: 0; padding: 10px 12px; }
+.propis2-editor2--side .propis2-settings { flex-wrap: wrap; overflow: visible; border-right: 1px solid var(--p2-line); min-height: 0; padding: 10px 12px; }
+.propis2-editor2--side .propis2-dock { height: auto; min-height: 0; border-radius: 0; box-shadow: none; border-right: 1px solid var(--p2-line); }
 .propis2-editor2--side .propis2-page-col { align-items: center; }
 .propis2-editor2--side .p2-ib { width: 48px; height: 48px; }
 .propis2-editor2--side .propis2-dock-bar { height: 124px; }
