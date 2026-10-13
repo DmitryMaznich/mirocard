@@ -97,7 +97,9 @@
   padding: 6px 14px;
   font-weight: 800;
 }
-.ct-chain-say { color: #334155; }
+.ct-chain-say { color: #334155; font-size: 22px; }
+.ct-screen--tablet .ct-chain-say,
+.ct-screen--wide .ct-chain-say { font-size: 28px; }
 .ct-chain-hundred { color: #15803d; font-weight: 900; }
 
 .ct-slot { min-height: 64px; display: flex; align-items: center; justify-content: center; }

@@ -350,7 +350,7 @@ function NextNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
           onClick={() => choose(v)}>{v}</button>)}
       </div>
       <div className="sg-status ct-status" role="status">
-        {solved ? <span className="sg-status-say">{crossing ? `10 десятков = 1 сотня. ${n} и ещё десяток — ${right}, ${numberWords(right)}.` : `${n} и ещё десяток — ${right}, ${numberWords(right)}.`}</span>
+        {solved ? null
           : note ? <span className="sg-status-note">{note}{support && crossing ? " Десять десятков — это сотня." : ""}</span> : null}
       </div>
       <div className="ct-slot">{solved && <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>}</div>
@@ -405,7 +405,6 @@ function PrevNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const opened = support && crossing && !solved;
   const shown = solved ? right : n;
   const board = opened ? { hundreds: n / 100 - 1, sticks: 10 } : { hundreds: Math.floor(shown / 100), sticks: Math.floor(shown / 10) % 10 };
-  const say = `${n} без десятка — ${right}, ${numberWords(right)}.`;
   return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`} {...guard}>
     <div className="ct-inner">
       <h2 className="sg-title">Какое число перед?</h2>
@@ -418,7 +417,7 @@ function PrevNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
           onClick={() => choose(v)}>{v}</button>)}
       </div>
       <div className="sg-status ct-status" role="status">
-        {solved ? <span className="sg-status-say">{crossing ? `Сотня — это 10 десятков. ${say}` : say}</span>
+        {solved ? null
           : note ? <span className="sg-status-note">{note}{opened ? " Сотня — это 10 десятков." : ""}</span> : null}
       </div>
       <div className="ct-slot">{solved && <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>}</div>

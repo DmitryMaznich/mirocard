@@ -18,7 +18,7 @@ describe("«Разрядные слагаемые»", () => {
     type(40); type(7);
     expect(value("Десятки")).toBe("40");
     expect(value("Единицы")).toBe("7");
-    expect(text(".sg-status-say")).toBe("47 = 40 + 7. Сорок семь — это сорок и семь.");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("p", "p");
     expect(onMistake).not.toHaveBeenCalled();
@@ -64,14 +64,14 @@ describe("«Разрядные слагаемые»", () => {
     expect(text(".sg-status-note")).toBe("3 сотни — это триста. Сколько это?");
     expect(h.container.querySelectorAll(".pp-support .tb-col")).toHaveLength(3);
     h.flush(); type(300); type(40); type(7);
-    expect(text(".sg-status-say")).toBe("347 = 300 + 40 + 7. Триста сорок семь — это триста, сорок и семь.");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
   });
 
   it("до 1000: a zero place gives no part (305 = 300 + 5); joining «3005» gets the digits hint", () => {
     h.mount(PlacePartsTask, task({ number: 305 }));
     expect(h.container.querySelectorAll(".fp-field")).toHaveLength(2);
     type(300); type(5);
-    expect(text(".sg-status-say")).toBe("305 = 300 + 5. Триста пять — это триста и пять.");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.unmount();
     h.mount(PlacePartsTask, task({ number: 305, direction: "join" }));
     expect(text(".pp-row").replace(/\s+/g, "")).toBe("300+5=");

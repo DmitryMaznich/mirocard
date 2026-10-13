@@ -94,7 +94,7 @@ describe("«Считаем десятками» — «Какое число да
     expect(onMistake).toHaveBeenCalledTimes(2);
     h.click("100");
     await wait();
-    expect(text(".sg-status-say")).toBe("10 десятков = 1 сотня. 90 и ещё десяток — 100, сто.");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     expect(h.container.querySelectorAll(".ct-square")).toHaveLength(1);
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalled();
@@ -246,7 +246,7 @@ describe("«Считаем десятками» — «Какое число пе
     expect(text(".sg-status-note")).toBe("0 — это 100 без 1 сотни. А убираем 1 десяток. Сотня — это 10 десятков.");
     h.click("90");
     await wait();
-    expect(text(".sg-status-say")).toBe("Сотня — это 10 десятков. 100 без десятка — 90, девяносто.");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     expect(count(".ct-stick")).toBe(9);
     expect(onMistake).toHaveBeenCalledTimes(2);
     h.click("Далее →");

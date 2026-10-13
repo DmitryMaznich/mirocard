@@ -30,7 +30,7 @@ describe("Плюс и минус через сотню", () => {
     expect(count(".xh-frame .cb-stick")).toBe(0);
     h.click("Десяток из лотка"); h.flush();
     answer(214);
-    expect(say()).toBe("194 + 20 = 214. Двести четырнадцать.");
+    expect(say()).toBeUndefined();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalled();
   });
@@ -43,7 +43,7 @@ describe("Плюс и минус через сотню", () => {
     expect(count(".xh-frame .cb-stick")).toBe(10);
     h.click("Десяток в рамке 10"); h.click("Десяток в рамке 9"); h.flush();
     answer(184);
-    expect(say()).toBe("214 − 30 = 184. Сто восемьдесят четыре.");
+    expect(say()).toBeUndefined();
   });
 
   it("table minus: «не хватает» borrows a hundred; forgetting it is explained", () => {

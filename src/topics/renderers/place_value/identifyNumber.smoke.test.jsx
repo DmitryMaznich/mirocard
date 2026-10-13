@@ -147,7 +147,7 @@ describe("IdentifyNumberTask", () => {
     h.flush();
     expect(value("Какое это число?")).toBe("34");
     expect(h.container.querySelector(".fp-field--total .id-dig--tens").textContent).toBe("3");
-    expect(h.container.querySelector(".sg-status-say").textContent).toBe("3 десятка и 4 единицы — тридцать четыре");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     expect(document.querySelector(".id-fly")).toBeNull();
     expect(onMistake).not.toHaveBeenCalled();
     expect(h.button("Далее →")).toBeDefined();
@@ -158,7 +158,7 @@ describe("IdentifyNumberTask", () => {
     h.click("Собрать десяток"); h.flush();
     answer(3); answer(4); h.flush();
     expect(value("Какое это число?")).toBe("34");
-    expect(h.container.querySelector(".sg-status-say").textContent).toBe("3 десятка и 4 единицы — тридцать четыре");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
   });
 });
 

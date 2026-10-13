@@ -1,7 +1,6 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { SchemeOne } from "./CoinBlocks.jsx";
-import { numberWords } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
 import "./coins.css";
@@ -113,8 +112,7 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
   const digit = (v, kind, extra = "") => <span className={`xb-cell tb-digit--${kind}${extra}`}>{v}</span>;
 
   const dots = (n, kind) => <span className={`xb-dots xb-dots--${kind}`}>{Array.from({ length: n }, (_, i) => <SchemeOne key={i} />)}</span>;
-  const status = solved
-    ? <span className="sg-status-say">{`${task.number} ${sign} ${task.k} = ${task.result}. ${numberWords(task.result)[0].toUpperCase()}${numberWords(task.result).slice(1)}.`}</span>
+  const status = solved ? null
     : note ? <span className="sg-status-note">{note}</span> : null;
 
   return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} tb-screen xb-screen`} style={{ "--sg-answer-w": "340px" }}>

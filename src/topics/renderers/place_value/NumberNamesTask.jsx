@@ -103,7 +103,7 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
   function enter() {
     if (solved || !typed.digits) return;
     const guess = Number(typed.digits);
-    if (guess === n) { typed.reset(); setSolved(true); setNote(""); player.current?.stop(); setPlaying(false); return; }
+    if (guess === n) { typed.reset(); setSolved(true); setNote(""); play(n); return; }
     typed.fail();
     setMisses((m) => m + 1);
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
@@ -119,7 +119,7 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
     if (solved || wrong.includes(value)) return;
     if (value === n) {
       setSolved(true); setNote("");
-      if (reading) play(n); else { player.current?.stop(); setPlaying(false); }
+      play(n);
       return;
     }
     setWrong((w) => [...w, value]);
@@ -169,7 +169,7 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
         </div>
       </>}
       <div className="sg-status nn-status" role="status">
-        {solved ? <span className="sg-status-say">{`${n} — ${numberWords(n)}`}</span>
+        {solved ? null
           : note ? <span className="sg-status-note">{note}</span> : null}
       </div>
       <div className="sg-slot nn-slot">

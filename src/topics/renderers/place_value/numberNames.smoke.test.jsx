@@ -41,7 +41,7 @@ describe("«Названия чисел»", () => {
     h.click("90");
     await wait();
     expect(h.button("90").className).toContain("nn-option--right");
-    expect(text(".sg-status-say")).toBe("90 — девяносто");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("n", "n");
     expect(onMistake).not.toHaveBeenCalled();
@@ -58,7 +58,7 @@ describe("«Названия чисел»", () => {
     expect(onMistake).toHaveBeenCalledTimes(1);
     h.click("90");
     await wait();
-    expect(text(".sg-status-say")).toBe("90 — девяносто");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
   });
 
   it("engine: sets and no immediate repeats; works without a card in the record", async () => {
@@ -85,7 +85,7 @@ describe("«Названия чисел» — «Услышь и напиши»",
     expect(h.container.querySelector(".nn-option")).toBeNull();
     answer(90);
     await wait();
-    expect(text(".sg-status-say")).toBe("90 — девяносто");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalled();
     expect(onMistake).not.toHaveBeenCalled();
@@ -104,7 +104,7 @@ describe("«Названия чисел» — «Услышь и напиши»",
     expect(text(".nn-choose-hint")).toBe("Какое число звучит? Выбери.");
     h.click("305");
     await wait();
-    expect(text(".sg-status-say")).toBe("305 — триста пять");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     expect(onMistake).toHaveBeenCalledTimes(2);
   });
 
@@ -150,7 +150,7 @@ describe("«Названия чисел» — «Прочитай и выбери
     expect(text(".sg-status-note")).toBe("«тридцать пять» — это 35. Прочитай число ещё раз.");
     act(() => word("триста пять").click());
     await wait();
-    expect(text(".sg-status-say")).toBe("305 — триста пять");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     expect(onMistake).toHaveBeenCalledTimes(1);
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalled();

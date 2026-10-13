@@ -19,7 +19,7 @@ describe("«Таблица»", () => {
     expect(count(".cb-stick, .cb-dot, .cb-coin, .cb-ten-stack")).toBe(0);
     type(34); h.click("Проверить");
     expect(value("Какое это число?")).toBe("34");
-    expect(h.container.querySelector(".sg-status-say").textContent).toBe("3 десятка и 4 единицы — тридцать четыре");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("x", "x");
     expect(onMistake).not.toHaveBeenCalled();
@@ -62,7 +62,7 @@ describe("«Таблица»", () => {
     h.flush(); type(4); type(7);
     expect(value("Десятки")).toBe("4");
     expect(value("Единицы")).toBe("7");
-    expect(h.container.querySelector(".sg-status-say").textContent).toBe("4 десятка и 7 единиц — сорок семь");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("b", "b");
   });
@@ -85,7 +85,7 @@ describe("«Таблица»", () => {
     h.click("4");
     expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько единиц в числе 47?");
     h.click("7");
-    expect(h.container.querySelector(".sg-status-say").textContent).toBe("4 десятка и 7 единиц — сорок семь");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("b", "b");
     expect(onMistake).toHaveBeenCalledTimes(1);
