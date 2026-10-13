@@ -45,8 +45,22 @@ export function useCardEventLogger() {
     currentRef.current = null;
   }, []);
 
-  const getCardEvents = useCallback(() => [...eventsRef.current], []);
-  const resetCardEvents = useCallback(() => { eventsRef.current = []; }, []);
+  const getCardEvents = useCallback(() => {
+    const pending = currentRef.current;
+    return [
+      ...eventsRef.current,
+      ...(pending ? [{
+        ...pending,
+        taps: [...pending.taps],
+        attemptCount: pending.taps.length,
+        completed: false,
+      }] : []),
+    ];
+  }, []);
+  const resetCardEvents = useCallback(() => {
+    eventsRef.current = [];
+    currentRef.current = null;
+  }, []);
 
   return { onCardShown, onTap, onQuality, getCardEvents, resetCardEvents };
 }

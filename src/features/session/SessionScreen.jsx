@@ -9,6 +9,7 @@ import RewardVideoModal from "@/shared/components/RewardVideoModal";
 import { getTopicTitle } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import SessionHeader from "./SessionHeader";
+import SessionExitPrompt from "./SessionExitPrompt";
 import { ADVANCE_GATE_IDLE, ADVANCE_GATE_WAITING, ADVANCE_GATE_READY, resolveTapAdvanceGate } from "./advanceGate";
 
 const noop = () => {};
@@ -46,6 +47,8 @@ export default function SessionScreen() {
   const setActiveLessonPlanItemId = useAppStore((s) => s.setActiveLessonPlanItemId);
   const lessonPlan = useLessonPlan();
   const openSessionExitPrompt = useAppStore((s) => s.openSessionExitPrompt);
+  const sessionExitPromptOpen = useAppStore((s) => s.sessionExitPromptOpen);
+  const closeSessionExitPrompt = useAppStore((s) => s.closeSessionExitPrompt);
   const students              = useAppStore((s) => s.students);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const adultConfirmAdvance = useAppStore((s) => s.settings.adultConfirmAdvance) ?? true;
@@ -55,7 +58,7 @@ export default function SessionScreen() {
     sessionState, currentTask, mode, topicRecord, sessionParams,
     completedRecord, rewardProgress, streakCount, bestStreak, answersPerStar,
     rewardPending, clearRewardPending,
-    deckExhausted, handleRestartDeck, handleFinishDeck,
+    deckExhausted, sessionSaveError, handleRestartDeck, handleFinishDeck, finishCurrentSession,
     onCorrect, onPrevious, onIncorrect, onMistake, onStreakReset, onAdvance, onQualityAnswer,
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
@@ -74,6 +77,17 @@ export default function SessionScreen() {
   function handleOpenModeSettings() {
     setSessionReturnScreen("session");
     setScreen("params");
+  }
+
+  async function handleFinishSession() {
+    await finishCurrentSession();
+    if (activeLessonPlanItemId) {
+      await lessonPlan?.markItemDone(activeLessonPlanItemId, true);
+      setActiveLessonPlanItemId(null);
+    }
+    closeSessionExitPrompt();
+    setScreen(sessionReturnScreen ?? "home");
+    setSessionReturnScreen(null);
   }
 
   useEffect(() => {
@@ -157,7 +171,7 @@ export default function SessionScreen() {
     : defaultAdvanceGate;
 
   useEffect(() => {
-    if (!adultConfirmAdvance || advanceGate !== ADVANCE_GATE_WAITING) return undefined;
+    if (sessionExitPromptOpen || !adultConfirmAdvance || advanceGate !== ADVANCE_GATE_WAITING) return undefined;
     let didAdvance = false;
 
     function handleKeyDown(event) {
@@ -173,7 +187,7 @@ export default function SessionScreen() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [adultConfirmAdvance, advanceGate, onAdvance]);
+  }, [sessionExitPromptOpen, adultConfirmAdvance, advanceGate, onAdvance]);
 
   const requestAdvance = useCallback((event) => {
     event?.stopPropagation?.();
@@ -296,6 +310,9 @@ export default function SessionScreen() {
 
   return (
     <div className={`session-screen${isDailyOrientation ? " session-screen--daily-orientation" : ""}`}>
+      {sessionExitPromptOpen && (
+        <SessionExitPrompt onContinue={closeSessionExitPrompt} onFinish={handleFinishSession} />
+      )}
       {!isDailyOrientation && <div className={`session-header-wrap${mode.evaluation === "none" ? " session-header-wrap--compact" : ""}`}>
         <SessionHeader
           topicTitle={topicTitle}
@@ -395,16 +412,17 @@ export default function SessionScreen() {
         />
       )}
 
-      {deckExhausted && (!topicRecord?.meta?.loopModes || mode?.excludeFromLoop) && (
+      {deckExhausted && (!topicRecord?.meta?.loopModes || mode?.excludeFromLoop || sessionSaveError) && (
         <div className="deck-exhausted-overlay">
           <div className="deck-exhausted-dialog">
             <div className="deck-exhausted-dialog__icon">🎉</div>
             <div className="deck-exhausted-dialog__title">Вы прошли все карточки!</div>
+            {sessionSaveError && <div role="alert">{sessionSaveError}</div>}
             <div className="deck-exhausted-dialog__actions">
-              <button className="deck-exhausted-dialog__btn" onClick={handleRestartDeck}>
+              <button className="deck-exhausted-dialog__btn" onClick={() => handleRestartDeck().catch(openSessionExitPrompt)}>
                 Начать снова
               </button>
-              <button className="deck-exhausted-dialog__btn deck-exhausted-dialog__btn--finish" onClick={handleFinishDeck}>
+              <button className="deck-exhausted-dialog__btn deck-exhausted-dialog__btn--finish" onClick={() => handleFinishDeck().catch(openSessionExitPrompt)}>
                 Завершить
               </button>
             </div>

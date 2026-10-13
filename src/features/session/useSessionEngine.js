@@ -314,6 +314,7 @@ export function useSessionEngine() {
   const [completedRecord, setCompletedRecord] = useState(null);
   const [rewardPending, setRewardPending] = useState(false);
   const [deckExhausted, setDeckExhausted] = useState(false);
+  const [sessionSaveError, setSessionSaveError] = useState(null);
   const lastRewardEarnedCountRef = useRef(sessionState?.rewardEarnedCount ?? 0);
 
   // meta.loopModes topics (currently just people_names) never show the
@@ -357,12 +358,20 @@ export function useSessionEngine() {
         selectedConceptIds: candidateSelected, sessionParams: candidateParams,
       });
       if (!newState || newState.tasks.length === 0) continue;
-      setDeckExhausted(false);
-      setActiveModeId(candidateId);
-      setSessionState(newState);
-      return;
+      let cancelled = false;
+      // Archive this mode before replacing its counters and card queue.
+      finishSession(sessionState, { showSummary: false }).then(() => {
+        if (cancelled) return;
+        setSessionSaveError(null);
+        setDeckExhausted(false);
+        setActiveModeId(candidateId);
+        setSessionState(newState);
+      }).catch(() => {
+        if (!cancelled) setSessionSaveError("Не удалось сохранить результаты. Попробуйте ещё раз.");
+      });
+      return () => { cancelled = true; };
     }
-  }, [deckExhausted, topicRecord, activeModeId, mode?.excludeFromLoop, link, isReading, activeTextId, activeStudentId, activeTopicId, activeText, activeStudent, setActiveModeId]);
+  }, [deckExhausted, topicRecord, activeModeId, mode?.excludeFromLoop, link, isReading, activeTextId, activeStudentId, activeTopicId, activeText, activeStudent, setActiveModeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const completedUsageIds = useRef(new Set());
   const currentUsageId = useRef(null);
@@ -383,47 +392,73 @@ export function useSessionEngine() {
     };
   }, [sessionState?.id, activeTopicId, activeModeId]);
 
-  async function finishSession(state) {
-    completedUsageIds.current.add(state.id ?? `session_${state.startedAt}_${activeTopicId}`);
-    const cardEvents = cardLogger.getCardEvents();
-    cardLogger.resetCardEvents();
+  const savedRecords = useRef(new Map());
+  const pendingRecords = useRef(new Map());
 
-    // Deck-mode sessions only ever reach "completed" via handleFinishDeck, which is
-    // only reachable after "deck_exhausted" (the whole deck was already shown) - it
-    // already persists deckPosition:0 itself. Recomputing it here from taskIndex used
-    // to clobber that reset with a wrong, near-the-end position (taskIndex counts
-    // tasks, not concepts, and isn't advanced past the last valid index on exhaustion),
-    // which made the next session's `selected.slice(deckPos)` start from just the last
-    // concept or two instead of the full deck.
+  async function finishSession(state, { showSummary = true } = {}) {
+    const id = state.id ?? `session_${state.startedAt}_${activeTopicId}`;
+    if (savedRecords.current.has(id)) {
+      const record = savedRecords.current.get(id);
+      if (showSummary) setCompletedRecord(record);
+      return record;
+    }
+    if (pendingRecords.current.has(id)) {
+      const record = await pendingRecords.current.get(id);
+      if (showSummary) setCompletedRecord(record);
+      return record;
+    }
+    const saving = persistSession();
+    pendingRecords.current.set(id, saving);
+    try {
+      return await saving;
+    } finally {
+      pendingRecords.current.delete(id);
+    }
 
-    const record = {
-      ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents, {
-        activeDurationMs: Math.round(getActiveDurationMs()),
-        elapsedDurationMs: Math.max(0, Date.now() - new Date(state.startedAt).getTime()),
-        paramsSnapshot: sessionParams,
-        entryPoint: "therapist",
-      }),
-      reward: {
-        videoEnabled: Boolean(rewardConfig.videoRewardEnabled),
-        videoAvailable: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
-        earned: (state.rewardEarnedCount ?? 0) > 0,
-      },
-    };
-    const db = await getDb();
-    await kv.set(db, "lastContext", {
-      studentId: activeStudentId,
-      topicId:   activeTopicId,
-      textId:    activeTextId ?? null,
-      modeId:    activeModeId,
-    });
-    const existing = (await kv.get(db, "sessions")) ?? [];
-    const updated = [...existing, record].slice(-200);
-    await kv.set(db, "sessions", updated);
-    await clearPersistedActiveSessionSnapshot(db);
-    clearActiveSessionSnapshot();
-    appendSession(record);
-    setCompletedRecord(record);
-    pushOp("session.append", { ...record, mode: record.modeId });
+    async function persistSession() {
+      const cardEvents = cardLogger.getCardEvents();
+
+      // Deck position is managed by deck actions. taskIndex counts tasks,
+      // not concepts, so using it here would corrupt the next deck's start.
+
+      const record = {
+        ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents, {
+          activeDurationMs: Math.round(getActiveDurationMs()),
+          elapsedDurationMs: Math.max(0, Date.now() - new Date(state.startedAt).getTime()),
+          paramsSnapshot: sessionParams,
+          entryPoint: "therapist",
+        }),
+        reward: {
+          videoEnabled: Boolean(rewardConfig.videoRewardEnabled),
+          videoAvailable: Boolean(rewardConfig.hasRewardVideos && rewardConfig.videoRewardEnabled),
+          earned: (state.rewardEarnedCount ?? 0) > 0,
+        },
+      };
+      const db = await getDb();
+      await kv.set(db, "lastContext", {
+        studentId: activeStudentId,
+        topicId:   activeTopicId,
+        textId:    activeTextId ?? null,
+        modeId:    activeModeId,
+      });
+      const existing = (await kv.get(db, "sessions")) ?? [];
+      const updated = [...existing.filter((item) => item.id !== record.id), record].slice(-200);
+      await kv.set(db, "sessions", updated);
+      await pushOp("session.append", { ...record, mode: record.modeId });
+      await clearPersistedActiveSessionSnapshot(db);
+      clearActiveSessionSnapshot();
+      cardLogger.resetCardEvents();
+      completedUsageIds.current.add(id);
+      savedRecords.current.set(id, record);
+      appendSession(record);
+      if (showSummary) setCompletedRecord(record);
+      return record;
+    }
+  }
+
+  async function finishCurrentSession() {
+    if (!sessionState) throw new Error("No active session");
+    return finishSession(sessionState, { showSummary: false });
   }
 
   useEffect(() => {
@@ -612,7 +647,9 @@ export function useSessionEngine() {
   }, []);
 
   const handleRestartDeck = useCallback(async () => {
+    await finishSession(sessionState, { showSummary: false });
     await persistStudentTopicLink(activeStudentId, activeTopicId, { deckPosition: 0 });
+    setSessionSaveError(null);
     setDeckExhausted(false);
     const newState = buildGeneratedSessionState({
       topicRecord, mode, activeStudentId, activeTopicId,
@@ -621,13 +658,13 @@ export function useSessionEngine() {
       selectedConceptIds, sessionParams,
     });
     if (newState) setSessionState(newState);
-  }, [activeStudentId, activeTopicId, topicRecord, mode, activeTextId, activeText, activeStudent, link, selectedConceptIds, sessionParams]);
+  }, [sessionState, activeStudentId, activeTopicId, topicRecord, mode, activeTextId, activeText, activeStudent, link, selectedConceptIds, sessionParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleFinishDeck = useCallback(() => {
+  const handleFinishDeck = useCallback(async () => {
+    await persistStudentTopicLink(activeStudentId, activeTopicId, { deckPosition: 0 });
+    if (sessionState) await finishSession({ ...sessionState, status: "completed" });
     setDeckExhausted(false);
-    persistStudentTopicLink(activeStudentId, activeTopicId, { deckPosition: 0 });
-    if (sessionState) finishSession({ ...sessionState, status: "completed" });
-  }, [sessionState, activeStudentId, activeTopicId]);
+  }, [sessionState, activeStudentId, activeTopicId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentTask = sessionState?.tasks[sessionState.taskIndex] ?? null;
   const answersPerStar = sessionState?.answersPerStar ?? 1;
@@ -657,8 +694,10 @@ export function useSessionEngine() {
     rewardPending,
     clearRewardPending,
     deckExhausted,
+    sessionSaveError,
     handleRestartDeck,
     handleFinishDeck,
+    finishCurrentSession,
     onCorrect,
     onPrevious,
     onIncorrect,
