@@ -723,3 +723,15 @@ describe("digits and signs (captured 2026-10-06)", () => {
     expect(rowAtSvgY(-5, "a5", true, true)).toBe(-1);
   });
 });
+
+describe("a fence fills the row up to the page's edge: that is not an overflow", () => {
+  it("a lone fence element is not flagged on a page with margins or on A4", () => {
+    for (const patch of [{ margin: "left" }, { margin: "right" }, { format: "a4", margin: "left" }]) {
+      for (const ruling of ["narrow", "wide"]) {
+        const page = newPage("t", { ruling, ...patch, rows: [oldRow({ text: "заборчик" }), oldRow({ text: "22_zaborchik_peremennyy" })] });
+        const a = analyzePage(page, map);
+        expect(a.rows.map((r) => r.overflow), JSON.stringify([patch, ruling])).toEqual([false, false]);
+      }
+    }
+  });
+});

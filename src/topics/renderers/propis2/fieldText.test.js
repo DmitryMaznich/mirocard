@@ -120,3 +120,14 @@ describe("digits and signs in the field", () => {
     expect(bracesIn("5 №5 №1№5 №2№+№3№=№5 п+и кое-что №- №7", codes)).toBe("{э1} 5 15 2+3=5 п+и кое-что - 7");
   });
 });
+
+describe("full-page editor text", () => {
+  it("keeps the empty rows when asked, so every row of the page has a line", () => {
+    const rows = [newRow({ text: "кот" }), newRow({ kind: "blank" }), newRow({ text: "" })];
+    expect(fieldFromRows(rows, 0)).toBe("кот");
+    expect(fieldFromRows(rows, 0, true)).toBe("кот\n\n");
+    // editing it back keeps three rows
+    const { rows: back } = rowsFromField({ rows, startId: rows[0].id, value: "кот\n\n", glyphMap: new Map(), page: null });
+    expect(back).toHaveLength(3);
+  });
+});

@@ -5,6 +5,7 @@ import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, multipliesByDefault, pageAspe
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { buildTiles } from "./Propis2Carousel";
 import Propis2Field from "./Propis2Field";
+import Propis2TextEditor from "./Propis2TextEditor";
 import { useKeyboardInset } from "./useKeyboardInset";
 import { bracesIn, bracesOut, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
 import Propis2Preview from "./Propis2Preview";
@@ -86,6 +87,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const elementCodes = useMemo(() => new Map(elementTiles.map((t) => [t.text, t.code])), [elementTiles]);
   const side = useMedia(SIDE_QUERY);
   const phone = useMedia(PHONE_QUERY) && !side;
+  // wide screens: the text of the WHOLE page in a tall editor (line numbers, one line per row); a locked kit page edits one row in the small field
+  const full = side && !locked;
   const sideRef = useRef(side);
   const phoneRef = useRef(phone);
   phoneRef.current = phone;
@@ -117,6 +120,33 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const selectedIndex = page.rows.findIndex((r) => r.id === selectedId);
   const selected = selectedIndex >= 0 ? page.rows[selectedIndex] : null;
   const selectedInfo = selectedIndex >= 0 ? analysis.rows[selectedIndex] : null;
+  // What the red marks under the page mean: one chip per kind of problem; a tap opens a note with the cause and the way out
+  const [warnOpen, setWarnOpen] = useState(null);
+  const shownChars = (list) => list.map((c) => c.replace("№", "")).join(" ");
+  const warnChips = [];
+  if (selectedInfo?.unsupported.length > 0) {
+    const chars = shownChars(selectedInfo.unsupported);
+    warnChips.push({ kind: "unsupported", label: `Нет начертания: ${chars}. Нажмите, чтобы узнать подробнее`, icon: selectedInfo.unsupported.map((c) => <b key={c}>{c}</b>), title: `Нет начертания: ${chars}`,
+      what: "Этих символов нет в прописях, поэтому в строке они не рисуются. Поддерживаются русские буквы (строчные и заглавные), цифры, знаки + − = < >, точка, запятая, ! ? и элементы из кнопки «Элемент». Дефис и тире внутри слова, кавычки, скобки и латинские буквы не пишутся.",
+      fix: "замените эти символы другими или удалите их из строки." });
+  }
+  if (selectedInfo?.outside?.length > 0) {
+    const chars = shownChars(selectedInfo.outside);
+    warnChips.push({ kind: "outside", label: `На широкой строке нельзя: ${chars}. Нажмите, чтобы узнать подробнее`, icon: <><I.IconRowWide />{selectedInfo.outside.map((c) => <b key={c}>{c.replace("№", "")}</b>)}</>, title: `На широкой строке нельзя: ${chars}`,
+      what: "Широкая строка рассчитана на строчные буквы, которые целиком помещаются в строку, как в методике. Заглавные буквы, б, в, д, з, р, у, ф, ц, щ, цифры и знаки ! ? выходят за строку, поэтому здесь не пишутся.",
+      fix: "переключите страницу на узкую строку (кнопка «Строки») или замените эти буквы." });
+  }
+  if (selectedInfo?.overflow) {
+    warnChips.push({ kind: "overflow", label: "Строка не помещается по ширине. Нажмите, чтобы узнать подробнее", icon: <span className="p2-cut" aria-hidden="true" />, title: "Строка не помещается по ширине",
+      what: "Запись длиннее, чем помещается в строке между краями листа и полями: конец строки уходит за лист и не будет виден и напечатан.",
+      fix: "сократите запись, разбейте её на две строки клавишей Enter или включите кнопку «Текст»: тогда длинная фраза сама перенесётся на следующие строки. Помогут также формат А4 и страница без полей." });
+  }
+  if (analysis.problems > 0) {
+    warnChips.push({ kind: "summary", label: `Строк с проблемами: ${analysis.problems}. Нажмите, чтобы узнать подробнее`, icon: <b>{analysis.problems}</b>, title: `Строк с проблемами: ${analysis.problems}`,
+      what: "Такие строки на странице подсвечены красным. Это строки, где есть символы без начертания, буквы, которые нельзя на широкой строке, или запись, которая не помещается по ширине.",
+      fix: "нажмите на красную строку на странице: под страницей появятся значки с причиной, нажатие на значок объяснит её." });
+  }
+  const openWarn = warnOpen && warnOpen.row === selectedId && warnChips.some((w) => w.kind === warnOpen.kind) ? warnOpen.kind : null;
   const rowEditable = !locked && Boolean(selected) && (selected.kind === "text" || selected.kind === "element");
   const rowOpts = (() => {
     if (!selected) return null;
@@ -161,13 +191,15 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     if (result.page !== page) onChange(result.page);
     setSelectedId(result.rowId);
     setFieldStartId(result.rowId);
+    // the full-page editor: the caret goes to the line of the tapped row
+    if (full) setCaretRequest({ line: result.page.rows.findIndex((r) => r.id === result.rowId), n: Date.now() });
   };
 
   // undone, like any other change, with the undo arrow
   const clear = () => { if (typeof window !== "undefined" && window.confirm && !window.confirm("Очистить страницу? Все строки будут стёрты.")) return; setSelectedId(null); setFieldStartId(null); onChange(clearPage(page)); };
 
   // ---- the text field ----
-  const startId = page.rows.some((r) => r.id === fieldStartId) ? fieldStartId : null;
+  const startId = full ? (page.rows[0]?.id ?? null) : (page.rows.some((r) => r.id === fieldStartId) ? fieldStartId : null);
   const fieldIndex = startId ? page.rows.findIndex((r) => r.id === startId) : -1;
   const rowsSig = page.rows.map((r) => `${r.id}|${r.kind}|${r.text}`).join("\n");
   const draftKey = `${rowsSig}#${startId ?? ""}#${locked ? selectedId ?? "" : ""}`;
@@ -175,7 +207,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   // the draft is rebuilt from the page whenever the page or the starting row changed from outside the field
   if (draftSynced !== draftKey) {
     setDraftSynced(draftKey);
-    setDraft(bracesIn(locked ? (selected ? String(selected.text ?? "") : "") : fieldFromRows(page.rows, fieldIndex < 0 ? page.rows.length : fieldIndex), elementCodes));
+    setDraft(bracesIn(locked ? (selected ? String(selected.text ?? "") : "") : fieldFromRows(page.rows, fieldIndex < 0 ? page.rows.length : fieldIndex, full), elementCodes));
   }
   // `typing`: keys typed in the field (one undo step while typed without a pause); a tile inserted is a step of its own
   const onField = (shown, typing = true) => {
@@ -213,6 +245,13 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     patchSelected({ asText, kind: asText ? "passage" : "text" });
   };
 
+  // the number of the sheet's row each line of the full-page editor starts at (a running text covers several rows: its first)
+  const rowNumbers = useMemo(() => {
+    const out = [];
+    owners.forEach((o, abs) => { if (o != null && out[o] === undefined) out[o] = String(abs + 1); });
+    return out;
+  }, [owners]);
+
   // Overlays on the page: the selected row (blue), problems (red).
   const overlays = useMemo(() => {
     const out = [];
@@ -226,6 +265,23 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   }, [owners, analysis, page.rows, selectedId]);
 
   useEffect(() => { if (selectedId && selectedIndex < 0) setSelectedId(null); }, [selectedId, selectedIndex]);
+
+  const warnsEl = (selectedInfo?.unsupported.length > 0 || selectedInfo?.outside?.length > 0 || selectedInfo?.overflow || analysis.problems > 0) && (
+            <div className="p2-warns">
+              {warnChips.map((w) => (
+                <button key={w.kind} type="button" className={`p2-warn${w.kind === "summary" ? " p2-warn--summary" : ""}${openWarn === w.kind ? " is-open" : ""}`} aria-label={w.label} aria-expanded={openWarn === w.kind} aria-controls="p2-warn-note" onClick={() => setWarnOpen(openWarn === w.kind ? null : { kind: w.kind, row: selectedId })}>
+                  <I.IconWarn />{w.icon}
+                </button>
+              ))}
+              {openWarn && warnChips.find((w) => w.kind === openWarn) && (
+                <div className="p2-warn-note" id="p2-warn-note" role="status">
+                  <b className="p2-warn-note-title">{warnChips.find((w) => w.kind === openWarn).title}</b>
+                  <p>{warnChips.find((w) => w.kind === openWarn).what}</p>
+                  <p className="p2-warn-note-fix"><b>Что сделать:</b> {warnChips.find((w) => w.kind === openWarn).fix}</p>
+                </div>
+              )}
+            </div>
+          );
 
   return (
     <div className={`screen propis2-home propis2-editor2${side ? " propis2-editor2--side" : ""}${phone ? " propis2-editor2--phone" : ""}${keyboard.open ? " propis2-editor2--kb" : ""}`} data-testid="propis2-editor" style={keyboard.open ? { "--p2-vvtop": `${keyboard.top}px`, "--p2-vvh": `${keyboard.height}px` } : undefined}>
@@ -309,20 +365,12 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         </div>
 
         <div className="propis2-dock">
-          {(selectedInfo?.unsupported.length > 0 || selectedInfo?.outside?.length > 0 || selectedInfo?.overflow || analysis.problems > 0) && (
-            <div className="p2-warns">
-              {selectedInfo?.unsupported.length > 0 && (
-                <div className="p2-warn" role="alert" aria-label={`Нет начертания: ${selectedInfo.unsupported.join(" ")}`}><I.IconWarn />{selectedInfo.unsupported.map((c) => <b key={c}>{c}</b>)}</div>
-              )}
-              {selectedInfo?.outside?.length > 0 && (
-                <div className="p2-warn" role="alert" aria-label={`На широкой строке нельзя: ${selectedInfo.outside.map((c) => c.replace("№", "")).join(" ")}`}><I.IconWarn /><I.IconRowWide />{selectedInfo.outside.map((c) => <b key={c}>{c.replace("№", "")}</b>)}</div>
-              )}
-              {selectedInfo?.overflow && (
-                <div className="p2-warn" role="alert" aria-label="Строка не помещается по ширине"><I.IconWarn /><span className="p2-cut" aria-hidden="true" /></div>
-              )}
-              {analysis.problems > 0 && <div className="p2-warn p2-warn--summary" role="status" aria-label={`Строк с проблемами: ${analysis.problems}`}><I.IconWarn /><b>{analysis.problems}</b></div>}
-            </div>
-          )}
+          {full ? (
+            <Propis2TextEditor value={draft} onChange={onField} onCaret={onCaret} placeholder="Буква, слово или текст. Enter — новая строка" elements={elementTiles} onInsertElement={insertElement} caretRequest={caretRequest} numbers={rowNumbers} activeLine={selectedIndex} bar={warnsEl} />
+          ) : (
+            <>
+              {warnsEl}
+              {side && locked && <p className="p2-ed-locked">Страница из готовой тетради закрыта: правится только выбранная строка. Кнопка «Править» вверху откроет всю страницу.</p>}
           <Propis2Field
             value={draft}
             onChange={onField}
@@ -334,6 +382,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
             onInsertElement={insertElement}
             caretRequest={caretRequest}
           />
+            </>
+          )}
         </div>
       </div>
     </div>
