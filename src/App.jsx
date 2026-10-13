@@ -10,8 +10,6 @@ import { useBackButtonGuard } from "@/shared/hooks/useBackButtonGuard";
 import { getActiveOrientationLock } from "@/shared/utils/orientationLock";
 import { clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot, canResumeActiveSession } from "@/features/session/activeSession";
 import { requestStoragePersistence } from "@/core/storagePersistence";
-import Button from "@/shared/components/Button";
-import Modal from "@/shared/components/Modal";
 
 import LoginScreen from "@/features/account/LoginScreen";
 import RegisterScreen from "@/features/account/RegisterScreen";
@@ -160,9 +158,6 @@ export default function App() {
   const sessionExitPromptOpen  = useAppStore((s) => s.sessionExitPromptOpen);
   const openSessionExitPrompt  = useAppStore((s) => s.openSessionExitPrompt);
   const closeSessionExitPrompt = useAppStore((s) => s.closeSessionExitPrompt);
-  const clearActiveSessionSnapshot = useAppStore((s) => s.clearActiveSessionSnapshot);
-  const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
-  const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
   const setVerifyEmailToken = useAppStore((s) => s.setVerifyEmailToken);
   const setPasswordResetToken = useAppStore((s) => s.setPasswordResetToken);
   const pendingCheckoutPlan = useAppStore((s) => s.pendingCheckoutPlan);
@@ -195,19 +190,6 @@ export default function App() {
   useEffect(() => {
     if (screen !== "session") resetSession();
   }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const finishSessionFromPrompt = useCallback(async () => {
-    closeSessionExitPrompt();
-    clearActiveSessionSnapshot();
-    try {
-      const db = await getDb();
-      await clearPersistedActiveSessionSnapshot(db);
-    } catch {
-      // Local cleanup is best-effort; navigation should still proceed.
-    }
-    setScreen(sessionReturnScreen ?? "home");
-    setSessionReturnScreen(null);
-  }, [clearActiveSessionSnapshot, closeSessionExitPrompt, setScreen, sessionReturnScreen, setSessionReturnScreen]);
 
   const showSessionExitPrompt = screen === "session" && sessionExitPromptOpen;
   const orientationLock = getActiveOrientationLock({ screen, topicRecords, activeTopicId, activeModeId });
@@ -403,22 +385,6 @@ export default function App() {
       </ErrorBoundary>
       <OrientationGuard orientationLock={orientationLock} />
       {screen !== "boot" && screen !== "session" && <InstallBanner />}
-      {showSessionExitPrompt && (
-        <Modal
-          title="Завершить занятие?"
-          onClose={closeSessionExitPrompt}
-          closeOnOverlay={false}
-          showCloseButton={false}
-          actions={
-            <>
-              <Button variant="secondary" onClick={closeSessionExitPrompt}>Остаться</Button>
-              <Button variant="danger" onClick={finishSessionFromPrompt}>Завершить</Button>
-            </>
-          }
-        >
-          Текущий прогресс занятия не будет сохранён.
-        </Modal>
-      )}
     </>
   );
 }
