@@ -1,0 +1,145 @@
+/* «Таблица» (TableTasks.jsx): the place-value columns with digits, no picture.
+   Column heads are the same flat markers as in every coin mode (.sg-head). */
+
+.tb-screen .sg-board { width: min(100%, 520px); align-self: center; }
+
+.tb-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+
+.tb-col {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  row-gap: 10px;
+  padding: 14px 10px 16px;
+}
+.tb-col--tens { background: #fff7ed; }
+.tb-col--ones { background: #eff6ff; }
+
+.tb-digit {
+  font-size: clamp(56px, 14vw, 96px);
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tb-digit--tens { color: #b45309; }
+.tb-digit--ones { color: #1d4ed8; }
+
+/* The step below, back after a mistake: the scheme under the digit. */
+.tb-support {
+  --coin-size: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 4px;
+  max-width: 150px;
+}
+.tb-support--ones { max-width: calc(22px * 5 + 16px); }
+
+/* «Собери число»: the number above the table. */
+.tb-build-board { justify-items: center; }
+.tb-target {
+  font-size: clamp(48px, 12vw, 80px);
+  font-weight: 900;
+  line-height: 1;
+  color: #1a1a2e;
+}
+.tb-target--words { font-size: clamp(28px, 7vw, 44px); text-align: center; }
+.tb-screen--build .tb-table { width: 100%; }
+
+/* «Плюс и минус через десяток» on the «Таблица» (ExchangeTable.jsx): the
+   example in place-value columns, a column sum with headings. */
+.xb-table {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr;
+  justify-items: center;
+  align-items: center;
+  row-gap: 4px;
+  padding: 12px 16px 16px 4px;
+}
+.xb-table .sg-head { margin-bottom: 4px; }
+.xb-cell {
+  min-width: 1ch;
+  min-height: 1em;
+  font-size: clamp(44px, 11vw, 72px);
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.xb-sign { font-size: clamp(36px, 9vw, 56px); font-weight: 900; justify-self: end; }
+.xb-rule { grid-column: 1 / -1; justify-self: stretch; height: 4px; border-radius: 2px; background: #1a1a2e; margin: 4px 0; }
+.xb-over { min-height: 28px; display: grid; place-items: end center; }
+.xb-carry { font-size: 24px; font-weight: 900; line-height: 1; animation: xb-pop 0.4s ease-out; }
+.xb-over--tens .xb-carry { color: #b45309; }
+.xb-over--ones .xb-carry { color: #1d4ed8; }
+@keyframes xb-pop { from { transform: translateY(14px) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.xb-crossed { position: relative; opacity: 0.45; }
+.xb-crossed::after {
+  content: "";
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  top: 50%;
+  height: 4px;
+  border-radius: 2px;
+  background: #ef4444;
+  transform: rotate(-20deg);
+}
+.xb-result { min-height: 1em; }
+
+/* The step being asked: «Единицы: 8 + 4 = [  ]». */
+.xb-step { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; font-size: 24px; font-weight: 900; color: #1a1a2e; }
+.xb-step-head { padding: 3px 12px; border-radius: 8px; color: #fff; font-size: 18px; font-weight: 800; }
+.xb-step-head--tens { background: #d97706; }
+.xb-step-head--ones { background: #2563eb; }
+
+.xb-choice { display: flex; gap: 12px; justify-content: center; }
+.xb-choice-btn {
+  min-width: 140px;
+  min-height: 60px;
+  padding: 10px 18px;
+  border: 2px solid #cbd5e1;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 3px 0 #cbd5e1;
+  font: 800 20px Nunito, sans-serif;
+  color: #1a1a2e;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.xb-choice-btn:active { transform: translateY(3px); box-shadow: none; }
+
+/* A mistake on the ones brings the dots back for that sum. */
+.xb-support { --coin-size: 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; padding: 8px; font-size: 22px; }
+.xb-dots { display: grid; grid-template-columns: repeat(5, 20px); gap: 2px; }
+
+/* «Разрядные слагаемые» (PlacePartsTask.jsx): one line, 47 = [40] + [7]. */
+.pp-board { justify-items: center; row-gap: 16px; }
+.pp-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.pp-num, .pp-part { font-size: clamp(44px, 12vw, 72px); font-weight: 900; line-height: 1; color: #1a1a2e; font-variant-numeric: tabular-nums; }
+.pp-words { font-size: clamp(26px, 7vw, 40px); font-weight: 900; color: #1a1a2e; }
+.pp-op { font-size: clamp(32px, 8vw, 52px); font-weight: 900; color: #475569; }
+.pp-support { width: min(100%, 360px); }
+.pp-support .tb-digit { font-size: 48px; }
+
+/* «Число» (NumberLevelTask): the written number alone, places read from it. */
+.nl-board { justify-items: center; row-gap: 16px; }
+.nl-number { display: flex; gap: 6px; color: #1a1a2e; }
+.nl-place { display: grid; justify-items: center; font-size: clamp(80px, 22vw, 128px); font-weight: 900; line-height: 1; }
+.nl-place small { font-size: 16px; font-weight: 800; }
+.nl-ask { font-size: 22px; font-weight: 900; color: #1a1a2e; text-align: center; }
+.nl-choices { display: flex; gap: 12px; justify-content: center; }
+.nl-choice { min-width: 88px; font-size: 32px; font-weight: 900; }
+.nl-choice--wrong { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
+.tb-col--hundreds { background: #f0fdf4; }
+.tb-digit--hundreds { color: #15803d; }
+/* Three parts (347 = 300 + 40 + 7) must fit one phone line; a number in words
+   gets its own line above the example. */
+.pp-row--long { gap: 6px; }
+.pp-row--long .pp-num, .pp-row--long .pp-part { font-size: clamp(34px, 9vw, 72px); }
+.pp-row--long .pp-op { font-size: clamp(24px, 6vw, 52px); }
+.pp-row--words .pp-words { flex-basis: 100%; text-align: center; }

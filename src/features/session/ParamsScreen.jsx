@@ -2437,7 +2437,7 @@ export default function ParamsScreen() {
             {isMyPeople && !myPeopleReady && (
               <div className="param-section">
                 <div className="param-section__header">Нужно заполнить данные ученика</div>
-                <div className="param-hint">Вернитесь в «Мои люди» в профиле ученика и добавьте нужную фотографию или личный ответ.</div>
+                <div className="param-hint">Откройте «Окружение ребёнка» в профиле ученика и добавьте нужную фотографию или личный ответ.</div>
               </div>
             )}
           </div>

@@ -341,3 +341,65 @@ test("usage report is admin-only and validates the account and period", async ()
   );
   assert.equal((await request(`/accounts/missing/usage`)).status, 404);
 });
+
+
+test("direct erasure requires admin authorization, confirmation and scoped student ownership", async () => {
+  const {upsertStudent}=await import("../lib/account-repository.mjs");
+  const owner=createAccount(db,{email:"erase-test@example.test",passwordHash:"h"});
+  const neighbor=createAccount(db,{email:"erase-other@example.test",passwordHash:"h"});
+  upsertStudent(db,owner.id,{id:"erase-child",name:"Child"});
+  const path=`/accounts/${owner.id}/erase`;
+  assert.equal((await fetch(base+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({confirmed:true})})).status,403);
+  assert.equal((await request(path,{})).status,400);
+  assert.equal((await request(`/accounts/${neighbor.id}/students/erase-child/erase`,{confirmed:true})).status,404);
+  assert.equal((await request(`/accounts/${owner.id}/students`)).status,200);
+  assert.equal((await request(`/accounts/${owner.id}/students/erase-child/erase`,{confirmed:true})).status,200);
+  assert.equal((await request(path,{confirmed:true})).status,200);
+  assert.equal(db.prepare("SELECT id FROM accounts WHERE id=?").get(owner.id),undefined);
+});
+
+test("self deletion archives and invalidates all devices instead of permanently erasing data", async () => {
+  const {storeAuthToken,upsertStudent}=await import("../lib/account-repository.mjs");
+  const {createHash}=await import("node:crypto");
+  const owner=createAccount(db,{email:"self-erase@example.test",passwordHash:"h"});
+  activateAccount(db,owner.id);
+  const token="self-test-token";
+  storeAuthToken(db,{accountId:owner.id,tokenHash:createHash("sha256").update(token).digest("hex"),expiresAt:"2099-01-01T00:00:00Z"});
+  storeAuthToken(db,{accountId:owner.id,tokenHash:"another-device",expiresAt:"2099-01-01T00:00:00Z"});
+  upsertStudent(db,owner.id,{id:"self-child",name:"Child"});
+  assert.equal((await fetch(base.replace("/api/admin","/api/account"),{method:"DELETE",headers:{Authorization:`Bearer ${token}`}})).status,204);
+  assert.equal(db.prepare("SELECT status FROM accounts WHERE id=?").get(owner.id).status,"archived");
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM auth_tokens WHERE account_id=?").get(owner.id).n,0);
+  assert.ok(db.prepare("SELECT id FROM students WHERE id='self-child'").get());
+});
+
+
+test("topic controls are admin-only, change the actual public catalog and support removal and restoration", async () => {
+  assert.equal((await fetch(base+"/topics")).status,403);
+  const registry=await request("/topics");assert.equal(registry.status,200);
+  const catalogFile=path.join(frontend,"decks/catalog.json"),catalog=JSON.parse(readFileSync(catalogFile,"utf8"));
+  catalog.decks.push({id:"admin-fixture-topic",title:{ru:"Fixture"},version:"1.0",status:"beta",access:"paid",url:"./decks/fixture.zip"});writeFileSync(catalogFile,JSON.stringify(catalog));writeFileSync(path.join(frontend,"decks/fixture.zip"),"fixture");
+  const route="/topics/admin-fixture-topic",patch={listed:true,status:"release",access:"free",expectedRevision:0};
+  assert.equal((await fetch(base+route,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(patch)})).status,403);
+  assert.equal((await request(route,patch)).status,200);
+  const publicCatalog=()=>fetch(base.replace("/admin","/decks/catalog")).then(r=>r.json());
+  assert.ok((await publicCatalog()).decks.find(t=>t.id==="admin-fixture-topic"&&t.access==="free"&&t.status==="release"));
+  assert.equal((await request(route,patch)).status,409);
+  assert.equal((await request(route,{...patch,listed:false,expectedRevision:1})).status,200);
+  assert.equal((await publicCatalog()).decks.some(t=>t.id==="admin-fixture-topic"),false);
+  assert.equal((await request(route,{...patch,expectedRevision:2})).status,200);
+  assert.ok((await publicCatalog()).decks.find(t=>t.id==="admin-fixture-topic"));
+});
+
+
+test("builtin visibility reaches authenticated bootstrap and never enters the downloadable catalog",async()=>{
+  const {storeAuthToken}=await import("../lib/account-repository.mjs");const {createHash}=await import("node:crypto");
+  const account=createAccount(db,{email:"builtin-visibility@example.test",passwordHash:"h"});activateAccount(db,account.id);
+  const token="builtin-test";storeAuthToken(db,{accountId:account.id,tokenHash:createHash("sha256").update(token).digest("hex"),expiresAt:"2099-01-01T00:00:00Z"});
+  const patch={listed:true,status:"hidden",access:"free",expectedRevision:0};
+  assert.equal((await request("/topics/streak_tracker",patch)).status,200);
+  const bootstrap=await fetch(base.replace("/admin","/account/bootstrap"),{headers:{Authorization:`Bearer ${token}`}}).then(r=>r.json());
+  assert.equal(bootstrap.builtinVisibility.streak_tracker,false);
+  assert.equal((await fetch(base.replace("/admin","/decks/catalog")).then(r=>r.json())).decks.some(t=>t.id==="streak_tracker"),false);
+  assert.equal((await request("/topics/streak_tracker",{...patch,status:"release",expectedRevision:1})).status,200);
+});

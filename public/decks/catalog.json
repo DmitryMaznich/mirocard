@@ -167,7 +167,7 @@
     },
     {
       "id": "sentence_puzzle",
-      "version": "1.9.19",
+      "version": "1.10.1",
       "title": {
         "ru": "Конструктор предложений",
         "en": "Sentence Builder"
@@ -176,7 +176,7 @@
         "ru": "Собираем пазл из слов и слушаем предложения. Цветовое кодирование ролей.",
         "en": "Assemble sentences from word cards. Color-coded roles. Listen-and-build mode."
       },
-      "url": "./decks/sentence_puzzle_v1.9.19.zip",
+      "url": "./decks/sentence_puzzle_v1.10.1.zip",
       "status": "beta",
       "access": "paid"
     },
@@ -197,8 +197,8 @@
     },
     {
       "id": "place_value",
-      "version": "1.0.3",
-      "url": "./decks/place_value_v1.0.3.zip",
+      "version": "1.0.6",
+      "url": "./decks/place_value_v1.0.6.zip",
       "title": {
         "ru": "Разряды числа",
         "en": "Place Value"
@@ -401,9 +401,9 @@
     },
     {
       "id": "symmetry_draw",
-      "version": "1.12.19",
-      "url": "./decks/symmetry_draw_v1.12.19.zip",
-      "zipUrl": "symmetry_draw_v1.12.19.zip",
+      "version": "1.12.20",
+      "url": "./decks/symmetry_draw_v1.12.20.zip",
+      "zipUrl": "symmetry_draw_v1.12.20.zip",
       "title": {
         "ru": "Рисуем по клеткам"
       },

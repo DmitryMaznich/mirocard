@@ -1,5 +1,10 @@
 import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { withTransaction } from "./db.mjs";
+import { collectReferencedPhotoHashes } from "./photo-gc.mjs";
+function eraseReleasedPhotos(db, before) {
+  const after = collectReferencedPhotoHashes(db);
+  for (const hash of before) if (!after.has(hash)) db.prepare("DELETE FROM photos WHERE hash=?").run(hash);
+}
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const fail = (status, message) => {
   throw { status, message };
@@ -241,6 +246,71 @@ export function confirmDeletion(db, id, body, { now = Date.now() } = {}) {
       now,
     );
     return { ok: true, status: "archived", dataRetained: true };
+  });
+}
+
+// Direct admin operations: no preview, deadlines, subscription or status gates.
+export function archiveAccount(db, id, actor = "admin_token", now = Date.now()) {
+  return withTransaction(db, () => {
+    const a = account(db, id);
+    if (["archived", "deleted"].includes(a.status)) return { ok: true, status: a.status };
+    db.prepare(`INSERT INTO account_lifecycle (account_id, deletion_previous_status, scheduled_at, reason)
+      VALUES (?, ?, ?, ?) ON CONFLICT(account_id) DO UPDATE SET deletion_previous_status=excluded.deletion_previous_status,
+      scheduled_at=excluded.scheduled_at, delete_after=NULL, reason=excluded.reason`)
+      .run(id, a.status, iso(now), actor === "self" ? "Удаление пользователем" : "Перенос администратором");
+    revokeCredentials(db, a);
+    db.prepare("UPDATE accounts SET status='archived', updated_at=? WHERE id=?").run(iso(now), id);
+    event(db, id, "archive", actor === "self" ? "Удаление пользователем" : "Перенос администратором", {dataRetained:true}, now, actor);
+    return {ok:true, status:"archived", dataRetained:true};
+  });
+}
+
+export function eraseStudent(db, accountId, studentId, now = Date.now()) {
+  return withTransaction(db, () => {
+    account(db, accountId);
+    const s = db.prepare("SELECT id FROM students WHERE id=? AND account_id=?").get(studentId, accountId);
+    if (!s) fail(404, "Ученик не найден в этом аккаунте.");
+    const photosBefore = collectReferencedPhotoHashes(db);
+    for (const table of ["sessions", "student_topic_links"])
+      db.prepare(`DELETE FROM ${table} WHERE account_id=? AND student_id=?`).run(accountId, studentId);
+    for (const table of ["concept_progress", "analysis_cache"])
+      db.prepare(`DELETE FROM ${table} WHERE student_id=?`).run(studentId);
+    // KV namespaces encode the student as a colon-delimited key segment.
+    const keys = db.prepare("SELECT key FROM account_kv WHERE account_id=?").all(accountId);
+    for (const {key} of keys) if (key.split(":").includes(studentId))
+      db.prepare("DELETE FROM account_kv WHERE account_id=? AND key=?").run(accountId, key);
+    db.prepare("INSERT OR IGNORE INTO erased_students (account_id,student_id) VALUES (?,?)").run(accountId,studentId);
+    db.prepare("DELETE FROM students WHERE id=? AND account_id=?").run(studentId, accountId);
+    eraseReleasedPhotos(db, photosBefore);
+    db.prepare("UPDATE sync_revision SET revision=revision+1 WHERE account_id=?").run(accountId);
+    event(db, accountId, "erase_student", "Удаление ученика администратором", {studentId}, now);
+    return {ok:true};
+  });
+}
+
+export function eraseAccount(db, id, now = Date.now()) {
+  return withTransaction(db, () => {
+    const a = account(db, id);
+    const photosBefore = collectReferencedPhotoHashes(db);
+    revokeCredentials(db, a);
+    const students = db.prepare("SELECT id FROM students WHERE account_id=?").all(id);
+    for (const s of students) {
+      for (const table of ["concept_progress", "analysis_cache"])
+        db.prepare(`DELETE FROM ${table} WHERE student_id=?`).run(s.id);
+    }
+    // Consents reference orders: delete children first, never disable FK checks.
+    const tables = ["checkout_consents", "orders", "subscriptions", "payment_events", "entitlements",
+      "promo_redemptions", "sessions", "student_topic_links", "students", "account_topics",
+      "account_topic_assignments", "account_settings", "account_identities", "account_kv",
+      "audio_overrides", "sync_revision", "usage_events", "erased_students", "account_lifecycle"];
+    for (const table of tables) db.prepare(`DELETE FROM ${table} WHERE account_id=?`).run(id);
+    db.prepare("DELETE FROM materials_leads WHERE lower(email)=lower(?)").run(a.email);
+    db.prepare("DELETE FROM admin_account_events WHERE account_id=?").run(id);
+    db.prepare("DELETE FROM accounts WHERE id=?").run(id);
+    eraseReleasedPhotos(db, photosBefore);
+    // Keep only the fact of the operation, with no names, email or credentials.
+    event(db, id, "erase_account", "Удаление аккаунта администратором", {}, now);
+    return {ok:true, erased:true};
   });
 }
 // A previous release scheduled irreversible erasure. Cancel every outstanding

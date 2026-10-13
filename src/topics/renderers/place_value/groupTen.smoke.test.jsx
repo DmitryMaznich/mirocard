@@ -27,8 +27,8 @@ describe("GroupTenTask", () => {
     expect(count(".px-tf .px-coin")).toBe(10);
     expect(count(".sg-heap-coin")).toBe(3);
     // The full frame itself is the button; the stack lands right beside it.
-    expect(h.button("Сложить в стопку").classList).toContain("px-tf--ready");
-    h.click("Сложить в стопку"); h.flush();
+    expect(h.button("Сложить десяток").classList).toContain("px-tf--ready");
+    h.click("Сложить десяток"); h.flush();
     expect(count(".sg-stacks .cb-ten-stack")).toBe(1);
     expect(count(".px-tf .px-coin")).toBe(0);
     take(3); // the leftover coins go into the frame too: the ones
@@ -47,7 +47,7 @@ describe("GroupTenTask", () => {
   it("a frame coin can be put back, and the frame cannot be closed before ten", () => {
     h.mount(GroupTenTask, task(13));
     take(4);
-    expect(h.button("Сложить в стопку")).toBeUndefined();
+    expect(h.button("Сложить десяток")).toBeUndefined();
     expect(h.container.querySelector(".px-tenframe h3, .px-tf-count")).toBeNull();
     h.click("Монета в рамке 2");
     expect(count(".px-tf .px-coin")).toBe(3);
@@ -60,10 +60,10 @@ describe("GroupTenTask", () => {
     expect(count(".sg-reveal")).toBe(4);
     expect(shown()).toBe(0);
     expect(h.button("1").disabled).toBe(true);
-    take(10); h.click("Сложить в стопку"); h.flush();
+    take(10); h.click("Сложить десяток"); h.flush();
     expect(shown()).toBe(0);
     const rows = h.container.querySelector(".sg-heapbox").style.gridTemplateRows;
-    take(10); h.click("Сложить в стопку"); h.flush();
+    take(10); h.click("Сложить десяток"); h.flush();
     // No more stacks can be made, but three coins are still in the heap.
     expect(shown()).toBe(0);
     take(2);
@@ -80,7 +80,7 @@ describe("GroupTenTask", () => {
 
   it("after the last stack, a pause brings the hand back for the coins still in the heap", () => {
     h.mount(GroupTenTask, task(13));
-    take(10); h.click("Сложить в стопку"); h.flush();
+    take(10); h.click("Сложить десяток"); h.flush();
     act(() => vi.advanceTimersByTime(6000));
     expect(h.container.querySelector(".sg-hand--move")).not.toBeNull();
     expect(h.container.querySelector(".sg-status").textContent).toContain("все оставшиеся монеты");
@@ -91,12 +91,12 @@ describe("GroupTenTask", () => {
     h.mount(GroupTenTask, task(12, { showFrame: false }), { onMistake });
     expect(count(".px-tf-slot")).toBe(0);
     take(9);
-    h.click("Сложить в стопку");
+    h.click("Сложить десяток");
     expect(h.container.querySelector(".sg-status").textContent).toContain("ровно десять");
     expect(count(".sg-stacks .cb-ten-stack")).toBe(0);
     expect(count(".sg-heap-coin")).toBe(12);
     take(10);
-    h.click("Сложить в стопку"); h.flush();
+    h.click("Сложить десяток"); h.flush();
     expect(count(".sg-stacks .cb-ten-stack")).toBe(1);
     expect(count(".sg-heap-coin")).toBe(2);
   });
@@ -104,11 +104,11 @@ describe("GroupTenTask", () => {
   it("a wrong total in «Обучение» gets the count-by-tens prompt; round tens end with «0 единиц»", () => {
     const onMistake = vi.fn();
     h.mount(GroupTenTask, task(20), { onMistake });
-    take(10); h.click("Сложить в стопку"); h.flush();
-    take(10); h.click("Сложить в стопку"); h.flush();
+    take(10); h.click("Сложить десяток"); h.flush();
+    take(10); h.click("Сложить десяток"); h.flush();
     answer(2); answer(0); answer(2);
     expect(onMistake).toHaveBeenCalledTimes(1);
-    expect(h.container.querySelector(".sg-status").textContent).toContain("Стопок 2 — это двадцать");
+    expect(h.container.querySelector(".sg-status").textContent).toContain("2 десятка — это двадцать. И 0 единиц.");
     h.click("Стереть цифру"); answer(20);
     expect(field("Единицы")).toBe("0");
     expect(field("Какое это число?")).toBe("20");

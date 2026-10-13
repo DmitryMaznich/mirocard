@@ -1,9 +1,10 @@
 import { kv } from "@/core/db";
+import { migrateStudentPeople, mergePeopleRecords } from "../../shared/student-people.mjs";
 import { mergeRewardVideoViews } from "@/shared/utils/rewardVideoViews";
 import { useAppStore } from "@/core/store";
 import { listTopicRecords, installFirstPartyDeckIfNeeded } from "@/topics/topicLoader";
 import { normalizeActiveSessionSnapshot } from "@/features/session/activeSession";
-import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS, FIRST_PARTY_DECK_IDS } from "@/topics/builtinTopics";
+import { FIRST_PARTY_DECK_IDS, applyBuiltinVisibility } from "@/topics/builtinTopics";
 
 export function isDeletedStudent(student) {
   return Boolean(student?.deletedAt);
@@ -17,32 +18,11 @@ function myPersonChangeTime(person) {
   return person?.deletedAt ?? person?.updatedAt ?? person?.createdAt ?? "";
 }
 
-function hasResolvedMyPeoplePhoto(person) {
-  return (person?.photos ?? []).some((photo) => typeof photo === "string" && photo.startsWith("/api/photos/"));
-}
-
-function hasLocalMyPeoplePhoto(person) {
-  return (person?.photos ?? []).some((photo) => typeof photo === "string" && photo.startsWith("data:"));
-}
-
 // A personal network is edited as individual cards.  Merge its item records
 // rather than treating the whole array as one last-write-wins field, so a
 // stale device cannot make another device's newly added person disappear.
 export function mergeMyPeople(local, server) {
-  const byId = new Map();
-  for (const person of [...(local ?? []), ...(server ?? [])]) {
-    if (!person?.id) continue;
-    const current = byId.get(person.id);
-    const sameEdit = current && myPersonChangeTime(person) === myPersonChangeTime(current);
-    // A server snapshot resolves locally-uploaded data URLs to /api/photos
-    // while intentionally retaining the item's edit timestamp.  Keep that
-    // canonical reference when a stale local copy ties on time.
-    if (current && sameEdit && hasResolvedMyPeoplePhoto(current) && hasLocalMyPeoplePhoto(person)) continue;
-    if (!current || myPersonChangeTime(person) >= myPersonChangeTime(current)) {
-      byId.set(person.id, person);
-    }
-  }
-  return [...byId.values()];
+  return mergePeopleRecords(local, server);
 }
 
 // Important dates (birthdays/holidays/events for the "Сегодня" screen) are
@@ -73,6 +53,7 @@ export function mergeStudentRecords(local, server) {
 
   function put(student) {
     if (!student?.id) return;
+    student = migrateStudentPeople(student);
 
     const current = byId.get(student.id);
     if (!current) {
@@ -213,14 +194,14 @@ export function markStudentDeleted(students, id, deletedAt = new Date().toISOStr
 
 // Atomic IDB read→merge→write: prevents a concurrent save from being overwritten.
 // Opens a single readwrite transaction so no other write can slip in between the read and put.
-function atomicMergeStudents(db, serverStudents) {
+function atomicMergeStudents(db, serverStudents, erasedIds = []) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction("keyval", "readwrite");
     const store = tx.objectStore("keyval");
     const getReq = store.get("students");
     getReq.onsuccess = () => {
       const current = Array.isArray(getReq.result) ? getReq.result : [];
-      const merged = mergeStudentRecords(current, serverStudents);
+      const merged = mergeStudentRecords(current, serverStudents).filter(s => !erasedIds.includes(s.id));
       const putReq = store.put(merged, "students");
       putReq.onsuccess = () => resolve(merged);
       putReq.onerror  = () => reject(putReq.error);
@@ -310,12 +291,11 @@ export function normalizeBootstrap(raw = {}) {
     account: raw.account ?? null,
     subscription: raw.subscription ?? null,
     settings: raw.settings ?? null,
-    students: Array.isArray(raw.students) ? raw.students : [],
+    students: Array.isArray(raw.students) ? raw.students.map(migrateStudentPeople) : [],
+    erasedStudentIds: Array.isArray(raw.erasedStudentIds) ? raw.erasedStudentIds : [],
     ownedTopics: Array.isArray(raw.ownedTopics) ? raw.ownedTopics : [],
-    topicRecords: [
-      ...BUILTIN_TOPICS,
-      ...(Array.isArray(raw.topicRecords) ? raw.topicRecords.filter((r) => !BUILTIN_TOPIC_IDS.has(r.meta?.id)) : []),
-    ],
+    builtinVisibility: raw.builtinVisibility ?? {},
+    topicRecords: applyBuiltinVisibility(Array.isArray(raw.topicRecords)?raw.topicRecords:[],raw.builtinVisibility??{}),
     studentTopicLinks: indexStudentTopicLinks(raw.studentTopicLinks),
     conceptProgress: indexConceptProgress(raw.conceptProgress),
     sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-200) : [],
@@ -330,8 +310,8 @@ export function applyBootstrapToStore(raw) {
 
   useAppStore.setState((state) => ({
     ...state,
-    token: bootstrap.token,
-    account: bootstrap.account,
+    token: "token" in raw ? bootstrap.token : state.token,
+    account: "account" in raw ? bootstrap.account : state.account,
     settings: (() => {
       const merged = { ...state.settings, ...(bootstrap.settings ?? {}) };
       // Server null must not overwrite a locally-held PIN that hasn't synced yet.
@@ -341,9 +321,12 @@ export function applyBootstrapToStore(raw) {
       return merged;
     })(),
     // Merge with current store state so a concurrent local save isn't overwritten in memory.
-    students: mergeStudents(state.students, bootstrap.students),
+    students: mergeStudents(state.students, bootstrap.students).filter(s => !bootstrap.erasedStudentIds.includes(s.id)),
+    ...(bootstrap.erasedStudentIds.includes(state.activeStudentId) ? {activeStudentId:null, activeSessionSnapshot:null, screen:"students"} : {}),
     ownedTopics: "ownedTopics" in raw ? mergeOwnedTopics(state.ownedTopics, bootstrap.ownedTopics) : state.ownedTopics,
-    topicRecords: "topicRecords" in raw ? bootstrap.topicRecords : state.topicRecords,
+    builtinVisibility: "builtinVisibility" in raw ? bootstrap.builtinVisibility : state.builtinVisibility??{},
+    topicRecords: "topicRecords" in raw ? applyBuiltinVisibility(bootstrap.topicRecords,"builtinVisibility" in raw ? bootstrap.builtinVisibility : state.builtinVisibility??{}) : "builtinVisibility" in raw ? applyBuiltinVisibility(state.topicRecords,bootstrap.builtinVisibility) : state.topicRecords,
+    ...(bootstrap.builtinVisibility[state.activeTopicId]===false ? {activeTopicId:null,activeModeId:null,activeSessionSnapshot:null,screen:"topics"} : {}),
     subscription: "subscription" in raw ? bootstrap.subscription : state.subscription,
     studentTopicLinks: bootstrap.studentTopicLinks,
     conceptProgress: bootstrap.conceptProgress,
@@ -351,7 +334,7 @@ export function applyBootstrapToStore(raw) {
     ...("activeSession" in raw ? { activeSessionSnapshot: bootstrap.activeSession } : {}),
     // Only restore active context from local bootstrap artifacts.
     // A server-side apply without lastContext/activeSession must not clear current navigation.
-    ...((bootstrap.activeSession != null || bootstrap.lastContext != null) ? {
+    ...((bootstrap.activeSession != null || bootstrap.lastContext != null) && bootstrap.builtinVisibility[resumeContext?.topicId]!==false ? {
       activeStudentId: resumeContext?.studentId ?? null,
       activeTopicId:   resumeContext?.topicId   ?? null,
       activeTextId:    resumeContext?.textId    ?? null,
@@ -379,11 +362,16 @@ export async function loadLocalBootstrap(db) {
       })(),
     ]);
 
+  const migratedStudents = (students ?? []).map(migrateStudentPeople);
+  if (JSON.stringify(migratedStudents) !== JSON.stringify(students ?? [])) {
+    await kv.set(db, 'students', migratedStudents);
+  }
   return normalizeBootstrap({
+    builtinVisibility: await kv.get(db,"builtinVisibility")??{},
     token,
     account,
     settings,
-    students,
+    students: migratedStudents,
     ownedTopics,
     topicRecords,
     studentTopicLinks,
@@ -399,7 +387,7 @@ export async function loadLocalBootstrap(db) {
 const USER_IDB_KEYS = [
   "token", "account", "accountId",
   "students", "sessions", "studentTopicLinks", "conceptProgress",
-  "ownedTopics", "lastContext", "activeSession", "settings",
+  "ownedTopics", "lastContext", "activeSession", "settings", "builtinVisibility",
 ];
 
 // public/sw.js serves /api/photos/* cache-first, keyed by URL alone, so a
@@ -433,6 +421,7 @@ export async function persistBootstrap(db, raw) {
   const bootstrap = normalizeBootstrap(raw);
   const writes = [];
 
+  if ("builtinVisibility" in raw) writes.push(kv.set(db,"builtinVisibility",bootstrap.builtinVisibility));
   if ("token" in raw) writes.push(kv.set(db, "token", bootstrap.token));
   if ("account" in raw) writes.push(kv.set(db, "account", bootstrap.account));
   if ("settings" in raw) {
@@ -444,7 +433,7 @@ export async function persistBootstrap(db, raw) {
     }
     writes.push(kv.set(db, "settings", settings));
   }
-  if ("students" in raw) writes.push(atomicMergeStudents(db, bootstrap.students));
+  if ("students" in raw) writes.push(atomicMergeStudents(db, bootstrap.students, bootstrap.erasedStudentIds));
   if ("ownedTopics" in raw) writes.push(atomicMergeOwnedTopics(db, bootstrap.ownedTopics));
   if ("studentTopicLinks" in raw) writes.push(kv.set(db, "studentTopicLinks", bootstrap.studentTopicLinks));
   if ("conceptProgress" in raw) writes.push(kv.set(db, "conceptProgress", bootstrap.conceptProgress));
@@ -458,4 +447,11 @@ export async function persistBootstrap(db, raw) {
   }
 
   await Promise.all(writes);
+  if (bootstrap.erasedStudentIds.length) {
+    for (const key of ["lastContext", "activeSession"]) {
+      const value = await kv.get(db, key);
+      const studentId = value?.context?.studentId ?? value?.studentId;
+      if (bootstrap.erasedStudentIds.includes(studentId)) await kv.set(db,key,null);
+    }
+  }
 }

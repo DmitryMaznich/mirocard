@@ -1,7 +1,7 @@
 {
   "schema": "mirocard-figure-manifest/v1",
   "topicId": "symmetry_draw",
-  "topicVersion": "1.12.3",
+  "topicVersion": "1.12.20",
   "figures": [
     {
       "id": "symmetry_house",
@@ -458,6 +458,12 @@
       "label": "Бабочка",
       "taskKind": "mirror",
       "file": "butterfly.json"
+    },
+    {
+      "id": "repeat_cat",
+      "label": "Кот",
+      "taskKind": "repeat",
+      "file": "repeat_cat.json"
     }
   ]
 }

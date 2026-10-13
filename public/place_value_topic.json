@@ -2,7 +2,7 @@
   "meta": {
     "id": "place_value",
     "renderer": "place_value",
-    "version": "1.0.1",
+    "version": "1.0.6",
     "title": {
       "ru": "Разряды числа",
       "en": "Place Value"
@@ -10,11 +10,27 @@
   },
   "cards": [
     {
+      "id": "number_names",
+      "conceptId": "number_names",
+      "renderer": "place_value",
+      "params": {
+        "mode": "number_names"
+      }
+    },
+    {
       "id": "group_ten",
       "conceptId": "group_ten",
       "renderer": "place_value",
       "params": {
         "mode": "group_ten"
+      }
+    },
+    {
+      "id": "count_tens",
+      "conceptId": "count_tens",
+      "renderer": "place_value",
+      "params": {
+        "mode": "count_tens"
       }
     },
     {
@@ -31,6 +47,14 @@
       "renderer": "place_value",
       "params": {
         "mode": "identify_number"
+      }
+    },
+    {
+      "id": "place_parts",
+      "conceptId": "place_parts",
+      "renderer": "place_value",
+      "params": {
+        "mode": "place_parts"
       }
     },
     {

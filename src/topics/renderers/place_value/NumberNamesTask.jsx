@@ -1,0 +1,181 @@
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import Button from "@/shared/components/Button";
+import { numberWords, pluralHundreds, pluralOnes, pluralTens } from "./placeValueLabels.js";
+import { AnswerField, Keypad, useTypedAnswer } from "./FieldPad.jsx";
+import { NUMBER_AUDIO_WORDS, holdSpeech, numberAudioParts, playNumber } from "./numberAudio.js";
+import { useSpeechGuard } from "./useSpeechGuard.js";
+import "./place_value.css";
+import "./group_ten.css";
+import "./names.css";
+
+// «Названия чисел» → «Услышь и выбери»: the number is spoken (the owner's
+// recorded voice, numberAudio.js), the child taps it among three written
+// numbers. The wrong options are the ones that sound alike — 19 / 90,
+// 12 / 20, 20 / 200, 13 / 30, swapped digits, the zero in the wrong place —
+// because that is what a child with weak phonemic hearing confuses. In
+// «Обучение» a wrong tap plays the name of what was tapped and then the right
+// one again: the two words heard back to back are the lesson.
+// See docs/place-value-methodology.md, «Названия чисел».
+
+function useScreenMode() {
+  const ref = useRef(null);
+  const [mode, setMode] = useState("phone");
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const measure = () => {
+      const { clientWidth: W, clientHeight: H } = el;
+      if (W && H) setMode(W >= 900 && W > H * 1.15 ? "wide" : W < 600 ? "phone" : "tablet");
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, mode];
+}
+
+const cap = (s) => `${s[0].toUpperCase()}${s.slice(1)}`;
+// «Девяносто — это 9 десятков и 0 единиц» — the places named, zeros included.
+function composition(n) {
+  const h = Math.floor(n / 100), t = Math.floor(n / 10) % 10, o = n % 10;
+  const parts = [...(h ? [`${h} ${pluralHundreds(h)}`] : []), `${t} ${pluralTens(t)}`];
+  return `${cap(numberWords(n))} — это ${parts.join(", ")} и ${o} ${pluralOnes(o)}`;
+}
+
+// A number's name word by word; in «Обучение» each word in its place colour
+// («триста» green, «пятьдесят» orange, «пять» blue — the teens, one word for
+// a ten and ones, stay neutral), linking the word to its column.
+function spelledWords(value, colored) {
+  return numberAudioParts(value).flatMap((part, i) => {
+    const kind = part >= 100 ? "hundreds" : part >= 20 || part === 10 ? "tens" : part >= 11 ? "teen" : "ones";
+    const word = <span key={i} className={colored ? `nn-w nn-w--${kind}` : "nn-w"}>{NUMBER_AUDIO_WORDS[part]}</span>;
+    return i ? [" ", word] : [word];
+  });
+}
+
+export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+  const teaching = task.supportMode !== "independent";
+  const writing = task.task === "write";
+  // «Прочитай и выбери название»: the number is written, the options are its
+  // name and the names of its look-alikes («девяносто / девятнадцать /
+  // девятьсот», «триста пять / триста пятьдесят / тридцать пять») — same root,
+  // so the word has to be read to its end.
+  const reading = task.task === "read";
+  const n = task.number;
+  const typed = useTypedAnswer(4); // «3005» for 305 is a mistake to catch
+  const [misses, setMisses] = useState(0);
+  const [ref, mode] = useScreenMode();
+  const [solved, setSolved] = useState(false);
+  const [wrong, setWrong] = useState([]);
+  const [note, setNote] = useState("");
+  const [playing, setPlaying] = useState(false);
+  const player = useRef(null);
+  const { guard } = useSpeechGuard();
+
+  const play = async (...numbers) => {
+    player.current?.stop();
+    setPlaying(true);
+    let cancelled = false;
+    // Taps wait for the whole sequence («19» … «90»), gaps included.
+    const release = holdSpeech();
+    const stopper = { stop: () => { cancelled = true; current?.stop(); release(); } };
+    let current = null;
+    player.current = stopper;
+    for (const value of numbers) {
+      if (cancelled) break;
+      current = playNumber(value);
+      await current.done;
+      if (cancelled) break;
+      await new Promise((r) => setTimeout(r, 350));
+    }
+    release();
+    if (player.current === stopper) setPlaying(false);
+  };
+  // Speak the number as soon as the task shows; stop when it goes away.
+  // (Not when reading: the name is what the child has to find.)
+  useEffect(() => { if (!reading) play(n); return () => player.current?.stop(); }, [n]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // «Услышь и напиши»: the child types the number. In «Обучение» a wrong number
+  // is named and the right one played after it (as in «выбери»); a wrong count
+  // of digits gets the places named («Сколько цифр нужно?»); after two misses
+  // the three choices come back — the step below.
+  function enter() {
+    if (solved || !typed.digits) return;
+    const guess = Number(typed.digits);
+    if (guess === n) { typed.reset(); setSolved(true); setNote(""); player.current?.stop(); setPlaying(false); return; }
+    typed.fail();
+    setMisses((m) => m + 1);
+    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    if (!teaching) { setNote("Послушай ещё раз."); play(n); return; }
+    if (typed.digits.length !== String(n).length && n >= 10) { setNote(`${composition(n)}. Сколько цифр нужно?`); play(n); return; }
+    setNote(`${guess} — это «${numberWords(guess)}». А звучало другое число. Послушай ещё раз.`);
+    play(guess, n);
+  }
+  const showChoices = writing && teaching && misses >= 2 && !solved;
+  const spelled = (value) => spelledWords(value, teaching);
+
+  function choose(value) {
+    if (solved || wrong.includes(value)) return;
+    if (value === n) {
+      setSolved(true); setNote("");
+      if (reading) play(n); else { player.current?.stop(); setPlaying(false); }
+      return;
+    }
+    setWrong((w) => [...w, value]);
+    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    if (reading) {
+      // The tapped word is read aloud and tied to its own number.
+      if (teaching) { setNote(`«${numberWords(value)}» — это ${value}. Прочитай число ещё раз.`); play(value); } else setNote("Прочитай ещё раз.");
+      return;
+    }
+    if (teaching) {
+      setNote(`${value} — это «${numberWords(value)}». А звучало другое число. Послушай ещё раз.`);
+      play(value, n);
+    } else {
+      setNote("Послушай ещё раз.");
+      play(n);
+    }
+  }
+
+  return <div ref={ref} className={`pv-screen nn-screen nn-screen--${mode}`} {...guard}>
+    <div className="nn-inner">
+      <h2 className="sg-title">{reading ? "Прочитай и выбери название" : writing ? "Услышь и напиши число" : "Услышь и выбери число"}</h2>
+      {reading && <div className="nn-number">{n}</div>}
+      {/* The «диктор» button of the dictation and «Слушай и посчитай» (styles
+          copied into names.css): bars bounce and ripples spread while it speaks. */}
+      {!reading && <div className={`nn-diktor-wrap${playing ? " nn-diktor-wrap--playing" : ""}`}>
+        <span className="nn-ripple" />
+        <span className="nn-ripple" />
+        <span className="nn-ripple" />
+        <button type="button" className={`nn-diktor${playing ? " nn-diktor--playing" : ""}`} aria-label="Послушать" disabled={playing} onClick={() => play(n)}>
+          <span className="nn-bar" />
+          <span className="nn-bar" />
+          <span className="nn-bar" />
+          <span className="nn-bar" />
+        </button>
+      </div>}
+      {writing && <div className="nn-answer">
+        <AnswerField label="Число" tone="total" big ok={solved} active={!solved} wrong={typed.wrong} value={solved ? n : typed.digits} />
+      </div>}
+      {(!writing || showChoices) && <>
+        {showChoices && <div className="nn-choose-hint">Какое число звучит? Выбери.</div>}
+        <div className={`nn-options${reading ? " nn-options--words" : ""}`}>
+        {task.options.map((value) => {
+          const state = solved && value === n ? " nn-option--right" : wrong.includes(value) ? " nn-option--wrong" : "";
+          return <button type="button" key={value} className={`nn-option${reading ? " nn-word" : ""}${state}`} disabled={solved || wrong.includes(value)}
+            onClick={() => choose(value)}>{reading ? spelled(value) : value}</button>;
+        })}
+        </div>
+      </>}
+      <div className="sg-status nn-status" role="status">
+        {solved ? <span className="sg-status-say">{`${n} — ${numberWords(n)}`}</span>
+          : note ? <span className="sg-status-note">{note}</span> : null}
+      </div>
+      <div className="sg-slot nn-slot">
+        {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
+          : writing && !showChoices ? <Keypad typed={typed} onEnter={enter} /> : null}
+      </div>
+    </div>
+  </div>;
+}

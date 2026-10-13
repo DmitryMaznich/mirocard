@@ -122,7 +122,7 @@ async function makeReadingTopicZip({ id = "reading_test", version = "1.0.0", sto
 
 describe("importTopic — valid cases", () => {
   it("imports the shipped people-and-names deck end-to-end", async () => {
-    const bytes = await readFile(resolve("public/decks/people_names_v1.0.1.zip"));
+    const bytes = await readFile(resolve("test-fixtures/decks/people_names_v1.0.1.zip"));
     const db = await freshDb();
     const record = await importTopic(db, bytes, "1.0.2046");
 
@@ -523,7 +523,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // «Разменяй десяток» was replaced by «Обмен десятка» (exchange_ten); a stale
     // record must not keep the old mode around.
     expect(record.modes.find((m) => m.id === "regroup_ten")).toBeUndefined();
-    expect(record.modes.map((m) => m.id)).toEqual(["group_ten", "identify_number", "build_number", "exchange_ten"]);
+    expect(record.modes.map((m) => m.id)).toEqual(["number_names", "group_ten", "count_tens", "identify_number", "build_number", "place_parts", "exchange_ten"]);
   });
 
   // Widget-type migration (a param's `type` changing between what a stale
@@ -820,8 +820,9 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(buildNumber.params.maxTens).toMatchObject({
       type: "number", min: 1, max: 9, default: 5, label: { ru: "Максимум десятков" },
     });
-    expect(buildNumber.ui.instruction).toBe("Положи нужное число стопок и монет");
+    expect(buildNumber.ui.instruction).toBe("Положи нужное число десятков и монет");
     expect(buildNumber.params.prompt.default).toBe("digits");
+    expect(buildNumber.params.view).toMatchObject({ type: "enum", values: ["coins", "scheme", "table", "number"], default: "coins" });
     // Dropped in the rework: building tens from single coins moved to «Сложи по
     // десять», and the extra composition question was removed.
     expect(buildNumber.params).not.toHaveProperty("buildApproach");

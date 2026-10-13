@@ -79,14 +79,22 @@ reserved. Restoration returns the previous active, pending or blocked status;
 legacy deleted accounts without recorded previous status return to pending.
 Subscriptions keep running and external payment mandates are not cancelled.
 
-The transfer requires a five-minute account-bound preview, exact email,
-`УДАЛИТЬ`, a reason, two acknowledgements and final confirmation. All actions
-are audited. Current users and Deleted are separate directory filters.
+The panel offers direct Archive, Erase account permanently, and Erase student
+permanently actions, each with one confirmation naming the selected target.
+There are no deadlines, subscription checks, preview tokens or typed phrases.
+Permanent erasure removes the account row and its working-database resources,
+including financial rows and identities; the email can be registered again.
+Shared photos are retained if another record references them. Existing backups
+are not rewritten; external payment contracts are not cancelled by erasure.
+Only a minimal administrative operation record remains. Student erasure retains
+an ID-only tombstone to prevent stale clients from re-creating the pupil.
 
-Permanent erasure and the deletion timer are disabled. On startup every old
-`deletion_pending` account moves to the archive and all deadlines are cancelled,
-including overdue deadlines. Formerly purged data cannot be recovered in the
-panel. There is no new retention or automated erasure policy.
+Self-service DELETE /account archives the account, revokes every login and
+recovery credential, retains data, and records actor=self. It appears in Deleted
+and can be restored by the administrator. The device clears local account data
+and logs out after success. There is no scheduled permanent erasure. Restoring
+requires a fresh login; original active/pending/blocked status is preserved.
+Legacy deleted accounts with no lifecycle history restore to pending.
 
 ### Email delivery
 
@@ -249,3 +257,36 @@ no credential identifiers are exposed. Cached clients must load the updated app
 once; signing out is not required. Activity before collection began cannot be
 recovered from login/logout records. Mobile pagehide/visibility/freeze events
 flush pending time, and pageshow resumes the timer without counting suspension.
+
+
+### Topic administration
+
+The Topics section of /admin.html lists repository topic manifests, latest
+published ZIP manifests, catalog entries, standalone renderer drafts and
+built-in topics. scripts/build-topic-inventory.mjs generates the private
+backend/generated/topic-inventory.json before builds when Git is present.
+Source dates come from Git history, never container file modification times.
+Deployments without .git use the committed inventory; regenerate and commit it
+whenever topic sources/packages change. Unknown dates are shown as unknown.
+Built-ins expose a global show/hide setting. Bootstrap propagates this policy to
+clients; the client stores it for offline startup and applies it whenever topic
+records are refreshed. Updating an older client is required to honor the policy.
+Hiding a builtin does not erase lesson history or create a downloadable catalog entry.
+
+GET /api/admin/topics returns the full registry. POST /api/admin/topics/:id
+changes listed, status (release/beta/individual/hidden), and access (paid/free).
+Overrides and audit history live on the persistent SQLite volume and survive
+redeployments. All catalog reads, grants, claims, download authorization and
+public catalog responses use the effective catalog. Conflicting revision writes
+return 409. Missing packages cannot be made visible to users. Removing from the
+catalog does not erase repository source, cached installed copies or lesson
+history; new downloads/claims become unavailable. The registry retains the topic
+for restoration. Version metadata is read-only; uploading/building new packages
+continues through the repository. Source and catalog versions are shown separately.
+
+
+Chat-practice manifests under content/topics are packaged with
+scripts/build-chat-practice-decks.mjs. Prepared public/decks ZIPs remain outside
+the catalog until an administrator explicitly adds them and chooses publication
+and access flags. These scripts run locally with predefined dialogue choices,
+not a remote AI service. Source files remain authoritative.

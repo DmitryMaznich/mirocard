@@ -11,7 +11,7 @@ const mime = {
 const server = createServer((req, res) => {
   const file = req.url.slice(1);
   if (
-    !["admin.html", "admin.css", "admin.js", "admin-model.js"].includes(file)
+    !["admin.html", "admin.css", "admin.js", "admin-model.js", "admin-topics.js"].includes(file)
   ) {
     res.writeHead(404);
     res.end();
@@ -56,11 +56,22 @@ async function fixture(viewport) {
   accounts[2].firstName = "<img src=x onerror=alert(1)>";
   const writes = [];
   let usageReads = 0;
+  let topics = [
+    {id:"alpha",title:{ru:"Тестовая тема"},catalogVersion:"1.0",sourceVersion:"1.1",sourceUpdatedAt:"2026-10-01T10:00:00Z",publication:"beta",access:"paid",inCatalog:true,hidden:false,bundleAvailable:true,canManage:true,overrideRevision:0,settings:{listed:true,status:"beta",access:"paid"},sources:["tools/alpha/topic.json"],history:[]},
+    {id:"draft",title:"<img src=x onerror=alert(1)>",publication:"draft",access:"paid",inCatalog:false,bundleAvailable:false,canManage:false,settings:{listed:false,status:"hidden",access:"paid"},sources:["content/draft/topic.json"],history:[],reason:"Есть разработка; опубликованного ZIP нет"},
+    {id:"builtin",title:"Встроенная тема",publication:"builtin",builtin:true,inCatalog:false,canManage:false,bundleAvailable:false,settings:{listed:false,status:"hidden",access:"paid"},sources:[],history:[]},
+  ];
   await page.route("**/api/admin/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
     if (route.request().headers().authorization !== "Bearer demo-token") {
       await route.fulfill({ status: 403, json: {} });
       return;
+    }
+    if (path.endsWith("/topics")) {await route.fulfill({json:{topics}});return;}
+    if (path.includes("/topics/") && route.request().method()==="POST") {
+      const body=route.request().postDataJSON(),id=path.split("/").at(-1);writes.push({path,body});
+      topics=topics.map(t=>t.id===id?{...t,settings:body,overrideRevision:t.overrideRevision+1,inCatalog:body.listed,publication:t.builtin?(body.status==="hidden"?"builtin_hidden":"builtin"):body.listed?body.status:"removed",builtinEnabled:t.builtin?body.status!=="hidden":undefined,removed:!body.listed,access:body.access,hidden:body.status==="hidden",adminUpdatedAt:new Date().toISOString()}:t);
+      await route.fulfill({json:{ok:true,topic:topics.find(t=>t.id===id)}});return;
     }
     if (route.request().method() === "POST") {
       const body = route.request().postDataJSON();
@@ -92,9 +103,10 @@ async function fixture(viewport) {
       }
 
       if (path.endsWith("/lifecycle")) {
-        a.status = body.action === "block" ? "blocked" : "active";
+        a.status = body.action === "archive" ? "archived" : body.action === "block" ? "blocked" : "active";
         if (body.action === "block") a.activeSessions = [];
       }
+      if (path.endsWith("/erase") && !path.includes("/students/")) accounts = accounts.filter((x) => x.id !== id);
       if (path.endsWith("/flags")) a.featureFlags = body.flags;
       if (path.endsWith("/revoke"))
         a.topicAssignments = a.topicAssignments.filter(
@@ -106,6 +118,7 @@ async function fixture(viewport) {
       await route.fulfill({ json: { ok: true } });
       return;
     }
+    if (path.endsWith("/students")) { await route.fulfill({json:[{id:"kid",name:"Тестовый ученик"}]}); return; }
     if (path.endsWith("/usage")) {
       usageReads++;
       await route.fulfill({
@@ -364,73 +377,38 @@ test("mobile layout contains page width; logout stops refresh and clears sensiti
   await page.close();
 });
 
-test("archive requires three stages and cancellation never sends a delete operation", async () => {
-  const { page, writes, errors } = await fixture({ width: 390, height: 844 });
+test("admin deletion uses a single confirmation, cancel is safe and permanent deletion closes the account", async () => {
+  const {page,writes,errors} = await fixture({width:390,height:844});
   await page.locator("#search").fill("user1@example.test");
   await page.locator("#accounts-body .name-button").click();
-  await page.locator('[data-action="archive"]').click();
-  await page.locator("#deletion-dialog").waitFor();
-  assert.equal(await page.locator("#deletion-fields").isVisible(), false);
-  await page.screenshot({
-    path: "output/admin-qa/deletion-preview-mobile.png",
-    fullPage: false,
-  });
-  await page.locator("#deletion-next").click();
-  assert.equal(await page.locator("#deletion-submit").isDisabled(), true);
-  await page.locator("#deletion-reason").fill("Тестовый аккаунт");
-  await page.locator("#deletion-email").fill("wrong@example.test");
-  await page.locator("#deletion-word").fill("УДАЛИТЬ");
-  await page.locator("#deletion-ack-data").check();
-  await page.locator("#deletion-ack-retention").check();
-  assert.equal(await page.locator("#deletion-submit").isDisabled(), true);
-  await page.locator("#deletion-email").fill("user1@example.test");
-  assert.equal(await page.locator("#deletion-submit").isEnabled(), true);
-  assert.ok(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  );
-  await page.screenshot({
-    path: "output/admin-qa/deletion-confirm-mobile.png",
-    fullPage: false,
-  });
-  await page.locator("#deletion-submit").click();
+  await page.locator('[data-action="erase-student"]').waitFor();
+  await page.locator('[data-action="erase-student"]').click();
+  assert.ok((await page.locator("#confirm-text").textContent()).includes("Тестовый ученик"));
   await page.locator('#confirm-dialog button[value="cancel"]').click();
-  assert.equal(writes.filter((w) => w.path.endsWith("/delete")).length, 0);
-  await page.locator("#deletion-submit").click();
+  assert.equal(writes.length,0);
+  await page.locator('[data-action="erase-student"]').click();
   await page.locator("#confirm-submit").click();
-  await page.waitForFunction(() =>
-    document.querySelector("#toast").textContent.includes("сохранены"),
-  );
-  assert.equal(writes.filter((w) => w.path.endsWith("/delete")).length, 1);
-  const operation = writes.find((w) => w.path.endsWith("/delete"));
-  assert.equal(operation.body.confirmEmail, "user1@example.test");
-  assert.equal(operation.body.confirmWord, "УДАЛИТЬ");
+  await page.waitForFunction(() => document.querySelector("#toast").textContent.includes("Ученик удалён"));
+  assert.equal(writes[0].body.confirmed,true);
+  await page.locator('[data-action="archive"]').click();
+  await page.locator("#confirm-submit").click();
   await page.locator('[data-action="restore"]').waitFor();
-  assert.equal(await page.locator('[data-action="archive"]').count(), 0);
-  assert.ok(
-    (await page.locator("#account-title").textContent()).includes(
-      "Пользователь",
-    ),
-  );
-  await page.locator('[data-action="close"]').click();
-  assert.equal(await page.locator("#accounts-body tr").count(), 0);
-  await page.locator('[data-scope="removed"]').click();
-  assert.equal(await page.locator("#accounts-body tr").count(), 1);
-  await page.locator("#accounts-body .name-button").click();
-  await page.locator("#lifecycle-reason").fill("Вернуть доступ");
-  await page.locator('[data-action="restore"]').click();
+  assert.equal(writes.filter(w=>w.path.endsWith("/deletion-preview")).length,0);
+  await page.locator('[data-action="erase-account"]').click();
+  assert.ok((await page.locator("#confirm-text").textContent()).includes("user1@example.test"));
   await page.locator("#confirm-submit").click();
-  await page.locator('[data-action="archive"]').waitFor();
-  assert.deepEqual(errors, []);
+  await page.waitForFunction(() => !document.querySelector("#account-dialog").open);
+  assert.equal(writes.filter(w=>w.path.endsWith("/erase")).length,2);
+  assert.deepEqual(errors,[]);
   await page.close();
 });
+
 test("mobile cards fit narrow screens and preserve sorting and account actions", async () => {
   const { page, errors } = await fixture({ width: 320, height: 740 });
   assert.equal(await page.locator(".mobile-sort").isVisible(), true);
   await page.locator("#mobile-sort").selectOption("createdAt:desc");
   const overflow = await page
-    .locator(".users-table")
+    .locator("#users-view .users-table")
     .evaluate((e) => e.getBoundingClientRect().right > innerWidth);
   assert.equal(overflow, false);
   await page.locator("#search").fill("user1@example.test");
@@ -517,4 +495,60 @@ test("open usage report refreshes continuously without logging out and keeps exp
   assert.equal(usageReads(), stopped);
   assert.deepEqual(errors, []);
   await page.close();
+});
+
+
+test("topic registry shows drafts, escapes titles and manages catalog flags and reversible removal on a phone", async () => {
+  const {page,writes,errors}=await fixture({width:390,height:844});
+  await page.locator('[data-view="topics"]').click();
+  await page.locator("#topics-body tr").first().waitFor();
+  assert.equal(await page.locator("#topics-body tr").count(),3);
+  assert.equal(await page.locator("#topics-body img").count(),0);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.screenshot({path:"output/admin-qa/topics-mobile.png",fullPage:true});
+  await page.locator("#topics-filter").selectOption("draft");assert.equal(await page.locator("#topics-body tr").count(),1);
+  await page.locator("#topics-filter").selectOption("all");
+  await page.locator('#topics-body button[data-topic="alpha"]').first().click();
+  await page.locator("#topic-status").selectOption("release");await page.locator("#topic-access").selectOption("free");
+  await page.locator('#topic-form button[type="submit"]').click();await page.locator("#confirm-submit").click();
+  await page.waitForFunction(()=>document.querySelector("#topic-status").value==="release"&&!document.querySelector('#topic-form button[type="submit"]').disabled);
+  assert.equal(writes.at(-1).body.access,"free");
+  await page.locator('[data-topic-action="remove"]').click();await page.locator('#confirm-dialog button[value="cancel"]').click();assert.equal(writes.length,1);
+  await page.locator('[data-topic-action="remove"]').click();await page.locator("#confirm-submit").click();
+  await page.locator('#topic-form button[type="submit"]').getByText("Добавить в каталог").waitFor();
+  assert.equal(writes.at(-1).body.listed,false);
+  await page.locator('[data-topic-action="close"]').click();
+  await page.locator("#topics-filter").selectOption("removed");assert.equal(await page.locator("#topics-body tr").count(),1);
+  await page.locator('#topics-body button[data-topic="alpha"]').first().click();
+  await page.locator('#topic-form button[type="submit"]').click();await page.locator("#confirm-submit").click();
+  await page.locator('[data-topic-action="remove"]').waitFor();
+  await page.screenshot({path:"output/admin-qa/topic-detail-mobile.png"});
+  await page.locator('[data-topic-action="close"]').click();
+  await page.locator("#logout").click();assert.equal(await page.locator("#topics-body tr").count(),0);assert.deepEqual(errors,[]);await page.close();
+});
+
+
+test("topic registry desktop table fits the workspace and supports search and CSV export", async () => {
+  const {page,errors}=await fixture({width:1440,height:1000});
+  await page.locator('[data-view="topics"]').click();await page.locator("#topics-body tr").first().waitFor();
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.screenshot({path:"output/admin-qa/topics-desktop.png",fullPage:true});
+  await page.locator("#topics-search").fill("alpha");assert.equal(await page.locator("#topics-body tr").count(),1);
+  const download=page.waitForEvent("download");await page.locator("#topics-export").click();assert.equal((await download).suggestedFilename(),"topics.csv");
+  await page.locator('#topics-body button[data-topic="alpha"]').first().click();await page.screenshot({path:"output/admin-qa/topic-detail-desktop.png"});
+  assert.deepEqual(errors,[]);await page.close();
+});
+
+
+test("builtin topic has a visibility control rather than catalog publication or pricing", async()=>{
+  const {page,writes,errors}=await fixture({width:390,height:844});
+  await page.locator('[data-view="topics"]').click();await page.locator('#topics-body button[data-topic="builtin"]').first().click();
+  assert.equal(await page.locator("#topic-access").inputValue(),"free");
+  assert.equal(await page.locator('[data-topic-action="remove"]').count(),0);
+  await page.locator("#topic-status").selectOption("hidden");await page.locator('#topic-form button[type="submit"]').click();await page.locator("#confirm-submit").click();
+  await page.waitForFunction(()=>document.querySelector("#topic-status").value==="hidden"&&!document.querySelector('#topic-form button[type="submit"]').disabled);
+  assert.equal(writes.at(-1).body.access,"free");
+  await page.locator("#topic-status").selectOption("release");await page.locator('#topic-form button[type="submit"]').click();await page.locator("#confirm-submit").click();
+  await page.waitForFunction(()=>document.querySelector("#topic-status").value==="release"&&!document.querySelector('#topic-form button[type="submit"]').disabled);
+  assert.deepEqual(errors,[]);await page.close();
 });

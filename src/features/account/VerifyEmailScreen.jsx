@@ -32,6 +32,8 @@ export default function VerifyEmailScreen() {
         const payload = {
           token: authToken,
           account,
+          builtinVisibility: bootstrap.builtinVisibility ?? {},
+          erasedStudentIds: bootstrap.erasedStudentIds ?? [],
           subscription: bootstrap.subscription ?? null,
           settings: settings ?? bootstrap.settings,
           students: bootstrap.students,

@@ -1,4 +1,5 @@
 import { recordUsage } from "@/shared/hooks/useUsageTracking";
+import { peopleFor } from "../../../shared/student-people.mjs";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
@@ -295,7 +296,7 @@ export function useSessionEngine() {
     if (!sessionState || !mode) return;
     if (sessionState.taskIndex > 0 || sessionState.correctCount > 0) return;
     if (topicRecord?.meta?.renderer !== "sentence_puzzle") return;
-    if (!activeStudent?.closeAdults?.length) return;
+    if (!peopleFor(activeStudent, 'sentences').length) return;
     const hasAdultCards = sessionState.tasks.some((t) => t.pool?.some((c) => c.id?.startsWith("adult_")));
     if (hasAdultCards) return;
 

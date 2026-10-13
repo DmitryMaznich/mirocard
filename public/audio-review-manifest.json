@@ -1456,6 +1456,354 @@
       ]
     },
     {
+      "id": "audio/place-value-numbers",
+      "title": "audio/place-value-numbers",
+      "items": [
+        {
+          "id": "audio/place-value-numbers/n0.mp3",
+          "key": "n0",
+          "path": "audio/place-value-numbers/n0.mp3",
+          "url": "/audio/place-value-numbers/n0.mp3",
+          "label": "n0",
+          "category": "Прочее",
+          "version": "9a13c1915bab22c3"
+        },
+        {
+          "id": "audio/place-value-numbers/n1.mp3",
+          "key": "n1",
+          "path": "audio/place-value-numbers/n1.mp3",
+          "url": "/audio/place-value-numbers/n1.mp3",
+          "label": "n1",
+          "category": "Прочее",
+          "version": "2552c30d0829f804"
+        },
+        {
+          "id": "audio/place-value-numbers/n2.mp3",
+          "key": "n2",
+          "path": "audio/place-value-numbers/n2.mp3",
+          "url": "/audio/place-value-numbers/n2.mp3",
+          "label": "n2",
+          "category": "Прочее",
+          "version": "9738f978b2a3248a"
+        },
+        {
+          "id": "audio/place-value-numbers/n3.mp3",
+          "key": "n3",
+          "path": "audio/place-value-numbers/n3.mp3",
+          "url": "/audio/place-value-numbers/n3.mp3",
+          "label": "n3",
+          "category": "Прочее",
+          "version": "4cae20beabf447b2"
+        },
+        {
+          "id": "audio/place-value-numbers/n4.mp3",
+          "key": "n4",
+          "path": "audio/place-value-numbers/n4.mp3",
+          "url": "/audio/place-value-numbers/n4.mp3",
+          "label": "n4",
+          "category": "Прочее",
+          "version": "ca8ecfb1f7286ad7"
+        },
+        {
+          "id": "audio/place-value-numbers/n5.mp3",
+          "key": "n5",
+          "path": "audio/place-value-numbers/n5.mp3",
+          "url": "/audio/place-value-numbers/n5.mp3",
+          "label": "n5",
+          "category": "Прочее",
+          "version": "e164f44f20240f1b"
+        },
+        {
+          "id": "audio/place-value-numbers/n6.mp3",
+          "key": "n6",
+          "path": "audio/place-value-numbers/n6.mp3",
+          "url": "/audio/place-value-numbers/n6.mp3",
+          "label": "n6",
+          "category": "Прочее",
+          "version": "ed913b98e1dc57b8"
+        },
+        {
+          "id": "audio/place-value-numbers/n7.mp3",
+          "key": "n7",
+          "path": "audio/place-value-numbers/n7.mp3",
+          "url": "/audio/place-value-numbers/n7.mp3",
+          "label": "n7",
+          "category": "Прочее",
+          "version": "2c9e15ea20897ec4"
+        },
+        {
+          "id": "audio/place-value-numbers/n8.mp3",
+          "key": "n8",
+          "path": "audio/place-value-numbers/n8.mp3",
+          "url": "/audio/place-value-numbers/n8.mp3",
+          "label": "n8",
+          "category": "Прочее",
+          "version": "8fffb28746cbc347"
+        },
+        {
+          "id": "audio/place-value-numbers/n9.mp3",
+          "key": "n9",
+          "path": "audio/place-value-numbers/n9.mp3",
+          "url": "/audio/place-value-numbers/n9.mp3",
+          "label": "n9",
+          "category": "Прочее",
+          "version": "93912d44fd39e10c"
+        },
+        {
+          "id": "audio/place-value-numbers/n10.mp3",
+          "key": "n10",
+          "path": "audio/place-value-numbers/n10.mp3",
+          "url": "/audio/place-value-numbers/n10.mp3",
+          "label": "n10",
+          "category": "Прочее",
+          "version": "9a42365e5c3f5121"
+        },
+        {
+          "id": "audio/place-value-numbers/n11.mp3",
+          "key": "n11",
+          "path": "audio/place-value-numbers/n11.mp3",
+          "url": "/audio/place-value-numbers/n11.mp3",
+          "label": "n11",
+          "category": "Прочее",
+          "version": "84565998c55497fd"
+        },
+        {
+          "id": "audio/place-value-numbers/n12.mp3",
+          "key": "n12",
+          "path": "audio/place-value-numbers/n12.mp3",
+          "url": "/audio/place-value-numbers/n12.mp3",
+          "label": "n12",
+          "category": "Прочее",
+          "version": "2e287b56dada3d79"
+        },
+        {
+          "id": "audio/place-value-numbers/n13.mp3",
+          "key": "n13",
+          "path": "audio/place-value-numbers/n13.mp3",
+          "url": "/audio/place-value-numbers/n13.mp3",
+          "label": "n13",
+          "category": "Прочее",
+          "version": "f34a4d36b71e211b"
+        },
+        {
+          "id": "audio/place-value-numbers/n14.mp3",
+          "key": "n14",
+          "path": "audio/place-value-numbers/n14.mp3",
+          "url": "/audio/place-value-numbers/n14.mp3",
+          "label": "n14",
+          "category": "Прочее",
+          "version": "0e1e4b4fa91f690b"
+        },
+        {
+          "id": "audio/place-value-numbers/n15.mp3",
+          "key": "n15",
+          "path": "audio/place-value-numbers/n15.mp3",
+          "url": "/audio/place-value-numbers/n15.mp3",
+          "label": "n15",
+          "category": "Прочее",
+          "version": "daf1230b68b564e5"
+        },
+        {
+          "id": "audio/place-value-numbers/n16.mp3",
+          "key": "n16",
+          "path": "audio/place-value-numbers/n16.mp3",
+          "url": "/audio/place-value-numbers/n16.mp3",
+          "label": "n16",
+          "category": "Прочее",
+          "version": "1e1a0a9aded105e4"
+        },
+        {
+          "id": "audio/place-value-numbers/n17.mp3",
+          "key": "n17",
+          "path": "audio/place-value-numbers/n17.mp3",
+          "url": "/audio/place-value-numbers/n17.mp3",
+          "label": "n17",
+          "category": "Прочее",
+          "version": "6e196624da9ddf84"
+        },
+        {
+          "id": "audio/place-value-numbers/n18.mp3",
+          "key": "n18",
+          "path": "audio/place-value-numbers/n18.mp3",
+          "url": "/audio/place-value-numbers/n18.mp3",
+          "label": "n18",
+          "category": "Прочее",
+          "version": "37f55983abfc5090"
+        },
+        {
+          "id": "audio/place-value-numbers/n19.mp3",
+          "key": "n19",
+          "path": "audio/place-value-numbers/n19.mp3",
+          "url": "/audio/place-value-numbers/n19.mp3",
+          "label": "n19",
+          "category": "Прочее",
+          "version": "4372e58ee656e900"
+        },
+        {
+          "id": "audio/place-value-numbers/n20.mp3",
+          "key": "n20",
+          "path": "audio/place-value-numbers/n20.mp3",
+          "url": "/audio/place-value-numbers/n20.mp3",
+          "label": "n20",
+          "category": "Прочее",
+          "version": "2f9e4a4fb9b957c5"
+        },
+        {
+          "id": "audio/place-value-numbers/n30.mp3",
+          "key": "n30",
+          "path": "audio/place-value-numbers/n30.mp3",
+          "url": "/audio/place-value-numbers/n30.mp3",
+          "label": "n30",
+          "category": "Прочее",
+          "version": "630bea2bd6c1f7d2"
+        },
+        {
+          "id": "audio/place-value-numbers/n40.mp3",
+          "key": "n40",
+          "path": "audio/place-value-numbers/n40.mp3",
+          "url": "/audio/place-value-numbers/n40.mp3",
+          "label": "n40",
+          "category": "Прочее",
+          "version": "0c1757d3f0051e40"
+        },
+        {
+          "id": "audio/place-value-numbers/n50.mp3",
+          "key": "n50",
+          "path": "audio/place-value-numbers/n50.mp3",
+          "url": "/audio/place-value-numbers/n50.mp3",
+          "label": "n50",
+          "category": "Прочее",
+          "version": "ce26d9b7eaf588f8"
+        },
+        {
+          "id": "audio/place-value-numbers/n60.mp3",
+          "key": "n60",
+          "path": "audio/place-value-numbers/n60.mp3",
+          "url": "/audio/place-value-numbers/n60.mp3",
+          "label": "n60",
+          "category": "Прочее",
+          "version": "b8b0d333ab458296"
+        },
+        {
+          "id": "audio/place-value-numbers/n70.mp3",
+          "key": "n70",
+          "path": "audio/place-value-numbers/n70.mp3",
+          "url": "/audio/place-value-numbers/n70.mp3",
+          "label": "n70",
+          "category": "Прочее",
+          "version": "196c2947f5989d39"
+        },
+        {
+          "id": "audio/place-value-numbers/n80.mp3",
+          "key": "n80",
+          "path": "audio/place-value-numbers/n80.mp3",
+          "url": "/audio/place-value-numbers/n80.mp3",
+          "label": "n80",
+          "category": "Прочее",
+          "version": "fb692b5b6606f18d"
+        },
+        {
+          "id": "audio/place-value-numbers/n90.mp3",
+          "key": "n90",
+          "path": "audio/place-value-numbers/n90.mp3",
+          "url": "/audio/place-value-numbers/n90.mp3",
+          "label": "n90",
+          "category": "Прочее",
+          "version": "fb5d7ab697c8ad72"
+        },
+        {
+          "id": "audio/place-value-numbers/n100.mp3",
+          "key": "n100",
+          "path": "audio/place-value-numbers/n100.mp3",
+          "url": "/audio/place-value-numbers/n100.mp3",
+          "label": "n100",
+          "category": "Прочее",
+          "version": "e3b50c92e227f4f3"
+        },
+        {
+          "id": "audio/place-value-numbers/n200.mp3",
+          "key": "n200",
+          "path": "audio/place-value-numbers/n200.mp3",
+          "url": "/audio/place-value-numbers/n200.mp3",
+          "label": "n200",
+          "category": "Прочее",
+          "version": "2e05cae164ee5474"
+        },
+        {
+          "id": "audio/place-value-numbers/n300.mp3",
+          "key": "n300",
+          "path": "audio/place-value-numbers/n300.mp3",
+          "url": "/audio/place-value-numbers/n300.mp3",
+          "label": "n300",
+          "category": "Прочее",
+          "version": "95f178f135600021"
+        },
+        {
+          "id": "audio/place-value-numbers/n400.mp3",
+          "key": "n400",
+          "path": "audio/place-value-numbers/n400.mp3",
+          "url": "/audio/place-value-numbers/n400.mp3",
+          "label": "n400",
+          "category": "Прочее",
+          "version": "b504a3bdc173b2df"
+        },
+        {
+          "id": "audio/place-value-numbers/n500.mp3",
+          "key": "n500",
+          "path": "audio/place-value-numbers/n500.mp3",
+          "url": "/audio/place-value-numbers/n500.mp3",
+          "label": "n500",
+          "category": "Прочее",
+          "version": "57ef2a35c4fb1831"
+        },
+        {
+          "id": "audio/place-value-numbers/n600.mp3",
+          "key": "n600",
+          "path": "audio/place-value-numbers/n600.mp3",
+          "url": "/audio/place-value-numbers/n600.mp3",
+          "label": "n600",
+          "category": "Прочее",
+          "version": "2475a2ddd2883497"
+        },
+        {
+          "id": "audio/place-value-numbers/n700.mp3",
+          "key": "n700",
+          "path": "audio/place-value-numbers/n700.mp3",
+          "url": "/audio/place-value-numbers/n700.mp3",
+          "label": "n700",
+          "category": "Прочее",
+          "version": "d8948b90b9383920"
+        },
+        {
+          "id": "audio/place-value-numbers/n800.mp3",
+          "key": "n800",
+          "path": "audio/place-value-numbers/n800.mp3",
+          "url": "/audio/place-value-numbers/n800.mp3",
+          "label": "n800",
+          "category": "Прочее",
+          "version": "50fadc1c4d7fca99"
+        },
+        {
+          "id": "audio/place-value-numbers/n900.mp3",
+          "key": "n900",
+          "path": "audio/place-value-numbers/n900.mp3",
+          "url": "/audio/place-value-numbers/n900.mp3",
+          "label": "n900",
+          "category": "Прочее",
+          "version": "83b6f67c0b34642a"
+        },
+        {
+          "id": "audio/place-value-numbers/n1000.mp3",
+          "key": "n1000",
+          "path": "audio/place-value-numbers/n1000.mp3",
+          "url": "/audio/place-value-numbers/n1000.mp3",
+          "label": "n1000",
+          "category": "Прочее",
+          "version": "c93d398b13128d0b"
+        }
+      ]
+    },
+    {
       "id": "audio/propis-dictation",
       "title": "Прописи — диктант",
       "items": [

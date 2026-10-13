@@ -1,3 +1,4 @@
+import { getBuiltinVisibility } from "./topic-catalog.mjs";
 import {
   findAccountById, getAccountSettings, getRevision,
   getStudents, getAccountTopics,
@@ -25,6 +26,7 @@ export function buildBootstrap(db, accountId) {
 
   return {
     account: serializeAccount(account),
+    builtinVisibility: getBuiltinVisibility(db),
     subscription,
     settings: {
       uiLanguage:       settings?.ui_language ?? "ru",
@@ -34,6 +36,7 @@ export function buildBootstrap(db, accountId) {
       pushTopicUpdates: Boolean(settings?.push_topic_updates ?? 1),
       pushReminders:    Boolean(settings?.push_reminders ?? 0),
     },
+    erasedStudentIds: db.prepare("SELECT student_id FROM erased_students WHERE account_id=?").all(accountId).map(s => s.student_id),
     students: students.map((s) => ({
       id:              s.id,
       name:            s.name,

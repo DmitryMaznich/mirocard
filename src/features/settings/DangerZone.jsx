@@ -35,7 +35,8 @@ export default function DangerZone() {
     <div className="danger-zone">
       <div className="danger-zone__title">Удаление аккаунта</div>
       <p className="danger-zone__text">
-        Это действие необратимо. Все ученики, занятия и история прогресса будут удалены безвозвратно.
+        Аккаунт будет перенесён в удалённые, вход на всех устройствах будет закрыт.
+        Ученики, занятия и история сохранятся на сервере. Для восстановления или полного удаления обратитесь к администратору.
       </p>
 
       {!open ? (
@@ -60,7 +61,7 @@ export default function DangerZone() {
               Отмена
             </Button>
             <Button variant="danger" onClick={handleDelete} disabled={!canDelete || deleting}>
-              {deleting ? "Удаляем…" : "Удалить навсегда"}
+              {deleting ? "Удаляем…" : "Удалить аккаунт"}
             </Button>
           </div>
         </div>

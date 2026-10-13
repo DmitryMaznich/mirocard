@@ -8,22 +8,16 @@ import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials, extractYoutubeId } from "@/shared/utils/format";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rewardVideoViewCount } from "@/shared/utils/rewardVideoViews";
+import StudentDataInfo from "./StudentDataInfo";
 
 function generateStudentId() {
   return "student_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
-}
-function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 }
 function normaliseVideos(raw) {
   if (!Array.isArray(raw)) return [];
   return raw.map((v) =>
     typeof v === "string" ? { url: v, title: null } : { url: v.url ?? "", title: v.title ?? null }
   );
-}
-function normaliseAdults(raw) {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((a) => ({ id: a.id, name: a.name ?? "", photo: a.photo ?? null }));
 }
 function photoErrorMessage(error) {
   return error instanceof PhotoPrepareError ? error.message : "Не получилось добавить фото. Попробуйте ещё раз.";
@@ -40,69 +34,6 @@ const SEXES = [
   { value: "m", label: "Мальчик"   },
   { value: "f", label: "Девочка"   },
 ];
-
-function AdultAddForm({ onConfirm, onCancel }) {
-  const [name, setName] = useState("");
-  const [photo, setPhoto] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [photoError, setPhotoError] = useState("");
-  const photoRef  = useRef(null);
-  const cameraRef = useRef(null);
-
-  async function handleFile(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
-    setLoading(true);
-    setPhotoError("");
-    try {
-      setPhoto(await squarePhotoDataUrl(file, { maxSize: 200, quality: 0.85 }));
-    } catch (error) {
-      setPhotoError(photoErrorMessage(error));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function confirm() {
-    if (name.trim()) onConfirm({ id: generateId(), name: name.trim(), photo });
-  }
-
-  return (
-    <div className="se-adult-add-form">
-      <div className="se-adult-add-form__row">
-        {photo ? (
-          <AuthenticatedImage src={photo} className="se-adult-add-form__preview" onClick={() => cameraRef.current?.click()} alt="" />
-        ) : (
-          <div className="se-adult-add-form__photo-btns">
-            <button type="button" className="se-adult-add-form__photo-btn" onClick={() => cameraRef.current?.click()} disabled={loading}>
-              {loading ? "…" : "📷"}
-            </button>
-            <button type="button" className="se-adult-add-form__photo-btn" onClick={() => photoRef.current?.click()} disabled={loading}>
-              🖼
-            </button>
-          </div>
-        )}
-        <input
-          className="se-adult-add-form__input"
-          type="text"
-          placeholder="Имя (Мама, Папа, …)"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && confirm()}
-          autoFocus
-        />
-        <input ref={cameraRef} type="file" accept={PHOTO_ACCEPT} capture="user" style={{ display: "none" }} onChange={handleFile} />
-        <input ref={photoRef}  type="file" accept={PHOTO_ACCEPT}               style={{ display: "none" }} onChange={handleFile} />
-      </div>
-      {photoError && <div className="se-name-error" role="alert">{photoError}</div>}
-      <div className="se-adult-add-form__actions">
-        <Button variant="secondary" onClick={onCancel}>Отмена</Button>
-        <Button variant="primary" onClick={confirm} disabled={!name.trim()}>Добавить</Button>
-      </div>
-    </div>
-  );
-}
 
 export default function StudentEditScreen() {
   const setScreen           = useAppStore((s) => s.setScreen);
@@ -127,8 +58,6 @@ export default function StudentEditScreen() {
   const [videoInput,   setVideoInput]   = useState("");
   const [videoError,   setVideoError]   = useState("");
   const [videoLoading, setVideoLoading] = useState(false);
-  const [adults,       setAdults]       = useState(() => normaliseAdults(initial?.closeAdults));
-  const [addingAdult,  setAddingAdult]  = useState(false);
   const [nameError,    setNameError]    = useState("");
   const [confirmDel,   setConfirmDel]   = useState(false);
   const [saving,       setSaving]       = useState(false);
@@ -161,7 +90,8 @@ export default function StudentEditScreen() {
     }
   }
 
-  async function handleSave() {
+  async function handleSave(destination = null) {
+    let savedId = initial?.id;
     if (!name.trim()) { setNameError("Введите имя ученика"); return; }
     if (comment.trim() && !healthDataConsent) {
       setHealthConsentError("Отметьте согласие ниже, если в заметках есть сведения о здоровье или особенностях развития");
@@ -179,7 +109,7 @@ export default function StudentEditScreen() {
       name: name.trim(), comment: comment.trim(),
       primaryLanguage: lang || null,
       sex: sex || null,
-      rewardVideos: videos, closeAdults: adults,
+      rewardVideos: videos,
       healthDataConsent, healthDataConsentAt,
     };
     const db = await getDb();
@@ -189,13 +119,11 @@ export default function StudentEditScreen() {
       // of the student was stale (another device added videos/adults meanwhile), an
       // untouched list here must NOT be pushed as if it were a deliberate change.
       const videosChanged = JSON.stringify(videos) !== JSON.stringify(normaliseVideos(initial.rewardVideos));
-      const adultsChanged = JSON.stringify(adults) !== JSON.stringify(normaliseAdults(initial.closeAdults));
       const rewardVideosUpdatedAt = videosChanged ? ts : (initial.rewardVideosUpdatedAt ?? null);
-      const closeAdultsUpdatedAt  = adultsChanged ? ts : (initial.closeAdultsUpdatedAt ?? null);
       const updated = {
-        ...initial, ...data,
+        ...useAppStore.getState().students.find((item) => item.id === initial.id), ...data,
         photo: photo ?? null, photoUpdatedAt,
-        rewardVideosUpdatedAt, closeAdultsUpdatedAt,
+        rewardVideosUpdatedAt,
         updatedAt: ts,
       };
       const next = students.map((s) => (s.id === initial.id ? updated : s));
@@ -211,9 +139,7 @@ export default function StudentEditScreen() {
       if (videosChanged) {
         pushOp("student.videos.upsert", { studentId: initial.id, rewardVideos: videos, updatedAt: ts });
       }
-      if (adultsChanged) {
-        pushOp("student.adults.upsert", { studentId: initial.id, closeAdults: adults, updatedAt: ts });
-      }
+
     } else {
       const photoUpdatedAt = photo ? ts : null;
       const student = {
@@ -221,6 +147,7 @@ export default function StudentEditScreen() {
         photo: photo ?? null, photoUpdatedAt,
         createdAt: ts, updatedAt: ts,
       };
+      savedId = student.id;
       const next = [...students, student];
       await kv.set(db, "students", next);
       setStudents(next);
@@ -231,7 +158,11 @@ export default function StudentEditScreen() {
         pushOp("student.photo.upsert", { studentId: student.id, photo, photoUpdatedAt: ts });
       }
     }
-    goBack();
+    if (destination === 'my_people_settings') {
+      useAppStore.getState().setEditingStudentId(savedId);
+      useAppStore.getState().setMyPeopleReturnScreen('student_edit');
+      setScreen('my_people_settings');
+    } else goBack();
   }
 
   async function handleDelete() {
@@ -270,6 +201,7 @@ export default function StudentEditScreen() {
 
         {/* ── Профиль ── */}
         <div className="settings-section">
+          <div className="settings-section-title student-data-heading">Имя и фото <StudentDataInfo kind="profile" /></div>
           <div className="se-profile-row">
             <button
               type="button"
@@ -301,6 +233,7 @@ export default function StudentEditScreen() {
           </div>
           {nameError && <div className="se-name-error">{nameError}</div>}
           {photoError && <div className="se-name-error" role="alert">{photoError}</div>}
+          <div className="settings-section-title student-data-heading">Заметки <StudentDataInfo kind="notes" /></div>
           <textarea
             className="se-comment-input"
             value={comment}
@@ -324,7 +257,7 @@ export default function StudentEditScreen() {
 
         {/* ── Пол ── */}
         <div className="settings-section">
-          <div className="settings-section-title">Пол</div>
+          <div className="settings-section-title student-data-heading">Пол <StudentDataInfo kind="sex" /></div>
           {SEXES.map(({ value, label }) => (
             <button
               key={value}
@@ -340,7 +273,7 @@ export default function StudentEditScreen() {
 
         {/* ── Язык ── */}
         <div className="settings-section">
-          <div className="settings-section-title">Язык</div>
+          <div className="settings-section-title student-data-heading">Язык <StudentDataInfo kind="language" /></div>
           {LANGS.map(({ value, label }) => (
             <button
               key={value}
@@ -357,21 +290,18 @@ export default function StudentEditScreen() {
        </div>{/* /se-col left */}
        <div className="se-col">
 
-        {/* ── Мои люди ── */}
-        {isEdit && (
-          <div className="settings-section se-my-people-card">
-            <div className="settings-section-title">Мои люди</div>
-            <p>Семья, люди дома, школа и личные ответы для индивидуальной темы.</p>
-            <button type="button" className="se-add-row" onClick={() => { useAppStore.getState().setMyPeopleReturnScreen("student_edit"); setScreen("my_people_settings"); }}>
-              {initial.myPeople?.some((person) => !person.deletedAt) ? "Настроить тему" : "Заполнить тему"}
-            </button>
-          </div>
-        )}
+        <div className="settings-section se-my-people-card">
+          <div className="settings-section-title">Окружение ребёнка</div>
+          <p>Добавьте знакомых людей и питомцев — их фотографии будут использоваться в занятиях.</p>
+          <button type="button" className="se-add-row" disabled={saving} onClick={() => handleSave('my_people_settings')}>
+            {isEdit ? 'Настроить окружение' : 'Сохранить и добавить окружение'}
+          </button>
+        </div>
 
         {/* ── Важные даты ── */}
         {isEdit && (
           <div className="settings-section se-my-people-card">
-            <div className="settings-section-title">Важные даты</div>
+            <div className="settings-section-title student-data-heading">Важные даты <StudentDataInfo kind="dates" /></div>
             <p>Дни рождения, праздники и события — для экрана «Сегодня».</p>
             <button type="button" className="se-add-row" onClick={() => { useAppStore.getState().setImportantDatesReturnScreen("student_edit"); setScreen("important_dates_settings"); }}>
               {initial.importantDates?.some((item) => !item.deletedAt) ? "Настроить даты" : "Добавить даты"}
@@ -379,33 +309,9 @@ export default function StudentEditScreen() {
           </div>
         )}
 
-        {/* ── Близкие взрослые ── */}
-        <div className="settings-section">
-          <div className="settings-section-title">Близкие взрослые</div>
-          {adults.map((adult) => (
-            <div key={adult.id} className="se-list-row">
-              {adult.photo
-                ? <AuthenticatedImage src={adult.photo} className="se-list-avatar" alt={adult.name} />
-                : <div className="se-list-avatar se-list-avatar--initials">{getInitials(adult.name)}</div>
-              }
-              <span className="se-list-name">{adult.name}</span>
-              <button className="se-list-remove" onClick={() => setAdults((p) => p.filter((a) => a.id !== adult.id))}>✕</button>
-            </div>
-          ))}
-          {addingAdult
-            ? <AdultAddForm
-                onConfirm={(a) => { setAdults((p) => [...p, a]); setAddingAdult(false); }}
-                onCancel={() => setAddingAdult(false)}
-              />
-            : <button type="button" className="se-add-row" onClick={() => setAddingAdult(true)}>
-                + Добавить взрослого
-              </button>
-          }
-        </div>
-
         {/* ── Видео-награды ── */}
         <div className="settings-section">
-          <div className="settings-section-title">Видео-награды</div>
+          <div className="settings-section-title student-data-heading">Видео-награды <StudentDataInfo kind="videos" /></div>
           {videos.map((v, idx) => (
             <div key={idx} className="se-list-row">
               <span className="se-video-icon">▶</span>

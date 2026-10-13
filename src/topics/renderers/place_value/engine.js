@@ -1,6 +1,20 @@
+import { numberNameOptions, numberNamesNumber } from "./numberNames.js";
 // "Разряды числа" (place_value): number models built from coins (единицы) and
 // stacks of ten (десятки). Split out of column_addition, where these three
 // modes used to live as a warm-up before the column trainer.
+
+// «Какое число дальше?» after `n` (counting by tens): the right one and the two
+// mistakes that matter — a unit added instead of a ten (91), and the one of
+// this number: 90 → 900 (heard «девяносто» → «девятьсот»), 100 → 1010 («сто
+// десять» written as heard), elsewhere a hundred added instead of a ten
+// (190 → 290: the first digit taken for «the one that grows»).
+export function countTensOptions(n) {
+  const right = n + 10;
+  const special = n === 90 ? 900 : n % 100 === 0 ? Number(`${n / 10}10`) : n + 100;
+  const options = [right, n + 1, special];
+  for (let i = options.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [options[i], options[j]] = [options[j], options[i]]; }
+  return options;
+}
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -80,6 +94,33 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const exchangeCards       = allCards.filter(c => c.params?.mode === "exchange_ten");
   const groupTenCards       = allCards.filter(c => c.params?.mode === "group_ten");
 
+  // «Числа: до 1000» — three-digit numbers for «Какое это число?» and «Собери
+  // число» (HundredsTasks.jsx). On coins at most 5 hundreds (up to 599: more
+  // plates don't fit a phone). A quarter have no tens and some no ones — the
+  // placeholder zero (305, 340) is the point.
+  if ((mode === "build_number" || mode === "identify_number") && params.range === "to1000") {
+    const cards = mode === "build_number" ? buildNumberCards : identifyNumberCards;
+    if (!cards.length) return [];
+    const view = ["scheme", "table", "number"].includes(params.view) && !(mode === "identify_number" && params.view === "number") ? params.view : "coins";
+    const maxHundreds = view === "coins" ? 5 : 9;
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      const hundreds = randomInt(1, maxHundreds);
+      const r = Math.random();
+      const tens = r < 0.25 ? 0 : randomInt(1, 9);
+      const ones = r >= 0.25 && r < 0.4 ? 0 : randomInt(r < 0.25 ? 1 : 0, 9);
+      const number = hundreds * 100 + tens * 10 + ones;
+      const counts = { hundreds, tens, ones };
+      const prompt = params.prompt ?? "digits";
+      tasks.push({
+        type: mode, cardId: cards[i % cards.length].id, conceptId: cards[i % cards.length].conceptId, number,
+        ...(mode === "build_number" ? { target: counts, prompt: prompt === "mix" ? (Math.random() < 0.5 ? "digits" : "words") : prompt === "words" ? "words" : "digits" } : { model: counts, layout: "places" }),
+        view, supportMode: params.supportMode ?? "learning",
+      });
+    }
+    return tasks;
+  }
+
   if (mode === "build_number") {
     if (!buildNumberCards.length) return [];
     const maxOnes = Number(params.maxOnes ?? 9);
@@ -92,6 +133,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
         // «Цифрами» / «Словами» / «Микс» — how the number is given (see BuildNumberTask).
         prompt: prompt === "mix" ? (Math.random() < 0.5 ? "digits" : "words") : prompt === "words" ? "words" : "digits",
         supportMode: params.supportMode ?? "learning",
+        view: ["scheme", "table", "number"].includes(params.view) ? params.view : "coins",
       });
     }
     return tasks;
@@ -108,6 +150,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
         ...identifyLayout(task.number, params.layout ?? "places"),
         seed: randomInt(1, 100000),
         supportMode: params.supportMode ?? "learning",
+        view: ["scheme", "table"].includes(params.view) ? params.view : "coins",
       });
     }
     return tasks;
@@ -128,14 +171,118 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     }));
   }
 
+  if (mode === "count_tens") {
+    // «Считаем десятками»: short stretches of counting by tens across a round
+    // hundred (70 → 130), the crossing in the middle — that is where the child
+    // goes wrong, so it comes 4–5 times a session instead of twice in one long
+    // count. The very first task of «Смотри и считай» counts 0 → 100 so the
+    // first hundred is seen being born whole.
+    const cards = allCards.filter((c) => c.params?.mode === "count_tens");
+    const card = (i) => cards[i % cards.length] ?? { id: "count_tens", conceptId: "count_tens" };
+    const next = params.task === "next";
+    const top = params.range === "to1000" ? 9 : 2;
+    const tasks = [];
+    let lastH = null;
+    for (let i = 0; i < count; i++) {
+      let h;
+      do h = randomInt(1, top) * 100; while (top > 1 && h === lastH);
+      lastH = h;
+      const base = { type: "count_tens", cardId: card(i).id, conceptId: card(i).conceptId, supportMode: params.supportMode ?? "learning" };
+      if (next) {
+        // Half on the crossing itself (90 → ?), a quarter just after it
+        // (100 → ?, where «1010» lives), a quarter in between (130 → ?).
+        const roll = Math.random();
+        const number = roll < 0.5 ? h - 10 : roll < 0.75 ? h : h + 10 * randomInt(1, 8);
+        tasks.push({ ...base, task: "next", number, options: countTensOptions(number) });
+      } else if (params.task === "back") {
+        // The mirror: from just above a hundred down across it (230 → 170).
+        const start = h + 10 * randomInt(2, 3);
+        const end = h - 10 * randomInt(3, 5);
+        tasks.push({ ...base, task: "back", number: start, start, end });
+      } else {
+        const start = i === 0 ? 0 : h - 10 * randomInt(3, 5);
+        const end = i === 0 ? 100 : h + 10 * randomInt(2, 3);
+        tasks.push({ ...base, task: "count", number: start, start, end });
+      }
+    }
+    return tasks;
+  }
+
+  if (mode === "number_names") {
+    // Added after the deck shipped — same card fallback as place_parts.
+    const cards = allCards.filter((c) => c.params?.mode === "number_names");
+    const card = (i) => cards[i % cards.length] ?? { id: "number_names", conceptId: "number_names" };
+    const tasks = [];
+    let last = null;
+    for (let i = 0; i < count; i++) {
+      let number;
+      do number = numberNamesNumber(params.set ?? "tens"); while (number === last);
+      last = number;
+      tasks.push({ type: "number_names", cardId: card(i).id, conceptId: card(i).conceptId, number, options: numberNameOptions(number), task: ["write", "read"].includes(params.task) ? params.task : "choose", supportMode: params.supportMode ?? "learning" });
+    }
+    return tasks;
+  }
+
+  if (mode === "place_parts") {
+    // Added after the deck shipped: installed records may have no card for it
+    // yet, so fall back to a card of the same id (stats key on conceptId).
+    const cards = allCards.filter((c) => c.params?.mode === "place_parts");
+    const card = (i) => cards[i % cards.length] ?? { id: "place_parts", conceptId: "place_parts" };
+    const maxTens = Math.min(9, Math.max(1, Number(params.maxTens ?? 9)));
+    const seen = new Set();
+    const tasks = [];
+    for (let i = 0; i < count; i++) {
+      let number = 0;
+      for (let tries = 0; tries < 20; tries++) {
+        // No round tens («40 = 40 + 0» teaches nothing); up to 1000 a quarter
+        // have no tens (305 = 300 + 5) and none is a round hundred.
+        if (params.range === "to1000") {
+          const r = Math.random();
+          number = randomInt(1, 9) * 100 + (r < 0.25 ? 0 : randomInt(1, 9)) * 10 + (r >= 0.25 && r < 0.35 ? 0 : randomInt(1, 9));
+        } else number = randomInt(1, maxTens) * 10 + randomInt(1, 9);
+        if (!seen.has(number)) break;
+      }
+      seen.add(number);
+      const direction = params.direction === "join" ? "join" : params.direction === "mix" ? (Math.random() < 0.5 ? "split" : "join") : "split";
+      const prompt = params.prompt === "words" ? "words" : params.prompt === "mix" ? (Math.random() < 0.5 ? "words" : "digits") : "digits";
+      tasks.push({ type: "place_parts", cardId: card(i).id, conceptId: card(i).conceptId, number, direction, prompt, supportMode: params.supportMode ?? "learning" });
+    }
+    return tasks;
+  }
+
   if (mode === "exchange_ten") {
     if (!exchangeCards.length) return [];
+    // «Числа: до 1000»: one crossing of a hundred, the second number round
+    // tens (190 + 20, 210 − 30); half the tasks cross, half don't. Scheme or
+    // table only — on coins a hundred-exchange doesn't fit a phone.
+    if (params.range === "to1000") {
+      const flags = exchangeFlags(count);
+      return flags.map((cross, i) => {
+        const op = params.operation === "get" ? "get" : params.operation === "mixed" ? (Math.random() < 0.5 ? "get" : "give") : "give";
+        const kT = randomInt(1, 9);
+        let h, t;
+        if (op === "get") {
+          h = randomInt(1, 8);
+          t = cross ? randomInt(Math.max(1, 10 - kT), 9) : randomInt(0, 9 - kT);
+        } else {
+          h = randomInt(cross ? 2 : 1, 9);
+          t = cross ? randomInt(0, kT - 1) : randomInt(kT, 9);
+        }
+        const o = randomInt(0, 9);
+        const number = h * 100 + t * 10 + o, k = kT * 10;
+        const card = exchangeCards[i % exchangeCards.length];
+        return { type: "exchange_ten", cardId: card.id, conceptId: card.conceptId, op, k, number, start: { hundreds: h, tens: t, ones: o },
+          result: op === "get" ? number + k : number - k, needsExchange: cross, view: params.view === "table" ? "table" : "scheme",
+          supportMode: params.supportMode ?? "learning" };
+      });
+    }
     const flags = exchangeFlags(count);
     const tasks = [];
     for (let i = 0; i < count; i++) {
       tasks.push({
         ...generateExchangeTask(exchangeCards[i % exchangeCards.length], params, flags[i]),
         supportMode: params.supportMode ?? "learning",
+        view: ["scheme", "table"].includes(params.view) ? params.view : "coins",
       });
     }
     return tasks;

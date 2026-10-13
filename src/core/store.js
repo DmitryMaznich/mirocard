@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS } from "@/topics/builtinTopics";
+import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS, applyBuiltinVisibility } from "@/topics/builtinTopics";
 
 export const useAppStore = create((set) => ({
   // ─── Navigation ────────────────────────────────────────────────────────────
@@ -142,11 +142,12 @@ export const useAppStore = create((set) => ({
 
   // ─── Topics ────────────────────────────────────────────────────────────────
   ownedTopics: [],
+  builtinVisibility: {},
   topicRecords: [...BUILTIN_TOPICS],
   setOwnedTopics: (ownedTopics) => set({ ownedTopics }),
-  setTopicRecords: (topicRecords) => set({
-    topicRecords: [...BUILTIN_TOPICS, ...(topicRecords ?? []).filter((r) => !BUILTIN_TOPIC_IDS.has(r.meta.id))],
-  }),
+  setTopicRecords: (topicRecords) => set((s) => ({
+    topicRecords: applyBuiltinVisibility(topicRecords ?? [], s.builtinVisibility ?? {}),
+  })),
   upsertTopicRecord: (record) => set((s) => {
     if (BUILTIN_TOPIC_IDS.has(record.meta.id)) return s;
     return {

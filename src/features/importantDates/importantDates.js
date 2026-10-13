@@ -1,4 +1,5 @@
 import { pluralRu } from "@/shared/utils/format";
+import { resolvePerson } from "../../../shared/student-people.mjs";
 
 // A child's important dates: birthdays (their own and close people's),
 // holidays and one-off events ("Идём в новую школу"). Kept on the student
@@ -249,7 +250,7 @@ export function suggestBirthdayTitle(person) {
 export function cardPhoto(item, myPeople) {
   if (item.photo) return item.photo;
   if (!item.personId) return null;
-  const person = (myPeople ?? []).find((candidate) => candidate.id === item.personId && !candidate.deletedAt);
+  const person = resolvePerson(myPeople, item.personId);
   return person?.photos?.find(Boolean) ?? null;
 }
 

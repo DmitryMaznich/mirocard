@@ -37,6 +37,7 @@ describe("bootstrap helpers", () => {
       students: [],
       ownedTopics: [],
       topicRecords: [],
+      builtinVisibility: {},
       activeStudentId: null,
       activeTopicId: null,
       activeModeId: null,
@@ -441,4 +442,37 @@ describe("bootstrap helpers", () => {
     expect(userRecords).toHaveLength(1);
     expect(userRecords[0].meta.id).toBe("topic-1");
   });
+  it("admin-erased pupils disappear from store and disk despite stale local records", async () => {
+    const db=await freshDb();
+    await kv.set(db,"students",[{id:"gone",name:"Old"},{id:"keep",name:"Keep"}]);
+    await kv.set(db,"lastContext",{studentId:"gone",topicId:"t"});
+    useAppStore.setState({students:[{id:"gone"},{id:"keep"}],activeStudentId:"gone",screen:"session"});
+    const raw={students:[{id:"keep"}],erasedStudentIds:["gone"]};
+    applyBootstrapToStore(raw);
+    expect(useAppStore.getState().students.map(s=>s.id)).toEqual(["keep"]);
+    expect(useAppStore.getState().activeStudentId).toBeNull();
+    await persistBootstrap(db,raw);
+    expect((await kv.get(db,"students")).map(s=>s.id)).toEqual(["keep"]);
+    expect(await kv.get(db,"lastContext")).toBeNull();
+  });
+
+  it("hidden builtin topics stay hidden across store updates and offline reload, then can be restored",async()=>{
+    const db=await freshDb();const hidden={builtinVisibility:{streak_tracker:false}};
+    applyBootstrapToStore(hidden);expect(useAppStore.getState().topicRecords.some(t=>t.meta.id==="streak_tracker")).toBe(false);
+    useAppStore.getState().setTopicRecords([]);expect(useAppStore.getState().topicRecords.some(t=>t.meta.id==="streak_tracker")).toBe(false);
+    await persistBootstrap(db,hidden);
+    expect((await loadLocalBootstrap(db)).topicRecords.some(t=>t.meta.id==="streak_tracker")).toBe(false);
+    applyBootstrapToStore({builtinVisibility:{streak_tracker:true}});expect(useAppStore.getState().topicRecords.some(t=>t.meta.id==="streak_tracker")).toBe(true);
+  });
+
+  it("periodic server refresh retains the current login when no replacement token is supplied",()=>{
+    useAppStore.setState({token:"persistent-login",account:{id:"owner"}});
+    applyBootstrapToStore({account:{id:"owner"},builtinVisibility:{streak_tracker:false}});
+    expect(useAppStore.getState().token).toBe("persistent-login");
+    applyBootstrapToStore({builtinVisibility:{streak_tracker:true}});
+    expect(useAppStore.getState().account.id).toBe("owner");
+    applyBootstrapToStore({token:null,account:null});
+    expect(useAppStore.getState().token).toBeNull();
+  });
+
 });

@@ -1,0 +1,64 @@
+/* «Названия чисел» (NumberNamesTask.jsx): the «диктор» listen button and three
+   written numbers to choose from. */
+.nn-screen { padding: 12px 16px calc(16px + var(--app-safe-bottom, 0px)); overflow-y: auto; }
+.nn-inner { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; }
+.nn-screen--tablet .nn-option, .nn-screen--wide .nn-option { min-width: 150px; min-height: 120px; font-size: 76px; }
+.nn-options { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.nn-option {
+  min-width: 104px; min-height: 92px; padding: 8px 16px;
+  border: 3px solid #cbd5e1; border-radius: 18px; background: #fff; box-shadow: 0 4px 0 #cbd5e1;
+  font: 900 clamp(40px, 11vw, 64px) Nunito, sans-serif; color: #1a1a2e; font-variant-numeric: tabular-nums;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.nn-option:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
+.nn-option--right { border-color: #22c55e; background: #dcfce7; box-shadow: 0 4px 0 #16a34a; }
+.nn-option--wrong { border-color: #ef4444; background: #fef2f2; box-shadow: none; opacity: .6; animation: px-shake .4s ease-in-out; }
+.nn-status { min-height: 52px; }
+.nn-slot { min-height: 64px; display: grid; place-items: center; }
+
+/* «Диктор» — the listen button of the dictation (propis) and «Слушай и
+   посчитай» (addition_subtraction, .operation-audio-diktor in styles.css),
+   copied here per the family-CSS rule. */
+.nn-diktor-wrap { position: relative; width: clamp(115px, 31vw, 158px); height: clamp(115px, 31vw, 158px); display: flex; align-items: center; justify-content: center; }
+.nn-ripple { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #2f6f65; opacity: 0; pointer-events: none; }
+.nn-diktor-wrap--playing .nn-ripple { animation: nn-ripple 1600ms ease-out infinite; }
+.nn-diktor-wrap--playing .nn-ripple:nth-child(2) { animation-delay: 400ms; }
+.nn-diktor-wrap--playing .nn-ripple:nth-child(3) { animation-delay: 800ms; }
+@keyframes nn-ripple { 0% { transform: scale(1); opacity: 0.45; } 100% { transform: scale(1.85); opacity: 0; } }
+.nn-diktor {
+  position: relative; width: 100%; height: 100%; border: none; border-radius: 50%;
+  background: linear-gradient(160deg, #4a9b8f, #2f6f65);
+  box-shadow: 0 10px 24px rgba(47, 111, 101, 0.32), inset 0 -6px 0 rgba(0, 0, 0, 0.12);
+  display: flex; align-items: center; justify-content: center; gap: clamp(6px, 1.7vw, 11px); padding: 0;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.1s ease;
+}
+.nn-diktor:active:not(:disabled) { transform: scale(0.96); }
+.nn-diktor:disabled { cursor: default; }
+.nn-bar { width: clamp(7px, 1.9vw, 12px); height: 30%; border-radius: 999px; background: #eafcf6; opacity: 0.75; }
+.nn-diktor--playing .nn-bar { animation: nn-bounce 900ms ease-in-out infinite; }
+.nn-bar:nth-child(2) { animation-delay: 140ms; }
+.nn-bar:nth-child(3) { animation-delay: 280ms; }
+.nn-bar:nth-child(4) { animation-delay: 420ms; }
+@keyframes nn-bounce { 0%, 100% { height: 26%; opacity: 0.7; } 50% { height: 70%; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .nn-ripple, .nn-bar { animation: none !important; } }
+
+/* «Услышь и напиши»: the answer field under the «диктор». */
+.nn-answer { display: grid; justify-items: center; }
+.nn-choose-hint { font-size: 18px; font-weight: 800; color: #1d4ed8; text-align: center; }
+.nn-slot .fp-keys { width: min(100%, 420px); }
+/* Four digits («3005» — the mistake to catch) must fit the field. */
+.nn-answer .fp-field--big .fp-value { width: auto; min-width: 130px; padding: 0 14px; }
+/* Three three-digit options in one phone row. */
+.nn-screen--phone .nn-options { gap: 10px; }
+.nn-screen--phone .nn-option { min-width: 96px; padding: 8px 10px; font-size: clamp(34px, 9.5vw, 56px); }
+/* The compact two-row keypad everywhere: the screen already holds the «диктор». */
+.nn-screen--tablet .nn-inner, .nn-screen--wide .nn-inner { gap: 20px; }
+.nn-screen--tablet .nn-diktor-wrap, .nn-screen--wide .nn-diktor-wrap { width: 130px; height: 130px; }
+
+/* «Прочитай и выбери название»: the written number and three names. */
+.nn-number { font-size: clamp(72px, 22vw, 128px); font-weight: 900; line-height: 1; color: #1a1a2e; font-variant-numeric: tabular-nums; }
+.nn-options--words { flex-direction: column; align-items: stretch; width: min(100%, 420px); }
+.nn-option.nn-word { min-height: 64px; font-size: clamp(24px, 6.5vw, 32px); font-weight: 800; display: block; text-align: center; }
+.nn-w--hundreds { color: #15803d; }
+.nn-w--tens { color: #b45309; }
+.nn-w--ones { color: #1d4ed8; }

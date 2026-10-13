@@ -80,25 +80,23 @@
   transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
 }
 
+/* Zone heading = a flat marker in the place colour (the same orange as the
+   sticks / blue as the dots), white text. No colour chip: on the «Схема» a
+   blue chip read as one more dot. 18px bold so white on #d97706 (≈3.2:1)
+   still meets the large-text contrast; flat, no shadow — not a button. */
 .px-zone h3 {
   margin: 0 0 8px;
-  font-size: 15px;
+  width: fit-content;
+  padding: 3px 12px;
+  border-radius: 8px;
+  font-size: 18px;
   font-weight: 800;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  line-height: 1.25;
+  color: #fff;
 }
 
-.px-chip {
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-}
-
-.px-zone--tens h3 { color: var(--px-tens-dark); }
-.px-zone--tens .px-chip { background: var(--px-tens); }
-.px-zone--ones h3 { color: var(--px-ones-dark); }
-.px-zone--ones .px-chip { background: var(--px-ones); }
+.px-zone--tens h3 { background: var(--px-tens); }
+.px-zone--ones h3 { background: var(--px-ones); }
 
 .px-zone--tens { flex: 0 0 auto; width: calc(var(--coin-size) * 6.4 + 28px); }
 .px-zone--ones { flex: 0 0 auto; width: calc(var(--coin-size) * 6.2 + 28px); }
@@ -612,3 +610,7 @@
   .px-col h3 { display: none; }
   .px-nb { --nb-cell: 26px; }
 }
+
+/* Through the hundred (ExchangeHundred.jsx): the frame holds ten sticks. */
+.px-tenframe--tall .px-tf { grid-auto-rows: calc(var(--coin-size) * 2.1); }
+.px-tenframe--tall .px-tf-slot { height: calc(var(--coin-size) * 2.1); border-radius: 10px; }

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { studentPeople, legacyAdults, personLabel, mergePeopleCards, mergePeopleRecords } from "../../../shared/student-people.mjs";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
@@ -8,6 +9,7 @@ import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { PHOTO_ACCEPT, PhotoPrepareError, squarePhotoDataUrl } from "@/shared/utils/squarePhoto";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { getInitials, pluralRu } from "@/shared/utils/format";
+import StudentDataInfo from "@/features/students/StudentDataInfo";
 
 const TABS = [
   ["family", "Семья и питомцы"],
@@ -54,6 +56,7 @@ function normaliseProfile(profile) {
 
 function normalisePeople(people) {
   return Array.isArray(people) ? people.map((person) => ({
+    ...person,
     id: person.id ?? makeId(),
     type: person.type === "pet" ? "pet" : "person",
     name: person.name ?? "",
@@ -62,6 +65,8 @@ function normalisePeople(people) {
     photos: Array.isArray(person.photos) ? person.photos.filter(Boolean) : [],
     introducedAxes: Array.isArray(person.introducedAxes) ? [...new Set(person.introducedAxes.filter(Boolean))] : [],
     enabled: person.enabled !== false,
+    useInSentences: person.useInSentences === true,
+    useInChat: person.useInChat === true,
     createdAt: person.createdAt ?? null,
     updatedAt: person.updatedAt ?? null,
     deletedAt: person.deletedAt ?? null,
@@ -139,7 +144,7 @@ function PersonCard({ person, canEnable, onEdit, onToggle }) {
   );
 }
 
-function PersonEditor({ person, activeContext, canEnable, onChange, onPhotoAdded, onPhotoRemoved, onDelete, onClose }) {
+function PersonEditor({ person, people, activeContext, canEnable, onChange, onPhotoAdded, onPhotoRemoved, onDelete, onMerge, onClose }) {
   const photoRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState("");
@@ -147,6 +152,7 @@ function PersonEditor({ person, activeContext, canEnable, onChange, onPhotoAdded
   // tap must not throw away a photo or a whole card (with all its photos).
   const [armedPhoto, setArmedPhoto] = useState(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [mergeTarget, setMergeTarget] = useState('');
 
   function tapRemovePhoto(photo) {
     if (armedPhoto !== photo) { setArmedPhoto(photo); return; }
@@ -189,7 +195,7 @@ function PersonEditor({ person, activeContext, canEnable, onChange, onPhotoAdded
         <div className="mp-editor__handle" aria-hidden="true" />
         <div className="mp-editor__head">
           <div>
-            <span className="mp-editor__eyebrow">Мои люди</span>
+            <span className="mp-editor__eyebrow">Окружение ребёнка</span>
             <h2>{person.isDraft ? "Добавить человека" : "Карточка человека"}</h2>
             <p>Имя и связь с ребёнком учатся как разные понятия.</p>
           </div>
@@ -272,8 +278,33 @@ function PersonEditor({ person, activeContext, canEnable, onChange, onPhotoAdded
 
         <label className="mp-check-row">
           <input type="checkbox" checked={person.enabled} disabled={!person.enabled && !canEnable} onChange={(event) => update({ enabled: event.target.checked })} />
-          <span><strong>Включать в тему</strong><small>{person.enabled || canEnable ? "Человек будет появляться в заданиях и в миксе." : ACTIVE_LIMIT_HINT}</small></span>
+          <span><strong>Включать в «Мои люди»</strong><small>{person.enabled || canEnable ? "Карточка будет появляться в заданиях этой темы." : ACTIVE_LIMIT_HINT}</small></span>
         </label>
+
+        {person.type !== 'pet' && <>
+          <label className="mp-check-row">
+            <input type="checkbox" checked={person.useInSentences === true} onChange={(event) => update({ useInSentences: event.target.checked })} />
+            <span><strong>Конструктор предложений</strong><small>Использовать фотографию и подпись в предложениях.</small></span>
+          </label>
+          <label className="mp-check-row">
+            <input type="checkbox" checked={person.useInChat === true} onChange={(event) => update({ useInChat: event.target.checked })} />
+            <span><strong>Общение</strong><small>Предлагать этого человека при выборе собеседника.</small></span>
+          </label>
+          {(person.useInSentences || person.useInChat) && <label className="mp-field">
+            <span>Подпись в предложениях и общении</span>
+            <input value={personLabel(person)} onChange={(event) => update({ sentenceLabel: event.target.value })} placeholder="Например, мама или дядя Коля" />
+          </label>}
+        </>}
+
+        {!person.isDraft && <fieldset className="mp-contexts">
+          <legend>Объединить повторяющиеся записи</legend>
+          <p>Выберите карточку, которую оставить. Фото, группы и сведения о знакомстве сохранятся.</p>
+          <select aria-label="Карточка для объединения" value={mergeTarget} onChange={(event) => setMergeTarget(event.target.value)}>
+            <option value="">Выбрать карточку</option>
+            {people.filter((p) => !p.deletedAt && p.id !== person.id && p.type === person.type).map((p) => <option key={p.id} value={p.id}>{p.name || p.relation || 'Без имени'}</option>)}
+          </select>
+          {mergeTarget && <Button variant="secondary" onClick={() => onMerge(mergeTarget)}>Объединить и сохранить фото</Button>}
+        </fieldset>}
 
         {confirmingDelete ? (
           <div className="mp-editor__actions mp-editor__actions--confirm" role="alertdialog" aria-label="Подтверждение удаления">
@@ -303,7 +334,7 @@ export default function MyPeopleSettingsScreen() {
   const student = students.find((item) => item.id === editingStudentId) ?? null;
   const [tab, setTab] = useState("family");
   const [profile, setProfile] = useState(() => normaliseProfile(student?.myPeopleProfile));
-  const [people, setPeople] = useState(() => normalisePeople(student?.myPeople));
+  const [people, setPeople] = useState(() => normalisePeople(studentPeople(student)));
   const [editingId, setEditingId] = useState(null);
   const peopleRef = useRef(people);
   const profileRef = useRef(profile);
@@ -340,8 +371,9 @@ export default function MyPeopleSettingsScreen() {
       const base = current.find((item) => item.id === student?.id);
       if (!base) return;
       const updatedAt = new Date().toISOString();
-      const nextPeople = serialisePeople(peopleRef.current, updatedAt);
-      const updated = { ...base, myPeople: nextPeople, myPeopleUpdatedAt: updatedAt };
+      const nextPeople = mergePeopleRecords(studentPeople(base), serialisePeople(peopleRef.current, updatedAt));
+      const updated = { ...base, myPeople: nextPeople, myPeopleUpdatedAt: updatedAt,
+        closeAdults: legacyAdults(nextPeople), closeAdultsUpdatedAt: updatedAt, peopleSchemaVersion: 1 };
       let nextProfile = null;
       if (withProfile) {
         nextProfile = { ...profileRef.current, updatedAt };
@@ -447,6 +479,12 @@ export default function MyPeopleSettingsScreen() {
     // An untouched card has nothing new to send.
     if (JSON.stringify(person) !== editorSnapshot.current) persist();
   }
+  function mergePerson(targetId) {
+    const timestamp = new Date().toISOString();
+    commitPeople((current) => mergePeopleCards(current, editingId, targetId, timestamp));
+    setEditingId(null);
+    persist();
+  }
   function moveBlock(id, delta) {
     const current = profile.blockOrder.filter((item) => item !== id);
     const index = Math.max(0, Math.min(current.length, profile.blockOrder.indexOf(id) + delta));
@@ -467,13 +505,13 @@ export default function MyPeopleSettingsScreen() {
     <div className="screen mp-screen">
       <div className="screen-header">
         <button className="back-btn" onClick={goBack}><BackArrowIcon /></button>
-        <h1 className="screen-title">Мои люди</h1>
+        <h1 className="screen-title">Окружение ребёнка</h1>
       </div>
       <section className="mp-intro">
         <span className="mp-intro__icon" aria-hidden="true">◎</span>
         <div>
-          <strong>Индивидуальная тема {student.name}</strong>
-          <span>Семья, дом, школа — с фотографиями, именами и связями.</span>
+          <strong>Окружение ученика: {student.name}</strong>
+          <span>Одна карточка для «Моих людей», предложений и общения.</span>
         </div>
         {/* Cards save as they're edited and the back arrow keeps the profile tabs,
             so there is no separate save button (a "Сохранить" in the header
@@ -515,7 +553,7 @@ export default function MyPeopleSettingsScreen() {
                   : <div className="mp-empty"><span className="mp-empty__art" aria-hidden="true">＋</span><strong>Здесь пока никого нет</strong><span>{tab === "family" ? "Добавьте первого близкого человека или питомца." : "Добавьте человека, который встречается с ребёнком в этом окружении."}</span><button type="button" onClick={addPerson} disabled={!canEnableMore}>Добавить карточку</button></div>
                 }
               </div>
-              {editing && <PersonEditor person={editing} activeContext={tab} canEnable={canEnableMore} onChange={updatePerson} onPhotoAdded={addPhotoAndPersist} onPhotoRemoved={removePhotoAndPersist} onDelete={() => deletePerson(editing.id)} onClose={closeEditor} />}
+              {editing && <PersonEditor person={editing} people={people} activeContext={tab} canEnable={canEnableMore} onChange={updatePerson} onPhotoAdded={addPhotoAndPersist} onPhotoRemoved={removePhotoAndPersist} onDelete={() => deletePerson(editing.id)} onMerge={mergePerson} onClose={closeEditor} />}
             </div>
           </>
         )}
@@ -525,18 +563,18 @@ export default function MyPeopleSettingsScreen() {
             <div className="mp-section-head mp-section-head--stacked"><div><span className="mp-section-head__eyebrow">Шаг 4 из 5</span><h2>Личные данные</h2><p>Добавьте только те ответы, которые хотите отрабатывать с {student.name}.</p></div></div>
             <div className="mp-personal__grid">
             <div className="mp-form-card mp-form-card--identity">
-              <h3>Имя и фамилия</h3>
+              <h3 className="student-data-heading">Имя и фамилия <StudentDataInfo kind="identity" /></h3>
               <p className="mp-form-card__lead">Фамилия ребёнка и название семьи — разные ответы в задании.</p>
               <label className="mp-field"><span>Фамилия ребёнка</span><input value={profile.familyName} onChange={(event) => updateProfile({ familyName: event.target.value })} /></label>
               <label className="mp-field"><span>Как называть семью</span><input value={profile.familyLabel} onChange={(event) => updateProfile({ familyLabel: event.target.value })} placeholder="Например, семья Петровых" /></label>
               <label className="mp-field">
-                <span>Дата рождения</span>
+                <span className="student-data-heading">Дата рождения <StudentDataInfo kind="age" /></span>
                 <input type="date" value={profile.birthDate} max={new Date().toISOString().slice(0, 10)} onChange={(event) => updateProfile({ birthDate: event.target.value })} />
                 <small className="mp-field__hint">Для вопроса «Сколько тебе лет?» — возраст считается сам.</small>
               </label>
             </div>
             <div className="mp-form-card">
-              <h3>Где я живу</h3>
+              <h3 className="student-data-heading">Где я живу <StudentDataInfo kind="address" /></h3>
               <p className="mp-form-card__lead">Адрес можно оставить выключенным и использовать только со взрослым.</p>
               <label className="mp-field"><span>Город</span><input value={profile.city} onChange={(event) => updateProfile({ city: event.target.value })} /></label>
               <label className="mp-field"><span>Адрес — необязательно</span><input value={profile.address} onChange={(event) => updateProfile({ address: event.target.value })} /></label>

@@ -1,4 +1,5 @@
 import { getUsageReport } from "./lib/usage-repository.mjs";
+import { applyCatalogOverrides, topicRegistry, updateTopicCatalog } from "./lib/topic-catalog.mjs";
 import { createServer } from "node:http";
 import { randomUUID, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync, createReadStream, statSync, readdirSync } from "node:fs";
@@ -18,7 +19,7 @@ import { setMarketingConsent } from "./lib/marketing-consent.mjs";
 import { getDb } from "./lib/db.mjs";
 import {
   createAccount, findAccountByEmail, findAccountByEmailAny, findAccountById,
-  updateAccount, updateAccountPasswordHash, deleteAccount, activateAccount,
+  updateAccount, updateAccountPasswordHash, activateAccount,
   serializeAccount,
   storeAuthToken, findAccountByToken, deleteAuthToken,
   getAccountSettings, updateAccountSettings,
@@ -34,7 +35,7 @@ import {
   upsertStudentTopicLink, getStudentTopicLinks,
   upsertConceptProgress,
   upsertPushSubscription, getAllPushSubscriptions, removePushSubscription,
-  getPhoto, migratePhotoData, extractAndStorePhoto,
+  getPhoto, migratePhotoData, extractAndStorePhoto, migrateStudentPeopleData,
   getAccountKvByPrefixes,
   incrementRevision,
   createMaterialsLead, findMaterialsLeadByToken,
@@ -67,7 +68,7 @@ import {
 } from "./lib/billing-providers/lava-top.mjs";
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
 import { gitSha } from "../scripts/git-sha.mjs";
-import { prepareDeletion, confirmDeletion, blockAccount, restoreAccount, cancelScheduledErasure } from "./lib/account-lifecycle.mjs";
+import { prepareDeletion, confirmDeletion, blockAccount, restoreAccount, cancelScheduledErasure, archiveAccount, eraseAccount, eraseStudent } from "./lib/account-lifecycle.mjs";
 import { reportError, trackEvent } from "./lib/observability.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
@@ -92,6 +93,7 @@ function signupPaused() {
 }
 
 migratePhotoData(db);
+migrateStudentPeopleData(db);
 
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   configureWebPush(VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, PUSH_SUBJECT);
@@ -133,8 +135,11 @@ function requireAdmin(req) {
 
 const DECKS_DIR = path.join(DEPLOY_FRONTEND_DIR, "decks");
 
-function loadCatalog() {
+function loadBaseCatalog() {
   return JSON.parse(readFileSync(path.join(DECKS_DIR, "catalog.json"), "utf8"));
+}
+function loadCatalog() {
+  return applyCatalogOverrides(db, loadBaseCatalog());
 }
 
 function getCatalogEntry(topicId) {
@@ -305,6 +310,10 @@ function serializeStudent(row) {
     rewardVideosUpdatedAt: row.reward_videos_updated_at ?? null,
     closeAdults:  safeJson(row.close_adults, []),
     closeAdultsUpdatedAt: row.close_adults_updated_at ?? null,
+    myPeople: safeJson(row.my_people, []),
+    myPeopleUpdatedAt: row.my_people_updated_at ?? null,
+    myPeopleProfile: safeJson(row.my_people_profile, {}),
+    myPeopleProfileUpdatedAt: row.my_people_profile_updated_at ?? null,
     healthDataConsent: !!row.health_data_consent,
     healthDataConsentAt: row.health_data_consent_at ?? null,
     createdAt: row.created_at,
@@ -720,9 +729,7 @@ async function handleChangePassword(req, res) {
 
 async function handleDeleteAccount(req, res) {
   const account = requireAuth(req);
-  deleteAccount(db, account.id);
-  const raw = getBearerToken(req);
-  if (raw) deleteAuthToken(db, hashToken(raw));
+  archiveAccount(db, account.id, "self");
   writeNoContent(res);
 }
 
@@ -1180,6 +1187,14 @@ async function handleAdminGetAccountSessions(req, res, accountId) {
 async function handleAdminLifecycle(req, res, accountId, operation) {
   requireAdmin(req);
   const body = await readJsonBody(req) ?? {};
+  if (operation === "erase") {
+    if (body.confirmed !== true) throw {status:400,message:"Подтвердите удаление навсегда."};
+    return writeJson(res, 200, eraseAccount(db, accountId));
+  }
+  if (body.action === "archive") {
+    if (body.confirmed !== true) throw {status:400,message:"Подтвердите перенос в удалённые."};
+    return writeJson(res, 200, archiveAccount(db, accountId));
+  }
   if (operation === "deletion-preview") return writeJson(res, 200, prepareDeletion(db, accountId, body.mode));
   if (operation === "delete") return writeJson(res, 200, confirmDeletion(db, accountId, body));
   if (body.action === "block") return writeJson(res, 200, blockAccount(db, accountId, body.reason));
@@ -1834,7 +1849,7 @@ function serveStaticFile(res, absPath) {
   // deployment, even though the server already has the current version.
   // The service worker and manifest must be checked fresh for the same reason.
   const fileName = path.basename(absPath);
-  const isAppShell = ["index.html", "sw.js", "manifest.json", "admin.html", "admin.js", "admin-model.js", "admin.css", "audio-review.html", "audio-review.css", "audio-review-manifest.json", "admin-audio-review.js"].includes(fileName);
+  const isAppShell = ["index.html", "sw.js", "manifest.json", "admin.html", "admin.js", "admin-model.js", "admin-topics.js", "admin.css", "audio-review.html", "audio-review.css", "audio-review-manifest.json", "admin-audio-review.js"].includes(fileName);
   // The catalog stays at one fixed URL while each deck ZIP has a versioned
   // filename. Cache the ZIPs, but always revalidate the catalog so a newly
   // published topic is visible as soon as the deployment switches over.
@@ -1990,10 +2005,22 @@ async function router(req, res) {
     if (method === "GET"    && /^\/decks\/[^/]+\/download$/.test(p))              return await handleDownloadDeck(req, res);
 
     // Materials (free PDF library, landing page)
+    { const m = p.match(/^\/admin\/accounts\/([^/]+)\/students(?:\/([^/]+)\/erase)?$/);
+      if (m && (method === "GET" || method === "POST")) {
+        requireAdmin(req);
+        if (!db.prepare("SELECT id FROM accounts WHERE id=?").get(m[1])) return writeJson(res,404,{error:"Аккаунт не найден."});
+        if (method === "GET" && !m[2]) return writeJson(res,200,db.prepare("SELECT id,name,deleted_at AS deletedAt FROM students WHERE account_id=? ORDER BY created_at").all(m[1]));
+        if (method === "POST" && m[2]) {
+          const body = await readJsonBody(req);
+          if (body?.confirmed !== true) return writeJson(res,400,{error:"Подтвердите удаление ученика."});
+          return writeJson(res,200,eraseStudent(db,m[1],m[2]));
+        }
+      }
+    }
     if (method === "GET"    && p === "/materials/catalog")                        return await handleGetMaterialsCatalog(req, res);
     if (method === "POST"   && p === "/materials/request")                        return await handleRequestMaterial(req, res);
     if (method === "GET"    && p === "/materials/download")                       return await handleDownloadMaterial(req, res);
-    { const m = p.match(/^\/admin\/accounts\/([^/]+)\/(lifecycle|deletion-preview|delete)$/);
+    { const m = p.match(/^\/admin\/accounts\/([^/]+)\/(lifecycle|deletion-preview|delete|erase)$/);
       if (method === "POST" && m) return await handleAdminLifecycle(req, res, m[1], m[2]); }
     if (method === "GET" && /^\/admin\/accounts\/[^/]+\/usage$/.test(p)) {
       requireAdmin(req);
@@ -2003,6 +2030,16 @@ async function router(req, res) {
     }
     if (method === "GET"    && p === "/admin/accounts")                            return await handleAdminListAccounts(req, res);
     if (method === "GET"    && p === "/admin/catalog")                             return await handleAdminCatalog(req, res);
+    if (p === "/admin/topics" && method === "GET") {
+      requireAdmin(req);
+      return writeJson(res,200,{topics:topicRegistry(db,loadBaseCatalog(),DECKS_DIR)});
+    }
+    { const m=p.match(/^\/admin\/topics\/([^/]+)$/);
+      if(m && method === "POST") {
+        requireAdmin(req);
+        return writeJson(res,200,updateTopicCatalog(db,loadBaseCatalog(),DECKS_DIR,m[1],await readJsonBody(req)));
+      }
+    }
     { const m = p.match(/^\/admin\/accounts\/([^/]+)\/sessions$/);
       if (method === "GET" && m) return await handleAdminGetAccountSessions(req, res, m[1]); }
     if (method === "POST"   && p === "/admin/account/flags")                       return await handleAdminSetFlags(req, res);
