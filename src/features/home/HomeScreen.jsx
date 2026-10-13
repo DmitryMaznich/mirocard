@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import Button from "@/shared/components/Button";
@@ -28,6 +28,7 @@ import InstructionsTab from "@/features/instructions/InstructionsTab";
 import LessonPlanTab from "@/features/lessonPlan/LessonPlanTab";
 import HomeMenuSheet from "./HomeMenuSheet";
 import MarketingPromptCard from "./MarketingPromptCard";
+import ScreenHints, { HintButton } from "@/shared/components/ScreenHints";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -190,10 +191,11 @@ function stepState(condition, prevCondition) {
   return "active";
 }
 
-function JourneyStep({ state, number, label, value, onClick, avatar, spotlight }) {
+function JourneyStep({ state, number, label, value, onClick, avatar, spotlight, targetRef }) {
   const showAvatar = !!avatar && state !== "disabled" && state !== "prompt";
   return (
     <button
+      ref={targetRef}
       className={`journey-step journey-step--${state}${spotlight ? " journey-step--spotlight" : ""}`}
       onClick={onClick}
       disabled={state === "disabled"}
@@ -237,6 +239,7 @@ function SessionTab({
   s2, s3, topicLabel, readingStepValue, modeTitle,
   canStart, startOrContinue,
   spotlight, onTopicStepClick, onModeStepClick, onAddFirstStudent,
+  topicHintRef, modeHintRef, onShowHints, hintsOpen,
 }) {
   if (!student) {
     return <AddFirstStudentPanel onAdd={onAddFirstStudent} />;
@@ -246,6 +249,7 @@ function SessionTab({
     <section className="home-section">
       <div className="home-section-header">
         <span className="home-section-label">Собери занятие</span>
+        <HintButton onClick={onShowHints} hidden={hintsOpen} />
       </div>
       {(s2 === "prompt" || s3 === "prompt") && (
         <p className="home-section-hint">
@@ -256,6 +260,7 @@ function SessionTab({
         <JourneyStep
           state={s2}
           number="1"
+          targetRef={topicHintRef}
           label="Тема"
           value={topicLabel}
           onClick={onTopicStepClick}
@@ -272,6 +277,7 @@ function SessionTab({
         <JourneyStep
           state={s3}
           number="2"
+          targetRef={modeHintRef}
           label={isReading && !isShortStories ? "Текст и режим" : "Режим"}
           value={isReading ? readingStepValue : (s3 === "prompt" ? "Выбери режим" : (modeTitle || "Не выбран"))}
           onClick={onModeStepClick}
@@ -741,6 +747,10 @@ export default function HomeScreen() {
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
 
   const [activeTab, setActiveTab] = useState(() => homeActiveTab ?? 'session');
+  const [hintsOpen, setHintsOpen] = useState(false);
+  const topicHintRef = useRef(null);
+  const modeHintRef = useRef(null);
+  const closeHints = useCallback(() => setHintsOpen(false), []);
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -790,6 +800,12 @@ export default function HomeScreen() {
   const topic = visibleTopicRecords.find((r) => r.meta.id === activeTopicId) ?? visibleTopicRecords[0];
   const isReading      = topic?.meta?.renderer === "reading";
   const isShortStories = topic?.meta?.id === "reading_short_stories";
+  const homeHintSteps = useMemo(() => [
+    { targetRef: topicHintRef, title: "Выберите тему занятия", text: "Нажмите на карточку «Тема», чтобы выбрать, чем будете заниматься." },
+    { targetRef: modeHintRef, title: "Выберите тип занятия", text: isReading && !isShortStories
+      ? "Нажмите на карточку «Текст и режим», чтобы выбрать текст и нужный тип занятия."
+      : "Нажмите на карточку «Режим», чтобы выбрать нужный тип занятия." },
+  ], [isReading, isShortStories]);
   const isChatPractice = topic?.meta?.renderer === "chat_practice";
   const activeText = isReading
     ? (topic?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
@@ -895,6 +911,7 @@ export default function HomeScreen() {
           : "mode";
 
   function handleTopicStepClick() {
+    closeHints();
     const next = { ...pickerConfirmed, topic: true };
     setPickerConfirmed(next);
     savePickerConfirmed(student?.id, next);
@@ -902,6 +919,7 @@ export default function HomeScreen() {
   }
 
   function handleModeStepClick() {
+    closeHints();
     const next = { ...pickerConfirmed, mode: true };
     setPickerConfirmed(next);
     savePickerConfirmed(student?.id, next);
@@ -913,6 +931,7 @@ export default function HomeScreen() {
   }
 
   function changeTab(tab) {
+    closeHints();
     setActiveTab(tab);
     setHomeActiveTab(tab);
   }
@@ -971,7 +990,7 @@ export default function HomeScreen() {
         refreshFailed={refreshFailed}
         versionTitle={versionTitle}
         onRefresh={refreshAppAndTopics}
-        onMenu={() => setMenuOpen(true)}
+        onMenu={() => { closeHints(); setMenuOpen(true); }}
         onAvatarTap={handleAvatarSecretTap}
       />
 
@@ -1001,7 +1020,11 @@ export default function HomeScreen() {
               modeTitle={modeTitle}
               canStart={canStart}
               startOrContinue={startOrContinue}
-              spotlight={onboardingSpotlight}
+              spotlight={hintsOpen ? null : onboardingSpotlight}
+              topicHintRef={topicHintRef}
+              modeHintRef={modeHintRef}
+              onShowHints={() => setHintsOpen(true)}
+              hintsOpen={hintsOpen}
               onTopicStepClick={handleTopicStepClick}
               onModeStepClick={handleModeStepClick}
             />
@@ -1010,6 +1033,7 @@ export default function HomeScreen() {
       </div>
 
       <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} showLessonPlan={hasLessonPlanAccess} />
+      {hintsOpen && student && <ScreenHints steps={homeHintSteps} onClose={closeHints} />}
 
       {menuOpen && (
         <HomeMenuSheet
