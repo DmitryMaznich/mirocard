@@ -75,6 +75,28 @@ async function running(ctx) {
   return ctx.state === "running";
 }
 
+// While the voice speaks, taps on the task screen do nothing (useSpeechGuard.js):
+// a child tapping in a hurry otherwise stacks one clip on another. Players hold
+// the lock for a whole sequence (number, pause, phrase), playUrls for each clip;
+// a hold always ends — on «ended», on stop, on error, and after MAX_HOLD_MS at worst.
+const MAX_HOLD_MS = 15000;
+let held = 0;
+const listeners = new Set();
+const emit = () => listeners.forEach((fn) => fn());
+export const isSpeaking = () => held > 0;
+export function subscribeSpeaking(fn) { listeners.add(fn); return () => listeners.delete(fn); }
+export function holdSpeech() {
+  let released = false;
+  held++; emit();
+  const release = () => {
+    if (released) return;
+    released = true; clearTimeout(timer);
+    held--; emit();
+  };
+  const timer = setTimeout(release, MAX_HOLD_MS);
+  return release;
+}
+
 export const playNumber = (n) => playUrls(numberAudioParts(n).map(numberAudioUrl));
 export const playPhrase = (key) => playUrls([phraseAudioUrl(key)]);
 
@@ -115,6 +137,7 @@ function playUrls(urls) {
       });
     }
   };
-  const done = viaWebAudio().catch(() => false).then((ok) => (ok || stopped ? undefined : viaElements()));
-  return { done, stop: () => { stopped = true; stops.forEach((f) => f()); } };
+  const release = holdSpeech();
+  const done = viaWebAudio().catch(() => false).then((ok) => (ok || stopped ? undefined : viaElements())).catch(() => {}).finally(release);
+  return { done, stop: () => { stopped = true; stops.forEach((f) => f()); release(); } };
 }

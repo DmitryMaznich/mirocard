@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { numberWords, pluralHundreds, pluralOnes, pluralTens } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useTypedAnswer } from "./FieldPad.jsx";
-import { NUMBER_AUDIO_WORDS, numberAudioParts, playNumber } from "./numberAudio.js";
+import { NUMBER_AUDIO_WORDS, holdSpeech, numberAudioParts, playNumber } from "./numberAudio.js";
+import { useSpeechGuard } from "./useSpeechGuard.js";
 import "./place_value.css";
 import "./group_ten.css";
 import "./names.css";
@@ -70,12 +71,15 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
   const [note, setNote] = useState("");
   const [playing, setPlaying] = useState(false);
   const player = useRef(null);
+  const { guard } = useSpeechGuard();
 
   const play = async (...numbers) => {
     player.current?.stop();
     setPlaying(true);
     let cancelled = false;
-    const stopper = { stop: () => { cancelled = true; current?.stop(); } };
+    // Taps wait for the whole sequence («19» … «90»), gaps included.
+    const release = holdSpeech();
+    const stopper = { stop: () => { cancelled = true; current?.stop(); release(); } };
     let current = null;
     player.current = stopper;
     for (const value of numbers) {
@@ -85,6 +89,7 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
       if (cancelled) break;
       await new Promise((r) => setTimeout(r, 350));
     }
+    release();
     if (player.current === stopper) setPlaying(false);
   };
   // Speak the number as soon as the task shows; stop when it goes away.
@@ -133,7 +138,7 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
     }
   }
 
-  return <div ref={ref} className={`pv-screen nn-screen nn-screen--${mode}`}>
+  return <div ref={ref} className={`pv-screen nn-screen nn-screen--${mode}`} {...guard}>
     <div className="nn-inner">
       <h2 className="sg-title">{reading ? "Прочитай и выбери название" : writing ? "Услышь и напиши число" : "Услышь и выбери число"}</h2>
       {reading && <div className="nn-number">{n}</div>}

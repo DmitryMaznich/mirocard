@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { numberWords, pluralHundreds, pluralTens } from "./placeValueLabels.js";
-import { playNumber, playPhrase } from "./numberAudio.js";
+import { holdSpeech, playNumber, playPhrase } from "./numberAudio.js";
+import { useSpeechGuard } from "./useSpeechGuard.js";
 import "./place_value.css";
 import "./group_ten.css";
 import "./count_tens.css";
@@ -45,13 +46,16 @@ function usePlayer() {
       current.current?.stop();
       let cancelled = false;
       let clip = null;
-      const run = { stop: () => { cancelled = true; clip?.stop(); } };
+      // Taps wait for the whole run (phrase, pause, number).
+      const release = holdSpeech();
+      const run = { stop: () => { cancelled = true; clip?.stop(); release(); } };
       current.current = run;
       for (const step of steps) {
         if (cancelled) return false;
         if (typeof step === "number") await new Promise((r) => setTimeout(r, step));
         else { clip = step(); await clip.done; }
       }
+      release();
       return !cancelled;
     },
     stop() { current.current?.stop(); },
@@ -113,6 +117,7 @@ function CountAlong({ task, onCorrect }) {
   const teaching = task.supportMode !== "independent";
   const [ref, mode] = useScreenMode();
   const player = usePlayer();
+  const { guard } = useSpeechGuard();
   const [value, setValue] = useState(task.start);
   // idle — the number is shown; ask — a stick was added, the number waits so
   // the child can say it first («Обучение»); full — ten sticks, waiting for
@@ -178,7 +183,7 @@ function CountAlong({ task, onCorrect }) {
       : phase === "full" || phase === "folding" ? <span className="sg-status-note">10 десятков! Сложи сотню.</span>
         : value === task.start && taps === 0 ? <span className="sg-status-hint">Нажимай «+1 десяток» и считай.</span> : null;
 
-  return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`}>
+  return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`} {...guard}>
     <div className="ct-inner">
       <h2 className="sg-title">Считаем десятками</h2>
       <Board hundreds={hundreds} sticks={sticks} building={phase === "folding" ? folded : null} gone={phase === "folding" ? folded : 0}
@@ -204,6 +209,7 @@ function CountBack({ task, onCorrect }) {
   const teaching = task.supportMode !== "independent";
   const [ref, mode] = useScreenMode();
   const player = usePlayer();
+  const { guard } = useSpeechGuard();
   const [value, setValue] = useState(task.start);
   // idle / ask as in CountAlong; empty — «−1» found no tens, waiting for
   // «Разложи сотню»; unfolding — the square's stripes go out as sticks appear.
@@ -267,7 +273,7 @@ function CountBack({ task, onCorrect }) {
       : phase === "empty" || phase === "unfolding" ? <span className="sg-status-note">Десятков нет. Разложи сотню.</span>
         : taps === 0 ? <span className="sg-status-hint">Нажимай «−1 десяток» и считай назад.</span> : null;
 
-  return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`}>
+  return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`} {...guard}>
     <div className="ct-inner">
       <h2 className="sg-title">Считаем назад</h2>
       <Board hundreds={hundreds} sticks={sticks} building={phase === "unfolding" ? 10 - unfolded : null}
@@ -291,6 +297,7 @@ function NextNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const right = n + 10;
   const [ref, mode] = useScreenMode();
   const player = usePlayer();
+  const { guard } = useSpeechGuard();
   const [solved, setSolved] = useState(false);
   const [wrong, setWrong] = useState([]);
   const [note, setNote] = useState("");
@@ -329,7 +336,7 @@ function NextNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
   // ten sticks are already folded into the square.
   const shown = solved ? right : n;
   const crossing = right % 100 === 0;
-  return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`}>
+  return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`} {...guard}>
     <div className="ct-inner">
       <h2 className="sg-title">Какое число дальше?</h2>
       <div className="ct-chain">{chain.map((x, i) => <span key={x}>{i ? " · " : ""}{x === n ? <b>{x}</b> : x}</span>)}<span> · {solved ? <b className="ct-chain-right">{right}</b> : "?"}</span></div>
