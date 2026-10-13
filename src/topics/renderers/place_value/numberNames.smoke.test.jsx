@@ -169,3 +169,15 @@ describe("«Названия чисел» — «Прочитай и выбери
     expect(generateTasks("number_names", [], 3, { task: "read" }).every((t) => t.task === "read")).toBe(true);
   });
 });
+
+describe("No voice after a right answer", () => {
+  const h = coinHarness();
+  it("the right choice stops the voice and says nothing more", async () => {
+    const { isSpeaking } = await import("./numberAudio.js");
+    h.mount(NumberNamesTask, { type: "number_names", cardId: "n", conceptId: "n", number: 90, options: [19, 90, 900], supportMode: "learning" });
+    await wait();
+    h.click("90");
+    expect(isSpeaking()).toBe(false);
+    expect(h.button("Далее →")).toBeDefined();
+  });
+});

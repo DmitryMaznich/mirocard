@@ -325,7 +325,7 @@ function NextNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
     if (solved || wrong.includes(v)) return;
     if (v === right) {
       setSolved(true); setNote("");
-      player.run([() => playNumber(right)]);
+      player.stop();
       return;
     }
     setWrong((w) => [...w, v]);
@@ -391,7 +391,7 @@ function PrevNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
     if (solved || wrong.includes(v)) return;
     if (v === right) {
       setSolved(true); setNote("");
-      player.run([() => playNumber(right)]);
+      player.stop();
       return;
     }
     setWrong((w) => [...w, v]);

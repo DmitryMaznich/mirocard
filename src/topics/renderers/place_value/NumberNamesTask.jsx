@@ -103,7 +103,7 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
   function enter() {
     if (solved || !typed.digits) return;
     const guess = Number(typed.digits);
-    if (guess === n) { typed.reset(); setSolved(true); setNote(""); play(n); return; }
+    if (guess === n) { typed.reset(); setSolved(true); setNote(""); player.current?.stop(); setPlaying(false); return; }
     typed.fail();
     setMisses((m) => m + 1);
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
@@ -119,7 +119,7 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
     if (solved || wrong.includes(value)) return;
     if (value === n) {
       setSolved(true); setNote("");
-      play(n);
+      player.current?.stop(); setPlaying(false);
       return;
     }
     setWrong((w) => [...w, value]);
