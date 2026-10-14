@@ -142,11 +142,12 @@ describe("release topic copy", () => {
 });
 
 describe("«Прописи старые» (propis) are archived", () => {
-  it("hidden in the catalog and on the home screen; propis2 is «Прописи»", async () => {
+  it("archived in the catalog (the admin archive keeps it, so it is not hidden); propis2 is «Прописи»", async () => {
     const { applyReleaseTopicCopy } = await import("./releaseTopicCopy");
-    expect(catalog.decks.find((d) => d.id === "propis").status).toBe("hidden");
+    expect(catalog.decks.find((d) => d.id === "propis").status).toBe("archived");
     const old = applyReleaseTopicCopy({ meta: { id: "propis", title: "Прописи" }, modes: [] });
-    expect(old.meta).toMatchObject({ title: "Прописи старые", hidden: true });
+    expect(old.meta.title).toBe("Прописи старые");
+    expect(old.meta.hidden).toBeUndefined();
     const now = applyReleaseTopicCopy({ meta: { id: "propis2", title: "Прописи 2" }, modes: [] });
     expect(now.meta.title).toBe("Прописи");
     expect(now.meta.hidden).toBeUndefined();

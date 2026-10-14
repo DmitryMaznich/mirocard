@@ -183,3 +183,17 @@ test("builtin visibility affects bootstrap policy without creating catalog entri
   updateTopicCatalog(db,base,dir,"builtin",patch({status:"release",access:"free",expectedRevision:1}),inventory);
   assert.equal(getBuiltinVisibility(db,inventory).builtin,true);db.close();
 });
+
+
+test("archiving retains the package and audit history and can be reversed", () => {
+  const { db, base, dir, inventory } = fixture();
+  const archived = updateTopicCatalog(db, base, dir, "alpha", patch({ status: "archived" }), inventory).topic;
+  assert.equal(archived.publication, "archived");
+  assert.equal(archived.inCatalog, true);
+  assert.equal(archived.hidden, true);
+  assert.equal(archived.bundleAvailable, true);
+  assert.equal(archived.history.length, 1);
+  const restored = updateTopicCatalog(db, base, dir, "alpha", patch({ expectedRevision: 1 }), inventory).topic;
+  assert.equal(restored.publication, "release");
+  assert.equal(restored.history.length, 2);
+});

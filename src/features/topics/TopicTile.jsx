@@ -58,13 +58,20 @@ export default function TopicTile({
   const [progress, setProgress] = useState(null);
   const [error, setError] = useState("");
   const [confirmingInstall, setConfirmingInstall] = useState(false);
+  const [showingSoon, setShowingSoon] = useState(false);
 
   const isBuiltin = Boolean(installedRecord?.meta.builtin);
   const isPending = claimSource === "request";
   const isGranted = claimSource != null && claimSource !== "request" && !entitlementExpired;
 
+  // A beta topic this account can't open yet comes from the catalog as a "coming soon" teaser:
+  // visible, but with nothing to download (see handleGetDecksCatalog).
+  const isSoon = Boolean(entry?.comingSoon) && !installedRecord;
+
   let status;
-  if (entitlementExpired) {
+  if (isSoon) {
+    status = "soon";
+  } else if (entitlementExpired) {
     status = "request";
   } else if (!installedRecord) {
     status = isPending ? "pending" : (!isGranted && access === "paid" && !hasAccess ? "request" : "install");
@@ -98,7 +105,8 @@ export default function TopicTile({
   // confirm first. An update to something already installed isn't "a new
   // deck" in the same sense, so it keeps the previous one-tap behavior.
   function requestAction() {
-    if (entitlementExpired && onLockedTap) onLockedTap(entry);
+    if (status === "soon") setShowingSoon(true);
+    else if (entitlementExpired && onLockedTap) onLockedTap(entry);
     else if (status === "install") setConfirmingInstall(true);
     else handleAction();
   }
@@ -122,19 +130,20 @@ export default function TopicTile({
     handleAction();
   }
 
-  const statusBadge = entry?.status ? STATUS_BADGES[entry.status] : null;
+  const statusKey = isSoon ? "soon" : entry?.status;
+  const statusBadge = statusKey ? STATUS_BADGES[statusKey] : null;
   const topicId = installedRecord?.meta.id ?? entry?.id;
   const avatarPath = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(topicId);
   const versionText = installedRecord
     ? (isBuiltin ? "встроенная" : `v${installedRecord.meta.version}`)
-    : (entry ? `v${entry.version}` : "");
+    : (entry && !isSoon ? `v${entry.version}` : "");
 
   const badgeIcon = loading ? "…"
     : status === "active" || status === "open" ? <CheckmarkIcon size={16} />
     : status === "update"  ? <ArrowUpSmallIcon size={15} />
     : status === "install" ? <ArrowDownSmallIcon size={15} />
     : status === "request" ? <LockSmallIcon size={15} />
-    : <ClockSmallIcon size={15} />; // pending
+    : <ClockSmallIcon size={15} />; // pending, soon
 
   const badgeLabel = loading ? "Загрузка…"
     : status === "active"  ? "Активна"
@@ -142,12 +151,13 @@ export default function TopicTile({
     : status === "update"  ? `Доступно обновление v${entry.version}`
     : status === "install" ? "Установить"
     : status === "request" ? "По подписке"
+    : status === "soon"    ? "Скоро"
     : "Запрос отправлен";
 
   return (
     <>
     <article
-      className={`topic-tile-row${canOpen ? " topic-tile-row--open" : ""}`}
+      className={`topic-tile-row${canOpen ? " topic-tile-row--open" : ""}${isSoon ? " topic-tile-row--soon" : ""}`}
       onClick={handleTileClick}
     >
       <div className="topic-tile-row__icon">
@@ -157,7 +167,7 @@ export default function TopicTile({
         <div className="topic-tile-row__title">{title}</div>
         <div className="topic-tile-row__eyebrow">
           <span>{versionText}</span>
-          {statusBadge && !personalCaption && <span className={`topic-tile-row__tag topic-tile-row__tag--${entry.status}`}>{statusBadge.label}</span>}
+          {statusBadge && !personalCaption && <span className={`topic-tile-row__tag topic-tile-row__tag--${statusKey}`}>{statusBadge.label}</span>}
           {personalCaption && <span className="topic-tile-row__tag topic-tile-row__tag--personal" title={personalCaption}>Личная</span>}
           {loading && <span className="topic-tile-row__loading">{progress != null ? `${Math.round(progress * 100)}%` : "Загружаем…"}</span>}
         </div>
@@ -205,6 +215,15 @@ export default function TopicTile({
       )}
     </article>
     {error && <div className="topic-tile-row__error" role="alert">{error}</div>}
+    {showingSoon && (
+      <Modal
+        title="Тема скоро появится"
+        onClose={() => setShowingSoon(false)}
+        actions={<Button variant="primary" onClick={() => setShowingSoon(false)}>Понятно</Button>}
+      >
+        <p>«{title}» уже готовится. Новые темы открываются постепенно — мы сообщим, когда эта станет доступна.</p>
+      </Modal>
+    )}
     {confirmingInstall && (
       <Modal
         title="Установить тему?"

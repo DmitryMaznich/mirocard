@@ -14,7 +14,7 @@ import {
   splitPlanIcon,
   WEEKDAY_NAMES,
 } from "./timeUtils.js";
-import { weekCountClipKeys, weekCountSpoken, weekPhraseClipKeys, weekPhraseSpoken, weekWagonClipKeys } from "./audioBank.js";
+import { weekPhraseClipKeys, weekPhraseSpoken, weekWagonClipKeys } from "./audioBank.js";
 import { eventsOnDate, isBirthdayType } from "@/features/importantDates/importantDates";
 import "./conceptModals.css";
 
@@ -59,10 +59,10 @@ function CycleArrow() {
 // ── Неделя ────────────────────────────────────────────────────────────
 // A week is a train: a small locomotive, then seven wagons Monday..Sunday.
 // Trains for the weeks around today follow each other on a swipeable track,
-// so after Sunday the next train's Monday comes; the ring in the header
-// shows the same thing as a cycle -- its hand only ever turns forward, and
-// a whole week is one full turn. Full names are the label; the short form
-// (пн, вт…) is only on the ring.
+// so after Sunday the next train's Monday comes. (A 7-day ring with a hand
+// was tried and dropped on 2026-10-14: it read as a clock.) No numbers at
+// all -- no dates, no 1-7: this modal teaches the names in order and the
+// cycle; dates are the Число modal's job, and the child counts the wagons.
 // The icon a date from "Важные даты" gets in a calendar cell or a week day.
 function importantMark(events) {
   if (!events.length) return null;
@@ -71,7 +71,6 @@ function importantMark(events) {
 
 const WEEKS_AROUND = [-2, -1, 0, 1, 2];
 const COUNT_STEP_MS = 1400;
-const RING_STEP_DEG = 360 / 7;
 
 function mondayOf(date) {
   return addCalendarDays(date, -((date.getDay() + 6) % 7));
@@ -85,14 +84,7 @@ function weekLabel(week) {
   if (week === 0) return "Эта неделя";
   if (week === -1) return "Прошлая неделя";
   if (week === 1) return "Следующая неделя";
-  return week < 0 ? `${-week} недели назад` : `Через ${week} недели`;
-}
-
-function weekRange(monday) {
-  const sunday = addCalendarDays(monday, 6);
-  return monday.getMonth() === sunday.getMonth()
-    ? `${monday.getDate()}–${sunday.getDate()} ${MONTHS_GENITIVE[sunday.getMonth()]}`
-    : `${monday.getDate()} ${MONTHS_GENITIVE[monday.getMonth()]} – ${sunday.getDate()} ${MONTHS_GENITIVE[sunday.getMonth()]}`;
+  return week < 0 ? "Позапрошлая неделя" : "Через две недели";
 }
 
 function Locomotive() {
@@ -116,44 +108,12 @@ function Locomotive() {
   );
 }
 
-function WeekRing({ dayIndex, turn }) {
-  const c = 80;
-  const r = 58;
-  return (
-    <svg className="dom-ring" viewBox="0 0 160 160" aria-hidden="true">
-      <circle className="dom-ring__loop" cx={c} cy={c} r={r + 15} />
-      <path className="dom-ring__again" d={`M ${c - 24} ${c - r - 15} A ${r + 15} ${r + 15} 0 0 1 ${c - 6} ${c - r - 15}`} />
-      <path className="dom-ring__again" d={`M ${c - 11} ${c - r - 21} L ${c - 4} ${c - r - 15} L ${c - 11} ${c - r - 9}`} />
-      {WEEK_MONDAY_FIRST.map(({ day, short, weekend }, index) => {
-        const angle = ((-90 + index * RING_STEP_DEG) * Math.PI) / 180;
-        const x = c + r * Math.cos(angle);
-        const y = c + r * Math.sin(angle);
-        const className = ["dom-ring__day", weekend ? "dom-ring__day--weekend" : "", index === dayIndex ? "dom-ring__day--on" : ""]
-          .filter(Boolean).join(" ");
-        return (
-          <g key={day} className={className}>
-            <circle cx={x} cy={y} r="14" />
-            <text x={x} y={y}>{short}</text>
-          </g>
-        );
-      })}
-      <g className="dom-ring__hand" style={{ transform: `rotate(${turn * RING_STEP_DEG}deg)` }}>
-        <line x1={c} y1={c} x2={c} y2={c - r + 20} />
-      </g>
-      <circle className="dom-ring__hub" cx={c} cy={c} r="6" />
-    </svg>
-  );
-}
-
 export function WeekContent({ activeDate, today, plan, importantDates = [], onSpeak = null, speakDays = false }) {
   const thisMonday = mondayOf(today);
   const firstDay = addCalendarDays(thisMonday, WEEKS_AROUND[0] * 7);
   const lastDay = addCalendarDays(thisMonday, WEEKS_AROUND[WEEKS_AROUND.length - 1] * 7 + 6);
   const [selected, setSelected] = useState(() => addCalendarDays(activeDate, 0));
-  // The ring hand's position in sevenths of a turn, cumulative: it only ever
-  // moves by the real number of days, so Sunday -> Monday keeps going forward.
-  const [turn, setTurn] = useState(() => (activeDate.getDay() + 6) % 7);
-  // The count: which train is being counted and how far (1-7 wagons, 8 = "это неделя").
+  // «Дни недели по порядку»: which train is being walked through and how far (1-7 wagons, 8 = "это одна неделя").
   const [count, setCount] = useState(null);
   const [phrase, setPhrase] = useState(null);
   const trackRef = useRef(null);
@@ -183,11 +143,10 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
     if (count || date < firstDay || date > lastDay) return;
     const fromToday = daysBetween(today, date);
     const crossedIntoMonday = date.getDay() === 1 && daysBetween(selected, date) === 1;
-    setTurn((value) => value + daysBetween(selected, date));
     setSelected(date);
     const name = WEEKDAY_NAMES[date.getDay()];
     if (crossedIntoMonday) {
-      say(weekPhraseSpoken("again"), weekPhraseClipKeys("again"), <>Новая неделя! Снова <em>понедельник</em></>, speakDays);
+      say(weekPhraseSpoken("again"), weekPhraseClipKeys("again"), <>Новая неделя. Снова <em>понедельник</em></>, speakDays);
       return;
     }
     const tag = relativeDayTag(date, today);
@@ -202,7 +161,6 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
   function startCount() {
     if (count) return;
     const monday = mondayOf(selected);
-    const mondayTurn = turn - daysBetween(monday, selected);
     const schedule = (delay, step) => timersRef.current.push(window.setTimeout(step, delay));
     setCount({ week: Math.floor(daysBetween(thisMonday, monday) / 7), step: 0 });
     for (let step = 1; step <= 7; step++) {
@@ -210,34 +168,32 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
         const day = addCalendarDays(monday, step - 1);
         setCount((value) => value && { ...value, step });
         setSelected(day);
-        setTurn(mondayTurn + step - 1);
-        say(weekCountSpoken(step), weekCountClipKeys(step), <><em>{capitalize(COUNT_WORDS[step - 1])}</em> — {WEEKDAY_NAMES[day.getDay()]}</>);
+        const name = capitalize(WEEKDAY_NAMES[day.getDay()]);
+        say(name, [`weekday_${day.getDay()}`], <em>{name}</em>);
       });
     }
     schedule(7 * COUNT_STEP_MS, () => {
       setCount((value) => value && { ...value, step: 8 });
-      say(weekPhraseSpoken("is_seven"), weekPhraseClipKeys("is_seven"), <>Семь дней — это <em>неделя</em></>);
+      say(weekPhraseSpoken("one"), weekPhraseClipKeys("one"), <>Это одна <em>неделя</em></>);
     });
     schedule(8 * COUNT_STEP_MS + 600, () => {
       const nextMonday = addCalendarDays(monday, 7);
       setCount(null);
       if (nextMonday > lastDay) return;
       setSelected(nextMonday);
-      setTurn(mondayTurn + 7);
-      say(weekPhraseSpoken("again"), weekPhraseClipKeys("again"), <>Потом всё сначала: снова <em>понедельник</em></>);
+      say(weekPhraseSpoken("again"), weekPhraseClipKeys("again"), <>Потом снова <em>понедельник</em></>);
     });
   }
 
   return (
     <div className="dom dom--week">
       <div className="dom-week__head">
-        <WeekRing dayIndex={(selected.getDay() + 6) % 7} turn={turn} />
         <div className="dom-week__head-text">
           <h2 className="dom-title">Неделя</h2>
-          <p className="dom-week__lead">Семь дней едут друг за другом. Потом снова понедельник.</p>
+          <p className="dom-week__lead">Дни недели едут друг за другом. Потом снова понедельник.</p>
         </div>
         <button type="button" className="dom-week__count" onClick={startCount} disabled={Boolean(count)}>
-          Сколько дней в неделе?
+          Дни недели по порядку
         </button>
       </div>
 
@@ -261,14 +217,11 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
                   "dom-train",
                   week === 0 ? "dom-train--current" : "",
                   week === selectedWeek ? "dom-train--selected" : "",
-                  counted === 8 ? "dom-train--counted" : "",
                 ].filter(Boolean).join(" ")}
-                aria-label={`${weekLabel(week)}, ${weekRange(monday)}`}
+                aria-label={weekLabel(week)}
               >
                 <p className="dom-train__plate">
                   <span className="dom-train__label">{weekLabel(week)}</span>
-                  <span className="dom-train__range">{weekRange(monday)}</span>
-                  <span className="dom-train__seven">7 дней — неделя</span>
                 </p>
                 <Locomotive />
                 <ol className="dom-week">
@@ -290,10 +243,9 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
                           aria-current={isSelected ? "date" : undefined}
                           onClick={() => select(date)}
                         >
-                          {counted > index && <span className="dom-week__number" aria-hidden="true">{index + 1}</span>}
+                          <span className="dom-week__rim" aria-hidden="true" />
                           <span className="dom-week__tag">{tag ?? " "}</span>
                           <span className="dom-week__name">{capitalize(name)}</span>
-                          <span className="dom-week__date">{date.getDate()} {MONTHS_GENITIVE[date.getMonth()]}</span>
                           {eventsOnDate(importantDates, date).map((item) => (
                             <span key={item.id} className="dom-week__event">
                               <span aria-hidden="true">{isBirthdayType(item) ? "🎂" : item.icon}</span> {item.title}
@@ -327,8 +279,6 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
     </div>
   );
 }
-
-const COUNT_WORDS = ["один", "два", "три", "четыре", "пять", "шесть", "семь"];
 
 // ── Число ─────────────────────────────────────────────────────────────
 // A calendar of the month with the day circled, then the spoken form of the

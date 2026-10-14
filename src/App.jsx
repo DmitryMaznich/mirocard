@@ -288,6 +288,7 @@ export default function App() {
                 token: bootstrap.token,
                 account: serverBootstrap.account,
                 builtinVisibility: serverBootstrap.builtinVisibility ?? {},
+                archivedTopicIds: serverBootstrap.archivedTopicIds ?? [],
           erasedStudentIds: serverBootstrap.erasedStudentIds ?? [],
           subscription: serverBootstrap.subscription,
                 settings: serverBootstrap.settings,
@@ -343,6 +344,7 @@ export default function App() {
         const payload = {
           account: serverBootstrap.account,
           builtinVisibility: serverBootstrap.builtinVisibility ?? {},
+          archivedTopicIds: serverBootstrap.archivedTopicIds ?? [],
           erasedStudentIds: serverBootstrap.erasedStudentIds ?? [],
           subscription: serverBootstrap.subscription,
           settings: serverBootstrap.settings,

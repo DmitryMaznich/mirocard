@@ -12,7 +12,7 @@ export function readTopicInventory() {
     : [];
 }
 const publication = (e) =>
-  e?.hidden || e?.status === "hidden" ? "hidden" : (e?.status ?? "release");
+  e?.status === "archived" ? "archived" : e?.hidden || e?.status === "hidden" ? "hidden" : (e?.status ?? "release");
 function bundleEntry(row) {
   const b = row?.bundle;
   if (!b) return null;
@@ -119,7 +119,7 @@ export function topicRegistry(
         hidden: source.builtin
           ? !builtinEnabled
           : entry
-            ? publication(entry) === "hidden"
+            ? ["hidden", "archived"].includes(publication(entry))
             : false,
         bundleAvailable,
         canManage:
@@ -188,7 +188,7 @@ export function updateTopicCatalog(
       };
     if (
       typeof body.listed !== "boolean" ||
-      !["release", "beta", "individual", "hidden"].includes(body.status) ||
+      !["release", "beta", "individual", "hidden", "archived"].includes(body.status) ||
       !["paid", "free"].includes(body.access)
     )
       throw { status: 400, message: "Некорректные флаги темы." };
@@ -204,7 +204,7 @@ export function updateTopicCatalog(
     if (
       !topic.builtin &&
       body.listed &&
-      body.status !== "hidden" &&
+      !["hidden", "archived"].includes(body.status) &&
       !topic.bundleAvailable
     )
       throw {

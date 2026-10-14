@@ -143,13 +143,21 @@ export const useAppStore = create((set) => ({
   // ─── Topics ────────────────────────────────────────────────────────────────
   ownedTopics: [],
   builtinVisibility: {},
+  archivedTopicIds: [],
+  setArchivedTopicIds: (archivedTopicIds) => set((s) => ({
+    archivedTopicIds,
+    topicRecords: applyBuiltinVisibility(s.topicRecords, s.builtinVisibility, archivedTopicIds),
+    ...(archivedTopicIds.includes(s.activeTopicId) ? {
+      activeTopicId: null, activeModeId: null, activeSessionSnapshot: null, screen: "topics",
+    } : {}),
+  })),
   topicRecords: [...BUILTIN_TOPICS],
   setOwnedTopics: (ownedTopics) => set({ ownedTopics }),
   setTopicRecords: (topicRecords) => set((s) => ({
-    topicRecords: applyBuiltinVisibility(topicRecords ?? [], s.builtinVisibility ?? {}),
+    topicRecords: applyBuiltinVisibility(topicRecords ?? [], s.builtinVisibility ?? {}, s.archivedTopicIds ?? []),
   })),
   upsertTopicRecord: (record) => set((s) => {
-    if (BUILTIN_TOPIC_IDS.has(record.meta.id)) return s;
+    if (BUILTIN_TOPIC_IDS.has(record.meta.id) || s.archivedTopicIds.includes(record.meta.id)) return s;
     return {
       topicRecords: [
         ...s.topicRecords.filter((r) => r.meta.id !== record.meta.id),

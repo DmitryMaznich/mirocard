@@ -1,3 +1,4 @@
+import MironiumLogo from "@/shared/components/MironiumLogo";
 import { useState } from "react";
 import { authErrorMessage } from "./authErrors";
 import { useAppStore } from "@/core/store";
@@ -40,6 +41,7 @@ export default function ResetPasswordScreen() {
         token: authToken,
         account,
         builtinVisibility: bootstrap.builtinVisibility ?? {},
+        archivedTopicIds: bootstrap.archivedTopicIds ?? [],
           erasedStudentIds: bootstrap.erasedStudentIds ?? [],
           subscription: bootstrap.subscription ?? null,
         settings: settings ?? bootstrap.settings,
@@ -68,7 +70,7 @@ export default function ResetPasswordScreen() {
   if (invalidOrExpired) {
     return (
       <div className="auth-screen">
-        <div className="auth-logo">Mironium</div>
+        <MironiumLogo className="auth-logo" />
         <div className="auth-form" style={{ textAlign: "center", gap: 20 }}>
           <p style={{ color: "#c0392b" }}>
             Ссылка недействительна или срок её действия истёк.
@@ -86,7 +88,7 @@ export default function ResetPasswordScreen() {
 
   return (
     <div className="auth-screen">
-      <div className="auth-logo">Mironium</div>
+      <MironiumLogo className="auth-logo" />
       <form className="auth-form" onSubmit={handleSubmit}>
         <p style={{ color: "#7c8c89", fontSize: "0.9rem", margin: "0 0 4px" }}>
           Придумайте новый пароль.

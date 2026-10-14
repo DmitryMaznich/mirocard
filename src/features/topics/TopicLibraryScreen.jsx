@@ -1,6 +1,6 @@
 import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
-import { getDb } from "@/core/db";
+import { getDb, kv } from "@/core/db";
 import { atomicUpsertOwnedTopic } from "@/core/bootstrap";
 import { deleteTopicRecord } from "@/topics/topicLoader";
 import Modal from "@/shared/components/Modal";
@@ -48,7 +48,12 @@ export default function TopicLibraryScreen() {
 
   const loadCatalog = useCallback(() => {
     fetchCatalog()
-      .then((c) => { setCatalog(c); setCatalogError(false); })
+      .then(async (c) => {
+        const archivedTopicIds = c.archivedTopicIds ?? [];
+        await kv.set(await getDb(), "archivedTopicIds", archivedTopicIds);
+        useAppStore.getState().setArchivedTopicIds(archivedTopicIds);
+        setCatalog(c); setCatalogError(false);
+      })
       .catch(() => setCatalogError(true));
   }, []);
 
@@ -142,7 +147,7 @@ export default function TopicLibraryScreen() {
   // IndexedDB.
   const hasCatalogAllAccess = (account?.featureFlags ?? []).includes("catalog_all_access");
   const visibleDecks = catalog
-    ? catalog.decks.filter((entry) => hasCatalogAllAccess || !entry.hidden)
+    ? catalog.decks.filter((entry) => entry.status !== "archived" && (hasCatalogAllAccess || !entry.hidden))
     : [];
   const visibleCatalogDeckIds = new Set(visibleDecks.map((entry) => entry.id));
   const visibleRecords = (account && !isLocalMode
@@ -178,7 +183,9 @@ export default function TopicLibraryScreen() {
   const allItems = [...itemsById.values()];
   const installedCount = allItems.filter((item) => item.installedRecord != null).length;
 
-  const byTitle = (a, b) => a.title.localeCompare(b.title, "ru");
+  // "Coming soon" teasers go after everything that can actually be opened.
+  const isSoonItem = (item) => Boolean(item.entry?.comingSoon) && !item.installedRecord;
+  const byTitle = (a, b) => (isSoonItem(a) - isSoonItem(b)) || a.title.localeCompare(b.title, "ru");
 
   const trimmedQuery = query.trim().toLowerCase();
   const searchResults = trimmedQuery

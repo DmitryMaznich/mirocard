@@ -11139,11 +11139,14 @@ button {
   gap: 16px;
 }
 .auth-logo {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #4a90e2;
+  display: flex;
+  justify-content: center;
   margin-bottom: 8px;
-  letter-spacing: -0.5px;
+}
+.auth-logo svg {
+  display: block;
+  height: 56px;
+  width: auto;
 }
 .auth-form {
   display: flex;
@@ -11271,7 +11274,7 @@ button {
 .auth-link {
   background: none;
   border: none;
-  color: #4a90e2;
+  color: #2a6b60;
   font-size: 0.95rem;
   cursor: pointer;
   padding: 4px 8px;
@@ -22037,6 +22040,9 @@ body { background: #eef0ef; }
   border-radius: 6px;
 }
 .topic-tile-row__tag--beta { color: #3a5fc8; background: #eef1fc; }
+.topic-tile-row__tag--soon { color: #8a6a12; background: #fbf3dc; }
+.topic-tile-row--soon .topic-tile-row__icon,
+.topic-tile-row--soon .topic-tile-row__title { opacity: 0.55; }
 .topic-tile-row__tag--individual { color: #1f8a63; background: #e9f7f1; }
 .topic-tile-row__tag--hidden { color: #66717a; background: #edf0f2; }
 .topic-tile-row__tag--experimental { color: #b05a10; background: #fdf1e6; }

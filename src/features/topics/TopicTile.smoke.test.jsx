@@ -56,6 +56,18 @@ describe("TopicTile — mounted through the real component", () => {
     expect(container.querySelector(".topic-tile-row__error")?.textContent).toContain("Нет соединения");
   });
 
+  it("coming-soon beta teaser: tagged «СКОРО», tap explains instead of installing", async () => {
+    const onInstall = vi.fn();
+    mount({ entry: { id: "verbs_v2", version: "1.0.0", status: "beta", access: "paid", comingSoon: true }, installedRecord: null, onInstall });
+    expect(container.querySelector(".topic-tile-row--soon")).toBeTruthy();
+    expect(container.querySelector(".topic-tile-row__tag--soon")?.textContent).toBe("СКОРО");
+    expect(container.querySelector(".topic-tile-row__tag--beta")).toBeNull();
+    expect(container.querySelector(".topic-tile-row__eyebrow").textContent).not.toContain("v1.0.0");
+    await act(async () => { container.querySelector("article").click(); });
+    expect(container.querySelector('[role="dialog"]')?.textContent).toContain("скоро появится");
+    expect(onInstall).not.toHaveBeenCalled();
+  });
+
   it("installed, not active: shows a checkmark badge and opens on tap", () => {
     const onSelect = vi.fn();
     const record = { meta: { id: "propis", version: "1.0.0" } };

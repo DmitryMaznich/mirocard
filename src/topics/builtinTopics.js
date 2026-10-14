@@ -49,6 +49,7 @@ export const BUILTIN_TOPIC_IDS = new Set(BUILTIN_TOPICS.map((t) => t.meta.id));
 export const FIRST_PARTY_DECK_IDS = new Set([]);
 
 
-export function applyBuiltinVisibility(records=[], visibility={}) {
-  return [...BUILTIN_TOPICS.filter(t=>visibility[t.meta.id]!==false), ...records.filter(t=>!BUILTIN_TOPIC_IDS.has(t.meta?.id))];
+export function applyBuiltinVisibility(records=[], visibility={}, archivedTopicIds=[]) {
+  const archived = new Set(archivedTopicIds);
+  return [...BUILTIN_TOPICS.filter(t=>visibility[t.meta.id]!==false), ...records.filter(t=>!BUILTIN_TOPIC_IDS.has(t.meta?.id) && !archived.has(t.meta?.id) && t.meta?.status !== "archived")];
 }

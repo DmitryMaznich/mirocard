@@ -30,7 +30,7 @@ export default function SessionExitPrompt({ onContinue, onFinish }) {
       showCloseButton={false}
       actions={
         <>
-          <Button variant="secondary" disabled={saving} onClick={onContinue}>Продолжить занятие</Button>
+          <Button variant="secondary" disabled={saving} onClick={onContinue}>Продолжить</Button>
           <Button disabled={saving} onClick={finish}>{saving ? "Сохраняем…" : "Завершить"}</Button>
         </>
       }
