@@ -4,7 +4,9 @@ const DISMISS_KEY = "installBannerDismissedAt";
 const DISMISS_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
 function isIosDevice() {
-  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream) return true;
+  // Safari on iPadOS 13+ reports itself as a Mac; a "Mac" with a touch screen is an iPad.
+  return /macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1;
 }
 
 // Add-to-Home-Screen only produces a real installable PWA in actual Safari.
