@@ -6,7 +6,6 @@ import { backContent, backPaper } from "./backContent.js";
 
 // The engine tasks a cover draws (in our own hand, on our own paper), each built only when what it depends on changes: switching the
 // decoration or the colour builds nothing, the back is built again only when the back changes.
-const WIDE = { narrowRows: false, grid: "regular", midDash: true, margin: "off" };
 // a line written once (no start dots, no copies)
 const once = (text) => rowToLine(newRow({ text: digitsOut(text), repeat: "one", dots: "none" }));
 
@@ -21,17 +20,19 @@ export function centredLine(line, glyphMap, paper) {
   const n = Math.max(0, Math.round((rowMaxX(paper) - w) / 2 / cell));
   return `${line}#i${n}`;
 }
-// the decoration band of copybook elements: one element, its copies solid along the row
-const ELEMENTS_BAND = rowToLine(newRow({ kind: "element", text: "заборчик", repeat: "all", dots: "none", copies: "solid" }));
+// the spine's paper (coverConfig.js spinePaperOf) as the grid of an empty page
+const SPINE_GRID = { propis: "regular", square: "square", ruled: "ruled" };
 
 // `side`: "front" | "back" | "both" — only that side's tasks are built
-export function useCoverTasks({ topicRecord, cover, format, side = "both" }) {
-  const front = side !== "back";
+// `spinePaper`: the spine's paper, resolved (coverConfig.js spinePaperOf); the spine is on both sides, so both build it.
+export function useCoverTasks({ topicRecord, cover, format, side = "both", spinePaper = "propis" }) {
   const fmt = format === "a4" ? "a4" : "a5";
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
-  const decor = front && cover.enabled ? cover.decor : "none";
-  const bandTask = useMemo(() => (decor === "ruling-band" ? buildPageTask({ topicRecord, lines: [], ...WIDE, format: fmt }) : null), [decor, topicRecord, fmt]);
-  const elementsTask = useMemo(() => (decor === "elements-band" ? buildPageTask({ topicRecord, lines: [ELEMENTS_BAND], ...WIDE, format: fmt }) : null), [decor, topicRecord, fmt]);
+  const spine = cover.enabled && cover.decor === "spine" && fmt === "a5";
+  const spineTask = useMemo(
+    () => (spine ? buildPageTask({ topicRecord, lines: [], narrowRows: true, grid: SPINE_GRID[spinePaper] ?? "regular", midDash: true, margin: "off", format: "a5" }) : null),
+    [spine, spinePaper, topicRecord],
+  );
   const backKind = side !== "front" && cover.enabled ? cover.back.kind : "none";
   const backPaperId = cover.back.paper;
   const back = useMemo(() => {
@@ -44,5 +45,5 @@ export function useCoverTasks({ topicRecord, cover, format, side = "both" }) {
     const task = buildPageTask({ topicRecord, lines, narrowRows: true, grid: taskGrid(paper), midDash: true, margin: "off", format: pageFormat(paper) });
     return { ...content, task, rows: lines.length, square: backPaperId === "square" };
   }, [backKind, backPaperId, topicRecord, fmt, glyphMap]);
-  return { bandTask, elementsTask, back };
+  return { spineTask, back };
 }

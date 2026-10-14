@@ -9,13 +9,24 @@ export const TITLE_STYLES = [
   { id: "print", label: "Печатное" },
 ];
 
+// one decoration (owner, 2026-10-14): the spine — a 40 mm band of the notebook's paper centred on the fold of the cover's sheet (20 mm
+// on the front, 20 mm on the back). The frame, the corners and the ruling / elements bands were dropped: a stored one falls back to none.
 export const DECORS = [
   { id: "none", label: "Нет" },
-  { id: "frame", label: "Рамка" },
-  { id: "corners", label: "Уголки" },
-  { id: "ruling-band", label: "Линейка" },
-  { id: "elements-band", label: "Элементы" },
+  { id: "spine", label: "Корешок" },
 ];
+// the paper of the spine: the notebook's own (its first page) or a chosen one; no dense slant (too busy on a 40 mm band)
+export const SPINE_PAPERS = [
+  { id: "auto", label: "Как в тетради" },
+  { id: "propis", label: "Прописи" },
+  { id: "square", label: "Клетка" },
+  { id: "ruled", label: "Линейка" },
+];
+// `notebookPaper`: the grid kind of the notebook's first page ("propis" | "square" | "ruled")
+export const spinePaperOf = (cover, notebookPaper) => {
+  const id = cover?.spine && cover.spine !== "auto" ? cover.spine : notebookPaper;
+  return ["propis", "square", "ruled"].includes(id) ? id : "propis";
+};
 
 export const FIELDS = [
   { id: "name", label: "Имя" },
@@ -49,7 +60,7 @@ export const BACK_PAPERS = [
 const BACK_PAPER = { alphabet: "copybook", digits: "square", signs: "square", "digits-signs": "square", punctuation: "copybook", none: "copybook" };
 export const backPaperOf = (kind) => BACK_PAPER[kind] ?? "copybook";
 
-const FRONT_DEFAULT = { title: { text: null, style: "print", kicker: true }, decor: "none", fields: ["name", "surname", "started"], accent: "teal", logo: true };
+const FRONT_DEFAULT = { title: { text: null, style: "print", kicker: true }, decor: "none", spine: "auto", fields: ["name", "surname", "started"], accent: "teal", logo: true };
 
 // The presets set the front only; the back stays as chosen.
 export const PRESETS = [
@@ -108,8 +119,10 @@ export function normalizeCover(raw, opts) {
   const kind = oneOf(BACKS, b.kind, d.back.kind);
   return {
     enabled: raw.enabled !== false,
-    title: { text, style: oneOf(TITLE_STYLES, t.style, d.title.style), kicker: t.kicker === undefined ? d.title.kicker : Boolean(t.kicker) },
+    // «ТЕТРАДЬ» is always there (owner, 2026-10-14: "мы же печатаем тетрадь"); the old switch is ignored
+    title: { text, style: oneOf(TITLE_STYLES, t.style, d.title.style), kicker: true },
     decor: oneOf(DECORS, raw.decor, d.decor),
+    spine: oneOf(SPINE_PAPERS, raw.spine, d.spine),
     fields,
     accent: oneOf(ACCENTS, raw.accent, d.accent),
     logo: raw.logo === undefined ? d.logo : Boolean(raw.logo),
@@ -123,3 +136,9 @@ export const coverTitle = (cover, notebookTitle) => String(cover?.title?.text ??
 function clone(x) {
   return JSON.parse(JSON.stringify(x));
 }
+
+// «12 листов»: the leaves of a notebook (two A5 pages a leaf; the cover not counted), printed on the back of its cover
+export const leavesLabel = (n) => {
+  const d = n % 10, h = n % 100;
+  return `${n} ${d === 1 && h !== 11 ? "лист" : d >= 2 && d <= 4 && (h < 10 || h >= 20) ? "листа" : "листов"}`;
+};

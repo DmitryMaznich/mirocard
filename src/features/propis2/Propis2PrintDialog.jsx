@@ -1,7 +1,7 @@
 import { useState } from "react";
 import CoverSide from "./cover/CoverSide.jsx";
 import { BOOKLET_MAX_PAGES, bookletPageCount } from "@/topics/renderers/propis/booklet.js";
-import { ACCENTS, BACKS, BACK_PAPERS, DECORS, FIELDS, PRESETS, applyPreset, backPaperOf, normalizeCover, presetOf } from "./cover/coverConfig.js";
+import { ACCENTS, BACKS, BACK_PAPERS, DECORS, FIELDS, PRESETS, SPINE_PAPERS, applyPreset, backPaperOf, normalizeCover, presetOf } from "./cover/coverConfig.js";
 
 // Asked before a notebook is printed (owner, 2026-10-08). The cover is one template (cover/coverConfig.js): a ready design picked in
 // one tap (the presets, each shown as the cover itself, small), its options under «Настроить», and the back — what is printed on the
@@ -16,6 +16,8 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
   const bookletWhy = notebook.a4 ? "Тетрадью — только формат A5: для A4 нужны листы A3." : pages > BOOKLET_MAX_PAGES ? `Тетрадью — до ${BOOKLET_MAX_PAGES} страниц: толще тетрадь плохо складывается и скрепляется. Разделите её на две.` : null;
   const [booklet, setBooklet] = useState(initialBooklet && !bookletWhy);
   const padded = bookletPageCount(pages) - pages;
+  // the previews count the leaves as they will be printed (the padding pages of «Тетрадью» are leaves too)
+  const shown = { ...notebook, pages, booklet };
   const [side, setSide] = useState("front"); // the side the phone shows
   const [tune, setTune] = useState(false);
   const preset = presetOf(cover);
@@ -33,7 +35,7 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
             const on = preset === p.id;
             return (
               <button key={p.id} type="button" role="radio" aria-label={p.label} aria-checked={on} className={`p2-print-cover${on ? " is-on" : ""}`} onClick={() => setCover((c) => applyPreset(c, p.id))}>
-                <span className="p2-print-thumb">{p.id === "none" ? <span className="p2-print-none">—</span> : <CoverSide side="front" cover={applyPreset(cover, p.id)} notebook={notebook} />}</span>
+                <span className="p2-print-thumb">{p.id === "none" ? <span className="p2-print-none">—</span> : <CoverSide side="front" cover={applyPreset(cover, p.id)} notebook={shown} />}</span>
                 <span className="p2-print-label">{p.label}</span>
               </button>
             );
@@ -47,8 +49,8 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
               ))}
             </div>
             <div className={`p2-print-spread p2-print-spread--${side}${notebook.a4 ? " p2-print-spread--a4" : ""}`} data-testid="propis2-cover-preview">
-              <div className="p2-print-page p2-print-page--back"><CoverSide side="back" cover={cover} notebook={notebook} /></div>
-              <div className="p2-print-page p2-print-page--front"><CoverSide side="front" cover={cover} notebook={notebook} /></div>
+              <div className="p2-print-page p2-print-page--back"><CoverSide side="back" cover={cover} notebook={shown} /></div>
+              <div className="p2-print-page p2-print-page--front"><CoverSide side="front" cover={cover} notebook={shown} /></div>
             </div>
             <Chips label="Задник" options={BACKS} value={cover.back.kind} onPick={(kind) => set({ back: { kind, paper: backPaperOf(kind) } })} />
             {cover.back.kind !== "none" && <Chips label="Бумага задника" options={BACK_PAPERS} value={cover.back.paper} onPick={(paper) => set({ back: { ...cover.back, paper } })} small />}
@@ -61,8 +63,8 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
                   <span>Название на обложке</span>
                   <input type="text" value={cover.title.text ?? ""} placeholder={title} maxLength={80} onChange={(e) => setTitle({ text: e.target.value })} />
                 </label>
-                <Chips label="Надпись «ТЕТРАДЬ»" options={ON_OFF} value={cover.title.kicker ? "on" : "off"} onPick={(v) => setTitle({ kicker: v === "on" })} />
-                <Chips label="Украшение" options={DECORS} value={cover.decor} onPick={(decor) => set({ decor })} />
+                {!notebook.a4 && <Chips label="Украшение" options={DECORS} value={cover.decor} onPick={(decor) => set({ decor })} />}
+                {!notebook.a4 && cover.decor === "spine" && <Chips label="Бумага корешка" options={SPINE_PAPERS} value={cover.spine} onPick={(spine) => set({ spine })} small />}
                 <Chips label="Поля" options={FIELDS} value={cover.fields} onPick={toggleField} multi />
                 <Chips label="Цвет" options={ACCENTS} value={cover.accent} onPick={(accent) => set({ accent })} swatch />
                 <Chips label="Логотип" options={ON_OFF} value={cover.logo ? "on" : "off"} onPick={(v) => set({ logo: v === "on" })} />

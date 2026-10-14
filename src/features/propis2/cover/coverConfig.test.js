@@ -26,7 +26,7 @@ describe("cover config", () => {
   });
 
   it("a cover of its own is no preset", () => {
-    expect(presetOf({ ...defaultCover(), decor: "frame" })).toBeNull();
+    expect(presetOf({ ...defaultCover(), decor: "spine" })).toBeNull();
     expect(presetOf({ ...defaultCover(), fields: ["name"] })).toBeNull();
   });
 
@@ -82,5 +82,12 @@ describe("back content", () => {
   it("fits one page: 17 rows of the narrow ruling, 20 squares", () => {
     for (const k of ["alphabet", "punctuation"]) expect(backContent(k).rows).toBeLessThanOrEqual(15);
     for (const k of ["digits", "signs", "digits-signs"]) expect(backContent(k).rows).toBeLessThanOrEqual(18);
+  });
+});
+
+describe("the leaves on the back", () => {
+  it("«N листов» with the Russian plural", async () => {
+    const { leavesLabel } = await import("./coverConfig.js");
+    expect([1, 2, 4, 5, 11, 12, 14, 21, 22, 25].map(leavesLabel)).toEqual(["1 лист", "2 листа", "4 листа", "5 листов", "11 листов", "12 листов", "14 листов", "21 лист", "22 листа", "25 листов"]);
   });
 });

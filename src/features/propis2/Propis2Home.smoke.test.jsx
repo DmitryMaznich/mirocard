@@ -294,14 +294,23 @@ describe("propis2 (zip topic)", () => {
     await click(chip("Задник", "Алфавит"));
     expect(preview().querySelector('[data-testid="propis2-back-alphabet"] svg')).not.toBeNull();
     expect(chip("Бумага задника", "Прописи").getAttribute("aria-checked")).toBe("true");
-    // the options: a decoration makes it a cover of its own (no preset lit)
+    // the options: the one decoration, the spine, makes it a cover of its own (no preset lit); «ТЕТРАДЬ» always there
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent.startsWith("Настроить обложку")));
-    await click(chip("Украшение", "Рамка"));
-    expect(preview().querySelector('[data-testid="propis2-cover-custom"] .p2-cover-ornament')).not.toBeNull();
+    expect([...dlg().querySelectorAll('[aria-label="Украшение"] .p2-chip')].map((b) => b.textContent)).toEqual(["Нет", "Корешок"]);
+    expect(dlg().querySelector('[aria-label="Надпись «ТЕТРАДЬ»"]')).toBeNull();
+    expect(preview().querySelector(".p2-cover-kicker").textContent).toBe("ТЕТРАДЬ");
+    await click(chip("Украшение", "Корешок"));
+    // both halves of the spine, on the notebook's own paper by default (this one starts on squared paper)
+    expect(preview().querySelector('[data-testid="propis2-cover-custom"] [data-testid="propis2-spine-front"] svg')).not.toBeNull();
+    expect(preview().querySelector('[data-testid="propis2-spine-back"] svg')).not.toBeNull();
+    expect(chip("Бумага корешка", "Как в тетради").getAttribute("aria-checked")).toBe("true");
+    expect([...dlg().querySelectorAll('[aria-label="Бумага корешка"] .p2-chip')].map((b) => b.textContent)).toEqual(["Как в тетради", "Прописи", "Клетка", "Линейка"]);
+    // the leaves of this notebook on the back: 3 pages -> 2 leaves
+    expect(preview().querySelector('[data-testid="propis2-back-leaves"]').textContent).toBe("2 листа");
     expect(presets().some((r) => r.getAttribute("aria-checked") === "true")).toBe(false);
     await click(chip("Украшение", "Нет"));
     expect(presets()[1].getAttribute("aria-checked")).toBe("true");
-    await click(chip("Украшение", "Уголки"));
+    await click(chip("Украшение", "Корешок"));
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Печать"));
     await act(async () => { await tick(120); });
     expect(dlg()).toBeNull();
@@ -309,7 +318,8 @@ describe("propis2 (zip topic)", () => {
     // A5: the back on the left half of the cover's sheet, the cover on the right, then the empty sheet
     const sheets = [...document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")];
     expect(sheets[0].querySelector('.propis-print-cover--back [data-testid="propis2-back-alphabet"]')).not.toBeNull();
-    expect(sheets[0].querySelector('.propis-print-cover:not(.propis-print-cover--back) [data-testid="propis2-cover-custom"] .p2-cover-ornament')).not.toBeNull();
+    expect(sheets[0].querySelector('.propis-print-cover:not(.propis-print-cover--back) [data-testid="propis2-cover-custom"] [data-testid="propis2-spine-front"]')).not.toBeNull();
+    expect(sheets[0].querySelector('.propis-print-cover--back [data-testid="propis2-spine-back"]')).not.toBeNull();
     expect(sheets[1].childElementCount).toBe(0);
     expect([...document.querySelectorAll(".propis-print-all [data-page-number]")].map((g) => g.getAttribute("data-page-number"))).toEqual(["1", "2", "3"]);
     // the choice is remembered (with the notebook); «Отмена» changes nothing
@@ -597,11 +607,13 @@ describe("propis2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     await act(async () => { byLabel(host, "Новая тетрадь").click(); await tick(); });
-    const fmt = host.querySelector('button[aria-label="Формат"]');
-    expect(fmt.getAttribute("title")).toBe("Формат");
+    // a new notebook is A5: no format to pick (owner, 2026-10-14: A4 only as the sheet an A5 notebook is printed on)
+    expect(host.querySelector('button[aria-label="Формат"]')).toBeNull();
+    const fmt = host.querySelector('button[aria-label="Тип бумаги"]');
+    expect(fmt.getAttribute("title")).toBe("Тип бумаги");
     expect(host.querySelector(".p2-tip")).toBeNull();
     await act(async () => { fmt.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true })); await tick(520); });
-    expect(host.querySelector(".p2-tip").textContent).toBe("Формат");
+    expect(host.querySelector(".p2-tip").textContent).toBe("Тип бумаги");
     // the press that showed the bubble does not open the list
     await act(async () => { fmt.dispatchEvent(new MouseEvent("pointerup", { bubbles: true })); fmt.click(); await tick(); });
     expect(host.querySelector('[role="listbox"]')).toBeNull();

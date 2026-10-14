@@ -317,7 +317,9 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
 
       <div className="propis2-main">
         <div className="propis2-settings" role="group" aria-label="Настройки страницы">
-          <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />
+          {/* the notebook is A5 (owner, 2026-10-14: an A4 notebook needs another printer; A4 stays only as the sheet an A5 notebook is
+              printed on): the format shows only on a page already made A4, to take it back to A5 */}
+          {pageFormat(page) === "a4" && <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />}
           <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} value={gridKind} onChange={(id) => onChange({ ...page, gridKind: id })} options={GRID_KINDS.map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
           <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked} value={page.ruling} onChange={(id) => onChange({ ...page, ruling: id })} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />
           <Propis2Picker label="Косая линейка" caption="Наклон" value={page.grid ?? "regular"} disabled={locked || !propisGrid} onChange={(id) => onChange({ ...page, grid: id })} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />

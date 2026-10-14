@@ -4,7 +4,7 @@ import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { NOTEBOOK_KEYS, PAGE_PAPER_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageMargin, pageToLines, paperDiffers, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { NOTEBOOK_KEYS, PAGE_PAPER_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, paperDiffers, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
@@ -291,11 +291,14 @@ export default function Propis2Home({ db }) {
   const coverFirstPage = view.name === "showSet" && set ? pagesById.get(set.pageIds[0]) : page;
   const coverSet = view.name === "showSet" ? set : page ? working.sets.find((st) => st.pageIds.includes(page.id)) ?? null : null;
   const squaredFirst = Boolean(coverFirstPage) && taskGrid(coverFirstPage) === "square";
+  const printCfg = { numbers: true, booklet: false, ...(printKey ? printCfgs[printKey] : null) };
+  // the pages printed: the notebook's screen pages, or the one page's
+  const printPageCount = view.name === "showSet" && set ? sections?.total ?? 0 : page ? Math.max(1, Math.ceil(pageToLines(page, glyphMap).length / rowsPerPage(page))) : 0;
+  // its first page gives the spine its paper (when the cover says "as in the notebook"); the pages and the print mode give the leaves
   const coverNotebook = useMemo(() => {
     if (!printKey || !coverFirstPage) return null;
-    return { title: printTitle, a4: pageFormat(coverFirstPage) === "a4", topicRecord };
-  }, [printKey, printTitle, coverFirstPage, topicRecord]);
-  const printCfg = { numbers: true, booklet: false, ...(printKey ? printCfgs[printKey] : null) };
+    return { title: printTitle, a4: pageFormat(coverFirstPage) === "a4", topicRecord, paper: pageGridKind(coverFirstPage), pages: printPageCount, booklet: Boolean(printCfg.booklet) };
+  }, [printKey, printTitle, coverFirstPage, topicRecord, printPageCount, printCfg.booklet]);
   const cover = useMemo(
     () => normalizeCover(coverSet?.cover ?? migrateLegacy(printCfg.cover, { squared: squaredFirst }), { squared: squaredFirst }),
     [coverSet?.cover, printCfg.cover, squaredFirst],
@@ -362,7 +365,7 @@ export default function Propis2Home({ db }) {
         {printAsk && coverNotebook && (
           <Propis2PrintDialog
             title={printTitle}
-            pages={isSet ? sections.total : Math.max(1, Math.ceil(pageToLines(page, glyphMap).length / rowsPerPage(page)))}
+            pages={printPageCount}
             cover={cover}
             numbers={printCfg.numbers}
             booklet={printCfg.booklet}

@@ -346,29 +346,39 @@
 .p2-cover-mid { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6cqw; padding: 0 12cqw; }
 .p2-cover-kicker { font-weight: 900; font-size: 6.2cqw; letter-spacing: 0.32em; padding-left: 0.32em; }
 .p2-cover-name { font-weight: 700; font-size: 4.6cqw; color: #4b5563; text-align: center; overflow-wrap: anywhere; margin-top: -3cqw; }
-.p2-cover-name--big { font-weight: 900; font-size: 6.4cqw; color: var(--p2-accent); margin-top: -1cqw; }
 .p2-cover-fields { align-self: stretch; display: flex; flex-direction: column; gap: 4.5cqw; margin-top: 4cqw; }
 .p2-cover-field { display: flex; align-items: flex-end; gap: 2cqw; font-size: 3.4cqw; font-weight: 700; color: #4b5563; }
 .p2-cover-field i { flex: 1; border-bottom: 0.35cqw solid #6b7280; }
 .p2-cover .propis-paper { fill: #fff; }
-/* the Mironium logo (MironiumLogo.jsx): small, centred at the foot of the front, above the bottom line of a frame */
+/* the Mironium logo (MironiumLogo.jsx): small, centred at the foot of the front */
 .p2-cover-logo { position: absolute; left: 50%; transform: translateX(-50%); bottom: 9cqw; height: 5.2cqw; width: auto; display: block; }
 
 /* ---- the print dialog (Propis2PrintDialog.jsx) ---- */
 .p2-cover-kicker { color: var(--p2-accent); }
-.p2-cover-ornament { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-/* the decoration bands: a strip of the copybook ruling at the top, a row of copybook elements at the bottom (over the logo) */
-.p2-cover-band { position: absolute; left: 6cqw; right: 6cqw; line-height: 0; }
-.p2-cover-band--top { top: 9cqw; }
-.p2-cover-band--bottom { bottom: 13cqw; }
-.p2-cover--logo .p2-cover-band--bottom { bottom: 20cqw; } /* clear of the logo */
 /* the back: a compact block (the heading is its first row, written by the engine), white around it, the logo and the site at the foot */
 .p2-back-block { position: absolute; left: 5cqw; right: 5cqw; top: 36cqw; line-height: 0; }
 .p2-back-block .propis-print-page-svg { display: block; width: 100%; height: auto; aspect-ratio: var(--crop-ratio); box-shadow: none; border-radius: 0; }
 .p2-back-foot { position: absolute; left: 10cqw; bottom: 8cqw; line-height: 1.2; }
 .p2-back-logo { display: block; height: 7.5cqw; width: auto; }
 .p2-back-site { font-size: 2.5cqw; color: #6b7280; margin-top: 1cqw; padding-left: 0.6cqw; }
-.p2-cover-band .propis-print-page-svg { display: block; width: 100%; height: auto; aspect-ratio: var(--crop-ratio); box-shadow: none; border-radius: 0; }
+/* the number of leaves of the notebook, above the logo */
+.p2-back-leaves { position: absolute; left: 10cqw; bottom: 21cqw; font-weight: 800; font-size: 3.6cqw; color: var(--p2-accent); letter-spacing: 0.02em; line-height: 1.2; }
+/* the spine (CoverSpine.jsx): 20 mm of an A5 width (13.47 %) at the fold on each side, the paper of the notebook, accent lines on its
+   outer edges; the inner box is one whole page of that paper (148.5 / 20 of the band), the front shows its next 20 mm (shifted by one
+   band). The content of each side moves out of it. */
+.p2-spine { position: absolute; top: 0; bottom: 0; width: 13.468cqw; overflow: hidden; line-height: 0; background: #fff; }
+.p2-spine--front { left: 0; }
+.p2-spine--back { right: 0; }
+/* the edge line over the paper (a border would narrow the band and shift the ruling against the other half at the fold) */
+.p2-spine::after { content: ""; position: absolute; top: 0; bottom: 0; width: 0.35cqw; background: var(--p2-accent); }
+.p2-spine--front::after { right: 0; }
+.p2-spine--back::after { left: 0; }
+.p2-spine-paper { width: 742.5%; }
+.p2-spine--front .p2-spine-paper { margin-left: -100%; }
+.p2-spine .propis-print-page-svg { display: block; width: 100%; height: auto; box-shadow: none; border-radius: 0; }
+.p2-cover--spine .p2-cover-mid { padding-left: calc(12cqw + 13.5cqw); padding-right: 8cqw; }
+.p2-cover--spine .p2-cover-logo { left: calc(50% + 6.75cqw); }
+.p2-back.p2-cover--spine .p2-back-block { left: 4cqw; right: calc(3cqw + 13.5cqw); }
 /* the back of the cover: a printed heading, then the content written in our hand on its own paper (the whole width of the page) */
 
 .p2-print-card { width: min(520px, 100%); max-height: calc(100dvh - 32px - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px)); overflow-y: auto; }
