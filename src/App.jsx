@@ -74,7 +74,7 @@ class ErrorBoundary extends Component {
   }
 }
 
-// «Прописи 2» owns its home screen for its constructor mode; its other modes (copied from «Прописи», 2026-10-10) and every other
+// `propis2` owns its home screen for its constructor mode; its other modes (copied from `propis` («Прописи старые»), 2026-10-10) and every other
 // topic keep the generic settings screen.
 function ParamsRoute() {
   const activeTopicId = useAppStore((s) => s.activeTopicId);

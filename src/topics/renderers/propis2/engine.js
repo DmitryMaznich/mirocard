@@ -4,8 +4,8 @@ import { LETTER_DATA } from "../propis/letters/letterData.js";
 import { letterDictationKey, wordDictationKey, textDictationKey, textSentenceDictationKey, splitIntoSentences } from "../propis/dictationAudio.js";
 import { CARD_LETTERS } from "./letterCards.js";
 
-// «Прописи 2». The constructor is the topic's home screen (src/features/propis2), its session only hands the renderer one "page" task.
-// «Узнай букву», «Строчная и заглавная» and «Диктант» are copied from «Прописи» (2026-10-10): the same tasks, the same pairing data
+// `propis2`. The constructor is the topic's home screen (src/features/propis2), its session only hands the renderer one "page" task.
+// «Узнай букву», «Строчная и заглавная» and «Диктант» are copied from `propis` («Прописи старые») (2026-10-10): the same tasks, the same pairing data
 // (LETTER_DATA) and the same recorded dictation; the renderer draws them with this topic's own letters.
 export function generateTasks(mode, topicRecord, sessionSize, sessionParams) {
   if (mode?.type === "letters_recognize") {
@@ -33,7 +33,7 @@ export function generateTasks(mode, topicRecord, sessionSize, sessionParams) {
   }];
 }
 
-// As «Прописи» builds it (propis/engine.js): a random set of items, letters / words / texts (a text dictated sentence by sentence),
+// As `propis` builds it (propis/engine.js): a random set of items, letters / words / texts (a text dictated sentence by sentence),
 // never the same letter twice in a row (А then а); the audio keys are the same recordings.
 function dictationTask(topicRecord, sessionParams) {
   const level = sessionParams?.level ?? "letters";

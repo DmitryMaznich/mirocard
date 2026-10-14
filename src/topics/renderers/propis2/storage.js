@@ -1,4 +1,4 @@
-// «Прописи 2» library: the adult's pages and page sets, stored on this device (IndexedDB keyval,
+// `propis2` library: the adult's pages and page sets, stored on this device (IndexedDB keyval,
 // own key, nothing added to the app's shared tables). Account sync is a later step.
 import { getDb, kv } from "@/core/db";
 import { docKey } from "./syncLib.js";

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Digits and signs for «Прописи 2»: raw hand captures -> smooth glyphs at capital height.
+"""Digits and signs for `propis2`: raw hand captures -> smooth glyphs at capital height.
 
   python3 tools/propis2/build_digit_glyphs.py
 

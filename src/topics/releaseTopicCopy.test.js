@@ -21,7 +21,7 @@ async function install(deck) {
 
 describe("release topic copy", () => {
   it("covers every shipped mode with a concrete description and goal", async () => {
-    expect(releaseDecks).toHaveLength(15);
+    expect(releaseDecks).toHaveLength(14);
     for (const deck of releaseDecks) {
       const { record } = await install(deck);
       expect(record.meta.about.description.length, deck.id).toBeGreaterThan(45);
@@ -139,4 +139,16 @@ describe("release topic copy", () => {
     }
   });
 
+});
+
+describe("«Прописи старые» (propis) are archived", () => {
+  it("hidden in the catalog and on the home screen; propis2 is «Прописи»", async () => {
+    const { applyReleaseTopicCopy } = await import("./releaseTopicCopy");
+    expect(catalog.decks.find((d) => d.id === "propis").status).toBe("hidden");
+    const old = applyReleaseTopicCopy({ meta: { id: "propis", title: "Прописи" }, modes: [] });
+    expect(old.meta).toMatchObject({ title: "Прописи старые", hidden: true });
+    const now = applyReleaseTopicCopy({ meta: { id: "propis2", title: "Прописи 2" }, modes: [] });
+    expect(now.meta.title).toBe("Прописи");
+    expect(now.meta.hidden).toBeUndefined();
+  });
 });

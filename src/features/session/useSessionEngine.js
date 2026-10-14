@@ -173,7 +173,7 @@ function buildGeneratedSessionState({
     // -- every other propis mode still only reads .cards off this same object, so passing the
     // whole topicRecord through changes nothing for them (propis/engine.js's own
     // `Array.isArray(cards) ? cards : (cards?.cards ?? [])` already tolerates either shape).
-    // «Прописи 2» copied «Узнай букву», «Строчная и заглавная», «Диктант» from it (2026-10-10): the same whole-record call
+    // `propis2` copied «Узнай букву», «Строчная и заглавная», «Диктант» from it (2026-10-10): the same whole-record call
     const generateTasks = ENGINE_REGISTRY[renderer];
     const sessionSize = 500;
     tasks = generateTasks ? generateTasks(mode, topicRecord, sessionSize, sessionParams) : [];

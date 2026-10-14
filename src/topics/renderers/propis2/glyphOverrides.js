@@ -1,4 +1,4 @@
-// «Прописи 2» glyph facts that differ from the shared tools/propis/wide.json (which the frozen v1 copybook also builds from).
+// `propis2` glyph facts that differ from the shared tools/propis/wide.json (which the archived `propis` («Прописи старые») also builds from).
 //
 // The exit rise that joins a letter to the next one is not part of every letter. For о б ю э ф в it is a canonical
 // connector appended to the letter (the very same curve on all of them), so the letter written ALONE has none and with it only when a

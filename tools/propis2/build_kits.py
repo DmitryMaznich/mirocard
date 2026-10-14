@@ -1,4 +1,4 @@
-"""Builds the «Методика» kits of «Прописи 2» (src/topics/renderers/propis2/kits.json) from the SAME content lists the v1 print
+"""Builds the «Методика» kits of `propis2` (src/topics/renderers/propis2/kits.json) from the SAME content lists the `propis` («Прописи старые») print
 notebooks (scripts/propis_worksheets) are generated from: letter groups, syllables, words, texts. The PDFs themselves are not
 parsed. A page is the constructor's own page: rows with their options, so every kit can be opened and edited in the constructor.
 

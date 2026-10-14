@@ -187,7 +187,7 @@
   cursor: default;
 }
 
-/* Top-row variant (Прописи 2 student view): the same round dark buttons as the edit
+/* Top-row variant (`propis2` student view): the same round dark buttons as the edit
    pencil, sitting to its left in one fixed row (pencil at right:64px, close at 12px). */
 .propis-text-nav--top {
   position: fixed;
@@ -473,11 +473,11 @@
     size: 297mm 210mm;
     margin: 0;
   }
-  /* «Прописи 2», format A4: one portrait sheet per page */
+  /* `propis2`, format A4: one portrait sheet per page */
   .propis-print-all__sheet--a4 { page: propis-a4; width: 210mm; height: 297mm; }
   .propis-print-all__sheet--a4 .propis-print-page-svg { width: 210mm; height: 297mm; }
   @page propis-a4 { size: 210mm 297mm; margin: 0; }
-  /* «Прописи 2»: the cover, an A5 (A4) page of its own; the pages drawn inside it keep their own width */
+  /* `propis2`: the cover, an A5 (A4) page of its own; the pages drawn inside it keep their own width */
   .propis-print-all__sheet { background: #fff; }
   .propis-print-cover { width: 148.5mm; height: 210mm; flex: none; background: #fff; }
   .propis-print-cover--a4 { width: 210mm; height: 297mm; }

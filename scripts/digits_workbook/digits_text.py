@@ -1,7 +1,7 @@
 """Pages 21-24: digits inside handwritten text, on the standard propis
 ruling. Letters, connectors and punctuation come from the punctuation
 workbook's Ink (captured strokes); a token made of digits is drawn with the
-«Прописи 2» digits (p2_digits.json "text": the app's copybook-row geometry),
+`propis2` digits (p2_digits.json "text": the app's copybook-row geometry),
 a capital letter tall, so they sit right next to capitals.
 """
 

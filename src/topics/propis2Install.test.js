@@ -22,7 +22,7 @@ describe("propis2 deck install", () => {
     expect(rec.texts.length).toBeGreaterThan(0);
   });
 
-  it("the v1 propis deck keeps its wide-row data through the same installer", async () => {
+  it("the `propis` deck («Прописи старые») keeps its wide-row data through the same installer", async () => {
     const file = readdirSync("public/decks").filter((n) => /^propis_v[0-9.]+\.zip$/.test(n)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })).pop();
     const db = await openDb("test-p1-" + Date.now());
     await importTopic(db, await readFile(`public/decks/${file}`), "999.0.0");

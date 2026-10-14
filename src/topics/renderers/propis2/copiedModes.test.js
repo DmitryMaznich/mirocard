@@ -11,7 +11,7 @@ const rec = { ...topic, wide: wide.glyphs, elements: JSON.parse(readFileSync("to
 const map = buildGlyphMap(rec);
 const mode = (type) => topic.modes.find((m) => m.type === type);
 
-describe("modes copied from «Прописи» (2026-10-10)", () => {
+describe("modes copied from `propis` («Прописи старые») (2026-10-10)", () => {
   it("capitals Ё and Й exist (Е / И with the marks of ё / й above them) and lay out", () => {
     for (const [cap, base] of [["Ё", "Е"], ["Й", "И"]]) {
       const g = map.get(cap);
@@ -31,7 +31,7 @@ describe("modes copied from «Прописи» (2026-10-10)", () => {
     expect(Math.min(...a)).toBeGreaterThan(55);
     expect(cards["а"].width).toBeGreaterThan(5);
   });
-  it("«Узнай букву», «Строчная и заглавная», «Диктант» give the tasks of «Прописи»", () => {
+  it("«Узнай букву», «Строчная и заглавная», «Диктант» give the tasks of `propis`", () => {
     expect(generateTasks(mode("letters_recognize"), rec, 500, {}).length).toBeGreaterThan(5);
     expect(generateTasks(mode("letters_case"), rec, 500, { variant: "sort" })[0].type).toBe("sort_case");
     const [letters] = generateTasks(mode("dictation"), rec, 500, { level: "letters", itemCount: 12 });

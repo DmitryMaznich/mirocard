@@ -1,6 +1,6 @@
 import SH from "./iconShapes.json";
 
-// Pictograms of the «Прописи 2» constructor. Every control of the constructor is an icon (no visible text; the name of a
+// Pictograms of the `propis2` constructor. Every control of the constructor is an icon (no visible text; the name of a
 // control is its aria-label for screen readers). 24x24, drawn with currentColor so a button decides the colour.
 const base = { width: 24, height: 24, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: "false" };
 const S = (children) => <svg {...base}>{children}</svg>;

@@ -50,7 +50,7 @@ const typeInField = async (host, value) => {
 const tick = (ms = 20) => new Promise((r) => setTimeout(r, ms));
 const freshDb = () => openDb("p2home-" + Date.now() + Math.random());
 
-describe("Прописи 2 (zip topic)", () => {
+describe("propis2 (zip topic)", () => {
   beforeEach(() => {
     vi.spyOn(api, "get").mockRejectedValue(new Error("offline"));
     pushOp.mockClear();
@@ -63,7 +63,7 @@ describe("Прописи 2 (zip topic)", () => {
     expect(ENGINE_REGISTRY.propis2().length).toBe(1);
     const rec = deckRecord();
     expect(rec.meta.renderer).toBe("propis2");
-    // the constructor, and «Узнай букву», «Строчная и заглавная», «Диктант» copied from «Прописи» (2026-10-10)
+    // the constructor, and «Узнай букву», «Строчная и заглавная», «Диктант» copied from `propis` («Прописи старые») (2026-10-10)
     expect(rec.modes.map((m) => m.type)).toEqual(["builder", "letters_recognize", "letters_case", "dictation"]);
   });
 
@@ -275,7 +275,7 @@ describe("Прописи 2 (zip topic)", () => {
 
     await click(btn("Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
-    // 3 pages -> exactly 3 screen pages (v1 pads to an even count; propis2 sets exactPages); opened on the edited page
+    // 3 pages -> exactly 3 screen pages (`propis` pads to an even count; propis2 sets exactPages); opened on the edited page
     expect(counter()).toBe("2 / 3");
     // printing asks first: the cover (a ready design or options of the template, and its back) and page numbers; then prints the
     // cover with its back and the numbered pages

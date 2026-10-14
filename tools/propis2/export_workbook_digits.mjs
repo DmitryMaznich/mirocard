@@ -1,4 +1,4 @@
-// Exports the «Прописи 2» digits and signs for the printed digits workbook (scripts/digits_workbook), with the geometry the app
+// Exports the `propis2` digits and signs for the printed digits workbook (scripts/digits_workbook), with the geometry the app
 // itself uses, so the notebook and the screen show the same digits:
 //   cell — squared paper (wordEngine `cellGlyphLocal`): one cell tall, 65deg slant, the span of the cell the app gives each digit;
 //          units = cells, x from the cell's left side (a digit's ink touches x = 1, the right side; a sign is centred on x = 0.5),

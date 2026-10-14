@@ -17,7 +17,7 @@ import { migrateLegacy, normalizeCover } from "./cover/coverConfig.js";
 import { setBackInterceptor } from "@/shared/navigation/backInterceptor";
 import "./propis2.css";
 
-// Home screen of «Прописи 2»: library -> editor -> student view. The library lives in IndexedDB on this device. A notebook that is
+// Home screen of `propis2`: library -> editor -> student view. The library lives in IndexedDB on this device. A notebook that is
 // opened or edited is worked on as a SESSION (a draft in memory, mirrored to this device): nothing reaches «Мои тетради» until the
 // adult confirms (save button / the question when leaving), so opening an editor never leaves a «Новая тетрадь» behind.
 const UNDO_TYPING_MS = 1000;

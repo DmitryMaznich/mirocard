@@ -255,8 +255,10 @@ export const RELEASE_TOPIC_COPY = {
 
 export function applyReleaseTopicCopy(record) {
   if (!record?.meta?.id) return record;
+  // `propis2` is the copybook now, titled «Прописи»; the old `propis` is «Прописи старые», archived (2026-10-14): hidden from
+  // the home screen of a device that still has it installed (its catalog entry is "hidden" too, so it gets no updates to say so).
   const title = { propis: "Прописи старые", propis2: "Прописи" }[record.meta.id];
-  if (title) record = { ...record, meta: { ...record.meta, title } };
+  if (title) record = { ...record, meta: { ...record.meta, title, ...(record.meta.id === "propis" ? { hidden: true } : {}) } };
   const copy = RELEASE_TOPIC_COPY[record.meta.id];
   if (!copy) return record;
 

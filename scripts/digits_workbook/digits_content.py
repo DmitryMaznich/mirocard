@@ -1,5 +1,5 @@
 """Drawing helpers for the digits workbook: the digits and signs of
-«Прописи 2» (src/topics/renderers/propis2/digitGlyphs.json, exported with
+`propis2` (src/topics/renderers/propis2/digitGlyphs.json, exported with
 the app's own squared-paper geometry by tools/propis2/export_workbook_digits.mjs
 into p2_digits.json) placed on a 5mm "клетка" grid -- the same digits the
 app draws on squared paper: one cell tall, the copybook's 65deg slant, a

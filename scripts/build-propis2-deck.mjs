@@ -1,9 +1,9 @@
 import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
-// «Прописи 2» deck: topic.json + glyph data merged from the shared tools/propis sources
-// (wide.json, elements.json), exactly as build-propis-deck.mjs does for v1. No renderer bundle:
-// like v1, the renderer lives in the app (src/topics/renderers/propis2).
+// `propis2` deck: topic.json + glyph data merged from the shared tools/propis sources
+// (wide.json, elements.json), exactly as build-propis-deck.mjs does for `propis` («Прописи старые»). No renderer bundle:
+// like `propis`, the renderer lives in the app (src/topics/renderers/propis2).
 const TOPIC_PATH = "tools/propis2/topic.json";
 const ELEMENTS_PATH = "tools/propis/elements.json";
 const WIDE_PATH = "tools/propis/wide.json";

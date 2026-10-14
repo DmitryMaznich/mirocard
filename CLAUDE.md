@@ -163,9 +163,11 @@ Since 2026-10-14 the topic users see as **«Прописи»** is the one with i
 names and sync keys (`propis2:*`) keep the `2` — only the displayed title changed.
 Read `docs/propis2.md` before touching it.
 
-The old topic (id **`propis`**) is now titled **«Прописи старые»** and is being removed
-from the catalog — archive only, no new work, don't bring its modes back. Its ZIP stays
-only in git history. **But its code and data are NOT dead:** `propis2` imports the shared
+The old topic (id **`propis`**) is now titled **«Прописи старые»** and is hidden — catalog
+status `"hidden"` (`public/decks/catalog.json` + `backend/generated/topic-inventory.json`) and
+`meta.hidden` forced in `applyReleaseTopicCopy` (`src/topics/releaseTopicCopy.js`), so it also
+leaves the home screen of devices that installed it. Archive only, no new work. In code
+comments, name the topics by id (`propis2` / `propis`), not «Прописи 2» / v1. **But its code and data are NOT dead:** `propis2` imports the shared
 engine from `src/topics/renderers/propis/` (`wordEngine.js`, `PrintPageView.jsx`,
 `useLoopingStrokes.js`, `AnimatedStrokes.jsx`, `letters/*` views) and glyph data from
 `tools/propis/` (`wide.json`, `elements.json`, `captures/`). Never delete those when

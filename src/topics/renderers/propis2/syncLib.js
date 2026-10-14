@@ -1,4 +1,4 @@
-// «Прописи 2» library sync. Every page / set / preset is its own account_kv document (`propis2:page:<id>` ...), written
+// `propis2` library sync. Every page / set / preset is its own account_kv document (`propis2:page:<id>` ...), written
 // with the app's offline queue (`kv.upsert`) and read back with GET /account/kv?prefix=propis2:. Last write wins per
 // document (by its `updatedAt`); a delete is a tombstone `{ id, deleted: true, updatedAt }` so it reaches other devices.
 export const SYNC_PREFIX = "propis2:";

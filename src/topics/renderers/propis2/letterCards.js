@@ -1,5 +1,5 @@
-// The letter cards of «Узнай букву» and «Строчная и заглавная» (copied into «Прописи 2» from «Прописи», 2026-10-10) draw a letter
-// with the SAME views (propis/letters/*) — only the ink is «Прописи 2»'s: every letter as the constructor writes it alone (laid out by
+// The letter cards of «Узнай букву» and «Строчная и заглавная» (copied into `propis2` from `propis` («Прописи старые»), 2026-10-10) draw a letter
+// with the SAME views (propis/letters/*) — only the ink is `propis2`'s: every letter as the constructor writes it alone (laid out by
 // the engine: ш and ы are composed of parts there), moved into the card's own space (glyphs.js: viewBox 100 x 150, baseline 88, x-height 62..88).
 import { layoutWideLinesIntoRows, WIDE_ZONE_UNITS } from "../propis/wordEngine.js";
 import { samplePath } from "../propis/pathGeometry.js";

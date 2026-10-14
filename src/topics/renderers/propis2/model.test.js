@@ -432,7 +432,7 @@ describe("long text wraps by the grid the page is drawn with", () => {
   });
 });
 
-describe("«Методика» kits (kits.json, built from the v1 notebooks' content lists)", () => {
+describe("«Методика» kits (kits.json, built from the `propis` notebooks' content lists)", () => {
   const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
   it("the notebooks are there, every page fits one page and every letter has a glyph", () => {
     expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts", "digits"]);

@@ -1,4 +1,4 @@
-/* «Узнай букву» in «Прописи 2»: «Прописи» draws a written letter at a fixed 70 px (100 px on the top card), which leaves it tiny in
+/* «Узнай букву» in `propis2`: `propis` draws a written letter at a fixed 70 px (100 px on the top card), which leaves it tiny in
    the big answer tiles. Here the letter grows with its tile; the wrapper takes no box of its own, so the views' layout is unchanged. */
 .propis2-letters { display: contents; }
 .propis2-letters .wl-option > svg { width: auto; height: 88%; max-width: 100%; max-height: 360px; }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Shapes for the «Прописи 2» constructor's pictograms, taken from the topic's own data (not drawn by hand).
+"""Shapes for the `propis2` constructor's pictograms, taken from the topic's own data (not drawn by hand).
 
   python3 tools/propis2/build_icon_shapes.py
 

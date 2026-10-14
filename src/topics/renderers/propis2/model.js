@@ -1,4 +1,4 @@
-// «Прописи 2»: page model and its translation into the line strings the shared wide-row engine
+// `propis2`: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
 import { snapXFor, squareRowsPerPage } from "../propis/PrintPageView.jsx";

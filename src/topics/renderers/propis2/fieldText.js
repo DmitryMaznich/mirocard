@@ -1,4 +1,4 @@
-// «Прописи 2»: the one text field of the constructor. It holds the rows of the page from a chosen row to the end, one row
+// `propis2`: the one text field of the constructor. It holds the rows of the page from a chosen row to the end, one row
 // per line (Enter = a new row on the sheet). Typing in it rewrites exactly that tail of the page; the rows above are not
 // touched. This module is the pure part: rows -> field text, field text -> rows.
 import { newRow } from "./model.js";

@@ -22,7 +22,7 @@ const CONTENT_W_UNITS = mmToNativeUnits(PRINT_CONTENT_W_MM);
 // only the whole grid's vertical anchor moves, row-to-row spacing (TEXT_ROW_PITCH) doesn't.
 const ROW_Y_SHIFT = NATIVE_L3 - mmToNativeUnits(PRINT_FIRST_BASELINE_MM);
 const rowOriginY = (row) => row * TEXT_ROW_PITCH - ROW_Y_SHIFT;
-// «Прописи 2» narrow ruling (`narrow17`) starts at ruling row 0, so its first dashed line used to sit exactly on the page's cut edge (0 mm)
+// `propis2` narrow ruling (`narrow17`) starts at ruling row 0, so its first dashed line used to sit exactly on the page's cut edge (0 mm)
 // while 6 mm stayed free under the last row (17 rows of 12 mm on a 210 mm page): the whole ruling and the writing move down 4.5 mm.
 // The slant lines stay where they are (the writing snaps to them at its new height).
 const NARROW17_SHIFT_MM = 4.5;
@@ -91,7 +91,7 @@ const REPEAT_OPACITY = 0.5;
 // OPPOSITE (inner/center-divider) side.
 // "Широкая строка" sheets have no margin: no red line, rows start one cell in from the page's left edge.
 const WIDE_CONTENT_INSET_MM = 5;
-// «Прописи 2» margin on a wide-row page: `margin` is the side of the FIRST page ("left" / "right"); it alternates on the
+// `propis2` margin on a wide-row page: `margin` is the side of the FIRST page ("left" / "right"); it alternates on the
 // spread, the red line stands PROPIS2_MARGIN_MM from that edge and the content keeps a cell's width clear of it.
 function slotGeometry(pageIndex, compact = false, margin = "off", geom = GEOMS.a5) {
   const isLeftSlot = pageIndex % 2 === 0;
@@ -125,8 +125,8 @@ function slotGeometry(pageIndex, compact = false, margin = "off", geom = GEOMS.a
 // TEXT_ROW_ELEMENT_DIAGONAL_SPACING's own comment (propisRuling.js) for why the standard
 // 20mm spacing doesn't work for these: most elements are narrower than one 20mm gap, so a
 // whole крючок/заборчик could render with no slant guide crossing it at all.
-// «Прописи 2», dense grid on the wide ruling: 5 mm, the distance between the two tops of «и» there.
-const SQUARE_CELL = mmToNativeUnits(5); // «Прописи 2»: the squared grid, 5 mm
+// `propis2`, dense grid on the wide ruling: 5 mm, the distance between the two tops of «и» there.
+const SQUARE_CELL = mmToNativeUnits(5); // `propis2`: the squared grid, 5 mm
 // "Широкая строка": every wide band carries its OWN slant grid, phased on the band's bottom line, so the
 // first slant meets the bottom (and the top) horizontal at the same distance from the page's left edge in
 // every row (a page-long grid would shift by 3.6 units per row). Distance of that first crossing:
@@ -142,7 +142,7 @@ const wideLineCount = (pageW) => Math.ceil((pageW + (TEXT_ROW_PITCH - TEXT_ROW_T
 // 15 units) run through the WHOLE page, not only inside the bands.
 const NARROW_SCALE = 0.5;
 const NARROW_CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * NARROW_SCALE;
-// «Прописи 2», dense grid on the narrow ruling: exactly the letters' own cell (2.5 mm, the distance between the two tops of «и»),
+// `propis2`, dense grid on the narrow ruling: exactly the letters' own cell (2.5 mm, the distance between the two tops of «и»),
 // so that every stem of every letter stands on a drawn line.
 const NARROW_BAND_H = (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET) * NARROW_SCALE;
 const NARROW_GUIDE_LOCAL = NATIVE_L3 - TEXT_ROW_PITCH; // 16: dashed limit line above the band
@@ -155,7 +155,7 @@ const narrowLineX = (k, yAbs) => NARROW_FIRST_X + k * NARROW_CELL + (narrowYRef(
 // wide band (its own bold baseline) -- content rows start at ruling row 1, so 16 per page, and
 // the first band doesn't sit cut off against the physical page edge.
 
-// «Прописи 2» page formats. "a5" is the page of the finished copybooks (148.5 x 210 mm, two of them on an A4 landscape
+// `propis2` page formats. "a5" is the page of the finished copybooks (148.5 x 210 mm, two of them on an A4 landscape
 // sheet, the diagonal grid runs on across the pair); "a4" is a whole A4 portrait sheet (210 x 297 mm), one page per sheet.
 // Same row cycle, so an A4 page simply has more rows and a wider line.
 const PAGE_ROW_CYCLE_MM = 12;
@@ -186,12 +186,12 @@ export const geomOf = (format) => (format === "a4" ? GEOMS.a4 : GEOMS.a5);
 const wideBandTop = (row) => rowOriginY(row) + NATIVE_L3 - TEXT_ROW_PITCH;
 const wideBandHeight = TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET;
 
-// «Прописи 2» editor: which content row (0-based, on one page) a point at svg-y `y` belongs to; -1 outside
+// `propis2` editor: which content row (0-based, on one page) a point at svg-y `y` belongs to; -1 outside
 // the ruled rows. A row owns the strip from its previous baseline down to its own baseline (the same
 // for the narrow and wide rulings: both stand on the same 72-unit pitch).
-// «Прописи 2» narrow ruling (`narrow17`): content starts at ruling row 0, a page holds all 17 rows of the printed notebook (24 on A4);
+// `propis2` narrow ruling (`narrow17`): content starts at ruling row 0, a page holds all 17 rows of the printed notebook (24 on A4);
 // the wide ruling keeps its first ruling row as the top edge of the first band (16 / 23 rows).
-// «Прописи 2», squared paper ("square"): its own rows, not the 12 mm cycle of the copybook. A row is two cells (10 mm): one cell
+// `propis2`, squared paper ("square"): its own rows, not the 12 mm cycle of the copybook. A row is two cells (10 mm): one cell
 // written in, one left empty ("через клетку"); the baseline is a line of the grid, the first one 10 mm from the top. A digit is
 // one cell tall (wordEngine.js places it in its cell, `snapX.cell`).
 const SQUARE_PITCH = 2 * SQUARE_CELL;
@@ -241,8 +241,8 @@ function nearestDiagonalX(x, y, spacingUnits, diagonalShiftX) {
   return diagonalLineX(n, y, spacingUnits, diagonalShiftX);
 }
 
-// Where a row can be tapped (row-local y): over its own ink, with a margin (`wideRows`: «Прописи 2» / the wide sheets, whose letters stand
-// on the band at y 16..64 on the narrow ruling, not around NATIVE_L3 as the v1 text rows; a rect around NATIVE_L3 sat below the letters).
+// Where a row can be tapped (row-local y): over its own ink, with a margin (`wideRows`: `propis2` / the wide sheets, whose letters stand
+// on the band at y 16..64 on the narrow ruling, not around NATIVE_L3 as the `propis` text rows; a rect around NATIVE_L3 sat below the letters).
 const HIT_PAD = 10;
 const HIT_CACHE = new WeakMap();
 function hitBox(row, wideRows) {
@@ -354,7 +354,7 @@ const RowInk = memo(function RowInk({ segments, narrowRows }) {
 // instead of the standard set (see its own comment) -- that one axis genuinely does need to
 // differ, since the standard 20mm spacing is too sparse for a single narrow element's own
 // ink to ever cross a slant guide at all.
-// `onFragmentTap` (optional, «Прописи 2»): tap reports the row and the tap's x inside it instead of toggling the
+// `onFragmentTap` (optional, `propis2`): tap reports the row and the tap's x inside it instead of toggling the
 // inline animation. `crop` (optional): show only a window of the page (the show panel's single row).
 // `speedFactor` slows/speeds the pen animation.
 // `pageNumber`: printed in a small ring at the bottom, by the OUTER edge of the page (as in the printed notebooks): on an A4 sheet of
@@ -382,7 +382,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   const rowY = (r) => (square ? squareRowY(r) : rowOriginY(contentRow(r)) + n17);
   // the show panel's window (crop.row): only the ruling of the row the pen writes on, not its neighbours
   const onlyRow = crop?.row ?? null;
-  // «Прописи 2»: a plain slant grid replaces the methodology grid in what is drawn (the methodology grid stays
+  // `propis2`: a plain slant grid replaces the methodology grid in what is drawn (the methodology grid stays
   // internal: letters still snap to it, it is just not drawn). The two grids are the ones of the finished
   // copybooks: "regular" = the standard Russian-school grid, a line every 20 mm (DIAGONAL_MM); "dense" = the
   // fine grid, a line every 2.5 mm on the narrow ruling (the letters' own cell) and every 5 mm
@@ -391,7 +391,7 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   // "square" / "ruled": plain paper, an ordinary school notebook page: only each row's baseline is kept, no thin line, no dashes
   const plain = simpleGrid === "square" || simpleGrid === "ruled";
   // "square": an ordinary school squared grid, 5 mm cells (vertical and horizontal lines), under the row guides.
-  // dashed guide lines are slightly red on the «Прописи 2» pages (the v1 sheets keep the grid colour)
+  // dashed guide lines are slightly red on the `propis2` pages (the `propis` sheets keep the grid colour)
   const dashColor = simpleGrid ? "#e57d7a" : guideColor;
   // wide ruling: the slants live only inside the wide bands, none in the narrow strips between them (as in the methodology)
   const clipId = `p2c${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
@@ -742,7 +742,7 @@ function usePinchZoom(wrapRef, contentRef) {
 // ruling phase depends on the physical page slot and the row's own Y, both derivable from the row
 // index alone (WIDE_ROWS_PER_PAGE rows per page), so the layout can snap without knowing pages.
 // The content's x offset on the page a row lands on (its page follows from its index alone); it only differs between
-// pages when the «Прописи 2» margin alternates.
+// pages when the `propis2` margin alternates.
 const rowContentX = (rowIndex, margin, geom, narrow17, square = false) => slotGeometry(Math.floor(rowIndex / perPageOf(geom, narrow17, square)), true, margin, geom).contentXUnits;
 
 // Squared paper: digits go into cells: `cell` tells the engine the cell size and where, in the row's own x, a vertical line of the grid
@@ -773,7 +773,7 @@ const wideSnapFor = (margin, geom) => (rowIndex, x, y) => {
   return wideLineX(k, y) - contentXUnits;
 };
 
-// «Прописи 2», dense grid: letters snap to the lines that are actually drawn (SHEET_DIAGONAL_LINES_NARROW_DENSE on the narrow
+// `propis2`, dense grid: letters snap to the lines that are actually drawn (SHEET_DIAGONAL_LINES_NARROW_DENSE on the narrow
 // row, SHEET_DIAGONAL_LINES_WIDE_DENSE on the wide one), not to the hidden methodology grid. Line n of such a grid
 // stands at x = n*step - y*tan on its page (see buildDiagonalLines) and every odd page is shifted by one page width,
 // exactly as PrintPage draws it; the page of a row follows from its index alone (WIDE_ROWS_PER_PAGE rows per page).
@@ -791,7 +791,7 @@ function drawnGridSnapX(step, margin, geom, narrow17 = false) {
 }
 
 // The function that puts a letter's start on a line of the grid the page is drawn with (the layout and the text wrapping of
-// «Прописи 2» must use the SAME one: a word placed on the grid is wider than the same word measured freely).
+// `propis2` must use the SAME one: a word placed on the grid is wider than the same word measured freely).
 // The same function for the same page parameters (`cacheable`): the layout keeps finished rows per grid function (wordEngine.js).
 const SNAP_FNS = new Map();
 // the show panel's window (focus): room for the pen above (and, to keep the row in the middle, below) the row; margin beside the ink
@@ -868,9 +868,9 @@ export function PrintPageTop({ task, rows = 5 }) {
   );
 }
 
-// Optional props («Прописи 2», all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
+// Optional props (`propis2`, all inert when absent): `onFragmentTap` (see PrintPage), `bare` (only the page:
 // no close/nav/print), `focus` (crop to the first row and animate it), `speedFactor`.
-// A long document can be shown in parts («Прописи 2»: a notebook whose pages are on different paper is laid out one run of pages at a
+// A long document can be shown in parts (`propis2`: a notebook whose pages are on different paper is laid out one run of pages at a
 // time): `pageBase` is the number of screen pages before this part, `pageTotal` the pages of the whole document, `onEdge(dir)` is
 // called when ‹ is pressed on the first page of the part (dir -1) or › on its last one (dir +1), `startAt` is the page of the part it opens on
 // (a number, or "last" when coming back from the next part), `onPageCount(n)` reports how many pages the part really takes. The page

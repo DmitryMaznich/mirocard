@@ -13,8 +13,8 @@ import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { cardGlyphs } from "./letterCards.js";
 import { pageToLines, newPage, newRow } from "./model.js";
 
-// «Прописи 2» in a session. The constructor is the topic's home screen (src/features/propis2); a "page" task shows a page.
-// «Узнай букву», «Строчная и заглавная» and «Диктант» (copied from «Прописи», 2026-10-10) use the very views of «Прописи», with this
+// `propis2` in a session. The constructor is the topic's home screen (src/features/propis2); a "page" task shows a page.
+// «Узнай букву», «Строчная и заглавная» and «Диктант» (copied from `propis` («Прописи старые»), 2026-10-10) use the very views of `propis`, with this
 // topic's letters: the cards get them through the same glyph context, the dictation's answer sheet is written by this topic's engine.
 export default function Propis2Renderer({ task, topicRecord, onAdvance, onClose, onCorrect, onMistake }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);

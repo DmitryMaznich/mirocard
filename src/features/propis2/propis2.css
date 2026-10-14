@@ -41,7 +41,7 @@
   .propis2-preview-col { flex: 1 1 48%; position: sticky; top: 8px; padding: 16px 16px 16px 0; }
 }
 
-/* ===== constructor «Прописи 2»: icons only, one calm family (cream paper, teal accent, blue ink) ===== */
+/* ===== constructor `propis2`: icons only, one calm family (cream paper, teal accent, blue ink) ===== */
 .propis2-editor2 {
   --p2-bg: #fdfcf9; --p2-surface: #fff; --p2-strip: #f6f1e4; --p2-line: #e3dccb; --p2-board: #cfc4ad;
   --p2-ink: #28323c; --p2-muted: #8b93a1; --p2-teal: #4a9b8f; --p2-teal-dark: #2a6b60; --p2-teal-soft: #e5f2ef;
@@ -217,7 +217,7 @@
 /* the viewer: «edit this page» next to the close button */
 /* Show modal: full screen; the ruled window with the animated fragment takes all the space under the one-line button row */
 /* show panel: what is shown (kind + fragment) at the top, the writing row in the middle, the controls at the bottom */
-.propis2-panel { position: absolute; inset: 0; z-index: 700; /* above v1 .propis-practice-stage (500) */ background: #fffdf8; display: flex; flex-direction: column; }
+.propis2-panel { position: absolute; inset: 0; z-index: 700; /* above `propis` .propis-practice-stage (500) */ background: #fffdf8; display: flex; flex-direction: column; }
 .propis2-panel-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; position: relative; padding: calc(14px + var(--app-safe-top, 0px)) calc(72px + var(--app-safe-right, 0px)) 6px calc(72px + var(--app-safe-left, 0px)); }
 .propis2-panel-what { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
 .propis2-panel-kind { font: 700 clamp(13px, 1.6vw, 16px)/1.2 "Nunito", sans-serif; color: #8b8577; text-transform: uppercase; letter-spacing: .08em; }

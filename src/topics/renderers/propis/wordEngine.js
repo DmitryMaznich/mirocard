@@ -1269,7 +1269,7 @@ export function wideGlyphLocal(glyph, scale = 1) {
   return byScale.get(scale);
 }
 
-// «Прописи 2», squared paper: a digit stands in ONE cell, as tall as the cell, with the slant of the copybook (65deg, as the school
+// `propis2`, squared paper: a digit stands in ONE cell, as tall as the cell, with the slant of the copybook (65deg, as the school
 // digit «1» runs from the top right corner of its cell to the middle of the bottom side), against the RIGHT side of its cell. The
 // glyph as laid out for the row (`scale`) is unslanted, brought down to the cell's height, scaled across the slant and leaned again,
 // all about the baseline. How much across the slant: so that the digit spans CELL_DIGIT_SPAN of the cell's width ON PAPER (not across
@@ -1370,7 +1370,7 @@ function wideGlyphLocalCompute(glyph, scale = 1) {
     }
   }
   let start = getPathEndpoints(strokes[0].d).start;
-  // `anchorY` («Прописи 2», г): the drawn start was moved up the letter's opening line (glyphOverrides.js `startLift`); the letter is
+  // `anchorY` (`propis2`, г): the drawn start was moved up the letter's opening line (glyphOverrides.js `startLift`); the letter is
   // still set on the grid by its captured start, on the same line further down at that capture height, so it keeps its place and so do
   // the letters after it. `start` is that anchor; the strokes keep the lifted start.
   if (Number.isFinite(glyph.anchorY)) {
@@ -1693,7 +1693,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             const q = samplePath(moved[0].d, 40).find((p) => Math.hypot(p[0] - st0h[0], p[1] - st0h[1]) > 4 * scale);
             if (q) {
               const dl = Math.hypot(q[0] - st0h[0], q[1] - st0h[1]);
-              // the tail already ends (almost) at that start («Прописи 2» г starts where exits end): keep the tail's own shape, only
+              // the tail already ends (almost) at that start (`propis2` г starts where exits end): keep the tail's own shape, only
               // move its end there; reshaping it from its launch flattened о's connector into a long low line
               const near = Math.hypot(prevExit[0] - st0h[0], prevExit[1] - st0h[1]) < 3 * scale;
               const d3 = near ? moveTailEndD(strokes[prevExitStroke].d, st0h) : retargetTailEndD(strokes[prevExitStroke].d, st0h, glyph.joinStraight ? null : [(q[0] - st0h[0]) / dl, (q[1] - st0h[1]) / dl]);
@@ -1844,7 +1844,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
 // page still gets a second, blank one (just the ruling + margin), and content needing a 3rd
 // page always gets a 4th too, rather than leaving an odd sheet half-used.
 export function paginateRows(layout, rowsPerPage, { exact = false } = {}) {
-  // v1 default: at least 2 pages, always even (double-sided print). `exact` (Прописи 2): just what's needed.
+  // `propis` default: at least 2 pages, always even (double-sided print). `exact` (`propis2`): just what's needed.
   const needed = Math.ceil(layout.rowCount / rowsPerPage);
   const neededPages = exact ? Math.max(1, needed) : Math.max(2, needed);
   const pageCount = exact || neededPages % 2 === 0 ? neededPages : neededPages + 1;

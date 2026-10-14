@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 const topic = JSON.parse(readFileSync("tools/propis2/topic.json", "utf-8"));
 const ru = (v) => (typeof v === "string" ? v : v?.ru);
 
-describe("«Прописи 2»: topic, mode and parameter texts", () => {
+describe("`propis2`: topic, mode and parameter texts", () => {
   it("the topic has a description, goals, a final goal and steps", () => {
     const a = topic.meta.about;
     expect(a.description.length).toBeGreaterThan(80);
@@ -44,7 +44,7 @@ describe("«Прописи 2»: topic, mode and parameter texts", () => {
   });
 });
 
-describe("«Прописи 2»: elements the owner threw out are not in the deck", () => {
+describe("`propis2`: elements the owner threw out are not in the deck", () => {
   it("the dropped ids are not shipped, the rest are", async () => {
     const { default: JSZip } = await import("jszip");
     const dropped = JSON.parse(readFileSync("tools/propis2/dropped_elements.json", "utf-8")).ids;
