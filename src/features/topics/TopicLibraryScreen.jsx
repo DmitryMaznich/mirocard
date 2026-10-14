@@ -183,7 +183,9 @@ export default function TopicLibraryScreen() {
   const allItems = [...itemsById.values()];
   const installedCount = allItems.filter((item) => item.installedRecord != null).length;
 
-  const byTitle = (a, b) => a.title.localeCompare(b.title, "ru");
+  // "Coming soon" teasers go after everything that can actually be opened.
+  const isSoonItem = (item) => Boolean(item.entry?.comingSoon) && !item.installedRecord;
+  const byTitle = (a, b) => (isSoonItem(a) - isSoonItem(b)) || a.title.localeCompare(b.title, "ru");
 
   const trimmedQuery = query.trim().toLowerCase();
   const searchResults = trimmedQuery

@@ -940,11 +940,18 @@ async function handleGetDecksCatalog(req, res) {
   }
   const catalog = loadCatalog();
   const decks = (catalog.decks ?? [])
-    .filter((d) => isCatalogEntryVisible(d, assignedTopicIds, hasCatalogAllAccess))
-    .map((d) => {
-      if ((d.access ?? "free") === "free") return d;
+    .flatMap((d) => {
+      if (!isCatalogEntryVisible(d, assignedTopicIds, hasCatalogAllAccess)) {
+        // A beta topic the caller can't open is still listed, as a "coming soon"
+        // teaser: no download URL, and claim/download keep refusing it (they
+        // check isCatalogEntryVisible, not this listing).
+        if (getTopicPublication(d) !== "beta") return [];
+        const { url, zipUrl, ...rest } = d;
+        return [{ ...rest, comingSoon: true }];
+      }
+      if ((d.access ?? "free") === "free") return [d];
       const { url, ...rest } = d;
-      return rest;
+      return [rest];
     });
   const archivedTopicIds = (catalog.decks ?? []).filter(d => getTopicPublication(d) === "archived").map(d => d.id);
   writeJson(res, 200, { ...catalog, decks, archivedTopicIds });

@@ -260,8 +260,12 @@ test("beta and individual decks require an assignment as well as active access",
   const auth = { Authorization: `Bearer ${token}` };
 
   const initialCatalog = await fetch(`${base}/api/decks/catalog`, { headers: auth });
-  const initialIds = (await initialCatalog.json()).decks.map((deck) => deck.id);
-  assert.ok(!initialIds.includes("beta_deck"));
+  const initialDecks = (await initialCatalog.json()).decks;
+  const initialIds = initialDecks.map((deck) => deck.id);
+  // An unassigned beta deck is listed only as a "coming soon" teaser, with no download URL.
+  const betaTeaser = initialDecks.find((deck) => deck.id === "beta_deck");
+  assert.equal(betaTeaser?.comingSoon, true);
+  assert.equal(betaTeaser.url, undefined);
   assert.ok(!initialIds.includes("personal_deck"));
 
   for (const topicId of ["beta_deck", "personal_deck"]) {
@@ -284,8 +288,10 @@ test("beta and individual decks require an assignment as well as active access",
   }
 
   const assignedCatalog = await fetch(`${base}/api/decks/catalog`, { headers: auth });
-  const assignedIds = (await assignedCatalog.json()).decks.map((deck) => deck.id);
+  const assignedDecks = (await assignedCatalog.json()).decks;
+  const assignedIds = assignedDecks.map((deck) => deck.id);
   assert.ok(assignedIds.includes("beta_deck"));
+  assert.equal(assignedDecks.find((deck) => deck.id === "beta_deck").comingSoon, undefined);
   assert.ok(assignedIds.includes("personal_deck"));
 
   for (const [topicId, bytes] of [["beta_deck", "BETA-ZIP-BYTES"], ["personal_deck", "PERSONAL-ZIP-BYTES"]]) {
