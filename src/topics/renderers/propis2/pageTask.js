@@ -24,7 +24,7 @@ export function listElementChoices(topicRecord) {
 export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0 }) {
   // Empty strings are blank writing rows and must stay (the engine draws them as empty ruled rows).
   const clean = (lines ?? []).map((l) => String(l).trim());
-  if (grid === "square") narrowRows = true; // squared paper: its own rows (PrintPageView), letters and digits at the narrow size
+  if (grid === "square" || grid === "ruled") narrowRows = true; // squared / ruled paper: its own rows (PrintPageView), letters and digits at the narrow size
   while (clean.length && clean[clean.length - 1] === "") clean.pop();
   return {
     type: "print_page",

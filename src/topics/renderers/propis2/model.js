@@ -1,7 +1,7 @@
 // `propis2`: page model and its translation into the line strings the shared wide-row engine
 // understands ("И#d" = sample with start dots, "И#c" = clean row, see wordEngine.js).
 import { layoutWideLinesIntoRows, wideTokenToLabels, WIDE_ROW_MAX_X } from "../propis/wordEngine.js";
-import { snapXFor, squareRowsPerPage } from "../propis/PrintPageView.jsx";
+import { snapXFor, ownRowsPerPage } from "../propis/PrintPageView.jsx";
 import { TEXT_ROW_WIDE_DIAGONAL_SPACING, PRINT_ROWS_PER_PAGE, PRINT_PAGE_W_MM, PRINT_PAGE_H_MM, PRINT_FIRST_BASELINE_MM, mmToNativeUnits, propis2MarginUnits } from "../propis/propisRuling.js";
 import { outsideRowLabels } from "./glyphReach.js";
 import { PROPIS2_METHOD_NOTEBOOKS } from "./data.js";
@@ -22,7 +22,7 @@ export const pageAspect = (page) => { const f = formatOf(page); return f.wMm / f
 // content rows on one page (ruling row 0 is only the top edge)
 // content rows on one page: all ruling rows on the narrow ruling (17 on A5, 24 on A4); on the wide one the first ruling row is only the
 // top edge of the first band (16 / 23)
-export const rowsPerPage = (page) => (taskGrid(page) === "square" ? squareRowsPerPage(pageFormat(page)) : Math.floor((formatOf(page).hMm - PRINT_FIRST_BASELINE_MM) / 12) + (page?.ruling === "narrow" ? 1 : 0));
+export const rowsPerPage = (page) => (taskGrid(page) === "square" || taskGrid(page) === "ruled" ? ownRowsPerPage(pageFormat(page), taskGrid(page)) : Math.floor((formatOf(page).hMm - PRINT_FIRST_BASELINE_MM) / 12) + (page?.ruling === "narrow" ? 1 : 0));
 
 export const RULINGS = [
   { id: "narrow", label: "Узкая строка", short: "Узкая" },
@@ -238,7 +238,7 @@ export const lineWidth = (text, glyphMap, ruling, snap, maxX) => {
   return w;
 };
 const lineWidthNow = (text, glyphMap, ruling, snap, maxX) => {
-  const rowSnap = snap ? Object.assign((_row, x, y) => snap(0, x, y), snap.cell ? { cell: { ...snap.cell, origin: () => snap.cell.origin(0) } } : {}, snap.hidden ? { hidden: true } : {}) : undefined;
+  const rowSnap = snap ? Object.assign((_row, x, y) => snap(0, x, y), snap.cell ? { cell: { ...snap.cell, origin: () => snap.cell.origin(0) } } : {}, snap.hidden ? { hidden: true } : {}, snap.letterScale ? { letterScale: snap.letterScale } : {}) : undefined;
   const { placed } = layoutWideLinesIntoRows([text], glyphMap, rowSnap, false, ruling === "narrow" ? 0.5 : 1, maxX);
   return placed[0]?.segments?.[0]?.width ?? 0;
 };
@@ -246,7 +246,8 @@ const lineWidthNow = (text, glyphMap, ruling, snap, maxX) => {
 // The snapping function of a page: the grid it is drawn with (slant frequency), margin, format.
 export const pageSnap = (page) => snapXFor({ narrowRows: pageRuling(page) === "narrow", simpleGrid: taskGrid(page), margin: pageMargin(page), format: pageFormat(page), narrow17: pageRuling(page) === "narrow" });
 // The row size the layout uses: squared paper has no copybook ruling of its own, its letters and digits are laid out at the narrow size.
-export const pageRuling = (page) => (taskGrid(page) === "square" ? "narrow" : page?.ruling);
+// ruled paper too (its own 8 mm rows, PrintPageView OWN_ROWS)
+export const pageRuling = (page) => (taskGrid(page) === "square" || taskGrid(page) === "ruled" ? "narrow" : page?.ruling);
 // Rows of different pages stand at different phases of the grid: keep one cell of room so a snapped line never runs off.
 const wrapSlack = (ruling) => TEXT_ROW_WIDE_DIAGONAL_SPACING * (ruling === "narrow" ? 0.5 : 1);
 
@@ -519,7 +520,7 @@ export function notebookLayout(set, pagesById) {
 
 // One string per paper as the engine draws it (defaults filled in), to tell whether two pages are on the same paper. «Писать после»
 // is not paper for the engine (it adds blank lines), so pages that differ only in it stay in one run.
-export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), taskGrid(page) === "square" ? "" : page?.ruling === "narrow" ? "narrow" : "wide", page?.midDash !== false, pageMargin(page)]);
+export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), taskGrid(page) === "square" || taskGrid(page) === "ruled" ? "" : page?.ruling === "narrow" ? "narrow" : "wide", page?.midDash !== false, pageMargin(page)]);
 
 // Does any page of the notebook differ in paper (any of PAGE_PAPER_KEYS) from `page`?
 export function paperDiffers(set, pagesById, page) {

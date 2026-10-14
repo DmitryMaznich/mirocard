@@ -1467,7 +1467,7 @@ export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply = 
     let row = rows.get(key);
     if (!row) {
       // the row alone, with the grid of ITS place on the page
-      const own = Object.assign((_r, x, y) => snapX(rowIndex, x, y), snapX.cell ? { cell: { ...snapX.cell, origin: () => snapX.cell.origin(rowIndex) } } : {}, snapX.hidden ? { hidden: true } : {});
+      const own = Object.assign((_r, x, y) => snapX(rowIndex, x, y), snapX.cell ? { cell: { ...snapX.cell, origin: () => snapX.cell.origin(rowIndex) } } : {}, snapX.hidden ? { hidden: true } : {}, snapX.letterScale ? { letterScale: snapX.letterScale } : {});
       row = { ...layoutWideLinesIntoRowsNow([line], glyphsByLabel, own, multiply, scale, maxX).placed[0], rowIndex };
       rows.set(key, row);
     }
@@ -1481,6 +1481,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   // (`cell.scale`: a lowercase letter 3/4 of a cell, a capital 1.5 cells), placed freely; `cell.origin(row)` = a vertical grid line, row-local x
   const cellGrid = snapX.cell ?? null;
   if (cellGrid?.scale) scale = cellGrid.scale;
+  else if (snapX.letterScale) scale = snapX.letterScale; // ruled paper: the letters smaller, no cells
   const CELL = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
   const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { ...cellGrid, origin: () => cellGrid.origin(row) } } : {}, snapX.hidden ? { hidden: true } : {});
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the

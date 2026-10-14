@@ -478,7 +478,9 @@ describe("propis2 (zip topic)", () => {
     expect(preview().querySelectorAll("line[stroke-dasharray]").length).toBe(0);
     await pick("Тип бумаги", "Линейка");
     await act(async () => { await tick(60); });
-    expect(preview().querySelector("[data-simple-grid]")).toBeNull();
+    // a school ruled page: a line every 8 mm, no slants, no copybook bands
+    expect(preview().querySelector('[data-simple-grid="ruled"]')).not.toBeNull();
+    expect(preview().querySelector("[data-narrow-grid]")).toBeNull();
     expect(slant().every((b) => b.disabled)).toBe(true);
     await pick("Тип бумаги", "Прописи");
     await act(async () => { await tick(60); });

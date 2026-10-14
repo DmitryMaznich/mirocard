@@ -173,7 +173,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       const vbH = Number(String(svg.getAttribute("viewBox") ?? "").split(/\s+/)[3]) || box.height;
       y = ((cy - box.top) / (box.height || 1)) * vbH;
     }
-    const local = rowAtSvgY(y, pageFormat(page), page.ruling === "narrow", taskGrid(page) === "square");
+    const local = rowAtSvgY(y, pageFormat(page), page.ruling === "narrow", ["square", "ruled"].includes(taskGrid(page)) ? taskGrid(page) : null);
     return local < 0 ? -1 : pageIndexRef.current * rowsPerPage(page) + local;
   };
 

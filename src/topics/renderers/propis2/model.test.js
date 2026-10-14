@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { taskGrid, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, paperDiffers } from "./model.js";
+import { taskGrid, pageRuling, paperKey, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, paperDiffers } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 import { rowAtSvgY } from "../propis/PrintPageView.jsx";
@@ -747,5 +747,15 @@ describe("a fence fills the row up to the page's edge: that is not an overflow",
         expect(a.rows.map((r) => r.overflow), JSON.stringify([patch, ruling])).toEqual([false, false]);
       }
     }
+  });
+});
+
+describe("ruled paper: the school ruled notebook (owner, 2026-10-14)", () => {
+  it("its own rows: 24 lines every 8 mm on an A5 page, rows at the narrow size; one paper whatever the ruling says", () => {
+    const ruled = { gridKind: "ruled", ruling: "narrow", format: "a5" };
+    expect(rowsPerPage(ruled)).toBe(24);
+    expect(rowsPerPage({ ...ruled, ruling: "wide" })).toBe(24);
+    expect(pageRuling({ ...ruled, ruling: "wide" })).toBe("narrow");
+    expect(paperKey(ruled)).toBe(paperKey({ ...ruled, ruling: "wide" }));
   });
 });

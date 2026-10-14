@@ -35,7 +35,7 @@ export default function Propis2ShowPanel({ fragment, topicRecord, ruling, grid, 
   }, []);
   // the fragment is moved to the middle of its row (an indent in slant cells), so the ruling runs on at both sides of it
   const task = useMemo(() => {
-    const narrow = ruling === "narrow" || grid === "square";
+    const narrow = ruling === "narrow" || grid === "square" || grid === "ruled";
     const snap = snapXFor({ narrowRows: narrow, simpleGrid: grid, narrow17: narrow });
     const scale = snap.cell?.scale ?? (narrow ? 0.5 : 1);
     const w = lineWidth(fragment, buildGlyphMap(topicRecord), narrow ? "narrow" : "wide", snap);
