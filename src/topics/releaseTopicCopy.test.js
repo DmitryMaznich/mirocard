@@ -10,7 +10,9 @@ import { getTopicRecord, importTopic, listTopicRecords } from "./topicLoader";
 import { RELEASE_TOPIC_COPY } from "./releaseTopicCopy";
 
 const catalog = JSON.parse(await readFile(resolve("public/decks/catalog.json"), "utf8"));
-const releaseDecks = catalog.decks.filter((deck) => deck.status === "release");
+// Every deck with release copy, whatever its current publication status (a topic can be parked
+// as «Скоро» in the catalog and still has to carry finished copy), plus whatever is released now.
+const releaseDecks = catalog.decks.filter((deck) => RELEASE_TOPIC_COPY[deck.id] || deck.status === "release");
 
 async function install(deck) {
   const db = await openDb(`release-copy-${deck.id}-${Math.random()}`);
