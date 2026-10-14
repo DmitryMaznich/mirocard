@@ -14,7 +14,6 @@ export const DECORS = [
   { id: "corners", label: "Уголки" },
   { id: "ruling-band", label: "Линейка" },
   { id: "elements-band", label: "Элементы" },
-  { id: "sample-window", label: "Окошко" },
 ];
 
 export const FIELDS = [
@@ -56,7 +55,6 @@ export const PRESETS = [
   { id: "none", label: "Без обложки" },
   { id: "school", label: "Школьная", front: { title: { style: "print", kicker: true }, decor: "none", fields: ["name", "surname", "started"] } },
   { id: "propis", label: "Пропись", front: { title: { style: "cursive", kicker: false }, decor: "none", fields: ["name", "surname"] } },
-  { id: "sample", label: "С образцом", front: { title: { style: "print", kicker: true }, decor: "sample-window", fields: ["name", "surname"] } },
 ];
 
 // the back a notebook gets by default: the digits on squared paper for a notebook that starts on squared paper, the alphabet otherwise
@@ -85,7 +83,9 @@ export function presetOf(cover) {
   return hit ? hit.id : null;
 }
 
-// The covers of the first version were stored on the device as `cover: "school" | "propis" | "sample" | "none"`.
+// The covers of the first version were stored on the device as `cover: "school" | "propis" | "sample" | "none"`. «С образцом» (the
+// window with the notebook's first rows) was dropped by the owner on 2026-10-14: "sample" now gives the default, and a stored
+// `decor: "sample-window"` falls back to no decoration (normalizeCover).
 export function migrateLegacy(legacy, opts) {
   const base = defaultCover(opts);
   if (legacy === "none") return { ...base, enabled: false };

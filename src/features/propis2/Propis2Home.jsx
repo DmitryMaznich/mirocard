@@ -284,7 +284,7 @@ export default function Propis2Home({ db }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view.name, page, set, runTasks, partIndex, glyphMap, taskOf]);
   // the cover: the notebook's own (`set.cover`, synced with it; a notebook printed before keeps the design remembered on this device),
-  // drawn with the notebook's name and first rows (its own paper)
+  // drawn with the notebook's name
   const printKey = view.name === "showSet" && set ? set.id : view.name === "show" && page ? page.id : null;
   const printTitle = view.name === "showSet" && set ? set.title : page?.title ?? "";
   const coverFirstPage = view.name === "showSet" && set ? pagesById.get(set.pageIds[0]) : page;
@@ -292,9 +292,8 @@ export default function Propis2Home({ db }) {
   const squaredFirst = Boolean(coverFirstPage) && taskGrid(coverFirstPage) === "square";
   const coverNotebook = useMemo(() => {
     if (!printKey || !coverFirstPage) return null;
-    const sample = view.name === "showSet" ? runTasks?.[0] : taskOf(coverFirstPage, pageToLines(coverFirstPage, glyphMap));
-    return { title: printTitle, sampleTask: sample, a4: pageFormat(coverFirstPage) === "a4", topicRecord };
-  }, [printKey, printTitle, coverFirstPage, view.name, runTasks, taskOf, glyphMap, topicRecord]);
+    return { title: printTitle, a4: pageFormat(coverFirstPage) === "a4", topicRecord };
+  }, [printKey, printTitle, coverFirstPage, topicRecord]);
   const printCfg = { numbers: true, booklet: false, ...(printKey ? printCfgs[printKey] : null) };
   const cover = useMemo(
     () => normalizeCover(coverSet?.cover ?? migrateLegacy(printCfg.cover, { squared: squaredFirst }), { squared: squaredFirst }),

@@ -10,12 +10,12 @@ describe("cover config", () => {
     expect(defaultCover({ squared: true }).back).toEqual({ kind: "digits", paper: "square" });
   });
 
-  it("the three designs of the first version are presets of the template", () => {
+  it("the designs of the first version are presets of the template («С образцом» dropped 2026-10-14)", () => {
     for (const p of PRESETS) expect(presetOf(applyPreset(defaultCover(), p.id))).toBe(p.id);
     const propis = applyPreset(defaultCover(), "propis");
     expect(propis.title).toMatchObject({ style: "cursive", kicker: false });
     expect(propis.fields).toEqual(["name", "surname"]);
-    expect(applyPreset(defaultCover(), "sample").decor).toBe("sample-window");
+    expect(PRESETS.map((p) => p.id)).toEqual(["none", "school", "propis"]);
     expect(applyPreset(defaultCover(), "none").enabled).toBe(false);
   });
 
@@ -36,7 +36,8 @@ describe("cover config", () => {
   it("migrates the designs the first version kept on the device", () => {
     expect(presetOf(migrateLegacy("school"))).toBe("school");
     expect(presetOf(migrateLegacy("propis"))).toBe("propis");
-    expect(presetOf(migrateLegacy("sample"))).toBe("sample");
+    expect(presetOf(migrateLegacy("sample"))).toBe("school"); // the window was dropped
+    expect(normalizeCover({ ...defaultCover(), decor: "sample-window" }).decor).toBe("none");
     expect(migrateLegacy("none").enabled).toBe(false);
     expect(presetOf(migrateLegacy(undefined))).toBe("school");
     expect(migrateLegacy("sample", { squared: true }).back.kind).toBe("digits");

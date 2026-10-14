@@ -287,12 +287,12 @@ describe("propis2 (zip topic)", () => {
     const presets = () => [...dlg().querySelectorAll('.p2-print-covers [role="radio"]')];
     const chip = (group, label) => [...dlg().querySelectorAll(`[aria-label="${group}"] .p2-chip`)].find((b) => b.textContent === label);
     const preview = () => dlg().querySelector('[data-testid="propis2-cover-preview"]');
-    expect(presets().map((r) => r.getAttribute("aria-label"))).toEqual(["Без обложки", "Школьная", "Пропись", "С образцом"]);
+    expect(presets().map((r) => r.getAttribute("aria-label"))).toEqual(["Без обложки", "Школьная", "Пропись"]);
     expect(presets()[1].getAttribute("aria-checked")).toBe("true"); // «Школьная» by default
     expect(preview().querySelector('[data-testid="propis2-back-digits"] svg')).not.toBeNull(); // a notebook on squared paper: the digits, in our hand
     expect(dlg().querySelector('input[type="checkbox"]').checked).toBe(true); // page numbers on by default
-    await click(presets()[3]);
-    expect(preview().querySelector('[data-testid="propis2-cover-sample"] .p2-cover-window svg')).not.toBeNull();
+    await click(presets()[2]);
+    expect(preview().querySelector('[data-testid="propis2-cover-propis"] .p2-cover-ruled svg')).not.toBeNull(); // the name in our hand
     await click(chip("Задник", "Алфавит"));
     expect(preview().querySelector('[data-testid="propis2-back-alphabet"] svg')).not.toBeNull();
     expect(chip("Бумага задника", "Прописи").getAttribute("aria-checked")).toBe("true");
@@ -301,8 +301,8 @@ describe("propis2 (zip topic)", () => {
     await click(chip("Украшение", "Рамка"));
     expect(preview().querySelector('[data-testid="propis2-cover-custom"] .p2-cover-ornament')).not.toBeNull();
     expect(presets().some((r) => r.getAttribute("aria-checked") === "true")).toBe(false);
-    await click(chip("Украшение", "Окошко"));
-    expect(presets()[3].getAttribute("aria-checked")).toBe("true");
+    await click(chip("Украшение", "Нет"));
+    expect(presets()[2].getAttribute("aria-checked")).toBe("true");
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Печать"));
     await act(async () => { await tick(120); });
     expect(dlg()).toBeNull();
@@ -310,17 +310,17 @@ describe("propis2 (zip topic)", () => {
     // A5: the back on the left half of the cover's sheet, the cover on the right, then the empty sheet
     const sheets = [...document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")];
     expect(sheets[0].querySelector('.propis-print-cover--back [data-testid="propis2-back-alphabet"]')).not.toBeNull();
-    expect(sheets[0].querySelector('.propis-print-cover:not(.propis-print-cover--back) [data-testid="propis2-cover-sample"]')).not.toBeNull();
+    expect(sheets[0].querySelector('.propis-print-cover:not(.propis-print-cover--back) [data-testid="propis2-cover-propis"]')).not.toBeNull();
     expect(sheets[1].childElementCount).toBe(0);
     expect([...document.querySelectorAll(".propis-print-all [data-page-number]")].map((g) => g.getAttribute("data-page-number"))).toEqual(["1", "2", "3"]);
     // the choice is remembered (with the notebook); «Отмена» changes nothing
     await click(host.querySelector('.propis-practice-stage [aria-label="Печать"]'));
-    expect(presets()[3].getAttribute("aria-checked")).toBe("true");
+    expect(presets()[2].getAttribute("aria-checked")).toBe("true");
     expect(chip("Задник", "Алфавит").getAttribute("aria-checked")).toBe("true");
     await click(presets()[0]);
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Отмена"));
     expect(dlg()).toBeNull();
-    expect(document.querySelector('.propis-print-all [data-testid="propis2-cover-sample"]')).not.toBeNull();
+    expect(document.querySelector('.propis-print-all [data-testid="propis2-cover-propis"]')).not.toBeNull();
     // every printed page carries the quiet Mironium mark (by the fold, or up the margin), the ruled empty half of the last sheet too
     expect(document.querySelectorAll(".propis-print-all [data-brand]")).toHaveLength(4);
     // «Тетрадью»: 3 pages -> 4 (one ruled page added), booklet order 4|1, 2|3 after the cover sheet and its white inside

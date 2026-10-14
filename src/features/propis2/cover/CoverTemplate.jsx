@@ -5,14 +5,13 @@ import MironiumLogo from "./MironiumLogo.jsx";
 // The front of the cover, drawn from a cover config (coverConfig.js) and the notebook. One component for the print (an A5 / A4 page)
 // and the previews: every size is a share of the cover's own width (container query units), the decorations are SVG in the same
 // shares, so the preview is the cover itself, only smaller. Pure: the engine tasks come in ready (coverTasks.js).
-export default function CoverTemplate({ cover, title, tasks = {}, sampleTask = null, a4 = false }) {
+export default function CoverTemplate({ cover, title, tasks = {}, a4 = false }) {
   const name = coverTitle(cover, title);
   const { decor } = cover;
-  const hasWindow = decor === "sample-window";
   const preset = presetOf(cover);
   return (
     <div
-      className={`p2-cover${a4 ? " p2-cover--a4" : ""}${hasWindow ? " p2-cover--window" : ""}${cover.logo ? " p2-cover--logo" : ""}`}
+      className={`p2-cover${a4 ? " p2-cover--a4" : ""}${cover.logo ? " p2-cover--logo" : ""}`}
       style={{ "--p2-accent": accentColor(cover.accent) }}
       data-testid={`propis2-cover-${preset ?? "custom"}`}
       data-decor={decor}
@@ -20,12 +19,11 @@ export default function CoverTemplate({ cover, title, tasks = {}, sampleTask = n
       {(decor === "frame" || decor === "corners") && <Ornament kind={decor} />}
       {decor === "ruling-band" && tasks.bandTask && <div className="p2-cover-band p2-cover-band--top"><PrintPageTop task={tasks.bandTask} rows={2} /></div>}
       {decor === "elements-band" && tasks.elementsTask && <div className="p2-cover-band p2-cover-band--bottom"><PrintPageTop task={tasks.elementsTask} rows={1} /></div>}
-      <div className={hasWindow ? "p2-cover-top" : "p2-cover-mid"}>
+      <div className="p2-cover-mid">
         {cover.title.kicker && <div className="p2-cover-kicker">ТЕТРАДЬ</div>}
         {cover.title.style === "cursive"
           ? <div className="p2-cover-ruled">{tasks.titleTask && <PrintPageTop task={tasks.titleTask} rows={2} />}</div>
-          : <div className={`p2-cover-name${hasWindow || !cover.title.kicker ? " p2-cover-name--big" : ""}`}>{name}</div>}
-        {hasWindow && <div className="p2-cover-window">{sampleTask && <PrintPageTop task={sampleTask} rows={6} />}</div>}
+          : <div className={`p2-cover-name${!cover.title.kicker ? " p2-cover-name--big" : ""}`}>{name}</div>}
         {cover.fields.length > 0 && (
           <div className="p2-cover-fields">
             {FIELDS.filter((f) => cover.fields.includes(f.id)).map((f) => <div key={f.id} className="p2-cover-field"><span>{f.label}</span><i /></div>)}
