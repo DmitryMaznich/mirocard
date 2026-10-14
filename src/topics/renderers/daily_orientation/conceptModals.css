@@ -32,7 +32,7 @@
 /* ── Неделя ───────────────────────────────────────────────────────── */
 /* Trains of seven wagons on one rail track that scrolls sideways and snaps
    one week to the middle; the neighbouring weeks peek in at the edges. */
-.dom--week { --dom-rim: clamp(24px, 2.4vw, 34px); --dom-rail: #8f8a83; --dom-wheel: #3d3a36; --dom-count: #ffe08a; }
+.dom--week { --dom-rim: 12px; --dom-rail: #8f8a83; --dom-wheel: #3d3a36; --dom-count: #ffe08a; }
 
 .dom-week__head {
   display: flex;
@@ -138,9 +138,6 @@
   overflow: hidden;
 }
 .dom-train--current .dom-train__plate { color: var(--dom-ink); }
-.dom-train__range { font-size: .85em; font-weight: 700; color: var(--dom-muted); }
-.dom-train__seven { margin-left: auto; color: var(--dom-date); opacity: 0; transition: opacity .3s; }
-.dom-train--counted .dom-train__seven { opacity: 1; }
 
 .dom-train__loco { flex: none; width: var(--dom-loco); height: auto; margin-bottom: 2px; overflow: visible; }
 .dom-train__loco-body { fill: #c9b9a5; }
@@ -180,27 +177,17 @@
   -webkit-tap-highlight-color: transparent;
   transition: transform .25s, background .25s, box-shadow .25s;
 }
-/* open-top rim, so it reads as a wagon rather than a card; the date's
-   number sits in it */
+/* open-top rim, so it reads as a wagon rather than a card */
 .dom-week__rim {
   position: absolute;
   top: calc(6px - var(--dom-rim));
   left: -3px;
   right: -3px;
   height: var(--dom-rim);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px 8px 4px 4px;
+  border-radius: 6px;
   background: #e3dccd;
-  color: var(--dom-ink);
-  font-size: calc(var(--dom-rim) * .78);
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
   transition: background .25s;
 }
-.dom-week__day--weekend .dom-week__rim { color: #9c4424; }
 /* wheels */
 .dom-week__day::before,
 .dom-week__day::after {

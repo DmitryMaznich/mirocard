@@ -257,13 +257,11 @@ describe("DailyOrientationRenderer", () => {
 
       const trains = Array.from(container.querySelectorAll(".dom-train"));
       expect(trains.map((t) => t.querySelector(".dom-train__label").textContent)).toEqual([
-        "2 недели назад", "Прошлая неделя", "Эта неделя", "Следующая неделя", "Через 2 недели",
+        "Позапрошлая неделя", "Прошлая неделя", "Эта неделя", "Следующая неделя", "Через две недели",
       ]);
       const current = container.querySelector(".dom-train--current");
-      expect(current.querySelector(".dom-train__range").textContent).toBe("21–27 сентября");
-      // the date's number in each wagon's rim, the month only in the plate
-      expect(Array.from(current.querySelectorAll(".dom-week__rim")).map((rim) => rim.textContent))
-        .toEqual(["21", "22", "23", "24", "25", "26", "27"]);
+      // no numbers anywhere in the modal: names in order, not dates or 1-7
+      expect(container.querySelector(".dom--week").textContent).not.toMatch(/\d/);
 
       const days = Array.from(current.querySelectorAll(".dom-week__day"));
       expect(days.map((d) => d.querySelector(".dom-week__name").textContent)).toEqual([
@@ -298,7 +296,7 @@ describe("DailyOrientationRenderer", () => {
       expect(container.querySelector(".dom-week__say").textContent).toContain("Снова понедельник");
     });
 
-    it("counts the seven wagons, says it's a week, then starts over on Monday", () => {
+    it("names the days in order, says it's one week, then starts over on Monday", () => {
       const speakSpy = vi.fn();
       vi.stubGlobal("speechSynthesis", { cancel: vi.fn(), speak: speakSpy, getVoices: () => [] });
       vi.stubGlobal("SpeechSynthesisUtterance", class { constructor(text) { this.text = text; } });
@@ -307,21 +305,21 @@ describe("DailyOrientationRenderer", () => {
 
       act(() => container.querySelector(".dom-week__count").click());
       act(() => { vi.advanceTimersByTime(0); });
-      expect(container.querySelector(".dom-week__say").textContent).toContain("понедельник");
-      expect(speakSpy.mock.calls.at(-1)[0].text).toBe("один, понедельник");
+      expect(container.querySelector(".dom-week__say").textContent).toBe("Понедельник");
+      expect(speakSpy.mock.calls.at(-1)[0].text).toBe("Понедельник");
 
       act(() => { vi.advanceTimersByTime(6 * 1400); });
       expect(container.querySelector(".dom-train--current .dom-week__day--counting .dom-week__name").textContent).toBe("Воскресенье");
-      expect(speakSpy.mock.calls.at(-1)[0].text).toBe("семь, воскресенье");
+      expect(speakSpy.mock.calls.at(-1)[0].text).toBe("Воскресенье");
 
       act(() => { vi.advanceTimersByTime(1400); });
-      expect(container.querySelector(".dom-train--counted")).not.toBeNull();
-      expect(speakSpy.mock.calls.at(-1)[0].text).toBe("Семь дней — это неделя.");
+      expect(speakSpy.mock.calls.at(-1)[0].text).toBe("Это одна неделя.");
 
       act(() => { vi.advanceTimersByTime(2000); });
       const selected = container.querySelector(".dom-week__day--active");
       expect(selected.closest(".dom-train").querySelector(".dom-train__label").textContent).toBe("Следующая неделя");
       expect(selected.querySelector(".dom-week__name").textContent).toBe("Понедельник");
+      expect(speakSpy.mock.calls.at(-1)[0].text).toBe("Снова понедельник.");
       expect(container.querySelector(".dom-week__count").disabled).toBe(false);
       vi.unstubAllGlobals();
     });

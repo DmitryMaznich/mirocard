@@ -14,7 +14,7 @@ import {
   splitPlanIcon,
   WEEKDAY_NAMES,
 } from "./timeUtils.js";
-import { weekCountClipKeys, weekCountSpoken, weekPhraseClipKeys, weekPhraseSpoken, weekWagonClipKeys } from "./audioBank.js";
+import { weekPhraseClipKeys, weekPhraseSpoken, weekWagonClipKeys } from "./audioBank.js";
 import { eventsOnDate, isBirthdayType } from "@/features/importantDates/importantDates";
 import "./conceptModals.css";
 
@@ -60,8 +60,9 @@ function CycleArrow() {
 // A week is a train: a small locomotive, then seven wagons Monday..Sunday.
 // Trains for the weeks around today follow each other on a swipeable track,
 // so after Sunday the next train's Monday comes. (A 7-day ring with a hand
-// was tried and dropped on 2026-10-14: it read as a clock.) The date's
-// number sits in each wagon's rim; the month is in the train's plate.
+// was tried and dropped on 2026-10-14: it read as a clock.) No numbers at
+// all -- no dates, no 1-7: this modal teaches the names in order and the
+// cycle; dates are the Число modal's job, and the child counts the wagons.
 // The icon a date from "Важные даты" gets in a calendar cell or a week day.
 function importantMark(events) {
   if (!events.length) return null;
@@ -83,14 +84,7 @@ function weekLabel(week) {
   if (week === 0) return "Эта неделя";
   if (week === -1) return "Прошлая неделя";
   if (week === 1) return "Следующая неделя";
-  return week < 0 ? `${-week} недели назад` : `Через ${week} недели`;
-}
-
-function weekRange(monday) {
-  const sunday = addCalendarDays(monday, 6);
-  return monday.getMonth() === sunday.getMonth()
-    ? `${monday.getDate()}–${sunday.getDate()} ${MONTHS_GENITIVE[sunday.getMonth()]}`
-    : `${monday.getDate()} ${MONTHS_GENITIVE[monday.getMonth()]} – ${sunday.getDate()} ${MONTHS_GENITIVE[sunday.getMonth()]}`;
+  return week < 0 ? "Позапрошлая неделя" : "Через две недели";
 }
 
 function Locomotive() {
@@ -119,7 +113,7 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
   const firstDay = addCalendarDays(thisMonday, WEEKS_AROUND[0] * 7);
   const lastDay = addCalendarDays(thisMonday, WEEKS_AROUND[WEEKS_AROUND.length - 1] * 7 + 6);
   const [selected, setSelected] = useState(() => addCalendarDays(activeDate, 0));
-  // The count: which train is being counted and how far (1-7 wagons, 8 = "это неделя").
+  // «Дни недели по порядку»: which train is being walked through and how far (1-7 wagons, 8 = "это одна неделя").
   const [count, setCount] = useState(null);
   const [phrase, setPhrase] = useState(null);
   const trackRef = useRef(null);
@@ -152,7 +146,7 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
     setSelected(date);
     const name = WEEKDAY_NAMES[date.getDay()];
     if (crossedIntoMonday) {
-      say(weekPhraseSpoken("again"), weekPhraseClipKeys("again"), <>Новая неделя! Снова <em>понедельник</em></>, speakDays);
+      say(weekPhraseSpoken("again"), weekPhraseClipKeys("again"), <>Новая неделя. Снова <em>понедельник</em></>, speakDays);
       return;
     }
     const tag = relativeDayTag(date, today);
@@ -174,19 +168,20 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
         const day = addCalendarDays(monday, step - 1);
         setCount((value) => value && { ...value, step });
         setSelected(day);
-        say(weekCountSpoken(step), weekCountClipKeys(step), <><em>{capitalize(COUNT_WORDS[step - 1])}</em> — {WEEKDAY_NAMES[day.getDay()]}</>);
+        const name = capitalize(WEEKDAY_NAMES[day.getDay()]);
+        say(name, [`weekday_${day.getDay()}`], <em>{name}</em>);
       });
     }
     schedule(7 * COUNT_STEP_MS, () => {
       setCount((value) => value && { ...value, step: 8 });
-      say(weekPhraseSpoken("is_seven"), weekPhraseClipKeys("is_seven"), <>Семь дней — это <em>неделя</em></>);
+      say(weekPhraseSpoken("one"), weekPhraseClipKeys("one"), <>Это одна <em>неделя</em></>);
     });
     schedule(8 * COUNT_STEP_MS + 600, () => {
       const nextMonday = addCalendarDays(monday, 7);
       setCount(null);
       if (nextMonday > lastDay) return;
       setSelected(nextMonday);
-      say(weekPhraseSpoken("again"), weekPhraseClipKeys("again"), <>Потом всё сначала: снова <em>понедельник</em></>);
+      say(weekPhraseSpoken("again"), weekPhraseClipKeys("again"), <>Потом снова <em>понедельник</em></>);
     });
   }
 
@@ -195,10 +190,10 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
       <div className="dom-week__head">
         <div className="dom-week__head-text">
           <h2 className="dom-title">Неделя</h2>
-          <p className="dom-week__lead">Семь дней едут друг за другом. Потом снова понедельник.</p>
+          <p className="dom-week__lead">Дни недели едут друг за другом. Потом снова понедельник.</p>
         </div>
         <button type="button" className="dom-week__count" onClick={startCount} disabled={Boolean(count)}>
-          Сколько дней в неделе?
+          Дни недели по порядку
         </button>
       </div>
 
@@ -222,14 +217,11 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
                   "dom-train",
                   week === 0 ? "dom-train--current" : "",
                   week === selectedWeek ? "dom-train--selected" : "",
-                  counted === 8 ? "dom-train--counted" : "",
                 ].filter(Boolean).join(" ")}
-                aria-label={`${weekLabel(week)}, ${weekRange(monday)}`}
+                aria-label={weekLabel(week)}
               >
                 <p className="dom-train__plate">
                   <span className="dom-train__label">{weekLabel(week)}</span>
-                  <span className="dom-train__range">{weekRange(monday)}</span>
-                  <span className="dom-train__seven">7 дней — неделя</span>
                 </p>
                 <Locomotive />
                 <ol className="dom-week">
@@ -251,7 +243,7 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
                           aria-current={isSelected ? "date" : undefined}
                           onClick={() => select(date)}
                         >
-                          <span className="dom-week__rim">{date.getDate()}</span>
+                          <span className="dom-week__rim" aria-hidden="true" />
                           <span className="dom-week__tag">{tag ?? " "}</span>
                           <span className="dom-week__name">{capitalize(name)}</span>
                           {eventsOnDate(importantDates, date).map((item) => (
@@ -287,8 +279,6 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
     </div>
   );
 }
-
-const COUNT_WORDS = ["один", "два", "три", "четыре", "пять", "шесть", "семь"];
 
 // ── Число ─────────────────────────────────────────────────────────────
 // A calendar of the month with the day circled, then the spoken form of the

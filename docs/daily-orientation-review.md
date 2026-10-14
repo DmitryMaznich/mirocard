@@ -56,17 +56,17 @@ feature — see `docs/important-dates.md`. This file is the rest of the review.
   no notion of a *week*. Tapping the weekday card (or the plan) opens trains
   of 7 wagons Mon..Sun (a small locomotive marks where a week starts) on a
   track that swipes ±2 weeks around today, with the weekly plan repeating in
-  every train. Each wagon's rim holds the date's number (the month is in the
-  train's plate). «Сколько дней в неделе?» lights the wagons one by one,
-  counting aloud (no 1-7 on screen: an ordinal for a weekday isn't
-  information the child needs, 2026-10-14), says «Семь дней — это неделя» and
-  moves on to next Monday («Потом всё сначала»). The count follows the
+  every train. **No numbers anywhere in it** (2026-10-14): no dates, no
+  week range, no 1-7 -- the modal teaches the names in order and the cycle;
+  dates are the Число modal's job, and how many days there are the child
+  counts on the wagons. «Дни недели по порядку» lights the wagons one by
+  one naming each day (the recorded weekday clips), then «Это одна неделя»,
+  and moves on to next Monday («Снова понедельник»). The walk follows the
   topic's sound switch; a tapped day is only spoken with «Озвучка карточек»
-  on. Clips `count_1..7`, `week_is_seven`, `week_again` are in the bank but
-  not recorded yet (no `GEMINI_API_KEY` in that session) -- until they are,
-  the count speaks via browser TTS. Re-run
-  `node scripts/generate-daily-orientation-audio.mjs` and drop them from
-  `NOT_YET_RECORDED` in `audioBank.test.js`. A 7-day ring with a
+  on. Clips `week_one` and `week_again` are in the bank but not recorded yet
+  (no `GEMINI_API_KEY` in that session) -- until they are, those two phrases
+  use browser TTS. Re-run `node scripts/generate-daily-orientation-audio.mjs`
+  and drop them from `NOT_YET_RECORDED` in `audioBank.test.js`. A 7-day ring with a
   forward-only hand shipped in v1.0.2585 and was removed the next day: it
   looked like a clock and confused more than it added -- the trains alone
   carry the cycle.
