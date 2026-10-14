@@ -51,7 +51,7 @@ export default function Propis2Library({ sets = [], ready = [], draft = null, bl
     <div className="screen propis2-home propis2-lib" data-testid="propis2-library">
       <div className="screen-header">
         <button className="back-btn" onClick={onBack} aria-label="Назад"><BackArrowIcon /></button>
-        <h1 className="screen-title">Прописи 2</h1>
+        <h1 className="screen-title">Прописи</h1>
       </div>
       <div className="propis2-body">
         {draft && (

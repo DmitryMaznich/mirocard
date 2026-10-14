@@ -287,32 +287,32 @@
     },
     {
       "id": "propis",
-      "version": "1.32.243",
+      "version": "1.32.244",
       "title": {
-        "ru": "Прописи",
-        "en": "Copybook"
+        "ru": "Прописи старые",
+        "en": "Copybook old"
       },
       "description": {
         "ru": "Письменные буквы от узнавания до письма: узнай букву, строчная и заглавная, пишем и переписываем текст в тетрадь, тетрадный лист, диктант, печатные прописи.",
         "en": "Cursive letters from recognition to writing: recognize the letter, upper and lower case, write and copy text into a notebook, notebook page, dictation, printable copybooks."
       },
-      "url": "./decks/propis_v1.32.243.zip",
+      "url": "./decks/propis_v1.32.244.zip",
       "status": "release",
       "access": "paid"
     },
     {
       "id": "propis2",
-      "version": "0.5.2",
+      "version": "0.5.3",
       "title": {
-        "ru": "Прописи 2",
-        "en": "Copybook 2"
+        "ru": "Прописи",
+        "en": "Copybook"
       },
       "description": {
         "ru": "Конструктор тетрадей по письму и тренажёры письменных букв: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
         "en": "Handwriting notebook builder and written-letter trainers: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
       },
-      "url": "./decks/propis2_v0.5.2.zip",
-      "status": "beta",
+      "url": "./decks/propis2_v0.5.3.zip",
+      "status": "release",
       "access": "paid"
     },
     {

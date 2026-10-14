@@ -34,13 +34,13 @@ const catalog = JSON.parse(readFileSync(CATALOG_PATH, "utf-8"));
 const entry = {
   id: "propis2",
   version: VERSION,
-  title: { ru: "Прописи 2", en: "Copybook 2" },
+  title: { ru: topic.meta.title, en: "Copybook" },
   description: {
     ru: "Конструктор тетрадей по письму и тренажёры письменных букв: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
     en: "Handwriting notebook builder and written-letter trainers: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation.",
   },
   url: `./decks/propis2_v${VERSION}.zip`,
-  status: "beta",
+  status: "release",
   access: "paid",
 };
 const idx = catalog.decks.findIndex((d) => d.id === "propis2");
