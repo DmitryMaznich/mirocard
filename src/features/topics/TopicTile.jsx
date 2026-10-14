@@ -136,7 +136,7 @@ export default function TopicTile({
   const avatarPath = installedRecord?.meta.avatar ?? getBuiltinTopicAvatarPath(topicId);
   const versionText = installedRecord
     ? (isBuiltin ? "встроенная" : `v${installedRecord.meta.version}`)
-    : (entry ? `v${entry.version}` : "");
+    : (entry && !isSoon ? `v${entry.version}` : "");
 
   const badgeIcon = loading ? "…"
     : status === "active" || status === "open" ? <CheckmarkIcon size={16} />

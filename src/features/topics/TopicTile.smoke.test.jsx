@@ -62,6 +62,7 @@ describe("TopicTile — mounted through the real component", () => {
     expect(container.querySelector(".topic-tile-row--soon")).toBeTruthy();
     expect(container.querySelector(".topic-tile-row__tag--soon")?.textContent).toBe("СКОРО");
     expect(container.querySelector(".topic-tile-row__tag--beta")).toBeNull();
+    expect(container.querySelector(".topic-tile-row__eyebrow").textContent).not.toContain("v1.0.0");
     await act(async () => { container.querySelector("article").click(); });
     expect(container.querySelector('[role="dialog"]')?.textContent).toContain("скоро появится");
     expect(onInstall).not.toHaveBeenCalled();
