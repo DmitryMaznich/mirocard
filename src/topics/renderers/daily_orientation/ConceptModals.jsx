@@ -60,9 +60,8 @@ function CycleArrow() {
 // A week is a train: a small locomotive, then seven wagons Monday..Sunday.
 // Trains for the weeks around today follow each other on a swipeable track,
 // so after Sunday the next train's Monday comes. (A 7-day ring with a hand
-// was tried and dropped on 2026-10-14: it read as a clock.) The count puts
-// 1-7 into each wagon's rim -- part of the wagon, not one more line of the
-// day's schedule.
+// was tried and dropped on 2026-10-14: it read as a clock.) The date's
+// number sits in each wagon's rim; the month is in the train's plate.
 // The icon a date from "Важные даты" gets in a calendar cell or a week day.
 function importantMark(events) {
   if (!events.length) return null;
@@ -252,12 +251,9 @@ export function WeekContent({ activeDate, today, plan, importantDates = [], onSp
                           aria-current={isSelected ? "date" : undefined}
                           onClick={() => select(date)}
                         >
-                          <span className={`dom-week__rim${counted > index ? " dom-week__rim--numbered" : ""}`} aria-hidden="true">
-                            {counted > index ? index + 1 : null}
-                          </span>
+                          <span className="dom-week__rim">{date.getDate()}</span>
                           <span className="dom-week__tag">{tag ?? " "}</span>
                           <span className="dom-week__name">{capitalize(name)}</span>
-                          <span className="dom-week__date">{date.getDate()} {MONTHS_GENITIVE[date.getMonth()]}</span>
                           {eventsOnDate(importantDates, date).map((item) => (
                             <span key={item.id} className="dom-week__event">
                               <span aria-hidden="true">{isBirthdayType(item) ? "🎂" : item.icon}</span> {item.title}

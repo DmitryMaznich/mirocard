@@ -261,6 +261,9 @@ describe("DailyOrientationRenderer", () => {
       ]);
       const current = container.querySelector(".dom-train--current");
       expect(current.querySelector(".dom-train__range").textContent).toBe("21–27 сентября");
+      // the date's number in each wagon's rim, the month only in the plate
+      expect(Array.from(current.querySelectorAll(".dom-week__rim")).map((rim) => rim.textContent))
+        .toEqual(["21", "22", "23", "24", "25", "26", "27"]);
 
       const days = Array.from(current.querySelectorAll(".dom-week__day"));
       expect(days.map((d) => d.querySelector(".dom-week__name").textContent)).toEqual([
@@ -308,8 +311,7 @@ describe("DailyOrientationRenderer", () => {
       expect(speakSpy.mock.calls.at(-1)[0].text).toBe("один, понедельник");
 
       act(() => { vi.advanceTimersByTime(6 * 1400); });
-      const rims = Array.from(container.querySelectorAll(".dom-train--current .dom-week__rim--numbered"));
-      expect(rims.map((rim) => rim.textContent)).toEqual(["1", "2", "3", "4", "5", "6", "7"]);
+      expect(container.querySelector(".dom-train--current .dom-week__day--counting .dom-week__name").textContent).toBe("Воскресенье");
       expect(speakSpy.mock.calls.at(-1)[0].text).toBe("семь, воскресенье");
 
       act(() => { vi.advanceTimersByTime(1400); });

@@ -180,8 +180,8 @@
   -webkit-tap-highlight-color: transparent;
   transition: transform .25s, background .25s, box-shadow .25s;
 }
-/* open-top rim, so it reads as a wagon rather than a card; the count's
-   1-7 goes in it */
+/* open-top rim, so it reads as a wagon rather than a card; the date's
+   number sits in it */
 .dom-week__rim {
   position: absolute;
   top: calc(6px - var(--dom-rim));
@@ -193,13 +193,14 @@
   justify-content: center;
   border-radius: 8px 8px 4px 4px;
   background: #e3dccd;
-  color: #fff;
-  font-size: calc(var(--dom-rim) * .82);
-  font-weight: 950;
+  color: var(--dom-ink);
+  font-size: calc(var(--dom-rim) * .78);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
   transition: background .25s;
 }
-.dom-week__rim--numbered { background: var(--dom-date); animation: dom-pop .25s cubic-bezier(.3, 1.6, .5, 1); }
+.dom-week__day--weekend .dom-week__rim { color: #9c4424; }
 /* wheels */
 .dom-week__day::before,
 .dom-week__day::after {
@@ -222,8 +223,8 @@
   box-shadow: 0 0 0 3px var(--dom-active), 0 10px 22px rgba(7, 61, 79, .16);
 }
 .dom-week__day--active .dom-week__rim { background: #b5e0d3; }
-.dom-week__day .dom-week__rim--numbered { background: var(--dom-date); }
 .dom-week__day--counting { background: var(--dom-count); transform: translateY(-6px); }
+.dom-week__day--counting .dom-week__rim { background: #f2c94c; }
 .dom-week__tag {
   min-height: 1.2em;
   font-size: clamp(10px, 1vw, 14px);
@@ -241,11 +242,6 @@
   white-space: nowrap;
 }
 .dom-week__day--weekend .dom-week__name { color: #9c4424; }
-.dom-week__date {
-  font-size: clamp(11px, 1.05vw, 15px);
-  font-weight: 700;
-  color: var(--dom-muted);
-}
 .dom-week__plan {
   width: 100%;
   box-sizing: border-box;
@@ -258,7 +254,6 @@
   overflow-wrap: anywhere;
 }
 .dom-week__plan { margin-top: auto; }
-@keyframes dom-pop { from { transform: scaleY(.3); } }
 
 .dom-week__say {
   min-height: 1.3em;
@@ -271,7 +266,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dom-week__day, .dom-train { transition: none; }
-  .dom-week__rim--numbered { animation: none; }
 }
 
 /* ── Число ────────────────────────────────────────────────────────── */
@@ -526,6 +520,6 @@
 }
 /* The plan sits at the bottom of the day (margin-top: auto); a date's tag
    goes just above it, so the first tag takes over the push. */
-.dom-week__date + .dom-week__event { margin-top: auto; }
+.dom-week__name + .dom-week__event { margin-top: auto; }
 .dom-week__event ~ .dom-week__plan { margin-top: 6px; }
 .dom-week__plan-icon { display: block; margin-bottom: 2px; font-size: clamp(24px, 3vw, 40px); line-height: 1.1; }

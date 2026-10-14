@@ -56,9 +56,10 @@ feature — see `docs/important-dates.md`. This file is the rest of the review.
   no notion of a *week*. Tapping the weekday card (or the plan) opens trains
   of 7 wagons Mon..Sun (a small locomotive marks where a week starts) on a
   track that swipes ±2 weeks around today, with the weekly plan repeating in
-  every train. «Сколько дней в неделе?» numbers the wagons 1-7 in their rims
-  (2026-10-14: there, not as badges, so a number doesn't read as part of the
-  day's schedule), aloud, says «Семь дней — это неделя» and
+  every train. Each wagon's rim holds the date's number (the month is in the
+  train's plate). «Сколько дней в неделе?» lights the wagons one by one,
+  counting aloud (no 1-7 on screen: an ordinal for a weekday isn't
+  information the child needs, 2026-10-14), says «Семь дней — это неделя» and
   moves on to next Monday («Потом всё сначала»). The count follows the
   topic's sound switch; a tapped day is only spoken with «Озвучка карточек»
   on. Clips `count_1..7`, `week_is_seven`, `week_again` are in the bank but
