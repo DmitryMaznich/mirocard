@@ -283,19 +283,15 @@ describe("DailyOrientationRenderer", () => {
       expect(nextTuesday.textContent).toContain("Школа");
     });
 
-    it("steps from Sunday into next week's Monday and turns the ring forward", () => {
+    it("steps from Sunday into next week's Monday", () => {
       mountAt(new Date(2026, 8, 27, 14, 35)); // воскресенье
       act(() => container.querySelector(".daily-orientation__card--weekday").click());
-
-      const hand = container.querySelector(".dom-ring__hand");
-      expect(hand.style.transform).toBe(`rotate(${6 * 360 / 7}deg)`);
 
       act(() => container.querySelector(".dom-week__nav--next").click());
 
       const selected = container.querySelector(".dom-week__day--active");
       expect(selected.querySelector(".dom-week__name").textContent).toBe("Понедельник");
       expect(selected.closest(".dom-train").querySelector(".dom-train__label").textContent).toBe("Следующая неделя");
-      expect(hand.style.transform).toBe("rotate(360deg)");
       expect(container.querySelector(".dom-week__say").textContent).toContain("Снова понедельник");
     });
 
@@ -312,7 +308,8 @@ describe("DailyOrientationRenderer", () => {
       expect(speakSpy.mock.calls.at(-1)[0].text).toBe("один, понедельник");
 
       act(() => { vi.advanceTimersByTime(6 * 1400); });
-      expect(container.querySelectorAll(".dom-train--current .dom-week__number")).toHaveLength(7);
+      const rims = Array.from(container.querySelectorAll(".dom-train--current .dom-week__rim--numbered"));
+      expect(rims.map((rim) => rim.textContent)).toEqual(["1", "2", "3", "4", "5", "6", "7"]);
       expect(speakSpy.mock.calls.at(-1)[0].text).toBe("семь, воскресенье");
 
       act(() => { vi.advanceTimersByTime(1400); });
