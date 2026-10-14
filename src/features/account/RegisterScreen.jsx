@@ -1,3 +1,4 @@
+import MironiumLogo from "@/shared/components/MironiumLogo";
 import { useEffect, useState } from "react";
 import { authErrorMessage } from "./authErrors";
 import { useAppStore } from "@/core/store";
@@ -75,7 +76,7 @@ export default function RegisterScreen() {
 
   return (
     <div className="auth-screen">
-      <div className="auth-logo">Mironium</div>
+      <MironiumLogo className="auth-logo" />
       {status?.google && (
         <div className="auth-google">
           <GoogleSignInButton clientId={status.google.clientId} text="signup_with" />

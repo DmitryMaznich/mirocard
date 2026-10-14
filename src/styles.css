@@ -11139,11 +11139,14 @@ button {
   gap: 16px;
 }
 .auth-logo {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #4a90e2;
+  display: flex;
+  justify-content: center;
   margin-bottom: 8px;
-  letter-spacing: -0.5px;
+}
+.auth-logo svg {
+  display: block;
+  height: 56px;
+  width: auto;
 }
 .auth-form {
   display: flex;

@@ -1,3 +1,4 @@
+import MironiumLogo from "@/shared/components/MironiumLogo";
 import { useEffect, useState } from "react";
 import { authErrorMessage } from "./authErrors";
 import { useAppStore } from "@/core/store";
@@ -64,7 +65,7 @@ export default function LoginScreen() {
 
   return (
     <div className="auth-screen">
-      <div className="auth-logo">Mironium</div>
+      <MironiumLogo className="auth-logo" />
       {notice && <p className="auth-notice auth-notice--standalone">{notice}</p>}
       {google && (
         <div className="auth-google">

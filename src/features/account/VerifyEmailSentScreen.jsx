@@ -1,3 +1,4 @@
+import MironiumLogo from "@/shared/components/MironiumLogo";
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
@@ -44,7 +45,7 @@ export default function VerifyEmailSentScreen() {
 
   return (
     <div className="auth-screen">
-      <div className="auth-logo">Mironium</div>
+      <MironiumLogo className="auth-logo" />
       <div className="auth-form">
         <p style={{ textAlign: "center", lineHeight: 1.6 }}>
           Письмо с подтверждением отправлено на{" "}

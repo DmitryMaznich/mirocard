@@ -1,3 +1,4 @@
+import MironiumLogo from "@/shared/components/MironiumLogo";
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
@@ -63,7 +64,7 @@ export default function GoogleCompleteProfileScreen() {
   if (expired) {
     return (
       <div className="auth-screen">
-        <div className="auth-logo">Mironium</div>
+        <MironiumLogo className="auth-logo" />
         <div className="auth-form">
           <p className="auth-notice">{EXPIRED_TEXT}</p>
           <Button onClick={backToLogin} fullWidth>К входу</Button>
@@ -74,7 +75,7 @@ export default function GoogleCompleteProfileScreen() {
 
   return (
     <div className="auth-screen">
-      <div className="auth-logo">Mironium</div>
+      <MironiumLogo className="auth-logo" />
       <form className="auth-form" onSubmit={handleSubmit}>
         <h2 className="auth-title">Ещё один шаг</h2>
         <p className="auth-subtitle">

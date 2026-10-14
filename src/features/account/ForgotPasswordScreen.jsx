@@ -1,3 +1,4 @@
+import MironiumLogo from "@/shared/components/MironiumLogo";
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
@@ -36,7 +37,7 @@ export default function ForgotPasswordScreen() {
   if (sent) {
     return (
       <div className="auth-screen">
-        <div className="auth-logo">Mironium</div>
+        <MironiumLogo className="auth-logo" />
         <div className="auth-form" style={{ textAlign: "center", gap: 20 }}>
           <p style={{ fontSize: "1.05rem", color: "#4a9b8f", fontWeight: 600 }}>
             Если такой email зарегистрирован, мы отправили на него ссылку для сброса пароля.
@@ -54,7 +55,7 @@ export default function ForgotPasswordScreen() {
 
   return (
     <div className="auth-screen">
-      <div className="auth-logo">Mironium</div>
+      <MironiumLogo className="auth-logo" />
       <form className="auth-form" onSubmit={handleSubmit}>
         <p style={{ color: "#7c8c89", fontSize: "0.9rem", margin: "0 0 4px" }}>
           Укажите email аккаунта — пришлём ссылку для сброса пароля.
