@@ -1,7 +1,7 @@
 import { useState } from "react";
 import CoverSide from "./cover/CoverSide.jsx";
 import { BOOKLET_MAX_PAGES, bookletPageCount } from "@/topics/renderers/propis/booklet.js";
-import { ACCENTS, BACKS, BACK_PAPERS, DECORS, FIELDS, PRESETS, TITLE_STYLES, applyPreset, backPaperOf, normalizeCover, presetOf } from "./cover/coverConfig.js";
+import { ACCENTS, BACKS, BACK_PAPERS, DECORS, FIELDS, PRESETS, applyPreset, backPaperOf, normalizeCover, presetOf } from "./cover/coverConfig.js";
 
 // Asked before a notebook is printed (owner, 2026-10-08). The cover is one template (cover/coverConfig.js): a ready design picked in
 // one tap (the presets, each shown as the cover itself, small), its options under «Настроить», and the back — what is printed on the
@@ -61,7 +61,6 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
                   <span>Название на обложке</span>
                   <input type="text" value={cover.title.text ?? ""} placeholder={title} maxLength={80} onChange={(e) => setTitle({ text: e.target.value })} />
                 </label>
-                <Chips label="Название" options={TITLE_STYLES} value={cover.title.style} onPick={(style) => setTitle({ style })} />
                 <Chips label="Надпись «ТЕТРАДЬ»" options={ON_OFF} value={cover.title.kicker ? "on" : "off"} onPick={(v) => setTitle({ kicker: v === "on" })} />
                 <Chips label="Украшение" options={DECORS} value={cover.decor} onPick={(decor) => set({ decor })} />
                 <Chips label="Поля" options={FIELDS} value={cover.fields} onPick={toggleField} multi />

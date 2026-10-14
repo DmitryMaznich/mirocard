@@ -3,7 +3,6 @@ import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTas
 import { lineWidth, newRow, pageFormat, pageSnap, rowMaxX, rowToLine, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { digitsOut } from "@/topics/renderers/propis2/fieldText.js";
 import { backContent, backPaper } from "./backContent.js";
-import { coverTitle } from "./coverConfig.js";
 
 // The engine tasks a cover draws (in our own hand, on our own paper), each built only when what it depends on changes: switching the
 // decoration or the colour builds nothing, the back is built again only when the back changes.
@@ -26,22 +25,10 @@ export function centredLine(line, glyphMap, paper) {
 const ELEMENTS_BAND = rowToLine(newRow({ kind: "element", text: "заборчик", repeat: "all", dots: "none", copies: "solid" }));
 
 // `side`: "front" | "back" | "both" — only that side's tasks are built
-export function useCoverTasks({ topicRecord, cover, notebookTitle, format, side = "both" }) {
+export function useCoverTasks({ topicRecord, cover, format, side = "both" }) {
   const front = side !== "back";
   const fmt = format === "a4" ? "a4" : "a5";
-  const name = coverTitle(cover, notebookTitle);
-  const cursive = front && cover.enabled && cover.title.style === "cursive";
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
-  // the name written once, centred: on the WIDE ruling (large, like the title line of the printed copybooks) when it fits, on the
-  // narrow one (half the size) when it does not — a long name used to be cut off at the page edge
-  const titleTask = useMemo(() => {
-    if (!cursive) return null;
-    const line = once(name);
-    const wide = { ...WIDE, gridKind: "propis", ruling: "wide", format: fmt };
-    const fits = lineWidth(line, glyphMap, "wide", pageSnap(wide)) <= rowMaxX(wide);
-    const paper = fits ? wide : { ...wide, narrowRows: true, ruling: "narrow" };
-    return buildPageTask({ topicRecord, lines: [centredLine(line, glyphMap, paper)], ...WIDE, narrowRows: !fits, format: fmt });
-  }, [cursive, name, topicRecord, fmt, glyphMap]);
   const decor = front && cover.enabled ? cover.decor : "none";
   const bandTask = useMemo(() => (decor === "ruling-band" ? buildPageTask({ topicRecord, lines: [], ...WIDE, format: fmt }) : null), [decor, topicRecord, fmt]);
   const elementsTask = useMemo(() => (decor === "elements-band" ? buildPageTask({ topicRecord, lines: [ELEMENTS_BAND], ...WIDE, format: fmt }) : null), [decor, topicRecord, fmt]);
@@ -57,5 +44,5 @@ export function useCoverTasks({ topicRecord, cover, notebookTitle, format, side 
     const task = buildPageTask({ topicRecord, lines, narrowRows: true, grid: taskGrid(paper), midDash: true, margin: "off", format: pageFormat(paper) });
     return { ...content, task, rows: lines.length, square: backPaperId === "square" };
   }, [backKind, backPaperId, topicRecord, fmt, glyphMap]);
-  return { titleTask, bandTask, elementsTask, back };
+  return { bandTask, elementsTask, back };
 }

@@ -21,9 +21,7 @@ export default function CoverTemplate({ cover, title, tasks = {}, a4 = false }) 
       {decor === "elements-band" && tasks.elementsTask && <div className="p2-cover-band p2-cover-band--bottom"><PrintPageTop task={tasks.elementsTask} rows={1} /></div>}
       <div className="p2-cover-mid">
         {cover.title.kicker && <div className="p2-cover-kicker">ТЕТРАДЬ</div>}
-        {cover.title.style === "cursive"
-          ? <div className="p2-cover-ruled">{tasks.titleTask && <PrintPageTop task={tasks.titleTask} rows={2} />}</div>
-          : <div className={`p2-cover-name${!cover.title.kicker ? " p2-cover-name--big" : ""}`}>{name}</div>}
+        <div className={`p2-cover-name${!cover.title.kicker ? " p2-cover-name--big" : ""}`}>{name}</div>
         {cover.fields.length > 0 && (
           <div className="p2-cover-fields">
             {FIELDS.filter((f) => cover.fields.includes(f.id)).map((f) => <div key={f.id} className="p2-cover-field"><span>{f.label}</span><i /></div>)}

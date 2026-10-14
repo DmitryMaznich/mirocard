@@ -3,9 +3,10 @@
 // digits, the signs... written in our own hand). The three designs of the first version are presets of it. The cover belongs to the
 // notebook (`set.cover`, synced and copied with it); it only shows in the printed notebook.
 
+// the name is printed (owner, 2026-10-14: the name written in our hand on the front, and the «Пропись» design built on it, are dropped;
+// a stored "cursive" falls back to print in normalizeCover)
 export const TITLE_STYLES = [
   { id: "print", label: "Печатное" },
-  { id: "cursive", label: "Прописью" },
 ];
 
 export const DECORS = [
@@ -54,7 +55,6 @@ const FRONT_DEFAULT = { title: { text: null, style: "print", kicker: true }, dec
 export const PRESETS = [
   { id: "none", label: "Без обложки" },
   { id: "school", label: "Школьная", front: { title: { style: "print", kicker: true }, decor: "none", fields: ["name", "surname", "started"] } },
-  { id: "propis", label: "Пропись", front: { title: { style: "cursive", kicker: false }, decor: "none", fields: ["name", "surname"] } },
 ];
 
 // the back a notebook gets by default: the digits on squared paper for a notebook that starts on squared paper, the alphabet otherwise
@@ -84,7 +84,8 @@ export function presetOf(cover) {
 }
 
 // The covers of the first version were stored on the device as `cover: "school" | "propis" | "sample" | "none"`. «С образцом» (the
-// window with the notebook's first rows) was dropped by the owner on 2026-10-14: "sample" now gives the default, and a stored
+// window with the notebook's first rows) and «Пропись» (the name in our hand) were dropped by the owner on 2026-10-14: both now give
+// the default, and a stored
 // `decor: "sample-window"` falls back to no decoration (normalizeCover).
 export function migrateLegacy(legacy, opts) {
   const base = defaultCover(opts);

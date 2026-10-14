@@ -350,9 +350,6 @@
 .p2-cover-fields { align-self: stretch; display: flex; flex-direction: column; gap: 4.5cqw; margin-top: 4cqw; }
 .p2-cover-field { display: flex; align-items: flex-end; gap: 2cqw; font-size: 3.4cqw; font-weight: 700; color: #4b5563; }
 .p2-cover-field i { flex: 1; border-bottom: 0.35cqw solid #6b7280; }
-.p2-cover-ruled { align-self: stretch; margin: 0 -6cqw; }
-.p2-cover[data-decor="frame"] .p2-cover-ruled, .p2-cover[data-decor="corners"] .p2-cover-ruled { margin: 0 -2cqw; } /* inside the frame */
-.p2-cover .propis-print-page-svg { display: block; width: 100%; height: auto; aspect-ratio: var(--crop-ratio); box-shadow: none; border-radius: 0; }
 .p2-cover .propis-paper { fill: #fff; }
 /* the Mironium logo (MironiumLogo.jsx): small, centred at the foot of the front, above the bottom line of a frame */
 .p2-cover-logo { position: absolute; left: 50%; transform: translateX(-50%); bottom: 9cqw; height: 5.2cqw; width: auto; display: block; }

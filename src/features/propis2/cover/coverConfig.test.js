@@ -12,16 +12,13 @@ describe("cover config", () => {
 
   it("the designs of the first version are presets of the template («С образцом» dropped 2026-10-14)", () => {
     for (const p of PRESETS) expect(presetOf(applyPreset(defaultCover(), p.id))).toBe(p.id);
-    const propis = applyPreset(defaultCover(), "propis");
-    expect(propis.title).toMatchObject({ style: "cursive", kicker: false });
-    expect(propis.fields).toEqual(["name", "surname"]);
-    expect(PRESETS.map((p) => p.id)).toEqual(["none", "school", "propis"]);
+    expect(PRESETS.map((p) => p.id)).toEqual(["none", "school"]); // «С образцом» and «Пропись» dropped 2026-10-14
     expect(applyPreset(defaultCover(), "none").enabled).toBe(false);
   });
 
   it("a preset changes the front only: the name text, colour, logo and back stay", () => {
     const own = normalizeCover({ ...defaultCover(), title: { text: "Моя", style: "print", kicker: true }, accent: "gray", logo: false, back: { kind: "signs", paper: "square" } });
-    const c = applyPreset(own, "propis");
+    const c = applyPreset({ ...own, decor: "frame", fields: ["name"] }, "school");
     expect(c.title.text).toBe("Моя");
     expect(c.accent).toBe("gray");
     expect(c.logo).toBe(false);
@@ -35,7 +32,8 @@ describe("cover config", () => {
 
   it("migrates the designs the first version kept on the device", () => {
     expect(presetOf(migrateLegacy("school"))).toBe("school");
-    expect(presetOf(migrateLegacy("propis"))).toBe("propis");
+    expect(presetOf(migrateLegacy("propis"))).toBe("school"); // the name in our hand was dropped
+    expect(normalizeCover({ ...defaultCover(), title: { style: "cursive", kicker: false } }).title.style).toBe("print");
     expect(presetOf(migrateLegacy("sample"))).toBe("school"); // the window was dropped
     expect(normalizeCover({ ...defaultCover(), decor: "sample-window" }).decor).toBe("none");
     expect(migrateLegacy("none").enabled).toBe(false);
