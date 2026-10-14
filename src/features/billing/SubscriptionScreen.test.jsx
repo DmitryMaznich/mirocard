@@ -5,12 +5,30 @@ import { useAppStore } from "@/core/store";
 import * as apiModule from "@/core/api";
 import SubscriptionScreen from "./SubscriptionScreen.jsx";
 
+// The plans are paused for the free launch (PAID_PLANS_PAUSED); these tests cover the paid
+// screen, so they run with the pause off, except the one test that checks the pause itself.
+const pause = vi.hoisted(() => ({ value: false }));
+vi.mock("./entitlement", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, get PAID_PLANS_PAUSED() { return pause.value; } };
+});
+
 describe("SubscriptionScreen", () => {
   let container = null;
   let root = null;
 
   beforeEach(() => {
+    pause.value = false;
     useAppStore.setState({ pendingCheckoutPlan: "annual", subscription: null, setScreen: vi.fn() });
+  });
+
+  it("while paid plans are paused shows «free for now» and nothing to pay with", () => {
+    pause.value = true;
+    container = document.createElement("div"); document.body.appendChild(container); root = createRoot(container);
+    act(() => root.render(<SubscriptionScreen />));
+    expect(container.textContent).toContain("Сейчас Mironium бесплатный");
+    expect(container.textContent).not.toContain("Перейти к оплате");
+    expect(useAppStore.getState().pendingCheckoutPlan).toBe(null);
   });
 
   afterEach(() => {

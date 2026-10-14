@@ -1399,6 +1399,7 @@ button {
 .subscription-status { display: flex; flex-direction: column; gap: 3px; margin: 6px 0 18px; padding: 14px 16px; border-radius: 16px; background: #eef7f4; border: 1.5px solid #4a9b8f; }
 .subscription-status__label { font-size: 12px; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; color: #4a9b8f; }
 .subscription-status__value { font-size: 15px; font-weight: 800; color: #1f2d2a; }
+.subscription-free-note { margin: 16px 4px 0; font-size: 15px; line-height: 1.5; color: #4b5b57; }
 .subscription-status__hint { font-size: 13px; font-weight: 600; color: #526562; }
 .subscription-status--none { background: #fff; border-color: #e4dccf; }
 .subscription-status--none .subscription-status__label { color: #8a938f; }

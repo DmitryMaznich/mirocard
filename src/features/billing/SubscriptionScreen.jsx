@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { PLAN_LABELS, formatPeriodEnd, daysLeft, isUnlimitedPlan } from "./planLabels";
+import { PAID_PLANS_PAUSED } from "./entitlement";
 
 const PLANS = [
   { id: "monthly", name: "Месяц", hint: "Без долгих обязательств", priceLabel: "€ 9,90" },
@@ -47,6 +48,33 @@ function formatMinor(amountMinor) {
 }
 
 export default function SubscriptionScreen() {
+  return PAID_PLANS_PAUSED ? <FreeForNowScreen /> : <PaidPlansScreen />;
+}
+
+// Every path that still leads here (a ?plan= link, a locked topic, the checkout-return screen)
+// lands on this note while paid plans are paused, so nobody can pay for nothing.
+function FreeForNowScreen() {
+  const setScreen = useAppStore((s) => s.setScreen);
+  const setPendingCheckoutPlan = useAppStore((s) => s.setPendingCheckoutPlan);
+  useEffect(() => { setPendingCheckoutPlan?.(null); }, [setPendingCheckoutPlan]);
+  return (
+    <div className="screen subscription-screen">
+      <div className="screen-header">
+        <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
+        <h1 className="screen-title">Подписка</h1>
+      </div>
+      <div className="subscription-body">
+        <div className="subscription-status">
+          <span className="subscription-status__label">Сейчас Mironium бесплатный</span>
+          <span className="subscription-status__value">Платить ни за что не нужно</span>
+        </div>
+        <p className="subscription-free-note">Когда тем станет больше, появится подписка. Мы предупредим заранее, а всё, что вы создали, останется с вами.</p>
+      </div>
+    </div>
+  );
+}
+
+function PaidPlansScreen() {
   const pendingCheckoutPlan = useAppStore((s) => s.pendingCheckoutPlan);
   const subscription = useAppStore((s) => s.subscription);
   const setScreen = useAppStore((s) => s.setScreen);
