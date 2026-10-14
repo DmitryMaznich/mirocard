@@ -52,11 +52,11 @@ const LEADS = [
   { key: "lead_weather", text: "Погода" },
 ].map((entry) => ({ ...entry, tone: "lead" }));
 
-// The week modal's count ("один — понедельник … Семь дней — это неделя").
-const WEEK_COUNT_WORDS = ["один", "два", "три", "четыре", "пять", "шесть", "семь"];
+// The week modal's "Дни недели по порядку": the days are named with the
+// weekday clips, then these two. No numbers -- the child counts the wagons.
 const WEEK_PHRASES = [
-  { key: "week_is_seven", text: "Семь дней — это неделя.", tone: "final" },
-  { key: "week_again", text: "Потом всё сначала. Снова понедельник.", tone: "final" },
+  { key: "week_one", text: "Это одна неделя.", tone: "final" },
+  { key: "week_again", text: "Снова понедельник.", tone: "final" },
 ];
 
 function hourKey(hours) { return `hour_${String(hours).padStart(2, "0")}`; }
@@ -76,7 +76,6 @@ export const AUDIO_ENTRIES = [
     text: `${word} ${russianPlural(hours, "час", "часа", "часов")}`,
     tone: "lead",
   })),
-  ...WEEK_COUNT_WORDS.map((text, index) => ({ key: `count_${index + 1}`, text, tone: "lead" })),
   ...WEEK_PHRASES,
   { key: minuteKey(0), text: "ровно", tone: "final" },
   ...MINUTE_WORDS.slice(1).map((word, index) => {
@@ -124,15 +123,6 @@ export function daypartClipKeys(daypartId) {
 
 export function timeClipKeys(date) {
   return ["lead_now", hourKey(date.getHours()), minuteKey(date.getMinutes())];
-}
-
-// Step 1-7 of the week count: the number, then that wagon's day (Monday first).
-export function weekCountClipKeys(step) {
-  return [`count_${step}`, `weekday_${step % 7}`];
-}
-
-export function weekCountSpoken(step) {
-  return `${WEEK_COUNT_WORDS[step - 1]}, ${WEEKDAY_NAMES[step % 7]}`;
 }
 
 export function weekPhraseClipKeys(id) {
