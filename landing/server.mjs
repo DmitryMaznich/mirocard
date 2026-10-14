@@ -21,8 +21,20 @@ const TYPES = {
   '.pdf': 'application/pdf',
 };
 
+// While the landing page is unfinished, everything but the legal pages (which payment
+// providers may link to) temporarily redirects to the app. 302, not 301: browsers cache a
+// 301 for a long time, which would keep sending people away once the landing is back.
+// To bring the landing back, set LANDING_REDIRECT to '' (or delete this block).
+const LANDING_REDIRECT = 'https://app.mironium.com/';
+const KEEP_PATHS = new Set(['/terms.html', '/refund-policy.html', '/proposal-v3.css']);
+
 createServer(async (req, res) => {
   const urlPath = decodeURIComponent(req.url.split('?')[0]);
+  if (LANDING_REDIRECT && !KEEP_PATHS.has(urlPath)) {
+    res.writeHead(302, { Location: LANDING_REDIRECT, 'Cache-Control': 'no-store' });
+    res.end();
+    return;
+  }
   const relative = normalize(urlPath === '/' ? '/index.html' : urlPath).replace(/^(\.\.(\/|\\|$))+/, '');
   const filePath = join(ROOT, relative);
 
