@@ -27,7 +27,7 @@
         "en": "Twelve illustrated stories for shared reading, finding answers in the text, and discussing each story aloud."
       },
       "url": "./decks/reading_short_stories_v1.6.4.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -42,7 +42,7 @@
         "en": "Forty short instructions: read and perform a daily set of ten, practise left and right, or follow clues to collect a safe code."
       },
       "url": "./decks/reading_dad_instructions_v1.0.7.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -57,7 +57,7 @@
         "en": "Ten emotions shown on children's faces and in three situations each; nine modes connect facial expression, emotion word, and event."
       },
       "url": "./decks/emotions_v2_v1.10.1.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -133,7 +133,7 @@
       },
       "url": "./decks/comparison_v2.36.1.zip",
       "status": "release",
-      "access": "paid"
+      "access": "free"
     },
     {
       "id": "math_houses",
@@ -147,7 +147,7 @@
         "en": "Number composition from 2 to 10. Learn and complete number houses. Ages 5+."
       },
       "url": "./decks/math_houses_v1.2.1.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -163,7 +163,7 @@
       },
       "url": "./decks/addition_subtraction_v1.9.2.zip",
       "status": "release",
-      "access": "paid"
+      "access": "free"
     },
     {
       "id": "sentence_puzzle",
@@ -192,7 +192,7 @@
         "en": "12 tools: names, functions, before-and-after scenes"
       },
       "url": "./decks/tools_functions_v1.3.10.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -203,7 +203,7 @@
         "ru": "Разряды числа",
         "en": "Place Value"
       },
-      "status": "release",
+      "status": "beta",
       "access": "paid",
       "description": {
         "ru": "Как устроено число: отдельные монеты — единицы, стопка из десяти монет — десяток. Ребёнок сам складывает россыпь монет стопками по десять и называет число, собирает число и читает готовую модель, а затем сам решает, когда нужен обмен десятка: раскладывает стопку, если единиц не хватает, и складывает новую, если единиц набралось десять.",
@@ -217,7 +217,7 @@
       "title": {
         "ru": "Сложение и вычитание в столбик"
       },
-      "status": "release",
+      "status": "beta",
       "access": "paid",
       "description": {
         "ru": "Два режима сложения и вычитания в столбик: пошаговый тренажёр, где ребёнок перетаскивает цифры в клетки — единицы, перенос или заём, десятки, — и контрольная работа, где примеры переписываются в тетрадь и решаются самостоятельно. Десятки и единицы на монетах — в теме «Разряды числа», счёт на пальцах — в теме «Плюс и минус».",
@@ -234,7 +234,7 @@
       },
       "renderer": "word_formation",
       "file": "word_formation_soup_v1.0.57.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid",
       "description": {
         "ru": "В группах «суп», «сок», «варенье», «каша» и «материалы» ребёнок соотносит сочетание «из чего?» с прилагательным. В сценарии «Суп» продукт связан с фотографией готового супа: суп из рыбы — рыбный суп. Три режима: знакомство с парами, выбор прилагательного и согласование прилагательных с существительными. Отдельно представлены погода и времена года.",
@@ -267,8 +267,9 @@
       },
       "url": "./decks/written_letters_v1.0.5.zip",
       "zipUrl": "written_letters_v1.0.5.zip",
-      "status": "beta",
-      "access": "paid"
+      "status": "hidden",
+      "access": "paid",
+      "hidden": true
     },
     {
       "id": "letter_writing",
@@ -282,8 +283,9 @@
         "en": "33 uppercase Russian letters. Worksheet: letters on lined paper, tap to see stroke-by-stroke animation."
       },
       "url": "./decks/letter_writing_v1.1.0.zip",
-      "status": "beta",
-      "access": "paid"
+      "status": "hidden",
+      "access": "paid",
+      "hidden": true
     },
     {
       "id": "propis",
@@ -313,7 +315,7 @@
       },
       "url": "./decks/propis2_v0.5.3.zip",
       "status": "release",
-      "access": "paid"
+      "access": "free"
     },
     {
       "id": "vowel_consonant_ru",
@@ -327,7 +329,7 @@
         "en": "31 Russian letters. Drag each letter into the vowel or consonant group."
       },
       "url": "./decks/vowel_consonant_ru_v1.0.1.zip",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -396,7 +398,7 @@
         "en": "Seven modes use short sentence gaps to practise noun, verb, adjective, numeral, and possessive agreement; a picture mode distinguishes in, on, and under."
       },
       "renderer": "word_agreement",
-      "status": "release",
+      "status": "beta",
       "access": "paid"
     },
     {
@@ -413,7 +415,7 @@
       },
       "renderer": "flashcards",
       "status": "release",
-      "access": "paid"
+      "access": "free"
     },
     {
       "id": "print_materials",

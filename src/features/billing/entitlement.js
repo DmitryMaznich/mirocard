@@ -11,3 +11,8 @@ export function hasActiveEntitlement(account, subscription) {
   }
   return new Date(subscription.currentPeriodEnd).getTime() > Date.now();
 }
+
+// While the app is free for everyone (launch, 2026-10-14) there is nothing to pay for: the
+// account screen hides the subscription block and the subscription screen shows a short
+// "free for now" note instead of the plans. Flip back to false when paid plans return.
+export const PAID_PLANS_PAUSED = true;

@@ -8,6 +8,7 @@ import ChangePasswordModal from "./ChangePasswordModal";
 import DangerZone from "./DangerZone";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { PLAN_LABELS, formatPeriodEnd, isUnlimitedPlan } from "@/features/billing/planLabels";
+import { PAID_PLANS_PAUSED } from "@/features/billing/entitlement";
 import { saveMarketingConsent } from "@/features/account/marketingConsent";
 
 export default function AccountScreen() {
@@ -44,7 +45,7 @@ export default function AccountScreen() {
       <div className="settings-body">
         <AccountCard onLogout={handleLogout} />
 
-        <div className="settings-section">
+        {!PAID_PLANS_PAUSED && <div className="settings-section">
           <div className="settings-section-title">Подписка</div>
           <div className="settings-row">
             <span className="settings-row__label">
@@ -58,7 +59,7 @@ export default function AccountScreen() {
               Управлять подпиской
             </button>
           </div>
-        </div>
+        </div>}
 
         {account?.id && (
           <div className="settings-section">
