@@ -89,6 +89,7 @@ export async function completeLogin({ account, token }) {
     token,
     account,
     builtinVisibility: bootstrap.builtinVisibility ?? {},
+    archivedTopicIds: bootstrap.archivedTopicIds ?? [],
           erasedStudentIds: bootstrap.erasedStudentIds ?? [],
           subscription: bootstrap.subscription ?? null,
     settings: bootstrap.settings,

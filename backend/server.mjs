@@ -152,6 +152,7 @@ function isGranted(source) {
 }
 
 function getTopicPublication(entry) {
+  if (entry.status === "archived") return "archived";
   if (entry.hidden || entry.status === "hidden") return "hidden";
   return entry.status ?? "release";
 }
@@ -166,6 +167,8 @@ function accountHasFeatureFlag(account, flag) {
 }
 
 function isCatalogEntryVisible(entry, assignedTopicIds, hasCatalogAllAccess = false) {
+  // Archived topics exist only in the administrator's registry.
+  if (getTopicPublication(entry) === "archived") return false;
   // This is deliberately an owner/developer escape hatch, separate from
   // `all_access` (the commercial entitlement). It makes every catalog entry
   // inspectable, including internal hidden entries, without turning that
@@ -771,7 +774,8 @@ async function handleBootstrap(req, res) {
   const url = new URL(req.url, "http://localhost");
   const since = Number(url.searchParams.get("since") || 0);
   touchAccountSeen(db, account.id);
-  writeJson(res, 200, buildBootstrap(db, account.id, since));
+  const archivedTopicIds = (loadCatalog().decks ?? []).filter(d => getTopicPublication(d) === "archived").map(d => d.id);
+  writeJson(res, 200, { ...buildBootstrap(db, account.id, since), archivedTopicIds });
 }
 
 async function handleGetAccountKv(req, res) {
@@ -879,7 +883,7 @@ async function handleAppendSession(req, res) {
 
 async function handleGetTopics(req, res) {
   const account = requireAuth(req);
-  writeJson(res, 200, getAccountTopics(db, account.id));
+  writeJson(res, 200, getAccountTopics(db, account.id).filter(t => getCatalogEntry(t.topicId)?.status !== "archived"));
 }
 
 // Topics anyone can download without an active subscription — the
@@ -892,6 +896,9 @@ async function handleAcquireTopic(req, res) {
   const body = await readJsonBody(req);
   if (!body?.topicId || !body?.topicVersion) {
     return writeJson(res, 400, { error: "topicId, topicVersion required" });
+  }
+  if (getCatalogEntry(body.topicId)?.status === "archived") {
+    return writeJson(res, 404, { error: "Deck not available for this account" });
   }
   if (!FREE_TOPIC_IDS.includes(body.topicId) && !hasActiveEntitlement(db, account.id)) {
     return writeJson(res, 402, { error: "Subscription required" });
@@ -939,7 +946,8 @@ async function handleGetDecksCatalog(req, res) {
       const { url, ...rest } = d;
       return rest;
     });
-  writeJson(res, 200, { ...catalog, decks });
+  const archivedTopicIds = (catalog.decks ?? []).filter(d => getTopicPublication(d) === "archived").map(d => d.id);
+  writeJson(res, 200, { ...catalog, decks, archivedTopicIds });
 }
 
 async function handleClaimDeck(req, res) {
@@ -1906,7 +1914,7 @@ function isPubliclyServableDeckAsset(relative) {
   // listing probe, etc.) is refused the same as a paid one -- there is no
   // legitimate reason for a path under decks/ to be servable without a
   // matching free catalog entry.
-  return Boolean(entry) && (entry.access ?? "free") === "free";
+  return Boolean(entry) && getTopicPublication(entry) !== "archived" && (entry.access ?? "free") === "free";
 }
 
 function trySpaFallback(req, res, pathname) {

@@ -38,6 +38,7 @@ describe("bootstrap helpers", () => {
       ownedTopics: [],
       topicRecords: [],
       builtinVisibility: {},
+      archivedTopicIds: [],
       activeStudentId: null,
       activeTopicId: null,
       activeModeId: null,
@@ -473,6 +474,26 @@ describe("bootstrap helpers", () => {
     expect(useAppStore.getState().account.id).toBe("owner");
     applyBootstrapToStore({token:null,account:null});
     expect(useAppStore.getState().token).toBeNull();
+  });
+
+  it("archived installed topics cannot reappear or resume after an offline reload", async () => {
+    const db = await freshDb();
+    const record = { meta: { id: "legacy_topic", origin: "imported" }, modes: [], cards: [] };
+    await kv.set(db, "topic:legacy_topic", record);
+    await kv.set(db, "installedTopicIds", ["legacy_topic"]);
+    useAppStore.setState({ topicRecords: [record], activeTopicId: "legacy_topic", screen: "params" });
+    applyBootstrapToStore({ archivedTopicIds: ["legacy_topic"] });
+    expect(useAppStore.getState().topicRecords.some(t => t.meta.id === "legacy_topic")).toBe(false);
+    expect(useAppStore.getState().activeTopicId).toBeNull();
+    useAppStore.getState().setTopicRecords([record]);
+    useAppStore.getState().upsertTopicRecord(record);
+    expect(useAppStore.getState().topicRecords.some(t => t.meta.id === "legacy_topic")).toBe(false);
+    await persistBootstrap(db, { archivedTopicIds: ["legacy_topic"] });
+    const offline = await loadLocalBootstrap(db);
+    expect(offline.topicRecords.some(t => t.meta.id === "legacy_topic")).toBe(false);
+    expect(await kv.get(db, "topic:legacy_topic")).toEqual(record);
+    await persistBootstrap(db, { archivedTopicIds: [] });
+    expect((await loadLocalBootstrap(db)).topicRecords.some(t => t.meta.id === "legacy_topic")).toBe(true);
   });
 
 });

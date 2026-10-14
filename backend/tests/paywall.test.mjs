@@ -27,9 +27,14 @@ writeFileSync(path.join(decksDir, "paid_deck_v1.zip"), "PAID-ZIP-BYTES");
 writeFileSync(path.join(decksDir, "beta_deck_v1.zip"), "BETA-ZIP-BYTES");
 writeFileSync(path.join(decksDir, "personal_deck_v1.zip"), "PERSONAL-ZIP-BYTES");
 writeFileSync(path.join(decksDir, "hidden_deck_v1.zip"), "HIDDEN-ZIP-BYTES");
+writeFileSync(path.join(decksDir, "archived_deck_v1.zip"), "ARCHIVED-ZIP-BYTES");
 
 const catalog = {
   decks: [
+    {
+      id: "archived_deck", version: "1", status: "archived", access: "free",
+      url: "./decks/archived_deck_v1.zip", title: { ru: "Архивная" }, hidden: true,
+    },
     {
       id: "free_deck", version: "1", status: "release", access: "free",
       url: "./decks/free_deck_v1.zip", title: { ru: "Бесплатная" },
@@ -337,4 +342,31 @@ test("catalog_all_access lets a developer inspect and use every catalog publicat
     assert.equal(download.status, 200);
     assert.equal(await download.text(), bytes);
   }
+});
+
+
+test("archive is admin-only despite free access, assignment, ownership and catalog_all_access", async () => {
+  const staticRes = await fetch(base + "/decks/archived_deck_v1.zip");
+  assert.equal(staticRes.status, 404);
+  const { assignAccountTopic, claimAccountTopic } = await import("../lib/account-repository.mjs");
+  for (const catalogAllAccess of [false, true]) {
+    const { accountId, token } = await registerAndLogin({ allAccess: true, catalogAllAccess });
+    assignAccountTopic(db, accountId, { topicId: "archived_deck", assignedAs: "beta" });
+    claimAccountTopic(db, accountId, { topicId: "archived_deck", topicVersion: "1", source: "free" });
+    const headers = { Authorization: "Bearer " + token };
+    const list = await (await fetch(base + "/api/decks/catalog", { headers })).json();
+    assert.ok(!list.decks.some(d => d.id === "archived_deck"));
+    assert.ok(list.archivedTopicIds.includes("archived_deck"));
+    const bootstrap = await (await fetch(base + "/api/account/bootstrap", { headers })).json();
+    assert.ok(bootstrap.archivedTopicIds.includes("archived_deck"));
+    assert.equal((await fetch(base + "/api/decks/archived_deck/claim", { method: "POST", headers })).status, 404);
+    assert.equal((await fetch(base + "/api/decks/archived_deck/download", { headers })).status, 403);
+    assert.equal((await fetch(base + "/api/account-topics", {
+      method: "POST", headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ topicId: "archived_deck", topicVersion: "1" }),
+    })).status, 404);
+  }
+  const admin = await fetch(base + "/api/admin/catalog", { headers: { Authorization: "Bearer test-admin-token" } });
+  assert.equal(admin.status, 200);
+  assert.ok((await admin.json()).decks.some(d => d.id === "archived_deck" && d.publication === "archived"));
 });
