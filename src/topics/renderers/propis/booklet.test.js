@@ -26,3 +26,12 @@ describe("booklet order", () => {
     }
   });
 });
+
+describe("the PDF's file name", () => {
+  it("the notebook's title, without characters file systems refuse", async () => {
+    const { pdfFileName } = await import("./printPdf.js");
+    expect(pdfFileName("Мои первые буквы")).toBe("Мои первые буквы.pdf");
+    expect(pdfFileName("Буквы: А/Б?")).toBe("Буквы А Б.pdf");
+    expect(pdfFileName("  ")).toBe("Тетрадь.pdf");
+  });
+});

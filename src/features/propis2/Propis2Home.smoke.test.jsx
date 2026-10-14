@@ -15,8 +15,15 @@ import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
+import { printPdf, deliverPdf } from "@/topics/renderers/propis/printPdf.js";
 
 vi.mock("@/core/syncApi", async (orig) => ({ ...(await orig()), pushOp: vi.fn(() => Promise.resolve()) }));
+// the PDF itself needs a real layout engine (printPdf.js is checked in a browser); here: that it is asked for, from the print sheets
+vi.mock("@/topics/renderers/propis/printPdf.js", async (orig) => ({
+  ...(await orig()),
+  printPdf: vi.fn(async (container) => (container?.querySelector(".propis-print-all__sheet") ? new Blob(["%PDF-1.3"], { type: "application/pdf" }) : null)),
+  deliverPdf: vi.fn(async () => "downloaded"),
+}));
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
@@ -279,11 +286,10 @@ describe("propis2 (zip topic)", () => {
     expect(counter()).toBe("2 / 3");
     // printing asks first: the cover (a ready design or options of the template, and its back) and page numbers; then prints the
     // cover with its back and the numbered pages
-    const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
     await click(host.querySelector('.propis-practice-stage [aria-label="Печать"]'));
     const dlg = () => document.querySelector('[data-testid="propis2-print-dialog"]');
     expect(dlg()).not.toBeNull();
-    expect(printSpy).not.toHaveBeenCalled();
+    expect(printPdf).not.toHaveBeenCalled();
     const presets = () => [...dlg().querySelectorAll('.p2-print-covers [role="radio"]')];
     const chip = (group, label) => [...dlg().querySelectorAll(`[aria-label="${group}"] .p2-chip`)].find((b) => b.textContent === label);
     const preview = () => dlg().querySelector('[data-testid="propis2-cover-preview"]');
@@ -311,10 +317,18 @@ describe("propis2 (zip topic)", () => {
     await click(chip("Украшение", "Нет"));
     expect(presets()[1].getAttribute("aria-checked")).toBe("true");
     await click(chip("Украшение", "Корешок"));
-    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Печать"));
+    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Скачать PDF"));
     await act(async () => { await tick(120); });
     expect(dlg()).toBeNull();
-    expect(printSpy).toHaveBeenCalledTimes(1);
+    // no print dialog: the app makes the PDF from the print sheets, then hands it over on a tap
+    expect(printPdf).toHaveBeenCalledTimes(1);
+    expect(printPdf.mock.calls[0][0].classList.contains("propis-print-all")).toBe(true);
+    const pdfBox = () => document.querySelector('[data-testid="propis2-pdf"]');
+    expect(pdfBox().textContent).toContain("PDF готов");
+    await click([...pdfBox().querySelectorAll("button")].find((b) => b.textContent === "Сохранить PDF"));
+    expect(deliverPdf).toHaveBeenCalledTimes(1);
+    expect(deliverPdf.mock.calls[0][1]).toMatch(/\.pdf$/);
+    expect(pdfBox()).toBeNull();
     // A5: the back on the left half of the cover's sheet, the cover on the right, then the empty sheet
     const sheets = [...document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")];
     expect(sheets[0].querySelector('.propis-print-cover--back [data-testid="propis2-back-alphabet"]')).not.toBeNull();
@@ -338,14 +352,14 @@ describe("propis2 (zip topic)", () => {
     expect(how("По порядку").getAttribute("aria-checked")).toBe("true");
     await click(how("Тетрадью"));
     expect(dlg().querySelector('[data-testid="propis2-print-how"]').textContent).toContain("добавится 1 линованная страница");
-    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Печать"));
+    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Скачать PDF"));
     await act(async () => { await tick(120); });
     expect([...document.querySelectorAll(".propis-print-all [data-page-number]")].map((g) => g.getAttribute("data-page-number"))).toEqual(["4", "1", "2", "3"]);
     expect(document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")).toHaveLength(4);
     await click(host.querySelector('.propis-practice-stage [aria-label="Печать"]'));
     expect(how("Тетрадью").getAttribute("aria-checked")).toBe("true"); // remembered
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Отмена"));
-    printSpy.mockRestore();
+    expect(printPdf).toHaveBeenCalledTimes(2);
     await click(host.querySelector(".propis-practice-close"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     await click(host.querySelector(".back-btn"));

@@ -747,3 +747,13 @@
 .propis-dictation-review-footer .propis-dictation-next {
   width: 100%;
 }
+
+/* `propis2`: the print markup laid out off screen at its real size while printPdf.js turns it into a PDF (the same sizes as @media print) */
+.propis-print-all.propis-print-all--export { display: block !important; position: fixed; left: -100000px; top: 0; visibility: visible; }
+.propis-print-all--export .propis-print-all__sheet { width: 297mm; height: 210mm; display: flex; background: #fff; }
+.propis-print-all--export .propis-print-page-svg { width: 148.5mm; height: 210mm; aspect-ratio: auto; box-shadow: none; border-radius: 0; }
+.propis-print-all--export .propis-print-all__sheet--a4 { width: 210mm; height: 297mm; }
+.propis-print-all--export .propis-print-all__sheet--a4 .propis-print-page-svg { width: 210mm; height: 297mm; }
+.propis-print-all--export .propis-print-cover { width: 148.5mm; height: 210mm; flex: none; background: #fff; }
+.propis-print-all--export .propis-print-cover--a4 { width: 210mm; height: 297mm; }
+.propis-print-all--export .propis-print-cover .propis-print-page-svg { width: 100%; height: auto; aspect-ratio: var(--crop-ratio); }

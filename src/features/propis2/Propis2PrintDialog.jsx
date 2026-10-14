@@ -25,9 +25,9 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
   const setTitle = (patch) => setCover((c) => normalizeCover({ ...c, title: { ...c.title, ...patch } }));
   const toggleField = (id) => setCover((c) => normalizeCover({ ...c, fields: c.fields.includes(id) ? c.fields.filter((f) => f !== id) : [...c.fields, id] }));
   return (
-    <div className="p2-modal" role="dialog" aria-modal="true" aria-label="Печать тетради" data-testid="propis2-print-dialog">
+    <div className="p2-modal" role="dialog" aria-modal="true" aria-label="Тетрадь в PDF" data-testid="propis2-print-dialog">
       <div className="p2-modal-card p2-print-card">
-        <h2 className="p2-modal-title">Печать тетради</h2>
+        <h2 className="p2-modal-title">Тетрадь в PDF</h2>
         <p className="p2-print-sub">«{title}» · {pages} стр.</p>
         <div className="p2-print-sec">Обложка</div>
         <div className="p2-print-covers" role="radiogroup" aria-label="Обложка">
@@ -83,8 +83,8 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
           </div>
         </div>
         <p className="p2-print-note" data-testid="propis2-print-how">{bookletWhy ?? (booklet
-          ? `Печать с двух сторон, переворот по КОРОТКОМУ краю. Стопку сложить пополам и скрепить по сгибу.${padded ? ` В конце ${padded === 1 ? "добавится 1 линованная страница" : `добавятся ${padded} линованные страницы`}.` : ""}`
-          : "Страницы идут подряд, по две на листе: лист разрезают пополам.")}</p>
+          ? `Листы разложены для тетради: каждый печатается с двух сторон, стопка складывается пополам и скрепляется по сгибу.${padded ? ` В конце ${padded === 1 ? "добавится 1 линованная страница" : `добавятся ${padded} линованные страницы`}.` : ""}`
+          : "Страницы идут подряд, по две на листе A4: лист разрезают пополам.")}</p>
         <label className="p2-print-switch">
           <input type="checkbox" checked={numbers} onChange={(e) => setNumbers(e.target.checked)} />
           <span className="p2-print-sw" aria-hidden="true" />
@@ -92,7 +92,7 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
         </label>
         <p className="p2-print-note p2-print-note--sw">Внизу страницы, у внешнего края. Обложка без номера.</p>
         <div className="p2-modal-actions">
-          <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={() => onPrint({ cover, numbers, booklet })}>Печать</button>
+          <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={() => onPrint({ cover, numbers, booklet })}>Скачать PDF</button>
           <button type="button" className="p2-modal-btn" onClick={onCancel}>Отмена</button>
         </div>
       </div>

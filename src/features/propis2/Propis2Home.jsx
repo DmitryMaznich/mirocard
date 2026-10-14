@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+import { deliverPdf, pdfFileName, printPdf } from "@/topics/renderers/propis/printPdf.js";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { NOTEBOOK_KEYS, PAGE_PAPER_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, paperDiffers, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
@@ -38,7 +39,9 @@ export default function Propis2Home({ db }) {
   const [partPages, setPartPages] = useState({}); // screen pages each run really takes, as the viewer reports them (by its page ids)
   // printing: the dialog (cover, page numbers) first; the choice is remembered per notebook on this device
   const [printAsk, setPrintAsk] = useState(false);
-  const [printRun, setPrintRun] = useState(0); // bumped to print once the chosen cover is on the (hidden) print sheets
+  const [printRun, setPrintRun] = useState(0); // bumped to make the PDF once the chosen cover is on the (hidden) print sheets
+  // the PDF (owner, 2026-10-14: no print dialog — the app makes the file): { status: "making" | "ready" | "error", blob, name, progress }
+  const [pdfJob, setPdfJob] = useState(null);
   const [printCfgs, setPrintCfgs] = useState(() => readPrintCfgs());
   const [kits, setKits] = useState([]); // «Методика» kits: a big file, loaded when the topic opens, not with the app
   useEffect(() => { let alive = true; import("@/topics/renderers/propis2/kits.json").then((m) => { if (alive) setKits(m.default?.kits ?? []); }).catch(() => {}); return () => { alive = false; }; }, []);
@@ -318,8 +321,21 @@ export default function Propis2Home({ db }) {
   };
   useEffect(() => {
     if (!printRun) return undefined;
-    const t = setTimeout(() => window.print(), 60);
-    return () => clearTimeout(t);
+    let alive = true;
+    const name = pdfFileName(printTitle);
+    setPdfJob({ status: "making", progress: 0 });
+    // after the print sheets have the chosen cover and mode (the same markup the print used, printPdf.js)
+    const t = setTimeout(async () => {
+      try {
+        const blob = await printPdf(document.querySelector(".propis-print-all"), { onProgress: (progress) => alive && setPdfJob({ status: "making", progress }) });
+        if (alive) setPdfJob(blob ? { status: "ready", blob, name } : { status: "error" });
+      } catch (e) {
+        console.error(e);
+        if (alive) setPdfJob({ status: "error" });
+      }
+    }, 60);
+    return () => { alive = false; clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [printRun]);
   const onPartPages = useCallback((n) => {
     const k = partSec?.pageIds.join();
@@ -361,6 +377,22 @@ export default function Propis2Home({ db }) {
         />
         {editTarget && (
           <button type="button" className="propis-ctrl-btn propis2-view-edit" aria-label="Изменить эту страницу" title="Изменить эту страницу" onClick={() => { setFragment(null); setView({ name: "editor", pageId: editTarget, backTo: isSet ? { name: "showSet", setId: set.id, from: view.from } : view.backTo }); }}>✎</button>
+        )}
+        {pdfJob && (
+          <div className="p2-modal" role="dialog" aria-modal="true" aria-label="PDF тетради" data-testid="propis2-pdf">
+            <div className="p2-modal-card p2-pdf-card">
+              {pdfJob.status === "making" && <p className="p2-pdf-text">Готовлю PDF… {Math.round((pdfJob.progress ?? 0) * 100)}%</p>}
+              {pdfJob.status === "error" && <p className="p2-pdf-text">Не получилось собрать PDF. Попробуйте ещё раз.</p>}
+              {pdfJob.status === "ready" && <p className="p2-pdf-text">PDF готов: «{pdfJob.name}»</p>}
+              <div className="p2-modal-actions">
+                {pdfJob.status === "ready" && (
+                  // the share sheet needs a fresh tap (iOS refuses it after the seconds the PDF takes), so it opens from here
+                  <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={async () => { const r = await deliverPdf(pdfJob.blob, pdfJob.name); if (r !== "cancelled") setPdfJob(null); }}>Сохранить PDF</button>
+                )}
+                {pdfJob.status !== "making" && <button type="button" className="p2-modal-btn" onClick={() => setPdfJob(null)}>Закрыть</button>}
+              </div>
+            </div>
+          </div>
         )}
         {printAsk && coverNotebook && (
           <Propis2PrintDialog

@@ -466,3 +466,7 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-ed-measure { position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; padding: 0 12px; }
 .p2-ed-hint { flex: 0 0 auto; margin: 0; font-size: .78rem; line-height: 1.35; color: var(--p2-muted); }
 .p2-ed-locked { margin: 0; padding: 8px 10px; border-radius: 10px; background: #fff7e6; color: #5b4a1f; font-size: .85rem; line-height: 1.35; }
+
+/* the PDF being made / ready (Propis2Home) */
+.p2-pdf-card { gap: 16px; }
+.p2-pdf-text { margin: 0; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
