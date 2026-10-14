@@ -31,7 +31,7 @@ describe("Сотни", () => {
     expect(count(".hd-zone--ones .cb-coin")).toBe(7);
     type(2); type(4); type(7); answer(247);
     expect(value("Какое это число?")).toBe("247");
-    expect(h.container.querySelector(".sg-status-say").textContent).toBe("2 сотни, 4 десятка и 7 единиц — двести сорок семь");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     expect(onMistake).not.toHaveBeenCalled();
   });
 
@@ -70,7 +70,7 @@ describe("Сотни", () => {
     h.click("Проверить");
     expect(note()).toBe("Проверь десятки. В этом числе десятков нет.");
     h.click("Убрать десяток 1"); h.click("Проверить");
-    expect(h.container.querySelector(".sg-status-say").textContent).toBe("3 сотни, 0 десятков и 5 единиц — триста пять");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalled();
   });
@@ -83,7 +83,7 @@ describe("Сотни", () => {
     h.mount(BuildNumberTask, build(305, { view: "number" }));
     expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько сотен в числе 305?");
     h.click("3"); h.click("0"); h.click("5");
-    expect(h.container.querySelector(".sg-status-say")).not.toBeNull();
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
   });
 
   it("engine: «до 1000» gives three-digit numbers, ≤ 599 on coins, some without tens", () => {

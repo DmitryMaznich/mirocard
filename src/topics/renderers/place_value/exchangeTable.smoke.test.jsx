@@ -33,7 +33,7 @@ describe("«Плюс и минус через десяток» — «Табли�
     expect(note()).toBe("Не забудь десяток, который пришёл из единиц.");
     h.flush(); type(4);
     expect(cells().slice(4)).toEqual(["4", "2"]);
-    expect(text(".sg-status-say")).toBe("38 + 4 = 42. Сорок два.");
+    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("c", "c");
     expect(onMistake).toHaveBeenCalledTimes(1);

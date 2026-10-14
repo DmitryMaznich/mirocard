@@ -3,7 +3,7 @@ import Button from "@/shared/components/Button";
 import { modelPieces } from "./CoinBlocks.jsx";
 import { BuildHundreds } from "./HundredsTasks.jsx";
 import { BuildTableTask, NumberLevelTask } from "./TableTasks.jsx";
-import { placeValuePhrase, numberWords, pluralTens } from "./placeValueLabels.js";
+import { numberWords, pluralTens } from "./placeValueLabels.js";
 import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
@@ -129,7 +129,6 @@ function BuildNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect }) 
         <button type="button" className="px-undo" disabled={!tens && !ones} onClick={() => edit(() => { setTens(0); setOnes(0); })}>Сначала</button>
       </> : <div className="px-done" role="status">
         <span className="gt-number">{task.number}</span>
-        <div className="px-say">{placeValuePhrase(task.number)}</div>
         <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
       </div>}
     </div>

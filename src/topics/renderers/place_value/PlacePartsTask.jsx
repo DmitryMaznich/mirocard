@@ -103,9 +103,6 @@ export default function PlacePartsTask({ task, onCorrect, onMistake, onFlashInco
       value={step > i ? f.expected : step === i ? typed.digits : ""} />;
   };
   const plusJoined = (items) => items.flatMap((item, i) => (i ? [<span key={`op${i}`} className="pp-op">+</span>, item] : [item]));
-  const sumWords = list(parts.map((p) => numberWords(p.value)));
-  const sum = parts.map((p) => p.value).join(" + ");
-  const say = split ? `${n} = ${sum}. ${cap(numberWords(n))} — это ${sumWords}.` : `${sum} = ${n}. ${cap(sumWords)} — ${numberWords(n)}.`;
   const title = n >= 100 ? (split ? "Разложи на сотни, десятки и единицы" : "Сложи сотни, десятки и единицы")
     : split ? "Разложи на десятки и единицы" : "Сложи десятки и единицы";
 
@@ -123,7 +120,7 @@ export default function PlacePartsTask({ task, onCorrect, onMistake, onFlashInco
       </div>
       <div className="sg-answer">
         <div className="sg-status" role="status">
-          {solved ? <span className="sg-status-say">{say}</span> : note ? <span className="sg-status-note">{note}</span> : null}
+          {solved ? null : note ? <span className="sg-status-note">{note}</span> : null}
         </div>
         <div className="sg-slot">
           {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>

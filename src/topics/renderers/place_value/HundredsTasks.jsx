@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { modelPieces, SchemeHundred, SchemeOne, SchemeTen } from "./CoinBlocks.jsx";
-import { numberWords, placeValuePhrase, pluralHundreds, pluralOnes, pluralTens } from "./placeValueLabels.js";
+import { numberWords, pluralHundreds, pluralOnes, pluralTens } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
 import "./coins.css";
@@ -153,7 +153,7 @@ export function IdentifyHundreds({ task, onCorrect, onMistake, onFlashIncorrect 
   };
   const faded = bridge && (flying || solved);
   const { One, Ten } = { One: SchemeOne, Ten: SchemeTen };
-  const status = solved ? <span className="sg-status-say">{placeValuePhrase(n)}</span>
+  const status = solved ? null
     : note ? <span className="sg-status-note">{note}</span> : null;
 
   return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} hd-screen${view === "scheme" ? " hd-scheme" : ""}`} style={{ ...sizeVars(mode), "--sg-answer-w": "320px" }}>
@@ -204,7 +204,7 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
     onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
   };
   const done = <>
-    <div className="sg-status" role="status">{solved ? <span className="sg-status-say">{placeValuePhrase(n)}</span> : note ? <span className="sg-status-note">{note}</span> : null}</div>
+    <div className="sg-status" role="status">{solved ? null : note ? <span className="sg-status-note">{note}</span> : null}</div>
     {solved && <div className="sg-slot"><Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button></div>}
   </>;
   const shownNumber = words ? <div className="tb-target tb-target--words">{numberWords(n)}</div>

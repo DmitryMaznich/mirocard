@@ -583,12 +583,6 @@
 .px-eq-sign--give { color: var(--px-give); }
 .px-eq-sign--get { color: var(--px-get); }
 
-.px-say {
-  font-size: 18px;
-  font-weight: 700;
-  color: #166534;
-}
-
 /* Narrow board (JS sets --stacked): tens above ones, each full width. */
 .px-screen--stacked .px-board { flex-direction: column; align-items: stretch; justify-content: flex-start; }
 .px-screen--stacked .px-board { overflow-y: auto; }

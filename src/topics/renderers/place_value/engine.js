@@ -16,6 +16,14 @@ export function countTensOptions(n) {
   return options;
 }
 
+// «Какое число перед?» before `n` (n >= 100): the right one, a unit taken
+// instead of a ten (100 → 99) and a hundred taken instead (100 → 0, 140 → 40).
+export function countTensPrevOptions(n) {
+  const options = [n - 10, n - 1, n - 100];
+  for (let i = options.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [options[i], options[j]] = [options[j], options[i]]; }
+  return options;
+}
+
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -194,6 +202,12 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
         const roll = Math.random();
         const number = roll < 0.5 ? h - 10 : roll < 0.75 ? h : h + 10 * randomInt(1, 8);
         tasks.push({ ...base, task: "next", number, options: countTensOptions(number) });
+      } else if (params.task === "prev") {
+        // Half on the hundred itself (100 → ?), a quarter just after (110 → ?),
+        // a quarter in between (140 → ?).
+        const roll = Math.random();
+        const number = roll < 0.5 ? h : roll < 0.75 ? h + 10 : h + 10 * randomInt(2, 8);
+        tasks.push({ ...base, task: "prev", number, options: countTensPrevOptions(number) });
       } else if (params.task === "back") {
         // The mirror: from just above a hundred down across it (230 → 170).
         const start = h + 10 * randomInt(2, 3);

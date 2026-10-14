@@ -3,7 +3,7 @@ import Button from "@/shared/components/Button";
 import { modelPieces } from "./CoinBlocks.jsx";
 import { IdentifyHundreds } from "./HundredsTasks.jsx";
 import { IdentifyTableTask } from "./TableTasks.jsx";
-import { numberWords, pluralTens, pluralOnes, placeValuePhrase } from "./placeValueLabels.js";
+import { numberWords, pluralTens, pluralOnes } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
 import "./coins.css";
@@ -247,7 +247,7 @@ function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect 
     <h3 className="sg-head sg-head--ones">Единицы</h3>
   </>;
 
-  const status = solved ? (bridge ? <span className="sg-status-say">{placeValuePhrase(task.number)}</span> : null)
+  const status = solved ? null
     : waitGroup ? <span className="sg-status-hint">{`Здесь больше девяти ${loose}. Десять ${loose} — это десяток. Нажми на них.`}</span>
     : note ? <span className="sg-status-note">{note}</span>
       : countHint ? <span className="sg-status-hint">{`Можно отмечать посчитанное — нажимай на десятки и ${scheme ? "точки" : "монеты"}.`}</span> : null;

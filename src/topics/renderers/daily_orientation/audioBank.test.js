@@ -11,6 +11,9 @@ import {
   seasonClipKeys,
   timeClipKeys,
   weatherClipKeys,
+  weekCountClipKeys,
+  weekPhraseClipKeys,
+  weekWagonClipKeys,
   weekdayClipKeys,
 } from "./audioBank.js";
 
@@ -38,6 +41,11 @@ describe("daily orientation clip bank", () => {
     }
     Object.keys(WEATHER_WORDS).forEach((id) => weatherClipKeys(id).forEach((key) => requested.add(key)));
     Object.keys(DAYPART_WORDS).forEach((id) => daypartClipKeys(id).forEach((key) => requested.add(key)));
+    for (let step = 1; step <= 7; step++) weekCountClipKeys(step).forEach((key) => requested.add(key));
+    ["is_seven", "again"].forEach((id) => weekPhraseClipKeys(id).forEach((key) => requested.add(key)));
+    for (let offset = -10; offset <= 10; offset++) {
+      weekWagonClipKeys(new Date(2026, 9, 13 + offset, 12), offset).forEach((key) => requested.add(key));
+    }
 
     expect([...requested].filter((key) => !BANK_KEYS.has(key))).toEqual([]);
     expect([...BANK_KEYS].filter((key) => !requested.has(key))).toEqual([]);
@@ -50,6 +58,10 @@ describe("daily orientation clip bank", () => {
     expect(seasonClipKeys(new Date(2026, 6, 1), -1)).toEqual(["lead_yesterday_n", "season_summer"]);
     expect(dateClipKeys(new Date(2026, 8, 26), 1)).toEqual(["lead_tomorrow", "ordinal_26", "month_gen_9"]);
     expect(timeClipKeys(new Date(2026, 8, 25, 10, 0))).toEqual(["lead_now", "hour_10", "min_00"]);
+    expect(weekCountClipKeys(1)).toEqual(["count_1", "weekday_1"]);
+    expect(weekCountClipKeys(7)).toEqual(["count_7", "weekday_0"]);
+    expect(weekWagonClipKeys(new Date(2026, 9, 12), -1)).toEqual(["lead_yesterday_m", "weekday_1"]);
+    expect(weekWagonClipKeys(new Date(2026, 9, 16), 3)).toEqual(["weekday_5"]);
   });
 
   // TEMPORARY (2026-09-25): the first generation run hit Gemini's daily TTS
@@ -60,6 +72,10 @@ describe("daily orientation clip bank", () => {
   const NOT_YET_RECORDED = new Set([
     ...[18, 19, 20, 21, 22, 23].map((hours) => `hour_${hours}`),
     ...Array.from({ length: 60 }, (_, minutes) => `min_${String(minutes).padStart(2, "0")}`),
+    // 2026-10-13: the week modal's count, added without GEMINI_API_KEY in that session.
+    ...Array.from({ length: 7 }, (_, index) => `count_${index + 1}`),
+    "week_is_seven",
+    "week_again",
   ]);
 
   it("has a recorded file for every clip", () => {

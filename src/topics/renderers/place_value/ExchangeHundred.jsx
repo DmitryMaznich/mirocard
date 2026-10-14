@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { SchemeHundred, SchemeOne, SchemeTen } from "./CoinBlocks.jsx";
-import { numberWords } from "./placeValueLabels.js";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import TenFrame from "./TenFrame.jsx";
@@ -40,8 +39,6 @@ function useScreenMode() {
   }, []);
   return [ref, mode];
 }
-const cap = (s) => `${s[0].toUpperCase()}${s.slice(1)}`;
-const sayResult = (task, sign) => `${task.number} ${sign} ${task.k} = ${task.result}. ${cap(numberWords(task.result))}.`;
 const head = (key, name) => <h3 className={`sg-head sg-head--${key}`}>{name}</h3>;
 
 export function ExchangeHundredScheme({ task, onCorrect, onMistake, onFlashIncorrect }) {
@@ -133,7 +130,7 @@ export function ExchangeHundredScheme({ task, onCorrect, onMistake, onFlashIncor
             value={done ? task.result : phase === "answer" ? typed.digits : ""} />
         </div>
         <div className="sg-status" role="status">
-          {done ? <span className="sg-status-say">{sayResult(task, sign)}</span> : note ? <span className="sg-status-note">{note}</span> : hint ? <span className="sg-status-hint">{hint}</span> : null}
+          {done ? null : note ? <span className="sg-status-note">{note}</span> : hint ? <span className="sg-status-hint">{hint}</span> : null}
         </div>
         <div className="sg-slot">
           {done ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
@@ -253,7 +250,7 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
           <AnswerField label={steps[0].label} tone="total" big ok={solved} active={!solved} wrong={typed.wrong} value={solved ? task.result : typed.digits} />
         </div>}
         <div className="sg-status" role="status">
-          {solved ? <span className="sg-status-say">{sayResult(task, sign)}</span> : note ? <span className="sg-status-note">{note}</span> : null}
+          {solved ? null : note ? <span className="sg-status-note">{note}</span> : null}
         </div>
         <div className="sg-slot">
           {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>

@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { SchemeOne, SchemeTen } from "./CoinBlocks.jsx";
-import { numberWords, placeValuePhrase, pluralTens } from "./placeValueLabels.js";
+import { numberWords, pluralTens } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
 import "./coins.css";
@@ -78,7 +78,7 @@ export function IdentifyTableTask({ task, onCorrect, onMistake, onFlashIncorrect
     </div>;
   };
   const order = layout === "mixed" ? ["ones", "tens"] : ["tens", "ones"];
-  const status = solved ? <span className="sg-status-say">{placeValuePhrase(task.number)}</span>
+  const status = solved ? null
     : note ? <span className="sg-status-note">{note}</span> : null;
 
   return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} tb-screen`} style={{ "--sg-answer-w": "320px" }}>
@@ -148,7 +148,7 @@ export function BuildTableTask({ task, onCorrect, onMistake, onFlashIncorrect })
       </div>
       <div className="sg-answer">
         <div className="sg-status" role="status">
-          {solved ? <span className="sg-status-say">{placeValuePhrase(task.number)}</span>
+          {solved ? null
             : note ? <span className="sg-status-note">{note}</span> : null}
         </div>
         <div className="sg-slot">
@@ -221,7 +221,7 @@ export function NumberLevelTask({ task, onCorrect, onMistake, onFlashIncorrect }
       <div className="sg-answer">
         {!solved && <div className="nl-ask">{q.ask}</div>}
         <div className="sg-status" role="status">
-          {solved ? <span className="sg-status-say">{placeValuePhrase(n)}</span> : note ? <span className="sg-status-note">{note}</span> : null}
+          {solved ? null : note ? <span className="sg-status-note">{note}</span> : null}
         </div>
         <div className="sg-slot">
           {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>

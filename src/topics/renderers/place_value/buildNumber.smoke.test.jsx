@@ -28,7 +28,7 @@ describe("BuildNumberTask", () => {
     take("Взять десяток", 4); take("Взять монету", 7);
     expect(h.container.querySelector(".px-done")).toBeNull();
     h.click("Проверить");
-    expect(h.container.querySelector(".px-say").textContent).toBe("4 десятка и 7 единиц — сорок семь");
+    expect(h.container.querySelector(".px-say")).toBeNull();
     expect(onMistake).not.toHaveBeenCalled();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("b", "b");
