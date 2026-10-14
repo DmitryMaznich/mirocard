@@ -256,6 +256,13 @@ for kid, ruling, name, rows in (("blank-narrow", "narrow", "узкая стро�
     blank_kit["group"] = "Чистые тетради"
     blank_kit["page"] = {**PAGE, "ruling": ruling}
     kits.append(blank_kit)
+# and the plain school papers (owner, 2026-10-14), the same paper as «Клетка» / «Линейка» in the editor
+for kid, paper, name, rows in (("blank-square", SQUARE, "в клетку", SQ_ROWS), ("blank-ruled", {**PAGE, "gridKind": "ruled"}, "в линейку", ROWS)):
+    blank_kit = kit(kid, f"Тетрадь {name}", f"Чистая тетрадь {name} на {BLANK_LEAVES} листов ({BLANK_LEAVES * 2} страницы).",
+                    [page(f"Стр. {i + 1}", [blank()] * rows) for i in range(BLANK_LEAVES * 2)])
+    blank_kit["group"] = "Чистые тетради"
+    blank_kit["page"] = paper
+    kits.append(blank_kit)
 
 out = ROOT / "src" / "topics" / "renderers" / "propis2" / "kits.json"
 out.write_text(json.dumps({"version": 1, "kits": kits}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, paperDiffers } from "./model.js";
+import { taskGrid, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, paperDiffers } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 import { rowAtSvgY } from "../propis/PrintPageView.jsx";
@@ -435,7 +435,7 @@ describe("long text wraps by the grid the page is drawn with", () => {
 describe("«Методика» kits (kits.json, built from the `propis` notebooks' content lists)", () => {
   const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
   it("the notebooks are there, every page fits one page and every letter has a glyph", () => {
-    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts", "digits", "blank-narrow", "blank-wide"]);
+    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts", "digits", "blank-narrow", "blank-wide", "blank-square", "blank-ruled"]);
     for (const k of kits) {
       expect(k.pages.length, k.id).toBeGreaterThan(5);
       for (const pg of k.pages) {
@@ -444,11 +444,11 @@ describe("«Методика» kits (kits.json, built from the `propis` notebook
       }
     }
   });
-  it("the blank copybooks: 12 leaves (24 pages) of empty ruled rows, a whole page each, narrow and wide", () => {
-    for (const [id, ruling] of [["blank-narrow", "narrow"], ["blank-wide", "wide"]]) {
+  it("the blank notebooks: 12 leaves (24 pages) of empty rows, a whole page each: copybook narrow / wide, squared, ruled", () => {
+    for (const [id, grid] of [["blank-narrow", "regular"], ["blank-wide", "regular"], ["blank-square", "square"], ["blank-ruled", "ruled"]]) {
       const k = kits.find((x) => x.id === id);
       expect(k.pages).toHaveLength(24);
-      expect(k.page.ruling).toBe(ruling);
+      expect(taskGrid(k.page)).toBe(grid);
       for (const pg of k.pages) {
         expect(pg.rows.every((r) => r.kind === "blank" && r.text === "")).toBe(true);
         expect(pg.rows).toHaveLength(rowsPerPage(k.page));
