@@ -30,7 +30,13 @@ export default defineConfig({
     proxy: apiProxy,
   },
   resolve: {
-    alias: { "@": path.resolve(__dirname, "src") },
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+      // jsPDF's optional libraries, unused (see src/shared/pdfOptionalStub.js)
+      html2canvas: path.resolve(__dirname, "src/shared/pdfOptionalStub.js"),
+      canvg: path.resolve(__dirname, "src/shared/pdfOptionalStub.js"),
+      dompurify: path.resolve(__dirname, "src/shared/pdfOptionalStub.js"),
+    },
   },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
