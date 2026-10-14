@@ -1,9 +1,9 @@
 {
   "meta": {
     "id": "propis2",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "renderer": "propis2",
-    "title": "Прописи 2",
+    "title": "Прописи",
     "avatar": "media/avatar_propis.svg",
     "cardType": "procedural",
     "about": {

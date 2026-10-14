@@ -255,6 +255,8 @@ export const RELEASE_TOPIC_COPY = {
 
 export function applyReleaseTopicCopy(record) {
   if (!record?.meta?.id) return record;
+  const title = { propis: "Прописи старые", propis2: "Прописи" }[record.meta.id];
+  if (title) record = { ...record, meta: { ...record.meta, title } };
   const copy = RELEASE_TOPIC_COPY[record.meta.id];
   if (!copy) return record;
 
