@@ -155,21 +155,25 @@ Old host backups (retired, 192.168.1.163):
 
 Restore and scheduling details: `docs/backup-restore.md`.
 
-## Прописи (propis) topic
+## Прописи (propis2) — основная тема письма
 
-Handwriting-practice topic under active development (`src/topics/renderers/propis/`,
-`tools/propis/`). Independent from `letter_writing` ("Написание букв") — don't touch
-that topic while working on this one. Mode 1 ("Учим буквы") is shipped; mode 2 (PDF
-export for print) is not started.
+Since 2026-10-14 the topic users see as **«Прописи»** is the one with id **`propis2`**
+(page/notebook builder + modes «Узнай букву», «Строчная и заглавная», «Диктант»;
+`src/features/propis2/`, `src/topics/renderers/propis2/`, `tools/propis2/`). Ids, file
+names and sync keys (`propis2:*`) keep the `2` — only the displayed title changed.
+Read `docs/propis2.md` before touching it.
 
-Since 2026-09-29 it also holds the former "Письменные буквы" (`written_letters`) modes
-(`src/topics/renderers/propis/letters/`, drawn with propis's own captured letters, not a
-font); the old topic is hidden and its renderer is a stub. A speech therapist's backlog for
-these modes is in `docs/propis.md`.
+The old topic (id **`propis`**) is now titled **«Прописи старые»** and is being removed
+from the catalog — archive only, no new work, don't bring its modes back. Its ZIP stays
+only in git history. **But its code and data are NOT dead:** `propis2` imports the shared
+engine from `src/topics/renderers/propis/` (`wordEngine.js`, `PrintPageView.jsx`,
+`useLoopingStrokes.js`, `AnimatedStrokes.jsx`, `letters/*` views) and glyph data from
+`tools/propis/` (`wide.json`, `elements.json`, `captures/`). Never delete those when
+cleaning up the old topic; letter-shape edits still go into `tools/propis/`.
+`docs/propis.md` is the old topic's history + the shared engine's pitfalls (ruling
+geometry, glyph capture) — still worth reading when touching the shared engine.
 
-Before touching anything in this topic, read `docs/propis.md` first — it has the file
-map, the ruling geometry's design decisions (and why), and pitfalls already hit once
-(don't repeat them).
+Independent from `letter_writing` ("Написание букв") — don't touch that topic.
 
 ## Важные даты (important dates) for the "Сегодня" screen
 

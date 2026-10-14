@@ -1,4 +1,13 @@
-# Прописи (propis) topic
+# «Прописи старые» (propis) topic — archived
+
+> **Status 2026-10-14: archived.** The topic users now see as «Прописи» is `propis2`
+> (`docs/propis2.md`). This one (id `propis`) is renamed «Прописи старые» and removed
+> from the catalog; no new work here. What stays alive and is still used by `propis2`:
+> the shared engine in `src/topics/renderers/propis/` (`wordEngine.js`,
+> `PrintPageView.jsx`, `useLoopingStrokes.js`, `AnimatedStrokes.jsx`, `letters/*`)
+> and glyph data in `tools/propis/` (`wide.json`, `elements.json`, `captures/`) — do not
+> delete them. The notes below on ruling geometry, glyph capture and engine pitfalls
+> still apply to that shared code; mode-by-mode notes are history.
 
 Handwriting-practice topic. Fully independent from `letter_writing` ("Написание
 букв", printed block letters, not developed) — no shared code or data with it, by
