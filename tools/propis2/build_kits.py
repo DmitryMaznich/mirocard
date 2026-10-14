@@ -247,6 +247,16 @@ digits_kit = kit("digits", "Прописи — цифры", "Цифры по о�
 digits_kit["page"] = SQUARE
 kits.append(digits_kit)
 
+# Blank copybooks (owner, 2026-10-14: «пустографки»): 12 notebook leaves = 24 pages of the copybook ruling, nothing written, the red
+# margin as in the printed notebooks; one on the narrow row, one on the wide. Printed with any cover, «По порядку» or «Тетрадью».
+BLANK_LEAVES = 12
+for kid, ruling, name, rows in (("blank-narrow", "narrow", "узкая строка", 17), ("blank-wide", "wide", "широкая строка", 16)):
+    blank_kit = kit(kid, f"Пропись — {name}", f"Чистая тетрадь на {BLANK_LEAVES} листов: {BLANK_LEAVES * 2} страницы косой линейки ({name}) без образцов.",
+                    [page(f"Стр. {i + 1}", [blank()] * rows) for i in range(BLANK_LEAVES * 2)])
+    blank_kit["group"] = "Чистые тетради"
+    blank_kit["page"] = {**PAGE, "ruling": ruling}
+    kits.append(blank_kit)
+
 out = ROOT / "src" / "topics" / "renderers" / "propis2" / "kits.json"
 out.write_text(json.dumps({"version": 1, "kits": kits}, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print(f"{len(kits)} kits -> {out} ({out.stat().st_size // 1024} KB)")

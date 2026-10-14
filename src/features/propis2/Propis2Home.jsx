@@ -267,10 +267,11 @@ export default function Propis2Home({ db }) {
   const partSec = sections?.list[partIndex] ?? null;
   // the runs' pages and paper (not their page counts): the tasks are rebuilt only when these change
   const runsKey = sections ? sections.list.map((sec) => `${sec.key}|${sec.pageIds.join()}`).join("/") : "";
-  const taskOf = useCallback((paper, lines) => buildPageTask({ topicRecord, lines, narrowRows: paper.ruling === "narrow", grid: taskGrid(paper), midDash: paper.midDash, margin: pageMargin(paper), format: pageFormat(paper) }), [topicRecord]);
-  // one task per run: the viewer shows the open one, printing prints them all
+  const taskOf = useCallback((paper, lines, minPages = 0) => buildPageTask({ topicRecord, lines, narrowRows: paper.ruling === "narrow", grid: taskGrid(paper), midDash: paper.midDash, margin: pageMargin(paper), format: pageFormat(paper), minPages }), [topicRecord]);
+  // one task per run: the viewer shows the open one, printing prints them all; a run has at least as many pages as it has pages of
+  // the notebook (blank pages at its end, or a whole blank notebook, are printed too)
   const runTasks = useMemo(
-    () => (sections ? sections.list.map((sec) => taskOf(sec.paper, setToLines(set, pagesById, glyphMap, sec.pageIds))) : null),
+    () => (sections ? sections.list.map((sec) => taskOf(sec.paper, setToLines(set, pagesById, glyphMap, sec.pageIds), sec.pages)) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [runsKey, set, pagesById, glyphMap, taskOf],
   );

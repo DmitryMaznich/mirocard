@@ -859,7 +859,7 @@ function layoutTaskPages(task) {
     : useElements
       ? layoutElementLinesIntoRows(lines, elementsByLabel, CONTENT_W_UNITS)
       : layoutTextIntoRows(lines.join("\n"), lettersByLabel, connectorsByKey, CONTENT_W_UNITS, undefined, punctuationByLabel);
-  const pages = paginateRows(layout, wideRows ? perPage : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages) });
+  const pages = paginateRows(layout, wideRows ? perPage : PRINT_ROWS_PER_PAGE, { exact: Boolean(task?.exactPages), minPages: Number(task?.minPages) || 0 });
   return { lines, wideRows, margin, geom, narrowRows, narrow17, square, perPage, useElements, pages, simpleGrid: task?.simpleGrid ?? null, midDash: task?.midDash !== false };
 }
 
@@ -984,7 +984,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
       <button type="button" className="propis-ctrl-btn propis-practice-close" onClick={onClose} aria-label="Закрыть">✕</button>
 
       <div className="propis-print-frame">
-        {lines.length === 0 ? (
+        {lines.length === 0 && !(task?.minPages > 0) ? (
           <div className="propis-empty-hint">
             Для этого занятия не набрано ни одной строки.
           </div>

@@ -435,13 +435,27 @@ describe("long text wraps by the grid the page is drawn with", () => {
 describe("«Методика» kits (kits.json, built from the `propis` notebooks' content lists)", () => {
   const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
   it("the notebooks are there, every page fits one page and every letter has a glyph", () => {
-    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts", "digits"]);
+    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts", "digits", "blank-narrow", "blank-wide"]);
     for (const k of kits) {
       expect(k.pages.length, k.id).toBeGreaterThan(5);
       for (const pg of k.pages) {
         expect(pg.rows.length, `${k.id} ${pg.title}`).toBeLessThanOrEqual(rowsPerPage({ ...k.page, ...pg.paper }));
         for (const r of pg.rows) expect(findUnsupported(r.text, map), `${k.id} «${r.text}»`).toEqual([]);
       }
+    }
+  });
+  it("the blank copybooks: 12 leaves (24 pages) of empty ruled rows, a whole page each, narrow and wide", () => {
+    for (const [id, ruling] of [["blank-narrow", "narrow"], ["blank-wide", "wide"]]) {
+      const k = kits.find((x) => x.id === id);
+      expect(k.pages).toHaveLength(24);
+      expect(k.page.ruling).toBe(ruling);
+      for (const pg of k.pages) {
+        expect(pg.rows.every((r) => r.kind === "blank" && r.text === "")).toBe(true);
+        expect(pg.rows).toHaveLength(rowsPerPage(k.page));
+      }
+      const { set, pages } = kitToLibraryItems(k);
+      expect(set.pageIds).toHaveLength(24);
+      expect(pages.every((p) => p.locked)).toBe(true);
     }
   });
   it("a kit becomes a set of locked pages that belong to it", () => {

@@ -349,6 +349,14 @@ describe("paginateRows", () => {
     expect(pages[1]).toHaveLength(0);
   });
 
+  it("`exact` + `minPages`: a notebook's blank pages are pages too (a whole blank notebook, blank pages at its end)", () => {
+    const empty = layoutTextIntoRows("", letters, new Map(), 500);
+    expect(paginateRows(empty, 17, { exact: true })).toHaveLength(1);
+    expect(paginateRows(empty, 17, { exact: true, minPages: 24 })).toHaveLength(24);
+    const one = layoutTextIntoRows("а", letters, new Map(), 500);
+    expect(paginateRows(one, 17, { exact: true, minPages: 3 }).map((p) => p.length)).toEqual([1, 0, 0]);
+  });
+
   it("empty text still produces 2 pages, both blank", () => {
     const layout = layoutTextIntoRows("", letters, new Map(), 500);
     const pages = paginateRows(layout, 17);

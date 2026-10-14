@@ -1843,9 +1843,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
 // a "sheet" is the real unit, not a single page; content that doesn't fill even the first
 // page still gets a second, blank one (just the ruling + margin), and content needing a 3rd
 // page always gets a 4th too, rather than leaving an odd sheet half-used.
-export function paginateRows(layout, rowsPerPage, { exact = false } = {}) {
+export function paginateRows(layout, rowsPerPage, { exact = false, minPages = 0 } = {}) {
   // `propis` default: at least 2 pages, always even (double-sided print). `exact` (`propis2`): just what's needed.
-  const needed = Math.ceil(layout.rowCount / rowsPerPage);
+  // `minPages` (`propis2`): the notebook's own page count — its blank pages at the end (a whole blank notebook) are pages too.
+  const needed = Math.max(Math.ceil(layout.rowCount / rowsPerPage), minPages);
   const neededPages = exact ? Math.max(1, needed) : Math.max(2, needed);
   const pageCount = exact || neededPages % 2 === 0 ? neededPages : neededPages + 1;
   const pages = Array.from({ length: pageCount }, () => []);

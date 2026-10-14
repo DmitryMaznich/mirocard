@@ -20,7 +20,8 @@ export function listElementChoices(topicRecord) {
 
 // The task object PrintPageView renders (same shape propis/engine.js builds for "read_lines").
 // Wide-row layout only needs the wide glyph bank from the installed deck, no captured-letter cards.
-export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5" }) {
+// `minPages`: how many pages the task has at least (a notebook's pages, blank ones included: trailing blank rows are dropped below).
+export function buildPageTask({ topicRecord, lines, narrowRows = true, useElements = false, grid = "regular", midDash = true, margin = "off", format = "a5", minPages = 0 }) {
   // Empty strings are blank writing rows and must stay (the engine draws them as empty ruled rows).
   const clean = (lines ?? []).map((l) => String(l).trim());
   if (grid === "square") narrowRows = true; // squared paper: its own rows (PrintPageView), letters and digits at the narrow size
@@ -35,6 +36,7 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     elements: topicRecord?.elements ?? [],
     wideRows: true,
     exactPages: true,
+    minPages,
     simpleGrid: ["dense", "square", "ruled"].includes(grid) ? grid : "regular",
     midDash: midDash !== false,
     format: format === "a4" ? "a4" : "a5",
