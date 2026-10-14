@@ -2,6 +2,8 @@ import { memo, useMemo, useState, useEffect, useRef, useCallback, useId } from "
 import { createPortal } from "react-dom";
 import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, WIDE_GRID_STRETCH, WIDE_ROW_MAX_X, paginateRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
+import { BrandMarks } from "./brandMarks.jsx";
+import { bookletSheets } from "./booklet.js";
 import {
   INK_COLOR, NATIVE_L3, TEXT_ROW_WIDE_DIAGONAL_SPACING,
   TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_DIAGONAL_SPACING, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
@@ -361,7 +363,7 @@ const RowInk = memo(function RowInk({ segments, narrowRows }) {
 // two A5 pages the left page's is on the left, the right page's on the right; a whole A4 page alternates like a book (1 right, 2 left).
 const PAGE_NUMBER_R_MM = 2.6;
 const PAGE_NUMBER_INSET_MM = 6.5;
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, square = false, useElements, wideRows = false, narrowRows = false, pageNumber = null }) {
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, square = false, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
   const geom = geomOf(format);
   // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
   const PAGE_W_UNITS = geom.w;
@@ -561,6 +563,10 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
         const y = square ? oy : oy + n17;
         return <rect key={`ov${k}`} x="0" y={y} width={PAGE_W_UNITS} height={h} fill={OVERLAY_FILL[o.tone] ?? OVERLAY_FILL.select} pointerEvents="none" data-overlay={o.tone} />;
       })}
+      {brand && (
+        <BrandMarks w={PAGE_W_UNITS} h={PAGE_H_UNITS} marginX={wideRows && (margin === "left" || margin === "right") ? marginXUnits : null}
+          innerLeft={geom.pairedSlots ? !isLeftSlot : pageIndex % 2 === 0} />
+      )}
       {pageNumber != null && (() => {
         const outerLeft = geom.pairedSlots ? isLeftSlot : pageIndex % 2 === 1;
         const r = mmToNativeUnits(PAGE_NUMBER_R_MM);
@@ -881,7 +887,9 @@ export function PrintPageTop({ task, rows = 5 }) {
 // `printCover`: a cover (an A5 / A4 page) printed before the pages, on its own sheet, followed by an empty sheet (its back, for
 // printing on both sides); `printBack`: the back of the cover (owner, 2026-10-08: it is printed on the back of the front) — A5: the
 // left half of the cover's landscape sheet; A4: the second sheet, in place of the empty one; `pageNumbers`: number the printed pages (the cover is not counted).
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false }) {
+// `booklet` (A5 only): print «Тетрадью» — the pages in saddle-stitch order (booklet.js), padded with ruled pages to a multiple of 4; the
+// cover sheet stays the outer one (white inside). `brandMarks`: the quiet Mironium mark on every printed page (brandMarks.jsx).
+export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false, booklet = false, brandMarks = false }) {
   const own = useMemo(() => layoutTaskPages(task), [task]);
   const { lines, wideRows, margin, geom, narrowRows, narrow17, square, perPage, useElements, pages } = own;
   // what printing prints: every page of the document with the paper it is laid out on
@@ -1063,20 +1071,31 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
                     <div className="propis-print-all__sheet propis-print-all__sheet--a4">{printBack && <div className="propis-print-cover propis-print-cover--a4 propis-print-cover--back">{printBack}</div>}</div>
                   </>
                 ))}
-                {geom.pairedSlots
+                {geom.pairedSlots && booklet
+                  ? bookletSheets(printPages.length).flatMap(({ front, back }, sheetIndex) => [front, back].map((pair, side) => (
+                    <div key={`${sheetIndex}-${side}`} className="propis-print-all__sheet">
+                      {pair.map((pi, slot) => {
+                        // a padding page is ruled like the last page of the notebook, and numbered on
+                        const { page = [], part } = printPages[pi] ?? { part: printPages[printPages.length - 1]?.part ?? own };
+                        // the slot (0 left, 1 right) is the page's side in the open notebook: margin, page number and mark follow it
+                        return <PrintPage key={slot} page={page} pageIndex={slot} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />;
+                      })}
+                    </div>
+                  )))
+                  : geom.pairedSlots
                   ? Array.from({ length: Math.ceil(printPages.length / 2) }, (_, sheetIndex) => (
                     <div key={sheetIndex} className="propis-print-all__sheet">
                       {[0, 1].map((slot) => {
                         const pi = sheetIndex * 2 + slot;
                         // the empty right half of the last sheet (an odd number of pages) is ruled like the page beside it
                         const { page = [], part } = printPages[pi] ?? { part: printPages[pi - 1]?.part ?? own };
-                        return <PrintPage key={slot} page={page} pageIndex={pi} pageNumber={pageNumbers && printPages[pi] ? pi + 1 : null} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />;
+                        return <PrintPage key={slot} page={page} pageIndex={pi} pageNumber={pageNumbers && printPages[pi] ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />;
                       })}
                     </div>
                   ))
                   : printPages.map(({ page, part }, pi) => (
                     <div key={pi} className="propis-print-all__sheet propis-print-all__sheet--a4">
-                      <PrintPage page={page} pageIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />
+                      <PrintPage page={page} pageIndex={pi} pageNumber={pageNumbers ? pi + 1 : null} brand={brandMarks} useElements={part.useElements} wideRows={part.wideRows} narrowRows={part.narrowRows} simpleGrid={part.simpleGrid} midDash={part.midDash} margin={part.margin} format={part.geom.format} narrow17={part.narrow17} square={part.square} />
                     </div>
                   ))}
               </div>,

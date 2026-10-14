@@ -1,5 +1,6 @@
 import { PrintPageTop } from "@/topics/renderers/propis/PrintPageView";
 import { FIELDS, accentColor, coverTitle, presetOf } from "./coverConfig.js";
+import MironiumLogo from "./MironiumLogo.jsx";
 
 // The front of the cover, drawn from a cover config (coverConfig.js) and the notebook. One component for the print (an A5 / A4 page)
 // and the previews: every size is a share of the cover's own width (container query units), the decorations are SVG in the same
@@ -11,7 +12,7 @@ export default function CoverTemplate({ cover, title, tasks = {}, sampleTask = n
   const preset = presetOf(cover);
   return (
     <div
-      className={`p2-cover${a4 ? " p2-cover--a4" : ""}${hasWindow ? " p2-cover--window" : ""}`}
+      className={`p2-cover${a4 ? " p2-cover--a4" : ""}${hasWindow ? " p2-cover--window" : ""}${cover.logo ? " p2-cover--logo" : ""}`}
       style={{ "--p2-accent": accentColor(cover.accent) }}
       data-testid={`propis2-cover-${preset ?? "custom"}`}
       data-decor={decor}
@@ -31,7 +32,7 @@ export default function CoverTemplate({ cover, title, tasks = {}, sampleTask = n
           </div>
         )}
       </div>
-      {cover.logo && <div className="p2-cover-logo">Mironium</div>}
+      {cover.logo && <MironiumLogo className="p2-cover-logo" />}
     </div>
   );
 }

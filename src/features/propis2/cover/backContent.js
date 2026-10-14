@@ -1,8 +1,9 @@
 import { digitsOut } from "@/topics/renderers/propis2/fieldText.js";
 import { newRow, rowToLine } from "@/topics/renderers/propis2/model.js";
 
-// What the back of the cover holds (coverConfig.js BACKS), as rows of the notebook engine: written once, without start dots, a blank
-// row between rows of writing (as the reference sheets of the printed series, scripts/cover_tetrad.py). `heading` is printed above.
+// What the back of the cover holds (coverTasks.js / BACKS in coverConfig.js), as rows of the notebook engine: written once, without start
+// dots, row after row (a compact block, as the backs of the printed series, scripts/cover_tetrad.py). `heading` is written above it
+// in our own hand (coverTasks.js).
 
 const LOWER = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
 // a capital the hand was captured for (wide.json): not Ё and Й, and Ъ Ы Ь have none at all; where there is no capital, the lowercase
@@ -15,7 +16,7 @@ const ROW_PAIRS = 5;
 // spaces as typed in the editor: one is the usual gap (inside a pair: no connection runs into the lowercase letter after a space),
 // two add a cell (between pairs)
 const write = (text) => rowToLine(newRow({ text: digitsOut(text), repeat: "one", dots: "none" }));
-const spaced = (rows) => rows.flatMap((t, i) => (i ? ["", write(t)] : [write(t)]));
+const writeAll = (rows) => rows.map(write);
 
 function alphabetRows() {
   const units = [...LOWER].map((l) => (NO_CAPITAL.has(l) ? l : `${l.toUpperCase()} ${l}`));
@@ -40,24 +41,24 @@ const PUNCT = [[".", "точка"], [",", "запятая"], ["?", "вопрос
 
 export const BACK_HEADINGS = { alphabet: "Алфавит", digits: "Цифры", signs: "Знаки", "digits-signs": "Цифры и знаки", punctuation: "Знаки препинания" };
 
-// {heading, lines, rows}: `rows` — how many rows of the page the content takes
+// {heading, lines, rows}: `rows` — how many rows of the page the content takes (the heading not counted)
 export function backContent(kind) {
   let lines;
   switch (kind) {
     case "alphabet":
-      lines = spaced(alphabetRows());
+      lines = writeAll(alphabetRows());
       break;
     case "digits":
-      lines = spaced([DIGITS, "1 2 3 4 5 6 7 8 9 10", "11 12 13 14 15", "16 17 18 19 20"]);
+      lines = writeAll([DIGITS, "1 2 3 4 5 6 7 8 9 10", "11 12 13 14 15", "16 17 18 19 20"]);
       break;
     case "signs":
-      lines = spaced(SIGNS.map(([s, w]) => `${s}   ${w}`));
+      lines = writeAll(SIGNS.map(([s, w]) => `${s}   ${w}`));
       break;
     case "digits-signs":
-      lines = spaced([DIGITS, "+ - = > <", "2 + 3 = 5", "5 - 1 = 4", "3 > 2   2 < 3"]);
+      lines = writeAll([DIGITS, "+ - = > <", "2 + 3 = 5", "5 - 1 = 4", "3 > 2   2 < 3"]);
       break;
     case "punctuation":
-      lines = spaced(PUNCT.map(([s, w]) => `${w}${s}`));
+      lines = writeAll(PUNCT.map(([s, w]) => `${w}${s}`));
       break;
     default:
       return null;

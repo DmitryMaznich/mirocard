@@ -295,7 +295,7 @@ export default function Propis2Home({ db }) {
     const sample = view.name === "showSet" ? runTasks?.[0] : taskOf(coverFirstPage, pageToLines(coverFirstPage, glyphMap));
     return { title: printTitle, sampleTask: sample, a4: pageFormat(coverFirstPage) === "a4", topicRecord };
   }, [printKey, printTitle, coverFirstPage, view.name, runTasks, taskOf, glyphMap, topicRecord]);
-  const printCfg = { numbers: true, ...(printKey ? printCfgs[printKey] : null) };
+  const printCfg = { numbers: true, booklet: false, ...(printKey ? printCfgs[printKey] : null) };
   const cover = useMemo(
     () => normalizeCover(coverSet?.cover ?? migrateLegacy(printCfg.cover, { squared: squaredFirst }), { squared: squaredFirst }),
     [coverSet?.cover, printCfg.cover, squaredFirst],
@@ -343,6 +343,8 @@ export default function Propis2Home({ db }) {
           printCover={cover.enabled && coverNotebook ? <CoverSide side="front" cover={cover} notebook={coverNotebook} /> : null}
           printBack={cover.enabled && cover.back.kind !== "none" && coverNotebook ? <CoverSide side="back" cover={cover} notebook={coverNotebook} /> : null}
           pageNumbers={printCfg.numbers}
+          booklet={Boolean(printCfg.booklet)}
+          brandMarks
           {...(isSet ? {
             pageBase: partSec.start,
             pageTotal: sections.total,
@@ -363,11 +365,12 @@ export default function Propis2Home({ db }) {
             pages={isSet ? sections.total : Math.max(1, Math.ceil(pageToLines(page, glyphMap).length / rowsPerPage(page)))}
             cover={cover}
             numbers={printCfg.numbers}
+            booklet={printCfg.booklet}
             notebook={coverNotebook}
             onCancel={() => setPrintAsk(false)}
-            onPrint={({ cover: chosen, numbers }) => {
+            onPrint={({ cover: chosen, numbers, booklet }) => {
               saveCover(chosen);
-              const next = { ...printCfgs, [printKey]: { numbers } };
+              const next = { ...printCfgs, [printKey]: { numbers, booklet } };
               setPrintCfgs(next);
               writePrintCfgs(next);
               setPrintAsk(false);

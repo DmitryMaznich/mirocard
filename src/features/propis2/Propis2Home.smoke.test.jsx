@@ -321,6 +321,21 @@ describe("propis2 (zip topic)", () => {
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Отмена"));
     expect(dlg()).toBeNull();
     expect(document.querySelector('.propis-print-all [data-testid="propis2-cover-sample"]')).not.toBeNull();
+    // every printed page carries the quiet Mironium mark (by the fold, or up the margin), the ruled empty half of the last sheet too
+    expect(document.querySelectorAll(".propis-print-all [data-brand]")).toHaveLength(4);
+    // «Тетрадью»: 3 pages -> 4 (one ruled page added), booklet order 4|1, 2|3 after the cover sheet and its white inside
+    await click(host.querySelector('.propis-practice-stage [aria-label="Печать"]'));
+    const how = (label) => [...dlg().querySelectorAll('[aria-label="Как печатать"] .p2-chip')].find((b) => b.textContent === label);
+    expect(how("По порядку").getAttribute("aria-checked")).toBe("true");
+    await click(how("Тетрадью"));
+    expect(dlg().querySelector('[data-testid="propis2-print-how"]').textContent).toContain("добавится 1 линованная страница");
+    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Печать"));
+    await act(async () => { await tick(120); });
+    expect([...document.querySelectorAll(".propis-print-all [data-page-number]")].map((g) => g.getAttribute("data-page-number"))).toEqual(["4", "1", "2", "3"]);
+    expect(document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")).toHaveLength(4);
+    await click(host.querySelector('.propis-practice-stage [aria-label="Печать"]'));
+    expect(how("Тетрадью").getAttribute("aria-checked")).toBe("true"); // remembered
+    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Отмена"));
     printSpy.mockRestore();
     await click(host.querySelector(".propis-practice-close"));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();

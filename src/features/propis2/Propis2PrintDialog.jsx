@@ -1,5 +1,6 @@
 import { useState } from "react";
 import CoverSide from "./cover/CoverSide.jsx";
+import { BOOKLET_MAX_PAGES, bookletPageCount } from "@/topics/renderers/propis/booklet.js";
 import { ACCENTS, BACKS, BACK_PAPERS, DECORS, FIELDS, PRESETS, TITLE_STYLES, applyPreset, backPaperOf, normalizeCover, presetOf } from "./cover/coverConfig.js";
 
 // Asked before a notebook is printed (owner, 2026-10-08). The cover is one template (cover/coverConfig.js): a ready design picked in
@@ -7,9 +8,14 @@ import { ACCENTS, BACKS, BACK_PAPERS, DECORS, FIELDS, PRESETS, TITLE_STYLES, app
 // back of the cover (A5: the left half of the cover's sheet). Above them the live preview, the back and the front side by side
 // (on a phone one of them, switched). Page numbers as before. «Печать» hands the choice back (the screen keeps it with the notebook);
 // «Отмена» changes nothing.
-export default function Propis2PrintDialog({ title, pages, cover: initialCover, numbers: initialNumbers = true, notebook, onPrint, onCancel }) {
+// «Как печатать» (owner, 2026-10-14): «По порядку» — the pages as the notebook has them, two to a sheet, to cut; «Тетрадью» — in booklet
+// order, to fold the stack in half and staple it on the fold (A5 only, up to BOOKLET_MAX_PAGES pages; booklet.js).
+export default function Propis2PrintDialog({ title, pages, cover: initialCover, numbers: initialNumbers = true, booklet: initialBooklet = false, notebook, onPrint, onCancel }) {
   const [cover, setCover] = useState(() => normalizeCover(initialCover));
   const [numbers, setNumbers] = useState(initialNumbers);
+  const bookletWhy = notebook.a4 ? "Тетрадью — только формат A5: для A4 нужны листы A3." : pages > BOOKLET_MAX_PAGES ? `Тетрадью — до ${BOOKLET_MAX_PAGES} страниц: толще тетрадь плохо складывается и скрепляется. Разделите её на две.` : null;
+  const [booklet, setBooklet] = useState(initialBooklet && !bookletWhy);
+  const padded = bookletPageCount(pages) - pages;
   const [side, setSide] = useState("front"); // the side the phone shows
   const [tune, setTune] = useState(false);
   const preset = presetOf(cover);
@@ -68,6 +74,16 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
               : "Обложка и задник печатаются на одном листе (задник слева), следом — пустой лист (оборот)."}</p>
           </>
         )}
+        <div className="p2-print-opt">
+          <div className="p2-print-opt-label">Как печатать</div>
+          <div className="p2-chips" role="radiogroup" aria-label="Как печатать">
+            <button type="button" role="radio" aria-checked={!booklet} className={`p2-chip${!booklet ? " is-on" : ""}`} onClick={() => setBooklet(false)}>По порядку</button>
+            <button type="button" role="radio" aria-checked={booklet} disabled={Boolean(bookletWhy)} className={`p2-chip${booklet ? " is-on" : ""}`} onClick={() => setBooklet(true)}>Тетрадью</button>
+          </div>
+        </div>
+        <p className="p2-print-note" data-testid="propis2-print-how">{bookletWhy ?? (booklet
+          ? `Печать с двух сторон, переворот по КОРОТКОМУ краю. Стопку сложить пополам и скрепить по сгибу.${padded ? ` В конце ${padded === 1 ? "добавится 1 линованная страница" : `добавятся ${padded} линованные страницы`}.` : ""}`
+          : "Страницы идут подряд, по две на листе: лист разрезают пополам.")}</p>
         <label className="p2-print-switch">
           <input type="checkbox" checked={numbers} onChange={(e) => setNumbers(e.target.checked)} />
           <span className="p2-print-sw" aria-hidden="true" />
@@ -75,7 +91,7 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
         </label>
         <p className="p2-print-note p2-print-note--sw">Внизу страницы, у внешнего края. Обложка без номера.</p>
         <div className="p2-modal-actions">
-          <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={() => onPrint({ cover, numbers })}>Печать</button>
+          <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={() => onPrint({ cover, numbers, booklet })}>Печать</button>
           <button type="button" className="p2-modal-btn" onClick={onCancel}>Отмена</button>
         </div>
       </div>

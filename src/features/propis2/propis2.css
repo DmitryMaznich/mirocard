@@ -356,7 +356,8 @@
 .p2-cover-window { align-self: stretch; border: 0.6cqw solid var(--p2-accent); border-radius: 2cqw; overflow: hidden; line-height: 0; }
 .p2-cover .propis-print-page-svg { display: block; width: 100%; height: auto; aspect-ratio: var(--crop-ratio); box-shadow: none; border-radius: 0; }
 .p2-cover .propis-paper { fill: #fff; }
-.p2-cover-logo { position: absolute; left: 0; right: 0; bottom: 7cqw; text-align: center; font-weight: 900; font-size: 3.6cqw; color: var(--p2-accent); letter-spacing: 0.04em; }
+/* the Mironium logo (MironiumLogo.jsx): small, centred at the foot of the front, above the bottom line of a frame */
+.p2-cover-logo { position: absolute; left: 50%; transform: translateX(-50%); bottom: 9cqw; height: 5.2cqw; width: auto; display: block; }
 
 /* ---- the print dialog (Propis2PrintDialog.jsx) ---- */
 .p2-cover-kicker { color: var(--p2-accent); }
@@ -365,11 +366,15 @@
 .p2-cover-band { position: absolute; left: 6cqw; right: 6cqw; line-height: 0; }
 .p2-cover-band--top { top: 9cqw; }
 .p2-cover-band--bottom { bottom: 13cqw; }
+.p2-cover--logo .p2-cover-band--bottom { bottom: 20cqw; } /* clear of the logo */
+/* the back: a compact block (the heading is its first row, written by the engine), white around it, the logo and the site at the foot */
+.p2-back-block { position: absolute; left: 5cqw; right: 5cqw; top: 36cqw; line-height: 0; }
+.p2-back-block .propis-print-page-svg { display: block; width: 100%; height: auto; aspect-ratio: var(--crop-ratio); box-shadow: none; border-radius: 0; }
+.p2-back-foot { position: absolute; left: 10cqw; bottom: 8cqw; line-height: 1.2; }
+.p2-back-logo { display: block; height: 7.5cqw; width: auto; }
+.p2-back-site { font-size: 2.5cqw; color: #6b7280; margin-top: 1cqw; padding-left: 0.6cqw; }
 .p2-cover-band .propis-print-page-svg { display: block; width: 100%; height: auto; aspect-ratio: var(--crop-ratio); box-shadow: none; border-radius: 0; }
 /* the back of the cover: a printed heading, then the content written in our hand on its own paper (the whole width of the page) */
-.p2-back-heading { position: absolute; top: 5.5cqw; left: 0; right: 0; text-align: center; font-weight: 900; font-size: 5.4cqw; color: var(--p2-accent); letter-spacing: 0.04em; }
-.p2-back-logo { bottom: 5cqw; font-size: 3cqw; }
-.p2-back-page { position: absolute; top: 15cqw; left: 0; right: 0; line-height: 0; }
 
 .p2-print-card { width: min(520px, 100%); max-height: calc(100dvh - 32px - var(--app-safe-top, 0px) - var(--app-safe-bottom, 0px)); overflow-y: auto; }
 .p2-print-sub { margin: -6px 0 0; color: #6b7280; font-weight: 700; font-size: 14px; overflow-wrap: anywhere; }
@@ -400,6 +405,7 @@
 .p2-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .p2-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 2px solid #e3dccb; border-radius: 18px; background: #fff; font: inherit; font-weight: 700; font-size: 14px; color: #28323c; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .p2-chip.is-on { border-color: #4a9b8f; background: #e8f4f1; color: #1f5f55; }
+.p2-chip:disabled { opacity: 0.45; cursor: not-allowed; }
 .p2-chip-swatch { width: 14px; height: 14px; border-radius: 50%; flex: none; }
 .p2-print-opt { display: flex; flex-direction: column; gap: 6px; }
 .p2-print-opt-label { font-weight: 800; font-size: 13px; color: #4b5563; }

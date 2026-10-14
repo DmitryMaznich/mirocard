@@ -63,7 +63,7 @@ describe("cover config", () => {
 });
 
 describe("back content", () => {
-  it("the alphabet: pairs, the lowercase alone where there is no capital, a blank row between rows", () => {
+  it("the alphabet: pairs, the lowercase alone where there is no capital, row after row", () => {
     const { heading, lines } = backContent("alphabet");
     expect(heading).toBe("Алфавит");
     const text = lines.filter(Boolean).join(" ");
@@ -71,7 +71,7 @@ describe("back content", () => {
     expect(text).not.toContain("Ё");
     expect(text).not.toContain("Й");
     expect(text).not.toMatch(/Ъ|Ы|Ь/);
-    expect(lines.filter((l, i) => i % 2 === 1).every((l) => l === "")).toBe(true);
+    expect(lines.every(Boolean)).toBe(true);
   });
 
   it("digits and signs are glyph labels", () => {
