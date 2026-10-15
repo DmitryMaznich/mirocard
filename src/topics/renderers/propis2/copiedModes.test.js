@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { buildGlyphMap } from "./pageTask.js";
 import { cardGlyphs, CARD_LETTERS } from "./letterCards.js";
 import { generateTasks } from "./engine.js";
@@ -43,5 +43,39 @@ describe("modes copied from `propis` («Прописи старые») (2026-10-
     const [texts] = generateTasks(mode("dictation"), rec, 500, { level: "texts", itemCount: 2 });
     expect(texts.items[0].sentences.length).toBeGreaterThan(0);
     expect(generateTasks(mode("builder"), rec, 500, { lines: ["а"] })[0].type).toBe("page");
+  });
+});
+
+describe("«Диктовать знаки препинания» (2026-10-15)", () => {
+  const dict = (params) => generateTasks(mode("dictation"), rec, 500, params)[0];
+  it("is off by default: no signs, the old audio path", () => {
+    const t = dict({ level: "words", itemCount: 5 });
+    expect(t.signsVoiced).toBe(false);
+    expect(t.items.every((it) => !it.punct && !it.audio)).toBe(true);
+  });
+  it("letters and words: a comma after each, a period after the last, the sign's clip follows the item's", () => {
+    for (const level of ["letters", "words"]) {
+      const t = dict({ level, itemCount: 6, punctuation: true });
+      expect(t.items.map((it) => it.punct)).toEqual([",", ",", ",", ",", ",", "."]);
+      t.items.forEach((it, i) => expect(it.audio.map((a) => a.key)).toEqual([it.key, i < 5 ? "punct_comma" : "punct_period"]));
+    }
+  });
+  it("texts: signs as in the text — chunks up to a comma, the sign between, the closing sign after each sentence", () => {
+    const comma = topic.texts.find((t) => t.id === "t25");
+    const t = dict({ level: "texts", itemCount: 40, punctuation: true });
+    const item = t.items.find((it) => it.key === "text_t25");
+    expect(item.audio.map((a) => a.key).slice(0, 5)).toEqual(["text_t25_s1_c1", "punct_comma", "text_t25_s1_c2", "punct_period", "text_t25_s2_c1"]);
+    expect(item.audio.map((a) => a.key)).toContain("punct_question");
+    expect(item.audio.map((a) => a.key)).toContain("punct_excl");
+    expect(comma.text).toContain("?");
+    const plain = t.items.find((it) => it.key === "text_t01");
+    expect(plain.audio.map((a) => a.key)).toEqual(["text_t01_s1", "punct_period", "text_t01_s2", "punct_period", "text_t01_s3", "punct_period", "text_t01_s4", "punct_period", "text_t01_s5", "punct_period"]);
+  });
+  it("every clip it can ask for exists, and every sign and letter of the texts has ink", () => {
+    for (const level of ["letters", "words", "texts"]) {
+      const t = dict({ level, itemCount: 40, punctuation: true });
+      for (const it of t.items) for (const a of it.audio) expect(existsSync(`public/audio/propis-dictation/${a.key}.mp3`), a.key).toBe(true);
+    }
+    for (const x of topic.texts) for (const ch of x.text.replace(/\s/g, "")) expect(map.has(ch) || map.has(ch.toLowerCase()), `${x.id} ${ch}`).toBe(true);
   });
 });

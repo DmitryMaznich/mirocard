@@ -51,7 +51,8 @@ export default function Propis2Renderer({ task, topicRecord, onAdvance, onClose,
 // row of its own. No start dots: this is the finished writing, not a sample to copy.
 function DictationAnswers({ items, level, grade, topicRecord, glyphMap }) {
   const task = useMemo(() => {
-    const texts = level === "texts" ? items.map((it) => it.display) : [items.map((it) => it.display).join(level === "letters" ? "   " : "  ")];
+    const shown = (it) => it.display + (it.punct ?? ""); // the signs the child writes (when the dictation voiced them)
+    const texts = level === "texts" ? items.map((it) => it.display) : [items.map(shown).join(level === "letters" ? "   " : "  ")];
     const page = newPage("Диктант", { ruling: "narrow", grid: "regular", rows: texts.map((t) => newRow({ kind: "passage", text: t, repeat: "one", dots: "none", asText: true })) });
     return buildPageTask({ topicRecord, lines: pageToLines(page, glyphMap).map((l) => (l ? `${l}#c` : l)), narrowRows: true, grid: "regular", midDash: true });
   }, [items, level, topicRecord, glyphMap]);

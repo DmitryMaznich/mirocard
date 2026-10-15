@@ -28,6 +28,7 @@ export default function DictationView({ task, onClose, Answers = null, Grading =
   // is the whole "Заглавная Б." / "Строчная б." phrase).
   const playbackItems = useMemo(() => {
     if (!item) return [];
+    if (item.audio?.length) return item.audio.map((a) => ({ url: dictationAudioUrl(a.key), pauseAfterMs: a.pauseAfterMs ?? 0 })); // `propis2` with the signs voiced
     if (item.sentences?.length) {
       return item.sentences.map((s) => ({ url: dictationAudioUrl(s.key), pauseAfterMs: SENTENCE_PAUSE_MS }));
     }
