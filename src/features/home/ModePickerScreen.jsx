@@ -8,7 +8,7 @@ import ModeIcon from "@/shared/components/ModeIcon";
 import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { formatDate, getTopicTitle, pluralRu } from "@/shared/utils/format";
-import { hasEnoughAboutMeFacts, hasEnoughAboutMeQuestions } from "@/topics/renderers/my_people/engine";
+import { activeMyPeople, isMyPeopleProfileEmpty, MY_PEOPLE_SECTION_TITLE, myPeopleModeReadiness, openMyPeopleSettings } from "@/features/myPeople/myPeopleReadiness";
 
 function LastResultBadge({ session }) {
   if (!session) return <span className="mode-badge mode-badge--none">Не проходили</span>;
@@ -63,7 +63,6 @@ export default function ModePickerScreen() {
   const activeTextStored = useAppStore((s) => s.activeText);
   const activeStudentId = useAppStore((s) => s.activeStudentId);
   const students        = useAppStore((s) => s.students);
-  const setEditingStudentId = useAppStore((s) => s.setEditingStudentId);
   const topicRecords    = useAppStore((s) => s.topicRecords);
   const sessions        = useAppStore((s) => s.sessions);
   const setActiveModeId = useAppStore((s) => s.setActiveModeId);
@@ -81,21 +80,14 @@ export default function ModePickerScreen() {
     : topicRecord?.modes ?? [];
   const activeStudent = students.find((student) => student.id === activeStudentId) ?? null;
   const isMyPeople = topicRecord?.meta.renderer === "my_people";
-  const people = (activeStudent?.myPeople ?? []).filter((person) => !person.deletedAt && person.enabled !== false && person.name?.trim() && person.photos?.some(Boolean));
+  const people = activeMyPeople(activeStudent);
   const profile = activeStudent?.myPeopleProfile ?? {};
+  const readinessByMode = isMyPeople
+    ? Object.fromEntries(rawModes.map((mode) => [mode.id, myPeopleModeReadiness(mode, activeStudent)]))
+    : {};
 
   function myPeopleModeAvailable(mode) {
-    if (!isMyPeople) return true;
-    if (mode.id === "about_me") return hasEnoughAboutMeQuestions(activeStudent);
-    if (mode.id === "introduce_self") return hasEnoughAboutMeFacts(activeStudent);
-    const context = mode.id.split("_")[0];
-    const group = ["family", "home", "school"].includes(context) ? context : null;
-    const needsRelation = mode.id.endsWith("_relations");
-    const groupPeople = (group ? people.filter((person) => person.contexts?.includes(group)) : people)
-      .filter((person) => !needsRelation || person.relation?.trim());
-    if (group && profile.enabledBlocks?.[group] === false) return false;
-    if (mode.id === "mix" && profile.enabledBlocks?.mix === false) return false;
-    return groupPeople.length >= 2;
+    return !isMyPeople || readinessByMode[mode.id]?.ready !== false;
   }
 
   const modes = isMyPeople
@@ -108,17 +100,14 @@ export default function ModePickerScreen() {
       const rightBlock = right.id.split("_")[0];
       const leftIndex = order.indexOf(leftBlock);
       const rightIndex = order.indexOf(rightBlock);
-      // Personal answers remain a small independent block above the staged
-      // people groups; Mix is always pinned by the profile editor as last.
-      // "Кто это?" asks the child to name people unaided, only for people
-      // already introduced -- it closes the ladder after Mix rather than
-      // sitting next to "Обо мне" (both used to fall into the -1 bucket).
-      // «Представься» (the advanced, situational level) comes last of all.
+      // The teaching ladder: «Покажи» (recognise) → «Кто это?» (name) →
+      // «Обо мне» (answer about yourself) → the circle blocks, which need
+      // reading, in the adult's order (Mix pinned last by the profile
+      // editor) → «Представься», the advanced situational level.
+      const LEAD = ["show_me", "who_is_this", "about_me"];
       const rank = (modeId, index) => (
-        // «Покажи» is the first people step, before the circle blocks.
-        modeId === "show_me" ? -0.5
+        LEAD.includes(modeId) ? LEAD.indexOf(modeId) - LEAD.length
           : modeId === "introduce_self" ? order.length + 1
-          : modeId === "who_is_this" ? order.length
             : index < 0 ? -1 : index
       );
       return rank(left.id, leftIndex) - rank(right.id, rightIndex);
@@ -176,10 +165,8 @@ export default function ModePickerScreen() {
     navigateToMode(mode);
   }
 
-  function openMyPeopleSetup() {
-    if (activeStudentId) setEditingStudentId(activeStudentId);
-    useAppStore.getState().setMyPeopleReturnScreen("modes");
-    setScreen("my_people_settings");
+  function openMyPeopleSetup(tab = null) {
+    openMyPeopleSettings({ studentId: activeStudentId, returnScreen: "modes", tab });
   }
 
   if (hasSingleMode) return null;
@@ -199,21 +186,51 @@ export default function ModePickerScreen() {
       </div>
 
       <ul className="mode-list">
-        {isMyPeople && activeStudent && (
+        {isMyPeople && activeStudent && isMyPeopleProfileEmpty(activeStudent) && (
+          // Every photo mode is closed until there are two people with
+          // photos: say so once, up front, instead of a list of grey rows.
+          <li className="mode-item-row">
+            <div className="my-people-empty" role="status">
+              <span className="my-people-empty__icon" aria-hidden="true">👥</span>
+              <div className="my-people-empty__body">
+                <strong>«{MY_PEOPLE_SECTION_TITLE}» у ученика {activeStudent.name} пока не заполнено</strong>
+                <span>
+                  Задания этой темы строятся из фотографий близких ребёнка. Добавьте хотя бы двух человек с фото
+                  {people.length === 1 ? " — сейчас есть один" : ""}.
+                </span>
+                <button type="button" className="my-people-empty__action" onClick={() => openMyPeopleSetup("family")}>
+                  Перейти к заполнению
+                </button>
+              </div>
+            </div>
+          </li>
+        )}
+        {isMyPeople && activeStudent && !isMyPeopleProfileEmpty(activeStudent) && (
           // The people themselves are edited on the student card; without
           // this row the only way there from a working topic was
           // Меню → Ученики → ✎ → «Настроить тему».
           <li className="mode-item-row">
-            <button type="button" className="mode-item mode-item--flex my-people-setup-row" onClick={openMyPeopleSetup}>
+            <button type="button" className="mode-item mode-item--flex my-people-setup-row" onClick={() => openMyPeopleSetup()}>
               <span className="my-people-setup-row__icon" aria-hidden="true">👥</span>
               <span className="mode-item__body">
                 <span className="mode-item__title">Люди и фото</span>
                 <span className="mode-item__desc">
-                  {people.length ? `В теме ${people.length} ${pluralRu(people.length, "человек", "человека", "человек")} — добавить или изменить` : "Добавьте близких с фотографиями"}
+                  {`В теме ${people.length} ${pluralRu(people.length, "человек", "человека", "человек")} — добавить или изменить`}
                 </span>
               </span>
               <span className="my-people-setup-row__arrow" aria-hidden="true">›</span>
             </button>
+          </li>
+        )}
+        {isMyPeople && !activeStudent && (
+          <li className="mode-item-row">
+            <div className="my-people-empty" role="status">
+              <span className="my-people-empty__icon" aria-hidden="true">👥</span>
+              <div className="my-people-empty__body">
+                <strong>Выберите ученика</strong>
+                <span>Эта тема строится из окружения конкретного ребёнка: его близких, их фото и личных данных.</span>
+              </div>
+            </div>
           </li>
         )}
         {modes.map((mode) => {
@@ -237,7 +254,15 @@ export default function ModePickerScreen() {
                     <div className="mode-item__goal">Цель: {getModeGoal(mode)}</div>
                   )}
                   {isMyPeople && !myPeopleModeAvailable(mode)
-                    ? <button type="button" className="link-btn" onClick={(event) => { event.stopPropagation(); openMyPeopleSetup(); }}>Настроить раздел</button>
+                    ? (
+                      <div className="my-people-mode-gap">
+                        <span>{readinessByMode[mode.id].reason}</span>
+                        {/* With the empty-profile card above, a link on every row is noise. */}
+                        {readinessByMode[mode.id].tab && activeStudent && !isMyPeopleProfileEmpty(activeStudent) && (
+                          <button type="button" className="link-btn" onClick={(event) => { event.stopPropagation(); openMyPeopleSetup(readinessByMode[mode.id].tab); }}>Заполнить</button>
+                        )}
+                      </div>
+                    )
                     : <LastResultBadge session={lastSession} />
                   }
                 </div>

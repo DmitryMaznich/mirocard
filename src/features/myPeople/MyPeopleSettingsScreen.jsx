@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { studentPeople, legacyAdults, personLabel, mergePeopleCards, mergePeopleRecords } from "../../../shared/student-people.mjs";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
@@ -332,7 +332,11 @@ export default function MyPeopleSettingsScreen() {
   const setStudents = useAppStore((state) => state.setStudents);
   const editingStudentId = useAppStore((state) => state.editingStudentId);
   const student = students.find((item) => item.id === editingStudentId) ?? null;
-  const [tab, setTab] = useState("family");
+  const [tab, setTab] = useState(() => {
+    const initial = useAppStore.getState().myPeopleInitialTab;
+    return TABS.some(([id]) => id === initial) ? initial : "family";
+  });
+  useEffect(() => { useAppStore.getState().setMyPeopleInitialTab(null); }, []);
   const [profile, setProfile] = useState(() => normaliseProfile(student?.myPeopleProfile));
   const [people, setPeople] = useState(() => normalisePeople(studentPeople(student)));
   const [editingId, setEditingId] = useState(null);

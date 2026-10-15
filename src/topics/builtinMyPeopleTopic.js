@@ -34,7 +34,8 @@ const showMeMode = {
     fieldSize: {
       type: "enum",
       label: { ru: "Фото на экране" },
-      values: [2, 3, 4],
+      values: [1, 2, 3, 4],
+      labels: { ru: { 1: "1 · без выбора" } },
       default: 2,
     },
   },
@@ -87,7 +88,7 @@ const whoIsThisMode = {
   hideConceptPicker: true,
   ui: {
     title: { ru: "Кто это?" },
-    instruction: { ru: "Ребёнок называет человека по фотографии, взрослый отмечает ответ" },
+    instruction: { ru: "Ребёнок называет человека по фотографии, взрослый отмечает ответ." },
   },
 };
 
@@ -116,9 +117,13 @@ export function buildMyPeopleTopicRecord() {
         ],
       },
     },
+    // The teaching ladder: recognise («Покажи») → name («Кто это?») →
+    // answer about yourself → label photos (needs reading) → introduce
+    // yourself. The mode picker sorts the same way.
     modes: [
-      aboutMeMode,
       showMeMode,
+      whoIsThisMode,
+      aboutMeMode,
       mode("family_names", "Семья и питомцы: имена", "Подписать фото именами: перетащить имя на фото (нужно уметь читать)"),
       mode("family_relations", "Семья и питомцы: кто это", "Подписать фото словами «мама», «папа»…: перетащить слово на фото (нужно уметь читать)"),
       mode("home_names", "Люди дома: имена", "Подписать фото именами: перетащить имя на фото (нужно уметь читать)"),
@@ -126,7 +131,6 @@ export function buildMyPeopleTopicRecord() {
       mode("school_names", "Школа: имена", "Подписать фото именами: перетащить имя на фото (нужно уметь читать)"),
       mode("school_relations", "Школа: кто это", "Подписать фото словами «мама», «папа»…: перетащить слово на фото (нужно уметь читать)"),
       mode("mix", "Все люди", "Сначала имена, затем кто эти люди"),
-      whoIsThisMode,
       introduceSelfMode,
     ],
     // A metadata card makes generic navigation and legacy selection links safe;

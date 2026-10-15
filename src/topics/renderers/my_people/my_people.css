@@ -600,6 +600,11 @@
   flex: 0 1 min(44vw, 300px, 38vh);
 }
 
+/* One photo: the errorless entry level, the photo alone fills the stage. */
+.people-point__photos--single > .people-point-photo {
+  flex-basis: min(70vw, 360px, 46vh);
+}
+
 .people-point__photos--grid {
   flex-wrap: wrap;
   max-width: min(100%, 560px);

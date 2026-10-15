@@ -235,6 +235,27 @@ describe("«Покажи» renderer", () => {
   });
 });
 
+describe("«Покажи» with one photo", () => {
+  it("praises and moves on without scoring", () => {
+    vi.useFakeTimers();
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    const onCorrect = vi.fn();
+    const onAdvance = vi.fn();
+    act(() => {
+      root.render(<MyPeopleRenderer task={{ type: "person_point", conceptId: "point:anna", personId: "anna", word: "мама", prompt: "Где мама?", promptSpeech: "Где мама?", errorless: true, choices: [{ personId: "anna", image: "" }] }} topicId="my_people" soundEnabled={false} onCorrect={onCorrect} onAdvance={onAdvance} />);
+    });
+    act(() => container.querySelector(".people-point-photo").click());
+    act(() => { vi.advanceTimersByTime(1500); });
+    expect(onAdvance).toHaveBeenCalledTimes(1);
+    expect(onCorrect).not.toHaveBeenCalled();
+    act(() => root.unmount());
+    container.remove();
+    vi.useRealTimers();
+  });
+});
+
 describe("«Обо мне» renderer", () => {
   it("no longer offers «Знает» once a hint was shown", () => {
     const container = document.createElement("div");

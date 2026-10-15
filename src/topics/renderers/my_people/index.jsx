@@ -512,14 +512,18 @@ function PointPhoto({ choice, topicId, state, disabled, onChoose }) {
 // photo fades, the right one is lit up and named ("Вот мама"), and only it
 // stays tappable -- the child finishes the trial correctly instead of
 // guessing again. The miss is still recorded.
-function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onStreakReset, onCardShown }) {
+function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAdvance, onStreakReset, onCardShown }) {
   const { speak } = useSpeech();
   const [trial, setTrial] = useState({ taskId: null, missedId: null, done: false });
   const current = trial.taskId === task.conceptId ? trial : { taskId: task.conceptId, missedId: null, done: false };
+  const advanceTimer = useRef(null);
 
   useEffect(() => {
     onCardShown?.(null, task.conceptId);
     if (soundEnabled) speak(task.promptSpeech);
+    return () => {
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    };
   }, [task, soundEnabled, speak, onCardShown]);
 
   function repeatPrompt() {
@@ -534,6 +538,11 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onSt
       // for «Кто это?», which asks only about people already met.
       if (task.introduces) markPersonAxisIntroduced(student?.id, task.personId, task.axis).catch(() => {});
       if (soundEnabled) speak(`Да, это ${task.word}!`);
+      // One photo, nothing to choose: praise and move on without scoring.
+      if (task.errorless) {
+        advanceTimer.current = setTimeout(() => onAdvance?.(), 1400);
+        return;
+      }
       onCorrect?.(task.conceptId, task.personId, { autoAdvance: true, autoAdvanceDelayMs: 1400 });
       return;
     }
@@ -543,7 +552,8 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onSt
     if (soundEnabled) speak(`Вот ${task.word}.`);
   }
 
-  const columns = task.choices.length === 4 ? " people-point__photos--grid" : "";
+  const columns = task.choices.length === 4 ? " people-point__photos--grid"
+    : task.choices.length === 1 ? " people-point__photos--single" : "";
   return (
     <div className="session-body people-point" aria-label="Покажи человека">
       <div className="people-point__prompt">

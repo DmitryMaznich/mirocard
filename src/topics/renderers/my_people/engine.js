@@ -122,7 +122,8 @@ function aboutMeQuestionTasks(student, round) {
 // without it, the kin word for close family (mama, not "Анна") and the
 // name for everyone else and for pets.
 const KIN_WORDS = new Set(["мама", "папа", "бабушка", "дедушка", "брат", "сестра", "тётя", "тетя", "дядя"]);
-const POINT_FIELD_SIZES = [2, 3, 4];
+const POINT_FIELD_SIZES = [1, 2, 3, 4];
+export const MIN_POINT_TRIALS_PER_ROUND = 6;
 export const MAX_POINT_TRIALS_PER_ROUND = 8;
 
 export function mainWord(person) {
@@ -146,7 +147,7 @@ function isKnownPerson(person, sessionIntroduced) {
     || Object.values(sessionIntroduced ?? {}).some((ids) => ids?.has?.(person.id));
 }
 
-function pointTasks(people, params, photoPlanner, sessionIntroduced = {}) {
+function pointTasks(people, params, photoPlanner, sessionIntroduced = {}, round = 0) {
   if (people.length < 2) return [];
   // Ask about people the child has already met plus a few newcomers a
   // lesson (same budget as the album introductions); a miss is corrected
@@ -159,31 +160,93 @@ function pointTasks(people, params, photoPlanner, sessionIntroduced = {}) {
   const targets = pool.length >= 2 ? pool : people;
   const requested = Number(params?.fieldSize);
   const fieldSize = Math.min(POINT_FIELD_SIZES.includes(requested) ? requested : 2, people.length);
+  // One photo on screen: the errorless entry level ("Где мама?" -- the only
+  // photo is mum). Nothing to choose, so nothing is scored either.
+  const errorless = fieldSize === 1;
 
-  return shuffle(targets).slice(0, MAX_POINT_TRIALS_PER_ROUND).map((target) => {
+  const positions = [];
+  return pointTargetSequence(targets).map((target, trialIndex) => {
     const word = mainWord(target);
     // Two people answering to the same word (two "Маша") would make the
     // question ambiguous, so they never share a screen.
-    const distractors = shuffle(people.filter((person) => person.id !== target.id && mainWord(person).toLowerCase() !== word.toLowerCase()))
-      .slice(0, fieldSize - 1);
+    const distractors = pickPointDistractors(target, people, word, fieldSize - 1, round);
+    const order = shuffle(distractors);
+    const position = pickTargetPosition(order.length + 1, positions);
+    positions.push(position);
+    order.splice(position, 0, target);
     const conceptId = `point:${target.id}`;
     return {
       type: "person_point",
       conceptId,
       targetConceptId: conceptId,
-      progressConceptIds: [conceptId],
+      progressConceptIds: errorless ? [] : [conceptId],
+      trialIndex,
+      errorless,
       personId: target.id,
       word,
       axis: pointAxis(target, word),
       introduces: !isKnownPerson(target, sessionIntroduced),
       prompt: `Где ${word}?`,
       promptSpeech: `Где ${word}?`,
-      choices: shuffle([target, ...distractors]).map((person) => ({
+      choices: order.map((person) => ({
         personId: person.id,
-        image: photoPlanner.imageFor(person, "point"),
+        image: photoPlanner.imageFor(person, "point", person.id === target.id),
       })),
     };
-  }).filter((task) => task.choices.length >= 2);
+  }).filter((task) => task.choices.length >= (errorless ? 1 : 2));
+}
+
+// A round has 6–8 trials however few people there are: with two people one
+// pass is just two taps, too short to practise. People repeat evenly and
+// never three times running, so the child answers the word, not a rhythm.
+function pointTargetSequence(targets) {
+  const length = Math.min(MAX_POINT_TRIALS_PER_ROUND, Math.max(MIN_POINT_TRIALS_PER_ROUND, targets.length));
+  const chosen = shuffle(targets).slice(0, length);
+  const remaining = new Map(chosen.map((person) => [person.id, 0]));
+  for (let index = 0; index < length; index += 1) {
+    const id = chosen[index % chosen.length].id;
+    remaining.set(id, remaining.get(id) + 1);
+  }
+  const byId = new Map(chosen.map((person) => [person.id, person]));
+  const sequence = [];
+  while (sequence.length < length) {
+    const lastTwo = sequence.slice(-2).map((person) => person.id);
+    const blocked = lastTwo.length === 2 && lastTwo[0] === lastTwo[1] ? lastTwo[0] : null;
+    const open = [...remaining].filter(([id, count]) => count > 0 && id !== blocked);
+    // Draw from the people with the most trials left so the tail never
+    // ends up as one person three times in a row.
+    const pool = open.length ? open : [...remaining].filter(([, count]) => count > 0);
+    const most = Math.max(...pool.map(([, count]) => count));
+    const candidates = pool.filter(([, count]) => count === most);
+    const [id] = candidates[Math.floor(Math.random() * candidates.length)];
+    remaining.set(id, remaining.get(id) - 1);
+    sequence.push(byId.get(id));
+  }
+  return sequence;
+}
+
+// The right photo never sits in the same place three trials running --
+// otherwise "always the left one" pays off as well as knowing the face.
+function pickTargetPosition(slots, previous) {
+  const lastTwo = previous.slice(-2);
+  const blocked = lastTwo.length === 2 && lastTwo[0] === lastTwo[1] ? lastTwo[0] : null;
+  const open = Array.from({ length: slots }, (_, index) => index).filter((index) => index !== blocked);
+  const choices = open.length ? open : [0];
+  return choices[Math.floor(Math.random() * choices.length)];
+}
+
+// Discrimination goes from easy to hard: in the first round of a lesson a
+// pet is set against people and people against a pet when the album has
+// both, so the very first choices are the most different ones. Later
+// rounds draw from everyone.
+function pickPointDistractors(target, people, word, count, round) {
+  if (count <= 0) return [];
+  const eligible = shuffle(people.filter((person) => person.id !== target.id && mainWord(person).toLowerCase() !== word.toLowerCase()));
+  if (round > 0) return eligible.slice(0, count);
+  const isPet = (person) => person.type === "pet";
+  const contrasting = eligible.filter((person) => isPet(person) !== isPet(target));
+  const similar = eligible.filter((person) => isPet(person) === isPet(target));
+  return [...contrasting, ...similar].slice(0, count);
 }
 
 function isActive(person) {
@@ -440,7 +503,7 @@ export function generateTasks(mode, student, params = {}, previousImages = new M
   const photoPlanner = createPhotoPlanner(previousImages);
 
   if (mode.id === "who_is_this") return personNamingTasks(people, mode, photoPlanner);
-  if (mode.id === "show_me") return pointTasks(people, params, photoPlanner, sessionIntroduced);
+  if (mode.id === "show_me") return pointTasks(people, params, photoPlanner, sessionIntroduced, round);
   if (people.length < MIN_ALBUM_SIZE) return [];
 
   if (mode.id === "mix") {

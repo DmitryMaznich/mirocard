@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMyPeopleTopicRecord } from "@/topics/builtinMyPeopleTopic";
-import { ageFromBirthDate, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
+import { ageFromBirthDate, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
 
 const student = {
   id: "student_1",
@@ -436,8 +436,8 @@ describe("«Покажи»", () => {
   it("counts this lesson's earlier introductions against the newcomer budget", () => {
     const fresh = { ...family, myPeople: family.myPeople.map((p, i) => ({ ...p, introducedAxes: [], createdAt: `2026-01-0${i}` })) };
     const sessionIntroduced = { name: new Set(["elena", "cat", "masha1"]) };
-    const ids = generateTasks({ id: "show_me", type: "person_point" }, fresh, {}, new Map(), sessionIntroduced)
-      .map((task) => task.personId).sort();
+    const ids = [...new Set(generateTasks({ id: "show_me", type: "person_point" }, fresh, {}, new Map(), sessionIntroduced)
+      .map((task) => task.personId))].sort();
     expect(ids).toEqual(["anna", "cat", "elena", "masha1"]);
   });
 
@@ -452,5 +452,45 @@ describe("«Покажи»", () => {
     const afterPoint = { ...fresh, myPeople: fresh.myPeople.map((p) => (p.id === "anna" ? { ...p, introducedAxes: ["relation"] } : p)) };
     const tasks = generateTasks({ id: "who_is_this" }, afterPoint);
     expect(tasks.map((task) => [task.personId, task.answer])).toEqual([["anna", "Мама"]]);
+  });
+
+  const two = { id: "s2", myPeople: [family.myPeople[0], family.myPeople[1]] };
+
+  it("gives even two people a full round, repeating them evenly but never three in a row", () => {
+    for (let i = 0; i < 50; i += 1) {
+      const tasks = generateTasks({ id: "show_me", type: "person_point" }, two, {});
+      expect(tasks).toHaveLength(MIN_POINT_TRIALS_PER_ROUND);
+      const ids = tasks.map((task) => task.personId);
+      expect(ids.filter((id) => id === "anna")).toHaveLength(MIN_POINT_TRIALS_PER_ROUND / 2);
+      for (let k = 2; k < ids.length; k += 1) expect(ids[k] === ids[k - 1] && ids[k] === ids[k - 2]).toBe(false);
+    }
+  });
+
+  it("never leaves the right photo in the same place three trials running", () => {
+    for (let i = 0; i < 50; i += 1) {
+      const places = generateTasks({ id: "show_me", type: "person_point" }, two, {})
+        .map((task) => task.choices.findIndex((choice) => choice.personId === task.personId));
+      for (let k = 2; k < places.length; k += 1) expect(places[k] === places[k - 1] && places[k] === places[k - 2]).toBe(false);
+    }
+  });
+
+  it("with one photo on screen is errorless and scores nothing", () => {
+    const tasks = generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 1 });
+    expect(tasks.length).toBeGreaterThan(0);
+    for (const task of tasks) {
+      expect(task.choices).toEqual([expect.objectContaining({ personId: task.personId })]);
+      expect(task.errorless).toBe(true);
+      expect(task.progressConceptIds).toEqual([]);
+    }
+  });
+
+  it("in the first round sets a pet against people and people against a pet", () => {
+    for (let i = 0; i < 20; i += 1) {
+      for (const task of generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 2 }, new Map(), {}, 0)) {
+        const [other] = task.choices.filter((choice) => choice.personId !== task.personId);
+        if (task.personId === "cat") expect(other.personId).not.toBe("cat");
+        else expect(other.personId).toBe("cat");
+      }
+    }
   });
 });
