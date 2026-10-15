@@ -421,23 +421,36 @@ describe("«Покажи»", () => {
     }
   });
 
-  it("asks only about people already introduced when there are enough", () => {
-    const partly = { ...family, myPeople: family.myPeople.map((p, i) => (i < 2 ? p : { ...p, introducedAxes: [] })) };
-    const targets = generateTasks({ id: "show_me", type: "person_point" }, partly, {}).map((task) => task.personId).sort();
-    expect(targets).toEqual(["anna", "pavel"]);
+  it("asks about known people plus at most a few newcomers, who it introduces", () => {
+    const partly = { ...family, myPeople: family.myPeople.map((p, i) => (i < 2 ? p : { ...p, introducedAxes: [], createdAt: `2026-01-0${i}` })) };
+    const tasks = generateTasks({ id: "show_me", type: "person_point" }, partly, {});
+    const byId = Object.fromEntries(tasks.map((task) => [task.personId, task]));
+    // anna, pavel known + all four newcomers (exactly MAX_NEW_PER_SESSION).
+    expect(Object.keys(byId).sort()).toEqual(["anna", "cat", "elena", "masha1", "masha2", "pavel"]);
+    expect(byId.anna.introduces).toBe(false);
+    expect(byId.elena.introduces).toBe(true);
+    expect(byId.elena.axis).toBe("name");
+    expect(byId.anna.axis).toBe("relation");
   });
-});
 
-describe("texts the child hears", () => {
-  const two = { id: "s", myPeople: ["a", "b"].map((id) => ({ id, name: id.toUpperCase(), relation: id === "a" ? "мама" : "папа", contexts: ["family"], photos: [`/api/photos/${id}`], introducedAxes: ["name", "relation"], enabled: true })) };
-  it("never describes the screen and never mixes «меня» with «тебя»", () => {
-    const tasks = [
-      ...generateTasks({ id: "family_names" }, two, {}),
-      ...generateTasks({ id: "family_relations" }, two, {}),
-      ...generateTasks({ id: "who_is_this" }, two, {}),
-    ];
-    const spoken = tasks.map((t) => `${t.prompt} ${t.promptSpeech}`).join(" | ");
-    expect(spoken).not.toMatch(/Выбери|Перетащи|для меня|для тебя|Подбери/);
-    expect(tasks.filter((t) => t.type === "person_naming").every((t) => t.prompt === "Кто это?")).toBe(true);
+  it("counts this lesson's earlier introductions against the newcomer budget", () => {
+    const fresh = { ...family, myPeople: family.myPeople.map((p, i) => ({ ...p, introducedAxes: [], createdAt: `2026-01-0${i}` })) };
+    const sessionIntroduced = { name: new Set(["elena", "cat", "masha1"]) };
+    const ids = generateTasks({ id: "show_me", type: "person_point" }, fresh, {}, new Map(), sessionIntroduced)
+      .map((task) => task.personId).sort();
+    expect(ids).toEqual(["anna", "cat", "elena", "masha1"]);
+  });
+
+  it("uses the adult's own «how the child calls them» label first", () => {
+    expect(mainWord({ type: "person", name: "Николай", relation: "дядя", sentenceLabel: " дядя Коля " })).toBe("дядя Коля");
+    expect(mainWord({ type: "pet", name: "Барсик", relation: "кот", sentenceLabel: "котик" })).toBe("Барсик");
+  });
+
+  it("lets «Кто это?» ask about a person once «Покажи» introduced them", () => {
+    const fresh = { ...family, myPeople: family.myPeople.map((p) => ({ ...p, introducedAxes: [] })) };
+    expect(generateTasks({ id: "who_is_this" }, fresh)).toHaveLength(0);
+    const afterPoint = { ...fresh, myPeople: fresh.myPeople.map((p) => (p.id === "anna" ? { ...p, introducedAxes: ["relation"] } : p)) };
+    const tasks = generateTasks({ id: "who_is_this" }, afterPoint);
+    expect(tasks.map((task) => [task.personId, task.answer])).toEqual([["anna", "Мама"]]);
   });
 });

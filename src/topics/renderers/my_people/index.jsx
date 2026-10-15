@@ -9,6 +9,9 @@ import "./my_people.css";
 // Three grades are all an adult needs here: the child knows it, needs a
 // small hint, or doesn't know it yet. (A fourth "Легко!" step only made the
 // adult split hairs mid-lesson.) Red / yellow / green, labelled in words.
+// Movement (px) that turns a press on a word into a drag; less is a tap.
+const DRAG_START_DISTANCE = 8;
+
 const QUALITY_BUTTONS = [
   { value: "fail", label: "Не знает", mod: "fail" },
   { value: "prompted", label: "С подсказкой", mod: "prompted" },
@@ -165,29 +168,32 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     return target?.dataset.personId ?? null;
   }
 
+  // A press becomes a drag only once the finger has moved; a press that
+  // stays put is a tap that picks the word, and the next tap on a photo
+  // places it. Dragging is a motor barrier for many of these children.
   function startAnswerDrag(event, answer) {
     if ((event.pointerType === "mouse" && event.button !== 0) || usedAnswerIds.has(answer.id)) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     if (soundEnabled) speak(answer.label);
-    const nextDrag = {
+    dragRef.current = {
       answerId: answer.id,
       label: answer.label,
       pointerId: event.pointerId,
-      x: event.clientX,
-      y: event.clientY,
-      overPersonId: getDropPersonId(event.clientX, event.clientY),
+      startX: event.clientX,
+      startY: event.clientY,
+      active: false,
     };
-    dragRef.current = nextDrag;
-    setSelectedAnswerId(null);
-    setDragging(nextDrag);
   }
 
   function moveAnswerDrag(event) {
     const currentDrag = dragRef.current;
     if (!currentDrag || currentDrag.pointerId !== event.pointerId) return;
+    if (!currentDrag.active && Math.hypot(event.clientX - currentDrag.startX, event.clientY - currentDrag.startY) < DRAG_START_DISTANCE) return;
+    if (!currentDrag.active) setSelectedAnswerId(null);
     const nextDrag = {
       ...currentDrag,
+      active: true,
       x: event.clientX,
       y: event.clientY,
       overPersonId: getDropPersonId(event.clientX, event.clientY),
@@ -207,8 +213,12 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     const currentDrag = dragRef.current;
     if (!currentDrag || currentDrag.pointerId !== event.pointerId) return;
     event.currentTarget.releasePointerCapture?.(event.pointerId);
-    const personId = getDropPersonId(event.clientX, event.clientY);
     dragRef.current = null;
+    if (!currentDrag.active) {
+      setSelectedAnswerId((selected) => (selected === currentDrag.answerId ? null : currentDrag.answerId));
+      return;
+    }
+    const personId = getDropPersonId(event.clientX, event.clientY);
     setDragging(null);
     const entry = task.entries.find((candidate) => candidate.personId === personId);
     if (entry) associateAnswer(currentDrag.answerId, entry);
@@ -232,7 +242,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     ? `Перенеси «${dragging.label}» на нужную фотографию`
     : chosenAnswer
       ? `Найди: ${chosenAnswer.label}`
-      : `Перетащи ${task.axis === "name" ? "имя" : "слово"} на фотографию`;
+      : `Перетащи ${task.axis === "name" ? "имя" : "слово"} на фото или нажми его, потом фото`;
 
   return (
     <div className="people-album-fit" ref={viewportRef}>
@@ -362,6 +372,7 @@ function QualityAnswerTask({
   className,
   ariaLabel,
   answerShown = false,
+  hinted = false,
   children,
 }) {
   const { speak } = useSpeech();
@@ -404,7 +415,8 @@ function QualityAnswerTask({
             key={button.value}
             type="button"
             className={`people-grade people-grade--${button.mod}`}
-            disabled={answered}
+            // After any hint the answer is at best "С подсказкой".
+            disabled={answered || (hinted && button.value === "correct")}
             onClick={() => markAnswer(button.value)}
           >
             {button.label}
@@ -450,7 +462,7 @@ function AboutMeQuestionTask(props) {
   }
 
   return (
-    <QualityAnswerTask {...props} className="about-me-task about-me-question" ariaLabel="Вопрос обо мне" answerShown={level >= 2}>
+    <QualityAnswerTask {...props} className="about-me-task about-me-question" ariaLabel="Вопрос обо мне" answerShown={level >= 2} hinted={level >= 1}>
       {({ repeatPrompt }) => (
         <>
           <span className="about-me-task__eyebrow">Обо мне</span>
@@ -500,7 +512,7 @@ function PointPhoto({ choice, topicId, state, disabled, onChoose }) {
 // photo fades, the right one is lit up and named ("Вот мама"), and only it
 // stays tappable -- the child finishes the trial correctly instead of
 // guessing again. The miss is still recorded.
-function PersonPointTask({ task, topicId, soundEnabled, onCorrect, onStreakReset, onCardShown }) {
+function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onStreakReset, onCardShown }) {
   const { speak } = useSpeech();
   const [trial, setTrial] = useState({ taskId: null, missedId: null, done: false });
   const current = trial.taskId === task.conceptId ? trial : { taskId: task.conceptId, missedId: null, done: false };
@@ -518,6 +530,9 @@ function PersonPointTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     if (current.done) return;
     if (choice.personId === task.personId) {
       setTrial({ ...current, done: true });
+      // The child has now found this person by the word -- an introduction
+      // for «Кто это?», which asks only about people already met.
+      if (task.introduces) markPersonAxisIntroduced(student?.id, task.personId, task.axis).catch(() => {});
       if (soundEnabled) speak(`Да, это ${task.word}!`);
       onCorrect?.(task.conceptId, task.personId, { autoAdvance: true, autoAdvanceDelayMs: 1400 });
       return;

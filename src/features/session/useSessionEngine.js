@@ -534,7 +534,9 @@ export function useSessionEngine() {
     const sessionIntroduced = {};
     for (const [axis, ids] of Object.entries(state.myPeopleIntroduced ?? {})) sessionIntroduced[axis] = new Set(ids);
     for (const task of state.tasks) {
-      if (task.type !== "person_intro") continue;
+      // «Покажи» introduces newcomers too (task.introduces), by the axis of
+      // the word it asked with.
+      if (task.type !== "person_intro" && !(task.type === "person_point" && task.introduces)) continue;
       (sessionIntroduced[task.axis] ??= new Set()).add(task.personId);
     }
     const round = (state.myPeopleRound ?? 0) + 1;

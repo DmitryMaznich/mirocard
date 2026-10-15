@@ -68,6 +68,45 @@ describe("people album renderer", () => {
     expect(container.querySelectorAll(".people-album__progress-dot")).toHaveLength(3);
     expect(container.querySelector(".people-album__answers-progress")?.textContent).toContain("0 из 3");
   });
+
+  it("places a word with a tap on it and a tap on the photo, no dragging needed", () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root.render(
+        <MyPeopleRenderer
+          task={{
+            type: "people_album",
+            conceptId: "album:family_names:anna_boris",
+            axis: "name",
+            prompt: "Подпиши имена",
+            answerTitle: "Имена",
+            entries: [
+              { personId: "anna", image: "", label: "Анна" },
+              { personId: "boris", image: "", label: "Борис" },
+            ],
+            answers: [
+              { id: "answer:anna", personId: "anna", label: "Анна" },
+              { id: "answer:boris", personId: "boris", label: "Борис" },
+            ],
+          }}
+          topicId="my_people"
+          soundEnabled={false}
+          onCorrect={vi.fn()}
+          onStreakReset={vi.fn()}
+        />,
+      );
+    });
+    const word = [...container.querySelectorAll(".people-album-answer")].find((button) => button.textContent === "Анна");
+    const press = (type) => word.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: 10, clientY: 10 }));
+    act(() => { press("pointerdown"); press("pointerup"); });
+    expect(word.getAttribute("aria-pressed")).toBe("true");
+
+    act(() => container.querySelector('[data-person-id="anna"]').click());
+    expect(container.querySelector('[data-person-id="anna"] .people-album-photo__label')?.textContent).toBe("Анна");
+    expect(word.disabled).toBe(true);
+  });
 });
 
 describe("person intro renderer", () => {
@@ -180,5 +219,43 @@ describe("«Покажи» renderer", () => {
 
     act(() => mama.click());
     expect(onCorrect).toHaveBeenCalledTimes(1);
+  });
+
+  it("marks a newcomer introduced by the word's axis once found", () => {
+    persistence.markPersonAxisIntroduced.mockClear();
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root.render(<MyPeopleRenderer task={{ ...task, introduces: true, axis: "relation" }} student={{ id: "s1" }} topicId="my_people" soundEnabled={false} onCorrect={vi.fn()} onStreakReset={vi.fn()} />);
+    });
+    const [, mama] = container.querySelectorAll(".people-point-photo");
+    act(() => mama.click());
+    expect(persistence.markPersonAxisIntroduced).toHaveBeenCalledWith("s1", "anna", "relation");
+  });
+});
+
+describe("«Обо мне» renderer", () => {
+  it("no longer offers «Знает» once a hint was shown", () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    act(() => {
+      root.render(
+        <MyPeopleRenderer
+          task={{ type: "about_me_question", conceptId: "about_q:rel:мама", prompt: "Как зовут маму?", promptSpeech: "Как зовут маму?", answer: "Анна", cueImage: "data:image/png;base64,AAA" }}
+          topicId="my_people"
+          soundEnabled={false}
+          onQualityAnswer={vi.fn()}
+        />,
+      );
+    });
+    const knows = () => [...container.querySelectorAll(".people-grade")].find((button) => button.textContent === "Знает");
+    expect(knows().disabled).toBe(false);
+    act(() => [...container.querySelectorAll("button")].find((button) => button.textContent === "Показать фото").click());
+    expect(knows().disabled).toBe(true);
+    expect([...container.querySelectorAll(".people-grade")].find((button) => button.textContent === "С подсказкой").disabled).toBe(false);
+    act(() => root.unmount());
+    container.remove();
   });
 });

@@ -117,25 +117,46 @@ function aboutMeQuestionTasks(student, round) {
 // A voice asks "Где мама?" and the child taps the photo among 2–4 -- the
 // first step of the skill, before naming, and it needs no reading.
 //
-// The word used is how the child calls the person: the kin word for close
-// family (mama, not "Анна"), the name for everyone else and for pets. Until
-// cards get an explicit "main word" field this is decided here.
+// The word used is how the child calls the person. The adult's own answer
+// to that ("Подпись в предложениях и общении": "мама", "дядя Коля") wins;
+// without it, the kin word for close family (mama, not "Анна") and the
+// name for everyone else and for pets.
 const KIN_WORDS = new Set(["мама", "папа", "бабушка", "дедушка", "брат", "сестра", "тётя", "тетя", "дядя"]);
 const POINT_FIELD_SIZES = [2, 3, 4];
 export const MAX_POINT_TRIALS_PER_ROUND = 8;
 
 export function mainWord(person) {
+  const label = person?.type !== "pet" ? person?.sentenceLabel?.trim() : "";
+  if (label) return label;
   const relation = person?.relation?.trim().toLowerCase();
   if (person?.type !== "pet" && relation && KIN_WORDS.has(relation)) return relation;
   return person?.name?.trim() ?? "";
 }
 
-function pointTasks(people, params, photoPlanner) {
+// Which introduction a «Покажи» trial counts as: the kin word is the
+// relation axis, a name (or "дядя Коля") the name axis. «Покажи» is the
+// first mode a non-reading child gets, so it has to introduce people too --
+// otherwise «Кто это?», which asks only about introduced people, stays empty.
+function pointAxis(person, word) {
+  return word.toLowerCase() === person.relation?.trim().toLowerCase() ? "relation" : "name";
+}
+
+function isKnownPerson(person, sessionIntroduced) {
+  return Boolean(person.introducedAxes?.length)
+    || Object.values(sessionIntroduced ?? {}).some((ids) => ids?.has?.(person.id));
+}
+
+function pointTasks(people, params, photoPlanner, sessionIntroduced = {}) {
   if (people.length < 2) return [];
-  const introduced = people.filter((person) => person.introducedAxes?.length);
-  // Ask about people the child has already met; before anyone is introduced
-  // (the introductions live in the album modes), use everyone.
-  const targets = introduced.length >= 2 ? introduced : people;
+  // Ask about people the child has already met plus a few newcomers a
+  // lesson (same budget as the album introductions); a miss is corrected
+  // errorlessly, so a newcomer's first trial is also their introduction.
+  const known = people.filter((person) => isKnownPerson(person, sessionIntroduced));
+  const introducedToday = new Set(Object.values(sessionIntroduced ?? {}).flatMap((ids) => [...(ids ?? [])]));
+  const budget = Math.max(0, MAX_NEW_PER_SESSION - introducedToday.size);
+  const newcomers = people.filter((person) => !isKnownPerson(person, sessionIntroduced)).sort(byCreation).slice(0, budget);
+  const pool = [...known, ...newcomers];
+  const targets = pool.length >= 2 ? pool : people;
   const requested = Number(params?.fieldSize);
   const fieldSize = Math.min(POINT_FIELD_SIZES.includes(requested) ? requested : 2, people.length);
 
@@ -153,6 +174,8 @@ function pointTasks(people, params, photoPlanner) {
       progressConceptIds: [conceptId],
       personId: target.id,
       word,
+      axis: pointAxis(target, word),
+      introduces: !isKnownPerson(target, sessionIntroduced),
       prompt: `Где ${word}?`,
       promptSpeech: `Где ${word}?`,
       choices: shuffle([target, ...distractors]).map((person) => ({
@@ -417,7 +440,7 @@ export function generateTasks(mode, student, params = {}, previousImages = new M
   const photoPlanner = createPhotoPlanner(previousImages);
 
   if (mode.id === "who_is_this") return personNamingTasks(people, mode, photoPlanner);
-  if (mode.id === "show_me") return pointTasks(people, params, photoPlanner);
+  if (mode.id === "show_me") return pointTasks(people, params, photoPlanner, sessionIntroduced);
   if (people.length < MIN_ALBUM_SIZE) return [];
 
   if (mode.id === "mix") {
