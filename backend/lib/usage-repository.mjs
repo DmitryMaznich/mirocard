@@ -93,7 +93,7 @@ export function getUsageReport(db, accountId, period = "30", now = Date.now()) {
   });
   const completedIds = new Set(
     db
-      .prepare("SELECT id FROM sessions WHERE account_id=?")
+      .prepare("SELECT id FROM sessions WHERE account_id=? AND record_state != 'checkpoint'")
       .all(accountId)
       .map((s) => s.id),
   );
@@ -172,7 +172,7 @@ export function getUsageReport(db, accountId, period = "30", now = Date.now()) {
   for (const s of sessions) {
     days.add(dayFormatter.format(new Date(s.started_at)));
     const t = topic(s.topic_id);
-    t.completed++;
+    if (s.record_state !== "checkpoint") t.completed++;
     touch(t, s.completed_at);
     t.modes[s.mode] = (t.modes[s.mode] ?? 0) + 1;
     if (s.active_duration_ms != null) {
@@ -230,7 +230,7 @@ export function getUsageReport(db, accountId, period = "30", now = Date.now()) {
   }
   timeline.push(...activity.values());
   timeline.push(
-    ...sessions.map((s) => ({
+    ...sessions.filter(s => s.record_state !== "checkpoint").map((s) => ({
       id: s.id,
       kind: "session_complete",
       at: s.completed_at,
@@ -302,7 +302,7 @@ export function getUsageReport(db, accountId, period = "30", now = Date.now()) {
       timeSamples: events.filter((e) => e.kind === "time").length,
       visits: visits.size,
       activeDays: days.size,
-      completed: sessions.length,
+      completed: sessions.filter(s => s.record_state !== "checkpoint").length,
       topics: topics.size,
       interrupted: [...topics.values()].reduce((n, t) => n + t.interrupted, 0),
     },

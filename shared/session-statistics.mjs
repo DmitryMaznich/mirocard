@@ -23,7 +23,9 @@ const emptyTotals = () => ({ sessions: 0, recoveredSessions: 0, recoveredRespons
 
 function addSession(target, session) {
   target.sessions++;
+  if (session.recordState === "checkpoint") target.checkpointSessions = (target.checkpointSessions ?? 0) + 1;
   const stats = session.statistics;
+  if (stats?.source === "active_snapshot") target.snapshotRecoveredSessions = (target.snapshotRecoveredSessions ?? 0) + 1;
   if (stats?.recovery) target.recoveredSessions++;
   if (stats?.recovery?.responses) target.recoveredResponseSessions++;
   if (stats?.recovery?.savedParams) target.savedSettingsSessions++;

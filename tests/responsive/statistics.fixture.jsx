@@ -13,6 +13,9 @@ const sessions = Array.from({ length: 12 }, (_, index) => ({
     concepts: { fear: { total: 5, correct: 3 }, surprise: { total: 5, correct: 4 } },
   },
 }));
+sessions[0].recordState = "checkpoint";
+sessions[0].completionReason = "checkpoint";
+sessions[0].statistics.source = "active_snapshot";
 sessions.push({ id: "legacy", studentId: "sample-student", topicId: "emotions", modeId: "find_n", topicVersion: "1", completedAt: new Date().toISOString(), correctCount: 8, incorrectCount: 2 });
 sessions.push({ id: "recovered", studentId: "sample-student", topicId: "emotions", modeId: "find_n", topicVersion: "1", completedAt: new Date().toISOString(), correctCount: 2, incorrectCount: 1,
   paramsSnapshot: { optionCount: 2, distractorLevel: "hard" },

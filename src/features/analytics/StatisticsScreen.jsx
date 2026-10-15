@@ -13,7 +13,7 @@ const valueLabels = { easy: "Легко", correct: "Правильно", prompte
 const paramLabels = { optionCount: "Вариантов", distractorLevel: "Похожесть вариантов", figureDifficulty: "Уровень фигур", activityStage: "Этап", materialSet: "Материал", introStage: "Этап знакомства", showImage: "Картинка", showLabels: "Подписи", showHint: "Подсказка", hintMode: "Подсказка", questionHint: "Подсказка вопроса", level: "Уровень", visualMode: "Опора", question: "Вопрос", repsPerConcept: "Повторов на понятие", examplesCount: "Примеров" };
 const labelValue = value => typeof value === "boolean" ? value ? "Да" : "Нет" : Array.isArray(value) ? value.map(labelValue).join(", ") : valueLabels[value] ?? String(value ?? "—");
 const score = (correct, total) => total ? `${Math.round(correct / total * 100)}% · ${correct} из ${total}` : "Нет оцененных ответов";
-const completionLabels = { series_completed: "Серия завершена", manual: "Завершено вручную", interrupted: "Прервано" };
+const completionLabels = { series_completed: "Серия завершена", manual: "Завершено вручную", interrupted: "Прервано", checkpoint: "Промежуточный результат сохранен" };
 const lessonCount = count => `${count} ${count % 10 === 1 && count % 100 !== 11 ? "занятие" : count % 10 >= 2 && count % 10 <= 4 && !(count % 100 >= 12 && count % 100 <= 14) ? "занятия" : "занятий"}`;
 
 function Conditions({ group, topic }) {
@@ -124,6 +124,8 @@ export default function StatisticsScreen({ initialTopicId = null, onClose }) {
       {!studentId ? <p className="empty-state">Добавьте или выберите ученика, чтобы увидеть статистику.</p> : total.sessions === 0 ? <p className="empty-state">За выбранный период занятий нет.</p> : <>
         <div className="statistics-overview"><div><strong>{total.sessions}</strong><span>занятий</span></div><div><strong>{report.activeDays}</strong><span>дней практики</span></div><div><strong>{total.timedSessions ? Math.round(total.activeDurationMs / 60000) : "—"}</strong><span>активных минут</span></div><div><strong>{total.completedSeries}</strong><span>завершенных серий</span></div></div>
         <p className="statistics-note">Завершено вручную: {total.manualSessions}. Для старых занятий причина завершения и время могут быть неизвестны.</p>
+        {total.checkpointSessions > 0 && <p className="statistics-note">Занятий с автоматически сохраненным промежуточным результатом: {total.checkpointSessions}. Они учитываются, даже если занятие не завершили.</p>}
+        {total.snapshotRecoveredSessions > 0 && <p className="statistics-note">Из состояния незавершенного занятия восстановлено: {total.snapshotRecoveredSessions}. Дата соответствует последнему сохранению; распределение старых ответов по дням неизвестно.</p>}
         {total.recoveredSessions > 0 && <p className="statistics-note">Из старой истории восстановлено: {lessonCount(total.recoveredSessions)}. Первые ответы — в {total.recoveredResponseSessions}, сохраненные настройки — в {total.savedSettingsSessions}. История без достаточных данных показана без предположений.</p>}
         {topicId ? <div className="statistics-groups">{report.groups.map(group => <GroupCard key={group.key} group={group} topic={topic} />)}</div> : <>
           <p className="statistics-note">Результаты разных тем и условий не объединяются в общий процент. Откройте тему, чтобы увидеть ответы и динамику.</p>

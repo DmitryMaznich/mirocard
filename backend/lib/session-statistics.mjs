@@ -17,6 +17,7 @@ export function sessionToApi(row) {
     paramsSnapshot: parse(row.params_snapshot, null), statistics,
     conceptIds: statistics?.conditions?.conceptIds, textId: statistics?.conditions?.textId ?? undefined,
     completionReason: row.completion_reason, entryPoint: row.entry_point, createdAt: row.created_at,
+    recordState: row.record_state ?? "final", recordRevision: row.record_revision ?? 0, recordUpdatedAt: row.record_updated_at,
   });
 }
 
@@ -26,7 +27,7 @@ export function getSessionStatistics(db, accountId, filters) {
   // no tap sequences are returned in the report.
   const rows = db.prepare(`SELECT id, student_id, topic_id, topic_version, mode,
     completed_at, correct_count, incorrect_count, percent_correct,
-    active_duration_ms, statistics_json, completion_reason, params_snapshot, assessments,
+    active_duration_ms, statistics_json, completion_reason, params_snapshot, assessments, record_state, record_revision, record_updated_at,
     CASE WHEN statistics_json IS NULL THEN card_events ELSE NULL END AS card_events
     FROM sessions WHERE account_id = ? AND student_id = ?`).all(accountId, filters.studentId);
   return aggregateStatistics(rows.map(sessionToApi), filters);

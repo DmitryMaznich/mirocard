@@ -1,7 +1,7 @@
 // Only audited, single-response task types may report first-response accuracy.
 // Other exercises retain activity/action counts until their scoring contract is
 // explicitly adapted. No tap sequence is persisted here.
-const SINGLE_RESPONSE = new Set(["yes_no", "find_n", "choose_word_by_picture", "emotion_control", "emotion_situation", "situation_emotion", "sort_by_attribute"]);
+export const SINGLE_RESPONSE_TYPES = new Set(["yes_no", "find_n", "choose_word_by_picture", "emotion_control", "emotion_situation", "situation_emotion", "sort_by_attribute", "operation_audio"]);
 
 export function createSessionMetrics() {
   return { schemaVersion: 1, firstCorrect: 0, firstTotal: 0, corrected: 0, assisted: 0, advancedTasks: 0, quality: {}, concepts: {}, current: null };
@@ -10,7 +10,7 @@ export function createSessionMetrics() {
 export function recordResponse(state, outcome) {
   if (!state.statistics || state.mode?.evaluation === "none") return state;
   const task = state.tasks[state.taskIndex];
-  if (!SINGLE_RESPONSE.has(task?.type)) return state;
+  if (!SINGLE_RESPONSE_TYPES.has(task?.type)) return state;
   const stats = state.statistics;
   const current = stats.current;
   if (current?.finished) return state;

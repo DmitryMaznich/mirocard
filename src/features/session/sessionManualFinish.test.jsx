@@ -3,11 +3,11 @@ import { act, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
-import { pushOp } from "@/core/syncApi";
+import { flushQueue } from "@/core/syncApi";
 import { useSessionEngine } from "./useSessionEngine";
 import SessionExitPrompt from "./SessionExitPrompt";
 
-vi.mock("@/core/syncApi", () => ({ pushOp: vi.fn().mockResolvedValue(undefined) }));
+vi.mock("@/core/syncApi", () => ({ flushQueue: vi.fn().mockResolvedValue(undefined), pushOp: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("@/topics/renderers/engineRegistry", () => ({
   ENGINE_REGISTRY: { flashcards: () => [
     { type: "choose", conceptId: "one", cardId: "card-one" },
@@ -64,7 +64,7 @@ it("saves a partial session with compact metrics and no raw taps before clearing
   expect(records[0].cardEvents).toBeUndefined();
   expect(records[0].completionReason).toBe("manual");
   expect(records[0].statistics).toMatchObject({ schemaVersion: 1, conditions: { renderer: "flashcards" } });
-  expect(pushOp).toHaveBeenCalledTimes(1);
+  expect(flushQueue).toHaveBeenCalledTimes(1);
   expect(useAppStore.getState().sessions).toHaveLength(1);
   expect(useAppStore.getState().activeSessionSnapshot).toBeNull();
   expect(await kv.get(await getDb(), "activeSession")).toBeNull();

@@ -4,6 +4,7 @@ import { mergeRewardVideoViews } from "@/shared/utils/rewardVideoViews";
 import { useAppStore } from "@/core/store";
 import { listTopicRecords, installFirstPartyDeckIfNeeded } from "@/topics/topicLoader";
 import { normalizeActiveSessionSnapshot } from "@/features/session/activeSession";
+import { recoverActiveSessionResult } from "@/features/session/recoverActiveSessionResult";
 import { FIRST_PARTY_DECK_IDS, applyBuiltinVisibility } from "@/topics/builtinTopics";
 import { mergeSessionHistory, recoverHistoricalSession } from "../../shared/historical-session-statistics.mjs";
 
@@ -385,7 +386,8 @@ export async function loadLocalBootstrap(db) {
   if (JSON.stringify(migratedStudents) !== JSON.stringify(students ?? [])) {
     await kv.set(db, 'students', migratedStudents);
   }
-  const recoveredSessions = (sessions ?? []).map(recoverHistoricalSession);
+  const recoveredCheckpoint = await recoverActiveSessionResult(db, activeSession, migratedStudents.filter(student => !isDeletedStudent(student)).map(student => student.id));
+  const recoveredSessions = mergeSessionHistory(sessions ?? [], recoveredCheckpoint ? [recoveredCheckpoint] : []).map(recoverHistoricalSession);
   if (JSON.stringify(recoveredSessions) !== JSON.stringify(sessions ?? [])) await kv.set(db, "sessions", recoveredSessions);
   return normalizeBootstrap({
     builtinVisibility: await kv.get(db,"builtinVisibility")??{},

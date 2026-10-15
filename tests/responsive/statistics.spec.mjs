@@ -16,6 +16,11 @@ for (const width of [360, 768, 1280]) test(`statistics at ${width}px keeps condi
   await expect(page.getByText("Условия не сохранены.", { exact: false })).toBeVisible();
   await expect(page.getByText("Фактически вариантов: 2")).toBeVisible();
   await expect(page.getByText("Фактически вариантов: 4")).toBeVisible();
+  await page.locator(".statistics-history > summary").click();
+  await expect(page.getByText("Промежуточный результат сохранен")).toBeVisible();
+  await page.locator(".statistics-history > summary").click();
+  await expect(page.getByText("Они учитываются, даже если занятие не завершили.", { exact: false })).toBeVisible();
+  await expect(page.getByText("распределение старых ответов по дням неизвестно.", { exact: false })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
   expect(overflow).toBe(false);
   const refreshBounds = await page.getByRole("button", { name: "Обновить" }).boundingBox();

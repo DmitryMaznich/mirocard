@@ -10,8 +10,8 @@ test("active timer caps idle and resets for the next session", async () => {
   const host = document.createElement("div");
   document.body.append(host);
   const root = createRoot(host);
-  function Timer({ id }) {
-    read = useActiveSessionTimer(true, id).getActiveDurationMs;
+  function Timer({ id, saved = 0 }) {
+    read = useActiveSessionTimer(true, id, saved).getActiveDurationMs;
     return null;
   }
   try {
@@ -22,6 +22,10 @@ test("active timer caps idle and resets for the next session", async () => {
     expect(read()).toBe(0);
     await act(async () => vi.advanceTimersByTime(10000));
     expect(read()).toBe(10000);
+    await act(async () => root.render(createElement(Timer, { id: "resumed", saved: 45000 })));
+    expect(read()).toBe(45000);
+    await act(async () => vi.advanceTimersByTime(10000));
+    expect(read()).toBe(55000);
   } finally {
     await act(async () => root.unmount());
     host.remove();

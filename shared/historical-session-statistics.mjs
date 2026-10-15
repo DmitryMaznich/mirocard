@@ -1,6 +1,7 @@
 // Historical tap collection was incomplete in some renderers and could reset
 // on retry. Reconstruct only audited modes whose complete tap totals reconcile
 // with the saved action counters. Never infer settings from today's topic.
+import { compareSessionRecords } from "./session-record-order.mjs";
 const SINGLE_RESPONSE_MODES = new Set(["yes_no", "find_n", "choose_word_by_picture", "emotion_control", "emotion_situation", "situation_emotion", "sort_by_attribute"]);
 const QUALITIES = new Set(["easy", "correct", "prompted", "fail", "independent", "after_model", "none"]);
 const object = value => value && typeof value === "object" && !Array.isArray(value);
@@ -82,6 +83,12 @@ export function mergeSessionHistory(local = [], remote = []) {
     const raw = recoverHistoricalSession(source);
     let saved = sessions.get(raw.id);
     let merged = raw;
+    // Checkpoint timestamps describe the latest save, not immutable identity.
+    // Keep the newer cumulative record when a refresh races an offline write.
+    if (saved && saved.studentId === raw.studentId && saved.topicId === raw.topicId
+      && (saved.modeId ?? saved.mode) === (raw.modeId ?? raw.mode)
+      && (saved.recordState === "checkpoint" || raw.recordState === "checkpoint")
+      && compareSessionRecords(raw, saved) < 0) continue;
     if (saved && sameSessionIdentity(saved, raw)) {
       if (saved.statistics?.recovery?.responses && (saved.correctCount !== raw.correctCount || saved.incorrectCount !== raw.incorrectCount)) {
         const { firstTotal: _total, firstCorrect: _correct, corrected: _corrected, concepts: _concepts, ...metadata } = saved.statistics;

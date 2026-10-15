@@ -4,6 +4,26 @@ function generateId() {
   return "session_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
 }
 
+export function sessionDay(at = new Date()) {
+  return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, "0")}-${String(at.getDate()).padStart(2, "0")}`;
+}
+
+export function markSessionAction(state) {
+  const now = new Date();
+  const day = sessionDay(now);
+  const previousDay = state.statisticsDay ?? sessionDay(new Date(state.startedAt));
+  if (previousDay !== day) {
+    const statistics = createSessionMetrics();
+    statistics.conditions = state.statistics?.conditions;
+    // A correction after midnight is still not a new first response.
+    statistics.current = state.statistics?.current ?? null;
+    state = { ...state, id: generateId(), startedAt: now.toISOString(), recordRevision: 0,
+      correctCount: 0, incorrectCount: 0, mistakes: [], assessments: [], statistics,
+      persistedActiveDurationMs: 0 };
+  }
+  return { ...state, statisticsDay: day, recordRevision: (state.recordRevision ?? 0) + 1, lastActivityAt: now.toISOString() };
+}
+
 function taskRelation(task) {
   return task?.card?.relation ?? null;
 }
@@ -62,11 +82,14 @@ export function createSessionState(tasks, mode, studentId, topicId, topicVersion
     mistakes: [],
     assessments: [],
     statistics: createSessionMetrics(),
+    recordRevision: 0,
+    statisticsDay: sessionDay(),
     startedAt: new Date().toISOString(),
   };
 }
 
 export function handleAnswer(state, isCorrect, conceptId, cardId, options = {}) {
+  state = markSessionAction(state);
   if (state.mode.evaluation === "none") {
     return handleAdvance(state);
   }
@@ -99,6 +122,7 @@ export function handleAnswer(state, isCorrect, conceptId, cardId, options = {}) 
 }
 
 export function handleInstantCorrect(state) {
+  state = markSessionAction(state);
   state = recordAdvance(recordResponse(state, "correct"));
   const streakTarget = 5 * (state.answersPerStar ?? 1);
   const streakCount = (state.streakCount ?? 0) + 1;
@@ -121,6 +145,7 @@ export function handleInstantCorrect(state) {
 }
 
 export function handleInstantIncorrect(state, conceptId, cardId) {
+  state = markSessionAction(state);
   state = recordAdvance(recordResponse(state, "incorrect"));
   const incorrectCount = state.incorrectCount + 1;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
@@ -133,6 +158,7 @@ export function handleInstantIncorrect(state, conceptId, cardId) {
 // exactly the same reset rule as every other evaluated answer.
 export function handleInPlaceIncorrect(state, conceptId, cardId) {
   if (!state || state.mode?.evaluation === "none") return state;
+  state = markSessionAction(state);
   state = recordResponse(state, "incorrect");
   const incorrectCount = state.incorrectCount + 1;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
@@ -156,6 +182,7 @@ export function handleInPlaceIncorrect(state, conceptId, cardId) {
 // where they were, just without the streak.
 export function handleStreakReset(state, conceptId, cardId) {
   if (!state || state.mode?.evaluation === "none") return state;
+  state = markSessionAction(state);
   state = recordResponse(state, "incorrect");
   const incorrectCount = state.incorrectCount + 1;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
@@ -168,6 +195,7 @@ export function handleStreakReset(state, conceptId, cardId) {
 }
 
 export function handleQualityAnswer(state, quality, conceptId, cardId) {
+  state = markSessionAction(state);
   state = recordQuality(state, quality);
   const assessment = { quality, conceptId, cardId, taskIndex: state.taskIndex };
   return handleAdvance({
@@ -177,6 +205,7 @@ export function handleQualityAnswer(state, quality, conceptId, cardId) {
 }
 
 export function handleAdvance(state) {
+  state = markSessionAction(state);
   state = recordAdvance(state);
   const nextIndex = state.taskIndex + 1;
   if (nextIndex >= state.tasks.length) {
@@ -209,7 +238,13 @@ export function computeSessionRecord(state, studentId, topicId, topicVersion, ca
   const isEvaluated = state.mode.evaluation !== "none";
 
   let correctCount, incorrectCount, percentCorrect;
-  if (isEvaluated && state.totalWords != null) {
+  if (isEvaluated && state.totalWords != null && telemetry.recordState === "checkpoint") {
+    // This renderer reports completed lines and wrong placements, not every
+    // correct word. Unfinished words cannot be inferred as correct.
+    correctCount = null;
+    incorrectCount = null;
+    percentCorrect = null;
+  } else if (isEvaluated && state.totalWords != null) {
     // Word-level tracking: errors = wrong slot attempts, total = all words in poem
     const wrong = Math.min(state.incorrectCount, state.totalWords);
     correctCount   = state.totalWords - wrong;
@@ -231,7 +266,10 @@ export function computeSessionRecord(state, studentId, topicId, topicVersion, ca
     modeId:         state.mode.id,
     conceptIds:     state.conceptIds,
     startedAt:      state.startedAt,
-    completedAt:    new Date().toISOString(),
+    completedAt:    telemetry.completedAt ?? new Date().toISOString(),
+    recordRevision: state.recordRevision ?? 0,
+    recordState: telemetry.recordState ?? "final",
+    recordUpdatedAt: new Date().toISOString(),
     activeDurationMs: telemetry.activeDurationMs ?? null,
     elapsedDurationMs: telemetry.elapsedDurationMs ?? null,
     paramsSnapshot: telemetry.paramsSnapshot ?? {},
