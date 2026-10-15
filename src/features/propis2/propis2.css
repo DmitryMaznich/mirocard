@@ -273,7 +273,6 @@
 .p2-sep { flex: 0 0 1px; align-self: center; width: 1px; height: 34px; margin: 0 4px; background: var(--p2-line); }
 .propis2-editor2 .propis2-settings .p2-lock { flex: 0 0 auto; align-self: center; padding: 0 6px; }
 .p2-pager-pos { flex: 0 0 auto; align-self: center; padding: 0 8px; font-weight: 800; font-size: 14px; color: #5b4a1f; white-space: nowrap; }
-.propis2-editor2 .p2-pager.propis2-settings { background: #fff7e6; border-bottom: 1px solid #ecd9b0; }
 /* a strip with an open popup rises above the text dock (the popup is fixed, but its stacking context is the strip's) */
 .propis2-editor2 .propis2-main > .propis2-settings:has(.p2-pick-list) { z-index: 20; }
 /* ---- the library: tiles to start, one card per notebook with a row of tools (same family as the editor's strips) ---- */
