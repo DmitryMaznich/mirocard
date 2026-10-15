@@ -244,7 +244,7 @@ export const useAppStore = create((set) => ({
   // ─── Sessions ──────────────────────────────────────────────────────────────
   sessions: [],
   setSessions:   (sessions) => set({ sessions }),
-  appendSession: (session)  => set((s) => ({ sessions: [...s.sessions, session] })),
+  appendSession: (session)  => set((s) => ({ sessions: [...s.sessions.filter(item => item.id !== session.id), session] })),
 
   // ─── Build info ───────────────────────────────────────────────────────────
   buildInfo: {

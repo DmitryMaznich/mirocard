@@ -8,6 +8,7 @@ import Button from "@/shared/components/Button";
 import TopicImport from "./TopicImport";
 import InfoModal from "@/shared/components/InfoModal";
 import TopicActionSheet from "./TopicActionSheet";
+import StatisticsScreen from "@/features/analytics/StatisticsScreen";
 import TopicTile from "./TopicTile";
 import ContinueStrip from "./ContinueStrip";
 import { getTopicTitle } from "@/shared/utils/format";
@@ -46,6 +47,7 @@ export default function TopicLibraryScreen() {
   const [deleting,          setDeleting]          = useState(null);
   const [infoTopic,         setInfoTopic]         = useState(null);
   const [actionSheetRecord, setActionSheetRecord] = useState(null);
+  const [statisticsTopic, setStatisticsTopic] = useState(null);
 
   const loadCatalog = useCallback(() => {
     fetchCatalog()
@@ -240,6 +242,8 @@ export default function TopicLibraryScreen() {
     );
   }
 
+  if (statisticsTopic) return <StatisticsScreen initialTopicId={statisticsTopic.meta.id} onClose={() => setStatisticsTopic(null)} />;
+
   return (
     <div className="screen">
       <div className="screen-header">
@@ -327,6 +331,7 @@ export default function TopicLibraryScreen() {
           record={actionSheetRecord}
           onClose={() => setActionSheetRecord(null)}
           onInfo={(r) => { setInfoTopic(r); }}
+          onStatistics={setStatisticsTopic}
           onDelete={(r) => setDeleting(r)}
         />
       )}

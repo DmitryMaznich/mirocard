@@ -3,23 +3,24 @@ import { peopleFor } from "../../../shared/student-people.mjs";
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
-import { pushOp } from "@/core/syncApi";
+import { flushQueue } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { aboutMeHistory } from "@/topics/renderers/my_people/engine";
-import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
-import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
+import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
+import { persistSessionRecord } from "./sessionPersistence";
+import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
 import { persistStudentTopicLink } from "@/core/linkUtils";
 import {
-  clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot,
   createActiveSessionSnapshot,
   persistActiveSessionSnapshot,
   restoreActiveSessionState,
 } from "./activeSession";
 
 const INCORRECT_FEEDBACK_MS = 1500;
+const ignoreCardEvent = () => {};
 
 function resolveStrictStars(mode, savedValue) {
   // Some reaction drills are a true "correct answers in a row" exercise.
@@ -217,6 +218,8 @@ function buildGeneratedSessionState({
     resolveStrictStars(mode, link.strictStars),
   );
 
+  baseState.statistics.conditions = captureConditions(topicRecord, mode, sessionParams, tasks, sessionConceptIds, renderer === "reading" ? activeTextId : null);
+
   if (mode.type === "assemble_text") {
     const totalWords = tasks.reduce((sum, task) => sum + (task.tokenCount ?? 0), 0);
     return { ...baseState, totalWords };
@@ -261,7 +264,6 @@ export function useSessionEngine() {
   };
   const isReading = topicRecord?.meta.renderer === "reading";
   const { sessionParams, selectedConceptIds } = resolveModeSelection(topicRecord, mode, link, isReading, activeTextId);
-  const cardLogger = useCardEventLogger();
 
   const [sessionState, setSessionState] = useState(() => {
     const generatedState = buildGeneratedSessionState({
@@ -290,6 +292,7 @@ export function useSessionEngine() {
   const { getActiveDurationMs } = useActiveSessionTimer(
     Boolean(sessionState && sessionState.status !== "completed"),
     sessionState?.id ?? sessionState?.startedAt,
+    sessionState?.persistedActiveDurationMs ?? 0,
   );
 
   // Recovery: if the session was built without adult cards (closeAdults not yet
@@ -309,9 +312,11 @@ export function useSessionEngine() {
     if (!tasks.length) return;
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSessionState(
-      createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null)
-    );
+    setSessionState(() => {
+      const rebuilt = createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null);
+      rebuilt.statistics.conditions = captureConditions(topicRecord, mode, sessionParams, tasks, selectedConceptIds, null);
+      return rebuilt;
+    });
   }, [activeStudent]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [completedRecord, setCompletedRecord] = useState(null);
@@ -419,16 +424,15 @@ export function useSessionEngine() {
     }
 
     async function persistSession() {
-      const cardEvents = cardLogger.getCardEvents();
-
       // Deck position is managed by deck actions. taskIndex counts tasks,
       // not concepts, so using it here would corrupt the next deck's start.
 
       const record = {
-        ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents, {
+        ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, [], {
           activeDurationMs: Math.round(getActiveDurationMs()),
           elapsedDurationMs: Math.max(0, Date.now() - new Date(state.startedAt).getTime()),
-          paramsSnapshot: sessionParams,
+          paramsSnapshot: state.statistics?.conditions?.params ?? sessionParams,
+          completedAt: state.lastActivityAt,
           entryPoint: "therapist",
         }),
         reward: {
@@ -444,13 +448,10 @@ export function useSessionEngine() {
         textId:    activeTextId ?? null,
         modeId:    activeModeId,
       });
-      const existing = (await kv.get(db, "sessions")) ?? [];
-      const updated = [...existing.filter((item) => item.id !== record.id), record].slice(-200);
-      await kv.set(db, "sessions", updated);
-      await pushOp("session.append", { ...record, mode: record.modeId });
-      await clearPersistedActiveSessionSnapshot(db);
+      const persisted = await persistSessionRecord(db, record, { clearSnapshot: true });
+      if (persisted.recordState === "checkpoint") throw new Error("Результат изменился. Повторите завершение занятия.");
+      flushQueue().catch(() => {});
       clearActiveSessionSnapshot();
-      cardLogger.resetCardEvents();
       completedUsageIds.current.add(id);
       savedRecords.current.set(id, record);
       appendSession(record);
@@ -464,10 +465,11 @@ export function useSessionEngine() {
     return finishSession(sessionState, { showSummary: false });
   }
 
+  const checkpointRef = useRef(null);
   useEffect(() => {
     if (!sessionState || !topicRecord || !activeModeId) return undefined;
     if (sessionState.status === "completed") return undefined;
-
+    const activeDurationMs = Math.round(getActiveDurationMs());
     const snapshot = createActiveSessionSnapshot(
       {
         studentId: activeStudentId,
@@ -475,22 +477,37 @@ export function useSessionEngine() {
         textId: isReading ? activeTextId : null,
         modeId: activeModeId,
       },
-      sessionState,
+      { ...sessionState, persistedActiveDurationMs: activeDurationMs },
     );
 
     setActiveSessionSnapshot(snapshot);
 
-    let cancelled = false;
-    getDb()
-      .then((db) => {
-        if (cancelled) return;
-        return persistActiveSessionSnapshot(db, snapshot);
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
+    const hasActivity = (sessionState.recordRevision ?? 0) > 0 || sessionState.correctCount > 0 || sessionState.incorrectCount > 0 || sessionState.taskIndex > 0 || sessionState.assessments?.length > 0;
+    if (!hasActivity) {
+      checkpointRef.current = null;
+      getDb().then(db => persistActiveSessionSnapshot(db, snapshot)).catch(() => {});
+      return undefined;
+    }
+    const record = computeSessionRecord(sessionState, activeStudentId, activeTopicId, topicRecord.meta.version, [], {
+      activeDurationMs, elapsedDurationMs: Math.max(0, Date.now() - Date.parse(sessionState.startedAt)),
+      paramsSnapshot: sessionState.statistics?.conditions?.params ?? sessionParams,
+      completionReason: "checkpoint", recordState: "checkpoint", completedAt: sessionState.lastActivityAt,
+    });
+    const save = () => {
+      const duration = Math.round(getActiveDurationMs());
+      const updatedRecord = { ...record, activeDurationMs: duration, recordUpdatedAt: new Date().toISOString() };
+      const updatedSnapshot = { ...snapshot, updatedAt: updatedRecord.recordUpdatedAt,
+        sessionState: { ...snapshot.sessionState, persistedActiveDurationMs: duration } };
+      return getDb().then(db => persistSessionRecord(db, updatedRecord, { snapshot: updatedSnapshot })).then(saved => {
+        if (!savedRecords.current.has(saved.id)) appendSession(saved);
+        setSessionSaveError(null);
+      });
     };
+    checkpointRef.current = save;
+    save().catch(() => setSessionSaveError("Не удалось сохранить промежуточный результат. Не закрывайте занятие."));
+    return undefined;
+  // Settings are frozen in the session's conditions; their live object is recreated on render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeModeId,
     activeStudentId,
@@ -500,7 +517,26 @@ export function useSessionEngine() {
     sessionState,
     setActiveSessionSnapshot,
     topicRecord,
+    appendSession,
+    getActiveDurationMs,
   ]);
+
+  useEffect(() => {
+    const flush = () => {
+      const pending = checkpointRef.current?.();
+      Promise.resolve(pending).then(() => flushQueue()).catch(() => {});
+    };
+    const onHidden = () => { if (document.hidden) flush(); };
+    const interval = window.setInterval(flush, 10_000);
+    document.addEventListener("visibilitychange", onHidden);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onHidden);
+      window.removeEventListener("pagehide", flush);
+      if (checkpointRef.current) flush();
+    };
+  }, []);
 
   useEffect(() => {
     if (!sessionState) return;
@@ -566,14 +602,14 @@ export function useSessionEngine() {
   const onPrevious = useCallback(() => {
     setSessionState(s => {
       if (s.taskIndex <= 0) return s;
-      return { ...s, taskIndex: s.taskIndex - 1, status: "task_active" };
+      return { ...markSessionAction(s), taskIndex: s.taskIndex - 1, status: "task_active", ...(s.statistics ? { statistics: { ...s.statistics, current: null } } : {}) };
     });
   }, []);
 
   const onCorrect = useCallback((conceptId, cardId, options = {}) => {
     if (options.assisted) {
       setSessionState((s) => {
-        const next = advanceTask(s);
+        const next = advanceTask(recordResponse(markSessionAction(s), "assisted"));
         if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
         if (next.status === "completed") finishSession(next);
         return next;
@@ -674,7 +710,7 @@ export function useSessionEngine() {
 
   const handleFinishDeck = useCallback(async () => {
     await persistStudentTopicLink(activeStudentId, activeTopicId, { deckPosition: 0 });
-    if (sessionState) await finishSession({ ...sessionState, status: "completed" });
+    if (sessionState) await finishSession(sessionState);
     setDeckExhausted(false);
   }, [sessionState, activeStudentId, activeTopicId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -717,8 +753,8 @@ export function useSessionEngine() {
     onStreakReset,
     onAdvance,
     onQualityAnswer,
-    onCardShown: cardLogger.onCardShown,
-    onTap:       cardLogger.onTap,
-    onQuality:   cardLogger.onQuality,
+    onCardShown: ignoreCardEvent,
+    onTap:       ignoreCardEvent,
+    onQuality:   ignoreCardEvent,
   };
 }

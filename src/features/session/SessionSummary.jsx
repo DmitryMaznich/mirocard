@@ -192,6 +192,7 @@ export default function SessionSummary() {
                       <li key={i} className="summary-mistake-item">
                         <ConceptDot level={progressAfter[m.conceptId] ?? 0} />
                         {isMyPeople ? myPeopleLabel(m.conceptId) : (card?.label ?? m.conceptId)}
+                        {m.count > 1 ? ` × ${m.count}` : ""}
                       </li>
                     );
                   })}
@@ -207,6 +208,7 @@ export default function SessionSummary() {
                     <li key={i} className="summary-progress-item">
                       <ConceptDot level={assessment.quality === "none" || assessment.quality === "fail" ? 1 : 2} />
                       {ASSESSMENT_LABELS[assessment.quality] ?? assessment.quality}
+                      {assessment.count > 1 ? ` × ${assessment.count}` : ""}
                     </li>
                   ))}
                 </ul>

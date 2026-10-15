@@ -1,4 +1,4 @@
-export default function HomeMenuSheet({ onClose, onOpenProfile, onOpenStudents, onOpenSettings, onOpenHelp }) {
+export default function HomeMenuSheet({ onClose, onOpenProfile, onOpenStudents, onOpenSettings, onOpenHelp, onOpenStatistics }) {
   function handleOverlay(e) {
     if (e.target === e.currentTarget) onClose();
   }
@@ -19,6 +19,8 @@ export default function HomeMenuSheet({ onClose, onOpenProfile, onOpenStudents, 
         >
           Ученики
         </button>
+
+        {onOpenStatistics && <button className="action-sheet__item" onClick={() => { onOpenStatistics(); onClose(); }}>Статистика ученика</button>}
 
         {/* This section is also the reserved home for a future "Язык"
             (interface language) row once i18n ships -- keep it a separate

@@ -645,15 +645,31 @@ export function appendSession(db, accountId, session) {
     INSERT OR IGNORE INTO sessions
       (id, account_id, student_id, topic_id, topic_version, mode,
        started_at, completed_at, correct_count, incorrect_count,
-       percent_correct, mistakes, card_events, created_at, active_duration_ms, elapsed_duration_ms, entry_point)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       percent_correct, mistakes, card_events, created_at, active_duration_ms, elapsed_duration_ms, entry_point,
+       params_snapshot, statistics_json, completion_reason, assessments, record_state, record_revision, record_updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      completed_at = excluded.completed_at, correct_count = excluded.correct_count,
+      incorrect_count = excluded.incorrect_count, percent_correct = excluded.percent_correct,
+      mistakes = excluded.mistakes, assessments = excluded.assessments,
+      statistics_json = excluded.statistics_json, params_snapshot = excluded.params_snapshot,
+      completion_reason = excluded.completion_reason, active_duration_ms = excluded.active_duration_ms,
+      elapsed_duration_ms = excluded.elapsed_duration_ms, record_state = excluded.record_state,
+      record_revision = excluded.record_revision, record_updated_at = excluded.record_updated_at
+    WHERE sessions.account_id = excluded.account_id AND sessions.student_id = excluded.student_id
+      AND sessions.topic_id = excluded.topic_id AND sessions.topic_version = excluded.topic_version
+      AND sessions.mode = excluded.mode AND sessions.started_at = excluded.started_at
+      AND sessions.record_state = 'checkpoint'
+      AND (excluded.record_revision > sessions.record_revision OR
+        (excluded.record_revision = sessions.record_revision AND
+          (excluded.record_state = 'final' OR excluded.record_updated_at > COALESCE(sessions.record_updated_at, ''))))
   `).run(
     session.id,
     accountId,
     session.studentId      ?? session.student_id,
     session.topicId        ?? session.topic_id,
     session.topicVersion   ?? session.topic_version,
-    session.mode,
+    session.modeId ?? session.mode,
     session.startedAt      ?? session.started_at,
     session.completedAt    ?? session.completed_at,
     session.correctCount   ?? session.correct_count   ?? null,
@@ -663,7 +679,14 @@ export function appendSession(db, accountId, session) {
     Array.isArray(cardEventsRaw) ? JSON.stringify(cardEventsRaw) : (cardEventsRaw ?? "[]"),
     now(),
     safeDuration(session.activeDurationMs), safeDuration(session.elapsedDurationMs),
-    typeof session.entryPoint === "string" ? session.entryPoint.slice(0, 40) : null
+    typeof session.entryPoint === "string" ? session.entryPoint.slice(0, 40) : null,
+    session.paramsSnapshot && typeof session.paramsSnapshot === "object" ? JSON.stringify(session.paramsSnapshot) : null,
+    session.statistics && typeof session.statistics === "object" ? JSON.stringify(session.statistics) : null,
+    ["series_completed", "manual", "interrupted", "checkpoint"].includes(session.completionReason) ? session.completionReason : null,
+    Array.isArray(session.assessments) ? JSON.stringify(session.assessments) : null,
+    session.recordState === "checkpoint" ? "checkpoint" : "final",
+    Number.isSafeInteger(session.recordRevision) && session.recordRevision >= 0 ? session.recordRevision : 0,
+    typeof session.recordUpdatedAt === "string" && Number.isFinite(Date.parse(session.recordUpdatedAt)) ? session.recordUpdatedAt : (session.completedAt ?? session.completed_at)
   );
 }
 function safeDuration(value) { return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 86400000 ? Math.round(value) : null; }
