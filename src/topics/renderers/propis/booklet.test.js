@@ -35,3 +35,15 @@ describe("the PDF's file name", () => {
     expect(pdfFileName("  ")).toBe("Тетрадь.pdf");
   });
 });
+
+describe("the PDF's glyph outlines ship with the app (public/fonts/pdf/glyphs.json)", () => {
+  // the first PDFs had no Cyrillic: the font files were never committed (*.ttf is git-ignored) and the server answered with the app
+  it("every font, the Cyrillic and Latin letters, digits and the logo's letters", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { fonts } = JSON.parse(readFileSync("public/fonts/pdf/glyphs.json", "utf-8"));
+    for (const name of ["Nunito-400", "Nunito-700", "Nunito-800", "Nunito-900"]) {
+      for (const ch of "АБВЁЖЯабвёжяТЕТРАДЬ0123456789«»©·—") expect(fonts[name].glyphs[ch], `${name} ${ch}`).toBeTruthy();
+    }
+    for (const name of ["DMSerif", "DMSerif-Italic"]) for (const ch of "Mironium") expect(fonts[name].glyphs[ch][1]).toBeTruthy();
+  });
+});

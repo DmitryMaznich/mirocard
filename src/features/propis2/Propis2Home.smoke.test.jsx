@@ -356,6 +356,8 @@ describe("propis2 (zip topic)", () => {
     await act(async () => { await tick(120); });
     expect([...document.querySelectorAll(".propis-print-all [data-page-number]")].map((g) => g.getAttribute("data-page-number"))).toEqual(["4", "1", "2", "3"]);
     expect(document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")).toHaveLength(4);
+    // staple marks on the fold of every sheet «Тетрадью» (the cover's outside too; its white inside has none)
+    expect(document.querySelectorAll(".propis-print-all [data-staples]")).toHaveLength(3);
     await click(host.querySelector('.propis-practice-stage [aria-label="Печать"]'));
     expect(how("Тетрадью").getAttribute("aria-checked")).toBe("true"); // remembered
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Отмена"));

@@ -6,17 +6,20 @@ import { newRow, rowToLine } from "@/topics/renderers/propis2/model.js";
 // in our own hand (coverTasks.js).
 
 const LOWER = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-// a capital the hand was captured for (wide.json): not Ё and Й, and Ъ Ы Ь have none at all; where there is no capital, the lowercase
-// letter stands alone, as in the ready notebooks (tools/propis2/build_kits.py)
-const NO_CAPITAL = new Set(["ё", "й", "ъ", "ы", "ь"]);
-// a row holds what fits the A5 width (checked on the page): at most 5 pairs, a pair weighs 2, a lone lowercase letter 1
-const ROW_WEIGHT = 11;
-const ROW_PAIRS = 5;
+// Ъ Ы Ь have no capital, the lowercase letter stands alone; Ё and Й are there (built from Е / И and the marks of ё / й,
+// propis2/glyphOverrides.js withMarkedCapitals — they were left out here before, owner 2026-10-15)
+const NO_CAPITAL = new Set(["ъ", "ы", "ь"]);
+// a row holds what fits the A5 width (checked on the page): at most 6 pairs, a pair weighs 2, a lone lowercase letter 1; pairs are
+// three spaces apart (two cells more than the gap inside a pair, wordEngine `#v`)
+const ROW_WEIGHT = 12;
+const ROW_PAIRS = 6;
 
 // spaces as typed in the editor: one is the usual gap (inside a pair: no connection runs into the lowercase letter after a space),
 // two add a cell (between pairs)
 const write = (text) => rowToLine(newRow({ text: digitsOut(text), repeat: "one", dots: "none" }));
 const writeAll = (rows) => rows.map(write);
+// the alphabet: evenly spaced (wordEngine `#v`): a short gap inside a pair «Аа», a long one between pairs, the same all along
+const writeEven = (rows) => rows.map((t) => `${write(t)}#v`);
 
 function alphabetRows() {
   const units = [...LOWER].map((l) => (NO_CAPITAL.has(l) ? l : `${l.toUpperCase()} ${l}`));
@@ -26,12 +29,12 @@ function alphabetRows() {
   let pairs = 0;
   for (const u of units) {
     const pair = u.includes(" ");
-    if (weight + (pair ? 2 : 1) > ROW_WEIGHT || (pair && pairs === ROW_PAIRS)) { rows.push(cur.join("  ")); cur = []; weight = 0; pairs = 0; }
+    if (weight + (pair ? 2 : 1) > ROW_WEIGHT || (pair && pairs === ROW_PAIRS)) { rows.push(cur.join("   ")); cur = []; weight = 0; pairs = 0; }
     cur.push(u);
     weight += pair ? 2 : 1;
     if (pair) pairs += 1;
   }
-  if (cur.length) rows.push(cur.join("  "));
+  if (cur.length) rows.push(cur.join("   "));
   return rows;
 }
 
@@ -46,7 +49,7 @@ export function backContent(kind) {
   let lines;
   switch (kind) {
     case "alphabet":
-      lines = writeAll(alphabetRows());
+      lines = writeEven(alphabetRows());
       break;
     case "digits":
       lines = writeAll([DIGITS, "1 2 3 4 5 6 7 8 9 10", "11 12 13 14 15", "16 17 18 19 20"]);

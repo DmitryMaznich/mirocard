@@ -3,35 +3,83 @@
 // (PrintPageView's `.propis-print-all`: one `.propis-print-all__sheet` per sheet, in print order, «По порядку» or «Тетрадью»): it is
 // laid out off screen at its real size, then every sheet becomes a page of the PDF —
 //   - the notebook pages are SVG already: svg2pdf draws them as vectors (CSS-styled bits inlined first: svg2pdf reads attributes);
-//   - the cover is HTML (cover/*.jsx): walked element by element — its SVGs (logo, back block, spine) through svg2pdf, its text with
-//     the embedded fonts (public/fonts/pdf, Nunito + DM Serif Display, subset to Latin + Cyrillic), the field lines and the spine's
-//     edge lines as lines, clipped where the markup clips (overflow: hidden).
-// The libraries and fonts load only when a PDF is made.
+//   - the cover is HTML (cover/*.jsx): walked element by element — its SVGs (logo, back block, spine) through svg2pdf, its text as
+//     outlines, the field lines and the spine's edge lines as lines, clipped where the markup clips (overflow: hidden);
+//   - every text (cover, logo, page numbers, marks) becomes vector outlines of Nunito / DM Serif Display (glyphs.json): no fonts in the
+//     file. The libraries and the outlines load only when a PDF is made.
 
-const FONT_FILES = [
-  ["Nunito-400.ttf", "Nunito", "normal"],
-  ["Nunito-700.ttf", "Nunito", "bold"],
-  ["Nunito-800.ttf", "Nunito800", "normal"],
-  ["Nunito-900.ttf", "Nunito900", "normal"],
-  ["DMSerifDisplay-Regular.ttf", "DMSerifDisplay", "normal"],
-  ["DMSerifDisplay-Italic.ttf", "DMSerifDisplay", "italic"],
-];
-let fontData = null;
-async function loadFonts() {
-  if (!fontData) {
-    fontData = Promise.all(FONT_FILES.map(async ([file]) => {
-      const buf = await (await fetch(`${import.meta.env.BASE_URL ?? "/"}fonts/pdf/${file}`)).arrayBuffer();
-      let bin = "";
-      const bytes = new Uint8Array(buf);
-      for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-      return btoa(bin);
-    })).catch((e) => { fontData = null; throw e; });
+// Glyph outlines (public/fonts/pdf/glyphs.json, tools/propis2/build_pdf_glyphs.py): every text goes into the PDF as vector paths,
+// no font is embedded — nothing a PDF viewer can get wrong (owner, 2026-10-15).
+let glyphData = null;
+async function loadGlyphs() {
+  if (!glyphData) {
+    glyphData = fetch(`${import.meta.env.BASE_URL ?? "/"}fonts/pdf/glyphs.json`)
+      .then(async (res) => {
+        const json = res.ok && /json/.test(res.headers.get("content-type") ?? "") ? await res.json() : null;
+        if (!json?.fonts?.["Nunito-400"]) throw new Error("PDF glyph outlines are missing (fonts/pdf/glyphs.json)");
+        return json.fonts;
+      })
+      .catch((e) => { glyphData = null; throw e; });
   }
-  return fontData;
+  return glyphData;
 }
 
-const MM_PER_PT = 25.4 / 72;
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+const fontKey = (family, weight, style) => {
+  if (/DM Serif/i.test(family ?? "")) return style === "italic" ? "DMSerif-Italic" : "DMSerif";
+  const w = Number(weight) || (weight === "bold" ? 700 : 400);
+  return w >= 850 ? "Nunito-900" : w >= 750 ? "Nunito-800" : w >= 600 ? "Nunito-700" : "Nunito-400";
+};
+
+// `text` set in `font` at `size` from (x, baseline y), `spacing` added after every letter: SVG path elements (as markup) and the width
+function shape(font, text, size, spacing, x, y) {
+  const k = size / font.upm;
+  let cx = 0;
+  const parts = [];
+  for (const ch of text) {
+    const g = font.glyphs[ch] ?? font.glyphs[ch === "\u00a0" ? " " : "?"];
+    if (!g) continue;
+    if (g[1]) parts.push(`<path transform="translate(${(x + cx).toFixed(3)} ${y.toFixed(3)}) scale(${k.toFixed(6)} ${(-k).toFixed(6)})" d="${g[1]}"/>`);
+    cx += g[0] * k + spacing;
+  }
+  return { markup: parts.join(""), width: cx - (text.length ? spacing : 0) };
+}
+
+const num = (v, fallback = 0) => { const n = parseFloat(v); return Number.isFinite(n) ? n : fallback; };
+
+// The <text> elements of an SVG (the logo, the page numbers, the Mironium marks) as outlines: runs of the text and its <tspan>s
+// laid out one after the other (dx, font, size, fill per run), then moved by text-anchor; dy in em of the text's own size.
+function outlineTexts(svg, fonts) {
+  for (const t of [...svg.querySelectorAll("text")]) {
+    const size = num(t.getAttribute("font-size"), 16);
+    const family = t.getAttribute("font-family");
+    const base = { fill: t.getAttribute("fill") ?? "#000", size, weight: t.getAttribute("font-weight"), style: t.getAttribute("font-style") };
+    const dyRaw = t.getAttribute("dy") ?? "0";
+    const y = num(t.getAttribute("y")) + (dyRaw.endsWith("em") ? num(dyRaw) * size : num(dyRaw));
+    const spacing = num(t.getAttribute("letter-spacing"));
+    let x = 0;
+    const runs = [];
+    for (const n of t.childNodes) {
+      const isSpan = n.nodeType === 1;
+      const st = isSpan ? { fill: n.getAttribute("fill") ?? base.fill, size: num(n.getAttribute("font-size"), base.size), weight: n.getAttribute("font-weight") ?? base.weight, style: n.getAttribute("font-style") ?? base.style } : base;
+      if (isSpan) x += num(n.getAttribute("dx"));
+      const font = fonts[fontKey(family, st.weight, st.style)];
+      const { markup, width } = shape(font, n.textContent ?? "", st.size, spacing, x, y);
+      runs.push({ fill: st.fill, markup });
+      x += width + spacing;
+    }
+    const total = x - spacing;
+    const anchor = t.getAttribute("text-anchor");
+    const shift = anchor === "middle" ? -total / 2 : anchor === "end" ? -total : 0;
+    const g = document.createElementNS(SVG_NS, "g");
+    g.setAttribute("transform", `translate(${num(t.getAttribute("x")) + shift} 0)${t.getAttribute("transform") ? ` ${t.getAttribute("transform")}` : ""}`);
+    g.innerHTML = runs.map((r) => `<g fill="${r.fill}">${r.markup}</g>`).join("");
+    t.replaceWith(g);
+  }
+  return svg;
+}
 
 // the presentation the CSS gives an SVG element (svg2pdf only reads attributes)
 const SVG_PROPS = ["fill", "stroke", "stroke-width", "stroke-dasharray", "stroke-linecap", "stroke-linejoin", "opacity", "fill-opacity", "stroke-opacity", "display", "visibility", "font-family", "font-size", "font-weight", "font-style"];
@@ -51,11 +99,6 @@ function inlinedClone(svg) {
     dst[i].removeAttribute("class");
     dst[i].removeAttribute("style");
   });
-  // the embedded fonts by the names they are registered under (svg2pdf does not resolve a quoted family list)
-  for (const el of [clone, ...clone.querySelectorAll("*")]) {
-    const f = el.getAttribute("font-family");
-    if (f) el.setAttribute("font-family", /DM Serif/.test(f) ? "DMSerifDisplay" : "Nunito");
-  }
   return clone;
 }
 
@@ -66,36 +109,24 @@ function rgb(color) {
   return a === 0 ? null : [r, g, b];
 }
 
-function fontFor(cs) {
-  const w = Number(cs.fontWeight) || 400;
-  if (/DM Serif/.test(cs.fontFamily)) return ["DMSerifDisplay", cs.fontStyle === "italic" ? "italic" : "normal"];
-  if (w >= 850) return ["Nunito900", "normal"];
-  if (w >= 750) return ["Nunito800", "normal"];
-  if (w >= 600) return ["Nunito", "bold"];
-  return ["Nunito", "normal"];
-}
-
-// The lines a text node is laid out in: its words grouped by their line box.
-function textLines(node) {
+// The words of a text node where the layout put them (one box each: a wrapped title keeps its lines, every word its own x).
+function textWords(node) {
   const text = node.textContent;
   const range = document.createRange();
-  const lines = [];
+  const words = [];
   const re = /\S+/g;
   let m;
   while ((m = re.exec(text))) {
     range.setStart(node, m.index);
     range.setEnd(node, m.index + m[0].length);
     const r = range.getBoundingClientRect();
-    if (!r.width) continue;
-    const last = lines[lines.length - 1];
-    if (last && Math.abs(last.top - r.top) < r.height / 2) { last.words.push(m[0]); last.right = r.right; }
-    else lines.push({ words: [m[0]], left: r.left, right: r.right, top: r.top, height: r.height });
+    if (r.width) words.push({ text: m[0], left: r.left, top: r.top, height: r.height });
   }
-  return lines;
+  return words;
 }
 
 export async function printPdf(container, { onProgress } = {}) {
-  const [{ jsPDF }, { svg2pdf }, fonts] = await Promise.all([import("jspdf"), import("svg2pdf.js"), loadFonts()]);
+  const [{ jsPDF }, { svg2pdf }, fonts] = await Promise.all([import("jspdf"), import("svg2pdf.js"), loadGlyphs()]);
   container.classList.add("propis-print-all--export");
   try {
     await document.fonts?.ready;
@@ -107,10 +138,9 @@ export async function printPdf(container, { onProgress } = {}) {
       const sheet = sheets[i];
       const a4 = sheet.classList.contains("propis-print-all__sheet--a4");
       const [wMm, hMm] = a4 ? [210, 297] : [297, 210];
-      if (!doc) {
-        doc = new jsPDF({ unit: "mm", format: [wMm, hMm], orientation: a4 ? "portrait" : "landscape", compress: true });
-        FONT_FILES.forEach(([file, name, style], k) => { doc.addFileToVFS(file, fonts[k]); doc.addFont(file, name, style); });
-      } else doc.addPage([wMm, hMm], a4 ? "portrait" : "landscape");
+      if (!doc) doc = new jsPDF({ unit: "mm", format: [wMm, hMm], orientation: a4 ? "portrait" : "landscape", compress: true });
+      else doc.addPage([wMm, hMm], a4 ? "portrait" : "landscape");
+      const texts = []; // the cover's text as outlines (sheet mm), drawn over the sheet at the end
       const box = sheet.getBoundingClientRect();
       const k = wMm / box.width;
       const at = (r) => ({ x: (r.left - box.left) * k, y: (r.top - box.top) * k, w: r.width * k, h: r.height * k });
@@ -123,7 +153,7 @@ export async function printPdf(container, { onProgress } = {}) {
         doc.rect(c.x, c.y, c.w, c.h, null);
         doc.clip();
         doc.discardPath();
-        await svg2pdf(inlinedClone(svg), doc, { x: r.x, y: r.y, width: r.w, height: r.h });
+        await svg2pdf(outlineTexts(inlinedClone(svg), fonts), doc, { x: r.x, y: r.y, width: r.w, height: r.h });
         doc.restoreGraphicsState();
       };
       const intersect = (a, b) => {
@@ -144,18 +174,17 @@ export async function printPdf(container, { onProgress } = {}) {
         }
         for (const child of el.childNodes) {
           if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
-            const [family, style] = fontFor(cs);
+            const font = fonts[fontKey(cs.fontFamily, cs.fontWeight, cs.fontStyle)];
             const c = rgb(cs.color) ?? [0, 0, 0];
-            const sizePt = (parseFloat(cs.fontSize) * k) / MM_PER_PT;
+            const size = parseFloat(cs.fontSize) * k;
             const spacing = cs.letterSpacing === "normal" ? 0 : parseFloat(cs.letterSpacing) * k;
-            doc.setFont(family, style);
-            doc.setFontSize(sizePt);
-            doc.setTextColor(...c);
-            for (const line of textLines(child)) {
-              const x = (line.left - box.left) * k;
-              const y = (line.top - box.top + line.height / 2) * k;
-              doc.text(line.words.join(" "), x, y, { baseline: "middle", charSpace: spacing });
+            const parts = [];
+            for (const w of textWords(child)) {
+              // the box of a word is the font's content area (ascent + descent): the baseline sits at its ascent
+              const baseline = (w.top - box.top + (w.height * font.ascent) / (font.ascent + font.descent)) * k;
+              parts.push(shape(font, w.text, size, spacing, (w.left - box.left) * k, baseline).markup);
             }
+            texts.push(`<g fill="rgb(${c.join(",")})">${parts.join("")}</g>`);
           } else if (child instanceof SVGSVGElement) {
             await drawSvg(child, clip ? intersect(clip, at(child.getBoundingClientRect())) : null);
           } else if (child instanceof HTMLElement) {
@@ -178,6 +207,10 @@ export async function printPdf(container, { onProgress } = {}) {
       for (const part of sheet.children) {
         if (part instanceof SVGSVGElement) await drawSvg(part, null);
         else if (part instanceof HTMLElement) await walk(part, at(part.getBoundingClientRect()));
+      }
+      if (texts.length) {
+        const svg = new DOMParser().parseFromString(`<svg xmlns="${SVG_NS}" viewBox="0 0 ${wMm} ${hMm}" width="${wMm}" height="${hMm}">${texts.join("")}</svg>`, "image/svg+xml").documentElement;
+        await svg2pdf(svg, doc, { x: 0, y: 0, width: wMm, height: hMm });
       }
       onProgress?.((i + 1) / sheets.length);
       await nextFrame();

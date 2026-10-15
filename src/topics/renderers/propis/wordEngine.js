@@ -1083,6 +1083,7 @@ const WIDE_WORD_SPACE = 44; // a plain space between two words of a text (ink to
 // A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
 // with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
 const WIDE_PUNCT_GAP = 6;
+const EVEN_GAP = 22; // `#v` rows: the gap after a letter (row-local units at full scale), ink to ink
 const WIDE_DIGIT_GAP = 10; // between the ink of two digits of one number on a page whose snapping grid is not drawn (row-local units at full scale)
 // Largest sideways nudge (native units) allowed when landing a tail on the next letter's stroke.
 const WIDE_MAX_CONTACT_NUDGE = 6;
@@ -1486,7 +1487,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   const rowSnap = (row) => Object.assign((_r, x, y) => snapX(row, x, y), cellGrid ? { cell: { ...cellGrid, origin: () => cellGrid.origin(row) } } : {}, snapX.hidden ? { hidden: true } : {});
   // Row flags, any combination as a trailing "#x" chain: d = sample + extra dots where copies start, c = no dots, o = dot at the
   // sample only, 1 = write once, f = fade the copies out, s = copies as pale solid lines.
-  const flags = lines.map((l) => (/((?:#(?:[dc1fsorx]|[ig]\d+))+)$/.exec(l) ?? [])[1] ?? "");
+  const flags = lines.map((l) => (/((?:#(?:[dc1fsorxv]|[ig]\d+))+)$/.exec(l) ?? [])[1] ?? "");
   const marks = flags.map((f) => (/#([dco])/.exec(f) ?? [])[1] ?? null);
   const fades = flags.map((f) => f.includes("#f"));
   // r = fill the row with copies of the row's content even when it is a single letter or a mixed sequence (the default
@@ -1498,11 +1499,15 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
   const indents = flags.map((f) => Number(/#i(\d+)/.exec(f)?.[1] ?? 0));
   // gN = N extra slant cells between the repeated units of a multiplied row (a pair «Аа» repeated across the row stays a pair)
   const unitGaps = flags.map((f) => Number(/#g(\d+)/.exec(f)?.[1] ?? 0));
+  // v = even spacing (the alphabet on the back of a `propis2` cover): every token stands a fixed gap after the INK of the one before,
+  // off the slant grid — single letters that never join, whose cell-counted steps came out uneven (А а / Г  г). One space: EVEN_GAP;
+  // every extra space typed (`pendingGap`) adds a cell.
+  const evens = flags.map((f) => f.includes("#v"));
   const solids = flags.map((f) => f.includes("#s"));
   // "#1" = write the row exactly once (no multiplying across the line): running text that was wrapped
   // into rows ends on a one-word row, which must not be repeated to fill the line.
   const once = flags.map((f) => f.includes("#1"));
-  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorx]|[ig]\d+))+$/, ""));
+  lines = lines.map((l) => l.replace(/(?:#(?:[dc1fsorxv]|[ig]\d+))+$/, ""));
   if (multiply) {
     lines = lines.map((line, rowIndex) => {
       if (once[rowIndex]) return line;
@@ -1632,7 +1637,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             // next token: a whole number of cells after the previous token's start, along the slant lines
             ? prevToken.startX + ((prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) + pendingGap) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
             : (cursorX === null ? WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
-        let startX = loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
+        const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
+        let startX = even
+          ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
+          : loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
         // a digit inside a number («25») is set on the grid too, on the first slant line not left of where it would go (a sign is never written between lines)
         if (inCell) {
           // the cell: the next one inside a number, one cell skipped before a new token, the first whole cell after anything else
@@ -1659,7 +1667,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // A word is placed by the START of its first letter, but some letters (с а о д ...) have their ink to the LEFT of the start:
         // "любит спать" then touched ("любитспать"). The ink of the new word must stay clear of the previous word by a visible gap:
         // otherwise it moves on to the next slant line. Signs repeated in a row (samples, mixed sequences) keep their measured step: only a word next to something is checked.
-        if (!inCell && !loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
+        if (!even && !inCell && !loose && !prevExit && prevToken && tokenStartX === null && prevToken.token !== token && (labels.length > 1 || prevToken.isWord || glyph.kind === "digit") && Number.isFinite(prevToken.inkMaxX)) {
           const lead = local.start[0] - local.minX;
           // after a comma / full stop the next word or number stands a word space off the MARK, not huddled against it
           // («1 кот, 2 кота», «в 7 утра, в 9 вечера»): the mark is small, the gap to it reads as no gap at all

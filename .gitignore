@@ -135,3 +135,6 @@ test-results*/
 # Build-time copy of node_modules/heic-to (scripts/sync-capture-tool.mjs)
 public/vendor/heic-to.js
 public/vendor/heic-to.LICENSE.txt
+
+# the fonts the PDF glyph outlines are built from (tools/propis2/build_pdf_glyphs.py)
+!tools/propis2/pdf-fonts/*.ttf

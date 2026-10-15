@@ -66,9 +66,11 @@ describe("back content", () => {
     const { heading, lines } = backContent("alphabet");
     expect(heading).toBe("Алфавит");
     const text = lines.filter(Boolean).join(" ");
-    expect(text).toContain("А а _1 Б б");
-    expect(text).not.toContain("Ё");
-    expect(text).not.toContain("Й");
+    // a pair, then two cells more between pairs; evenly spaced (#v); Ё and Й are there (built from Е / И and the marks), Ъ Ы Ь are not
+    expect(text).toContain("А а _2 Б б");
+    expect(lines.every((l) => l.endsWith("#v"))).toBe(true);
+    expect(text).toContain("Ё ё _2 Ж ж");
+    expect(text).toContain("Й й");
     expect(text).not.toMatch(/Ъ|Ы|Ь/);
     expect(lines.every(Boolean)).toBe(true);
   });

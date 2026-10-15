@@ -39,3 +39,20 @@ export function BrandMarks({ w, h, marginX, innerLeft }) {
     </g>
   );
 }
+
+// Staple marks on the fold of an A4 landscape sheet printed «Тетрадью» (owner, 2026-10-15: as on the printed series — the very
+// marks of scripts/propis_worksheets/propis_ruling.py and scripts/cover_tetrad.py): at 45 mm from the top and the bottom edge, a pair
+// of slots 1.2 x 2.5 mm, 6 mm apart, on the fold; on the inner sheets a faint oval around each slot. Over the spine too.
+const STAPLE_YS = [45, 210 - 45];
+export function StapleMarks({ ovals = true }) {
+  return (
+    <svg className="propis-print-staples" viewBox="0 0 297 210" preserveAspectRatio="none" aria-hidden="true" data-staples="1">
+      {STAPLE_YS.flatMap((y) => [-3, 3].map((dy) => (
+        <g key={`${y}${dy}`}>
+          {ovals && <ellipse cx={148.5} cy={y + dy} rx={2} ry={1.5} fill="none" stroke="#999" strokeWidth={0.2} opacity={0.3} />}
+          <rect x={148.5 - 0.6} y={y + dy - 1.25} width={1.2} height={2.5} rx={0.3} fill="#3b3b3b" stroke="#333" strokeWidth={0.1} />
+        </g>
+      )))}
+    </svg>
+  );
+}
