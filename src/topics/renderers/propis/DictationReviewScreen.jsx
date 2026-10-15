@@ -52,16 +52,14 @@ export default function DictationReviewScreen({ task, onClose, Answers = null, G
   const patchSettings = useAppStore((s) => s.patchSettings);
   const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
 
-  const [stage, setStage] = useState("idle"); // "idle" | "pin" | "grade" | "reward"
-  // With `Grading` (propis2): the adult's mark. `wantGrade` remembers which button led to the PIN; `writing` is true while the pen writes the mark.
-  const [wantGrade, setWantGrade] = useState(false);
+  const [stage, setStage] = useState("idle"); // "idle" | "pin" | "reward"
+  // With `Grading` (propis2): the adult taps a mark right on this screen (no PIN); the pen writes it, then the footer goes on to the bonus
+  // (that is where the PIN is asked, as before). `writing` is true while the pen writes the mark.
   const [grade, setGrade] = useState(null);
   const [writing, setWriting] = useState(false);
   const afterGrade = grade != null && !writing;
-  const finish = () => (task?.videoRewardEnabled ? setStage("reward") : onClose());
   function pickGrade(g) {
     setGrade(g);
-    setStage("idle");
     setWriting(true);
     window.setTimeout(() => setWriting(false), Grading.writeMs(g) + 300);
   }
@@ -194,21 +192,17 @@ export default function DictationReviewScreen({ task, onClose, Answers = null, G
 
         <div className="propis-dictation-review-footer">
           {Grading ? (
-            afterGrade ? (
-              <button type="button" className="propis-dictation-next" onClick={finish}>
+            grade == null ? (
+              <>
+                <Grading.Keys onPick={pickGrade} />
+                <button type="button" className="propis2-grade-skip" onClick={() => (task?.videoRewardEnabled ? setStage("pin") : onClose())}>
+                  {task?.videoRewardEnabled ? "Без оценки" : "Закрыть без оценки"}
+                </button>
+              </>
+            ) : (
+              <button type="button" className="propis-dictation-next" disabled={!afterGrade} onClick={() => (task?.videoRewardEnabled ? setStage("pin") : onClose())}>
                 {task?.videoRewardEnabled ? "Дальше — бонус" : "Готово"}
               </button>
-            ) : (
-              <>
-                <button type="button" className="propis-dictation-next" disabled={writing} onClick={() => { setWantGrade(true); setStage("pin"); }}>
-                  Поставить оценку
-                </button>
-                {!writing && (
-                  <button type="button" className="propis2-grade-skip" onClick={() => (task?.videoRewardEnabled ? (setWantGrade(false), setStage("pin")) : onClose())}>
-                    {task?.videoRewardEnabled ? "Без оценки" : "Закрыть без оценки"}
-                  </button>
-                )}
-              </>
             )
           ) : task?.videoRewardEnabled ? (
             <button type="button" className="propis-dictation-next" onClick={() => setStage("pin")}>
@@ -225,13 +219,11 @@ export default function DictationReviewScreen({ task, onClose, Answers = null, G
       {stage === "pin" && (
         <PinGateModal
           pinHash={adultPinHash}
-          onSuccess={() => setStage(wantGrade ? "grade" : "reward")}
+          onSuccess={() => setStage("reward")}
           onSetPin={handleSetPin}
           onCancel={() => setStage("idle")}
         />
       )}
-
-      {stage === "grade" && Grading && <Grading.Picker onPick={pickGrade} onCancel={() => setStage("idle")} />}
 
       {stage === "reward" && activeStudent && (
         <RewardVideoModal

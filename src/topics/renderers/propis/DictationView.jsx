@@ -9,7 +9,7 @@ import { useDictationPlayer } from "./useDictationPlayer";
 // the whole text read in one breath.
 const SENTENCE_PAUSE_MS = 2500;
 
-// `Grading` (optional, `propis2`): { Picker, writeMs } -- the adult marks the dictation (1-5 with +/-) before the bonus video; the mark is passed on to `Answers`.
+// `Grading` (optional, `propis2`): { Keys, writeMs } -- the adult taps a mark (3-5 with +/-) on the review screen before the bonus video; the mark is passed on to `Answers`.
 // `Answers` (optional): a component that draws the answer sheet of the review screen ({ items, level }); `propis2` passes its own
 // (its letters); without it the review draws this topic's own ink.
 export default function DictationView({ task, onClose, Answers = null, Grading = null }) {

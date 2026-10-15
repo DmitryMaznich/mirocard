@@ -14,9 +14,9 @@ import { cardGlyphs } from "./letterCards.js";
 import { pageToLines, newPage, newRow } from "./model.js";
 import GradeStamp from "./GradeStamp.jsx";
 import { gradeWriteMs } from "./gradeMark.js";
-import GradePicker from "./GradePicker.jsx";
+import GradeKeys from "./GradeKeys.jsx";
 
-const GRADING = { Picker: GradePicker, writeMs: gradeWriteMs };
+const GRADING = { Keys: GradeKeys, writeMs: gradeWriteMs };
 
 // `propis2` in a session. The constructor is the topic's home screen (src/features/propis2); a "page" task shows a page.
 // «Узнай букву», «Строчная и заглавная» and «Диктант» (copied from `propis` («Прописи старые»), 2026-10-10) use the very views of `propis`, with this

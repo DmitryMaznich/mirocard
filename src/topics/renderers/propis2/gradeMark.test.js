@@ -3,7 +3,7 @@ import { gradeStrokes, gradeText, gradeWriteMs, GRADE_DIGITS, GRADE_SIGNS } from
 
 describe("the dictation mark written in red", () => {
   it("every mark 1–5 with +, − or nothing has finite strokes inside its box", () => {
-    for (const n of GRADE_DIGITS) for (const sign of GRADE_SIGNS) {
+    for (const n of [1, 2, 3, 4, 5]) for (const sign of [, ...GRADE_SIGNS]) {
       const { w, h, strokes } = gradeStrokes({ n, sign });
       expect(strokes.length).toBeGreaterThanOrEqual(2); // digit + underline at least
       expect(w).toBeGreaterThan(50);
