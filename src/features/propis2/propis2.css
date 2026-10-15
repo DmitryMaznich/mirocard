@@ -83,6 +83,22 @@
 .propis2-settings--row .p2-seg { opacity: 1; } .propis2-settings--row .p2-ib:disabled { opacity: .35; }
 .propis2-main > .propis2-settings { grid-area: settings; }
 .propis2-main > .propis2-page-col { grid-area: page; }
+/* «… на стр. 2 · На всю тетрадь»: over the bottom of the page area for a few seconds (Propis2Editor, owner 2026-10-15) */
+.propis2-main > .p2-offer { grid-area: page; align-self: end; z-index: 3; margin: 0 10px 10px; }
+.propis2-editor2--side .propis2-main > .p2-offer { margin-bottom: calc(12px + var(--app-safe-bottom, 0px)); margin-right: calc(10px + var(--app-safe-right, 0px)); }
+.p2-offer { position: relative; display: flex; align-items: center; gap: 10px; padding: 9px 9px 11px 14px; border-radius: 14px; background: var(--p2-ink); color: #fff; box-shadow: 0 6px 18px rgba(0, 0, 0, .25); font-weight: 700; font-size: .9rem; line-height: 1.3; animation: p2-offer-in .18s ease-out; }
+.p2-offer-msg { flex: 1 1 auto; min-width: 0; }
+.p2-offer-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 10px; padding: 9px 12px; background: var(--p2-teal); color: #fff; font: inherit; font-weight: 900; cursor: pointer; touch-action: manipulation; }
+.p2-offer-btn svg { width: 18px; height: 18px; }
+.p2-offer-btn--ghost { background: transparent; color: #9ee0d5; }
+.p2-offer-btn:focus-visible { outline: 2px solid #9ee0d5; outline-offset: 1px; }
+.p2-offer-timer { position: absolute; left: 14px; right: 14px; bottom: 4px; height: 2px; border-radius: 1px; background: rgba(255, 255, 255, .18); overflow: hidden; }
+.p2-offer-timer i { display: block; height: 100%; background: #9ee0d5; transform-origin: left; animation: p2-offer-timer linear forwards; }
+@keyframes p2-offer-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes p2-offer-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .p2-offer, .p2-offer-timer i { animation: none; } }
+/* the dot on a strip button: the notebook's pages differ in this setting */
+.p2-mixed { position: absolute; top: 2px; right: 3px; width: 10px; height: 10px; border-radius: 50%; background: #d97706; border: 2px solid var(--p2-strip); pointer-events: none; z-index: 1; }
 .propis2-main > .propis2-dock { grid-area: dock; }
 .propis2-page-col { min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 8px 6px; display: flex; justify-content: center; align-items: flex-start; background: var(--p2-board); }
 .propis2-page-box { max-width: 100%; }
@@ -151,7 +167,7 @@
 /* mini-pickers (page and row tiers) */
 .p2-grow { flex: 1 1 auto; }
 .p2-pick { position: relative; flex: 0 0 auto; }
-.p2-pick-btn { display: flex; align-items: center; gap: 2px; height: 46px; padding: 0 6px 0 8px; border: 1px solid var(--p2-line); border-radius: 14px; background: var(--p2-surface); color: var(--p2-ink, #28323c); box-shadow: 0 2px 0 var(--p2-line); cursor: pointer; }
+.p2-pick-btn { position: relative; display: flex; align-items: center; gap: 2px; height: 46px; padding: 0 6px 0 8px; border: 1px solid var(--p2-line); border-radius: 14px; background: var(--p2-surface); color: var(--p2-ink, #28323c); box-shadow: 0 2px 0 var(--p2-line); cursor: pointer; }
 .p2-pick-btn svg:first-child { width: 26px; height: 26px; }
 .p2-pick-btn.is-open { border-color: #4a9b8f; background: #e5f2ef; }
 .p2-pick-btn:disabled { opacity: .38; cursor: default; }

@@ -249,15 +249,20 @@ describe("propis2 (zip topic)", () => {
     await typeInField(host, "б");
     // the paper is each page's own: changed on page 2, page 1 keeps its paper
     const kindBtn = () => host.querySelector('button[aria-label="Тип бумаги"]');
-    const toAll = () => host.querySelector('[aria-label="Бумагу этой страницы на все страницы тетради"]');
     const counter = () => host.querySelector(".propis-text-nav__counter").textContent;
+    const offer = () => host.querySelector('[data-testid="propis2-offer"]');
+    const dotOn = (el) => Boolean(el.querySelector(".p2-mixed"));
     const before = kindBtn().getAttribute("data-value");
-    expect(toAll().disabled).toBe(true); // both pages on the same paper
+    expect(dotOn(kindBtn())).toBe(false); // both pages on the same paper
     await click(kindBtn());
     await click([...host.querySelectorAll('[role="option"]')].find((o) => !o.classList.contains("is-on")));
     const kind = kindBtn().getAttribute("data-value");
     expect(kind).not.toBe(before);
-    expect(toAll().disabled).toBe(false);
+    // the pages differ now: the dot; and the change is offered for the whole notebook
+    expect(dotOn(kindBtn())).toBe(true);
+    expect(kindBtn().getAttribute("aria-description")).toBe("в тетради по-разному");
+    expect(offer().textContent).toMatch(/^Бумага: .+ — на стр\. 2/);
+    expect(offer().textContent).toContain("На всю тетрадь");
     await click(host.querySelector('[aria-label="Предыдущая страница"]'));
     expect(kindBtn().getAttribute("data-value")).toBe(before);
     await click(host.querySelector('[aria-label="Следующая страница"]'));
@@ -270,9 +275,21 @@ describe("propis2 (zip topic)", () => {
     await click(host.querySelector('[aria-label="Следующая страница"]'));
     expect(counter()).toBe("2 / 2");
     await click(host.querySelector(".propis-practice-close"));
-    // the paper of page 2 onto all pages
-    await click(toAll());
-    expect(toAll().disabled).toBe(true);
+    // the offer went with the page; picking the paper again offers it again, and it goes onto all pages
+    expect(offer()).toBeNull();
+    await click(kindBtn());
+    await click([...host.querySelectorAll('[role="option"]')].find((o) => o.classList.contains("is-on")));
+    await click([...offer().querySelectorAll("button")].find((b) => b.textContent === "На всю тетрадь"));
+    expect(offer().textContent).toMatch(/на всех 2 страницах/);
+    expect(dotOn(kindBtn())).toBe(false);
+    // «Отменить» takes it back (the dot too); then once more onto all pages
+    await click([...offer().querySelectorAll("button")].find((b) => b.textContent === "Отменить"));
+    expect(offer()).toBeNull();
+    expect(dotOn(kindBtn())).toBe(true);
+    await click(kindBtn());
+    await click([...host.querySelectorAll('[role="option"]')].find((o) => o.classList.contains("is-on")));
+    await click([...offer().querySelectorAll("button")].find((b) => b.textContent === "На всю тетрадь"));
+    expect(dotOn(kindBtn())).toBe(false);
     await click(host.querySelector('[aria-label="Предыдущая страница"]'));
     expect(kindBtn().getAttribute("data-value")).toBe(kind);
     await click(host.querySelector('[aria-label="Следующая страница"]'));

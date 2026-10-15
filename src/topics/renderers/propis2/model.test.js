@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { taskGrid, pageRuling, paperKey, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, paperDiffers } from "./model.js";
+import { taskGrid, pageRuling, paperKey, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, mixedSettings, othersDiffer } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { buildGlyphMap } from "./pageTask.js";
 import { rowAtSvgY } from "../propis/PrintPageView.jsx";
@@ -136,8 +136,14 @@ describe("propis2 model", () => {
     expect(secs.map((x) => x.pageIds)).toEqual([[sq.id, sq2.id], [wide.id], [narrow.id]]);
     expect(secs.map((x) => x.start)).toEqual([0, 2, 3]);
     expect(setToLines(set, byId, map, secs[1].pageIds)).toEqual(pageToLines(wide, map));
-    expect(paperDiffers(set, byId, wide)).toBe(true);
-    expect(paperDiffers(newSet("one", { pageIds: [wide.id] }), byId, wide)).toBe(false);
+    // the dots of the strip: paper and «писать» differ; the ruling counts on the copybook pages only (wide / narrow: differs)
+    expect(mixedSettings(set, byId)).toEqual({ gridKind: true, ruling: true, writeAfter: true });
+    expect(mixedSettings(newSet("one", { pageIds: [wide.id] }), byId)).toEqual({});
+    expect(mixedSettings(newSet("sq", { pageIds: [sq.id, wide.id] }), byId)).toEqual({ gridKind: true }); // the squared page has no ruling
+    // the offer for the whole notebook: only when another page would change
+    expect(othersDiffer(set, byId, wide.id, "ruling", "wide")).toBe(true); // the narrow page
+    expect(othersDiffer(newSet("w", { pageIds: [wide.id, sq.id] }), byId, wide.id, "ruling", "wide")).toBe(false);
+    expect(othersDiffer(set, byId, wide.id, "midDash", true)).toBe(false); // the default everywhere
     // only the format is the notebook's
     expect(notebookLayout(newSet("x", { pageIds: [narrow.id] }), new Map([[narrow.id, { ...narrow, format: "a4" }]]))).toEqual({ format: "a4" });
   });
