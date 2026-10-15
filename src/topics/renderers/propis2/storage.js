@@ -100,6 +100,14 @@ export function pagesTakeNotebookRuling(library) {
   };
 }
 
+// Copies of the ready kits were first made with their pages closed (`locked`): on a blank notebook nothing could be changed, on
+// the others only the samples' symbols. A copy is the user's own (the kit stays the sample): its pages open up.
+export function openKitCopies(library) {
+  const ids = new Set(library.sets.filter((s) => s.kit).flatMap((s) => s.pageIds));
+  if (!library.pages.some((p) => p.locked && ids.has(p.id))) return library;
+  return { ...library, pages: library.pages.map((p) => (p.locked && ids.has(p.id) ? { ...p, locked: false } : p)) };
+}
+
 // There is no page outside a notebook: a page that no notebook lists becomes a notebook of one page. The id is made from the
 // page's, and the stamps are the page's own, so devices that migrate the same page build the same notebook (last write wins,
 // no duplicates).

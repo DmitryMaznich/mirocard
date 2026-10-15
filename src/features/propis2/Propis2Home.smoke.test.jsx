@@ -562,7 +562,7 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
-  it("kits: a page from a kit is locked until cleared (undo brings it back); save a page as «Мои» preset", async () => {
+  it("kits: the copy of a method's notebook is the user's own — open to edit in full, the kit stays the sample", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -571,31 +571,11 @@ describe("propis2 (zip topic)", () => {
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     const lbl = (name) => host.querySelector(`[aria-label="${name}"]`);
     await click(lbl("Изменить тетрадь Листы методики, часть 2 (узкая строка)"));
-
-    // locked: layout controls are off, the lock marker and «Очистить страницу» are there
-    expect(lbl("Тип бумаги").disabled).toBe(true);
-    expect(lbl("Разлиновка").disabled).toBe(true);
-    expect(lbl("Строка для письма после каждой строки").disabled).toBe(true);
-    expect(lbl("Текст страницы").disabled).toBe(true); // no row selected yet: nothing to edit
-    expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).not.toBeNull();
-    const rowsBefore = host.querySelectorAll('[data-testid="propis2-preview"] svg path').length;
-    vi.spyOn(window, "confirm").mockReturnValueOnce(false);
-    await click(lbl("Очистить страницу"));
-    expect(lbl("Тип бумаги").disabled).toBe(true); // declined: nothing erased
-    vi.spyOn(window, "confirm").mockReturnValueOnce(true);
-    await click(lbl("Очистить страницу"));
-    expect(lbl("Тип бумаги").disabled).toBe(false);
     expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).toBeNull();
-    expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBeLessThan(rowsBefore);
-    await click(lbl("Отменить"));
-    expect(lbl("Тип бумаги").disabled).toBe(true);
-    // the pencil unlocks the layout and keeps the rows
-    await click(lbl("Редактировать страницу"));
     expect(lbl("Тип бумаги").disabled).toBe(false);
-    expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).toBeNull();
-    expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBe(rowsBefore);
-    expect(host.querySelectorAll('[data-testid="propis2-preview"] svg path').length).toBe(rowsBefore);
-
+    expect(lbl("Разлиновка").disabled).toBe(false);
+    expect(lbl("Строка для письма после каждой строки").disabled).toBe(false);
+    expect(lbl("Текст страницы").disabled).toBe(false);
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);
@@ -648,31 +628,6 @@ describe("propis2 (zip topic)", () => {
     await act(async () => { root.unmount(); await tick(300); });
     host.remove();
   }, 20000);
-
-  it("a locked page: the field edits only the selected row's text, one line; running text can be switched on a row", async () => {
-    const db = await freshDb();
-    const host = document.createElement("div");
-    document.body.appendChild(host);
-    const root = createRoot(host);
-    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
-    const click = async (el, init = {}) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true, ...init })); await tick(60); }); };
-    await click(host.querySelector('[aria-label="Изменить тетрадь Листы методики, часть 2 (узкая строка)"]'));
-    const preview = () => host.querySelector('[data-testid="propis2-preview"]');
-    const svg = preview().querySelector("svg.propis-print-page-svg");
-    const vbH = Number(svg.getAttribute("viewBox").split(/\s+/)[3]);
-    svg.getBoundingClientRect = () => ({ left: 0, top: 0, right: 400, bottom: vbH, width: 400, height: vbH });
-    const yOfRow = (r) => { let y = 0; while (rowAtSvgY(y) !== r && y < vbH) y += 1; return y + 4; };
-    expect(fieldOf(host).disabled).toBe(true);
-    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(0) });
-    expect(fieldOf(host).disabled).toBe(false);
-    const first = fieldOf(host).value;
-    expect(first.length).toBeGreaterThan(0);
-    expect(first).not.toContain("\n");
-    await typeInField(host, "Ю\nлишнее");
-    expect(fieldOf(host).value).not.toContain("\n");
-    await act(async () => { root.unmount(); await tick(400); });
-    host.remove();
-  }, 40000);
 
   it("a row can be switched between sample and running text", async () => {
     const db = await freshDb();

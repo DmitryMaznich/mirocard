@@ -7,7 +7,7 @@ import { openPdf, pdfFileName, pdfTab, printPdf } from "@/topics/renderers/propi
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { NOTEBOOK_KEYS, PAGE_PAPER_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, paperDiffers, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
-import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
+import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, openKitCopies, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
@@ -82,7 +82,7 @@ export default function Propis2Home({ db }) {
       const res = await api.get(`/account/kv?prefix=${encodeURIComponent(SYNC_PREFIX)}`);
       if (!Array.isArray(res?.kv)) return;
       syncedRef.current = snapshotFromRemote(res.kv);
-      persist(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(mergeRemote(latest.current, res.kv)))));
+      persist(openKitCopies(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(mergeRemote(latest.current, res.kv))))));
     } catch {
       // offline or signed out: the local library keeps working, the queue catches up later
     }
@@ -94,7 +94,7 @@ export default function Propis2Home({ db }) {
       .then((raw) => {
         if (!alive) return;
         // no page lives outside a notebook: what was saved loose becomes a notebook of one page (and goes up with the next flush)
-        const lib = pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(raw)));
+        const lib = openKitCopies(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(raw))));
         syncedRef.current = snapshotDocs(raw);
         latest.current = lib;
         setLibrary(lib);

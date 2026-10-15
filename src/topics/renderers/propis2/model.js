@@ -155,12 +155,13 @@ export function methodNotebooks(sheets, elementLabels) {
   }));
 }
 
-// A ready «Методика» kit (kits.json) as the user's own copy: a set of pages whose layout is closed (`locked`), the pages hidden
-// from the plain page list (`kitId` = the set), so a 38-page notebook is one entry of the library, not 38.
+// A ready kit (kits.json) as the user's own copy: a set of pages hidden from the plain page list (`kitId` = the set), so a
+// 38-page notebook is one entry of the library, not 38. The copy is the user's to change in full: the kit stays the sample
+// (owner, 2026-10-15 — closed copies let nothing be changed on a blank notebook, and only the samples' symbols on the others).
 export function kitToLibraryItems(kit) {
   const set = newSet(kit.title, { ruling: kit.page?.ruling ?? "narrow", kit: kit.id, sourceId: `kit:${kit.id}` });
   // a page of a kit may have its own paper (`paper`, over the kit's `page`): the digits kit is squared paper, then the copybook ruling
-  const pages = kit.pages.map((p) => newPage(p.title, { ...(kit.page ?? {}), ...(p.paper ?? {}), rows: p.rows.length ? p.rows.map((r) => newRow({ ...r })) : [newRow()], locked: true, kitId: set.id }));
+  const pages = kit.pages.map((p) => newPage(p.title, { ...(kit.page ?? {}), ...(p.paper ?? {}), rows: p.rows.length ? p.rows.map((r) => newRow({ ...r })) : [newRow()], kitId: set.id }));
   return { set: { ...set, pageIds: pages.map((x) => x.id) }, pages };
 }
 
