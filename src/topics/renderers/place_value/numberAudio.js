@@ -75,26 +75,20 @@ async function running(ctx) {
   return ctx.state === "running";
 }
 
-// While the voice speaks, taps on the task screen do nothing (useSpeechGuard.js):
-// a child tapping in a hurry otherwise stacks one clip on another. Players hold
-// the lock for a whole sequence (number, pause, phrase), playUrls for each clip;
-// a hold always ends — on «ended», on stop, on error, and after MAX_HOLD_MS at worst.
-const MAX_HOLD_MS = 15000;
-let held = 0;
-const listeners = new Set();
-const emit = () => listeners.forEach((fn) => fn());
-export const isSpeaking = () => held > 0;
-export function subscribeSpeaking(fn) { listeners.add(fn); return () => listeners.delete(fn); }
-export function holdSpeech() {
-  let released = false;
-  held++; emit();
-  const release = () => {
-    if (released) return;
-    released = true; clearTimeout(timer);
-    held--; emit();
-  };
-  const timer = setTimeout(release, MAX_HOLD_MS);
-  return release;
+// One voice at a time, and a tap always wins (useSpeechGuard.js). Every clip
+// and every player sequence (number, pause, phrase) registers its stop here:
+// a tap on a button calls stopSpeech() before the button acts, and a new
+// sequence calls it before it starts — so sounds never stack, and a child who
+// knows the answer before the voice is done can give it at once (waiting for
+// the voice made a child think the answer was wrong and tap the others).
+const active = new Set();
+export const isSpeaking = () => active.size > 0;
+export function registerSpeech(stop) {
+  active.add(stop);
+  return () => active.delete(stop);
+}
+export function stopSpeech() {
+  [...active].forEach((stop) => stop());
 }
 
 export const playNumber = (n) => playUrls(numberAudioParts(n).map(numberAudioUrl));
@@ -137,7 +131,8 @@ function playUrls(urls) {
       });
     }
   };
-  const release = holdSpeech();
-  const done = viaWebAudio().catch(() => false).then((ok) => (ok || stopped ? undefined : viaElements())).catch(() => {}).finally(release);
-  return { done, stop: () => { stopped = true; stops.forEach((f) => f()); release(); } };
+  const stop = () => { stopped = true; unregister(); stops.forEach((f) => f()); };
+  const unregister = registerSpeech(stop);
+  const done = viaWebAudio().catch(() => false).then((ok) => (ok || stopped ? undefined : viaElements())).catch(() => {}).finally(() => unregister());
+  return { done, stop };
 }

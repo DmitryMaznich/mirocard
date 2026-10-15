@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { numberWords, pluralHundreds, pluralOnes, pluralTens } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useTypedAnswer } from "./FieldPad.jsx";
-import { NUMBER_AUDIO_WORDS, holdSpeech, numberAudioParts, playNumber } from "./numberAudio.js";
+import { NUMBER_AUDIO_WORDS, numberAudioParts, playNumber, registerSpeech, stopSpeech } from "./numberAudio.js";
 import { useSpeechGuard } from "./useSpeechGuard.js";
 import "./place_value.css";
 import "./group_ten.css";
@@ -74,12 +74,12 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
   const { guard } = useSpeechGuard();
 
   const play = async (...numbers) => {
-    player.current?.stop();
+    stopSpeech();
     setPlaying(true);
     let cancelled = false;
-    // Taps wait for the whole sequence («19» … «90»), gaps included.
-    const release = holdSpeech();
-    const stopper = { stop: () => { cancelled = true; current?.stop(); release(); } };
+    // The whole sequence («19» … «90», gaps included) stops on any tap.
+    const stopper = { stop: () => { cancelled = true; unregister(); current?.stop(); } };
+    const unregister = registerSpeech(stopper.stop);
     let current = null;
     player.current = stopper;
     for (const value of numbers) {
@@ -89,7 +89,7 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
       if (cancelled) break;
       await new Promise((r) => setTimeout(r, 350));
     }
-    release();
+    unregister();
     if (player.current === stopper) setPlaying(false);
   };
   // Speak the number as soon as the task shows; stop when it goes away.
