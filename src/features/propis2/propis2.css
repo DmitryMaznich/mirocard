@@ -358,12 +358,19 @@
 .p2-cover { --p2-accent: #2f6f65; container-type: inline-size; position: relative; width: 100%; aspect-ratio: 148.5 / 210; background: #fff; color: #1f2933; font-family: "Nunito", sans-serif; overflow: hidden; box-sizing: border-box; }
 .p2-cover--a4 { aspect-ratio: 210 / 297; }
 .propis-print-cover .p2-cover { height: 100%; aspect-ratio: auto; }
-.p2-cover-mid { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6cqw; padding: 0 12cqw; }
-.p2-cover-kicker { font-weight: 900; font-size: 6.2cqw; letter-spacing: 0.32em; padding-left: 0.32em; }
-.p2-cover-name { font-weight: 700; font-size: 4.6cqw; color: #4b5563; text-align: center; overflow-wrap: anywhere; margin-top: -3cqw; }
-.p2-cover-fields { align-self: stretch; display: flex; flex-direction: column; gap: 4.5cqw; margin-top: 4cqw; }
-.p2-cover-field { display: flex; align-items: flex-end; gap: 2cqw; font-size: 3.4cqw; font-weight: 700; color: #4b5563; }
-.p2-cover-field i { flex: 1; border-bottom: 0.35cqw solid #6b7280; }
+/* The stamp («ТЕТРАДЬ», the name, the fields) at the sizes and places of the printed series' cover (scripts/cover_tetrad.py, owner
+   2026-10-15: «exactly as on that cover»): ТЕТРАДЬ bold 20 pt, its baseline 86.2 mm from the top, centred on the cover; the name 15 pt,
+   its baseline 24 pt lower; the fields 11 pt, the first baseline 62 pt under ТЕТРАДЬ, then 33 and 31 pt, from 30 mm off the fold to
+   20 mm off the edge, lines 0.55 pt. In cqw of the A5 cover (1 cqw = 1.485 mm = 4.209 pt); lines of height 1 (1.2 for the name) put a
+   Nunito baseline 0.829 (0.929) em under the top of its line. */
+.p2-cover-mid { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding: 54.11cqw 13.47cqw 0; }
+.p2-cover-kicker { font-weight: 800; font-size: 4.75cqw; line-height: 1; letter-spacing: 0.3em; padding-left: 0.3em; }
+.p2-cover-name { font-weight: 400; font-size: 3.564cqw; line-height: 1.2; color: #404040; text-align: center; overflow-wrap: anywhere; margin-top: 1.58cqw; }
+.p2-cover-fields { align-self: stretch; display: flex; flex-direction: column; margin: 5.89cqw 0 0 6.73cqw; }
+.p2-cover-field { display: flex; align-items: baseline; gap: 1.19cqw; font-size: 2.613cqw; line-height: 1; font-weight: 400; color: #1f1f1f; }
+.p2-cover-field + .p2-cover-field { margin-top: 5.227cqw; }
+.p2-cover-field + .p2-cover-field + .p2-cover-field { margin-top: 4.747cqw; }
+.p2-cover-field i { flex: 1; align-self: baseline; height: 0; border-bottom: 0.131cqw solid #262626; }
 .p2-cover .propis-paper { fill: #fff; }
 /* the Mironium logo (MironiumLogo.jsx): small, centred at the foot of the front */
 .p2-cover-logo { position: absolute; left: 50%; transform: translateX(-50%); bottom: 9cqw; height: 5.2cqw; width: auto; display: block; }
@@ -392,7 +399,8 @@
 .p2-spine-paper { width: 742.5%; }
 .p2-spine--front .p2-spine-paper { margin-left: -100%; }
 .p2-spine .propis-print-page-svg { display: block; width: 100%; height: auto; box-shadow: none; border-radius: 0; }
-.p2-cover--spine .p2-cover-mid { padding-left: calc(12cqw + 13.5cqw); padding-right: 8cqw; }
+.p2-cover--spine .p2-cover-mid { padding-left: 16.47cqw; padding-right: 16.47cqw; } /* centred as without the spine, off its edge */
+.p2-cover--spine .p2-cover-fields { margin-left: 3.73cqw; margin-right: -3cqw; } /* the fields still from 30 mm off the fold to 20 mm off the edge */
 .p2-cover--spine .p2-cover-logo { left: calc(50% + 6.75cqw); }
 .p2-back.p2-cover--spine .p2-back-block { left: 4cqw; right: calc(3cqw + 13.5cqw); }
 /* the back of the cover: a printed heading, then the content written in our hand on its own paper (the whole width of the page) */
