@@ -4,6 +4,7 @@ import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import { getTopicTitle } from "@/shared/utils/format";
 import "./lessonPlan.css";
+import { isPickableMode } from "@/shared/utils/topicUtils";
 
 const TAB_TOPIC = "topic";
 const TAB_FREEFORM = "freeform";
@@ -61,7 +62,7 @@ export default function AddPlanItemSheet({ onPick, onClose }) {
 
       {tab === TAB_TOPIC && selectedTopic && (
         <ul className="lesson-plan-add-sheet__list">
-          {selectedTopic.modes.map((mode) => (
+          {selectedTopic.modes.filter(isPickableMode).map((mode) => (
             <li key={mode.id}>
               <button onClick={() => handlePickMode(mode)}>{getTopicTitle(mode.ui?.title) || mode.id}</button>
             </li>

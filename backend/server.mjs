@@ -17,6 +17,7 @@ import { createOneTimeCode, consumeOneTimeCode } from "./lib/one-time-codes.mjs"
 import { createEmailBudget } from "./lib/email-budget.mjs";
 import { setMarketingConsent } from "./lib/marketing-consent.mjs";
 import { getDb } from "./lib/db.mjs";
+import { startTelegramNotifications } from "./lib/telegram-notifications.mjs";
 import {
   createAccount, findAccountByEmail, findAccountByEmailAny, findAccountById,
   updateAccount, updateAccountPasswordHash, activateAccount,
@@ -50,6 +51,7 @@ import {
   sendMaterialsLinkEmail, setEmailBudget,
 } from "./lib/mailer.mjs";
 import { buildBootstrap } from "./lib/snapshot-builder.mjs";
+import { sessionToApi, getSessionStatistics, restoreSessionHistory } from "./lib/session-statistics.mjs";
 import { processSync } from "./lib/sync-processor.mjs";
 import { configureWebPush, sendPushNotification } from "./lib/push.mjs";
 import {
@@ -354,6 +356,7 @@ async function handleRegister(req, res) {
     account = createAccount(db, {
       email,
       passwordHash: createPasswordHash(password),
+      notificationMethod: "email",
       firstName,
       lastName,
       role,
@@ -632,6 +635,7 @@ async function handleGoogleCompleteSignup(req, res) {
     account = createAccount(db, {
       email: id.email,
       passwordHash: "", // Google-only: verifyPasswordHash("") is always false
+      notificationMethod: "google",
       firstName: id.givenName || id.email.split("@")[0],
       lastName: id.familyName,
       role,
@@ -835,28 +839,25 @@ async function handleDeleteStudent(req, res) {
 
 // ─── Session handlers ──────────────────────────────────────────────────────────
 
-function sessionToApi(s) {
-  let mistakes, cardEvents;
-  try { mistakes   = JSON.parse(s.mistakes   ?? "[]"); } catch { mistakes   = []; }
-  try { cardEvents = JSON.parse(s.card_events ?? "[]"); } catch { cardEvents = []; }
-  return {
-    id:             s.id,
-    studentId:      s.student_id,
-    topicId:        s.topic_id,
-    topicVersion:   s.topic_version,
-    mode:           s.mode,
-    startedAt:      s.started_at,
-    completedAt:    s.completed_at,
-    correctCount:   s.correct_count,
-    incorrectCount: s.incorrect_count,
-    percentCorrect: s.percent_correct,
-    mistakes,
-    cardEvents,
-    activeDurationMs: s.active_duration_ms,
-    elapsedDurationMs: s.elapsed_duration_ms,
-    entryPoint: s.entry_point,
-    createdAt:      s.created_at,
-  };
+async function handleGetStatistics(req, res) {
+  const account = requireAuth(req);
+  const url = new URL(req.url, "http://localhost");
+  const studentId = url.searchParams.get("studentId");
+  const topicId = url.searchParams.get("topicId");
+  const since = url.searchParams.get("since");
+  const until = url.searchParams.get("until");
+  const timeZone = url.searchParams.get("timeZone") || "UTC";
+  try { new Intl.DateTimeFormat("en", { timeZone }); } catch { return writeJson(res, 400, { error: "invalid_statistics_filters" }); }
+  if (!studentId || [since, until].some(value => value && !Number.isFinite(Date.parse(value))) || (since && until && Date.parse(since) >= Date.parse(until))) return writeJson(res, 400, { error: "invalid_statistics_filters" });
+  const report = getSessionStatistics(db, account.id, { studentId, topicId, since, until, timeZone });
+  writeJson(res, 200, report);
+}
+
+async function handleRestoreStatistics(req, res) {
+  const account = requireAuth(req);
+  const body = await readJsonBody(req);
+  if (!Array.isArray(body?.sessions) || body.sessions.length > 100) return writeJson(res, 400, { error: "invalid_history_batch" });
+  writeJson(res, 200, restoreSessionHistory(db, account.id, body.sessions));
 }
 
 async function handleGetSessions(req, res) {
@@ -2003,6 +2004,8 @@ async function router(req, res) {
 
     // Sessions
     if (method === "GET"    && p === "/sessions")                 return await handleGetSessions(req, res);
+    if (method === "GET"    && p === "/statistics")               return await handleGetStatistics(req, res);
+    if (method === "POST"   && p === "/statistics/restore")       return await handleRestoreStatistics(req, res);
     if (method === "POST"   && p === "/sessions")                 return await handleAppendSession(req, res);
 
     // AI analysis is unavailable throughout the beta, including to older
@@ -2130,6 +2133,7 @@ export { router, db };
 const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 if (isMainModule) {
   cancelScheduledErasure(db);
+  startTelegramNotifications(db);
   createServer(router).listen(PORT, () => {
     console.log(`Mirocard2 backend running on port ${PORT}`);
   });

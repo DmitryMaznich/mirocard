@@ -4,7 +4,7 @@ const publicUrl = (process.env.MIROCARD_PUBLIC_URL || "https://app.mironium.com"
 const checks = [
   ["application", "/"],
   ["backend", "/api/version"],
-  ["deck catalog", "/decks/catalog.json"],
+  ["deck catalog", "/api/decks/catalog"],
 ];
 
 for (const [label, pathname] of checks) {

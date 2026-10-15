@@ -21,6 +21,36 @@ async function freshDb() {
 }
 
 describe("bootstrap helpers", () => {
+  const oldSession = (extra = {}) => ({ id: "old-lesson", studentId: "kid", topicId: "topic", topicVersion: "1", modeId: "find_n", startedAt: "2026-10-01T10:00:00Z", completedAt: "2026-10-01T10:01:00Z", correctCount: 1, incorrectCount: 0, ...extra });
+  it("preserves a same-account device snapshot across server refresh in storage and memory", async () => {
+    const db = await freshDb();
+    const local = oldSession({ paramsSnapshot: { optionCount: 2 } });
+    await kv.set(db, "account", { id: "owner" });
+    await kv.set(db, "sessions", [local, oldSession({ id: "outside-recent-page" })]);
+    useAppStore.setState({ account: { id: "owner" }, sessions: [local] });
+    const payload = { account: { id: "owner" }, sessions: [oldSession({ paramsSnapshot: null })] };
+    await persistBootstrap(db, payload);
+    applyBootstrapToStore(payload);
+    expect(await kv.get(db, "sessions")).toHaveLength(2);
+    expect(useAppStore.getState().sessions.find(item => item.id === local.id).statistics.conditions.params).toEqual({ optionCount: 2 });
+    const reloaded = await loadLocalBootstrap(db);
+    expect(reloaded.sessions.find(item => item.id === local.id).statistics.recovery.savedParams).toBe(true);
+  });
+  it("never merges histories across accounts and removes erased students' historical evidence", async () => {
+    const db = await freshDb();
+    await kv.set(db, "account", { id: "previous" });
+    await kv.set(db, "sessions", [oldSession({ paramsSnapshot: { optionCount: 2 } })]);
+    useAppStore.setState({ account: { id: "previous" }, sessions: [oldSession()] });
+    const payload = { account: { id: "next" }, sessions: [], erasedStudentIds: [] };
+    await persistBootstrap(db, payload); applyBootstrapToStore(payload);
+    expect(await kv.get(db, "sessions")).toEqual([]);
+    expect(useAppStore.getState().sessions).toEqual([]);
+    await kv.set(db, "sessions", [oldSession()]);
+    const erased = { account: { id: "next" }, sessions: [], erasedStudentIds: ["kid"] };
+    await persistBootstrap(db, erased); applyBootstrapToStore(erased);
+    expect(await kv.get(db, "sessions")).toEqual([]);
+    expect(useAppStore.getState().sessions).toEqual([]);
+  });
   beforeEach(() => {
     useAppStore.setState({
       screen: "boot",
@@ -67,7 +97,7 @@ describe("bootstrap helpers", () => {
     });
   });
 
-  it("normalizeBootstrap fills defaults and trims sessions", () => {
+  it("normalizeBootstrap fills defaults and preserves cumulative session summaries", () => {
     const sessions = Array.from({ length: 205 }, (_, index) => ({ id: index + 1 }));
     const result = normalizeBootstrap({
       studentTopicLinks: [{ studentId: "s1", topicId: "t1", id: "l1" }],
@@ -87,8 +117,8 @@ describe("bootstrap helpers", () => {
     expect(result.conceptProgress).toEqual({
       s1_t1_c1: { studentId: "s1", topicId: "t1", conceptId: "c1" },
     });
-    expect(result.sessions).toHaveLength(200);
-    expect(result.sessions[0].id).toBe(6);
+    expect(result.sessions).toHaveLength(205);
+    expect(result.sessions[0].id).toBe(1);
     expect(result.lastContext).toBeNull();
     expect(result.activeSession).toBeNull();
   });
@@ -430,8 +460,8 @@ describe("bootstrap helpers", () => {
     expect(bootstrap.ownedTopics).toEqual([{ topicId: "topic-1" }]);
     expect(bootstrap.studentTopicLinks["s2_topic-1"].id).toBe("link-1");
     expect(bootstrap.conceptProgress["s2_topic-1_c2"].level).toBe(1);
-    expect(bootstrap.sessions).toHaveLength(200);
-    expect(bootstrap.sessions[0].id).toBe(2);
+    expect(bootstrap.sessions).toHaveLength(201);
+    expect(bootstrap.sessions[0].id).toBe(1);
     expect(bootstrap.lastContext).toEqual({ studentId: "s2", topicId: "topic-1", modeId: "find_n" });
     expect(bootstrap.activeSession).toEqual({
       schemaVersion: 1,

@@ -15,3 +15,11 @@ The suite checks all eight task types plus image/phrase stimuli and hidden-image
 Use `RESPONSIVE_BROWSER=chrome` or `msedge` to override the default Playwright Chromium channel if needed.
 
 The transfer set also checks text-only introduction, word selection and seasonal agreement with a new noun. It does not substitute familiar images for the new object.
+
+Statistics has a separate fixture and suite:
+
+```powershell
+npx playwright test -c tests/responsive/statistics.playwright.config.mjs
+```
+
+It builds the real statistics screen with sample data, checks widths of 360, 768 and 1280 pixels, verifies that changed conditions and legacy records remain separate, and switches to a student with no results. It uses installed Chrome by default and saves screenshots in `.cache/statistics-screenshots`. No account or backend is required.

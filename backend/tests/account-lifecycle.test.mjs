@@ -54,6 +54,7 @@ test("archive retains identity, students, entitlements and assignments; restorat
   ).run(a.id, "private-data", '{"text":"preserve"}', new Date().toISOString());
   const p = prepareDeletion(db, a.id, "archive");
   assert.equal(confirmDeletion(db, a.id, input(p)).status, "archived");
+  assert.equal(db.prepare("SELECT type FROM telegram_notifications WHERE account_id=?").get(a.id).type, "archived");
   const archived = db.prepare("SELECT * FROM accounts WHERE id=?").get(a.id);
   assert.equal(archived.email, a.email);
   assert.equal(archived.password_hash, "hash");
@@ -203,11 +204,13 @@ test("permanent account erasure removes billing children, private resources and 
   assert.equal(db.prepare("SELECT id FROM accounts WHERE id=?").get(a.id),undefined);
   assert.ok(db.prepare("SELECT id FROM accounts WHERE id=?").get(other.id));
   for(const {name} of db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").all()) {
-    if(name==="admin_account_events")continue;
+    if(name==="admin_account_events" || name==="telegram_notifications")continue;
     if(db.prepare(`PRAGMA table_info(${name})`).all().some(c=>c.name==="account_id"))
       assert.equal(db.prepare(`SELECT COUNT(*) n FROM ${name} WHERE account_id=?`).get(a.id).n,0,name);
   }
   assert.equal(db.prepare("PRAGMA foreign_key_check").all().length,0);
+  const notification = db.prepare("SELECT type,payload FROM telegram_notifications WHERE account_id=?").get(a.id);
+  assert.deepEqual({ ...notification }, { type: "erased", payload: "{}" });
   assert.equal(db.prepare("SELECT COUNT(*) n FROM photos").get().n,1,"shared photos retained");
   assert.ok(createAccount(db,{email:a.email,passwordHash:"fresh"}));
   db.close();

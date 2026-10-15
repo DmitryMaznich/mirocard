@@ -313,6 +313,7 @@ export default function SessionScreen() {
       {sessionExitPromptOpen && (
         <SessionExitPrompt onContinue={closeSessionExitPrompt} onFinish={handleFinishSession} />
       )}
+      {sessionSaveError && !deckExhausted && <div role="alert" style={{ padding: "12px 16px" }}>{sessionSaveError}</div>}
       {!isDailyOrientation && <div className={`session-header-wrap${mode.evaluation === "none" ? " session-header-wrap--compact" : ""}`}>
         <SessionHeader
           topicTitle={topicTitle}

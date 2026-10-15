@@ -8,6 +8,7 @@ import Button from "@/shared/components/Button";
 import TopicImport from "./TopicImport";
 import InfoModal from "@/shared/components/InfoModal";
 import TopicActionSheet from "./TopicActionSheet";
+import StatisticsScreen from "@/features/analytics/StatisticsScreen";
 import TopicTile from "./TopicTile";
 import ContinueStrip from "./ContinueStrip";
 import { getTopicTitle } from "@/shared/utils/format";
@@ -23,6 +24,7 @@ import { hasActiveEntitlement } from "@/features/billing/entitlement";
 import { CATEGORY_ORDER, getTopicCategory } from "./topicCategories";
 import { getPersonalTopicCaption } from "./topicOrigin";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import { isPickableMode } from "@/shared/utils/topicUtils";
 
 export default function TopicLibraryScreen() {
   const setScreen         = useAppStore((s) => s.setScreen);
@@ -45,6 +47,7 @@ export default function TopicLibraryScreen() {
   const [deleting,          setDeleting]          = useState(null);
   const [infoTopic,         setInfoTopic]         = useState(null);
   const [actionSheetRecord, setActionSheetRecord] = useState(null);
+  const [statisticsTopic, setStatisticsTopic] = useState(null);
 
   const loadCatalog = useCallback(() => {
     fetchCatalog()
@@ -239,6 +242,8 @@ export default function TopicLibraryScreen() {
     );
   }
 
+  if (statisticsTopic) return <StatisticsScreen initialTopicId={statisticsTopic.meta.id} onClose={() => setStatisticsTopic(null)} />;
+
   return (
     <div className="screen">
       <div className="screen-header">
@@ -326,6 +331,7 @@ export default function TopicLibraryScreen() {
           record={actionSheetRecord}
           onClose={() => setActionSheetRecord(null)}
           onInfo={(r) => { setInfoTopic(r); }}
+          onStatistics={setStatisticsTopic}
           onDelete={(r) => setDeleting(r)}
         />
       )}
@@ -334,7 +340,7 @@ export default function TopicLibraryScreen() {
         <InfoModal
           title={getTopicTitle(infoTopic.meta.title)}
           about={infoTopic.meta.about}
-          modes={infoTopic.modes}
+          modes={infoTopic.modes?.filter(isPickableMode)}
           onClose={() => setInfoTopic(null)}
         />
       )}

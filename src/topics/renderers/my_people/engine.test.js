@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMyPeopleTopicRecord } from "@/topics/builtinMyPeopleTopic";
-import { ageFromBirthDate, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
+import { aboutMeHistory, ageFromBirthDate, firstSyllable, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
 
 const student = {
   id: "student_1",
@@ -15,98 +15,75 @@ const student = {
 };
 
 describe("my_people album engine", () => {
-  it("uses 2, 4, 6, or 8 portraits and keeps every mode in a renewable loop", () => {
+  it("offers one «Подпиши фото» mode with 2–6 photos and keeps every mode in a renewable loop", () => {
     const topic = buildMyPeopleTopicRecord();
-    const familyNames = topic.modes.find((mode) => mode.id === "family_names");
+    const labelPhotos = topic.modes.find((mode) => mode.id === "label_photos");
     const aboutMe = topic.modes.find((mode) => mode.id === "about_me");
     const whoIsThis = topic.modes.find((mode) => mode.id === "who_is_this");
 
-    expect(familyNames.params.peopleCount.values).toEqual([2, 4, 6, 8]);
+    expect(labelPhotos.params.peopleCount.values).toEqual([2, 3, 4, 6]);
+    expect(labelPhotos.params.circle.values).toEqual(["family", "home", "school", "all"]);
     expect(topic.modes.every((mode) => mode.loop && mode.regenerateOnLoop)).toBe(true);
     expect(aboutMe).toEqual(expect.objectContaining({ type: "about_me", evaluation: "adult" }));
     expect(whoIsThis).toEqual(expect.objectContaining({ type: "person_naming", evaluation: "adult", hideConceptPicker: true }));
   });
 
-  it("does not generate an introduce-yourself block with fewer than two included facts", () => {
-    const tasks = generateTasks(
-      { id: "introduce_self", type: "about_me" },
-      {
-        id: "student_about_me",
-        name: "Лиза",
-        myPeopleProfile: {
-          includeSelfName: true,
-          includeFamilyName: false,
-          includeFamilyLabel: false,
-          includeCity: false,
-        },
-      },
-    );
-
-    expect(tasks).toEqual([]);
+  it("lists the modes in teaching order and keeps the old album modes only as retired", () => {
+    const modes = buildMyPeopleTopicRecord().modes;
+    expect(modes.filter((mode) => !mode.retired).map((mode) => mode.id))
+      .toEqual(["match_same", "show_me", "who_is_this", "about_me", "label_photos", "introduce_self"]);
+    expect(modes.filter((mode) => mode.retired).map((mode) => mode.id))
+      .toEqual(["family_names", "family_relations", "home_names", "home_relations", "school_names", "school_relations", "mix"]);
   });
 
-  it("builds situational introduce-yourself cards from included profile facts only", () => {
-    const tasks = generateTasks(
-      { id: "introduce_self", type: "about_me" },
-      {
-        id: "student_about_me",
-        name: "Лиза",
-        myPeopleProfile: {
-          familyName: "Скрытая фамилия",
-          familyLabel: "Скрытая семья",
-          city: "Новоград",
-          address: "Совершенно секретный адрес, 7",
-          includeSelfName: true,
-          includeFamilyName: false,
-          includeFamilyLabel: false,
-          includeCity: true,
-          includeAddress: true,
-        },
-      },
-    );
+  const introduce = { id: "introduce_self", type: "about_me" };
+  const lisa = (profile) => ({ id: "student_about_me", name: "Лиза", myPeopleProfile: { includeSelfName: true, ...profile } });
 
-    expect(tasks).toHaveLength(3);
-    expect(tasks.every((task) => task.type === "about_me_situation")).toBe(true);
-    expect(tasks.map((task) => task.factIds)).toEqual([
-      ["self_name", "city"],
-      ["self_name", "city"],
-      ["self_name", "city"],
-    ]);
-    expect(tasks.map((task) => task.situation)).toEqual([
-      "Тебя записывают в кружок.",
-      "С тобой знакомится новый учитель.",
-      "У твоей работы на выставке есть карточка.",
-    ]);
+  it("does not start a conversation with fewer than two facts", () => {
+    expect(generateTasks(introduce, lisa({ includeFamilyName: false, includeCity: false }))).toEqual([]);
+  });
 
+  it("asks the facts one by one in whole sentences, then all of them at once", () => {
+    const tasks = generateTasks(introduce, lisa({ city: "Новоград", includeCity: true }), {}, new Map(), {}, 0);
+    expect(tasks.every((task) => task.type === "introduce_turn")).toBe(true);
+    expect(tasks.map((task) => [task.conceptId, task.prompt, task.answer])).toEqual([
+      ["introduce:name", "Как тебя зовут?", "Меня зовут Лиза."],
+      ["introduce:city", "Где ты живёшь?", "Мой город — Новоград."],
+      ["introduce:all", "Расскажи о себе.", "Меня зовут Лиза. Мой город — Новоград."],
+    ]);
+    // The partner greets once, at the start of the conversation.
+    expect(tasks[0].promptSpeech).toBe("Здравствуй! Как тебя зовут?");
+    expect(tasks[1].promptSpeech).toBe("Где ты живёшь?");
+    expect(tasks[2].starter).toBe("Меня зовут … Мой город — …");
+  });
+
+  it("meets a different partner each round and starts from the chosen script level", () => {
+    const student = lisa({ city: "Новоград", includeCity: true });
+    expect(generateTasks(introduce, student, {}, new Map(), {}, 0)[0]).toMatchObject({ partner: "Новая учительница", hintLevel: 2 });
+    expect(generateTasks(introduce, student, { scriptHint: "starter" }, new Map(), {}, 1)[0]).toMatchObject({ partner: "Мальчик на площадке", hintLevel: 1, promptSpeech: "Привет! Как тебя зовут?" });
+    expect(generateTasks(introduce, student, { scriptHint: "none" }, new Map(), {}, 2)[0]).toMatchObject({ partner: "Доктор", hintLevel: 0 });
+  });
+
+  it("uses filled-in facts but never the address, the phone or the family label", () => {
+    const tasks = generateTasks(introduce, lisa({
+      familyName: "Скрытая фамилия",
+      familyLabel: "Скрытая семья",
+      city: "Новоград",
+      address: "Совершенно секретный адрес, 7",
+      phone: "+7 900 111-22-33",
+      includePhone: true,
+      birthDate: "2018-01-01",
+      includeFamilyLabel: true,
+      includeCity: true,
+      includeAddress: true,
+    }));
     const content = JSON.stringify(tasks);
-    expect(content).toContain("Лиза");
     expect(content).toContain("Новоград");
-    expect(content).not.toContain("Скрытая фамилия");
+    expect(content).toContain("Мне ");
+    expect(content).toContain("Скрытая фамилия");
     expect(content).not.toContain("Скрытая семья");
-  });
-
-  it("never puts an address into an introduce-yourself card", () => {
-    const tasks = generateTasks(
-      { id: "introduce_self", type: "about_me" },
-      {
-        id: "student_about_me",
-        name: "Лиза",
-        myPeopleProfile: {
-          familyName: "Иванова",
-          familyLabel: "семья Ивановых",
-          city: "Новоград",
-          address: "Совершенно секретный адрес, 7",
-          includeSelfName: true,
-          includeFamilyName: true,
-          includeFamilyLabel: true,
-          includeCity: true,
-          includeAddress: true,
-        },
-      },
-    );
-
-    expect(JSON.stringify(tasks)).not.toContain("Совершенно секретный адрес, 7");
-    expect(tasks.every((task) => !task.factIds.includes("address"))).toBe(true);
+    expect(content).not.toContain("Совершенно секретный адрес");
+    expect(content).not.toContain("111-22-33");
   });
 
   it("builds an album where names are independent answers for every displayed person", () => {
@@ -193,9 +170,9 @@ describe("my_people album engine", () => {
     expect(new Set(tasks.map((task) => task.personId)).size).toBe(tasks.length);
     expect(tasks.map((task) => task.personId).sort()).toEqual(["anna", "teacher_1", "teacher_2"]);
     expect(tasks.find((task) => task.personId === "anna")).toEqual(expect.objectContaining({
-      axis: "name", prompt: "Кто это?", answer: "Анна",
+      axis: "name", prompt: "Кто это?", answer: "мама · Анна", hintWord: "мама", hintSyllable: "ма",
     }));
-    expect(tasks.filter((task) => task.axis === "relation").map((task) => task.answer)).toEqual(["учитель", "учитель"]);
+    expect(tasks.filter((task) => task.axis === "relation").map((task) => task.answer).sort()).toEqual(["Ирина · учитель", "Марина · учитель"]);
   });
 
   it("does not ask naming questions before any axis was introduced", () => {
@@ -324,18 +301,52 @@ describe("«Обо мне»: short questions", () => {
     ],
   };
 
-  it("asks only what the adult entered, in the teaching order", () => {
+  it("asks whatever the adult filled in, by level, in the teaching order", () => {
     const questions = getAboutMeQuestions(child, now);
-    expect(questions.map((q) => [q.question, q.answer])).toEqual([
-      ["Как тебя зовут?", "Миша"],
-      ["Ты мальчик или девочка?", "Мальчик"],
-      ["Сколько тебе лет?", "4 года"],
-      ["Как зовут маму?", "Анна"],
-      ["Как зовут сестру?", "Маша или Катя"],
-      ["Как твоя фамилия?", "Петров"],
+    expect(questions.map((q) => [q.level, q.question, q.answer])).toEqual([
+      ["self", "Как тебя зовут?", "Миша"],
+      ["self", "Ты мальчик или девочка?", "Мальчик"],
+      ["self", "Сколько тебе лет?", "4 года"],
+      ["family", "Как зовут маму?", "Анна"],
+      ["family", "Как зовут сестру?", "Маша или Катя"],
+      // A pet of unknown kind ("брат" is no animal) is "питомец".
+      ["family", "Как зовут твоего питомца?", "Барсик"],
+      // A filled-in field is a question: the old "include" ticks are ignored.
+      ["safety", "Как твоя фамилия?", "Петров"],
+      ["safety", "Где ты живёшь?", "Любляна"],
+      ["day", "Когда у тебя день рождения?", "15 октября"],
     ]);
-    // A switched-off person, a pet and an unticked city produce no question.
-    expect(JSON.stringify(questions)).not.toMatch(/Иван|Барсик|Любляна/);
+    // A switched-off person produces no question.
+    expect(JSON.stringify(questions)).not.toMatch(/Иван/);
+  });
+
+  it("asks the address and the phone only with the adult's yes", () => {
+    const profile = { ...child.myPeopleProfile, address: "ул. Ленина, 5", phone: "+7 900 123-45-67", phoneOwner: "папы" };
+    const without = getAboutMeQuestions({ ...child, myPeopleProfile: profile }, now);
+    expect(JSON.stringify(without)).not.toMatch(/Ленина|123-45-67/);
+    const withYes = getAboutMeQuestions({ ...child, myPeopleProfile: { ...profile, includeAddress: true, includePhone: true } }, now);
+    expect(withYes.filter((q) => q.level === "safety").map((q) => [q.question, q.answer])).toEqual([
+      ["Как твоя фамилия?", "Петров"],
+      ["Где ты живёшь?", "Любляна"],
+      ["Какой у тебя адрес?", "ул. Ленина, 5"],
+      ["Назови телефон папы.", "+7 900 123-45-67"],
+    ]);
+  });
+
+  it("asks about the kindergarten or the school, the group or the class, and the teacher", () => {
+    const withDay = (schoolKind) => ({
+      ...child,
+      myPeopleProfile: { ...child.myPeopleProfile, schoolKind, school: "№ 5", group: "Солнышко" },
+      myPeople: [...child.myPeople, { id: "t", type: "person", name: "Ольга Петровна", relation: "воспитательница", contexts: ["school"], photos: ["/t"], enabled: true }],
+    });
+    const day = (schoolKind) => getAboutMeQuestions(withDay(schoolKind), now).filter((q) => q.level === "day").map((q) => q.question);
+    expect(day("kindergarten")).toEqual(["Когда у тебя день рождения?", "В какой детский сад ты ходишь?", "Как называется твоя группа?", "Как зовут воспитательницу?"]);
+    expect(day("school")).toEqual(["Когда у тебя день рождения?", "В какую школу ты ходишь?", "В каком ты классе?", "Как зовут воспитательницу?"]);
+  });
+
+  it("names a known pet kind in the question", () => {
+    const pets = { ...child, myPeople: [{ id: "c", type: "pet", name: "Мурка", relation: "наша кошка", contexts: ["family"], photos: ["/c"], enabled: true }, { id: "d", type: "pet", name: "Бим", relation: "пёс", contexts: ["family"], photos: ["/d"], enabled: true }] };
+    expect(getAboutMeQuestions(pets, now).filter((q) => q.id.startsWith("pet:")).map((q) => q.question)).toEqual(["Как зовут твою кошку?", "Как зовут твоего пса?"]);
   });
 
   it("uses the right photo as the hint", () => {
@@ -354,7 +365,8 @@ describe("«Обо мне»: short questions", () => {
 
   it("keeps the ladder order in the first round, caps each round, mixes later rounds", () => {
     const first = generateTasks({ id: "about_me", type: "about_me" }, child);
-    expect(first.map((task) => task.prompt)).toEqual(getAboutMeQuestions(child).map((q) => q.question).slice(0, MAX_ABOUT_ME_QUESTIONS_PER_ROUND));
+    // Default levels: «Я» and «Семья» -- six questions for this child.
+    expect(first.map((task) => task.prompt)).toEqual(getAboutMeQuestions(child).filter((q) => ["self", "family"].includes(q.level)).map((q) => q.question).slice(0, MAX_ABOUT_ME_QUESTIONS_PER_ROUND));
     expect(first.every((task) => task.type === "about_me_question" && task.conceptId.startsWith("about_q:"))).toBe(true);
     const later = generateTasks({ id: "about_me", type: "about_me" }, child, {}, new Map(), {}, 3);
     expect(later).toHaveLength(first.length);
@@ -363,6 +375,45 @@ describe("«Обо мне»: short questions", () => {
   it("is available with just a name and a sex, no people needed", () => {
     expect(hasEnoughAboutMeQuestions({ name: "Лиза", sex: "f", myPeopleProfile: {} })).toBe(true);
     expect(hasEnoughAboutMeQuestions({ name: "Лиза", myPeopleProfile: {} })).toBe(false);
+  });
+
+  it("asks only the chosen levels, as many as asked for", () => {
+    const tasks = generateTasks({ id: "about_me", type: "about_me" }, child, { levels: ["safety", "day"], questionCount: 4 });
+    expect(tasks.map((task) => task.conceptId)).toEqual(["about_q:family_name", "about_q:city", "about_q:birthday"]);
+    expect(generateTasks({ id: "about_me", type: "about_me" }, child, { levels: ["self", "family", "safety", "day"], questionCount: 4 })).toHaveLength(4);
+    expect(hasEnoughAboutMeQuestions(child, { levels: ["day"] })).toBe(false);
+  });
+
+  it("asks the not-yet-known questions first and keeps a few known ones", () => {
+    const all = { levels: ["self", "family", "safety", "day"], questionCount: 6 };
+    // Known: name, gender, age, mum -- answered correctly before.
+    const history = new Map([
+      ["about_q:name", { askedAt: "2026-09-01", quality: "correct" }],
+      ["about_q:gender", { askedAt: "2026-09-02", quality: "correct" }],
+      ["about_q:age", { askedAt: "2026-09-03", quality: "correct" }],
+      ["about_q:rel:мама", { askedAt: "2026-09-04", quality: "correct" }],
+      ["about_q:city", { askedAt: "2026-09-04", quality: "prompted" }],
+    ]);
+    const ids = generateTasks({ id: "about_me", type: "about_me" }, child, all, new Map(), {}, 0, history).map((task) => task.conceptId);
+    // 4 to learn (never asked first, then the city answered with a prompt) + 2 known, oldest first; in ladder order.
+    expect(ids).toEqual(["about_q:name", "about_q:gender", "about_q:rel:сестра", "about_q:pet:cat", "about_q:family_name", "about_q:birthday"]);
+  });
+
+  it("reads the history from saved lessons: the last answer to each question", () => {
+    const sessions = [
+      { studentId: "kid", topicId: "my_people", completedAt: "2026-09-02", assessments: [{ conceptId: "about_q:city", quality: "correct" }] },
+      { studentId: "kid", topicId: "my_people", completedAt: "2026-09-01", assessments: [{ conceptId: "about_q:city", quality: "fail" }, { conceptId: "point:anna", quality: "correct" }] },
+      { studentId: "other", topicId: "my_people", completedAt: "2026-09-03", assessments: [{ conceptId: "about_q:city", quality: "fail" }] },
+    ];
+    const history = aboutMeHistory(sessions, "kid");
+    expect([...history.keys()]).toEqual(["about_q:city"]);
+    expect(history.get("about_q:city")).toEqual({ askedAt: "2026-09-02", quality: "correct" });
+  });
+
+  it("swaps «мальчик или девочка» every other round against echoing the last word", () => {
+    const prompt = (round) => generateTasks({ id: "about_me", type: "about_me" }, child, {}, new Map(), {}, round).find((task) => task.conceptId === "about_q:gender").prompt;
+    expect(prompt(0)).toBe("Ты мальчик или девочка?");
+    expect(prompt(1)).toBe("Ты девочка или мальчик?");
   });
 });
 
@@ -421,23 +472,183 @@ describe("«Покажи»", () => {
     }
   });
 
-  it("asks only about people already introduced when there are enough", () => {
-    const partly = { ...family, myPeople: family.myPeople.map((p, i) => (i < 2 ? p : { ...p, introducedAxes: [] })) };
-    const targets = generateTasks({ id: "show_me", type: "person_point" }, partly, {}).map((task) => task.personId).sort();
-    expect(targets).toEqual(["anna", "pavel"]);
+  it("asks about known people plus at most a few newcomers, who it introduces", () => {
+    const partly = { ...family, myPeople: family.myPeople.map((p, i) => (i < 2 ? p : { ...p, introducedAxes: [], createdAt: `2026-01-0${i}` })) };
+    const tasks = generateTasks({ id: "show_me", type: "person_point" }, partly, {});
+    const byId = Object.fromEntries(tasks.map((task) => [task.personId, task]));
+    // anna, pavel known + all four newcomers (exactly MAX_NEW_PER_SESSION).
+    expect(Object.keys(byId).sort()).toEqual(["anna", "cat", "elena", "masha1", "masha2", "pavel"]);
+    expect(byId.anna.introduces).toBe(false);
+    expect(byId.elena.introduces).toBe(true);
+    expect(byId.elena.axis).toBe("name");
+    expect(byId.anna.axis).toBe("relation");
+  });
+
+  it("counts this lesson's earlier introductions against the newcomer budget", () => {
+    const fresh = { ...family, myPeople: family.myPeople.map((p, i) => ({ ...p, introducedAxes: [], createdAt: `2026-01-0${i}` })) };
+    const sessionIntroduced = { name: new Set(["elena", "cat", "masha1"]) };
+    const ids = [...new Set(generateTasks({ id: "show_me", type: "person_point" }, fresh, {}, new Map(), sessionIntroduced)
+      .map((task) => task.personId))].sort();
+    expect(ids).toEqual(["anna", "cat", "elena", "masha1"]);
+  });
+
+  it("uses the adult's own «how the child calls them» label first", () => {
+    expect(mainWord({ type: "person", name: "Николай", relation: "дядя", sentenceLabel: " дядя Коля " })).toBe("дядя Коля");
+    expect(mainWord({ type: "pet", name: "Барсик", relation: "кот", sentenceLabel: "котик" })).toBe("Барсик");
+  });
+
+  it("lets «Кто это?» ask about a person once «Покажи» introduced them", () => {
+    const fresh = { ...family, myPeople: family.myPeople.map((p) => ({ ...p, introducedAxes: [] })) };
+    expect(generateTasks({ id: "who_is_this" }, fresh)).toHaveLength(0);
+    const afterPoint = { ...fresh, myPeople: fresh.myPeople.map((p) => (p.id === "anna" ? { ...p, introducedAxes: ["relation"] } : p)) };
+    const tasks = generateTasks({ id: "who_is_this" }, afterPoint);
+    expect(tasks.map((task) => [task.personId, task.answer])).toEqual([["anna", "мама · Анна"]]);
+  });
+
+  const two = { id: "s2", myPeople: [family.myPeople[0], family.myPeople[1]] };
+
+  it("gives even two people a full round, repeating them evenly but never three in a row", () => {
+    for (let i = 0; i < 50; i += 1) {
+      const tasks = generateTasks({ id: "show_me", type: "person_point" }, two, {});
+      expect(tasks).toHaveLength(MIN_POINT_TRIALS_PER_ROUND);
+      const ids = tasks.map((task) => task.personId);
+      expect(ids.filter((id) => id === "anna")).toHaveLength(MIN_POINT_TRIALS_PER_ROUND / 2);
+      for (let k = 2; k < ids.length; k += 1) expect(ids[k] === ids[k - 1] && ids[k] === ids[k - 2]).toBe(false);
+    }
+  });
+
+  it("never leaves the right photo in the same place three trials running", () => {
+    for (let i = 0; i < 50; i += 1) {
+      const places = generateTasks({ id: "show_me", type: "person_point" }, two, {})
+        .map((task) => task.choices.findIndex((choice) => choice.personId === task.personId));
+      for (let k = 2; k < places.length; k += 1) expect(places[k] === places[k - 1] && places[k] === places[k - 2]).toBe(false);
+    }
+  });
+
+  it("with one photo on screen is errorless and scores nothing", () => {
+    const tasks = generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 1 });
+    expect(tasks.length).toBeGreaterThan(0);
+    for (const task of tasks) {
+      expect(task.choices).toEqual([expect.objectContaining({ personId: task.personId })]);
+      expect(task.errorless).toBe(true);
+      expect(task.progressConceptIds).toEqual([]);
+    }
+  });
+
+  it("in the first round sets a pet against people and people against a pet", () => {
+    for (let i = 0; i < 20; i += 1) {
+      for (const task of generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 2 }, new Map(), {}, 0)) {
+        const [other] = task.choices.filter((choice) => choice.personId !== task.personId);
+        if (task.personId === "cat") expect(other.personId).not.toBe("cat");
+        else expect(other.personId).toBe("cat");
+      }
+    }
   });
 });
 
-describe("texts the child hears", () => {
-  const two = { id: "s", myPeople: ["a", "b"].map((id) => ({ id, name: id.toUpperCase(), relation: id === "a" ? "мама" : "папа", contexts: ["family"], photos: [`/api/photos/${id}`], introducedAxes: ["name", "relation"], enabled: true })) };
-  it("never describes the screen and never mixes «меня» with «тебя»", () => {
-    const tasks = [
-      ...generateTasks({ id: "family_names" }, two, {}),
-      ...generateTasks({ id: "family_relations" }, two, {}),
-      ...generateTasks({ id: "who_is_this" }, two, {}),
-    ];
-    const spoken = tasks.map((t) => `${t.prompt} ${t.promptSpeech}`).join(" | ");
-    expect(spoken).not.toMatch(/Выбери|Перетащи|для меня|для тебя|Подбери/);
-    expect(tasks.filter((t) => t.type === "person_naming").every((t) => t.prompt === "Кто это?")).toBe(true);
+describe("«Подпиши фото»", () => {
+  const labelPhotos = { id: "label_photos", type: "people_album" };
+  const person = (id, name, relation, contexts) => ({
+    id, name, relation, type: "person", contexts, photos: [`/p/${id}`], introducedAxes: ["name", "relation"], enabled: true,
+  });
+  const student = {
+    id: "s",
+    myPeople: [
+      person("anna", "Анна", "мама", ["family"]),
+      person("pavel", "Павел", "папа", ["family"]),
+      person("maria", "Мария Ивановна", "учительница", ["school"]),
+      person("oleg", "Олег Петрович", "учитель", ["school"]),
+    ],
+  };
+  const albums = (params) => generateTasks(labelPhotos, student, params).filter((task) => task.type === "people_album");
+
+  it("takes the circle and the words from the params", () => {
+    const [family] = albums({ circle: "family", labelKind: "relation" });
+    expect(family.axis).toBe("relation");
+    expect(family.entries.map((entry) => entry.personId).sort()).toEqual(["anna", "pavel"]);
+    const [school] = albums({ circle: "school", labelKind: "name" });
+    expect(school.axis).toBe("name");
+    expect(school.entries.map((entry) => entry.label).sort()).toEqual(["Мария Ивановна", "Олег Петрович"]);
+    expect(albums({ circle: "all", labelKind: "name", peopleCount: 4 })[0].entries).toHaveLength(4);
+  });
+
+  it("defaults to the family and «кто это»", () => {
+    const [album] = albums({});
+    expect(album.axis).toBe("relation");
+    expect(album.entries.map((entry) => entry.personId).sort()).toEqual(["anna", "pavel"]);
+  });
+
+  it("with both words starts from the role at home and from the name at school", () => {
+    expect(albums({ circle: "family", labelKind: "both" }).map((task) => task.axis)).toEqual(["relation", "name"]);
+    expect(albums({ circle: "school", labelKind: "both" }).map((task) => task.axis)).toEqual(["name", "relation"]);
+  });
+
+  it("keeps the same progress concepts as the old album modes", () => {
+    const [album] = albums({ circle: "family", labelKind: "name" });
+    expect(album.progressConceptIds.sort()).toEqual(["anna:name", "pavel:name"]);
+  });
+});
+
+describe("«Кто это?» first-syllable prompt", () => {
+  it("gives the opening syllable the way a speech therapist would", () => {
+    expect(firstSyllable("мама")).toBe("ма");
+    expect(firstSyllable("Павел")).toBe("Па");
+    expect(firstSyllable("бабушка")).toBe("ба");
+    expect(firstSyllable("дядя Коля")).toBe("дя");
+    expect(firstSyllable("Мария Ивановна")).toBe("Ма");
+    // A word opening with a vowel keeps the next consonant.
+    expect(firstSyllable("Анна")).toBe("Ан");
+    expect(firstSyllable("Игорь")).toBe("Иг");
+    expect(firstSyllable("Ая")).toBe("А");
+    expect(firstSyllable("")).toBe("");
+  });
+
+});
+
+describe("«Найди такого же»", () => {
+  const matchSame = { id: "match_same", type: "person_match" };
+  const person = (id, photos, extra = {}) => ({ id, name: id, relation: "", type: "person", contexts: ["family"], photos, enabled: true, ...extra });
+  const student = {
+    id: "s",
+    myPeople: [
+      person("anna", ["/a1", "/a2", "/a3"]),
+      person("pavel", ["/p1", "/p2"]),
+      person("olga", ["/o1"]),
+      person("cat", ["/c1", "/c2"], { type: "pet" }),
+    ],
+  };
+
+  it("asks about people with two photos, shows one and hides another of the same person", () => {
+    for (let i = 0; i < 30; i += 1) {
+      const tasks = generateTasks(matchSame, student, { fieldSize: 3 });
+      expect(tasks.length).toBeGreaterThanOrEqual(MIN_POINT_TRIALS_PER_ROUND);
+      for (const task of tasks) {
+        expect(task.type).toBe("person_match");
+        expect(["anna", "pavel", "cat"]).toContain(task.personId);
+        const target = student.myPeople.find((p) => p.id === task.personId);
+        const found = task.choices.find((choice) => choice.personId === task.personId);
+        expect(target.photos).toContain(task.sample);
+        expect(target.photos).toContain(found.image);
+        // Never the same picture twice: that would be matching identical images.
+        expect(found.image).not.toBe(task.sample);
+        expect(task.choices).toHaveLength(3);
+        expect(JSON.stringify(task)).not.toMatch(/Где|anna\?/);
+      }
+    }
+  });
+
+  it("lets a one-photo person be a distractor but never the one to find", () => {
+    const ids = new Set();
+    for (let i = 0; i < 30; i += 1) {
+      for (const task of generateTasks(matchSame, student, { fieldSize: 4 })) ids.add(task.personId);
+    }
+    expect(ids.has("olga")).toBe(false);
+    const tasks = generateTasks(matchSame, student, { fieldSize: 4 });
+    expect(tasks[0].choices.map((choice) => choice.personId)).toContain("olga");
+  });
+
+  it("needs two people with two photos each", () => {
+    const one = { ...student, myPeople: [person("anna", ["/a1", "/a2"]), person("olga", ["/o1"]), person("ivan", ["/i1", "/i1"])] };
+    expect(generateTasks(matchSame, one)).toEqual([]);
   });
 });

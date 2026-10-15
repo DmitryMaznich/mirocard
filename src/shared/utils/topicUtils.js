@@ -168,3 +168,10 @@ export function pickVariation(concept, excludeCardId = null) {
       : concept.cards;
   return pool[Math.floor(Math.random() * pool.length)];
 }
+
+// Retired modes (e.g. the old «Мои люди» album modes) stay in a topic so old
+// sessions and saved lesson plans still find them by id, but no picker
+// offers them any more.
+export function isPickableMode(mode) {
+  return !mode?.retired;
+}

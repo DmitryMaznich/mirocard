@@ -56,14 +56,17 @@ export default function SessionSummary() {
 
   const [detailsOpen, setDetailsOpen] = useState(false);
 
+  // A mode run with "Озвучка" off stays silent here too.
+  const voiceOff = session?.paramsSnapshot?.voice === false;
+
   useEffect(() => {
-    if (!session) return;
+    if (!session || voiceOff) return;
     const timer = setTimeout(() => speak(praiseText), 600);
     return () => {
       clearTimeout(timer);
       window.speechSynthesis?.cancel();
     };
-  }, [praiseText, session]);
+  }, [praiseText, session, voiceOff]);
 
   if (!session) {
     return (
@@ -79,9 +82,23 @@ export default function SessionSummary() {
   function myPeopleLabel(conceptId) {
     if (String(conceptId).startsWith("about_q:")) return aboutMeQuestionLabel(conceptId, sessionStudent);
     if (String(conceptId).startsWith("about_me:")) return "Представься";
+    if (String(conceptId).startsWith("introduce:")) {
+      const turns = { name: "имя", age: "возраст", family_name: "фамилия", city: "город", all: "рассказ о себе" };
+      const turn = turns[String(conceptId).slice("introduce:".length)];
+      return turn ? `Представься: ${turn}` : "Представься";
+    }
     if (String(conceptId).startsWith("point:")) {
       const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === String(conceptId).slice("point:".length));
       return person ? `Где ${mainWord(person)}?` : "Покажи";
+    }
+    if (String(conceptId).startsWith("match:")) {
+      const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === String(conceptId).slice("match:".length));
+      return person ? `Найди такого же: ${mainWord(person)}` : "Найди такого же";
+    }
+    if (String(conceptId).startsWith("person_naming:")) {
+      const [, personId] = String(conceptId).split(":");
+      const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === personId);
+      return person ? `Кто это? — ${mainWord(person)}` : "Кто это?";
     }
     if (String(conceptId).startsWith("album:")) {
       return String(conceptId).includes(":relation:") ? "Кто эти люди для меня" : "Имена знакомых людей";
@@ -175,6 +192,7 @@ export default function SessionSummary() {
                       <li key={i} className="summary-mistake-item">
                         <ConceptDot level={progressAfter[m.conceptId] ?? 0} />
                         {isMyPeople ? myPeopleLabel(m.conceptId) : (card?.label ?? m.conceptId)}
+                        {m.count > 1 ? ` × ${m.count}` : ""}
                       </li>
                     );
                   })}
@@ -190,6 +208,7 @@ export default function SessionSummary() {
                     <li key={i} className="summary-progress-item">
                       <ConceptDot level={assessment.quality === "none" || assessment.quality === "fail" ? 1 : 2} />
                       {ASSESSMENT_LABELS[assessment.quality] ?? assessment.quality}
+                      {assessment.count > 1 ? ` × ${assessment.count}` : ""}
                     </li>
                   ))}
                 </ul>

@@ -96,6 +96,7 @@ export default function StudentsScreen() {
                     </div>
                   </button>
                   <div className="student-item__actions">
+                    <button className="icon-btn" aria-label={`Статистика: ${student.name}`} title="Статистика" onClick={() => { setActiveStudentId(student.id); setScreen("history"); }}>▥</button>
                     <button className="icon-btn" onClick={() => openEdit(student)}>✎</button>
                     <button className="icon-btn icon-btn--danger" onClick={() => setDeleting(student)}>✕</button>
                   </div>
@@ -130,6 +131,7 @@ export default function StudentsScreen() {
               </div>
             )}
             <div className="student-detail-actions">
+              <Button variant="secondary" fullWidth onClick={() => { setActiveStudentId(panelStudent.id); setScreen("history"); }}>Статистика</Button>
               <Button
                 fullWidth
                 onClick={() => { setActiveStudentId(panelStudent.id); setScreen("home"); }}

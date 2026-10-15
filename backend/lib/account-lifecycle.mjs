@@ -1,5 +1,6 @@
 import { randomBytes, randomUUID, createHash } from "node:crypto";
 import { withTransaction } from "./db.mjs";
+import { enqueueAccountNotification } from "./telegram-notifications.mjs";
 import { collectReferencedPhotoHashes } from "./photo-gc.mjs";
 function eraseReleasedPhotos(db, before) {
   const after = collectReferencedPhotoHashes(db);
@@ -245,6 +246,7 @@ export function confirmDeletion(db, id, body, { now = Date.now() } = {}) {
       { previousStatus: a.status, dataRetained: true },
       now,
     );
+    enqueueAccountNotification(db, a, "archived", { now });
     return { ok: true, status: "archived", dataRetained: true };
   });
 }
@@ -261,6 +263,7 @@ export function archiveAccount(db, id, actor = "admin_token", now = Date.now()) 
     revokeCredentials(db, a);
     db.prepare("UPDATE accounts SET status='archived', updated_at=? WHERE id=?").run(iso(now), id);
     event(db, id, "archive", actor === "self" ? "Удаление пользователем" : "Перенос администратором", {dataRetained:true}, now, actor);
+    enqueueAccountNotification(db, a, "archived", { actor, now });
     return {ok:true, status:"archived", dataRetained:true};
   });
 }
@@ -310,6 +313,8 @@ export function eraseAccount(db, id, now = Date.now()) {
     eraseReleasedPhotos(db, photosBefore);
     // Keep only the fact of the operation, with no names, email or credentials.
     event(db, id, "erase_account", "Удаление аккаунта администратором", {}, now);
+    db.prepare("DELETE FROM telegram_notifications WHERE account_id=?").run(id);
+    enqueueAccountNotification(db, a, "erased", { now });
     return {ok:true, erased:true};
   });
 }
