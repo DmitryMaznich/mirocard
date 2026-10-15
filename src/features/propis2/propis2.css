@@ -358,15 +358,18 @@
 .p2-cover { --p2-accent: #2f6f65; container-type: inline-size; position: relative; width: 100%; aspect-ratio: 148.5 / 210; background: #fff; color: #1f2933; font-family: "Nunito", sans-serif; overflow: hidden; box-sizing: border-box; }
 .p2-cover--a4 { aspect-ratio: 210 / 297; }
 .propis-print-cover .p2-cover { height: 100%; aspect-ratio: auto; }
+/* the stamp's face: the printed series' cover was set in Arial — its metric twin Liberation Sans, renamed (public/fonts/cover, OFL) */
+@font-face { font-family: "Mironium Cover Sans"; font-weight: 400; font-display: block; src: url("/fonts/cover/cover-sans-400.woff") format("woff"); }
+@font-face { font-family: "Mironium Cover Sans"; font-weight: 700; font-display: block; src: url("/fonts/cover/cover-sans-700.woff") format("woff"); }
 /* The stamp («ТЕТРАДЬ», the name, the fields) at the sizes and places of the printed series' cover (scripts/cover_tetrad.py, owner
    2026-10-15: «exactly as on that cover»): ТЕТРАДЬ bold 20 pt, its baseline 86.2 mm from the top, centred on the cover; the name 15 pt,
    its baseline 24 pt lower; the fields 11 pt, the first baseline 62 pt under ТЕТРАДЬ, then 33 and 31 pt, from 30 mm off the fold to
    20 mm off the edge, lines 0.55 pt. In cqw of the A5 cover (1 cqw = 1.485 mm = 4.209 pt); lines of height 1 (1.2 for the name) put a
-   Nunito baseline 0.829 (0.929) em under the top of its line. */
-.p2-cover-mid { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding: 54.11cqw 13.47cqw 0; }
-.p2-cover-kicker { font-weight: 800; font-size: 4.75cqw; line-height: 1; letter-spacing: 0.3em; padding-left: 0.3em; }
-.p2-cover-name { font-weight: 400; font-size: 3.564cqw; line-height: 1.2; color: #404040; text-align: center; overflow-wrap: anywhere; margin-top: 1.58cqw; }
-.p2-cover-fields { align-self: stretch; display: flex; flex-direction: column; margin: 5.89cqw 0 0 6.73cqw; }
+   Mironium Cover Sans baseline 0.847 (0.947) em under the top of its line. */
+.p2-cover-mid { font-family: "Mironium Cover Sans", Arial, "Liberation Sans", sans-serif; position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding: 54.03cqw 13.47cqw 0; }
+.p2-cover-kicker { font-weight: 700; font-size: 4.75cqw; line-height: 1; letter-spacing: 0.278em; padding-left: 0.278em; } /* «Т Е Т Р А Д Ь»: a space of Arial between the letters */
+.p2-cover-name { font-weight: 400; font-size: 3.564cqw; line-height: 1.2; color: #404040; text-align: center; overflow-wrap: anywhere; margin-top: 1.6cqw; }
+.p2-cover-fields { align-self: stretch; display: flex; flex-direction: column; margin: 5.91cqw 0 0 6.73cqw; }
 .p2-cover-field { display: flex; align-items: baseline; gap: 1.19cqw; font-size: 2.613cqw; line-height: 1; font-weight: 400; color: #1f1f1f; }
 .p2-cover-field + .p2-cover-field { margin-top: 5.227cqw; }
 .p2-cover-field + .p2-cover-field + .p2-cover-field { margin-top: 4.747cqw; }

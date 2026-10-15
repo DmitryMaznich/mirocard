@@ -30,6 +30,7 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const fontKey = (family, weight, style) => {
   if (/DM Serif/i.test(family ?? "")) return style === "italic" ? "DMSerif-Italic" : "DMSerif";
   const w = Number(weight) || (weight === "bold" ? 700 : 400);
+  if (/Cover Sans/i.test(family ?? "")) return w >= 600 ? "CoverSans-700" : "CoverSans-400";
   return w >= 850 ? "Nunito-900" : w >= 750 ? "Nunito-800" : w >= 600 ? "Nunito-700" : "Nunito-400";
 };
 
