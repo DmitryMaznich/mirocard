@@ -71,7 +71,7 @@ function GroupCard({ group, topic }) {
   </article>;
 }
 
-export default function StatisticsScreen({ initialTopicId = null, onClose }) {
+export default function StatisticsScreen({ initialTopicId = null, onClose, embedded = false }) {
   const students = useAppStore(state => state.students);
   const activeStudentId = useAppStore(state => state.activeStudentId);
   const sessions = useAppStore(state => state.sessions);
@@ -116,7 +116,7 @@ export default function StatisticsScreen({ initialTopicId = null, onClose }) {
     return <span className="statistics-topic-result">{group.conditions.historical ? "Из старой истории" : "В последних использованных условиях"}: {text(mode?.ui?.title) || group.modeId}{choices} · с первого ответа {score(group.totals.firstCorrect, group.totals.firstTotal)}</span>;
   }
   const total = report.totals;
-  return <div className="screen statistics-screen">
+  return <div className={embedded ? "statistics-screen statistics-screen--embedded" : "screen statistics-screen"}>
     <div className="screen-header"><button className="back-btn" onClick={() => topicId && !initialTopicId ? setTopicId(null) : onClose()} aria-label="Назад"><BackArrowIcon /></button><h1 className="screen-title">{topicId ? title(topicId) : "Статистика ученика"}</h1><button className="header-action-btn statistics-refresh" onClick={() => { setNow(Date.now()); setRevision(value => value + 1); }}>Обновить</button></div>
     <div className="statistics-content">
       <div className="statistics-filters"><label>Ученик<select value={studentId} onChange={event => setStudentId(event.target.value)}><option value="" disabled>Выберите ученика</option>{students.map(student => <option key={student.id} value={student.id}>{student.name}</option>)}</select></label><label>Период<select value={period} onChange={event => setPeriod(event.target.value)}><option value="7">Последние 7 дней</option><option value="30">Последние 30 дней</option><option value="all">Все время</option></select></label></div>

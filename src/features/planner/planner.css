@@ -1441,6 +1441,15 @@
   background: rgba(203, 185, 163, 0.15);
 }
 
+.home-tabbar__item:disabled,
+.home-tabbar__item:disabled svg {
+  color: #aab4b0;
+  cursor: default;
+}
+.home-tabbar__item:disabled:active { background: none; }
+.home-tabbar__item { min-height: 48px; }
+.home-tabbar__disabled-reason { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
 /* ── Tab content wrapper ────────────────────────────────────── */
 .home-tab-content {
   flex: 1;
