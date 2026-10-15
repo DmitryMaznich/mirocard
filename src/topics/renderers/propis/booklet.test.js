@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { bookletPageCount, bookletSheets } from "./booklet.js";
 
 describe("booklet order", () => {
@@ -33,6 +33,29 @@ describe("the PDF's file name", () => {
     expect(pdfFileName("Мои первые буквы")).toBe("Мои первые буквы.pdf");
     expect(pdfFileName("Буквы: А/Б?")).toBe("Буквы А Б.pdf");
     expect(pdfFileName("  ")).toBe("Тетрадь.pdf");
+  });
+});
+
+describe("the tab the PDF opens in", () => {
+  // on a phone / in the installed app the tab opened at the tap stayed a blank full-screen page (owner, 2026-10-15)
+  it("is opened at the tap on a computer only", async () => {
+    const { pdfTab } = await import("./printPdf.js");
+    const open = vi.spyOn(window, "open").mockImplementation(() => null);
+    const had = window.matchMedia;
+    const media = (on) => { window.matchMedia = (q) => ({ matches: on.includes(q), addEventListener() {}, removeEventListener() {} }); };
+    try {
+      media(["(pointer: coarse)"]);
+      expect(pdfTab()).toBeNull();
+      media(["(display-mode: standalone)"]);
+      expect(pdfTab()).toBeNull();
+      expect(open).not.toHaveBeenCalled();
+      media([]);
+      pdfTab();
+      expect(open).toHaveBeenCalledTimes(1);
+    } finally {
+      open.mockRestore();
+      window.matchMedia = had;
+    }
   });
 });
 
