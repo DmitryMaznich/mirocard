@@ -330,6 +330,9 @@ export function initDb(dbPath = DB_PATH) {
   }
 
   const sessionColumns = db.prepare("PRAGMA table_info(sessions)").all();
+  for (const [column, type] of [["params_snapshot", "TEXT"], ["statistics_json", "TEXT"], ["completion_reason", "TEXT"], ["assessments", "TEXT"]]) {
+    if (!sessionColumns.some(c => c.name === column)) db.exec(`ALTER TABLE sessions ADD COLUMN ${column} ${type}`);
+  }
   if (!sessionColumns.some((c) => c.name === "card_events")) {
     db.exec("ALTER TABLE sessions ADD COLUMN card_events TEXT DEFAULT '[]'");
   }

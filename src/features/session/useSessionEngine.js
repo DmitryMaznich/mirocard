@@ -7,7 +7,7 @@ import { pushOp } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
-import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
+import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
 import { getDefaultModeSettings } from "@/topics/topicLoader";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -19,6 +19,7 @@ import {
 } from "./activeSession";
 
 const INCORRECT_FEEDBACK_MS = 1500;
+const ignoreCardEvent = () => {};
 
 function resolveStrictStars(mode, savedValue) {
   // Some reaction drills are a true "correct answers in a row" exercise.
@@ -214,6 +215,8 @@ function buildGeneratedSessionState({
     resolveStrictStars(mode, link.strictStars),
   );
 
+  baseState.statistics.conditions = captureConditions(topicRecord, mode, sessionParams, tasks, sessionConceptIds, renderer === "reading" ? activeTextId : null);
+
   if (mode.type === "assemble_text") {
     const totalWords = tasks.reduce((sum, task) => sum + (task.tokenCount ?? 0), 0);
     return { ...baseState, totalWords };
@@ -258,7 +261,6 @@ export function useSessionEngine() {
   };
   const isReading = topicRecord?.meta.renderer === "reading";
   const { sessionParams, selectedConceptIds } = resolveModeSelection(topicRecord, mode, link, isReading, activeTextId);
-  const cardLogger = useCardEventLogger();
 
   const [sessionState, setSessionState] = useState(() => {
     const generatedState = buildGeneratedSessionState({
@@ -306,9 +308,11 @@ export function useSessionEngine() {
     if (!tasks.length) return;
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSessionState(
-      createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null)
-    );
+    setSessionState(() => {
+      const rebuilt = createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null);
+      rebuilt.statistics.conditions = captureConditions(topicRecord, mode, sessionParams, tasks, selectedConceptIds, null);
+      return rebuilt;
+    });
   }, [activeStudent]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [completedRecord, setCompletedRecord] = useState(null);
@@ -416,16 +420,14 @@ export function useSessionEngine() {
     }
 
     async function persistSession() {
-      const cardEvents = cardLogger.getCardEvents();
-
       // Deck position is managed by deck actions. taskIndex counts tasks,
       // not concepts, so using it here would corrupt the next deck's start.
 
       const record = {
-        ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, cardEvents, {
+        ...computeSessionRecord(state, activeStudentId, activeTopicId, topicRecord.meta.version, [], {
           activeDurationMs: Math.round(getActiveDurationMs()),
           elapsedDurationMs: Math.max(0, Date.now() - new Date(state.startedAt).getTime()),
-          paramsSnapshot: sessionParams,
+          paramsSnapshot: state.statistics?.conditions?.params ?? sessionParams,
           entryPoint: "therapist",
         }),
         reward: {
@@ -442,12 +444,11 @@ export function useSessionEngine() {
         modeId:    activeModeId,
       });
       const existing = (await kv.get(db, "sessions")) ?? [];
-      const updated = [...existing.filter((item) => item.id !== record.id), record].slice(-200);
+      const updated = [...existing.filter((item) => item.id !== record.id), record];
       await kv.set(db, "sessions", updated);
       await pushOp("session.append", { ...record, mode: record.modeId });
       await clearPersistedActiveSessionSnapshot(db);
       clearActiveSessionSnapshot();
-      cardLogger.resetCardEvents();
       completedUsageIds.current.add(id);
       savedRecords.current.set(id, record);
       appendSession(record);
@@ -554,14 +555,14 @@ export function useSessionEngine() {
   const onPrevious = useCallback(() => {
     setSessionState(s => {
       if (s.taskIndex <= 0) return s;
-      return { ...s, taskIndex: s.taskIndex - 1, status: "task_active" };
+      return { ...s, taskIndex: s.taskIndex - 1, status: "task_active", ...(s.statistics ? { statistics: { ...s.statistics, current: null } } : {}) };
     });
   }, []);
 
   const onCorrect = useCallback((conceptId, cardId, options = {}) => {
     if (options.assisted) {
       setSessionState((s) => {
-        const next = advanceTask(s);
+        const next = advanceTask(recordResponse(s, "assisted"));
         if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
         if (next.status === "completed") finishSession(next);
         return next;
@@ -662,7 +663,7 @@ export function useSessionEngine() {
 
   const handleFinishDeck = useCallback(async () => {
     await persistStudentTopicLink(activeStudentId, activeTopicId, { deckPosition: 0 });
-    if (sessionState) await finishSession({ ...sessionState, status: "completed" });
+    if (sessionState) await finishSession(sessionState);
     setDeckExhausted(false);
   }, [sessionState, activeStudentId, activeTopicId]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -705,8 +706,8 @@ export function useSessionEngine() {
     onStreakReset,
     onAdvance,
     onQualityAnswer,
-    onCardShown: cardLogger.onCardShown,
-    onTap:       cardLogger.onTap,
-    onQuality:   cardLogger.onQuality,
+    onCardShown: ignoreCardEvent,
+    onTap:       ignoreCardEvent,
+    onQuality:   ignoreCardEvent,
   };
 }

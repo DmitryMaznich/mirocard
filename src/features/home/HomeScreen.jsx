@@ -1040,6 +1040,7 @@ export default function HomeScreen() {
           onClose={() => setMenuOpen(false)}
           onOpenProfile={() => setScreen("account")}
           onOpenStudents={() => setScreen("students")}
+          onOpenStatistics={() => setScreen("history")}
           onOpenSettings={() => setScreen("settings")}
           onOpenHelp={() => setScreen("help")}
         />

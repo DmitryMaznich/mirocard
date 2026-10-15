@@ -47,7 +47,7 @@ function EngineHost() {
   return null;
 }
 
-it("saves a partial session, including unfinished taps, before clearing its snapshot", async () => {
+it("saves a partial session with compact metrics and no raw taps before clearing its snapshot", async () => {
   await act(async () => root.render(<EngineHost />));
   await act(async () => engine.onCorrect("one", "card-one"));
   await act(async () => engine.onAdvance());
@@ -61,7 +61,9 @@ it("saves a partial session, including unfinished taps, before clearing its snap
   const records = await kv.get(await getDb(), "sessions");
   expect(records).toHaveLength(1);
   expect(records[0]).toMatchObject({ correctCount: 1, incorrectCount: 1, mistakes: [{ conceptId: "two", cardId: "card-two" }] });
-  expect(records[0].cardEvents[0]).toMatchObject({ completed: false, taps: [{ optionId: "wrong-option", isCorrect: false }] });
+  expect(records[0].cardEvents).toBeUndefined();
+  expect(records[0].completionReason).toBe("manual");
+  expect(records[0].statistics).toMatchObject({ schemaVersion: 1, conditions: { renderer: "flashcards" } });
   expect(pushOp).toHaveBeenCalledTimes(1);
   expect(useAppStore.getState().sessions).toHaveLength(1);
   expect(useAppStore.getState().activeSessionSnapshot).toBeNull();

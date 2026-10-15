@@ -5,6 +5,14 @@ import { useAppStore } from "@/core/store";
 import { listTopicRecords, installFirstPartyDeckIfNeeded } from "@/topics/topicLoader";
 import { normalizeActiveSessionSnapshot } from "@/features/session/activeSession";
 import { FIRST_PARTY_DECK_IDS, applyBuiltinVisibility } from "@/topics/builtinTopics";
+import { mergeSessionHistory, recoverHistoricalSession } from "../../shared/historical-session-statistics.mjs";
+
+function sameHistoryAccount(current, incoming) {
+  if (incoming === undefined) return true;
+  if (!current || !incoming) return false;
+  if (current.id || incoming.id) return Boolean(current.id && current.id === incoming.id);
+  return current.email === "local" && incoming.email === "local";
+}
 
 export function isDeletedStudent(student) {
   return Boolean(student?.deletedAt);
@@ -299,7 +307,7 @@ export function normalizeBootstrap(raw = {}) {
     topicRecords: applyBuiltinVisibility(Array.isArray(raw.topicRecords)?raw.topicRecords:[],raw.builtinVisibility??{}, raw.archivedTopicIds ?? []),
     studentTopicLinks: indexStudentTopicLinks(raw.studentTopicLinks),
     conceptProgress: indexConceptProgress(raw.conceptProgress),
-    sessions: Array.isArray(raw.sessions) ? raw.sessions.slice(-200) : [],
+    sessions: Array.isArray(raw.sessions) ? raw.sessions.map(recoverHistoricalSession) : [],
     lastContext: raw.lastContext ?? null,
     activeSession: normalizeActiveSessionSnapshot(raw.activeSession),
   };
@@ -336,7 +344,10 @@ export function applyBootstrapToStore(raw) {
     subscription: "subscription" in raw ? bootstrap.subscription : state.subscription,
     studentTopicLinks: bootstrap.studentTopicLinks,
     conceptProgress: bootstrap.conceptProgress,
-    sessions: bootstrap.sessions,
+    sessions: ("sessions" in raw
+      ? mergeSessionHistory(sameHistoryAccount(state.account, raw.account) ? state.sessions : [], bootstrap.sessions)
+      : sameHistoryAccount(state.account, raw.account) ? state.sessions : [])
+      .filter(session => !bootstrap.erasedStudentIds.includes(session.studentId)),
     ...("activeSession" in raw ? { activeSessionSnapshot: bootstrap.activeSession } : {}),
     // Only restore active context from local bootstrap artifacts.
     // A server-side apply without lastContext/activeSession must not clear current navigation.
@@ -374,6 +385,8 @@ export async function loadLocalBootstrap(db) {
   if (JSON.stringify(migratedStudents) !== JSON.stringify(students ?? [])) {
     await kv.set(db, 'students', migratedStudents);
   }
+  const recoveredSessions = (sessions ?? []).map(recoverHistoricalSession);
+  if (JSON.stringify(recoveredSessions) !== JSON.stringify(sessions ?? [])) await kv.set(db, "sessions", recoveredSessions);
   return normalizeBootstrap({
     builtinVisibility: await kv.get(db,"builtinVisibility")??{},
     archivedTopicIds: await kv.get(db,"archivedTopicIds") ?? [],
@@ -385,7 +398,7 @@ export async function loadLocalBootstrap(db) {
     topicRecords,
     studentTopicLinks,
     conceptProgress,
-    sessions,
+    sessions: recoveredSessions,
     lastContext,
     activeSession,
   });
@@ -428,6 +441,15 @@ export async function clearUserIdbData(db) {
 
 export async function persistBootstrap(db, raw) {
   const bootstrap = normalizeBootstrap(raw);
+  if ("sessions" in raw) {
+    const [localSessions, localAccount, localAccountId] = await Promise.all([kv.get(db, "sessions"), kv.get(db, "account"), kv.get(db, "accountId")]);
+    const owner = localAccount?.id ? localAccount : localAccountId ? { id: localAccountId } : localAccount;
+    bootstrap.sessions = mergeSessionHistory(sameHistoryAccount(owner, raw.account) ? localSessions ?? [] : [], bootstrap.sessions)
+      .filter(session => !bootstrap.erasedStudentIds.includes(session.studentId));
+    // Callers apply this same payload to memory after persisting it. Carry the
+    // preserved evidence forward so a server refresh cannot discard it there.
+    raw.sessions = bootstrap.sessions;
+  }
   const writes = [];
 
   if ("archivedTopicIds" in raw) writes.push(kv.set(db,"archivedTopicIds",bootstrap.archivedTopicIds));

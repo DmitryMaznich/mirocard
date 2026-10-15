@@ -1,0 +1,28 @@
+import { test, expect } from "@playwright/test";
+import { mkdirSync } from "node:fs";
+import { pathToFileURL } from "node:url";
+import { resolve } from "node:path";
+
+for (const width of [360, 768, 1280]) test(`statistics at ${width}px keeps conditions separate and fits the screen`, async ({ page }) => {
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.route(/^https:\/\/fonts\.(googleapis|gstatic)\.com\//, route => route.abort());
+  await page.setViewportSize({ width, height: 900 });
+  await page.goto(pathToFileURL(resolve(".cache/statistics-responsive/tests/responsive/statistics.html")).href, { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: /Эмоции и чувства/ }).click();
+  await expect(page.locator(".statistics-group")).toHaveCount(4);
+  await expect(page.getByText("Восстановлены сохраненные настройки.", { exact: false })).toBeVisible();
+  await expect(page.getByText("Результаты по сохранившимся событиям")).toBeVisible();
+  await expect(page.getByText("Условия не сохранены.", { exact: false })).toBeVisible();
+  await expect(page.getByText("Фактически вариантов: 2")).toBeVisible();
+  await expect(page.getByText("Фактически вариантов: 4")).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
+  expect(overflow).toBe(false);
+  const refreshBounds = await page.getByRole("button", { name: "Обновить" }).boundingBox();
+  expect(refreshBounds.x + refreshBounds.width).toBeLessThanOrEqual(width);
+  mkdirSync(".cache/statistics-screenshots", { recursive: true });
+  await page.screenshot({ path: `.cache/statistics-screenshots/topic-${width}.png`, fullPage: true });
+  await page.getByRole("combobox", { name: "Ученик", exact: true }).selectOption("empty");
+  await expect(page.getByText("За выбранный период занятий нет.")).toBeVisible();
+  expect(errors).toEqual([]);
+});

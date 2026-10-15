@@ -645,15 +645,16 @@ export function appendSession(db, accountId, session) {
     INSERT OR IGNORE INTO sessions
       (id, account_id, student_id, topic_id, topic_version, mode,
        started_at, completed_at, correct_count, incorrect_count,
-       percent_correct, mistakes, card_events, created_at, active_duration_ms, elapsed_duration_ms, entry_point)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       percent_correct, mistakes, card_events, created_at, active_duration_ms, elapsed_duration_ms, entry_point,
+       params_snapshot, statistics_json, completion_reason, assessments)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     session.id,
     accountId,
     session.studentId      ?? session.student_id,
     session.topicId        ?? session.topic_id,
     session.topicVersion   ?? session.topic_version,
-    session.mode,
+    session.modeId ?? session.mode,
     session.startedAt      ?? session.started_at,
     session.completedAt    ?? session.completed_at,
     session.correctCount   ?? session.correct_count   ?? null,
@@ -663,7 +664,11 @@ export function appendSession(db, accountId, session) {
     Array.isArray(cardEventsRaw) ? JSON.stringify(cardEventsRaw) : (cardEventsRaw ?? "[]"),
     now(),
     safeDuration(session.activeDurationMs), safeDuration(session.elapsedDurationMs),
-    typeof session.entryPoint === "string" ? session.entryPoint.slice(0, 40) : null
+    typeof session.entryPoint === "string" ? session.entryPoint.slice(0, 40) : null,
+    session.paramsSnapshot && typeof session.paramsSnapshot === "object" ? JSON.stringify(session.paramsSnapshot) : null,
+    session.statistics && typeof session.statistics === "object" ? JSON.stringify(session.statistics) : null,
+    ["series_completed", "manual", "interrupted"].includes(session.completionReason) ? session.completionReason : null,
+    Array.isArray(session.assessments) ? JSON.stringify(session.assessments) : null
   );
 }
 function safeDuration(value) { return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 86400000 ? Math.round(value) : null; }

@@ -1,7 +1,7 @@
 import { FIRST_PARTY_DECK_IDS } from "@/topics/builtinTopics";
 import { getTopicTitle } from "@/shared/utils/format";
 
-export default function TopicActionSheet({ record, onClose, onInfo, onDelete }) {
+export default function TopicActionSheet({ record, onClose, onInfo, onDelete, onStatistics }) {
   const isBuiltin    = Boolean(record.meta.builtin);
   const isFirstParty = FIRST_PARTY_DECK_IDS.has(record.meta.id);
   const isDeletable  = !isBuiltin && !isFirstParty;
@@ -14,6 +14,7 @@ export default function TopicActionSheet({ record, onClose, onInfo, onDelete }) 
     <div className="action-sheet-overlay" onClick={handleOverlay}>
       <div className="action-sheet" role="dialog" aria-modal="true">
         <div className="action-sheet__title">{getTopicTitle(record.meta.title)}</div>
+        {onStatistics && <button className="action-sheet__item" onClick={() => { onStatistics(record); onClose(); }}>Статистика</button>}
         <button
           className="action-sheet__item"
           onClick={() => { onInfo(record); onClose(); }}
