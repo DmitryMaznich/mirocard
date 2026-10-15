@@ -6,7 +6,7 @@ const MIN_ALBUM_SIZE = 2;
 const MAX_ALBUM_SIZE = 8;
 // 2 is the usual starting field for a child with ASD: choosing between two
 // photos before three or four.
-const ALBUM_SIZES = [2, 4, 6, 8];
+const ALBUM_SIZES = [2, 3, 4, 6, 8];
 // New people introduced per axis per lesson -- across all its rounds, not per
 // round. With a full list (up to 20 cards) the first lesson would otherwise
 // open with an introduction screen for every single person.
@@ -253,15 +253,37 @@ function isActive(person) {
   return !person?.deletedAt && person?.enabled !== false && person?.name?.trim() && person?.photos?.some(Boolean);
 }
 
-function peopleForMode(mode, student) {
-  const people = (student?.myPeople ?? []).filter(isActive);
-  if (mode.id === "mix" || mode.id === "who_is_this") return people;
-  const context = CONTEXT_BY_PREFIX[mode.id.split("_")[0]];
-  return context ? people.filter((person) => person.contexts?.includes(context)) : people;
+export const LABEL_CIRCLES = ["family", "home", "school", "all"];
+
+// «Подпиши фото» takes its circle from the params; the retired album modes
+// carried it in their id ("school_names").
+function circleFor(mode, params) {
+  if (mode.id === "label_photos") return LABEL_CIRCLES.includes(params?.circle) ? params.circle : "family";
+  return CONTEXT_BY_PREFIX[mode.id.split("_")[0]] ?? "all";
 }
 
-function axisForMode(mode) {
-  return mode.id.endsWith("_relations") ? "relation" : "name";
+export function peopleInCircle(student, circle) {
+  const people = (student?.myPeople ?? []).filter(isActive);
+  return circle && circle !== "all" ? people.filter((person) => person.contexts?.includes(circle)) : people;
+}
+
+function peopleForMode(mode, student, params) {
+  if (mode.id === "who_is_this" || mode.id === "show_me") return peopleInCircle(student, "all");
+  return peopleInCircle(student, circleFor(mode, params));
+}
+
+// The words an album asks for, in order. "both" follows how the child
+// knows the circle: at home mum is "мама" before she is "Анна", at school
+// the teacher is "Мария Ивановна" before she is "учительница".
+export function labelAxes(mode, params) {
+  if (mode.id === "label_photos") {
+    const kind = params?.labelKind;
+    if (kind === "name") return ["name"];
+    if (kind === "both") return circleFor(mode, params) === "school" ? ["name", "relation"] : ["relation", "name"];
+    return ["relation"];
+  }
+  if (mode.id === "mix") return ["name", "relation"];
+  return [mode.id.endsWith("_relations") ? "relation" : "name"];
 }
 
 function albumSize(params, available) {
@@ -499,22 +521,16 @@ export function generateTasks(mode, student, params = {}, previousImages = new M
   // for a child who already answers the short questions reliably.
   if (mode.id === "introduce_self") return aboutMeTasks(student);
 
-  const people = peopleForMode(mode, student);
+  const people = peopleForMode(mode, student, params);
   const photoPlanner = createPhotoPlanner(previousImages);
 
   if (mode.id === "who_is_this") return personNamingTasks(people, mode, photoPlanner);
   if (mode.id === "show_me") return pointTasks(people, params, photoPlanner, sessionIntroduced, round);
   if (people.length < MIN_ALBUM_SIZE) return [];
 
-  if (mode.id === "mix") {
-    // The mixed block keeps the concepts separate inside one lesson: names
-    // first, then relationships. Each axis has its own introductions before
-    // its association album and, when available, uses another photo.
-    return [
-      ...tasksForAxis(people, "name", mode, params, photoPlanner, false, sessionIntroduced),
-      ...tasksForAxis(people, "relation", mode, params, photoPlanner, true, sessionIntroduced),
-    ];
-  }
-
-  return tasksForAxis(people, axisForMode(mode), mode, params, photoPlanner, false, sessionIntroduced);
+  // Two axes in one lesson stay separate: each has its own introductions
+  // before its album, and the second uses another photo when there is one.
+  return labelAxes(mode, params).flatMap((axis, index) => (
+    tasksForAxis(people, axis, mode, params, photoPlanner, index > 0, sessionIntroduced)
+  ));
 }

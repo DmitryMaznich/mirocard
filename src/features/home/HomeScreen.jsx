@@ -7,7 +7,7 @@ import TopicCover from "@/shared/components/TopicCover";
 import ModeIcon from "@/shared/components/ModeIcon";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useAppUpdate } from "@/shared/hooks/useAppUpdate";
-import { deriveConcepts } from "@/shared/utils/topicUtils";
+import { deriveConcepts, isPickableMode } from "@/shared/utils/topicUtils";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { refreshInstalledCatalogTopics, silentUpdateOutdatedTopics } from "@/features/topics/catalogService";
@@ -810,9 +810,9 @@ export default function HomeScreen() {
   const activeText = isReading
     ? (topic?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
     : null;
-  const availableModes = isReading
-    ? (activeText ? topic?.modes?.filter((m) => !(m.id === "assemble_text" && activeText.kind !== "poem" && activeText.kind !== "story")) : [])
-    : topic?.modes ?? [];
+  const availableModes = (isReading
+    ? (activeText ? topic?.modes?.filter((m) => !(m.id === "assemble_text" && activeText.kind !== "poem" && activeText.kind !== "story")) ?? [] : [])
+    : topic?.modes ?? []).filter(isPickableMode);
   const mode = availableModes.find((m) => m.id === activeModeId) ?? availableModes[0];
 
   useEffect(() => {

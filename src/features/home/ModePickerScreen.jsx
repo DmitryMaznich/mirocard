@@ -8,6 +8,7 @@ import ModeIcon from "@/shared/components/ModeIcon";
 import Button from "@/shared/components/Button";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { formatDate, getTopicTitle, pluralRu } from "@/shared/utils/format";
+import { isPickableMode } from "@/shared/utils/topicUtils";
 import { activeMyPeople, isMyPeopleProfileEmpty, MY_PEOPLE_SECTION_TITLE, myPeopleModeReadiness, openMyPeopleSettings } from "@/features/myPeople/myPeopleReadiness";
 
 function LastResultBadge({ session }) {
@@ -81,7 +82,6 @@ export default function ModePickerScreen() {
   const activeStudent = students.find((student) => student.id === activeStudentId) ?? null;
   const isMyPeople = topicRecord?.meta.renderer === "my_people";
   const people = activeMyPeople(activeStudent);
-  const profile = activeStudent?.myPeopleProfile ?? {};
   const readinessByMode = isMyPeople
     ? Object.fromEntries(rawModes.map((mode) => [mode.id, myPeopleModeReadiness(mode, activeStudent)]))
     : {};
@@ -90,29 +90,9 @@ export default function ModePickerScreen() {
     return !isMyPeople || readinessByMode[mode.id]?.ready !== false;
   }
 
-  const modes = isMyPeople
-    ? rawModes.filter((mode) => {
-      const block = mode.id.split("_")[0];
-      return !["family", "home", "school", "mix"].includes(block) || profile.enabledBlocks?.[block] !== false;
-    }).sort((left, right) => {
-      const order = profile.blockOrder ?? ["family", "home", "school", "mix"];
-      const leftBlock = left.id.split("_")[0];
-      const rightBlock = right.id.split("_")[0];
-      const leftIndex = order.indexOf(leftBlock);
-      const rightIndex = order.indexOf(rightBlock);
-      // The teaching ladder: «Покажи» (recognise) → «Кто это?» (name) →
-      // «Обо мне» (answer about yourself) → the circle blocks, which need
-      // reading, in the adult's order (Mix pinned last by the profile
-      // editor) → «Представься», the advanced situational level.
-      const LEAD = ["show_me", "who_is_this", "about_me"];
-      const rank = (modeId, index) => (
-        LEAD.includes(modeId) ? LEAD.indexOf(modeId) - LEAD.length
-          : modeId === "introduce_self" ? order.length + 1
-            : index < 0 ? -1 : index
-      );
-      return rank(left.id, leftIndex) - rank(right.id, rightIndex);
-    })
-    : rawModes;
+  // The topic lists its modes in teaching order already; retired ones (the
+  // old album modes) stay out of the list.
+  const modes = rawModes.filter(isPickableMode);
 
   // Short stories deliberately keep their picker instead of auto-opening
   // settings: the parent chooses between reading together and comprehension

@@ -1851,7 +1851,7 @@ export default function ParamsScreen() {
   const modeSelectedConceptIds = readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, params);
   const selectedConceptIds = modeSelectedConceptIds ?? allConcepts.map((c) => c.conceptId);
   const isMyPeople = topicRecord?.meta?.renderer === "my_people";
-  const myPeopleReadiness = isMyPeople ? myPeopleModeReadiness(mode, student) : null;
+  const myPeopleReadiness = isMyPeople ? myPeopleModeReadiness(mode, student, params) : null;
   const myPeopleReady = !isMyPeople || myPeopleReadiness.ready;
 
   // Concept range filter — only in "Считаем на пальцах" mode

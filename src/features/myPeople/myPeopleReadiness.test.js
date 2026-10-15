@@ -12,18 +12,21 @@ describe("«Мои люди» readiness", () => {
     expect(isMyPeopleProfileEmpty({ myPeople: [person("a"), person("b")] })).toBe(false);
   });
 
-  it("names the circle and the tab that fixes a circle mode", () => {
-    const student = { myPeople: [person("a"), person("b")] };
-    expect(myPeopleModeReadiness({ id: "family_names" }, student).ready).toBe(true);
-    const school = myPeopleModeReadiness({ id: "school_names" }, student);
-    expect(school).toMatchObject({ ready: false, tab: "school" });
-    expect(school.reason).toContain("Школа");
-    expect(myPeopleModeReadiness({ id: "family_relations" }, student)).toMatchObject({ ready: false, tab: "family" });
+  it("opens «Подпиши фото» in the list with two people anywhere", () => {
+    const student = { myPeople: [person("a", { contexts: ["school"] }), person("b", { contexts: ["school"] })] };
+    expect(myPeopleModeReadiness({ id: "label_photos", type: "people_album" }, student).ready).toBe(true);
   });
 
-  it("sends a switched-off circle to «Порядок»", () => {
-    const student = { myPeople: [person("a"), person("b")], myPeopleProfile: { enabledBlocks: { family: false } } };
-    expect(myPeopleModeReadiness({ id: "family_names" }, student)).toMatchObject({ ready: false, tab: "order" });
+  it("on the params screen names the chosen circle and the tab that fixes it", () => {
+    const mode = { id: "label_photos", type: "people_album", params: { circle: { default: "family" } } };
+    const student = { myPeople: [person("a", { relation: "мама" }), person("b", { relation: "папа" })] };
+    expect(myPeopleModeReadiness(mode, student, { circle: "family", labelKind: "relation" }).ready).toBe(true);
+    const school = myPeopleModeReadiness(mode, student, { circle: "school", labelKind: "name" });
+    expect(school).toMatchObject({ ready: false, tab: "school" });
+    expect(school.reason).toContain("Школа");
+    const noRelations = { myPeople: [person("a"), person("b")] };
+    expect(myPeopleModeReadiness(mode, noRelations, { labelKind: "relation" })).toMatchObject({ ready: false, tab: "family" });
+    expect(myPeopleModeReadiness(mode, noRelations, { labelKind: "name" }).ready).toBe(true);
   });
 
   it("sends «Обо мне» to «Личные данные»", () => {

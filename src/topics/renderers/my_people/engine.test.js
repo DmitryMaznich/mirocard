@@ -15,16 +15,25 @@ const student = {
 };
 
 describe("my_people album engine", () => {
-  it("uses 2, 4, 6, or 8 portraits and keeps every mode in a renewable loop", () => {
+  it("offers one «Подпиши фото» mode with 2–6 photos and keeps every mode in a renewable loop", () => {
     const topic = buildMyPeopleTopicRecord();
-    const familyNames = topic.modes.find((mode) => mode.id === "family_names");
+    const labelPhotos = topic.modes.find((mode) => mode.id === "label_photos");
     const aboutMe = topic.modes.find((mode) => mode.id === "about_me");
     const whoIsThis = topic.modes.find((mode) => mode.id === "who_is_this");
 
-    expect(familyNames.params.peopleCount.values).toEqual([2, 4, 6, 8]);
+    expect(labelPhotos.params.peopleCount.values).toEqual([2, 3, 4, 6]);
+    expect(labelPhotos.params.circle.values).toEqual(["family", "home", "school", "all"]);
     expect(topic.modes.every((mode) => mode.loop && mode.regenerateOnLoop)).toBe(true);
     expect(aboutMe).toEqual(expect.objectContaining({ type: "about_me", evaluation: "adult" }));
     expect(whoIsThis).toEqual(expect.objectContaining({ type: "person_naming", evaluation: "adult", hideConceptPicker: true }));
+  });
+
+  it("lists the modes in teaching order and keeps the old album modes only as retired", () => {
+    const modes = buildMyPeopleTopicRecord().modes;
+    expect(modes.filter((mode) => !mode.retired).map((mode) => mode.id))
+      .toEqual(["show_me", "who_is_this", "about_me", "label_photos", "introduce_self"]);
+    expect(modes.filter((mode) => mode.retired).map((mode) => mode.id))
+      .toEqual(["family_names", "family_relations", "home_names", "home_relations", "school_names", "school_relations", "mix"]);
   });
 
   it("does not generate an introduce-yourself block with fewer than two included facts", () => {
@@ -492,5 +501,48 @@ describe("«Покажи»", () => {
         else expect(other.personId).toBe("cat");
       }
     }
+  });
+});
+
+describe("«Подпиши фото»", () => {
+  const labelPhotos = { id: "label_photos", type: "people_album" };
+  const person = (id, name, relation, contexts) => ({
+    id, name, relation, type: "person", contexts, photos: [`/p/${id}`], introducedAxes: ["name", "relation"], enabled: true,
+  });
+  const student = {
+    id: "s",
+    myPeople: [
+      person("anna", "Анна", "мама", ["family"]),
+      person("pavel", "Павел", "папа", ["family"]),
+      person("maria", "Мария Ивановна", "учительница", ["school"]),
+      person("oleg", "Олег Петрович", "учитель", ["school"]),
+    ],
+  };
+  const albums = (params) => generateTasks(labelPhotos, student, params).filter((task) => task.type === "people_album");
+
+  it("takes the circle and the words from the params", () => {
+    const [family] = albums({ circle: "family", labelKind: "relation" });
+    expect(family.axis).toBe("relation");
+    expect(family.entries.map((entry) => entry.personId).sort()).toEqual(["anna", "pavel"]);
+    const [school] = albums({ circle: "school", labelKind: "name" });
+    expect(school.axis).toBe("name");
+    expect(school.entries.map((entry) => entry.label).sort()).toEqual(["Мария Ивановна", "Олег Петрович"]);
+    expect(albums({ circle: "all", labelKind: "name", peopleCount: 4 })[0].entries).toHaveLength(4);
+  });
+
+  it("defaults to the family and «кто это»", () => {
+    const [album] = albums({});
+    expect(album.axis).toBe("relation");
+    expect(album.entries.map((entry) => entry.personId).sort()).toEqual(["anna", "pavel"]);
+  });
+
+  it("with both words starts from the role at home and from the name at school", () => {
+    expect(albums({ circle: "family", labelKind: "both" }).map((task) => task.axis)).toEqual(["relation", "name"]);
+    expect(albums({ circle: "school", labelKind: "both" }).map((task) => task.axis)).toEqual(["name", "relation"]);
+  });
+
+  it("keeps the same progress concepts as the old album modes", () => {
+    const [album] = albums({ circle: "family", labelKind: "name" });
+    expect(album.progressConceptIds.sort()).toEqual(["anna:name", "pavel:name"]);
   });
 });

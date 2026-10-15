@@ -16,7 +16,6 @@ const TABS = [
   ["home", "Люди дома"],
   ["school", "Школа"],
   ["personal", "Личные данные"],
-  ["order", "Порядок"],
 ];
 
 const CONTEXT_LABELS = {
@@ -24,13 +23,6 @@ const CONTEXT_LABELS = {
   home: "Дома",
   school: "Школа",
 };
-
-const BLOCKS = [
-  ["family", "Семья и питомцы"],
-  ["home", "Люди дома"],
-  ["school", "Школа"],
-  ["mix", "Микс"],
-];
 
 function makeId() {
   return `person_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -489,15 +481,6 @@ export default function MyPeopleSettingsScreen() {
     setEditingId(null);
     persist();
   }
-  function moveBlock(id, delta) {
-    const current = profile.blockOrder.filter((item) => item !== id);
-    const index = Math.max(0, Math.min(current.length, profile.blockOrder.indexOf(id) + delta));
-    current.splice(index, 0, id);
-    // Mix always closes the sequence; otherwise it would defeat staged learning.
-    const mixIndex = current.indexOf("mix");
-    if (mixIndex >= 0) current.push(...current.splice(mixIndex, 1));
-    updateProfile({ blockOrder: current });
-  }
 
 
 
@@ -528,7 +511,7 @@ export default function MyPeopleSettingsScreen() {
           const introduction = introductionsByContext[id];
           const hint = id in CONTEXT_LABELS
             ? `${cardCount} ${pluralRu(cardCount, "карточка", "карточки", "карточек")}${cardCount && introduction.total ? ` · Знакомство: ${introduction.introduced} из ${introduction.total}` : ""}`
-            : id === "personal" ? "Фамилия и адрес" : "Режимы занятия";
+            : "Фамилия и адрес";
           return (
             <button key={id} type="button" className={tab === id ? "mp-tab mp-tab--active" : "mp-tab"} onClick={() => { setTab(id); closeEditor(); }}>
               <span className="mp-tab__number">{String(index + 1).padStart(2, "0")}</span>
@@ -543,7 +526,7 @@ export default function MyPeopleSettingsScreen() {
           <>
             <div className="mp-section-head">
               <div>
-                <span className="mp-section-head__eyebrow">Шаг {TABS.findIndex(([id]) => id === tab) + 1} из 5</span>
+                <span className="mp-section-head__eyebrow">Шаг {TABS.findIndex(([id]) => id === tab) + 1} из {TABS.length}</span>
                 <h2>{TABS.find(([id]) => id === tab)?.[1]}</h2>
                 <p>{tab === "family" ? "Начните с 2–4 самых близких людей или питомцев." : "Добавьте тех, с кем ребёнок регулярно встречается."}</p>
               </div>
@@ -564,7 +547,7 @@ export default function MyPeopleSettingsScreen() {
 
         {tab === "personal" && (
           <section className="mp-personal">
-            <div className="mp-section-head mp-section-head--stacked"><div><span className="mp-section-head__eyebrow">Шаг 4 из 5</span><h2>Личные данные</h2><p>Добавьте только те ответы, которые хотите отрабатывать с {student.name}.</p></div></div>
+            <div className="mp-section-head mp-section-head--stacked"><div><span className="mp-section-head__eyebrow">Шаг 4 из {TABS.length}</span><h2>Личные данные</h2><p>Добавьте только те ответы, которые хотите отрабатывать с {student.name}.</p></div></div>
             <div className="mp-personal__grid">
             <div className="mp-form-card mp-form-card--identity">
               <h3 className="student-data-heading">Имя и фамилия <StudentDataInfo kind="identity" /></h3>
@@ -593,20 +576,6 @@ export default function MyPeopleSettingsScreen() {
           </section>
         )}
 
-        {tab === "order" && (
-          <section className="mp-order">
-            <div className="mp-section-head mp-section-head--stacked"><div><span className="mp-section-head__eyebrow">Шаг 5 из 5</span><h2>Порядок изучения</h2><p>Сначала отдельные группы людей, затем — смешанный режим.</p></div></div>
-            {profile.blockOrder.map((id, index) => {
-              const label = BLOCKS.find(([blockId]) => blockId === id)?.[1] ?? id;
-              return <div className={`mp-order-row${id === "mix" ? " mp-order-row--mix" : ""}`} key={id}>
-                <span className="mp-order-row__number">{index + 1}</span>
-                <span className="mp-order-row__label">{label}{id === "mix" && <small>После остальных блоков</small>}</span>
-                <label className="mp-switch"><input type="checkbox" checked={profile.enabledBlocks?.[id] !== false} onChange={(event) => updateProfile({ enabledBlocks: { ...profile.enabledBlocks, [id]: event.target.checked } })} /><span /></label>
-                {id !== "mix" && <div className="mp-order-row__actions"><button type="button" disabled={index === 0} onClick={() => moveBlock(id, -1)}>↑</button><button type="button" disabled={index >= profile.blockOrder.length - 2} onClick={() => moveBlock(id, 1)}>↓</button></div>}
-              </div>;
-            })}
-          </section>
-        )}
       </main>
     </div>
   );

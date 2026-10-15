@@ -3,7 +3,7 @@
 // for the mode picker and the params screen, which used to keep two copies
 // of the check and only said "fill in the data" without saying which.
 import { useAppStore } from "@/core/store";
-import { generateTasks, hasEnoughAboutMeFacts, hasEnoughAboutMeQuestions } from "@/topics/renderers/my_people/engine";
+import { generateTasks, hasEnoughAboutMeFacts, hasEnoughAboutMeQuestions, labelAxes, peopleInCircle } from "@/topics/renderers/my_people/engine";
 
 export const MY_PEOPLE_SECTION_TITLE = "Окружение ребёнка";
 
@@ -27,10 +27,12 @@ export function isMyPeopleProfileEmpty(student) {
 
 const ready = { ready: true, reason: "", tab: null };
 
-export function myPeopleModeReadiness(mode, student) {
+// `params` are the session params when known (the params screen): then
+// «Подпиши фото» is checked for the chosen circle. Without them (the mode
+// list) it only needs two people somewhere.
+export function myPeopleModeReadiness(mode, student, params = null) {
   if (!student) return { ready: false, reason: "Выберите ученика: задания строятся из его окружения.", tab: null };
   const people = activeMyPeople(student);
-  const profile = student.myPeopleProfile ?? {};
 
   if (mode.id === "about_me") {
     return hasEnoughAboutMeQuestions(student) ? ready : {
@@ -47,26 +49,28 @@ export function myPeopleModeReadiness(mode, student) {
     };
   }
 
-  const circle = Object.keys(CIRCLES).find((context) => mode.id.startsWith(`${context}_`));
-  if (circle) {
-    if (profile.enabledBlocks?.[circle] === false) {
-      return { ready: false, reason: `Круг «${CIRCLES[circle]}» выключен на вкладке «Порядок».`, tab: "order" };
-    }
-    const needsRelation = mode.id.endsWith("_relations");
-    const inCircle = people.filter((person) => person.contexts?.includes(circle) && (!needsRelation || person.relation?.trim()));
-    return inCircle.length >= 2 ? ready : {
-      ready: false,
-      reason: `В круге «${CIRCLES[circle]}» нужно хотя бы 2 человека с фото${needsRelation ? " и подписью «кто это»" : ""}.`,
-      tab: circle,
-    };
-  }
-
-  if (mode.id === "mix" && profile.enabledBlocks?.mix === false) {
-    return { ready: false, reason: "«Все люди» выключены на вкладке «Порядок».", tab: "order" };
-  }
   if (people.length < 2) {
     return { ready: false, reason: "Нужно хотя бы 2 человека с фото.", tab: "family" };
   }
+
+  if (mode.type === "people_album") {
+    const circle = mode.id === "label_photos"
+      ? (params ? (params.circle ?? mode.params?.circle?.default) : "all")
+      : Object.keys(CIRCLES).find((context) => mode.id.startsWith(`${context}_`)) ?? "all";
+    // Without params (the list) any word will do; the params screen knows.
+    const [firstAxis] = mode.id === "label_photos" && !params ? ["name"] : labelAxes(mode, { ...params, circle });
+    const inCircle = peopleInCircle(student, circle).filter((person) => firstAxis !== "relation" || person.relation?.trim());
+    if (inCircle.length < 2) {
+      const where = CIRCLES[circle] ? `В круге «${CIRCLES[circle]}»` : "В окружении";
+      return {
+        ready: false,
+        reason: `${where} нужно хотя бы 2 человека с фото${firstAxis === "relation" ? " и подписью «кто это»" : ""}.`,
+        tab: CIRCLES[circle] ? circle : "family",
+      };
+    }
+    return ready;
+  }
+
   if (mode.id === "who_is_this" && !generateTasks(mode, student).length) {
     // Not a profile gap: «Кто это?» asks only about people already met.
     return { ready: false, reason: "Сначала пройдите «Покажи»: здесь спрашиваем только о людях, которых ребёнок уже находил.", tab: null };
