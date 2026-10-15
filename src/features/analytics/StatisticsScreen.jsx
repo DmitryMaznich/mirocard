@@ -134,4 +134,3 @@ export default function StatisticsScreen({ initialTopicId = null, onClose }) {
     </div>
   </div>;
 }
-
