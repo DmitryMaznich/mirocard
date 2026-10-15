@@ -39,4 +39,10 @@ describe("«Мои люди» readiness", () => {
     const met = { myPeople: [person("a", { introducedAxes: ["name"] }), person("b")] };
     expect(myPeopleModeReadiness({ id: "who_is_this" }, met).ready).toBe(true);
   });
+
+  it("opens «Найди такого же» only with two people who have two photos each", () => {
+    const mode = { id: "match_same", type: "person_match" };
+    expect(myPeopleModeReadiness(mode, { myPeople: [person("a"), person("b")] })).toMatchObject({ ready: false, tab: "family" });
+    expect(myPeopleModeReadiness(mode, { myPeople: [person("a", { photos: ["/1", "/2"] }), person("b", { photos: ["/3", "/4"] })] }).ready).toBe(true);
+  });
 });

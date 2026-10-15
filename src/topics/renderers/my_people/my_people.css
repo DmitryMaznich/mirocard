@@ -651,6 +651,34 @@
   flex: 0 1 min(44vw, 300px, 38vh);
 }
 
+/* «Найди такого же»: the sample sits above the choices in a dashed frame
+   on a tinted ground -- clearly "look at this", not one of the options. */
+.people-match__sample {
+  width: min(40vw, 220px, 26vh);
+  padding: clamp(5px, 1.4vw, 8px);
+  border: 3px dashed #9cc6bd;
+  border-radius: 24px;
+  background: #eef6f3;
+}
+
+.people-match__sample > img,
+.people-match__sample > .people-point-photo__loading {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 17px;
+  object-fit: cover;
+}
+
+/* With the sample on top the choices give up some height. */
+.people-point--match .people-point__photos > .people-point-photo {
+  flex-basis: min(40vw, 240px, 30vh);
+}
+
+.people-point--match .people-point__photos--grid > .people-point-photo {
+  max-width: min(38vw, 200px, 21vh);
+}
+
 /* One photo: the errorless entry level, the photo alone fills the stage. */
 .people-point__photos--single > .people-point-photo {
   flex-basis: min(70vw, 360px, 46vh);

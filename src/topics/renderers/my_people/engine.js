@@ -391,13 +391,69 @@ function pickTargetPosition(slots, previous) {
   return choices[Math.floor(Math.random() * choices.length)];
 }
 
+// ── «Найди такого же»: matching two different photos of one person ─────
+// No words at all: a photo on top, the same person on another photo among
+// 2–4 below. The step before «Покажи» for a child who does not yet link
+// "Где мама?" to mum, and direct practice in recognising someone across
+// photos rather than by one detail (glasses, a jumper, the kitchen).
+// Only people with two or more photos can be targets -- with one photo it
+// would be matching identical pictures, a different and easier skill.
+const MATCH_FIELD_SIZES = [2, 3, 4];
+
+export function hasTwoPhotos(person) {
+  return new Set((person?.photos ?? []).filter(Boolean)).size >= 2;
+}
+
+function matchTasks(people, params, round) {
+  const targets = people.filter(hasTwoPhotos);
+  if (targets.length < 2 || people.length < 2) return [];
+  const requested = Number(params?.fieldSize);
+  const fieldSize = Math.min(MATCH_FIELD_SIZES.includes(requested) ? requested : 2, people.length);
+  const randomPhoto = (person) => {
+    const photos = person.photos.filter(Boolean);
+    return photos[Math.floor(Math.random() * photos.length)];
+  };
+  const positions = [];
+  return pointTargetSequence(targets).map((target, trialIndex) => {
+    // Two different photos of the target: one on top, one to find.
+    const [sample, match] = shuffle([...new Set(target.photos.filter(Boolean))]);
+    // Distractors are chosen by person, not by word: two "Маша" are two
+    // different faces here, so they may share a screen.
+    const distractors = pickPointDistractors(target, people, null, fieldSize - 1, round);
+    const order = shuffle(distractors);
+    const position = pickTargetPosition(order.length + 1, positions);
+    positions.push(position);
+    order.splice(position, 0, target);
+    const conceptId = `match:${target.id}`;
+    return {
+      type: "person_match",
+      conceptId,
+      targetConceptId: conceptId,
+      progressConceptIds: [conceptId],
+      trialIndex,
+      personId: target.id,
+      sample,
+      prompt: "Найди такого же",
+      promptSpeech: "Найди такого же.",
+      correctSpeech: "Правильно!",
+      missSpeech: "Смотри, вот.",
+      choices: order.map((person) => ({
+        personId: person.id,
+        image: person.id === target.id ? match : randomPhoto(person),
+      })),
+    };
+  });
+}
+
 // Discrimination goes from easy to hard: in the first round of a lesson a
 // pet is set against people and people against a pet when the album has
 // both, so the very first choices are the most different ones. Later
 // rounds draw from everyone.
 function pickPointDistractors(target, people, word, count, round) {
   if (count <= 0) return [];
-  const eligible = shuffle(people.filter((person) => person.id !== target.id && mainWord(person).toLowerCase() !== word.toLowerCase()));
+  // `word` null: no word on screen (matching), so any other person will do.
+  const eligible = shuffle(people.filter((person) => person.id !== target.id
+    && (word == null || mainWord(person).toLowerCase() !== word.toLowerCase())));
   if (round > 0) return eligible.slice(0, count);
   const isPet = (person) => person.type === "pet";
   const contrasting = eligible.filter((person) => isPet(person) !== isPet(target));
@@ -424,7 +480,7 @@ export function peopleInCircle(student, circle) {
 }
 
 function peopleForMode(mode, student, params) {
-  if (mode.id === "who_is_this" || mode.id === "show_me") return peopleInCircle(student, "all");
+  if (mode.id === "who_is_this" || mode.id === "show_me" || mode.id === "match_same") return peopleInCircle(student, "all");
   return peopleInCircle(student, circleFor(mode, params));
 }
 
@@ -697,6 +753,7 @@ export function generateTasks(mode, student, params = {}, previousImages = new M
 
   if (mode.id === "who_is_this") return personNamingTasks(people, mode, photoPlanner);
   if (mode.id === "show_me") return pointTasks(people, params, photoPlanner, sessionIntroduced, round);
+  if (mode.id === "match_same") return matchTasks(people, params, round);
   if (people.length < MIN_ALBUM_SIZE) return [];
 
   // Two axes in one lesson stay separate: each has its own introductions

@@ -59,6 +59,30 @@ const labelPhotosMode = {
   },
 };
 
+// «Найди такого же»: match two different photos of one person, no words.
+// The first step, before «Покажи»: recognising a face across photos, apart
+// from understanding "мама". Needs people with at least two photos.
+const matchSameMode = {
+  id: "match_same",
+  type: "person_match",
+  evaluation: "auto",
+  loop: true,
+  regenerateOnLoop: true,
+  hideConceptPicker: true,
+  params: {
+    fieldSize: {
+      type: "enum",
+      label: { ru: "Фото на выбор" },
+      values: [2, 3, 4],
+      default: 2,
+    },
+  },
+  ui: {
+    title: { ru: "Найди такого же" },
+    instruction: { ru: "Без слов: найти того же человека на другом фото. Нужно хотя бы 2 фото у человека" },
+  },
+};
+
 // «Покажи»: "Где мама?" -- tap the right photo. The receptive step that
 // comes before naming, and the one that needs no reading.
 const showMeMode = {
@@ -177,6 +201,7 @@ export function buildMyPeopleTopicRecord() {
         finalGoal: "Ребёнок уверенно узнаёт значимых людей и понимает, кто они для него.",
         flow: [
           "Заполните «Окружение ребёнка»: близкие с фотографиями, для «Обо мне» — личные данные.",
+          "«Найди такого же»: без слов найти того же человека на другом фото — для тех, кто ещё не понимает «Где мама?».",
           "«Покажи»: ребёнок находит человека по слову «Где мама?». Здесь же он знакомится с новыми людьми.",
           "«Кто это?»: ребёнок сам называет тех, кого уже находил.",
           "«Обо мне»: короткие вопросы о себе с подсказками по шагам.",
@@ -185,10 +210,12 @@ export function buildMyPeopleTopicRecord() {
         ],
       },
     },
-    // The teaching ladder: recognise («Покажи») → name («Кто это?») →
+    // The teaching ladder: match («Найди такого же») → recognise by the
+    // word («Покажи») → name («Кто это?») →
     // answer about yourself → label photos (needs reading) → introduce
     // yourself. Mode pickers keep this order.
     modes: [
+      matchSameMode,
       showMeMode,
       whoIsThisMode,
       aboutMeMode,

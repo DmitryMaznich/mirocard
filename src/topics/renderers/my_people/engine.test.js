@@ -31,7 +31,7 @@ describe("my_people album engine", () => {
   it("lists the modes in teaching order and keeps the old album modes only as retired", () => {
     const modes = buildMyPeopleTopicRecord().modes;
     expect(modes.filter((mode) => !mode.retired).map((mode) => mode.id))
-      .toEqual(["show_me", "who_is_this", "about_me", "label_photos", "introduce_self"]);
+      .toEqual(["match_same", "show_me", "who_is_this", "about_me", "label_photos", "introduce_self"]);
     expect(modes.filter((mode) => mode.retired).map((mode) => mode.id))
       .toEqual(["family_names", "family_relations", "home_names", "home_relations", "school_names", "school_relations", "mix"]);
   });
@@ -603,4 +603,52 @@ describe("«Кто это?» first-syllable prompt", () => {
     expect(firstSyllable("")).toBe("");
   });
 
+});
+
+describe("«Найди такого же»", () => {
+  const matchSame = { id: "match_same", type: "person_match" };
+  const person = (id, photos, extra = {}) => ({ id, name: id, relation: "", type: "person", contexts: ["family"], photos, enabled: true, ...extra });
+  const student = {
+    id: "s",
+    myPeople: [
+      person("anna", ["/a1", "/a2", "/a3"]),
+      person("pavel", ["/p1", "/p2"]),
+      person("olga", ["/o1"]),
+      person("cat", ["/c1", "/c2"], { type: "pet" }),
+    ],
+  };
+
+  it("asks about people with two photos, shows one and hides another of the same person", () => {
+    for (let i = 0; i < 30; i += 1) {
+      const tasks = generateTasks(matchSame, student, { fieldSize: 3 });
+      expect(tasks.length).toBeGreaterThanOrEqual(MIN_POINT_TRIALS_PER_ROUND);
+      for (const task of tasks) {
+        expect(task.type).toBe("person_match");
+        expect(["anna", "pavel", "cat"]).toContain(task.personId);
+        const target = student.myPeople.find((p) => p.id === task.personId);
+        const found = task.choices.find((choice) => choice.personId === task.personId);
+        expect(target.photos).toContain(task.sample);
+        expect(target.photos).toContain(found.image);
+        // Never the same picture twice: that would be matching identical images.
+        expect(found.image).not.toBe(task.sample);
+        expect(task.choices).toHaveLength(3);
+        expect(JSON.stringify(task)).not.toMatch(/Где|anna\?/);
+      }
+    }
+  });
+
+  it("lets a one-photo person be a distractor but never the one to find", () => {
+    const ids = new Set();
+    for (let i = 0; i < 30; i += 1) {
+      for (const task of generateTasks(matchSame, student, { fieldSize: 4 })) ids.add(task.personId);
+    }
+    expect(ids.has("olga")).toBe(false);
+    const tasks = generateTasks(matchSame, student, { fieldSize: 4 });
+    expect(tasks[0].choices.map((choice) => choice.personId)).toContain("olga");
+  });
+
+  it("needs two people with two photos each", () => {
+    const one = { ...student, myPeople: [person("anna", ["/a1", "/a2"]), person("olga", ["/o1"]), person("ivan", ["/i1", "/i1"])] };
+    expect(generateTasks(matchSame, one)).toEqual([]);
+  });
 });

@@ -518,6 +518,19 @@ function AboutMeQuestionTask(props) {
   );
 }
 
+// «Найди такого же»: the photo to match, set apart from the choices by a
+// frame, not shown as one more thing to tap.
+function MatchSample({ topicId, image }) {
+  const url = useTopicFile(topicId, image);
+  return (
+    <div className="people-match__sample" aria-label="Образец">
+      {url
+        ? <img src={url} alt="" draggable={false} />
+        : <span className="people-point-photo__loading" aria-hidden="true" />}
+    </div>
+  );
+}
+
 function PointPhoto({ choice, topicId, state, disabled, onChoose }) {
   const url = useTopicFile(topicId, choice.image);
   return (
@@ -564,7 +577,7 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAd
       // The child has now found this person by the word -- an introduction
       // for «Кто это?», which asks only about people already met.
       if (task.introduces) markPersonAxisIntroduced(student?.id, task.personId, task.axis).catch(() => {});
-      if (soundEnabled) speak(`Да, это ${task.word}!`);
+      if (soundEnabled) speak(task.correctSpeech ?? `Да, это ${task.word}!`);
       // One photo, nothing to choose: praise and move on without scoring.
       if (task.errorless) {
         advanceTimer.current = setTimeout(() => onAdvance?.(), 1400);
@@ -576,17 +589,18 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAd
     if (current.missedId) return;
     setTrial({ ...current, missedId: choice.personId });
     onStreakReset?.(task.conceptId, task.personId);
-    if (soundEnabled) speak(`Вот ${task.word}.`);
+    if (soundEnabled) speak(task.missSpeech ?? `Вот ${task.word}.`);
   }
 
   const columns = task.choices.length === 4 ? " people-point__photos--grid"
     : task.choices.length === 1 ? " people-point__photos--single" : "";
   return (
-    <div className="session-body people-point" aria-label="Покажи человека">
+    <div className={`session-body people-point${task.sample ? " people-point--match" : ""}`} aria-label={task.sample ? "Найди такого же" : "Покажи человека"}>
       <div className="people-point__prompt">
         <div className="people-point__question">{task.prompt}</div>
         <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
       </div>
+      {task.sample && <MatchSample topicId={topicId} image={task.sample} />}
       <div className={`people-point__photos${columns}`}>
         {task.choices.map((choice) => {
           const isTarget = choice.personId === task.personId;
@@ -671,6 +685,7 @@ export default function MyPeopleRenderer(props) {
     case "person_intro":
       return <PersonIntroTask {...props} />;
     case "person_point":
+    case "person_match":
       return <PersonPointTask {...props} />;
     case "about_me_question":
       return <AboutMeQuestionTask {...props} />;

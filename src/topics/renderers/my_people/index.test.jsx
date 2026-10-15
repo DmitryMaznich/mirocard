@@ -349,3 +349,30 @@ describe("«Представься» renderer", () => {
   });
 });
 
+describe("«Найди такого же» renderer", () => {
+  it("shows the sample apart from the choices and counts the right one", () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    const onCorrect = vi.fn();
+    act(() => {
+      root.render(
+        <MyPeopleRenderer
+          task={{ type: "person_match", conceptId: "match:anna", personId: "anna", sample: "data:image/png;base64,S", prompt: "Найди такого же", promptSpeech: "Найди такого же.", correctSpeech: "Правильно!", missSpeech: "Смотри, вот.", choices: [{ personId: "pavel", image: "data:image/png;base64,P" }, { personId: "anna", image: "data:image/png;base64,A" }] }}
+          topicId="my_people"
+          soundEnabled={false}
+          onCorrect={onCorrect}
+          onStreakReset={vi.fn()}
+        />,
+      );
+    });
+    expect(container.querySelector(".people-match__sample img")?.getAttribute("src")).toBe("data:image/png;base64,S");
+    const photos = container.querySelectorAll(".people-point-photo");
+    expect(photos).toHaveLength(2);
+    act(() => photos[1].click());
+    expect(onCorrect).toHaveBeenCalledWith("match:anna", "anna", expect.objectContaining({ autoAdvance: true }));
+    act(() => root.unmount());
+    container.remove();
+  });
+});
+

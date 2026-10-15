@@ -3,7 +3,7 @@
 // for the mode picker and the params screen, which used to keep two copies
 // of the check and only said "fill in the data" without saying which.
 import { useAppStore } from "@/core/store";
-import { generateTasks, hasEnoughAboutMeFacts, hasEnoughAboutMeQuestions, labelAxes, peopleInCircle } from "@/topics/renderers/my_people/engine";
+import { generateTasks, hasEnoughAboutMeFacts, hasTwoPhotos, hasEnoughAboutMeQuestions, labelAxes, peopleInCircle } from "@/topics/renderers/my_people/engine";
 
 export const MY_PEOPLE_SECTION_TITLE = "Окружение ребёнка";
 
@@ -60,6 +60,10 @@ export function myPeopleModeReadiness(mode, student, params = null) {
 
   if (people.length < 2) {
     return { ready: false, reason: "Нужно хотя бы 2 человека с фото.", tab: "family" };
+  }
+
+  if (mode.id === "match_same" && people.filter(hasTwoPhotos).length < 2) {
+    return { ready: false, reason: "Нужно хотя бы 2 человека, у которых по 2 разных фото: добавьте второе фото.", tab: "family" };
   }
 
   if (mode.type === "people_album") {
