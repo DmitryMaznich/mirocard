@@ -1,6 +1,18 @@
 // A first-party, per-student topic. Cards are generated only from the
 // pupil's private profile; there is intentionally no downloadable deck.
 
+// Every mode can run silent: the adult reads the question themselves, or
+// the child is overwhelmed by the voice. On by default; off means no speech
+// at all and no "hear it again" buttons.
+const voiceParam = {
+  voice: {
+    type: "boolean",
+    label: { ru: "Озвучка" },
+    hint: { ru: "Голос задаёт вопрос и называет ответ. Выключите — только текст и фото." },
+    default: true,
+  },
+};
+
 // The seven old album modes (a circle × names/relations, plus «Все люди»).
 // Replaced by «Подпиши фото» with the same two choices as parameters; kept
 // as `retired` so session history and saved lesson plans that name them
@@ -182,6 +194,9 @@ const whoIsThisMode = {
   },
 };
 
+// "Озвучка" goes last in every mode's settings.
+const withVoice = (mode) => ({ ...mode, params: { ...(mode.params ?? {}), ...voiceParam } });
+
 export function buildMyPeopleTopicRecord() {
   return {
     meta: {
@@ -228,7 +243,7 @@ export function buildMyPeopleTopicRecord() {
       retiredAlbumMode("school_names", "Школа: имена"),
       retiredAlbumMode("school_relations", "Школа: кто это"),
       retiredAlbumMode("mix", "Все люди"),
-    ],
+    ].map(withVoice),
     // A metadata card makes generic navigation and legacy selection links safe;
     // the engine deliberately ignores it and uses the pupil's own records.
     cards: [{ id: "my_people_profile", conceptId: "my_people_profile", primary: true }],

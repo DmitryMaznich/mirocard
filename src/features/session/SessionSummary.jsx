@@ -56,14 +56,17 @@ export default function SessionSummary() {
 
   const [detailsOpen, setDetailsOpen] = useState(false);
 
+  // A mode run with "Озвучка" off stays silent here too.
+  const voiceOff = session?.paramsSnapshot?.voice === false;
+
   useEffect(() => {
-    if (!session) return;
+    if (!session || voiceOff) return;
     const timer = setTimeout(() => speak(praiseText), 600);
     return () => {
       clearTimeout(timer);
       window.speechSynthesis?.cancel();
     };
-  }, [praiseText, session]);
+  }, [praiseText, session, voiceOff]);
 
   if (!session) {
     return (

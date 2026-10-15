@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
@@ -21,7 +21,12 @@ const QUALITY_BUTTONS = [
 // "Hear it again". Drawn as a plain speaker, not a filled teal tile: in the
 // same colour as «Дальше» and the answer buttons it read as one more thing
 // to press to move on.
+// False when the mode's "Озвучка" is off: then there is nothing to hear
+// again, so the speaker buttons go too.
+const VoiceContext = createContext(true);
+
 function SpeakerButton({ onClick, label, className = "" }) {
+  if (!useContext(VoiceContext)) return null;
   return (
     <button type="button" className={`people-speaker ${className}`} onClick={onClick} aria-label={label}>
       <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
@@ -678,7 +683,20 @@ function PersonNamingTask(props) {
   );
 }
 
-export default function MyPeopleRenderer(props) {
+export default function MyPeopleRenderer(rawProps) {
+  // The mode's "Озвучка" switch sits on top of the app's sound: off means no
+  // speech anywhere in the mode. Every task speaks only through
+  // `soundEnabled`, so turning it off here silences them all.
+  const voiceOn = rawProps.sessionParams?.voice !== false;
+  const props = { ...rawProps, soundEnabled: Boolean(rawProps.soundEnabled) && voiceOn };
+  return (
+    <VoiceContext.Provider value={voiceOn}>
+      <MyPeopleTask {...props} />
+    </VoiceContext.Provider>
+  );
+}
+
+function MyPeopleTask(props) {
   switch (props.task?.type) {
     case "people_album":
       return <PeopleAlbumTask {...props} />;
