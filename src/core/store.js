@@ -122,6 +122,10 @@ export const useAppStore = create((set) => ({
   // there, otherwise the student card it has always returned to.
   myPeopleReturnScreen: null,
   setMyPeopleReturnScreen: (myPeopleReturnScreen) => set({ myPeopleReturnScreen }),
+  // The tab "Мои люди" settings open on when a link names what's missing
+  // (e.g. «Личные данные» for «Обо мне»); read once on open.
+  myPeopleInitialTab: null,
+  setMyPeopleInitialTab: (myPeopleInitialTab) => set({ myPeopleInitialTab }),
   // Same for "Важные даты": opened from the student card or from the
   // "Сегодня" topic's settings.
   importantDatesReturnScreen: null,

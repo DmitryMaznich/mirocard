@@ -68,6 +68,45 @@ describe("people album renderer", () => {
     expect(container.querySelectorAll(".people-album__progress-dot")).toHaveLength(3);
     expect(container.querySelector(".people-album__answers-progress")?.textContent).toContain("0 из 3");
   });
+
+  it("places a word with a tap on it and a tap on the photo, no dragging needed", () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root.render(
+        <MyPeopleRenderer
+          task={{
+            type: "people_album",
+            conceptId: "album:family_names:anna_boris",
+            axis: "name",
+            prompt: "Подпиши имена",
+            answerTitle: "Имена",
+            entries: [
+              { personId: "anna", image: "", label: "Анна" },
+              { personId: "boris", image: "", label: "Борис" },
+            ],
+            answers: [
+              { id: "answer:anna", personId: "anna", label: "Анна" },
+              { id: "answer:boris", personId: "boris", label: "Борис" },
+            ],
+          }}
+          topicId="my_people"
+          soundEnabled={false}
+          onCorrect={vi.fn()}
+          onStreakReset={vi.fn()}
+        />,
+      );
+    });
+    const word = [...container.querySelectorAll(".people-album-answer")].find((button) => button.textContent === "Анна");
+    const press = (type) => word.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: 10, clientY: 10 }));
+    act(() => { press("pointerdown"); press("pointerup"); });
+    expect(word.getAttribute("aria-pressed")).toBe("true");
+
+    act(() => container.querySelector('[data-person-id="anna"]').click());
+    expect(container.querySelector('[data-person-id="anna"] .people-album-photo__label')?.textContent).toBe("Анна");
+    expect(word.disabled).toBe(true);
+  });
 });
 
 describe("person intro renderer", () => {
@@ -181,4 +220,159 @@ describe("«Покажи» renderer", () => {
     act(() => mama.click());
     expect(onCorrect).toHaveBeenCalledTimes(1);
   });
+
+  it("marks a newcomer introduced by the word's axis once found", () => {
+    persistence.markPersonAxisIntroduced.mockClear();
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => {
+      root.render(<MyPeopleRenderer task={{ ...task, introduces: true, axis: "relation" }} student={{ id: "s1" }} topicId="my_people" soundEnabled={false} onCorrect={vi.fn()} onStreakReset={vi.fn()} />);
+    });
+    const [, mama] = container.querySelectorAll(".people-point-photo");
+    act(() => mama.click());
+    expect(persistence.markPersonAxisIntroduced).toHaveBeenCalledWith("s1", "anna", "relation");
+  });
 });
+
+describe("«Покажи» with one photo", () => {
+  it("praises and moves on without scoring", () => {
+    vi.useFakeTimers();
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    const onCorrect = vi.fn();
+    const onAdvance = vi.fn();
+    act(() => {
+      root.render(<MyPeopleRenderer task={{ type: "person_point", conceptId: "point:anna", personId: "anna", word: "мама", prompt: "Где мама?", promptSpeech: "Где мама?", errorless: true, choices: [{ personId: "anna", image: "" }] }} topicId="my_people" soundEnabled={false} onCorrect={onCorrect} onAdvance={onAdvance} />);
+    });
+    act(() => container.querySelector(".people-point-photo").click());
+    act(() => { vi.advanceTimersByTime(1500); });
+    expect(onAdvance).toHaveBeenCalledTimes(1);
+    expect(onCorrect).not.toHaveBeenCalled();
+    act(() => root.unmount());
+    container.remove();
+    vi.useRealTimers();
+  });
+});
+
+describe("«Обо мне» renderer", () => {
+  it("no longer offers «Знает» once a hint was shown", () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    act(() => {
+      root.render(
+        <MyPeopleRenderer
+          task={{ type: "about_me_question", conceptId: "about_q:rel:мама", prompt: "Как зовут маму?", promptSpeech: "Как зовут маму?", answer: "Анна", cueImage: "data:image/png;base64,AAA" }}
+          topicId="my_people"
+          soundEnabled={false}
+          onQualityAnswer={vi.fn()}
+        />,
+      );
+    });
+    const knows = () => [...container.querySelectorAll(".people-grade")].find((button) => button.textContent === "Знает");
+    expect(knows().disabled).toBe(false);
+    act(() => [...container.querySelectorAll("button")].find((button) => button.textContent === "Показать фото").click());
+    expect(knows().disabled).toBe(true);
+    expect([...container.querySelectorAll(".people-grade")].find((button) => button.textContent === "С подсказкой").disabled).toBe(false);
+    act(() => root.unmount());
+    container.remove();
+  });
+});
+
+describe("«Кто это?» renderer", () => {
+  it("steps through the first syllable and the answer, then allows «С подсказкой» at best", () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    act(() => {
+      root.render(
+        <MyPeopleRenderer
+          task={{ type: "person_naming", conceptId: "person_naming:anna:name", prompt: "Кто это?", promptSpeech: "Кто это?", image: "", answer: "мама · Анна", hintWord: "мама", hintSyllable: "ма" }}
+          topicId="my_people"
+          soundEnabled={false}
+          onQualityAnswer={vi.fn()}
+        />,
+      );
+    });
+    const button = (text) => [...container.querySelectorAll("button")].find((item) => item.textContent === text);
+    expect(button("Знает").disabled).toBe(false);
+
+    act(() => button("Первый слог").click());
+    expect(container.querySelector(".person-naming__syllable")?.textContent).toBe("ма…");
+    expect(button("Знает").disabled).toBe(true);
+    expect(button("Первый слог")).toBeUndefined();
+
+    act(() => button("Показать ответ").click());
+    expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("мама · Анна");
+    expect(container.querySelector(".person-naming__syllable")?.textContent).toBe("");
+    expect(button("С подсказкой").disabled).toBe(false);
+    act(() => root.unmount());
+    container.remove();
+  });
+});
+
+describe("«Представься» renderer", () => {
+  const task = {
+    type: "introduce_turn", conceptId: "introduce:name", partner: "Доктор", prompt: "Как тебя зовут?", promptSpeech: "Здравствуй! Как тебя зовут?",
+    starter: "Меня зовут …", answer: "Меня зовут Лиза.",
+  };
+  function mount(hintLevel) {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    act(() => { root.render(<MyPeopleRenderer task={{ ...task, hintLevel }} topicId="my_people" soundEnabled={false} onQualityAnswer={vi.fn()} />); });
+    const button = (text) => [...container.querySelectorAll("button")].find((item) => item.textContent === text);
+    return { container, button, done: () => { act(() => root.unmount()); container.remove(); } };
+  }
+
+  it("without a script grades freely, then fades in the starter and the answer", () => {
+    const { container, button, done } = mount(0);
+    expect(container.textContent).toContain("С тобой знакомится: Доктор");
+    expect(button("Знает").disabled).toBe(false);
+    act(() => button("Начало фразы").click());
+    expect(container.querySelector(".introduce-turn__starter")?.textContent).toBe("Меня зовут …");
+    expect(button("Знает").disabled).toBe(true);
+    act(() => button("Весь ответ").click());
+    expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("Меня зовут Лиза.");
+    done();
+  });
+
+  it("starting from the whole script shows it at once and allows «С подсказкой» at best", () => {
+    const { container, button, done } = mount(2);
+    expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("Меня зовут Лиза.");
+    expect(button("Начало фразы")).toBeUndefined();
+    expect(button("Знает").disabled).toBe(true);
+    expect(button("С подсказкой").disabled).toBe(false);
+    done();
+  });
+});
+
+describe("«Найди такого же» renderer", () => {
+  it("shows the sample apart from the choices and counts the right one", () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    const onCorrect = vi.fn();
+    act(() => {
+      root.render(
+        <MyPeopleRenderer
+          task={{ type: "person_match", conceptId: "match:anna", personId: "anna", sample: "data:image/png;base64,S", prompt: "Найди такого же", promptSpeech: "Найди такого же.", correctSpeech: "Правильно!", missSpeech: "Смотри, вот.", choices: [{ personId: "pavel", image: "data:image/png;base64,P" }, { personId: "anna", image: "data:image/png;base64,A" }] }}
+          topicId="my_people"
+          soundEnabled={false}
+          onCorrect={onCorrect}
+          onStreakReset={vi.fn()}
+        />,
+      );
+    });
+    expect(container.querySelector(".people-match__sample img")?.getAttribute("src")).toBe("data:image/png;base64,S");
+    const photos = container.querySelectorAll(".people-point-photo");
+    expect(photos).toHaveLength(2);
+    act(() => photos[1].click());
+    expect(onCorrect).toHaveBeenCalledWith("match:anna", "anna", expect.objectContaining({ autoAdvance: true }));
+    act(() => root.unmount());
+    container.remove();
+  });
+});
+

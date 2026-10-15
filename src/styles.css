@@ -22498,11 +22498,11 @@ body { background: #eef0ef; }
 .mp-tab--active { border-color: #4a9b8f; background: #4a9b8f; color: #fff; }
 .mp-body { max-width: 980px; margin: 0 auto; padding: 6px 16px calc(30px + var(--app-safe-bottom, 0px)); }
 .mp-section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 8px 0 12px; }
-.mp-section-head h2, .mp-personal h2, .mp-order h2 { margin: 0; color: #263131; font-size: 1.18rem; }
-.mp-section-head p, .mp-personal > p, .mp-order > p { margin: 5px 0 0; color: #71807d; font-size: .84rem; line-height: 1.4; }
+.mp-section-head h2, .mp-personal h2 { margin: 0; color: #263131; font-size: 1.18rem; }
+.mp-section-head p, .mp-personal > p { margin: 5px 0 0; color: #71807d; font-size: .84rem; line-height: 1.4; }
 .mp-people-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, .8fr); gap: 14px; align-items: start; }
 .mp-people-list { display: grid; gap: 9px; }
-.mp-person-card, .mp-empty, .mp-editor, .mp-form-card, .mp-order-row {
+.mp-person-card, .mp-empty, .mp-editor, .mp-form-card {
   border: 1px solid #e2ded5;
   border-radius: 16px;
   background: #fffdf9;
@@ -22548,17 +22548,10 @@ body { background: #eef0ef; }
 .mp-check-row span { display: grid; gap: 2px; color: #263131; font-size: .88rem; }
 .mp-check-row small { color: #74817d; font-size: .75rem; line-height: 1.35; }
 .mp-editor__actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; }
-.mp-personal, .mp-order { display: grid; gap: 12px; }
+.mp-personal { display: grid; gap: 12px; }
 .mp-form-card { padding: 15px; }
 .mp-form-card h3 { margin: 0 0 8px; color: #263131; font-size: .97rem; }
 .mp-note { margin-top: 4px; color: #75837f; font-size: .75rem; line-height: 1.4; }
-.mp-order-row { display: flex; align-items: center; gap: 11px; padding: 12px; }
-.mp-order-row__number { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 9px; background: #e4f1ed; color: #267369; font-size: .84rem; font-weight: 800; }
-.mp-order-row__label { min-width: 0; flex: 1; display: grid; gap: 2px; color: #263131; font-size: .9rem; font-weight: 700; }
-.mp-order-row__label small { color: #778581; font-size: .72rem; font-weight: 400; }
-.mp-order-row__actions { display: flex; gap: 3px; }
-.mp-order-row__actions button { width: 28px; height: 28px; border: 0; border-radius: 8px; background: #edf0ed; color: #35665f; font: inherit; }
-.mp-order-row__actions button:disabled { opacity: .35; }
 
 /* Мои люди — второй проход: это отдельный мобильный мастер, а не набор
    сжатых настроек. Оставляем токены и характер основного интерфейса. */
@@ -22607,7 +22600,7 @@ body { background: #eef0ef; }
   max-width: 960px;
   margin: 12px auto 0;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
   overflow: visible;
   padding: 0;
@@ -22650,8 +22643,8 @@ body { background: #eef0ef; }
 
 .mp-body { max-width: 960px; padding: 16px 0 calc(38px + var(--app-safe-bottom, 0px)); }
 .mp-section-head { align-items: center; margin: 2px 0 14px; }
-.mp-section-head h2, .mp-personal h2, .mp-order h2 { color: #263131; font-size: 1.22rem; font-weight: 900; }
-.mp-section-head p, .mp-personal > p, .mp-order > p { max-width: 540px; color: #71807d; font-size: .82rem; }
+.mp-section-head h2, .mp-personal h2 { color: #263131; font-size: 1.22rem; font-weight: 900; }
+.mp-section-head p, .mp-personal > p { max-width: 540px; color: #71807d; font-size: .82rem; }
 .mp-section-head__eyebrow, .mp-editor__eyebrow {
   display: block;
   margin-bottom: 3px;
@@ -22666,6 +22659,38 @@ body { background: #eef0ef; }
 .my-people-setup-row .mode-item__title, .my-people-setup-row .mode-item__desc { display: block; }
 .my-people-setup-row__icon { flex: 0 0 auto; font-size: 1.6rem; }
 .my-people-setup-row__arrow { flex: 0 0 auto; margin-left: auto; color: #9aa8a4; font-size: 1.55rem; line-height: 1; }
+/* «Окружение ребёнка» not filled: one warm, explicit card above the modes
+   instead of a list of grey rows that only say «Заполнить». */
+.my-people-empty {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid #f0c36d;
+  border-radius: 16px;
+  background: #fff8e6;
+  color: #4a3a12;
+}
+.my-people-empty__icon { flex: 0 0 auto; font-size: 1.6rem; line-height: 1.2; }
+.my-people-empty__body { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.my-people-empty__body strong { font-size: 1rem; line-height: 1.25; }
+.my-people-empty__body span { font-size: .88rem; line-height: 1.35; }
+.my-people-empty__action {
+  align-self: flex-start;
+  min-height: 40px;
+  margin-top: 4px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: #4a9b8f;
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.my-people-mode-gap { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; margin-top: 4px; color: #8a5a00; font-size: .8rem; font-weight: 600; line-height: 1.3; }
+.my-people-mode-gap .link-btn { padding: 0; font-size: .82rem; }
 .mp-field__hint { display: block; margin-top: 4px; color: #71807d; font-size: .72rem; font-weight: 600; }
 .mp-limit-hint { margin: -6px 0 12px; color: #8a5a00; font-size: .8rem; font-weight: 700; }
 .mp-add-compact:disabled { opacity: .45; cursor: not-allowed; }
@@ -22773,21 +22798,19 @@ body { background: #eef0ef; }
 .mp-editor__actions { position: sticky; bottom: -21px; z-index: 2; margin: 15px -21px -21px; padding: 12px 21px max(12px, var(--app-safe-bottom, 0px)); border-top: 1px solid #e6e2da; background: rgba(255,253,249,.96); }
 .mp-editor__actions .btn-primary { margin-left: auto; min-width: 116px; }
 
-.mp-personal, .mp-order { max-width: 760px; gap: 12px; }
+.mp-personal { max-width: 760px; gap: 12px; }
 .mp-personal__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.mp-segmented { display: inline-flex; gap: 4px; margin-bottom: 10px; padding: 3px; border-radius: 12px; background: #edf0ed; }
+.mp-segmented__option { min-height: 34px; padding: 0 14px; border: 0; border-radius: 9px; background: transparent; color: #35665f; font: inherit; font-size: .82rem; font-weight: 800; cursor: pointer; }
+.mp-segmented__option--active { background: #fffdf9; color: #263131; box-shadow: 0 1px 4px rgba(41, 54, 51, .12); }
 .mp-form-card { padding: 16px; border-color: #e2ded5; border-radius: 18px; background: #fffdf9; box-shadow: 0 3px 10px rgba(41, 54, 51, .04); }
 .mp-form-card h3 { color: #2d4541; font-size: .95rem; font-weight: 900; }
 .mp-form-card__lead { min-height: 31px; margin: 0 0 11px; color: #74827e; font-size: .72rem; line-height: 1.3; }
 .mp-form-card .mp-field + .mp-field { margin-top: 11px; }
 .mp-form-card--toggles { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); column-gap: 10px; }
-.mp-form-card--toggles h3 { grid-column: 1 / -1; }
+.mp-form-card--toggles h3, .mp-form-card--toggles .mp-form-card__lead { grid-column: 1 / -1; }
 .mp-form-card--toggles .mp-check-row { min-height: 45px; box-sizing: border-box; align-items: center; padding: 8px 10px; }
 .mp-form-card--toggles .mp-check-row > .mp-switch { flex: 0 0 auto; }
-.mp-order-row { min-height: 66px; padding: 11px 12px; border-color: #e2ded5; border-radius: 17px; background: #fffdf9; }
-.mp-order-row__number { width: 31px; height: 31px; border-radius: 11px; font-size: .78rem; }
-.mp-order-row__label { font-weight: 900; }
-.mp-order-row--mix { border-color: rgba(74,155,143,.38); background: linear-gradient(135deg, #f2faf7, #fffdf9); }
-.mp-order-row--mix .mp-order-row__number { background: #4a9b8f; color: #fff; }
 .mode-item-row--disabled .mode-item { opacity: .62; cursor: default; }
 .mode-item-row--disabled .mode-item__desc { color: #9a7b65; }
 
@@ -22818,7 +22841,7 @@ body { background: #eef0ef; }
 
   .mp-body { padding-top: 15px; }
   .mp-section-head { align-items: flex-start; gap: 8px; margin-bottom: 13px; }
-  .mp-section-head h2, .mp-personal h2, .mp-order h2 { font-size: 1.12rem; }
+  .mp-section-head h2, .mp-personal h2 { font-size: 1.12rem; }
   .mp-section-head p { font-size: .77rem; }
   .mp-add-compact { min-height: 35px; padding: 0 10px; border-radius: 11px; font-size: .72rem; }
   .mp-person-card { min-height: 70px; border-radius: 16px; }
@@ -22856,10 +22879,7 @@ body { background: #eef0ef; }
   .mp-personal__grid, .mp-form-card--toggles { grid-template-columns: 1fr; }
   .mp-form-card { padding: 14px; border-radius: 16px; }
   .mp-form-card__lead { min-height: auto; font-size: .7rem; }
-  .mp-form-card--toggles h3 { grid-column: auto; }
+  .mp-form-card--toggles h3, .mp-form-card--toggles .mp-form-card__lead { grid-column: auto; }
   .mp-form-card--toggles .mp-check-row { min-height: 42px; }
-  .mp-order-row { min-height: 61px; padding: 9px 10px; border-radius: 15px; }
-  .mp-order-row__label { font-size: .83rem; }
-  .mp-order-row__actions button { width: 26px; height: 26px; }
 }
 

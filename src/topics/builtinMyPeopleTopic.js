@@ -1,25 +1,87 @@
 // A first-party, per-student topic. Cards are generated only from the
 // pupil's private profile; there is intentionally no downloadable deck.
 
-const peopleCountParam = {
-  peopleCount: {
-    type: "enum",
-    label: { ru: "Людей в альбоме" },
-    values: [2, 4, 6, 8],
-    default: 4,
-  },
-};
-
-const mode = (id, title, instruction) => ({
+// The seven old album modes (a circle × names/relations, plus «Все люди»).
+// Replaced by «Подпиши фото» with the same two choices as parameters; kept
+// as `retired` so session history and saved lesson plans that name them
+// still resolve and run. Mode pickers leave retired modes out.
+const retiredAlbumMode = (id, title) => ({
   id,
   type: "people_album",
   evaluation: "auto",
   loop: true,
   regenerateOnLoop: true,
   hideConceptPicker: true,
-  params: peopleCountParam,
-  ui: { title: { ru: title }, instruction: { ru: instruction } },
+  retired: true,
+  params: {
+    peopleCount: { type: "enum", label: { ru: "Людей в альбоме" }, values: [2, 3, 4, 6], default: 4 },
+  },
+  ui: { title: { ru: title }, instruction: { ru: "Старый режим, заменён на «Подпиши фото»" } },
 });
+
+// «Подпиши фото»: drag a word onto each photo. Needs reading, so it comes
+// after the spoken modes. Which circle and which words are parameters, not
+// seven separate modes.
+const labelPhotosMode = {
+  id: "label_photos",
+  type: "people_album",
+  evaluation: "auto",
+  loop: true,
+  regenerateOnLoop: true,
+  hideConceptPicker: true,
+  params: {
+    circle: {
+      type: "enum",
+      label: { ru: "Чьи фото" },
+      values: ["family", "home", "school", "all"],
+      labels: { ru: { family: "Семья и питомцы", home: "Люди дома", school: "Школа", all: "Все" } },
+      default: "family",
+    },
+    labelKind: {
+      type: "enum",
+      label: { ru: "Что подписываем" },
+      values: ["relation", "name", "both"],
+      labels: { ru: { relation: "Мама, папа…", name: "Имена", both: "И то и другое" } },
+      default: "relation",
+    },
+    peopleCount: {
+      type: "enum",
+      label: { ru: "Фото на странице" },
+      // Eight words to sort was too many for most of these children; three
+      // fits one row.
+      values: [2, 3, 4, 6],
+      default: 4,
+    },
+  },
+  ui: {
+    title: { ru: "Подпиши фото" },
+    instruction: { ru: "Перетащить подпись на фото: «мама», «папа» или имя. Нужно уметь читать" },
+  },
+};
+
+// «Найди такого же»: match two different photos of one person, no words.
+// The first step, before «Покажи»: recognising a face across photos, apart
+// from understanding "мама". Needs people with at least two photos.
+const matchSameMode = {
+  id: "match_same",
+  type: "person_match",
+  evaluation: "auto",
+  loop: true,
+  regenerateOnLoop: true,
+  hideConceptPicker: true,
+  params: {
+    fieldSize: {
+      type: "enum",
+      label: { ru: "Фото на выбор" },
+      values: [2, 3, 4],
+      default: 2,
+    },
+  },
+  ui: {
+    title: { ru: "Найди такого же" },
+    instruction: { ru: "Без слов: найти того же человека на другом фото. Нужно хотя бы 2 фото у человека" },
+  },
+};
 
 // «Покажи»: "Где мама?" -- tap the right photo. The receptive step that
 // comes before naming, and the one that needs no reading.
@@ -34,7 +96,8 @@ const showMeMode = {
     fieldSize: {
       type: "enum",
       label: { ru: "Фото на экране" },
-      values: [2, 3, 4],
+      values: [1, 2, 3, 4],
+      labels: { ru: { 1: "1 · без выбора" } },
       default: 2,
     },
   },
@@ -46,7 +109,9 @@ const showMeMode = {
 
 // Short fixed questions (name, age, mum's name...). The child answers out
 // loud, with a gesture, or through AAC; the adult records the response
-// quality using the session's standard controls.
+// quality using the session's standard controls. The questions come in four
+// levels (engine ABOUT_ME_LEVELS); each round asks the not-yet-known ones
+// first, so a few rounds cover them all.
 const aboutMeMode = {
   id: "about_me",
   type: "about_me",
@@ -54,15 +119,32 @@ const aboutMeMode = {
   loop: true,
   regenerateOnLoop: true,
   hideConceptPicker: true,
+  params: {
+    levels: {
+      type: "enum_multi",
+      label: { ru: "Разделы вопросов" },
+      values: ["self", "family", "safety", "day"],
+      labels: { ru: { self: "Я: имя, возраст", family: "Семья и питомцы", safety: "Фамилия, адрес, телефон", day: "Садик или школа, день рождения" } },
+      default: ["self", "family"],
+    },
+    questionCount: {
+      type: "enum",
+      label: { ru: "Вопросов за раунд" },
+      values: [4, 6, 8],
+      default: 6,
+    },
+  },
   ui: {
     title: { ru: "Обо мне" },
-    instruction: { ru: "Простые вопросы: как тебя зовут, сколько лет, как зовут маму" },
+    instruction: { ru: "Короткие вопросы о себе: имя, возраст, семья, адрес и телефон, садик или школа" },
   },
 };
 
-// The former «Обо мне»: introducing yourself in an imagined situation. Kept
-// as an advanced level -- it needs pretend play and a multi-fact answer,
-// which is out of reach until the short questions are solid.
+// «Представься»: a new person asks the same short questions as «Обо мне»,
+// the child answers in whole sentences and closes by telling it all at
+// once. The advanced level, once the short answers are solid. Taught with
+// script fading: the written answer, then only its opening words, then
+// nothing -- the adult picks where to start.
 const introduceSelfMode = {
   id: "introduce_self",
   type: "about_me",
@@ -70,9 +152,18 @@ const introduceSelfMode = {
   loop: true,
   regenerateOnLoop: true,
   hideConceptPicker: true,
+  params: {
+    scriptHint: {
+      type: "enum",
+      label: { ru: "Подсказка на экране" },
+      values: ["full", "starter", "none"],
+      labels: { ru: { full: "Весь ответ", starter: "Начало фразы", none: "Без подсказки" } },
+      default: "full",
+    },
+  },
   ui: {
     title: { ru: "Представься" },
-    instruction: { ru: "Продвинутый уровень: рассказать о себе в ситуации" },
+    instruction: { ru: "Продвинутый уровень: познакомиться с новым человеком и рассказать о себе целыми фразами" },
   },
 };
 
@@ -87,7 +178,7 @@ const whoIsThisMode = {
   hideConceptPicker: true,
   ui: {
     title: { ru: "Кто это?" },
-    instruction: { ru: "Ребёнок называет человека по фотографии, взрослый отмечает ответ" },
+    instruction: { ru: "Ребёнок называет человека по фотографии, взрослый отмечает ответ." },
   },
 };
 
@@ -96,7 +187,7 @@ export function buildMyPeopleTopicRecord() {
     meta: {
       id: "my_people",
       renderer: "my_people",
-      version: "1.3.0",
+      version: "1.4.0",
       title: { ru: "Мои люди" },
       avatar: "media/avatar_my_people.svg",
       builtin: true,
@@ -109,25 +200,34 @@ export function buildMyPeopleTopicRecord() {
         ],
         finalGoal: "Ребёнок уверенно узнаёт значимых людей и понимает, кто они для него.",
         flow: [
-          "Выберите круг людей и размер фотоальбома.",
-          "Сначала сопоставляйте фотографии с именами.",
-          "Затем используйте тот же формат для связей с ребёнком.",
-          "Переходите к «Всем людям», когда отдельные круги стали знакомыми.",
+          "Заполните «Окружение ребёнка»: близкие с фотографиями, для «Обо мне» — личные данные.",
+          "«Найди такого же»: без слов найти того же человека на другом фото — для тех, кто ещё не понимает «Где мама?».",
+          "«Покажи»: ребёнок находит человека по слову «Где мама?». Здесь же он знакомится с новыми людьми.",
+          "«Кто это?»: ребёнок сам называет тех, кого уже находил.",
+          "«Обо мне»: короткие вопросы о себе с подсказками по шагам.",
+          "«Подпиши фото» — когда ребёнок читает: сначала семья и слова «мама», «папа», потом имена и другие круги.",
+          "«Представься» — продвинутый уровень, когда короткие ответы уже уверенные.",
         ],
       },
     },
+    // The teaching ladder: match («Найди такого же») → recognise by the
+    // word («Покажи») → name («Кто это?») →
+    // answer about yourself → label photos (needs reading) → introduce
+    // yourself. Mode pickers keep this order.
     modes: [
-      aboutMeMode,
+      matchSameMode,
       showMeMode,
-      mode("family_names", "Семья и питомцы: имена", "Подписать фото именами: перетащить имя на фото (нужно уметь читать)"),
-      mode("family_relations", "Семья и питомцы: кто это", "Подписать фото словами «мама», «папа»…: перетащить слово на фото (нужно уметь читать)"),
-      mode("home_names", "Люди дома: имена", "Подписать фото именами: перетащить имя на фото (нужно уметь читать)"),
-      mode("home_relations", "Люди дома: кто это", "Подписать фото словами «мама», «папа»…: перетащить слово на фото (нужно уметь читать)"),
-      mode("school_names", "Школа: имена", "Подписать фото именами: перетащить имя на фото (нужно уметь читать)"),
-      mode("school_relations", "Школа: кто это", "Подписать фото словами «мама», «папа»…: перетащить слово на фото (нужно уметь читать)"),
-      mode("mix", "Все люди", "Сначала имена, затем кто эти люди"),
       whoIsThisMode,
+      aboutMeMode,
+      labelPhotosMode,
       introduceSelfMode,
+      retiredAlbumMode("family_names", "Семья и питомцы: имена"),
+      retiredAlbumMode("family_relations", "Семья и питомцы: кто это"),
+      retiredAlbumMode("home_names", "Люди дома: имена"),
+      retiredAlbumMode("home_relations", "Люди дома: кто это"),
+      retiredAlbumMode("school_names", "Школа: имена"),
+      retiredAlbumMode("school_relations", "Школа: кто это"),
+      retiredAlbumMode("mix", "Все люди"),
     ],
     // A metadata card makes generic navigation and legacy selection links safe;
     // the engine deliberately ignores it and uses the pupil's own records.

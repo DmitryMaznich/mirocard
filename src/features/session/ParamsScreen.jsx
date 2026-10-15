@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { hasEnoughAboutMeFacts, hasEnoughAboutMeQuestions } from "@/topics/renderers/my_people/engine";
+import { MY_PEOPLE_SECTION_TITLE, myPeopleModeReadiness, openMyPeopleSettings } from "@/features/myPeople/myPeopleReadiness";
 import { useTimer } from "@/features/timer/TimerContext";
 import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -1851,17 +1851,8 @@ export default function ParamsScreen() {
   const modeSelectedConceptIds = readModeSelectedConceptIds(topicRecord, mode, link.selectedConceptIds?.length ? link.selectedConceptIds : null, params);
   const selectedConceptIds = modeSelectedConceptIds ?? allConcepts.map((c) => c.conceptId);
   const isMyPeople = topicRecord?.meta?.renderer === "my_people";
-  const myPeople = (student?.myPeople ?? []).filter((person) => !person.deletedAt && person.enabled !== false && person.name?.trim() && person.photos?.some(Boolean));
-  const myPeopleContext = ["family", "home", "school"].find((context) => mode.id.startsWith(`${context}_`));
-  const myPeopleTargets = (myPeopleContext
-    ? myPeople.filter((person) => person.contexts?.includes(myPeopleContext))
-    : myPeople
-  ).filter((person) => !mode.id.endsWith("_relations") || person.relation?.trim());
-  // The personal-answer modes don't need people with photos at all.
-  const myPeopleReady = !isMyPeople
-    || (mode.id === "about_me" ? hasEnoughAboutMeQuestions(student)
-      : mode.id === "introduce_self" ? hasEnoughAboutMeFacts(student)
-        : myPeopleTargets.length >= 2);
+  const myPeopleReadiness = isMyPeople ? myPeopleModeReadiness(mode, student, params) : null;
+  const myPeopleReady = !isMyPeople || myPeopleReadiness.ready;
 
   // Concept range filter — only in "Считаем на пальцах" mode
   const fcountCards    = activeModeId === "fingers_count"
@@ -1945,6 +1936,13 @@ export default function ParamsScreen() {
   // "Важные даты" live on the student, not in these params; keep the
   // settings edited so far before leaving for them (they'd otherwise be
   // re-read from the last saved link on the way back).
+  // Same for «Окружение ребёнка»: the tab that fixes this mode's gap, then
+  // back here.
+  function openMyPeopleProfile() {
+    persistStudentTopicLink(activeStudentId, activeTopicId, { params });
+    openMyPeopleSettings({ studentId: activeStudentId, returnScreen: "params", tab: myPeopleReadiness?.tab });
+  }
+
   function openImportantDates() {
     persistStudentTopicLink(activeStudentId, activeTopicId, { params });
     const state = useAppStore.getState();
@@ -2435,9 +2433,14 @@ export default function ParamsScreen() {
               <div className="param-hint" role="alert">Для занятия с наградой выберите не меньше {MIN_FIGURES_FOR_REWARD} рисунков.</div>
             )}
             {isMyPeople && !myPeopleReady && (
-              <div className="param-section">
-                <div className="param-section__header">Нужно заполнить данные ученика</div>
-                <div className="param-hint">Откройте «Окружение ребёнка» в профиле ученика и добавьте нужную фотографию или личный ответ.</div>
+              <div className="param-section" role="status">
+                <div className="param-section__header">
+                  {myPeopleReadiness.tab ? `Не хватает данных в «${MY_PEOPLE_SECTION_TITLE}»` : "Режим пока недоступен"}
+                </div>
+                <div className="param-hint">{myPeopleReadiness.reason}</div>
+                {myPeopleReadiness.tab && student && (
+                  <Button variant="secondary" onClick={openMyPeopleProfile}>Перейти к заполнению</Button>
+                )}
               </div>
             )}
           </div>

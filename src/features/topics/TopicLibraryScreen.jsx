@@ -24,6 +24,7 @@ import { hasActiveEntitlement } from "@/features/billing/entitlement";
 import { CATEGORY_ORDER, getTopicCategory } from "./topicCategories";
 import { getPersonalTopicCaption } from "./topicOrigin";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import { isPickableMode } from "@/shared/utils/topicUtils";
 
 export default function TopicLibraryScreen() {
   const setScreen         = useAppStore((s) => s.setScreen);
@@ -339,7 +340,7 @@ export default function TopicLibraryScreen() {
         <InfoModal
           title={getTopicTitle(infoTopic.meta.title)}
           about={infoTopic.meta.about}
-          modes={infoTopic.modes}
+          modes={infoTopic.modes?.filter(isPickableMode)}
           onClose={() => setInfoTopic(null)}
         />
       )}

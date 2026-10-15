@@ -389,11 +389,50 @@
   text-transform: uppercase;
 }
 
-.about-me-task__situation {
+/* «Представься»: the new person's line as a speech bubble, so the
+   question reads as someone talking, not as a task card. */
+.introduce-turn__bubble {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  max-width: min(100%, 560px);
+  padding: 18px 22px;
+  border: 2px solid #d6e7e3;
+  border-radius: 26px;
+  background: #fffefb;
+  box-shadow: 0 8px 20px rgba(40, 84, 76, 0.1);
+}
+
+.introduce-turn__bubble::after {
+  content: "";
+  position: absolute;
+  left: 34px;
+  bottom: -11px;
+  width: 20px;
+  height: 20px;
+  border-right: 2px solid #d6e7e3;
+  border-bottom: 2px solid #d6e7e3;
+  background: #fffefb;
+  transform: rotate(45deg);
+}
+
+.introduce-turn__question {
   color: #183d38;
   font-size: clamp(26px, 5vw, 40px);
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1.15;
+}
+
+/* Opening words of the scripted answer; keeps its height when empty so the
+   bubble doesn't move as hints come and go. */
+.introduce-turn__starter {
+  min-height: 1.3em;
+  color: #245c53;
+  font-size: clamp(22px, 4.6vw, 30px);
+  font-weight: 800;
+  line-height: 1.3;
 }
 
 .about-me-task__prompt-row {
@@ -438,6 +477,18 @@
 .person-naming__photo--loading {
   background: linear-gradient(135deg, #e9f3f0, #d6e7e3);
 }
+
+/* «Кто это?» phonemic prompt: the opening syllable, big enough for the
+   child to see the shape while hearing it. */
+.person-naming__syllable {
+  min-height: 1.1em;
+  color: #245c53;
+  font-size: clamp(26px, 6vw, 38px);
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.person-naming__hints { min-height: 44px; }
 
 .about-me-task__answer {
   min-height: 2.4em;
@@ -598,6 +649,39 @@
 
 .people-point__photos > .people-point-photo {
   flex: 0 1 min(44vw, 300px, 38vh);
+}
+
+/* «Найди такого же»: the sample sits above the choices in a dashed frame
+   on a tinted ground -- clearly "look at this", not one of the options. */
+.people-match__sample {
+  width: min(40vw, 220px, 26vh);
+  padding: clamp(5px, 1.4vw, 8px);
+  border: 3px dashed #9cc6bd;
+  border-radius: 24px;
+  background: #eef6f3;
+}
+
+.people-match__sample > img,
+.people-match__sample > .people-point-photo__loading {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 17px;
+  object-fit: cover;
+}
+
+/* With the sample on top the choices give up some height. */
+.people-point--match .people-point__photos > .people-point-photo {
+  flex-basis: min(40vw, 240px, 30vh);
+}
+
+.people-point--match .people-point__photos--grid > .people-point-photo {
+  max-width: min(38vw, 200px, 21vh);
+}
+
+/* One photo: the errorless entry level, the photo alone fills the stage. */
+.people-point__photos--single > .people-point-photo {
+  flex-basis: min(70vw, 360px, 46vh);
 }
 
 .people-point__photos--grid {
