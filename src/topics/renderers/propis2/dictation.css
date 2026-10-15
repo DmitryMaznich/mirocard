@@ -3,3 +3,23 @@
 .propis2-dictation-answers .propis-practice-stage { position: static; inset: auto; height: auto; background: transparent; touch-action: auto; }
 .propis2-dictation-answers .propis-print-frame { height: auto; background: transparent; }
 .propis2-dictation-answers .propis-print-page-wrap { padding: 8px; background: transparent; overflow: visible; touch-action: auto; }
+
+/* The adult's mark for the dictation: written in red over the answer sheet, then the picker dialog. */
+.propis2-dictation-answers { position: relative; }
+.propis2-grade-stamp { position: absolute; top: 46%; right: 8%; width: clamp(110px, 27%, 200px); height: auto; overflow: visible; transform: rotate(-6deg); pointer-events: none; filter: drop-shadow(0 0 0.5px rgba(150, 20, 20, 0.5)); }
+.propis2-grade-stroke { fill: none; stroke: #d22b2b; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; animation-name: propis2-grade-draw; animation-timing-function: cubic-bezier(0.4, 0.1, 0.35, 1); animation-fill-mode: both; }
+@keyframes propis2-grade-draw { 0% { stroke-dashoffset: 1; opacity: 0; } 1% { stroke-dashoffset: 1; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .propis2-grade-stroke { animation-duration: 1ms !important; animation-delay: 0ms !important; } }
+
+.propis2-grade-skip { display: block; margin: 8px auto 0; padding: 10px 14px; border: 0; background: transparent; color: #5b6b66; font: inherit; font-size: 15px; text-decoration: underline; cursor: pointer; }
+.propis2-grade-backdrop { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: calc(16px + var(--app-safe-top, 0px)) calc(16px + var(--app-safe-right, 0px)) calc(16px + var(--app-safe-bottom, 0px)) calc(16px + var(--app-safe-left, 0px)); background: rgba(20, 30, 28, 0.55); }
+.propis2-grade-card { width: min(420px, 100%); padding: 22px 20px 16px; border-radius: 20px; background: #fffaf0; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3); text-align: center; }
+.propis2-grade-title { margin-bottom: 14px; font-size: 20px; font-weight: 700; color: #2b3a36; }
+.propis2-grade-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; }
+.propis2-grade-btn { min-width: 56px; height: 56px; padding: 0 10px; border: 2px solid #c9bfa8; border-radius: 14px; background: #fff; color: #2b3a36; font: inherit; font-size: 26px; font-weight: 700; cursor: pointer; }
+.propis2-grade-btn--sign { height: 48px; font-size: 22px; }
+.propis2-grade-btn.is-on { border-color: #d22b2b; background: #fde8e6; color: #b01f1f; }
+.propis2-grade-actions { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 8px; }
+.propis2-grade-go { min-width: 220px; }
+.propis2-grade-go:disabled { opacity: 0.5; }
+.propis2-grade-cancel { padding: 10px 14px; border: 0; background: transparent; color: #5b6b66; font: inherit; font-size: 15px; cursor: pointer; }

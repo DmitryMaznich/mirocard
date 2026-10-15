@@ -12,6 +12,11 @@ import SortCaseView from "../propis/letters/SortCaseView";
 import { buildGlyphMap, buildPageTask } from "./pageTask.js";
 import { cardGlyphs } from "./letterCards.js";
 import { pageToLines, newPage, newRow } from "./model.js";
+import GradeStamp from "./GradeStamp.jsx";
+import { gradeWriteMs } from "./gradeMark.js";
+import GradePicker from "./GradePicker.jsx";
+
+const GRADING = { Picker: GradePicker, writeMs: gradeWriteMs };
 
 // `propis2` in a session. The constructor is the topic's home screen (src/features/propis2); a "page" task shows a page.
 // «Узнай букву», «Строчная и заглавная» and «Диктант» (copied from `propis` («Прописи старые»), 2026-10-10) use the very views of `propis`, with this
@@ -19,8 +24,8 @@ import { pageToLines, newPage, newRow } from "./model.js";
 export default function Propis2Renderer({ task, topicRecord, onAdvance, onClose, onCorrect, onMistake }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const cards = useMemo(() => cardGlyphs(glyphMap), [glyphMap]);
-  const Answers = useMemo(() => function Propis2DictationAnswers({ items, level }) {
-    return <DictationAnswers items={items} level={level} topicRecord={topicRecord} glyphMap={glyphMap} />;
+  const Answers = useMemo(() => function Propis2DictationAnswers({ items, level, grade }) {
+    return <DictationAnswers items={items} level={level} grade={grade} topicRecord={topicRecord} glyphMap={glyphMap} />;
   }, [topicRecord, glyphMap]);
   if (!task) return null;
   const lettersView = (() => {
@@ -37,14 +42,14 @@ export default function Propis2Renderer({ task, topicRecord, onAdvance, onClose,
     }
   })();
   if (lettersView) return <GlyphContext.Provider value={cards}><div className="propis2-letters">{lettersView}</div></GlyphContext.Provider>;
-  if (task.type === "dictation") return <DictationView task={task} onClose={onClose} Answers={Answers} />;
+  if (task.type === "dictation") return <DictationView task={task} onClose={onClose} Answers={Answers} Grading={GRADING} />;
   return <PrintPageView task={buildPageTask({ topicRecord, lines: task.lines })} onClose={onClose} />;
 }
 
 // What was dictated, written out on the narrow copybook row as the child should have it in the notebook: letters and words run on,
 // row after row (letters two slant cells apart, words one more than usual, so they read as separate items); each text starts on a
 // row of its own. No start dots: this is the finished writing, not a sample to copy.
-function DictationAnswers({ items, level, topicRecord, glyphMap }) {
+function DictationAnswers({ items, level, grade, topicRecord, glyphMap }) {
   const task = useMemo(() => {
     const texts = level === "texts" ? items.map((it) => it.display) : [items.map((it) => it.display).join(level === "letters" ? "   " : "  ")];
     const page = newPage("Диктант", { ruling: "narrow", grid: "regular", rows: texts.map((t) => newRow({ kind: "passage", text: t, repeat: "one", dots: "none", asText: true })) });
@@ -53,6 +58,7 @@ function DictationAnswers({ items, level, topicRecord, glyphMap }) {
   return (
     <div className="propis2-dictation-answers">
       <PrintPageView task={task} bare />
+      {grade && <GradeStamp key={`${grade.n}${grade.sign}`} grade={grade} />}
     </div>
   );
 }
