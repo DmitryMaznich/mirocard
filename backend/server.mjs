@@ -17,6 +17,7 @@ import { createOneTimeCode, consumeOneTimeCode } from "./lib/one-time-codes.mjs"
 import { createEmailBudget } from "./lib/email-budget.mjs";
 import { setMarketingConsent } from "./lib/marketing-consent.mjs";
 import { getDb } from "./lib/db.mjs";
+import { startTelegramNotifications } from "./lib/telegram-notifications.mjs";
 import {
   createAccount, findAccountByEmail, findAccountByEmailAny, findAccountById,
   updateAccount, updateAccountPasswordHash, activateAccount,
@@ -354,6 +355,7 @@ async function handleRegister(req, res) {
     account = createAccount(db, {
       email,
       passwordHash: createPasswordHash(password),
+      notificationMethod: "email",
       firstName,
       lastName,
       role,
@@ -632,6 +634,7 @@ async function handleGoogleCompleteSignup(req, res) {
     account = createAccount(db, {
       email: id.email,
       passwordHash: "", // Google-only: verifyPasswordHash("") is always false
+      notificationMethod: "google",
       firstName: id.givenName || id.email.split("@")[0],
       lastName: id.familyName,
       role,
@@ -2130,6 +2133,7 @@ export { router, db };
 const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 if (isMainModule) {
   cancelScheduledErasure(db);
+  startTelegramNotifications(db);
   createServer(router).listen(PORT, () => {
     console.log(`Mirocard2 backend running on port ${PORT}`);
   });

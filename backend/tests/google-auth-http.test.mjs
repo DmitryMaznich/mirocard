@@ -83,6 +83,10 @@ test("new person: needsProfile, no account until complete-signup with consent", 
   assert.equal(body.account.marketingOptIn, true);
   const row = findAccountByEmailAny(db, "new@example.test");
   assert.equal(row.status, "active");
+  const notifications = db.prepare("SELECT type,payload FROM telegram_notifications WHERE account_id=?").all(row.id);
+  assert.equal(notifications.length, 1);
+  assert.equal(notifications[0].type, "registered");
+  assert.equal(JSON.parse(notifications[0].payload).method, "google");
   assert.ok(row.consent_personal_data_at);
   const grants = db.prepare("SELECT source FROM marketing_consent_events WHERE account_id = ?").all(row.id).map((e) => e.source);
   assert.deepEqual(grants, ["google_signup"]);
@@ -100,6 +104,7 @@ test("second login by the same Google subject goes straight in", async () => {
   const ex = await (await exchange(codeOf(r.location), r.cookie)).json();
   assert.ok(ex.token);
   assert.equal(ex.account.email, "new@example.test");
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM telegram_notifications WHERE account_id=?").get(ex.account.id).n, 1);
 });
 
 test("the exchange code is single-use", async () => {
@@ -120,6 +125,7 @@ test("a pending account someone else pre-registered is taken over cleanly via Go
   });
   const before = findAccountByEmailAny(db, "pend@example.test");
   assert.equal(before.status, "pending");
+  assert.equal(JSON.parse(db.prepare("SELECT payload FROM telegram_notifications WHERE account_id=?").get(before.id).payload).method, "email");
 
   // The real owner signs in with Google: they must answer the questions and consent themselves.
   const r = await callback(makeIdToken({ sub: "s-pend", email: "pend@example.test", given_name: "Вера", family_name: "В" }));
@@ -130,6 +136,7 @@ test("a pending account someone else pre-registered is taken over cleanly via Go
   const body = await done.json();
 
   assert.equal(body.account.id, before.id, "same account, no duplicate");
+  assert.equal(db.prepare("SELECT COUNT(*) n FROM telegram_notifications WHERE account_id=?").get(before.id).n, 1);
   assert.equal(db.prepare("SELECT COUNT(*) c FROM accounts WHERE email = ?").get("pend@example.test").c, 1);
   const row = findAccountByEmailAny(db, "pend@example.test");
   assert.equal(row.status, "active");

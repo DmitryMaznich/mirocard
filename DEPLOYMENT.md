@@ -96,6 +96,40 @@ and logs out after success. There is no scheduled permanent erasure. Restoring
 requires a fresh login; original active/pending/blocked status is preserved.
 Legacy deleted accounts with no lifecycle history restore to pending.
 
+### Telegram account notifications
+
+The backend sends new-account and deletion events to the owner's private chat
+with the existing Mirocard Feedback Bot. Set these Railway service variables:
+`TELEGRAM_ACCOUNT_NOTIFICATIONS=1`, `FEEDBACK_BOT_TOKEN` (the existing bot token),
+and `FEEDBACK_BOT_OWNER_ID` (positive Telegram user ID, never the testers group ID).
+The owner must have started a private conversation with the bot first.
+Keep the token in Railway variables, never in Git or logs. Leave the switch off
+in development. Importing the HTTP router for tests does not start delivery.
+
+Email signup creates one event immediately, marked awaiting confirmation;
+Google signup creates one event marked active. Login, verification and linking
+Google to an existing account do not create another new-user event. Both
+self-service and administrative archive are reported with the actor; permanent
+account erasure sends only the ID, action and time. The legacy confirmed archive
+route is covered too. Existing accounts are never backfilled.
+
+Events commit atomically with account creation/archive/erasure into the SQLite
+`telegram_notifications` outbox. A single in-process sender attempts one message
+every 1.5 seconds, with a 10-second timeout, exponential retries up to one hour,
+and Telegram `retry_after` support. The outbox survives restarts; delivered rows
+are deleted. Permanent erasure removes all queued personal-data snapshots for
+that account before adding its ID-only event. Already delivered Telegram messages
+and a request already in flight are not recalled. Delivery is at least once:
+a Telegram success followed by a lost response or process crash may duplicate a
+message. Intended for the current single backend instance; multiple replicas
+would require shared storage and a delivery lease. Queue failures log only an
+event ID and HTTP status, never credentials or payloads.
+
+To inspect a backlog, query `SELECT type, COUNT(*), MAX(attempts) FROM
+telegram_notifications GROUP BY type` on the runtime database. Setting the switch
+to `0` pauses delivery without discarding queued events. After fixing bot access,
+delivery resumes automatically. Registration and deletion never await Telegram.
+
 ### Email delivery
 
 Email verification and password-reset emails send via the Resend HTTP API (`RESEND_API_KEY`, `backend/lib/mailer.mjs`), not SMTP — the old `mail.kaplieva.help` SMTP relay (unreachable from Railway's network) is no longer used for this. The `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS` variables may still linger on the Railway service from before the switch; they're dead config, not read by `mailer.mjs`.

@@ -17,6 +17,16 @@ export function initDb(dbPath = DB_PATH) {
   db.exec("PRAGMA foreign_keys=ON");
 
   db.exec(`
+    CREATE TABLE IF NOT EXISTS telegram_notifications (
+      id TEXT PRIMARY KEY,
+      account_id TEXT NOT NULL,
+      type TEXT NOT NULL CHECK (type IN ('registered', 'archived', 'erased')),
+      payload TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      next_attempt_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS telegram_notifications_due ON telegram_notifications(next_attempt_at);
     CREATE TABLE IF NOT EXISTS topic_catalog_overrides (
       topic_id TEXT PRIMARY KEY, settings_json TEXT NOT NULL,
       revision INTEGER NOT NULL, updated_at TEXT NOT NULL
