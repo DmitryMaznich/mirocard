@@ -39,7 +39,7 @@ export function textDictationKey(textEntry) {
 // texts.py's own generation rule is "exactly 5 short declarative sentences, periods only (no
 // commas, dashes, or quotes)" -- confirmed against all 24 real texts in topic.json (every one
 // splits to exactly 5 sentences), not assumed from the docstring alone.
-const SENTENCE_SPLIT_RE = /(?<=\.)\s+/;
+const SENTENCE_SPLIT_RE = /(?<=[.!?])\s+/;
 
 export function splitIntoSentences(text) {
   return text.trim().split(SENTENCE_SPLIT_RE).filter(Boolean);
@@ -47,4 +47,18 @@ export function splitIntoSentences(text) {
 
 export function textSentenceDictationKey(textEntry, sentenceIndex) {
   return `text_${textEntry.id}_s${sentenceIndex + 1}`;
+}
+
+// `propis2`, «Диктовать знаки препинания»: the signs are spoken by their own clips ("Запятая.", "Точка." ...), a sentence with commas is
+// dictated in chunks (one clip per piece up to a comma) so the sign can be voiced between them.
+const PUNCT_KEYS = { ",": "punct_comma", ".": "punct_period", "!": "punct_excl", "?": "punct_question" };
+export const punctuationDictationKey = (sign) => PUNCT_KEYS[sign] ?? null;
+export const PUNCT_SIGNS = Object.keys(PUNCT_KEYS);
+
+export function splitSentenceAtCommas(sentence) {
+  return sentence.split(/(?<=,)\s+/).filter(Boolean);
+}
+
+export function textChunkDictationKey(textEntry, sentenceIndex, chunkIndex) {
+  return `text_${textEntry.id}_s${sentenceIndex + 1}_c${chunkIndex + 1}`;
 }

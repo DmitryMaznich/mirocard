@@ -4,8 +4,9 @@ import DIGIT_GLYPHS from "./digitGlyphs.json";
 // like the engine does), the + / − and the underline are drawn here. Every stroke is revealed one after another (pathLength 1 +
 // dash offset), so it looks like the pen writes it. Only «Диктант» uses it (the adult marks the child's notebook). The component is GradeStamp.jsx.
 
-export const GRADE_DIGITS = [5, 4, 3, 2, 1];
-export const GRADE_SIGNS = ["+", "", "−"];
+// The adult can give 3, 4 or 5 (children with special needs: no point in a negative mark), optionally with + or −; the glyphs of 1 and 2 exist too.
+export const GRADE_DIGITS = [3, 4, 5];
+export const GRADE_SIGNS = ["+", "−"];
 export const gradeText = (g) => (g ? `${g.n}${g.sign || ""}` : "");
 
 const STRETCH = 1.806; // the engine stretches every glyph in x by this
