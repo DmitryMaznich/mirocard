@@ -10,7 +10,7 @@ test("sync preserves conditions, quality assessments and completion reason; summ
   try {
     const account = createAccount(db, { email: "stats@example.test", passwordHash: "x" });
     const other = createAccount(db, { email: "other@example.test", passwordHash: "x" });
-    const session = { studentId: "kid", topicId: "topic", topicVersion: "1", modeId: "find_n", startedAt: "2026-10-15T10:00:00Z", completedAt: "2026-10-15T10:01:00Z", paramsSnapshot: { optionCount: 4 }, assessments: [{ quality: "prompted", conceptId: "cat" }], completionReason: "manual", statistics: { schemaVersion: 1, firstTotal: 10, firstCorrect: 8, quality: { prompted: 1 }, conditions: { conceptIds: ["cat"], params: { optionCount: 4 } } } };
+    const session = { studentId: "kid", topicId: "topic", topicVersion: "1", modeId: "find_n", startedAt: "2026-10-15T10:00:00Z", completedAt: "2026-10-15T10:01:00Z", activeDurationMs: 45000, elapsedDurationMs: 60000, paramsSnapshot: { optionCount: 4 }, assessments: [{ quality: "prompted", conceptId: "cat" }], completionReason: "manual", statistics: { schemaVersion: 1, firstTotal: 10, firstCorrect: 8, quality: { prompted: 1 }, conditions: { conceptIds: ["cat"], params: { optionCount: 4 } } } };
     processSync(db, account.id, [{ type: "session.append", data: { ...session, id: "s0" } }]);
     for (let i = 1; i < 205; i++) appendSession(db, account.id, { ...session, id: `s${i}` });
     appendSession(db, account.id, { ...session, id: "s0" });
@@ -28,6 +28,9 @@ test("sync preserves conditions, quality assessments and completion reason; summ
     assert.equal(report.totals.firstTotal, 2050);
     assert.equal(report.totals.firstCorrect, 1640);
     assert.equal(report.recent.length, 20);
+    assert.equal(report.recent[0].startedAt, session.startedAt);
+    assert.equal(report.recent[0].activeDurationMs, 45000);
+    assert.equal(report.recent[0].elapsedDurationMs, 60000);
     assert.equal(report.groups[0].trend.length, 12);
     assert.equal(getSessionStatistics(db, other.id, { studentId: "kid" }).totals.sessions, 1);
     assert.equal(getSessionStatistics(db, other.id, { studentId: "other-kid" }).totals.sessions, 0);
