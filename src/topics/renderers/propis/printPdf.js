@@ -221,23 +221,30 @@ export async function printPdf(container, { onProgress } = {}) {
   }
 }
 
-// Hands the file over: the share sheet on a phone / tablet (save to Files, send, print), a download elsewhere.
-export async function deliverPdf(blob, fileName) {
-  const file = new File([blob], fileName, { type: "application/pdf" });
-  const touch = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
-  if (touch && navigator.canShare?.({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: fileName.replace(/\.pdf$/i, "") }); return "shared"; }
-    catch (e) { if (e?.name === "AbortError") return "cancelled"; }
-  }
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName;
+// The PDF opens in the device's own viewer, and that is all (owner, 2026-10-15: no share sheet, nothing saved — saving is the
+// viewer's business). A tab opened after the seconds the PDF takes is blocked as a pop-up, so `pdfTab` opens it at the tap and
+// `openPdf` points it at the file when the file is ready; with no tab, `openPdf` runs from a fresh tap (the «Открыть PDF» button).
+export function pdfTab() {
+  try {
+    const tab = window.open("", "_blank");
+    if (tab) { tab.document.title = "PDF"; tab.document.body.textContent = "Готовлю PDF…"; }
+    return tab;
+  } catch { return null; }
+}
+
+let lastUrl = null; // freed when the next PDF is made: the viewer may still need it to save the file
+export function openPdf(blob, fileName, tab) {
+  if (lastUrl) URL.revokeObjectURL(lastUrl);
+  lastUrl = URL.createObjectURL(new File([blob], fileName, { type: "application/pdf" }));
+  if (tab && !tab.closed) { tab.location.href = lastUrl; return "tab"; }
+  const a = document.createElement("a"); // no `download`: open, not save
+  a.href = lastUrl;
+  a.target = "_blank";
+  a.rel = "noopener";
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 60000);
-  return "downloaded";
+  return "link";
 }
 
 // a file name from the notebook's title: no characters the file systems refuse

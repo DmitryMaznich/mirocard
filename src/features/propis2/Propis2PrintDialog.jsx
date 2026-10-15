@@ -92,7 +92,7 @@ export default function Propis2PrintDialog({ title, pages, cover: initialCover, 
         </label>
         <p className="p2-print-note p2-print-note--sw">Внизу страницы, у внешнего края. Обложка без номера.</p>
         <div className="p2-modal-actions">
-          <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={() => onPrint({ cover, numbers, booklet })}>Скачать PDF</button>
+          <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={() => onPrint({ cover, numbers, booklet })}>Открыть PDF</button>
           <button type="button" className="p2-modal-btn" onClick={onCancel}>Отмена</button>
         </div>
       </div>

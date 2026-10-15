@@ -15,14 +15,15 @@ import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { layoutWideLinesIntoRows } from "@/topics/renderers/propis/wordEngine.js";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
-import { printPdf, deliverPdf } from "@/topics/renderers/propis/printPdf.js";
+import { printPdf, openPdf, pdfTab } from "@/topics/renderers/propis/printPdf.js";
 
 vi.mock("@/core/syncApi", async (orig) => ({ ...(await orig()), pushOp: vi.fn(() => Promise.resolve()) }));
 // the PDF itself needs a real layout engine (printPdf.js is checked in a browser); here: that it is asked for, from the print sheets
 vi.mock("@/topics/renderers/propis/printPdf.js", async (orig) => ({
   ...(await orig()),
   printPdf: vi.fn(async (container) => (container?.querySelector(".propis-print-all__sheet") ? new Blob(["%PDF-1.3"], { type: "application/pdf" }) : null)),
-  deliverPdf: vi.fn(async () => "downloaded"),
+  openPdf: vi.fn(() => "tab"),
+  pdfTab: vi.fn(() => null),
 }));
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -317,17 +318,20 @@ describe("propis2 (zip topic)", () => {
     await click(chip("Украшение", "Нет"));
     expect(presets()[1].getAttribute("aria-checked")).toBe("true");
     await click(chip("Украшение", "Корешок"));
-    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Скачать PDF"));
+    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Открыть PDF"));
     await act(async () => { await tick(120); });
     expect(dlg()).toBeNull();
-    // no print dialog: the app makes the PDF from the print sheets, then hands it over on a tap
+    // no print dialog: the app makes the PDF from the print sheets; the tab for it is opened at the tap — blocked here, so the
+    // PDF opens from a button
+    expect(pdfTab).toHaveBeenCalledTimes(1);
     expect(printPdf).toHaveBeenCalledTimes(1);
     expect(printPdf.mock.calls[0][0].classList.contains("propis-print-all")).toBe(true);
     const pdfBox = () => document.querySelector('[data-testid="propis2-pdf"]');
     expect(pdfBox().textContent).toContain("PDF готов");
-    await click([...pdfBox().querySelectorAll("button")].find((b) => b.textContent === "Сохранить PDF"));
-    expect(deliverPdf).toHaveBeenCalledTimes(1);
-    expect(deliverPdf.mock.calls[0][1]).toMatch(/\.pdf$/);
+    await click([...pdfBox().querySelectorAll("button")].find((b) => b.textContent === "Открыть PDF"));
+    expect(openPdf).toHaveBeenCalledTimes(1);
+    expect(openPdf.mock.calls[0][1]).toMatch(/\.pdf$/);
+    expect(openPdf.mock.calls[0][2]).toBeUndefined();
     expect(pdfBox()).toBeNull();
     // A5: the back on the left half of the cover's sheet, the cover on the right, then the empty sheet
     const sheets = [...document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")];
@@ -352,8 +356,14 @@ describe("propis2 (zip topic)", () => {
     expect(how("По порядку").getAttribute("aria-checked")).toBe("true");
     await click(how("Тетрадью"));
     expect(dlg().querySelector('[data-testid="propis2-print-how"]').textContent).toContain("добавится 1 линованная страница");
-    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Скачать PDF"));
+    const tab = { closed: false, close: vi.fn() };
+    pdfTab.mockReturnValueOnce(tab);
+    await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Открыть PDF"));
     await act(async () => { await tick(120); });
+    // the tab opened at the tap gets the PDF, nothing more to tap
+    expect(openPdf).toHaveBeenCalledTimes(2);
+    expect(openPdf.mock.calls[1][2]).toBe(tab);
+    expect(document.querySelector('[data-testid="propis2-pdf"]')).toBeNull();
     expect([...document.querySelectorAll(".propis-print-all [data-page-number]")].map((g) => g.getAttribute("data-page-number"))).toEqual(["4", "1", "2", "3"]);
     expect(document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")).toHaveLength(4);
     // staple marks on the fold of every sheet «Тетрадью» (the cover's outside too; its white inside has none)

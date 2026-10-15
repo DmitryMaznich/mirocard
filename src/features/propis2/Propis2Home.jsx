@@ -3,7 +3,7 @@ import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
-import { deliverPdf, pdfFileName, printPdf } from "@/topics/renderers/propis/printPdf.js";
+import { openPdf, pdfFileName, pdfTab, printPdf } from "@/topics/renderers/propis/printPdf.js";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { NOTEBOOK_KEYS, PAGE_PAPER_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, paperDiffers, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
@@ -42,6 +42,7 @@ export default function Propis2Home({ db }) {
   const [printRun, setPrintRun] = useState(0); // bumped to make the PDF once the chosen cover is on the (hidden) print sheets
   // the PDF (owner, 2026-10-14: no print dialog — the app makes the file): { status: "making" | "ready" | "error", blob, name, progress }
   const [pdfJob, setPdfJob] = useState(null);
+  const pdfTabRef = useRef(null); // the tab the PDF opens in, opened at the tap (printPdf.js)
   const [printCfgs, setPrintCfgs] = useState(() => readPrintCfgs());
   const [kits, setKits] = useState([]); // «Методика» kits: a big file, loaded when the topic opens, not with the app
   useEffect(() => { let alive = true; import("@/topics/renderers/propis2/kits.json").then((m) => { if (alive) setKits(m.default?.kits ?? []); }).catch(() => {}); return () => { alive = false; }; }, []);
@@ -328,10 +329,16 @@ export default function Propis2Home({ db }) {
     const t = setTimeout(async () => {
       try {
         const blob = await printPdf(document.querySelector(".propis-print-all"), { onProgress: (progress) => alive && setPdfJob({ status: "making", progress }) });
-        if (alive) setPdfJob(blob ? { status: "ready", blob, name } : { status: "error" });
+        if (!alive) return;
+        const tab = pdfTabRef.current;
+        pdfTabRef.current = null;
+        if (!blob) { tab?.close(); setPdfJob({ status: "error" }); return; }
+        // the tab opened at the tap shows the PDF; without one (pop-ups blocked, closed meanwhile) — a button to tap
+        if (tab && !tab.closed) { openPdf(blob, name, tab); setPdfJob(null); }
+        else setPdfJob({ status: "ready", blob, name });
       } catch (e) {
         console.error(e);
-        if (alive) setPdfJob({ status: "error" });
+        if (alive) { pdfTabRef.current?.close(); pdfTabRef.current = null; setPdfJob({ status: "error" }); }
       }
     }, 60);
     return () => { alive = false; clearTimeout(t); };
@@ -386,8 +393,7 @@ export default function Propis2Home({ db }) {
               {pdfJob.status === "ready" && <p className="p2-pdf-text">PDF готов: «{pdfJob.name}»</p>}
               <div className="p2-modal-actions">
                 {pdfJob.status === "ready" && (
-                  // the share sheet needs a fresh tap (iOS refuses it after the seconds the PDF takes), so it opens from here
-                  <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={async () => { const r = await deliverPdf(pdfJob.blob, pdfJob.name); if (r !== "cancelled") setPdfJob(null); }}>Сохранить PDF</button>
+                  <button type="button" className="p2-modal-btn p2-modal-btn--primary" onClick={() => { openPdf(pdfJob.blob, pdfJob.name); setPdfJob(null); }}>Открыть PDF</button>
                 )}
                 {pdfJob.status !== "making" && <button type="button" className="p2-modal-btn" onClick={() => setPdfJob(null)}>Закрыть</button>}
               </div>
@@ -409,6 +415,8 @@ export default function Propis2Home({ db }) {
               setPrintCfgs(next);
               writePrintCfgs(next);
               setPrintAsk(false);
+              pdfTabRef.current?.close();
+              pdfTabRef.current = pdfTab(); // now, at the tap: later the browser blocks it
               setPrintRun((n) => n + 1);
             }}
           />
