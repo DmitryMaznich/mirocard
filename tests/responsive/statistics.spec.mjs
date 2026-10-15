@@ -17,7 +17,9 @@ for (const width of [360, 768, 1280]) test(`statistics at ${width}px keeps condi
   await expect(page.getByText("Фактически вариантов: 2")).toBeVisible();
   await expect(page.getByText("Фактически вариантов: 4")).toBeVisible();
   await page.locator(".statistics-history > summary").click();
-  await expect(page.getByText("Промежуточный результат сохранен")).toBeVisible();
+  await expect(page.locator('.statistics-history time')).toHaveCount(14);
+  await expect(page.locator('.statistics-history').getByText('3 мин', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Причина завершения не сохранена")).toHaveCount(0);
   await page.locator(".statistics-history > summary").click();
   await expect(page.getByText("Они учитываются, даже если занятие не завершили.", { exact: false })).toBeVisible();
   await expect(page.getByText("распределение старых ответов по дням неизвестно.", { exact: false })).toBeVisible();

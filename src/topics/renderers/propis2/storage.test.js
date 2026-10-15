@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { openDb } from "@/core/db";
-import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, normalizeLibrary, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
+import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, normalizeLibrary, openKitCopies, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
 import { newPage, newRow, newSet } from "./model.js";
 
 describe("propis2 library storage", () => {
@@ -106,5 +106,12 @@ describe("propis2 library storage", () => {
     expect(pagesTakeNotebookRuling(changed).pages.find((p) => p.id === a.id).ruling).toBe("wide");
     // new notebooks are per-page from the start
     expect(newSet("N").pagePaper).toBe(true);
+  });
+
+  it("a ready notebook copied with closed pages: they open (any kit's copy); other pages keep their own state", () => {
+    const lib = { ...emptyLibrary(), sets: [{ id: "s1", kit: "blank-square", pageIds: ["a", "b"] }, { id: "s2", kit: "digits", pageIds: ["c"] }, { id: "s3", pageIds: ["d"] }], pages: [{ id: "a", rows: [], locked: true }, { id: "b", rows: [], locked: true }, { id: "c", rows: [], locked: true }, { id: "d", rows: [], locked: true }] };
+    const once = openKitCopies(lib);
+    expect(once.pages.map((p) => p.locked)).toEqual([false, false, false, true]);
+    expect(openKitCopies(once)).toBe(once);
   });
 });

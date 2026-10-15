@@ -455,13 +455,13 @@ describe("«Методика» kits (kits.json, built from the `propis` notebook
       }
       const { set, pages } = kitToLibraryItems(k);
       expect(set.pageIds).toHaveLength(24);
-      expect(pages.every((p) => p.locked)).toBe(true);
+      expect(pages.some((p) => p.locked)).toBe(false);
     }
   });
-  it("a kit becomes a set of locked pages that belong to it", () => {
+  it("a kit becomes a set of the user's own pages (open to edit) that belong to it", () => {
     const { set, pages } = kitToLibraryItems(kits[0]);
     expect(set.pageIds).toHaveLength(kits[0].pages.length);
-    expect(pages.every((p) => p.locked && p.kitId === set.id && p.ruling === "narrow" && p.margin === "left")).toBe(true);
+    expect(pages.every((p) => !p.locked && p.kitId === set.id && p.ruling === "narrow" && p.margin === "left")).toBe(true);
     expect(new Set(pages.flatMap((p) => p.rows.map((r) => r.id))).size).toBe(pages.reduce((n, p) => n + p.rows.length, 0));
     expect(pageToLines(pages[0], map)[0]).toMatch(/^и#f/);
   });
@@ -545,7 +545,7 @@ describe("fade copies", () => {
     expect(one.pages[1].rows.map((r) => r.text)).toEqual(rec.wideSheets.page3.map((l) => l.replace(/#[dc]$/, "")));
     const { set, pages } = kitToLibraryItems(one);
     expect(set.ruling).toBe("wide");
-    expect(pages.every((p) => p.ruling === "wide" && p.locked)).toBe(true);
+    expect(pages.every((p) => p.ruling === "wide" && !p.locked)).toBe(true);
   });
 
 describe("words never touch", () => {

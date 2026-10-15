@@ -79,5 +79,5 @@ export function aggregateStatistics(sessions, { studentId, topicId = null, since
     if (!topic.lastAt || session.completedAt > topic.lastAt) topic.lastAt = session.completedAt;
   }
   for (const group of groups.values()) group.trend = group.trend.sort((a, b) => a.completedAt.localeCompare(b.completedAt)).slice(-12);
-  return { totals, activeDays: days.size, groups: [...groups.values()], topics: [...topics.values()].sort((a, b) => b.lastAt.localeCompare(a.lastAt)), recent: [...unique.values()].sort((a, b) => b.completedAt.localeCompare(a.completedAt)).slice(0, 20).map(({ id, topicId: tid, modeId, mode, completedAt, percentCorrect, completionReason }) => ({ id, topicId: tid, modeId: modeId ?? mode, completedAt, percentCorrect, completionReason })) };
+  return { totals, activeDays: days.size, groups: [...groups.values()], topics: [...topics.values()].sort((a, b) => b.lastAt.localeCompare(a.lastAt)), recent: [...unique.values()].sort((a, b) => b.completedAt.localeCompare(a.completedAt)).slice(0, 20).map(({ id, topicId: tid, modeId, mode, startedAt, completedAt, activeDurationMs, elapsedDurationMs, percentCorrect, completionReason }) => ({ id, topicId: tid, modeId: modeId ?? mode, startedAt, completedAt, activeDurationMs, elapsedDurationMs, percentCorrect, completionReason })) };
 }

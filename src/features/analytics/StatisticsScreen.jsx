@@ -13,8 +13,25 @@ const valueLabels = { easy: "Легко", correct: "Правильно", prompte
 const paramLabels = { optionCount: "Вариантов", distractorLevel: "Похожесть вариантов", figureDifficulty: "Уровень фигур", activityStage: "Этап", materialSet: "Материал", introStage: "Этап знакомства", showImage: "Картинка", showLabels: "Подписи", showHint: "Подсказка", hintMode: "Подсказка", questionHint: "Подсказка вопроса", level: "Уровень", visualMode: "Опора", question: "Вопрос", repsPerConcept: "Повторов на понятие", examplesCount: "Примеров" };
 const labelValue = value => typeof value === "boolean" ? value ? "Да" : "Нет" : Array.isArray(value) ? value.map(labelValue).join(", ") : valueLabels[value] ?? String(value ?? "—");
 const score = (correct, total) => total ? `${Math.round(correct / total * 100)}% · ${correct} из ${total}` : "Нет оцененных ответов";
-const completionLabels = { series_completed: "Серия завершена", manual: "Завершено вручную", interrupted: "Прервано", checkpoint: "Промежуточный результат сохранен" };
 const lessonCount = count => `${count} ${count % 10 === 1 && count % 100 !== 11 ? "занятие" : count % 10 >= 2 && count % 10 <= 4 && !(count % 100 >= 12 && count % 100 <= 14) ? "занятия" : "занятий"}`;
+
+function SessionTiming({ session, timeZone }) {
+  const at = Number.isFinite(Date.parse(session.startedAt)) ? session.startedAt : session.completedAt;
+  const withTime = /[T ]\d{2}:\d{2}/.test(at);
+  const date = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short", year: "numeric",
+    timeZone: withTime ? timeZone : "UTC", ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
+  }).format(new Date(at));
+  const active = Number.isFinite(session.activeDurationMs) && session.activeDurationMs >= 0;
+  const duration = active ? session.activeDurationMs : session.elapsedDurationMs;
+  let formattedDuration = null;
+  if (Number.isFinite(duration) && duration >= 0) {
+    const seconds = duration > 0 ? Math.max(1, Math.round(duration / 1000)) : 0;
+    formattedDuration = [seconds >= 3600 ? `${Math.floor(seconds / 3600)} ч` : null,
+      seconds >= 60 && Math.floor(seconds / 60) % 60 ? `${Math.floor(seconds / 60) % 60} мин` : null,
+      seconds % 60 || seconds === 0 ? `${seconds % 60} с` : null].filter(Boolean).join(" ");
+  }
+  return <span><time dateTime={at}>{date}</time>{formattedDuration != null && <> · <span title={active ? "Длительность активной работы без пауз и времени в фоне" : "Общее время занятия с учетом пауз"}>{formattedDuration}{!active && " (с паузами)"}</span></>}</span>;
+}
 
 function Conditions({ group, topic }) {
   if (!group.conditions) return <p className="statistics-note">Условия не сохранены. Эти результаты не смешиваются с новой статистикой.</p>;
@@ -123,7 +140,6 @@ export default function StatisticsScreen({ initialTopicId = null, onClose, embed
       <p className="statistics-note" role="status">{status === "loading" ? "Обновляем сводку… Пока показаны сохраненные на устройстве занятия." : status === "server" ? "Сводка по всем синхронизированным занятиям за выбранный период." : status === "offline" ? "Сервер недоступен. Показаны только занятия на этом устройстве; история может быть неполной." : "Показаны сохраненные на этом устройстве занятия. Более ранняя история может быть неполной."}</p>
       {!studentId ? <p className="empty-state">Добавьте или выберите ученика, чтобы увидеть статистику.</p> : total.sessions === 0 ? <p className="empty-state">За выбранный период занятий нет.</p> : <>
         <div className="statistics-overview"><div><strong>{total.sessions}</strong><span>занятий</span></div><div><strong>{report.activeDays}</strong><span>дней практики</span></div><div><strong>{total.timedSessions ? Math.round(total.activeDurationMs / 60000) : "—"}</strong><span>активных минут</span></div><div><strong>{total.completedSeries}</strong><span>завершенных серий</span></div></div>
-        <p className="statistics-note">Завершено вручную: {total.manualSessions}. Для старых занятий причина завершения и время могут быть неизвестны.</p>
         {total.checkpointSessions > 0 && <p className="statistics-note">Занятий с автоматически сохраненным промежуточным результатом: {total.checkpointSessions}. Они учитываются, даже если занятие не завершили.</p>}
         {total.snapshotRecoveredSessions > 0 && <p className="statistics-note">Из состояния незавершенного занятия восстановлено: {total.snapshotRecoveredSessions}. Дата соответствует последнему сохранению; распределение старых ответов по дням неизвестно.</p>}
         {total.recoveredSessions > 0 && <p className="statistics-note">Из старой истории восстановлено: {lessonCount(total.recoveredSessions)}. Первые ответы — в {total.recoveredResponseSessions}, сохраненные настройки — в {total.savedSettingsSessions}. История без достаточных данных показана без предположений.</p>}
@@ -131,7 +147,7 @@ export default function StatisticsScreen({ initialTopicId = null, onClose, embed
           <p className="statistics-note">Результаты разных тем и условий не объединяются в общий процент. Откройте тему, чтобы увидеть ответы и динамику.</p>
           <div className="statistics-topics">{report.topics.map(item => <button key={item.topicId} onClick={() => setTopicId(item.topicId)}><strong>{title(item.topicId)}</strong><span>{lessonCount(item.totals.sessions)} · {formatDate(item.lastAt)} →</span>{topicResult(item.topicId)}</button>)}</div>
         </>}
-        <details className="statistics-history"><summary>Последние занятия ({report.recent.length})</summary><ul>{report.recent.map(item => <li key={item.id}><span>{title(item.topicId)} · {text(topics.find(record => record.meta.id === item.topicId)?.modes?.find(mode => mode.id === item.modeId)?.ui?.title) || item.modeId}</span><span>{formatDate(item.completedAt)} · {completionLabels[item.completionReason] ?? "Причина завершения не сохранена"}</span></li>)}</ul></details>
+        <details className="statistics-history"><summary>Последние занятия ({report.recent.length})</summary><ul>{report.recent.map(item => <li key={item.id}><span>{title(item.topicId)} · {text(topics.find(record => record.meta.id === item.topicId)?.modes?.find(mode => mode.id === item.modeId)?.ui?.title) || item.modeId}</span><SessionTiming session={item} timeZone={timeZone} /></li>)}</ul></details>
       </>}
     </div>
   </div>;
