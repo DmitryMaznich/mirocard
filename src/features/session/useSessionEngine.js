@@ -6,6 +6,7 @@ import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
+import { aboutMeHistory } from "@/topics/renderers/my_people/engine";
 import { createSessionState, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
 import { useCardEventLogger } from "@/features/analytics/useCardEventLogger";
 import { useActiveSessionTimer } from "./useActiveSessionTimer";
@@ -179,7 +180,9 @@ function buildGeneratedSessionState({
     tasks = generateTasks ? generateTasks(mode, topicRecord, sessionSize, sessionParams) : [];
   } else if (renderer === "my_people") {
     const generateTasks = ENGINE_REGISTRY.my_people;
-    tasks = generateTasks ? generateTasks(mode, activeStudent, sessionParams) : [];
+    // «Обо мне» picks its questions from what earlier lessons recorded.
+    const history = aboutMeHistory(useAppStore.getState().sessions, activeStudent?.id, topicRecord?.meta?.id);
+    tasks = generateTasks ? generateTasks(mode, activeStudent, sessionParams, new Map(), {}, 0, history) : [];
   } else {
     const generateTasks = ENGINE_REGISTRY[renderer];
     const sessionSize = 500;
@@ -540,7 +543,14 @@ export function useSessionEngine() {
       (sessionIntroduced[task.axis] ??= new Set()).add(task.personId);
     }
     const round = (state.myPeopleRound ?? 0) + 1;
-    const tasks = generateTasks ? generateTasks(state.mode, activeStudent, sessionParams, previousImages, sessionIntroduced, round) : [];
+    // Earlier lessons plus this one's answers so far, so the next round of
+    // «Обо мне» moves on to questions it hasn't asked yet.
+    const history = aboutMeHistory(useAppStore.getState().sessions, activeStudent?.id, state.topicId);
+    const now = new Date().toISOString();
+    for (const assessment of state.assessments ?? []) {
+      if (String(assessment.conceptId ?? "").startsWith("about_q:")) history.set(assessment.conceptId, { askedAt: now, quality: assessment.quality });
+    }
+    const tasks = generateTasks ? generateTasks(state.mode, activeStudent, sessionParams, previousImages, sessionIntroduced, round, history) : [];
     if (!tasks.length) return next;
     const roundConceptIds = tasks.flatMap((task) => task.progressConceptIds ?? [task.targetConceptId ?? task.conceptId]);
     return {

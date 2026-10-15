@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMyPeopleTopicRecord } from "@/topics/builtinMyPeopleTopic";
-import { ageFromBirthDate, firstSyllable, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
+import { aboutMeHistory, ageFromBirthDate, firstSyllable, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
 
 const student = {
   id: "student_1",
@@ -64,14 +64,15 @@ describe("my_people album engine", () => {
     expect(generateTasks(introduce, student, { scriptHint: "none" }, new Map(), {}, 2)[0]).toMatchObject({ partner: "Доктор", hintLevel: 0 });
   });
 
-  it("uses only switched-on facts and never the address or the family label", () => {
+  it("uses filled-in facts but never the address, the phone or the family label", () => {
     const tasks = generateTasks(introduce, lisa({
       familyName: "Скрытая фамилия",
       familyLabel: "Скрытая семья",
       city: "Новоград",
       address: "Совершенно секретный адрес, 7",
+      phone: "+7 900 111-22-33",
+      includePhone: true,
       birthDate: "2018-01-01",
-      includeFamilyName: false,
       includeFamilyLabel: true,
       includeCity: true,
       includeAddress: true,
@@ -79,9 +80,10 @@ describe("my_people album engine", () => {
     const content = JSON.stringify(tasks);
     expect(content).toContain("Новоград");
     expect(content).toContain("Мне ");
-    expect(content).not.toContain("Скрытая фамилия");
+    expect(content).toContain("Скрытая фамилия");
     expect(content).not.toContain("Скрытая семья");
     expect(content).not.toContain("Совершенно секретный адрес");
+    expect(content).not.toContain("111-22-33");
   });
 
   it("builds an album where names are independent answers for every displayed person", () => {
@@ -299,18 +301,52 @@ describe("«Обо мне»: short questions", () => {
     ],
   };
 
-  it("asks only what the adult entered, in the teaching order", () => {
+  it("asks whatever the adult filled in, by level, in the teaching order", () => {
     const questions = getAboutMeQuestions(child, now);
-    expect(questions.map((q) => [q.question, q.answer])).toEqual([
-      ["Как тебя зовут?", "Миша"],
-      ["Ты мальчик или девочка?", "Мальчик"],
-      ["Сколько тебе лет?", "4 года"],
-      ["Как зовут маму?", "Анна"],
-      ["Как зовут сестру?", "Маша или Катя"],
-      ["Как твоя фамилия?", "Петров"],
+    expect(questions.map((q) => [q.level, q.question, q.answer])).toEqual([
+      ["self", "Как тебя зовут?", "Миша"],
+      ["self", "Ты мальчик или девочка?", "Мальчик"],
+      ["self", "Сколько тебе лет?", "4 года"],
+      ["family", "Как зовут маму?", "Анна"],
+      ["family", "Как зовут сестру?", "Маша или Катя"],
+      // A pet of unknown kind ("брат" is no animal) is "питомец".
+      ["family", "Как зовут твоего питомца?", "Барсик"],
+      // A filled-in field is a question: the old "include" ticks are ignored.
+      ["safety", "Как твоя фамилия?", "Петров"],
+      ["safety", "Где ты живёшь?", "Любляна"],
+      ["day", "Когда у тебя день рождения?", "15 октября"],
     ]);
-    // A switched-off person, a pet and an unticked city produce no question.
-    expect(JSON.stringify(questions)).not.toMatch(/Иван|Барсик|Любляна/);
+    // A switched-off person produces no question.
+    expect(JSON.stringify(questions)).not.toMatch(/Иван/);
+  });
+
+  it("asks the address and the phone only with the adult's yes", () => {
+    const profile = { ...child.myPeopleProfile, address: "ул. Ленина, 5", phone: "+7 900 123-45-67", phoneOwner: "папы" };
+    const without = getAboutMeQuestions({ ...child, myPeopleProfile: profile }, now);
+    expect(JSON.stringify(without)).not.toMatch(/Ленина|123-45-67/);
+    const withYes = getAboutMeQuestions({ ...child, myPeopleProfile: { ...profile, includeAddress: true, includePhone: true } }, now);
+    expect(withYes.filter((q) => q.level === "safety").map((q) => [q.question, q.answer])).toEqual([
+      ["Как твоя фамилия?", "Петров"],
+      ["Где ты живёшь?", "Любляна"],
+      ["Какой у тебя адрес?", "ул. Ленина, 5"],
+      ["Назови телефон папы.", "+7 900 123-45-67"],
+    ]);
+  });
+
+  it("asks about the kindergarten or the school, the group or the class, and the teacher", () => {
+    const withDay = (schoolKind) => ({
+      ...child,
+      myPeopleProfile: { ...child.myPeopleProfile, schoolKind, school: "№ 5", group: "Солнышко" },
+      myPeople: [...child.myPeople, { id: "t", type: "person", name: "Ольга Петровна", relation: "воспитательница", contexts: ["school"], photos: ["/t"], enabled: true }],
+    });
+    const day = (schoolKind) => getAboutMeQuestions(withDay(schoolKind), now).filter((q) => q.level === "day").map((q) => q.question);
+    expect(day("kindergarten")).toEqual(["Когда у тебя день рождения?", "В какой детский сад ты ходишь?", "Как называется твоя группа?", "Как зовут воспитательницу?"]);
+    expect(day("school")).toEqual(["Когда у тебя день рождения?", "В какую школу ты ходишь?", "В каком ты классе?", "Как зовут воспитательницу?"]);
+  });
+
+  it("names a known pet kind in the question", () => {
+    const pets = { ...child, myPeople: [{ id: "c", type: "pet", name: "Мурка", relation: "наша кошка", contexts: ["family"], photos: ["/c"], enabled: true }, { id: "d", type: "pet", name: "Бим", relation: "пёс", contexts: ["family"], photos: ["/d"], enabled: true }] };
+    expect(getAboutMeQuestions(pets, now).filter((q) => q.id.startsWith("pet:")).map((q) => q.question)).toEqual(["Как зовут твою кошку?", "Как зовут твоего пса?"]);
   });
 
   it("uses the right photo as the hint", () => {
@@ -329,7 +365,8 @@ describe("«Обо мне»: short questions", () => {
 
   it("keeps the ladder order in the first round, caps each round, mixes later rounds", () => {
     const first = generateTasks({ id: "about_me", type: "about_me" }, child);
-    expect(first.map((task) => task.prompt)).toEqual(getAboutMeQuestions(child).map((q) => q.question).slice(0, MAX_ABOUT_ME_QUESTIONS_PER_ROUND));
+    // Default levels: «Я» and «Семья» -- six questions for this child.
+    expect(first.map((task) => task.prompt)).toEqual(getAboutMeQuestions(child).filter((q) => ["self", "family"].includes(q.level)).map((q) => q.question).slice(0, MAX_ABOUT_ME_QUESTIONS_PER_ROUND));
     expect(first.every((task) => task.type === "about_me_question" && task.conceptId.startsWith("about_q:"))).toBe(true);
     const later = generateTasks({ id: "about_me", type: "about_me" }, child, {}, new Map(), {}, 3);
     expect(later).toHaveLength(first.length);
@@ -338,6 +375,45 @@ describe("«Обо мне»: short questions", () => {
   it("is available with just a name and a sex, no people needed", () => {
     expect(hasEnoughAboutMeQuestions({ name: "Лиза", sex: "f", myPeopleProfile: {} })).toBe(true);
     expect(hasEnoughAboutMeQuestions({ name: "Лиза", myPeopleProfile: {} })).toBe(false);
+  });
+
+  it("asks only the chosen levels, as many as asked for", () => {
+    const tasks = generateTasks({ id: "about_me", type: "about_me" }, child, { levels: ["safety", "day"], questionCount: 4 });
+    expect(tasks.map((task) => task.conceptId)).toEqual(["about_q:family_name", "about_q:city", "about_q:birthday"]);
+    expect(generateTasks({ id: "about_me", type: "about_me" }, child, { levels: ["self", "family", "safety", "day"], questionCount: 4 })).toHaveLength(4);
+    expect(hasEnoughAboutMeQuestions(child, { levels: ["day"] })).toBe(false);
+  });
+
+  it("asks the not-yet-known questions first and keeps a few known ones", () => {
+    const all = { levels: ["self", "family", "safety", "day"], questionCount: 6 };
+    // Known: name, gender, age, mum -- answered correctly before.
+    const history = new Map([
+      ["about_q:name", { askedAt: "2026-09-01", quality: "correct" }],
+      ["about_q:gender", { askedAt: "2026-09-02", quality: "correct" }],
+      ["about_q:age", { askedAt: "2026-09-03", quality: "correct" }],
+      ["about_q:rel:мама", { askedAt: "2026-09-04", quality: "correct" }],
+      ["about_q:city", { askedAt: "2026-09-04", quality: "prompted" }],
+    ]);
+    const ids = generateTasks({ id: "about_me", type: "about_me" }, child, all, new Map(), {}, 0, history).map((task) => task.conceptId);
+    // 4 to learn (never asked first, then the city answered with a prompt) + 2 known, oldest first; in ladder order.
+    expect(ids).toEqual(["about_q:name", "about_q:gender", "about_q:rel:сестра", "about_q:pet:cat", "about_q:family_name", "about_q:birthday"]);
+  });
+
+  it("reads the history from saved lessons: the last answer to each question", () => {
+    const sessions = [
+      { studentId: "kid", topicId: "my_people", completedAt: "2026-09-02", assessments: [{ conceptId: "about_q:city", quality: "correct" }] },
+      { studentId: "kid", topicId: "my_people", completedAt: "2026-09-01", assessments: [{ conceptId: "about_q:city", quality: "fail" }, { conceptId: "point:anna", quality: "correct" }] },
+      { studentId: "other", topicId: "my_people", completedAt: "2026-09-03", assessments: [{ conceptId: "about_q:city", quality: "fail" }] },
+    ];
+    const history = aboutMeHistory(sessions, "kid");
+    expect([...history.keys()]).toEqual(["about_q:city"]);
+    expect(history.get("about_q:city")).toEqual({ askedAt: "2026-09-02", quality: "correct" });
+  });
+
+  it("swaps «мальчик или девочка» every other round against echoing the last word", () => {
+    const prompt = (round) => generateTasks({ id: "about_me", type: "about_me" }, child, {}, new Map(), {}, round).find((task) => task.conceptId === "about_q:gender").prompt;
+    expect(prompt(0)).toBe("Ты мальчик или девочка?");
+    expect(prompt(1)).toBe("Ты девочка или мальчик?");
   });
 });
 
@@ -526,5 +602,5 @@ describe("«Кто это?» first-syllable prompt", () => {
     expect(firstSyllable("Ая")).toBe("А");
     expect(firstSyllable("")).toBe("");
   });
-});
 
+});

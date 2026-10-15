@@ -15,14 +15,14 @@ export const MAX_NEW_PER_SESSION = 4;
 // ── «Представься»: a conversation with someone new ─────────────────────
 // The advanced level after «Обо мне»: the same facts, but answered in whole
 // sentences to a new partner, and closed by telling them all in one go --
-// chaining, the real skill. Only facts the adult switched on are used, and
-// never the address.
+// chaining, the real skill. Filled-in facts only, and never the address or
+// the phone: those are for a trusted adult, not for someone new.
 const INTRODUCE_TURNS = [
   {
     id: "name",
     question: "Как тебя зовут?",
     starter: "Меня зовут",
-    value: (student, profile) => (profile.includeSelfName !== false ? student?.name : ""),
+    value: (student) => student?.name,
     sentence: (value) => `Меня зовут ${value}.`,
   },
   {
@@ -39,7 +39,7 @@ const INTRODUCE_TURNS = [
     id: "family_name",
     question: "Какая у тебя фамилия?",
     starter: "Моя фамилия",
-    value: (student, profile) => (profile.includeFamilyName ? profile.familyName : ""),
+    value: (student, profile) => profile.familyName,
     sentence: (value) => `Моя фамилия ${value}.`,
   },
   {
@@ -48,7 +48,7 @@ const INTRODUCE_TURNS = [
     // "Я живу в …" would need the city in the prepositional case, which a
     // typed-in name doesn't give us; "Мой город — …" needs none.
     starter: "Мой город —",
-    value: (student, profile) => (profile.includeCity ? profile.city : ""),
+    value: (student, profile) => profile.city,
     sentence: (value) => `Мой город — ${value}.`,
   },
 ];
@@ -67,20 +67,42 @@ export function hasEnoughAboutMeFacts(student) {
 
 // ── «Обо мне»: short, fixed questions ──────────────────────────────────
 // One direct question, one short answer, always the same wording -- the
-// "personal information" skill as taught to preschoolers with ASD. Every
+// "personal information" skill as taught to children with ASD. Every
 // question is built from data the adult already entered (student card,
-// «Мои люди», «Личные данные») and appears only when that data exists.
-// Order is the usual teaching ladder: self, then close family, then the
-// wider circle, then surname and city.
-const RELATION_QUESTIONS = [
+// «Окружение ребёнка», «Личные данные») and appears only when that data
+// exists: a filled-in field is a question. Only the address and the phone
+// also need the adult's explicit yes.
+//
+// Four levels, in teaching order. The adult picks which ones a lesson uses:
+//   self    -- name, boy/girl, age
+//   family  -- names of close family and pets
+//   safety  -- surname, city, address, a parent's phone: what a lost child
+//              must be able to tell an adult
+//   day     -- birthday, kindergarten/school, group/class, the teacher
+export const ABOUT_ME_LEVELS = ["self", "family", "safety", "day"];
+export const ABOUT_ME_DEFAULT_LEVELS = ["self", "family"];
+const ABOUT_ME_QUESTION_COUNTS = [4, 6, 8];
+export const MAX_ABOUT_ME_QUESTIONS_PER_ROUND = 6;
+
+const FAMILY_QUESTIONS = [
   ["мама", "маму"], ["папа", "папу"],
   ["бабушка", "бабушку"], ["дедушка", "дедушку"],
   ["брат", "брата"], ["сестра", "сестру"],
   ["няня", "няню"],
+];
+const TEACHER_QUESTIONS = [
   ["воспитательница", "воспитательницу"], ["воспитатель", "воспитателя"],
   ["учительница", "учительницу"], ["учитель", "учителя"],
 ];
-export const MAX_ABOUT_ME_QUESTIONS_PER_ROUND = 6;
+// "Как зовут твою кошку?" needs the animal in the accusative; a typed-in
+// "наша кошка" is matched by its last word. Anything else is "питомца".
+const PET_ACCUSATIVE = {
+  кошка: "твою кошку", кот: "твоего кота", котик: "твоего котика", котёнок: "твоего котёнка", котенок: "твоего котёнка",
+  собака: "твою собаку", пёс: "твоего пса", пес: "твоего пса", щенок: "твоего щенка", собачка: "твою собачку",
+  попугай: "твоего попугая", хомяк: "твоего хомяка", хомячок: "твоего хомячка", кролик: "твоего кролика",
+  черепаха: "твою черепаху", рыбка: "твою рыбку", морская_свинка: "твою морскую свинку", свинка: "твою свинку",
+};
+const MONTHS_GENITIVE = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
 
 export function ageFromBirthDate(birthDate, now = new Date()) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(birthDate ?? ""));
@@ -91,35 +113,91 @@ export function ageFromBirthDate(birthDate, now = new Date()) {
   return age >= 1 && age <= 25 ? age : null;
 }
 
+function birthdayFromBirthDate(birthDate) {
+  const match = /^\d{4}-(\d{2})-(\d{2})$/.exec(String(birthDate ?? ""));
+  if (!match) return "";
+  const month = Number(match[1]);
+  const day = Number(match[2]);
+  return month >= 1 && month <= 12 && day >= 1 && day <= 31 ? `${day} ${MONTHS_GENITIVE[month - 1]}` : "";
+}
+
+function petAccusative(pet) {
+  const words = String(pet.relation ?? "").trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const twoWords = words.slice(-2).join("_");
+  return PET_ACCUSATIVE[twoWords] ?? PET_ACCUSATIVE[words.at(-1)] ?? null;
+}
+
 export function getAboutMeQuestions(student, now = new Date()) {
   const profile = student?.myPeopleProfile ?? {};
   const questions = [];
-  const add = (id, question, answer, cueImage = null) => {
-    if (String(answer ?? "").trim()) questions.push({ id, question, answer: String(answer).trim(), cueImage });
+  const add = (level, id, question, answer, cueImage = null) => {
+    if (String(answer ?? "").trim()) questions.push({ level, id, question, answer: String(answer).trim(), cueImage });
+  };
+  const people = (student?.myPeople ?? []).filter((person) => isActive(person) && person.type !== "pet");
+  const pets = (student?.myPeople ?? []).filter((person) => isActive(person) && person.type === "pet");
+  const addRelations = (level, list) => {
+    for (const [relation, accusative] of list) {
+      const matches = people.filter((person) => person.relation?.trim().toLowerCase() === relation);
+      if (!matches.length) continue;
+      // Two sisters: either name is right, and the adult judges.
+      add(level, `rel:${relation}`, `Как зовут ${accusative}?`, matches.map((person) => person.name.trim()).join(" или "), matches[0].photos.find(Boolean));
+    }
   };
 
-  if (profile.includeSelfName !== false) add("name", "Как тебя зовут?", student?.name, student?.photo ?? null);
+  // self
+  add("self", "name", "Как тебя зовут?", student?.name, student?.photo ?? null);
   if (student?.sex === "m" || student?.sex === "f") {
-    add("gender", "Ты мальчик или девочка?", student.sex === "m" ? "Мальчик" : "Девочка", student?.photo ?? null);
+    add("self", "gender", "Ты мальчик или девочка?", student.sex === "m" ? "Мальчик" : "Девочка", student?.photo ?? null);
   }
   const age = ageFromBirthDate(profile.birthDate, now);
-  if (age) add("age", "Сколько тебе лет?", `${age} ${pluralRu(age, "год", "года", "лет")}`);
+  if (age) add("self", "age", "Сколько тебе лет?", `${age} ${pluralRu(age, "год", "года", "лет")}`);
 
-  const people = (student?.myPeople ?? []).filter((person) => isActive(person) && person.type !== "pet");
-  for (const [relation, accusative] of RELATION_QUESTIONS) {
-    const matches = people.filter((person) => person.relation?.trim().toLowerCase() === relation);
-    if (!matches.length) continue;
-    // Two sisters: either name is right, and the adult judges.
-    add(`rel:${relation}`, `Как зовут ${accusative}?`, matches.map((person) => person.name.trim()).join(" или "), matches[0].photos.find(Boolean));
+  // family
+  addRelations("family", FAMILY_QUESTIONS);
+  let genericPetAsked = false;
+  for (const pet of pets) {
+    const accusative = petAccusative(pet);
+    // Two pets of unknown kind would get the same question; ask about one.
+    if (!accusative && genericPetAsked) continue;
+    if (!accusative) genericPetAsked = true;
+    add("family", `pet:${pet.id}`, `Как зовут ${accusative ?? "твоего питомца"}?`, pet.name.trim(), pet.photos.find(Boolean));
   }
 
-  if (profile.includeFamilyName && profile.familyName) add("family_name", "Как твоя фамилия?", profile.familyName);
-  if (profile.includeCity && profile.city) add("city", "Где ты живёшь?", profile.city);
+  // safety
+  add("safety", "family_name", "Как твоя фамилия?", profile.familyName);
+  add("safety", "city", "Где ты живёшь?", profile.city);
+  if (profile.includeAddress) add("safety", "address", "Какой у тебя адрес?", profile.address);
+  if (profile.includePhone) {
+    const owner = String(profile.phoneOwner ?? "").trim() || "мамы";
+    add("safety", "phone", `Назови телефон ${owner}.`, profile.phone);
+  }
+
+  // day
+  add("day", "birthday", "Когда у тебя день рождения?", birthdayFromBirthDate(profile.birthDate));
+  const atSchool = profile.schoolKind === "school";
+  add("day", "school", atSchool ? "В какую школу ты ходишь?" : "В какой детский сад ты ходишь?", profile.school);
+  add("day", "group", atSchool ? "В каком ты классе?" : "Как называется твоя группа?", profile.group);
+  addRelations("day", TEACHER_QUESTIONS);
+
   return questions;
 }
 
-export function hasEnoughAboutMeQuestions(student) {
-  return getAboutMeQuestions(student).length >= 2;
+function aboutMeLevels(params) {
+  const chosen = (Array.isArray(params?.levels) ? params.levels : []).filter((level) => ABOUT_ME_LEVELS.includes(level));
+  return chosen.length ? chosen : ABOUT_ME_DEFAULT_LEVELS;
+}
+
+// The questions a lesson with these params can ask (all levels when no
+// params are known, e.g. on the mode list).
+export function aboutMeQuestionsFor(student, params = null) {
+  const questions = getAboutMeQuestions(student);
+  if (!params) return questions;
+  const levels = aboutMeLevels(params);
+  return questions.filter((question) => levels.includes(question.level));
+}
+
+export function hasEnoughAboutMeQuestions(student, params = null) {
+  return aboutMeQuestionsFor(student, params).length >= 2;
 }
 
 export function aboutMeQuestionLabel(conceptId, student) {
@@ -127,20 +205,64 @@ export function aboutMeQuestionLabel(conceptId, student) {
   return getAboutMeQuestions(student).find((question) => question.id === id)?.question ?? "Вопрос обо мне";
 }
 
-function aboutMeQuestionTasks(student, round) {
-  const questions = getAboutMeQuestions(student);
+// What the adult recorded for this student's «Обо мне» questions, from the
+// saved lessons: when each was last asked and how it went. Pure, so the
+// session hook passes it in and the engine stays store-free.
+export function aboutMeHistory(sessions, studentId, topicId = "my_people") {
+  const history = new Map();
+  const relevant = (sessions ?? [])
+    .filter((session) => session.studentId === studentId && session.topicId === topicId && session.assessments?.length)
+    .sort((a, b) => String(a.completedAt).localeCompare(String(b.completedAt)));
+  for (const session of relevant) {
+    for (const assessment of session.assessments) {
+      if (!String(assessment.conceptId ?? "").startsWith("about_q:")) continue;
+      history.set(assessment.conceptId, { askedAt: session.completedAt, quality: assessment.quality });
+    }
+  }
+  return history;
+}
+
+// Which questions a round asks. Not yet known first (never asked, or last
+// time not answered alone), the longest-unasked first; a third of the
+// round keeps already-known questions, oldest first -- easy answers among
+// hard ones keep the child going, and nothing known is left to fade.
+function pickAboutMeQuestions(questions, count, history) {
+  const entry = (question) => history?.get(`about_q:${question.id}`);
+  const known = (question) => entry(question)?.quality === "correct";
+  const byOldest = (a, b) => String(entry(a)?.askedAt ?? "").localeCompare(String(entry(b)?.askedAt ?? ""));
+  const learning = questions.filter((question) => !known(question)).sort(byOldest);
+  const mastered = questions.filter(known).sort(byOldest);
+  const keepKnown = Math.min(mastered.length, Math.floor(count / 3));
+  const picked = [...learning.slice(0, count - keepKnown), ...mastered.slice(0, keepKnown)];
+  // Not enough to learn: fill up with more known ones.
+  for (const question of mastered) {
+    if (picked.length >= count) break;
+    if (!picked.includes(question)) picked.push(question);
+  }
+  // Back to the teaching ladder for the order.
+  return questions.filter((question) => picked.includes(question));
+}
+
+function aboutMeQuestionTasks(student, params, round, history) {
+  const questions = aboutMeQuestionsFor(student, params ?? {});
+  const requested = Number(params?.questionCount);
+  const count = ABOUT_ME_QUESTION_COUNTS.includes(requested) ? requested : MAX_ABOUT_ME_QUESTIONS_PER_ROUND;
+  const picked = pickAboutMeQuestions(questions, count, history);
   // First round keeps the ladder order; later rounds mix it so the answer
   // follows the question, not its position in a memorised chain.
-  const ordered = round > 0 ? shuffle(questions) : questions;
-  return ordered.slice(0, MAX_ABOUT_ME_QUESTIONS_PER_ROUND).map((question) => {
+  const ordered = round > 0 ? shuffle(picked) : picked;
+  return ordered.map((question) => {
     const conceptId = `about_q:${question.id}`;
+    // "…мальчик или девочка?": a child with echolalia repeats the last
+    // word, so the two options swap places every other round.
+    const prompt = question.id === "gender" && round % 2 === 1 ? "Ты девочка или мальчик?" : question.question;
     return {
       type: "about_me_question",
       conceptId,
       targetConceptId: conceptId,
       progressConceptIds: [conceptId],
-      prompt: question.question,
-      promptSpeech: question.question,
+      prompt,
+      promptSpeech: prompt,
       answer: question.answer,
       cueImage: question.cueImage,
     };
@@ -562,9 +684,10 @@ export function firstSyllable(word) {
 
 // sessionIntroduced: { name?: Set<personId>, relation?: Set<personId> } of
 // people already introduced in earlier rounds of the current lesson.
-export function generateTasks(mode, student, params = {}, previousImages = new Map(), sessionIntroduced = {}, round = 0) {
+// history: aboutMeHistory(...) for «Обо мне» -- what was asked when, how it went.
+export function generateTasks(mode, student, params = {}, previousImages = new Map(), sessionIntroduced = {}, round = 0, history = null) {
   if (!mode || !student) return [];
-  if (mode.id === "about_me") return aboutMeQuestionTasks(student, round);
+  if (mode.id === "about_me") return aboutMeQuestionTasks(student, params, round, history);
   // The open "introduce yourself in a situation" cards: an advanced level
   // for a child who already answers the short questions reliably.
   if (mode.id === "introduce_self") return introduceTasks(student, params, round);

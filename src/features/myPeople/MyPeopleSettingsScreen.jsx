@@ -35,11 +35,16 @@ function normaliseProfile(profile) {
     birthDate: "",
     city: "",
     address: "",
-    includeSelfName: true,
-    includeFamilyName: false,
-    includeFamilyLabel: false,
-    includeCity: false,
+    phone: "",
+    phoneOwner: "мамы",
+    schoolKind: "kindergarten",
+    school: "",
+    group: "",
+    // A filled-in field is a question in «Обо мне»; only the address and the
+    // phone also need this explicit yes. (The old includeSelfName /
+    // includeFamilyName / includeCity flags are no longer read.)
     includeAddress: false,
+    includePhone: false,
     enabledBlocks: { family: true, home: true, school: true, mix: true },
     blockOrder: ["family", "home", "school", "mix"],
     ...(profile ?? {}),
@@ -511,7 +516,7 @@ export default function MyPeopleSettingsScreen() {
           const introduction = introductionsByContext[id];
           const hint = id in CONTEXT_LABELS
             ? `${cardCount} ${pluralRu(cardCount, "карточка", "карточки", "карточек")}${cardCount && introduction.total ? ` · Знакомство: ${introduction.introduced} из ${introduction.total}` : ""}`
-            : "Фамилия и адрес";
+            : "Адрес, садик, телефон";
           return (
             <button key={id} type="button" className={tab === id ? "mp-tab mp-tab--active" : "mp-tab"} onClick={() => { setTab(id); closeEditor(); }}>
               <span className="mp-tab__number">{String(index + 1).padStart(2, "0")}</span>
@@ -547,11 +552,11 @@ export default function MyPeopleSettingsScreen() {
 
         {tab === "personal" && (
           <section className="mp-personal">
-            <div className="mp-section-head mp-section-head--stacked"><div><span className="mp-section-head__eyebrow">Шаг 4 из {TABS.length}</span><h2>Личные данные</h2><p>Добавьте только те ответы, которые хотите отрабатывать с {student.name}.</p></div></div>
+            <div className="mp-section-head mp-section-head--stacked"><div><span className="mp-section-head__eyebrow">Шаг 4 из {TABS.length}</span><h2>Личные данные</h2><p>Каждое заполненное поле — вопрос в «Обо мне». Пустые поля просто не спрашиваются.</p></div></div>
             <div className="mp-personal__grid">
             <div className="mp-form-card mp-form-card--identity">
               <h3 className="student-data-heading">Имя и фамилия <StudentDataInfo kind="identity" /></h3>
-              <p className="mp-form-card__lead">Для вопросов «Как твоя фамилия?» и «Сколько тебе лет?».</p>
+              <p className="mp-form-card__lead">Для вопросов «Как твоя фамилия?», «Сколько тебе лет?» и «Когда у тебя день рождения?».</p>
               <label className="mp-field"><span>Фамилия ребёнка</span><input value={profile.familyName} onChange={(event) => updateProfile({ familyName: event.target.value })} /></label>
               <label className="mp-field">
                 <span className="student-data-heading">Дата рождения <StudentDataInfo kind="age" /></span>
@@ -561,16 +566,34 @@ export default function MyPeopleSettingsScreen() {
             </div>
             <div className="mp-form-card">
               <h3 className="student-data-heading">Где я живу <StudentDataInfo kind="address" /></h3>
-              <p className="mp-form-card__lead">Адрес можно оставить выключенным и использовать только со взрослым.</p>
+              <p className="mp-form-card__lead">Для вопросов «Где ты живёшь?» и «Какой у тебя адрес?».</p>
               <label className="mp-field"><span>Город</span><input value={profile.city} onChange={(event) => updateProfile({ city: event.target.value })} /></label>
               <label className="mp-field"><span>Адрес — необязательно</span><input value={profile.address} onChange={(event) => updateProfile({ address: event.target.value })} /></label>
             </div>
+            <div className="mp-form-card">
+              <h3>Садик или школа</h3>
+              <p className="mp-form-card__lead">Для вопросов «В какой детский сад ты ходишь?» и «Как называется твоя группа?».</p>
+              <div className="mp-segmented" role="radiogroup" aria-label="Садик или школа">
+                {[["kindergarten", "Детский сад"], ["school", "Школа"]].map(([value, label]) => (
+                  <button key={value} type="button" role="radio" aria-checked={profile.schoolKind === value} className={`mp-segmented__option${profile.schoolKind === value ? " mp-segmented__option--active" : ""}`} onClick={() => updateProfile({ schoolKind: value })}>{label}</button>
+                ))}
+              </div>
+              <label className="mp-field"><span>{profile.schoolKind === "school" ? "Школа" : "Детский сад"}</span><input value={profile.school} onChange={(event) => updateProfile({ school: event.target.value })} placeholder={profile.schoolKind === "school" ? "Например, школа № 12" : "Например, детский сад «Ромашка»"} /></label>
+              <label className="mp-field"><span>{profile.schoolKind === "school" ? "Класс" : "Группа"}</span><input value={profile.group} onChange={(event) => updateProfile({ group: event.target.value })} placeholder={profile.schoolKind === "school" ? "Например, 2 «Б»" : "Например, «Солнышко»"} /></label>
+            </div>
+            <div className="mp-form-card">
+              <h3>Телефон для связи</h3>
+              <p className="mp-form-card__lead">Ребёнок учится назвать его взрослому, если потерялся.</p>
+              <label className="mp-field"><span>Чей телефон</span><input value={profile.phoneOwner} onChange={(event) => updateProfile({ phoneOwner: event.target.value })} placeholder="мамы" /><small className="mp-field__hint">Как в вопросе: «Назови телефон мамы».</small></label>
+              <label className="mp-field"><span>Номер</span><input type="tel" inputMode="tel" value={profile.phone} onChange={(event) => updateProfile({ phone: event.target.value })} placeholder="+7 900 000-00-00" /></label>
+            </div>
             </div>
             <div className="mp-form-card mp-form-card--toggles">
-              <h3>Что включать в тему</h3>
+              <h3>Только с вашего разрешения</h3>
+              <p className="mp-form-card__lead">Остальные ответы попадают в «Обо мне», как только поле заполнено. Адрес и телефон — только если включить здесь.</p>
               {[
-                ["includeSelfName", "Моё имя"], ["includeFamilyName", "Моя фамилия"], ["includeCity", "Где я живу"], ["includeAddress", "Мой адрес"],
-              ].map(([key, label]) => <label className="mp-check-row" key={key}><span><strong>{label}</strong>{key === "includeAddress" && <small>Только взрослый помогает с ответом.</small>}</span><span className="mp-switch"><input type="checkbox" checked={Boolean(profile[key])} onChange={(event) => updateProfile({ [key]: event.target.checked })} /><span /></span></label>)}
+                ["includeAddress", "Мой адрес"], ["includePhone", "Телефон для связи"],
+              ].map(([key, label]) => <label className="mp-check-row" key={key}><span><strong>{label}</strong><small>В «Представься» не попадает никогда.</small></span><span className="mp-switch"><input type="checkbox" checked={Boolean(profile[key])} onChange={(event) => updateProfile({ [key]: event.target.checked })} /><span /></span></label>)}
             </div>
           </section>
         )}

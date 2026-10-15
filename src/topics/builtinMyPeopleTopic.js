@@ -85,7 +85,9 @@ const showMeMode = {
 
 // Short fixed questions (name, age, mum's name...). The child answers out
 // loud, with a gesture, or through AAC; the adult records the response
-// quality using the session's standard controls.
+// quality using the session's standard controls. The questions come in four
+// levels (engine ABOUT_ME_LEVELS); each round asks the not-yet-known ones
+// first, so a few rounds cover them all.
 const aboutMeMode = {
   id: "about_me",
   type: "about_me",
@@ -93,9 +95,24 @@ const aboutMeMode = {
   loop: true,
   regenerateOnLoop: true,
   hideConceptPicker: true,
+  params: {
+    levels: {
+      type: "enum_multi",
+      label: { ru: "Разделы вопросов" },
+      values: ["self", "family", "safety", "day"],
+      labels: { ru: { self: "Я: имя, возраст", family: "Семья и питомцы", safety: "Фамилия, адрес, телефон", day: "Садик или школа, день рождения" } },
+      default: ["self", "family"],
+    },
+    questionCount: {
+      type: "enum",
+      label: { ru: "Вопросов за раунд" },
+      values: [4, 6, 8],
+      default: 6,
+    },
+  },
   ui: {
     title: { ru: "Обо мне" },
-    instruction: { ru: "Простые вопросы: как тебя зовут, сколько лет, как зовут маму" },
+    instruction: { ru: "Короткие вопросы о себе: имя, возраст, семья, адрес и телефон, садик или школа" },
   },
 };
 

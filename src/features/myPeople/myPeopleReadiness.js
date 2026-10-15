@@ -35,9 +35,18 @@ export function myPeopleModeReadiness(mode, student, params = null) {
   const people = activeMyPeople(student);
 
   if (mode.id === "about_me") {
-    return hasEnoughAboutMeQuestions(student) ? ready : {
+    if (hasEnoughAboutMeQuestions(student, params)) return ready;
+    // Enough questions overall, just not in the levels picked for this lesson.
+    if (params && hasEnoughAboutMeQuestions(student)) {
+      return {
+        ready: false,
+        reason: "В выбранных разделах меньше 2 вопросов: добавьте раздел или заполните «Личные данные».",
+        tab: "personal",
+      };
+    }
+    return {
       ready: false,
-      reason: "Нужно хотя бы 2 вопроса: дата рождения в «Личных данных» или близкие с фото, у которых указано «мама», «папа»…",
+      reason: "Нужно хотя бы 2 вопроса: дата рождения, фамилия, город в «Личных данных» или близкие с фото, у которых указано «мама», «папа»…",
       tab: "personal",
     };
   }
