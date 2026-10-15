@@ -215,6 +215,9 @@ export async function printPdf(container, { onProgress } = {}) {
       onProgress?.((i + 1) / sheets.length);
       await nextFrame();
     }
+    // the sheets are drawn to the edge: printed at 100%, the printer leaves out what it cannot reach, nothing is shrunk (owner,
+    // 2026-10-15). A hint to the viewer's print dialog; not every viewer follows it.
+    doc?.viewerPreferences({ PrintScaling: "None" });
     return doc ? doc.output("blob") : null;
   } finally {
     container.classList.remove("propis-print-all--export");

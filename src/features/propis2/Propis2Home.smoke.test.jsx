@@ -385,6 +385,9 @@ describe("propis2 (zip topic)", () => {
     expect(document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")).toHaveLength(4);
     // staple marks on the fold of every sheet «Тетрадью» (the cover's outside too; its white inside has none)
     expect(document.querySelectorAll(".propis-print-all [data-staples]")).toHaveLength(3);
+    // the fold of the cover's sheet, a dashed line (owner, 2026-10-15); the back says the price, as the old school notebooks did
+    expect(document.querySelectorAll(".propis-print-all [data-fold]")).toHaveLength(1);
+    expect(document.querySelector('.propis-print-all [data-testid="propis2-back-price"]').textContent).toBe("Цена 18 коп.");
     await click(host.querySelector('.propis-practice-stage [aria-label="Печать"]'));
     expect(how("Тетрадью").getAttribute("aria-checked")).toBe("true"); // remembered
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Отмена"));

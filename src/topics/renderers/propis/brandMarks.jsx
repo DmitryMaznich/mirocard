@@ -56,3 +56,13 @@ export function StapleMarks({ ovals = true }) {
     </svg>
   );
 }
+
+// The fold of the cover's sheet, a light dashed line across it (owner, 2026-10-15: the two staple marks are too little to fold it
+// straight). The outside of the cover only: the pages inside fold along their staples.
+export function FoldLine() {
+  return (
+    <svg className="propis-print-staples" viewBox="0 0 297 210" preserveAspectRatio="none" aria-hidden="true" data-fold="1">
+      <line x1={148.5} y1={0} x2={148.5} y2={210} stroke="#6b7280" strokeWidth={0.25} strokeDasharray="2 1.5" />
+    </svg>
+  );
+}

@@ -748,6 +748,9 @@
   width: 100%;
 }
 
+/* iOS Safari enlarges the text of a block wider than the screen (text autosizing): the sheets are 297 mm wide, so the cover's text came
+   out much bigger in a PDF made on an iPhone (owner, 2026-10-15). The sheets keep the sizes they are given. */
+.propis-print-all { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* `propis2`: the print markup laid out off screen at its real size while printPdf.js turns it into a PDF (the same sizes as @media print) */
 .propis-print-all.propis-print-all--export { display: block !important; position: fixed; left: -100000px; top: 0; visibility: visible; }
 .propis-print-all--export .propis-print-all__sheet { width: 297mm; height: 210mm; display: flex; background: #fff; }

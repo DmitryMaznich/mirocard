@@ -375,9 +375,10 @@
 .p2-back-block .propis-print-page-svg { display: block; width: 100%; height: auto; aspect-ratio: var(--crop-ratio); box-shadow: none; border-radius: 0; }
 .p2-back-foot { position: absolute; left: 10cqw; bottom: 8cqw; line-height: 1.2; }
 .p2-back-logo { display: block; height: 7.5cqw; width: auto; }
-.p2-back-site { font-size: 2.5cqw; color: #6b7280; margin-top: 1cqw; padding-left: 0.6cqw; }
+.p2-back-site { font-size: 2.5cqw; color: #6b7280; margin-top: 0.6cqw; padding-left: 0.6cqw; }
 /* the number of leaves of the notebook, above the logo */
-.p2-back-leaves { position: absolute; left: 10cqw; bottom: 21cqw; font-weight: 800; font-size: 3.6cqw; color: var(--p2-accent); letter-spacing: 0.02em; line-height: 1.2; }
+.p2-back-leaves { font-weight: 800; font-size: 2.6cqw; color: var(--p2-accent); letter-spacing: 0.02em; line-height: 1.2; margin-top: 1.4cqw; padding-left: 0.6cqw; }
+.p2-back-price { position: absolute; left: 10cqw; top: 9cqw; font-weight: 700; font-size: 2.5cqw; color: #6b7280; letter-spacing: 0.02em; line-height: 1.2; }
 /* the spine (CoverSpine.jsx): 20 mm of an A5 width (13.47 %) at the fold on each side, the paper of the notebook, accent lines on its
    outer edges; the inner box is one whole page of that paper (148.5 / 20 of the band), the front shows its next 20 mm (shifted by one
    band). The content of each side moves out of it. */
