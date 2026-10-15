@@ -488,6 +488,17 @@ describe("propis2 (zip topic)", () => {
     const pickBtn = (group) => host.querySelector(`button[aria-label="${group}"][aria-haspopup]`);
     const pick = async (group, option) => { await click(pickBtn(group)); await click([...host.querySelectorAll(`[role="listbox"][aria-label="${group}"] button`)].find((b) => b.getAttribute("aria-label") === option)); };
     expect(pickBtn("Повтор").disabled).toBe(false);
+    // the copies drawn as pale solid lines are a repeat of their own (no «Копии» button any more): the copies lose the dashes
+    const dashedCopies = () => preview().querySelectorAll('path[stroke-dasharray]').length;
+    const withDashes = dashedCopies();
+    expect(host.querySelector('[aria-label="Копии пунктиром"]')).toBeNull();
+    await pick("Повтор", "Повтор бледной линией");
+    expect(pickBtn("Повтор").dataset.value).toBe("all-solid");
+    await act(async () => { await tick(60); });
+    expect(dashedCopies()).toBeLessThan(withDashes);
+    await pick("Повтор", "Повтор пунктиром");
+    await act(async () => { await tick(60); });
+    expect(dashedCopies()).toBe(withDashes);
     await pick("Повтор", "Повтор с затуханием");
     expect(pickBtn("Повтор").dataset.value).toBe("fade");
     await pick("Красные точки", "Без красных точек");

@@ -58,9 +58,15 @@ const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
 const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense };
 const FORMAT_ICONS = { a5: I.IconFormatA5, a4: I.IconFormatA4 };
 const MARGIN_ICONS = { off: I.IconMarginOff, left: I.IconMarginLeft, right: I.IconMarginRight };
+const SOLID_REPEAT = "all-solid";
+const repeatChoice = (o) => (o.repeat === "all" && o.copies === "solid" ? SOLID_REPEAT : o.repeat);
+const repeatPatch = (id) => (id === SOLID_REPEAT ? { repeat: "all", copies: "solid" } : { repeat: id, copies: "dash" });
 const REPEAT_OPTS = [
   { id: "one", label: "Одна запись", Icon: I.IconRepOne },
-  { id: "all", label: "Повтор на всю строку", Icon: I.IconRepAll },
+  { id: "all", label: "Повтор пунктиром", Icon: I.IconRepAll },
+  // the copies as pale solid lines (row `copies: "solid"`): it was a «Копии» button of its own, the difference unseen at the size of
+  // the page on a phone and the button looked dead (owner, 2026-10-15: make it a choice of «Образец»)
+  { id: SOLID_REPEAT, label: "Повтор бледной линией", Icon: I.IconRepSolid },
   { id: "fade", label: "Повтор с затуханием", Icon: I.IconRepFade },
 ];
 const DOT_OPTS = [
@@ -362,9 +368,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         </div>
 
         <div className="propis2-settings propis2-settings--row" role="group" aria-label="Настройки строки">
-          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts?.repeat ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ repeat: id })} options={REPEAT_OPTS} />
+          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} onChange={(id) => patchSelected(repeatPatch(id))} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
-          <IconBtn label="Копии пунктиром" caption="Копии" on={rowEditable ? rowOpts.copies === "dash" : undefined} disabled={!rowEditable} onClick={() => patchSelected({ copies: rowOpts.copies === "dash" ? "solid" : "dash" })}><I.IconCopyDash /></IconBtn>
           <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
           <span className="p2-sep" aria-hidden="true" />
           <div className="p2-seg" role="group" aria-label="Строка">

@@ -54,14 +54,14 @@ export const IconMarkSample = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}</>);
 export const IconMarkDots = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}{redDot(HX + 12, HY)}</>);
 export const IconMarkClean = () => S(<>{rule(18)}{guide(12)}</>);
 
-// ---- row options: repeat (the element «крючок» and its copies), start dots, copies style ---------------------------------------
+// ---- row options: repeat (the element «крючок» and its copies: dashed, pale solid, fading), start dots ---------------------------------------
 export const IconRepOne = () => S(<>{rule(18)}{hook(3)}</>);
 export const IconRepAll = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, copy)}{hook(2 + 2 * STEP, copy)}</>);
 export const IconRepFade = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { ...copy, opacity: 0.55 })}{hook(2 + 2 * STEP, { ...copy, opacity: 0.22 })}</>);
 export const IconDotsNone = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}<circle cx={HX + 3} cy={HY} r={1.7} stroke={RED} strokeWidth={1.1} /><path d="M3.5 21.5L20.5 3.5" stroke={GRAY} strokeWidth={1.3} /></>);
 export const IconDotsOne = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}</>);
 export const IconDotsAll = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}{redDot(HX + 12, HY)}</>);
-export const IconCopyDash = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, copy)}{hook(2 + 2 * STEP, copy)}</>);
+export const IconRepSolid = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { stroke: "#9ca3af", strokeWidth: 1.6 })}{hook(2 + 2 * STEP, { stroke: "#9ca3af", strokeWidth: 1.6 })}</>);
 export const IconCopySolid = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { opacity: 0.35 })}{hook(2 + 2 * STEP, { opacity: 0.35 })}</>);
 
 // ---- what to put on the page: a symbol, a word, a text ------------------------------------------------------------------------
