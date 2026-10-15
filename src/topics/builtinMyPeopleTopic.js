@@ -99,9 +99,11 @@ const aboutMeMode = {
   },
 };
 
-// The former «Обо мне»: introducing yourself in an imagined situation. Kept
-// as an advanced level -- it needs pretend play and a multi-fact answer,
-// which is out of reach until the short questions are solid.
+// «Представься»: a new person asks the same short questions as «Обо мне»,
+// the child answers in whole sentences and closes by telling it all at
+// once. The advanced level, once the short answers are solid. Taught with
+// script fading: the written answer, then only its opening words, then
+// nothing -- the adult picks where to start.
 const introduceSelfMode = {
   id: "introduce_self",
   type: "about_me",
@@ -109,9 +111,18 @@ const introduceSelfMode = {
   loop: true,
   regenerateOnLoop: true,
   hideConceptPicker: true,
+  params: {
+    scriptHint: {
+      type: "enum",
+      label: { ru: "Подсказка на экране" },
+      values: ["full", "starter", "none"],
+      labels: { ru: { full: "Весь ответ", starter: "Начало фразы", none: "Без подсказки" } },
+      default: "full",
+    },
+  },
   ui: {
     title: { ru: "Представься" },
-    instruction: { ru: "Продвинутый уровень: рассказать о себе в ситуации" },
+    instruction: { ru: "Продвинутый уровень: познакомиться с новым человеком и рассказать о себе целыми фразами" },
   },
 };
 

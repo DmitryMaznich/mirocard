@@ -427,18 +427,45 @@ function QualityAnswerTask({
   );
 }
 
-function AboutMeSituationTask(props) {
+// «Представься»: a new person's question in a speech bubble; the child's
+// answer is scripted. The script fades: the adult starts from the whole
+// answer, its opening words or nothing (task.hintLevel) and can step up
+// with the buttons. Any script on screen means "С подсказкой" at best.
+function IntroduceTurnTask(props) {
+  const { speak } = useSpeech();
+  const [hint, setHint] = useState({ taskId: null, level: 0 });
+  const startLevel = props.task.hintLevel ?? 0;
+  const level = Math.max(startLevel, hint.taskId === props.task.conceptId ? hint.level : 0);
+
+  function showStarter() {
+    setHint({ taskId: props.task.conceptId, level: 1 });
+    if (props.soundEnabled) speak(props.task.starter.replace(/\s*…/g, ""));
+  }
+  function showAnswer() {
+    setHint({ taskId: props.task.conceptId, level: 2 });
+    if (props.soundEnabled) speak(props.task.answer);
+  }
+
   return (
-    <QualityAnswerTask {...props} className="about-me-task" ariaLabel="Ситуативное задание обо мне">
+    <QualityAnswerTask {...props} className="about-me-task introduce-turn" ariaLabel="Знакомство с новым человеком" answerShown={level >= 2} hinted={level >= 1}>
       {({ repeatPrompt }) => (
         <>
-          <span className="about-me-task__eyebrow">Ситуация</span>
-          <div className="about-me-task__situation">{props.task.situation}</div>
-          <div className="about-me-task__prompt-row">
-            <div className="about-me-task__prompt">{props.task.prompt}</div>
-            <SpeakerButton onClick={repeatPrompt} label="Повторить ситуацию" />
+          <span className="about-me-task__eyebrow">С тобой знакомится: {props.task.partner}</span>
+          <div className="introduce-turn__bubble">
+            <div className="introduce-turn__question">{props.task.prompt}</div>
+            <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
           </div>
-          <p className="about-me-task__hint">Можно ответить голосом, жестом или с помощью AAC.</p>
+          <div className={`introduce-turn__starter${level === 1 ? " introduce-turn__starter--shown" : ""}`} aria-live="polite">
+            {level === 1 ? props.task.starter : ""}
+          </div>
+          <div className="about-me-question__hints person-naming__hints">
+            {level < 1 && (
+              <button type="button" className="about-me-question__hint-btn" onClick={showStarter}>Начало фразы</button>
+            )}
+            {level < 2 && (
+              <button type="button" className="about-me-question__hint-btn" onClick={showAnswer}>Весь ответ</button>
+            )}
+          </div>
         </>
       )}
     </QualityAnswerTask>
@@ -647,8 +674,8 @@ export default function MyPeopleRenderer(props) {
       return <PersonPointTask {...props} />;
     case "about_me_question":
       return <AboutMeQuestionTask {...props} />;
-    case "about_me_situation":
-      return <AboutMeSituationTask {...props} />;
+    case "introduce_turn":
+      return <IntroduceTurnTask {...props} />;
     case "person_naming":
       return <PersonNamingTask {...props} />;
     default:

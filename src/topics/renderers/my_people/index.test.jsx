@@ -313,3 +313,39 @@ describe("«Кто это?» renderer", () => {
   });
 });
 
+describe("«Представься» renderer", () => {
+  const task = {
+    type: "introduce_turn", conceptId: "introduce:name", partner: "Доктор", prompt: "Как тебя зовут?", promptSpeech: "Здравствуй! Как тебя зовут?",
+    starter: "Меня зовут …", answer: "Меня зовут Лиза.",
+  };
+  function mount(hintLevel) {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    act(() => { root.render(<MyPeopleRenderer task={{ ...task, hintLevel }} topicId="my_people" soundEnabled={false} onQualityAnswer={vi.fn()} />); });
+    const button = (text) => [...container.querySelectorAll("button")].find((item) => item.textContent === text);
+    return { container, button, done: () => { act(() => root.unmount()); container.remove(); } };
+  }
+
+  it("without a script grades freely, then fades in the starter and the answer", () => {
+    const { container, button, done } = mount(0);
+    expect(container.textContent).toContain("С тобой знакомится: Доктор");
+    expect(button("Знает").disabled).toBe(false);
+    act(() => button("Начало фразы").click());
+    expect(container.querySelector(".introduce-turn__starter")?.textContent).toBe("Меня зовут …");
+    expect(button("Знает").disabled).toBe(true);
+    act(() => button("Весь ответ").click());
+    expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("Меня зовут Лиза.");
+    done();
+  });
+
+  it("starting from the whole script shows it at once and allows «С подсказкой» at best", () => {
+    const { container, button, done } = mount(2);
+    expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("Меня зовут Лиза.");
+    expect(button("Начало фразы")).toBeUndefined();
+    expect(button("Знает").disabled).toBe(true);
+    expect(button("С подсказкой").disabled).toBe(false);
+    done();
+  });
+});
+

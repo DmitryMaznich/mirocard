@@ -36,86 +36,52 @@ describe("my_people album engine", () => {
       .toEqual(["family_names", "family_relations", "home_names", "home_relations", "school_names", "school_relations", "mix"]);
   });
 
-  it("does not generate an introduce-yourself block with fewer than two included facts", () => {
-    const tasks = generateTasks(
-      { id: "introduce_self", type: "about_me" },
-      {
-        id: "student_about_me",
-        name: "Лиза",
-        myPeopleProfile: {
-          includeSelfName: true,
-          includeFamilyName: false,
-          includeFamilyLabel: false,
-          includeCity: false,
-        },
-      },
-    );
+  const introduce = { id: "introduce_self", type: "about_me" };
+  const lisa = (profile) => ({ id: "student_about_me", name: "Лиза", myPeopleProfile: { includeSelfName: true, ...profile } });
 
-    expect(tasks).toEqual([]);
+  it("does not start a conversation with fewer than two facts", () => {
+    expect(generateTasks(introduce, lisa({ includeFamilyName: false, includeCity: false }))).toEqual([]);
   });
 
-  it("builds situational introduce-yourself cards from included profile facts only", () => {
-    const tasks = generateTasks(
-      { id: "introduce_self", type: "about_me" },
-      {
-        id: "student_about_me",
-        name: "Лиза",
-        myPeopleProfile: {
-          familyName: "Скрытая фамилия",
-          familyLabel: "Скрытая семья",
-          city: "Новоград",
-          address: "Совершенно секретный адрес, 7",
-          includeSelfName: true,
-          includeFamilyName: false,
-          includeFamilyLabel: false,
-          includeCity: true,
-          includeAddress: true,
-        },
-      },
-    );
-
-    expect(tasks).toHaveLength(3);
-    expect(tasks.every((task) => task.type === "about_me_situation")).toBe(true);
-    expect(tasks.map((task) => task.factIds)).toEqual([
-      ["self_name", "city"],
-      ["self_name", "city"],
-      ["self_name", "city"],
+  it("asks the facts one by one in whole sentences, then all of them at once", () => {
+    const tasks = generateTasks(introduce, lisa({ city: "Новоград", includeCity: true }), {}, new Map(), {}, 0);
+    expect(tasks.every((task) => task.type === "introduce_turn")).toBe(true);
+    expect(tasks.map((task) => [task.conceptId, task.prompt, task.answer])).toEqual([
+      ["introduce:name", "Как тебя зовут?", "Меня зовут Лиза."],
+      ["introduce:city", "Где ты живёшь?", "Мой город — Новоград."],
+      ["introduce:all", "Расскажи о себе.", "Меня зовут Лиза. Мой город — Новоград."],
     ]);
-    expect(tasks.map((task) => task.situation)).toEqual([
-      "Тебя записывают в кружок.",
-      "С тобой знакомится новый учитель.",
-      "У твоей работы на выставке есть карточка.",
-    ]);
+    // The partner greets once, at the start of the conversation.
+    expect(tasks[0].promptSpeech).toBe("Здравствуй! Как тебя зовут?");
+    expect(tasks[1].promptSpeech).toBe("Где ты живёшь?");
+    expect(tasks[2].starter).toBe("Меня зовут … Мой город — …");
+  });
 
+  it("meets a different partner each round and starts from the chosen script level", () => {
+    const student = lisa({ city: "Новоград", includeCity: true });
+    expect(generateTasks(introduce, student, {}, new Map(), {}, 0)[0]).toMatchObject({ partner: "Новая учительница", hintLevel: 2 });
+    expect(generateTasks(introduce, student, { scriptHint: "starter" }, new Map(), {}, 1)[0]).toMatchObject({ partner: "Мальчик на площадке", hintLevel: 1, promptSpeech: "Привет! Как тебя зовут?" });
+    expect(generateTasks(introduce, student, { scriptHint: "none" }, new Map(), {}, 2)[0]).toMatchObject({ partner: "Доктор", hintLevel: 0 });
+  });
+
+  it("uses only switched-on facts and never the address or the family label", () => {
+    const tasks = generateTasks(introduce, lisa({
+      familyName: "Скрытая фамилия",
+      familyLabel: "Скрытая семья",
+      city: "Новоград",
+      address: "Совершенно секретный адрес, 7",
+      birthDate: "2018-01-01",
+      includeFamilyName: false,
+      includeFamilyLabel: true,
+      includeCity: true,
+      includeAddress: true,
+    }));
     const content = JSON.stringify(tasks);
-    expect(content).toContain("Лиза");
     expect(content).toContain("Новоград");
+    expect(content).toContain("Мне ");
     expect(content).not.toContain("Скрытая фамилия");
     expect(content).not.toContain("Скрытая семья");
-  });
-
-  it("never puts an address into an introduce-yourself card", () => {
-    const tasks = generateTasks(
-      { id: "introduce_self", type: "about_me" },
-      {
-        id: "student_about_me",
-        name: "Лиза",
-        myPeopleProfile: {
-          familyName: "Иванова",
-          familyLabel: "семья Ивановых",
-          city: "Новоград",
-          address: "Совершенно секретный адрес, 7",
-          includeSelfName: true,
-          includeFamilyName: true,
-          includeFamilyLabel: true,
-          includeCity: true,
-          includeAddress: true,
-        },
-      },
-    );
-
-    expect(JSON.stringify(tasks)).not.toContain("Совершенно секретный адрес, 7");
-    expect(tasks.every((task) => !task.factIds.includes("address"))).toBe(true);
+    expect(content).not.toContain("Совершенно секретный адрес");
   });
 
   it("builds an album where names are independent answers for every displayed person", () => {

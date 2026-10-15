@@ -12,23 +12,57 @@ const ALBUM_SIZES = [2, 3, 4, 6, 8];
 // open with an introduction screen for every single person.
 export const MAX_NEW_PER_SESSION = 4;
 
-const ABOUT_ME_FACTS = [
-  { id: "self_name", enabledKey: "includeSelfName", value: (student) => student?.name },
-  { id: "family_name", enabledKey: "includeFamilyName", value: (student) => student?.myPeopleProfile?.familyName },
-  { id: "family_label", enabledKey: "includeFamilyLabel", value: (student) => student?.myPeopleProfile?.familyLabel },
-  { id: "city", enabledKey: "includeCity", value: (student) => student?.myPeopleProfile?.city },
+// ── «Представься»: a conversation with someone new ─────────────────────
+// The advanced level after «Обо мне»: the same facts, but answered in whole
+// sentences to a new partner, and closed by telling them all in one go --
+// chaining, the real skill. Only facts the adult switched on are used, and
+// never the address.
+const INTRODUCE_TURNS = [
+  {
+    id: "name",
+    question: "Как тебя зовут?",
+    starter: "Меня зовут",
+    value: (student, profile) => (profile.includeSelfName !== false ? student?.name : ""),
+    sentence: (value) => `Меня зовут ${value}.`,
+  },
+  {
+    id: "age",
+    question: "Сколько тебе лет?",
+    starter: "Мне",
+    value: (student, profile, now) => {
+      const age = ageFromBirthDate(profile.birthDate, now);
+      return age ? `${age} ${pluralRu(age, "год", "года", "лет")}` : "";
+    },
+    sentence: (value) => `Мне ${value}.`,
+  },
+  {
+    id: "family_name",
+    question: "Какая у тебя фамилия?",
+    starter: "Моя фамилия",
+    value: (student, profile) => (profile.includeFamilyName ? profile.familyName : ""),
+    sentence: (value) => `Моя фамилия ${value}.`,
+  },
+  {
+    id: "city",
+    question: "Где ты живёшь?",
+    // "Я живу в …" would need the city in the prepositional case, which a
+    // typed-in name doesn't give us; "Мой город — …" needs none.
+    starter: "Мой город —",
+    value: (student, profile) => (profile.includeCity ? profile.city : ""),
+    sentence: (value) => `Мой город — ${value}.`,
+  },
 ];
 
-export function getAboutMeFacts(student) {
+export function getIntroduceFacts(student, now = new Date()) {
   const profile = student?.myPeopleProfile ?? {};
-  return ABOUT_ME_FACTS.flatMap((fact) => {
-    const value = String(fact.value(student) ?? "").trim();
-    return profile[fact.enabledKey] && value ? [{ id: fact.id, value }] : [];
+  return INTRODUCE_TURNS.flatMap((turn) => {
+    const value = String(turn.value(student, profile, now) ?? "").trim();
+    return value ? [{ ...turn, value }] : [];
   });
 }
 
 export function hasEnoughAboutMeFacts(student) {
-  return getAboutMeFacts(student).length >= 2;
+  return getIntroduceFacts(student).length >= 2;
 }
 
 // ── «Обо мне»: short, fixed questions ──────────────────────────────────
@@ -426,61 +460,50 @@ function tasksForAxis(people, axis, mode, params, photoPlanner, preferDifferentP
   ];
 }
 
-function aboutMeAnswer(facts, combineFullName = false) {
-  const values = Object.fromEntries(facts.map((fact) => [fact.id, fact.value]));
-  const parts = [];
+// Who the child is meeting changes every round -- an adult, a child, a
+// doctor -- so the answers don't stick to one partner. The questions stay
+// word for word the same: that is the script.
+const INTRODUCE_PARTNERS = [
+  { id: "teacher", who: "Новая учительница", hello: "Здравствуй!" },
+  { id: "kid", who: "Мальчик на площадке", hello: "Привет!" },
+  { id: "doctor", who: "Доктор", hello: "Здравствуй!" },
+];
+export const INTRODUCE_HINT_LEVELS = { none: 0, starter: 1, full: 2 };
 
-  if (combineFullName && values.self_name && values.family_name) {
-    parts.push(`Меня зовут ${values.self_name} ${values.family_name}.`);
-  } else {
-    if (values.self_name) parts.push(`Меня зовут ${values.self_name}.`);
-    if (values.family_name) parts.push(`Моя фамилия — ${values.family_name}.`);
-  }
-  if (values.family_label) parts.push(`Наша семья — ${values.family_label}.`);
-  if (values.city) parts.push(`Мой город — ${values.city}.`);
-
-  return parts.join(" ");
-}
-
-function aboutMeTasks(student) {
-  const facts = getAboutMeFacts(student);
+function introduceTasks(student, params, round) {
+  const facts = getIntroduceFacts(student);
   if (facts.length < 2) return [];
-
-  const factIds = facts.map((fact) => fact.id);
-  const factKey = factIds.join("_");
-  const situations = [
-    {
-      id: "club",
-      situation: "Тебя записывают в кружок.",
-      prompt: "Представься и расскажи о себе.",
-      combineFullName: true,
-    },
-    {
-      id: "teacher",
-      situation: "С тобой знакомится новый учитель.",
-      prompt: "Представься учителю и расскажи о себе.",
-    },
-    {
-      id: "card",
-      situation: "У твоей работы на выставке есть карточка.",
-      prompt: "Покажи, что ты можешь сказать о себе.",
-    },
-  ];
-
-  return situations.map((situation) => {
-    const conceptId = `about_me:${situation.id}:${factKey}`;
+  const partner = INTRODUCE_PARTNERS[round % INTRODUCE_PARTNERS.length];
+  // Script fading: the adult starts from the whole answer on screen, then
+  // only its opening words, then nothing.
+  const hintLevel = INTRODUCE_HINT_LEVELS[params?.scriptHint] ?? INTRODUCE_HINT_LEVELS.full;
+  const turn = (id, question, starter, answer, speechPrefix = "") => {
+    const conceptId = `introduce:${id}`;
     return {
-      type: "about_me_situation",
+      type: "introduce_turn",
       conceptId,
       targetConceptId: conceptId,
       progressConceptIds: [conceptId],
-      factIds,
-      situation: situation.situation,
-      prompt: situation.prompt,
-      promptSpeech: `${situation.situation} ${situation.prompt}`,
-      answer: aboutMeAnswer(facts, situation.combineFullName),
+      partnerId: partner.id,
+      partner: partner.who,
+      prompt: question,
+      promptSpeech: `${speechPrefix}${question}`,
+      starter,
+      answer,
+      hintLevel,
     };
-  });
+  };
+  return [
+    // The greeting opens the conversation; the rest follow in its order.
+    ...facts.map((fact, index) => turn(fact.id, fact.question, `${fact.starter} …`, fact.sentence(fact.value), index === 0 ? `${partner.hello} ` : "")),
+    // Closing turn: everything at once, in the same order.
+    turn(
+      "all",
+      "Расскажи о себе.",
+      facts.map((fact) => `${fact.starter} …`).join(" "),
+      facts.map((fact) => fact.sentence(fact.value)).join(" "),
+    ),
+  ];
 }
 
 function personNamingTasks(people, mode, photoPlanner) {
@@ -544,7 +567,7 @@ export function generateTasks(mode, student, params = {}, previousImages = new M
   if (mode.id === "about_me") return aboutMeQuestionTasks(student, round);
   // The open "introduce yourself in a situation" cards: an advanced level
   // for a child who already answers the short questions reliably.
-  if (mode.id === "introduce_self") return aboutMeTasks(student);
+  if (mode.id === "introduce_self") return introduceTasks(student, params, round);
 
   const people = peopleForMode(mode, student, params);
   const photoPlanner = createPhotoPlanner(previousImages);

@@ -79,6 +79,11 @@ export default function SessionSummary() {
   function myPeopleLabel(conceptId) {
     if (String(conceptId).startsWith("about_q:")) return aboutMeQuestionLabel(conceptId, sessionStudent);
     if (String(conceptId).startsWith("about_me:")) return "Представься";
+    if (String(conceptId).startsWith("introduce:")) {
+      const turns = { name: "имя", age: "возраст", family_name: "фамилия", city: "город", all: "рассказ о себе" };
+      const turn = turns[String(conceptId).slice("introduce:".length)];
+      return turn ? `Представься: ${turn}` : "Представься";
+    }
     if (String(conceptId).startsWith("point:")) {
       const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === String(conceptId).slice("point:".length));
       return person ? `Где ${mainWord(person)}?` : "Покажи";

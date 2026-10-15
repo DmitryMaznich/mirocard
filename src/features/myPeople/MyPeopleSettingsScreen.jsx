@@ -551,9 +551,8 @@ export default function MyPeopleSettingsScreen() {
             <div className="mp-personal__grid">
             <div className="mp-form-card mp-form-card--identity">
               <h3 className="student-data-heading">Имя и фамилия <StudentDataInfo kind="identity" /></h3>
-              <p className="mp-form-card__lead">Фамилия ребёнка и название семьи — разные ответы в задании.</p>
+              <p className="mp-form-card__lead">Для вопросов «Как твоя фамилия?» и «Сколько тебе лет?».</p>
               <label className="mp-field"><span>Фамилия ребёнка</span><input value={profile.familyName} onChange={(event) => updateProfile({ familyName: event.target.value })} /></label>
-              <label className="mp-field"><span>Как называть семью</span><input value={profile.familyLabel} onChange={(event) => updateProfile({ familyLabel: event.target.value })} placeholder="Например, семья Петровых" /></label>
               <label className="mp-field">
                 <span className="student-data-heading">Дата рождения <StudentDataInfo kind="age" /></span>
                 <input type="date" value={profile.birthDate} max={new Date().toISOString().slice(0, 10)} onChange={(event) => updateProfile({ birthDate: event.target.value })} />
@@ -570,7 +569,7 @@ export default function MyPeopleSettingsScreen() {
             <div className="mp-form-card mp-form-card--toggles">
               <h3>Что включать в тему</h3>
               {[
-                ["includeSelfName", "Моё имя"], ["includeFamilyName", "Моя фамилия"], ["includeFamilyLabel", "Наша семья"], ["includeCity", "Где я живу"], ["includeAddress", "Мой адрес"],
+                ["includeSelfName", "Моё имя"], ["includeFamilyName", "Моя фамилия"], ["includeCity", "Где я живу"], ["includeAddress", "Мой адрес"],
               ].map(([key, label]) => <label className="mp-check-row" key={key}><span><strong>{label}</strong>{key === "includeAddress" && <small>Только взрослый помогает с ответом.</small>}</span><span className="mp-switch"><input type="checkbox" checked={Boolean(profile[key])} onChange={(event) => updateProfile({ [key]: event.target.checked })} /><span /></span></label>)}
             </div>
           </section>

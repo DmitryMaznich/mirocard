@@ -44,7 +44,7 @@ export function myPeopleModeReadiness(mode, student, params = null) {
   if (mode.id === "introduce_self") {
     return hasEnoughAboutMeFacts(student) ? ready : {
       ready: false,
-      reason: "Отметьте в «Личных данных» хотя бы два факта: имя, фамилию, название семьи или город.",
+      reason: "Нужно хотя бы 2 ответа о себе: имя ученика, дата рождения, фамилия или город в «Личных данных».",
       tab: "personal",
     };
   }
