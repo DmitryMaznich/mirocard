@@ -1,4 +1,7 @@
 .statistics-screen { background: #f7f8fa; }
+.statistics-screen--embedded { flex: 1; min-width: 0; }
+.statistics-screen--embedded > .screen-header { position: relative; top: auto; height: 56px; padding-top: 0; }
+.home-screen-v2--statistics > .home-main { justify-content: flex-start; padding: 0; min-height: 0; }
 .statistics-content { width: 100%; max-width: 960px; margin: 0 auto; padding: 16px 20px 40px; box-sizing: border-box; overflow-wrap: anywhere; }
 .statistics-screen .statistics-refresh { font-size: 13px; width: auto; padding: 0 8px; flex-shrink: 0; }
 .statistics-screen .screen-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

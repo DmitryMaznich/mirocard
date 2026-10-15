@@ -29,6 +29,8 @@ import LessonPlanTab from "@/features/lessonPlan/LessonPlanTab";
 import HomeMenuSheet from "./HomeMenuSheet";
 import MarketingPromptCard from "./MarketingPromptCard";
 import ScreenHints, { HintButton } from "@/shared/components/ScreenHints";
+import StatisticsScreen from "@/features/analytics/StatisticsScreen";
+import { useTopicStatisticsAvailability } from "@/features/analytics/useTopicStatisticsAvailability";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -112,6 +114,12 @@ function PlannerTabIcon() {
   );
 }
 
+function StatisticsTabIcon() {
+  return <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+    <path d="M5 18V12M11 18V7M17 18V3" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+  </svg>;
+}
+
 function InstructionsTabIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden>
@@ -132,17 +140,31 @@ function LessonPlanTabIcon() {
   );
 }
 
-function HomeTabs({ active, onChange, showPlanner, showInstructions, showLessonPlan }) {
+function HomeTabs({ active, onChange, showPlanner, showInstructions, showLessonPlan, statisticsAvailable, statisticsDisabledReason }) {
   return (
     <nav className="home-tabbar" role="tablist">
       <button
         role="tab"
+        aria-selected={active === 'session'}
         className={`home-tabbar__item${active === 'session' ? ' home-tabbar__item--active' : ''}`}
         onClick={() => onChange('session')}
       >
         <SessionTabIcon />
         <span>Занятие</span>
       </button>
+      <button
+        role="tab"
+        aria-selected={active === 'statistics'}
+        className={`home-tabbar__item${active === 'statistics' ? ' home-tabbar__item--active' : ''}`}
+        onClick={() => onChange('statistics')}
+        disabled={!statisticsAvailable}
+        title={statisticsAvailable ? "Статистика выбранной темы" : statisticsDisabledReason}
+        aria-describedby={!statisticsAvailable ? "home-statistics-disabled-reason" : undefined}
+      >
+        <StatisticsTabIcon />
+        <span>Статистика</span>
+      </button>
+      {!statisticsAvailable && <span id="home-statistics-disabled-reason" className="home-tabbar__disabled-reason">{statisticsDisabledReason}</span>}
       {showLessonPlan && (
         <button
           role="tab"
@@ -730,6 +752,7 @@ export default function HomeScreen() {
   const setEditingStudentId = useAppStore((s) => s.setEditingStudentId);
   const setStudentEditReturnScreen = useAppStore((s) => s.setStudentEditReturnScreen);
   const account = useAppStore((s) => s.account);
+  const token = useAppStore((s) => s.token);
   const students = useAppStore((s) => s.students);
   const topicRecords = useAppStore((s) => s.topicRecords);
   const setTopicRecords = useAppStore((s) => s.setTopicRecords);
@@ -866,6 +889,17 @@ export default function HomeScreen() {
   const isNewStudent = !!student && !hasEverStarted;
   const topicConfirmed = !isNewStudent || pickerConfirmed.topic;
   const modeConfirmed = !isNewStudent || isChatPractice || pickerConfirmed.mode;
+  const statisticsContextReady = Boolean(student && topic && topicConfirmed
+    && student.id === activeStudentId && topic.meta.id === activeTopicId);
+  const { available: statisticsAvailable, checking: statisticsChecking } = useTopicStatisticsAvailability({
+    studentId: student?.id, topicId: topic?.meta.id, enabled: statisticsContextReady,
+    sessions, token, accountId: account?.id,
+  });
+  const statisticsDisabledReason = !student ? "Выберите ученика"
+    : !statisticsContextReady ? "Выберите тему"
+    : statisticsChecking ? "Проверяем наличие результатов"
+    : "Для этой темы у ученика пока нет сохраненных результатов";
+  const visibleTab = activeTab === 'statistics' && !statisticsAvailable ? 'session' : activeTab;
 
   const s2Raw = stepState(!!topic, !!student);
   const s3Raw = isChatPractice
@@ -931,6 +965,7 @@ export default function HomeScreen() {
   }
 
   function changeTab(tab) {
+    if (tab === 'statistics' && !statisticsAvailable) return;
     closeHints();
     setActiveTab(tab);
     setHomeActiveTab(tab);
@@ -981,7 +1016,7 @@ export default function HomeScreen() {
       : "Обновить приложение и активные темы";
 
   return (
-    <div className="screen home-screen-v2">
+    <div className={`screen home-screen-v2${visibleTab === 'statistics' ? ' home-screen-v2--statistics' : ''}`}>
       <HomeHeader
         student={student}
         buildInfo={buildInfo}
@@ -996,12 +1031,14 @@ export default function HomeScreen() {
 
       <div className="home-main">
         <div className="home-tab-content">
-          <MarketingPromptCard />
-          {activeTab === 'instructions' && hasInstructionsAccess ? (
+          {visibleTab !== 'statistics' && <MarketingPromptCard />}
+          {visibleTab === 'statistics' ? (
+            <StatisticsScreen key={`${student.id}:${topic.meta.id}`} initialTopicId={topic.meta.id} embedded onClose={() => changeTab('session')} />
+          ) : visibleTab === 'instructions' && hasInstructionsAccess ? (
             <InstructionsTab setScreen={setScreen} />
-          ) : activeTab === 'lesson_plan' && hasLessonPlanAccess ? (
+          ) : visibleTab === 'lesson_plan' && hasLessonPlanAccess ? (
             <LessonPlanTab student={student} setScreen={setScreen} />
-          ) : activeTab === 'planner' && hasPlannerAccess ? (
+          ) : visibleTab === 'planner' && hasPlannerAccess ? (
             <PlannerTab student={student} setScreen={setScreen} onAddFirstStudent={handleAddFirstStudent} />
           ) : (
             <SessionTab
@@ -1032,7 +1069,7 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      <HomeTabs active={activeTab} onChange={changeTab} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} showLessonPlan={hasLessonPlanAccess} />
+      <HomeTabs active={visibleTab} onChange={changeTab} statisticsAvailable={statisticsAvailable} statisticsDisabledReason={statisticsDisabledReason} showPlanner={hasPlannerAccess} showInstructions={hasInstructionsAccess} showLessonPlan={hasLessonPlanAccess} />
       {hintsOpen && student && <ScreenHints steps={homeHintSteps} onClose={closeHints} />}
 
       {menuOpen && (

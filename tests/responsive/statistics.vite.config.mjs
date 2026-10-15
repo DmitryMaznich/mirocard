@@ -4,5 +4,5 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   plugins: [react()], base: "./", publicDir: false,
   resolve: { alias: { "@": fileURLToPath(new URL("../../src", import.meta.url)) } },
-  build: { outDir: ".cache/statistics-responsive", emptyOutDir: true, rollupOptions: { input: "tests/responsive/statistics.html" } },
+  build: { outDir: ".cache/statistics-responsive", emptyOutDir: true, rollupOptions: { input: ["tests/responsive/statistics.html", "tests/responsive/home-statistics.html"] } },
 });
