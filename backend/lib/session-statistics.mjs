@@ -26,8 +26,8 @@ export function getSessionStatistics(db, accountId, filters) {
   // result. Old events are used only to verify recoverable historical counts;
   // no tap sequences are returned in the report.
   const rows = db.prepare(`SELECT id, student_id, topic_id, topic_version, mode,
-    completed_at, correct_count, incorrect_count, percent_correct,
-    active_duration_ms, statistics_json, completion_reason, params_snapshot, assessments, record_state, record_revision, record_updated_at,
+    started_at, completed_at, correct_count, incorrect_count, percent_correct,
+    active_duration_ms, elapsed_duration_ms, statistics_json, completion_reason, params_snapshot, assessments, record_state, record_revision, record_updated_at,
     CASE WHEN statistics_json IS NULL THEN card_events ELSE NULL END AS card_events
     FROM sessions WHERE account_id = ? AND student_id = ?`).all(accountId, filters.studentId);
   return aggregateStatistics(rows.map(sessionToApi), filters);

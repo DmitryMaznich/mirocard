@@ -21,6 +21,37 @@ afterEach(async () => { await act(async () => root.unmount()); host.remove(); })
 const click = async element => act(async () => element.click());
 
 describe("statistics navigation and data sources", () => {
+  it("shows the start time and active duration instead of completion reasons", async () => {
+    const startedAt = new Date(Date.now() - 65000).toISOString();
+    useAppStore.setState({ sessions: [{ ...record("timed"), startedAt, activeDurationMs: 65000, elapsedDurationMs: 3600000 }] });
+    await act(async () => root.render(<StatisticsScreen initialTopicId="animals" onClose={() => {}} />));
+    const history = host.querySelector(".statistics-history");
+    expect(history.querySelector("time").getAttribute("datetime")).toBe(startedAt);
+    expect(history.querySelector("time").textContent).toMatch(/\d{2}:\d{2}/);
+    expect(history.textContent).toContain("1 мин 5 с");
+    expect(history.textContent).not.toContain("Причина завершения");
+    expect(history.textContent).not.toContain("Завершено вручную");
+    expect(history.textContent).not.toContain("1 ч");
+  });
+  it("labels elapsed duration as including pauses when active duration is unknown", async () => {
+    useAppStore.setState({ sessions: [{ ...record("elapsed"), activeDurationMs: null, elapsedDurationMs: 123000 }] });
+    await act(async () => root.render(<StatisticsScreen initialTopicId="animals" onClose={() => {}} />));
+    expect(host.querySelector(".statistics-history").textContent).toContain("2 мин 3 с (с паузами)");
+  });
+  it("does not invent midnight or duration for old date-only records", async () => {
+    useAppStore.setState({ sessions: [{ ...record("legacy-date"), completedAt: new Date().toISOString().slice(0, 10), activeDurationMs: null }] });
+    await act(async () => root.render(<StatisticsScreen initialTopicId="animals" onClose={() => {}} />));
+    const history = host.querySelector(".statistics-history");
+    expect(history.querySelector("time").textContent).not.toMatch(/\d{2}:\d{2}/);
+    expect(history.textContent).not.toContain("0 с");
+    expect(history.textContent).not.toContain("не сохранена");
+  });
+  it("shows an explicitly measured zero without substituting elapsed time", async () => {
+    useAppStore.setState({ sessions: [{ ...record("zero"), activeDurationMs: 0, elapsedDurationMs: 123000 }] });
+    await act(async () => root.render(<StatisticsScreen initialTopicId="animals" onClose={() => {}} />));
+    expect(host.querySelector(".statistics-history").textContent).toContain("0 с");
+    expect(host.querySelector(".statistics-history").textContent).not.toContain("2 мин");
+  });
   it("opens a topic from the student summary and shows sample size, comparable history and readable concepts", async () => {
     const onClose = vi.fn();
     await act(async () => root.render(<StatisticsScreen onClose={onClose} />));
