@@ -506,7 +506,7 @@ export function pickFragment(rowWord, localX, glyphMap, ruling = "narrow") {
 // The paper of a page: format, paper type, ruling, slant, margins, the middle dash, write-after. Since 2026-10-08 every page of a
 // notebook («тетрадь») has its OWN paper (a digits notebook: squared pages, then copybook pages with digits in the text); only the
 // format (A4 / A5) is the notebook's, because the pages are printed as one booklet. A new page takes the paper of the page it is added
-// after, and the editor can put the paper of a page onto all the pages of its notebook.
+// after; a setting changed on one page can be put onto all the pages of the notebook (the editor offers it right after).
 export const LAYOUT_KEYS = ["format", "gridKind", "ruling", "grid", "midDash", "writeAfter", "margin"];
 export const NOTEBOOK_KEYS = ["format"];
 export const PAGE_PAPER_KEYS = LAYOUT_KEYS.filter((k) => !NOTEBOOK_KEYS.includes(k));
@@ -523,11 +523,38 @@ export function notebookLayout(set, pagesById) {
 // is not paper for the engine (it adds blank lines), so pages that differ only in it stay in one run.
 export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), taskGrid(page) === "square" || taskGrid(page) === "ruled" ? "" : page?.ruling === "narrow" ? "narrow" : "wide", page?.midDash !== false, pageMargin(page)]);
 
-// Does any page of the notebook differ in paper (any of PAGE_PAPER_KEYS) from `page`?
-export function paperDiffers(set, pagesById, page) {
-  const sig = (pg) => JSON.stringify([paperKey(pg), Boolean(pg?.writeAfter)]);
-  const key = sig(page);
-  return (set?.pageIds ?? []).some((id) => pagesById.get(id) && sig(pagesById.get(id)) !== key);
+// Each page setting of the editor's strip as the strip shows it (defaults filled in). The ruling, slant and middle dash mean something
+// on the copybook paper only, so only its pages count for them.
+const SETTING_OF = {
+  gridKind: pageGridKind,
+  ruling: (p) => (p?.ruling === "wide" ? "wide" : "narrow"),
+  grid: (p) => (p?.grid === "dense" ? "dense" : "regular"),
+  margin: pageMargin,
+  midDash: (p) => p?.midDash !== false,
+  writeAfter: (p) => Boolean(p?.writeAfter),
+};
+const COPYBOOK_ONLY = new Set(["ruling", "grid", "midDash"]);
+
+// Which settings differ between the pages of the notebook (the dot on a strip button, owner 2026-10-15): { key: true }.
+export function mixedSettings(set, pagesById) {
+  const pages = (set?.pageIds ?? []).map((id) => pagesById.get(id)).filter(Boolean);
+  const out = {};
+  for (const [k, of] of Object.entries(SETTING_OF)) {
+    const vals = new Set((COPYBOOK_ONLY.has(k) ? pages.filter((p) => pageGridKind(p) === "propis") : pages).map(of));
+    if (vals.size > 1) out[k] = true;
+  }
+  return out;
+}
+
+// Would `value` of setting `key` change any page of the notebook but `pageId`? (then the editor offers it for the whole notebook)
+export function othersDiffer(set, pagesById, pageId, key, value) {
+  const of = SETTING_OF[key];
+  if (!of) return false;
+  return (set?.pageIds ?? []).some((id) => {
+    const p = pagesById.get(id);
+    if (!p || id === pageId || (COPYBOOK_ONLY.has(key) && pageGridKind(p) !== "propis")) return false;
+    return of(p) !== of({ [key]: value });
+  });
 }
 
 // The notebook in runs of consecutive pages on the same paper («участки»). The student view lays out each run on its own paper;

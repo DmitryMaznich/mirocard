@@ -17,6 +17,7 @@ import { useHint } from "./Propis2Hint";
 // No dragging: select a row (tap it on the page) and tap a symbol, it goes into that row; with no row selected a tapped
 // symbol starts a new row. The selected row's bar edits its text, kind of row, repeat, order. The page is saved by the
 // parent on every change; nothing is ever dropped silently.
+const OFFER_MS = 5000;
 const MAX_OVERFLOW = 1.2; // portrait tablet: the page may be this much taller than the room for it (a little scroll)
 
 // Landscape tablet and wider: the page takes the whole height on the left, all tools sit in a side panel.
@@ -38,15 +39,34 @@ function useMedia(query) {
   return on;
 }
 
+// The dot on a strip button: the pages of the notebook differ in this setting (owner, 2026-10-15).
+export const MIXED_TEXT = "в тетради по-разному";
+// What a strip button did, for the offer to do it on the whole notebook.
+const optionName = (list, id, field = "label") => String(list.find((o) => o.id === id)?.[field] ?? id).toLowerCase();
+const SETTING_SAYS = {
+  gridKind: (v) => `Бумага: ${optionName(GRID_KINDS, v)}`,
+  ruling: (v) => `Строки: ${optionName(RULINGS, v, "short")}`,
+  grid: (v) => `Наклон: ${optionName(GRIDS, v, "short")}`,
+  margin: (v) => `Поля: ${optionName(MARGINS, v)}`,
+  midDash: (v) => (v ? "Пунктир включён" : "Пунктир выключен"),
+  writeAfter: (v) => (v ? "Строки для письма добавлены" : "Строки для письма убраны"),
+};
+
 // What the constructor shows are pictograms; the name of each control is its aria-label only.
 const PAPER_ICONS = { propis: I.IconPaperPropis, square: I.IconPaperSquare, ruled: I.IconPaperRuled };
 const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
 const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense };
 const FORMAT_ICONS = { a5: I.IconFormatA5, a4: I.IconFormatA4 };
 const MARGIN_ICONS = { off: I.IconMarginOff, left: I.IconMarginLeft, right: I.IconMarginRight };
+const SOLID_REPEAT = "all-solid";
+const repeatChoice = (o) => (o.repeat === "all" && o.copies === "solid" ? SOLID_REPEAT : o.repeat);
+const repeatPatch = (id) => (id === SOLID_REPEAT ? { repeat: "all", copies: "solid" } : { repeat: id, copies: "dash" });
 const REPEAT_OPTS = [
   { id: "one", label: "Одна запись", Icon: I.IconRepOne },
-  { id: "all", label: "Повтор на всю строку", Icon: I.IconRepAll },
+  { id: "all", label: "Повтор пунктиром", Icon: I.IconRepAll },
+  // the copies as pale solid lines (row `copies: "solid"`): it was a «Копии» button of its own, the difference unseen at the size of
+  // the page on a phone and the button looked dead (owner, 2026-10-15: make it a choice of «Образец»)
+  { id: SOLID_REPEAT, label: "Повтор бледной линией", Icon: I.IconRepSolid },
   { id: "fade", label: "Повтор с затуханием", Icon: I.IconRepFade },
 ];
 const DOT_OPTS = [
@@ -57,17 +77,18 @@ const DOT_OPTS = [
 
 
 // A round/square icon button: 44px target, pressed state, the name only as aria-label.
-function IconBtn({ label, caption, on, onClick, disabled, children, className = "", ...rest }) {
+function IconBtn({ label, caption, on, onClick, disabled, children, className = "", mixed = false, ...rest }) {
   const { bind, tip } = useHint(label);
   return (
-    <button type="button" className={`p2-ib${caption ? " p2-tool" : ""}${on ? " is-on" : ""} ${className}`} aria-label={label} aria-pressed={on === undefined ? undefined : Boolean(on)} disabled={disabled} onClick={onClick} {...bind} {...rest}>
+    <button type="button" className={`p2-ib${caption ? " p2-tool" : ""}${on ? " is-on" : ""} ${className}`} aria-label={label} aria-pressed={on === undefined ? undefined : Boolean(on)} aria-description={mixed ? MIXED_TEXT : undefined} disabled={disabled} onClick={onClick} {...bind} {...rest}>
+      {mixed && <span className="p2-mixed" aria-hidden="true" />}
       {caption ? <><span className="p2-tool-ico">{children}</span><span className="p2-cap">{caption}</span></> : children}
       {tip}
     </button>
   );
 }
 
-export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false, paperToAll = null }) {
+export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack, onShow, dirty = false, onSave, title, onTitle, onUndo, onRedo, canUndo = false, canRedo = false, notebook = null }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   // The checks of the rows and the map of the sheet's rows are worked out on a deferred copy of the page (as the preview is): a key
   // typed shows in the field at once, the marks on the sheet follow a moment later.
@@ -81,6 +102,16 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const [caretRequest, setCaretRequest] = useState(null);
   const [pageW, setPageW] = useState(0);
   const locked = isLocked(page);
+  // A setting changed on this page is offered for the whole notebook for a few seconds (owner, 2026-10-15: no «Всем» button, no
+  // mode to forget): { key, value, done } — `done`: it went onto every page, the offer turns into «Отменить».
+  const [offer, setOffer] = useState(null);
+  const offerTimer = useRef(null);
+  useEffect(() => () => clearTimeout(offerTimer.current), []);
+  const showOffer = (o, ms) => { clearTimeout(offerTimer.current); setOffer(o); offerTimer.current = o ? setTimeout(() => setOffer(null), ms) : null; };
+  const setSetting = (key, value) => {
+    onChange({ ...page, [key]: value });
+    showOffer(notebook?.othersDiffer(key, value) ? { key, value } : null, OFFER_MS);
+  };
   const keyboard = useKeyboardInset();
   // every element has a short code of its own for the field, {э1}, {э2}... (by its place in the list)
   const elementTiles = useMemo(() => buildTiles(topicRecord).elements.map((t, i) => ({ ...t, code: `э${i + 1}` })), [topicRecord]);
@@ -96,6 +127,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const wrapRef = useRef(null);
   const pageIndexRef = useRef(0);
   const gridKind = pageGridKind(page);
+  const mx = notebook?.mixed ?? {};
   const propisGrid = gridKind === "propis";
   const aspect = pageAspect(page);
 
@@ -292,9 +324,10 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         <button type="button" className="p2-show" onClick={onShow} aria-label="Показать ученику"><I.IconPlay /></button>
       </div>
 
-      {nav && (
-        <div className="propis2-settings p2-pager" role="group" aria-label="Страницы тетради">
-          {nav.total > 1 && (
+      <div className="propis2-main">
+        <div className="propis2-settings" role="group" aria-label="Настройки страницы">
+          {/* one strip for the page (owner, 2026-10-15): paging, then the paper, then what is done to the page; it scrolls on a phone */}
+          {nav?.total > 1 && (
             <>
               <button type="button" className="p2-ib p2-tool" aria-label="Предыдущая страница" disabled={nav.index <= 0} onClick={nav.onPrev}><span className="p2-tool-ico p2-glyph">‹</span><span className="p2-cap">Назад</span></button>
               <span className="p2-pager-pos" aria-live="polite">Стр. {nav.index + 1} из {nav.total}</span>
@@ -302,34 +335,15 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               <span className="p2-sep" aria-hidden="true" />
             </>
           )}
-          <button type="button" className="p2-ib p2-tool" aria-label="Добавить страницу" onClick={nav.onAdd}><span className="p2-tool-ico"><I.IconAddPage /></span><span className="p2-cap">Добавить</span></button>
-          <button type="button" className="p2-ib p2-tool" aria-label="Копия страницы" onClick={nav.onDuplicate}><span className="p2-tool-ico"><I.IconDuplicate /></span><span className="p2-cap">Копия</span></button>
-          <button type="button" className="p2-ib p2-tool p2-ib--danger" aria-label={nav.total > 1 ? "Удалить страницу из тетради" : "Удалить тетрадь"} onClick={nav.onDelete}><span className="p2-tool-ico"><I.IconTrash /></span><span className="p2-cap">Удалить</span></button>
-          {nav.total > 1 && (
-            <>
-              <span className="p2-sep" aria-hidden="true" />
-              <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу раньше" disabled={nav.index <= 0} onClick={nav.onMoveBefore}><span className="p2-tool-ico p2-glyph">←</span><span className="p2-cap">Раньше</span></button>
-              <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу позже" disabled={nav.index >= nav.total - 1} onClick={nav.onMoveAfter}><span className="p2-tool-ico p2-glyph">→</span><span className="p2-cap">Позже</span></button>
-            </>
-          )}
-        </div>
-      )}
-
-      <div className="propis2-main">
-        <div className="propis2-settings" role="group" aria-label="Настройки страницы">
           {/* the notebook is A5 (owner, 2026-10-14: an A4 notebook needs another printer; A4 stays only as the sheet an A5 notebook is
               printed on): the format shows only on a page already made A4, to take it back to A5 */}
           {pageFormat(page) === "a4" && <Propis2Picker label="Формат" caption="Формат" disabled={locked} value={pageFormat(page)} onChange={(id) => onChange({ ...page, format: id })} options={PAGE_FORMATS.map((f) => ({ id: f.id, label: f.label, Icon: FORMAT_ICONS[f.id] }))} />}
-          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} value={gridKind} onChange={(id) => onChange({ ...page, gridKind: id })} options={GRID_KINDS.map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
-          <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked} value={page.ruling} onChange={(id) => onChange({ ...page, ruling: id })} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />
-          <Propis2Picker label="Косая линейка" caption="Наклон" value={page.grid ?? "regular"} disabled={locked || !propisGrid} onChange={(id) => onChange({ ...page, grid: id })} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
-          <Propis2Picker label="Поля" caption="Поля" disabled={locked} value={pageMargin(page)} onChange={(id) => onChange({ ...page, margin: id })} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
-          <IconBtn label="Пунктир в серединных линиях" caption="Пунктир" on={page.midDash !== false} disabled={locked || !propisGrid} onClick={() => onChange({ ...page, midDash: page.midDash === false })} data-kind="dash"><I.IconDash /></IconBtn>
-          <IconBtn label="Строка для письма после каждой строки" caption="Писать" on={Boolean(page.writeAfter)} disabled={locked} onClick={() => onChange({ ...page, writeAfter: !page.writeAfter })} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
-          {paperToAll && (
-            // the paper is each page's own (only the format is the notebook's): this puts the paper of this page onto all of them
-            <IconBtn label="Бумагу этой страницы на все страницы тетради" caption="Всем" disabled={locked || !paperToAll.differs} onClick={paperToAll.apply} data-kind="paperall"><I.IconPaperAll /></IconBtn>
-          )}
+          <Propis2Picker label="Тип бумаги" caption="Бумага" disabled={locked} mixed={mx.gridKind} value={gridKind} onChange={(id) => setSetting("gridKind", id)} options={GRID_KINDS.map((g) => ({ id: g.id, label: g.label, Icon: PAPER_ICONS[g.id] }))} />
+          <Propis2Picker label="Разлиновка" caption="Строки" disabled={locked} mixed={mx.ruling} value={page.ruling} onChange={(id) => setSetting("ruling", id)} options={RULINGS.map((r) => ({ id: r.id, label: r.short ?? r.label, Icon: RULING_ICONS[r.id] }))} />
+          <Propis2Picker label="Косая линейка" caption="Наклон" value={page.grid ?? "regular"} disabled={locked || !propisGrid} mixed={mx.grid} onChange={(id) => setSetting("grid", id)} options={GRIDS.map((g) => ({ id: g.id, label: g.short, Icon: SLANT_ICONS[g.id] }))} />
+          <Propis2Picker label="Поля" caption="Поля" disabled={locked} mixed={mx.margin} value={pageMargin(page)} onChange={(id) => setSetting("margin", id)} options={MARGINS.map((m) => ({ id: m.id, label: m.label, Icon: MARGIN_ICONS[m.id] }))} />
+          <IconBtn label="Пунктир в серединных линиях" caption="Пунктир" on={page.midDash !== false} disabled={locked || !propisGrid} mixed={mx.midDash} onClick={() => setSetting("midDash", page.midDash === false)} data-kind="dash"><I.IconDash /></IconBtn>
+          <IconBtn label="Строка для письма после каждой строки" caption="Писать" on={Boolean(page.writeAfter)} disabled={locked} mixed={mx.writeAfter} onClick={() => setSetting("writeAfter", !page.writeAfter)} data-kind="writeafter"><I.IconWriteAfter /></IconBtn>
           {locked && (
             <>
               <span className="p2-lock" role="img" aria-label="Страница из тетради: раскладка закрыта, меняются только символы и слова"><I.IconLock /></span>
@@ -337,12 +351,25 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
               <IconBtn label="Очистить страницу" caption="Очистить" className="p2-ib--danger" onClick={clear}><I.IconClearPage /></IconBtn>
             </>
           )}
+          {nav && (
+            <>
+              <span className="p2-sep" aria-hidden="true" />
+              <button type="button" className="p2-ib p2-tool" aria-label="Добавить страницу" onClick={nav.onAdd}><span className="p2-tool-ico"><I.IconAddPage /></span><span className="p2-cap">Добавить</span></button>
+              <button type="button" className="p2-ib p2-tool" aria-label="Копия страницы" onClick={nav.onDuplicate}><span className="p2-tool-ico"><I.IconDuplicate /></span><span className="p2-cap">Копия</span></button>
+              {nav.total > 1 && (
+                <>
+                  <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу раньше" disabled={nav.index <= 0} onClick={nav.onMoveBefore}><span className="p2-tool-ico p2-glyph">←</span><span className="p2-cap">Раньше</span></button>
+                  <button type="button" className="p2-ib p2-tool" aria-label="Переместить страницу позже" disabled={nav.index >= nav.total - 1} onClick={nav.onMoveAfter}><span className="p2-tool-ico p2-glyph">→</span><span className="p2-cap">Позже</span></button>
+                </>
+              )}
+              <button type="button" className="p2-ib p2-tool p2-ib--danger" aria-label={nav.total > 1 ? "Удалить страницу из тетради" : "Удалить тетрадь"} onClick={nav.onDelete}><span className="p2-tool-ico"><I.IconTrash /></span><span className="p2-cap">Удалить</span></button>
+            </>
+          )}
         </div>
 
         <div className="propis2-settings propis2-settings--row" role="group" aria-label="Настройки строки">
-          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts?.repeat ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ repeat: id })} options={REPEAT_OPTS} />
+          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} onChange={(id) => patchSelected(repeatPatch(id))} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
-          <IconBtn label="Копии пунктиром" caption="Копии" on={rowEditable ? rowOpts.copies === "dash" : undefined} disabled={!rowEditable} onClick={() => patchSelected({ copies: rowOpts.copies === "dash" ? "solid" : "dash" })}><I.IconCopyDash /></IconBtn>
           <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
           <span className="p2-sep" aria-hidden="true" />
           <div className="p2-seg" role="group" aria-label="Строка">
@@ -358,6 +385,15 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           <div className="p2-history" role="group" aria-label="История изменений">
             <button type="button" className="p2-hist" onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить"><I.IconUndo /></button>
             <button type="button" className="p2-hist" onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть"><I.IconRedo /></button>
+          </div>
+        )}
+        {offer && notebook && (
+          <div className="p2-offer" role="status" data-testid="propis2-offer">
+            <span className="p2-offer-msg">{SETTING_SAYS[offer.key](offer.value)} — {offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}</span>
+            {offer.done
+              ? <button type="button" className="p2-offer-btn p2-offer-btn--ghost" onClick={() => { showOffer(null); onUndo?.(); }}>Отменить</button>
+              : <button type="button" className="p2-offer-btn" onClick={() => { notebook.applyAll(offer.key, offer.value); showOffer({ ...offer, done: true }, OFFER_MS - 1000); }}><I.IconSpread />На всю тетрадь</button>}
+            <span className="p2-offer-timer" aria-hidden="true" key={offer.done ? "done" : "offer"}><i style={{ animationDuration: `${offer.done ? OFFER_MS - 1000 : OFFER_MS}ms` }} /></span>
           </div>
         )}
         <div className="propis2-page-col" ref={wrapRef} onClick={onPageClick}>
