@@ -1,4 +1,5 @@
 import { randomUUID, createHash } from "node:crypto";
+import { enqueueAccountNotification } from "./telegram-notifications.mjs";
 import { studentPeople, legacyAdults, applyLegacyAdults, mergePeopleRecords } from "../../shared/student-people.mjs";
 import { mergeRewardVideoViews } from "../../src/shared/utils/rewardVideoViews.js";
 
@@ -165,28 +166,39 @@ export function createAccount(db, {
   role = "parent",
   referralSource = "other",
   consentPersonalDataAt = "",
+  notificationMethod = null,
 }) {
-  const id = randomUUID();
-  const ts = now();
-  const computedDisplay = displayName || [firstName, lastName].filter(Boolean).join(" ") || email.split("@")[0];
+  // SAVEPOINT also works when the caller already owns a transaction.
+  db.exec("SAVEPOINT create_account");
+  try {
+    const id = randomUUID();
+    const ts = now();
+    const computedDisplay = displayName || [firstName, lastName].filter(Boolean).join(" ") || email.split("@")[0];
 
-  db.prepare(`
-    INSERT INTO accounts
-      (id, email, password_hash, display_name, first_name, last_name, role, referral_source,
-       consent_personal_data_at, status, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
-  `).run(id, email.toLowerCase().trim(), passwordHash, computedDisplay,
-         firstName, lastName, role, referralSource, consentPersonalDataAt, ts, ts);
+    db.prepare(`
+      INSERT INTO accounts
+        (id, email, password_hash, display_name, first_name, last_name, role, referral_source,
+         consent_personal_data_at, status, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+    `).run(id, email.toLowerCase().trim(), passwordHash, computedDisplay,
+           firstName, lastName, role, referralSource, consentPersonalDataAt, ts, ts);
 
-  db.prepare(`
-    INSERT INTO account_settings (account_id, updated_at) VALUES (?, ?)
-  `).run(id, ts);
+    db.prepare(`
+      INSERT INTO account_settings (account_id, updated_at) VALUES (?, ?)
+    `).run(id, ts);
 
-  db.prepare(`
-    INSERT OR IGNORE INTO sync_revision (account_id, revision) VALUES (?, 0)
-  `).run(id);
+    db.prepare(`
+      INSERT OR IGNORE INTO sync_revision (account_id, revision) VALUES (?, 0)
+    `).run(id);
 
-  return findAccountByIdAny(db, id);
+    const account = findAccountByIdAny(db, id);
+    if (notificationMethod) enqueueAccountNotification(db, account, "registered", { method: notificationMethod });
+    db.exec("RELEASE create_account");
+    return account;
+  } catch (err) {
+    db.exec("ROLLBACK TO create_account; RELEASE create_account");
+    throw err;
+  }
 }
 
 export function findAccountByEmail(db, email) {
