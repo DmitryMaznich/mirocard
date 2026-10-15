@@ -83,6 +83,11 @@ export default function SessionSummary() {
       const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === String(conceptId).slice("point:".length));
       return person ? `Где ${mainWord(person)}?` : "Покажи";
     }
+    if (String(conceptId).startsWith("person_naming:")) {
+      const [, personId] = String(conceptId).split(":");
+      const person = (sessionStudent?.myPeople ?? []).find((item) => item.id === personId);
+      return person ? `Кто это? — ${mainWord(person)}` : "Кто это?";
+    }
     if (String(conceptId).startsWith("album:")) {
       return String(conceptId).includes(":relation:") ? "Кто эти люди для меня" : "Имена знакомых людей";
     }

@@ -583,14 +583,31 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAd
   );
 }
 
+// «Кто это?»: the same prompt ladder as «Обо мне», stepped through only as
+// needed -- the photo alone → the opening syllable ("Ма…", spoken) → the
+// word itself, shown and spoken for the child to echo. Any hint means
+// "С подсказкой" at best.
 function PersonNamingTask(props) {
+  const { speak } = useSpeech();
   const imageUrl = useTopicFile(props.topicId, props.task.image);
+  const [hint, setHint] = useState({ taskId: null, level: 0 });
+  const level = hint.taskId === props.task.conceptId ? hint.level : 0;
+  const hintWord = props.task.hintWord ?? props.task.answer;
+  const syllable = props.task.hintSyllable;
+
+  function showSyllable() {
+    setHint({ taskId: props.task.conceptId, level: Math.max(level, 1) });
+    if (props.soundEnabled) speak(syllable);
+  }
+  function showAnswer() {
+    setHint({ taskId: props.task.conceptId, level: 2 });
+    if (props.soundEnabled) speak(hintWord);
+  }
 
   return (
-    <QualityAnswerTask {...props} className="about-me-task person-naming" ariaLabel="Задание назвать человека">
+    <QualityAnswerTask {...props} className="about-me-task person-naming" ariaLabel="Задание назвать человека" answerShown={level >= 2} hinted={level >= 1}>
       {({ repeatPrompt }) => (
         <>
-          <span className="about-me-task__eyebrow">Кто это?</span>
           <div className="person-naming__photo-wrap">
             {imageUrl
               ? <img className="person-naming__photo" src={imageUrl} alt="" />
@@ -600,6 +617,19 @@ function PersonNamingTask(props) {
           <div className="about-me-task__prompt-row">
             <div className="about-me-task__prompt">{props.task.prompt}</div>
             <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
+          </div>
+          {/* The cue slots keep their height so the photo stays put as
+              the hints come and go. */}
+          <div className={`person-naming__syllable${level === 1 ? " person-naming__syllable--shown" : ""}`} aria-live="polite">
+            {level === 1 ? `${syllable}…` : ""}
+          </div>
+          <div className="about-me-question__hints person-naming__hints">
+            {syllable && level < 1 && (
+              <button type="button" className="about-me-question__hint-btn" onClick={showSyllable}>Первый слог</button>
+            )}
+            {level < 2 && (
+              <button type="button" className="about-me-question__hint-btn" onClick={showAnswer}>Показать ответ</button>
+            )}
           </div>
         </>
       )}

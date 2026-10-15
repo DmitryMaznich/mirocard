@@ -280,3 +280,36 @@ describe("«Обо мне» renderer", () => {
     container.remove();
   });
 });
+
+describe("«Кто это?» renderer", () => {
+  it("steps through the first syllable and the answer, then allows «С подсказкой» at best", () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    act(() => {
+      root.render(
+        <MyPeopleRenderer
+          task={{ type: "person_naming", conceptId: "person_naming:anna:name", prompt: "Кто это?", promptSpeech: "Кто это?", image: "", answer: "мама · Анна", hintWord: "мама", hintSyllable: "ма" }}
+          topicId="my_people"
+          soundEnabled={false}
+          onQualityAnswer={vi.fn()}
+        />,
+      );
+    });
+    const button = (text) => [...container.querySelectorAll("button")].find((item) => item.textContent === text);
+    expect(button("Знает").disabled).toBe(false);
+
+    act(() => button("Первый слог").click());
+    expect(container.querySelector(".person-naming__syllable")?.textContent).toBe("ма…");
+    expect(button("Знает").disabled).toBe(true);
+    expect(button("Первый слог")).toBeUndefined();
+
+    act(() => button("Показать ответ").click());
+    expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("мама · Анна");
+    expect(container.querySelector(".person-naming__syllable")?.textContent).toBe("");
+    expect(button("С подсказкой").disabled).toBe(false);
+    act(() => root.unmount());
+    container.remove();
+  });
+});
+

@@ -439,6 +439,18 @@
   background: linear-gradient(135deg, #e9f3f0, #d6e7e3);
 }
 
+/* «Кто это?» phonemic prompt: the opening syllable, big enough for the
+   child to see the shape while hearing it. */
+.person-naming__syllable {
+  min-height: 1.1em;
+  color: #245c53;
+  font-size: clamp(26px, 6vw, 38px);
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.person-naming__hints { min-height: 44px; }
+
 .about-me-task__answer {
   min-height: 2.4em;
   color: #245c53;

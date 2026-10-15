@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMyPeopleTopicRecord } from "@/topics/builtinMyPeopleTopic";
-import { ageFromBirthDate, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
+import { ageFromBirthDate, firstSyllable, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
 
 const student = {
   id: "student_1",
@@ -202,9 +202,9 @@ describe("my_people album engine", () => {
     expect(new Set(tasks.map((task) => task.personId)).size).toBe(tasks.length);
     expect(tasks.map((task) => task.personId).sort()).toEqual(["anna", "teacher_1", "teacher_2"]);
     expect(tasks.find((task) => task.personId === "anna")).toEqual(expect.objectContaining({
-      axis: "name", prompt: "Кто это?", answer: "Анна",
+      axis: "name", prompt: "Кто это?", answer: "мама · Анна", hintWord: "мама", hintSyllable: "ма",
     }));
-    expect(tasks.filter((task) => task.axis === "relation").map((task) => task.answer)).toEqual(["учитель", "учитель"]);
+    expect(tasks.filter((task) => task.axis === "relation").map((task) => task.answer).sort()).toEqual(["Ирина · учитель", "Марина · учитель"]);
   });
 
   it("does not ask naming questions before any axis was introduced", () => {
@@ -460,7 +460,7 @@ describe("«Покажи»", () => {
     expect(generateTasks({ id: "who_is_this" }, fresh)).toHaveLength(0);
     const afterPoint = { ...fresh, myPeople: fresh.myPeople.map((p) => (p.id === "anna" ? { ...p, introducedAxes: ["relation"] } : p)) };
     const tasks = generateTasks({ id: "who_is_this" }, afterPoint);
-    expect(tasks.map((task) => [task.personId, task.answer])).toEqual([["anna", "Мама"]]);
+    expect(tasks.map((task) => [task.personId, task.answer])).toEqual([["anna", "мама · Анна"]]);
   });
 
   const two = { id: "s2", myPeople: [family.myPeople[0], family.myPeople[1]] };
@@ -546,3 +546,19 @@ describe("«Подпиши фото»", () => {
     expect(album.progressConceptIds.sort()).toEqual(["anna:name", "pavel:name"]);
   });
 });
+
+describe("«Кто это?» first-syllable prompt", () => {
+  it("gives the opening syllable the way a speech therapist would", () => {
+    expect(firstSyllable("мама")).toBe("ма");
+    expect(firstSyllable("Павел")).toBe("Па");
+    expect(firstSyllable("бабушка")).toBe("ба");
+    expect(firstSyllable("дядя Коля")).toBe("дя");
+    expect(firstSyllable("Мария Ивановна")).toBe("Ма");
+    // A word opening with a vowel keeps the next consonant.
+    expect(firstSyllable("Анна")).toBe("Ан");
+    expect(firstSyllable("Игорь")).toBe("Иг");
+    expect(firstSyllable("Ая")).toBe("А");
+    expect(firstSyllable("")).toBe("");
+  });
+});
+

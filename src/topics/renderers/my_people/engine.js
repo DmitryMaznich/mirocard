@@ -497,6 +497,7 @@ function personNamingTasks(people, mode, photoPlanner) {
     // and one who says the name are both answering "Кто это?".
     const prompt = "Кто это?";
     const conceptId = `person_naming:${person.id}:${axis}`;
+    const word = mainWord(person);
     return [{
       type: "person_naming",
       conceptId,
@@ -507,9 +508,33 @@ function personNamingTasks(people, mode, photoPlanner) {
       image: photoPlanner.imageFor(person, axis),
       prompt,
       promptSpeech: prompt,
-      answer: axis === "name" ? person.name.trim() : person.relation.trim(),
+      // Both answers are right, so the adult sees both: "мама · Анна".
+      answer: namingAnswers(person).join(" · "),
+      // The prompts lead to the word the child uses for this person.
+      hintWord: word,
+      hintSyllable: firstSyllable(word),
     }];
   });
+}
+
+// The child's own word first, then the other right answers, no repeats.
+function namingAnswers(person) {
+  const answers = [mainWord(person), person.relation?.trim(), person.name?.trim()].filter(Boolean);
+  return answers.filter((answer, index) => answers.findIndex((other) => other.toLowerCase() === answer.toLowerCase()) === index);
+}
+
+const VOWELS = /[аеёиоуыэюя]/i;
+
+// The phonemic prompt a speech therapist gives: the opening syllable, "Ма…"
+// for "мама". A word that starts with a vowel keeps the next consonant
+// ("Ан…" for "Анна") -- a lone "А" says too little.
+export function firstSyllable(word) {
+  const text = String(word ?? "").trim();
+  if (!text) return "";
+  const vowelIndex = text.search(VOWELS);
+  if (vowelIndex < 0) return text[0];
+  if (vowelIndex === 0) return text.length > 1 && !VOWELS.test(text[1]) && /\p{L}/u.test(text[1]) ? text.slice(0, 2) : text[0];
+  return text.slice(0, vowelIndex + 1);
 }
 
 // sessionIntroduced: { name?: Set<personId>, relation?: Set<personId> } of
