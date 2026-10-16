@@ -490,8 +490,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const record = await getTopicRecord(db, "place_value");
     const mode = (id) => record.modes.find((m) => m.id === id);
     expect(record.modes.map((m) => m.ui.title)).toEqual([
-      "1. Названия чисел", "2. Собери десяток", "3. Какое это число?", "4. Собери число", "5. Разрядные слагаемые", "6. Плюс и минус через десяток",
-      "7. Названия сотен", "8. Считаем десятками", "9. Сотни: какое это число?", "10. Сотни: собери число", "11. Разрядные слагаемые до 1000", "12. Плюс и минус через сотню",
+      "1. Названия чисел", "2. Собери десяток", "3. Какое это число?", "4. Собери число", "5. Разрядные слагаемые", "6. Плюс и минус через десяток", "7. Проверка: до 100",
+      "8. Названия сотен", "9. Считаем десятками", "10. Сотни: какое это число?", "11. Сотни: собери число", "12. Разрядные слагаемые до 1000", "13. Плюс и минус через сотню", "14. Проверка: сотни",
     ]);
     expect(mode("identify_number").params).not.toHaveProperty("range");
     // The hundreds item makes three-digit numbers whatever was saved…
@@ -554,7 +554,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // «Разменяй десяток» was replaced by «Обмен десятка» (exchange_ten); a stale
     // record must not keep the old mode around.
     expect(record.modes.find((m) => m.id === "regroup_ten")).toBeUndefined();
-    expect(record.modes.map((m) => m.id)).toEqual(["number_names", "group_ten", "identify_number", "build_number", "place_parts", "exchange_ten", "number_names_hundreds", "count_tens", "identify_hundreds", "build_hundreds", "place_parts_hundreds", "exchange_hundred"]);
+    expect(record.modes.map((m) => m.id)).toEqual(["number_names", "group_ten", "identify_number", "build_number", "place_parts", "exchange_ten", "pv_test_100", "number_names_hundreds", "count_tens", "identify_hundreds", "build_hundreds", "place_parts_hundreds", "exchange_hundred", "pv_test_1000"]);
   });
 
   // Widget-type migration (a param's `type` changing between what a stale

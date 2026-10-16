@@ -10,7 +10,9 @@ export function createSessionMetrics() {
 export function recordResponse(state, outcome) {
   if (!state.statistics || state.mode?.evaluation === "none") return state;
   const task = state.tasks[state.taskIndex];
-  if (!SINGLE_RESPONSE_TYPES.has(task?.type)) return state;
+  // `singleResponse`: a task from a mixed check (place_value «Проверка») —
+  // one answer each, counted per its own `targetConceptId` (skill and picture).
+  if (!SINGLE_RESPONSE_TYPES.has(task?.type) && !task?.singleResponse) return state;
   const stats = state.statistics;
   const current = stats.current;
   if (current?.finished) return state;

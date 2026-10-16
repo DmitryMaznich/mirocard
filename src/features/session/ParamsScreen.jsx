@@ -2214,6 +2214,8 @@ export default function ParamsScreen() {
                 compact={def.compact}
                 info={def.info?.ru}
                 onShowInfo={setActiveInfo}
+                ordered={def.ordered === true}
+                hint={def.hint?.ru ?? ""}
               />
             );
           }
@@ -2389,7 +2391,12 @@ export default function ParamsScreen() {
       getConceptCards(topicRecord, mode, params).length,
       getConceptCards(topicRecord, mode, withFigureFilter(params, mode, { type: "difficulty", difficulty: "all" })).length,
     );
-  const isStartDisabled = sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid) || isManualFigureSetTooSmall;
+  // A mode can ask for at least one of some switches before it starts — the
+  // place-value checks: at least one skill, and a picture once a skill with
+  // pictures is on (`startRequires` in topicLoader.js).
+  const isOn = (key) => Boolean(params[key] ?? mode?.params?.[key]?.default);
+  const unmetStartRequirement = (mode?.startRequires ?? []).find((req) => (!req.when || req.when.some(isOn)) && !req.anyOf.some(isOn));
+  const isStartDisabled = sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid) || isManualFigureSetTooSmall || Boolean(unmetStartRequirement);
 
   return (
     <div className="screen">
@@ -2437,6 +2444,9 @@ export default function ParamsScreen() {
             {paramsContent}
             {isManualFigureSetTooSmall && (
               <div className="param-hint" role="alert">Для занятия с наградой выберите не меньше {MIN_FIGURES_FOR_REWARD} рисунков.</div>
+            )}
+            {unmetStartRequirement && (
+              <div className="param-hint param-hint--start-required" role="alert">{unmetStartRequirement.message?.ru}</div>
             )}
             {isMyPeople && !myPeopleReady && (
               <div className="param-section" role="status">

@@ -13965,6 +13965,7 @@ kbd {
 .param-enum-group--ordered { align-items: center; gap: 4px; }
 .param-enum-arrow { color: #94a3b8; font-weight: 800; padding: 0 1px; }
 .param-hint--ordered { margin: 0; }
+.param-hint--start-required { color: #b45309; font-size: 0.85rem; padding: 2px 6px; }
 
 /* block variant: label top, buttons + hint below */
 .param-row--block {
@@ -22887,3 +22888,12 @@ body { background: #eef0ef; }
   .mp-form-card--toggles .mp-check-row { min-height: 42px; }
 }
 
+
+/* Result of a place-value check (PlaceValueCheckResult.jsx). */
+.pvc-total { font-size: 1.7rem; font-weight: 900; color: #1a2e2b; margin: 4px 0 6px; }
+.pvc-total span { font-size: 0.8rem; font-weight: 600; color: #7a9e9a; }
+.pvc-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto; gap: 8px; align-items: center; margin: 5px 0; font-size: 0.86rem; font-weight: 600; color: #1a2e2b; }
+.pvc-track { height: 10px; background: #eef2f1; border-radius: 5px; overflow: hidden; }
+.pvc-track i { display: block; height: 100%; }
+.pvc-count { color: #5b7470; white-space: nowrap; }
+.pvc-next { margin-top: 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 9px 11px; font-size: 0.86rem; color: #7c2d12; }

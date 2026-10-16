@@ -29,6 +29,7 @@ export default function SessionHeader({
   correctCount,
   incorrectCount,
   evaluation,
+  finite = false,
   onClose,
   onOpenModeSettings,
   answerStatus,
@@ -43,10 +44,11 @@ export default function SessionHeader({
 
   const rightCluster = (
     <div className="session-topbar-right">
-      {showProgress && evaluation !== "instant" && total > 1 && (
+      {showProgress && (evaluation !== "instant" || finite) && total > 1 && (
         <div className="session-counter">
           {taskIndex + 1} / {total}
-          {evaluation !== "none" && (
+          {/* A check (finite mode) shows the child how far, not how many wrong. */}
+          {evaluation !== "none" && !finite && (
             <span className="session-score">  ✓{correctCount}  ✗{incorrectCount}</span>
           )}
         </div>
