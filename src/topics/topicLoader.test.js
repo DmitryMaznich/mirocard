@@ -476,6 +476,37 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(buildNumber.params).not.toHaveProperty("level");
   });
 
+  it("«Разряды числа»: numbered items, the hundreds as their own items with the range fixed", async () => {
+    const { generateTasks } = await import("./renderers/place_value/engine.js");
+    const db = await freshDb();
+    await kv.set(db, "topic:place_value", {
+      id: "place_value",
+      meta: { id: "place_value", renderer: "place_value", version: "1.0.6", title: { ru: "Разряды числа" } },
+      modes: [{ id: "identify_number", type: "identify_number", evaluation: "instant", ui: { title: "Какое это число?" }, params: {} }],
+      cards: ["identify_number", "build_number", "number_names"].map((id) => ({ id, conceptId: id, renderer: "place_value", params: { mode: id } })),
+      installedAt: new Date().toISOString(),
+    });
+    await kv.set(db, "installedTopicIds", ["place_value"]);
+    const record = await getTopicRecord(db, "place_value");
+    const mode = (id) => record.modes.find((m) => m.id === id);
+    expect(record.modes.map((m) => m.ui.title)).toEqual([
+      "1. Названия чисел", "2. Собери десяток", "3. Какое это число?", "4. Собери число", "5. Разрядные слагаемые", "6. Плюс и минус через десяток",
+      "7. Названия сотен", "8. Считаем десятками", "9. Сотни: какое это число?", "10. Сотни: собери число", "11. Разрядные слагаемые до 1000", "12. Плюс и минус через сотню",
+    ]);
+    expect(mode("identify_number").params).not.toHaveProperty("range");
+    // The hundreds item makes three-digit numbers whatever was saved…
+    const hundreds = generateTasks(mode("identify_hundreds"), record.cards, 20, {});
+    expect(hundreds.every((t) => t.number >= 100)).toBe(true);
+    // …and an old saved «До 1000» no longer leaks into item 3.
+    const tens = generateTasks(mode("identify_number"), record.cards, 20, { range: "to1000" });
+    expect(tens.every((t) => t.number < 100)).toBe(true);
+    // A saved set item 1 no longer offers falls back to its default.
+    const names = generateTasks(mode("number_names"), record.cards, 20, { set: "hundreds" });
+    expect(names.every((t) => t.number < 100)).toBe(true);
+    const names100 = generateTasks(mode("number_names_hundreds"), record.cards, 20, { set: "three_digit" });
+    expect(names100.every((t) => t.number > 100 && t.number % 100 !== 0)).toBe(true);
+  });
+
   it("refreshes a mode's title/instruction/icon to the current default, even if older text was persisted", async () => {
     // Simulates a device that installed these modes back when build_number still used
     // the shared column_addition_mode.svg icon and regroup_ten's title had the wrong
@@ -523,7 +554,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // «Разменяй десяток» was replaced by «Обмен десятка» (exchange_ten); a stale
     // record must not keep the old mode around.
     expect(record.modes.find((m) => m.id === "regroup_ten")).toBeUndefined();
-    expect(record.modes.map((m) => m.id)).toEqual(["number_names", "group_ten", "count_tens", "identify_number", "build_number", "place_parts", "exchange_ten"]);
+    expect(record.modes.map((m) => m.id)).toEqual(["number_names", "group_ten", "identify_number", "build_number", "place_parts", "exchange_ten", "number_names_hundreds", "count_tens", "identify_hundreds", "build_hundreds", "place_parts_hundreds", "exchange_hundred"]);
   });
 
   // Widget-type migration (a param's `type` changing between what a stale

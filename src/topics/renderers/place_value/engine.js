@@ -90,11 +90,24 @@ export function generateIdentifyNumberTask(card, maxOnes, maxTens = 9, numberSet
 }
 
 
+// The params a session runs with: a saved value the mode no longer offers
+// («Круглые сотни» saved in «1. Названия чисел» before the hundreds got their
+// own items) falls back to the mode's default, and the mode's `preset` (the
+// range of the numbered items, topicLoader.js) wins over anything saved.
+export function modeParams(modeOrObj, params) {
+  if (!modeOrObj || typeof modeOrObj !== "object") return params;
+  const out = { ...params };
+  for (const [key, def] of Object.entries(modeOrObj.params ?? {})) {
+    if (def?.type === "enum" && key in out && !def.values?.includes(out[key])) out[key] = def.default;
+  }
+  return { ...out, ...(modeOrObj.preset ?? {}) };
+}
+
 export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const mode = typeof modeOrObj === "string" ? modeOrObj : (modeOrObj?.type ?? modeOrObj?.id ?? "");
   const count = typeof countOrParams === "number" ? countOrParams : 15;
-  const params = (countOrParams && typeof countOrParams === "object") ? countOrParams
-    : (maybeParams && typeof maybeParams === "object") ? maybeParams : {};
+  const params = modeParams(modeOrObj, (countOrParams && typeof countOrParams === "object") ? countOrParams
+    : (maybeParams && typeof maybeParams === "object") ? maybeParams : {});
 
   const allCards = cards.filter(c => c.renderer === "place_value");
   const buildNumberCards    = allCards.filter(c => c.params?.mode === "build_number");

@@ -716,7 +716,7 @@ const DEFAULT_MODE_METHODOLOGY = {
       summary: "Послушай число и выбери, как оно пишется: девяносто — 90, а не 19.",
       text: "Первая ступень темы: прежде чем раскладывать число на разряды, ребёнок должен знать, как оно называется. Звучит число (записанный голос), ребёнок нажимает на одно из трёх записанных чисел. Неверные варианты подобраны из тех, что путают на слух: 19 / 90, 12 / 20, 20 / 200, 47 / 74, 305 / 350.",
       settings: [
-        "«Числа»: круглые десятки, 11–19 вместе с десятками, круглые сотни, двузначные, трёхзначные или микс.",
+        "«Числа»: круглые десятки, 11–19 вместе с десятками, двузначные или микс. Сотни — в «7. Названия сотен».",
         "«Режим»: в обучении после ошибки звучат подряд выбранное и правильное число; в проверке — только правильное.",
       ],
       goal: "Ребёнок по названию узнаёт запись числа и различает на слух похожие названия (девятнадцать / девяносто, двенадцать / двадцать / двести).",
@@ -770,6 +770,45 @@ const DEFAULT_MODE_METHODOLOGY = {
         "Примеры без перехода так же важны: ребёнок учится не трогать десяток, когда единиц хватает.",
         "Переходите дальше, когда ребёнок решает 8 из 10 в проверке.",
       ],
+    },
+    number_names_hundreds: {
+      summary: "Послушай число и выбери, как оно пишется: двести — 200, а не 20.",
+      text: "Те же три задания, что в «1. Названия чисел» («Услышь и выбери», «Прочитай и выбери», «Услышь и напиши»), на круглых сотнях и трёхзначных числах. Неверные варианты — те, что путают на слух и при чтении: 200 / 20, 900 / 90 / 19, 305 / 350 / 35.",
+      settings: [
+        "«Задание»: услышь и выбери, прочитай и выбери, услышь и напиши.",
+        "«Числа»: круглые сотни, трёхзначные или микс.",
+        "«Режим»: обучение (после ошибки звучат выбранное и правильное число) или проверка.",
+      ],
+      goal: "Ребёнок узнаёт и пишет названия сотен и трёхзначных чисел, не путая их с десятками (двести / двадцать) и не теряя нуль (триста пять — 305).",
+      tips: ["Начинайте после «1. Названия чисел» на двузначных.", "Типичная ошибка диктанта — «3005» вместо 305: подсказка называет разряды."],
+    },
+    identify_hundreds: {
+      summary: "Посмотри на сотни, десятки и единицы и скажи, какое это число.",
+      text: "Как «3. Какое это число?», но с сотнями: на монетах сотня — тарелка из десяти стопок (не больше 5 сотен, до 599), на схеме — зелёный квадрат, в таблице — третья колонка «Сотни». Каждое четвёртое число без десятков (305) — нуль на месте разряда.",
+      settings: ["«Картинка»: монеты, схема или таблица.", "«Режим»: обучение (по шагам) или проверка (сразу число)."],
+      goal: "Ребёнок читает модель трёхзначного числа и пишет нуль на месте пустого разряда.",
+      tips: ["Начинайте после «8. Считаем десятками»: сотня должна быть десятью десятками, а не «первой цифрой».", "Главная ловушка — 305: нет десятков, значит в середине нуль."],
+    },
+    build_hundreds: {
+      summary: "Собери трёхзначное число из сотен, десятков и единиц.",
+      text: "Как «4. Собери число», но с сотнями: число дано цифрами или словами («триста пять»), ребёнок кладёт тарелки-сотни, стопки и монеты (на схеме — квадраты, палочки и точки; в таблице — цифры по колонкам; на ступени «Число» — разряды по записи).",
+      settings: ["«Картинка»: монеты, схема, таблица или число.", "«Число»: цифрами, словами или микс.", "«Режим»: обучение или проверка."],
+      goal: "Ребёнок раскладывает трёхзначное число на сотни, десятки и единицы, в том числе с нулём в середине.",
+      tips: ["«Словами» — логопедическая ступень: «триста пять» — это 3 сотни, 0 десятков и 5 единиц."],
+    },
+    place_parts_hundreds: {
+      summary: "Разложи трёхзначное число на разрядные слагаемые: 347 = 300 + 40 + 7.",
+      text: "Как «5. Разрядные слагаемые», но с сотнями. Нулевой разряд слагаемого не даёт: 305 = 300 + 5, 340 = 300 + 40 — каждое четвёртое число без десятков.",
+      settings: ["«Задание»: разложить, сложить или микс.", "«Число»: цифрами или словами.", "«Режим»: обучение или проверка."],
+      goal: "Ребёнок видит в трёхзначном числе сумму сотен, десятков и единиц — основа счёта в уме и столбика.",
+      tips: ["Типичная ошибка — «3» вместо 300 и «3005» вместо 305: подсказка называет разряды."],
+    },
+    exchange_hundred: {
+      summary: "Реши пример с переходом через сотню: 190 + 20, 210 − 30.",
+      text: "Как «6. Плюс и минус через десяток», но второе число — круглые десятки, а меняется сотня: на схеме рамка держит десять палочек-десятков, полная рамка складывается в квадрат-сотню, квадрат рассыпается в десять палочек. Половина примеров с переходом через сотню, половина без.",
+      settings: ["«Картинка»: схема или таблица.", "«Действие»: плюс, минус или микс.", "«Режим»: обучение или проверка."],
+      goal: "Ребёнок решает примеры с переходом через сотню и сам видит, когда сотню нужно собрать или разменять.",
+      tips: ["Заём через нуль (305 − 7) — в теме «Сложение и вычитание в столбик»."],
     },
   },
   written_letters: {
@@ -1334,7 +1373,7 @@ const DEFAULT_MODES = {
       type: "number_names",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Названия чисел", instruction: "Послушай число и найди или напиши, как оно пишется", icon: "media/icons/place_value_identify.svg" },
+      ui: { title: "1. Названия чисел", instruction: "Послушай число и найди или напиши, как оно пишется", icon: "media/icons/place_value_identify.svg" },
       hideConceptPicker: true,
       params: {
         task: {
@@ -1352,14 +1391,14 @@ const DEFAULT_MODES = {
         },
         set: {
           type: "enum",
-          values: ["tens", "teens_tens", "hundreds", "two_digit", "three_digit", "mix"],
-          labels: { ru: { tens: "Круглые десятки", teens_tens: "11–19 и десятки", hundreds: "Круглые сотни", two_digit: "Двузначные", three_digit: "Трёхзначные", mix: "Микс" } },
+          values: ["tens", "teens_tens", "two_digit", "mix100"],
+          labels: { ru: { tens: "Круглые десятки", teens_tens: "11–19 и десятки", two_digit: "Двузначные", mix100: "Микс" } },
           default: "tens",
           label: { ru: "Числа" },
           info: {
             ru: {
               text: "Звучит число (записанный голос), ребёнок выбирает его из трёх записанных. Неверные варианты — те, что похожи на слух: 19 и 90, 12 и 20, 20 и 200, 13 и 30; в двузначных — переставленные цифры (47 и 74), в трёхзначных — нуль не на своём месте (305 и 350).",
-              tip: "Порядок: круглые десятки → 11–19 вместе с десятками (самые частые путаницы) → круглые сотни → двузначные → трёхзначные.",
+              tip: "Порядок: круглые десятки → 11–19 вместе с десятками (самые частые путаницы) → двузначные. Сотни — в «7. Названия сотен».",
             },
           },
         },
@@ -1383,7 +1422,7 @@ const DEFAULT_MODES = {
       type: "group_ten",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Собери десяток", instruction: "Собери монеты в десятки и скажи, сколько их", icon: "media/icons/place_value_build.svg" },
+      ui: { title: "2. Собери десяток", instruction: "Собери монеты в десятки и скажи, сколько их", icon: "media/icons/place_value_build.svg" },
       hideConceptPicker: true,
       params: {
         numberRange: {
@@ -1417,7 +1456,7 @@ const DEFAULT_MODES = {
       type: "count_tens",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Считаем десятками", instruction: "Добавляй по десятку и смотри, как из десяти десятков получается сотня", icon: "media/icons/place_value_build.svg" },
+      ui: { title: "8. Считаем десятками", instruction: "Добавляй по десятку и смотри, как из десяти десятков получается сотня", icon: "media/icons/place_value_build.svg" },
       hideConceptPicker: true,
       params: {
         task: {
@@ -1466,22 +1505,9 @@ const DEFAULT_MODES = {
       type: "identify_number",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Какое это число?", instruction: "Посмотри на десятки и единицы и введи число", icon: "media/icons/place_value_identify.svg" },
+      ui: { title: "3. Какое это число?", instruction: "Посмотри на десятки и единицы и введи число", icon: "media/icons/place_value_identify.svg" },
       hideConceptPicker: true,
       params: {
-        range: {
-          type: "enum",
-          values: ["to100", "to1000"],
-          labels: { ru: { to100: "До 100", to1000: "До 1000" } },
-          default: "to100",
-          label: { ru: "Числа" },
-          info: {
-            ru: {
-              text: "«До 1000» — трёхзначные числа: сотня на монетах — тарелка из десяти стопок (на монетах не больше 5 сотен, до 599), на схеме — квадрат, в таблице — третья колонка «Сотни». Каждое четвёртое число без десятков (305) — нуль на месте разряда. Остальные настройки чисел («Набор», «Модель», максимумы) действуют только для чисел до 100.",
-              tip: "Переходите к сотням, когда ребёнок уверенно работает с двузначными на схеме и в таблице.",
-            },
-          },
-        },
         view: {
           type: "enum",
           values: ["coins", "scheme", "table"],
@@ -1544,22 +1570,9 @@ const DEFAULT_MODES = {
       type: "build_number",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Собери число", instruction: "Положи нужное число десятков и монет", icon: "media/icons/place_value_build.svg" },
+      ui: { title: "4. Собери число", instruction: "Положи нужное число десятков и монет", icon: "media/icons/place_value_build.svg" },
       hideConceptPicker: true,
       params: {
-        range: {
-          type: "enum",
-          values: ["to100", "to1000"],
-          labels: { ru: { to100: "До 100", to1000: "До 1000" } },
-          default: "to100",
-          label: { ru: "Числа" },
-          info: {
-            ru: {
-              text: "«До 1000» — трёхзначные числа: сотня на монетах — тарелка из десяти стопок (на монетах не больше 5 сотен, до 599), на схеме — квадрат, в таблице — третья колонка «Сотни». Каждое четвёртое число без десятков (305) — нуль на месте разряда. Остальные настройки чисел («Набор», «Модель», максимумы) действуют только для чисел до 100.",
-              tip: "Переходите к сотням, когда ребёнок уверенно работает с двузначными на схеме и в таблице.",
-            },
-          },
-        },
         view: {
           type: "enum",
           values: ["coins", "scheme", "table", "number"],
@@ -1623,17 +1636,9 @@ const DEFAULT_MODES = {
       type: "place_parts",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Разрядные слагаемые", instruction: "Разложи число на десятки и единицы или сложи их обратно", icon: "media/icons/place_value_identify.svg" },
+      ui: { title: "5. Разрядные слагаемые", instruction: "Разложи число на десятки и единицы или сложи их обратно", icon: "media/icons/place_value_identify.svg" },
       hideConceptPicker: true,
       params: {
-        range: {
-          type: "enum",
-          values: ["to100", "to1000"],
-          labels: { ru: { to100: "До 100", to1000: "До 1000" } },
-          default: "to100",
-          label: { ru: "Числа" },
-          info: { ru: { text: "«До 1000»: 347 = 300 + 40 + 7. Нулевой разряд слагаемого не даёт: 305 = 300 + 5, 340 = 300 + 40 — каждое четвёртое число без десятков. «Максимум десятков» действует только для чисел до 100." } },
-        },
         direction: {
           type: "enum",
           values: ["split", "join", "mix"],
@@ -1676,22 +1681,9 @@ const DEFAULT_MODES = {
       type: "exchange_ten",
       evaluation: "instant",
       orientationLock: null,
-      ui: { title: "Плюс и минус через десяток", instruction: "Реши пример на монетах: убери или добавь, а десяток разменяй или собери", icon: "media/icons/place_value_regroup.svg" },
+      ui: { title: "6. Плюс и минус через десяток", instruction: "Реши пример на монетах: убери или добавь, а десяток разменяй или собери", icon: "media/icons/place_value_regroup.svg" },
       hideConceptPicker: true,
       params: {
-        range: {
-          type: "enum",
-          values: ["to100", "to1000"],
-          labels: { ru: { to100: "До 100", to1000: "До 1000" } },
-          default: "to100",
-          label: { ru: "Числа" },
-          info: {
-            ru: {
-              text: "«До 1000»: один переход через сотню, второе число — круглые десятки (190 + 20, 210 − 30). Только «Схема» и «Таблица» (при «Монетах» показывается схема): на схеме рамка держит десять палочек-десятков, квадрат-сотня рассыпается в десять палочек, полная рамка складывается в квадрат. Заём через нуль (305 − 7) — в теме «Сложение и вычитание в столбик».",
-              tip: "Переходите к сотням, когда ребёнок уверенно решает двузначные примеры в таблице.",
-            },
-          },
-        },
         view: {
           type: "enum",
           values: ["coins", "scheme", "table"],
@@ -1825,6 +1817,48 @@ const DEFAULT_MODES = {
     },
   ],
 };
+
+// «Разряды числа»: a numbered menu in teaching order — 1–6 up to 100, 7–12 the
+// hundreds. The hundreds items are the task types of 1, 3, 4, 5 and 6 with the
+// range fixed by `preset` (engine.js lays it over the saved params), so a parent
+// sees the hundreds as their own steps instead of a «До 1000» switch hidden in
+// five modes. Items 1 and 3–6 keep their ids and saved settings; their preset
+// pins «до 100», so an old saved «До 1000» can't leak into them.
+{
+  const pv = Object.fromEntries(DEFAULT_MODES.place_value.map((m) => [m.id, m]));
+  const keep = (params, keys, over = {}) => Object.fromEntries(keys.map((k) => [k, { ...params[k], ...over[k] }]));
+  const hundreds = (base, id, title, instruction, keys, over) => ({
+    ...pv[base],
+    id,
+    ui: { ...pv[base].ui, title, instruction },
+    params: keep(pv[base].params, keys, over),
+    preset: { range: "to1000" },
+  });
+  for (const id of ["identify_number", "build_number", "place_parts", "exchange_ten"]) pv[id].preset = { range: "to100" };
+  DEFAULT_MODES.place_value = [
+    pv.number_names, pv.group_ten, pv.identify_number, pv.build_number, pv.place_parts, pv.exchange_ten,
+    hundreds("number_names", "number_names_hundreds", "7. Названия сотен", "Послушай число и найди или напиши, как оно пишется", ["task", "set", "supportMode"], {
+      set: {
+        values: ["hundreds", "three_digit", "mix1000"],
+        labels: { ru: { hundreds: "Круглые сотни", three_digit: "Трёхзначные", mix1000: "Микс" } },
+        default: "hundreds",
+        info: { ru: {
+          text: "Звучит число, ребёнок выбирает его из трёх записанных. Неверные варианты — похожие на слух: 200 и 20, 900 и 90 и 19; в трёхзначных — нуль не на своём месте (305 и 350) и переставленные цифры.",
+          tip: "Сначала круглые сотни, потом трёхзначные.",
+        } },
+      },
+    }),
+    pv.count_tens,
+    hundreds("identify_number", "identify_hundreds", "9. Сотни: какое это число?", "Посмотри на сотни, десятки и единицы и введи число", ["view", "supportMode"]),
+    hundreds("build_number", "build_hundreds", "10. Сотни: собери число", "Положи нужное число сотен, десятков и единиц", ["view", "prompt", "supportMode"]),
+    hundreds("place_parts", "place_parts_hundreds", "11. Разрядные слагаемые до 1000", "Разложи число на сотни, десятки и единицы или сложи их обратно", ["direction", "prompt", "supportMode"], {
+      direction: { labels: { ru: { split: "Разложи: 347 = 300 + 40 + 7", join: "Сложи: 300 + 40 + 7 = 347", mix: "Микс" } } },
+    }),
+    hundreds("exchange_ten", "exchange_hundred", "12. Плюс и минус через сотню", "Реши пример: добавь или убери десятки, а сотню собери или разменяй", ["view", "operation", "supportMode"], {
+      view: { values: ["scheme", "table"], labels: { ru: { scheme: "Схема", table: "Таблица" } }, default: "scheme" },
+    }),
+  ];
+}
 
 const DEFAULT_META = {
   flashcards: {
@@ -2116,6 +2150,14 @@ const ADDITION_SUBTRACTION_ORDER = [
   "operation_audio",
 ];
 
+// «Разряды числа» shows its numbered items in DEFAULT_MODES order even for a
+// record installed before items were added (merging appends new ones last).
+function orderPlaceValueModes(modes) {
+  const order = DEFAULT_MODES.place_value.map((m) => m.id);
+  const rank = (mode) => (order.includes(mode.id) ? order.indexOf(mode.id) : order.length);
+  return [...modes].sort((a, b) => rank(a) - rank(b));
+}
+
 function orderAdditionSubtractionModes(modes) {
   const rank = (mode) => {
     const index = ADDITION_SUBTRACTION_ORDER.indexOf(mode.id);
@@ -2229,6 +2271,7 @@ function normalizeProcedural(manifest) {
     ? ensureModeIcons(mergeDefaultModesKeepOrder(manifest.modes, defaultModes), renderer)
     : ensureModeIcons(defaultModes, renderer);
   if (renderer === "addition_subtraction") modes = orderAdditionSubtractionModes(modes);
+  if (renderer === "place_value") modes = orderPlaceValueModes(modes);
 
   return { ...manifest, meta, cards, modes };
 }
@@ -2504,6 +2547,7 @@ function migrateRecord(record) {
       }
     }
     if (record.meta.renderer === "addition_subtraction") merged = orderAdditionSubtractionModes(merged);
+    if (record.meta.renderer === "place_value") merged = orderPlaceValueModes(merged);
     return {
       ...record,
       meta: mergeDefaultMeta({ ...record.meta }, record.meta.renderer),

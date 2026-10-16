@@ -648,15 +648,15 @@
         "ru": "Разряды числа",
         "en": "Place Value"
       },
-      "version": "1.0.6",
+      "version": "1.0.7",
       "renderer": "place_value",
       "sources": [
-        "public/decks/place_value_v1.0.6.zip",
+        "public/decks/place_value_v1.0.7.zip",
         "src/topics/renderers/place_value"
       ],
       "bundle": {
-        "version": "1.0.6",
-        "url": "./decks/place_value_v1.0.6.zip",
+        "version": "1.0.7",
+        "url": "./decks/place_value_v1.0.7.zip",
         "title": {
           "ru": "Разряды числа",
           "en": "Place Value"
@@ -669,8 +669,8 @@
       "builtin": false,
       "catalogEntry": {
         "id": "place_value",
-        "version": "1.0.6",
-        "url": "./decks/place_value_v1.0.6.zip",
+        "version": "1.0.7",
+        "url": "./decks/place_value_v1.0.7.zip",
         "title": {
           "ru": "Разряды числа",
           "en": "Place Value"
