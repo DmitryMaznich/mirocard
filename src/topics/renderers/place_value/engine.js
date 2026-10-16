@@ -104,7 +104,7 @@ export function modeParams(modeOrObj, params) {
   return withHints(type, internalParams(type, { ...out, ...(modeOrObj.preset ?? {}) }));
 }
 
-// «Проверка: до 100» / «Проверка: сотни» (type "pv_test"): the skills and
+// «Контрольная работа: до 100» / «Контрольная работа: сотни» (type "pv_test"): the skills and
 // pictures the adult switched on, tasks mixed, no hints (supportMode
 // "independent"), one answer each — a mistake moves on (SessionScreen's
 // instant-incorrect path), the session ends after the last task (`finite`).
@@ -213,7 +213,7 @@ function internalParams(type, params) {
 }
 
 // Hints are always on in the modes now; working without them is the checks'
-// job («Проверка: до 100», «Проверка: сотни»). An «Проверка» saved in a mode
+// job («Контрольная работа: до 100», «Контрольная работа: сотни»). An «Проверка» saved in a mode
 // before that doesn't carry over.
 function withHints(type, params) {
   return type === "pv_test" ? params : { ...params, supportMode: "learning" };

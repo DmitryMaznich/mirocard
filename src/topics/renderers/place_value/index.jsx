@@ -39,7 +39,7 @@ export default function PlaceValueRenderer({ task, sessionParams, onCorrect, onI
   );
 }
 
-// A task of a check («Проверка: до 100»): the mode's own screen without hints;
+// A task of a check («Контрольная работа: до 100»): the mode's own screen without hints;
 // the first mistake leaves the answer red for a moment (no explanation, no
 // right answer shown), then the next task — taps wait meanwhile.
 function CheckTask({ Task, task, onCorrect, onIncorrect, onFlashIncorrect }) {

@@ -1,6 +1,6 @@
 import { CHECK_SKILLS, CHECK_VIEWS, checkResultRows } from "@/topics/renderers/place_value/engine.js";
 
-// The result of a place-value check («Проверка: до 100», «Проверка: сотни»)
+// The result of a place-value check («Контрольная работа: до 100», «Контрольная работа: сотни»)
 // for the adult: right first time out of all, by skill and by picture, and what
 // to go back to. Read from the session's per-task statistics, counted under
 // "skill:picture" (engine.js → generateCheckTasks).

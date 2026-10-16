@@ -122,7 +122,7 @@ export function handleAnswer(state, isCorrect, conceptId, cardId, options = {}) 
 }
 
 // An instant-evaluation mode cycles its tasks until the adult ends it — except
-// a `finite` one (a place-value check: «7. Проверка: до 100»), which ends after
+// a `finite` one (a place-value check: «7. Контрольная работа: до 100»), which ends after
 // its last task, whether that answer was right or wrong.
 function finiteDone(state) {
   return Boolean(state.mode?.finite) && state.taskIndex + 1 >= state.tasks.length;
