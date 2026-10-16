@@ -91,6 +91,35 @@ export function stopSpeech() {
   [...active].forEach((stop) => stop());
 }
 
+// Every clip of the topic: the number words and the phrases.
+export const ALL_AUDIO_URLS = [
+  ...Object.keys(NUMBER_AUDIO_WORDS).map((n) => numberAudioUrl(n)),
+  ...Object.keys(PHRASE_AUDIO).map(phraseAudioUrl),
+];
+
+// Loads (and, with Web Audio, decodes) every clip once, before a task with a
+// voice shows — so the child never waits in silence for a number to arrive
+// (AudioGate in index.jsx). `onProgress(loaded, total)`. A failed load can be
+// tried again: the next call starts over for the clips that didn't arrive.
+let preloaded = false;
+let preloading = null;
+export const isAudioPreloaded = () => preloaded;
+export function preloadNumberAudio(onProgress) {
+  if (preloaded) { onProgress?.(ALL_AUDIO_URLS.length, ALL_AUDIO_URLS.length); return Promise.resolve(); }
+  const listeners = preloading?.listeners ?? new Set();
+  if (onProgress) listeners.add(onProgress);
+  if (preloading) return preloading.promise;
+  let loaded = 0;
+  const ctx = audioContext();
+  const one = (url) => (ctx ? decoded(ctx, url) : fetch(url).then((r) => { if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.arrayBuffer(); }))
+    .then(() => { loaded++; listeners.forEach((fn) => fn(loaded, ALL_AUDIO_URLS.length)); });
+  const promise = Promise.all(ALL_AUDIO_URLS.map(one))
+    .then(() => { preloaded = true; })
+    .finally(() => { preloading = null; });
+  preloading = { promise, listeners };
+  return promise;
+}
+
 export const playNumber = (n) => playUrls(numberAudioParts(n).map(numberAudioUrl));
 export const playPhrase = (key) => playUrls([phraseAudioUrl(key)]);
 

@@ -656,3 +656,11 @@
 .pv-check .px-note,
 .pv-check .nn-choose-hint { visibility: hidden; }
 .pv-check-freeze { position: fixed; inset: 0; z-index: 50; }
+
+/* Waiting for the voice clips (AudioGate in index.jsx): centred, nothing at an edge. */
+.pv-audio-gate { align-items: center; justify-content: center; gap: 12px; text-align: center; }
+.pv-audio-gate__title { font-size: 22px; font-weight: 800; color: #1a2e2b; }
+.pv-audio-gate__text { font-size: 16px; color: #475569; }
+.pv-audio-gate__bar { width: min(280px, 80%); height: 10px; border-radius: 5px; background: #dbe7f5; overflow: hidden; }
+.pv-audio-gate__bar i { display: block; height: 100%; background: #2563eb; transition: width .2s; }
+.pv-audio-gate__retry { margin-top: 6px; border: none; border-radius: 14px; padding: 12px 26px; background: #1c7a6e; color: #fff; font: inherit; font-size: 17px; font-weight: 800; cursor: pointer; }

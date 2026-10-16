@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ALL_AUDIO_URLS, isAudioPreloaded, preloadNumberAudio } from "./numberAudio.js";
 import BuildNumberTask from "./BuildNumberTask.jsx";
 import IdentifyNumberTask from "./IdentifyNumberTask.jsx";
 import ExchangeTenTask from "./ExchangeTenTask.jsx";
@@ -24,7 +25,40 @@ export const CHECK_MISTAKE_MS = 1000;
 // answered, a model half built), so with strict stars it goes through
 // onStreakReset: the mistake and the lost streak are recorded, but taskRetry
 // isn't bumped and SessionScreen doesn't remount the task and wipe that work.
-export default function PlaceValueRenderer({ task, sessionParams, onCorrect, onIncorrect, onStreakReset, onFlashIncorrect }) {
+// Tasks that speak: they wait until every voice clip is loaded (AudioGate).
+const VOICED = new Set(["number_names", "count_tens"]);
+
+export default function PlaceValueRenderer(props) {
+  const { task } = props;
+  const [ready, setReady] = useState(isAudioPreloaded);
+  const [progress, setProgress] = useState(0);
+  const [failed, setFailed] = useState(false);
+  // Any task of the topic starts loading the voice in the background, so a
+  // check reaches its first «Названия чисел» task with the clips already here.
+  const start = () => preloadNumberAudio((loaded) => setProgress(loaded)).then(() => setReady(true), () => setFailed(true));
+  const retry = () => { setFailed(false); start(); };
+  useEffect(() => { if (!isAudioPreloaded()) start(); }, []);
+  if (VOICED.has(task?.type) && !ready) return <AudioGate loaded={progress} failed={failed} onRetry={retry} />;
+  return <PlaceValueTask {...props} />;
+}
+
+// No lesson without the voice: until all clips are here the task waits, with
+// the loading counted; without a connection — say so and offer to try again.
+function AudioGate({ loaded, failed, onRetry }) {
+  return <div className="pv-screen pv-audio-gate" role="status">
+    {failed ? <>
+      <div className="pv-audio-gate__title">Голос не загрузился</div>
+      <div className="pv-audio-gate__text">Проверьте интернет. Без голоса задание не начнётся.</div>
+      <button type="button" className="pv-audio-gate__retry" onClick={onRetry}>Повторить</button>
+    </> : <>
+      <div className="pv-audio-gate__title">Загружаю голос…</div>
+      <div className="pv-audio-gate__bar"><i style={{ width: `${Math.round((loaded / ALL_AUDIO_URLS.length) * 100)}%` }} /></div>
+      <div className="pv-audio-gate__text">{loaded} из {ALL_AUDIO_URLS.length}</div>
+    </>}
+  </div>;
+}
+
+function PlaceValueTask({ task, sessionParams, onCorrect, onIncorrect, onStreakReset, onFlashIncorrect }) {
   const Task = TASKS[task?.type];
   if (!Task) return <div className="pv-screen" style={{ color: "#666", fontSize: 18 }}>Нет задания</div>;
   if (task.check) return <CheckTask key={task.cardId} Task={Task} task={task} onCorrect={onCorrect} onIncorrect={onIncorrect} onFlashIncorrect={onFlashIncorrect} />;
