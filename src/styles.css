@@ -13961,6 +13961,10 @@ kbd {
 }
 .param-enum-group { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .param-enum-group--col { flex-direction: column; align-items: flex-end; }
+/* Ordered steps (Монеты → Схема → Таблица): arrows between the buttons. */
+.param-enum-group--ordered { align-items: center; gap: 4px; }
+.param-enum-arrow { color: #94a3b8; font-weight: 800; padding: 0 1px; }
+.param-hint--ordered { margin: 0; }
 
 /* block variant: label top, buttons + hint below */
 .param-row--block {

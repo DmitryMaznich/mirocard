@@ -100,7 +100,25 @@ export function modeParams(modeOrObj, params) {
   for (const [key, def] of Object.entries(modeOrObj.params ?? {})) {
     if (def?.type === "enum" && key in out && !def.values?.includes(out[key])) out[key] = def.default;
   }
-  return { ...out, ...(modeOrObj.preset ?? {}) };
+  return internalParams(modeOrObj.type ?? modeOrObj.id, { ...out, ...(modeOrObj.preset ?? {}) });
+}
+
+// The parent's settings are few and plain («Числа: до 50», «С подвохом»,
+// docs/place-value-methodology.md, раздел 15); the generators below still speak
+// the detailed ones (maxTens, numberSet, layout…). This maps one onto the other —
+// over anything an older version saved under the detailed names.
+function internalParams(type, params) {
+  const tensFor = (numbers) => (numbers === "to100" ? 9 : 4);
+  if (type === "identify_number") {
+    return { ...params, maxTens: tensFor(params.numbers), maxOnes: 9,
+      numberSet: params.trick ? "mixed" : "two_digit", layout: params.trick ? "mix" : "places" };
+  }
+  if (type === "build_number") {
+    return { ...params, maxOnes: 9, numberRange: params.numbers === "teens" ? "teens" : "custom", maxTens: tensFor(params.numbers) };
+  }
+  if (type === "place_parts") return { ...params, maxTens: params.numbers === "to50" ? 4 : 9 };
+  if (type === "exchange_ten") return { ...params, maxTens: 9 };
+  return params;
 }
 
 export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {

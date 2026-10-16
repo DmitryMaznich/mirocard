@@ -350,14 +350,17 @@ function NumberStepper({ label, value, min, max, onChange, info, onShowInfo, dis
   );
 }
 
-function EnumParam({ label, options, labels, value, onChange, disabledValues, info, onShowInfo, disabled = false, compact = false }) {
+// `ordered`: the options are steps to take left to right (Монеты → Схема →
+// Таблица) — arrows between them, the row on its own line; `hint` — a line under it.
+function EnumParam({ label, options, labels, value, onChange, disabledValues, info, onShowInfo, disabled = false, compact = false, ordered = false, hint = "" }) {
   return (
-    <div className={`param-row${compact ? " param-row--compact" : ""}`}>
+    <div className={`param-row${compact ? " param-row--compact" : ""}${ordered ? " param-row--block" : ""}`}>
       <ParamLabel label={label} info={info} onShowInfo={onShowInfo} />
-      <div className="param-enum-group">
-        {options.map((opt) => {
+      <div className={`param-enum-group${ordered ? " param-enum-group--ordered" : ""}`}>
+        {options.map((opt, i) => {
           const isDisabled = disabled || (disabledValues?.includes(opt) ?? false);
-          return (
+          return [
+            ordered && i > 0 ? <span key={`${opt}-arrow`} className="param-enum-arrow" aria-hidden="true">→</span> : null,
             <button
               key={opt}
               className={`enum-btn${compact ? " enum-btn--compact" : ""} ${value === opt ? "enum-btn--active" : ""}`}
@@ -365,10 +368,11 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues, in
               disabled={isDisabled}
             >
               {labels?.[opt] ?? opt}
-            </button>
-          );
+            </button>,
+          ];
         })}
       </div>
+      {hint ? <div className="param-hint param-hint--ordered">{hint}</div> : null}
     </div>
   );
 }
@@ -2035,6 +2039,8 @@ export default function ParamsScreen() {
               disabledValues={def.disabledValues}
               info={def.info?.ru}
               onShowInfo={setActiveInfo}
+              ordered={def.ordered === true}
+              hint={def.hint?.ru ?? ""}
             />
           );
         }

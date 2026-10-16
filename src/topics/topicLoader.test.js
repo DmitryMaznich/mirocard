@@ -472,7 +472,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
 
     const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
-    expect(buildNumber.params).toHaveProperty("maxOnes");
+    expect(buildNumber.params).toHaveProperty("numbers");
     expect(buildNumber.params).not.toHaveProperty("level");
   });
 
@@ -597,8 +597,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
     expect(buildNumber.params).not.toHaveProperty("numericBlocks");
-    expect(buildNumber.params).toHaveProperty("maxOnes");
-    expect(buildNumber.params).toHaveProperty("maxTens");
+    expect(buildNumber.params).toHaveProperty("numbers");
+    expect(buildNumber.params).not.toHaveProperty("maxTens");
   });
 
   it("drops identify_number's and exchange_ten's numericBlocks param, same as build_number", async () => {
@@ -646,13 +646,13 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const byId = Object.fromEntries(record.modes.map((m) => [m.id, m]));
 
     expect(byId.identify_number.params).not.toHaveProperty("numericBlocks");
-    expect(byId.identify_number.params).toHaveProperty("maxOnes");
+    expect(byId.identify_number.params).toHaveProperty("trick");
     // showCounters (identify_number's live tens/ones counter) was dropped on 2026-07-26
     // along with the manipulative/checklist redesign that removed the counter entirely.
     expect(byId.identify_number.params).not.toHaveProperty("showCounters");
 
     expect(byId.exchange_ten.params).not.toHaveProperty("numericBlocks");
-    expect(byId.exchange_ten.params).toHaveProperty("maxTens");
+    expect(byId.exchange_ten.params).toHaveProperty("secondNumber");
   });
 
   it("refreshes column_arithmetic's params to the new reference shape, even if an older shape was persisted", async () => {
@@ -819,7 +819,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(copy.ui.title).toBe("Контрольная работа");
   });
 
-  it("adds the new maxTens param to a build_number record saved before it existed", async () => {
+  it("refreshes build_number's params to the current ones for a record saved long ago", async () => {
     // Simulates a device that installed build_number before maxTens/the coin
     // mechanic existed — on the next load, the new range param and the updated
     // instruction copy must both appear.
@@ -848,9 +848,9 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
 
     const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
-    expect(buildNumber.params.maxTens).toMatchObject({
-      type: "number", min: 1, max: 9, default: 5, label: { ru: "Максимум десятков" },
-    });
+    // The detailed maxTens/maxOnes gave way to «Числа» (2026-10-16).
+    expect(buildNumber.params).not.toHaveProperty("maxTens");
+    expect(buildNumber.params.numbers).toMatchObject({ type: "enum", values: ["teens", "to50", "to100"], default: "to50" });
     expect(buildNumber.ui.instruction).toBe("Положи нужное число десятков и монет");
     expect(buildNumber.params.prompt.default).toBe("digits");
     expect(buildNumber.params.view).toMatchObject({ type: "enum", values: ["coins", "scheme", "table", "number"], default: "coins" });
