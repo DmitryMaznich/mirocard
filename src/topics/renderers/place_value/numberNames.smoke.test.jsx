@@ -70,7 +70,7 @@ describe("«Названия чисел»", () => {
   });
 });
 
-describe("«Названия чисел» — «Услышь и напиши»", () => {
+describe("«Названия чисел» — «Послушай и напиши»", () => {
   const h = coinHarness();
   const text = (sel) => h.container.querySelector(sel)?.textContent;
   const type = (n) => { for (const d of String(n)) h.click(d); };
@@ -81,7 +81,7 @@ describe("«Названия чисел» — «Услышь и напиши»",
     const onCorrect = vi.fn(), onMistake = vi.fn();
     h.mount(NumberNamesTask, write(), { onCorrect, onMistake });
     await wait();
-    expect(text(".sg-title")).toBe("Услышь и напиши число");
+    expect(text(".sg-title")).toBe("Послушай и напиши число");
     expect(h.container.querySelector(".nn-option")).toBeNull();
     answer(90);
     await wait();

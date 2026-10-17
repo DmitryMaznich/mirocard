@@ -8,7 +8,7 @@ import "./place_value.css";
 import "./group_ten.css";
 import "./names.css";
 
-// «Названия чисел» → «Услышь и выбери»: the number is spoken (the owner's
+// «Названия чисел» → «Послушай и выбери»: the number is spoken (the owner's
 // recorded voice, numberAudio.js), the child taps it among three written
 // numbers. The wrong options are the ones that sound alike — 19 / 90,
 // 12 / 20, 20 / 200, 13 / 30, swapped digits, the zero in the wrong place —
@@ -96,7 +96,7 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
   // (Not when reading: the name is what the child has to find.)
   useEffect(() => { if (!reading) play(n); return () => player.current?.stop(); }, [n]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // «Услышь и напиши»: the child types the number. In «Обучение» a wrong number
+  // «Послушай и напиши»: the child types the number. In «Обучение» a wrong number
   // is named and the right one played after it (as in «выбери»); a wrong count
   // of digits gets the places named («Сколько цифр нужно?»); after two misses
   // the three choices come back — the step below.
@@ -140,7 +140,7 @@ export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashInc
 
   return <div ref={ref} className={`pv-screen nn-screen nn-screen--${mode}`} {...guard}>
     <div className="nn-inner">
-      <h2 className="sg-title">{reading ? "Прочитай и выбери название" : writing ? "Услышь и напиши число" : "Услышь и выбери число"}</h2>
+      <h2 className="sg-title">{reading ? "Прочитай и выбери название" : writing ? "Послушай и напиши число" : "Послушай и выбери число"}</h2>
       {reading && <div className="nn-number">{n}</div>}
       {/* The «диктор» button of the dictation and «Слушай и посчитай» (styles
           copied into names.css): bars bounce and ripples spread while it speaks. */}
