@@ -22,6 +22,8 @@ export default function PlaceValueCheckResult({ session, modes }) {
   const weakSkills = skillRows.filter((r) => share(r.correct, r.total) < 0.8);
   const weakViews = viewRows.filter((r) => share(r.correct, r.total) < 0.8);
   const modeTitle = (id) => modes?.find((m) => m.id === id)?.ui?.title;
+  // Each mistake as the child made it: the task, their answer, the right one.
+  const wrong = session?.statistics?.wrongAnswers ?? [];
   const bar = (r) => (
     <div key={r.key} className="pvc-row">
       <div className="pvc-label">{r.label}</div>
@@ -44,6 +46,20 @@ export default function PlaceValueCheckResult({ session, modes }) {
           {[...weakSkills.map((r) => `«${modeTitle(r.modeId) ?? r.label}»`), ...weakViews.map((r) => `картинку «${r.label}»`)].join(", ")}.
         </div>
       )}
+      {wrong.length > 0 && <>
+        <div className="summary-section-title">Ошибки</div>
+        <ul className="pvc-mistakes">
+          {wrong.map((w, i) => (
+            <li key={i} className="pvc-mistake">
+              <div className="pvc-m-task">{w.task}{w.view ? <span className="pvc-m-view"> · {CHECK_VIEWS[w.view]}</span> : null}</div>
+              <div className="pvc-m-answers">
+                <span className="pvc-m-given">{w.field ? `${w.field}: ` : ""}{w.given}</span>
+                <span className="pvc-m-right">верно: {w.expected}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </>}
     </div>
   );
 }

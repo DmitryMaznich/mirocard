@@ -137,9 +137,9 @@ export default function SessionScreen() {
     onCorrect(conceptId, cardId, options);
   }, [ownsFeedback, mode?.evaluation, playFeedback, onCorrect]);
 
-  const handleIncorrect = useCallback((conceptId, cardId) => {
+  const handleIncorrect = useCallback((conceptId, cardId, answer) => {
     if (!ownsFeedback) playFeedback("incorrect");
-    onIncorrect(conceptId, cardId);
+    onIncorrect(conceptId, cardId, answer);
   }, [ownsFeedback, playFeedback, onIncorrect]);
 
   const handleMistake = useCallback((conceptId, cardId) => {

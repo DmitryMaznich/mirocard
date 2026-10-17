@@ -22893,6 +22893,13 @@ body { background: #eef0ef; }
 
 /* Result of a place-value check (PlaceValueCheckResult.jsx). */
 .pvc-total { font-size: 1.7rem; font-weight: 900; color: #1a2e2b; margin: 4px 0 6px; }
+.pvc-mistakes { list-style: none; margin: 0 0 6px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.pvc-mistake { padding: 8px 10px; border-radius: 10px; background: #fff7f7; border: 1px solid #fde2e2; }
+.pvc-m-task { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+.pvc-m-view { font-weight: 500; color: #64748b; }
+.pvc-m-answers { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 2px; font-size: 0.92rem; }
+.pvc-m-given { color: #b91c1c; font-weight: 700; }
+.pvc-m-right { color: #15803d; }
 .pvc-total span { font-size: 0.8rem; font-weight: 600; color: #7a9e9a; }
 .pvc-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto; gap: 8px; align-items: center; margin: 5px 0; font-size: 0.86rem; font-weight: 600; color: #1a2e2b; }
 .pvc-track { height: 10px; background: #eef2f1; border-radius: 5px; overflow: hidden; }

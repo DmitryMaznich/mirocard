@@ -95,3 +95,14 @@ export function placeValuePhrase(n) {
   const parts = tens ? `${tens} ${pluralTens(tens)} и ${ones} ${pluralOnes(ones)}` : `${ones} ${pluralOnes(ones)}`;
   return `${parts} — ${numberWords(n)}`;
 }
+
+// «3 сотни, 0 десятков и 5 единиц» / «4 десятка и 14 единиц» — what was put
+// on the board, for the check's list of mistakes.
+export function spelledPlaces({ hundreds, tens, ones }) {
+  const parts = [
+    ...(hundreds !== undefined ? [`${hundreds} ${pluralHundreds(hundreds)}`] : []),
+    `${tens} ${pluralTens(tens)}`,
+    `${ones} ${pluralOnes(ones)}`,
+  ];
+  return `${parts.slice(0, -1).join(", ")} и ${parts[parts.length - 1]}`;
+}

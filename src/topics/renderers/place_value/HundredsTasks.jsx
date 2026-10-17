@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { modelPieces, SchemeHundred, SchemeOne, SchemeTen } from "./CoinBlocks.jsx";
-import { numberWords, pluralHundreds, pluralOnes, pluralTens } from "./placeValueLabels.js";
+import { numberWords, pluralHundreds, pluralOnes, pluralTens, spelledPlaces } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
 import "./coins.css";
@@ -140,7 +140,7 @@ export function IdentifyHundreds({ task, onCorrect, onMistake, onFlashIncorrect 
     }
     setNote(current.key === "total" ? totalHint(n, guess, teaching) : `Посчитай ${current.label.toLowerCase()} ещё раз.`);
     if (teaching && table) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { field: current.key === "total" ? null : current.label, given: String(guess), expected: String(current.expected) }); onFlashIncorrect?.();
     return false;
   }
   const auto = !solved && !flying && current.key !== "total";
@@ -203,10 +203,10 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
   const [note, setNote] = useState("");
   const [support, setSupport] = useState(false);
   const [solved, setSolved] = useState(false);
-  const fail = (message) => {
+  const fail = (message, detail) => {
     setNote(message);
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, detail); onFlashIncorrect?.();
   };
   const done = <>
     <div className="sg-status" role="status">{solved ? null : note ? <span className="sg-status-note">{note}</span> : null}</div>
@@ -233,7 +233,8 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
   useAutoCheck(typed, { auto: tableAuto, expected: tableAuto ? target[PLACES[col].key] : "", submit: (guess) => {
     const key = PLACES[col].key;
     if (guess === target[key]) { setNote(""); if (col === 2) setSolved(true); else setCol(col + 1); return true; }
-    fail(teaching ? `Сколько ${key === "hundreds" ? "сотен" : key === "tens" ? "десятков" : "единиц"} в числе ${words ? numberWords(n) : n}?${target[key] === 0 ? " Если их нет — пишем 0." : ""}` : "Проверь ещё раз.");
+    fail(teaching ? `Сколько ${key === "hundreds" ? "сотен" : key === "tens" ? "десятков" : "единиц"} в числе ${words ? numberWords(n) : n}?${target[key] === 0 ? " Если их нет — пишем 0." : ""}` : "Проверь ещё раз.",
+      { field: PLACES[col].name, given: String(guess), expected: String(target[key]) });
     return false;
   } });
   // ── Coins / scheme: take plates, stacks and coins. ──
@@ -247,7 +248,8 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
       : built.ones > 9 ? `Отдельных ${loose} больше девяти. Десять ${loose} — это десяток.`
         : built.tens > 9 ? "Десятков больше девяти. Десять десятков — это сотня."
           : PLACES.find(({ key }) => built[key] !== target[key]).key === "hundreds" ? "Проверь сотни."
-            : built.tens !== target.tens ? `Проверь десятки.${target.tens === 0 ? " В этом числе десятков нет." : ""}` : "Проверь единицы.");
+            : built.tens !== target.tens ? `Проверь десятки.${target.tens === 0 ? " В этом числе десятков нет." : ""}` : "Проверь единицы.",
+      { given: spelledPlaces(built), expected: spelledPlaces(target) });
   }
 
   if (view === "number") {
@@ -257,7 +259,8 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
       if (v === q.right) { setWrongChoice(null); setNote(""); if (qStep === 2) setSolved(true); else setQStep(qStep + 1); return; }
       setWrongChoice(v);
       fail(!teaching ? "Проверь ещё раз." : v === n ? `${n} — это всё число. А ${q.ask.split(" ")[1]} в нём сколько?`
-        : "Сотни — первая цифра, десятки — вторая, единицы — последняя.");
+        : "Сотни — первая цифра, десятки — вторая, единицы — последняя.",
+        { field: q.ask, given: String(v), expected: String(q.right) });
     };
     return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} tb-screen nl-screen`} style={{ "--sg-answer-w": "340px" }}>
       <div className="sg-inner">

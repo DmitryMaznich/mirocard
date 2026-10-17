@@ -33,6 +33,13 @@ export function recordResponse(state, outcome) {
   } };
 }
 
+// A check's wrong answer as the child gave it — the task, the answer and the
+// right one — kept with the statistics for the result screen.
+export function recordWrongAnswer(state, answer) {
+  if (!state.statistics || !answer) return state;
+  return { ...state, statistics: { ...state.statistics, wrongAnswers: [...(state.statistics.wrongAnswers ?? []), answer] } };
+}
+
 export function recordAdvance(state) {
   if (!state.statistics) return state;
   return { ...state, statistics: { ...state.statistics, advancedTasks: state.statistics.advancedTasks + 1, current: null } };

@@ -82,7 +82,8 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
 
   function fail(message) {
     setNote(message);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    // The typed digits are still there when a submitted guess fails.
+    onMistake?.(task.conceptId, task.cardId, typed.digits ? { field: current.key === "total" ? null : current.label, given: typed.digits, expected: String(current.expected) } : undefined); onFlashIncorrect?.();
   }
   function submit(guess) {
     if (solved) return false;

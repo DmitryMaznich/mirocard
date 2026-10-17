@@ -648,10 +648,11 @@ export function useSessionEngine() {
     }
   }, [adultConfirmAdvance, tapToAdvance, autoAdvanceDelay, advanceTask]);
 
-  const onIncorrect = useCallback((conceptId, cardId) => {
+  // `answer`: what the child gave on a check task (place_value «Контрольная работа»).
+  const onIncorrect = useCallback((conceptId, cardId, answer) => {
     setSessionState((s) => {
       if (s.mode?.evaluation === "instant") {
-        const next = handleInstantIncorrect(s, conceptId, cardId);
+        const next = handleInstantIncorrect(s, conceptId, cardId, answer);
         if (next.status === "completed") finishSession(next);
         return next;
       }

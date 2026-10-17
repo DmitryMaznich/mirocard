@@ -99,7 +99,7 @@ export default function PlacePartsTask({ task, onCorrect, onMistake, onFlashInco
     if (guess === f.expected) { setNote(""); setStep(step + 1); return true; }
     setNote(hint(f, guess));
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { field: split ? f.label : null, given: String(guess), expected: String(f.expected) }); onFlashIncorrect?.();
     return false;
   }
   // The parts check themselves as they are typed; «Проверить» is live too, so

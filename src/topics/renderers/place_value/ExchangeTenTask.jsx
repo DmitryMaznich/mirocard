@@ -199,7 +199,7 @@ function ExchangeTenModel({ task, onCorrect, onMistake, onFlashIncorrect }) {
     if (Number(typed.digits) === task.result) { typed.reset(); setPhase("done"); setNote(""); return; }
     typed.fail();
     setNote(teaching ? `Посчитай десятки и ${ones} в рамке ещё раз.` : "Проверь число ещё раз.");
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: typed.digits, expected: String(task.result) }); onFlashIncorrect?.();
   }
 
   const answering = phase !== "act";

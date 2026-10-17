@@ -66,7 +66,7 @@ export function IdentifyTableTask({ task, onCorrect, onMistake, onFlashIncorrect
     typed.fail();
     setNote(hint(guess));
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: String(guess), expected: String(task.number) }); onFlashIncorrect?.();
   }
 
   const column = (kind) => {
@@ -124,7 +124,7 @@ export function BuildTableTask({ task, onCorrect, onMistake, onFlashIncorrect })
         : (words ? `${name}: сколько единиц сверх десятков?` : "Единицы — последняя цифра числа."));
       setSupport(true);
     } else setNote("Проверь ещё раз.");
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { field: f.key === "tens" ? "Десятки" : "Единицы", given: String(guess), expected: String(f.expected) }); onFlashIncorrect?.();
     return false;
   }
   useAutoCheck(typed, { auto: !solved, expected: solved ? "" : fields[step].expected, submit });
@@ -199,7 +199,7 @@ export function NumberLevelTask({ task, onCorrect, onMistake, onFlashIncorrect }
         : value === tens * 10 ? `${tens * 10} — это ${tens} ${pluralTens(tens)}. Сколько десятков?`
           : q.key === "tens" ? "Десятки — первая цифра числа." : "Единицы — последняя цифра числа.");
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { field: q.key === "tens" ? "Сколько десятков?" : "Сколько единиц?", given: String(value), expected: String(q.right) }); onFlashIncorrect?.();
   }
 
   const digits = String(n).padStart(2, "0");

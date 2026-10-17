@@ -349,7 +349,7 @@ function NextNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
     setWrong((w) => [...w, v]);
     setNote(hint(v));
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: String(v), expected: String(right) }); onFlashIncorrect?.();
   }
 
   // After the answer the board shows the next number; across a hundred the
@@ -415,7 +415,7 @@ function PrevNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
     setWrong((w) => [...w, v]);
     setNote(hint(v));
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: String(v), expected: String(right) }); onFlashIncorrect?.();
   }
 
   // Support at a round hundred: the last hundred laid out as ten sticks, the

@@ -1,4 +1,5 @@
 import { numberNameOptions, numberNamesNumber } from "./numberNames.js";
+import { numberWords } from "./placeValueLabels.js";
 // "Разряды числа" (place_value): number models built from coins (единицы) and
 // stacks of ten (десятки). Split out of column_addition, where these three
 // modes used to live as a warm-up before the column trainer.
@@ -178,6 +179,32 @@ export function generateCheckTasks(cards, params) {
       targetConceptId: `${skill.key}:${view ?? "none"}`,
     };
   }).filter(Boolean);
+}
+
+// A check task in a few words, for the result's list of mistakes: the
+// question as the child saw it, without the answer.
+export function checkTaskText(task) {
+  const n = task.number;
+  const said = () => `«${numberWords(n)}»`;
+  switch (task.type) {
+    case "number_names":
+      return task.task === "write" ? `Послушай и напиши: ${said()}` : task.task === "read" ? `Прочитай и выбери: ${said()}` : `Послушай и выбери: ${said()}`;
+    case "count_tens":
+      return task.task === "prev" ? `Какое число перед ${n}?` : `Какое число после ${n}?`;
+    case "identify_number":
+      return "Какое это число?";
+    case "build_number":
+      return `Собери число ${task.prompt === "words" ? said() : n}`;
+    case "place_parts": {
+      if (task.direction === "split") return `${task.prompt === "words" ? said() : n} = …`;
+      const parts = [100, 10, 1].map((u) => Math.floor(n / u) % 10 * u).filter(Boolean);
+      return `${parts.join(" + ")} = …`;
+    }
+    case "exchange_ten":
+      return `${n} ${task.op === "get" ? "+" : "−"} ${task.k} = …`;
+    default:
+      return "";
+  }
 }
 
 // A check's result by skill and by picture, from the session's per-task
