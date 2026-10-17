@@ -1,0 +1,2378 @@
+{
+  "meta": {
+    "id": "verbs_v2",
+    "title": {
+      "ru": "Глаголы",
+      "en": "verbs_v2"
+    },
+    "version": "1.5.1",
+    "renderer": "flashcards",
+    "conceptCount": 19,
+    "questionKey": "Что делает?",
+    "about": {
+      "description": "Девятнадцать частотных действий из жизни ребёнка: ест, пьёт, спит, бежит, прыгает, рисует и другие. Каждое показано на нескольких картинках — разные дети, взрослые, животные и рисунки, — чтобы ребёнок узнавал само действие, а не одну картинку. Тема рассчитана в том числе на минимально вербальных детей: основные режимы — выбор картинки по слову.",
+      "goals": [
+        "Понимать глагол на слух: по слову находить картинку с этим действием.",
+        "Узнавать действие независимо от исполнителя и изображения и отличать его от похожих действий.",
+        "Выражать действие доступным способом: словом, приближением, жестом или карточкой коммуникатора."
+      ],
+      "finalGoal": "Ребёнок по слову уверенно находит картинку с действием среди похожих и обозначает действие на картинке доступным ему способом.",
+      "flow": [
+        "Работайте волнами. Волна 1: ест, пьёт, спит, бежит, прыгает, рисует. Волна 2: идёт, чистит зубы, играет, читает, едет, плачет, смеётся. Волна 3: умывается, плавает, поёт, танцует, режет и поливает.",
+        "Внутри волны: Знакомство → Покажи, как (параллельно с выбором картинок) → Покажи: из двух → Покажи: из четырёх → Найди все картинки → Похожие действия → Что делает?",
+        "Переходите к следующему режиму и следующей волне, когда ребёнок отвечает верно 8 раз из 10 два занятия подряд.",
+        "В режимах «Покажи» по умолчанию включено «Без ошибок»: после промаха подсвечивается правильная картинка, промах всё равно записывается. Для первого знакомства можно поставить 1 вариант — ребёнок просто нажимает картинку под слово."
+      ],
+      "tips": [
+        "Начинайте с 3–4 глаголов: отметьте их в точках над режимом.",
+        "Показывайте действия в жизни и в игре — «Мишка спит», «Прыгай!» — это важнее экрана.",
+        "При ошибке не говорите «нет»: покажите и назовите правильное действие."
+      ]
+    },
+    "customModesOnly": true
+  },
+  "modes": [
+    {
+      "id": "verbs_intro",
+      "type": "intro",
+      "evaluation": "none",
+      "ui": {
+        "title": "Знакомство",
+        "instruction": "Посмотри и послушай",
+        "icon": "media/icons/flashcards_intro.svg"
+      },
+      "methodology": {
+        "summary": "Посмотри на действие и послушай, как оно называется.",
+        "text": "Ребёнок листает картинки выбранных глаголов и слышит название действия. Оценки нет.",
+        "goal": "Ребёнок связывает звучащее слово с действием на картинке.",
+        "duration": "2–4 минуты",
+        "tips": [
+          "Включайте в точках над режимом 3–4 глагола текущей волны, а не все 20 сразу.",
+          "После картинки покажите это действие сами или с игрушкой: «Мишка ест — ам-ам».",
+          "Предложите ребёнку повторить движение (прыгнуть, «попить» из пустой чашки) — так глагол запоминается лучше, чем со слов."
+        ]
+      },
+      "paramsScope": "mode",
+      "groupByConcept": true
+    },
+    {
+      "id": "verbs_act_out",
+      "type": "act_out",
+      "evaluation": "none",
+      "paramsScope": "mode",
+      "ui": {
+        "title": "Покажи, как",
+        "instruction": "Сделай, как на картинке",
+        "icon": "media/icons/flashcards_question_answer.svg"
+      },
+      "methodology": {
+        "summary": "Звучит команда «Прыгай!» — ребёнок выполняет или изображает действие, взрослый оценивает.",
+        "text": "На экране картинка-образец, звучит команда в повелительной форме. Ребёнок делает действие сам или с игрушкой (кормит мишку, «пьёт» из пустой чашки). Взрослый нажимает оценку, после чего звучит слово («прыгает»).",
+        "goal": "Ребёнок выполняет действие по словесной команде — понимание глагола через собственное движение.",
+        "duration": "3–5 минут",
+        "tips": [
+          "Сначала покажите действие сами и выполните его вместе с ребёнком (рука в руке), потом только словом.",
+          "«С подсказкой» — если понадобился ваш показ или помощь руками.",
+          "Режим идёт параллельно с «Покажи: из двух»: движение помогает понять слово."
+        ]
+      }
+    },
+    {
+      "id": "verbs_find_2",
+      "type": "find_n",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Покажи: из двух",
+        "instruction": "Послушай и нажми на картинку",
+        "icon": "media/icons/flashcards_find_n.svg",
+        "promptTemplate": "Покажи: {label}"
+      },
+      "methodology": {
+        "summary": "Слово звучит — ребёнок выбирает картинку из двух совсем разных действий.",
+        "text": "Звучит глагол, на экране две картинки. Вторая картинка — действие, непохожее на нужное (другая часть тела, другой темп).",
+        "goal": "Ребёнок по слову выбирает картинку с нужным действием среди двух далёких.",
+        "duration": "3–5 минут",
+        "tips": [
+          "Включайте в точках над режимом 3–4 глагола текущей волны, а не все 20 сразу.",
+          "При ошибке не говорите «нет»: покажите правильную картинку и назовите действие («Вот — бежит»).",
+          "Переходите к режиму «Покажи: из четырёх», когда ребёнок выбирает верно 8 раз из 10 два занятия подряд."
+        ]
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Вариантов"
+          },
+          "values": [
+            1,
+            2,
+            4
+          ],
+          "default": 2,
+          "labels": {
+            "ru": {
+              "1": "1 — без выбора",
+              "2": "2",
+              "4": "4"
+            }
+          }
+        },
+        "distractorLevel": {
+          "type": "enum",
+          "label": {
+            "ru": "Насколько похожи картинки"
+          },
+          "values": [
+            "easy",
+            "medium",
+            "hard"
+          ],
+          "labels": {
+            "ru": {
+              "easy": "Совсем разные",
+              "medium": "Средне",
+              "hard": "Похожие действия"
+            }
+          },
+          "default": "easy"
+        },
+        "repsPerConcept": {
+          "type": "number",
+          "label": {
+            "ru": "Повторений на понятие"
+          },
+          "default": 1,
+          "min": 1,
+          "max": 3
+        },
+        "errorless": {
+          "type": "boolean",
+          "label": {
+            "ru": "Без ошибок"
+          },
+          "hint": {
+            "ru": "После промаха подсвечивается правильная картинка, и ребёнок нажимает её"
+          },
+          "default": true
+        }
+      },
+      "paramsScope": "mode"
+    },
+    {
+      "id": "verbs_find_4",
+      "type": "find_n",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Покажи: из четырёх",
+        "instruction": "Послушай и нажми на картинку",
+        "icon": "media/icons/flashcards_find_n.svg",
+        "promptTemplate": "Покажи: {label}"
+      },
+      "methodology": {
+        "summary": "Слово звучит — ребёнок выбирает картинку из четырёх.",
+        "text": "Звучит глагол, на экране четыре картинки с разными детьми, взрослыми, животными и рисунками. Нужно узнать действие, а не конкретную картинку.",
+        "goal": "Ребёнок узнаёт действие независимо от того, кто его выполняет и как оно нарисовано.",
+        "duration": "4–6 минут",
+        "tips": [
+          "При ошибке не говорите «нет»: покажите правильную картинку и назовите действие («Вот — бежит»).",
+          "Если ребёнок ошибается чаще, чем в каждом третьем задании, вернитесь к режиму «Покажи: из двух».",
+          "Переходите дальше при 8 верных из 10 два занятия подряд."
+        ]
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Вариантов"
+          },
+          "values": [
+            2,
+            4,
+            6
+          ],
+          "default": 4
+        },
+        "distractorLevel": {
+          "type": "enum",
+          "label": {
+            "ru": "Насколько похожи картинки"
+          },
+          "values": [
+            "easy",
+            "medium",
+            "hard"
+          ],
+          "labels": {
+            "ru": {
+              "easy": "Совсем разные",
+              "medium": "Средне",
+              "hard": "Похожие действия"
+            }
+          },
+          "default": "medium"
+        },
+        "repsPerConcept": {
+          "type": "number",
+          "label": {
+            "ru": "Повторений на понятие"
+          },
+          "default": 1,
+          "min": 1,
+          "max": 3
+        },
+        "errorless": {
+          "type": "boolean",
+          "label": {
+            "ru": "Без ошибок"
+          },
+          "hint": {
+            "ru": "После промаха подсвечивается правильная картинка, и ребёнок нажимает её"
+          },
+          "default": true
+        }
+      },
+      "paramsScope": "mode"
+    },
+    {
+      "id": "verbs_choose_all",
+      "type": "choose_all",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Найди все картинки",
+        "instruction": "Найди все картинки с этим действием",
+        "icon": "media/icons/flashcards_choose_all.svg",
+        "promptTemplate": "Найди все: {label}",
+        "autoplayPrompt": true
+      },
+      "methodology": {
+        "summary": "Найди все картинки, где делают одно и то же.",
+        "text": "В сетке несколько картинок с одним действием (разные исполнители и стили) и картинки с другими действиями. Ребёнок находит все нужные.",
+        "goal": "Ребёнок объединяет разные изображения одного действия и не путает их с другими.",
+        "duration": "3–5 минут",
+        "tips": [
+          "Слово звучит при появлении сетки; кнопка 🔊 повторяет его.",
+          "Начните с сетки из 4 картинок (2 нужные)."
+        ]
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Вариантов"
+          },
+          "values": [
+            4,
+            6
+          ],
+          "default": 4
+        }
+      },
+      "paramsScope": "mode"
+    },
+    {
+      "id": "verbs_similar",
+      "type": "find_n",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Похожие действия",
+        "instruction": "Послушай и нажми на картинку",
+        "icon": "media/icons/flashcards_find_n.svg",
+        "promptTemplate": "Покажи: {label}"
+      },
+      "methodology": {
+        "summary": "Выбери из двух похожих действий: идёт или бежит, ест или пьёт.",
+        "text": "Звучит глагол, на экране две картинки с похожими действиями: одна часть тела, похожая поза или предмет (идёт — бежит, ест — пьёт, смеётся — поёт, чистит зубы — умывается).",
+        "goal": "Ребёнок различает близкие действия по существенному признаку.",
+        "duration": "3–5 минут",
+        "tips": [
+          "При ошибке не говорите «нет»: покажите правильную картинку и назовите действие («Вот — бежит»).",
+          "Объясняйте разницу движением: пройдите шагом и пробегите рядом с ребёнком.",
+          "Режим для глаголов, которые ребёнок уже уверенно находит из четырёх."
+        ]
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Вариантов"
+          },
+          "values": [
+            2,
+            4
+          ],
+          "default": 2
+        },
+        "distractorLevel": {
+          "type": "enum",
+          "label": {
+            "ru": "Насколько похожи картинки"
+          },
+          "values": [
+            "easy",
+            "medium",
+            "hard"
+          ],
+          "labels": {
+            "ru": {
+              "easy": "Совсем разные",
+              "medium": "Средне",
+              "hard": "Похожие действия"
+            }
+          },
+          "default": "hard"
+        },
+        "repsPerConcept": {
+          "type": "number",
+          "label": {
+            "ru": "Повторений на понятие"
+          },
+          "default": 1,
+          "min": 1,
+          "max": 3
+        },
+        "errorless": {
+          "type": "boolean",
+          "label": {
+            "ru": "Без ошибок"
+          },
+          "hint": {
+            "ru": "После промаха подсвечивается правильная картинка, и ребёнок нажимает её"
+          },
+          "default": true
+        }
+      },
+      "paramsScope": "mode"
+    },
+    {
+      "id": "verbs_question_answer",
+      "type": "question_answer",
+      "evaluation": "none",
+      "ui": {
+        "title": "Что делает?",
+        "instruction": "Что делает?",
+        "icon": "media/icons/flashcards_question_answer.svg"
+      },
+      "methodology": {
+        "summary": "Ребёнок называет действие на картинке, взрослый оценивает ответ.",
+        "text": "На экране картинка и вопрос «Что делает?». Ребёнок отвечает, взрослый нажимает кнопку оценки, после чего звучит правильное слово.",
+        "goal": "Ребёнок выражает действие на картинке доступным ему способом.",
+        "duration": "3–5 минут",
+        "tips": [
+          "Засчитывайте как «Правильно» любой понятный способ: слово, приближение («бе» для «бежит»), жест, звукоподражание («ам-ам») или карточку на коммуникаторе.",
+          "«С подсказкой» — если вы показали жест или начали слово.",
+          "Этот режим — после уверенного выбора картинок; экспрессия у минимально вербального ребёнка идёт медленнее понимания, это нормально."
+        ]
+      },
+      "paramsScope": "mode"
+    },
+    {
+      "id": "verbs_choose_word",
+      "type": "choose_word_by_picture",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Выбери слово",
+        "instruction": "Нажми на правильное слово",
+        "icon": "media/icons/flashcards_choose_word.svg"
+      },
+      "methodology": {
+        "summary": "По картинке выбери написанное слово — для читающих детей.",
+        "text": "На экране картинка и несколько написанных глаголов. Ребёнок выбирает слово, которое подходит к действию.",
+        "goal": "Читающий ребёнок соотносит написанный глагол с изображением действия.",
+        "duration": "3–5 минут",
+        "tips": [
+          "Режим требует чтения. Для нечитающего ребёнка пропустите его.",
+          "Некоторые дети с РАС читают раньше, чем говорят: для них этот режим может стать опорой для экспрессии."
+        ]
+      },
+      "params": {
+        "repsPerConcept": {
+          "type": "number",
+          "label": {
+            "ru": "Повторений на понятие"
+          },
+          "default": 1,
+          "min": 1,
+          "max": 3
+        },
+        "concepts": {
+          "type": "concept_selector"
+        }
+      },
+      "paramsScope": "mode"
+    }
+  ],
+  "annotation": {
+    "ru": "19 частотных глаголов в трёх волнах, по 2–5 картинок на глагол для переноса на новых исполнителей. Для минимально вербальных детей, в том числе с РАС; логопеды и родители.",
+    "en": ""
+  },
+  "semanticSchema": {
+    "group1": "confusable_family",
+    "group2": "body_part",
+    "group3": "energy_level"
+  },
+  "cards": [
+    {
+      "id": "eats_1",
+      "conceptId": "eats",
+      "primary": true,
+      "label": "ест",
+      "image": "media/eats_1.webp",
+      "audio": {
+        "ru": "audio/eats.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "food",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "answerKey": "ест",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/eats.mp3"
+      },
+      "imperative": "Ешь!",
+      "imperativeAudio": {
+        "ru": "audio/imp_eats.mp3"
+      }
+    },
+    {
+      "id": "eats_2",
+      "conceptId": "eats",
+      "primary": false,
+      "label": "ест",
+      "image": "media/eats_2.webp",
+      "audio": {
+        "ru": "audio/eats.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "food",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "answerKey": "ест",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/eats.mp3"
+      },
+      "imperative": "Ешь!",
+      "imperativeAudio": {
+        "ru": "audio/imp_eats.mp3"
+      }
+    },
+    {
+      "id": "eats_3",
+      "conceptId": "eats",
+      "primary": false,
+      "label": "ест",
+      "image": "media/eats_3.webp",
+      "audio": {
+        "ru": "audio/eats.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "food",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "answerKey": "ест",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/eats.mp3"
+      },
+      "imperative": "Ешь!",
+      "imperativeAudio": {
+        "ru": "audio/imp_eats.mp3"
+      }
+    },
+    {
+      "id": "eats_5",
+      "conceptId": "eats",
+      "primary": false,
+      "label": "ест",
+      "image": "media/eats_5.webp",
+      "audio": {
+        "ru": "audio/eats.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "food",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "answerKey": "ест",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/eats.mp3"
+      },
+      "imperative": "Ешь!",
+      "imperativeAudio": {
+        "ru": "audio/imp_eats.mp3"
+      }
+    },
+    {
+      "id": "drinks_1",
+      "conceptId": "drinks",
+      "primary": true,
+      "label": "пьёт",
+      "image": "media/drinks_1.webp",
+      "audio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "food",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "imperative": "Пей!",
+      "imperativeAudio": {
+        "ru": "audio/imp_drinks.mp3"
+      }
+    },
+    {
+      "id": "drinks_2",
+      "conceptId": "drinks",
+      "primary": false,
+      "label": "пьёт",
+      "image": "media/drinks_2.webp",
+      "audio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "food",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "imperative": "Пей!",
+      "imperativeAudio": {
+        "ru": "audio/imp_drinks.mp3"
+      }
+    },
+    {
+      "id": "drinks_3",
+      "conceptId": "drinks",
+      "primary": false,
+      "label": "пьёт",
+      "image": "media/drinks_3.webp",
+      "audio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "food",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "imperative": "Пей!",
+      "imperativeAudio": {
+        "ru": "audio/imp_drinks.mp3"
+      }
+    },
+    {
+      "id": "drinks_5",
+      "conceptId": "drinks",
+      "primary": false,
+      "label": "пьёт",
+      "image": "media/drinks_5.webp",
+      "audio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "food",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "imperative": "Пей!",
+      "imperativeAudio": {
+        "ru": "audio/imp_drinks.mp3"
+      }
+    },
+    {
+      "id": "sleeps_1",
+      "conceptId": "sleeps",
+      "primary": true,
+      "label": "спит",
+      "image": "media/sleeps_1.webp",
+      "audio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "answerKey": "спит",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "imperative": "Спи!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sleeps.mp3"
+      }
+    },
+    {
+      "id": "sleeps_2",
+      "conceptId": "sleeps",
+      "primary": false,
+      "label": "спит",
+      "image": "media/sleeps_2.webp",
+      "audio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "answerKey": "спит",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "imperative": "Спи!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sleeps.mp3"
+      }
+    },
+    {
+      "id": "sleeps_3",
+      "conceptId": "sleeps",
+      "primary": false,
+      "label": "спит",
+      "image": "media/sleeps_3.webp",
+      "audio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "answerKey": "спит",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "imperative": "Спи!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sleeps.mp3"
+      }
+    },
+    {
+      "id": "sleeps_5",
+      "conceptId": "sleeps",
+      "primary": false,
+      "label": "спит",
+      "image": "media/sleeps_5.webp",
+      "audio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "answerKey": "спит",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "imperative": "Спи!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sleeps.mp3"
+      }
+    },
+    {
+      "id": "runs_1",
+      "conceptId": "runs",
+      "primary": true,
+      "label": "бежит",
+      "image": "media/runs_1.webp",
+      "audio": {
+        "ru": "audio/runs.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "бежит",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/runs.mp3"
+      },
+      "imperative": "Беги!",
+      "imperativeAudio": {
+        "ru": "audio/imp_runs.mp3"
+      }
+    },
+    {
+      "id": "runs_2",
+      "conceptId": "runs",
+      "primary": false,
+      "label": "бежит",
+      "image": "media/runs_2.webp",
+      "audio": {
+        "ru": "audio/runs.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "бежит",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/runs.mp3"
+      },
+      "imperative": "Беги!",
+      "imperativeAudio": {
+        "ru": "audio/imp_runs.mp3"
+      }
+    },
+    {
+      "id": "runs_3",
+      "conceptId": "runs",
+      "primary": false,
+      "label": "бежит",
+      "image": "media/runs_3.webp",
+      "audio": {
+        "ru": "audio/runs.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "бежит",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/runs.mp3"
+      },
+      "imperative": "Беги!",
+      "imperativeAudio": {
+        "ru": "audio/imp_runs.mp3"
+      }
+    },
+    {
+      "id": "runs_4",
+      "conceptId": "runs",
+      "primary": false,
+      "label": "бежит",
+      "image": "media/runs_4.webp",
+      "audio": {
+        "ru": "audio/runs.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "бежит",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/runs.mp3"
+      },
+      "imperative": "Беги!",
+      "imperativeAudio": {
+        "ru": "audio/imp_runs.mp3"
+      }
+    },
+    {
+      "id": "runs_5",
+      "conceptId": "runs",
+      "primary": false,
+      "label": "бежит",
+      "image": "media/runs_5.webp",
+      "audio": {
+        "ru": "audio/runs.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "бежит",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/runs.mp3"
+      },
+      "imperative": "Беги!",
+      "imperativeAudio": {
+        "ru": "audio/imp_runs.mp3"
+      }
+    },
+    {
+      "id": "jumps_1",
+      "conceptId": "jumps",
+      "primary": true,
+      "label": "прыгает",
+      "image": "media/jumps_1.webp",
+      "audio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "прыгает",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "imperative": "Прыгай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_jumps.mp3"
+      }
+    },
+    {
+      "id": "jumps_2",
+      "conceptId": "jumps",
+      "primary": false,
+      "label": "прыгает",
+      "image": "media/jumps_2.webp",
+      "audio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "прыгает",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "imperative": "Прыгай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_jumps.mp3"
+      }
+    },
+    {
+      "id": "jumps_3",
+      "conceptId": "jumps",
+      "primary": false,
+      "label": "прыгает",
+      "image": "media/jumps_3.webp",
+      "audio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "прыгает",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "imperative": "Прыгай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_jumps.mp3"
+      }
+    },
+    {
+      "id": "draws_1",
+      "conceptId": "draws",
+      "primary": true,
+      "label": "рисует",
+      "image": "media/draws_1.webp",
+      "audio": {
+        "ru": "audio/draws.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "answerKey": "рисует",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/draws.mp3"
+      },
+      "imperative": "Рисуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_draws.mp3"
+      }
+    },
+    {
+      "id": "draws_2",
+      "conceptId": "draws",
+      "primary": false,
+      "label": "рисует",
+      "image": "media/draws_2.webp",
+      "audio": {
+        "ru": "audio/draws.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "answerKey": "рисует",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/draws.mp3"
+      },
+      "imperative": "Рисуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_draws.mp3"
+      }
+    },
+    {
+      "id": "draws_3",
+      "conceptId": "draws",
+      "primary": false,
+      "label": "рисует",
+      "image": "media/draws_3.webp",
+      "audio": {
+        "ru": "audio/draws.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "answerKey": "рисует",
+      "wave": 1,
+      "promptAudio": {
+        "ru": "audio/draws.mp3"
+      },
+      "imperative": "Рисуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_draws.mp3"
+      }
+    },
+    {
+      "id": "walks_1",
+      "conceptId": "walks",
+      "primary": true,
+      "label": "идёт",
+      "image": "media/walks_1.webp",
+      "audio": {
+        "ru": "audio/walks.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/walks.mp3"
+      },
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
+    },
+    {
+      "id": "walks_2",
+      "conceptId": "walks",
+      "primary": false,
+      "label": "идёт",
+      "image": "media/walks_2.webp",
+      "audio": {
+        "ru": "audio/walks.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/walks.mp3"
+      },
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
+    },
+    {
+      "id": "walks_3",
+      "conceptId": "walks",
+      "primary": false,
+      "label": "идёт",
+      "image": "media/walks_3.webp",
+      "audio": {
+        "ru": "audio/walks.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/walks.mp3"
+      },
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
+    },
+    {
+      "id": "walks_5",
+      "conceptId": "walks",
+      "primary": false,
+      "label": "идёт",
+      "image": "media/walks_5.webp",
+      "audio": {
+        "ru": "audio/walks.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/walks.mp3"
+      },
+      "imperative": "Иди!",
+      "imperativeAudio": {
+        "ru": "audio/imp_walks.mp3"
+      }
+    },
+    {
+      "id": "brushes_teeth_1",
+      "conceptId": "brushes_teeth",
+      "primary": true,
+      "label": "чистит зубы",
+      "image": "media/brushes_teeth_1.webp",
+      "audio": {
+        "ru": "audio/brushes_teeth.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/brushes_teeth.mp3"
+      },
+      "imperative": "Чисти зубы!",
+      "imperativeAudio": {
+        "ru": "audio/imp_brushes_teeth.mp3"
+      }
+    },
+    {
+      "id": "brushes_teeth_5",
+      "conceptId": "brushes_teeth",
+      "primary": false,
+      "label": "чистит зубы",
+      "image": "media/brushes_teeth_5.webp",
+      "audio": {
+        "ru": "audio/brushes_teeth.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/brushes_teeth.mp3"
+      },
+      "imperative": "Чисти зубы!",
+      "imperativeAudio": {
+        "ru": "audio/imp_brushes_teeth.mp3"
+      }
+    },
+    {
+      "id": "plays_1",
+      "conceptId": "plays",
+      "primary": true,
+      "label": "играет",
+      "image": "media/plays_1.webp",
+      "audio": {
+        "ru": "audio/plays.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "answerKey": "играет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/plays.mp3"
+      },
+      "imperative": "Играй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_plays.mp3"
+      }
+    },
+    {
+      "id": "plays_2",
+      "conceptId": "plays",
+      "primary": false,
+      "label": "играет",
+      "image": "media/plays_2.webp",
+      "audio": {
+        "ru": "audio/plays.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "answerKey": "играет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/plays.mp3"
+      },
+      "imperative": "Играй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_plays.mp3"
+      }
+    },
+    {
+      "id": "plays_3",
+      "conceptId": "plays",
+      "primary": false,
+      "label": "играет",
+      "image": "media/plays_3.webp",
+      "audio": {
+        "ru": "audio/plays.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "answerKey": "играет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/plays.mp3"
+      },
+      "imperative": "Играй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_plays.mp3"
+      }
+    },
+    {
+      "id": "plays_4",
+      "conceptId": "plays",
+      "primary": false,
+      "label": "играет",
+      "image": "media/plays_4.webp",
+      "audio": {
+        "ru": "audio/plays.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "answerKey": "играет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/plays.mp3"
+      },
+      "imperative": "Играй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_plays.mp3"
+      }
+    },
+    {
+      "id": "plays_5",
+      "conceptId": "plays",
+      "primary": false,
+      "label": "играет",
+      "image": "media/plays_5.webp",
+      "audio": {
+        "ru": "audio/plays.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "answerKey": "играет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/plays.mp3"
+      },
+      "imperative": "Играй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_plays.mp3"
+      }
+    },
+    {
+      "id": "reads_1",
+      "conceptId": "reads",
+      "primary": true,
+      "label": "читает",
+      "image": "media/reads_1.webp",
+      "audio": {
+        "ru": "audio/reads.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "answerKey": "читает",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/reads.mp3"
+      },
+      "imperative": "Читай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_reads.mp3"
+      }
+    },
+    {
+      "id": "reads_3",
+      "conceptId": "reads",
+      "primary": false,
+      "label": "читает",
+      "image": "media/reads_3.webp",
+      "audio": {
+        "ru": "audio/reads.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "answerKey": "читает",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/reads.mp3"
+      },
+      "imperative": "Читай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_reads.mp3"
+      }
+    },
+    {
+      "id": "reads_5",
+      "conceptId": "reads",
+      "primary": false,
+      "label": "читает",
+      "image": "media/reads_5.webp",
+      "audio": {
+        "ru": "audio/reads.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "answerKey": "читает",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/reads.mp3"
+      },
+      "imperative": "Читай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_reads.mp3"
+      }
+    },
+    {
+      "id": "rides_1",
+      "conceptId": "rides",
+      "primary": true,
+      "label": "едет",
+      "image": "media/rides_1.webp",
+      "audio": {
+        "ru": "audio/rides.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "transport",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "едет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/rides.mp3"
+      },
+      "imperative": "Поехали!",
+      "imperativeAudio": {
+        "ru": "audio/imp_rides.mp3"
+      }
+    },
+    {
+      "id": "rides_2",
+      "conceptId": "rides",
+      "primary": false,
+      "label": "едет",
+      "image": "media/rides_2.webp",
+      "audio": {
+        "ru": "audio/rides.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "transport",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "едет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/rides.mp3"
+      },
+      "imperative": "Поехали!",
+      "imperativeAudio": {
+        "ru": "audio/imp_rides.mp3"
+      }
+    },
+    {
+      "id": "rides_3",
+      "conceptId": "rides",
+      "primary": false,
+      "label": "едет",
+      "image": "media/rides_3.webp",
+      "audio": {
+        "ru": "audio/rides.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "transport",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "едет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/rides.mp3"
+      },
+      "imperative": "Поехали!",
+      "imperativeAudio": {
+        "ru": "audio/imp_rides.mp3"
+      }
+    },
+    {
+      "id": "rides_5",
+      "conceptId": "rides",
+      "primary": false,
+      "label": "едет",
+      "image": "media/rides_5.webp",
+      "audio": {
+        "ru": "audio/rides.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "transport",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "едет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/rides.mp3"
+      },
+      "imperative": "Поехали!",
+      "imperativeAudio": {
+        "ru": "audio/imp_rides.mp3"
+      }
+    },
+    {
+      "id": "cries_1",
+      "conceptId": "cries",
+      "primary": true,
+      "label": "плачет",
+      "image": "media/cries_1.webp",
+      "audio": {
+        "ru": "audio/cries.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotion",
+        "group2": "face",
+        "group3": "calm"
+      },
+      "answerKey": "плачет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/cries.mp3"
+      },
+      "imperative": "Покажи, как плачет",
+      "imperativeAudio": {
+        "ru": "audio/imp_cries.mp3"
+      }
+    },
+    {
+      "id": "cries_3",
+      "conceptId": "cries",
+      "primary": false,
+      "label": "плачет",
+      "image": "media/cries_3.webp",
+      "audio": {
+        "ru": "audio/cries.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotion",
+        "group2": "face",
+        "group3": "calm"
+      },
+      "answerKey": "плачет",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/cries.mp3"
+      },
+      "imperative": "Покажи, как плачет",
+      "imperativeAudio": {
+        "ru": "audio/imp_cries.mp3"
+      }
+    },
+    {
+      "id": "laughs_1",
+      "conceptId": "laughs",
+      "primary": true,
+      "label": "смеётся",
+      "image": "media/laughs_1.webp",
+      "audio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotion",
+        "group2": "face",
+        "group3": "active"
+      },
+      "answerKey": "смеётся",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "imperative": "Смейся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_laughs.mp3"
+      }
+    },
+    {
+      "id": "laughs_2",
+      "conceptId": "laughs",
+      "primary": false,
+      "label": "смеётся",
+      "image": "media/laughs_2.webp",
+      "audio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotion",
+        "group2": "face",
+        "group3": "active"
+      },
+      "answerKey": "смеётся",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "imperative": "Смейся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_laughs.mp3"
+      }
+    },
+    {
+      "id": "laughs_3",
+      "conceptId": "laughs",
+      "primary": false,
+      "label": "смеётся",
+      "image": "media/laughs_3.webp",
+      "audio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotion",
+        "group2": "face",
+        "group3": "active"
+      },
+      "answerKey": "смеётся",
+      "wave": 2,
+      "promptAudio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "imperative": "Смейся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_laughs.mp3"
+      }
+    },
+    {
+      "id": "washes_face_1",
+      "conceptId": "washes_face",
+      "primary": true,
+      "label": "умывается",
+      "image": "media/washes_face_1.webp",
+      "audio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "face",
+        "group3": "calm"
+      },
+      "answerKey": "умывается",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "imperative": "Умывайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_face.mp3"
+      }
+    },
+    {
+      "id": "washes_face_2",
+      "conceptId": "washes_face",
+      "primary": false,
+      "label": "умывается",
+      "image": "media/washes_face_2.webp",
+      "audio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "face",
+        "group3": "calm"
+      },
+      "answerKey": "умывается",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "imperative": "Умывайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_face.mp3"
+      }
+    },
+    {
+      "id": "washes_face_3",
+      "conceptId": "washes_face",
+      "primary": false,
+      "label": "умывается",
+      "image": "media/washes_face_3.webp",
+      "audio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "face",
+        "group3": "calm"
+      },
+      "answerKey": "умывается",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "imperative": "Умывайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_face.mp3"
+      }
+    },
+    {
+      "id": "swims_1",
+      "conceptId": "swims",
+      "primary": true,
+      "label": "плавает",
+      "image": "media/swims_1.webp",
+      "audio": {
+        "ru": "audio/swims.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "water",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "answerKey": "плавает",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/swims.mp3"
+      },
+      "imperative": "Плыви!",
+      "imperativeAudio": {
+        "ru": "audio/imp_swims.mp3"
+      }
+    },
+    {
+      "id": "swims_4",
+      "conceptId": "swims",
+      "primary": false,
+      "label": "плавает",
+      "image": "media/swims_4.webp",
+      "audio": {
+        "ru": "audio/swims.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "water",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "answerKey": "плавает",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/swims.mp3"
+      },
+      "imperative": "Плыви!",
+      "imperativeAudio": {
+        "ru": "audio/imp_swims.mp3"
+      }
+    },
+    {
+      "id": "sings_2",
+      "conceptId": "sings",
+      "primary": true,
+      "label": "поёт",
+      "image": "media/sings_2.webp",
+      "audio": {
+        "ru": "audio/sings.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "voice",
+        "group2": "face",
+        "group3": "active"
+      },
+      "answerKey": "поёт",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/sings.mp3"
+      },
+      "imperative": "Пой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sings.mp3"
+      }
+    },
+    {
+      "id": "sings_3",
+      "conceptId": "sings",
+      "primary": false,
+      "label": "поёт",
+      "image": "media/sings_3.webp",
+      "audio": {
+        "ru": "audio/sings.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "voice",
+        "group2": "face",
+        "group3": "active"
+      },
+      "answerKey": "поёт",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/sings.mp3"
+      },
+      "imperative": "Пой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sings.mp3"
+      }
+    },
+    {
+      "id": "sings_4",
+      "conceptId": "sings",
+      "primary": false,
+      "label": "поёт",
+      "image": "media/sings_4.webp",
+      "audio": {
+        "ru": "audio/sings.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "voice",
+        "group2": "face",
+        "group3": "active"
+      },
+      "answerKey": "поёт",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/sings.mp3"
+      },
+      "imperative": "Пой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sings.mp3"
+      }
+    },
+    {
+      "id": "dances_1",
+      "conceptId": "dances",
+      "primary": true,
+      "label": "танцует",
+      "image": "media/dances_1.webp",
+      "audio": {
+        "ru": "audio/dances.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "танцует",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/dances.mp3"
+      },
+      "imperative": "Танцуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_dances.mp3"
+      }
+    },
+    {
+      "id": "dances_2",
+      "conceptId": "dances",
+      "primary": false,
+      "label": "танцует",
+      "image": "media/dances_2.webp",
+      "audio": {
+        "ru": "audio/dances.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "танцует",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/dances.mp3"
+      },
+      "imperative": "Танцуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_dances.mp3"
+      }
+    },
+    {
+      "id": "dances_3",
+      "conceptId": "dances",
+      "primary": false,
+      "label": "танцует",
+      "image": "media/dances_3.webp",
+      "audio": {
+        "ru": "audio/dances.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "legs",
+        "group3": "active"
+      },
+      "answerKey": "танцует",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/dances.mp3"
+      },
+      "imperative": "Танцуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_dances.mp3"
+      }
+    },
+    {
+      "id": "cuts_knife_1",
+      "conceptId": "cuts_knife",
+      "primary": true,
+      "label": "режет",
+      "image": "media/cuts_knife_1.webp",
+      "audio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "tools",
+        "group2": "hands",
+        "group3": "moderate"
+      },
+      "answerKey": "режет",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "imperative": "Покажи, как режет",
+      "imperativeAudio": {
+        "ru": "audio/imp_cuts_knife.mp3"
+      }
+    },
+    {
+      "id": "cuts_3",
+      "conceptId": "cuts_knife",
+      "primary": false,
+      "label": "режет",
+      "image": "media/cuts_3.webp",
+      "audio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "tools",
+        "group2": "hands",
+        "group3": "moderate"
+      },
+      "answerKey": "режет",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "imperative": "Покажи, как режет",
+      "imperativeAudio": {
+        "ru": "audio/imp_cuts_knife.mp3"
+      }
+    },
+    {
+      "id": "cuts_5",
+      "conceptId": "cuts_knife",
+      "primary": false,
+      "label": "режет",
+      "image": "media/cuts_5.webp",
+      "audio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "tools",
+        "group2": "hands",
+        "group3": "moderate"
+      },
+      "answerKey": "режет",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "imperative": "Покажи, как режет",
+      "imperativeAudio": {
+        "ru": "audio/imp_cuts_knife.mp3"
+      }
+    },
+    {
+      "id": "cuts_knife_2",
+      "conceptId": "cuts_knife",
+      "primary": false,
+      "label": "режет",
+      "image": "media/cuts_knife_2.webp",
+      "audio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "tools",
+        "group2": "hands",
+        "group3": "moderate"
+      },
+      "answerKey": "режет",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "imperative": "Покажи, как режет",
+      "imperativeAudio": {
+        "ru": "audio/imp_cuts_knife.mp3"
+      }
+    },
+    {
+      "id": "waters_plants_1",
+      "conceptId": "waters_plants",
+      "primary": true,
+      "label": "поливает",
+      "image": "media/waters_plants_1.webp",
+      "audio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "house",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "answerKey": "поливает",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "imperative": "Поливай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_waters_plants.mp3"
+      }
+    },
+    {
+      "id": "waters_plants_2",
+      "conceptId": "waters_plants",
+      "primary": false,
+      "label": "поливает",
+      "image": "media/waters_plants_2.webp",
+      "audio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "house",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "answerKey": "поливает",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "imperative": "Поливай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_waters_plants.mp3"
+      }
+    },
+    {
+      "id": "waters_plants_3",
+      "conceptId": "waters_plants",
+      "primary": false,
+      "label": "поливает",
+      "image": "media/waters_plants_3.webp",
+      "audio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "house",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "answerKey": "поливает",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "imperative": "Поливай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_waters_plants.mp3"
+      }
+    },
+    {
+      "id": "waters_plants_5",
+      "conceptId": "waters_plants",
+      "primary": false,
+      "label": "поливает",
+      "image": "media/waters_plants_5.webp",
+      "audio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "house",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "answerKey": "поливает",
+      "wave": 3,
+      "promptAudio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "imperative": "Поливай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_waters_plants.mp3"
+      }
+    }
+  ]
+}

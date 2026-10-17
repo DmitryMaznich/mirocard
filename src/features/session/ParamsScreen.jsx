@@ -13,7 +13,7 @@ import OptionsPicker from "@/shared/components/OptionsPicker";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { deriveConcepts, getConceptCards, getFigureFilter, readModeSelectedConceptIds, withFigureFilter } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
 import { COMPARISON_LEVELS, PLACE_VALUE_MODE_IDS } from "@/topics/renderers/comparison/engine";
@@ -1720,7 +1720,7 @@ export default function ParamsScreen() {
   }
 
   function getInitialParams() {
-    const saved = link.params ?? {};
+    const saved = readModeParams(link.params, mode);
     if (isReading && activeText?.kind === "sentence_pool") {
       return { selectedLineIds: saved.selectedLineIds ?? null, group: mode?.group ?? null };
     }
@@ -1923,7 +1923,7 @@ export default function ParamsScreen() {
     }
 
     persistStudentTopicLink(activeStudentId, activeTopicId, {
-      params,
+      params: writeModeParams(link.params, mode, params),
       videoRewardEnabled: hideVideoReward ? false : videoReward,
       answersPerStar,
       strictStars,

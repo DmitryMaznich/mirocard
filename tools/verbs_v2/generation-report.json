@@ -1,0 +1,3895 @@
+{
+  "builtAt": "2026-05-01T04:36:19.712Z",
+  "sourceProject": "verbs_v2",
+  "cardCount": 125,
+  "modelUsage": [
+    "gemini-3.1-flash-image-preview"
+  ],
+  "cards": [
+    {
+      "id": "brushes_teeth_1",
+      "label": {
+        "ru": "чистит зубы",
+        "en": "brushes_teeth_1"
+      },
+      "filename": "brushes_teeth_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child brushing teeth with a toothbrush, mouth slightly open, toothbrush clearly in hand, plain white background, maximum focus on action, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:32:41.099Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы",
+      "notes": ""
+    },
+    {
+      "id": "brushes_teeth_2",
+      "label": {
+        "ru": "чистит зубы",
+        "en": "brushes_teeth_2"
+      },
+      "filename": "brushes_teeth_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child brushing teeth at a bathroom sink with a mirror behind, toothbrush and toothpaste visible, natural bathroom morning light, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:32:56.668Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы",
+      "notes": ""
+    },
+    {
+      "id": "brushes_teeth_3",
+      "label": {
+        "ru": "чистит зубы",
+        "en": "brushes_teeth_3"
+      },
+      "filename": "brushes_teeth_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child brushing teeth with a colorful toothbrush, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:33:29.204Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы",
+      "notes": ""
+    },
+    {
+      "id": "brushes_teeth_4",
+      "label": {
+        "ru": "чистит зубы",
+        "en": "brushes_teeth_4"
+      },
+      "filename": "brushes_teeth_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon bear brushing its teeth with a big colorful toothbrush, foam on its mouth, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:33:57.286Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы",
+      "notes": ""
+    },
+    {
+      "id": "brushes_teeth_5",
+      "label": {
+        "ru": "чистит зубы",
+        "en": "brushes_teeth_5"
+      },
+      "filename": "brushes_teeth_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child holding a toothbrush up to mouth on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:34:17.500Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы",
+      "notes": ""
+    },
+    {
+      "id": "washes_face_1",
+      "label": {
+        "ru": "умывается",
+        "en": "washes_face_1"
+      },
+      "filename": "washes_face_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child washing their face with both hands cupped with water, water splashing on face, plain white background, maximum focus on action, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:34:40.458Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "умывается",
+      "notes": ""
+    },
+    {
+      "id": "washes_face_2",
+      "label": {
+        "ru": "умывается",
+        "en": "washes_face_2"
+      },
+      "filename": "washes_face_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child washing face over a bathroom sink with water running from the tap, towel visible nearby, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:34:53.931Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "умывается",
+      "notes": ""
+    },
+    {
+      "id": "washes_face_3",
+      "label": {
+        "ru": "умывается",
+        "en": "washes_face_3"
+      },
+      "filename": "washes_face_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child washing their face with cupped hands, water droplets, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:35:11.240Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "умывается",
+      "notes": ""
+    },
+    {
+      "id": "washes_face_4",
+      "label": {
+        "ru": "умывается",
+        "en": "washes_face_4"
+      },
+      "filename": "washes_face_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon rabbit washing its face with small paws near a bowl of water, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:35:29.770Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "умывается",
+      "notes": ""
+    },
+    {
+      "id": "washes_face_5",
+      "label": {
+        "ru": "умывается",
+        "en": "washes_face_5"
+      },
+      "filename": "washes_face_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child with both hands raised to face washing on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T14:23:04.370Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "умывается",
+      "notes": ""
+    },
+    {
+      "id": "walks_1",
+      "label": {
+        "ru": "идёт",
+        "en": "walks_1"
+      },
+      "filename": "walks_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child walking confidently, mid-stride with one foot forward and arms naturally swinging, plain white background, full body visible, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:36:10.371Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт",
+      "notes": ""
+    },
+    {
+      "id": "walks_2",
+      "label": {
+        "ru": "идёт",
+        "en": "walks_2"
+      },
+      "filename": "walks_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child walking along a sunny park path, trees and green grass in background, relaxed walking pace, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:36:26.978Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт",
+      "notes": ""
+    },
+    {
+      "id": "walks_3",
+      "label": {
+        "ru": "идёт",
+        "en": "walks_3"
+      },
+      "filename": "walks_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child walking forward mid-stride, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:36:40.224Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт",
+      "notes": ""
+    },
+    {
+      "id": "walks_4",
+      "label": {
+        "ru": "идёт",
+        "en": "walks_4"
+      },
+      "filename": "walks_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon puppy walking upright on two legs with a cheerful expression, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:37:00.327Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт",
+      "notes": ""
+    },
+    {
+      "id": "walks_5",
+      "label": {
+        "ru": "идёт",
+        "en": "walks_5"
+      },
+      "filename": "walks_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child walking mid-stride on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:37:13.332Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт",
+      "notes": ""
+    },
+    {
+      "id": "runs_1",
+      "label": {
+        "ru": "бежит",
+        "en": "runs_1"
+      },
+      "filename": "runs_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child running at full speed, both feet off the ground, arms pumping, body leaning forward, plain white background, full body visible, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:37:25.676Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "бежит",
+      "notes": ""
+    },
+    {
+      "id": "runs_2",
+      "label": {
+        "ru": "бежит",
+        "en": "runs_2"
+      },
+      "filename": "runs_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child running energetically in a park or playground, green grass in background, clear running motion, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:37:44.713Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "бежит",
+      "notes": ""
+    },
+    {
+      "id": "runs_3",
+      "label": {
+        "ru": "бежит",
+        "en": "runs_3"
+      },
+      "filename": "runs_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child running fast with motion lines, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:38:13.380Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "бежит",
+      "notes": ""
+    },
+    {
+      "id": "runs_4",
+      "label": {
+        "ru": "бежит",
+        "en": "runs_4"
+      },
+      "filename": "runs_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon dog running fast with legs fully extended and ears flying back, motion lines around it, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:38:34.325Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "бежит",
+      "notes": ""
+    },
+    {
+      "id": "runs_5",
+      "label": {
+        "ru": "бежит",
+        "en": "runs_5"
+      },
+      "filename": "runs_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child running with arms pumping and legs extended on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:39:31.640Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "бежит",
+      "notes": ""
+    },
+    {
+      "id": "jumps_1",
+      "label": {
+        "ru": "прыгает",
+        "en": "jumps_1"
+      },
+      "filename": "jumps_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child jumping high into the air, both feet completely off the ground, arms raised overhead, joyful expression, plain white background, full body visible, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:40:00.407Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "прыгает",
+      "notes": ""
+    },
+    {
+      "id": "jumps_2",
+      "label": {
+        "ru": "прыгает",
+        "en": "jumps_2"
+      },
+      "filename": "jumps_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child jumping on grass in a park, arms and legs spread wide, full height of jump visible, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:40:23.528Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "прыгает",
+      "notes": ""
+    },
+    {
+      "id": "jumps_3",
+      "label": {
+        "ru": "прыгает",
+        "en": "jumps_3"
+      },
+      "filename": "jumps_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child jumping high with arms up, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:40:58.357Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "прыгает",
+      "notes": ""
+    },
+    {
+      "id": "jumps_4",
+      "label": {
+        "ru": "прыгает",
+        "en": "jumps_4"
+      },
+      "filename": "jumps_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon frog leaping high into the air with a big smile and legs fully extended, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:41:46.720Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "прыгает",
+      "notes": ""
+    },
+    {
+      "id": "jumps_5",
+      "label": {
+        "ru": "прыгает",
+        "en": "jumps_5"
+      },
+      "filename": "jumps_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child jumping high with arms raised and feet off the ground on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:42:03.173Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "прыгает",
+      "notes": ""
+    },
+    {
+      "id": "rides_1",
+      "label": {
+        "ru": "катается",
+        "en": "rides_1"
+      },
+      "filename": "rides_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child riding a bicycle, both hands on handlebars, pedaling motion clearly visible, plain white background, full side view of bike and child, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:42:21.337Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "катается",
+      "notes": ""
+    },
+    {
+      "id": "rides_2",
+      "label": {
+        "ru": "катается",
+        "en": "rides_2"
+      },
+      "filename": "rides_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child riding a bicycle on a park path, helmet on head, sunny outdoor setting with trees, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:42:39.626Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "катается",
+      "notes": ""
+    },
+    {
+      "id": "rides_3",
+      "label": {
+        "ru": "катается",
+        "en": "rides_3"
+      },
+      "filename": "rides_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child riding a bicycle with a smile, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:43:04.892Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "катается",
+      "notes": ""
+    },
+    {
+      "id": "rides_4",
+      "label": {
+        "ru": "катается",
+        "en": "rides_4"
+      },
+      "filename": "rides_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon bear cub riding a small red tricycle with a big smile, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:43:25.214Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "катается",
+      "notes": ""
+    },
+    {
+      "id": "rides_5",
+      "label": {
+        "ru": "катается",
+        "en": "rides_5"
+      },
+      "filename": "rides_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child riding a bicycle in side view on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:43:41.906Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "катается",
+      "notes": ""
+    },
+    {
+      "id": "swims_1",
+      "label": {
+        "ru": "плавает",
+        "en": "swims_1"
+      },
+      "filename": "swims_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child swimming freestyle stroke in water, one arm extended forward, face turned to the side to breathe, water splashing, clear blue water, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:44:09.549Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "плавает",
+      "notes": ""
+    },
+    {
+      "id": "swims_2",
+      "label": {
+        "ru": "плавает",
+        "en": "swims_2"
+      },
+      "filename": "swims_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child swimming in a bright blue outdoor swimming pool, water surface sparkling in sunlight, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:44:34.529Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "плавает",
+      "notes": ""
+    },
+    {
+      "id": "swims_3",
+      "label": {
+        "ru": "плавает",
+        "en": "swims_3"
+      },
+      "filename": "swims_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child swimming in water with splashes around, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:45:09.080Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "плавает",
+      "notes": ""
+    },
+    {
+      "id": "swims_4",
+      "label": {
+        "ru": "плавает",
+        "en": "swims_4"
+      },
+      "filename": "swims_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon duck swimming cheerfully in clear blue water with splashes, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:45:35.010Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "плавает",
+      "notes": ""
+    },
+    {
+      "id": "swims_5",
+      "label": {
+        "ru": "плавает",
+        "en": "swims_5"
+      },
+      "filename": "swims_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child swimming with one arm extended and kicking legs on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:45:55.602Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "плавает",
+      "notes": ""
+    },
+    {
+      "id": "dances_1",
+      "label": {
+        "ru": "танцует",
+        "en": "dances_1"
+      },
+      "filename": "dances_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child dancing with arms outstretched and one leg lifted, joyful expression, body in clear dance pose, plain white background, full body visible, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:46:12.991Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "танцует",
+      "notes": ""
+    },
+    {
+      "id": "dances_2",
+      "label": {
+        "ru": "танцует",
+        "en": "dances_2"
+      },
+      "filename": "dances_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child dancing freely in a bright living room or dance studio, arms spread wide, natural light, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:46:41.113Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "танцует",
+      "notes": ""
+    },
+    {
+      "id": "dances_3",
+      "label": {
+        "ru": "танцует",
+        "en": "dances_3"
+      },
+      "filename": "dances_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child dancing gracefully with arms raised, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:46:58.377Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "танцует",
+      "notes": ""
+    },
+    {
+      "id": "dances_4",
+      "label": {
+        "ru": "танцует",
+        "en": "dances_4"
+      },
+      "filename": "dances_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon flamingo dancing elegantly on one leg with wings spread wide, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:47:25.752Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "танцует",
+      "notes": ""
+    },
+    {
+      "id": "dances_5",
+      "label": {
+        "ru": "танцует",
+        "en": "dances_5"
+      },
+      "filename": "dances_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child dancing with arms outstretched and one leg raised on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:47:43.863Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "танцует",
+      "notes": ""
+    },
+    {
+      "id": "eats_1",
+      "label": {
+        "ru": "ест",
+        "en": "eats_1"
+      },
+      "filename": "eats_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child eating with a spoon raised to open mouth, food clearly visible on the spoon, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:48:11.062Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "ест",
+      "notes": ""
+    },
+    {
+      "id": "eats_2",
+      "label": {
+        "ru": "ест",
+        "en": "eats_2"
+      },
+      "filename": "eats_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child eating a meal at a dining table with a bowl of food in front, natural home kitchen setting, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:48:48.670Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "ест",
+      "notes": ""
+    },
+    {
+      "id": "eats_3",
+      "label": {
+        "ru": "ест",
+        "en": "eats_3"
+      },
+      "filename": "eats_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child eating from a bowl with a spoon, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:49:05.824Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "ест",
+      "notes": ""
+    },
+    {
+      "id": "eats_4",
+      "label": {
+        "ru": "ест",
+        "en": "eats_4"
+      },
+      "filename": "eats_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon bear eating porridge from a bowl with a big spoon, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:49:21.366Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "ест",
+      "notes": ""
+    },
+    {
+      "id": "eats_5",
+      "label": {
+        "ru": "ест",
+        "en": "eats_5"
+      },
+      "filename": "eats_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child with spoon raised to mouth eating on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:49:35.488Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "ест",
+      "notes": ""
+    },
+    {
+      "id": "drinks_1",
+      "label": {
+        "ru": "пьёт",
+        "en": "drinks_1"
+      },
+      "filename": "drinks_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child drinking from a clear glass tilted up, liquid clearly visible inside the glass, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:49:55.553Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт",
+      "notes": ""
+    },
+    {
+      "id": "drinks_2",
+      "label": {
+        "ru": "пьёт",
+        "en": "drinks_2"
+      },
+      "filename": "drinks_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child drinking a glass of orange juice at a table, glass and bottle visible, natural home setting, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:50:11.494Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт",
+      "notes": ""
+    },
+    {
+      "id": "drinks_3",
+      "label": {
+        "ru": "пьёт",
+        "en": "drinks_3"
+      },
+      "filename": "drinks_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child drinking from a tall glass with a straw, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:50:32.066Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт",
+      "notes": ""
+    },
+    {
+      "id": "drinks_4",
+      "label": {
+        "ru": "пьёт",
+        "en": "drinks_4"
+      },
+      "filename": "drinks_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon elephant drinking water through its trunk from a tall glass, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:50:55.402Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт",
+      "notes": ""
+    },
+    {
+      "id": "drinks_5",
+      "label": {
+        "ru": "пьёт",
+        "en": "drinks_5"
+      },
+      "filename": "drinks_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child drinking from a glass tilted upward on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:51:22.568Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт",
+      "notes": ""
+    },
+    {
+      "id": "draws_1",
+      "label": {
+        "ru": "рисует",
+        "en": "draws_1"
+      },
+      "filename": "draws_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child drawing on a large sheet of paper with a colored pencil or marker, pencil in hand making marks on paper, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:51:42.306Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "рисует",
+      "notes": ""
+    },
+    {
+      "id": "draws_2",
+      "label": {
+        "ru": "рисует",
+        "en": "draws_2"
+      },
+      "filename": "draws_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child drawing at a desk or art table, colorful pencils and paper spread out, natural indoor setting, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:52:04.871Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "рисует",
+      "notes": ""
+    },
+    {
+      "id": "draws_3",
+      "label": {
+        "ru": "рисует",
+        "en": "draws_3"
+      },
+      "filename": "draws_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child drawing on paper with a big colored pencil, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:52:26.924Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "рисует",
+      "notes": ""
+    },
+    {
+      "id": "draws_4",
+      "label": {
+        "ru": "рисует",
+        "en": "draws_4"
+      },
+      "filename": "draws_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon elephant painting on a canvas with a large brush held in its trunk, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:52:53.373Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "рисует",
+      "notes": ""
+    },
+    {
+      "id": "draws_5",
+      "label": {
+        "ru": "рисует",
+        "en": "draws_5"
+      },
+      "filename": "draws_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child leaning over paper drawing with arm extended on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:53:16.878Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "рисует",
+      "notes": ""
+    },
+    {
+      "id": "writes_1",
+      "label": {
+        "ru": "пишет",
+        "en": "writes_1"
+      },
+      "filename": "writes_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child writing with a pencil on a lined sheet of paper, hand clearly forming letters on paper, plain white background, close-up shows writing action, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:53:31.574Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "writing",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пишет",
+      "notes": ""
+    },
+    {
+      "id": "writes_2",
+      "label": {
+        "ru": "пишет",
+        "en": "writes_2"
+      },
+      "filename": "writes_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child writing in a notebook at a school desk, pencil in hand, notebook and other school supplies visible, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:53:51.822Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "writing",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пишет",
+      "notes": ""
+    },
+    {
+      "id": "writes_3",
+      "label": {
+        "ru": "пишет",
+        "en": "writes_3"
+      },
+      "filename": "writes_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child writing carefully in a small notebook with a pencil, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:54:22.671Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "writing",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пишет",
+      "notes": ""
+    },
+    {
+      "id": "writes_4",
+      "label": {
+        "ru": "пишет",
+        "en": "writes_4"
+      },
+      "filename": "writes_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon owl writing in a tiny open book with a quill pen, sitting on a branch, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:54:39.509Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "writing",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пишет",
+      "notes": ""
+    },
+    {
+      "id": "writes_5",
+      "label": {
+        "ru": "пишет",
+        "en": "writes_5"
+      },
+      "filename": "writes_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child bent over paper writing with pencil in hand on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:54:53.663Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "writing",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пишет",
+      "notes": ""
+    },
+    {
+      "id": "sings_1",
+      "label": {
+        "ru": "поёт",
+        "en": "sings_1"
+      },
+      "filename": "sings_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child singing with mouth wide open, head slightly tilted back, hands at sides, joyful expression, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:55:08.635Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "поёт",
+      "notes": ""
+    },
+    {
+      "id": "sings_2",
+      "label": {
+        "ru": "поёт",
+        "en": "sings_2"
+      },
+      "filename": "sings_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child singing into a microphone on a small stage or in a choir, spotlight on child, natural performance setting, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:56:38.157Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "поёт",
+      "notes": ""
+    },
+    {
+      "id": "sings_3",
+      "label": {
+        "ru": "поёт",
+        "en": "sings_3"
+      },
+      "filename": "sings_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child singing with mouth open wide, musical notes floating around, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:57:15.064Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "поёт",
+      "notes": ""
+    },
+    {
+      "id": "sings_4",
+      "label": {
+        "ru": "поёт",
+        "en": "sings_4"
+      },
+      "filename": "sings_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon bluebird singing on a branch with beak wide open and musical notes around it, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:57:45.062Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "поёт",
+      "notes": ""
+    },
+    {
+      "id": "sings_5",
+      "label": {
+        "ru": "поёт",
+        "en": "sings_5"
+      },
+      "filename": "sings_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child singing with head tilted back and mouth open on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T14:23:19.737Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "поёт",
+      "notes": ""
+    },
+    {
+      "id": "plays_1",
+      "label": {
+        "ru": "играет",
+        "en": "plays_1"
+      },
+      "filename": "plays_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child playing with a bright colored ball, arms reaching to catch or throw the ball, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:58:20.208Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "играет",
+      "notes": ""
+    },
+    {
+      "id": "plays_2",
+      "label": {
+        "ru": "играет",
+        "en": "plays_2"
+      },
+      "filename": "plays_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child playing with colorful toys or a ball in a sunny playground, natural outdoor setting, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:58:43.569Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "играет",
+      "notes": ""
+    },
+    {
+      "id": "plays_3",
+      "label": {
+        "ru": "играет",
+        "en": "plays_3"
+      },
+      "filename": "plays_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child happily playing with a ball, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:59:07.363Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "играет",
+      "notes": ""
+    },
+    {
+      "id": "plays_4",
+      "label": {
+        "ru": "играет",
+        "en": "plays_4"
+      },
+      "filename": "plays_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon kitten playing with a bright colored ball of yarn, batting it with its paws, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T12:59:33.441Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "играет",
+      "notes": ""
+    },
+    {
+      "id": "plays_5",
+      "label": {
+        "ru": "играет",
+        "en": "plays_5"
+      },
+      "filename": "plays_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child reaching up with arms to play with a ball on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:00:01.128Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "играет",
+      "notes": ""
+    },
+    {
+      "id": "reads_1",
+      "label": {
+        "ru": "читает",
+        "en": "reads_1"
+      },
+      "filename": "reads_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child reading an open book, eyes clearly looking down at the pages, book held up in both hands, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:00:32.548Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "читает",
+      "notes": ""
+    },
+    {
+      "id": "reads_2",
+      "label": {
+        "ru": "читает",
+        "en": "reads_2"
+      },
+      "filename": "reads_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child reading a picture book while sitting in a cozy armchair, soft lamp light, natural home setting, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:00:59.543Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "читает",
+      "notes": ""
+    },
+    {
+      "id": "reads_3",
+      "label": {
+        "ru": "читает",
+        "en": "reads_3"
+      },
+      "filename": "reads_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child reading an open book with big illustrations, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:01:20.568Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "читает",
+      "notes": ""
+    },
+    {
+      "id": "reads_4",
+      "label": {
+        "ru": "читает",
+        "en": "reads_4"
+      },
+      "filename": "reads_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon owl reading a tiny open book with focused eyes, sitting on a branch, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:01:40.857Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "читает",
+      "notes": ""
+    },
+    {
+      "id": "reads_5",
+      "label": {
+        "ru": "читает",
+        "en": "reads_5"
+      },
+      "filename": "reads_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child holding and reading an open book on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:01:55.307Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "читает",
+      "notes": ""
+    },
+    {
+      "id": "counts_1",
+      "label": {
+        "ru": "считает",
+        "en": "counts_1"
+      },
+      "filename": "counts_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child counting on fingers, hand raised with fingers spread open showing a count, clear counting gesture, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:02:23.842Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "math"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "считает",
+      "notes": ""
+    },
+    {
+      "id": "counts_2",
+      "label": {
+        "ru": "считает",
+        "en": "counts_2"
+      },
+      "filename": "counts_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child counting colorful wooden blocks or objects lined up on a table, pointing at each one, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:02:51.772Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "math"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "считает",
+      "notes": ""
+    },
+    {
+      "id": "counts_3",
+      "label": {
+        "ru": "считает",
+        "en": "counts_3"
+      },
+      "filename": "counts_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child counting on raised fingers with a focused expression, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:03:20.941Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "math"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "считает",
+      "notes": ""
+    },
+    {
+      "id": "counts_4",
+      "label": {
+        "ru": "считает",
+        "en": "counts_4"
+      },
+      "filename": "counts_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon raccoon counting small acorns lined up with its raised paw, focused expression, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:03:42.024Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "math"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "считает",
+      "notes": ""
+    },
+    {
+      "id": "counts_5",
+      "label": {
+        "ru": "считает",
+        "en": "counts_5"
+      },
+      "filename": "counts_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child with hand raised counting on fingers on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T14:23:39.878Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "math"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "считает",
+      "notes": ""
+    },
+    {
+      "id": "thinks_1",
+      "label": {
+        "ru": "думает",
+        "en": "thinks_1"
+      },
+      "filename": "thinks_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child in a classic thinking pose, one finger resting on chin, eyebrows slightly raised, eyes looking upward thoughtfully, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:04:20.242Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "emotion",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "думает",
+      "notes": ""
+    },
+    {
+      "id": "thinks_2",
+      "label": {
+        "ru": "думает",
+        "en": "thinks_2"
+      },
+      "filename": "thinks_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child sitting at a desk with a puzzle or problem in front, chin resting on folded hands, thinking carefully, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:04:47.182Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "emotion",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "думает",
+      "notes": ""
+    },
+    {
+      "id": "thinks_3",
+      "label": {
+        "ru": "думает",
+        "en": "thinks_3"
+      },
+      "filename": "thinks_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child thinking with a finger on chin and a thought bubble above, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:05:09.941Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "emotion",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "думает",
+      "notes": ""
+    },
+    {
+      "id": "thinks_4",
+      "label": {
+        "ru": "думает",
+        "en": "thinks_4"
+      },
+      "filename": "thinks_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon owl sitting with one wing touching the side of its head in a thinking pose, thought bubble above, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:05:28.756Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "emotion",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "думает",
+      "notes": ""
+    },
+    {
+      "id": "thinks_5",
+      "label": {
+        "ru": "думает",
+        "en": "thinks_5"
+      },
+      "filename": "thinks_5.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child pausing with a thoughtful expression, finger to temple, looking up at a chalkboard or window in a classroom, natural light, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:05:56.295Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "emotion",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "думает",
+      "notes": "silhouette replaced: thinking pose not clearly readable as a silhouette"
+    },
+    {
+      "id": "vacuums_1",
+      "label": {
+        "ru": "пылесосит",
+        "en": "vacuums_1"
+      },
+      "filename": "vacuums_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child pushing a vacuum cleaner forward on a floor, both hands on the handle, vacuum cleaner body and hose clearly visible, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:06:16.671Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "chores",
+        "indoor"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "пылесосит",
+      "notes": ""
+    },
+    {
+      "id": "vacuums_2",
+      "label": {
+        "ru": "пылесосит",
+        "en": "vacuums_2"
+      },
+      "filename": "vacuums_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child vacuuming the living room carpet, furniture visible in background, natural home setting, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:06:33.270Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "chores",
+        "indoor"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "пылесосит",
+      "notes": ""
+    },
+    {
+      "id": "vacuums_3",
+      "label": {
+        "ru": "пылесосит",
+        "en": "vacuums_3"
+      },
+      "filename": "vacuums_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child pushing a vacuum cleaner with both hands, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:07:03.575Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "chores",
+        "indoor"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "пылесосит",
+      "notes": ""
+    },
+    {
+      "id": "vacuums_4",
+      "label": {
+        "ru": "пылесосит",
+        "en": "vacuums_4"
+      },
+      "filename": "vacuums_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon beaver pushing a tiny vacuum cleaner across the floor with small paws, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:07:19.661Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "chores",
+        "indoor"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "пылесосит",
+      "notes": ""
+    },
+    {
+      "id": "vacuums_5",
+      "label": {
+        "ru": "пылесосит",
+        "en": "vacuums_5"
+      },
+      "filename": "vacuums_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child pushing a vacuum cleaner in side view on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:07:42.902Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "chores",
+        "indoor"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "пылесосит",
+      "notes": ""
+    },
+    {
+      "id": "cuts_1",
+      "label": {
+        "ru": "вырезает",
+        "en": "cuts_1"
+      },
+      "filename": "cuts_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child cutting paper with scissors, scissors open in mid-cut, paper being cut clearly visible, both hands in frame, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:08:07.766Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "craft",
+        "scissors"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "вырезает",
+      "notes": ""
+    },
+    {
+      "id": "cuts_2",
+      "label": {
+        "ru": "вырезает",
+        "en": "cuts_2"
+      },
+      "filename": "cuts_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child cutting colorful paper at a craft table with scissors, cut pieces of paper scattered around, natural indoor setting, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:08:34.404Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "craft",
+        "scissors"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "вырезает",
+      "notes": ""
+    },
+    {
+      "id": "cuts_3",
+      "label": {
+        "ru": "вырезает",
+        "en": "cuts_3"
+      },
+      "filename": "cuts_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child carefully cutting a strip of paper with scissors, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:08:59.008Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "craft",
+        "scissors"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "вырезает",
+      "notes": ""
+    },
+    {
+      "id": "cuts_4",
+      "label": {
+        "ru": "вырезает",
+        "en": "cuts_4"
+      },
+      "filename": "cuts_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon mouse carefully cutting a piece of orange cheese with tiny scissors, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:09:27.911Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "craft",
+        "scissors"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "вырезает",
+      "notes": ""
+    },
+    {
+      "id": "cuts_5",
+      "label": {
+        "ru": "вырезает",
+        "en": "cuts_5"
+      },
+      "filename": "cuts_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child cutting paper with open scissors on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:09:46.631Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "craft",
+        "scissors"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "вырезает",
+      "notes": ""
+    },
+    {
+      "id": "cuts_knife_1",
+      "label": {
+        "ru": "режет"
+      },
+      "filename": "cuts_knife_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a person cutting a vegetable with a kitchen knife on a chopping board, knife clearly visible, plain white background, maximum focus on action, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T14:31:21.338Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "kitchen",
+        "group3": "medium"
+      },
+      "answerKey": "режет",
+      "notes": ""
+    },
+    {
+      "id": "cuts_knife_2",
+      "label": {
+        "ru": "режет"
+      },
+      "filename": "cuts_knife_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a person cutting bread with a kitchen knife on a wooden cutting board in a kitchen, natural light, knife clearly in use, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T14:31:37.080Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "kitchen",
+        "group3": "medium"
+      },
+      "answerKey": "режет",
+      "notes": ""
+    },
+    {
+      "id": "cuts_knife_3",
+      "label": {
+        "ru": "режет"
+      },
+      "filename": "cuts_knife_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a person cutting an apple with a knife, hand-drawn children book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T14:32:05.496Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "kitchen",
+        "group3": "medium"
+      },
+      "answerKey": "режет",
+      "notes": ""
+    },
+    {
+      "id": "cuts_knife_4",
+      "label": {
+        "ru": "режет"
+      },
+      "filename": "cuts_knife_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon bear chef cutting a carrot with a large kitchen knife on a cutting board, cheerful kitchen scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T14:32:32.036Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "kitchen",
+        "group3": "medium"
+      },
+      "answerKey": "режет",
+      "notes": ""
+    },
+    {
+      "id": "cuts_knife_5",
+      "label": {
+        "ru": "режет"
+      },
+      "filename": "cuts_knife_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a hand holding a kitchen knife cutting a vegetable on a chopping board, simple recognizable shape, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T14:32:46.813Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "kitchen",
+        "group3": "medium"
+      },
+      "answerKey": "режет",
+      "notes": ""
+    },
+    {
+      "id": "waters_plants_1",
+      "label": {
+        "ru": "поливает",
+        "en": "waters_plants_1"
+      },
+      "filename": "waters_plants_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child watering a potted plant with a small watering can, clear arc of water pouring onto the plant, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:10:19.965Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "outdoor",
+        "group3": "calm"
+      },
+      "answerKey": "поливает",
+      "notes": ""
+    },
+    {
+      "id": "waters_plants_2",
+      "label": {
+        "ru": "поливает",
+        "en": "waters_plants_2"
+      },
+      "filename": "waters_plants_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child watering green plants in a garden or on a bright windowsill, sunlight visible, natural setting, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:11:08.451Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "outdoor",
+        "group3": "calm"
+      },
+      "answerKey": "поливает",
+      "notes": ""
+    },
+    {
+      "id": "waters_plants_3",
+      "label": {
+        "ru": "поливает",
+        "en": "waters_plants_3"
+      },
+      "filename": "waters_plants_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child pouring water from a watering can onto a flower, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:12:06.583Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "outdoor",
+        "group3": "calm"
+      },
+      "answerKey": "поливает",
+      "notes": ""
+    },
+    {
+      "id": "waters_plants_4",
+      "label": {
+        "ru": "поливает",
+        "en": "waters_plants_4"
+      },
+      "filename": "waters_plants_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon ladybug watering a tall sunflower with a tiny watering can, happy expression, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:12:59.314Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "outdoor",
+        "group3": "calm"
+      },
+      "answerKey": "поливает",
+      "notes": ""
+    },
+    {
+      "id": "waters_plants_5",
+      "label": {
+        "ru": "поливает",
+        "en": "waters_plants_5"
+      },
+      "filename": "waters_plants_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child pouring water from a watering can onto a plant on white background, water arc visible, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:13:24.077Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "outdoor",
+        "group3": "calm"
+      },
+      "answerKey": "поливает",
+      "notes": ""
+    },
+    {
+      "id": "buys_1",
+      "label": {
+        "ru": "покупает",
+        "en": "buys_1"
+      },
+      "filename": "buys_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child handing coins or banknote to a cashier over a store counter, purchasing action clearly visible, plain white background, action clearly depicted, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:13:55.890Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "shopping",
+        "money"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "покупает",
+      "notes": ""
+    },
+    {
+      "id": "buys_2",
+      "label": {
+        "ru": "покупает",
+        "en": "buys_2"
+      },
+      "filename": "buys_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child paying at a store checkout counter, shopping basket with items visible, cashier on the other side, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:14:15.303Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "shopping",
+        "money"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "покупает",
+      "notes": ""
+    },
+    {
+      "id": "buys_3",
+      "label": {
+        "ru": "покупает",
+        "en": "buys_3"
+      },
+      "filename": "buys_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child paying for an item at a shop counter with coins in hand, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:14:36.061Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "shopping",
+        "money"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "покупает",
+      "notes": ""
+    },
+    {
+      "id": "buys_4",
+      "label": {
+        "ru": "покупает",
+        "en": "buys_4"
+      },
+      "filename": "buys_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon squirrel handing an acorn-shaped coin to a fox shopkeeper at a small counter, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:14:52.994Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "shopping",
+        "money"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "покупает",
+      "notes": ""
+    },
+    {
+      "id": "buys_5",
+      "label": {
+        "ru": "покупает",
+        "en": "buys_5"
+      },
+      "filename": "buys_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a person handing something over a counter to another person on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T14:23:53.829Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "shopping",
+        "money"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "покупает",
+      "notes": ""
+    },
+    {
+      "id": "laughs_1",
+      "label": {
+        "ru": "смеётся",
+        "en": "laughs_1"
+      },
+      "filename": "laughs_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child laughing with mouth open wide, eyes crinkled with joy, head slightly tilted, genuinely happy expression, plain white background, face and upper body visible, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:15:37.402Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "смеётся",
+      "notes": ""
+    },
+    {
+      "id": "laughs_2",
+      "label": {
+        "ru": "смеётся",
+        "en": "laughs_2"
+      },
+      "filename": "laughs_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child laughing in a natural social setting, head thrown back with genuine laughter, warm natural light, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:15:54.137Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "смеётся",
+      "notes": ""
+    },
+    {
+      "id": "laughs_3",
+      "label": {
+        "ru": "смеётся",
+        "en": "laughs_3"
+      },
+      "filename": "laughs_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child laughing with a wide open mouth and happy crinkled eyes, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:16:07.767Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "смеётся",
+      "notes": ""
+    },
+    {
+      "id": "laughs_4",
+      "label": {
+        "ru": "смеётся",
+        "en": "laughs_4"
+      },
+      "filename": "laughs_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon hyena laughing with its head thrown back and mouth wide open, rolling with laughter, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:16:23.581Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "смеётся",
+      "notes": ""
+    },
+    {
+      "id": "laughs_5",
+      "label": {
+        "ru": "смеётся",
+        "en": "laughs_5"
+      },
+      "filename": "laughs_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child laughing with head tilted back and mouth open on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T14:24:23.819Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "смеётся",
+      "notes": ""
+    },
+    {
+      "id": "cries_1",
+      "label": {
+        "ru": "плачет",
+        "en": "cries_1"
+      },
+      "filename": "cries_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child with a very sad expression, scrunched face, mouth turned down, plain white background, face and upper body clearly visible, upset facial expression, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:23:40.220Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "плачет",
+      "notes": ""
+    },
+    {
+      "id": "cries_2",
+      "label": {
+        "ru": "плачет",
+        "en": "cries_2"
+      },
+      "filename": "cries_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child sitting in a cozy room with a sad and upset expression, eyes downcast, lower lip slightly trembling, natural soft indoor light, child-friendly emotional scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:22:42.830Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "плачет",
+      "notes": ""
+    },
+    {
+      "id": "cries_3",
+      "label": {
+        "ru": "плачет",
+        "en": "cries_3"
+      },
+      "filename": "cries_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child crying with tears on cheeks, downturned mouth, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:18:00.622Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "плачет",
+      "notes": ""
+    },
+    {
+      "id": "cries_4",
+      "label": {
+        "ru": "плачет",
+        "en": "cries_4"
+      },
+      "filename": "cries_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon puppy sitting with drooping ears and tears on its cheeks, a sad but endearing expression, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:18:20.637Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "плачет",
+      "notes": ""
+    },
+    {
+      "id": "cries_5",
+      "label": {
+        "ru": "плачет",
+        "en": "cries_5"
+      },
+      "filename": "cries_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child sitting with head bowed down in a sad pose on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:18:39.393Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "плачет",
+      "notes": ""
+    },
+    {
+      "id": "sleeps_1",
+      "label": {
+        "ru": "спит",
+        "en": "sleeps_1"
+      },
+      "filename": "sleeps_1.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child sleeping peacefully in bed, eyes closed, head resting on a pillow, cozy blanket pulled up, plain white or very light background, calm and restful image, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:19:11.720Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "спит",
+      "notes": ""
+    },
+    {
+      "id": "sleeps_2",
+      "label": {
+        "ru": "спит",
+        "en": "sleeps_2"
+      },
+      "filename": "sleeps_2.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a child sleeping soundly in a cozy bedroom, soft bedroom lamp light, stuffed animal toy beside them, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:19:49.958Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "спит",
+      "notes": ""
+    },
+    {
+      "id": "sleeps_3",
+      "label": {
+        "ru": "спит",
+        "en": "sleeps_3"
+      },
+      "filename": "sleeps_3.webp",
+      "prompt": "soft watercolor children's book illustration, gentle outlines, warm pastel colors, simple and clear, a child sleeping with closed eyes and a peaceful expression, small pillow and blanket, hand-drawn children's book illustration style, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:20:18.465Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "спит",
+      "notes": ""
+    },
+    {
+      "id": "sleeps_4",
+      "label": {
+        "ru": "спит",
+        "en": "sleeps_4"
+      },
+      "filename": "sleeps_4.webp",
+      "prompt": "high-quality photorealistic educational flashcard photo, natural soft lighting, sharp focus on subject, shallow depth of field with clean blurred background, true-to-life colors, no filters, no illustration effects, realistic proportions and textures, subject clearly and fully visible, professional educational photography style, consistent lighting and color temperature across the entire deck, a friendly cartoon bear sleeping curled up on a tiny pillow with eyes closed and a content expression, playful scene, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:20:34.857Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "спит",
+      "notes": ""
+    },
+    {
+      "id": "sleeps_5",
+      "label": {
+        "ru": "спит",
+        "en": "sleeps_5"
+      },
+      "filename": "sleeps_5.webp",
+      "prompt": "flat black silhouette icon, minimal, clean white background, no gradients, no texture, clean black silhouette of a child sleeping in bed with head on pillow and blanket pulled up on white background, simple recognizable shape, no details, single centered subject, square 1:1 composition, image fills the entire frame edge to edge, no internal borders, no frames, no padding, no white margins, no vignette, no rounded corners, clean background, no text, no watermark, child-friendly, consistent style across the whole deck",
+      "status": "done",
+      "enabled": true,
+      "generatedAt": "2026-04-15T13:20:53.158Z",
+      "model": "gemini-3.1-flash-image-preview",
+      "mimeType": "image/jpeg",
+      "imageConfig": {
+        "aspectRatio": "1:1",
+        "imageSize": "1K"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "спит",
+      "notes": ""
+    }
+  ]
+}

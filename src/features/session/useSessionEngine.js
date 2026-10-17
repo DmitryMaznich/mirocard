@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { flushQueue } from "@/core/syncApi";
-import { deriveConcepts, getConceptCards, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, readModeParams, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
 import { aboutMeHistory } from "@/topics/renderers/my_people/engine";
 import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
@@ -51,7 +51,7 @@ function resolveMode(topicRecord, modeId) {
 // so a freshly picked next mode gets the same concept selection a normal
 // mode switch (via ModePickerScreen -> params) would have produced.
 export function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) {
-  const sessionParams = { ...(link.params ?? {}), strictStars: resolveStrictStars(mode, link.strictStars) };
+  const sessionParams = { ...readModeParams(link.params, mode), strictStars: resolveStrictStars(mode, link.strictStars) };
   const isFigurePickerMode = topicRecord?.meta?.id === "symmetry_draw"
     && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type);
   const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)
@@ -145,7 +145,7 @@ function buildGeneratedSessionState({
     const safeStart = selected.length > 0 ? deckPos % selected.length : 0;
     const concepts = shuffle(safeStart === 0 ? selected : [...selected.slice(safeStart), ...selected.slice(0, safeStart)]);
     const generateTasks = ENGINE_REGISTRY.flashcards;
-    tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams) : [];
+    tasks = generateTasks ? generateTasks(mode.type, concepts, topicRecord.cards, sessionParams, mode) : [];
     isDeckMode = true;
   } else if (renderer === "function_cards") {
     const allConcepts = deriveConcepts(topicRecord.cards);
