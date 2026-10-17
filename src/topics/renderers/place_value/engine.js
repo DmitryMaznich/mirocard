@@ -306,6 +306,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       ones: number % 10,
       seed: randomInt(1, 100000),
       showFrame: params.showFrame !== false,
+      view: params.view === "scheme" ? "scheme" : "coins",
     }));
   }
 

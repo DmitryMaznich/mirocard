@@ -11,6 +11,18 @@ describe("GroupTenTask", () => {
   const take = (n) => { for (let i = 0; i < n; i++) h.click("Монета из россыпи"); };
   const answer = (n) => { for (const d of String(n)) h.click(d); h.click("Проверить"); };
 
+  it("«Схема»: dots in the heap and the frame, ten dots become a stick", () => {
+    h.mount(GroupTenTask, task(13, { view: "scheme" }));
+    expect(h.container.querySelector(".sg-title").textContent).toBe("Сколько здесь точек?");
+    expect(count(".sg-heap-coin .cb-dot")).toBe(13);
+    for (let i = 0; i < 10; i++) h.click("Точка из россыпи");
+    expect(count(".px-tf .cb-dot")).toBe(10);
+    h.click("Сложить десяток");
+    h.flush();
+    expect(count(".sg-stacks .cb-stick")).toBe(1);
+    expect(count(".cb-ten-stack")).toBe(0);
+  });
+
   it("shows a heap and no number until the child has answered", () => {
     h.mount(GroupTenTask, task(23));
     expect(count(".sg-heap-coin")).toBe(23);
