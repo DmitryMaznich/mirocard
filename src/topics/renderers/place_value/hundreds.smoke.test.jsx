@@ -81,7 +81,7 @@ describe("Сотни", () => {
     expect([value("Сотни"), value("Десятки"), value("Единицы")]).toEqual(["3", "0", "5"]);
     h.unmount();
     h.mount(BuildNumberTask, build(305, { view: "number" }));
-    expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько сотен в числе 305?");
+    expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько сотен в числе?");
     h.click("3"); h.click("0"); h.click("5");
     expect(h.container.querySelector(".sg-status-say")).toBeNull();
   });
