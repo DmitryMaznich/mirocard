@@ -3,6 +3,7 @@ import Button from "@/shared/components/Button";
 import { modelPieces, SchemeHundred, SchemeOne, SchemeTen } from "./CoinBlocks.jsx";
 import { numberWords, pluralHundreds, pluralOnes, pluralTens, spelledPlaces } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
+import { PlaceChoiceRows } from "./TableTasks.jsx";
 import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
@@ -216,8 +217,8 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
     : <div className="tb-target">{support ? coloredNumber(n) : n}</div>;
 
   // ── «Число»: read the places straight from the written number. ──
-  const [qStep, setQStep] = useState(0);
-  const [wrongChoice, setWrongChoice] = useState(null);
+  const [answered, setAnswered] = useState({});
+  const [wrongChoice, setWrongChoice] = useState({});
   const [questions] = useState(() => PLACES.map(({ key, name }) => {
     const right = target[key];
     const pool = [right, ...PLACES.filter((p) => p.key !== key).map((p) => target[p.key]), n, words && key !== "ones" ? right * (key === "hundreds" ? 100 : 10) : null, right + 1];
@@ -253,27 +254,28 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
   }
 
   if (view === "number") {
-    const q = questions[qStep];
-    const choose = (v) => {
-      if (solved) return;
-      if (v === q.right) { setWrongChoice(null); setNote(""); if (qStep === 2) setSolved(true); else setQStep(qStep + 1); return; }
-      setWrongChoice(v);
+    const choose = (q, v) => {
+      if (solved || answered[q.key]) return;
+      if (v === q.right) {
+        const next = { ...answered, [q.key]: true };
+        setAnswered(next); setNote("");
+        if (questions.every((x) => next[x.key])) setSolved(true);
+        return;
+      }
+      setWrongChoice((w) => ({ ...w, [q.key]: v }));
       fail(!teaching ? "Проверь ещё раз." : v === n ? `${n} — это всё число. А ${q.ask.split(" ")[1]} в нём сколько?`
         : "Сотни — первая цифра, десятки — вторая, единицы — последняя.",
         { field: q.ask, given: String(v), expected: String(q.right) });
     };
     return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} tb-screen nl-screen`} style={{ "--sg-answer-w": "340px" }}>
       <div className="sg-inner">
-        <h2 className="sg-title">Какие разряды в числе?</h2>
+        <h2 className="sg-title">Сколько сотен, десятков и единиц в числе?</h2>
         <div className="sg-board nl-board">
           {words ? shownNumber : <div className="nl-number">{String(n).split("").map((d, i) => <span key={i} className={`nl-place${teaching ? ` tb-digit--${PLACES[i].key}` : ""}`}>{d}</span>)}</div>}
           {support && <section className="sg-card tb-table hd-table pp-support" aria-hidden="true">{PLACES.map(({ key }) => <div key={key} className={`tb-col tb-col--${key}`}>{head(key)}<div className={`tb-digit tb-digit--${key}`}>{target[key]}</div></div>)}</section>}
         </div>
         <div className="sg-answer">
-          {!solved && <div className="nl-ask">{q.ask}</div>}
-          {!solved && <div className="sg-slot"><div className="nl-choices" key={qStep}>
-            {q.options.map((v) => <button type="button" key={v} className={`xb-choice-btn nl-choice${wrongChoice === v ? " nl-choice--wrong" : ""}`} onClick={() => choose(v)}>{v}</button>)}
-          </div></div>}
+          <PlaceChoiceRows rows={questions} answered={answered} wrong={wrongChoice} onChoose={choose} />
           {done}
         </div>
       </div>

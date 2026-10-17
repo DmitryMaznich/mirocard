@@ -167,6 +167,21 @@
 .sg-screen--wide.nl-screen .sg-inner { grid-template-columns: minmax(0, 1fr) 440px; }
 .sg-screen--tablet .nl-choice,
 .sg-screen--wide .nl-choice { min-width: 112px; min-height: 80px; font-size: 40px; }
+/* One screen, a row per place: the place's chip, then its three choices. */
+.nl-rows { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+.nl-row { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 10px 10px; border-radius: 16px; background: #fff; border: 2px solid #e2e8f0; }
+.nl-row--tens { border-color: #fcd9a8; }
+.nl-row--ones { border-color: #bfd3fb; }
+.nl-row--hundreds { border-color: #b7e4c4; }
+.nl-row--done { background: #f0fdf4; border-color: #86efac; }
+.nl-row-label { font-size: 17px; }
+.nl-rows .nl-choice { min-width: 84px; min-height: 58px; font-size: 30px; }
+.nl-choice--right { border-color: #22c55e; background: #dcfce7; color: #15803d; }
+.nl-choice--off { opacity: .3; }
+.sg-screen--tablet .nl-rows .nl-choice,
+.sg-screen--wide .nl-rows .nl-choice { min-width: 104px; min-height: 70px; font-size: 36px; }
+.sg-screen--tablet .nl-row-label,
+.sg-screen--wide .nl-row-label { font-size: 20px; }
 .nl-choice--wrong { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
 .tb-col--hundreds { background: #f0fdf4; }
 .tb-digit--hundreds { color: #15803d; }
