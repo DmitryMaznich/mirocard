@@ -91,7 +91,7 @@ export function generateIdentifyNumberTask(card, maxOnes, maxTens = 9, numberSet
 
 
 // The params a session runs with: a saved value the mode no longer offers
-// («Круглые сотни» saved in «1. Названия чисел до 100» before the hundreds got their
+// («Круглые сотни» saved in «1. Двузначные: читаем и пишем» before the hundreds got their
 // own items) falls back to the mode's default, and the mode's `preset` (the
 // range of the numbered items, topicLoader.js) wins over anything saved.
 export function modeParams(modeOrObj, params) {
@@ -115,7 +115,7 @@ export const CHECK_VIEWS = { coins: "Монеты", scheme: "Схема", table:
 const PICTURES = ["coins", "scheme", "table"];
 export const CHECK_SKILLS = {
   to100: [
-    { key: "s100_names", label: "Названия чисел до 100", hint: "на слух и словами", modeId: "number_names", type: "number_names", params: () => ({ set: "mix100", task: pick(["choose", "read", "write"]) }) },
+    { key: "s100_names", label: "Двузначные: читаем и пишем", hint: "на слух и словами", modeId: "number_names", type: "number_names", params: () => ({ set: "mix100", task: pick(["choose", "read", "write"]) }) },
     { key: "s100_identify", label: "Какое это число?", modeId: "identify_number", type: "identify_number", views: PICTURES, params: () => ({ range: "to100", maxTens: 9, maxOnes: 9, numberSet: "two_digit", layout: "places" }) },
     { key: "s100_build", label: "Собери число", modeId: "build_number", type: "build_number", views: PICTURES, params: () => ({ range: "to100", maxTens: 9, maxOnes: 9, numberRange: "custom", prompt: "mix" }) },
     { key: "s100_parts", label: "Разрядные слагаемые", hint: "цифрами и словами", modeId: "place_parts", type: "place_parts", params: () => ({ range: "to100", maxTens: 9, direction: "mix", prompt: "mix" }) },
@@ -123,7 +123,7 @@ export const CHECK_SKILLS = {
     { key: "s100_exchange", label: "Плюс и минус через десяток", modeId: "exchange_ten", type: "exchange_ten", views: ["scheme", "table"], params: () => ({ range: "to100", maxTens: 9, operation: "mixed", secondNumber: "one" }) },
   ],
   to1000: [
-    { key: "s1000_names", label: "Названия чисел до 1000", hint: "на слух и словами", modeId: "number_names_hundreds", type: "number_names", params: () => ({ set: "mix1000", task: pick(["choose", "read", "write"]) }) },
+    { key: "s1000_names", label: "Трёхзначные: читаем и пишем", hint: "на слух и словами", modeId: "number_names_hundreds", type: "number_names", params: () => ({ set: "mix1000", task: pick(["choose", "read", "write"]) }) },
     { key: "s1000_count", label: "Какое число дальше и перед?", hint: "счёт десятками через сотню", modeId: "count_tens", type: "count_tens", params: () => ({ range: "to1000", task: pick(["next", "prev"]) }) },
     { key: "s1000_identify", label: "Сотни: какое это число?", modeId: "identify_hundreds", type: "identify_number", views: PICTURES, params: () => ({ range: "to1000" }) },
     { key: "s1000_build", label: "Сотни: собери число", modeId: "build_hundreds", type: "build_number", views: PICTURES, params: () => ({ range: "to1000", prompt: "mix" }) },
