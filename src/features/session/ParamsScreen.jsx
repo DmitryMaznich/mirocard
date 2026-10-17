@@ -1390,6 +1390,7 @@ const LEVEL_DESCRIPTIONS = {
   2: "Базовый — числа до 10, любая разница",
   3: "Средний — числа до 20, любая разница",
   4: "Сложный — двузначные числа до 99",
+  5: "По разрядам — числа до 1000 с ловушками: 47 и 74, 305 и 350, 99 и 100, 300 и 299. После ошибки — оба числа по разрядам",
 };
 
 const QUESTION_OPTIONS = [
@@ -1460,7 +1461,7 @@ function ComparisonParams({ params, onChange }) {
                   <button
                     key={lvl.id}
                     className={`enum-btn enum-btn--compact ${params.level === lvl.id ? "enum-btn--active" : ""}`}
-                    disabled={dotsOnly && lvl.id > 2}
+                    disabled={(dotsOnly && lvl.id > 2) || (isApplyMode && lvl.id === 5)}
                     onClick={() => onChange({ ...params, level: lvl.id })}
                   >
                     {lvl.id}
@@ -1468,7 +1469,7 @@ function ComparisonParams({ params, onChange }) {
                 ))}
               </div>
               {activeLevel && <div className="param-hint">{LEVEL_DESCRIPTIONS[activeLevel.id]}</div>}
-              {dotsOnly && <div className="param-hint">Уровни 3–4 доступны только в режиме «Только цифры»</div>}
+              {dotsOnly && <div className="param-hint">Уровни 3–5 доступны только в режиме «Только цифры»</div>}
             </div>
 
             {/* compare_apply never reads showEqual (see engine.js's

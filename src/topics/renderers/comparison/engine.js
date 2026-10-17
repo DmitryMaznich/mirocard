@@ -8,7 +8,38 @@ export const COMPARISON_LEVELS = [
   { id: 2, label: "До 10",              params: { min: 1,  max: 10, minDiff: 1 } },
   { id: 3, label: "До 20",              params: { min: 1,  max: 20, minDiff: 1 } },
   { id: 4, label: "До 99",              params: { min: 10, max: 99, minDiff: 1 } },
+  // «По разрядам»: pairs up to 1000 where comparing place by place disagrees
+  // with the first look — see placeValuePair below.
+  { id: 5, label: "По разрядам (до 1000)", params: { min: 10, max: 999, minDiff: 1, placeValue: true } },
 ];
+
+// Level 5 «По разрядам»: on random pairs up to 1000 the traps hardly ever come
+// up, so half the pairs are made to be traps: swapped digits (47 / 74, 482 /
+// 428), the zero in another place (305 / 350, 507 / 570), more digits is more
+// (99 / 100, 98 / 102), a round number against the one just below (300 / 299),
+// equal hundreds with the tens deciding (482 / 438). The other half are plain
+// three-digit pairs. Which number stands left is random.
+const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const PLACE_TRAPS = [
+  () => { const t = rnd(1, 9), o = rnd(1, 9); return t === o ? null : [t * 10 + o, o * 10 + t]; },
+  () => { const h = rnd(1, 9), t = rnd(1, 9), o = rnd(1, 9); return t === o ? null : [h * 100 + t * 10 + o, h * 100 + o * 10 + t]; },
+  () => { const h = rnd(1, 9), d = rnd(1, 9); return [h * 100 + d, h * 100 + d * 10]; },
+  () => [rnd(90, 99), rnd(100, 109)],
+  () => { const h = rnd(2, 9) * 100; return [h, h - rnd(1, 9)]; },
+  () => { const h = rnd(1, 9) * 100, a = rnd(1, 9), b = rnd(0, 9); return a === b ? null : [h + a * 10 + rnd(0, 9), h + b * 10 + rnd(0, 9)]; },
+];
+export function placeValuePair(usedPairs) {
+  for (let i = 0; i < MAX_ATTEMPTS; i++) {
+    const pair = Math.random() < 0.5 ? PLACE_TRAPS[rnd(0, PLACE_TRAPS.length - 1)]() : [rnd(100, 999), rnd(100, 999)];
+    if (!pair || pair[0] === pair[1]) continue;
+    const [left, right] = Math.random() < 0.5 ? pair : [pair[1], pair[0]];
+    const key = `${left},${right}`;
+    if (usedPairs?.has(key)) continue;
+    usedPairs?.add(key);
+    return { left, right };
+  }
+  return { left: 305, right: 350 };
+}
 
 const NUM_NOM = ["", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять", "десять",
   "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать",
@@ -336,7 +367,8 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
     const numbersCount  = applyTaskType === "order"
       ? Math.max(3, Math.min(5, sessionParams.numbersCount ?? 3))
       : 3;
-    const levelDef      = COMPARISON_LEVELS.find((l) => l.id === (sessionParams.level ?? 2)) ?? COMPARISON_LEVELS[1];
+    // Level 5 is about pairs; «Применяем сравнение» works on a range — up to 99 there.
+    const levelDef      = COMPARISON_LEVELS.find((l) => l.id === (sessionParams.level === 5 ? 4 : sessionParams.level ?? 2)) ?? COMPARISON_LEVELS[1];
     const { min, max }  = levelDef.params;
     const card          = resolveComparisonCard(mode, cards, sessionParams);
     if (!card) return [];
@@ -428,7 +460,9 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       usedPairs.add(key);
       left = right = val;
     } else {
-      ({ left, right } = generateComparisonTask({ ...baseParams, allowEqual: false }, usedPairs));
+      ({ left, right } = baseParams.placeValue
+        ? placeValuePair(usedPairs)
+        : generateComparisonTask({ ...baseParams, allowEqual: false }, usedPairs));
     }
 
     const isEqual = left === right;
@@ -445,7 +479,10 @@ export function generateTasks(mode, cards, count = 20, sessionParams = {}) {
       ? (visualMode === "numbers" ? "Если числа одинаковые — нажми жёлтый квадрат" : "Если одинаково — нажми посередине")
       : null;
 
-    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style });
+    // Level 5: after a mistake the renderer shows both numbers by places
+    // (PlaceHint) — not in «Контрольная работа».
+    const placeHint = Boolean(baseParams.placeValue) && mode.id !== "compare_test";
+    tasks.push({ type: mode.type, left, right, conceptId: card.conceptId, question: taskQuestion, showEqual, wordsVerdict, visualMode, instruction: taskInstruction(taskQuestion), equalHint, showLabels, style, placeHint });
   }
 
   if ((isFirstNumber || isEvaluate) && examplesCount > 1) {
