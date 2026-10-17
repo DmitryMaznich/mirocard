@@ -151,12 +151,20 @@
 /* «Число» (NumberLevelTask): the written number alone, places read from it. */
 .nl-board { justify-items: center; row-gap: 16px; }
 .nl-number { display: flex; gap: 6px; color: #1a1a2e; }
-.nl-place { display: grid; justify-items: center; font-size: clamp(80px, 22vw, 128px); font-weight: 900; line-height: 1; }
+/* Sized from the screen itself (width and height), so a tablet gets a big
+   number and big choices, and a short phone still fits. */
+.nl-place { display: grid; justify-items: center; font-size: clamp(56px, min(22vw, 11vh), 168px); font-weight: 900; line-height: 1; }
+/* Kept in place but not shown yet: the support table (after a mistake) and
+   «Далее» — the screen doesn't jump when they appear. */
+.nl-reserved { visibility: hidden; }
 /* «Число»: the question big, the choices under it, the hint under them — on
    every screen one column (not the keypad layout of the other levels, whose
    tablet slot is the keypad's width and pushed the choices off the screen). */
 .nl-screen .sg-answer { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.nl-screen .sg-slot { width: 100%; height: auto; min-height: 76px; }
+.nl-screen .sg-slot { width: 100%; height: auto; min-height: 56px; }
+.nl-screen .sg-status { min-height: 28px; }
+/* The support table after a mistake: its digits follow the screen height too. */
+.nl-screen .pp-support .tb-digit { font-size: clamp(28px, 5vh, 56px); }
 .nl-ask { font-size: 26px; font-weight: 900; line-height: 1.2; color: #1a1a2e; text-align: center; }
 .nl-choices { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 .nl-choice { min-width: 92px; min-height: 68px; font-size: 34px; font-weight: 900; }
@@ -164,10 +172,24 @@
 .sg-screen--wide .nl-ask { font-size: 32px; }
 /* Landscape: the answer column wide enough for the question on one line and
    the three choices in one row. */
-.sg-screen--wide.nl-screen .sg-inner { grid-template-columns: minmax(0, 1fr) 440px; }
+.sg-screen--wide.nl-screen .sg-inner { grid-template-columns: minmax(0, 1fr) min(560px, 52vw); }
 .sg-screen--tablet .nl-choice,
 .sg-screen--wide .nl-choice { min-width: 112px; min-height: 80px; font-size: 40px; }
-.nl-choice--wrong { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
+/* One screen, a column per place in the digits' order (Сотни · Десятки ·
+   Единицы), each on a pale panel of its colour: the chip, then its three
+   choices stacked. A column answered right turns green, its other choices fade. */
+.nl-rows { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: clamp(8px, 2vw, 18px); width: 100%; max-width: min(100%, 640px); margin: 0 auto; }
+.nl-row { display: flex; flex-direction: column; align-items: stretch; gap: clamp(6px, 1.2vh, 12px); padding: clamp(8px, 1.4vh, 14px) clamp(6px, 1.5vw, 14px); border-radius: 18px; border: 2px solid transparent; }
+.nl-row--hundreds { background: #f0fdf4; }
+.nl-row--tens { background: #fff7ed; }
+.nl-row--ones { background: #eff6ff; }
+.nl-row--done { border-color: #22c55e; }
+.nl-row-label { align-self: center; font-size: clamp(15px, 2.2vh, 22px); }
+.nl-rows .nl-choices { flex-direction: column; flex-wrap: nowrap; gap: clamp(6px, 1.2vh, 12px); }
+.nl-rows .nl-choice { min-width: 0; width: 100%; min-height: clamp(44px, 7vh, 96px); font-size: clamp(24px, 4.4vh, 52px); box-shadow: none; border-color: transparent; background: #fff; padding: 2px 6px; line-height: 1; }
+.nl-choice--right { border-color: #22c55e !important; background: #dcfce7 !important; color: #15803d; }
+.nl-choice--off { opacity: .25; }
+.nl-rows .nl-choice--wrong, .nl-choice--wrong { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
 .tb-col--hundreds { background: #f0fdf4; }
 .tb-digit--hundreds { color: #15803d; }
 /* Three parts (347 = 300 + 40 + 7) must fit one phone line; a number in words
