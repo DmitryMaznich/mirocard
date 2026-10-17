@@ -5,7 +5,7 @@
       "ru": "Глаголы",
       "en": "verbs_v2"
     },
-    "version": "1.3.0",
+    "version": "1.4.0",
     "renderer": "flashcards",
     "conceptCount": 20,
     "questionKey": "Что делает?",
@@ -19,24 +19,27 @@
       "finalGoal": "Ребёнок по слову уверенно находит картинку с действием среди похожих и обозначает действие на картинке доступным ему способом.",
       "flow": [
         "Работайте волнами. Волна 1: ест, пьёт, спит, бежит, прыгает, рисует. Волна 2: идёт, чистит зубы, играет, читает, катается, плачет, смеётся. Волна 3: умывается, плавает, поёт, танцует, режет, поливает, пылесосит.",
-        "Внутри волны: Знакомство → Покажи из двух → Покажи из четырёх → Найди все → Похожие действия → Что делает?",
-        "Переходите к следующему режиму и следующей волне, когда ребёнок отвечает верно 8 раз из 10 два занятия подряд."
+        "Внутри волны: Знакомство → Покажи, как (параллельно с выбором картинок) → Покажи: из двух → Покажи: из четырёх → Найди все картинки → Похожие действия → Что делает?",
+        "Переходите к следующему режиму и следующей волне, когда ребёнок отвечает верно 8 раз из 10 два занятия подряд.",
+        "В режимах «Покажи» по умолчанию включено «Без ошибок»: после промаха подсвечивается правильная картинка, промах всё равно записывается. Для первого знакомства можно поставить 1 вариант — ребёнок просто нажимает картинку под слово."
       ],
       "tips": [
         "Начинайте с 3–4 глаголов: отметьте их в точках над режимом.",
         "Показывайте действия в жизни и в игре — «Мишка спит», «Прыгай!» — это важнее экрана.",
         "При ошибке не говорите «нет»: покажите и назовите правильное действие."
       ]
-    }
+    },
+    "customModesOnly": true
   },
   "modes": [
     {
-      "id": "intro",
+      "id": "verbs_intro",
       "type": "intro",
       "evaluation": "none",
       "ui": {
         "title": "Знакомство",
-        "instruction": "Посмотри и послушай"
+        "instruction": "Посмотри и послушай",
+        "icon": "media/icons/flashcards_intro.svg"
       },
       "methodology": {
         "summary": "Посмотри на действие и послушай, как оно называется.",
@@ -48,15 +51,42 @@
           "После картинки покажите это действие сами или с игрушкой: «Мишка ест — ам-ам».",
           "Предложите ребёнку повторить движение (прыгнуть, «попить» из пустой чашки) — так глагол запоминается лучше, чем со слов."
         ]
+      },
+      "paramsScope": "mode",
+      "groupByConcept": true
+    },
+    {
+      "id": "verbs_act_out",
+      "type": "act_out",
+      "evaluation": "none",
+      "paramsScope": "mode",
+      "ui": {
+        "title": "Покажи, как",
+        "instruction": "Сделай, как на картинке",
+        "icon": "media/icons/flashcards_question_answer.svg"
+      },
+      "methodology": {
+        "summary": "Звучит команда «Прыгай!» — ребёнок выполняет или изображает действие, взрослый оценивает.",
+        "text": "На экране картинка-образец, звучит команда в повелительной форме. Ребёнок делает действие сам или с игрушкой (кормит мишку, «пьёт» из пустой чашки). Взрослый нажимает оценку, после чего звучит слово («прыгает»).",
+        "goal": "Ребёнок выполняет действие по словесной команде — понимание глагола через собственное движение.",
+        "duration": "3–5 минут",
+        "tips": [
+          "Сначала покажите действие сами и выполните его вместе с ребёнком (рука в руке), потом только словом.",
+          "«С подсказкой» — если понадобился ваш показ или помощь руками.",
+          "Режим идёт параллельно с «Покажи: из двух»: движение помогает понять слово.",
+          "Команда пока озвучивается синтезатором речи; записанный голос появится позже."
+        ]
       }
     },
     {
-      "id": "find_2",
+      "id": "verbs_find_2",
       "type": "find_n",
       "evaluation": "auto",
       "ui": {
         "title": "Покажи: из двух",
-        "instruction": "Послушай и нажми на картинку"
+        "instruction": "Послушай и нажми на картинку",
+        "icon": "media/icons/flashcards_find_n.svg",
+        "promptTemplate": "Покажи: {label}"
       },
       "methodology": {
         "summary": "Слово звучит — ребёнок выбирает картинку из двух совсем разных действий.",
@@ -76,10 +106,18 @@
             "ru": "Вариантов"
           },
           "values": [
+            1,
             2,
             4
           ],
-          "default": 2
+          "default": 2,
+          "labels": {
+            "ru": {
+              "1": "1 — без выбора",
+              "2": "2",
+              "4": "4"
+            }
+          }
         },
         "distractorLevel": {
           "type": "enum",
@@ -108,16 +146,29 @@
           "default": 1,
           "min": 1,
           "max": 3
+        },
+        "errorless": {
+          "type": "boolean",
+          "label": {
+            "ru": "Без ошибок"
+          },
+          "hint": {
+            "ru": "После промаха подсвечивается правильная картинка, и ребёнок нажимает её"
+          },
+          "default": true
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
-      "id": "find_n",
+      "id": "verbs_find_4",
       "type": "find_n",
       "evaluation": "auto",
       "ui": {
         "title": "Покажи: из четырёх",
-        "instruction": "Послушай и нажми на картинку"
+        "instruction": "Послушай и нажми на картинку",
+        "icon": "media/icons/flashcards_find_n.svg",
+        "promptTemplate": "Покажи: {label}"
       },
       "methodology": {
         "summary": "Слово звучит — ребёнок выбирает картинку из четырёх.",
@@ -170,16 +221,30 @@
           "default": 1,
           "min": 1,
           "max": 3
+        },
+        "errorless": {
+          "type": "boolean",
+          "label": {
+            "ru": "Без ошибок"
+          },
+          "hint": {
+            "ru": "После промаха подсвечивается правильная картинка, и ребёнок нажимает её"
+          },
+          "default": true
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
-      "id": "choose_all",
+      "id": "verbs_choose_all",
       "type": "choose_all",
       "evaluation": "auto",
       "ui": {
         "title": "Найди все картинки",
-        "instruction": "Найди все картинки с этим действием"
+        "instruction": "Найди все картинки с этим действием",
+        "icon": "media/icons/flashcards_choose_all.svg",
+        "promptTemplate": "Найди все: {label}",
+        "autoplayPrompt": true
       },
       "methodology": {
         "summary": "Найди все картинки, где делают одно и то же.",
@@ -187,7 +252,7 @@
         "goal": "Ребёнок объединяет разные изображения одного действия и не путает их с другими.",
         "duration": "3–5 минут",
         "tips": [
-          "Слово в этом режиме не звучит автоматически — произнесите его сами перед началом и после каждой найденной картинки.",
+          "Слово звучит при появлении сетки; кнопка 🔊 повторяет его.",
           "Начните с сетки из 4 картинок (2 нужные)."
         ]
       },
@@ -203,15 +268,18 @@
           ],
           "default": 4
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
-      "id": "find_similar",
+      "id": "verbs_similar",
       "type": "find_n",
       "evaluation": "auto",
       "ui": {
         "title": "Похожие действия",
-        "instruction": "Послушай и нажми на картинку"
+        "instruction": "Послушай и нажми на картинку",
+        "icon": "media/icons/flashcards_find_n.svg",
+        "promptTemplate": "Покажи: {label}"
       },
       "methodology": {
         "summary": "Выбери из двух похожих действий: идёт или бежит, ест или пьёт.",
@@ -263,16 +331,28 @@
           "default": 1,
           "min": 1,
           "max": 3
+        },
+        "errorless": {
+          "type": "boolean",
+          "label": {
+            "ru": "Без ошибок"
+          },
+          "hint": {
+            "ru": "После промаха подсвечивается правильная картинка, и ребёнок нажимает её"
+          },
+          "default": true
         }
-      }
+      },
+      "paramsScope": "mode"
     },
     {
-      "id": "question_answer",
+      "id": "verbs_question_answer",
       "type": "question_answer",
       "evaluation": "none",
       "ui": {
         "title": "Что делает?",
-        "instruction": "Что делает?"
+        "instruction": "Что делает?",
+        "icon": "media/icons/flashcards_question_answer.svg"
       },
       "methodology": {
         "summary": "Ребёнок называет действие на картинке, взрослый оценивает ответ.",
@@ -284,15 +364,17 @@
           "«С подсказкой» — если вы показали жест или начали слово.",
           "Этот режим — после уверенного выбора картинок; экспрессия у минимально вербального ребёнка идёт медленнее понимания, это нормально."
         ]
-      }
+      },
+      "paramsScope": "mode"
     },
     {
-      "id": "choose_word_by_picture",
+      "id": "verbs_choose_word",
       "type": "choose_word_by_picture",
       "evaluation": "auto",
       "ui": {
         "title": "Выбери слово",
-        "instruction": "Нажми на правильное слово"
+        "instruction": "Нажми на правильное слово",
+        "icon": "media/icons/flashcards_choose_word.svg"
       },
       "methodology": {
         "summary": "По картинке выбери написанное слово — для читающих детей.",
@@ -317,7 +399,8 @@
         "concepts": {
           "type": "concept_selector"
         }
-      }
+      },
+      "paramsScope": "mode"
     }
   ],
   "annotation": {
@@ -354,7 +437,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/eats.mp3"
-      }
+      },
+      "imperative": "Ешь!"
     },
     {
       "id": "eats_2",
@@ -380,7 +464,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/eats.mp3"
-      }
+      },
+      "imperative": "Ешь!"
     },
     {
       "id": "eats_3",
@@ -406,7 +491,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/eats.mp3"
-      }
+      },
+      "imperative": "Ешь!"
     },
     {
       "id": "eats_4",
@@ -432,7 +518,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/eats.mp3"
-      }
+      },
+      "imperative": "Ешь!"
     },
     {
       "id": "eats_5",
@@ -458,7 +545,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/eats.mp3"
-      }
+      },
+      "imperative": "Ешь!"
     },
     {
       "id": "drinks_1",
@@ -484,7 +572,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/drinks.mp3"
-      }
+      },
+      "imperative": "Пей!"
     },
     {
       "id": "drinks_2",
@@ -510,7 +599,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/drinks.mp3"
-      }
+      },
+      "imperative": "Пей!"
     },
     {
       "id": "drinks_3",
@@ -536,7 +626,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/drinks.mp3"
-      }
+      },
+      "imperative": "Пей!"
     },
     {
       "id": "drinks_5",
@@ -562,7 +653,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/drinks.mp3"
-      }
+      },
+      "imperative": "Пей!"
     },
     {
       "id": "sleeps_1",
@@ -588,7 +680,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
-      }
+      },
+      "imperative": "Спи!"
     },
     {
       "id": "sleeps_2",
@@ -614,7 +707,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
-      }
+      },
+      "imperative": "Спи!"
     },
     {
       "id": "sleeps_3",
@@ -640,7 +734,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
-      }
+      },
+      "imperative": "Спи!"
     },
     {
       "id": "sleeps_4",
@@ -666,7 +761,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
-      }
+      },
+      "imperative": "Спи!"
     },
     {
       "id": "sleeps_5",
@@ -692,7 +788,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
-      }
+      },
+      "imperative": "Спи!"
     },
     {
       "id": "runs_1",
@@ -719,7 +816,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/runs.mp3"
-      }
+      },
+      "imperative": "Беги!"
     },
     {
       "id": "runs_2",
@@ -746,7 +844,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/runs.mp3"
-      }
+      },
+      "imperative": "Беги!"
     },
     {
       "id": "runs_3",
@@ -773,7 +872,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/runs.mp3"
-      }
+      },
+      "imperative": "Беги!"
     },
     {
       "id": "runs_4",
@@ -800,7 +900,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/runs.mp3"
-      }
+      },
+      "imperative": "Беги!"
     },
     {
       "id": "runs_5",
@@ -827,7 +928,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/runs.mp3"
-      }
+      },
+      "imperative": "Беги!"
     },
     {
       "id": "jumps_1",
@@ -853,7 +955,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/jumps.mp3"
-      }
+      },
+      "imperative": "Прыгай!"
     },
     {
       "id": "jumps_2",
@@ -879,7 +982,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/jumps.mp3"
-      }
+      },
+      "imperative": "Прыгай!"
     },
     {
       "id": "jumps_3",
@@ -905,7 +1009,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/jumps.mp3"
-      }
+      },
+      "imperative": "Прыгай!"
     },
     {
       "id": "jumps_4",
@@ -931,7 +1036,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/jumps.mp3"
-      }
+      },
+      "imperative": "Прыгай!"
     },
     {
       "id": "draws_1",
@@ -957,7 +1063,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/draws.mp3"
-      }
+      },
+      "imperative": "Рисуй!"
     },
     {
       "id": "draws_2",
@@ -983,7 +1090,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/draws.mp3"
-      }
+      },
+      "imperative": "Рисуй!"
     },
     {
       "id": "draws_3",
@@ -1009,7 +1117,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/draws.mp3"
-      }
+      },
+      "imperative": "Рисуй!"
     },
     {
       "id": "draws_4",
@@ -1035,7 +1144,8 @@
       "wave": 1,
       "promptAudio": {
         "ru": "audio/draws.mp3"
-      }
+      },
+      "imperative": "Рисуй!"
     },
     {
       "id": "walks_1",
@@ -1061,7 +1171,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/walks.mp3"
-      }
+      },
+      "imperative": "Иди!"
     },
     {
       "id": "walks_2",
@@ -1087,7 +1198,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/walks.mp3"
-      }
+      },
+      "imperative": "Иди!"
     },
     {
       "id": "walks_3",
@@ -1113,7 +1225,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/walks.mp3"
-      }
+      },
+      "imperative": "Иди!"
     },
     {
       "id": "walks_5",
@@ -1139,7 +1252,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/walks.mp3"
-      }
+      },
+      "imperative": "Иди!"
     },
     {
       "id": "brushes_teeth_1",
@@ -1165,7 +1279,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
-      }
+      },
+      "imperative": "Чисти зубы!"
     },
     {
       "id": "brushes_teeth_2",
@@ -1191,7 +1306,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
-      }
+      },
+      "imperative": "Чисти зубы!"
     },
     {
       "id": "brushes_teeth_3",
@@ -1217,7 +1333,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
-      }
+      },
+      "imperative": "Чисти зубы!"
     },
     {
       "id": "brushes_teeth_4",
@@ -1243,7 +1360,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
-      }
+      },
+      "imperative": "Чисти зубы!"
     },
     {
       "id": "brushes_teeth_5",
@@ -1269,7 +1387,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/brushes_teeth.mp3"
-      }
+      },
+      "imperative": "Чисти зубы!"
     },
     {
       "id": "plays_1",
@@ -1295,7 +1414,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/plays.mp3"
-      }
+      },
+      "imperative": "Играй!"
     },
     {
       "id": "plays_2",
@@ -1321,7 +1441,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/plays.mp3"
-      }
+      },
+      "imperative": "Играй!"
     },
     {
       "id": "plays_3",
@@ -1347,7 +1468,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/plays.mp3"
-      }
+      },
+      "imperative": "Играй!"
     },
     {
       "id": "plays_4",
@@ -1373,7 +1495,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/plays.mp3"
-      }
+      },
+      "imperative": "Играй!"
     },
     {
       "id": "plays_5",
@@ -1399,7 +1522,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/plays.mp3"
-      }
+      },
+      "imperative": "Играй!"
     },
     {
       "id": "reads_1",
@@ -1425,7 +1549,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/reads.mp3"
-      }
+      },
+      "imperative": "Читай!"
     },
     {
       "id": "reads_2",
@@ -1451,7 +1576,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/reads.mp3"
-      }
+      },
+      "imperative": "Читай!"
     },
     {
       "id": "reads_3",
@@ -1477,7 +1603,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/reads.mp3"
-      }
+      },
+      "imperative": "Читай!"
     },
     {
       "id": "reads_4",
@@ -1503,7 +1630,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/reads.mp3"
-      }
+      },
+      "imperative": "Читай!"
     },
     {
       "id": "reads_5",
@@ -1529,7 +1657,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/reads.mp3"
-      }
+      },
+      "imperative": "Читай!"
     },
     {
       "id": "rides_1",
@@ -1556,7 +1685,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/rides.mp3"
-      }
+      },
+      "imperative": "Катайся!"
     },
     {
       "id": "rides_2",
@@ -1583,7 +1713,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/rides.mp3"
-      }
+      },
+      "imperative": "Катайся!"
     },
     {
       "id": "rides_3",
@@ -1610,7 +1741,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/rides.mp3"
-      }
+      },
+      "imperative": "Катайся!"
     },
     {
       "id": "rides_4",
@@ -1637,7 +1769,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/rides.mp3"
-      }
+      },
+      "imperative": "Катайся!"
     },
     {
       "id": "rides_5",
@@ -1664,7 +1797,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/rides.mp3"
-      }
+      },
+      "imperative": "Катайся!"
     },
     {
       "id": "cries_1",
@@ -1690,7 +1824,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/cries.mp3"
-      }
+      },
+      "imperative": "Покажи, как плачет"
     },
     {
       "id": "cries_3",
@@ -1716,7 +1851,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/cries.mp3"
-      }
+      },
+      "imperative": "Покажи, как плачет"
     },
     {
       "id": "laughs_1",
@@ -1742,7 +1878,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/laughs.mp3"
-      }
+      },
+      "imperative": "Смейся!"
     },
     {
       "id": "laughs_2",
@@ -1768,7 +1905,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/laughs.mp3"
-      }
+      },
+      "imperative": "Смейся!"
     },
     {
       "id": "laughs_3",
@@ -1794,7 +1932,8 @@
       "wave": 2,
       "promptAudio": {
         "ru": "audio/laughs.mp3"
-      }
+      },
+      "imperative": "Смейся!"
     },
     {
       "id": "washes_face_1",
@@ -1820,7 +1959,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/washes_face.mp3"
-      }
+      },
+      "imperative": "Умывайся!"
     },
     {
       "id": "washes_face_2",
@@ -1846,7 +1986,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/washes_face.mp3"
-      }
+      },
+      "imperative": "Умывайся!"
     },
     {
       "id": "washes_face_3",
@@ -1872,7 +2013,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/washes_face.mp3"
-      }
+      },
+      "imperative": "Умывайся!"
     },
     {
       "id": "swims_1",
@@ -1898,7 +2040,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/swims.mp3"
-      }
+      },
+      "imperative": "Плыви!"
     },
     {
       "id": "swims_2",
@@ -1924,7 +2067,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/swims.mp3"
-      }
+      },
+      "imperative": "Плыви!"
     },
     {
       "id": "swims_4",
@@ -1950,7 +2094,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/swims.mp3"
-      }
+      },
+      "imperative": "Плыви!"
     },
     {
       "id": "swims_5",
@@ -1976,7 +2121,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/swims.mp3"
-      }
+      },
+      "imperative": "Плыви!"
     },
     {
       "id": "sings_2",
@@ -2002,7 +2148,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/sings.mp3"
-      }
+      },
+      "imperative": "Пой!"
     },
     {
       "id": "sings_3",
@@ -2028,7 +2175,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/sings.mp3"
-      }
+      },
+      "imperative": "Пой!"
     },
     {
       "id": "sings_4",
@@ -2054,7 +2202,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/sings.mp3"
-      }
+      },
+      "imperative": "Пой!"
     },
     {
       "id": "dances_1",
@@ -2081,7 +2230,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/dances.mp3"
-      }
+      },
+      "imperative": "Танцуй!"
     },
     {
       "id": "dances_2",
@@ -2108,7 +2258,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/dances.mp3"
-      }
+      },
+      "imperative": "Танцуй!"
     },
     {
       "id": "dances_3",
@@ -2135,7 +2286,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/dances.mp3"
-      }
+      },
+      "imperative": "Танцуй!"
     },
     {
       "id": "cuts_knife_1",
@@ -2161,7 +2313,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
-      }
+      },
+      "imperative": "Покажи, как режет"
     },
     {
       "id": "cuts_1",
@@ -2187,7 +2340,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
-      }
+      },
+      "imperative": "Покажи, как режет"
     },
     {
       "id": "cuts_2",
@@ -2213,7 +2367,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
-      }
+      },
+      "imperative": "Покажи, как режет"
     },
     {
       "id": "cuts_3",
@@ -2239,7 +2394,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
-      }
+      },
+      "imperative": "Покажи, как режет"
     },
     {
       "id": "cuts_5",
@@ -2265,7 +2421,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
-      }
+      },
+      "imperative": "Покажи, как режет"
     },
     {
       "id": "cuts_knife_2",
@@ -2291,7 +2448,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
-      }
+      },
+      "imperative": "Покажи, как режет"
     },
     {
       "id": "cuts_knife_3",
@@ -2317,7 +2475,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
-      }
+      },
+      "imperative": "Покажи, как режет"
     },
     {
       "id": "cuts_knife_4",
@@ -2343,7 +2502,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
-      }
+      },
+      "imperative": "Покажи, как режет"
     },
     {
       "id": "waters_plants_1",
@@ -2369,7 +2529,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
-      }
+      },
+      "imperative": "Поливай!"
     },
     {
       "id": "waters_plants_2",
@@ -2395,7 +2556,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
-      }
+      },
+      "imperative": "Поливай!"
     },
     {
       "id": "waters_plants_3",
@@ -2421,7 +2583,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
-      }
+      },
+      "imperative": "Поливай!"
     },
     {
       "id": "waters_plants_5",
@@ -2447,7 +2610,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
-      }
+      },
+      "imperative": "Поливай!"
     },
     {
       "id": "vacuums_1",
@@ -2473,7 +2637,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/vacuums.mp3"
-      }
+      },
+      "imperative": "Покажи, как пылесосит"
     },
     {
       "id": "vacuums_2",
@@ -2499,7 +2664,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/vacuums.mp3"
-      }
+      },
+      "imperative": "Покажи, как пылесосит"
     },
     {
       "id": "vacuums_3",
@@ -2525,7 +2691,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/vacuums.mp3"
-      }
+      },
+      "imperative": "Покажи, как пылесосит"
     },
     {
       "id": "vacuums_4",
@@ -2551,7 +2718,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/vacuums.mp3"
-      }
+      },
+      "imperative": "Покажи, как пылесосит"
     },
     {
       "id": "vacuums_5",
@@ -2577,7 +2745,8 @@
       "wave": 3,
       "promptAudio": {
         "ru": "audio/vacuums.mp3"
-      }
+      },
+      "imperative": "Покажи, как пылесосит"
     }
   ]
 }

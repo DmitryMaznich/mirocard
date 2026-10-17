@@ -12918,6 +12918,22 @@ button {
 }
 .find-n-option__img { width: 100%; height: 100%; object-fit: cover; }
 .find-n-option__img--loading { background: #e0e0e0; width: 100%; height: 100%; }
+.find-n-option:disabled { cursor: default; }
+/* Errorless «Покажи» after a miss: the right picture is lit and gently pulses,
+   the rest fade (same cue as my_people's .people-point-photo--hint). */
+.find-n-option--hint {
+  box-shadow: 0 0 0 4px #4a9b8f;
+  animation: find-n-hint-pulse 1.1s ease-in-out infinite;
+}
+.find-n-option--correct { box-shadow: 0 0 0 4px #22c55e; }
+.find-n-option--faded { opacity: .35; }
+@keyframes find-n-hint-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px #4a9b8f, 0 0 0 4px rgba(74, 155, 143, .45); }
+  50% { box-shadow: 0 0 0 4px #4a9b8f, 0 0 0 14px rgba(74, 155, 143, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .find-n-option--hint { animation: none; }
+}
 .find-n-label {
   font-size: 1.4rem;
   font-weight: 600;

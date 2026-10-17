@@ -204,8 +204,9 @@ Speech-therapy audit of the topic for minimally verbal children with ASD (2026-1
 per-card verdicts for all 125 images, new vocabulary waves, a 12-step mode ladder and
 a step-by-step implementation plan. **Read `docs/verbs-methodology-review.md` first**
 before touching `verbs_v2`. Source lives in `tools/verbs_v2/` (`node tools/verbs_v2/build.mjs`
-packs only files `deck.json` references). Steps 0–1 done (v1.3.0); next is step 2 (flashcards
-engine: errorless, prompt templates, `act_out`).
+packs only files `deck.json` references). Steps 0–2 done (deck v1.4.0, not deployed yet); next
+is step 3 (new pictures/audio). The deck needs `meta.customModesOnly` + `verbs_`-prefixed mode
+ids — without them `topicLoader` silently replaces generic flashcards modes' ui/params.
 
 ## Разряды числа (place_value)
 

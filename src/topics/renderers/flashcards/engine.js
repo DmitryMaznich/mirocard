@@ -2,7 +2,11 @@ import { shuffle } from "@/shared/utils/shuffle";
 import { pickVariation, deriveConcepts } from "@/shared/utils/topicUtils";
 import { selectDistractorConceptIds } from "@/shared/utils/distractorEngine";
 
-function generateIntroTasks(concepts) {
+// groupByConcept (mode flag): every picture of one concept in a row, concepts
+// in the session's already-shuffled order - verbs_v2 shows a verb on all its
+// performers back to back so the child hears one word on many pictures,
+// instead of 80 unrelated cards interleaved at random.
+function generateIntroTasks(concepts, { groupByConcept = false } = {}) {
   const tasks = [];
   for (const concept of concepts) {
     for (const card of concept.cards) {
@@ -14,7 +18,23 @@ function generateIntroTasks(concepts) {
       });
     }
   }
-  return shuffle(tasks);
+  return groupByConcept ? tasks : shuffle(tasks);
+}
+
+// «Покажи, как»: the picture is the model, the spoken command is the
+// imperative ("Прыгай!"); the child acts it out and the adult rates it. Only
+// concepts whose primary card carries `imperative` take part.
+function generateActOutTasks(concepts) {
+  return shuffle(concepts
+    .filter((concept) => concept.primary?.imperative)
+    .map((concept) => ({
+      type: "act_out",
+      conceptId: concept.conceptId,
+      card: pickVariation(concept),
+      label: concept.primary.label,
+      imperative: concept.primary.imperative,
+      imperativeAudio: concept.primary.imperativeAudio ?? null,
+    })));
 }
 
 // A control task keeps the productive prompt (“name the emotion”) but makes
@@ -418,6 +438,7 @@ function generateChooseAllTasks(concepts, params) {
         type:         "choose_all",
         conceptId:    concept.conceptId,
         targetLabel:  concept.primary?.label ?? concept.conceptId,
+        promptAudio:  concept.primary?.promptAudio ?? null,
         targetCardIds: targetCards.map((c) => c.id),
         allCards:     shuffle([...targetCards, ...distractorCards]),
       });
@@ -489,7 +510,7 @@ function generateSortByAttributeTasks(concepts) {
   })));
 }
 
-export function generateTasks(modeType, concepts, allCards, params = {}) {
+export function generateTasks(modeType, concepts, allCards, params = {}, mode = null) {
   // Cards tagged with a cardType (e.g. "situation") aren't an ordinary
   // picture/word variation and must never surface as one - strip them from
   // every mode's card pool except the mode built specifically to consume
@@ -501,7 +522,8 @@ export function generateTasks(modeType, concepts, allCards, params = {}) {
     return { ...c, cards: displayCards, primary: displayCards.find((card) => card.primary) ?? displayCards[0] ?? c.primary };
   });
   switch (modeType) {
-    case "intro":                  return generateIntroTasks(displayConcepts);
+    case "intro":                  return generateIntroTasks(displayConcepts, { groupByConcept: mode?.groupByConcept === true });
+    case "act_out":                return generateActOutTasks(displayConcepts);
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);
     case "graphic_dictation":      return generateGraphicDictationTasks(displayConcepts, params);

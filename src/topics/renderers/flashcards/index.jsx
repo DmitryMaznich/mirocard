@@ -13,6 +13,13 @@ function getTaskAudioPath(task) {
   return null;
 }
 
+// mode.ui.promptTemplate ("Покажи: {label}") frames the target word on screen;
+// the spoken prompt stays the recorded word alone.
+function promptText(mode, label) {
+  const template = mode?.ui?.promptTemplate;
+  return template ? template.replace("{label}", label ?? "") : label;
+}
+
 const MOOD_VALENCES = new Set(["positive", "negative", "neutral"]);
 
 function CardImage({ topicId, card, imageFit }) {
@@ -270,6 +277,78 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   );
 }
 
+const ACT_OUT_BUTTONS = [
+  { value: "fail",     label: "Не сделал",    mod: "fail"     },
+  { value: "prompted", label: "С подсказкой", mod: "prompted" },
+  { value: "correct",  label: "Сделал",       mod: "correct"  },
+  { value: "easy",     label: "Легко!",       mod: "easy"     },
+];
+
+// «Покажи, как»: the picture is the model, the command is spoken ("Прыгай!"),
+// the child acts it out and the adult rates it. After the rating the
+// descriptive word plays ("прыгает"), tying the action just done to the word
+// the other modes ask for.
+function ActOutTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswer, onCardShown, onQuality }) {
+  const { speak } = useSpeech();
+  const [rated, setRated] = useState(false);
+  const wordAudio = getTaskAudioPath(task);
+
+  function sayCommand() {
+    if (!soundEnabled) return;
+    if (task.imperativeAudio?.ru) playTopicFile(topicId, task.imperativeAudio.ru);
+    else speak(task.imperative);
+  }
+
+  useEffect(() => {
+    onCardShown?.(task.card?.id, task.conceptId);
+    sayCommand();
+  }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleQuality(value) {
+    if (rated) return;
+    setRated(true);
+    onQuality?.(value, task.card?.id, task.conceptId);
+    if (wordAudio && soundEnabled) playTopicFile(topicId, wordAudio);
+    setTimeout(() => onQualityAnswer(value, task.conceptId, task.card?.id), wordAudio && soundEnabled ? 1400 : 700);
+  }
+
+  return (
+    <div className="session-body qa-body">
+      <CardArea topicId={topicId} card={task.card} />
+      <div className="qa-right-panel">
+        <div className="qa-question-area">
+          <div className="session-instruction">{task.imperative}</div>
+          {soundEnabled && (
+            <button
+              className="session-audio-icon-button session-audio-icon-button--active qa-inline-speech"
+              onClick={(event) => { event.stopPropagation(); sayCommand(); }}
+              aria-label="Повторить"
+            >
+              🔊
+            </button>
+          )}
+        </div>
+        <div className={`qa-reveal${rated ? " qa-reveal--shown" : ""}`}>{task.label}</div>
+        <div className="qa-row">
+          {ACT_OUT_BUTTONS.map((btn, i) => (
+            <button
+              key={btn.value}
+              className={`qa-btn qa-btn--${btn.mod}`}
+              disabled={rated}
+              onClick={() => handleQuality(btn.value)}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+        <p className="qa-legend">
+          {ACT_OUT_BUTTONS.map((btn, i) => `${i + 1} — ${btn.label}`).join("   ")}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function EmotionControlTask({ task, topicId, onCorrect, onIncorrect, onCardShown, onTap }) {
   const [result, setResult] = useState(null); // null | { conceptId, outcome: "correct" | "incorrect" }
 
@@ -365,10 +444,10 @@ function YesNoTask({ task, mode, topicId, onCorrect, onIncorrect, onCardShown, o
   );
 }
 
-function FindNOption({ option, topicId, onClick }) {
+function FindNOption({ option, topicId, state, disabled, onClick }) {
   const url = useTopicFile(topicId, option.card?.image);
   return (
-    <button className="find-n-option" onClick={() => onClick(option)}>
+    <button className={`find-n-option${state ? ` find-n-option--${state}` : ""}`} disabled={disabled} onClick={() => onClick(option)}>
       {url
         ? <img className="find-n-option__img" src={url} alt="" draggable={false} />
         : <div className="find-n-option__img find-n-option__img--loading" />
@@ -377,24 +456,56 @@ function FindNOption({ option, topicId, onClick }) {
   );
 }
 
-function FindNTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onCardShown, onTap }) {
+// sessionParams.errorless: a miss is recorded, then the wrong pictures fade,
+// the right one pulses and the word plays again; only the right picture stays
+// tappable, so the child ends every trial on the correct answer instead of
+// guessing again (same as my_people «Покажи»). Finishing after a miss - or on
+// a single picture, where there is nothing to choose - counts as assisted.
+function FindNTask({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onStreakReset, onCardShown, onTap }) {
   const { speak } = useSpeech();
   const audioPath = task.promptAudio?.ru ?? null;
+  const errorless = sessionParams?.errorless === true;
+  const [missed, setMissed] = useState(false);
+  const [done, setDone] = useState(false);
 
+  function playPrompt() {
+    if (!soundEnabled) return;
+    if (audioPath) playTopicFile(topicId, audioPath);
+    else if (task.promptSpeech) speak(task.promptSpeech);
+  }
+
+  // SessionScreen remounts the renderer per task, so missed/done start fresh.
   useEffect(() => {
     onCardShown?.(null, task.targetConceptId);
   }, [task]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (!soundEnabled) return;
-    if (audioPath) playTopicFile(topicId, audioPath);
-    else if (task.promptSpeech) speak(task.promptSpeech);
+    playPrompt();
   }, [task, soundEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleOption(option) {
+    if (done) return;
     onTap?.(option.card.id, option.isTarget);
-    if (option.isTarget) onCorrect(task.targetConceptId, option.card.id);
-    else                 onIncorrect(task.targetConceptId, option.card.id);
+    if (!errorless) {
+      if (option.isTarget) onCorrect(task.targetConceptId, option.card.id);
+      else                 onIncorrect(task.targetConceptId, option.card.id);
+      return;
+    }
+    if (option.isTarget) {
+      setDone(true);
+      const assisted = missed || task.options.length === 1;
+      onCorrect(task.targetConceptId, option.card.id, assisted ? { assisted: true } : undefined);
+      return;
+    }
+    if (missed) return;
+    setMissed(true);
+    onStreakReset?.(task.targetConceptId, option.card.id);
+    setTimeout(playPrompt, 500);
+  }
+
+  function optionState(option) {
+    if (!errorless || !missed) return "";
+    return option.isTarget ? (done ? "correct" : "hint") : "faded";
   }
 
   const cols = 2;
@@ -417,7 +528,7 @@ function FindNTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect
       )}
       {!task.sceneImage && (
         <div className={`session-instruction${inlinePrompt ? " find-n-question" : ""}`}>
-          <span>{task.targetLabel}</span>
+          <span>{promptText(mode, task.targetLabel)}</span>
           {inlinePrompt && promptControl}
         </div>
       )}
@@ -425,7 +536,14 @@ function FindNTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect
         <div className="find-n-grid" style={{ "--cols": cols }}>
           <div className="find-n-inner">
             {task.options.map((option) => (
-              <FindNOption key={option.card.id} option={option} topicId={topicId} onClick={handleOption} />
+              <FindNOption
+                key={option.card.id}
+                option={option}
+                topicId={topicId}
+                state={optionState(option)}
+                disabled={errorless && missed && !option.isTarget}
+                onClick={handleOption}
+              />
             ))}
           </div>
         </div>
@@ -602,10 +720,17 @@ function ChooseAllOption({ card, topicId, mark, onClick, disabled, imageFit }) {
   );
 }
 
-function ChooseAllTask({ task, topicId, onCorrect, onIncorrect, imageFit }) {
+function ChooseAllTask({ task, mode, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, imageFit }) {
   const [marks,    setMarks]    = useState({});
   const [hadWrong, setHadWrong] = useState(false);
   const [done,     setDone]     = useState(false);
+  // mode.ui.autoplayPrompt: say the target word when the grid appears (verbs_v2,
+  // whose children mostly can't read the word above the grid).
+  const audioPath = mode?.ui?.autoplayPrompt ? (task.promptAudio?.ru ?? null) : null;
+
+  useEffect(() => {
+    if (audioPath && soundEnabled) playTopicFile(topicId, audioPath);
+  }, [task, soundEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const targetIds = new Set(task.targetCardIds);
 
@@ -631,7 +756,10 @@ function ChooseAllTask({ task, topicId, onCorrect, onIncorrect, imageFit }) {
   return (
     <div className="session-body">
       <div className="choose-all-instruction">
-        Найди все: <strong>{task.targetLabel}</strong>
+        {mode?.ui?.promptTemplate
+          ? <strong>{promptText(mode, task.targetLabel)}</strong>
+          : <>Найди все: <strong>{task.targetLabel}</strong></>}
+        <InlineAudioButton topicId={topicId} audioPath={audioPath} playTopicFile={playTopicFile} soundEnabled={soundEnabled} />
       </div>
       <div className="choose-all-progress">Найдено {foundCount} из {task.targetCardIds.length}</div>
       <div className="choose-all-grid" style={{ "--cols": cols, "--rows": rows }}>
@@ -656,6 +784,7 @@ function ChooseAllTask({ task, topicId, onCorrect, onIncorrect, imageFit }) {
 const TASK_RENDERERS = {
   intro:                  IntroTask,
   question_answer:        QuestionAnswerTask,
+  act_out:                ActOutTask,
   yes_no:                 YesNoTask,
   find_n:                 FindNTask,
   situation_emotion:      FindNTask,
@@ -669,7 +798,7 @@ const TASK_RENDERERS = {
   sort_by_attribute:      SortByAttributeTask,
 };
 
-export default function FlashcardsRenderer({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onAdvance, onQualityAnswer, onCardShown, onTap, onQuality }) {
+export default function FlashcardsRenderer({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onStreakReset, onAdvance, onQualityAnswer, onCardShown, onTap, onQuality }) {
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (
@@ -682,6 +811,7 @@ export default function FlashcardsRenderer({ task, mode, sessionParams, topicId,
       playTopicFile={playTopicFile}
       onCorrect={onCorrect}
       onIncorrect={onIncorrect}
+      onStreakReset={onStreakReset}
       onAdvance={onAdvance}
       onQualityAnswer={onQualityAnswer}
       onCardShown={onCardShown}
