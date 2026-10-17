@@ -94,7 +94,7 @@ export function ExchangeHundredScheme({ task, onCorrect, onMistake, onFlashIncor
   const answering = phase !== "act";
 
   return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} xt-screen hd-screen hd-scheme`}
-    style={{ "--coin-size": `${SIZES[mode]}px`, "--sg-answer-w": "320px" }}>
+    style={{ "--coin-size": mode === "phone" ? "min(18px, calc((100vw - 40px) / 22))" : `${SIZES[mode]}px`, "--sg-answer-w": "320px" }}>
     <div className="sg-inner">
       <h2 className="sg-title xt-example">{task.number} <span className={`xt-sign xt-sign--${task.op}`}>{sign}</span> {task.k} = <span className="xt-q">{done ? task.result : "?"}</span></h2>
       <div className="sg-board hd-board xh-board" ref={boardRef}>

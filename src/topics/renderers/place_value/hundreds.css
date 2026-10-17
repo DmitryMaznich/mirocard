@@ -69,3 +69,8 @@ button.hd-piece { cursor: pointer; touch-action: manipulation; -webkit-tap-highl
 .sg-screen--wide .hd-take .bn-take .cb-plate { --plate-coin: 12px; }
 .sg-screen--tablet .hd-actions .btn,
 .sg-screen--wide .hd-actions .btn { min-width: 200px; min-height: 60px; font-size: 22px; }
+
+/* Phone: the column headers no wider than their columns (the «Десятки» plate
+   was wider than the tens and pushed the bench off a 360px screen). */
+.sg-screen--phone .hd-bench { column-gap: 6px; padding: 10px 6px 12px; }
+.sg-screen--phone .hd-bench .sg-head { font-size: 13px; padding: 2px 7px; }

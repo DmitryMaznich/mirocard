@@ -45,7 +45,12 @@ function useScreenMode() {
   return [ref, mode];
 }
 const SIZES = { phone: [18, 9], tablet: [30, 14], wide: [34, 16] };
-const sizeVars = (mode) => ({ "--coin-size": `${SIZES[mode][0]}px`, "--plate-coin": `${SIZES[mode][1]}px` });
+// On a phone the three columns (plates, stacks, coins) must fit the width:
+// they take ≈ 11.8 coin sizes + 170px (headers, gaps, paddings), so 18px
+// pieces need ~380px and shrink with a narrower phone.
+const sizeVars = (mode) => (mode === "phone"
+  ? { "--coin-size": "min(18px, calc((100vw - 170px) / 11.8))", "--plate-coin": "min(9px, calc((100vw - 170px) / 23.6))" }
+  : { "--coin-size": `${SIZES[mode][0]}px`, "--plate-coin": `${SIZES[mode][1]}px` });
 
 const head = (key) => <h3 className={`sg-head sg-head--${key}`}>{PLACES.find((p) => p.key === key).name}</h3>;
 
