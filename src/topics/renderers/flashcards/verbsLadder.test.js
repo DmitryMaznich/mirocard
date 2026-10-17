@@ -73,6 +73,30 @@ describe("mode-scoped params", () => {
   });
 });
 
+describe("picture sets", () => {
+  const concepts = deriveConcepts(deck.cards).filter((c) => c.primary.wave === 1);
+  it("contrast modes show only the boy and mum, distractors included", () => {
+    const mode = deck.modes.find((m) => m.id === "verbs_find_2");
+    const tasks = generateTasks("find_n", concepts, deck.cards, computeDefaultParams(deck, mode), mode);
+    expect(tasks.length).toBe(concepts.length * 2);
+    for (const t of tasks) for (const o of t.options) expect(o.card.set).toBe("contrast");
+  });
+  it("variation modes never show the contrast pair", () => {
+    const mode = deck.modes.find((m) => m.id === "verbs_choose_all");
+    const tasks = generateTasks("choose_all", concepts, deck.cards, computeDefaultParams(deck, mode), mode);
+    for (const t of tasks) for (const c of t.allCards) expect(c.set).toBe("variation");
+  });
+  it("animals only appear in variation sets", () => {
+    for (const c of deck.cards.filter((card) => card.agent === "animal")) expect(c.set).toBe("variation");
+  });
+  it("every verb has a boy and a mum card plus at least two other pictures", () => {
+    for (const c of deriveConcepts(deck.cards)) {
+      expect(c.cards.filter((card) => card.set === "contrast"), c.conceptId).toHaveLength(2);
+      expect(c.cards.filter((card) => card.set === "variation").length, c.conceptId).toBeGreaterThanOrEqual(2);
+    }
+  });
+});
+
 describe("flashcards engine additions", () => {
   const concepts = deriveConcepts(deck.cards).filter((c) => ["eats", "sleeps"].includes(c.conceptId));
 

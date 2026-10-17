@@ -516,11 +516,18 @@ export function generateTasks(modeType, concepts, allCards, params = {}, mode = 
   // every mode's card pool except the mode built specifically to consume
   // them. A card that never sets cardType passes through unchanged, so this
   // is a no-op for every flashcards topic other than emotions_v2.
+  // A mode (or its "Картинки" setting) may draw from one picture set only:
+  // verbs_v2 keeps a "contrast" set (the same boy and mum, only the action
+  // changes) for the early steps and a "variation" set (other people, objects,
+  // places, styles) for generalisation. Cards with no `set` belong to every set,
+  // so topics that never use it are unaffected.
+  const cardSet = params?.cardSet ?? mode?.cardSet ?? "all";
+  const inSet = (card) => cardSet === "all" || !card.set || card.set === cardSet;
   const displayConcepts = concepts.map((c) => {
-    const displayCards = c.cards.filter((card) => !card.cardType && !card.probeOnly);
+    const displayCards = c.cards.filter((card) => !card.cardType && !card.probeOnly && inSet(card));
     if (displayCards.length === c.cards.length) return c;
     return { ...c, cards: displayCards, primary: displayCards.find((card) => card.primary) ?? displayCards[0] ?? c.primary };
-  });
+  }).filter((c) => cardSet === "all" || c.cards.length > 0);
   switch (modeType) {
     case "intro":                  return generateIntroTasks(displayConcepts, { groupByConcept: mode?.groupByConcept === true });
     case "act_out":                return generateActOutTasks(displayConcepts);
