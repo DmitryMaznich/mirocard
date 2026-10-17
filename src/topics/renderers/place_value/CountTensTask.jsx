@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { numberWords, pluralHundreds, pluralTens } from "./placeValueLabels.js";
-import { holdSpeech, playNumber, playPhrase } from "./numberAudio.js";
+import { playNumber, playPhrase, registerSpeech, stopSpeech } from "./numberAudio.js";
 import { useSpeechGuard } from "./useSpeechGuard.js";
 import "./place_value.css";
 import "./group_ten.css";
@@ -44,19 +44,19 @@ function usePlayer() {
   useEffect(() => () => current.current?.stop(), []);
   return {
     async run(steps) {
-      current.current?.stop();
+      stopSpeech();
       let cancelled = false;
       let clip = null;
-      // Taps wait for the whole run (phrase, pause, number).
-      const release = holdSpeech();
-      const run = { stop: () => { cancelled = true; clip?.stop(); release(); } };
+      // The whole run (phrase, pause, number) stops on any tap on a button.
+      const run = { stop: () => { cancelled = true; unregister(); clip?.stop(); } };
+      const unregister = registerSpeech(run.stop);
       current.current = run;
       for (const step of steps) {
         if (cancelled) return false;
         if (typeof step === "number") await new Promise((r) => setTimeout(r, step));
         else { clip = step(); await clip.done; }
       }
-      release();
+      unregister();
       return !cancelled;
     },
     stop() { current.current?.stop(); },
@@ -156,8 +156,9 @@ function CountAlong({ task, onCorrect }) {
     if (!teaching) { reveal(n); return; }
     setPhase("ask");
     // «Сколько стало?» on the first two taps; after that just the pause.
-    const finished = await player.run([...(taps < 2 ? [() => playPhrase("ask")] : []), ASK_PAUSE_MS]);
-    if (finished) reveal(n);
+    // A tap cuts the pause short: the number shows at once.
+    await player.run([...(taps < 2 ? [() => playPhrase("ask")] : []), ASK_PAUSE_MS]);
+    reveal(n);
   }
 
   async function fold() {
@@ -246,8 +247,9 @@ function CountBack({ task, onCorrect }) {
     setTaps((t) => t + 1);
     if (!teaching) { reveal(n); return; }
     setPhase("ask");
-    const finished = await player.run([...(taps < 2 ? [() => playPhrase("ask")] : []), ASK_PAUSE_MS]);
-    if (finished) reveal(n);
+    // A tap cuts the pause short: the number shows at once.
+    await player.run([...(taps < 2 ? [() => playPhrase("ask")] : []), ASK_PAUSE_MS]);
+    reveal(n);
   }
 
   async function unfold() {

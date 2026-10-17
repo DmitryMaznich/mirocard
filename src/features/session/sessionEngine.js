@@ -121,6 +121,13 @@ export function handleAnswer(state, isCorrect, conceptId, cardId, options = {}) 
   };
 }
 
+// An instant-evaluation mode cycles its tasks until the adult ends it — except
+// a `finite` one (a place-value check: «7. Контрольная работа: до 100»), which ends after
+// its last task, whether that answer was right or wrong.
+function finiteDone(state) {
+  return Boolean(state.mode?.finite) && state.taskIndex + 1 >= state.tasks.length;
+}
+
 export function handleInstantCorrect(state) {
   state = markSessionAction(state);
   state = recordAdvance(recordResponse(state, "correct"));
@@ -134,7 +141,7 @@ export function handleInstantCorrect(state) {
   const nextIndex = (state.taskIndex + 1) % state.tasks.length;
   return {
     ...state,
-    status: "task_active",
+    status: finiteDone(state) ? "completed" : "task_active",
     taskIndex: nextIndex,
     taskRetry: 0,
     correctCount,
@@ -150,7 +157,7 @@ export function handleInstantIncorrect(state, conceptId, cardId) {
   const incorrectCount = state.incorrectCount + 1;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
   const nextIndex = (state.taskIndex + 1) % state.tasks.length;
-  return { ...state, status: "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, streakCount: state.strictStars ? 0 : (state.streakCount ?? 0), mistakes };
+  return { ...state, status: finiteDone(state) ? "completed" : "task_active", taskIndex: nextIndex, taskRetry: 0, incorrectCount, streakCount: state.strictStars ? 0 : (state.streakCount ?? 0), mistakes };
 }
 
 // Custom exercises sometimes need immediate feedback and a retry on the same

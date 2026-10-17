@@ -39,6 +39,8 @@ export function numberNamesNumber(set, random = Math.random) {
   if (NAME_SETS[set]) return pick(NAME_SETS[set]);
   if (set === "two_digit") { let v; do v = int(21, 99); while (v % 10 === 0); return v; }
   if (set === "three_digit") { let v; do v = int(101, 999); while (v % 100 === 0); return v; }
+  if (set === "mix100") return numberNamesNumber(pick(["tens", "teens_tens", "two_digit"]), random);
+  if (set === "mix1000") return numberNamesNumber(pick(["hundreds", "three_digit"]), random);
   return numberNamesNumber(pick(["tens", "teens_tens", "hundreds", "two_digit", "three_digit"]), random);
 }
 

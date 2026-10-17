@@ -90,13 +90,143 @@ export function generateIdentifyNumberTask(card, maxOnes, maxTens = 9, numberSet
 }
 
 
+// The params a session runs with: a saved value the mode no longer offers
+// («Круглые сотни» saved in «1. Двузначные: читаем и пишем» before the hundreds got their
+// own items) falls back to the mode's default, and the mode's `preset` (the
+// range of the numbered items, topicLoader.js) wins over anything saved.
+export function modeParams(modeOrObj, params) {
+  if (!modeOrObj || typeof modeOrObj !== "object") return params;
+  const out = { ...params };
+  for (const [key, def] of Object.entries(modeOrObj.params ?? {})) {
+    if (def?.type === "enum" && key in out && !def.values?.includes(out[key])) out[key] = def.default;
+  }
+  const type = modeOrObj.type ?? modeOrObj.id;
+  return withHints(type, internalParams(type, { ...out, ...(modeOrObj.preset ?? {}) }));
+}
+
+// «Контрольная работа: до 100» / «Контрольная работа: сотни» (type "pv_test"): the skills and
+// pictures the adult switched on, tasks mixed, no hints (supportMode
+// "independent"), one answer each — a mistake moves on (SessionScreen's
+// instant-incorrect path), the session ends after the last task (`finite`).
+// Each task is counted by skill and picture (`targetConceptId` "skill:view"),
+// for the result by skill and by picture (SessionSummary.jsx).
+// docs/place-value-methodology.md, раздел 16.
+export const CHECK_VIEWS = { coins: "Монеты", scheme: "Схема", table: "Таблица" };
+const PICTURES = ["coins", "scheme", "table"];
+export const CHECK_SKILLS = {
+  to100: [
+    { key: "s100_names", label: "Двузначные: читаем и пишем", hint: "на слух и словами", modeId: "number_names", type: "number_names", params: () => ({ set: "mix100", task: pick(["choose", "read", "write"]) }) },
+    { key: "s100_identify", label: "Какое это число?", modeId: "identify_number", type: "identify_number", views: PICTURES, params: () => ({ range: "to100", maxTens: 9, maxOnes: 9, numberSet: "two_digit", layout: "places" }) },
+    { key: "s100_build", label: "Собери число", modeId: "build_number", type: "build_number", views: PICTURES, params: () => ({ range: "to100", maxTens: 9, maxOnes: 9, numberRange: "custom", prompt: "mix" }) },
+    { key: "s100_parts", label: "Разрядные слагаемые", hint: "цифрами и словами", modeId: "place_parts", type: "place_parts", params: () => ({ range: "to100", maxTens: 9, direction: "mix", prompt: "mix" }) },
+    // Coins are too slow for a check (coins moved one by one): scheme and table only.
+    { key: "s100_exchange", label: "Плюс и минус через десяток", modeId: "exchange_ten", type: "exchange_ten", views: ["scheme", "table"], params: () => ({ range: "to100", maxTens: 9, operation: "mixed", secondNumber: "one" }) },
+  ],
+  to1000: [
+    { key: "s1000_names", label: "Трёхзначные: читаем и пишем", hint: "на слух и словами", modeId: "number_names_hundreds", type: "number_names", params: () => ({ set: "mix1000", task: pick(["choose", "read", "write"]) }) },
+    { key: "s1000_count", label: "Какое число дальше и перед?", hint: "счёт десятками через сотню", modeId: "count_tens", type: "count_tens", params: () => ({ range: "to1000", task: pick(["next", "prev"]) }) },
+    { key: "s1000_identify", label: "Сотни: какое это число?", modeId: "identify_hundreds", type: "identify_number", views: PICTURES, params: () => ({ range: "to1000" }) },
+    { key: "s1000_build", label: "Сотни: собери число", modeId: "build_hundreds", type: "build_number", views: PICTURES, params: () => ({ range: "to1000", prompt: "mix" }) },
+    { key: "s1000_parts", label: "Разрядные слагаемые до 1000", hint: "цифрами и словами", modeId: "place_parts_hundreds", type: "place_parts", params: () => ({ range: "to1000", direction: "mix", prompt: "mix" }) },
+    { key: "s1000_exchange", label: "Плюс и минус через сотню", modeId: "exchange_hundred", type: "exchange_ten", views: ["scheme", "table"], params: () => ({ range: "to1000", operation: "mixed" }) },
+  ],
+};
+const pick = (items) => items[Math.floor(Math.random() * items.length)];
+const shuffled = (items) => {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; }
+  return out;
+};
+
+export function generateCheckTasks(cards, params) {
+  const part = params.part === "to1000" ? "to1000" : "to100";
+  const prefix = part === "to1000" ? "p1000_" : "p100_";
+  const skills = CHECK_SKILLS[part].filter((s) => params[s.key]);
+  const pictures = PICTURES.filter((v) => params[`${prefix}${v}`]);
+  const count = Number(params.count) === 15 ? 15 : 10;
+  if (!skills.length) return [];
+  // Each skill gets its share; its pictures take turns (the adult's pictures it
+  // has, else the first it has — exchange on coins becomes the scheme).
+  const plan = [];
+  const viewTurns = new Map(skills.map((s) => {
+    if (!s.views) return [s.key, [null]];
+    const own = s.views.filter((v) => pictures.includes(v));
+    return [s.key, shuffled(own.length ? own : [s.views[0]])];
+  }));
+  for (let i = 0; i < count; i++) {
+    const skill = skills[i % skills.length];
+    const turns = viewTurns.get(skill.key);
+    plan.push({ skill, view: turns[Math.floor(i / skills.length) % turns.length] });
+  }
+  // Mixed order, the same skill never twice in a row when it can be helped.
+  let order = shuffled(plan);
+  for (let i = 1; i < order.length; i++) {
+    if (order[i].skill === order[i - 1].skill) {
+      const j = order.findIndex((p, k) => k > i && p.skill !== order[i - 1].skill);
+      if (j > 0) [order[i], order[j]] = [order[j], order[i]];
+    }
+  }
+  return order.map(({ skill, view }, i) => {
+    const task = generateTasks(skill.type, cards, 1, { ...skill.params(), ...(view ? { view } : {}), supportMode: "independent" })[0];
+    return task && {
+      ...task,
+      cardId: `${task.cardId}#${i}`,
+      check: true,
+      singleResponse: true,
+      checkSkill: skill.key,
+      checkView: view,
+      targetConceptId: `${skill.key}:${view ?? "none"}`,
+    };
+  }).filter(Boolean);
+}
+
+// A check's result by skill and by picture, from the session's per-task
+// statistics ("skill:picture" → first-answer total/correct).
+export function checkResultRows(concepts) {
+  const skills = new Map();
+  const views = new Map();
+  for (const [key, { total = 0, correct = 0 } = {}] of Object.entries(concepts ?? {})) {
+    const [skill, view] = key.split(":");
+    const add = (map, k) => { const r = map.get(k) ?? { total: 0, correct: 0 }; map.set(k, { total: r.total + total, correct: r.correct + correct }); };
+    add(skills, skill);
+    if (view && view !== "none") add(views, view);
+  }
+  return { skills, views };
+}
+
+// The parent's settings are few and plain («Числа: до 50», «С подвохом»,
+// docs/place-value-methodology.md, раздел 15); the generators below still speak
+// the detailed ones (maxTens, numberSet, layout…). This maps one onto the other —
+// over anything an older version saved under the detailed names.
+function internalParams(type, params) {
+  const tensFor = (numbers) => (numbers === "to100" ? 9 : 4);
+  if (type === "identify_number") {
+    return { ...params, maxTens: tensFor(params.numbers), maxOnes: 9,
+      numberSet: params.trick ? "mixed" : "two_digit", layout: params.trick ? "mix" : "places" };
+  }
+  if (type === "build_number") {
+    return { ...params, maxOnes: 9, numberRange: params.numbers === "teens" ? "teens" : "custom", maxTens: tensFor(params.numbers) };
+  }
+  if (type === "place_parts") return { ...params, maxTens: params.numbers === "to50" ? 4 : 9 };
+  if (type === "exchange_ten") return { ...params, maxTens: 9 };
+  return params;
+}
+
+// Hints are always on in the modes now; working without them is the checks'
+// job («Контрольная работа: до 100», «Контрольная работа: сотни»). An «Проверка» saved in a mode
+// before that doesn't carry over.
+function withHints(type, params) {
+  return type === "pv_test" ? params : { ...params, supportMode: "learning" };
+}
+
 export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const mode = typeof modeOrObj === "string" ? modeOrObj : (modeOrObj?.type ?? modeOrObj?.id ?? "");
   const count = typeof countOrParams === "number" ? countOrParams : 15;
-  const params = (countOrParams && typeof countOrParams === "object") ? countOrParams
-    : (maybeParams && typeof maybeParams === "object") ? maybeParams : {};
+  const params = modeParams(modeOrObj, (countOrParams && typeof countOrParams === "object") ? countOrParams
+    : (maybeParams && typeof maybeParams === "object") ? maybeParams : {});
 
   const allCards = cards.filter(c => c.renderer === "place_value");
+  if (mode === "pv_test") return generateCheckTasks(allCards.length ? allCards : cards, params);
   const buildNumberCards    = allCards.filter(c => c.params?.mode === "build_number");
   const identifyNumberCards = allCards.filter(c => c.params?.mode === "identify_number");
   const exchangeCards       = allCards.filter(c => c.params?.mode === "exchange_ten");
@@ -232,7 +362,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       let number;
       do number = numberNamesNumber(params.set ?? "tens"); while (number === last);
       last = number;
-      tasks.push({ type: "number_names", cardId: card(i).id, conceptId: card(i).conceptId, number, options: numberNameOptions(number), task: ["write", "read"].includes(params.task) ? params.task : "choose", supportMode: params.supportMode ?? "learning" });
+      tasks.push({ type: "number_names", cardId: card(i).id, conceptId: card(i).conceptId, number, options: numberNameOptions(number), task: ["write", "read", "say"].includes(params.task) ? params.task : "choose", supportMode: params.supportMode ?? "learning" });
     }
     return tasks;
   }

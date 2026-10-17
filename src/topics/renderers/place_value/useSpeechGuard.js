@@ -1,17 +1,11 @@
-import { useSyncExternalStore } from "react";
-import { isSpeaking, subscribeSpeaking } from "./numberAudio.js";
+import { stopSpeech } from "./numberAudio.js";
 
-// Spread `guard` on a task's root: while the recorded voice speaks
-// (numberAudio.js), taps and presses inside the task are swallowed — not
-// queued, not replayed after. Children with autism often tap fast and
-// repeatedly; without this every tap starts another clip on top of the last.
-// Session controls (exit, back) live outside the task root and stay live.
+// Spread `guard` on a task's root: a tap on any button there silences the
+// recorded voice (numberAudio.js) before the button acts. The child never has
+// to wait for the voice to answer — waiting made a child think the answer was
+// wrong and tap the others — and sounds never stack: a new sound starts only
+// after the old one is cut. Session controls live outside the task root.
 export function useSpeechGuard() {
-  const speaking = useSyncExternalStore(subscribeSpeaking, isSpeaking, isSpeaking);
-  const block = (e) => {
-    if (!isSpeaking()) return;
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  return { speaking, guard: { onClickCapture: block, onPointerDownCapture: block } };
+  const cut = (e) => { if (e.target.closest?.("button")) stopSpeech(); };
+  return { guard: { onPointerDownCapture: cut, onClickCapture: cut } };
 }

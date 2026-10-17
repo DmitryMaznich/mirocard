@@ -196,3 +196,26 @@ describe("generateTasks – group_ten", () => {
     expect(defaults).toMatchObject({ showFrame: true });
   });
 });
+
+describe("plain settings → generator settings (2026-10-16)", () => {
+  const cards = ["identify_number", "build_number", "place_parts", "exchange_ten"].map((id) => ({ id, conceptId: id, renderer: "place_value", params: { mode: id } }));
+  const mode = (type) => ({ id: type, type, params: {} });
+
+  it("«Какое это число?»: no trick — tens and ones in place, numbers up to 49; an old saved layout doesn't leak", () => {
+    const tasks = generateTasks(mode("identify_number"), cards, 60, { numbers: "to50", layout: "over9", numberSet: "single" });
+    expect(tasks.every((t) => t.layout === "places" && t.number >= 11 && t.number < 50 && t.number % 10 !== 0)).toBe(true);
+  });
+
+  it("«С подвохом» brings the traps in: mixed or over-nine layouts, round tens or one-digit numbers", () => {
+    const tasks = generateTasks(mode("identify_number"), cards, 200, { numbers: "to100", trick: true });
+    expect(tasks.some((t) => t.layout === "mixed")).toBe(true);
+    expect(tasks.some((t) => t.layout === "over9")).toBe(true);
+    expect(tasks.some((t) => t.number % 10 === 0 || t.number < 10)).toBe(true);
+    expect(tasks.some((t) => t.number >= 50)).toBe(true);
+  });
+
+  it("«Собери число» 11–19, «Разрядные слагаемые» до 50", () => {
+    expect(generateTasks(mode("build_number"), cards, 40, { numbers: "teens" }).every((t) => t.number >= 11 && t.number <= 19)).toBe(true);
+    expect(generateTasks(mode("place_parts"), cards, 40, { numbers: "to50" }).every((t) => t.number < 50)).toBe(true);
+  });
+});

@@ -45,7 +45,12 @@ function useScreenMode() {
   return [ref, mode];
 }
 const SIZES = { phone: [18, 9], tablet: [30, 14], wide: [34, 16] };
-const sizeVars = (mode) => ({ "--coin-size": `${SIZES[mode][0]}px`, "--plate-coin": `${SIZES[mode][1]}px` });
+// On a phone the three columns (plates, stacks, coins) must fit the width:
+// they take ≈ 11.8 coin sizes + 170px (headers, gaps, paddings), so 18px
+// pieces need ~380px and shrink with a narrower phone.
+const sizeVars = (mode) => (mode === "phone"
+  ? { "--coin-size": "min(18px, calc((100vw - 170px) / 11.8))", "--plate-coin": "min(9px, calc((100vw - 170px) / 23.6))" }
+  : { "--coin-size": `${SIZES[mode][0]}px`, "--plate-coin": `${SIZES[mode][1]}px` });
 
 const head = (key) => <h3 className={`sg-head sg-head--${key}`}>{PLACES.find((p) => p.key === key).name}</h3>;
 
@@ -219,7 +224,7 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
     const options = [...new Set(pool.filter((v) => v !== null))].slice(0, 3);
     if (!options.includes(right)) options[2] = right;
     for (let i = options.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [options[i], options[j]] = [options[j], options[i]]; }
-    return { key, ask: `Сколько ${name === "Сотни" ? "сотен" : name === "Десятки" ? "десятков" : "единиц"} в числе ${words ? `«${numberWords(n)}»` : n}?`, right, options };
+    return { key, ask: `Сколько ${name === "Сотни" ? "сотен" : name === "Десятки" ? "десятков" : "единиц"} в числе?`, right, options };
   }));
   // ── «Таблица»: write the digits into the columns. ──
   const typed = useTypedAnswer(2);
@@ -258,15 +263,15 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
       <div className="sg-inner">
         <h2 className="sg-title">Какие разряды в числе?</h2>
         <div className="sg-board nl-board">
-          {words ? shownNumber : <div className="nl-number">{String(n).split("").map((d, i) => <span key={i} className={`nl-place${teaching ? ` tb-digit--${PLACES[i].key}` : ""}`}>{d}{teaching && <small>{["сот.", "дес.", "ед."][i]}</small>}</span>)}</div>}
+          {words ? shownNumber : <div className="nl-number">{String(n).split("").map((d, i) => <span key={i} className={`nl-place${teaching ? ` tb-digit--${PLACES[i].key}` : ""}`}>{d}</span>)}</div>}
           {support && <section className="sg-card tb-table hd-table pp-support" aria-hidden="true">{PLACES.map(({ key }) => <div key={key} className={`tb-col tb-col--${key}`}>{head(key)}<div className={`tb-digit tb-digit--${key}`}>{target[key]}</div></div>)}</section>}
         </div>
         <div className="sg-answer">
           {!solved && <div className="nl-ask">{q.ask}</div>}
-          {done}
           {!solved && <div className="sg-slot"><div className="nl-choices" key={qStep}>
             {q.options.map((v) => <button type="button" key={v} className={`xb-choice-btn nl-choice${wrongChoice === v ? " nl-choice--wrong" : ""}`} onClick={() => choose(v)}>{v}</button>)}
           </div></div>}
+          {done}
         </div>
       </div>
     </div>;

@@ -176,7 +176,6 @@ export function NumberLevelTask({ task, onCorrect, onMistake, onFlashIncorrect }
   const [note, setNote] = useState("");
   const [support, setSupport] = useState(false);
   const [wrong, setWrong] = useState(null);
-  const shown = words ? `«${numberWords(n)}»` : String(n);
   const questions = useState(() => {
     const pick = (right, others) => {
       const all = [...new Set([right, ...others])];
@@ -184,8 +183,8 @@ export function NumberLevelTask({ task, onCorrect, onMistake, onFlashIncorrect }
       return all;
     };
     return [
-      { key: "tens", ask: `Сколько десятков в числе ${shown}?`, right: tens, options: pick(tens, words ? [tens * 10, ones] : [ones, n]) },
-      { key: "ones", ask: `Сколько единиц в числе ${shown}?`, right: ones, options: pick(ones, words ? [tens, n] : [tens, n]) },
+      { key: "tens", ask: "Сколько десятков в числе?", right: tens, options: pick(tens, words ? [tens * 10, ones] : [ones, n]) },
+      { key: "ones", ask: "Сколько единиц в числе?", right: ones, options: pick(ones, words ? [tens, n] : [tens, n]) },
     ];
   })[0];
   const solved = step >= questions.length;
@@ -210,8 +209,8 @@ export function NumberLevelTask({ task, onCorrect, onMistake, onFlashIncorrect }
       <div className="sg-board nl-board">
         {words ? <div className="tb-target tb-target--words">{numberWords(n)}</div>
           : <div className="nl-number">
-            <span className={`nl-place${teaching ? " tb-digit--tens" : ""}`}>{digits[0]}{teaching && <small>дес.</small>}</span>
-            <span className={`nl-place${teaching ? " tb-digit--ones" : ""}`}>{digits[1]}{teaching && <small>ед.</small>}</span>
+            <span className={`nl-place${teaching ? " tb-digit--tens" : ""}`}>{digits[0]}</span>
+            <span className={`nl-place${teaching ? " tb-digit--ones" : ""}`}>{digits[1]}</span>
           </div>}
         {support && <section className="sg-card tb-table pp-support" aria-hidden="true">
           <div className="tb-col tb-col--tens">{head("tens")}<div className="tb-digit tb-digit--tens">{tens}</div></div>
@@ -220,15 +219,15 @@ export function NumberLevelTask({ task, onCorrect, onMistake, onFlashIncorrect }
       </div>
       <div className="sg-answer">
         {!solved && <div className="nl-ask">{q.ask}</div>}
-        <div className="sg-status" role="status">
-          {solved ? null : note ? <span className="sg-status-note">{note}</span> : null}
-        </div>
         <div className="sg-slot">
           {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
             : <div className="nl-choices" key={step}>
               {q.options.map((v) => <button type="button" key={v} className={`xb-choice-btn nl-choice${wrong === v ? " nl-choice--wrong" : ""}`}
                 onClick={() => choose(v)}>{v}</button>)}
             </div>}
+        </div>
+        <div className="sg-status" role="status">
+          {solved ? null : note ? <span className="sg-status-note">{note}</span> : null}
         </div>
       </div>
     </div>

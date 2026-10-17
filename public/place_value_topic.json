@@ -2,7 +2,7 @@
   "meta": {
     "id": "place_value",
     "renderer": "place_value",
-    "version": "1.0.6",
+    "version": "1.0.8",
     "title": {
       "ru": "Разряды числа",
       "en": "Place Value"

@@ -329,6 +329,7 @@ export default function SessionScreen() {
           incorrectCount={incorrectCount}
           answerStatus={tongueAnswerStatus}
           evaluation={mode.evaluation}
+          finite={Boolean(mode.finite)}
           onClose={openSessionExitPrompt}
           onOpenModeSettings={handleOpenModeSettings}
         />

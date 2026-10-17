@@ -185,27 +185,34 @@ describe("«Считаем десятками» — «Считаем назад�
   });
 });
 
-describe("Taps wait for the voice", () => {
+describe("A tap cuts the voice", () => {
   const h = coinHarness();
   const text = (sel) => h.container.querySelector(sel)?.textContent;
 
-  it("a tap while the number is spoken does nothing and isn't replayed after", async () => {
-    // A clip that ends only when we say so.
-    const { holdSpeech } = await import("./numberAudio.js");
-    const finish = holdSpeech();
+  it("a tap while the voice speaks works at once and silences it", async () => {
+    const { registerSpeech, isSpeaking } = await import("./numberAudio.js");
     h.mount(CountTensTask, { type: "count_tens", cardId: "c", conceptId: "c", task: "count", number: 70, start: 70, end: 120, supportMode: "independent" });
-    h.click("+1 десяток");
-    h.click("+1 десяток");
-    expect(text(".ct-number")).toBe("70");
-    finish();
     await wait();
-    expect(text(".ct-number")).toBe("70");
+    // A voice that would go on until stopped.
+    const stopped = vi.fn();
+    const unregister = registerSpeech(() => { stopped(); unregister(); });
+    expect(isSpeaking()).toBe(true);
     h.click("+1 десяток");
+    expect(stopped).toHaveBeenCalled();
     await wait();
     expect(text(".ct-number")).toBe("80");
   });
 
-  it("a hold never outlives its clip: stop releases it", () => {
+  it("«Какое число дальше?»: the answer can be given while the count is still heard", async () => {
+    const onCorrect = vi.fn();
+    h.mount(CountTensTask, { type: "count_tens", cardId: "c", conceptId: "c", task: "next", number: 90, options: [91, 100, 900], supportMode: "learning" }, { onCorrect });
+    h.click("100");
+    expect(h.button("100").className).toContain("ct-option--right");
+    h.click("Далее →");
+    expect(onCorrect).toHaveBeenCalled();
+  });
+
+  it("stop releases a clip", () => {
     return import("./numberAudio.js").then(({ playNumber, isSpeaking }) => {
       const clip = playNumber(90);
       expect(isSpeaking()).toBe(true);

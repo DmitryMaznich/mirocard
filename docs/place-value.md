@@ -50,7 +50,7 @@ are the next difficulty. Plan:
      placeholder zero (305, 340, 300).
    - «Разрядные слагаемые» — 347 = 300 + 40 + 7 and back.
    - «Считаем через сотню» — number line 90, 100, 110 … 990, 1000.
-   - «Услышь и запиши» — hear «триста пять», write 305 (speech-therapy core:
+   - «Послушай и запиши» — hear «триста пять», write 305 (speech-therapy core:
      children write 3005 / 35). Needs recorded number audio above 100 — same
      GEMINI_API_KEY blocker as `docs/addition-subtraction-design-review.md`.
 3. One colour per place (ones / tens / hundreds) across model, table and digits

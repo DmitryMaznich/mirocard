@@ -618,7 +618,9 @@ export function useSessionEngine() {
     }
     setSessionState((s) => {
       if (s.mode?.evaluation === "instant") {
-        return handleInstantCorrect(s, conceptId, cardId);
+        const next = handleInstantCorrect(s, conceptId, cardId);
+        if (next.status === "completed") finishSession(next);
+        return next;
       }
       const next = handleAnswer(s, true, conceptId, cardId, options);
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
@@ -649,7 +651,9 @@ export function useSessionEngine() {
   const onIncorrect = useCallback((conceptId, cardId) => {
     setSessionState((s) => {
       if (s.mode?.evaluation === "instant") {
-        return handleInstantIncorrect(s, conceptId, cardId);
+        const next = handleInstantIncorrect(s, conceptId, cardId);
+        if (next.status === "completed") finishSession(next);
+        return next;
       }
       return handleAnswer(s, false, conceptId, cardId);
     });
