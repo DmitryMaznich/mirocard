@@ -62,3 +62,17 @@
 .nn-w--hundreds { color: #15803d; }
 .nn-w--tens { color: #b45309; }
 .nn-w--ones { color: #1d4ed8; }
+
+/* Tablet (portrait and landscape): the phone sizes looked lost on a big screen
+   and the dictation keys were too small to hit — scaled up like the other
+   modes' tablet layouts (group_ten.css .sg-screen--tablet). */
+.nn-screen--tablet .sg-title, .nn-screen--wide .sg-title { font-size: 30px; }
+.nn-screen--tablet .nn-slot .fp-keys, .nn-screen--wide .nn-slot .fp-keys { width: min(100%, 600px); gap: 10px; }
+.nn-screen--tablet .fp-keys .px-key, .nn-screen--wide .fp-keys .px-key { height: 64px; font-size: 30px; border-radius: 14px; }
+.nn-screen--tablet .fp-enter, .nn-screen--wide .fp-enter { border-radius: 16px; font-size: 26px; }
+.nn-screen--tablet .nn-answer .fp-field--big .fp-value, .nn-screen--wide .nn-answer .fp-field--big .fp-value { min-width: 180px; height: 84px; font-size: 56px; }
+.nn-screen--tablet .nn-options--words, .nn-screen--wide .nn-options--words { width: min(100%, 560px); }
+.nn-screen--tablet .nn-option.nn-word, .nn-screen--wide .nn-option.nn-word { min-height: 84px; font-size: 38px; }
+.nn-screen--tablet .nn-number, .nn-screen--wide .nn-number { font-size: 150px; }
+.nn-screen--tablet .nn-status, .nn-screen--wide .nn-status { font-size: 18px; }
+.nn-screen--tablet .nn-slot > .btn, .nn-screen--wide .nn-slot > .btn { min-width: 220px; min-height: 64px; font-size: 22px; }
