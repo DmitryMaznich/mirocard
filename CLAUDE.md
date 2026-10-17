@@ -198,6 +198,14 @@ recorded voice audio to replace browser TTS), and pitfalls already hit once this
 (don't repeat them — e.g. the raw `chrome --headless --window-size` CLI flag is silently
 ignored in some sandboxes, use Playwright instead when a screenshot's exact width matters).
 
+## Глаголы (verbs_v2) — methodology rework planned
+
+Speech-therapy audit of the topic for minimally verbal children with ASD (2026-10-17):
+per-card verdicts for all 125 images, new vocabulary waves, a 12-step mode ladder and
+a step-by-step implementation plan. **Read `docs/verbs-methodology-review.md` first**
+before touching `verbs_v2` — the topic currently has no `tools/verbs_v2/` source folder
+(only the published ZIP); step 0 of the plan creates it.
+
 ## Разряды числа (place_value)
 
 Topic split out of «Сложение и вычитание в столбик» on 2026-10-07 (coin modes for
