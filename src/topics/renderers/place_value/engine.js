@@ -390,7 +390,8 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       seen.add(number);
       const direction = params.direction === "join" ? "join" : params.direction === "mix" ? (Math.random() < 0.5 ? "split" : "join") : "split";
       const prompt = params.prompt === "words" ? "words" : params.prompt === "mix" ? (Math.random() < 0.5 ? "words" : "digits") : "digits";
-      tasks.push({ type: "place_parts", cardId: card(i).id, conceptId: card(i).conceptId, number, direction, prompt, supportMode: params.supportMode ?? "learning" });
+      tasks.push({ type: "place_parts", cardId: card(i).id, conceptId: card(i).conceptId, number, direction, prompt, supportMode: params.supportMode ?? "learning",
+        view: params.view === "coins" || params.view === "scheme" ? params.view : "none" });
     }
     return tasks;
   }

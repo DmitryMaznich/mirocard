@@ -119,6 +119,28 @@
 
 /* «Разрядные слагаемые» (PlacePartsTask.jsx): one line, 47 = [40] + [7]. */
 .pp-board { justify-items: center; row-gap: 16px; }
+/* «Как показываем» over the example: one column per place, pieces in rows
+   of five. Sized from the screen width so three columns fit a phone. */
+.pp-picture {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: auto;
+  justify-content: space-evenly;
+  gap: 10px;
+  width: 100%;
+  max-width: 560px;
+  padding: 10px;
+  box-sizing: border-box;
+  --coin-size: min(30px, calc((100vw - 90px) / 13));
+  --plate-coin: min(11px, calc((100vw - 90px) / 34));
+}
+.pp-picture--3 { --coin-size: min(16px, calc((100vw - 110px) / 18)); --plate-coin: min(6.5px, calc((100vw - 110px) / 44)); }
+.pp-pic-col { display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: calc(var(--coin-size) * 2.4 + 34px); }
+.pp-pic-pieces { display: grid; grid-template-columns: repeat(5, auto); gap: 4px; justify-content: center; align-items: end; }
+.pp-pic-col--hundreds .pp-pic-pieces { grid-template-columns: repeat(2, auto); }
+.sg-screen--tablet .pp-pic-col--hundreds .pp-pic-pieces, .sg-screen--wide .pp-pic-col--hundreds .pp-pic-pieces { grid-template-columns: repeat(3, auto); }
+.sg-screen--tablet .pp-picture, .sg-screen--wide .pp-picture { max-width: 720px; --coin-size: 36px; --plate-coin: 13px; }
+.sg-screen--tablet .pp-picture--3, .sg-screen--wide .pp-picture--3 { --coin-size: 28px; --plate-coin: 12px; }
 .pp-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
 .pp-num, .pp-part { font-size: clamp(44px, 12vw, 72px); font-weight: 900; line-height: 1; color: #1a1a2e; font-variant-numeric: tabular-nums; }
 .pp-words { font-size: clamp(26px, 7vw, 40px); font-weight: 900; color: #1a1a2e; }
