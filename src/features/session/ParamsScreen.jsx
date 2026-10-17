@@ -16,7 +16,7 @@ import ConceptDot from "@/shared/components/ConceptDot";
 import { deriveConcepts, getConceptCards, getFigureFilter, readModeSelectedConceptIds, withFigureFilter } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
+import { COMPARISON_LEVELS, PLACE_VALUE_MODE_IDS } from "@/topics/renderers/comparison/engine";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
@@ -1408,7 +1408,9 @@ const VISUAL_OPTIONS = [
 
 function ComparisonParams({ params, onChange }) {
   const activeModeId     = useAppStore((s) => s.activeModeId);
-  const activeLevel      = COMPARISON_LEVELS.find((l) => l.id === params.level);
+  const levels           = COMPARISON_LEVELS.filter((l) => l.id !== 5 || PLACE_VALUE_MODE_IDS.includes(activeModeId));
+  const shownLevel       = params.level === 5 && !levels.some((l) => l.id === 5) ? 4 : params.level;
+  const activeLevel      = levels.find((l) => l.id === shownLevel);
   const isEvaluateMode   = activeModeId === "compare_evaluate";
   const isVisualMode     = activeModeId === "compare_visual";
   // The sign to draw is fully determined by left vs right — "Что учим"
@@ -1457,11 +1459,11 @@ function ComparisonParams({ params, onChange }) {
           <div className="param-enum-row">
             <div className="param-enum-section">
               <div className="param-enum-group">
-                {COMPARISON_LEVELS.map((lvl) => (
+                {levels.map((lvl) => (
                   <button
                     key={lvl.id}
-                    className={`enum-btn enum-btn--compact ${params.level === lvl.id ? "enum-btn--active" : ""}`}
-                    disabled={(dotsOnly && lvl.id > 2) || (isApplyMode && lvl.id === 5)}
+                    className={`enum-btn enum-btn--compact ${shownLevel === lvl.id ? "enum-btn--active" : ""}`}
+                    disabled={dotsOnly && lvl.id > 2}
                     onClick={() => onChange({ ...params, level: lvl.id })}
                   >
                     {lvl.id}
@@ -1469,7 +1471,7 @@ function ComparisonParams({ params, onChange }) {
                 ))}
               </div>
               {activeLevel && <div className="param-hint">{LEVEL_DESCRIPTIONS[activeLevel.id]}</div>}
-              {dotsOnly && <div className="param-hint">Уровни 3–5 доступны только в режиме «Только цифры»</div>}
+              {dotsOnly && <div className="param-hint">Уровни 3–4 доступны только в режиме «Только цифры»</div>}
             </div>
 
             {/* compare_apply never reads showEqual (see engine.js's

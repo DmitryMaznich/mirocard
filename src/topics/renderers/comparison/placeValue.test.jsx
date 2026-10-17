@@ -31,6 +31,13 @@ describe("Сравнение — уровень 5 «По разрядам»", ()
     expect(lvl4.every((t) => !t.placeHint)).toBe(true);
   });
 
+  it("only in «Сравни и поставь знак» and the test; other modes fall back to level 4", () => {
+    for (const id of ["compare_visual", "compare_sign", "compare_draw_sign", "compare_first_number"]) {
+      const tasks = generateTasks({ id, type: id }, cards, 20, { level: 5, visualMode: "numbers" });
+      expect(tasks.every((t) => t.left <= 99 && t.right <= 99 && !t.placeHint)).toBe(true);
+    }
+  });
+
   it("the hint names the deciding place, from the highest down", () => {
     expect(placeHintText(305, 350)).toBe("Сотни поровну. Десятки: 0 и 5 — больше у 350.");
     expect(placeHintText(482, 428)).toBe("Сотни поровну. Десятки: 8 и 2 — больше у 482.");
