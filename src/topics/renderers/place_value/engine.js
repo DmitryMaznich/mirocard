@@ -325,7 +325,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       let h;
       do h = randomInt(1, top) * 100; while (top > 1 && h === lastH);
       lastH = h;
-      const base = { type: "count_tens", cardId: card(i).id, conceptId: card(i).conceptId, supportMode: params.supportMode ?? "learning" };
+      const base = { type: "count_tens", cardId: card(i).id, conceptId: card(i).conceptId, supportMode: params.supportMode ?? "learning", view: params.view === "scheme" ? "scheme" : "coins" };
       if (next) {
         // Half on the crossing itself (90 → ?), a quarter just after it
         // (100 → ?, where «1010» lives), a quarter in between (130 → ?).

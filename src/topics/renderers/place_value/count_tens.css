@@ -21,15 +21,18 @@
 }
 .ct-inner .sg-title { text-align: center; }
 
+/* Pieces come from CoinBlocks.jsx (coins.css): their sizes follow
+   --coin-size (stack, stick, square) and --plate-coin (a plate's stacks). */
 .ct-board {
   width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
+  /* «Десятки» as wide as its two rows of five; «Сотни» take the rest. */
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 10px;
-  --ct-sq: 58px;
-  --ct-stick-h: 62px;
+  --coin-size: 27px;
+  --plate-coin: 10px;
 }
-.ct-board--many { --ct-sq: 40px; }
+.ct-board--many .ct-card--hundreds { --coin-size: 19px; --plate-coin: 8px; }
 .ct-card {
   background: #fff;
   border: 2px solid #e2e8f0;
@@ -46,38 +49,48 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: flex-end;
   gap: 6px;
 }
-.ct-sticks { gap: 6px 8px; padding-top: 4px; }
+/* Tens in rows of five, like the ten-frame: ten of them is two full rows. */
+/* Always room for five tens: the board doesn't move when the column empties. */
+.ct-card--tens { min-width: calc(var(--coin-size) * 5 + 36px); }
+.ct-sticks { display: grid; grid-template-columns: repeat(5, auto); gap: 6px 4px; padding-top: 4px; }
 
-.ct-square {
-  width: var(--ct-sq);
-  height: var(--ct-sq);
-  border-radius: 8px;
-  background: #16a34a;
-  padding: 4px;
+/* A hundred being built out of its tens (or taken apart): «Монеты» — the
+   plate's empty places dashed; «Схема» — the sticks stand in a dashed square
+   and become the solid square once all ten are in. */
+.ct-plate-slot {
+  width: var(--coin-size);
+  height: calc(var(--coin-size) * 1.9);
   box-sizing: border-box;
+  border: 1.5px dashed #94a3b8;
+  border-radius: 6px;
+}
+.ct-plate--building { box-shadow: 0 3px 0 #b6c3d1, 0 0 0 3px #bbf7d0; }
+.ct-square--building {
+  width: 88%;
+  height: 88%;
+  box-sizing: border-box;
+  border-radius: 6px;
+  outline: 2px dashed #16a34a;
+  outline-offset: -2px;
+  background: #f0fdf4;
+  padding: 3px;
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  gap: 2px;
+  gap: 1px;
 }
-.ct-stripe { background: #4ade80; border-radius: 2px; transition: background-color .1s; }
-.ct-square--building { background: #f0fdf4; outline: 2px dashed #16a34a; outline-offset: -2px; }
-.ct-square--building .ct-stripe { background: #16a34a; }
-.ct-square--building .ct-stripe--off { background: transparent; }
+.ct-stripe { background: #d97706; border-radius: 999px; transition: background-color .1s; }
+.ct-stripe--off { background: transparent; }
 
-.ct-stick {
-  width: 10px;
-  height: var(--ct-stick-h);
-  border-radius: 999px;
-  background: #d97706;
-  transition: opacity .1s, transform .1s;
-}
-.ct-stick--new { box-shadow: 0 0 0 4px #fde68a; }
-.ct-stick--gone { opacity: 0; transform: translateX(-24px) scaleY(.4); }
+.ct-ten { display: inline-flex; border-radius: 8px; transition: opacity .1s, transform .1s; }
+.ct-ten--new { background: #fef3c7; box-shadow: 0 0 0 3px #fde68a; }
+.ct-ten--gone { opacity: 0; transform: translateX(-24px) scaleY(.4); }
+.ct-ten--ghost { outline: 2px dashed #d97706; outline-offset: 1px; }
+.ct-ten--ghost > * { opacity: .25; }
 .ct-card--empty { border-color: #fdba74; animation: ct-empty .5s ease-in-out 2; }
 @keyframes ct-empty { 50% { background: #fff7ed; } }
-.ct-stick--ghost { background: transparent; border: 2px dashed #d97706; box-sizing: border-box; }
 
 .ct-number { font-size: 64px; font-weight: 900; line-height: 1; letter-spacing: 2px; min-height: 64px; }
 .ct-number--hidden { color: #94a3b8; animation: ct-wait 1.2s ease-in-out infinite; }
@@ -121,6 +134,8 @@
 }
 .ct-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #92400e; }
 .ct-btn:disabled { opacity: .55; cursor: default; }
+.ct-btn-ten { display: inline-flex; align-items: center; }
+.ct-btn-ten--coins { --coin-size: 15px; }
 .ct-btn-stick { width: 7px; height: 26px; border-radius: 999px; background: #fff; }
 .ct-btn--fold { background: #16a34a; box-shadow: 0 4px 0 #166534; animation: ct-pulse 1.4s ease-in-out infinite; }
 .ct-btn--fold:disabled { animation: none; }
@@ -153,13 +168,11 @@
 .ct-screen--tablet .sg-title,
 .ct-screen--wide .sg-title { font-size: 30px; }
 .ct-screen--tablet .ct-board,
-.ct-screen--wide .ct-board { --ct-sq: 76px; --ct-stick-h: 84px; }
-.ct-screen--tablet .ct-board--many,
-.ct-screen--wide .ct-board--many { --ct-sq: 54px; }
+.ct-screen--wide .ct-board { --coin-size: 44px; --plate-coin: 18px; }
+.ct-screen--tablet .ct-board--many .ct-card--hundreds,
+.ct-screen--wide .ct-board--many .ct-card--hundreds { --coin-size: 30px; --plate-coin: 13px; }
 .ct-screen--tablet .ct-card,
 .ct-screen--wide .ct-card { min-height: 210px; }
-.ct-screen--tablet .ct-stick,
-.ct-screen--wide .ct-stick { width: 13px; }
 .ct-screen--tablet .ct-number,
 .ct-screen--wide .ct-number { font-size: 84px; min-height: 84px; }
 .ct-screen--tablet .ct-caption,
