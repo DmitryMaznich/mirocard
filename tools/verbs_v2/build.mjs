@@ -17,6 +17,7 @@ for (const card of deck.cards) {
   if (card.image) files.add(card.image);
   for (const path of Object.values(card.audio ?? {})) files.add(path);
   for (const path of Object.values(card.promptAudio ?? {})) files.add(path);
+  for (const path of Object.values(card.imperativeAudio ?? {})) files.add(path);
 }
 for (const file of [...files].sort()) {
   const source = join(dir, file);

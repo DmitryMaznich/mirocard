@@ -106,6 +106,14 @@ describe("verbs_v2 ladder — mounted through the real renderer", () => {
     vi.useRealTimers();
   });
 
+  it("act_out plays the recorded command when the card has one", () => {
+    const playTopicFile = vi.fn();
+    const cards = CARDS.map((c) => ({ ...c, imperativeAudio: { ru: `audio/imp_${c.conceptId}.mp3` } }));
+    const [task] = generateTasks("act_out", deriveConcepts(cards).filter((c) => c.conceptId === "runs"), cards, {});
+    mount({ task, mode: { type: "act_out" }, soundEnabled: true, playTopicFile, topicId: "verbs_v2" });
+    expect(playTopicFile).toHaveBeenCalledWith("verbs_v2", "audio/imp_runs.mp3");
+  });
+
   it("choose_all uses the template and says the word when the grid appears", () => {
     const playTopicFile = vi.fn();
     const [task] = generateTasks("choose_all", CONCEPTS.filter((c) => c.conceptId === "eats"), CARDS, { optionCount: 4 });
