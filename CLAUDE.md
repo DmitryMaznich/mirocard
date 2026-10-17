@@ -203,8 +203,9 @@ ignored in some sandboxes, use Playwright instead when a screenshot's exact widt
 Speech-therapy audit of the topic for minimally verbal children with ASD (2026-10-17):
 per-card verdicts for all 125 images, new vocabulary waves, a 12-step mode ladder and
 a step-by-step implementation plan. **Read `docs/verbs-methodology-review.md` first**
-before touching `verbs_v2` — the topic currently has no `tools/verbs_v2/` source folder
-(only the published ZIP); step 0 of the plan creates it.
+before touching `verbs_v2`. Source lives in `tools/verbs_v2/` (`node tools/verbs_v2/build.mjs`
+packs only files `deck.json` references). Steps 0–1 done (v1.3.0); next is step 2 (flashcards
+engine: errorless, prompt templates, `act_out`).
 
 ## Разряды числа (place_value)
 
