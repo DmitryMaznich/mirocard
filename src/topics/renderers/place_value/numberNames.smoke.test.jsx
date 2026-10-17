@@ -181,3 +181,37 @@ describe("No voice after a right answer", () => {
     expect(h.button("Далее →")).toBeDefined();
   });
 });
+
+describe("«Посмотри и назови»", () => {
+  const h = coinHarness();
+  const text = (sel) => h.container.querySelector(sel)?.textContent;
+  const say = (extra = {}) => ({ type: "number_names", cardId: "n", conceptId: "n", number: 305, options: [], task: "say", supportMode: "learning", ...extra });
+
+  it("the number is written; its name shows only after listening; «Сказал верно» moves on", async () => {
+    const onCorrect = vi.fn(), onMistake = vi.fn();
+    h.mount(NumberNamesTask, say(), { onCorrect, onMistake });
+    expect(text(".sg-title")).toBe("Посмотри и назови число");
+    expect(text(".nn-number")).toBe("305");
+    expect(text(".nn-say-words").trim()).toBe("");
+    h.click("Послушать, как правильно");
+    expect(text(".nn-say-words").replace(/\s+/g, " ").trim()).toBe("триста пять");
+    h.click("✓ Сказал верно");
+    expect(onCorrect).toHaveBeenCalledWith("n", "n");
+    expect(onMistake).not.toHaveBeenCalled();
+  });
+
+  it("«Повторим»: the mistake is counted, «Повтори за мной», then «Далее»", async () => {
+    const onCorrect = vi.fn(), onMistake = vi.fn();
+    h.mount(NumberNamesTask, say(), { onCorrect, onMistake });
+    h.click("Послушать, как правильно");
+    h.click("Повторим");
+    expect(onMistake).toHaveBeenCalledTimes(1);
+    expect(text(".sg-status-note")).toBe("Повтори за мной.");
+    h.click("Далее →");
+    expect(onCorrect).toHaveBeenCalled();
+  });
+
+  it("engine passes «say»", () => {
+    expect(generateTasks("number_names", [], 3, { task: "say" }).every((t) => t.task === "say")).toBe(true);
+  });
+});

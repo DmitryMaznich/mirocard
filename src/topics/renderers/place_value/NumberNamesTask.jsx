@@ -54,7 +54,57 @@ function spelledWords(value, colored) {
   });
 }
 
-export default function NumberNamesTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
+export default function NumberNamesTask(props) {
+  return props.task.task === "say" ? <SayNumber {...props} /> : <HearOrRead {...props} />;
+}
+
+// The number's digits in their place colours (hundreds green, tens orange, ones blue).
+const placeKinds = (n) => ["hundreds", "tens", "ones"].slice(3 - String(n).length);
+function ColoredNumber({ n }) {
+  const kinds = placeKinds(n);
+  return [...String(n)].map((d, i) => <span key={i} className={`nn-w--${kinds[i]}`}>{d}</span>);
+}
+
+// «Посмотри и назови»: the number is written; the child says it aloud — the one
+// step of the topic where the child speaks the name, not picks or types it.
+// Then «Послушать, как правильно»: the owner's voice says it and the name shows
+// in words. The adult judges: «Сказал верно» — next number; «Повторим» — the
+// name once more, «Повтори за мной», then «Далее» (the mistake is counted).
+function SayNumber({ task, onCorrect, onMistake }) {
+  const n = task.number;
+  const [ref, mode] = useScreenMode();
+  const { guard } = useSpeechGuard();
+  const [phase, setPhase] = useState("say"); // say → heard → (repeat)
+  const clip = useRef(null);
+  useEffect(() => () => clip.current?.stop(), []);
+  const speak = () => { stopSpeech(); clip.current = playNumber(n); };
+  const listen = () => { speak(); setPhase("heard"); };
+  const again = () => { onMistake?.(task.conceptId, task.cardId); speak(); setPhase("repeat"); };
+  return <div ref={ref} className={`pv-screen nn-screen nn-screen--${mode} nn-say`} {...guard}>
+    <div className="nn-inner">
+      <h2 className="sg-title">Посмотри и назови число</h2>
+      <div className="nn-number"><ColoredNumber n={n} /></div>
+      <div className="nn-say-words" aria-live="polite">{phase === "say" ? " " : spelledWords(n, true)}</div>
+      <div className="sg-status nn-status" role="status">
+        {phase === "say" ? <span className="sg-status-hint">Скажи число вслух.</span>
+          : phase === "repeat" ? <span className="sg-status-note">Повтори за мной.</span> : null}
+      </div>
+      <div className="nn-say-actions">
+        {phase === "say" && <button type="button" className="nn-say-btn" onClick={listen}>Послушать, как правильно</button>}
+        {phase === "heard" && <>
+          <button type="button" className="nn-say-btn nn-say-btn--ok" onClick={() => onCorrect(task.conceptId, task.cardId)}>✓ Сказал верно</button>
+          <button type="button" className="nn-say-btn nn-say-btn--again" onClick={again}>Повторим</button>
+        </>}
+        {phase === "repeat" && <>
+          <button type="button" className="nn-say-btn nn-say-btn--listen" onClick={speak}>Послушать ещё</button>
+          <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
+        </>}
+      </div>
+    </div>
+  </div>;
+}
+
+function HearOrRead({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const teaching = task.supportMode !== "independent";
   const writing = task.task === "write";
   // «Прочитай и выбери название»: the number is written, the options are its
