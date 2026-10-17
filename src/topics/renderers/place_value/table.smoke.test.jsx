@@ -86,7 +86,8 @@ describe("«Таблица»", () => {
     // Ones first, then tens: either order.
     h.click("Единиц: 7");
     expect(h.container.querySelector(".nl-row--ones.nl-row--done")).not.toBeNull();
-    expect(h.button("Далее →")).toBeUndefined();
+    // «Далее» keeps its place from the start, unavailable until all are answered.
+    expect(h.button("Далее →").disabled).toBe(true);
     h.click("Десятков: 4");
     expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");

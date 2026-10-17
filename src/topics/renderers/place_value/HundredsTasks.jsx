@@ -272,11 +272,13 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
         <h2 className="sg-title">Сколько сотен, десятков и единиц в числе?</h2>
         <div className="sg-board nl-board">
           {words ? shownNumber : <div className="nl-number">{String(n).split("").map((d, i) => <span key={i} className={`nl-place${teaching ? ` tb-digit--${PLACES[i].key}` : ""}`}>{d}</span>)}</div>}
-          {support && <section className="sg-card tb-table hd-table pp-support" aria-hidden="true">{PLACES.map(({ key }) => <div key={key} className={`tb-col tb-col--${key}`}>{head(key)}<div className={`tb-digit tb-digit--${key}`}>{target[key]}</div></div>)}</section>}
+          {/* Its place is kept from the start: nothing moves when it shows. */}
+          <section className={`sg-card tb-table hd-table pp-support${support ? "" : " nl-reserved"}`} aria-hidden="true">{PLACES.map(({ key }) => <div key={key} className={`tb-col tb-col--${key}`}>{head(key)}<div className={`tb-digit tb-digit--${key}`}>{target[key]}</div></div>)}</section>
         </div>
         <div className="sg-answer">
           <PlaceChoiceRows rows={questions} answered={answered} wrong={wrongChoice} onChoose={choose} />
-          {done}
+          <div className="sg-status" role="status">{solved ? null : note ? <span className="sg-status-note">{note}</span> : null}</div>
+          <div className={`sg-slot${solved ? "" : " nl-reserved"}`}><Button disabled={!solved} onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button></div>
         </div>
       </div>
     </div>;

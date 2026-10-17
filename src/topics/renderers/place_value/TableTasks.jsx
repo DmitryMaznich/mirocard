@@ -229,17 +229,18 @@ export function NumberLevelTask({ task, onCorrect, onMistake, onFlashIncorrect }
             <span className={`nl-place${teaching ? " tb-digit--tens" : ""}`}>{digits[0]}</span>
             <span className={`nl-place${teaching ? " tb-digit--ones" : ""}`}>{digits[1]}</span>
           </div>}
-        {support && <section className="sg-card tb-table pp-support" aria-hidden="true">
+        {/* Its place is kept from the start: nothing moves when it shows. */}
+        <section className={`sg-card tb-table pp-support${support ? "" : " nl-reserved"}`} aria-hidden="true">
           <div className="tb-col tb-col--tens">{head("tens")}<div className="tb-digit tb-digit--tens">{tens}</div></div>
           <div className="tb-col tb-col--ones">{head("ones")}<div className="tb-digit tb-digit--ones">{ones}</div></div>
-        </section>}
+        </section>
       </div>
       <div className="sg-answer">
         <PlaceChoiceRows rows={questions} answered={answered} wrong={wrong} onChoose={choose} />
-        {solved && <div className="sg-slot"><Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button></div>}
         <div className="sg-status" role="status">
           {solved ? null : note ? <span className="sg-status-note">{note}</span> : null}
         </div>
+        <div className={`sg-slot${solved ? "" : " nl-reserved"}`}><Button disabled={!solved} onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button></div>
       </div>
     </div>
   </div>;

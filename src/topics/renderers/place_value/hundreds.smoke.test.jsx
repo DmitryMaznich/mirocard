@@ -83,9 +83,10 @@ describe("Сотни", () => {
     h.mount(BuildNumberTask, build(305, { view: "number" }));
     expect(Array.from(h.container.querySelectorAll(".nl-row-label")).map((e) => e.textContent)).toEqual(["Сотен", "Десятков", "Единиц"]);
     h.click("Единиц: 5"); h.click("Сотен: 3");
-    expect(h.button("Далее →")).toBeUndefined();
+    // «Далее» keeps its place from the start, unavailable until all are answered.
+    expect(h.button("Далее →").disabled).toBe(true);
     h.click("Десятков: 0");
-    expect(h.button("Далее →")).not.toBeUndefined();
+    expect(h.button("Далее →").disabled).toBe(false);
   });
 
   it("engine: «до 1000» gives three-digit numbers, ≤ 599 on coins, some without tens", () => {
