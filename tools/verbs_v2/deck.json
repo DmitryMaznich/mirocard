@@ -1,0 +1,2906 @@
+{
+  "meta": {
+    "id": "verbs_v2",
+    "title": {
+      "ru": "Глаголы",
+      "en": "verbs_v2"
+    },
+    "version": "1.2.0",
+    "renderer": "flashcards",
+    "conceptCount": 25,
+    "questionKey": "Что делает?"
+  },
+  "modes": [
+    {
+      "id": "question_answer",
+      "type": "question_answer",
+      "evaluation": "none",
+      "ui": {
+        "title": "Что делает?",
+        "instruction": "Что делает?"
+      }
+    },
+    {
+      "id": "intro",
+      "type": "intro",
+      "evaluation": "none",
+      "ui": {
+        "title": "Знакомство",
+        "instruction": "Нажмите на карточку чтобы продолжить"
+      }
+    },
+    {
+      "id": "yes_no",
+      "type": "yes_no",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Да / Нет",
+        "instruction": "Правильное ли слово?"
+      },
+      "params": {
+        "repsPerConcept": {
+          "type": "number",
+          "label": {
+            "ru": "Повторений на понятие"
+          },
+          "default": 1,
+          "min": 1,
+          "max": 5
+        }
+      }
+    },
+    {
+      "id": "find_n",
+      "type": "find_n",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Найди картинку",
+        "instruction": "Нажми на нужную картинку"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Вариантов"
+          },
+          "values": [
+            2,
+            4,
+            6
+          ],
+          "default": 4
+        },
+        "repsPerConcept": {
+          "type": "number",
+          "label": {
+            "ru": "Повторений на понятие"
+          },
+          "default": 1,
+          "min": 1,
+          "max": 3
+        }
+      }
+    },
+    {
+      "id": "choose_word_by_picture",
+      "type": "choose_word_by_picture",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Выбери слово",
+        "instruction": "Нажми на правильное слово"
+      },
+      "params": {
+        "repsPerConcept": {
+          "type": "number",
+          "label": {
+            "ru": "Повторений на понятие"
+          },
+          "default": 1,
+          "min": 1,
+          "max": 3
+        },
+        "concepts": {
+          "type": "concept_selector"
+        }
+      }
+    },
+    {
+      "id": "choose_all",
+      "type": "choose_all",
+      "evaluation": "auto",
+      "ui": {
+        "title": "Выбери все",
+        "instruction": "Найди все карточки"
+      },
+      "params": {
+        "optionCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Карточек в сетке"
+          },
+          "values": [
+            4,
+            6
+          ],
+          "default": 6
+        }
+      }
+    }
+  ],
+  "annotation": {
+    "ru": "Действия детей: 24 глагола по 5 вариаций для развития генерализации. Для детей от 5 лет, логопеды и родители.",
+    "en": ""
+  },
+  "semanticSchema": {
+    "group1": "action_category",
+    "group2": "environment",
+    "group3": "energy_level"
+  },
+  "cards": [
+    {
+      "id": "brushes_teeth_1",
+      "conceptId": "brushes_teeth",
+      "primary": true,
+      "label": "чистит зубы",
+      "image": "media/brushes_teeth_1.webp",
+      "audio": {
+        "ru": "audio/brushes_teeth.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы"
+    },
+    {
+      "id": "brushes_teeth_2",
+      "conceptId": "brushes_teeth",
+      "primary": false,
+      "label": "чистит зубы",
+      "image": "media/brushes_teeth_2.webp",
+      "audio": {
+        "ru": "audio/brushes_teeth.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы"
+    },
+    {
+      "id": "brushes_teeth_3",
+      "conceptId": "brushes_teeth",
+      "primary": false,
+      "label": "чистит зубы",
+      "image": "media/brushes_teeth_3.webp",
+      "audio": {
+        "ru": "audio/brushes_teeth.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы"
+    },
+    {
+      "id": "brushes_teeth_4",
+      "conceptId": "brushes_teeth",
+      "primary": false,
+      "label": "чистит зубы",
+      "image": "media/brushes_teeth_4.webp",
+      "audio": {
+        "ru": "audio/brushes_teeth.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы"
+    },
+    {
+      "id": "brushes_teeth_5",
+      "conceptId": "brushes_teeth",
+      "primary": false,
+      "label": "чистит зубы",
+      "image": "media/brushes_teeth_5.webp",
+      "audio": {
+        "ru": "audio/brushes_teeth.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "чистит зубы"
+    },
+    {
+      "id": "washes_face_1",
+      "conceptId": "washes_face",
+      "primary": true,
+      "label": "умывается",
+      "image": "media/washes_face_1.webp",
+      "audio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "умывается"
+    },
+    {
+      "id": "washes_face_2",
+      "conceptId": "washes_face",
+      "primary": false,
+      "label": "умывается",
+      "image": "media/washes_face_2.webp",
+      "audio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "умывается"
+    },
+    {
+      "id": "washes_face_3",
+      "conceptId": "washes_face",
+      "primary": false,
+      "label": "умывается",
+      "image": "media/washes_face_3.webp",
+      "audio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "умывается"
+    },
+    {
+      "id": "washes_face_4",
+      "conceptId": "washes_face",
+      "primary": false,
+      "label": "умывается",
+      "image": "media/washes_face_4.webp",
+      "audio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "умывается"
+    },
+    {
+      "id": "washes_face_5",
+      "conceptId": "washes_face",
+      "primary": false,
+      "label": "умывается",
+      "image": "media/washes_face_5.webp",
+      "audio": {
+        "ru": "audio/washes_face.mp3"
+      },
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "self_care",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "умывается"
+    },
+    {
+      "id": "walks_1",
+      "conceptId": "walks",
+      "primary": true,
+      "label": "идёт",
+      "image": "media/walks_1.webp",
+      "audio": {
+        "ru": "audio/walks.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт"
+    },
+    {
+      "id": "walks_2",
+      "conceptId": "walks",
+      "primary": false,
+      "label": "идёт",
+      "image": "media/walks_2.webp",
+      "audio": {
+        "ru": "audio/walks.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт"
+    },
+    {
+      "id": "walks_3",
+      "conceptId": "walks",
+      "primary": false,
+      "label": "идёт",
+      "image": "media/walks_3.webp",
+      "audio": {
+        "ru": "audio/walks.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт"
+    },
+    {
+      "id": "walks_4",
+      "conceptId": "walks",
+      "primary": false,
+      "label": "идёт",
+      "image": "media/walks_4.webp",
+      "audio": {
+        "ru": "audio/walks.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт"
+    },
+    {
+      "id": "walks_5",
+      "conceptId": "walks",
+      "primary": false,
+      "label": "идёт",
+      "image": "media/walks_5.webp",
+      "audio": {
+        "ru": "audio/walks.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "moderate"
+      },
+      "answerKey": "идёт"
+    },
+    {
+      "id": "runs_1",
+      "conceptId": "runs",
+      "primary": true,
+      "label": "бежит",
+      "image": "media/runs_1.webp",
+      "audio": {
+        "ru": "audio/runs.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "бежит"
+    },
+    {
+      "id": "runs_2",
+      "conceptId": "runs",
+      "primary": false,
+      "label": "бежит",
+      "image": "media/runs_2.webp",
+      "audio": {
+        "ru": "audio/runs.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "бежит"
+    },
+    {
+      "id": "runs_3",
+      "conceptId": "runs",
+      "primary": false,
+      "label": "бежит",
+      "image": "media/runs_3.webp",
+      "audio": {
+        "ru": "audio/runs.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "бежит"
+    },
+    {
+      "id": "runs_4",
+      "conceptId": "runs",
+      "primary": false,
+      "label": "бежит",
+      "image": "media/runs_4.webp",
+      "audio": {
+        "ru": "audio/runs.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "бежит"
+    },
+    {
+      "id": "runs_5",
+      "conceptId": "runs",
+      "primary": false,
+      "label": "бежит",
+      "image": "media/runs_5.webp",
+      "audio": {
+        "ru": "audio/runs.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "бежит"
+    },
+    {
+      "id": "jumps_1",
+      "conceptId": "jumps",
+      "primary": true,
+      "label": "прыгает",
+      "image": "media/jumps_1.webp",
+      "audio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "прыгает"
+    },
+    {
+      "id": "jumps_2",
+      "conceptId": "jumps",
+      "primary": false,
+      "label": "прыгает",
+      "image": "media/jumps_2.webp",
+      "audio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "прыгает"
+    },
+    {
+      "id": "jumps_3",
+      "conceptId": "jumps",
+      "primary": false,
+      "label": "прыгает",
+      "image": "media/jumps_3.webp",
+      "audio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "прыгает"
+    },
+    {
+      "id": "jumps_4",
+      "conceptId": "jumps",
+      "primary": false,
+      "label": "прыгает",
+      "image": "media/jumps_4.webp",
+      "audio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "прыгает"
+    },
+    {
+      "id": "jumps_5",
+      "conceptId": "jumps",
+      "primary": false,
+      "label": "прыгает",
+      "image": "media/jumps_5.webp",
+      "audio": {
+        "ru": "audio/jumps.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "active",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "прыгает"
+    },
+    {
+      "id": "rides_1",
+      "conceptId": "rides",
+      "primary": true,
+      "label": "катается",
+      "image": "media/rides_1.webp",
+      "audio": {
+        "ru": "audio/rides.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "катается"
+    },
+    {
+      "id": "rides_2",
+      "conceptId": "rides",
+      "primary": false,
+      "label": "катается",
+      "image": "media/rides_2.webp",
+      "audio": {
+        "ru": "audio/rides.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "катается"
+    },
+    {
+      "id": "rides_3",
+      "conceptId": "rides",
+      "primary": false,
+      "label": "катается",
+      "image": "media/rides_3.webp",
+      "audio": {
+        "ru": "audio/rides.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "катается"
+    },
+    {
+      "id": "rides_4",
+      "conceptId": "rides",
+      "primary": false,
+      "label": "катается",
+      "image": "media/rides_4.webp",
+      "audio": {
+        "ru": "audio/rides.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "катается"
+    },
+    {
+      "id": "rides_5",
+      "conceptId": "rides",
+      "primary": false,
+      "label": "катается",
+      "image": "media/rides_5.webp",
+      "audio": {
+        "ru": "audio/rides.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "bicycle",
+        "outdoor",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "катается"
+    },
+    {
+      "id": "swims_1",
+      "conceptId": "swims",
+      "primary": true,
+      "label": "плавает",
+      "image": "media/swims_1.webp",
+      "audio": {
+        "ru": "audio/swims.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "плавает"
+    },
+    {
+      "id": "swims_2",
+      "conceptId": "swims",
+      "primary": false,
+      "label": "плавает",
+      "image": "media/swims_2.webp",
+      "audio": {
+        "ru": "audio/swims.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "плавает"
+    },
+    {
+      "id": "swims_3",
+      "conceptId": "swims",
+      "primary": false,
+      "label": "плавает",
+      "image": "media/swims_3.webp",
+      "audio": {
+        "ru": "audio/swims.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "плавает"
+    },
+    {
+      "id": "swims_4",
+      "conceptId": "swims",
+      "primary": false,
+      "label": "плавает",
+      "image": "media/swims_4.webp",
+      "audio": {
+        "ru": "audio/swims.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "плавает"
+    },
+    {
+      "id": "swims_5",
+      "conceptId": "swims",
+      "primary": false,
+      "label": "плавает",
+      "image": "media/swims_5.webp",
+      "audio": {
+        "ru": "audio/swims.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "water",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "плавает"
+    },
+    {
+      "id": "dances_1",
+      "conceptId": "dances",
+      "primary": true,
+      "label": "танцует",
+      "image": "media/dances_1.webp",
+      "audio": {
+        "ru": "audio/dances.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "танцует"
+    },
+    {
+      "id": "dances_2",
+      "conceptId": "dances",
+      "primary": false,
+      "label": "танцует",
+      "image": "media/dances_2.webp",
+      "audio": {
+        "ru": "audio/dances.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "танцует"
+    },
+    {
+      "id": "dances_3",
+      "conceptId": "dances",
+      "primary": false,
+      "label": "танцует",
+      "image": "media/dances_3.webp",
+      "audio": {
+        "ru": "audio/dances.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "танцует"
+    },
+    {
+      "id": "dances_4",
+      "conceptId": "dances",
+      "primary": false,
+      "label": "танцует",
+      "image": "media/dances_4.webp",
+      "audio": {
+        "ru": "audio/dances.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "танцует"
+    },
+    {
+      "id": "dances_5",
+      "conceptId": "dances",
+      "primary": false,
+      "label": "танцует",
+      "image": "media/dances_5.webp",
+      "audio": {
+        "ru": "audio/dances.mp3"
+      },
+      "category": "movement",
+      "tags": [
+        "movement",
+        "creative",
+        "music",
+        "active"
+      ],
+      "semantic": {
+        "group1": "movement",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "танцует"
+    },
+    {
+      "id": "eats_1",
+      "conceptId": "eats",
+      "primary": true,
+      "label": "ест",
+      "image": "media/eats_1.webp",
+      "audio": {
+        "ru": "audio/eats.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "ест"
+    },
+    {
+      "id": "eats_2",
+      "conceptId": "eats",
+      "primary": false,
+      "label": "ест",
+      "image": "media/eats_2.webp",
+      "audio": {
+        "ru": "audio/eats.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "ест"
+    },
+    {
+      "id": "eats_3",
+      "conceptId": "eats",
+      "primary": false,
+      "label": "ест",
+      "image": "media/eats_3.webp",
+      "audio": {
+        "ru": "audio/eats.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "ест"
+    },
+    {
+      "id": "eats_4",
+      "conceptId": "eats",
+      "primary": false,
+      "label": "ест",
+      "image": "media/eats_4.webp",
+      "audio": {
+        "ru": "audio/eats.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "ест"
+    },
+    {
+      "id": "eats_5",
+      "conceptId": "eats",
+      "primary": false,
+      "label": "ест",
+      "image": "media/eats_5.webp",
+      "audio": {
+        "ru": "audio/eats.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "food",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "ест"
+    },
+    {
+      "id": "drinks_1",
+      "conceptId": "drinks",
+      "primary": true,
+      "label": "пьёт",
+      "image": "media/drinks_1.webp",
+      "audio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт"
+    },
+    {
+      "id": "drinks_2",
+      "conceptId": "drinks",
+      "primary": false,
+      "label": "пьёт",
+      "image": "media/drinks_2.webp",
+      "audio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт"
+    },
+    {
+      "id": "drinks_3",
+      "conceptId": "drinks",
+      "primary": false,
+      "label": "пьёт",
+      "image": "media/drinks_3.webp",
+      "audio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт"
+    },
+    {
+      "id": "drinks_4",
+      "conceptId": "drinks",
+      "primary": false,
+      "label": "пьёт",
+      "image": "media/drinks_4.webp",
+      "audio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт"
+    },
+    {
+      "id": "drinks_5",
+      "conceptId": "drinks",
+      "primary": false,
+      "label": "пьёт",
+      "image": "media/drinks_5.webp",
+      "audio": {
+        "ru": "audio/drinks.mp3"
+      },
+      "category": "nutrition",
+      "tags": [
+        "nutrition",
+        "drink",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "nutrition",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пьёт"
+    },
+    {
+      "id": "draws_1",
+      "conceptId": "draws",
+      "primary": true,
+      "label": "рисует",
+      "image": "media/draws_1.webp",
+      "audio": {
+        "ru": "audio/draws.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "рисует"
+    },
+    {
+      "id": "draws_2",
+      "conceptId": "draws",
+      "primary": false,
+      "label": "рисует",
+      "image": "media/draws_2.webp",
+      "audio": {
+        "ru": "audio/draws.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "рисует"
+    },
+    {
+      "id": "draws_3",
+      "conceptId": "draws",
+      "primary": false,
+      "label": "рисует",
+      "image": "media/draws_3.webp",
+      "audio": {
+        "ru": "audio/draws.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "рисует"
+    },
+    {
+      "id": "draws_4",
+      "conceptId": "draws",
+      "primary": false,
+      "label": "рисует",
+      "image": "media/draws_4.webp",
+      "audio": {
+        "ru": "audio/draws.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "рисует"
+    },
+    {
+      "id": "draws_5",
+      "conceptId": "draws",
+      "primary": false,
+      "label": "рисует",
+      "image": "media/draws_5.webp",
+      "audio": {
+        "ru": "audio/draws.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "art",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "рисует"
+    },
+    {
+      "id": "writes_1",
+      "conceptId": "writes",
+      "primary": true,
+      "label": "пишет",
+      "image": "media/writes_1.webp",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "writing",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пишет"
+    },
+    {
+      "id": "writes_2",
+      "conceptId": "writes",
+      "primary": false,
+      "label": "пишет",
+      "image": "media/writes_2.webp",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "writing",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пишет"
+    },
+    {
+      "id": "writes_3",
+      "conceptId": "writes",
+      "primary": false,
+      "label": "пишет",
+      "image": "media/writes_3.webp",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "writing",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пишет"
+    },
+    {
+      "id": "writes_4",
+      "conceptId": "writes",
+      "primary": false,
+      "label": "пишет",
+      "image": "media/writes_4.webp",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "writing",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пишет"
+    },
+    {
+      "id": "writes_5",
+      "conceptId": "writes",
+      "primary": false,
+      "label": "пишет",
+      "image": "media/writes_5.webp",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "writing",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "пишет"
+    },
+    {
+      "id": "sings_1",
+      "conceptId": "sings",
+      "primary": true,
+      "label": "поёт",
+      "image": "media/sings_1.webp",
+      "audio": {
+        "ru": "audio/sings.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "поёт"
+    },
+    {
+      "id": "sings_2",
+      "conceptId": "sings",
+      "primary": false,
+      "label": "поёт",
+      "image": "media/sings_2.webp",
+      "audio": {
+        "ru": "audio/sings.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "поёт"
+    },
+    {
+      "id": "sings_3",
+      "conceptId": "sings",
+      "primary": false,
+      "label": "поёт",
+      "image": "media/sings_3.webp",
+      "audio": {
+        "ru": "audio/sings.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "поёт"
+    },
+    {
+      "id": "sings_4",
+      "conceptId": "sings",
+      "primary": false,
+      "label": "поёт",
+      "image": "media/sings_4.webp",
+      "audio": {
+        "ru": "audio/sings.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "поёт"
+    },
+    {
+      "id": "sings_5",
+      "conceptId": "sings",
+      "primary": false,
+      "label": "поёт",
+      "image": "media/sings_5.webp",
+      "audio": {
+        "ru": "audio/sings.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "music",
+        "voice"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "поёт"
+    },
+    {
+      "id": "plays_1",
+      "conceptId": "plays",
+      "primary": true,
+      "label": "играет",
+      "image": "media/plays_1.webp",
+      "audio": {
+        "ru": "audio/plays.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "играет"
+    },
+    {
+      "id": "plays_2",
+      "conceptId": "plays",
+      "primary": false,
+      "label": "играет",
+      "image": "media/plays_2.webp",
+      "audio": {
+        "ru": "audio/plays.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "играет"
+    },
+    {
+      "id": "plays_3",
+      "conceptId": "plays",
+      "primary": false,
+      "label": "играет",
+      "image": "media/plays_3.webp",
+      "audio": {
+        "ru": "audio/plays.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "играет"
+    },
+    {
+      "id": "plays_4",
+      "conceptId": "plays",
+      "primary": false,
+      "label": "играет",
+      "image": "media/plays_4.webp",
+      "audio": {
+        "ru": "audio/plays.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "играет"
+    },
+    {
+      "id": "plays_5",
+      "conceptId": "plays",
+      "primary": false,
+      "label": "играет",
+      "image": "media/plays_5.webp",
+      "audio": {
+        "ru": "audio/plays.mp3"
+      },
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "active"
+      ],
+      "semantic": {
+        "group1": "creative",
+        "group2": "outdoor",
+        "group3": "active"
+      },
+      "answerKey": "играет"
+    },
+    {
+      "id": "reads_1",
+      "conceptId": "reads",
+      "primary": true,
+      "label": "читает",
+      "image": "media/reads_1.webp",
+      "audio": {
+        "ru": "audio/reads.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "читает"
+    },
+    {
+      "id": "reads_2",
+      "conceptId": "reads",
+      "primary": false,
+      "label": "читает",
+      "image": "media/reads_2.webp",
+      "audio": {
+        "ru": "audio/reads.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "читает"
+    },
+    {
+      "id": "reads_3",
+      "conceptId": "reads",
+      "primary": false,
+      "label": "читает",
+      "image": "media/reads_3.webp",
+      "audio": {
+        "ru": "audio/reads.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "читает"
+    },
+    {
+      "id": "reads_4",
+      "conceptId": "reads",
+      "primary": false,
+      "label": "читает",
+      "image": "media/reads_4.webp",
+      "audio": {
+        "ru": "audio/reads.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "читает"
+    },
+    {
+      "id": "reads_5",
+      "conceptId": "reads",
+      "primary": false,
+      "label": "читает",
+      "image": "media/reads_5.webp",
+      "audio": {
+        "ru": "audio/reads.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "reading"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "читает"
+    },
+    {
+      "id": "counts_1",
+      "conceptId": "counts",
+      "primary": true,
+      "label": "считает",
+      "image": "media/counts_1.webp",
+      "audio": {
+        "ru": "audio/counts.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "math"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "считает"
+    },
+    {
+      "id": "counts_2",
+      "conceptId": "counts",
+      "primary": false,
+      "label": "считает",
+      "image": "media/counts_2.webp",
+      "audio": {
+        "ru": "audio/counts.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "math"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "считает"
+    },
+    {
+      "id": "counts_3",
+      "conceptId": "counts",
+      "primary": false,
+      "label": "считает",
+      "image": "media/counts_3.webp",
+      "audio": {
+        "ru": "audio/counts.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "math"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "считает"
+    },
+    {
+      "id": "counts_4",
+      "conceptId": "counts",
+      "primary": false,
+      "label": "считает",
+      "image": "media/counts_4.webp",
+      "audio": {
+        "ru": "audio/counts.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "math"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "считает"
+    },
+    {
+      "id": "counts_5",
+      "conceptId": "counts",
+      "primary": false,
+      "label": "считает",
+      "image": "media/counts_5.webp",
+      "audio": {
+        "ru": "audio/counts.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "math"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "считает"
+    },
+    {
+      "id": "thinks_1",
+      "conceptId": "thinks",
+      "primary": true,
+      "label": "думает",
+      "image": "media/thinks_1.webp",
+      "audio": {
+        "ru": "audio/thinks.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "emotion",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "думает"
+    },
+    {
+      "id": "thinks_2",
+      "conceptId": "thinks",
+      "primary": false,
+      "label": "думает",
+      "image": "media/thinks_2.webp",
+      "audio": {
+        "ru": "audio/thinks.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "emotion",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "думает"
+    },
+    {
+      "id": "thinks_3",
+      "conceptId": "thinks",
+      "primary": false,
+      "label": "думает",
+      "image": "media/thinks_3.webp",
+      "audio": {
+        "ru": "audio/thinks.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "emotion",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "думает"
+    },
+    {
+      "id": "thinks_4",
+      "conceptId": "thinks",
+      "primary": false,
+      "label": "думает",
+      "image": "media/thinks_4.webp",
+      "audio": {
+        "ru": "audio/thinks.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "emotion",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "думает"
+    },
+    {
+      "id": "thinks_5",
+      "conceptId": "thinks",
+      "primary": false,
+      "label": "думает",
+      "image": "media/thinks_5.webp",
+      "audio": {
+        "ru": "audio/thinks.mp3"
+      },
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "emotion",
+        "learning"
+      ],
+      "semantic": {
+        "group1": "cognitive",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "думает"
+    },
+    {
+      "id": "vacuums_1",
+      "conceptId": "vacuums",
+      "primary": true,
+      "label": "пылесосит",
+      "image": "media/vacuums_1.webp",
+      "audio": {
+        "ru": "audio/vacuums.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "chores",
+        "indoor"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "пылесосит"
+    },
+    {
+      "id": "vacuums_2",
+      "conceptId": "vacuums",
+      "primary": false,
+      "label": "пылесосит",
+      "image": "media/vacuums_2.webp",
+      "audio": {
+        "ru": "audio/vacuums.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "chores",
+        "indoor"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "пылесосит"
+    },
+    {
+      "id": "vacuums_3",
+      "conceptId": "vacuums",
+      "primary": false,
+      "label": "пылесосит",
+      "image": "media/vacuums_3.webp",
+      "audio": {
+        "ru": "audio/vacuums.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "chores",
+        "indoor"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "пылесосит"
+    },
+    {
+      "id": "vacuums_4",
+      "conceptId": "vacuums",
+      "primary": false,
+      "label": "пылесосит",
+      "image": "media/vacuums_4.webp",
+      "audio": {
+        "ru": "audio/vacuums.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "chores",
+        "indoor"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "пылесосит"
+    },
+    {
+      "id": "vacuums_5",
+      "conceptId": "vacuums",
+      "primary": false,
+      "label": "пылесосит",
+      "image": "media/vacuums_5.webp",
+      "audio": {
+        "ru": "audio/vacuums.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "chores",
+        "indoor"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "пылесосит"
+    },
+    {
+      "id": "cuts_1",
+      "conceptId": "cuts",
+      "primary": true,
+      "label": "вырезает",
+      "image": "media/cuts_1.webp",
+      "audio": {
+        "ru": "audio/cuts.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "craft",
+        "scissors"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "вырезает"
+    },
+    {
+      "id": "cuts_2",
+      "conceptId": "cuts",
+      "primary": false,
+      "label": "вырезает",
+      "image": "media/cuts_2.webp",
+      "audio": {
+        "ru": "audio/cuts.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "craft",
+        "scissors"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "вырезает"
+    },
+    {
+      "id": "cuts_3",
+      "conceptId": "cuts",
+      "primary": false,
+      "label": "вырезает",
+      "image": "media/cuts_3.webp",
+      "audio": {
+        "ru": "audio/cuts.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "craft",
+        "scissors"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "вырезает"
+    },
+    {
+      "id": "cuts_4",
+      "conceptId": "cuts",
+      "primary": false,
+      "label": "вырезает",
+      "image": "media/cuts_4.webp",
+      "audio": {
+        "ru": "audio/cuts.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "craft",
+        "scissors"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "вырезает"
+    },
+    {
+      "id": "cuts_5",
+      "conceptId": "cuts",
+      "primary": false,
+      "label": "вырезает",
+      "image": "media/cuts_5.webp",
+      "audio": {
+        "ru": "audio/cuts.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "craft",
+        "scissors"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "вырезает"
+    },
+    {
+      "id": "cuts_knife_1",
+      "conceptId": "cuts_knife",
+      "primary": true,
+      "label": "режет",
+      "image": "media/cuts_knife_1.webp",
+      "audio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_master"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "kitchen",
+        "group3": "medium"
+      },
+      "answerKey": "режет"
+    },
+    {
+      "id": "cuts_knife_2",
+      "conceptId": "cuts_knife",
+      "primary": false,
+      "label": "режет",
+      "image": "media/cuts_knife_2.webp",
+      "audio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_context"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "kitchen",
+        "group3": "medium"
+      },
+      "answerKey": "режет"
+    },
+    {
+      "id": "cuts_knife_3",
+      "conceptId": "cuts_knife",
+      "primary": false,
+      "label": "режет",
+      "image": "media/cuts_knife_3.webp",
+      "audio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_illustration"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "kitchen",
+        "group3": "medium"
+      },
+      "answerKey": "режет"
+    },
+    {
+      "id": "cuts_knife_4",
+      "conceptId": "cuts_knife",
+      "primary": false,
+      "label": "режет",
+      "image": "media/cuts_knife_4.webp",
+      "audio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_character"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "kitchen",
+        "group3": "medium"
+      },
+      "answerKey": "режет"
+    },
+    {
+      "id": "cuts_knife_5",
+      "conceptId": "cuts_knife",
+      "primary": false,
+      "label": "режет",
+      "image": "media/cuts_knife_5.webp",
+      "audio": {
+        "ru": "audio/cuts_knife.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "kitchen",
+        "variation_silhouette"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "kitchen",
+        "group3": "medium"
+      },
+      "answerKey": "режет"
+    },
+    {
+      "id": "waters_plants_1",
+      "conceptId": "waters_plants",
+      "primary": true,
+      "label": "поливает",
+      "image": "media/waters_plants_1.webp",
+      "audio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "outdoor",
+        "group3": "calm"
+      },
+      "answerKey": "поливает"
+    },
+    {
+      "id": "waters_plants_2",
+      "conceptId": "waters_plants",
+      "primary": false,
+      "label": "поливает",
+      "image": "media/waters_plants_2.webp",
+      "audio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "outdoor",
+        "group3": "calm"
+      },
+      "answerKey": "поливает"
+    },
+    {
+      "id": "waters_plants_3",
+      "conceptId": "waters_plants",
+      "primary": false,
+      "label": "поливает",
+      "image": "media/waters_plants_3.webp",
+      "audio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "outdoor",
+        "group3": "calm"
+      },
+      "answerKey": "поливает"
+    },
+    {
+      "id": "waters_plants_4",
+      "conceptId": "waters_plants",
+      "primary": false,
+      "label": "поливает",
+      "image": "media/waters_plants_4.webp",
+      "audio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "outdoor",
+        "group3": "calm"
+      },
+      "answerKey": "поливает"
+    },
+    {
+      "id": "waters_plants_5",
+      "conceptId": "waters_plants",
+      "primary": false,
+      "label": "поливает",
+      "image": "media/waters_plants_5.webp",
+      "audio": {
+        "ru": "audio/waters_plants.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "plants",
+        "gardening"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "outdoor",
+        "group3": "calm"
+      },
+      "answerKey": "поливает"
+    },
+    {
+      "id": "buys_1",
+      "conceptId": "buys",
+      "primary": true,
+      "label": "покупает",
+      "image": "media/buys_1.webp",
+      "audio": {
+        "ru": "audio/buys.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "shopping",
+        "money"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "покупает"
+    },
+    {
+      "id": "buys_2",
+      "conceptId": "buys",
+      "primary": false,
+      "label": "покупает",
+      "image": "media/buys_2.webp",
+      "audio": {
+        "ru": "audio/buys.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "shopping",
+        "money"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "покупает"
+    },
+    {
+      "id": "buys_3",
+      "conceptId": "buys",
+      "primary": false,
+      "label": "покупает",
+      "image": "media/buys_3.webp",
+      "audio": {
+        "ru": "audio/buys.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "shopping",
+        "money"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "покупает"
+    },
+    {
+      "id": "buys_4",
+      "conceptId": "buys",
+      "primary": false,
+      "label": "покупает",
+      "image": "media/buys_4.webp",
+      "audio": {
+        "ru": "audio/buys.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "shopping",
+        "money"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "покупает"
+    },
+    {
+      "id": "buys_5",
+      "conceptId": "buys",
+      "primary": false,
+      "label": "покупает",
+      "image": "media/buys_5.webp",
+      "audio": {
+        "ru": "audio/buys.mp3"
+      },
+      "category": "household",
+      "tags": [
+        "household",
+        "shopping",
+        "money"
+      ],
+      "semantic": {
+        "group1": "household",
+        "group2": "indoor",
+        "group3": "moderate"
+      },
+      "answerKey": "покупает"
+    },
+    {
+      "id": "laughs_1",
+      "conceptId": "laughs",
+      "primary": true,
+      "label": "смеётся",
+      "image": "media/laughs_1.webp",
+      "audio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "смеётся"
+    },
+    {
+      "id": "laughs_2",
+      "conceptId": "laughs",
+      "primary": false,
+      "label": "смеётся",
+      "image": "media/laughs_2.webp",
+      "audio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "смеётся"
+    },
+    {
+      "id": "laughs_3",
+      "conceptId": "laughs",
+      "primary": false,
+      "label": "смеётся",
+      "image": "media/laughs_3.webp",
+      "audio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "смеётся"
+    },
+    {
+      "id": "laughs_4",
+      "conceptId": "laughs",
+      "primary": false,
+      "label": "смеётся",
+      "image": "media/laughs_4.webp",
+      "audio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "смеётся"
+    },
+    {
+      "id": "laughs_5",
+      "conceptId": "laughs",
+      "primary": false,
+      "label": "смеётся",
+      "image": "media/laughs_5.webp",
+      "audio": {
+        "ru": "audio/laughs.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "joy",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "active"
+      },
+      "answerKey": "смеётся"
+    },
+    {
+      "id": "cries_1",
+      "conceptId": "cries",
+      "primary": true,
+      "label": "плачет",
+      "image": "media/cries_1.webp",
+      "audio": {
+        "ru": "audio/cries.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "плачет"
+    },
+    {
+      "id": "cries_2",
+      "conceptId": "cries",
+      "primary": false,
+      "label": "плачет",
+      "image": "media/cries_2.webp",
+      "audio": {
+        "ru": "audio/cries.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "плачет"
+    },
+    {
+      "id": "cries_3",
+      "conceptId": "cries",
+      "primary": false,
+      "label": "плачет",
+      "image": "media/cries_3.webp",
+      "audio": {
+        "ru": "audio/cries.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "плачет"
+    },
+    {
+      "id": "cries_4",
+      "conceptId": "cries",
+      "primary": false,
+      "label": "плачет",
+      "image": "media/cries_4.webp",
+      "audio": {
+        "ru": "audio/cries.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "плачет"
+    },
+    {
+      "id": "cries_5",
+      "conceptId": "cries",
+      "primary": false,
+      "label": "плачет",
+      "image": "media/cries_5.webp",
+      "audio": {
+        "ru": "audio/cries.mp3"
+      },
+      "category": "emotional",
+      "tags": [
+        "emotional",
+        "sadness",
+        "social"
+      ],
+      "semantic": {
+        "group1": "emotional",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "плачет"
+    },
+    {
+      "id": "sleeps_1",
+      "conceptId": "sleeps",
+      "primary": true,
+      "label": "спит",
+      "image": "media/sleeps_1.webp",
+      "audio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "спит"
+    },
+    {
+      "id": "sleeps_2",
+      "conceptId": "sleeps",
+      "primary": false,
+      "label": "спит",
+      "image": "media/sleeps_2.webp",
+      "audio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "спит"
+    },
+    {
+      "id": "sleeps_3",
+      "conceptId": "sleeps",
+      "primary": false,
+      "label": "спит",
+      "image": "media/sleeps_3.webp",
+      "audio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "спит"
+    },
+    {
+      "id": "sleeps_4",
+      "conceptId": "sleeps",
+      "primary": false,
+      "label": "спит",
+      "image": "media/sleeps_4.webp",
+      "audio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "спит"
+    },
+    {
+      "id": "sleeps_5",
+      "conceptId": "sleeps",
+      "primary": false,
+      "label": "спит",
+      "image": "media/sleeps_5.webp",
+      "audio": {
+        "ru": "audio/sleeps.mp3"
+      },
+      "category": "rest",
+      "tags": [
+        "rest",
+        "night",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "rest",
+        "group2": "indoor",
+        "group3": "calm"
+      },
+      "answerKey": "спит"
+    }
+  ]
+}
