@@ -13658,6 +13658,8 @@ kbd {
 .mode-item-row { display: flex; align-items: stretch; gap: 6px; }
 .mode-item--flex { flex: 1; position: relative; display: flex; align-items: center; gap: 14px; }
 .mode-item__body { flex: 1; min-width: 0; padding-right: 30px; }
+.mode-item--test { background: #fef9e7; box-shadow: inset 0 0 0 1.5px #f6e2a6, 0 1px 3px rgba(0,0,0,0.06); }
+.mode-item--test:hover { box-shadow: inset 0 0 0 1.5px #f1d27c, 0 2px 8px rgba(0,0,0,0.1); }
 .mode-item__goal {
   margin-top: 5px;
   font-size: 0.8rem;

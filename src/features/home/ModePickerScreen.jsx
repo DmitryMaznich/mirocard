@@ -218,7 +218,8 @@ export default function ModePickerScreen() {
           return (
             <li key={mode.id} className={`mode-item-row${isMyPeople && !myPeopleModeAvailable(mode) ? " mode-item-row--disabled" : ""}`}>
               <div
-                className="mode-item mode-item--flex"
+                // A test (`finite`, «Контрольная работа») stands out on a light tint.
+                className={`mode-item mode-item--flex${mode.finite ? " mode-item--test" : ""}`}
                 role="button"
                 tabIndex={myPeopleModeAvailable(mode) ? 0 : -1}
                 onClick={() => myPeopleModeAvailable(mode) && pickMode(mode)}
