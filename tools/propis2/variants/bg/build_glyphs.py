@@ -190,6 +190,22 @@ def _line_fit(p):
     return c, d / np.hypot(*d)
 
 
+def _on_slant(line):
+    """A stem's line kept where it is but turned exactly onto the copybook's slant (meta.script slantDeg: the guide lines of the
+    Bulgarian ruling): stems follow the guides, never the font's or the hand's own lean (owner, 2026-10-18)."""
+    return line[0], tt._unit(np.array([tt.SLANT_T, -1.0]))
+
+
+def _top_on(stem):
+    """The top of a stem: where its line reaches the capital's top line (the top stays on the ruling, the stem on the slant)."""
+    return np.array([_x_at(stem, tt.CAP_TOP), tt.CAP_TOP])
+
+
+def _set_end(cmd, p):
+    c, ps = cmd
+    return (c, list(ps[:-1]) + [np.asarray(p, float)])
+
+
 def _x_at(line, y):
     c, d = line
     return c[0] + (y - c[1]) * d[0] / d[1]
@@ -205,19 +221,21 @@ def spread_like_font(strokes, stroke=0, lo=None, hi=None):
     font = np.vstack(font_centre(PAPER_LABEL[0]))
     ftop = int(np.argmin(font[:, 1]))
     pick = lambda p: p[(p[:, 1] > hi) & (p[:, 1] < lo)]
-    f_left, f_right = _line_fit(pick(font[:ftop + 1])), _line_fit(pick(font[ftop:]))
+    f_left, f_right = _line_fit(pick(font[:ftop + 1])), _on_slant(_line_fit(pick(font[ftop:])))
     cmds = strokes[stroke]
     ends = np.array([ps[-1] for _, ps in cmds])
     top = int(np.argmin(ends[:, 1]))  # the command that ends at the top
     ours = np.array(tt.parse_path(tt.dg.fmt(cmds)))
     otop = int(np.argmin(ours[:, 1]))
-    o_left, o_right = _line_fit(pick(ours[:otop + 1])), _line_fit(pick(ours[otop:]))
+    o_left, o_right = _line_fit(pick(ours[:otop + 1])), _on_slant(_line_fit(pick(ours[otop:])))
     def moved(part, ol, fl):
         return [(c, [np.array([q[0] + _x_at(fl, q[1]) - _x_at(ol, q[1]), q[1]]) for q in ps]) for c, ps in part]
     left = [cmds[0]] + moved(cmds[1:top + 1], o_left, f_left)
     left[0] = ("M", [np.array([q[0] + _x_at(f_left, q[1]) - _x_at(o_left, q[1]), q[1]]) for q in cmds[0][1]])
     right = moved(cmds[top + 1:], o_right, f_right)
-    # the top stays one point: both shifts there are the font's top less ours, the same for both sides when the lines cross there
+    # the top: one point, on the top line, on the stem's slanted line (each side moved by its own shift would leave it in two places
+    # and bend the stem off the slant: 74deg instead of 76, owner 2026-10-18); the left side runs up to it
+    left[-1] = _set_end(left[-1], _top_on(f_right))
     strokes[stroke] = left + right
     return strokes
 
@@ -253,10 +271,11 @@ def m_from_l(strokes, source="Л", stroke=0):
     # Л's two sides onto М's own first two (the font's М is narrower there than its Л): Л's shape, М's place
     h = np.array(tt.parse_path(tt.dg.fmt(head)))
     h_top = int(np.argmin(h[:, 1]))
-    oL, oS = _line_fit(pick(h[:h_top + 1])), _line_fit(pick(h[h_top:]))
-    fL, fS = _line_fit(pick(font[:f_tops[0] + 1])), _line_fit(pick(font[f_tops[0]:f_bot + 1]))
+    oL, oS = _line_fit(pick(h[:h_top + 1])), _on_slant(_line_fit(pick(h[h_top:])))
+    fL, fS = _line_fit(pick(font[:f_tops[0] + 1])), _on_slant(_line_fit(pick(font[f_tops[0]:f_bot + 1])))
     head = ([(c, [np.array([q[0] + shift(oL, fL, q[1]), q[1]]) for q in ps]) for c, ps in head[:l_top + 1]]
             + [(c, [np.array([q[0] + shift(oS, fS, q[1]), q[1]]) for q in ps]) for c, ps in head[l_top + 1:]])
+    head[l_top] = _set_end(head[l_top], _top_on(fS))  # the first top: the stem's line at the top line
     joint = head[-1][1][-1]
     m_ends = np.array([ps[-1] for _, ps in cmds])
     tops = [k for k in range(len(cmds)) if m_ends[k, 1] < tt.CAP_TOP + 6]
@@ -267,12 +286,13 @@ def m_from_l(strokes, source="Л", stroke=0):
     k2 = t2 - (b1 + 1)  # the second top, in the tail
     ours = np.array(tt.parse_path(tt.dg.fmt([("M", [joint])] + tail)))
     o_top = _apexes(ours)[-1]
-    f_rise, f_stem = _line_fit(pick(font[f_bot:f_tops[-1] + 1])), _line_fit(pick(font[f_tops[-1]:]))
-    o_rise, o_stem = _line_fit(pick(ours[:o_top + 1])), _line_fit(pick(ours[o_top:]))
+    f_rise, f_stem = _line_fit(pick(font[f_bot:f_tops[-1] + 1])), _on_slant(_line_fit(pick(font[f_tops[-1]:])))
+    o_rise, o_stem = _line_fit(pick(ours[:o_top + 1])), _on_slant(_line_fit(pick(ours[o_top:])))
     fade = lambda y: min(1.0, max(0.0, (y - tt.X_TOP) / (tt.BASE - tt.X_TOP)))
     s_joint = shift(o_rise, f_rise, tt.BASE)
     rise = [(c, [np.array([q[0] + shift(o_rise, f_rise, q[1]) - s_joint * fade(q[1]), q[1]]) for q in ps]) for c, ps in tail[:k2 + 1]]
     stem = [(c, [np.array([q[0] + shift(o_stem, f_stem, q[1]), q[1]]) for q in ps]) for c, ps in tail[k2 + 1:]]
+    rise[-1] = _set_end(rise[-1], _top_on(f_stem))  # the second top likewise
     strokes[stroke] = head + rise + stem
     return strokes
 

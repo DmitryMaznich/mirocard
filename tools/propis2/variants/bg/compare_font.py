@@ -58,6 +58,9 @@ for n, it in enumerate(items):
     dd = ImageDraw.Draw(img)
     Q = lambda p: (ox + (p[0] - x0) * S, oy + (p[1] + 70) * S)
     for y in (tt.BASE, tt.X_TOP, tt.CAP_TOP): dd.line([Q((x0, y)), Q((x0 + 148, y))], fill=(150, 180, 220), width=2)
+    # the ruling's slant guides (meta.script slantDeg, 76deg on the Bulgarian paper): every stem must run along them
+    for gx in np.arange(x0 - 40, x0 + 190, 15):
+        dd.line([Q((gx, tt.BASE)), Q((gx + (tt.BASE - tt.CAP_TOP) * tt.SLANT_T, tt.CAP_TOP))], fill=(225, 190, 190), width=1)
     for r in raw: dd.line([Q(p) for p in tt.placed_like_last(r)], fill=(90, 90, 90), width=1)
     for j, c in enumerate(paper):
         pts = fine(c); dd.line([Q(p) for p in pts], fill=cols[j % 3], width=3)
