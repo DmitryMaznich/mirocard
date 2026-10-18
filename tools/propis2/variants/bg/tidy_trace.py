@@ -32,7 +32,7 @@ BASE, X_TOP, CAP_TOP, SLANT_DEG_PAPER, SLANT_T, SCRIPT = R_BASE, R_BASE - R_BAND
 STEP = 0.6
 CORNER_DEG = 100.0   # a turn this sharp is the pen turning back (А's apex), kept sharp
 LINE_TOL = 1.1       # a run of the hand this close to a line is a line (the hand shakes about +-1 bank unit)
-LINE_MIN = 20.0      # a line is at least this long (a shorter straight bit is part of a bow: А's entry hook)
+LINE_MIN = 28.0      # a line is at least this long (a shorter straight bit is part of a bow: А's entry hook)
 HORIZ_DEG = 10.0     # a line within this of the horizontal is horizontal
 SLANT_DEG = 8.0      # within this of the slant: along the slant
 MERGE_DEG = 14.0     # two lines this close in direction, one after the other, are one
@@ -41,6 +41,8 @@ END_ABSORB = 7.0     # a line ending this close to the end of its piece runs to 
 TRIM, TRIM_PART = 6.0, 0.1  # a line gives this much of its end (or this part of its length) to the curve after it: room to turn smoothly
 HANDLE_MIN = 0.3     # see _bezier_fit
 BOW_H = 20.0         # a hook at the baseline reaches this high up the line it turns into (0.42 of the lowercase band)
+EXT_PROM = 1.5       # a bow's bottom / top / side turns at least this much to count (smaller is the shake of the hand)
+FIT_TOL = 2.0        # a curve strays at most this far from the smoothed hand, else it is split
 SNAP = 4.0           # a bow's bottom / top this close to a ruling line stands on it
 
 
@@ -219,6 +221,32 @@ def _ruling_y(y, top):
     return None
 
 
+def _extrema(v):
+    """Indexes of the clear local extremes of v (a turn of at least EXT_PROM units each way), not at its ends."""
+    out = []
+    for k in range(3, len(v) - 3):
+        lo, hi = max(0, k - 40), min(len(v), k + 41)
+        left, right = v[lo:k], v[k + 1:hi]
+        for sign in (1, -1):
+            if all(sign * v[k] >= sign * w for w in (left.max() if sign > 0 else left.min(), right.max() if sign > 0 else right.min())):
+                if sign * (v[k] - (left.min() if sign > 0 else left.max())) >= EXT_PROM and sign * (v[k] - (right.min() if sign > 0 else right.max())) >= EXT_PROM:
+                    if not out or k - out[-1] > 3: out.append(k)
+    return out
+
+
+def _fit_span(sub, t0, t1, depth=0):
+    """Cubics through sub with end tangents t0, t1: one if it stays within FIT_TOL of the (smoothed) hand, else split where it strays most."""
+    c1, c2, e = _bezier_fit(sub, t0, t1)
+    u = np.linspace(0, 1, 60)[:, None]
+    curve = (1 - u) ** 3 * sub[0] + 3 * (1 - u) ** 2 * u * c1 + 3 * (1 - u) * u ** 2 * c2 + u ** 3 * e
+    dev = np.min(np.hypot(sub[:, None, 0] - curve[None, :, 0], sub[:, None, 1] - curve[None, :, 1]), axis=1)
+    k = int(np.argmax(dev))
+    if dev[k] <= FIT_TOL or depth > 4 or k < 3 or k > len(sub) - 4:
+        return [("C", [c1, c2, e])]
+    tk = _unit(sub[min(k + 3, len(sub) - 1)] - sub[max(k - 3, 0)])
+    return _fit_span(sub[:k + 1], t0, tk, depth + 1) + _fit_span(sub[k:], tk, t1, depth + 1)
+
+
 def tidy_piece(q, top, t_in=None, t_out=None):
     """One piece (between turns back) -> path commands without the M. t_in / t_out: forced end tangents (None: the hand's)."""
     runs = _runs(q, top)
@@ -226,28 +254,33 @@ def tidy_piece(q, top, t_in=None, t_out=None):
     anchors = []
     tan = lambda i: _unit(q[min(i + 3, len(q) - 1)] - q[max(i - 3, 0)])
     anchors.append([0, q[0], None, t_in if t_in is not None else tan(0)])
-    lines = []; first_line = last_line = None
+    lines = []; line_ends = []; first_line = last_line = None
     for i, j, c, d in runs:
         if i == 0: first_line = (c, d)
         if j == len(q) - 1: last_line = (c, d)
         a = c + d * np.dot(q[i] - c, d); b = c + d * np.dot(q[j] - c, d)
         if i == 0: anchors[0] = [0, a, None, d]
         else: anchors.append([i, a, d, d])
-        lines.append(i)
+        lines.append(i); line_ends.append(j)
         anchors.append([j, b, d, d])
     if anchors[-1][0] != len(q) - 1: anchors.append([len(q) - 1, q[-1], t_out if t_out is not None else tan(len(q) - 1), None])
     else: anchors[-1][3] = None
-    # the bottom / top of each bow between them: horizontal there, on the ruling line when near one
-    extra = []
+    # every bottom / top of a bow between them (horizontal there, on the ruling line when near one) and every leftmost / rightmost
+    # point across the slant (running along the slant there): the anchors an oval or an S is drawn through
+    extra = []; on_ruling = []
+    upright = q[:, 0] - (BASE - q[:, 1]) * SLANT_T
+    slant_dir = _unit(np.array([SLANT_T, -1.0]))
     for (ia, *_), (ib, *_) in zip(anchors, anchors[1:]):
         if ia in lines or ib - ia < 6: continue
-        seg = q[ia:ib + 1]
-        for k in (int(np.argmax(seg[:, 1])), int(np.argmin(seg[:, 1]))):
-            if 3 <= k <= len(seg) - 4:
-                p = seg[k].copy(); y = _ruling_y(p[1], top)
-                if y is not None: p[1] = y
-                t = np.array([math.copysign(1.0, seg[min(k + 2, len(seg) - 1), 0] - seg[max(k - 2, 0), 0]), 0.0])
-                extra.append([ia + k, p, t, t])
+        for k in _extrema(q[ia:ib + 1, 1]):
+            p = q[ia + k].copy(); y = _ruling_y(p[1], top)
+            if y is not None: p[1] = y; on_ruling.append(ia + k)
+            t = np.array([math.copysign(1.0, q[min(ia + k + 2, ib), 0] - q[max(ia + k - 2, ia), 0]), 0.0])
+            extra.append([ia + k, p, t, t])
+        for k in _extrema(upright[ia:ib + 1]):
+            if any(abs(e[0] - (ia + k)) < 4 for e in extra): continue
+            t = slant_dir * math.copysign(1.0, -(q[min(ia + k + 2, ib), 1] - q[max(ia + k - 2, ia), 1]))
+            extra.append([ia + k, q[ia + k].copy(), t, t])
     anchors = sorted(anchors + extra, key=lambda a: a[0])
     cmds = []
     for (ia, pa, _, ta), (ib, pb, tb, _) in zip(anchors, anchors[1:]):
@@ -255,7 +288,10 @@ def tidy_piece(q, top, t_in=None, t_out=None):
             cmds.append(("L", [pb])); continue
         sub = q[ia:ib + 1].copy(); sub[0], sub[-1] = pa, pb
         if len(sub) < 3: cmds.append(("L", [pb])); continue
-        cmds.append(("C", list(_bezier_fit(sub, _unit(ta), _unit(tb)))))
+        # a span from a bow standing on a ruling line, or running into a line, is a hook (BOW_H): one round cubic, never split to
+        # follow the hand's own turn there
+        hook = ia in on_ruling or ib in on_ruling or ia in line_ends or ib in lines
+        cmds.extend([("C", list(_bezier_fit(sub, _unit(ta), _unit(tb))))] if hook else _fit_span(sub, _unit(ta), _unit(tb)))
     return anchors[0][1], cmds, first_line, last_line
 
 

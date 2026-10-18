@@ -79,12 +79,15 @@ def underlay_glyph(item, script):
            "repeatCells": 6 if label.isupper() else 4, "sourceLabel": f"{label} (обведена по подложке Boyan Maga, подровнена на болгарской линовке)"}
     if label.isupper(): out["ascender"] = True; out["noNormalize"] = True
     if label in "дзруфцщ": out["descender"] = True
-    # the stroke the next letter joins from: the one the hand drew longest (А: the main stroke, not the bar drawn after it)
-    lengths = [float(np.hypot(*np.diff(np.array(tt.parse_path(st["d"])), axis=0).T).sum()) for st in out["strokes"]]
-    main = int(np.argmax(lengths))
-    if len(paths) > 1: out["exitStroke"] = main
-    pts = np.array(tt.parse_path(out["strokes"][main]["d"])); allx = np.array([q[0] for st in out["strokes"] for q in tt.parse_path(st["d"])])
-    if pts[-1][0] < (allx.min() + allx.max()) / 2: out["noExit"] = True
+    # the stroke the next letter joins from is the one ending furthest right (the engine's own choice, wordEngine.js); when it ends on
+    # the letter's left side (Б, В, Д: the pen comes back inside the letter) nothing joins after it
+    # (a stroke ending up in the capital's zone is a flag, Б Г: never the one to join from)
+    ends = [tt.parse_path(st["d"])[-1] for st in out["strokes"]]
+    low = [k for k, e in enumerate(ends) if e[1] >= tt.B_TOP - 6]
+    allx = np.array([q[0] for st in out["strokes"] for q in tt.parse_path(st["d"])])
+    main = max(low, key=lambda k: ends[k][0]) if low else None
+    if main is None or ends[main][0] < (allx.min() + allx.max()) / 2: out["noExit"] = True
+    elif main != int(np.argmax([e[0] for e in ends])): out["exitStroke"] = main
     return out
 
 
