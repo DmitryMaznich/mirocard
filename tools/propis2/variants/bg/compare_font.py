@@ -82,7 +82,7 @@ def built_sheet(out):
     glyphs = [g for g in variant['glyphs'] if g['label'].isupper() and g['label'] in dxs]
     order = "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯ"
     glyphs.sort(key=lambda g: order.index(g['label']))
-    S, CW, CH, per = 5, 150 * 5, 140 * 5, 4
+    S, CW, CH, per = 5, 150 * 5, 200 * 5, 4  # down to the descender line (Р У Ф Ц Щ)
     rows = (len(glyphs) + per - 1) // per
     img = Image.new('RGB', (per * CW, rows * CH), 'white')
     font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 30)
@@ -105,7 +105,7 @@ def built_sheet(out):
         img.paste(Image.fromarray(cell), (ox, oy))
         dd = ImageDraw.Draw(img)
         Q = lambda p: (ox + (p[0] - x0) * S, oy + (p[1] + 70) * S)
-        for y in (tt.BASE, tt.X_TOP, tt.CAP_TOP): dd.line([Q((x0, y)), Q((x0 + 148, y))], fill=(150, 180, 220), width=2)
+        for y in (tt.BASE, tt.X_TOP, tt.CAP_TOP, tt.BASE + 48 * tt.SCRIPT.get('lower', 1.0)): dd.line([Q((x0, y)), Q((x0 + 148, y))], fill=(150, 180, 220), width=2)
         for st in g['strokes']:
             cmds = []
             nums = [float(v) for v in __import__('re').findall(r'-?\d*\.?\d+(?:[eE][+-]?\d+)?', st['d'])]

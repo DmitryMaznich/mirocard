@@ -69,6 +69,8 @@ def flag_smoothed_path(d, sigma):
 # baseline, a capital reaching the top line). Any captured label not in LETTERS is such a letter.
 # BANK_KEPT: traced, but the owner chose the bank's own letter (2026-10-18: «строчную можно взять русскую а»).
 BANK_KEPT = set("а")
+# FONT_ONLY: capitals built from the font's pen path when no capture of them exists (font_letter); a capture, when it comes, wins
+FONT_ONLY = "ЙНОПРСТУФХЦЧШЩЮЯ"
 # LOOPS: the hand turned back sharply where the font (and the copybook) has a small loop: the waist of Е (font comparison sheet,
 # 2026-10-18). tidy_trace makes every sharp turn away from the ruling a loop in these letters.
 LOOPS = set("Е")
@@ -195,6 +197,9 @@ def stencil_map(label, like=None):
     g = {d["label"]: d for d in json.loads(DRAFT.read_text())}[label]
     allp = tt.upright(tt.to_paper(np.vstack([tt.parse_path(st["d"]) for st in g["strokes"]])))
     lo, hi = allp[:, 1].max(), allp[:, 1].min()
+    # a letter going under the baseline (Р У Ф Ц Щ): its foot is not its lowest point; the font's centre line stands that much
+    # over the baseline (half its pen, as measured on Л, М: 3.3 units on paper)
+    if lo > tt.BASE + 3: lo = tt.BASE - 3.3
     s = (tt.BASE - tt.CAP_TOP) / (lo - hi)
     dx = 0.0
     if like is not None:
@@ -455,16 +460,20 @@ def underlay_glyph(item, script):
            "repeatCells": 6 if label.isupper() else 4, "sourceLabel": f"{label} (обведена по подложке Boyan Maga, подровнена на болгарской линовке)"}
     if label.isupper(): out["ascender"] = True; out["noNormalize"] = True
     if label in "дзруфцщ": out["descender"] = True
-    # the stroke the next letter joins from is the one ending furthest right (the engine's own choice, wordEngine.js); when it ends on
-    # the letter's left side (Б, В, Д: the pen comes back inside the letter) nothing joins after it
-    # (a stroke ending up in the capital's zone is a flag, Б Г: never the one to join from)
+    _exit_flags(out)
+    return out
+
+
+def _exit_flags(out):
+    """The stroke the next letter joins from is the one ending furthest right (the engine's own choice, wordEngine.js); when it ends
+    on the letter's left side (Б, В, Д: the pen comes back inside the letter) nothing joins after it (a stroke ending up in the
+    capital's zone is a flag, Б Г: never the one to join from)."""
     ends = [tt.parse_path(st["d"])[-1] for st in out["strokes"]]
     low = [k for k, e in enumerate(ends) if e[1] >= tt.B_TOP - 6]
     allx = np.array([q[0] for st in out["strokes"] for q in tt.parse_path(st["d"])])
     main = max(low, key=lambda k: ends[k][0]) if low else None
     if main is None or ends[main][0] < (allx.min() + allx.max()) / 2: out["noExit"] = True
     elif main != int(np.argmax([e[0] for e in ends])): out["exitStroke"] = main
-    return out
 
 
 def _drop_retrace(p, near=2.5, gap=30):
@@ -514,6 +523,8 @@ def font_letter(label, script, spec):
     paths = [tt.paper_to_bank_cmds(c) for c in paper]
     out = {"label": label, "kind": "letter", "strokes": [{"d": dg.fmt(c)} for c in paths], "stretch": 1.806, "noOverrides": True,
            "repeatCells": 6, "ascender": True, "noNormalize": True, "sourceLabel": f"{spec['note']}; путь пера шрифта Boyan Maga, подровнен"}
+    if max(q[1] for st in out["strokes"] for q in tt.parse_path(st["d"])) > FOOT_Y + 5: out["descender"] = True
+    if not spec.get("tail"): _exit_flags(out)
     if spec.get("tail"):
         pts = np.array(tt.parse_path(out["strokes"][-1]["d"]))
         bottom = pts[pts[:, 1].argmax()]
@@ -556,6 +567,10 @@ def main():
     for f in sorted(CAPTURES.glob("*.json")):
         for item in json.loads(f.read_text()):
             if item["label"] not in BANK_KEPT: made.append(glyph_of(item, script))
+    # the capitals nobody traced: from the font's own pen path (owner, 2026-10-18: «давай остальные буквы»)
+    for ch in FONT_ONLY:
+        if ch not in {m["label"] for m in made}:
+            made.append(font_letter(ch, script, {"note": f"{ch} (болгарская заглавная)"}))
     keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made}]
     variant["glyphs"] = keep + made
     VARIANT.write_text(json.dumps(variant, ensure_ascii=False, indent=2) + "\n")
