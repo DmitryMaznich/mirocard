@@ -32,6 +32,7 @@ BASE, X_TOP, CAP_TOP, SLANT_DEG_PAPER, SLANT_T, SCRIPT = R_BASE, R_BASE - R_BAND
 STEP = 0.6
 CORNER_DEG = 100.0   # a turn this sharp is the pen turning back (А's apex), kept sharp
 LINE_TOL = 1.1       # a run of the hand this close to a line is a line (the hand shakes about +-1 bank unit)
+ARC_SAG, ARC_SAG_STEM, ARC_SAG_PART = 0.5, 1.2, 0.006  # a run bowing more than this (+ this part of its length) at the middle is an arc (_runs)
 LINE_MIN = 28.0      # a line is at least this long (a shorter straight bit is part of a bow: А's entry hook)
 HORIZ_DEG = 10.0     # a line within this of the horizontal is horizontal
 SLANT_DEG = 8.0      # within this of the slant: along the slant
@@ -43,6 +44,7 @@ TRIM, TRIM_PART = 6.0, 0.1  # a line gives this much of its end (or this part of
 HANDLE_MIN = 0.3     # see _bezier_fit
 BOW_H = 20.0         # a hook at the baseline reaches this high up the line it turns into (0.42 of the lowercase band)
 EXT_PROM = 1.5       # a bow's bottom / top / side turns at least this much to count (smaller is the shake of the hand)
+HOOK_MAX = 45.0      # a hook is at most this long along the hand
 FIT_TOL = 2.0        # a curve strays at most this far from the smoothed hand, else it is split
 LOOP_R, LOOP_REACH, LOOP_W = 4.0, 1.6, 4.0  # a loop (tidy_stroke loops) replaces this much of the hand each side of the turn, reaching this far past it, this wide
 SNAP = 4.0           # a bow's bottom / top this close to a ruling line stands on it
@@ -144,11 +146,20 @@ def _fit_line(q):
     return c, d, dev.max()
 
 
+def _sagitta(q):
+    """How far a run bows off its line at the middle (a parabola fitted across it): a steady bow, not the shake."""
+    c, d, _ = _fit_line(q); t, e = (q - c) @ d, (q - c) @ np.array([-d[1], d[0]])
+    a = np.linalg.lstsq(np.c_[t ** 2, t, np.ones_like(t)], e, rcond=None)[0][0]
+    return abs(a) * ((t.max() - t.min()) / 2) ** 2
+
+
 def _snap_dir(d):
     ang = math.degrees(math.atan2(-d[1], d[0]))  # 0 = to the right, 90 = up
     for target in (0.0, 180.0, -180.0):
         if abs(ang - target) < HORIZ_DEG: return np.array([math.copysign(1.0, d[0]), 0.0])
-    for target in (SLANT_DEG_PAPER, SLANT_DEG_PAPER - 180.0):
+    # only a stroke going DOWN is a stem along the slant; an upstroke keeps its own angle (И, М: snapped too, the rising line lay on
+    # top of the stem it turns back into at the top, owner 2026-10-18)
+    for target in (SLANT_DEG_PAPER - 180.0,):
         if abs(ang - target) < SLANT_DEG:
             v = np.array([math.cos(math.radians(target)), -math.sin(math.radians(target))]); return v
     return d
@@ -170,14 +181,21 @@ def _runs(q, top):
     found.sort()
     # two runs one after the other going nearly the same way are one line the hand bent (on paper the underlay itself bends where
     # it crosses the lowercase band: the bank's geometry mapped to the deck's): one line through both
-    merged = []
+    # a run that bows to one side steadily is an arc the hand drew within the tolerance, not a line (Г's flag and stem, Д's sides:
+    # owner 2026-10-18 «зачем-то повыпрямлял дуги»); one bent by the map across the band's edge is still joined below
+    merged, joined = [], set()
     for i, j in found:
         if merged:
             pi, pj = merged[-1]
             d1, d2 = _fit_line(q[pi:pj + 1])[1], _fit_line(q[i:j + 1])[1]
             if math.degrees(math.acos(min(1.0, abs(float(np.dot(d1, d2)))))) < MERGE_DEG and s[i] - s[pj] < MERGE_GAP:
-                merged[-1] = (pi, j); continue
+                merged[-1] = (pi, j); joined.add(pi); continue
         merged.append((i, j))
+    def straight_enough(i, j):
+        # a stem (going down along the slant) is the straight part of a letter: it takes more bow before it counts as an arc
+        stem = _snap_dir(_fit_line(q[i:j + 1])[1])[1] > 0 and abs(math.degrees(math.atan2(-_fit_line(q[i:j + 1])[1][1], _fit_line(q[i:j + 1])[1][0])) - (SLANT_DEG_PAPER - 180.0)) < SLANT_DEG
+        return _sagitta(q[i:j + 1]) <= (ARC_SAG_STEM if stem else ARC_SAG) + ARC_SAG_PART * (s[j] - s[i])
+    merged = [(i, j) for i, j in merged if i in joined or straight_enough(i, j)]
     # a short line next to a longer one going nearly the same way is the curve running into it, not a line of its own (И: the bow
     # from the foot of the first stem bends gradually into the diagonal, as in the font; a line there leaves an elbow)
     keep, soft = [], []
@@ -312,6 +330,8 @@ def tidy_piece(q, top, t_in=None, t_out=None):
         # a span from a bow standing on a ruling line, or running into a line, is a hook (BOW_H): one round cubic, never split to
         # follow the hand's own turn there
         hook = ia in on_ruling or ib in on_ruling or ia in line_ends or ib in lines
+        # ... a hook is short: a long span (a whole downstroke of Ж, И's upstroke from the foot to the top) follows the hand
+        hook = hook and float(np.hypot(*np.diff(q[ia:ib + 1], axis=0).T).sum()) < HOOK_MAX
         cmds.extend([("C", list(_bezier_fit(sub, _unit(ta), _unit(tb))))] if hook else _fit_span(sub, _unit(ta), _unit(tb)))
     return anchors[0][1], cmds, first_line, last_line
 

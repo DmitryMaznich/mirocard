@@ -5,7 +5,7 @@
   python3 tools/propis2/variants/bg/compare_font.py <Boyan_Maga-Regular.ttf> <out.png>
 
 Grey: the font where the underlay showed it under the hand (make_underlays.py), put through the same placing as the tidied letter.
-Colour: the tidied strokes (one colour per stroke, a dot where it starts).
+Thin dark: the hand as captured. Colour: the tidied strokes (one colour per stroke, a dot where it starts).
 """
 import sys, json, glob
 from pathlib import Path
@@ -24,6 +24,17 @@ rows = (len(items) + per - 1) // per
 img = Image.new('RGB', (per * CW, rows * CH), 'white'); d = ImageDraw.Draw(img)
 font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 30)
 cols = [(200, 20, 20), (20, 80, 200), (10, 140, 50)]
+def fine(cmds):
+    # 40 points per cubic (parse_path's 10 draw a long one as a polygon)
+    out = [np.asarray(cmds[0][1][0], float)]
+    for cm, ps in cmds[1:]:
+        ps = [np.asarray(p, float) for p in ps]
+        if cm == "L": out.append(ps[0]); continue
+        p0 = out[-1]
+        for t in np.linspace(0, 1, 41)[1:]: out.append((1-t)**3*p0 + 3*(1-t)**2*t*ps[0] + 3*(1-t)*t**2*ps[1] + t**3*ps[2])
+    return out
+
+
 for n, it in enumerate(items):
     ch = it['label']
     raw = [np.array([dg.xform(p, 2.0, 0) for p in tt.parse_path(s['d'])]) for s in it['strokes']]
@@ -47,8 +58,9 @@ for n, it in enumerate(items):
     dd = ImageDraw.Draw(img)
     Q = lambda p: (ox + (p[0] - x0) * S, oy + (p[1] + 70) * S)
     for y in (tt.BASE, tt.X_TOP, tt.CAP_TOP): dd.line([Q((x0, y)), Q((x0 + 148, y))], fill=(150, 180, 220), width=2)
+    for r in raw: dd.line([Q(p) for p in tt.placed_like_last(r)], fill=(90, 90, 90), width=1)
     for j, c in enumerate(paper):
-        pts = tt.parse_path(dg.fmt(c)); dd.line([Q(p) for p in pts], fill=cols[j % 3], width=4)
+        pts = fine(c); dd.line([Q(p) for p in pts], fill=cols[j % 3], width=3)
         x, y = Q(pts[0]); dd.ellipse([x - 7, y - 7, x + 7, y + 7], fill=cols[j % 3])
     dd.text((ox + 12, oy + 8), ch, fill=(0, 0, 0), font=font)
 img.save(sys.argv[2])
