@@ -58,17 +58,38 @@ def flag_smoothed_path(d, sigma):
     return cmds
 
 
+# Letters traced over the Boyan underlays (make_underlays.py): the underlay already stands on the tool's ruling at the bank's
+# geometry, so the capture is taken at the fixed scale of the ruling (x2: the tool's lowercase 26 is the bank's 52, base 88 -> 62),
+# not stretched to a capital's height. Any captured label not in LETTERS is such a letter.
+UNDERLAY = {"underlay": True}
+
+
 def glyph_of(item):
     label = item["label"]
-    spec = LETTERS[label]
+    spec = LETTERS.get(label, UNDERLAY)
     allp = np.concatenate([dg.parse(st["d"]) for st in item["strokes"]])
-    s = dg.CAP_H / float(np.ptp(allp[:, 1]))
-    dg.DY = 0.0
-    lowest = dg.BASE_DECK - (dg.BASE_CAPTURE - allp[:, 1].max()) * s
-    dg.DY = FOOT_Y - lowest
+    if spec.get("underlay"):
+        s = 2.0
+        dg.DY = 0.0
+    else:
+        s = dg.CAP_H / float(np.ptp(allp[:, 1]))
+        dg.DY = 0.0
+        lowest = dg.BASE_DECK - (dg.BASE_CAPTURE - allp[:, 1].max()) * s
+        dg.DY = FOOT_Y - lowest
     path_of = (lambda d: flag_smoothed_path(d, spec["flag"])) if spec.get("flag") else dg.stroke_path
     paths = [dg.to_deck(path_of(st["d"]) if k == 0 else dg.stroke_path(st["d"]), s, 0.0) for k, st in enumerate(item["strokes"])]
     strokes = [{"d": dg.fmt(c)} for c in paths]
+    if spec.get("underlay"):
+        # a Boyan letter traced by hand: the font's lead-in and exit are part of it (font_glyphs.py), this bank's per-letter fixes
+        # (glyphOverrides.js, by stroke index) are not for it, the pen ending on the letter's left side means nothing joins after it
+        pts = np.array([q for _, ps in paths[-1] for q in ps])
+        allx = np.array([q[0] for c in paths for _, ps in c for q in ps])
+        out = {"label": label, "kind": "letter", "strokes": strokes, "stretch": 1.806, "noOverrides": True,
+               "repeatCells": 6 if label.isupper() else 4, "sourceLabel": f"{label} (обведена по подложке Boyan Maga, захват)"}
+        if label.isupper(): out["ascender"] = True; out["noNormalize"] = True
+        if label in "дзруфцщ": out["descender"] = True
+        if pts[-1][0] < (allx.min() + allx.max()) / 2: out["noExit"] = True
+        return out
     out = {"label": label, "kind": "letter", "strokes": strokes, "stretch": 1.806, "repeatCells": 6, "ascender": True, "noNormalize": True,
            "sourceLabel": f"{spec['note']}; сглажен, масштаб x{s:.3f} = высота заглавной, база y=62"}
     if spec.get("tail"):
@@ -85,8 +106,7 @@ def main():
     made = []
     for f in sorted(CAPTURES.glob("*.json")):
         for item in json.loads(f.read_text()):
-            if item["label"] in LETTERS:
-                made.append(glyph_of(item))
+            made.append(glyph_of(item))
     variant = json.loads(VARIANT.read_text())
     keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made}]
     variant["glyphs"] = keep + made
