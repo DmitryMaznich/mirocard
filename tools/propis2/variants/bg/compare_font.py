@@ -38,7 +38,7 @@ def fine(cmds):
 for n, it in enumerate(items):
     ch = it['label']
     raw = [np.array([dg.xform(p, 2.0, 0) for p in tt.parse_path(s['d'])]) for s in it['strokes']]
-    bank, paper = tt.tidy_letter(raw, True, script, loops=ch in bg.LOOPS, adjust=bg.SHAPES.get(ch))
+    bank, paper = bg.tidy(ch, raw, script)
     # the font's outline, where the underlay showed it under the hand (make_underlays.py, the image's left edge at canvas x = 100)
     pen = fg.Flat(gs); gs[cm[ord(ch)]].draw(pen)
     polys_t = [[mu.bank_to_tool(*fg.to_bank(x, y)) for x, y in poly] for poly in pen.polys]

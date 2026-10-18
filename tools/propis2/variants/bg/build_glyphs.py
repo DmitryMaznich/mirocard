@@ -135,15 +135,41 @@ def oval_lower_bowl(strokes, stroke=1, widen=1.12):
     return strokes
 
 
+PAPER = {}  # label -> its tidied strokes on paper, for a letter that takes a part from another (tidy() below)
+
+
+def hat_like(source, stroke=1):
+    """Г: the hat (the flag over the stem) is Б's, placed the same way against the stem's top (owner, 2026-10-18: «верхние шляпы
+    должны быть одинаковые ... по текущей шляпе от Б»). Б's capture comes before Г's (captures/ in order)."""
+    def adjust(strokes):
+        src = PAPER[source]
+        # the same height as there (both stand on the same ruling: the hat on the top line); across, as far from the stem as there,
+        # the stem measured at the height where the source's stem begins
+        top = np.asarray(src[0][0][1][0], float)
+        stem = np.array(tt.parse_path(tt.dg.fmt(strokes[0])))
+        at = stem[np.argmin(np.abs(stem[:, 1] - top[1]))]
+        offset = np.array([at[0] - top[0], 0.0])
+        strokes[stroke] = [(c, [np.asarray(q, float) + offset for q in ps]) for c, ps in src[stroke]]
+        return strokes
+    return adjust
+
+
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"В": oval_lower_bowl}
+SHAPES = {"В": oval_lower_bowl, "Г": hat_like("Б")}
+
+
+def tidy(label, raw, script):
+    """The tidied letter (bank commands, paper commands), its SHAPES correction applied; remembered in PAPER."""
+    bank, paper = tt.tidy_letter(raw, label.isupper(), script, loops=label in LOOPS, adjust=SHAPES.get(label))
+    PAPER[label] = paper
+    return bank, paper
 
 
 def underlay_glyph(item, script):
     label = item["label"]
     dg.DY = 0.0
     raw = [np.array([dg.xform(p, 2.0, 0.0) for p in tt.parse_path(st["d"])]) for st in item["strokes"]]
-    paths, _ = tt.tidy_letter(raw, label.isupper(), script, loops=label in LOOPS, adjust=SHAPES.get(label))
+    paths, _ = tidy(label, raw, script)
     out = {"label": label, "kind": "letter", "strokes": [{"d": dg.fmt(c)} for c in paths], "stretch": 1.806, "noOverrides": True,
            "repeatCells": 6 if label.isupper() else 4, "sourceLabel": f"{label} (обведена по подложке Boyan Maga, подровнена на болгарской линовке)"}
     if label.isupper(): out["ascender"] = True; out["noNormalize"] = True
