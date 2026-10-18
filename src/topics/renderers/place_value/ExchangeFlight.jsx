@@ -53,9 +53,9 @@ export default function ExchangeFlight({ boardRef, bigRef, smallRef, overRef, bi
 // Carrying, the written way: the sum is written under its column (9 + 2 = 11),
 // its ones stay there and its ten — the left digit — flies up over the next
 // column, where it stays as the «1» to add. Placed from the two cells.
-// `lend` (borrowing): the borrowed ten leaves the digit it came from (its
-// middle) and lands small over the next digit, a little to the left — the
-// written «1» that makes 3 read as 13 (`shiftRef`: the digit it goes over).
+// `lend` (borrowing): the ten pieces that came over become a big «1» beside
+// the digit — 3 reads as 13 in its place — then that 1 slides up small over
+// the digit, a little to the left: the written «1» (`shiftRef`: that digit).
 const CARRY_MS = [700, 900]; // the whole sum shown · its ten flies up
 // How far left of the digit's middle the written «1» stands, in the digit's
 // font size (the same as .xb-lend in table.css).
@@ -69,7 +69,7 @@ export function CarryDigit({ boardRef, fromRef, toRef, shiftRef, lend = false, d
     const to = toRef.current?.getBoundingClientRect();
     if (!board || !from || !to) return;
     const shift = lend && shiftRef?.current ? LEND_SHIFT * (parseFloat(getComputedStyle(shiftRef.current).fontSize) || 0) : 0;
-    setAt({ from: { x: from.left - board.left + (lend ? from.width / 2 : 0), y: from.top - board.top + from.height / 2 }, to: { x: to.left - board.left + to.width / 2 - shift, y: to.top - board.top + to.height / 2 } });
+    setAt({ from: { x: from.left - board.left, y: from.top - board.top + from.height / 2 }, to: { x: to.left - board.left + to.width / 2 - shift, y: to.top - board.top + to.height / 2 } });
   }, [boardRef, fromRef, toRef, shiftRef, lend]);
   useEffect(() => {
     const a = setTimeout(() => setUp(true), CARRY_MS[0]);

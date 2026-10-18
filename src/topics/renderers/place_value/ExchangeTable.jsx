@@ -173,7 +173,7 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
           {digit(onesDone ? plan.onesResult : "", "ones", " xb-result", resORef)}
           {flight === "split" && <ExchangeFlight boardRef={boardRef} Big={SchemeTen} Small={SchemeOne}
             bigRef={tRef} smallRef={oRef} overRef={overTRef} bigCount={t} smallCount={o} onDone={() => setFlight("lend")} />}
-          {flight === "lend" && <CarryDigit lend boardRef={boardRef} fromRef={tRef} toRef={overORef} shiftRef={oRef} digit={1} place="ones" onDone={() => setFlight(null)} />}
+          {flight === "lend" && <CarryDigit lend boardRef={boardRef} fromRef={oRef} toRef={overORef} shiftRef={oRef} digit={1} place="ones" onDone={() => setFlight(null)} />}
           {flight === "carry" && <CarryDigit boardRef={boardRef} fromRef={resORef} toRef={overTRef} digit={1} place="tens" onDone={() => setFlight(null)} />}
         </section>
         {support && teaching && !onesDone && <div className="xb-support" aria-hidden="true">

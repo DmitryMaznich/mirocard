@@ -267,7 +267,7 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
           {cell(done("ones") ? plan.result.ones : "", "ones", " xb-result")}
           {flight === "split" && <ExchangeFlight boardRef={boardRef} Big={SchemeHundred} Small={SchemeTen}
             bigRef={hRef} smallRef={tRef} overRef={overHRef} bigCount={h} smallCount={t} onDone={() => setFlight("lend")} />}
-          {flight === "lend" && <CarryDigit lend boardRef={boardRef} fromRef={hRef} toRef={overTRef} shiftRef={tRef} digit={1} place="tens" onDone={() => setFlight(null)} />}
+          {flight === "lend" && <CarryDigit lend boardRef={boardRef} fromRef={tRef} toRef={overTRef} shiftRef={tRef} digit={1} place="tens" onDone={() => setFlight(null)} />}
           {flight === "carry" && <CarryDigit boardRef={boardRef} fromRef={resTRef} toRef={overHRef} digit={1} place="hundreds" onDone={() => setFlight(null)} />}
         </section>
         {support && teaching && !done("tens") && <div className="xb-support xh-support" aria-hidden="true">

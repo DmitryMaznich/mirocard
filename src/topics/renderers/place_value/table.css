@@ -66,6 +66,8 @@
 .xf-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
 .xf-area .cb-stick-cell { width: 6px; }
 .xf-area .cb-stick { width: 4px; }
+/* Ten dots in a row fit the column. */
+.xf-area .cb-dot-cell { width: calc(var(--coin-size) * 0.7); }
 .xf-area .xf-group { gap: 3px 2px; }
 /* The ten just made (or about to leave) on its own row, darker. */
 .xf-group--new { flex-wrap: nowrap; padding: 2px 4px; border-radius: 8px; background: #fef3c7; }
@@ -84,7 +86,8 @@
 .xf-carry--up { transform: translate(-50%, -50%); font-size: 24px; }
 .xf-carry--hundreds { color: #15803d; }
 .xf-carry--ones { color: #1d4ed8; }
-.xf-carry--lend { font-size: 30px; }
+/* Lend: starts big beside the digit (reads 13), shrinks as it slides up. */
+.xf-carry--lend.xf-carry--up { font-size: 30px; }
 /* The borrowed ten, written: a small «1» over the digit, to its left, so the
    two read as 13 (0.36 of the digit's size — LEND_SHIFT in ExchangeFlight). */
 .xb-lend { transform: translateX(calc(-0.36 * clamp(44px, 11vw, 72px))); }
