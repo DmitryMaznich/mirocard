@@ -334,6 +334,26 @@ def fit_across(strokes, stroke=0, lo=None, hi=None):
 FITS = {}  # label -> (factor across the slant, shift) that fit_across found, for the record
 
 
+def from_font(strokes):
+    """М: the font's own pen path (its centre line as a stencil, font_stencil), tidied like a hand's (tidy_trace.tidy_stroke:
+    stems straight on the slant, bows smooth, feet on the baseline), set where the hand's letter stood across the slant. The
+    owner painted over the font where М's strokes must go (2026-10-18): the rising sides bow up into the stems and run close
+    beside them under the tops, the entry hook is the font's, wider than Л's; neither Л twice nor Л squeezed gives that."""
+    like = np.vstack([tt.parse_path(tt.dg.fmt(c)) for c in strokes])
+    out = [tt.tidy_stroke(p, tt.CAP_TOP) for p in font_stencil(PAPER_LABEL[0], like=like)]
+    # every top up its stem's line to the capital's top line (the font's first top stops short of it; a capital's tops stand on
+    # the line, А's and Л's do): the rise's end and its last handle move up with it, so the rise stays smooth into the top
+    for cmds in out:
+        for k in range(1, len(cmds) - 1):
+            end, nxt = np.asarray(cmds[k][1][-1], float), cmds[k + 1]
+            if end[1] > tt.CAP_TOP + 8 or nxt[0] != "L": continue
+            stem = (end, tt._unit(np.asarray(nxt[1][0], float) - end))
+            d = np.array([_x_at(stem, tt.CAP_TOP), tt.CAP_TOP]) - end
+            c, ps = cmds[k]
+            cmds[k] = (c, [np.asarray(q, float) + (d if i >= len(ps) - 2 else 0) for i, q in enumerate(ps)])
+    return out
+
+
 def both(*fns):
     def adjust(strokes):
         for fn in fns: strokes = fn(strokes)
@@ -342,7 +362,7 @@ def both(*fns):
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": both(m_from_l, fit_across)}
+SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font}
 
 
 PAPER_LABEL = [None]  # the letter being tidied (a SHAPES function reads it)
