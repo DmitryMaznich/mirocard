@@ -8,6 +8,10 @@ import { cardLetters, topicAlphabet } from "./alphabet.js";
 import { generateTasks } from "./engine.js";
 import { buildTiles } from "@/features/propis2/Propis2Carousel.jsx";
 import { backContent } from "@/features/propis2/cover/backContent.js";
+import { renderToStaticMarkup } from "react-dom/server";
+import PrintPageView from "@/topics/renderers/propis/PrintPageView";
+import { buildPageTask } from "./pageTask.js";
+import { deckPapers, newPage, rowsPerPage } from "./model.js";
 
 // The Bulgarian variant deck (docs/propis2-variants.md), installed from its built ZIP through the real importer: the same renderer,
 // its own alphabet (30 letters, no Ё Ы Э), its own modes, words on the cover in Bulgarian.
@@ -69,5 +73,18 @@ describe("propis2 variant: Bulgarian", () => {
       expect(letters.filter((ch) => !map.get(ch)), kind).toEqual([]);
     }
     expect(backContent("signs", topicAlphabet(rec, map), rec.meta.coverWords).lines.join(" ")).toContain("равно");
+  });
+
+  it("writes on the Bulgarian ruling: its own paper first, no Russian slant paper; 11 rows of four lines on A5, guides at 76deg", async () => {
+    const rec = await installed();
+    expect(deckPapers(rec).map((g) => g.id)).toEqual(["bg", "square", "ruled"]);
+    expect(deckPapers({ meta: {} }).map((g) => g.id)).toEqual(["propis", "square", "ruled"]);
+    expect(rowsPerPage(newPage("т", { gridKind: "bg" }))).toBe(11);
+    const html = renderToStaticMarkup(<PrintPageView task={buildPageTask({ topicRecord: rec, lines: ["Ана", "на мене е"], grid: "bg" })} bare />);
+    expect(html).toContain('data-simple-grid="bg"');
+    expect((html.match(/data-bg-row=/g) ?? []).length).toBe(11);
+    const guide = /<g data-simple-grid="bg"><line x1="([-\d.]+)" y1="([-\d.]+)" x2="([-\d.]+)" y2="([-\d.]+)"/.exec(html);
+    const [x1, y1, x2, y2] = guide.slice(1).map(Number);
+    expect((Math.atan2(y1 - y2, x2 - x1) * 180) / Math.PI).toBeCloseTo(76, 0);
   });
 });

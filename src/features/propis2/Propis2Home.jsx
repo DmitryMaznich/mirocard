@@ -5,7 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { openPdf, pdfFileName, pdfTab, printPdf } from "@/topics/renderers/propis/printPdf.js";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { NOTEBOOK_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, openKitCopies, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
@@ -121,6 +121,8 @@ export default function Propis2Home({ db }) {
   // a variant deck (another alphabet, scripts/build-propis2-deck.mjs --variant) has no ready notebooks yet: the Russian methodology
   // and kits are written in Russian letters and words
   const ownKits = topicRecord?.meta?.methodology !== false;
+  // a new notebook starts on the deck's first paper (a variant deck: its own ruling, model.js deckPapers)
+  const newPaper = useMemo(() => { const id = deckPapers(topicRecord)[0]?.id; return id && id !== "propis" ? { gridKind: id } : {}; }, [topicRecord]);
   const kitPresets = useMemo(() => (ownKits ? [...methodKits, ...kits] : []).map((k) => ({ id: `kit:${k.id}`, title: k.title, kit: k, builtin: true })), [ownKits, methodKits, kits]);
   const readyAll = useMemo(() => kitPresets.map((ps) => ({ id: ps.id, title: ps.title, pages: ps.kit ? ps.kit.pages.length : 1, ps })), [kitPresets]);
   const takenIds = useMemo(() => new Set(library.sets.map((st) => st.sourceId ?? (st.kit ? `kit:${st.kit}` : null)).filter(Boolean)), [library.sets]);
@@ -516,7 +518,7 @@ export default function Propis2Home({ db }) {
       onDropDraft={() => { setDraft(null); clearDraft(db).catch(() => {}); }}
       onDropBlank={() => persist(blankIds.reduce((lib, id) => removeSet(lib, id), library))}
       onBack={() => setScreen((topicRecord?.modes?.length ?? 0) > 1 ? "modes" : "home")} // with the copied modes the topic has a mode list to go back to
-      onNew={() => createPage(newPage("Новая тетрадь"))}
+      onNew={() => createPage(newPage("Новая тетрадь", newPaper))}
       ready={ready}
       onOpenReady={openReady}
       onEditReady={editReady}

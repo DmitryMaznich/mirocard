@@ -75,6 +75,7 @@ export function backContent(kind, alphabet = RU, words = {}) {
 }
 
 // the paper of the back, in the shape of a page of the notebook (model.js taskGrid / pageFormat read it)
-export const backPaper = (paper, format) => (paper === "square"
+// `copybook`: the deck's copybook paper ("propis", or "bg" for the Bulgarian variant, model.js deckPapers)
+export const backPaper = (paper, format, copybook = "propis") => (paper === "square"
   ? { gridKind: "square", ruling: "narrow", grid: "regular", midDash: true, margin: "off", format }
-  : { gridKind: "propis", ruling: "narrow", grid: "regular", midDash: true, margin: "off", format });
+  : { gridKind: copybook, ruling: "narrow", grid: "regular", midDash: true, margin: "off", format });

@@ -22,7 +22,7 @@ export const pageAspect = (page) => { const f = formatOf(page); return f.wMm / f
 // content rows on one page (ruling row 0 is only the top edge)
 // content rows on one page: all ruling rows on the narrow ruling (17 on A5, 24 on A4); on the wide one the first ruling row is only the
 // top edge of the first band (16 / 23)
-export const rowsPerPage = (page) => (taskGrid(page) === "square" || taskGrid(page) === "ruled" ? ownRowsPerPage(pageFormat(page), taskGrid(page)) : Math.floor((formatOf(page).hMm - PRINT_FIRST_BASELINE_MM) / 12) + (page?.ruling === "narrow" ? 1 : 0));
+export const rowsPerPage = (page) => (ownRowGrid(taskGrid(page)) ? ownRowsPerPage(pageFormat(page), taskGrid(page)) : Math.floor((formatOf(page).hMm - PRINT_FIRST_BASELINE_MM) / 12) + (page?.ruling === "narrow" ? 1 : 0));
 
 export const RULINGS = [
   { id: "narrow", label: "Узкая строка", short: "Узкая" },
@@ -38,11 +38,21 @@ export const GRIDS = [
 
 // What kind of paper: the copybook ("прописи", slant grid and row guides), a plain squared page ("клетка", 5 mm)
 // or plain ruled paper ("линейка", only the baselines). The slant-grid options (GRIDS, dashes) belong to "propis".
+// "bg": the Bulgarian copybook ruling (four lines a row, PrintPageView BG_*), offered only by a deck that lists it in meta.papers.
 export const GRID_KINDS = [
   { id: "propis", label: "Прописи" },
   { id: "square", label: "Клетка" },
   { id: "ruled", label: "Линейка" },
+  { id: "bg", label: "Болгарская строка" },
 ];
+// Papers with rows of their own (not the 12 mm cycle of the Russian copybook): always on the narrow size, no ruling to choose.
+export const ownRowGrid = (grid) => grid === "square" || grid === "ruled" || grid === "bg";
+// The papers a deck offers, in order (the first is the paper of a new notebook): meta.papers of a variant deck; the Russian ones else.
+const RU_PAPERS = ["propis", "square", "ruled"];
+export const deckPapers = (topicRecord) => {
+  const ids = topicRecord?.meta?.papers;
+  return GRID_KINDS.filter((g) => (Array.isArray(ids) ? ids : RU_PAPERS).includes(g.id)).sort((a, b) => (ids ?? RU_PAPERS).indexOf(a.id) - (ids ?? RU_PAPERS).indexOf(b.id));
+};
 export const pageGridKind = (page) => page?.gridKind ?? (page?.grid === "square" ? "square" : "propis");
 // The grid name the page task / PrintPageView understands.
 export const taskGrid = (page) => {
@@ -248,7 +258,7 @@ const lineWidthNow = (text, glyphMap, ruling, snap, maxX) => {
 export const pageSnap = (page) => snapXFor({ narrowRows: pageRuling(page) === "narrow", simpleGrid: taskGrid(page), margin: pageMargin(page), format: pageFormat(page), narrow17: pageRuling(page) === "narrow" });
 // The row size the layout uses: squared paper has no copybook ruling of its own, its letters and digits are laid out at the narrow size.
 // ruled paper too (its own 8 mm rows, PrintPageView OWN_ROWS)
-export const pageRuling = (page) => (taskGrid(page) === "square" || taskGrid(page) === "ruled" ? "narrow" : page?.ruling);
+export const pageRuling = (page) => (ownRowGrid(taskGrid(page)) ? "narrow" : page?.ruling);
 // Rows of different pages stand at different phases of the grid: keep one cell of room so a snapped line never runs off.
 const wrapSlack = (ruling) => TEXT_ROW_WIDE_DIAGONAL_SPACING * (ruling === "narrow" ? 0.5 : 1);
 
@@ -521,7 +531,7 @@ export function notebookLayout(set, pagesById) {
 
 // One string per paper as the engine draws it (defaults filled in), to tell whether two pages are on the same paper. «Писать после»
 // is not paper for the engine (it adds blank lines), so pages that differ only in it stay in one run.
-export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), taskGrid(page) === "square" || taskGrid(page) === "ruled" ? "" : page?.ruling === "narrow" ? "narrow" : "wide", page?.midDash !== false, pageMargin(page)]);
+export const paperKey = (page) => JSON.stringify([pageFormat(page), taskGrid(page), ownRowGrid(taskGrid(page)) ? "" : page?.ruling === "narrow" ? "narrow" : "wide", page?.midDash !== false, pageMargin(page)]);
 
 // Each page setting of the editor's strip as the strip shows it (defaults filled in). The ruling, slant and middle dash mean something
 // on the copybook paper only, so only its pages count for them.

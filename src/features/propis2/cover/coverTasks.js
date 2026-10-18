@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { lineWidth, newRow, pageFormat, pageSnap, rowMaxX, rowToLine, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { deckPapers, lineWidth, newRow, pageFormat, pageSnap, rowMaxX, rowToLine, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { digitsOut } from "@/topics/renderers/propis2/fieldText.js";
 import { backContent, backPaper } from "./backContent.js";
 import { topicAlphabet } from "@/topics/renderers/propis2/alphabet.js";
@@ -22,12 +22,16 @@ export function centredLine(line, glyphMap, paper) {
   return `${line}#i${n}`;
 }
 // the spine's paper (coverConfig.js spinePaperOf) as the grid of an empty page
-const SPINE_GRID = { propis: "regular", square: "square", ruled: "ruled" };
+const SPINE_GRID = { propis: "regular", square: "square", ruled: "ruled", bg: "bg" };
 
 // `side`: "front" | "back" | "both" — only that side's tasks are built
 // `spinePaper`: the spine's paper, resolved (coverConfig.js spinePaperOf); the spine is on both sides, so both build it.
 export function useCoverTasks({ topicRecord, cover, format, side = "both", spinePaper = "propis" }) {
   const fmt = format === "a4" ? "a4" : "a5";
+  // «Прописи» on the cover is the deck's copybook paper: a variant deck without the Russian slant paper has its own (model.js deckPapers)
+  const papers = deckPapers(topicRecord).map((g) => g.id);
+  const copybook = papers.includes("propis") ? "propis" : papers[0];
+  if (spinePaper === "propis") spinePaper = copybook;
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   const spine = cover.enabled && cover.decor === "spine" && fmt === "a5";
   const spineTask = useMemo(
@@ -39,12 +43,12 @@ export function useCoverTasks({ topicRecord, cover, format, side = "both", spine
   const back = useMemo(() => {
     const content = backContent(backKind, topicAlphabet(topicRecord, glyphMap), topicRecord?.meta?.coverWords);
     if (!content) return null;
-    const paper = backPaper(backPaperId, fmt);
+    const paper = backPaper(backPaperId, fmt, copybook);
     // a compact block (owner, 2026-10-14, as the backs of the printed series): the heading in our own hand on its first row, centred,
     // then the content row after row; the page around it stays white
     const lines = [centredLine(once(content.heading), glyphMap, paper), ...content.lines];
     const task = buildPageTask({ topicRecord, lines, narrowRows: true, grid: taskGrid(paper), midDash: true, margin: "off", format: pageFormat(paper) });
     return { ...content, task, rows: lines.length, square: backPaperId === "square" };
-  }, [backKind, backPaperId, topicRecord, fmt, glyphMap]);
+  }, [backKind, backPaperId, topicRecord, fmt, glyphMap, copybook]);
   return { spineTask, back };
 }
