@@ -201,6 +201,9 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   const { speak }       = useSpeech();
   const [revealed,      setRevealed] = useState(false);
   const question = task.question ?? getTopicTitle(mode.ui.instruction);
+  // mode.ui.rating "three": the labelled three-button row of «Сделай»
+  // (verbs_v2) instead of four numbered buttons with a legend.
+  const threeRatings = mode?.ui?.rating === "three";
 
   useEffect(() => {
     setRevealed(false);
@@ -240,7 +243,7 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   useEffect(() => {
     if (!useKeyboard) return;
     function onKey(e) {
-      const quality = KEY_MAP[e.key];
+      const quality = (threeRatings ? RATING_KEY_MAP : KEY_MAP)[e.key];
       if (quality) handleQuality(quality);
     }
     window.addEventListener("keydown", onKey);
@@ -258,21 +261,25 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
         <div className={`qa-reveal${revealed ? " qa-reveal--shown" : ""}`}>
           {mode?.answerPrefix ? `${mode.answerPrefix} ${task.label}` : task.label}
         </div>
-        <div className="qa-row">
-          {QA_BUTTONS.map((btn, i) => (
-            <button
-              key={btn.value}
-              className={`qa-btn qa-btn--${btn.mod}`}
-              disabled={revealed}
-              onClick={() => handleQuality(btn.value)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-        <p className="qa-legend">
-          {QA_BUTTONS.map((btn, i) => `${i + 1} — ${btn.label}`).join("   ")}
-        </p>
+        {threeRatings
+          ? <RatingButtons disabled={revealed} onRate={handleQuality} labels={{ fail: "Не ответил" }} />
+          : <>
+            <div className="qa-row">
+              {QA_BUTTONS.map((btn, i) => (
+                <button
+                  key={btn.value}
+                  className={`qa-btn qa-btn--${btn.mod}`}
+                  disabled={revealed}
+                  onClick={() => handleQuality(btn.value)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+            </div>
+            <p className="qa-legend">
+              {QA_BUTTONS.map((btn, i) => `${i + 1} — ${btn.label}`).join("   ")}
+            </p>
+          </>}
       </div>
     </div>
   );
@@ -287,12 +294,16 @@ const RATING_BUTTONS = [
   { value: "easy",     label: "Легко",        mod: "easy"     },
 ];
 
-function RatingButtons({ disabled, onRate }) {
+const RATING_KEY_MAP = { "1": "fail", "2": "prompted", "3": "easy" };
+
+// `labels` renames a button for a mode whose task is not about understanding
+// («Что делает?»: the child names the action — «Не ответил», not «Не понимает»).
+function RatingButtons({ disabled, onRate, labels = {} }) {
   return (
     <div className="rating-row">
       {RATING_BUTTONS.map((btn) => (
         <button key={btn.value} type="button" className={`rating-btn rating-btn--${btn.mod}`} disabled={disabled} onClick={() => onRate(btn.value)}>
-          {btn.label}
+          {labels[btn.value] ?? btn.label}
         </button>
       ))}
     </div>

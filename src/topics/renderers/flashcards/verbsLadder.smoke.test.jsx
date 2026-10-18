@@ -114,6 +114,25 @@ describe("verbs_v2 ladder — mounted through the real renderer", () => {
     vi.useRealTimers();
   });
 
+  it("question_answer with ui.rating three: labelled buttons, «Легко» rates easy", () => {
+    vi.useFakeTimers();
+    const onQualityAnswer = vi.fn();
+    const [task] = generateTasks("question_answer", CONCEPTS.filter((c) => c.conceptId === "runs"), CARDS, {});
+    mount({ task, mode: { type: "question_answer", ui: { instruction: "Что делает?", rating: "three" } }, onQualityAnswer });
+    expect([...container.querySelectorAll(".rating-btn")].map((b) => b.textContent)).toEqual(["Не ответил", "С подсказкой", "Легко"]);
+    expect(container.querySelector(".qa-legend")).toBeNull();
+    act(() => [...container.querySelectorAll(".rating-btn")][2].click());
+    act(() => vi.runAllTimers());
+    expect(onQualityAnswer).toHaveBeenCalledWith("easy", "runs", "runs_1");
+    vi.useRealTimers();
+  });
+
+  it("question_answer elsewhere keeps the four numbered buttons", () => {
+    const [task] = generateTasks("question_answer", CONCEPTS.filter((c) => c.conceptId === "runs"), CARDS, {});
+    mount({ task, mode: { type: "question_answer", ui: { instruction: "Что делает?" } } });
+    expect(container.querySelectorAll(".qa-btn")).toHaveLength(4);
+  });
+
   it("choose_all uses the template and says the word when the grid appears", () => {
     const playTopicFile = vi.fn();
     const [task] = generateTasks("choose_all", CONCEPTS.filter((c) => c.conceptId === "eats"), CARDS, { optionCount: 4 });
