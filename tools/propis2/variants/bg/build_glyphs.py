@@ -222,6 +222,61 @@ def spread_like_font(strokes, stroke=0, lo=None, hi=None):
     return strokes
 
 
+def _apexes(p):
+    """Indexes of the tops of a pen path: where it turns back down near its highest (М: two)."""
+    near = np.where(p[:, 1] < p[:, 1].min() + 8)[0]
+    groups, out = [], []
+    for i in near:
+        if groups and i - groups[-1][-1] <= 2: groups[-1].append(i)
+        else: groups.append([i])
+    return [g[int(np.argmin(p[g, 1]))] for g in groups]
+
+
+def m_from_l(strokes, source="Л", stroke=0):
+    """М: its first half is Л as tidied (owner, 2026-10-18: «дорисуй М взяв эту Л за первую часть»), its two sides moved across
+    onto the font М's first two (like spread_like_font); from the foot of that stem on it is the hand's М again, moved to start there, its
+    rising side and its last stem moved across onto the font's like Л's (spread_like_font). The rise leaves the foot where Л's
+    stem ends: its shift fades out towards the baseline."""
+    cmds = strokes[stroke]
+    L = PAPER[source][stroke]
+    l_ends = np.array([ps[-1] for _, ps in L])
+    l_top = int(np.argmin(l_ends[:, 1]))
+    l_foot = l_top + 1 + int(np.argmax(l_ends[l_top + 1:, 1]))
+    font = np.vstack(font_centre(PAPER_LABEL[0]))
+    f_tops = _apexes(font)
+    head_dx = font[f_tops[0], 0] - l_ends[l_top, 0]
+    head = [(c, [np.asarray(q, float) + [head_dx, 0.0] for q in ps]) for c, ps in L[:l_foot + 1]]
+    lo, hi = tt.X_TOP + 10, tt.CAP_TOP + 15
+    pick = lambda p: p[(p[:, 1] > hi) & (p[:, 1] < lo)]
+    shift = lambda line_o, line_f, y: _x_at(line_f, y) - _x_at(line_o, y)
+    f_bot = f_tops[0] + int(np.argmax(font[f_tops[0]:f_tops[-1], 1]))
+    # Л's two sides onto М's own first two (the font's М is narrower there than its Л): Л's shape, М's place
+    h = np.array(tt.parse_path(tt.dg.fmt(head)))
+    h_top = int(np.argmin(h[:, 1]))
+    oL, oS = _line_fit(pick(h[:h_top + 1])), _line_fit(pick(h[h_top:]))
+    fL, fS = _line_fit(pick(font[:f_tops[0] + 1])), _line_fit(pick(font[f_tops[0]:f_bot + 1]))
+    head = ([(c, [np.array([q[0] + shift(oL, fL, q[1]), q[1]]) for q in ps]) for c, ps in head[:l_top + 1]]
+            + [(c, [np.array([q[0] + shift(oS, fS, q[1]), q[1]]) for q in ps]) for c, ps in head[l_top + 1:]])
+    joint = head[-1][1][-1]
+    m_ends = np.array([ps[-1] for _, ps in cmds])
+    tops = [k for k in range(len(cmds)) if m_ends[k, 1] < tt.CAP_TOP + 6]
+    t1, t2 = tops[0], tops[-1]
+    b1 = t1 + 1 + int(np.argmax(m_ends[t1 + 1:t2, 1]))  # the foot of the hand's first stem
+    off = joint - m_ends[b1]
+    tail = [(c, [np.asarray(q, float) + off for q in ps]) for c, ps in cmds[b1 + 1:]]
+    k2 = t2 - (b1 + 1)  # the second top, in the tail
+    ours = np.array(tt.parse_path(tt.dg.fmt([("M", [joint])] + tail)))
+    o_top = _apexes(ours)[-1]
+    f_rise, f_stem = _line_fit(pick(font[f_bot:f_tops[-1] + 1])), _line_fit(pick(font[f_tops[-1]:]))
+    o_rise, o_stem = _line_fit(pick(ours[:o_top + 1])), _line_fit(pick(ours[o_top:]))
+    fade = lambda y: min(1.0, max(0.0, (y - tt.X_TOP) / (tt.BASE - tt.X_TOP)))
+    s_joint = shift(o_rise, f_rise, tt.BASE)
+    rise = [(c, [np.array([q[0] + shift(o_rise, f_rise, q[1]) - s_joint * fade(q[1]), q[1]]) for q in ps]) for c, ps in tail[:k2 + 1]]
+    stem = [(c, [np.array([q[0] + shift(o_stem, f_stem, q[1]), q[1]]) for q in ps]) for c, ps in tail[k2 + 1:]]
+    strokes[stroke] = head + rise + stem
+    return strokes
+
+
 def both(*fns):
     def adjust(strokes):
         for fn in fns: strokes = fn(strokes)
@@ -230,7 +285,7 @@ def both(*fns):
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font}
+SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": m_from_l}
 
 
 PAPER_LABEL = [None]  # the letter being tidied (a SHAPES function reads it)
