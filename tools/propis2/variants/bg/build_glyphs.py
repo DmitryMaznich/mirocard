@@ -154,8 +154,29 @@ def hat_like(source, stroke=1):
     return adjust
 
 
+def stem_like(source, stroke=0):
+    """Г: the stem begins as high as Б's (owner, 2026-10-18: «вертикальные штрихи должны тоже одинаковые по высоте ... по
+    оригинальному шрифту»; in Boyan Maga both stems begin about a quarter of a capital's height under the hat, Б's 24.7 units on
+    paper, Г's 22.1, the hand's Г 18.6). The stroke is stretched from the baseline along the slant, so the stem stays on its line and
+    its foot on the baseline."""
+    def adjust(strokes):
+        target = np.array(tt.parse_path(tt.dg.fmt(PAPER[source][stroke])))[:, 1].min()
+        top = np.array(tt.parse_path(tt.dg.fmt(strokes[stroke])))[:, 1].min()
+        k = (tt.BASE - target) / (tt.BASE - top)
+        strokes[stroke] = [(c, list(tt.shear_scale(np.array(ps, float), k))) for c, ps in strokes[stroke]]
+        return strokes
+    return adjust
+
+
+def both(*fns):
+    def adjust(strokes):
+        for fn in fns: strokes = fn(strokes)
+        return strokes
+    return adjust
+
+
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"В": oval_lower_bowl, "Г": hat_like("Б")}
+SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б"))}
 
 
 def tidy(label, raw, script):
