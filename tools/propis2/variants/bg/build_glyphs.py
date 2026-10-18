@@ -13,7 +13,7 @@ corners and refit as cubics, then made as tall as a capital (y -42..62, base 62)
 lowest point stands on the baseline. A letter that ends inside its bowl (Ъ) gets the connector of Б: a separate stroke from under
 the bowl to the middle of the band, drawn only when another letter follows (`tailStroke`).
 """
-import json, sys
+import json, math, sys
 from pathlib import Path
 import numpy as np
 
@@ -351,7 +351,50 @@ def from_font(strokes):
             d = np.array([_x_at(stem, tt.CAP_TOP), tt.CAP_TOP]) - end
             c, ps = cmds[k]
             cmds[k] = (c, [np.asarray(q, float) + (d if i >= len(ps) - 2 else 0) for i, q in enumerate(ps)])
+    for cmds in out: _bow_rises(cmds)
     return out
+
+
+RISE_BOW = 7.0       # at most this far a rise of М bows off its chord, towards the lower right (paper units; less if it would near the stem)
+RISE_MEET_DEG = 14.0  # a rise arrives at its top this much flatter than the stem leaves it: they meet at the top, not before
+RISE_CLEAR = 0.12    # ... and on the way up stays left of the stem by this part of its depth under the top (never crosses it)
+
+
+def _bow_rises(cmds):
+    """М's rising sides (from the end of a foot's or the entry's hook up to a top) redrawn as one even bow each: more bow than the
+    font's centre line has, and arriving at the top at an angle of its own, so the rise and the stem meet only at the top
+    (owner, 2026-10-18: «первый штрих чуть больше прогиб и к верху ... не сливается со вторым, а соединяются в верхней точке.
+    У третьего штриха тоже больше прогиб в середине»). The hook it rises from keeps its end and its tangent there (smooth)."""
+    ends = [np.asarray(ps[-1], float) for _, ps in cmds]
+    tops = [k for k in range(len(cmds)) if ends[k][1] < tt.CAP_TOP + 1e-6]
+    stem_ang = math.radians(tt.SLANT_DEG_PAPER)
+    for t in reversed(tops):
+        # the rise starts where the hook below it ends: the last bow (C) standing low that is followed by anything else
+        s = t - 1
+        while s > 0 and not (cmds[s][0] == "C" and ends[s][1] > tt.X_TOP + 10): s -= 1
+        p0, a = ends[s], ends[t]
+        t0 = tt._unit(p0 - np.asarray(cmds[s][1][-2], float))
+        chord = a - p0; L = float(np.hypot(*chord)); u = chord / L
+        n = np.array([-u[1], u[0]])
+        if n[0] < 0: n = -n  # towards the lower right (y down: the right of an upward chord)
+        th1 = stem_ang - math.radians(RISE_MEET_DEG)
+        t1 = np.array([math.cos(th1), -math.sin(th1)])
+        tm = tt._unit(a - p0)
+        # the stem it meets at the top: the rise must stay clear of it all the way up (a bow towards it would cross it)
+        stem = (a, tt._unit(np.array([-tt.SLANT_T, 1.0])))
+        def bow(S, f):
+            mid = p0 + chord * f + n * S
+            h0, h1 = np.hypot(*(mid - p0)) / 3, np.hypot(*(a - mid)) / 3
+            return [("C", [p0 + t0 * h0, mid - tm * h0, mid]), ("C", [mid + tm * h1, a - t1 * h1, a])]
+        def clear(segs):
+            pts = np.array(tt.parse_path(tt.dg.fmt([("M", [p0])] + segs)))[:-3]
+            room = np.array([_x_at(stem, y) for y in pts[:, 1]]) - pts[:, 0]
+            return np.all(room >= RISE_CLEAR * (pts[:, 1] - tt.CAP_TOP))
+        best = bow(0.0, 0.5)
+        for S in np.arange(0.5, RISE_BOW + 0.01, 0.5):
+            ok = [bow(S, f) for f in (0.5, 0.45, 0.4, 0.35) if clear(bow(S, f))]
+            if ok: best = ok[0]
+        cmds[s + 1:t + 1] = best
 
 
 def both(*fns):
