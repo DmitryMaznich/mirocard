@@ -357,6 +357,7 @@ def from_font(strokes):
 
 RISE_BOW = 14.0      # at most this far a rise of М bows off its chord, towards the lower right (paper units; less if it would near the stem)
 RISE_MEET_DEG = 6.0  # a rise arrives at its top this much flatter than the stem leaves it: they meet at the top, not before
+RISE_ARC_DEG = 7.0    # the first rise of М: an even arc turning this much each side of its chord
 RISE_CLEAR = 0.08    # ... and on the way up stays left of the stem by this part of its depth under the top (never crosses it)
 
 
@@ -369,16 +370,32 @@ def _bow_rises(cmds):
     tops = [k for k in range(len(cmds)) if ends[k][1] < tt.CAP_TOP + 1e-6]
     stem_ang = math.radians(tt.SLANT_DEG_PAPER)
     for t in reversed(tops):
-        # the rise starts at the bottom of the hook below it (on the baseline, level): hook and rise one bow, so it can bow deeper
-        # than from the hook's end without running into the stem near the top
         s = t - 1
         while s > 0 and abs(ends[s][1] - tt.BASE) > 1e-6: s -= 1
+        even = t == tops[0] and cmds[s + 1][0] == "C" and s + 1 < t
+        if even:
+            # the first rise: an even arc from where the entry hook ends to the top (owner, 2026-10-18: the deep bow from the hook's
+            # bottom «слишком резко ... должна быть плавная дуга от выхода крюка до верхней точки»); it leaves RISE_ARC_DEG flatter
+            # than its chord and arrives as much steeper (no steeper than the stem less RISE_MEET_DEG); the hook's last handle is
+            # turned onto the new tangent so the hook runs into it smoothly
+            s += 1
         p0, a = ends[s], ends[t]
-        t0 = tt._unit(p0 - np.asarray(cmds[s][1][-2], float))
         chord = a - p0; L = float(np.hypot(*chord)); u = chord / L
         n = np.array([-u[1], u[0]])
         if n[0] < 0: n = -n  # towards the lower right (y down: the right of an upward chord)
         th1 = stem_ang - math.radians(RISE_MEET_DEG)
+        if even:
+            ch = math.atan2(-u[1], u[0])
+            th1 = min(th1, ch + math.radians(RISE_ARC_DEG))
+            th0 = 2 * ch - th1  # mirrored about the chord: one even arc
+            t0 = np.array([math.cos(th0), -math.sin(th0)])
+            c, ps = cmds[s]
+            h = float(np.hypot(*(np.asarray(ps[-1], float) - np.asarray(ps[-2], float))))
+            cmds[s] = (c, [ps[0], p0 - t0 * h, ps[-1]])
+        else:
+            # from the bottom of the hook below it (on the baseline, level): hook and rise one bow, so it can bow deeper than from
+            # the hook's end without running into the stem near the top
+            t0 = tt._unit(p0 - np.asarray(cmds[s][1][-2], float))
         t1 = np.array([math.cos(th1), -math.sin(th1)])
         tm = tt._unit(a - p0)
         # the stem it meets at the top: the rise must stay clear of it all the way up (a bow towards it would cross it)
@@ -394,9 +411,15 @@ def _bow_rises(cmds):
             return np.all(room >= RISE_CLEAR * (pts[:, 1] - tt.CAP_TOP))
         # one cubic (no joint in it): leaving the hook along its tangent, arriving at the top along t1; the longer the handles the
         # deeper the bow: the deepest one up to RISE_BOW that stays clear of the stem
-        cands = [bow(h0, h1) for h0 in np.arange(0.2, 0.71, 0.05) for h1 in np.arange(0.15, 0.61, 0.05)]
-        cands = [c for c in cands if clear(c) and sag(c) <= RISE_BOW]
-        best = max(cands, key=sag) if cands else bow(1 / 3, 1 / 3)
+        if even:
+            # equal handles, as long as a circle's arc of that turn would have them (4/3 tan(turn/4) of the radius)
+            turn = th1 - th0
+            h = 4 / 3 * math.tan(turn / 4) * (L / 2 / math.sin(turn / 2)) / L if turn > 1e-6 else 1 / 3
+            best = bow(h, h)
+        else:
+            cands = [bow(h0, h1) for h0 in np.arange(0.2, 0.71, 0.05) for h1 in np.arange(0.15, 0.61, 0.05)]
+            cands = [c for c in cands if clear(c) and sag(c) <= RISE_BOW]
+            best = max(cands, key=sag) if cands else bow(1 / 3, 1 / 3)
         cmds[s + 1:t + 1] = best
 
 
