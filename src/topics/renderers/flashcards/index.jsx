@@ -312,15 +312,18 @@ function ActOutTask({ task, topicId, soundEnabled, playTopicFile, isTopicAudioPl
     setTimeout(() => onQualityAnswer(value, task.conceptId, task.card?.id), 900);
   }
 
+  // Own layout, not «Что делает?»'s picture-plus-side-panel: three zones with
+  // the command in the middle — stacked on a portrait screen, side by side on
+  // a landscape one (see .ao-* in styles.css).
   return (
-    <div className="session-body qa-body">
-      {hint
-        ? <CardArea topicId={topicId} card={task.card} />
-        : <div className="card-area"><Diktor playing={Boolean(isTopicAudioPlaying)} onClick={sayCommand} label="Повторить команду" /></div>}
-      <div className="qa-right-panel">
-        <div className="qa-question-area">
-          <div className="session-instruction">{task.imperative}</div>
-        </div>
+    <div className="session-body ao-body">
+      <div className="ao-visual">
+        {hint
+          ? <CardImage topicId={topicId} card={task.card} />
+          : <Diktor playing={Boolean(isTopicAudioPlaying)} onClick={sayCommand} label="Повторить команду" />}
+      </div>
+      <div className="ao-command">{task.imperative}</div>
+      <div className="ao-controls">
         {!hint && (
           <button type="button" className="act-out-hint" onClick={() => setHint(true)}>Подсказка: картинка</button>
         )}
