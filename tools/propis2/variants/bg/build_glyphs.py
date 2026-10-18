@@ -293,6 +293,47 @@ def m_from_l(strokes, source="Л", stroke=0):
     return strokes
 
 
+def _sides(p):
+    """A path that goes up and down between the top line and the baseline (Л, М) -> its runs between the tops and the feet:
+    [rising side, stem, rising side, stem, ...] as point arrays (the tops from _apexes, a foot the lowest point between two tops)."""
+    tops = _apexes(p)
+    cuts = [0]
+    for a, b in zip(tops, tops[1:]):
+        cuts += [a, a + int(np.argmax(p[a:b, 1]))]
+    cuts += [tops[-1], len(p) - 1]
+    return [p[i:j + 1] for i, j in zip(cuts, cuts[1:]) if j > i]
+
+
+def fit_across(strokes, stroke=0, lo=None, hi=None):
+    """М: the whole letter squeezed (or widened) evenly across the slant and moved along the line, so that its sides lie on the
+    font's (font_stencil, the font at its own proportions; owner, 2026-10-18: «М нужно также точно по шрифтовому образцу сжать»).
+    One factor for the whole letter, fitted by least squares over all its sides at every height between `lo` and `hi`: both
+    halves stay the same Л, the stems stay on the slant (they run straight up across the slant), the tops on the top line, the
+    feet on the baseline; the rising sides get steeper with the squeeze, as the font's are."""
+    lo = tt.X_TOP + 10 if lo is None else lo
+    hi = tt.CAP_TOP + 15 if hi is None else hi
+    ours = tt.upright(np.array(tt.parse_path(tt.dg.fmt(strokes[stroke]))))
+    font = tt.upright(np.vstack(font_stencil(PAPER_LABEL[0])))
+    o_sides, f_sides = _sides(ours), _sides(font)
+    ys = np.linspace(hi, lo, 25)
+    A, rhs = [], []
+    for o, f in zip(o_sides, f_sides):
+        for y in ys:
+            if not (min(o[:, 1].min(), f[:, 1].min()) <= y <= max(o[:, 1].max(), f[:, 1].max())): continue
+            uo = o[np.argmin(np.abs(o[:, 1] - y)), 0]; uf = f[np.argmin(np.abs(f[:, 1] - y)), 0]
+            A.append([uo, 1.0]); rhs.append(uf)
+    k, dx = np.linalg.lstsq(np.array(A), np.array(rhs), rcond=None)[0]
+    def squeeze(ps):
+        u = tt.upright(np.array(ps, float))
+        return list(tt.from_upright(np.c_[u[:, 0] * k + dx, u[:, 1]]))
+    strokes[stroke] = [(c, squeeze(ps)) for c, ps in strokes[stroke]]
+    FITS[PAPER_LABEL[0]] = (round(float(k), 3), round(float(dx), 2))
+    return strokes
+
+
+FITS = {}  # label -> (factor across the slant, shift) that fit_across found, for the record
+
+
 def both(*fns):
     def adjust(strokes):
         for fn in fns: strokes = fn(strokes)
@@ -301,7 +342,7 @@ def both(*fns):
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": m_from_l}
+SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": both(m_from_l, fit_across)}
 
 
 PAPER_LABEL = [None]  # the letter being tidied (a SHAPES function reads it)
