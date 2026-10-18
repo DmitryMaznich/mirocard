@@ -94,24 +94,44 @@ describe("verbs_v2 ladder — mounted through the real renderer", () => {
     expect(onIncorrect).toHaveBeenCalledTimes(1);
   });
 
-  it("act_out shows the command and rates through onQualityAnswer", () => {
+  it("act_out: voice first, no picture until the adult asks for it", () => {
     vi.useFakeTimers();
     const onQualityAnswer = vi.fn();
-    const [task] = generateTasks("act_out", CONCEPTS.filter((c) => c.conceptId === "runs"), CARDS, {});
-    mount({ task, mode: { type: "act_out" }, onQualityAnswer });
-    expect(container.querySelector(".session-instruction").textContent).toBe("Беги!");
-    act(() => container.querySelector(".qa-btn--correct").click());
-    act(() => vi.runAllTimers());
-    expect(onQualityAnswer).toHaveBeenCalledWith("correct", "runs", "runs_1");
-    vi.useRealTimers();
-  });
-
-  it("act_out plays the recorded command when the card has one", () => {
     const playTopicFile = vi.fn();
     const cards = CARDS.map((c) => ({ ...c, imperativeAudio: { ru: `audio/imp_${c.conceptId}.mp3` } }));
     const [task] = generateTasks("act_out", deriveConcepts(cards).filter((c) => c.conceptId === "runs"), cards, {});
-    mount({ task, mode: { type: "act_out" }, soundEnabled: true, playTopicFile, topicId: "verbs_v2" });
+    mount({ task, mode: { type: "act_out" }, onQualityAnswer, soundEnabled: true, playTopicFile, topicId: "verbs_v2" });
     expect(playTopicFile).toHaveBeenCalledWith("verbs_v2", "audio/imp_runs.mp3");
+    expect(container.querySelector(".card-img")).toBeNull();
+    expect(container.querySelector(".diktor")).not.toBeNull();
+    expect([...container.querySelectorAll(".rating-btn")].map((b) => b.textContent)).toEqual(["Не понимает", "С подсказкой", "Легко"]);
+    act(() => container.querySelector(".act-out-hint").click());
+    expect(container.querySelector(".act-out-hint")).toBeNull();
+    act(() => [...container.querySelectorAll(".rating-btn")][1].click());
+    act(() => vi.runAllTimers());
+    expect(onQualityAnswer).toHaveBeenCalledWith("prompted", "runs", "runs_1");
+    expect(playTopicFile).toHaveBeenCalledTimes(1); // no third-person word afterwards
+    vi.useRealTimers();
+  });
+
+  it("question_answer with ui.rating three: labelled buttons, «Легко» rates easy", () => {
+    vi.useFakeTimers();
+    const onQualityAnswer = vi.fn();
+    const [task] = generateTasks("question_answer", CONCEPTS.filter((c) => c.conceptId === "runs"), CARDS, {});
+    mount({ task, mode: { type: "question_answer", ui: { instruction: "Что делает?", rating: "three" } }, onQualityAnswer });
+    expect([...container.querySelectorAll(".rating-btn")].map((b) => b.textContent)).toEqual(["Не ответил", "С подсказкой", "Легко"]);
+    expect(container.querySelector(".qa-legend")).toBeNull();
+    act(() => [...container.querySelectorAll(".rating-btn")][2].click());
+    act(() => vi.runAllTimers());
+    expect(onQualityAnswer).toHaveBeenCalledWith("easy", "runs", "runs_1");
+    vi.useRealTimers();
+  });
+
+  it("question_answer in any topic uses the same three labelled buttons", () => {
+    const [task] = generateTasks("question_answer", CONCEPTS.filter((c) => c.conceptId === "runs"), CARDS, {});
+    mount({ task, mode: { type: "question_answer", ui: { instruction: "Что чувствует?" } } });
+    expect([...container.querySelectorAll(".rating-btn")].map((b) => b.textContent)).toEqual(["Не ответил", "С подсказкой", "Легко"]);
+    expect(container.querySelectorAll(".qa-btn")).toHaveLength(0);
   });
 
   it("choose_all uses the template and says the word when the grid appears", () => {

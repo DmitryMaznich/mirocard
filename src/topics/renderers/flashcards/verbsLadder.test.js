@@ -29,9 +29,10 @@ describe("verbs_v2 deck as the app loads it", () => {
     expect(record.modes.map((m) => m.id)).toEqual(expected);
     const reread = await getTopicRecord(db, "verbs_v2");
     expect(reread.modes.map((m) => m.id)).toEqual(expected);
-    const find2 = reread.modes.find((m) => m.id === "verbs_find_2");
-    expect(find2.ui.title).toBe("Покажи: из двух");
-    expect(find2.params.distractorLevel.default).toBe("easy");
+    const show = reread.modes.find((m) => m.id === "verbs_show");
+    expect(show.ui.title).toBe("Покажи");
+    expect(show.params.step.default).toBe(1);
+    expect(reread.modes.filter((m) => m.type === "find_n" && !m.retired).map((m) => m.id)).toEqual(["verbs_show"]);
     expect(reread.modes.some((m) => m.type === "yes_no")).toBe(false);
   });
 
@@ -68,8 +69,40 @@ describe("mode-scoped params", () => {
   });
 
   it("fall back to the mode's declared defaults before it was ever saved", () => {
-    const find2 = deck.modes.find((m) => m.id === "verbs_find_2");
-    expect(readModeParams({ optionCount: 6 }, find2)).toMatchObject({ optionCount: 2, distractorLevel: "easy", errorless: true });
+    const show = deck.modes.find((m) => m.id === "verbs_show");
+    expect(readModeParams({ optionCount: 6 }, show)).toEqual({ step: 1 });
+  });
+
+  it("«Покажи» has two steps: two pictures, then four", () => {
+    const show = deck.modes.find((m) => m.id === "verbs_show");
+    const concepts = deriveConcepts(deck.cards).filter((c) => c.primary.wave === 1);
+    const counts = [1, 2].map((step) => generateTasks("find_n", concepts, deck.cards, { step }, show)[0].options.length);
+    expect(counts).toEqual([2, 4]);
+    expect(show.params.step.values).toEqual([1, 2]);
+    expect(show.errorless).toBe(true);
+  });
+});
+
+describe("pictures", () => {
+  const concepts = deriveConcepts(deck.cards).filter((c) => c.primary.wave === 1);
+  it("every mode uses all pictures of a verb, even with an old saved «Картинки» value", () => {
+    const show = deck.modes.find((m) => m.id === "verbs_show");
+    const tasks = generateTasks("find_n", concepts, deck.cards, { step: 1, cardSet: "contrast" }, show);
+    const all = deck.cards.filter((c) => c.wave === 1).length;
+    expect(tasks.length).toBe(all);
+  });
+  it("«Знакомство» leaves out animals; later modes keep them", () => {
+    const intro = deck.modes.find((m) => m.id === "verbs_intro");
+    const tasks = generateTasks("intro", deriveConcepts(deck.cards), deck.cards, {}, intro);
+    expect(tasks.some((t) => t.card.agent === "animal")).toBe(false);
+    const show = deck.modes.find((m) => m.id === "verbs_show");
+    expect(generateTasks("find_n", deriveConcepts(deck.cards), deck.cards, { step: 2 }, show).some((t) => t.options.some((o) => o.isTarget && o.card.agent === "animal"))).toBe(true);
+  });
+  it("every verb has a boy and a mum card plus at least two other pictures", () => {
+    for (const c of deriveConcepts(deck.cards)) {
+      expect(c.cards.filter((card) => card.set === "contrast"), c.conceptId).toHaveLength(2);
+      expect(c.cards.filter((card) => card.set === "variation").length, c.conceptId).toBeGreaterThanOrEqual(2);
+    }
   });
 });
 
@@ -83,9 +116,16 @@ describe("flashcards engine additions", () => {
     expect(switches).toBe(1);
   });
 
+  it("act_out only offers actions a child can do in the room", () => {
+    const tasks = generateTasks("act_out", deriveConcepts(deck.cards), deck.cards, {});
+    const ids = tasks.map((t) => t.conceptId);
+    for (const id of ["sleeps", "swims", "rides", "cries", "cuts_knife", "waters_plants", "vacuums"]) expect(ids).not.toContain(id);
+    expect(ids).toHaveLength(13);
+  });
+
   it("act_out speaks the imperative of each verb once", () => {
     const tasks = generateTasks("act_out", concepts, deck.cards, {});
-    expect(tasks.map((t) => t.imperative).sort()).toEqual(["Ешь!", "Спи!"]);
+    expect(tasks.map((t) => t.imperative)).toEqual(["Ешь!"]);
   });
 
   it("choose_all carries the verb's audio", () => {

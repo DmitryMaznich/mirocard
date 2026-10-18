@@ -1,4 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
 import { GRIDS, GRID_KINDS, PAGE_FORMATS, MARGINS, multipliesByDefault, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt, taskGrid } from "@/topics/renderers/propis2/model.js";
@@ -101,6 +102,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const [draft, setDraft] = useState("");
   const [caretRequest, setCaretRequest] = useState(null);
   const [pageW, setPageW] = useState(0);
+  const [colW, setColW] = useState(0); // the canvas width: the page at «По ширине»
   const locked = isLocked(page);
   // A setting changed on this page is offered for the whole notebook for a few seconds (owner, 2026-10-15: no «Всем» button, no
   // mode to forget): { key, value, done } — `done`: it went onto every page, the offer turns into «Отменить».
@@ -125,6 +127,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   phoneRef.current = phone;
   sideRef.current = side;
   const wrapRef = useRef(null);
+  const boxRef = useRef(null);
   const pageIndexRef = useRef(0);
   const gridKind = pageGridKind(page);
   const mx = notebook?.mixed ?? {};
@@ -141,6 +144,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       const h = el.clientHeight;
       if (!w || !h) return;
       setPageW(Math.floor(phoneRef.current ? w - 8 : Math.min(w - 8, h * (sideRef.current ? 1 : MAX_OVERFLOW) * aspect)));
+      setColW(Math.floor(w - 8));
     };
     measure();
     if (typeof ResizeObserver === "undefined") return undefined;
@@ -235,7 +239,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const fieldIndex = startId ? page.rows.findIndex((r) => r.id === startId) : -1;
   const rowsSig = page.rows.map((r) => `${r.id}|${r.kind}|${r.text}`).join("\n");
   const draftKey = `${rowsSig}#${startId ?? ""}#${locked ? selectedId ?? "" : ""}`;
-  const [draftSynced, setDraftSynced] = useState(draftKey);
+  const [draftSynced, setDraftSynced] = useState(null); // null: the first render fills the field from the page (it opened empty on a computer)
   // the draft is rebuilt from the page whenever the page or the starting row changed from outside the field
   if (draftSynced !== draftKey) {
     setDraftSynced(draftKey);
@@ -295,6 +299,21 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     });
     return out;
   }, [owners, analysis, page.rows, selectedId]);
+
+  const zoom = useCanvasZoom({ colRef: wrapRef, boxRef, fitW: pageW, widthW: colW });
+  // the selected row stays in sight while it is edited, the page zoomed in or not (the canvas scrolls up or down to it)
+  useEffect(() => {
+    const col = wrapRef.current;
+    const row = col?.querySelector('[data-overlay="select"]');
+    if (!row) return;
+    const c = col.getBoundingClientRect();
+    const r = row.getBoundingClientRect();
+    const pad = 12;
+    if (r.top < c.top + pad) col.scrollTop -= c.top + pad - r.top;
+    else if (r.bottom > c.bottom - pad) col.scrollTop += Math.min(r.bottom - (c.bottom - pad), r.top - (c.top + pad));
+    // (not on a zoom: Ctrl + wheel keeps the point under the pointer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overlays]);
 
   useEffect(() => { if (selectedId && selectedIndex < 0) setSelectedId(null); }, [selectedId, selectedIndex]);
 
@@ -396,8 +415,15 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
             <span className="p2-offer-timer" aria-hidden="true" key={offer.done ? "done" : "offer"}><i style={{ animationDuration: `${offer.done ? OFFER_MS - 1000 : OFFER_MS}ms` }} /></span>
           </div>
         )}
-        <div className="propis2-page-col" ref={wrapRef} onClick={onPageClick}>
-          <div className="propis2-page-box" style={pageW ? { width: pageW } : undefined}>
+        {/* the canvas zoom (useCanvasZoom.js): − / the share / + / «По ширине»; the share brings the whole page back */}
+        <div className="p2-zoom" role="group" aria-label="Масштаб страницы">
+          <button type="button" className="p2-zoom-btn" onClick={zoom.zoomOut} disabled={zoom.z <= 1.001} aria-label="Уменьшить" title="Уменьшить (Ctrl + колесо)">−</button>
+          <button type="button" className="p2-zoom-btn p2-zoom-pct" onClick={zoom.fit} disabled={zoom.z <= 1.001} aria-label="Вписать страницу" title="Вписать страницу целиком">{Math.round(zoom.z * 100)}%</button>
+          <button type="button" className="p2-zoom-btn" onClick={zoom.zoomIn} disabled={zoom.z >= zoom.maxZ - 0.001} aria-label="Увеличить" title="Увеличить (Ctrl + колесо)">+</button>
+          {zoom.canWidth && <button type="button" className={`p2-zoom-btn p2-zoom-width${Math.abs(zoom.z - zoom.widthZ) < 0.01 ? " is-on" : ""}`} onClick={zoom.toWidth} aria-label="По ширине" title="Страница по ширине"><I.IconFitWidth /></button>}
+        </div>
+        <div className={`propis2-page-col${zoom.z > 1.001 ? " is-zoomed" : ""}`} ref={wrapRef} onClick={onPageClick}>
+          <div className="propis2-page-box" ref={boxRef} style={pageW ? { width: Math.round(pageW * zoom.z) } : undefined}>
             <Propis2Preview page={page} topicRecord={topicRecord} overlays={overlays} onPageIndexChange={(i) => { pageIndexRef.current = i; }} />
           </div>
         </div>

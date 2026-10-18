@@ -510,17 +510,33 @@ function generateSortByAttributeTasks(concepts) {
   })));
 }
 
-export function generateTasks(modeType, concepts, allCards, params = {}, mode = null) {
+export function generateTasks(modeType, concepts, allCards, rawParams = {}, mode = null) {
+  // mode.stepPresets: one "Ступень" setting stands for several engine params at
+  // once (verbs_v2 «Покажи»: step 2 = 4 options, medium-similar distractors),
+  // so the adult picks a ladder step instead of option counts and similarity.
+  const params = { ...rawParams, ...(mode?.stepPresets?.[rawParams?.step] ?? {}) };
   // Cards tagged with a cardType (e.g. "situation") aren't an ordinary
   // picture/word variation and must never surface as one - strip them from
   // every mode's card pool except the mode built specifically to consume
   // them. A card that never sets cardType passes through unchanged, so this
   // is a no-op for every flashcards topic other than emotions_v2.
+  // A mode (or its "Картинки" setting) may draw from one picture set only:
+  // verbs_v2 keeps a "contrast" set (the same boy and mum, only the action
+  // changes) for the early steps and a "variation" set (other people, objects,
+  // places, styles) for generalisation. Cards with no `set` belong to every set,
+  // so topics that never use it are unaffected.
+  // A saved "Картинки" value only counts while the mode still offers that
+  // setting (verbs_v2 dropped it in 2.1.0; old saved values must not narrow).
+  const cardSet = (mode?.params?.cardSet ? params?.cardSet : null) ?? mode?.cardSet ?? "all";
+  // mode.excludeAnimals: animals only on the later steps of a topic (verbs_v2:
+  // not in «Знакомство») — the animal is brighter than the action.
+  const inSet = (card) => (cardSet === "all" || !card.set || card.set === cardSet)
+    && !(mode?.excludeAnimals && card.agent === "animal");
   const displayConcepts = concepts.map((c) => {
-    const displayCards = c.cards.filter((card) => !card.cardType && !card.probeOnly);
+    const displayCards = c.cards.filter((card) => !card.cardType && !card.probeOnly && inSet(card));
     if (displayCards.length === c.cards.length) return c;
     return { ...c, cards: displayCards, primary: displayCards.find((card) => card.primary) ?? displayCards[0] ?? c.primary };
-  });
+  }).filter((c) => (cardSet === "all" && !mode?.excludeAnimals) || c.cards.length > 0);
   switch (modeType) {
     case "intro":                  return generateIntroTasks(displayConcepts, { groupByConcept: mode?.groupByConcept === true });
     case "act_out":                return generateActOutTasks(displayConcepts);

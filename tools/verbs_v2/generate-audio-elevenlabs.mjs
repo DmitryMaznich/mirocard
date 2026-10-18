@@ -4,10 +4,11 @@
 // (audio/imp_<conceptId>.mp3, «Прыгай!»). One voice for the whole topic: the
 // earlier clips came from another TTS (24 kHz mono) and would not match.
 //
-// Every clip is trimmed (ffmpeg, 50 ms kept before the voice, 80 ms after) and
+// Every clip is trimmed (ffmpeg, 50 ms kept before the voice, 180 ms after with a
+// 60 ms fade-out so the word ends naturally, not cut off) and
 // checked: ElevenLabs scribe must hear the text, and the clip must hold one
 // stretch of speech - eleven_v4 sometimes says a lone short word twice
-// («Ест… ест»). A failed clip is generated again, up to 4 times (see FALLBACK_MODEL_ID).
+// («Ест… ест»). A failed clip is generated again, up to 6 times.
 // Scribe hears «ест» as «есть» (the old clip too), so that one passes on
 // «есть» and is listed for a human listen, along with stress-prone words.
 //
@@ -23,8 +24,10 @@ const DIR = dirname(fileURLToPath(import.meta.url));
 const AUDIO = join(DIR, "audio");
 const VOICE_ID = "R2G2Gb9OjCtLhIBQErXd"; // «Дмитрий Мазниченко», cloned
 const MODEL_ID = "eleven_v4";
-const WORD_TAG = "[calm, clear, warm, speaking to a young child]";
-const COMMAND_TAG = "[warm, encouraging, clear, speaking to a young child]";
+// The delivery the owner approved for place_value and the propis dictation.
+// An earlier "warm, speaking to a young child" tag came out sing-song.
+const WORD_TAG = "[calm, clear, like a teacher dictating to a class]";
+const COMMAND_TAG = "[calm, clear, like a teacher giving a simple instruction]";
 const args = Object.fromEntries(process.argv.slice(2).map((a) => { const [k, v] = a.replace(/^--/, "").split("="); return [k, v ?? true]; }));
 const KEYS = args.keys ? new Set(String(args.keys).split(",")) : null;
 const apiKey = process.env.ELEVENLABS_API_KEY;
@@ -44,15 +47,14 @@ async function request(url, init) {
   }
 }
 
-// eleven_v4 often says a lone one- or two-syllable word twice («Бежит, бежит»)
-// and acted «Смеётся» out as laughter; after two such tries the same voice is
-// asked through eleven_multilingual_v2, which takes no delivery tag.
-const FALLBACK_MODEL_ID = "eleven_multilingual_v2";
+// One model and one delivery for every clip: mixing in eleven_multilingual_v2
+// for the words v4 doubled made those few sound clipped («буркнул»). A doubled
+// word is simply generated again.
 async function synthesize(text, tag, model) {
   const res = await request(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?output_format=mp3_44100_128`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "audio/mpeg", ...auth },
-    body: JSON.stringify({ text: model === MODEL_ID ? `${tag} ${text}` : text, model_id: model }),
+    body: JSON.stringify({ text: `${tag} ${text}`, model_id: model }),
   });
   return Buffer.from(await res.arrayBuffer());
 }
@@ -72,7 +74,7 @@ async function transcribe(file) {
 const edge = (keep) => `silenceremove=start_periods=1:start_duration=0.01:start_threshold=-50dB:start_silence=${keep}`;
 function trim(file) {
   const tmp = join(AUDIO, `.tmp-${Date.now()}.mp3`);
-  execFileSync("ffmpeg", ["-y", "-v", "error", "-i", file, "-af", `${edge(0.05)},areverse,${edge(0.08)},areverse`, "-c:a", "libmp3lame", "-b:a", "128k", tmp]);
+  execFileSync("ffmpeg", ["-y", "-v", "error", "-i", file, "-af", `${edge(0.05)},areverse,${edge(0.18)},afade=t=in:d=0.06,areverse`, "-c:a", "libmp3lame", "-b:a", "128k", tmp]);
   renameSync(tmp, file);
 }
 
@@ -91,6 +93,20 @@ function level(file) {
   renameSync(tmp, file);
 }
 
+// When v4 says a short command twice («Ешь, ешь» — every one of 9 tries for
+// «Ешь!»), keep the first stretch of speech: same model and delivery, just cut
+// at the first pause. The result is checked like any other clip.
+function keepFirstStretch(file) {
+  const log = spawnSync("ffmpeg", ["-v", "info", "-i", file, "-af", "silencedetect=noise=-40dB:d=0.25", "-f", "null", "-"], { encoding: "utf8" }).stderr;
+  const start = Number(log.match(/silence_start: ([\d.]+)/)?.[1]);
+  if (!start) return false;
+  const tmp = join(AUDIO, `.tmp-${Date.now()}.mp3`);
+  execFileSync("ffmpeg", ["-y", "-v", "error", "-i", file, "-t", String(start + 0.05), "-c:a", "libmp3lame", "-b:a", "128k", tmp]);
+  renameSync(tmp, file);
+  trim(file);
+  return true;
+}
+
 // Pauses longer than 0.25 s inside the trimmed clip = more than one stretch of speech.
 function innerPauses(file) {
   const log = spawnSync("ffmpeg", ["-v", "info", "-i", file, "-af", "silencedetect=noise=-40dB:d=0.25", "-f", "null", "-"], { encoding: "utf8" }).stderr;
@@ -104,7 +120,7 @@ const clips = [];
 for (const card of deck.cards.filter((c) => c.primary)) {
   const word = card.label[0].toUpperCase() + card.label.slice(1);
   clips.push({ key: card.conceptId, text: `${word}.`, tag: WORD_TAG, conceptId: card.conceptId });
-  clips.push({ key: `imp_${card.conceptId}`, text: card.imperative, tag: COMMAND_TAG, conceptId: card.conceptId });
+  if (card.imperative) clips.push({ key: `imp_${card.conceptId}`, text: card.imperative, tag: COMMAND_TAG, conceptId: card.conceptId });
 }
 
 // Which clips are already in this voice, and for which text: older clips under
@@ -125,13 +141,18 @@ for (const clip of clips) {
   const file = join(AUDIO, `${clip.key}.mp3`);
   if (existsSync(file) && voiced[clip.key]?.text === clip.text && !args.force) continue;
   let ok = false;
-  for (let attempt = 1; attempt <= 4 && !ok; attempt++) {
-    const model = attempt <= 2 ? MODEL_ID : FALLBACK_MODEL_ID;
+  for (let attempt = 1; attempt <= 6 && !ok; attempt++) {
+    const model = MODEL_ID;
     writeFileSync(file, await synthesize(clip.text, clip.tag, model));
     trim(file);
     level(file);
-    const heard = await transcribe(file);
-    const pauses = innerPauses(file);
+    let heard = await transcribe(file);
+    let pauses = innerPauses(file);
+    const words = normalize(heard).split(" ");
+    if (pauses > 0 && words.length > 1 && words.every((w) => w === normalize(clip.text)) && keepFirstStretch(file)) {
+      heard = await transcribe(file);
+      pauses = innerPauses(file);
+    }
     const accepted = [clip.text, ...(clip.key === clip.conceptId ? HEARD_AS[clip.conceptId] ?? [] : [])].map(normalize);
     // Scribe marks non-speech in brackets («[смеётся]» = the clip laughs).
     ok = !heard.includes("[") && accepted.includes(normalize(heard)) && pauses === 0;
@@ -143,6 +164,6 @@ for (const clip of clips) {
   writeFileSync(VOICED, `${JSON.stringify(voiced, null, 2)}\n`);
 }
 if (failures.length) {
-  console.log(`\nStill failing after 4 tries: ${failures.join(", ")}`);
+  console.log(`\nStill failing after 6 tries: ${failures.join(", ")}`);
   process.exitCode = 1;
 }

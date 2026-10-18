@@ -101,7 +101,20 @@
 .p2-mixed { position: absolute; top: 2px; right: 3px; width: 10px; height: 10px; border-radius: 50%; background: #d97706; border: 2px solid var(--p2-strip); pointer-events: none; z-index: 1; }
 .propis2-main > .propis2-dock { grid-area: dock; }
 .propis2-page-col { min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 8px 6px; display: flex; justify-content: center; align-items: flex-start; background: var(--p2-board); }
-.propis2-page-box { max-width: 100%; }
+.propis2-page-box { max-width: 100%; flex: none; margin-inline: auto; }
+/* zoomed in (useCanvasZoom.js): the page wider than the canvas, which scrolls both ways; auto margins centre a smaller page and let
+   a bigger one start at the edge (centring it with justify-content would cut its left part off) */
+.propis2-main > .propis2-page-col.is-zoomed { overflow: auto; justify-content: flex-start; align-items: flex-start; }
+.propis2-main > .propis2-page-col.is-zoomed .propis2-page-box { max-width: none; margin-block: auto; }
+.propis2-main > .p2-zoom { grid-area: page; justify-self: start; align-self: start; z-index: 6; display: flex; gap: 2px; padding: 3px; margin: 12px 0 0 calc(12px + var(--app-safe-left, 0px)); border-radius: 24px; background: rgba(255, 255, 255, .94); box-shadow: 0 4px 14px rgba(0, 0, 0, .22), 0 1px 3px rgba(0, 0, 0, .12); }
+.p2-zoom-btn { min-width: 38px; height: 38px; padding: 0 6px; border: none; border-radius: 19px; background: transparent; color: #1f2937; font: 800 20px/1 inherit; font-family: inherit; display: grid; place-items: center; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.p2-zoom-btn svg { width: 24px; height: 24px; }
+.p2-zoom-pct { min-width: 54px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.p2-zoom-btn:disabled { color: #b8c0cc; cursor: default; }
+.p2-zoom-pct:disabled { color: #4b5563; }
+.p2-zoom-btn.is-on { background: var(--p2-teal-soft); color: var(--p2-teal-dark); }
+.p2-zoom-btn:not(:disabled):hover { background: var(--p2-teal-soft); }
+.p2-zoom-btn:focus-visible { outline: 2px solid var(--p2-blue); outline-offset: 1px; }
 .propis2-page-box .propis2-preview { width: 100%; background: transparent; }
 .propis2-page-col .propis-print-page-svg { max-height: none; width: 100%; border-radius: 3px; }
 

@@ -141,11 +141,11 @@
   },
   "imp_eats": {
     "text": "Ешь!",
-    "model": "eleven_multilingual_v2"
+    "model": "eleven_v4"
   },
   "runs": {
     "text": "Бежит.",
-    "model": "eleven_multilingual_v2"
+    "model": "eleven_v4"
   },
   "walks": {
     "text": "Идёт.",
@@ -153,10 +153,10 @@
   },
   "rides": {
     "text": "Едет.",
-    "model": "eleven_multilingual_v2"
+    "model": "eleven_v4"
   },
   "laughs": {
     "text": "Смеётся.",
-    "model": "eleven_multilingual_v2"
+    "model": "eleven_v4"
   }
 }

@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { getTopicTitle } from "@/shared/utils/format";
+import Diktor from "@/shared/components/Diktor.jsx";
 
 function getTaskAudioPath(task) {
   if (task?.card?.audio?.ru) return task.card.audio.ru;
@@ -184,15 +185,6 @@ function SituationIntroTask({ task, topicId, onAdvance }) {
   );
 }
 
-const QA_BUTTONS = [
-  { value: "fail",     label: "Не ответил",   mod: "fail"     },
-  { value: "prompted", label: "С подсказкой", mod: "prompted" },
-  { value: "correct",  label: "Правильно",    mod: "correct"  },
-  { value: "easy",     label: "Легко!",        mod: "easy"     },
-];
-
-const KEY_MAP = { "1": "fail", "2": "prompted", "3": "correct", "4": "easy" };
-
 function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onQualityAnswer, onCardShown, onQuality }) {
   const audioPath       = getTaskAudioPath(task);
   const prefixAudioPath = mode?.answerPrefixAudio ?? null;
@@ -239,59 +231,70 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   useEffect(() => {
     if (!useKeyboard) return;
     function onKey(e) {
-      const quality = KEY_MAP[e.key];
+      const quality = RATING_KEY_MAP[e.key];
       if (quality) handleQuality(quality);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [useKeyboard, revealed]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Same three-zone layout as «Сделай» (.ao-*): picture — question with the
+  // answer appearing under it — the adult's buttons.
   return (
-    <div className="session-body qa-body">
-      <CardArea topicId={topicId} card={task.card} />
-      <div className="qa-right-panel">
-        <div className="qa-question-area">
-          <div className="session-instruction">{question}</div>
+    <div className="session-body ao-body ao-body--picture">
+      <div className="ao-visual"><CardImage topicId={topicId} card={task.card} /></div>
+      <div className="ao-middle">
+        <div className="ao-command ao-command--question">
+          {question}
           <InlineSpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />
         </div>
-        <div className={`qa-reveal${revealed ? " qa-reveal--shown" : ""}`}>
+        <div className={`ao-reveal${revealed ? " ao-reveal--shown" : ""}`}>
           {mode?.answerPrefix ? `${mode.answerPrefix} ${task.label}` : task.label}
         </div>
-        <div className="qa-row">
-          {QA_BUTTONS.map((btn, i) => (
-            <button
-              key={btn.value}
-              className={`qa-btn qa-btn--${btn.mod}`}
-              disabled={revealed}
-              onClick={() => handleQuality(btn.value)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-        <p className="qa-legend">
-          {QA_BUTTONS.map((btn, i) => `${i + 1} — ${btn.label}`).join("   ")}
-        </p>
+      </div>
+      <div className="ao-controls">
+        <RatingButtons disabled={revealed} onRate={handleQuality} labels={{ fail: "Не ответил" }} />
       </div>
     </div>
   );
 }
 
-const ACT_OUT_BUTTONS = [
-  { value: "fail",     label: "Не сделал",    mod: "fail"     },
+// Three outcomes the adult can tell apart at a glance, labelled on the
+// buttons themselves (no numbered legend) — the one rating row of every
+// adult-rated flashcard mode («Что …?», «Сделай»). A fourth "Правильно" next
+// to "Легко" only made the adult split hairs mid-lesson.
+const RATING_BUTTONS = [
+  { value: "fail",     label: "Не понимает",  mod: "fail"     },
   { value: "prompted", label: "С подсказкой", mod: "prompted" },
-  { value: "correct",  label: "Сделал",       mod: "correct"  },
-  { value: "easy",     label: "Легко!",       mod: "easy"     },
+  { value: "easy",     label: "Легко",        mod: "easy"     },
 ];
 
-// «Покажи, как»: the picture is the model, the command is spoken ("Прыгай!"),
-// the child acts it out and the adult rates it. After the rating the
-// descriptive word plays ("прыгает"), tying the action just done to the word
-// the other modes ask for.
-function ActOutTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswer, onCardShown, onQuality }) {
+const RATING_KEY_MAP = { "1": "fail", "2": "prompted", "3": "easy" };
+
+// `labels` renames a button for a mode whose task is not about understanding
+// («Что делает?»: the child names the action — «Не ответил», not «Не понимает»).
+function RatingButtons({ disabled, onRate, labels = {} }) {
+  return (
+    <div className="rating-row">
+      {RATING_BUTTONS.map((btn) => (
+        <button key={btn.value} type="button" className={`rating-btn rating-btn--${btn.mod}`} disabled={disabled} onClick={() => onRate(btn.value)}>
+          {labels[btn.value] ?? btn.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// «Сделай»: does the child understand the spoken command? Only the voice
+// comes first ("Прыгай!") - a picture on screen would let the child copy the
+// pose without listening. If nothing happens the adult opens the picture
+// (a prompt) or shows the action; that is «С подсказкой». No word follows the
+// rating: a third-person "прыгает" said about the child who just jumped is
+// wrong grammar, and a second form of the verb is only noise here.
+function ActOutTask({ task, topicId, soundEnabled, playTopicFile, isTopicAudioPlaying, onQualityAnswer, onCardShown, onQuality }) {
   const { speak } = useSpeech();
   const [rated, setRated] = useState(false);
-  const wordAudio = getTaskAudioPath(task);
+  const [hint, setHint] = useState(false);
 
   function sayCommand() {
     if (!soundEnabled) return;
@@ -299,6 +302,7 @@ function ActOutTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswe
     else speak(task.imperative);
   }
 
+  // SessionScreen remounts the renderer per task, so rated/hint start fresh.
   useEffect(() => {
     onCardShown?.(task.card?.id, task.conceptId);
     sayCommand();
@@ -307,43 +311,27 @@ function ActOutTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswe
   function handleQuality(value) {
     if (rated) return;
     setRated(true);
+    setHint(true);
     onQuality?.(value, task.card?.id, task.conceptId);
-    if (wordAudio && soundEnabled) playTopicFile(topicId, wordAudio);
-    setTimeout(() => onQualityAnswer(value, task.conceptId, task.card?.id), wordAudio && soundEnabled ? 1400 : 700);
+    setTimeout(() => onQualityAnswer(value, task.conceptId, task.card?.id), 900);
   }
 
+  // Own layout, not «Что делает?»'s picture-plus-side-panel: three zones with
+  // the command in the middle — stacked on a portrait screen, side by side on
+  // a landscape one (see .ao-* in styles.css).
   return (
-    <div className="session-body qa-body">
-      <CardArea topicId={topicId} card={task.card} />
-      <div className="qa-right-panel">
-        <div className="qa-question-area">
-          <div className="session-instruction">{task.imperative}</div>
-          {soundEnabled && (
-            <button
-              className="session-audio-icon-button session-audio-icon-button--active qa-inline-speech"
-              onClick={(event) => { event.stopPropagation(); sayCommand(); }}
-              aria-label="Повторить"
-            >
-              🔊
-            </button>
-          )}
-        </div>
-        <div className={`qa-reveal${rated ? " qa-reveal--shown" : ""}`}>{task.label}</div>
-        <div className="qa-row">
-          {ACT_OUT_BUTTONS.map((btn, i) => (
-            <button
-              key={btn.value}
-              className={`qa-btn qa-btn--${btn.mod}`}
-              disabled={rated}
-              onClick={() => handleQuality(btn.value)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-        <p className="qa-legend">
-          {ACT_OUT_BUTTONS.map((btn, i) => `${i + 1} — ${btn.label}`).join("   ")}
-        </p>
+    <div className="session-body ao-body">
+      <div className="ao-visual">
+        {hint
+          ? <CardImage topicId={topicId} card={task.card} />
+          : <Diktor playing={Boolean(isTopicAudioPlaying)} onClick={sayCommand} label="Повторить команду" />}
+      </div>
+      <div className="ao-command">{task.imperative}</div>
+      <div className="ao-controls">
+        {!hint && (
+          <button type="button" className="act-out-hint" onClick={() => setHint(true)}>Подсказка: картинка</button>
+        )}
+        <RatingButtons disabled={rated} onRate={handleQuality} />
       </div>
     </div>
   );
@@ -456,7 +444,7 @@ function FindNOption({ option, topicId, state, disabled, onClick }) {
   );
 }
 
-// sessionParams.errorless: a miss is recorded, then the wrong pictures fade,
+// errorless (mode.errorless or sessionParams.errorless): a miss is recorded, then the wrong pictures fade,
 // the right one pulses and the word plays again; only the right picture stays
 // tappable, so the child ends every trial on the correct answer instead of
 // guessing again (same as my_people «Покажи»). Finishing after a miss - or on
@@ -464,7 +452,8 @@ function FindNOption({ option, topicId, state, disabled, onClick }) {
 function FindNTask({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onStreakReset, onCardShown, onTap }) {
   const { speak } = useSpeech();
   const audioPath = task.promptAudio?.ru ?? null;
-  const errorless = sessionParams?.errorless === true;
+  // mode.errorless: always on, no setting (verbs_v2 «Покажи»).
+  const errorless = mode?.errorless === true || sessionParams?.errorless === true;
   const [missed, setMissed] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -798,7 +787,7 @@ const TASK_RENDERERS = {
   sort_by_attribute:      SortByAttributeTask,
 };
 
-export default function FlashcardsRenderer({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onStreakReset, onAdvance, onQualityAnswer, onCardShown, onTap, onQuality }) {
+export default function FlashcardsRenderer({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, isTopicAudioPlaying, onCorrect, onIncorrect, onStreakReset, onAdvance, onQualityAnswer, onCardShown, onTap, onQuality }) {
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (
@@ -809,6 +798,7 @@ export default function FlashcardsRenderer({ task, mode, sessionParams, topicId,
       topicId={topicId}
       soundEnabled={soundEnabled}
       playTopicFile={playTopicFile}
+      isTopicAudioPlaying={isTopicAudioPlaying}
       onCorrect={onCorrect}
       onIncorrect={onIncorrect}
       onStreakReset={onStreakReset}
