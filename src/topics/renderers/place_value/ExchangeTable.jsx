@@ -52,12 +52,18 @@ export function exchangeSteps(task) {
       ],
     };
   }
+  // Borrowing adds two steps, written over the crossed digits: what is left
+  // of the tens (3 − 1) and how many ones there are now (10 + 2).
   const borrow = o < kO ? 1 : 0;
-  const tensParts = [t, ...(borrow ? [1] : []), ...(kT ? [kT] : [])];
+  const tensParts = [borrow ? t - 1 : t, ...(kT ? [kT] : [])];
   return {
     carry: 0, borrow, onesResult: o + 10 * borrow - kO, tensResult: t - borrow - kT,
     steps: [
       { key: "enough", label: "Единицы", text: `${o} − ${kO}: единиц хватает?`, expected: !borrow, choice: true },
+      ...(borrow ? [
+        { key: "overT", label: "Десятки", tone: "tens", text: `${t} − 1 =`, expected: t - 1 },
+        { key: "overO", label: "Единицы", tone: "ones", text: `10 + ${o} =`, expected: 10 + o },
+      ] : []),
       { key: "ones", label: "Единицы", text: `${borrow ? 10 + o : o} − ${kO} =`, expected: o + 10 * borrow - kO },
       { key: "tens", label: "Десятки", text: tensParts.length > 1 ? `${tensParts.join(" − ")} =` : "не меняются:", expected: t - borrow - kT },
     ],
@@ -104,6 +110,8 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
     if (!teaching) fail("Проверь число ещё раз.");
     else if (current.key === "ones") { fail(`Посчитай ещё раз: ${current.text.replace(" =", "")}.`); setSupport(true); }
     else if (current.key === "tens" && plan.carry && guess === t + kT) fail("Не забудь десяток, который пришёл из единиц.");
+    else if (current.key === "overT") fail("Один десяток отдали единицам. Сколько десятков осталось?");
+    else if (current.key === "overO") fail("Десяток — это 10 единиц. Сколько единиц стало?");
     else if (current.key === "tens" && plan.borrow && guess === t - kT) fail("Один десяток мы отдали единицам.");
     else fail(`Посчитай десятки: ${current.text.replace(" =", "")}.`);
     return false;
@@ -135,6 +143,10 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
   const tensDone = teaching ? passed("tens") : solved;
   const digit = (v, kind, extra = "", ref = undefined) => <span ref={ref} className={`xb-cell tb-digit--${kind}${extra}`}>{v}</span>;
   const lit = comparing ? " xb-cell--compare" : "";
+  // Over a crossed digit: nothing until its own step, the child's digits while
+  // he types them there, his answer after.
+  const over = (key, value) => (passed(key) ? <span className="xb-carry">{value}</span>
+    : current?.key === key ? <span className="xb-carry xb-carry--live">{typed.digits || "?"}</span> : null);
 
   const dots = (n, kind) => <span className={`xb-dots xb-dots--${kind}`}>{Array.from({ length: n }, (_, i) => <SchemeOne key={i} />)}</span>;
   const status = solved ? null
@@ -150,13 +162,11 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
           <h3 className="sg-head sg-head--ones">Единицы</h3>
 
           <span />
-          <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-borrow-dot" title="Заняли один десяток" /> : null}</span>
-          <span className="xb-over xb-over--ones">{borrowed ? <span className="xb-carry xb-carry--ones">{10 + o}</span> : null}</span>
+          <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? over("overT", t - 1) : null}</span>
+          <span className="xb-over xb-over--ones">{borrowed ? over("overO", 10 + o) : null}</span>
 
           <span />
-          {/* Borrowed from: a dot over it, the school way — not «2» over a crossed 3,
-              which would be the answer to the last step. */}
-          {digit(t, "tens", "", tRef)}
+          {digit(t, "tens", borrowed ? " xb-crossed" : "", tRef)}
           {digit(o, "ones", (borrowed ? " xb-crossed" : "") + lit, oRef)}
 
           <span className={`xb-sign xt-sign--${task.op}`}>{sign}</span>
@@ -179,10 +189,10 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
       <div className="sg-answer">
         {!solved && teaching && <div className={`xb-step${current.choice ? " xb-step--choice" : ""}`}>
           {/* Two lines: which place, big, then the sum to do in it. */}
-          <span className={`xb-step-head xb-step-head--${current.key === "tens" ? "tens" : "ones"}`}>{current.label}</span>
+          <span className={`xb-step-head xb-step-head--${current.tone ?? (current.key === "tens" ? "tens" : "ones")}`}>{current.label}</span>
           <div className="xb-step-line">
             <span className="xb-step-text">{current.text}</span>
-            {!current.choice && <AnswerField label={current.label} tone={current.key === "tens" ? "tens" : "ones"} bare active wrong={typed.wrong} value={typed.digits} />}
+            {!current.choice && <AnswerField label={current.label} tone={current.tone ?? (current.key === "tens" ? "tens" : "ones")} bare active wrong={typed.wrong} value={typed.digits} />}
           </div>
         </div>}
         {!teaching && <div className="sg-num">

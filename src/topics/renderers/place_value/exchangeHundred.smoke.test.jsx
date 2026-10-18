@@ -17,7 +17,8 @@ describe("Плюс и минус через сотню", () => {
 
   it("plan: ones, tens (with the decision on minus), hundreds", () => {
     expect(hundredSteps(plus).steps.map((s) => s.text)).toEqual(["4 + 0 =", "9 + 2 =", "1 + 1 ="]);
-    expect(hundredSteps(minus).steps.map((s) => s.text)).toEqual(["4 − 0 =", "1 − 3: десятков хватает?", "11 − 3 =", "2 − 1 ="]);
+    // Borrowing: two steps written over the crossed digits — 2 − 1 and 10 + 1.
+    expect(hundredSteps(minus).steps.map((s) => s.text)).toEqual(["4 − 0 =", "1 − 3: десятков хватает?", "2 − 1 =", "10 + 1 =", "11 − 3 =", "не меняются:"]);
   });
 
   it("scheme plus: ten sticks fold into a square, then the answer", () => {
@@ -74,15 +75,22 @@ describe("Плюс и минус через сотню", () => {
     expect(n(".xf-area--small .xf-group--new .cb-stick")).toBe(10);
     h.flush();
     expect(h.container.querySelector(".xf-layer")).toBeNull();
-    expect(h.container.querySelector(".xb-over--tens").textContent).toBe("11");
-    // A dot over the hundreds, not «1» over a crossed 2: that's the last answer.
-    expect(h.container.querySelector(".xb-over--hundreds .xb-borrow-dot")).not.toBeNull();
-    expect(h.container.querySelector(".xb-over--hundreds").textContent).toBe("");
+    // Both digits crossed; what goes over them is the child's to write.
+    const over = (k) => h.container.querySelector(`.xb-over--${k}`).textContent;
+    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(2);
+    expect(over("hundreds")).toBe("?");
+    expect(over("tens")).toBe("");
+    type(2);
+    expect(h.container.querySelector(".sg-status-note").textContent).toBe("Одну сотню отдали десяткам. Сколько сотен осталось?");
+    h.flush(); type(1);
+    expect(over("hundreds")).toBe("1");
+    type(11);
+    expect(over("tens")).toBe("11");
     type(8); type(2);
     expect(h.container.querySelector(".sg-status-note").textContent).toBe("Одну сотню мы отдали десяткам.");
     h.flush(); type(1);
     expect(Array.from(h.container.querySelectorAll(".xb-result")).map((e) => e.textContent)).toEqual(["1", "8", "4"]);
-    expect(onMistake).toHaveBeenCalledTimes(1);
+    expect(onMistake).toHaveBeenCalledTimes(2);
   });
 
   it("engine: round tens, one crossing in half the tasks, results stay three-digit", () => {

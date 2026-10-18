@@ -16,7 +16,7 @@ describe("«Плюс и минус через десяток» — «Табли�
 
   it("steps: ones first, then tens with the carried / borrowed ten", () => {
     expect(exchangeSteps(plus).steps.map((s) => s.text)).toEqual(["8 + 4 =", "3 + 1 ="]);
-    expect(exchangeSteps(minus).steps.map((s) => s.text)).toEqual(["2 − 4: единиц хватает?", "12 − 4 =", "3 − 1 ="]);
+    expect(exchangeSteps(minus).steps.map((s) => s.text)).toEqual(["2 − 4: единиц хватает?", "3 − 1 =", "10 + 2 =", "12 − 4 =", "не меняются:"]);
     expect(exchangeSteps({ ...plus, k: 24, number: 38, result: 62 }).steps.map((s) => s.text)).toEqual(["8 + 4 =", "3 + 2 + 1 ="]);
     expect(exchangeSteps({ ...minus, k: 1, result: 31 }).steps.map((s) => s.text)).toEqual(["2 − 1: единиц хватает?", "2 − 1 =", "не меняются:"]);
   });
@@ -69,12 +69,13 @@ describe("«Плюс и минус через десяток» — «Табли�
     expect(n(".xf-area--big .cb-stick")).toBe(2);
     expect(n(".xf-area--small .cb-dot")).toBe(12);
     h.flush();
-    // Only the ones are crossed (12 over them); the tens get a dot, not «2» —
-    // that is the last step's answer.
-    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(1);
-    expect(h.container.querySelector(".xb-over--tens .xb-borrow-dot")).not.toBeNull();
+    // Both crossed; the child writes what goes over them: 3 − 1, then 10 + 2.
+    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(2);
+    expect(text(".xb-over--tens")).toBe("?");
+    type(2);
+    expect(text(".xb-over--tens")).toBe("2");
+    type(12);
     expect(text(".xb-over--ones")).toBe("12");
-    expect(text(".xb-over--tens")).toBe("");
     type(9);
     expect(note()).toBe("Посчитай ещё раз: 12 − 4.");
     expect(h.container.querySelectorAll(".xb-support .cb-dot")).toHaveLength(16);
