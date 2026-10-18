@@ -52,14 +52,22 @@ export function exchangeSteps(task) {
       ],
     };
   }
+  // Borrowing with tens to take away (92 − 66): two steps, not «9 − 1 − 6» —
+  // first what is written over the crossed 9 (9 − 1), then 8 − 6. With no
+  // tens to take away (43 − 6) «4 − 1» is the tens result itself.
   const borrow = o < kO ? 1 : 0;
-  const tensParts = [t, ...(borrow ? [1] : []), ...(kT ? [kT] : [])];
+  const tensSteps = borrow
+    ? (kT
+      ? [{ key: "overT", label: "Десятки", tone: "tens", text: `${t} − 1 =`, expected: t - 1 },
+        { key: "tens", label: "Десятки", text: `${t - 1} − ${kT} =`, expected: t - 1 - kT }]
+      : [{ key: "tens", label: "Десятки", text: `${t} − 1 =`, expected: t - 1 }])
+    : [{ key: "tens", label: "Десятки", text: kT ? `${t} − ${kT} =` : "не меняются:", expected: t - kT }];
   return {
     carry: 0, borrow, onesResult: o + 10 * borrow - kO, tensResult: t - borrow - kT,
     steps: [
       { key: "enough", label: "Единицы", text: `${o} − ${kO}: единиц хватает?`, expected: !borrow, choice: true },
       { key: "ones", label: "Единицы", text: `${borrow ? 10 + o : o} − ${kO} =`, expected: o + 10 * borrow - kO },
-      { key: "tens", label: "Десятки", text: tensParts.length > 1 ? `${tensParts.join(" − ")} =` : "не меняются:", expected: t - borrow - kT },
+      ...tensSteps,
     ],
   };
 }
@@ -105,6 +113,7 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
     if (!teaching) fail("Проверь число ещё раз.");
     else if (current.key === "ones") { fail(`Посчитай ещё раз: ${current.text.replace(" =", "")}.`); setSupport(true); }
     else if (current.key === "tens" && plan.carry && guess === t + kT) fail("Не забудь десяток, который пришёл из единиц.");
+    else if (current.key === "overT") fail("Один десяток отдали единицам. Сколько десятков осталось?");
     else if (current.key === "tens" && plan.borrow && guess === t - kT) fail("Один десяток мы отдали единицам.");
     else fail(`Посчитай десятки: ${current.text.replace(" =", "")}.`);
     return false;
@@ -151,9 +160,9 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
           <h3 className="sg-head sg-head--ones">Единицы</h3>
 
           <span />
-          <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? (tensDone ? <span className="xb-carry">{t - 1}</span>
+          <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? (tensDone || passed("overT") ? <span className="xb-carry">{t - 1}</span>
             // A dot over the digit borrowed from; at its step («3 − 1») it pulses: the answer goes here.
-            : <span className={`xb-borrow-dot${current?.key === "tens" ? " xb-borrow-dot--wait" : ""}`} />) : null}</span>
+            : <span className={`xb-borrow-dot${current?.key === (steps.some((s) => s.key === "overT") ? "overT" : "tens") ? " xb-borrow-dot--wait" : ""}`} />) : null}</span>
           <span ref={overORef} className="xb-over xb-over--ones">{borrowed && flight !== "lend" ? <span className="xb-carry xb-lend">1</span> : null}</span>
 
           <span />

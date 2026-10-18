@@ -19,6 +19,22 @@ describe("«Плюс и минус через десяток» — «Табли�
     expect(exchangeSteps(minus).steps.map((s) => s.text)).toEqual(["2 − 4: единиц хватает?", "12 − 4 =", "3 − 1 ="]);
     expect(exchangeSteps({ ...plus, k: 24, number: 38, result: 62 }).steps.map((s) => s.text)).toEqual(["8 + 4 =", "3 + 2 + 1 ="]);
     expect(exchangeSteps({ ...minus, k: 1, result: 31 }).steps.map((s) => s.text)).toEqual(["2 − 1: единиц хватает?", "2 − 1 =", "не меняются:"]);
+    // 92 − 66: not «9 − 1 − 6» but two steps — what goes over the 9, then 8 − 6.
+    const m92 = { ...minus, k: 66, number: 92, start: { tens: 9, ones: 2 }, result: 26 };
+    expect(exchangeSteps(m92).steps.map((s) => s.text)).toEqual(["2 − 6: единиц хватает?", "12 − 6 =", "9 − 1 =", "8 − 6 ="]);
+  });
+
+  it("92 − 66: «9 − 1» is written over the crossed 9 (the dot pulses there), then 8 − 6", () => {
+    h.mount(ExchangeTenTask, { ...minus, k: 66, number: 92, start: { tens: 9, ones: 2 }, result: 26 });
+    h.click("Не хватает"); h.flush(); h.flush();
+    type(6);
+    expect(h.container.querySelector(".xb-over--tens .xb-borrow-dot--wait")).not.toBeNull();
+    expect(text(".xb-step-text")).toBe("9 − 1 =");
+    type(8);
+    expect(text(".xb-over--tens")).toBe("8");
+    expect(text(".xb-step-text")).toBe("8 − 6 =");
+    type(2);
+    expect(cells().slice(4)).toEqual(["2", "6"]);
   });
 
   it("plus: 8 + 4 = 12 puts 2 under the ones and 1 over the tens; then 3 + 1", () => {
