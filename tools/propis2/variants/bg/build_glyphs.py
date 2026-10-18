@@ -73,11 +73,34 @@ BANK_KEPT = set("а")
 LOOPS = set("Е")
 
 
+def wider_lower_bowl(strokes, stroke=1, beyond=0.0):
+    """В: the lower bowl (after the turn back at the waist) widened across the slant about that turn until it reaches `beyond` past the
+    upper one on the page (owner, 2026-10-18: «нижнее пузо ... чуть-чуть увеличить, сейчас верхняя голова больше»)."""
+    cmds = strokes[stroke]
+    ends = np.array([ps[-1] for _, ps in cmds])
+    up = tt.upright(ends)
+    waist = [k for k in range(1, len(cmds) - 1) if tt.X_TOP - 25 < ends[k, 1] < tt.X_TOP + 10]
+    w = min(waist, key=lambda k: up[k, 0])  # the turn back: the leftmost point there
+    pts = lambda part: np.array([q for _, ps in part for q in ps])
+    top_right = pts(cmds[:w + 1])[:, 0].max()
+    lower = cmds[w + 1:]
+    u0 = up[w, 0]
+    def scaled(k): return [(c, list(tt.from_upright(np.c_[u0 + (tt.upright(ps)[:, 0] - u0) * k, np.array(ps)[:, 1]]))) for c, ps in lower]
+    k = 1.0
+    while pts(scaled(k))[:, 0].max() < top_right + beyond and k < 1.4: k += 0.01
+    strokes[stroke] = cmds[:w + 1] + scaled(k)
+    return strokes
+
+
+# SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
+SHAPES = {"В": wider_lower_bowl}
+
+
 def underlay_glyph(item, script):
     label = item["label"]
     dg.DY = 0.0
     raw = [np.array([dg.xform(p, 2.0, 0.0) for p in tt.parse_path(st["d"])]) for st in item["strokes"]]
-    paths, _ = tt.tidy_letter(raw, label.isupper(), script, loops=label in LOOPS)
+    paths, _ = tt.tidy_letter(raw, label.isupper(), script, loops=label in LOOPS, adjust=SHAPES.get(label))
     out = {"label": label, "kind": "letter", "strokes": [{"d": dg.fmt(c)} for c in paths], "stretch": 1.806, "noOverrides": True,
            "repeatCells": 6 if label.isupper() else 4, "sourceLabel": f"{label} (обведена по подложке Boyan Maga, подровнена на болгарской линовке)"}
     if label.isupper(): out["ascender"] = True; out["noNormalize"] = True

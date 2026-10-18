@@ -382,7 +382,7 @@ def tidy_stroke(p, top, loops=False):
     return cmds
 
 
-def tidy_letter(strokes, capital, script=None, loops=False):
+def tidy_letter(strokes, capital, script=None, loops=False, adjust=None):
     """Strokes (bank points, the hand's) -> tidied strokes (bank commands): straight and smooth on the paper of `script`, standing on
     its baseline, the top on its zone's top (a capital's: the top line of the Bulgarian ruling)."""
     use_script(script)
@@ -397,12 +397,22 @@ def tidy_letter(strokes, capital, script=None, loops=False):
     pts = np.array([q for cmds in out for q in parse_path(dg.fmt(cmds))])
     k2 = (BASE - top) / (BASE - pts[:, 1].min())
     out = [[(c, list(shear_scale(np.array(ps), k2))) for c, ps in cmds] for cmds in out]
+    if adjust: out = adjust(out)  # a letter's own correction the owner asked for, on paper (build_glyphs.py SHAPES)
     global LAST_PLACE
     LAST_PLACE = (dy, k, k2)
     return [paper_to_bank_cmds(c) for c in out], out
 
 
 LAST_PLACE = (0.0, 1.0, 1.0)
+
+
+def upright(p):
+    """Paper points -> x across the slant (the slant taken out), y kept."""
+    p = np.asarray(p, float); return np.stack([p[:, 0] - (BASE - p[:, 1]) * SLANT_T, p[:, 1]], axis=1)
+
+
+def from_upright(p):
+    p = np.asarray(p, float); return np.stack([p[:, 0] + (BASE - p[:, 1]) * SLANT_T, p[:, 1]], axis=1)
 
 
 def placed_like_last(p):
