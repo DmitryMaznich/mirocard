@@ -89,7 +89,8 @@ def built_sheet(out):
     for n, g in enumerate(glyphs):
         ch = g['label']
         paper = [tt.to_paper(np.array(tt.parse_path(st['d']))) for st in g['strokes']]
-        fn = bg.stencil_map(ch, like=np.vstack(paper))
+        body = [p for k, p in enumerate(paper) if k != g.get('tailStroke')]  # the connector to the next letter is not the letter
+        fn = bg.stencil_map(ch, like=np.vstack(body))
         pen = fg.Flat(gs); gs[cm[ord(ch)]].draw(pen)
         polys = [fn(np.array([fg.to_bank(x, y) for x, y in poly])) for poly in pen.polys]
         x0 = min(min(p[0] for poly in polys for p in poly), min(q[0] for p in paper for q in p)) - 8

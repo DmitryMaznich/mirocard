@@ -33,7 +33,8 @@ TAIL = [(9.00, 0.00), (29.40, -18.95), (39.12, -26.00)]
 # `flag`: the lead-in up to the top of the stem is smoothed as ONE piece with this sigma (units), its corners not kept: the hand drew
 # the flag of Ъ as a sharp «М», the copybook writes a wave (owner, 2026-10-18: «сгладь только флажок»); the rest keeps its corners.
 LETTERS = {
-    "Ъ": {"tail": True, "flag": 3.0, "note": "Ъ (захват 2026-10-18, болгарская заглавная: флажок, стойка, овал строчной высоты)"},
+    # Ъ: from the font now (owner, 2026-10-18: the freehand one «далёк от образца»); its capture stays in captures/ as the record
+    "Ъ": {"font": True, "tail": True, "flag": 3.0, "note": "Ъ (болгарская заглавная: флажок, стойка, овал строчной высоты)"},
 }
 
 
@@ -466,10 +467,52 @@ def underlay_glyph(item, script):
     return out
 
 
+def _drop_retrace(p, near=2.5, gap=30):
+    """The font's pen path (font_glyphs.py's walk over the skeleton) can end by going back over a line it already drew (Ъ: from
+    the end inside the bowl back up and along the flag): that tail is cut off. A point is part of it when it lies within `near`
+    of the path drawn more than `gap` points before it; the cut is at the first point, from the end back, that does not."""
+    p = dg.resample(np.asarray(p, float), 0.6)
+    i = len(p) - 1
+    while i > gap:
+        d = np.min(np.hypot(*(p[:i - gap] - p[i]).T))
+        if d > near: break
+        i -= 1
+    # the jump to the retrace (the walk's step from the bowl's end to the line it goes back over) is cut too
+    steps = np.hypot(*np.diff(p[:i + 1], axis=0).T)
+    big = np.where(steps > 3 * 0.6)[0]
+    if len(big) and big[-1] > len(p) * 0.6: i = int(big[-1])
+    return p[:i + 1]
+
+
+def font_letter(label, script, spec):
+    """A letter drawn from the font itself (spec "font"): Boyan's pen path (font_stencil, the font's own proportions on the deck's
+    paper) tidied like a hand's, every top up its stem to the top line, into the bank; a bowl that ends inside gets Б's connector
+    (spec "tail"). Ъ: the owner's freehand Ъ (2026-10-18, before the underlays) stood far from the font («далёк от образца»)."""
+    tt.use_script(script)
+    PAPER_LABEL[0] = label
+    paper = [tt.tidy_stroke(_drop_retrace(p), tt.CAP_TOP) for p in font_stencil(label)]
+    allp = np.vstack([tt.parse_path(dg.fmt(c)) for c in paper])
+    k2 = (tt.BASE - tt.CAP_TOP) / (tt.BASE - allp[:, 1].min())  # the tidied letter exactly between its lines, as tidy_letter does
+    paper = [[(c, list(tt.shear_scale(np.array(ps, float), k2))) for c, ps in cmds] for cmds in paper]
+    PAPER[label] = paper
+    paths = [tt.paper_to_bank_cmds(c) for c in paper]
+    out = {"label": label, "kind": "letter", "strokes": [{"d": dg.fmt(c)} for c in paths], "stretch": 1.806, "noOverrides": True,
+           "repeatCells": 6, "ascender": True, "noNormalize": True, "sourceLabel": f"{spec['note']}; путь пера шрифта Boyan Maga, подровнен"}
+    if spec.get("tail"):
+        pts = np.array(tt.parse_path(out["strokes"][-1]["d"]))
+        bottom = pts[pts[:, 1].argmax()]
+        b = (bottom[0], FOOT_Y)
+        tail = "M {:.2f} {:.2f} C ".format(*b) + " ".join("{:.2f} {:.2f}".format(b[0] + dx, b[1] + dy) for dx, dy in TAIL)
+        out["strokes"].append({"d": tail})
+        out["tailStroke"] = len(out["strokes"]) - 1
+    return out
+
+
 def glyph_of(item, script):
     label = item["label"]
     if label not in LETTERS: return underlay_glyph(item, script)
     spec = LETTERS[label]
+    if spec.get("font"): return font_letter(label, script, spec)
     allp = np.concatenate([dg.parse(st["d"]) for st in item["strokes"]])
     s = dg.CAP_H / float(np.ptp(allp[:, 1]))
     dg.DY = 0.0
