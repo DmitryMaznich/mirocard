@@ -1161,15 +1161,15 @@
         "ru": "Глаголы",
         "en": "verbs_v2"
       },
-      "version": "2.1.0",
+      "version": "2.1.1",
       "renderer": "flashcards",
       "sources": [
-        "public/decks/verbs_v2_v2.1.0.zip",
+        "public/decks/verbs_v2_v2.1.1.zip",
         "src/topics/renderers/flashcards"
       ],
       "bundle": {
-        "version": "2.1.0",
-        "url": "./decks/verbs_v2_v2.1.0.zip",
+        "version": "2.1.1",
+        "url": "./decks/verbs_v2_v2.1.1.zip",
         "title": {
           "ru": "Глаголы",
           "en": "verbs_v2"
@@ -1182,7 +1182,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "verbs_v2",
-        "version": "2.1.0",
+        "version": "2.1.1",
         "title": {
           "ru": "Глаголы",
           "en": "Verbs"
@@ -1191,7 +1191,7 @@
           "ru": "20 глаголов в трёх волнах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
           "en": "20 everyday verbs in three waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
         },
-        "url": "./decks/verbs_v2_v2.1.0.zip",
+        "url": "./decks/verbs_v2_v2.1.1.zip",
         "status": "beta",
         "access": "paid"
       },
