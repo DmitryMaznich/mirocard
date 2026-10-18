@@ -17,8 +17,7 @@ describe("Плюс и минус через сотню", () => {
 
   it("plan: ones, tens (with the decision on minus), hundreds", () => {
     expect(hundredSteps(plus).steps.map((s) => s.text)).toEqual(["4 + 0 =", "9 + 2 =", "1 + 1 ="]);
-    // Borrowing: two steps written over the crossed digits — 2 − 1 and 10 + 1.
-    expect(hundredSteps(minus).steps.map((s) => s.text)).toEqual(["4 − 0 =", "1 − 3: десятков хватает?", "2 − 1 =", "10 + 1 =", "11 − 3 =", "не меняются:"]);
+    expect(hundredSteps(minus).steps.map((s) => s.text)).toEqual(["4 − 0 =", "1 − 3: десятков хватает?", "11 − 3 =", "2 − 1 ="]);
   });
 
   it("scheme plus: ten sticks fold into a square, then the answer", () => {
@@ -75,22 +74,19 @@ describe("Плюс и минус через сотню", () => {
     expect(n(".xf-area--small .xf-group--new .cb-stick")).toBe(10);
     h.flush();
     expect(h.container.querySelector(".xf-layer")).toBeNull();
-    // Both digits crossed; what goes over them is the child's to write.
+    // Both digits crossed, 11 over the tens; over the hundreds nothing yet —
+    // «2 − 1» is the last step, its answer goes there only once it's given.
     const over = (k) => h.container.querySelector(`.xb-over--${k}`).textContent;
     expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(2);
-    expect(over("hundreds")).toBe("?");
-    expect(over("tens")).toBe("");
-    type(2);
-    expect(h.container.querySelector(".sg-status-note").textContent).toBe("Одну сотню отдали десяткам. Сколько сотен осталось?");
-    h.flush(); type(1);
-    expect(over("hundreds")).toBe("1");
-    type(11);
     expect(over("tens")).toBe("11");
+    expect(over("hundreds")).toBe("");
     type(8); type(2);
     expect(h.container.querySelector(".sg-status-note").textContent).toBe("Одну сотню мы отдали десяткам.");
+    expect(over("hundreds")).toBe("");
     h.flush(); type(1);
+    expect(over("hundreds")).toBe("1");
     expect(Array.from(h.container.querySelectorAll(".xb-result")).map((e) => e.textContent)).toEqual(["1", "8", "4"]);
-    expect(onMistake).toHaveBeenCalledTimes(2);
+    expect(onMistake).toHaveBeenCalledTimes(1);
   });
 
   it("engine: round tens, one crossing in half the tasks, results stay three-digit", () => {

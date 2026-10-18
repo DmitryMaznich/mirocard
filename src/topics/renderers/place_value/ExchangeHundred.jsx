@@ -142,9 +142,7 @@ export function ExchangeHundredScheme({ task, onCorrect, onMistake, onFlashIncor
   </div>;
 }
 
-// The column plan, ones first; the second number is round tens. Borrowing
-// adds two steps of its own, written over the crossed digits: what is left of
-// the hundreds (7 − 1) and how many tens there are now (10 + 1).
+// The column plan, ones first; the second number is round tens.
 export function hundredSteps(task) {
   const { hundreds: h, tens: t, ones: o } = task.start;
   const kT = task.k / 10;
@@ -165,12 +163,8 @@ export function hundredSteps(task) {
     steps: [
       { key: "ones", label: "Единицы", text: `${o} − 0 =`, expected: o },
       { key: "enough", label: "Десятки", text: `${t} − ${kT}: десятков хватает?`, expected: !borrow, choice: true },
-      ...(borrow ? [
-        { key: "overH", label: "Сотни", tone: "hundreds", text: `${h} − 1 =`, expected: h - 1 },
-        { key: "overT", label: "Десятки", tone: "tens", text: `10 + ${t} =`, expected: 10 + t },
-      ] : []),
       { key: "tens", label: "Десятки", text: `${borrow ? 10 + t : t} − ${kT} =`, expected: t + 10 * borrow - kT },
-      { key: "hundreds", label: "Сотни", text: "не меняются:", expected: h - borrow },
+      { key: "hundreds", label: "Сотни", text: borrow ? `${h} − 1 =` : "не меняются:", expected: h - borrow },
     ],
   };
 }
@@ -212,8 +206,6 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
     if (!teaching) fail("Проверь число ещё раз.");
     else if (current.key === "tens") { fail(`Посчитай ещё раз: ${current.text.replace(" =", "")}.`); setSupport(true); }
     else if (current.key === "hundreds" && plan.carry && guess === h) fail("Не забудь сотню, которая пришла из десятков.");
-    else if (current.key === "overH") fail("Одну сотню отдали десяткам. Сколько сотен осталось?");
-    else if (current.key === "overT") fail("Сотня — это 10 десятков. Сколько десятков стало?");
     else if (current.key === "hundreds" && plan.borrow && guess === h) fail("Одну сотню мы отдали десяткам.");
     else fail(current.key === "ones" ? "Единицы не меняются: мы прибавляем и вычитаем только десятки." : `Посчитай сотни: ${current.text.replace(" =", "")}.`);
     return false;
@@ -243,10 +235,6 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
   const done = (key) => (teaching ? passed(key) : solved);
   const cell = (v, kind, extra = "", ref = undefined) => <span ref={ref} className={`xb-cell tb-digit--${kind}${extra}`}>{v}</span>;
   const lit = comparing ? " xb-cell--compare" : "";
-  // Over a crossed digit: nothing until its own step, the child's digits while
-  // he types them there, his answer after.
-  const over = (key, value) => (passed(key) ? <span className="xb-carry">{value}</span>
-    : current?.key === key ? <span className="xb-carry xb-carry--live">{typed.digits || "?"}</span> : null);
   const sticks = (n) => <span className="xh-dots">{Array.from({ length: n }, (_, i) => <SchemeTen key={i} />)}</span>;
 
   return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} tb-screen xb-screen`} style={{ "--sg-answer-w": "340px" }}>
@@ -256,8 +244,8 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
         <section ref={boardRef} className="sg-card xb-table xh-table" aria-label="Пример по разрядам">
           <span />{head("hundreds", "Сотни")}{head("tens", "Десятки")}{head("ones", "Единицы")}
           <span />
-          <span ref={overHRef} className="xb-over xb-over--hundreds">{plan.carry && done("tens") && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? over("overH", h - 1) : null}</span>
-          <span className="xb-over xb-over--tens">{borrowed ? over("overT", 10 + t) : null}</span>
+          <span ref={overHRef} className="xb-over xb-over--hundreds">{plan.carry && done("tens") && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed && done("hundreds") ? <span className="xb-carry">{h - 1}</span> : null}</span>
+          <span className="xb-over xb-over--tens">{borrowed ? <span className="xb-carry">{10 + t}</span> : null}</span>
           <span />
           <span />
           {cell(h, "hundreds", borrowed ? " xb-crossed" : "", hRef)}

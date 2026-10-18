@@ -115,8 +115,6 @@
 .xb-over--tens .xb-carry { color: #b45309; }
 .xb-over--ones .xb-carry { color: #1d4ed8; }
 @keyframes xb-pop { from { transform: translateY(14px) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
-/* Over a crossed digit, while the child is writing it there. */
-.xb-carry--live { padding: 0 6px; border-radius: 6px; outline: 2px dashed currentColor; animation: none; }
 .xb-crossed { position: relative; opacity: 0.45; }
 .xb-crossed::after {
   content: "";
