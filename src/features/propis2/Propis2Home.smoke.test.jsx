@@ -593,6 +593,38 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
+  it("a blank notebook is open to edit: paper, ruling and text on any of its pages (owner, 2026-10-15); the canvas zooms", async () => {
+    const db = await freshDb();
+    localStorage.removeItem("propis2:canvasZoom");
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(60); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    const lbl = (name) => host.querySelector(`[aria-label="${name}"]`);
+    for (let i = 0; i < 40 && !lbl("Изменить тетрадь Тетрадь в клетку"); i += 1) await act(async () => { await tick(50); }); // the kits file loads on open
+    await click(lbl("Изменить тетрадь Тетрадь в клетку"));
+    expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).toBeNull();
+    expect(lbl("Тип бумаги").disabled).toBe(false);
+    expect(lbl("Текст страницы").disabled).toBe(false);
+    expect(host.textContent).toContain("Стр. 1 из 24");
+    await typeInField(host, "мама");
+    expect(fieldOf(host).value).toContain("мама");
+    expect(host.textContent).toContain("Стр. 1 из 24");
+    // the canvas zoom (useCanvasZoom.js): + steps up, the share brings the whole page back; remembered on this device
+    const pct = () => lbl("Вписать страницу");
+    expect(pct().textContent).toBe("100%");
+    expect(lbl("Уменьшить").disabled).toBe(true);
+    await click(lbl("Увеличить"));
+    expect(pct().textContent).toBe("125%");
+    expect(JSON.parse(localStorage.getItem("propis2:canvasZoom")).mode).toBe("z");
+    await click(pct());
+    expect(pct().textContent).toBe("100%");
+    expect(JSON.parse(localStorage.getItem("propis2:canvasZoom")).mode).toBe("fit");
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  }, 40000);
+
   it("kits: the copy of a method's notebook is the user's own — open to edit in full, the kit stays the sample", async () => {
     const db = await freshDb();
     const host = document.createElement("div");

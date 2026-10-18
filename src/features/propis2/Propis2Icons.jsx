@@ -110,6 +110,7 @@ export const IconAsText = () => S(<><path d="M4 6h16M4 10.5h16M4 15h16M4 19.5h9"
 
 export const IconEditPage = () => S(<><path d="M4 20l5.5-1.2L19.8 8.5a2 2 0 000-2.8l-1.5-1.5a2 2 0 00-2.8 0L5.2 14.5z" /><path d="M13 6.7l4.3 4.3" /></>); // pencil: unlock the kit page layout, keep the rows
 
+export const IconFitWidth = () => S(<><rect x="7" y="4" width="10" height="16" rx="1.5" strokeWidth="1.4" /><path d="M2.5 12h6M2.5 12l2.2-2.2M2.5 12l2.2 2.2M21.5 12h-6M21.5 12l-2.2-2.2M21.5 12l-2.2 2.2" strokeWidth="1.7" /></>); // the page as wide as the canvas
 export const IconSpread = () => S(<><rect x="9" y="8" width="6" height="8" rx="1" /><path d="M6 12H2m2-2-2 2 2 2M18 12h4m-2-2 2 2-2 2M12 5V2m-2 2 2-2 2 2M12 19v3m-2-2 2 2 2-2" strokeWidth="1.6" /></>); // a setting of this page onto the whole notebook
 export const IconAddPage = () => S(<><rect x="5" y="3" width="14" height="18" rx="1.8" /><path d="M12 8.5v7M8.5 12h7" /></>); // a new blank page in the notebook
 
