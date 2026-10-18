@@ -94,24 +94,22 @@ describe("verbs_v2 ladder — mounted through the real renderer", () => {
     expect(onIncorrect).toHaveBeenCalledTimes(1);
   });
 
-  it("act_out shows the command and rates through onQualityAnswer", () => {
+  it("act_out: voice first, no picture until the adult asks for it", () => {
     vi.useFakeTimers();
     const onQualityAnswer = vi.fn();
-    const [task] = generateTasks("act_out", CONCEPTS.filter((c) => c.conceptId === "runs"), CARDS, {});
-    mount({ task, mode: { type: "act_out" }, onQualityAnswer });
-    expect(container.querySelector(".session-instruction").textContent).toBe("Беги!");
-    act(() => container.querySelector(".qa-btn--correct").click());
-    act(() => vi.runAllTimers());
-    expect(onQualityAnswer).toHaveBeenCalledWith("correct", "runs", "runs_1");
-    vi.useRealTimers();
-  });
-
-  it("act_out plays the recorded command when the card has one", () => {
     const playTopicFile = vi.fn();
     const cards = CARDS.map((c) => ({ ...c, imperativeAudio: { ru: `audio/imp_${c.conceptId}.mp3` } }));
     const [task] = generateTasks("act_out", deriveConcepts(cards).filter((c) => c.conceptId === "runs"), cards, {});
-    mount({ task, mode: { type: "act_out" }, soundEnabled: true, playTopicFile, topicId: "verbs_v2" });
+    mount({ task, mode: { type: "act_out" }, onQualityAnswer, soundEnabled: true, playTopicFile, topicId: "verbs_v2" });
     expect(playTopicFile).toHaveBeenCalledWith("verbs_v2", "audio/imp_runs.mp3");
+    expect(container.querySelector(".card-img")).toBeNull();
+    act(() => container.querySelector(".act-out-hint").click());
+    expect(container.querySelector(".act-out-hint")).toBeNull();
+    act(() => [...container.querySelectorAll(".qa-btn")][1].click());
+    act(() => vi.runAllTimers());
+    expect(onQualityAnswer).toHaveBeenCalledWith("prompted", "runs", "runs_1");
+    expect(playTopicFile).toHaveBeenCalledTimes(1); // no third-person word afterwards
+    vi.useRealTimers();
   });
 
   it("choose_all uses the template and says the word when the grid appears", () => {

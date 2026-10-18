@@ -118,9 +118,16 @@ describe("flashcards engine additions", () => {
     expect(switches).toBe(1);
   });
 
+  it("act_out only offers actions a child can do in the room", () => {
+    const tasks = generateTasks("act_out", deriveConcepts(deck.cards), deck.cards, {});
+    const ids = tasks.map((t) => t.conceptId);
+    for (const id of ["sleeps", "swims", "rides", "cries", "cuts_knife", "waters_plants", "vacuums"]) expect(ids).not.toContain(id);
+    expect(ids).toHaveLength(13);
+  });
+
   it("act_out speaks the imperative of each verb once", () => {
     const tasks = generateTasks("act_out", concepts, deck.cards, {});
-    expect(tasks.map((t) => t.imperative).sort()).toEqual(["Ешь!", "Спи!"]);
+    expect(tasks.map((t) => t.imperative)).toEqual(["Ешь!"]);
   });
 
   it("choose_all carries the verb's audio", () => {

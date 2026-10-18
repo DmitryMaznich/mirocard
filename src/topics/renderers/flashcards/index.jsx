@@ -278,20 +278,22 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
 }
 
 const ACT_OUT_BUTTONS = [
-  { value: "fail",     label: "Не сделал",    mod: "fail"     },
-  { value: "prompted", label: "С подсказкой", mod: "prompted" },
-  { value: "correct",  label: "Сделал",       mod: "correct"  },
-  { value: "easy",     label: "Легко!",       mod: "easy"     },
+  { value: "independent", label: "Сам",          mod: "easy"     },
+  { value: "prompted",    label: "С картинкой",  mod: "correct"  },
+  { value: "after_model", label: "С показом",    mod: "prompted" },
+  { value: "fail",        label: "Не сделал",    mod: "fail"     },
 ];
 
-// «Покажи, как»: the picture is the model, the command is spoken ("Прыгай!"),
-// the child acts it out and the adult rates it. After the rating the
-// descriptive word plays ("прыгает"), tying the action just done to the word
-// the other modes ask for.
+// «Сделай»: does the child understand the spoken command? Only the voice
+// comes first ("Прыгай!") - a picture on screen would let the child copy the
+// pose without listening. If nothing happens the adult opens the picture
+// (a prompt), then shows it themselves; the rating records which step it took.
+// No word follows: a third-person "прыгает" said about the child who just
+// jumped is wrong grammar, and a second form of the verb is only noise here.
 function ActOutTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswer, onCardShown, onQuality }) {
   const { speak } = useSpeech();
   const [rated, setRated] = useState(false);
-  const wordAudio = getTaskAudioPath(task);
+  const [hint, setHint] = useState(false);
 
   function sayCommand() {
     if (!soundEnabled) return;
@@ -299,6 +301,7 @@ function ActOutTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswe
     else speak(task.imperative);
   }
 
+  // SessionScreen remounts the renderer per task, so rated/hint start fresh.
   useEffect(() => {
     onCardShown?.(task.card?.id, task.conceptId);
     sayCommand();
@@ -307,28 +310,29 @@ function ActOutTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswe
   function handleQuality(value) {
     if (rated) return;
     setRated(true);
+    setHint(true);
     onQuality?.(value, task.card?.id, task.conceptId);
-    if (wordAudio && soundEnabled) playTopicFile(topicId, wordAudio);
-    setTimeout(() => onQualityAnswer(value, task.conceptId, task.card?.id), wordAudio && soundEnabled ? 1400 : 700);
+    setTimeout(() => onQualityAnswer(value, task.conceptId, task.card?.id), 900);
   }
 
   return (
     <div className="session-body qa-body">
-      <CardArea topicId={topicId} card={task.card} />
+      {hint
+        ? <CardArea topicId={topicId} card={task.card} />
+        : (
+          <div className="card-area">
+            <button type="button" className="act-out-listen" onClick={sayCommand} aria-label="Повторить команду">
+              <span aria-hidden="true">🔊</span>
+            </button>
+          </div>
+        )}
       <div className="qa-right-panel">
         <div className="qa-question-area">
           <div className="session-instruction">{task.imperative}</div>
-          {soundEnabled && (
-            <button
-              className="session-audio-icon-button session-audio-icon-button--active qa-inline-speech"
-              onClick={(event) => { event.stopPropagation(); sayCommand(); }}
-              aria-label="Повторить"
-            >
-              🔊
-            </button>
-          )}
         </div>
-        <div className={`qa-reveal${rated ? " qa-reveal--shown" : ""}`}>{task.label}</div>
+        {!hint && (
+          <button type="button" className="act-out-hint" onClick={() => setHint(true)}>Подсказка: картинка</button>
+        )}
         <div className="qa-row">
           {ACT_OUT_BUTTONS.map((btn, i) => (
             <button
