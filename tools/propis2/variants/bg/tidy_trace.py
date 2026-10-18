@@ -40,6 +40,7 @@ MERGE_GAP = 12.0     # ... when no farther apart along the stroke than this
 END_ABSORB = 7.0     # a line ending this close to the end of its piece runs to the end
 TRIM, TRIM_PART = 6.0, 0.1  # a line gives this much of its end (or this part of its length) to the curve after it: room to turn smoothly
 HANDLE_MIN = 0.3     # see _bezier_fit
+BOW_H = 20.0         # a hook at the baseline reaches this high up the line it turns into (0.42 of the lowercase band)
 SNAP = 4.0           # a bow's bottom / top this close to a ruling line stands on it
 
 
@@ -180,6 +181,13 @@ def _runs(q, top):
     for i, j in merged:
         # a line stops a little short of where the hand leaves it: the curve after it needs room to turn smoothly
         trim = max(1, int(max(TRIM, TRIM_PART * (s[j] - s[i])) / STEP)); i2, j2 = i + (trim if i > 0 else 0), j - (trim if j < len(q) - 1 else 0)
+        # an end near the baseline turns into the hook there: the hook takes the line back up to BOW_H above the baseline (owner,
+        # 2026-10-18: the side hooks of А long and round, not a short turn at the foot of a straight line)
+        if i > 0:
+            while i2 < j2 and q[i2, 1] > BASE - BOW_H: i2 += 1
+        if j < len(q) - 1:
+            while j2 > i2 and q[j2, 1] > BASE - BOW_H: j2 -= 1
+        if s[j2] - s[i2] < LINE_MIN / 2: continue  # what is left of it is part of the hook
         c, d, _ = _fit_line(q[i:j + 1]); d = _snap_dir(d)
         out.append((i2, j2, c, d))
     return out
