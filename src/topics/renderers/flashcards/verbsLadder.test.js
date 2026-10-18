@@ -29,9 +29,10 @@ describe("verbs_v2 deck as the app loads it", () => {
     expect(record.modes.map((m) => m.id)).toEqual(expected);
     const reread = await getTopicRecord(db, "verbs_v2");
     expect(reread.modes.map((m) => m.id)).toEqual(expected);
-    const find2 = reread.modes.find((m) => m.id === "verbs_find_2");
-    expect(find2.ui.title).toBe("Покажи: из двух");
-    expect(find2.params.distractorLevel.default).toBe("easy");
+    const show = reread.modes.find((m) => m.id === "verbs_show");
+    expect(show.ui.title).toBe("Покажи");
+    expect(show.params.step.default).toBe(1);
+    expect(reread.modes.filter((m) => m.type === "find_n" && !m.retired).map((m) => m.id)).toEqual(["verbs_show"]);
     expect(reread.modes.some((m) => m.type === "yes_no")).toBe(false);
   });
 
@@ -68,15 +69,25 @@ describe("mode-scoped params", () => {
   });
 
   it("fall back to the mode's declared defaults before it was ever saved", () => {
-    const find2 = deck.modes.find((m) => m.id === "verbs_find_2");
-    expect(readModeParams({ optionCount: 6 }, find2)).toMatchObject({ optionCount: 2, distractorLevel: "easy", errorless: true });
+    const show = deck.modes.find((m) => m.id === "verbs_show");
+    expect(readModeParams({ optionCount: 6 }, show)).toMatchObject({ step: 1, cardSet: "contrast", errorless: true });
+  });
+
+  it("each «Покажи» step sets the number and similarity of pictures", () => {
+    const show = deck.modes.find((m) => m.id === "verbs_show");
+    const concepts = deriveConcepts(deck.cards).filter((c) => c.primary.wave === 1);
+    const counts = [1, 2, 3].map((step) => generateTasks("find_n", concepts, deck.cards, { cardSet: "contrast", step }, show)[0].options.length);
+    expect(counts).toEqual([2, 4, 2]);
+    const hard = generateTasks("find_n", concepts, deck.cards, { cardSet: "contrast", step: 3 }, show)
+      .filter((t) => t.targetConceptId === "runs").map((t) => t.options.find((o) => !o.isTarget).conceptId);
+    for (const id of hard) expect(["jumps", "walks", "dances", "rides"]).toContain(id);
   });
 });
 
 describe("picture sets", () => {
   const concepts = deriveConcepts(deck.cards).filter((c) => c.primary.wave === 1);
   it("contrast modes show only the boy and mum, distractors included", () => {
-    const mode = deck.modes.find((m) => m.id === "verbs_find_2");
+    const mode = deck.modes.find((m) => m.id === "verbs_show");
     const tasks = generateTasks("find_n", concepts, deck.cards, computeDefaultParams(deck, mode), mode);
     expect(tasks.length).toBe(concepts.length * 2);
     for (const t of tasks) for (const o of t.options) expect(o.card.set).toBe("contrast");

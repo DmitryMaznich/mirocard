@@ -510,7 +510,11 @@ function generateSortByAttributeTasks(concepts) {
   })));
 }
 
-export function generateTasks(modeType, concepts, allCards, params = {}, mode = null) {
+export function generateTasks(modeType, concepts, allCards, rawParams = {}, mode = null) {
+  // mode.stepPresets: one "Ступень" setting stands for several engine params at
+  // once (verbs_v2 «Покажи»: step 2 = 4 options, medium-similar distractors),
+  // so the adult picks a ladder step instead of option counts and similarity.
+  const params = { ...rawParams, ...(mode?.stepPresets?.[rawParams?.step] ?? {}) };
   // Cards tagged with a cardType (e.g. "situation") aren't an ordinary
   // picture/word variation and must never surface as one - strip them from
   // every mode's card pool except the mode built specifically to consume
