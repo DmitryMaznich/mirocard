@@ -8,6 +8,8 @@ export function buildGlyphMap(topicRecord) {
   const wide = withGlyphOverrides(topicRecord?.wide);
   for (const g of wide) map.set(g.label, g);
   for (const g of wide) for (const a of g.aliases ?? []) map.set(a, g);
+  // the deck's own writing geometry (a variant's meta.script: slant, heights; wordEngine lays every row out with it)
+  if (topicRecord?.meta?.script) map.script = topicRecord.meta.script;
   return map;
 }
 
@@ -44,6 +46,7 @@ export function buildPageTask({ topicRecord, lines, narrowRows = true, useElemen
     narrowRows,
     narrow17: Boolean(narrowRows), // the narrow ruling uses all 17 rows of the printed notebook (see PrintPageView)
     wideGlyphs: withGlyphOverrides(topicRecord?.wide),
+    script: topicRecord?.meta?.script ?? null,
     wideElementRepeat: topicRecord?.wideElementRepeat ?? {},
   };
 }

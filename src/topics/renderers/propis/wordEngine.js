@@ -1,4 +1,5 @@
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD, stretchKeepSlantPathD, shiftPathEndXD } from "./pathGeometry.js";
+import { mapRowInk, scriptKey, scriptPointMap } from "./scriptGeometry.js";
 import {
   GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
   TEXT_ROW_WIDE_DIAGONAL_SPACING,
@@ -1456,7 +1457,26 @@ const WIDE_MARK_COPY_CELLS = 6;
 // finished row is kept and reused: typing in one row of a page lays out only that row again, not the whole page.
 const WIDE_ROW_CACHE = new WeakMap(); // glyphsByLabel -> WeakMap(snapX) -> Map(key -> row)
 const WIDE_ROW_CACHE_MAX = 4000;
+// A glyph bank with a writing geometry of its own (`glyphsByLabel.script`, a variant deck's meta.script: another slant, other heights
+// above and below the lowercase band — scriptGeometry.js) gets every finished row mapped to it; the layout itself is the Russian one.
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
+  const key = scriptKey(glyphsByLabel?.script);
+  if (key === null) return layoutWideLinesIntoRowsRu(lines, glyphsByLabel, snapX, multiply, scale, maxX);
+  const own = layoutWideLinesIntoRowsRu(lines, glyphsByLabel, snapX, multiply, scale, maxX);
+  // the scale the rows were really laid out at (squared / ruled paper set their own, as layoutWideLinesIntoRowsNow does)
+  const rowScale = snapX?.cell?.scale ?? snapX?.letterScale ?? scale;
+  const fn = scriptPointMap(glyphsByLabel.script, { baseline: WIDE_BASELINE_Y, xHeight: WIDE_ZONE_UNITS * rowScale });
+  return { ...own, placed: own.placed.map((row) => scriptRow(row, `${key}|${rowScale}`, fn)) };
+}
+const SCRIPT_ROW_CACHE = new WeakMap(); // laid-out row -> Map(script|scale -> mapped row)
+function scriptRow(row, key, fn) {
+  let byKey = SCRIPT_ROW_CACHE.get(row);
+  if (!byKey) { byKey = new Map(); SCRIPT_ROW_CACHE.set(row, byKey); }
+  if (!byKey.has(key)) byKey.set(key, mapRowInk(row, fn));
+  return byKey.get(key);
+}
+
+function layoutWideLinesIntoRowsRu(lines, glyphsByLabel, snapX, multiply, scale, maxX) {
   if (!snapX?.cacheable || !glyphsByLabel) return layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX, multiply, scale, maxX);
   let bySnap = WIDE_ROW_CACHE.get(glyphsByLabel);
   if (!bySnap) { bySnap = new WeakMap(); WIDE_ROW_CACHE.set(glyphsByLabel, bySnap); }
@@ -1527,7 +1547,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       const rowOf = (n) => Array.from({ length: n }, (_, k) => (k && gap ? [`_${gap}`, ...unit] : unit)).flat().join(" ");
       // how many units fit. A probe is a whole layout, so estimate from the pitch of two copies and check the neighbours
       // (the width only grows with the count)
-      const widthOf = (n) => layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, rowSnap(rowIndex), false, scale).placed[0].segments[0]?.width ?? 0;
+      const widthOf = (n) => layoutWideLinesIntoRowsRu([rowOf(n)], glyphsByLabel, rowSnap(rowIndex), false, scale, WIDE_ROW_MAX_X).placed[0].segments[0]?.width ?? 0;
       const memo = new Map();
       const fits = (n) => { if (!memo.has(n)) memo.set(n, widthOf(n) <= maxX); return memo.get(n); };
       const start = Math.max(1, toks.length / unit.length); // the row as typed is taken as fitting

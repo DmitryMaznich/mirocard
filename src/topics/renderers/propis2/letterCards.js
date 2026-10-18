@@ -39,6 +39,8 @@ export function cardGlyphs(glyphMap, letters) {
     const minX = Math.min(...xs);
     out[ch] = { strokes, width: Math.max(...xs) - minX, minX };
   }
+  // the slant of the cards' ruling (SortCaseView), when the deck writes with its own (scriptGeometry.js); not a letter, so not enumerable
+  if (glyphMap.script?.slantDeg) Object.defineProperty(out, "slantDeg", { value: glyphMap.script.slantDeg });
   cache.set(glyphMap, out);
   return out;
 }

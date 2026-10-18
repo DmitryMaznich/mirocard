@@ -11,9 +11,10 @@
   },
   "meta": {
     "id": "propis2_bg",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "title": "Прописи (болгарская кириллица)",
     "methodology": false,
+    "script": { "slantDeg": 76 },
     "alphabet": {
       "lower": "абвгдежзийклмнопрстуфхцчшщъьюя",
       "noCapital": ["ь"]

@@ -888,6 +888,7 @@ function layoutTaskPages(task) {
     wideGlyphsByLabel.set(item.label, item);
     for (const alias of item.aliases ?? []) wideGlyphsByLabel.set(alias, item);
   }
+  if (task?.script) wideGlyphsByLabel.script = task.script; // `propis2` variant decks: their own slant and heights (scriptGeometry.js)
   const layout = wideRows
     ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, snapXFor({ narrowRows, simpleGrid: task?.simpleGrid, margin, format: geom.format, narrow17 }), true, narrowRows ? NARROW_SCALE : 1, rowMaxX)
     : useElements
