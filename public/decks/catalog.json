@@ -92,16 +92,16 @@
     },
     {
       "id": "verbs_v2",
-      "version": "2.0.4",
+      "version": "2.1.0",
       "title": {
         "ru": "Глаголы",
         "en": "Verbs"
       },
       "description": {
-        "ru": "20 глаголов в трёх волнах: от выбора картинки по слову до похожих действий. Аудио. Для минимально вербальных детей, в том числе с РАС.",
+        "ru": "20 глаголов в трёх волнах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
         "en": "20 everyday verbs in three waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
       },
-      "url": "./decks/verbs_v2_v2.0.4.zip",
+      "url": "./decks/verbs_v2_v2.1.0.zip",
       "status": "beta",
       "access": "paid"
     },

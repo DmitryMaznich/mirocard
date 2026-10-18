@@ -444,7 +444,7 @@ function FindNOption({ option, topicId, state, disabled, onClick }) {
   );
 }
 
-// sessionParams.errorless: a miss is recorded, then the wrong pictures fade,
+// errorless (mode.errorless or sessionParams.errorless): a miss is recorded, then the wrong pictures fade,
 // the right one pulses and the word plays again; only the right picture stays
 // tappable, so the child ends every trial on the correct answer instead of
 // guessing again (same as my_people «Покажи»). Finishing after a miss - or on
@@ -452,7 +452,8 @@ function FindNOption({ option, topicId, state, disabled, onClick }) {
 function FindNTask({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onStreakReset, onCardShown, onTap }) {
   const { speak } = useSpeech();
   const audioPath = task.promptAudio?.ru ?? null;
-  const errorless = sessionParams?.errorless === true;
+  // mode.errorless: always on, no setting (verbs_v2 «Покажи»).
+  const errorless = mode?.errorless === true || sessionParams?.errorless === true;
   const [missed, setMissed] = useState(false);
   const [done, setDone] = useState(false);
 

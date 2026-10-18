@@ -525,13 +525,18 @@ export function generateTasks(modeType, concepts, allCards, rawParams = {}, mode
   // changes) for the early steps and a "variation" set (other people, objects,
   // places, styles) for generalisation. Cards with no `set` belong to every set,
   // so topics that never use it are unaffected.
-  const cardSet = params?.cardSet ?? mode?.cardSet ?? "all";
-  const inSet = (card) => cardSet === "all" || !card.set || card.set === cardSet;
+  // A saved "Картинки" value only counts while the mode still offers that
+  // setting (verbs_v2 dropped it in 2.1.0; old saved values must not narrow).
+  const cardSet = (mode?.params?.cardSet ? params?.cardSet : null) ?? mode?.cardSet ?? "all";
+  // mode.excludeAnimals: animals only on the later steps of a topic (verbs_v2:
+  // not in «Знакомство») — the animal is brighter than the action.
+  const inSet = (card) => (cardSet === "all" || !card.set || card.set === cardSet)
+    && !(mode?.excludeAnimals && card.agent === "animal");
   const displayConcepts = concepts.map((c) => {
     const displayCards = c.cards.filter((card) => !card.cardType && !card.probeOnly && inSet(card));
     if (displayCards.length === c.cards.length) return c;
     return { ...c, cards: displayCards, primary: displayCards.find((card) => card.primary) ?? displayCards[0] ?? c.primary };
-  }).filter((c) => cardSet === "all" || c.cards.length > 0);
+  }).filter((c) => (cardSet === "all" && !mode?.excludeAnimals) || c.cards.length > 0);
   switch (modeType) {
     case "intro":                  return generateIntroTasks(displayConcepts, { groupByConcept: mode?.groupByConcept === true });
     case "act_out":                return generateActOutTasks(displayConcepts);

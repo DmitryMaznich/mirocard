@@ -70,35 +70,33 @@ describe("mode-scoped params", () => {
 
   it("fall back to the mode's declared defaults before it was ever saved", () => {
     const show = deck.modes.find((m) => m.id === "verbs_show");
-    expect(readModeParams({ optionCount: 6 }, show)).toMatchObject({ step: 1, cardSet: "contrast", errorless: true });
+    expect(readModeParams({ optionCount: 6 }, show)).toEqual({ step: 1 });
   });
 
-  it("each «Покажи» step sets the number and similarity of pictures", () => {
+  it("«Покажи» has two steps: two pictures, then four", () => {
     const show = deck.modes.find((m) => m.id === "verbs_show");
     const concepts = deriveConcepts(deck.cards).filter((c) => c.primary.wave === 1);
-    const counts = [1, 2, 3].map((step) => generateTasks("find_n", concepts, deck.cards, { cardSet: "contrast", step }, show)[0].options.length);
-    expect(counts).toEqual([2, 4, 2]);
-    const hard = generateTasks("find_n", concepts, deck.cards, { cardSet: "contrast", step: 3 }, show)
-      .filter((t) => t.targetConceptId === "runs").map((t) => t.options.find((o) => !o.isTarget).conceptId);
-    for (const id of hard) expect(["jumps", "walks", "dances", "rides"]).toContain(id);
+    const counts = [1, 2].map((step) => generateTasks("find_n", concepts, deck.cards, { step }, show)[0].options.length);
+    expect(counts).toEqual([2, 4]);
+    expect(show.params.step.values).toEqual([1, 2]);
+    expect(show.errorless).toBe(true);
   });
 });
 
-describe("picture sets", () => {
+describe("pictures", () => {
   const concepts = deriveConcepts(deck.cards).filter((c) => c.primary.wave === 1);
-  it("contrast modes show only the boy and mum, distractors included", () => {
-    const mode = deck.modes.find((m) => m.id === "verbs_show");
-    const tasks = generateTasks("find_n", concepts, deck.cards, computeDefaultParams(deck, mode), mode);
-    expect(tasks.length).toBe(concepts.length * 2);
-    for (const t of tasks) for (const o of t.options) expect(o.card.set).toBe("contrast");
+  it("every mode uses all pictures of a verb, even with an old saved «Картинки» value", () => {
+    const show = deck.modes.find((m) => m.id === "verbs_show");
+    const tasks = generateTasks("find_n", concepts, deck.cards, { step: 1, cardSet: "contrast" }, show);
+    const all = deck.cards.filter((c) => c.wave === 1).length;
+    expect(tasks.length).toBe(all);
   });
-  it("variation modes never show the contrast pair", () => {
-    const mode = deck.modes.find((m) => m.id === "verbs_choose_all");
-    const tasks = generateTasks("choose_all", concepts, deck.cards, computeDefaultParams(deck, mode), mode);
-    for (const t of tasks) for (const c of t.allCards) expect(c.set).toBe("variation");
-  });
-  it("animals only appear in variation sets", () => {
-    for (const c of deck.cards.filter((card) => card.agent === "animal")) expect(c.set).toBe("variation");
+  it("«Знакомство» leaves out animals; later modes keep them", () => {
+    const intro = deck.modes.find((m) => m.id === "verbs_intro");
+    const tasks = generateTasks("intro", deriveConcepts(deck.cards), deck.cards, {}, intro);
+    expect(tasks.some((t) => t.card.agent === "animal")).toBe(false);
+    const show = deck.modes.find((m) => m.id === "verbs_show");
+    expect(generateTasks("find_n", deriveConcepts(deck.cards), deck.cards, { step: 2 }, show).some((t) => t.options.some((o) => o.isTarget && o.card.agent === "animal"))).toBe(true);
   });
   it("every verb has a boy and a mum card plus at least two other pictures", () => {
     for (const c of deriveConcepts(deck.cards)) {
