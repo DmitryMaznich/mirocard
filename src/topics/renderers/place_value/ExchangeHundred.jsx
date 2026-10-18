@@ -260,17 +260,20 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
           {cell(done("tens") ? plan.result.tens : "", "tens", " xb-result")}
           {cell(done("ones") ? plan.result.ones : "", "ones", " xb-result")}
           {flight && <ExchangeFlight boardRef={boardRef} mode={flight} Big={SchemeHundred} Small={SchemeTen}
-            fromRef={flight === "split" ? hRef : tRef} toRef={flight === "split" ? tRef : overHRef} onDone={() => setFlight(null)} />}
+            bigRef={hRef} smallRef={tRef} overRef={overHRef} bigCount={h} smallCount={flight === "split" ? t : t + kT} onDone={() => setFlight(null)} />}
         </section>
         {support && teaching && !done("tens") && <div className="xb-support xh-support" aria-hidden="true">
           {sticks(borrowed ? 10 + t : t)}<b>{sign}</b>{sticks(kT)}
         </div>}
       </div>
       <div className="sg-answer">
-        {!solved && teaching && <div className="xb-step">
+        {!solved && teaching && <div className={`xb-step${current.choice ? " xb-step--choice" : ""}`}>
+          {/* Two lines: which place, big, then the sum to do in it. */}
           <span className={`xb-step-head xb-step-head--${current.key === "enough" ? "tens" : current.key}`}>{current.label}</span>
-          <span className="xb-step-text">{current.text}</span>
-          {!current.choice && <AnswerField label={current.label} tone={current.key} bare active wrong={typed.wrong} value={typed.digits} />}
+          <div className="xb-step-line">
+            <span className="xb-step-text">{current.text}</span>
+            {!current.choice && <AnswerField label={current.label} tone={current.key} bare active wrong={typed.wrong} value={typed.digits} />}
+          </div>
         </div>}
         {!teaching && <div className="sg-num">
           <AnswerField label={steps[0].label} tone="total" big ok={solved} active={!solved} wrong={typed.wrong} value={solved ? task.result : typed.digits} />

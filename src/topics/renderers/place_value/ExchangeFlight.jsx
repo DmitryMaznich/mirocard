@@ -1,45 +1,56 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 
-// «Плюс и минус через десяток / сотню» on the «Таблица»: the exchange is not
-// just a crossed-out digit, it is shown with the scheme's own pieces.
-//  split (borrowing): the big piece (a hundred's square / a ten's stick) leaves
-//    its column, flies over to the next one and falls apart into ten small
-//    pieces there (ten sticks / ten dots);
-//  merge (carrying): ten small pieces gather over a column into one big piece
-//    and it flies over to the next column.
-// Only when it is over does the table show the crossed digit and the number
-// over the column (onDone). Positions come from the two table cells.
-const STEP_MS = { appear: 350, fly: 750, spread: 450, hold: 700 };
-const FLIGHT_MS = STEP_MS.appear + STEP_MS.fly + STEP_MS.spread + STEP_MS.hold;
+// «Плюс и минус через десяток / сотню» on the «Таблица»: the exchange shown
+// with the scheme, right in the table — the link to the scheme modes. The
+// top number's digits turn into their pieces (7 hundreds → 7 squares, 1 ten →
+// 1 stick), then:
+//  split (borrowing): one big piece moves over to the next column and falls
+//    apart there into ten small ones (7 squares, 1 stick → 6 squares, 11 sticks);
+//  merge (carrying): ten small pieces gather into one big piece and it moves
+//    over to the next column (13 sticks → 3 sticks, and a square to the hundreds).
+// Then the pieces turn back into digits — the table shows the crossed digit
+// and the numbers over the columns (onDone). Placed over the two columns' top
+// cells, from their cells' positions.
+const PHASE_MS = [450, 850, 650, 1400]; // pieces appear · one moves · it splits / lands · look
+const FLY_MS = PHASE_MS[1];
 
-export default function ExchangeFlight({ boardRef, fromRef, toRef, mode, Big, Small, onDone }) {
+export default function ExchangeFlight({ boardRef, bigRef, smallRef, overRef, mode, bigCount, smallCount, Big, Small, onDone }) {
   const [at, setAt] = useState(null);
   const [phase, setPhase] = useState(0);
   useLayoutEffect(() => {
     const board = boardRef.current?.getBoundingClientRect();
-    const from = fromRef.current?.getBoundingClientRect();
-    const to = toRef.current?.getBoundingClientRect();
-    if (!board || !from || !to) return;
-    const center = (r) => ({ x: r.left - board.left + r.width / 2, y: r.top - board.top + r.height / 2 });
-    setAt({ from: center(from), to: center(to) });
-  }, [boardRef, fromRef, toRef]);
+    const big = bigRef.current?.getBoundingClientRect();
+    const small = smallRef.current?.getBoundingClientRect();
+    const over = overRef.current?.getBoundingClientRect();
+    if (!board || !big || !small || !over) return;
+    const cx = (r) => r.left - board.left + r.width / 2;
+    const width = Math.max(60, Math.abs(cx(small) - cx(big)) - 8);
+    const top = over.top - board.top;
+    setAt({ big: cx(big), small: cx(small), width, top, height: Math.max(big.bottom, small.bottom) - over.top });
+  }, [boardRef, bigRef, smallRef, overRef]);
   useEffect(() => {
-    const times = [STEP_MS.appear, STEP_MS.appear + STEP_MS.fly, STEP_MS.appear + STEP_MS.fly + STEP_MS.spread, FLIGHT_MS];
-    const timers = times.map((ms, i) => setTimeout(() => (i < 3 ? setPhase(i + 1) : onDone()), ms));
+    let elapsed = 0;
+    const timers = PHASE_MS.map((ms, i) => { elapsed += ms; return setTimeout(() => (i < 3 ? setPhase(i + 1) : onDone()), elapsed); });
     return () => timers.forEach(clearTimeout);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   if (!at) return null;
   const split = mode === "split";
-  // split: 0 big at «from» · 1 big flying · 2 big at «to», small spread out · 3 hold
-  // merge: 0 small spread at «from» · 1 small gathered → big · 2 big flying · 3 big at «to»
-  const bigAt = split ? (phase === 0 ? at.from : at.to) : (phase < 2 ? at.from : at.to);
-  const bigShown = split ? phase < 2 : phase >= 1;
-  const smallAt = split ? at.to : at.from;
-  const smallSpread = split ? phase >= 2 : phase === 0;
+  // What each column holds in this phase, as groups: the pieces it had, and
+  // the ten (or the one big piece) just made / about to leave — on its own
+  // row, so it reads as «1 and 10», not as 11 loose sticks.
+  const bigGroups = split ? [phase === 0 ? bigCount : bigCount - 1, 0] : [bigCount, phase >= 2 ? 1 : 0];
+  const smallGroups = split ? [smallCount, phase >= 2 ? 10 : 0] : [smallCount - 10, phase === 0 ? 10 : 0];
+  const flyer = phase === 1;
+  const area = (x, cls, children) => <div className={`xf-area ${cls}`} style={{ left: x - at.width / 2, top: at.top, width: at.width, minHeight: at.height }}>{children}</div>;
+  const group = (n, Piece, cls) => n > 0 && <span className={`xf-group ${cls}`}>{Array.from({ length: n }, (_, i) => <span key={i} className="xf-piece"><Piece /></span>)}</span>;
+  const pieces = ([had, ten], Piece) => <>{group(had, Piece, "")}{group(ten, Piece, split ? "xf-group--new" : "xf-group--ten")}</>;
+  const from = split ? at.big : at.small, to = split ? at.small : at.big;
   return <div className="xf-layer" aria-hidden="true">
-    <span className={`xf-big${bigShown ? "" : " xf-gone"}`} style={{ left: bigAt.x, top: bigAt.y }}><Big /></span>
-    {Array.from({ length: 10 }, (_, i) => <span key={i} className={`xf-small${smallSpread ? "" : " xf-gone"}`}
-      style={{ left: smallAt.x + (smallSpread ? (i - 4.5) * 12 : 0), top: smallAt.y - (smallSpread ? 34 : 0) }}><Small /></span>)}
+    {area(at.big, "xf-area--big", pieces(bigGroups, Big))}
+    {area(at.small, "xf-area--small", pieces(smallGroups, Small))}
+    {/* The one big piece on its way: from its column to the other. */}
+    <span className={`xf-flyer${flyer ? " xf-flyer--go" : ""}`}
+      style={{ left: flyer ? to : from, top: at.top + at.height / 2, transitionDuration: `${FLY_MS - 100}ms`, opacity: flyer ? 1 : 0 }}><Big /></span>
   </div>;
 }
 

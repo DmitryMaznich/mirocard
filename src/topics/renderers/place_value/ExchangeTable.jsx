@@ -166,17 +166,20 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
           {digit(tensDone ? plan.tensResult : "", "tens", " xb-result")}
           {digit(onesDone ? plan.onesResult : "", "ones", " xb-result")}
           {flight && <ExchangeFlight boardRef={boardRef} mode={flight} Big={SchemeTen} Small={SchemeOne}
-            fromRef={flight === "split" ? tRef : oRef} toRef={flight === "split" ? oRef : overTRef} onDone={() => setFlight(null)} />}
+            bigRef={tRef} smallRef={oRef} overRef={overTRef} bigCount={t} smallCount={flight === "split" ? o : o + kO} onDone={() => setFlight(null)} />}
         </section>
         {support && teaching && !onesDone && <div className="xb-support" aria-hidden="true">
           {plus ? <>{dots(o, "a")}<b>+</b>{dots(kO, "b")}</> : <>{dots(borrowed ? 10 + o : o, "a")}<b>−</b>{dots(kO, "b")}</>}
         </div>}
       </div>
       <div className="sg-answer">
-        {!solved && teaching && <div className="xb-step">
+        {!solved && teaching && <div className={`xb-step${current.choice ? " xb-step--choice" : ""}`}>
+          {/* Two lines: which place, big, then the sum to do in it. */}
           <span className={`xb-step-head xb-step-head--${current.key === "tens" ? "tens" : "ones"}`}>{current.label}</span>
-          <span className="xb-step-text">{current.text}</span>
-          {!current.choice && <AnswerField label={current.label} tone={current.key === "tens" ? "tens" : "ones"} bare active wrong={typed.wrong} value={typed.digits} />}
+          <div className="xb-step-line">
+            <span className="xb-step-text">{current.text}</span>
+            {!current.choice && <AnswerField label={current.label} tone={current.key === "tens" ? "tens" : "ones"} bare active wrong={typed.wrong} value={typed.digits} />}
+          </div>
         </div>}
         {!teaching && <div className="sg-num">
           <AnswerField label={steps[0].label} tone="total" big ok={solved} active={!solved} wrong={typed.wrong} value={solved ? task.result : typed.digits} />

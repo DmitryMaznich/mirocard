@@ -52,11 +52,31 @@
 
 /* «Плюс и минус через десяток» on the «Таблица» (ExchangeTable.jsx): the
    example in place-value columns, a column sum with headings. */
-/* The exchange in flight (ExchangeFlight.jsx): scheme pieces over the table. */
-.xf-layer { position: absolute; inset: 0; pointer-events: none; z-index: 3; --coin-size: 26px; }
-.xf-big, .xf-small { position: absolute; transform: translate(-50%, -50%); transition: left .75s ease-in-out, top .75s ease-in-out, opacity .3s; }
-.xf-small { transition: left .45s ease-out, top .45s ease-out, opacity .3s; --coin-size: 18px; }
-.xf-gone { opacity: 0; }
+/* The exchange as the scheme (ExchangeFlight.jsx): over each column's top
+   cell its digit as pieces — squares, sticks, dots — in rows, on white, so the
+   digit seems to turn into them; one big piece moves across. */
+.xf-layer { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.xf-area { position: absolute; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 3px;
+  background: #fff; border-radius: 12px; box-shadow: 0 0 0 2px #e2e8f0; animation: xf-in .35s ease-out; padding: 4px; box-sizing: border-box; }
+@keyframes xf-in { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
+.xf-area--big { --coin-size: 12px; }
+.xf-area--small { --coin-size: 14px; }
+/* Sticks stand close in a row: ten of them read as one ten. */
+.xf-area { flex-direction: column; align-items: center; }
+.xf-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+.xf-area .cb-stick-cell { width: 6px; }
+.xf-area .cb-stick { width: 4px; }
+.xf-area .xf-group { gap: 3px 2px; }
+/* The ten just made (or about to leave) on its own row, darker. */
+.xf-group--new, .xf-group--ten { flex-wrap: nowrap; padding: 2px 4px; border-radius: 8px; background: #fef3c7; }
+.xf-group--new { animation: xf-new .5s ease-out; }
+.xf-group--new .cb-stick, .xf-group--ten .cb-stick { background: #92400e; }
+.xf-group--new .cb-dot, .xf-group--ten .cb-dot { background: #1e3a8a; }
+.xf-group--new .cb-square, .xf-group--ten .cb-square { background: #166534; }
+.xf-piece { display: inline-flex; transition: transform .3s; }
+@keyframes xf-new { from { transform: scale(.2) translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
+.xf-flyer { position: absolute; transform: translate(-50%, -50%); transition-property: left; transition-timing-function: ease-in-out; --coin-size: 12px; z-index: 4; }
+.xb-table .xf-area--big .cb-stick-cell, .xf-flyer .cb-stick-cell { width: calc(var(--coin-size) * 0.6); }
 .xf-wait { pointer-events: none; opacity: .45; transition: opacity .2s; }
 /* «Что больше?»: the two numbers lit in the table. */
 .xb-cell--compare { background: #fef3c7; box-shadow: 0 0 0 3px #f59e0b; border-radius: 10px; }
@@ -103,8 +123,11 @@
 .xb-result { min-height: 1em; }
 
 /* The step being asked: «Единицы: 8 + 4 = [  ]». */
-.xb-step { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; font-size: 24px; font-weight: 900; color: #1a1a2e; }
-.xb-step-head { padding: 3px 12px; border-radius: 8px; color: #fff; font-size: 18px; font-weight: 800; }
+.xb-step { display: flex; flex-direction: column; align-items: center; gap: 8px; font-weight: 900; color: #1a1a2e; }
+.xb-step-head { padding: 4px 16px; border-radius: 10px; color: #fff; font-size: clamp(20px, 3vh, 28px); font-weight: 800; }
+.xb-step-line { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; font-size: clamp(30px, 4.6vh, 44px); }
+/* «Хватает?»: a question, not a sum to write — smaller, the buttons need the room. */
+.xb-step--choice .xb-step-line { font-size: clamp(20px, 3vh, 28px); }
 .xb-step-head--tens { background: #d97706; }
 .xb-step-head--ones { background: #2563eb; }
 

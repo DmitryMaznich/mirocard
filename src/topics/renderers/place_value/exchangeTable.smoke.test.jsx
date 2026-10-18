@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { act } from "react";
 import ExchangeTenTask from "./ExchangeTenTask.jsx";
 import { exchangeSteps } from "./ExchangeTable.jsx";
 import { coinHarness } from "./coinTestHelpers.jsx";
@@ -26,10 +27,15 @@ describe("«Плюс и минус через десяток» — «Табли�
     expect(cells()).toEqual(["3", "8", "", "4", "", ""]);
     expect(text(".xb-step-text")).toBe("8 + 4 =");
     type(12);
-    // Ten dots gather into a stick and fly over the tens; the 1 comes after.
-    expect(h.container.querySelectorAll(".xf-layer .cb-dot")).toHaveLength(10);
-    expect(h.container.querySelector(".xf-layer .cb-stick")).not.toBeNull();
+    // 3 sticks and 12 dots; ten dots become a stick that goes to the tens —
+    // 4 sticks, 2 dots; the 1 over the tens comes after.
+    const n = (sel) => h.container.querySelectorAll(sel).length;
+    expect(n(".xf-area--big .cb-stick")).toBe(3);
+    expect(n(".xf-area--small .cb-dot")).toBe(12);
     expect(text(".xb-over--tens")).toBe("");
+    act(() => vi.advanceTimersByTime(1950));
+    expect(n(".xf-area--big .cb-stick")).toBe(4);
+    expect(n(".xf-area--small .cb-dot")).toBe(2);
     h.flush();
     expect(text(".xb-over--tens")).toBe("1");
     expect(cells().slice(4)).toEqual(["", "2"]);
@@ -57,9 +63,13 @@ describe("«Плюс и минус через десяток» — «Табли�
     h.click("4");
     expect(text(".xb-compared")).toBe("2 < 4");
     h.click("Не хватает");
-    // A stick leaves the tens and falls apart into ten dots over the ones.
-    expect(h.container.querySelector(".xf-layer .cb-stick")).not.toBeNull();
+    // 3 sticks, 2 dots; a stick goes to the ones and falls apart: 2 sticks, 12 dots.
+    const n = (sel) => h.container.querySelectorAll(sel).length;
+    expect(n(".xf-area--big .cb-stick")).toBe(3);
     expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(0);
+    act(() => vi.advanceTimersByTime(1950));
+    expect(n(".xf-area--big .cb-stick")).toBe(2);
+    expect(n(".xf-area--small .cb-dot")).toBe(12);
     h.flush();
     expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(2);
     expect(text(".xb-over--ones")).toBe("12");

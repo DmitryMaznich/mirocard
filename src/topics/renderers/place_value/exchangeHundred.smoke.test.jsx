@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { act } from "react";
 import ExchangeTenTask from "./ExchangeTenTask.jsx";
 import { hundredSteps } from "./ExchangeHundred.jsx";
 import { generateTasks } from "./engine.js";
@@ -50,9 +51,15 @@ describe("Плюс и минус через сотню", () => {
     const onMistake = vi.fn();
     h.mount(ExchangeTenTask, { ...minus, view: "table" }, { onMistake });
     type(4); h.click("Не хватает");
-    // The hundred's square flies to the tens and falls apart into ten sticks.
-    expect(h.container.querySelector(".xf-layer .cb-square")).not.toBeNull();
-    expect(h.container.querySelectorAll(".xf-layer .cb-stick")).toHaveLength(10);
+    // The digits turn into the scheme: 2 squares, 1 stick; one square moves
+    // over to the tens and falls apart there — 1 square, 11 sticks.
+    const n = (sel) => h.container.querySelectorAll(sel).length;
+    expect(n(".xf-area--big .cb-square")).toBe(2);
+    expect(n(".xf-area--small .cb-stick")).toBe(1);
+    act(() => vi.advanceTimersByTime(1950));
+    expect(n(".xf-area--big .cb-square")).toBe(1);
+    expect(n(".xf-area--small .cb-stick")).toBe(11);
+    expect(n(".xf-area--small .xf-group--new .cb-stick")).toBe(10);
     h.flush();
     expect(h.container.querySelector(".xf-layer")).toBeNull();
     expect(h.container.querySelector(".xb-over--tens").textContent).toBe("11");
