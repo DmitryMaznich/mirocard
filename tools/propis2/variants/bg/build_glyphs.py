@@ -6,6 +6,8 @@
 Reads  tools/propis2/variants/bg/captures/*.json  (handwriting capture tool, a capital drawn on the narrow band: base y=88)
 Writes the glyphs into tools/propis2/variants/bg/variant.json `glyphs` (by label; the other glyphs there stay)
 
+Two kinds of capture: a letter of LETTERS (Ъ, drawn freehand, below) and a letter traced over a Boyan underlay (the rest, below).
+
 The same treatment as the digits (tools/propis2/build_digit_glyphs.py, whose helpers are used): the stroke is smoothed between its
 corners and refit as cubics, then made as tall as a capital (y -42..62, base 62) — taller, not wider, the slant kept — and its
 lowest point stands on the baseline. A letter that ends inside its bowl (Ъ) gets the connector of Б: a separate stroke from under
@@ -19,6 +21,8 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT / "tools/propis2"))
 import build_digit_glyphs as dg  # noqa: E402  (the digits' pipeline; its main() runs only as a script)
+sys.path.insert(0, str(HERE))
+import tidy_trace as tt  # noqa: E402  (also parse_path: the capture tool writes cubics, dg.parse reads no C)
 
 VARIANT = HERE / "variant.json"
 CAPTURES = HERE / "captures"
@@ -59,37 +63,43 @@ def flag_smoothed_path(d, sigma):
 
 
 # Letters traced over the Boyan underlays (make_underlays.py): the underlay already stands on the tool's ruling at the bank's
-# geometry, so the capture is taken at the fixed scale of the ruling (x2: the tool's lowercase 26 is the bank's 52, base 88 -> 62),
-# not stretched to a capital's height. Any captured label not in LETTERS is such a letter.
-UNDERLAY = {"underlay": True}
+# geometry, so the capture is taken at the fixed scale of the ruling (x2: the tool's lowercase 26 is the bank's 52, base 88 -> 62)
+# and then tidied ON THE DECK'S PAPER (tidy_trace.py: straight lines straight, hooks smooth, the bar horizontal, standing on the
+# baseline, a capital reaching the top line). Any captured label not in LETTERS is such a letter.
+# BANK_KEPT: traced, but the owner chose the bank's own letter (2026-10-18: «строчную можно взять русскую а»).
+BANK_KEPT = set("а")
 
 
-def glyph_of(item):
+def underlay_glyph(item, script):
     label = item["label"]
-    spec = LETTERS.get(label, UNDERLAY)
+    dg.DY = 0.0
+    raw = [np.array([dg.xform(p, 2.0, 0.0) for p in tt.parse_path(st["d"])]) for st in item["strokes"]]
+    paths, _ = tt.tidy_letter(raw, label.isupper(), script)
+    out = {"label": label, "kind": "letter", "strokes": [{"d": dg.fmt(c)} for c in paths], "stretch": 1.806, "noOverrides": True,
+           "repeatCells": 6 if label.isupper() else 4, "sourceLabel": f"{label} (обведена по подложке Boyan Maga, подровнена на болгарской линовке)"}
+    if label.isupper(): out["ascender"] = True; out["noNormalize"] = True
+    if label in "дзруфцщ": out["descender"] = True
+    # the stroke the next letter joins from: the one the hand drew longest (А: the main stroke, not the bar drawn after it)
+    lengths = [float(np.hypot(*np.diff(np.array(tt.parse_path(st["d"])), axis=0).T).sum()) for st in out["strokes"]]
+    main = int(np.argmax(lengths))
+    if len(paths) > 1: out["exitStroke"] = main
+    pts = np.array(tt.parse_path(out["strokes"][main]["d"])); allx = np.array([q[0] for st in out["strokes"] for q in tt.parse_path(st["d"])])
+    if pts[-1][0] < (allx.min() + allx.max()) / 2: out["noExit"] = True
+    return out
+
+
+def glyph_of(item, script):
+    label = item["label"]
+    if label not in LETTERS: return underlay_glyph(item, script)
+    spec = LETTERS[label]
     allp = np.concatenate([dg.parse(st["d"]) for st in item["strokes"]])
-    if spec.get("underlay"):
-        s = 2.0
-        dg.DY = 0.0
-    else:
-        s = dg.CAP_H / float(np.ptp(allp[:, 1]))
-        dg.DY = 0.0
-        lowest = dg.BASE_DECK - (dg.BASE_CAPTURE - allp[:, 1].max()) * s
-        dg.DY = FOOT_Y - lowest
+    s = dg.CAP_H / float(np.ptp(allp[:, 1]))
+    dg.DY = 0.0
+    lowest = dg.BASE_DECK - (dg.BASE_CAPTURE - allp[:, 1].max()) * s
+    dg.DY = FOOT_Y - lowest
     path_of = (lambda d: flag_smoothed_path(d, spec["flag"])) if spec.get("flag") else dg.stroke_path
     paths = [dg.to_deck(path_of(st["d"]) if k == 0 else dg.stroke_path(st["d"]), s, 0.0) for k, st in enumerate(item["strokes"])]
     strokes = [{"d": dg.fmt(c)} for c in paths]
-    if spec.get("underlay"):
-        # a Boyan letter traced by hand: the font's lead-in and exit are part of it (font_glyphs.py), this bank's per-letter fixes
-        # (glyphOverrides.js, by stroke index) are not for it, the pen ending on the letter's left side means nothing joins after it
-        pts = np.array([q for _, ps in paths[-1] for q in ps])
-        allx = np.array([q[0] for c in paths for _, ps in c for q in ps])
-        out = {"label": label, "kind": "letter", "strokes": strokes, "stretch": 1.806, "noOverrides": True,
-               "repeatCells": 6 if label.isupper() else 4, "sourceLabel": f"{label} (обведена по подложке Boyan Maga, захват)"}
-        if label.isupper(): out["ascender"] = True; out["noNormalize"] = True
-        if label in "дзруфцщ": out["descender"] = True
-        if pts[-1][0] < (allx.min() + allx.max()) / 2: out["noExit"] = True
-        return out
     out = {"label": label, "kind": "letter", "strokes": strokes, "stretch": 1.806, "repeatCells": 6, "ascender": True, "noNormalize": True,
            "sourceLabel": f"{spec['note']}; сглажен, масштаб x{s:.3f} = высота заглавной, база y=62"}
     if spec.get("tail"):
@@ -103,11 +113,12 @@ def glyph_of(item):
 
 
 def main():
+    variant = json.loads(VARIANT.read_text())
+    script = variant["meta"].get("script")
     made = []
     for f in sorted(CAPTURES.glob("*.json")):
         for item in json.loads(f.read_text()):
-            made.append(glyph_of(item))
-    variant = json.loads(VARIANT.read_text())
+            if item["label"] not in BANK_KEPT: made.append(glyph_of(item, script))
     keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made}]
     variant["glyphs"] = keep + made
     VARIANT.write_text(json.dumps(variant, ensure_ascii=False, indent=2) + "\n")

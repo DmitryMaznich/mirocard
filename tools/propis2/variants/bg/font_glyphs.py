@@ -27,6 +27,7 @@ from skimage.morphology import skeletonize
 ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / "tools/propis2"))
 import build_digit_glyphs as dg  # noqa: E402
+from tidy_trace import parse_path  # noqa: E402
 
 SC = 0.5            # px per font unit for the raster the centre line is taken from
 XH = 529.0          # x-height of Boyan Maga, font units
@@ -196,28 +197,6 @@ def dtw(a, b):
         for j in range(1, m + 1):
             D[i, j] = d[i - 1, j - 1] + min(D[i - 1, j], D[i, j - 1], D[i - 1, j - 1])
     return float(D[n, m] / (n + m))
-
-
-def parse_path(d):
-    """Points along a path of M / L / Q / C commands (dg.parse knows no C, the bank's letters are cubics)."""
-    import re
-    toks = re.findall(r"[MLQC]|-?\d*\.?\d+(?:[eE][+-]?\d+)?", d)
-    pts, i, cur, cmd = [], 0, None, None
-    num = lambda j: np.array([float(toks[j]), float(toks[j + 1])])
-    while i < len(toks):
-        if toks[i] in "MLQC": cmd = toks[i]; i += 1; continue
-        if cmd == "M": cur = num(i); i += 2; pts.append(cur)
-        elif cmd == "L":
-            nxt = num(i); i += 2
-            pts.extend(cur + (nxt - cur) * t for t in np.linspace(0, 1, 8)[1:]); cur = nxt
-        elif cmd == "Q":
-            a, nxt = num(i), num(i + 2); i += 4
-            pts.extend((1 - t) ** 2 * cur + 2 * (1 - t) * t * a + t ** 2 * nxt for t in np.linspace(0, 1, 10)[1:]); cur = nxt
-        elif cmd == "C":
-            a, b, nxt = num(i), num(i + 2), num(i + 4); i += 6
-            pts.extend((1 - t) ** 3 * cur + 3 * (1 - t) ** 2 * t * a + 3 * (1 - t) * t ** 2 * b + t ** 3 * nxt for t in np.linspace(0, 1, 10)[1:]); cur = nxt
-        else: i += 1
-    return pts
 
 
 def reference_path(ref):
