@@ -73,27 +73,70 @@ BANK_KEPT = set("а")
 LOOPS = set("Е")
 
 
-def wider_lower_bowl(strokes, stroke=1, beyond=0.0):
-    """В: the lower bowl (after the turn back at the waist) widened across the slant about that turn until it reaches `beyond` past the
-    upper one on the page (owner, 2026-10-18: «нижнее пузо ... чуть-чуть увеличить, сейчас верхняя голова больше»)."""
+def _fit_ellipse(p):
+    """Least-squares ellipse through points (Fitzgibbon): centre, unit axes e1 (the one nearer the horizontal), e2, semi-axes a, b."""
+    x, y = p[:, 0], p[:, 1]
+    D = np.c_[x * x, x * y, y * y, x, y, np.ones_like(x)]
+    S = D.T @ D
+    C = np.zeros((6, 6)); C[0, 2] = C[2, 0] = 2; C[1, 1] = -1
+    w, v = np.linalg.eig(np.linalg.solve(S, C))
+    A, B, Cc, Dd, E, F = np.real(v[:, np.argmax(np.real(w))])
+    M = np.array([[A, B / 2], [B / 2, Cc]])
+    c = np.linalg.solve(2 * M, [-Dd, -E])
+    k = c @ M @ c - F
+    ev, evec = np.linalg.eigh(M)
+    axes = np.sqrt(k / ev)
+    i = int(np.argmax(np.abs(evec[0])))  # the axis running more across the page
+    return c, evec[:, i], evec[:, 1 - i], axes[i], axes[1 - i]
+
+
+def oval_lower_bowl(strokes, stroke=1, widen=1.12):
+    """В: the lower bowl (after the turn back at the waist) redrawn as an even oval, wider than the hand's (owner, 2026-10-18:
+    «нижнее пузо ... чуть-чуть увеличить», then «нужно было сделать равномерный такой овал», not stretched right and down).
+    The oval is the ellipse that best fits the hand's bowl, made `widen` times wider across, standing on the baseline and moved
+    along it until it passes through the turn at the waist; the stroke runs round it from there to where the hand's end lies on it."""
     cmds = strokes[stroke]
     ends = np.array([ps[-1] for _, ps in cmds])
     up = tt.upright(ends)
     waist = [k for k in range(1, len(cmds) - 1) if tt.X_TOP - 25 < ends[k, 1] < tt.X_TOP + 10]
     w = min(waist, key=lambda k: up[k, 0])  # the turn back: the leftmost point there
-    pts = lambda part: np.array([q for _, ps in part for q in ps])
-    top_right = pts(cmds[:w + 1])[:, 0].max()
-    lower = cmds[w + 1:]
-    u0 = up[w, 0]
-    def scaled(k): return [(c, list(tt.from_upright(np.c_[u0 + (tt.upright(ps)[:, 0] - u0) * k, np.array(ps)[:, 1]]))) for c, ps in lower]
-    k = 1.0
-    while pts(scaled(k))[:, 0].max() < top_right + beyond and k < 1.4: k += 0.01
-    strokes[stroke] = cmds[:w + 1] + scaled(k)
+    bowl = np.array(tt.parse_path(tt.dg.fmt([("M", [ends[w]])] + cmds[w + 1:])))
+    c, e1, e2, a, b = _fit_ellipse(bowl[3:])
+    a *= widen
+    P = lambda t, c: c + a * np.cos(t) * e1 + b * np.sin(t) * e2
+    dP = lambda t: -a * np.sin(t) * e1 + b * np.cos(t) * e2
+    ts = np.linspace(0, 2 * np.pi, 721)
+    c = c + [0, tt.BASE - max(P(t, c)[1] for t in ts)]  # its bottom on the baseline
+    # along the baseline until the waist lies on it (on its upper left)
+    cusp = bowl[0]
+    def miss(dx):
+        cc = c + [dx, 0]
+        pts = np.array([P(t, cc) for t in ts])
+        d = np.hypot(*(pts - cusp).T)
+        d[(pts[:, 0] > cc[0]) | (pts[:, 1] > cc[1])] = np.inf  # on its upper left only (the waist is where the bowl begins)
+        return d.min()
+    dx = min(np.linspace(-40, 40, 801), key=miss)
+    c = c + [dx, 0]
+    near = lambda q: ts[int(np.argmin([np.hypot(*(P(t, c) - q)) for t in ts]))]
+    t0, t1 = near(cusp), near(bowl[-1])
+    # round the way the hand went (through the bowl's rightmost point)
+    tr = near(bowl[np.argmax(bowl[:, 0])])
+    span = (t1 - t0) % (2 * np.pi)
+    if not ((tr - t0) % (2 * np.pi) < span): span -= 2 * np.pi
+    n = int(np.ceil(abs(span) / (np.pi / 2)))
+    lower = []
+    for k in range(n):
+        ta, tb = t0 + span * k / n, t0 + span * (k + 1) / n
+        h = 4 / 3 * np.tan((tb - ta) / 4)
+        lower.append(("C", [P(ta, c) + h * dP(ta), P(tb, c) - h * dP(tb), P(tb, c)]))
+    head = cmds[:w + 1]
+    head[-1] = (head[-1][0], head[-1][1][:-1] + [P(t0, c)])  # the waist exactly on the oval
+    strokes[stroke] = head + lower
     return strokes
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"В": wider_lower_bowl}
+SHAPES = {"В": oval_lower_bowl}
 
 
 def underlay_glyph(item, script):
