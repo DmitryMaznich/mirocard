@@ -37,12 +37,14 @@ HORIZ_DEG = 10.0     # a line within this of the horizontal is horizontal
 SLANT_DEG = 8.0      # within this of the slant: along the slant
 MERGE_DEG = 14.0     # two lines this close in direction, one after the other, are one
 MERGE_GAP = 12.0     # ... when no farther apart along the stroke than this
+SHORT_LINE, SHORT_DEG = 55.0, 35.0  # see _runs: a line shorter than this, this close in direction to a longer neighbour, is a curve
 END_ABSORB = 7.0     # a line ending this close to the end of its piece runs to the end
 TRIM, TRIM_PART = 6.0, 0.1  # a line gives this much of its end (or this part of its length) to the curve after it: room to turn smoothly
 HANDLE_MIN = 0.3     # see _bezier_fit
 BOW_H = 20.0         # a hook at the baseline reaches this high up the line it turns into (0.42 of the lowercase band)
 EXT_PROM = 1.5       # a bow's bottom / top / side turns at least this much to count (smaller is the shake of the hand)
 FIT_TOL = 2.0        # a curve strays at most this far from the smoothed hand, else it is split
+LOOP_R, LOOP_REACH, LOOP_W = 4.0, 1.6, 4.0  # a loop (tidy_stroke loops) replaces this much of the hand each side of the turn, reaching this far past it, this wide
 SNAP = 4.0           # a bow's bottom / top this close to a ruling line stands on it
 
 
@@ -176,6 +178,21 @@ def _runs(q, top):
             if math.degrees(math.acos(min(1.0, abs(float(np.dot(d1, d2)))))) < MERGE_DEG and s[i] - s[pj] < MERGE_GAP:
                 merged[-1] = (pi, j); continue
         merged.append((i, j))
+    # a short line next to a longer one going nearly the same way is the curve running into it, not a line of its own (И: the bow
+    # from the foot of the first stem bends gradually into the diagonal, as in the font; a line there leaves an elbow)
+    keep, soft = [], []
+    for n, (i, j) in enumerate(merged):
+        L = s[j] - s[i]
+        near = [merged[m] for m in (n - 1, n + 1) if 0 <= m < len(merged)]
+        if L < SHORT_LINE and any(s[b] - s[a] > L and min(abs(s[i] - s[b]), abs(s[a] - s[j])) < 2 * MERGE_GAP
+                                  and math.degrees(math.acos(min(1.0, abs(float(np.dot(_fit_line(q[i:j + 1])[1], _fit_line(q[a:b + 1])[1])))))) < SHORT_DEG
+                                  for a, b in near):
+            # still a guide for the curve: it passes the middle of the dropped line along its direction
+            c, d, _ = _fit_line(q[i:j + 1]); m = (i + j) // 2
+            soft.append([m, c + d * np.dot(q[m] - c, d), d, d])
+            continue
+        keep.append((i, j))
+    merged = keep
     # a line ending this close to the end of the piece runs to it (no flick of the pen at the end of a stroke)
     if merged and s[merged[0][0]] < END_ABSORB: merged[0] = (0, merged[0][1])
     if merged and s[-1] - s[merged[-1][1]] < END_ABSORB: merged[-1] = (merged[-1][0], len(q) - 1)
@@ -192,7 +209,7 @@ def _runs(q, top):
         if s[j2] - s[i2] < LINE_MIN / 2: continue  # what is left of it is part of the hook
         c, d, _ = _fit_line(q[i:j + 1]); d = _snap_dir(d)
         out.append((i2, j2, c, d))
-    return out
+    return out, soft
 
 
 def _bezier_fit(q, t0, t1):
@@ -234,22 +251,23 @@ def _extrema(v):
     return out
 
 
-def _fit_span(sub, t0, t1, depth=0):
+def _fit_span(sub, t0, t1, depth=0, tol=None):
     """Cubics through sub with end tangents t0, t1: one if it stays within FIT_TOL of the (smoothed) hand, else split where it strays most."""
     c1, c2, e = _bezier_fit(sub, t0, t1)
     u = np.linspace(0, 1, 60)[:, None]
     curve = (1 - u) ** 3 * sub[0] + 3 * (1 - u) ** 2 * u * c1 + 3 * (1 - u) * u ** 2 * c2 + u ** 3 * e
     dev = np.min(np.hypot(sub[:, None, 0] - curve[None, :, 0], sub[:, None, 1] - curve[None, :, 1]), axis=1)
     k = int(np.argmax(dev))
-    if dev[k] <= FIT_TOL or depth > 4 or k < 3 or k > len(sub) - 4:
+    tol = FIT_TOL if tol is None else tol
+    if dev[k] <= tol or depth > 4 or k < 3 or k > len(sub) - 4:
         return [("C", [c1, c2, e])]
     tk = _unit(sub[min(k + 3, len(sub) - 1)] - sub[max(k - 3, 0)])
-    return _fit_span(sub[:k + 1], t0, tk, depth + 1) + _fit_span(sub[k:], tk, t1, depth + 1)
+    return _fit_span(sub[:k + 1], t0, tk, depth + 1, tol) + _fit_span(sub[k:], tk, t1, depth + 1, tol)
 
 
 def tidy_piece(q, top, t_in=None, t_out=None):
     """One piece (between turns back) -> path commands without the M. t_in / t_out: forced end tangents (None: the hand's)."""
-    runs = _runs(q, top)
+    runs, soft = _runs(q, top)
     # anchors: (index, point, tangent in, tangent out)
     anchors = []
     tan = lambda i: _unit(q[min(i + 3, len(q) - 1)] - q[max(i - 3, 0)])
@@ -274,13 +292,16 @@ def tidy_piece(q, top, t_in=None, t_out=None):
         if ia in lines or ib - ia < 6: continue
         for k in _extrema(q[ia:ib + 1, 1]):
             p = q[ia + k].copy(); y = _ruling_y(p[1], top)
-            if y is not None: p[1] = y; on_ruling.append(ia + k)
+            if y is not None:
+                p[1] = y
+                if y == BASE: on_ruling.append(ia + k)  # a hook stands on the baseline; a top on a line above is a bow like any other (К's flag)
             t = np.array([math.copysign(1.0, q[min(ia + k + 2, ib), 0] - q[max(ia + k - 2, ia), 0]), 0.0])
             extra.append([ia + k, p, t, t])
         for k in _extrema(upright[ia:ib + 1]):
             if any(abs(e[0] - (ia + k)) < 4 for e in extra): continue
             t = slant_dir * math.copysign(1.0, -(q[min(ia + k + 2, ib), 1] - q[max(ia + k - 2, ia), 1]))
             extra.append([ia + k, q[ia + k].copy(), t, t])
+    extra += [a for a in soft if not any(abs(e[0] - a[0]) < 4 for e in extra)]
     anchors = sorted(anchors + extra, key=lambda a: a[0])
     cmds = []
     for (ia, pa, _, ta), (ib, pb, tb, _) in zip(anchors, anchors[1:]):
@@ -303,11 +324,28 @@ def _cross(l1, l2):
     return c1 + t * d1
 
 
-def tidy_stroke(p, top):
-    """One stroke (paper points) -> commands (M ...)."""
+def _loop_at(q, c):
+    """The sharp turn back at q[c] -> a small closed loop (a teardrop out past the turn and back), the points around it replaced."""
+    r = int(LOOP_R / STEP)
+    a, b = max(1, c - r), min(len(q) - 2, c + r)
+    t_in, t_out = _unit(q[a] - q[max(0, a - 4)]), _unit(q[min(len(q) - 1, b + 4)] - q[b])
+    h = LOOP_REACH * max(np.hypot(*(q[c] - q[a])), np.hypot(*(q[c] - q[b])))
+    # the two sides held apart (the hand drew them on top of each other: a spur, not a loop)
+    n = _unit(q[a] - q[b]) if np.hypot(*(q[a] - q[b])) > 1e-6 else np.array([-t_in[1], t_in[0]])
+    c1, c2 = q[a] + h * t_in + n * LOOP_W, q[b] - h * t_out - n * LOOP_W
+    u = np.linspace(0, 1, 2 * r + 1)[1:-1, None]
+    loop = (1 - u) ** 3 * q[a] + 3 * (1 - u) ** 2 * u * c1 + 3 * (1 - u) * u ** 2 * c2 + u ** 3 * q[b]
+    return dg.resample(np.vstack([q[:a + 1], loop, q[b:]]), STEP)
+
+
+def tidy_stroke(p, top, loops=False):
+    """One stroke (paper points) -> commands (M ...). loops: a sharp turn back away from the top and the baseline becomes a small loop (Е)."""
     q = dg.resample(np.asarray(p, float), STEP)
     q = dg.smooth(q, STEP)  # the finest shake of the hand only (dg.SIGMA); the lines and fits below do the rest
     keep, dg.CORNER_DEG = dg.CORNER_DEG, CORNER_DEG
+    if loops:
+        for c in dg.corners(q, STEP)[::-1]:
+            if min(abs(q[c, 1] - BASE), abs(q[c, 1] - top)) > SNAP: q = _loop_at(q, c)  # not an apex on the top line, not a foot
     cuts = [0] + dg.corners(q, STEP) + [len(q) - 1]
     dg.CORNER_DEG = keep
     cmds, prev_line = [], None
@@ -324,7 +362,7 @@ def tidy_stroke(p, top):
     return cmds
 
 
-def tidy_letter(strokes, capital, script=None):
+def tidy_letter(strokes, capital, script=None, loops=False):
     """Strokes (bank points, the hand's) -> tidied strokes (bank commands): straight and smooth on the paper of `script`, standing on
     its baseline, the top on its zone's top (a capital's: the top line of the Bulgarian ruling)."""
     use_script(script)
@@ -334,9 +372,20 @@ def tidy_letter(strokes, capital, script=None):
     dy = BASE - allp[:, 1].max()
     k = (BASE - top) / (BASE - (allp[:, 1].min() + dy))
     strokes = [shear_scale(s + [0, dy], k) for s in strokes]
-    out = [tidy_stroke(s, top) for s in strokes]
+    out = [tidy_stroke(s, top, loops) for s in strokes]
     # the tidied letter, once more exactly between its lines (the lines that meet at a sharp top end where they cross)
     pts = np.array([q for cmds in out for q in parse_path(dg.fmt(cmds))])
     k2 = (BASE - top) / (BASE - pts[:, 1].min())
     out = [[(c, list(shear_scale(np.array(ps), k2))) for c, ps in cmds] for cmds in out]
+    global LAST_PLACE
+    LAST_PLACE = (dy, k, k2)
     return [paper_to_bank_cmds(c) for c in out], out
+
+
+LAST_PLACE = (0.0, 1.0, 1.0)
+
+
+def placed_like_last(p):
+    """Bank points -> where the last tidy_letter put its letter on paper (a review sheet lays the font's outline under it)."""
+    dy, k, k2 = LAST_PLACE
+    return shear_scale(shear_scale(to_paper(p) + [0, dy], k), k2)

@@ -68,13 +68,16 @@ def flag_smoothed_path(d, sigma):
 # baseline, a capital reaching the top line). Any captured label not in LETTERS is such a letter.
 # BANK_KEPT: traced, but the owner chose the bank's own letter (2026-10-18: «строчную можно взять русскую а»).
 BANK_KEPT = set("а")
+# LOOPS: the hand turned back sharply where the font (and the copybook) has a small loop: the waist of Е (font comparison sheet,
+# 2026-10-18). tidy_trace makes every sharp turn away from the ruling a loop in these letters.
+LOOPS = set("Е")
 
 
 def underlay_glyph(item, script):
     label = item["label"]
     dg.DY = 0.0
     raw = [np.array([dg.xform(p, 2.0, 0.0) for p in tt.parse_path(st["d"])]) for st in item["strokes"]]
-    paths, _ = tt.tidy_letter(raw, label.isupper(), script)
+    paths, _ = tt.tidy_letter(raw, label.isupper(), script, loops=label in LOOPS)
     out = {"label": label, "kind": "letter", "strokes": [{"d": dg.fmt(c)} for c in paths], "stretch": 1.806, "noOverrides": True,
            "repeatCells": 6 if label.isupper() else 4, "sourceLabel": f"{label} (обведена по подложке Boyan Maga, подровнена на болгарской линовке)"}
     if label.isupper(): out["ascender"] = True; out["noNormalize"] = True
