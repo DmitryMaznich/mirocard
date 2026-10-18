@@ -127,10 +127,11 @@ describe("verbs_v2 ladder — mounted through the real renderer", () => {
     vi.useRealTimers();
   });
 
-  it("question_answer elsewhere keeps the four numbered buttons", () => {
+  it("question_answer in any topic uses the same three labelled buttons", () => {
     const [task] = generateTasks("question_answer", CONCEPTS.filter((c) => c.conceptId === "runs"), CARDS, {});
-    mount({ task, mode: { type: "question_answer", ui: { instruction: "Что делает?" } } });
-    expect(container.querySelectorAll(".qa-btn")).toHaveLength(4);
+    mount({ task, mode: { type: "question_answer", ui: { instruction: "Что чувствует?" } } });
+    expect([...container.querySelectorAll(".rating-btn")].map((b) => b.textContent)).toEqual(["Не ответил", "С подсказкой", "Легко"]);
+    expect(container.querySelectorAll(".qa-btn")).toHaveLength(0);
   });
 
   it("choose_all uses the template and says the word when the grid appears", () => {

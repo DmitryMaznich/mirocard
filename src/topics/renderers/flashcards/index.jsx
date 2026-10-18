@@ -185,15 +185,6 @@ function SituationIntroTask({ task, topicId, onAdvance }) {
   );
 }
 
-const QA_BUTTONS = [
-  { value: "fail",     label: "Не ответил",   mod: "fail"     },
-  { value: "prompted", label: "С подсказкой", mod: "prompted" },
-  { value: "correct",  label: "Правильно",    mod: "correct"  },
-  { value: "easy",     label: "Легко!",        mod: "easy"     },
-];
-
-const KEY_MAP = { "1": "fail", "2": "prompted", "3": "correct", "4": "easy" };
-
 function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onQualityAnswer, onCardShown, onQuality }) {
   const audioPath       = getTaskAudioPath(task);
   const prefixAudioPath = mode?.answerPrefixAudio ?? null;
@@ -201,9 +192,6 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   const { speak }       = useSpeech();
   const [revealed,      setRevealed] = useState(false);
   const question = task.question ?? getTopicTitle(mode.ui.instruction);
-  // mode.ui.rating "three": the labelled three-button row of «Сделай»
-  // (verbs_v2) instead of four numbered buttons with a legend.
-  const threeRatings = mode?.ui?.rating === "three";
 
   useEffect(() => {
     setRevealed(false);
@@ -243,7 +231,7 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   useEffect(() => {
     if (!useKeyboard) return;
     function onKey(e) {
-      const quality = (threeRatings ? RATING_KEY_MAP : KEY_MAP)[e.key];
+      const quality = RATING_KEY_MAP[e.key];
       if (quality) handleQuality(quality);
     }
     window.addEventListener("keydown", onKey);
@@ -261,33 +249,16 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
         <div className={`qa-reveal${revealed ? " qa-reveal--shown" : ""}`}>
           {mode?.answerPrefix ? `${mode.answerPrefix} ${task.label}` : task.label}
         </div>
-        {threeRatings
-          ? <RatingButtons disabled={revealed} onRate={handleQuality} labels={{ fail: "Не ответил" }} />
-          : <>
-            <div className="qa-row">
-              {QA_BUTTONS.map((btn, i) => (
-                <button
-                  key={btn.value}
-                  className={`qa-btn qa-btn--${btn.mod}`}
-                  disabled={revealed}
-                  onClick={() => handleQuality(btn.value)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <p className="qa-legend">
-              {QA_BUTTONS.map((btn, i) => `${i + 1} — ${btn.label}`).join("   ")}
-            </p>
-          </>}
+        <RatingButtons disabled={revealed} onRate={handleQuality} labels={{ fail: "Не ответил" }} />
       </div>
     </div>
   );
 }
 
 // Three outcomes the adult can tell apart at a glance, labelled on the
-// buttons themselves (no numbered legend). Meant to become the one rating row
-// for adult-rated flashcard modes.
+// buttons themselves (no numbered legend) — the one rating row of every
+// adult-rated flashcard mode («Что …?», «Сделай»). A fourth "Правильно" next
+// to "Легко" only made the adult split hairs mid-lesson.
 const RATING_BUTTONS = [
   { value: "fail",     label: "Не понимает",  mod: "fail"     },
   { value: "prompted", label: "С подсказкой", mod: "prompted" },
