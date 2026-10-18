@@ -238,17 +238,21 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
     return () => window.removeEventListener("keydown", onKey);
   }, [useKeyboard, revealed]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Same three-zone layout as «Сделай» (.ao-*): picture — question with the
+  // answer appearing under it — the adult's buttons.
   return (
-    <div className="session-body qa-body">
-      <CardArea topicId={topicId} card={task.card} />
-      <div className="qa-right-panel">
-        <div className="qa-question-area">
-          <div className="session-instruction">{question}</div>
+    <div className="session-body ao-body ao-body--picture">
+      <div className="ao-visual"><CardImage topicId={topicId} card={task.card} /></div>
+      <div className="ao-middle">
+        <div className="ao-command ao-command--question">
+          {question}
           <InlineSpeechButton text={task.promptSpeech} soundEnabled={soundEnabled} />
         </div>
-        <div className={`qa-reveal${revealed ? " qa-reveal--shown" : ""}`}>
+        <div className={`ao-reveal${revealed ? " ao-reveal--shown" : ""}`}>
           {mode?.answerPrefix ? `${mode.answerPrefix} ${task.label}` : task.label}
         </div>
+      </div>
+      <div className="ao-controls">
         <RatingButtons disabled={revealed} onRate={handleQuality} labels={{ fail: "Не ответил" }} />
       </div>
     </div>
