@@ -1,10 +1,9 @@
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { ROW_BASE, ROW_TOP, bboxOf, narrowStrokes, staysInRow } from "@/topics/renderers/propis2/glyphReach.js";
+import { RU_LOWER, topicAlphabet } from "@/topics/renderers/propis2/alphabet.js";
 
 // Tiles of the deck's symbols (elements, letters, marks), each drawn with its own captured strokes (not a font), so the
 // adult sees exactly what the child will write. The constructor shows the elements in its element list.
-const LOWER = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-const UPPER = LOWER.toUpperCase();
 
 
 // Every tile shows a piece of the NARROW row (thin top line, dashed middle, bold baseline) with the symbol on
@@ -14,7 +13,8 @@ const UPPER = LOWER.toUpperCase();
 const ROW_MID = (ROW_TOP + ROW_BASE) / 2;
 const MAX_TILE_SYMBOL_W = 100;
 
-const LETTER_NAMES = new Set([...LOWER, ...UPPER]);
+// any Cyrillic letter name (not only the deck's alphabet): a letter stored as an «element» is never listed with the elements
+const LETTER_NAMES = new Set([...RU_LOWER, ...RU_LOWER.toUpperCase()]);
 
 export function buildTiles(topicRecord) {
   const glyphMap = buildGlyphMap(topicRecord);
@@ -41,7 +41,11 @@ export function buildTiles(topicRecord) {
   }
   // punctuation marks of the deck (wide.json kind "punct"), in the order of a sentence
   const marks = [".", ",", "!", "?"].filter((m) => byLabel.get(m)?.kind === "punct").map((m) => make("text", m, m));
-  const out = { elements, lower: letters(LOWER), upper: letters(UPPER), marks };
+  // the deck's own alphabet (alphabet.js: a variant deck has its own), capitals only of the letters that have one
+  const alphabet = topicAlphabet(topicRecord);
+  const lower = alphabet.lower.join("");
+  const upper = alphabet.lower.filter((ch) => !alphabet.noCapital.has(ch)).join("").toUpperCase();
+  const out = { elements, lower: letters(lower), upper: letters(upper), marks };
 
   // One frame for all tiles: tall enough for the highest ascender and the deepest descender of any symbol, wide
   // enough for the widest one, so every tile has the same size and the row stands at the same place in it.

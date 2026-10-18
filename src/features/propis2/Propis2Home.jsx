@@ -118,7 +118,10 @@ export default function Propis2Home({ db }) {
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
   // the methodology workbook as two ready notebooks: part 1 on the WIDE ruling, part 2 on the NARROW one (data.js)
   const methodKits = useMemo(() => methodNotebooks(sheets, elementLabels), [sheets, elementLabels]);
-  const kitPresets = useMemo(() => [...methodKits, ...kits].map((k) => ({ id: `kit:${k.id}`, title: k.title, kit: k, builtin: true })), [methodKits, kits]);
+  // a variant deck (another alphabet, scripts/build-propis2-deck.mjs --variant) has no ready notebooks yet: the Russian methodology
+  // and kits are written in Russian letters and words
+  const ownKits = topicRecord?.meta?.methodology !== false;
+  const kitPresets = useMemo(() => (ownKits ? [...methodKits, ...kits] : []).map((k) => ({ id: `kit:${k.id}`, title: k.title, kit: k, builtin: true })), [ownKits, methodKits, kits]);
   const readyAll = useMemo(() => kitPresets.map((ps) => ({ id: ps.id, title: ps.title, pages: ps.kit ? ps.kit.pages.length : 1, ps })), [kitPresets]);
   const takenIds = useMemo(() => new Set(library.sets.map((st) => st.sourceId ?? (st.kit ? `kit:${st.kit}` : null)).filter(Boolean)), [library.sets]);
   const ready = useMemo(() => readyAll.filter((r) => !takenIds.has(r.id)), [readyAll, takenIds]);

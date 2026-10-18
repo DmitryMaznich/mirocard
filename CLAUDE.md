@@ -177,6 +177,13 @@ geometry, glyph capture) — still worth reading when touching the shared engine
 
 Independent from `letter_writing` ("Написание букв") — don't touch that topic.
 
+**Variants (other alphabets) — `propis2_bg` (Bulgarian), started 2026-10-18.** A variant is its own
+ZIP topic with the same `propis2` renderer, built from data only
+(`tools/propis2/variants/<id>/variant.json`, `node scripts/build-propis2-deck.mjs --variant <id>`),
+shown to one account via catalog status `individual`. Never fork `propis2` code for a language: the
+alphabet comes from `meta.alphabet` (`src/topics/renderers/propis2/alphabet.js`), never from a
+hard-coded letter string. Read `docs/propis2-variants.md` before continuing.
+
 ## Важные даты (important dates) for the "Сегодня" screen
 
 Birthdays, holidays and one-off events kept on the student

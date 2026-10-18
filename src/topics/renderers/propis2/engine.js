@@ -1,27 +1,28 @@
 import { shuffle } from "@/shared/utils/shuffle";
 import { generateLetterTasks } from "../propis/letters/lettersEngine.js";
-import { LETTER_DATA } from "../propis/letters/letterData.js";
 import { letterDictationKey, wordDictationKey, textDictationKey, textSentenceDictationKey, splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, punctuationDictationKey } from "../propis/dictationAudio.js";
-import { CARD_LETTERS } from "./letterCards.js";
+import { cardLetters, topicAlphabet } from "./alphabet.js";
+import { buildGlyphMap } from "./pageTask.js";
 
 // `propis2`. The constructor is the topic's home screen (src/features/propis2), its session only hands the renderer one "page" task.
 // «Узнай букву», «Строчная и заглавная» and «Диктант» are copied from `propis` («Прописи старые») (2026-10-10): the same tasks, the same pairing data
-// (LETTER_DATA) and the same recorded dictation; the renderer draws them with this topic's own letters.
+// (LETTER_DATA, filtered to the deck alphabet) and the same recorded dictation; the renderer draws them with this topic's own letters.
 export function generateTasks(mode, topicRecord, sessionSize, sessionParams) {
+  const letters = ["letters_recognize", "letters_case", "dictation"].includes(mode?.type) ? deckLetters(topicRecord).letters : [];
   if (mode?.type === "letters_recognize") {
     const direction = sessionParams?.direction ?? "print_to_written";
     if (direction === "mix") {
       return shuffle([
-        ...generateLetterTasks("match_print_to_written", LETTER_DATA),
-        ...generateLetterTasks("match_written_to_print", LETTER_DATA),
+        ...generateLetterTasks("match_print_to_written", letters),
+        ...generateLetterTasks("match_written_to_print", letters),
       ]);
     }
-    return generateLetterTasks(direction === "written_to_print" ? "match_written_to_print" : "match_print_to_written", LETTER_DATA);
+    return generateLetterTasks(direction === "written_to_print" ? "match_written_to_print" : "match_print_to_written", letters);
   }
   if (mode?.type === "letters_case") {
     return (sessionParams?.variant ?? "sort") === "pair"
-      ? generateLetterTasks("match_pair", LETTER_DATA, sessionSize, sessionParams ?? {})
-      : generateLetterTasks("sort_case", LETTER_DATA);
+      ? generateLetterTasks("match_pair", letters, sessionSize, sessionParams ?? {})
+      : generateLetterTasks("sort_case", letters);
   }
   if (mode?.type === "dictation") return [dictationTask(topicRecord, sessionParams)];
   return [{
@@ -50,7 +51,7 @@ function dictationTask(topicRecord, sessionParams) {
       sentences: splitIntoSentences(t.text).map((s, i) => ({ key: textSentenceDictationKey(t, i), display: s, chunks: splitSentenceAtCommas(s).map((c, j) => ({ key: textChunkDictationKey(t, i, j), display: c })) })),
     }));
   } else {
-    pool = CARD_LETTERS.map((label) => ({ key: letterDictationKey({ label }), display: label }));
+    pool = cardLetters(deckLetters(topicRecord)).map((label) => ({ key: letterDictationKey({ label }), display: label }));
   }
   const itemCount = Math.max(1, Math.min(sessionParams?.itemCount ?? 10, pool.length || 1));
   const items = noAdjacentRepeats(shuffle(pool).slice(0, itemCount), (item) => (item.display ?? "").toLowerCase());
@@ -93,6 +94,9 @@ function voiceSigns(items, level) {
     item.audio = [{ key: item.key, pauseAfterMs: WRITE_PAUSE_MS }, { key: punctuationDictationKey(sign), pauseAfterMs: 0 }];
   });
 }
+
+// the alphabet with the capitals the deck really has ink for (no empty card)
+const deckLetters = (topicRecord) => topicAlphabet(topicRecord, buildGlyphMap(topicRecord));
 
 function noAdjacentRepeats(picked, keyFn) {
   const buckets = new Map();

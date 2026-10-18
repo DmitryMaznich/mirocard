@@ -3,6 +3,7 @@ import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTas
 import { lineWidth, newRow, pageFormat, pageSnap, rowMaxX, rowToLine, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { digitsOut } from "@/topics/renderers/propis2/fieldText.js";
 import { backContent, backPaper } from "./backContent.js";
+import { topicAlphabet } from "@/topics/renderers/propis2/alphabet.js";
 
 // The engine tasks a cover draws (in our own hand, on our own paper), each built only when what it depends on changes: switching the
 // decoration or the colour builds nothing, the back is built again only when the back changes.
@@ -36,7 +37,7 @@ export function useCoverTasks({ topicRecord, cover, format, side = "both", spine
   const backKind = side !== "front" && cover.enabled ? cover.back.kind : "none";
   const backPaperId = cover.back.paper;
   const back = useMemo(() => {
-    const content = backContent(backKind);
+    const content = backContent(backKind, topicAlphabet(topicRecord, glyphMap), topicRecord?.meta?.coverWords);
     if (!content) return null;
     const paper = backPaper(backPaperId, fmt);
     // a compact block (owner, 2026-10-14, as the backs of the printed series): the heading in our own hand on its first row, centred,

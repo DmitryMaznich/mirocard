@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { buildGlyphMap } from "./pageTask.js";
-import { cardGlyphs, CARD_LETTERS } from "./letterCards.js";
+import { cardGlyphs } from "./letterCards.js";
+import { cardLetters, topicAlphabet } from "./alphabet.js";
 import { generateTasks } from "./engine.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 
@@ -24,8 +25,9 @@ describe("modes copied from `propis` («Прописи старые») (2026-10-
     }
   });
   it("every letter of the cards has this topic's ink, in the card's space (baseline 88, x-height 26)", () => {
-    const cards = cardGlyphs(map);
-    expect(CARD_LETTERS.filter((l) => !cards[l])).toEqual([]);
+    const letters = cardLetters(topicAlphabet(rec)); // no glyph map: every Russian capital must have ink
+    const cards = cardGlyphs(map, letters);
+    expect(letters.filter((l) => !cards[l])).toEqual([]);
     const a = cards["а"].strokes.flatMap((d) => d.match(/-?\d*\.?\d+/g).map(Number).filter((_, i) => i % 2 === 1));
     expect(Math.max(...a)).toBeGreaterThan(84);
     expect(Math.min(...a)).toBeGreaterThan(55);
