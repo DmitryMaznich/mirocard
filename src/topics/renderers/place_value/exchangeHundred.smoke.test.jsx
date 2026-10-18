@@ -75,6 +75,9 @@ describe("Плюс и минус через сотню", () => {
     h.flush();
     expect(h.container.querySelector(".xf-layer")).toBeNull();
     expect(h.container.querySelector(".xb-over--tens").textContent).toBe("11");
+    // A dot over the hundreds, not «1» over a crossed 2: that's the last answer.
+    expect(h.container.querySelector(".xb-over--hundreds .xb-borrow-dot")).not.toBeNull();
+    expect(h.container.querySelector(".xb-over--hundreds").textContent).toBe("");
     type(8); type(2);
     expect(h.container.querySelector(".sg-status-note").textContent).toBe("Одну сотню мы отдали десяткам.");
     h.flush(); type(1);

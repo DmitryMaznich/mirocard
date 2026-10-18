@@ -150,11 +150,13 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
           <h3 className="sg-head sg-head--ones">Единицы</h3>
 
           <span />
-          <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-carry">{t - 1}</span> : null}</span>
+          <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-borrow-dot" title="Заняли один десяток" /> : null}</span>
           <span className="xb-over xb-over--ones">{borrowed ? <span className="xb-carry xb-carry--ones">{10 + o}</span> : null}</span>
 
           <span />
-          {digit(t, "tens", borrowed ? " xb-crossed" : "", tRef)}
+          {/* Borrowed from: a dot over it, the school way — not «2» over a crossed 3,
+              which would be the answer to the last step. */}
+          {digit(t, "tens", "", tRef)}
           {digit(o, "ones", (borrowed ? " xb-crossed" : "") + lit, oRef)}
 
           <span className={`xb-sign xt-sign--${task.op}`}>{sign}</span>

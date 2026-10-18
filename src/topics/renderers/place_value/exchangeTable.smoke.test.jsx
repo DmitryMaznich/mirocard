@@ -69,9 +69,12 @@ describe("«Плюс и минус через десяток» — «Табли�
     expect(n(".xf-area--big .cb-stick")).toBe(2);
     expect(n(".xf-area--small .cb-dot")).toBe(12);
     h.flush();
-    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(2);
+    // Only the ones are crossed (12 over them); the tens get a dot, not «2» —
+    // that is the last step's answer.
+    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(1);
+    expect(h.container.querySelector(".xb-over--tens .xb-borrow-dot")).not.toBeNull();
     expect(text(".xb-over--ones")).toBe("12");
-    expect(text(".xb-over--tens")).toBe("2");
+    expect(text(".xb-over--tens")).toBe("");
     type(9);
     expect(note()).toBe("Посчитай ещё раз: 12 − 4.");
     expect(h.container.querySelectorAll(".xb-support .cb-dot")).toHaveLength(16);

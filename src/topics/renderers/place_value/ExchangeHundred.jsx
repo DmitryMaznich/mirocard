@@ -244,11 +244,13 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
         <section ref={boardRef} className="sg-card xb-table xh-table" aria-label="Пример по разрядам">
           <span />{head("hundreds", "Сотни")}{head("tens", "Десятки")}{head("ones", "Единицы")}
           <span />
-          <span ref={overHRef} className="xb-over xb-over--hundreds">{plan.carry && done("tens") && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-carry">{h - 1}</span> : null}</span>
+          <span ref={overHRef} className="xb-over xb-over--hundreds">{plan.carry && done("tens") && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-borrow-dot" title="Заняли одну сотню" /> : null}</span>
           <span className="xb-over xb-over--tens">{borrowed ? <span className="xb-carry">{10 + t}</span> : null}</span>
           <span />
           <span />
-          {cell(h, "hundreds", borrowed ? " xb-crossed" : "", hRef)}
+          {/* Borrowed from: a dot over it, the school way — not «6» over a crossed 7,
+              which would be the answer to the last step. */}
+          {cell(h, "hundreds", "", hRef)}
           {cell(t, "tens", (borrowed ? " xb-crossed" : "") + lit, tRef)}
           {cell(o, "ones")}
           <span className={`xb-sign xt-sign--${task.op}`}>{sign}</span>
