@@ -218,7 +218,9 @@ export default function ModePickerScreen() {
           return (
             <li key={mode.id} className={`mode-item-row${isMyPeople && !myPeopleModeAvailable(mode) ? " mode-item-row--disabled" : ""}`}>
               <div
-                className="mode-item mode-item--flex"
+                // «Контрольная работа» stands out on a light tint — by `finite`
+                // (place_value) or by its title (comparison, the other math topics).
+                className={`mode-item mode-item--flex${mode.finite || /Контрольная работа/.test(getModeTitle(mode)) ? " mode-item--test" : ""}`}
                 role="button"
                 tabIndex={myPeopleModeAvailable(mode) ? 0 : -1}
                 onClick={() => myPeopleModeAvailable(mode) && pickMode(mode)}

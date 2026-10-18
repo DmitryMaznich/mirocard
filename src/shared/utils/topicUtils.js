@@ -175,3 +175,28 @@ export function pickVariation(concept, excludeCardId = null) {
 export function isPickableMode(mode) {
   return !mode?.retired;
 }
+
+// Session parameters live in one `params` object per student-topic link (one
+// synced JSON blob), shared by every mode of the topic. A topic with several
+// modes of the same type and different defaults (verbs_v2: «Покажи» from 2
+// distant pictures, from 4, from 2 similar ones) would otherwise hand each mode
+// whatever was last set in another. A mode with `paramsScope: "mode"` keeps its
+// own values under `params.byMode[modeId]` instead - still inside the same blob,
+// so it syncs without a backend change.
+// Declared defaults fill in for a mode-scoped mode that was never opened in
+// the settings screen (a session reached by auto-advance or a lesson plan), so
+// «Покажи: из двух» doesn't fall back to the engine's generic 4 options.
+export function readModeParams(savedParams, mode) {
+  const saved = savedParams ?? {};
+  if (mode?.paramsScope !== "mode") return saved;
+  const defaults = Object.fromEntries(Object.entries(mode.params ?? {})
+    .filter(([, def]) => def?.default !== undefined)
+    .map(([key, def]) => [key, def.default]));
+  return { ...defaults, ...(saved.byMode?.[mode.id] ?? {}) };
+}
+
+export function writeModeParams(savedParams, mode, params) {
+  if (mode?.paramsScope !== "mode") return params;
+  const saved = savedParams ?? {};
+  return { ...saved, byMode: { ...(saved.byMode ?? {}), [mode.id]: params } };
+}

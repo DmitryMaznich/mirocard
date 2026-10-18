@@ -13,10 +13,10 @@ import OptionsPicker from "@/shared/components/OptionsPicker";
 import ModeMethodology from "@/shared/components/ModeMethodology";
 import { getModeGoal } from "@/shared/utils/methodology";
 import ConceptDot from "@/shared/components/ConceptDot";
-import { deriveConcepts, getConceptCards, getFigureFilter, readModeSelectedConceptIds, withFigureFilter } from "@/shared/utils/topicUtils";
+import { deriveConcepts, getConceptCards, getFigureFilter, readModeParams, readModeSelectedConceptIds, withFigureFilter, writeModeParams } from "@/shared/utils/topicUtils";
 import { getTopicTitle, getInitials } from "@/shared/utils/format";
 import { computeConceptLevel } from "@/features/session/useConceptProgress";
-import { COMPARISON_LEVELS } from "@/topics/renderers/comparison/engine";
+import { COMPARISON_LEVELS, PLACE_VALUE_MODE_IDS } from "@/topics/renderers/comparison/engine";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { MIN_FIGURES_FOR_REWARD, hasMinimumFigureSelection, requiredFigureSelectionCount } from "./figureSelection";
 import InstructionParamsContent from "@/features/reading/InstructionParamsContent";
@@ -1390,6 +1390,7 @@ const LEVEL_DESCRIPTIONS = {
   2: "Базовый — числа до 10, любая разница",
   3: "Средний — числа до 20, любая разница",
   4: "Сложный — двузначные числа до 99",
+  5: "По разрядам — числа до 1000 с ловушками: 47 и 74, 305 и 350, 99 и 100, 300 и 299. После ошибки — оба числа по разрядам",
 };
 
 const QUESTION_OPTIONS = [
@@ -1407,7 +1408,9 @@ const VISUAL_OPTIONS = [
 
 function ComparisonParams({ params, onChange }) {
   const activeModeId     = useAppStore((s) => s.activeModeId);
-  const activeLevel      = COMPARISON_LEVELS.find((l) => l.id === params.level);
+  const levels           = COMPARISON_LEVELS.filter((l) => l.id !== 5 || PLACE_VALUE_MODE_IDS.includes(activeModeId));
+  const shownLevel       = params.level === 5 && !levels.some((l) => l.id === 5) ? 4 : params.level;
+  const activeLevel      = levels.find((l) => l.id === shownLevel);
   const isEvaluateMode   = activeModeId === "compare_evaluate";
   const isVisualMode     = activeModeId === "compare_visual";
   // The sign to draw is fully determined by left vs right — "Что учим"
@@ -1456,10 +1459,10 @@ function ComparisonParams({ params, onChange }) {
           <div className="param-enum-row">
             <div className="param-enum-section">
               <div className="param-enum-group">
-                {COMPARISON_LEVELS.map((lvl) => (
+                {levels.map((lvl) => (
                   <button
                     key={lvl.id}
-                    className={`enum-btn enum-btn--compact ${params.level === lvl.id ? "enum-btn--active" : ""}`}
+                    className={`enum-btn enum-btn--compact ${shownLevel === lvl.id ? "enum-btn--active" : ""}`}
                     disabled={dotsOnly && lvl.id > 2}
                     onClick={() => onChange({ ...params, level: lvl.id })}
                   >
@@ -1717,7 +1720,7 @@ export default function ParamsScreen() {
   }
 
   function getInitialParams() {
-    const saved = link.params ?? {};
+    const saved = readModeParams(link.params, mode);
     if (isReading && activeText?.kind === "sentence_pool") {
       return { selectedLineIds: saved.selectedLineIds ?? null, group: mode?.group ?? null };
     }
@@ -1920,7 +1923,7 @@ export default function ParamsScreen() {
     }
 
     persistStudentTopicLink(activeStudentId, activeTopicId, {
-      params,
+      params: writeModeParams(link.params, mode, params),
       videoRewardEnabled: hideVideoReward ? false : videoReward,
       answersPerStar,
       strictStars,

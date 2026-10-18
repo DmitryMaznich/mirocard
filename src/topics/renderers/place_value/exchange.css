@@ -231,6 +231,8 @@
 }
 
 .px-tf-pile .cb-ten-stack { padding-top: 0; }
+.px-tf-pile:has(.px-tf-dots) { width: calc(var(--coin-size) * 4 + 17px); align-items: center; }
+.px-tf-dots { display: flex; flex-wrap: wrap; justify-content: center; max-width: calc(var(--coin-size, 30px) * 4); }
 
 .px-tf-foot {
   display: flex;

@@ -92,16 +92,16 @@
     },
     {
       "id": "verbs_v2",
-      "version": "1.2.0",
+      "version": "2.0.4",
       "title": {
         "ru": "Глаголы",
         "en": "Verbs"
       },
       "description": {
-        "ru": "25 глаголов × 5 вариаций. Аудио произношение. Для детей от 5 лет.",
-        "en": "25 verbs × 5 variations each. Audio pronunciation included."
+        "ru": "20 глаголов в трёх волнах: от выбора картинки по слову до похожих действий. Аудио. Для минимально вербальных детей, в том числе с РАС.",
+        "en": "20 everyday verbs in three waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
       },
-      "url": "./decks/verbs_v2_v1.2.0.zip",
+      "url": "./decks/verbs_v2_v2.0.4.zip",
       "status": "beta",
       "access": "paid"
     },
@@ -122,7 +122,7 @@
     },
     {
       "id": "comparison",
-      "version": "2.36.1",
+      "version": "2.37.0",
       "title": {
         "ru": "Сравнение",
         "en": "Comparison"
@@ -131,7 +131,7 @@
         "ru": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами.",
         "en": "Eight modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories."
       },
-      "url": "./decks/comparison_v2.36.1.zip",
+      "url": "./decks/comparison_v2.37.0.zip",
       "status": "release",
       "access": "free"
     },

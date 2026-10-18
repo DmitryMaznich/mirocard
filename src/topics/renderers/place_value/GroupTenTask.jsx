@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
-import { Coin, TenStack } from "./CoinBlocks.jsx";
+import { modelPieces } from "./CoinBlocks.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { numberWords, pluralTens } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
@@ -61,6 +61,13 @@ const FIELDS = [
 
 export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const slots = task.showFrame !== false;
+  // «Как показываем»: coins (a stack of ten) or the scheme — ten dots in the
+  // frame become a stick, the moment the topic's stick gets its meaning.
+  const scheme = task.view === "scheme";
+  const { One, Ten } = modelPieces(task.view);
+  const word = scheme
+    ? { many: "точек", one: "точка", few: "точки", acc: "точку", name: "Точка" }
+    : { many: "монет", one: "монета", few: "монеты", acc: "монету", name: "Монета" };
   const layout = useMemo(() => heapLayout(task.number, task.seed), [task.number, task.seed]);
   const [model, setModel] = useState(() => ({ heap: layout.coins.map((c) => c.id), frame: [], tens: [], serial: 0 }));
   const [phase, setPhase] = useState("group");
@@ -208,7 +215,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
       // The pile is the button, so it can't also take coins back: the coins
       // return to the heap and the child counts ten again.
       change((m) => ({ ...m, heap: [...m.heap, ...m.frame], frame: [] }));
-      mistake("В десятке должно быть ровно десять монет. Посчитай ещё раз.");
+      mistake(`В десятке должно быть ровно десять ${word.many}. Посчитай ещё раз.`);
       return;
     }
     const stackId = `s${model.serial}`;
@@ -238,8 +245,8 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
     }
     const messages = {
       tens: "Посчитай десятки ещё раз.",
-      ones: "Единицы — монеты, которые не сложились в десяток. Посчитай их ещё раз.",
-      total: `${tens} ${pluralTens(tens)} — это ${numberWords(tens * 10)}. ${ones ? `И ещё ${ones} ${ones === 1 ? "монета" : ones >= 2 && ones <= 4 ? "монеты" : "монет"}` : "И 0 единиц"}.`,
+      ones: `Единицы — ${word.few}, которые не сложились в десяток. Посчитай их ещё раз.`,
+      total: `${tens} ${pluralTens(tens)} — это ${numberWords(tens * 10)}. ${ones ? `И ещё ${ones} ${ones === 1 ? word.one : ones >= 2 && ones <= 4 ? word.few : word.many}` : "И 0 единиц"}.`,
     };
     setHint(null);
     setNote(messages[key]);
@@ -261,12 +268,12 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   };
 
   const hintText = {
-    start: "Перенеси монету в рамку — нажми на неё или потяни.",
-    more: "Перенеси в рамку все оставшиеся монеты.",
-    full: "В рамке десять монет — нажми на рамку, и они сложатся в десяток.",
+    start: `Перенеси ${word.acc} в рамку — нажми на неё или потяни.`,
+    more: `Перенеси в рамку все оставшиеся ${word.few}.`,
+    full: scheme ? "В рамке десять точек — нажми на рамку, и они станут палочкой: это десяток." : "В рамке десять монет — нажми на рамку, и они сложатся в десяток.",
   }[hint];
   const stackList = model.tens.map((id) => <div key={id} data-stack-id={id} className={`px-stack-wrap${exchange.pendingStack === id ? " px-pending" : ""}`}>
-    <TenStack />
+    <Ten />
   </div>);
   const status = done ? null : hintText ? <span className="sg-status-hint">{hintText}</span>
     : note ? <span className="sg-status-note">{note}</span> : null;
@@ -275,15 +282,15 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
   return <div ref={screenRef} className={`pv-screen sg-screen sg-screen--${mode}`}
     style={{ "--coin-size": `${coinSize}px`, "--sg-cols": layout.cols, "--sg-stack-cols": stackCols, "--sg-stack-rows": stackRows, "--sg-answer-w": `${WIDE_ANSWER}px` }}>
     <div className="sg-inner" ref={innerRef}>
-      <h2 className="sg-title">Сколько здесь монет?</h2>
+      <h2 className="sg-title">Сколько здесь {word.many}?</h2>
       <div className="sg-board" ref={boardRef}>
         <section className="sg-card sg-heap">
           <div className="sg-heapbox" style={{ gridTemplateColumns: `repeat(${layout.cols}, 1fr)`, gridTemplateRows: `repeat(${layout.rows}, calc(var(--coin-size) * 1.12))` }}>
             {model.heap.map((id) => <span key={id} className="sg-cell" style={{ gridColumn: position[id].col + 1, gridRow: position[id].row + 1 }}>
-              <button type="button" className={`px-coin sg-heap-coin${dragging?.id === id ? " sg-lifted" : ""}`} aria-label="Монета из россыпи"
+              <button type="button" className={`px-coin sg-heap-coin${dragging?.id === id ? " sg-lifted" : ""}`} aria-label={`${word.name} из россыпи`}
                 style={{ left: `calc((100% - var(--coin-size)) * ${position[id].jx.toFixed(3)})`, top: `calc((100% - var(--coin-size)) * ${position[id].jy.toFixed(3)})` }}
                 disabled={exchange.busy || done} onClick={() => tapCoin(id)}
-                onPointerDown={(e) => startDrag(e, id)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={cancelDrag}><Coin /></button>
+                onPointerDown={(e) => startDrag(e, id)} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={cancelDrag}><One /></button>
             </span>)}
           </div>
         </section>
@@ -294,7 +301,7 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
           <h3 className="sg-head sg-head--ones">Единицы</h3>
           <div className="sg-stacks">{stackList}</div>
           <div className="sg-frame">
-            <TenFrame coinIds={model.frame} onReturn={returnCoin} onClose={closeFrame} slots={slots} tapToClose
+            <TenFrame One={One} oneName={word.name} coinIds={model.frame} onReturn={returnCoin} onClose={closeFrame} slots={slots} tapToClose
               disabled={exchange.busy || done} glow={hint === "full"} />
           </div>
           <div className={`sg-reveal${show}`}>{field(0)}</div>
@@ -317,10 +324,10 @@ export default function GroupTenTask({ task, onCorrect, onMistake, onFlashIncorr
           <path d="M0 0 L10 5 L0 10 z" fill="#3b82f6" /></marker></defs>
         <line x1="0" y1="0" x2={hand.dx * 0.86} y2={hand.dy * 0.86} markerEnd="url(#sg-arrow)" />
       </svg>}
-      {hand.kind === "move" && <span className="sg-hand-coin"><Coin /></span>}
+      {hand.kind === "move" && <span className="sg-hand-coin"><One /></span>}
       {hand.kind === "tap" && <span className="sg-hand-ripple" />}
       <span className="sg-hand-finger">👆</span>
     </div>}
-    {dragging && <span className="sg-drag-coin" style={{ left: dragging.x, top: dragging.y }}><Coin /></span>}
+    {dragging && <span className="sg-drag-coin" style={{ left: dragging.x, top: dragging.y }}><One /></span>}
   </div>;
 }

@@ -156,7 +156,7 @@ function HearOrRead({ task, onCorrect, onMistake, onFlashIncorrect }) {
     if (guess === n) { typed.reset(); setSolved(true); setNote(""); player.current?.stop(); setPlaying(false); return; }
     typed.fail();
     setMisses((m) => m + 1);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: String(guess), expected: String(n) }); onFlashIncorrect?.();
     if (!teaching) { setNote("Послушай ещё раз."); play(n); return; }
     if (typed.digits.length !== String(n).length && n >= 10) { setNote(`${composition(n)}. Сколько цифр нужно?`); play(n); return; }
     setNote(`${guess} — это «${numberWords(guess)}». А звучало другое число. Послушай ещё раз.`);
@@ -173,7 +173,7 @@ function HearOrRead({ task, onCorrect, onMistake, onFlashIncorrect }) {
       return;
     }
     setWrong((w) => [...w, value]);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: String(value), expected: String(n) }); onFlashIncorrect?.();
     if (reading) {
       // The tapped word is read aloud and tied to its own number.
       if (teaching) { setNote(`«${numberWords(value)}» — это ${value}. Прочитай число ещё раз.`); play(value); } else setNote("Прочитай ещё раз.");

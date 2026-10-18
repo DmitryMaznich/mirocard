@@ -74,17 +74,21 @@ describe("«Таблица»", () => {
     expect(note()).toBe("Сорок семь: сколько здесь десятков?");
   });
 
-  it("«Число»: reads the places from the written number; «47» as tens is the whole number", () => {
+  it("«Число»: both places on one screen, any order; «47» as tens is the whole number", () => {
     const onCorrect = vi.fn(), onMistake = vi.fn();
     h.mount(BuildNumberTask, build({ view: "number" }), { onCorrect, onMistake });
-    expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько десятков в числе?");
-    expect(Array.from(h.container.querySelectorAll(".nl-choice")).map((b) => b.textContent).sort()).toEqual(["4", "47", "7"]);
-    h.click("47");
+    expect(h.container.querySelector(".sg-title").textContent).toBe("Сколько десятков и единиц в числе?");
+    expect(Array.from(h.container.querySelectorAll(".nl-row-label")).map((e) => e.textContent)).toEqual(["Десятков", "Единиц"]);
+    expect(Array.from(h.container.querySelectorAll(".nl-row--tens .nl-choice")).map((b) => b.textContent).sort()).toEqual(["4", "47", "7"]);
+    h.click("Десятков: 47");
     expect(note()).toBe("47 — это всё число. А десятков в нём сколько?");
     expect(h.container.querySelector(".pp-support")).not.toBeNull();
-    h.click("4");
-    expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько единиц в числе?");
-    h.click("7");
+    // Ones first, then tens: either order.
+    h.click("Единиц: 7");
+    expect(h.container.querySelector(".nl-row--ones.nl-row--done")).not.toBeNull();
+    // «Далее» keeps its place from the start, unavailable until all are answered.
+    expect(h.button("Далее →").disabled).toBe(true);
+    h.click("Десятков: 4");
     expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("b", "b");
@@ -93,8 +97,7 @@ describe("«Таблица»", () => {
 
   it("«Число» словами: 40 instead of 4 tens is explained", () => {
     h.mount(BuildNumberTask, build({ view: "number", prompt: "words" }));
-    expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько десятков в числе?");
-    h.click("40");
+    h.click("Десятков: 40");
     expect(note()).toBe("40 — это 4 десятка. Сколько десятков?");
   });
 });

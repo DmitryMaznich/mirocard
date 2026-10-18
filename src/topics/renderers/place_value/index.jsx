@@ -7,6 +7,7 @@ import GroupTenTask from "./GroupTenTask.jsx";
 import PlacePartsTask from "./PlacePartsTask.jsx";
 import NumberNamesTask from "./NumberNamesTask.jsx";
 import CountTensTask from "./CountTensTask.jsx";
+import { checkTaskText } from "./engine.js";
 
 const TASKS = {
   group_ten: GroupTenTask,
@@ -67,7 +68,7 @@ function PlaceValueTask({ task, sessionParams, onCorrect, onIncorrect, onStreakR
       key={`${task.cardId}-${task.number}`}
       task={task}
       onCorrect={onCorrect}
-      onMistake={sessionParams?.strictStars ? onStreakReset : undefined}
+      onMistake={sessionParams?.strictStars ? (conceptId, cardId) => onStreakReset(conceptId, cardId) : undefined}
       onFlashIncorrect={onFlashIncorrect}
     />
   );
@@ -75,15 +76,17 @@ function PlaceValueTask({ task, sessionParams, onCorrect, onIncorrect, onStreakR
 
 // A task of a check («Контрольная работа: до 100»): the mode's own screen without hints;
 // the first mistake leaves the answer red for a moment (no explanation, no
-// right answer shown), then the next task — taps wait meanwhile.
+// right answer shown), then the next task — taps wait meanwhile. What the child
+// answered goes with it, for the result's list of mistakes.
 function CheckTask({ Task, task, onCorrect, onIncorrect, onFlashIncorrect }) {
   const [frozen, setFrozen] = useState(false);
   const done = useRef(false);
-  function mistake(conceptId, cardId) {
+  function mistake(conceptId, cardId, detail) {
     if (done.current) return;
     done.current = true;
     setFrozen(true);
-    setTimeout(() => onIncorrect?.(conceptId, cardId), CHECK_MISTAKE_MS);
+    const answer = detail && { skill: task.checkSkill, view: task.checkView, task: checkTaskText(task), field: detail.field ?? null, given: detail.given, expected: detail.expected };
+    setTimeout(() => onIncorrect?.(conceptId, cardId, answer), CHECK_MISTAKE_MS);
   }
   return (
     <div className="pv-check">

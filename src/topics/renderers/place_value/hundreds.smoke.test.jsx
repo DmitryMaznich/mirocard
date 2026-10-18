@@ -81,9 +81,12 @@ describe("Сотни", () => {
     expect([value("Сотни"), value("Десятки"), value("Единицы")]).toEqual(["3", "0", "5"]);
     h.unmount();
     h.mount(BuildNumberTask, build(305, { view: "number" }));
-    expect(h.container.querySelector(".nl-ask").textContent).toBe("Сколько сотен в числе?");
-    h.click("3"); h.click("0"); h.click("5");
-    expect(h.container.querySelector(".sg-status-say")).toBeNull();
+    expect(Array.from(h.container.querySelectorAll(".nl-row-label")).map((e) => e.textContent)).toEqual(["Сотен", "Десятков", "Единиц"]);
+    h.click("Единиц: 5"); h.click("Сотен: 3");
+    // «Далее» keeps its place from the start, unavailable until all are answered.
+    expect(h.button("Далее →").disabled).toBe(true);
+    h.click("Десятков: 0");
+    expect(h.button("Далее →").disabled).toBe(false);
   });
 
   it("engine: «до 1000» gives three-digit numbers, ≤ 599 on coins, some without tens", () => {

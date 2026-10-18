@@ -3,7 +3,7 @@ import Button from "@/shared/components/Button";
 import { modelPieces } from "./CoinBlocks.jsx";
 import { BuildHundreds } from "./HundredsTasks.jsx";
 import { BuildTableTask, NumberLevelTask } from "./TableTasks.jsx";
-import { numberWords, pluralTens } from "./placeValueLabels.js";
+import { numberWords, pluralTens, spelledPlaces } from "./placeValueLabels.js";
 import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
@@ -83,7 +83,7 @@ function BuildNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect }) 
     setNote(message);
     setShake(true);
     setTimeout(() => setShake(false), 450);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: spelledPlaces({ tens, ones }), expected: spelledPlaces(target) }); onFlashIncorrect?.();
   }
 
   const blocks = Math.ceil(ones / 10);

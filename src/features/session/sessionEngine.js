@@ -1,4 +1,4 @@
-import { createSessionMetrics, recordResponse, recordAdvance, recordQuality, summarizeMetrics } from "../analytics/sessionMetrics";
+import { createSessionMetrics, recordResponse, recordAdvance, recordQuality, recordWrongAnswer, summarizeMetrics } from "../analytics/sessionMetrics";
 
 function generateId() {
   return "session_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
@@ -151,9 +151,9 @@ export function handleInstantCorrect(state) {
   };
 }
 
-export function handleInstantIncorrect(state, conceptId, cardId) {
+export function handleInstantIncorrect(state, conceptId, cardId, answer) {
   state = markSessionAction(state);
-  state = recordAdvance(recordResponse(state, "incorrect"));
+  state = recordAdvance(recordWrongAnswer(recordResponse(state, "incorrect"), answer));
   const incorrectCount = state.incorrectCount + 1;
   const mistakes = conceptId ? [...state.mistakes, { conceptId, cardId }] : state.mistakes;
   const nextIndex = (state.taskIndex + 1) % state.tasks.length;

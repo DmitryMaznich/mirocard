@@ -85,7 +85,7 @@ export function ExchangeHundredScheme({ task, onCorrect, onMistake, onFlashIncor
     if (Number(typed.digits) === task.result) { typed.reset(); setPhase("done"); setNote(""); return; }
     typed.fail();
     setNote(teaching ? "Посчитай сотни, десятки и единицы ещё раз." : "Проверь число ещё раз.");
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: typed.digits, expected: String(task.result) }); onFlashIncorrect?.();
   }
   const hint = !teaching || phase !== "act" ? null
     : give ? (left > 0 ? (model.frame.length ? "Убери десяток из рамки — нажми на палочку." : "В рамке пусто, а убрать нужно ещё. Нажми на сотню — она рассыпется в десять десятков.") : null)
@@ -184,7 +184,8 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
   const solved = step >= steps.length;
   const current = steps[step];
   const passed = (key) => { const i = steps.findIndex((s) => s.key === key); return i >= 0 && i < step; };
-  const fail = (message) => { setNote(message); onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.(); };
+  // The typed digits are still there when a submitted guess fails.
+  const fail = (message) => { setNote(message); onMistake?.(task.conceptId, task.cardId, typed.digits ? { field: current.key === "total" ? null : current.label, given: typed.digits, expected: String(current.expected) } : undefined); onFlashIncorrect?.(); };
 
   function submit(guess) {
     if (solved) return false;

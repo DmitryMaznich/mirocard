@@ -3,7 +3,9 @@ import Button from "@/shared/components/Button";
 import { numberWords, pluralHundreds, pluralTens } from "./placeValueLabels.js";
 import { playNumber, playPhrase, registerSpeech, stopSpeech } from "./numberAudio.js";
 import { useSpeechGuard } from "./useSpeechGuard.js";
+import { SchemeHundred, SchemeTen, TenStack } from "./CoinBlocks.jsx";
 import "./place_value.css";
+import "./coins.css";
 import "./group_ten.css";
 import "./count_tens.css";
 
@@ -77,32 +79,46 @@ function Digits({ n }) {
   return [...s].map((d, i) => <span key={i} className={`ct-d--${kinds[i]}`}>{d}</span>);
 }
 
-// A hundred: ten tens side by side in a green square. `lit` < 10 is the square
-// being built while the sticks fold into it.
-function Square({ lit = 10 }) {
-  return <div className={`ct-square${lit < 10 ? " ct-square--building" : ""}`}>
+// The pieces are the topic's own (CoinBlocks.jsx), so a hundred here is the
+// same hundred as in «Сотни: какое это число?»: «Монеты» — a stack of ten
+// coins, a plate of ten stacks; «Схема» — a stick, a green square. `lit` < 10
+// is the hundred being built (or taken apart) out of its tens.
+function Hundred({ coins, lit = 10 }) {
+  if (coins) {
+    return <div className={`cb-plate${lit < 10 ? " ct-plate--building" : ""}`}>
+      {Array.from({ length: 10 }, (_, i) => i < lit ? <TenStack key={i} /> : <span key={i} className="ct-plate-slot" />)}
+    </div>;
+  }
+  if (lit === 10) return <SchemeHundred />;
+  return <div className="cb-square-cell"><div className="ct-square--building">
     {Array.from({ length: 10 }, (_, i) => <i key={i} className={i < lit ? "ct-stripe" : "ct-stripe ct-stripe--off"} />)}
-  </div>;
+  </div></div>;
 }
 
-function Board({ hundreds, sticks, building = null, gone = 0, fresh = false, ghost = false, ghostLast = false, empty = false }) {
-  return <div className={`ct-board${hundreds > 4 ? " ct-board--many" : ""}`}>
+function Board({ coins, hundreds, sticks, building = null, gone = 0, fresh = false, ghost = false, ghostLast = false, empty = false }) {
+  const Ten = coins ? TenStack : SchemeTen;
+  return <div className={`ct-board ct-board--${coins ? "coins" : "scheme"}${hundreds > 4 ? " ct-board--many" : ""}`}>
     <section className="ct-card ct-card--hundreds">
       <h3 className="sg-head sg-head--hundreds">Сотни</h3>
       <div className="ct-squares">
-        {Array.from({ length: hundreds }, (_, i) => <Square key={i} />)}
-        {building !== null && <Square lit={building} />}
+        {Array.from({ length: hundreds }, (_, i) => <Hundred key={i} coins={coins} />)}
+        {building !== null && <Hundred coins={coins} lit={building} />}
       </div>
     </section>
     <section className={`ct-card ct-card--tens${empty ? " ct-card--empty" : ""}`}>
       <h3 className="sg-head sg-head--tens">Десятки</h3>
       <div className="ct-sticks">
         {Array.from({ length: sticks }, (_, i) => <span key={i}
-          className={`ct-stick${i < gone ? " ct-stick--gone" : ""}${fresh && i === sticks - 1 ? " ct-stick--new" : ""}${ghostLast && i === sticks - 1 ? " ct-stick--ghost" : ""}`} />)}
-        {ghost && <span className="ct-stick ct-stick--ghost" />}
+          className={`ct-ten${i < gone ? " ct-ten--gone" : ""}${fresh && i === sticks - 1 ? " ct-ten--new" : ""}${ghostLast && i === sticks - 1 ? " ct-ten--ghost" : ""}`}><Ten /></span>)}
+        {ghost && <span className="ct-ten ct-ten--ghost"><Ten /></span>}
       </div>
     </section>
   </div>;
+}
+
+// The button's icon: one ten, as on the board.
+function TenIcon({ coins }) {
+  return <span className={`ct-btn-ten${coins ? " ct-btn-ten--coins" : ""}`}>{coins ? <TenStack /> : <span className="ct-btn-stick" />}</span>;
 }
 
 export default function CountTensTask(props) {
@@ -189,7 +205,7 @@ function CountAlong({ task, onCorrect }) {
   return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`} {...guard}>
     <div className="ct-inner">
       <h2 className="sg-title">Считаем десятками</h2>
-      <Board hundreds={hundreds} sticks={sticks} building={phase === "folding" ? folded : null} gone={phase === "folding" ? folded : 0}
+      <Board coins={task.view !== "scheme"} hundreds={hundreds} sticks={sticks} building={phase === "folding" ? folded : null} gone={phase === "folding" ? folded : 0}
         fresh={phase === "ask" || (phase === "idle" && taps > 0 && !justFolded)} />
       <div className={`ct-number${hidden ? " ct-number--hidden" : ""}`} aria-live="polite">{hidden ? "?" : <Digits n={value} />}</div>
       <div className="ct-caption">{hidden ? " " : value === 0 ? "ноль" : caption(value)}</div>
@@ -197,7 +213,7 @@ function CountAlong({ task, onCorrect }) {
       <div className="ct-slot">
         {done ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
           : pending ? <button type="button" className="ct-btn ct-btn--fold" disabled={phase === "folding"} onClick={fold}>Сложи сотню</button>
-            : <button type="button" className="ct-btn" disabled={phase !== "idle"} onClick={add}><span className="ct-btn-stick" />+1 десяток</button>}
+            : <button type="button" className="ct-btn" disabled={phase !== "idle"} onClick={add}><TenIcon coins={task.view !== "scheme"} />+1 десяток</button>}
       </div>
     </div>
   </div>;
@@ -280,7 +296,7 @@ function CountBack({ task, onCorrect }) {
   return <div ref={ref} className={`pv-screen ct-screen ct-screen--${mode}`} {...guard}>
     <div className="ct-inner">
       <h2 className="sg-title">Считаем назад</h2>
-      <Board hundreds={hundreds} sticks={sticks} building={phase === "unfolding" ? 10 - unfolded : null}
+      <Board coins={task.view !== "scheme"} hundreds={hundreds} sticks={sticks} building={phase === "unfolding" ? 10 - unfolded : null}
         ghost={phase === "ask"} empty={phase === "empty"} />
       <div className={`ct-number${hidden ? " ct-number--hidden" : ""}`} aria-live="polite">{hidden ? "?" : <Digits n={value} />}</div>
       <div className="ct-caption">{hidden ? " " : value === 0 ? "ноль" : split ? splitCaption : caption(value)}</div>
@@ -289,7 +305,7 @@ function CountBack({ task, onCorrect }) {
         {done ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
           : phase === "empty" || phase === "unfolding"
             ? <button type="button" className="ct-btn ct-btn--fold" disabled={phase === "unfolding"} onClick={unfold}>Разложи сотню</button>
-            : <button type="button" className="ct-btn" disabled={phase !== "idle"} onClick={take}><span className="ct-btn-stick" />−1 десяток</button>}
+            : <button type="button" className="ct-btn" disabled={phase !== "idle"} onClick={take}><TenIcon coins={task.view !== "scheme"} />−1 десяток</button>}
       </div>
     </div>
   </div>;
@@ -333,7 +349,7 @@ function NextNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
     setWrong((w) => [...w, v]);
     setNote(hint(v));
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: String(v), expected: String(right) }); onFlashIncorrect?.();
   }
 
   // After the answer the board shows the next number; across a hundred the
@@ -344,7 +360,7 @@ function NextNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
     <div className="ct-inner">
       <h2 className="sg-title">Какое число дальше?</h2>
       <div className="ct-chain">{chain.map((x, i) => <span key={x}>{i ? " · " : ""}{x === n ? <b>{x}</b> : x}</span>)}<span> · {solved ? <b className="ct-chain-right">{right}</b> : "?"}</span></div>
-      <Board hundreds={Math.floor(shown / 100)} sticks={Math.floor(shown / 10) % 10} ghost={support && !solved && !crossing} fresh={solved && !crossing} />
+      <Board coins={task.view !== "scheme"} hundreds={Math.floor(shown / 100)} sticks={Math.floor(shown / 10) % 10} ghost={support && !solved && !crossing} fresh={solved && !crossing} />
       <div className="ct-ask">{n} и ещё 1 десяток — это…</div>
       <div className="ct-options">
         {task.options.map((v) => <button type="button" key={v} disabled={solved || wrong.includes(v)}
@@ -399,7 +415,7 @@ function PrevNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
     setWrong((w) => [...w, v]);
     setNote(hint(v));
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: String(v), expected: String(right) }); onFlashIncorrect?.();
   }
 
   // Support at a round hundred: the last hundred laid out as ten sticks, the
@@ -411,7 +427,7 @@ function PrevNumber({ task, onCorrect, onMistake, onFlashIncorrect }) {
     <div className="ct-inner">
       <h2 className="sg-title">Какое число перед?</h2>
       <div className="ct-chain">{chain.map((x, i) => <span key={x}>{i ? " · " : ""}{x === n ? <b>{x}</b> : x}</span>)}<span> · {solved ? <b className="ct-chain-right">{right}</b> : "?"}</span></div>
-      <Board {...board} ghostLast={support && !solved} />
+      <Board coins={task.view !== "scheme"} {...board} ghostLast={support && !solved} />
       <div className="ct-ask">{n} без одного десятка — это…</div>
       <div className="ct-options">
         {task.options.map((v) => <button type="button" key={v} disabled={solved || wrong.includes(v)}

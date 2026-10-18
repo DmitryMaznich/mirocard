@@ -1,7 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { act } from "react";
 import PlaceValueRenderer, { CHECK_MISTAKE_MS } from "./index.jsx";
-import { checkResultRows, generateCheckTasks, generateTasks } from "./engine.js";
+import { renderToStaticMarkup } from "react-dom/server";
+import { checkResultRows, checkTaskText, generateCheckTasks, generateTasks } from "./engine.js";
+import PlaceValueCheckResult from "@/features/session/PlaceValueCheckResult.jsx";
 import { handleInstantCorrect, handleInstantIncorrect } from "@/features/session/sessionEngine.js";
 import { coinHarness } from "./coinTestHelpers.jsx";
 
@@ -53,6 +55,11 @@ describe("«Проверка» — one answer each, then the session ends", () =
     expect(handleInstantIncorrect(state(0), "c", "k")).toMatchObject({ taskIndex: 1, status: "task_active", incorrectCount: 1 });
     expect(handleInstantCorrect(state(2)).status).toBe("completed");
     expect(handleInstantIncorrect(state(2), "c", "k").status).toBe("completed");
+    // The child's answer is kept with the statistics; none given — nothing kept.
+    const stats = { firstTotal: 0, firstCorrect: 0, corrected: 0, assisted: 0, advancedTasks: 0, concepts: {}, quality: {}, current: null };
+    const answer = { skill: "s100_parts", view: null, task: "47 = …", field: "Десятки", given: "4", expected: "40" };
+    expect(handleInstantIncorrect({ ...state(0), statistics: stats }, "c", "k", answer).statistics.wrongAnswers).toEqual([answer]);
+    expect(handleInstantIncorrect({ ...state(0), statistics: stats }, "c", "k").statistics.wrongAnswers).toBeUndefined();
     // An ordinary instant mode still goes round.
     expect(handleInstantCorrect({ ...state(2), mode: { evaluation: "instant" } }).status).toBe("task_active");
   });
@@ -71,11 +78,32 @@ describe("«Проверка» — a task on screen", () => {
     expect(onIncorrect).not.toHaveBeenCalled();
     act(() => vi.advanceTimersByTime(CHECK_MISTAKE_MS));
     expect(onIncorrect).toHaveBeenCalledTimes(1);
+    // What the child answered goes with the mistake, for the result.
+    expect(onIncorrect.mock.calls[0][2]).toEqual({ skill: "s100_identify", view: "table", task: "Какое это число?", field: null, given: String(wrong), expected: String(task.number) });
     expect(onCorrect).not.toHaveBeenCalled();
   });
 });
 
 describe("«Проверка» — result", () => {
+  it("the task in words, without its answer", () => {
+    expect(checkTaskText({ type: "place_parts", direction: "split", prompt: "digits", number: 47 })).toBe("47 = …");
+    expect(checkTaskText({ type: "place_parts", direction: "join", number: 305 })).toBe("300 + 5 = …");
+    expect(checkTaskText({ type: "number_names", task: "write", number: 47 })).toBe("Послушай и напиши: «сорок семь»");
+    expect(checkTaskText({ type: "count_tens", task: "next", number: 190 })).toBe("Какое число после 190?");
+    expect(checkTaskText({ type: "exchange_ten", op: "give", number: 52, k: 7 })).toBe("52 − 7 = …");
+  });
+
+  it("lists each mistake: the task, the child's answer, the right one", () => {
+    const html = renderToStaticMarkup(<PlaceValueCheckResult session={{ modeId: "pv_test_100", statistics: {
+      concepts: { "s100_parts:none": { total: 2, correct: 1 } },
+      wrongAnswers: [{ skill: "s100_parts", view: null, task: "47 = …", field: "Десятки", given: "4", expected: "40" }],
+    } }} modes={[]} />);
+    expect(html).toContain("Ошибки");
+    expect(html).toContain("47 = …");
+    expect(html).toContain("Десятки: 4");
+    expect(html).toContain("верно: 40");
+  });
+
   it("adds up by skill and by picture", () => {
     const { skills, views } = checkResultRows({
       "s100_identify:coins": { total: 2, correct: 2 }, "s100_identify:table": { total: 2, correct: 1 },
