@@ -4,6 +4,7 @@ import { SchemeHundred, SchemeOne, SchemeTen } from "./CoinBlocks.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import TenFrame from "./TenFrame.jsx";
+import ExchangeFlight, { EnoughChoice } from "./ExchangeFlight.jsx";
 import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
@@ -181,6 +182,13 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
   const [step, setStep] = useState(0);
   const [note, setNote] = useState("");
   const [support, setSupport] = useState(false);
+  // The exchange shown with the scheme's pieces ("split" — a hundred into ten
+  // tens, "merge" — ten tens into a hundred); the table catches up after it.
+  const [flight, setFlight] = useState(null);
+  // «Хватает?» answered wrong → «Что больше?» first; then the result stays shown.
+  const [comparing, setComparing] = useState(false);
+  const [compared, setCompared] = useState(false);
+  const boardRef = useRef(null), hRef = useRef(null), tRef = useRef(null), overHRef = useRef(null);
   const solved = step >= steps.length;
   const current = steps[step];
   const passed = (key) => { const i = steps.findIndex((s) => s.key === key); return i >= 0 && i < step; };
@@ -189,7 +197,11 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
 
   function submit(guess) {
     if (solved) return false;
-    if (guess === current.expected) { setNote(""); setStep(step + 1); return true; }
+    if (guess === current.expected) {
+      setNote(""); setStep(step + 1);
+      if (current.key === "tens" && plan.carry) setFlight("merge");
+      return true;
+    }
     if (!teaching) fail("Проверь число ещё раз.");
     else if (current.key === "tens") { fail(`Посчитай ещё раз: ${current.text.replace(" =", "")}.`); setSupport(true); }
     else if (current.key === "hundreds" && plan.carry && guess === h) fail("Не забудь сотню, которая пришла из десятков.");
@@ -198,8 +210,18 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
     return false;
   }
   function choose(enough) {
-    if (enough === current.expected) { setNote(""); setStep(step + 1); return; }
-    fail(enough ? `Из ${t} нельзя вычесть ${kT} — десятков не хватает.` : `${t} больше ${kT} — десятков хватает, сотня не нужна.`);
+    if (enough === current.expected) {
+      setNote(""); setStep(step + 1);
+      if (!enough) setFlight("split");
+      return;
+    }
+    // No ready answer: the child compares the two numbers first.
+    fail("Сначала сравни числа десятков.");
+    setComparing(true);
+  }
+  function compare(right) {
+    if (right) { setComparing(false); setCompared(true); setNote(""); return; }
+    setNote("Посмотри на числа в таблице ещё раз."); onFlashIncorrect?.();
   }
   const typing = !solved && !current.choice;
   useAutoCheck(typed, { auto: typing && teaching, expected: typing ? current.expected : "", submit });
@@ -208,34 +230,37 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
     if (submit(Number(typed.digits))) typed.reset(); else typed.fail();
   }
 
-  const borrowed = plan.borrow && passed("enough");
+  const borrowed = plan.borrow && passed("enough") && flight !== "split";
   const done = (key) => (teaching ? passed(key) : solved);
-  const cell = (v, kind, extra = "") => <span className={`xb-cell tb-digit--${kind}${extra}`}>{v}</span>;
+  const cell = (v, kind, extra = "", ref = undefined) => <span ref={ref} className={`xb-cell tb-digit--${kind}${extra}`}>{v}</span>;
+  const lit = comparing ? " xb-cell--compare" : "";
   const sticks = (n) => <span className="xh-dots">{Array.from({ length: n }, (_, i) => <SchemeTen key={i} />)}</span>;
 
   return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} tb-screen xb-screen`} style={{ "--sg-answer-w": "340px" }}>
     <div className="sg-inner">
       <h2 className="sg-title xt-example">{task.number} <span className={`xt-sign xt-sign--${task.op}`}>{sign}</span> {task.k} = <span className="xt-q">{solved ? task.result : "?"}</span></h2>
       <div className="sg-board">
-        <section className="sg-card xb-table xh-table" aria-label="Пример по разрядам">
+        <section ref={boardRef} className="sg-card xb-table xh-table" aria-label="Пример по разрядам">
           <span />{head("hundreds", "Сотни")}{head("tens", "Десятки")}{head("ones", "Единицы")}
           <span />
-          <span className="xb-over xb-over--hundreds">{plan.carry && done("tens") ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-carry">{h - 1}</span> : null}</span>
+          <span ref={overHRef} className="xb-over xb-over--hundreds">{plan.carry && done("tens") && flight !== "merge" ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-carry">{h - 1}</span> : null}</span>
           <span className="xb-over xb-over--tens">{borrowed ? <span className="xb-carry">{10 + t}</span> : null}</span>
           <span />
           <span />
-          {cell(h, "hundreds", borrowed ? " xb-crossed" : "")}
-          {cell(t, "tens", borrowed ? " xb-crossed" : "")}
+          {cell(h, "hundreds", borrowed ? " xb-crossed" : "", hRef)}
+          {cell(t, "tens", (borrowed ? " xb-crossed" : "") + lit, tRef)}
           {cell(o, "ones")}
           <span className={`xb-sign xt-sign--${task.op}`}>{sign}</span>
           {cell("", "hundreds")}
-          {cell(kT, "tens")}
+          {cell(kT, "tens", lit)}
           {cell(0, "ones")}
           <span className="xb-rule" />
           <span />
           {cell(done("hundreds") ? plan.result.hundreds : "", "hundreds", " xb-result")}
           {cell(done("tens") ? plan.result.tens : "", "tens", " xb-result")}
           {cell(done("ones") ? plan.result.ones : "", "ones", " xb-result")}
+          {flight && <ExchangeFlight boardRef={boardRef} mode={flight} Big={SchemeHundred} Small={SchemeTen}
+            fromRef={flight === "split" ? hRef : tRef} toRef={flight === "split" ? tRef : overHRef} onDone={() => setFlight(null)} />}
         </section>
         {support && teaching && !done("tens") && <div className="xb-support xh-support" aria-hidden="true">
           {sticks(borrowed ? 10 + t : t)}<b>{sign}</b>{sticks(kT)}
@@ -253,12 +278,10 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
         <div className="sg-status" role="status">
           {solved ? null : note ? <span className="sg-status-note">{note}</span> : null}
         </div>
-        <div className="sg-slot">
-          {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-            : current.choice ? <div className="xb-choice">
-              <button type="button" className="xb-choice-btn" onClick={() => choose(true)}>Хватает</button>
-              <button type="button" className="xb-choice-btn" onClick={() => choose(false)}>Не хватает</button>
-            </div>
+        {/* While the pieces fly, the answer waits: look first, then write. */}
+        <div className={`sg-slot${flight ? " xf-wait" : ""}`}>
+          {solved ? <Button disabled={Boolean(flight)} onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
+            : current.choice ? <EnoughChoice top={t} bottom={kT} compared={compared} comparing={comparing} onChoose={choose} onCompare={compare} />
               : <Keypad typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={!teaching} />}
         </div>
       </div>

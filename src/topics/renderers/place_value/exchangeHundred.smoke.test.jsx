@@ -50,6 +50,11 @@ describe("Плюс и минус через сотню", () => {
     const onMistake = vi.fn();
     h.mount(ExchangeTenTask, { ...minus, view: "table" }, { onMistake });
     type(4); h.click("Не хватает");
+    // The hundred's square flies to the tens and falls apart into ten sticks.
+    expect(h.container.querySelector(".xf-layer .cb-square")).not.toBeNull();
+    expect(h.container.querySelectorAll(".xf-layer .cb-stick")).toHaveLength(10);
+    h.flush();
+    expect(h.container.querySelector(".xf-layer")).toBeNull();
     expect(h.container.querySelector(".xb-over--tens").textContent).toBe("11");
     type(8); type(2);
     expect(h.container.querySelector(".sg-status-note").textContent).toBe("Одну сотню мы отдали десяткам.");

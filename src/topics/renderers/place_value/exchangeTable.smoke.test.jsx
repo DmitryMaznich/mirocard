@@ -26,6 +26,11 @@ describe("«Плюс и минус через десяток» — «Табли�
     expect(cells()).toEqual(["3", "8", "", "4", "", ""]);
     expect(text(".xb-step-text")).toBe("8 + 4 =");
     type(12);
+    // Ten dots gather into a stick and fly over the tens; the 1 comes after.
+    expect(h.container.querySelectorAll(".xf-layer .cb-dot")).toHaveLength(10);
+    expect(h.container.querySelector(".xf-layer .cb-stick")).not.toBeNull();
+    expect(text(".xb-over--tens")).toBe("");
+    h.flush();
     expect(text(".xb-over--tens")).toBe("1");
     expect(cells().slice(4)).toEqual(["", "2"]);
     expect(text(".xb-step-text")).toBe("3 + 1 =");
@@ -43,8 +48,19 @@ describe("«Плюс и минус через десяток» — «Табли�
     const onMistake = vi.fn();
     h.mount(ExchangeTenTask, minus, { onMistake });
     h.click("Хватает");
-    expect(note()).toBe("Из 2 нельзя вычесть 4 — единиц не хватает.");
+    // No ready answer: the child compares the two numbers, lit in the table.
+    expect(note()).toBe("Сначала сравни числа единиц.");
+    expect(text(".xb-compare-ask")).toBe("Что больше: 2 или 4?");
+    expect(h.container.querySelectorAll(".xb-cell--compare")).toHaveLength(2);
+    h.click("2");
+    expect(note()).toBe("Посмотри на числа в таблице ещё раз.");
+    h.click("4");
+    expect(text(".xb-compared")).toBe("2 < 4");
     h.click("Не хватает");
+    // A stick leaves the tens and falls apart into ten dots over the ones.
+    expect(h.container.querySelector(".xf-layer .cb-stick")).not.toBeNull();
+    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(0);
+    h.flush();
     expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(2);
     expect(text(".xb-over--ones")).toBe("12");
     expect(text(".xb-over--tens")).toBe("2");
