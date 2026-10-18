@@ -498,9 +498,13 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 .p2-ed .p2-elements-panel { bottom: auto; top: calc(100% + 8px); left: 0; right: auto; max-height: 60dvh; }
 .p2-ed-body { position: relative; flex: 1 1 auto; min-height: 0; display: flex; border: 1px solid var(--p2-line); border-radius: 12px; background: var(--p2-bg); overflow: hidden; }
 .p2-ed-body:focus-within { border-color: var(--p2-teal); }
-.p2-ed-gutter { flex: 0 0 auto; width: 42px; overflow: hidden; background: #f3efe3; border-right: 1px solid var(--p2-line); padding-top: 10px; box-sizing: border-box; user-select: none; }
+.p2-ed-gutter { flex: 0 0 auto; width: 56px; overflow: hidden; background: #f3efe3; border-right: 1px solid var(--p2-line); padding-top: 10px; box-sizing: border-box; user-select: none; }
 .p2-ed-num { box-sizing: border-box; padding-right: 9px; text-align: right; font: 600 .78rem/1.75rem inherit; font-family: inherit; color: #9a9384; }
 .p2-ed-num.is-active { color: var(--p2-teal-dark); font-weight: 800; background: rgba(74, 155, 143, .14); }
+.p2-ed-rows { display: block; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* rows past the first sheet of the page (they print on the next sheet) and the mark where it begins */
+.p2-ed-num.is-over { color: #b45309; }
+.p2-ed-sheet { display: block; margin: 0 -9px 0 0; padding: 0 9px 0 0; font: 800 .62rem/1.1rem inherit; font-family: inherit; color: #fff; background: #d97706; border-radius: 6px 0 0 6px; text-align: right; white-space: nowrap; }
 .p2-ed-text, .p2-ed-measure { box-sizing: border-box; font: 700 1.25rem/1.75rem inherit; font-family: inherit; white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; }
 .p2-ed-text { flex: 1 1 auto; min-width: 0; resize: none; border: none; outline: none; background: transparent; padding: 10px 12px; color: var(--p2-blue); overflow-y: auto; }
 .p2-ed-measure { position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; padding: 0 12px; }

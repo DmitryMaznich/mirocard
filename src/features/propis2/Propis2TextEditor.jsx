@@ -2,10 +2,19 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ElementPicker } from "./Propis2Field";
 
 // The text of the whole page as a mini text editor, for wide screens (PC, landscape tablet): it fills the free white area of the side
-// panel, one line = one row of the page, line numbers on the left (the row of the sheet each line starts at; a long running text
-// wraps, its number stays at its first visual line). The caret decides which row is selected; tapping a row on the sheet puts the
+// panel, one line = one row of the page, on the left the rows of the sheet each line takes («1–9» for a running text that wraps over
+// nine; counted on past the sheet, those rows marked, «лист 2» where the next sheet begins — `perSheet` rows a sheet). The caret decides which row is selected; tapping a row on the sheet puts the
 // caret on its line (`caretRequest.line`). `bar`: what stands in the header next to the «Элемент» button (the problem marks).
-export default function Propis2TextEditor({ value, onChange, onCaret, placeholder, elements, onInsertElement, caretRequest, numbers, activeLine, bar }) {
+// the label of a line's rows and the sheet that begins within them (none: the line stays on the sheet it started on)
+export function rowLabel(n, perSheet) {
+  if (!n) return null;
+  const text = n.from === n.to ? String(n.from) : `${n.from}–${n.to}`;
+  let sheet = null;
+  if (perSheet > 0) for (let first = perSheet + 1; first <= n.to; first += perSheet) if (first >= n.from) { sheet = Math.ceil(first / perSheet); break; }
+  return { text, sheet, over: perSheet > 0 && n.to > perSheet };
+}
+
+export default function Propis2TextEditor({ value, onChange, onCaret, placeholder, elements, onInsertElement, caretRequest, numbers, perSheet = 0, activeLine, bar }) {
   const ref = useRef(null);
   const measureRef = useRef(null);
   const [heights, setHeights] = useState([]);
@@ -60,9 +69,15 @@ export default function Propis2TextEditor({ value, onChange, onCaret, placeholde
       <div className="p2-ed-body">
         <div className="p2-ed-gutter" aria-hidden="true">
           <div className="p2-ed-gutter-in" style={{ transform: `translateY(${-scrollTop}px)` }}>
-            {lines.map((_, i) => (
-              <div key={i} className={`p2-ed-num${i === activeLine ? " is-active" : ""}`} style={heights[i] ? { height: heights[i] } : undefined}>{numbers?.[i] ?? ""}</div>
-            ))}
+            {lines.map((_, i) => {
+              const l = rowLabel(numbers?.[i], perSheet);
+              return (
+                <div key={i} className={`p2-ed-num${i === activeLine ? " is-active" : ""}${l?.over ? " is-over" : ""}`} style={heights[i] ? { height: heights[i] } : undefined} data-rows={l?.text}>
+                  {l && <span className="p2-ed-rows">{l.text}</span>}
+                  {l?.sheet && <span className="p2-ed-sheet">лист {l.sheet}</span>}
+                </div>
+              );
+            })}
           </div>
         </div>
         <textarea

@@ -281,12 +281,19 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     patchSelected({ asText, kind: asText ? "passage" : "text" });
   };
 
-  // the number of the sheet's row each line of the full-page editor starts at (a running text covers several rows: its first)
+  // The rows of the sheet each line of the full-page editor takes: { from, to } (1-based, counted on through the sheets of this page).
+  // A running text typed without Enter wraps over several rows of the sheet: «1–9», not «1» (owner, 2026-10-18: the count must show
+  // when the text runs past the sheet). `perSheet`: the rows of one sheet — a range past it goes onto the next sheet.
   const rowNumbers = useMemo(() => {
     const out = [];
-    owners.forEach((o, abs) => { if (o != null && out[o] === undefined) out[o] = String(abs + 1); });
+    owners.forEach((o, abs) => {
+      if (o == null) return;
+      if (!out[o]) out[o] = { from: abs + 1, to: abs + 1 };
+      else out[o].to = abs + 1;
+    });
     return out;
   }, [owners]);
+  const perSheet = rowsPerPage(page);
 
   // Overlays on the page: the selected row (blue), problems (red).
   const overlays = useMemo(() => {
@@ -430,7 +437,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
 
         <div className="propis2-dock">
           {full ? (
-            <Propis2TextEditor value={draft} onChange={onField} onCaret={onCaret} placeholder="Буква, слово или текст. Enter — новая строка" elements={elementTiles} onInsertElement={insertElement} caretRequest={caretRequest} numbers={rowNumbers} activeLine={selectedIndex} bar={warnsEl} />
+            <Propis2TextEditor value={draft} onChange={onField} onCaret={onCaret} placeholder="Буква, слово или текст. Enter — новая строка" elements={elementTiles} onInsertElement={insertElement} caretRequest={caretRequest} numbers={rowNumbers} perSheet={perSheet} activeLine={selectedIndex} bar={warnsEl} />
           ) : (
             <>
               {warnsEl}
