@@ -171,7 +171,10 @@ const applyOverride = (g, { startLift, steepExit, straightTail, ...rest }) => {
   if (straightTail != null) out = straightenTail(out, straightTail);
   return out;
 };
+// `noOverrides`: a glyph of a variant deck made from another source (the Bulgarian letters traced from a font, tools/propis2/variants/bg):
+// the fixes above are for the shapes of THIS bank (stroke / coordinate indices of the captured letters) and would break it
 const withOverride = (g) => {
+  if (g.noOverrides) return [g];
   const own = P2_GLYPH_OVERRIDES[g.label] ? applyOverride(g, P2_GLYPH_OVERRIDES[g.label]) : g;
   const split = (g.aliases ?? []).filter((a) => P2_GLYPH_OVERRIDES[a]);
   if (!split.length) return [own];

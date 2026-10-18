@@ -1633,6 +1633,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let pendingNudge = WIDE_MAX_CONTACT_NUDGE; // how far (units) the pending connector's end may be moved to reach the next letter (glyph.exitNudge)
       let curNudge = WIDE_MAX_CONTACT_NUDGE;
       let pendingTail = null; // connector of the previous glyph (glyph.tailStroke), drawn only once a letter follows it
+      // the previous glyph has no exit (`noExit`: it ends on its own left side, Boyan's Ф): the next one stands after its ink, not joined
+      let afterNoExit = false;
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
@@ -1646,7 +1648,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           pendingTail = null;
         }
         const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
-        const loose = Boolean(glyph.noJoin) && tokenStartX !== null; // punctuation inside a word: after the ink so far
+        const loose = (Boolean(glyph.noJoin) || afterNoExit) && tokenStartX !== null; // punctuation inside a word: after the ink so far
         if (loose) { prevExit = null; prevExitStroke = -1; }
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = loose
@@ -1769,7 +1771,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         prevExit = [local.end[0] + dx, local.end[1]];
         curNudge = WIDE_MAX_CONTACT_NUDGE;
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
-        if (glyph.noJoin) { prevExit = null; prevExitStroke = -1; }
+        if (glyph.noJoin || glyph.noExit) { prevExit = null; prevExitStroke = -1; }
+        afterNoExit = Boolean(glyph.noExit);
         if (local.tail) {
           pendingNudge = glyph.exitNudge ?? WIDE_MAX_CONTACT_NUDGE;
           pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), always: !!glyph.tailAlways, ...(glyph.tailContinuous ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) };
