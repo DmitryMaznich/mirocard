@@ -68,14 +68,21 @@
 .xf-area .cb-stick { width: 4px; }
 .xf-area .xf-group { gap: 3px 2px; }
 /* The ten just made (or about to leave) on its own row, darker. */
-.xf-group--new, .xf-group--ten { flex-wrap: nowrap; padding: 2px 4px; border-radius: 8px; background: #fef3c7; }
+.xf-group--new { flex-wrap: nowrap; padding: 2px 4px; border-radius: 8px; background: #fef3c7; }
 .xf-group--new { animation: xf-new .5s ease-out; }
-.xf-group--new .cb-stick, .xf-group--ten .cb-stick { background: #92400e; }
-.xf-group--new .cb-dot, .xf-group--ten .cb-dot { background: #1e3a8a; }
-.xf-group--new .cb-square, .xf-group--ten .cb-square { background: #166534; }
+.xf-group--new .cb-stick { background: #92400e; }
+.xf-group--new .cb-dot { background: #1e3a8a; }
+.xf-group--new .cb-square { background: #166534; }
 .xf-piece { display: inline-flex; transition: transform .3s; }
 @keyframes xf-new { from { transform: scale(.2) translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
 .xf-flyer { position: absolute; transform: translate(-50%, -50%); transition-property: left; transition-timing-function: ease-in-out; --coin-size: 12px; z-index: 4; }
+/* Carrying: the sum's ten, big as the result digits, next to its ones (reads
+   «11»), then up over the next column, small as the carry. */
+.xf-carry { position: absolute; transform: translate(-100%, -50%); font-size: clamp(44px, 11vw, 72px); font-weight: 900; line-height: 1;
+  color: #b45309; transition-property: left, top, font-size, transform; transition-timing-function: ease-in-out; animation: xf-fade .3s ease-out; }
+@keyframes xf-fade { from { opacity: 0; } to { opacity: 1; } }
+.xf-carry--up { transform: translate(-50%, -50%); font-size: 24px; }
+.xf-carry--hundreds { color: #15803d; }
 .xb-table .xf-area--big .cb-stick-cell, .xf-flyer .cb-stick-cell { width: calc(var(--coin-size) * 0.6); }
 .xf-wait { pointer-events: none; opacity: .45; transition: opacity .2s; }
 /* «Что больше?»: the two numbers lit in the table. */

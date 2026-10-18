@@ -27,15 +27,13 @@ describe("«Плюс и минус через десяток» — «Табли�
     expect(cells()).toEqual(["3", "8", "", "4", "", ""]);
     expect(text(".xb-step-text")).toBe("8 + 4 =");
     type(12);
-    // 3 sticks and 12 dots; ten dots become a stick that goes to the tens —
-    // 4 sticks, 2 dots; the 1 over the tens comes after.
-    const n = (sel) => h.container.querySelectorAll(sel).length;
-    expect(n(".xf-area--big .cb-stick")).toBe(3);
-    expect(n(".xf-area--small .cb-dot")).toBe(12);
+    // Written way, no pieces: 2 stays under the ones, the 1 of 12 flies up
+    // over the tens and stays there.
+    expect(h.container.querySelector(".xf-area")).toBeNull();
+    expect(text(".xf-carry")).toBe("1");
     expect(text(".xb-over--tens")).toBe("");
-    act(() => vi.advanceTimersByTime(1950));
-    expect(n(".xf-area--big .cb-stick")).toBe(4);
-    expect(n(".xf-area--small .cb-dot")).toBe(2);
+    act(() => vi.advanceTimersByTime(800));
+    expect(h.container.querySelector(".xf-carry--up")).not.toBeNull();
     h.flush();
     expect(text(".xb-over--tens")).toBe("1");
     expect(cells().slice(4)).toEqual(["", "2"]);

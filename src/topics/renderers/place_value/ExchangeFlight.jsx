@@ -1,20 +1,17 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 
-// «Плюс и минус через десяток / сотню» on the «Таблица»: the exchange shown
-// with the scheme, right in the table — the link to the scheme modes. The
-// top number's digits turn into their pieces (7 hundreds → 7 squares, 1 ten →
-// 1 stick), then:
-//  split (borrowing): one big piece moves over to the next column and falls
-//    apart there into ten small ones (7 squares, 1 stick → 6 squares, 11 sticks);
-//  merge (carrying): ten small pieces gather into one big piece and it moves
-//    over to the next column (13 sticks → 3 sticks, and a square to the hundreds).
-// Then the pieces turn back into digits — the table shows the crossed digit
-// and the numbers over the columns (onDone). Placed over the two columns' top
-// cells, from their cells' positions.
+// «Плюс и минус через десяток / сотню» on the «Таблица».
+// Borrowing is shown with the scheme, right in the table — the link to the
+// scheme modes: the top number's digits turn into their pieces (7 hundreds →
+// 7 squares, 1 ten → 1 stick), one big piece moves over to the next column and
+// falls apart there into ten small ones, on their own row (6 squares, 1 + 10
+// sticks); then the pieces turn back into digits — the table shows the crossed
+// digit and the numbers over the columns (onDone).
+// Carrying is shown the written way (CarryDigit below): no pieces at all.
 const PHASE_MS = [450, 850, 650, 1400]; // pieces appear · one moves · it splits / lands · look
 const FLY_MS = PHASE_MS[1];
 
-export default function ExchangeFlight({ boardRef, bigRef, smallRef, overRef, mode, bigCount, smallCount, Big, Small, onDone }) {
+export default function ExchangeFlight({ boardRef, bigRef, smallRef, overRef, bigCount, smallCount, Big, Small, onDone }) {
   const [at, setAt] = useState(null);
   const [phase, setPhase] = useState(0);
   useLayoutEffect(() => {
@@ -34,23 +31,48 @@ export default function ExchangeFlight({ boardRef, bigRef, smallRef, overRef, mo
     return () => timers.forEach(clearTimeout);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   if (!at) return null;
-  const split = mode === "split";
   // What each column holds in this phase, as groups: the pieces it had, and
   // the ten (or the one big piece) just made / about to leave — on its own
   // row, so it reads as «1 and 10», not as 11 loose sticks.
-  const bigGroups = split ? [phase === 0 ? bigCount : bigCount - 1, 0] : [bigCount, phase >= 2 ? 1 : 0];
-  const smallGroups = split ? [smallCount, phase >= 2 ? 10 : 0] : [smallCount - 10, phase === 0 ? 10 : 0];
+  const bigGroups = [phase === 0 ? bigCount : bigCount - 1, 0];
+  const smallGroups = [smallCount, phase >= 2 ? 10 : 0];
   const flyer = phase === 1;
   const area = (x, cls, children) => <div className={`xf-area ${cls}`} style={{ left: x - at.width / 2, top: at.top, width: at.width, minHeight: at.height }}>{children}</div>;
   const group = (n, Piece, cls) => n > 0 && <span className={`xf-group ${cls}`}>{Array.from({ length: n }, (_, i) => <span key={i} className="xf-piece"><Piece /></span>)}</span>;
-  const pieces = ([had, ten], Piece) => <>{group(had, Piece, "")}{group(ten, Piece, split ? "xf-group--new" : "xf-group--ten")}</>;
-  const from = split ? at.big : at.small, to = split ? at.small : at.big;
+  const pieces = ([had, ten], Piece) => <>{group(had, Piece, "")}{group(ten, Piece, "xf-group--new")}</>;
+  const from = at.big, to = at.small;
   return <div className="xf-layer" aria-hidden="true">
     {area(at.big, "xf-area--big", pieces(bigGroups, Big))}
     {area(at.small, "xf-area--small", pieces(smallGroups, Small))}
     {/* The one big piece on its way: from its column to the other. */}
     <span className={`xf-flyer${flyer ? " xf-flyer--go" : ""}`}
       style={{ left: flyer ? to : from, top: at.top + at.height / 2, transitionDuration: `${FLY_MS - 100}ms`, opacity: flyer ? 1 : 0 }}><Big /></span>
+  </div>;
+}
+
+// Carrying, the written way: the sum is written under its column (9 + 2 = 11),
+// its ones stay there and its ten — the left digit — flies up over the next
+// column, where it stays as the «1» to add. Placed from the two cells.
+const CARRY_MS = [700, 900]; // the whole sum shown · its ten flies up
+export function CarryDigit({ boardRef, fromRef, toRef, digit, place, onDone }) {
+  const [at, setAt] = useState(null);
+  const [up, setUp] = useState(false);
+  useLayoutEffect(() => {
+    const board = boardRef.current?.getBoundingClientRect();
+    const from = fromRef.current?.getBoundingClientRect();
+    const to = toRef.current?.getBoundingClientRect();
+    if (!board || !from || !to) return;
+    setAt({ from: { x: from.left - board.left, y: from.top - board.top + from.height / 2 }, to: { x: to.left - board.left + to.width / 2, y: to.top - board.top + to.height / 2 } });
+  }, [boardRef, fromRef, toRef]);
+  useEffect(() => {
+    const a = setTimeout(() => setUp(true), CARRY_MS[0]);
+    const b = setTimeout(onDone, CARRY_MS[0] + CARRY_MS[1]);
+    return () => { clearTimeout(a); clearTimeout(b); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!at) return null;
+  const p = up ? at.to : at.from;
+  return <div className="xf-layer" aria-hidden="true">
+    <span className={`xf-carry xf-carry--${place}${up ? " xf-carry--up" : ""}`} style={{ left: p.x, top: p.y, transitionDuration: `${CARRY_MS[1] - 100}ms` }}>{digit}</span>
   </div>;
 }
 

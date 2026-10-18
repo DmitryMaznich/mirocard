@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { SchemeOne, SchemeTen } from "./CoinBlocks.jsx";
-import ExchangeFlight, { EnoughChoice } from "./ExchangeFlight.jsx";
+import ExchangeFlight, { CarryDigit, EnoughChoice } from "./ExchangeFlight.jsx";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
 import "./coins.css";
@@ -77,13 +77,14 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
   const [step, setStep] = useState(0);
   const [note, setNote] = useState("");
   const [support, setSupport] = useState(false);
-  // The exchange shown with the scheme's pieces ("split" — a ten into ten
-  // ones, "merge" — ten ones into a ten); the table catches up after it.
+  // The exchange shown: "split" — a ten into ten ones with the scheme's
+  // pieces; "carry" — the sum's ten flies up over the tens as a digit.
+  // The table catches up after it.
   const [flight, setFlight] = useState(null);
   // «Хватает?» answered wrong → «Что больше?» first; then the result stays shown.
   const [comparing, setComparing] = useState(false);
   const [compared, setCompared] = useState(false);
-  const boardRef = useRef(null), tRef = useRef(null), oRef = useRef(null), overTRef = useRef(null);
+  const boardRef = useRef(null), tRef = useRef(null), oRef = useRef(null), overTRef = useRef(null), resORef = useRef(null);
   const solved = step >= steps.length;
   const current = steps[step];
   const passed = (key) => steps.findIndex((s) => s.key === key) < step && steps.some((s) => s.key === key);
@@ -97,7 +98,7 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
     if (solved) return false;
     if (guess === current.expected) {
       setNote(""); setStep(step + 1);
-      if (current.key === "ones" && plan.carry) setFlight("merge");
+      if (current.key === "ones" && plan.carry) setFlight("carry");
       return true;
     }
     if (!teaching) fail("Проверь число ещё раз.");
@@ -149,7 +150,7 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
           <h3 className="sg-head sg-head--ones">Единицы</h3>
 
           <span />
-          <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "merge" ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-carry">{t - 1}</span> : null}</span>
+          <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-carry">{t - 1}</span> : null}</span>
           <span className="xb-over xb-over--ones">{borrowed ? <span className="xb-carry xb-carry--ones">{10 + o}</span> : null}</span>
 
           <span />
@@ -164,9 +165,10 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
 
           <span />
           {digit(tensDone ? plan.tensResult : "", "tens", " xb-result")}
-          {digit(onesDone ? plan.onesResult : "", "ones", " xb-result")}
-          {flight && <ExchangeFlight boardRef={boardRef} mode={flight} Big={SchemeTen} Small={SchemeOne}
-            bigRef={tRef} smallRef={oRef} overRef={overTRef} bigCount={t} smallCount={flight === "split" ? o : o + kO} onDone={() => setFlight(null)} />}
+          {digit(onesDone ? plan.onesResult : "", "ones", " xb-result", resORef)}
+          {flight === "split" && <ExchangeFlight boardRef={boardRef} Big={SchemeTen} Small={SchemeOne}
+            bigRef={tRef} smallRef={oRef} overRef={overTRef} bigCount={t} smallCount={o} onDone={() => setFlight(null)} />}
+          {flight === "carry" && <CarryDigit boardRef={boardRef} fromRef={resORef} toRef={overTRef} digit={1} place="tens" onDone={() => setFlight(null)} />}
         </section>
         {support && teaching && !onesDone && <div className="xb-support" aria-hidden="true">
           {plus ? <>{dots(o, "a")}<b>+</b>{dots(kO, "b")}</> : <>{dots(borrowed ? 10 + o : o, "a")}<b>−</b>{dots(kO, "b")}</>}

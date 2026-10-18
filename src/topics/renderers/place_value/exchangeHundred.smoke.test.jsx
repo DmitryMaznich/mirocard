@@ -47,6 +47,18 @@ describe("Плюс и минус через сотню", () => {
     expect(say()).toBeUndefined();
   });
 
+  it("table plus: 9 + 2 = 11 — the 1 under the tens, the ten flies up over the hundreds", () => {
+    h.mount(ExchangeTenTask, { ...plus, view: "table" });
+    type(4); type(11);
+    const res = Array.from(h.container.querySelectorAll(".xb-result")).map((e) => e.textContent);
+    expect(res).toEqual(["", "1", "4"]);
+    expect(h.container.querySelector(".xf-carry.xf-carry--hundreds").textContent).toBe("1");
+    expect(h.container.querySelector(".xb-over--hundreds").textContent).toBe("");
+    h.flush();
+    expect(h.container.querySelector(".xf-carry")).toBeNull();
+    expect(h.container.querySelector(".xb-over--hundreds").textContent).toBe("1");
+  });
+
   it("table minus: «не хватает» borrows a hundred; forgetting it is explained", () => {
     const onMistake = vi.fn();
     h.mount(ExchangeTenTask, { ...minus, view: "table" }, { onMistake });

@@ -4,7 +4,7 @@ import { SchemeHundred, SchemeOne, SchemeTen } from "./CoinBlocks.jsx";
 import { useCoinExchange } from "./useCoinExchange.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import TenFrame from "./TenFrame.jsx";
-import ExchangeFlight, { EnoughChoice } from "./ExchangeFlight.jsx";
+import ExchangeFlight, { CarryDigit, EnoughChoice } from "./ExchangeFlight.jsx";
 import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
@@ -182,13 +182,14 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
   const [step, setStep] = useState(0);
   const [note, setNote] = useState("");
   const [support, setSupport] = useState(false);
-  // The exchange shown with the scheme's pieces ("split" — a hundred into ten
-  // tens, "merge" — ten tens into a hundred); the table catches up after it.
+  // The exchange shown: "split" — a hundred into ten tens with the scheme's
+  // pieces; "carry" — the sum's ten flies up over the hundreds as a digit.
+  // The table catches up after it.
   const [flight, setFlight] = useState(null);
   // «Хватает?» answered wrong → «Что больше?» first; then the result stays shown.
   const [comparing, setComparing] = useState(false);
   const [compared, setCompared] = useState(false);
-  const boardRef = useRef(null), hRef = useRef(null), tRef = useRef(null), overHRef = useRef(null);
+  const boardRef = useRef(null), hRef = useRef(null), tRef = useRef(null), overHRef = useRef(null), resTRef = useRef(null);
   const solved = step >= steps.length;
   const current = steps[step];
   const passed = (key) => { const i = steps.findIndex((s) => s.key === key); return i >= 0 && i < step; };
@@ -199,7 +200,7 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
     if (solved) return false;
     if (guess === current.expected) {
       setNote(""); setStep(step + 1);
-      if (current.key === "tens" && plan.carry) setFlight("merge");
+      if (current.key === "tens" && plan.carry) setFlight("carry");
       return true;
     }
     if (!teaching) fail("Проверь число ещё раз.");
@@ -243,7 +244,7 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
         <section ref={boardRef} className="sg-card xb-table xh-table" aria-label="Пример по разрядам">
           <span />{head("hundreds", "Сотни")}{head("tens", "Десятки")}{head("ones", "Единицы")}
           <span />
-          <span ref={overHRef} className="xb-over xb-over--hundreds">{plan.carry && done("tens") && flight !== "merge" ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-carry">{h - 1}</span> : null}</span>
+          <span ref={overHRef} className="xb-over xb-over--hundreds">{plan.carry && done("tens") && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? <span className="xb-carry">{h - 1}</span> : null}</span>
           <span className="xb-over xb-over--tens">{borrowed ? <span className="xb-carry">{10 + t}</span> : null}</span>
           <span />
           <span />
@@ -257,10 +258,11 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
           <span className="xb-rule" />
           <span />
           {cell(done("hundreds") ? plan.result.hundreds : "", "hundreds", " xb-result")}
-          {cell(done("tens") ? plan.result.tens : "", "tens", " xb-result")}
+          {cell(done("tens") ? plan.result.tens : "", "tens", " xb-result", resTRef)}
           {cell(done("ones") ? plan.result.ones : "", "ones", " xb-result")}
-          {flight && <ExchangeFlight boardRef={boardRef} mode={flight} Big={SchemeHundred} Small={SchemeTen}
-            bigRef={hRef} smallRef={tRef} overRef={overHRef} bigCount={h} smallCount={flight === "split" ? t : t + kT} onDone={() => setFlight(null)} />}
+          {flight === "split" && <ExchangeFlight boardRef={boardRef} Big={SchemeHundred} Small={SchemeTen}
+            bigRef={hRef} smallRef={tRef} overRef={overHRef} bigCount={h} smallCount={t} onDone={() => setFlight(null)} />}
+          {flight === "carry" && <CarryDigit boardRef={boardRef} fromRef={resTRef} toRef={overHRef} digit={1} place="hundreds" onDone={() => setFlight(null)} />}
         </section>
         {support && teaching && !done("tens") && <div className="xb-support xh-support" aria-hidden="true">
           {sticks(borrowed ? 10 + t : t)}<b>{sign}</b>{sticks(kT)}
