@@ -317,4 +317,5 @@ def main():
     print(f"scale x{s:.3f}; {len(glyphs)} glyphs -> {OUT}")
 
 
-main()
+if __name__ == "__main__":
+    main()

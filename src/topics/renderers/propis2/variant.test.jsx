@@ -12,6 +12,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { buildPageTask } from "./pageTask.js";
 import { deckPapers, newPage, rowsPerPage } from "./model.js";
+import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
+import { getPathEndpoints } from "../propis/pathGeometry.js";
 
 // The Bulgarian variant deck (docs/propis2-variants.md), installed from its built ZIP through the real importer: the same renderer,
 // its own alphabet (30 letters, no Ё Ы Э), its own modes, words on the cover in Bulgarian.
@@ -35,13 +37,13 @@ describe("propis2 variant: Bulgarian", () => {
     expect(rec.meta.alphabet.lower).toHaveLength(30);
   });
 
-  it("the card modes ask only the Bulgarian letters, each drawn, Ъ lowercase only until its capital is captured", async () => {
+  it("the card modes ask only the Bulgarian letters, each drawn, Ъ with its captured capital (2026-10-18)", async () => {
     const rec = await installed();
     const map = buildGlyphMap(rec);
     const letters = cardLetters(topicAlphabet(rec, map));
     expect(letters.join("")).not.toMatch(/[ёЁыЫэЭ]/);
     expect(letters).toContain("ъ");
-    expect(letters).not.toContain("Ъ");
+    expect(letters).toContain("Ъ");
     expect(letters).not.toContain("Ь");
     const cards = cardGlyphs(map, letters);
     expect(letters.filter((l) => !cards[l])).toEqual([]);
@@ -66,6 +68,7 @@ describe("propis2 variant: Bulgarian", () => {
     expect(alphabet.heading).toBe("Азбука");
     const text = alphabet.lines.join(" ");
     expect(text).toContain("Ю ю");
+    expect(text).toContain("Ъ ъ");
     expect(text).not.toMatch(/[ЁёЫыЭэ]/);
     for (const kind of ["alphabet", "digits", "signs", "digits-signs", "punctuation"]) {
       const c = backContent(kind, topicAlphabet(rec, map), rec.meta.coverWords);
@@ -86,5 +89,17 @@ describe("propis2 variant: Bulgarian", () => {
     const guide = /<g data-simple-grid="bg"><line x1="([-\d.]+)" y1="([-\d.]+)" x2="([-\d.]+)" y2="([-\d.]+)"/.exec(html);
     const [x1, y1, x2, y2] = guide.slice(1).map(Number);
     expect((Math.atan2(y1 - y2, x2 - x1) * 180) / Math.PI).toBeCloseTo(76, 0);
+  });
+
+  it("Ъ is written: a capital as tall as the others, and «Ъгъл» starts with it, joined to the г", async () => {
+    const rec = await installed();
+    const map = buildGlyphMap(rec);
+    const r = layoutWideLinesIntoRows(["Ъгъл"], map, undefined, false, 0.5).placed[0];
+    const ink = r.segments.flatMap((s) => s.trajectory?.strokes ?? []);
+    const startX = getPathEndpoints(ink[0].d).start[0];
+    const ru = layoutWideLinesIntoRows(["гъл"], map, undefined, false, 0.5).placed[0].segments.flatMap((s) => s.trajectory?.strokes ?? []);
+    expect(ink.length).toBeGreaterThan(ru.length); // the Ъ is there (it was dropped silently before)
+    expect(startX).toBeLessThan(getPathEndpoints(ru[0].d).start[0] + 1);
+    expect(ink.slice(1).some((s) => s.continuous)).toBe(true);
   });
 });
