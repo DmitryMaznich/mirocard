@@ -78,13 +78,14 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
   const [note, setNote] = useState("");
   const [support, setSupport] = useState(false);
   // The exchange shown: "split" — a ten into ten ones with the scheme's
-  // pieces; "carry" — the sum's ten flies up over the tens as a digit.
+  // pieces, then "lend" — the borrowed ten goes up over the ones as the small
+  // written «1»; "carry" — the sum's ten flies up over the tens as a digit.
   // The table catches up after it.
   const [flight, setFlight] = useState(null);
   // «Хватает?» answered wrong → «Что больше?» first; then the result stays shown.
   const [comparing, setComparing] = useState(false);
   const [compared, setCompared] = useState(false);
-  const boardRef = useRef(null), tRef = useRef(null), oRef = useRef(null), overTRef = useRef(null), resORef = useRef(null);
+  const boardRef = useRef(null), tRef = useRef(null), oRef = useRef(null), overTRef = useRef(null), overORef = useRef(null), resORef = useRef(null);
   const solved = step >= steps.length;
   const current = steps[step];
   const passed = (key) => steps.findIndex((s) => s.key === key) < step && steps.some((s) => s.key === key);
@@ -151,11 +152,13 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
 
           <span />
           <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed && tensDone ? <span className="xb-carry">{t - 1}</span> : null}</span>
-          <span className="xb-over xb-over--ones">{borrowed ? <span className="xb-carry xb-carry--ones">{10 + o}</span> : null}</span>
+          <span ref={overORef} className="xb-over xb-over--ones">{borrowed && flight !== "lend" ? <span className="xb-carry xb-lend">1</span> : null}</span>
 
           <span />
           {digit(t, "tens", borrowed ? " xb-crossed" : "", tRef)}
-          {digit(o, "ones", (borrowed ? " xb-crossed" : "") + lit, oRef)}
+          {/* The written way: 3 crossed (2 over it after its step), the 2 not —
+              a small «1» over it on the left makes it 12. */}
+          {digit(o, "ones", lit, oRef)}
 
           <span className={`xb-sign xt-sign--${task.op}`}>{sign}</span>
           {digit(kT || "", "tens")}
@@ -167,7 +170,8 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
           {digit(tensDone ? plan.tensResult : "", "tens", " xb-result")}
           {digit(onesDone ? plan.onesResult : "", "ones", " xb-result", resORef)}
           {flight === "split" && <ExchangeFlight boardRef={boardRef} Big={SchemeTen} Small={SchemeOne}
-            bigRef={tRef} smallRef={oRef} overRef={overTRef} bigCount={t} smallCount={o} onDone={() => setFlight(null)} />}
+            bigRef={tRef} smallRef={oRef} overRef={overTRef} bigCount={t} smallCount={o} onDone={() => setFlight("lend")} />}
+          {flight === "lend" && <CarryDigit lend boardRef={boardRef} fromRef={tRef} toRef={overORef} shiftRef={oRef} digit={1} place="ones" onDone={() => setFlight(null)} />}
           {flight === "carry" && <CarryDigit boardRef={boardRef} fromRef={resORef} toRef={overTRef} digit={1} place="tens" onDone={() => setFlight(null)} />}
         </section>
         {support && teaching && !onesDone && <div className="xb-support" aria-hidden="true">

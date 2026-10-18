@@ -73,12 +73,15 @@ describe("Плюс и минус через сотню", () => {
     expect(n(".xf-area--small .cb-stick")).toBe(11);
     expect(n(".xf-area--small .xf-group--new .cb-stick")).toBe(10);
     h.flush();
+    // Then the borrowed ten goes up over the tens as the written «1».
+    expect(h.container.querySelector(".xf-carry--lend").textContent).toBe("1");
+    h.flush();
     expect(h.container.querySelector(".xf-layer")).toBeNull();
-    // Both digits crossed, 11 over the tens; over the hundreds nothing yet —
-    // «2 − 1» is the last step, its answer goes there only once it's given.
+    // The written way: the 2 crossed, the 1 not — a small «1» over it makes 11;
+    // over the hundreds nothing yet — «2 − 1» is the last step.
     const over = (k) => h.container.querySelector(`.xb-over--${k}`).textContent;
-    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(2);
-    expect(over("tens")).toBe("11");
+    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(1);
+    expect(h.container.querySelector(".xb-over--tens .xb-lend").textContent).toBe("1");
     expect(over("hundreds")).toBe("");
     type(8); type(2);
     expect(h.container.querySelector(".sg-status-note").textContent).toBe("Одну сотню мы отдали десяткам.");

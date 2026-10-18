@@ -68,10 +68,11 @@ describe("«Плюс и минус через десяток» — «Табли�
     act(() => vi.advanceTimersByTime(1950));
     expect(n(".xf-area--big .cb-stick")).toBe(2);
     expect(n(".xf-area--small .cb-dot")).toBe(12);
-    h.flush();
-    // Both crossed, 12 over the ones; over the tens nothing until «3 − 1» is solved.
-    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(2);
-    expect(text(".xb-over--ones")).toBe("12");
+    h.flush(); h.flush();
+    // The 3 crossed, the 2 not — a small «1» over it makes 12; over the tens
+    // nothing until «3 − 1» is solved.
+    expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(1);
+    expect(h.container.querySelector(".xb-over--ones .xb-lend").textContent).toBe("1");
     expect(text(".xb-over--tens")).toBe("");
     type(9);
     expect(note()).toBe("Посчитай ещё раз: 12 − 4.");

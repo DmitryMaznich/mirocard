@@ -83,6 +83,11 @@
 @keyframes xf-fade { from { opacity: 0; } to { opacity: 1; } }
 .xf-carry--up { transform: translate(-50%, -50%); font-size: 24px; }
 .xf-carry--hundreds { color: #15803d; }
+.xf-carry--ones { color: #1d4ed8; }
+.xf-carry--lend { font-size: 30px; }
+/* The borrowed ten, written: a small «1» over the digit, to its left, so the
+   two read as 13 (0.36 of the digit's size — LEND_SHIFT in ExchangeFlight). */
+.xb-lend { transform: translateX(calc(-0.36 * clamp(44px, 11vw, 72px))); }
 .xb-table .xf-area--big .cb-stick-cell, .xf-flyer .cb-stick-cell { width: calc(var(--coin-size) * 0.6); }
 .xf-wait { pointer-events: none; opacity: .45; transition: opacity .2s; }
 /* «Что больше?»: the two numbers lit in the table. */

@@ -53,8 +53,14 @@ export default function ExchangeFlight({ boardRef, bigRef, smallRef, overRef, bi
 // Carrying, the written way: the sum is written under its column (9 + 2 = 11),
 // its ones stay there and its ten — the left digit — flies up over the next
 // column, where it stays as the «1» to add. Placed from the two cells.
+// `lend` (borrowing): the borrowed ten leaves the digit it came from (its
+// middle) and lands small over the next digit, a little to the left — the
+// written «1» that makes 3 read as 13 (`shiftRef`: the digit it goes over).
 const CARRY_MS = [700, 900]; // the whole sum shown · its ten flies up
-export function CarryDigit({ boardRef, fromRef, toRef, digit, place, onDone }) {
+// How far left of the digit's middle the written «1» stands, in the digit's
+// font size (the same as .xb-lend in table.css).
+const LEND_SHIFT = 0.36;
+export function CarryDigit({ boardRef, fromRef, toRef, shiftRef, lend = false, digit, place, onDone }) {
   const [at, setAt] = useState(null);
   const [up, setUp] = useState(false);
   useLayoutEffect(() => {
@@ -62,8 +68,9 @@ export function CarryDigit({ boardRef, fromRef, toRef, digit, place, onDone }) {
     const from = fromRef.current?.getBoundingClientRect();
     const to = toRef.current?.getBoundingClientRect();
     if (!board || !from || !to) return;
-    setAt({ from: { x: from.left - board.left, y: from.top - board.top + from.height / 2 }, to: { x: to.left - board.left + to.width / 2, y: to.top - board.top + to.height / 2 } });
-  }, [boardRef, fromRef, toRef]);
+    const shift = lend && shiftRef?.current ? LEND_SHIFT * (parseFloat(getComputedStyle(shiftRef.current).fontSize) || 0) : 0;
+    setAt({ from: { x: from.left - board.left + (lend ? from.width / 2 : 0), y: from.top - board.top + from.height / 2 }, to: { x: to.left - board.left + to.width / 2 - shift, y: to.top - board.top + to.height / 2 } });
+  }, [boardRef, fromRef, toRef, shiftRef, lend]);
   useEffect(() => {
     const a = setTimeout(() => setUp(true), CARRY_MS[0]);
     const b = setTimeout(onDone, CARRY_MS[0] + CARRY_MS[1]);
@@ -72,7 +79,7 @@ export function CarryDigit({ boardRef, fromRef, toRef, digit, place, onDone }) {
   if (!at) return null;
   const p = up ? at.to : at.from;
   return <div className="xf-layer" aria-hidden="true">
-    <span className={`xf-carry xf-carry--${place}${up ? " xf-carry--up" : ""}`} style={{ left: p.x, top: p.y, transitionDuration: `${CARRY_MS[1] - 100}ms` }}>{digit}</span>
+    <span className={`xf-carry xf-carry--${place}${lend ? " xf-carry--lend" : ""}${up ? " xf-carry--up" : ""}`} style={{ left: p.x, top: p.y, transitionDuration: `${CARRY_MS[1] - 100}ms` }}>{digit}</span>
   </div>;
 }
 
