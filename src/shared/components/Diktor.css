@@ -1,0 +1,25 @@
+/* «Диктор» — the one listen button of the app: the dictation (propis),
+   «Слушай и посчитай» (addition_subtraction), «Названия чисел» (place_value)
+   and the flashcards «Сделай». Bars bounce and ripples spread while it speaks. */
+.diktor-wrap { position: relative; width: var(--diktor-size, clamp(115px, 31vw, 158px)); height: var(--diktor-size, clamp(115px, 31vw, 158px)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.diktor-ripple { position: absolute; inset: 0; border-radius: 50%; border: 2px solid #2f6f65; opacity: 0; pointer-events: none; }
+.diktor-wrap--playing .diktor-ripple { animation: diktor-ripple 1600ms ease-out infinite; }
+.diktor-wrap--playing .diktor-ripple:nth-child(2) { animation-delay: 400ms; }
+.diktor-wrap--playing .diktor-ripple:nth-child(3) { animation-delay: 800ms; }
+@keyframes diktor-ripple { 0% { transform: scale(1); opacity: 0.45; } 100% { transform: scale(1.85); opacity: 0; } }
+.diktor {
+  position: relative; width: 100%; height: 100%; border: none; border-radius: 50%;
+  background: linear-gradient(160deg, #4a9b8f, #2f6f65);
+  box-shadow: 0 10px 24px rgba(47, 111, 101, 0.32), inset 0 -6px 0 rgba(0, 0, 0, 0.12);
+  display: flex; align-items: center; justify-content: center; gap: clamp(6px, 1.7vw, 11px); padding: 0;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform 0.1s ease;
+}
+.diktor:active:not(:disabled) { transform: scale(0.96); }
+.diktor:disabled { cursor: default; }
+.diktor-bar { width: clamp(7px, 1.9vw, 12px); height: 30%; border-radius: 999px; background: #eafcf6; opacity: 0.75; }
+.diktor--playing .diktor-bar { animation: diktor-bounce 900ms ease-in-out infinite; }
+.diktor-bar:nth-child(2) { animation-delay: 140ms; }
+.diktor-bar:nth-child(3) { animation-delay: 280ms; }
+.diktor-bar:nth-child(4) { animation-delay: 420ms; }
+@keyframes diktor-bounce { 0%, 100% { height: 26%; opacity: 0.7; } 50% { height: 70%; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .diktor-ripple, .diktor-bar { animation: none !important; } }

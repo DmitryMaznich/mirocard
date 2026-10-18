@@ -3,6 +3,7 @@ import { useAppStore } from "@/core/store";
 import { useTopicFile } from "@/shared/hooks/useTopicFile";
 import { useSpeech } from "@/shared/hooks/useSpeech";
 import { getTopicTitle } from "@/shared/utils/format";
+import Diktor from "@/shared/components/Diktor.jsx";
 
 function getTaskAudioPath(task) {
   if (task?.card?.audio?.ru) return task.card.audio.ru;
@@ -277,20 +278,34 @@ function QuestionAnswerTask({ task, mode, sessionParams, topicId, soundEnabled, 
   );
 }
 
-const ACT_OUT_BUTTONS = [
-  { value: "independent", label: "Сам",          mod: "easy"     },
-  { value: "prompted",    label: "С картинкой",  mod: "correct"  },
-  { value: "after_model", label: "С показом",    mod: "prompted" },
-  { value: "fail",        label: "Не сделал",    mod: "fail"     },
+// Three outcomes the adult can tell apart at a glance, labelled on the
+// buttons themselves (no numbered legend). Meant to become the one rating row
+// for adult-rated flashcard modes.
+const RATING_BUTTONS = [
+  { value: "fail",     label: "Не понимает",  mod: "fail"     },
+  { value: "prompted", label: "С подсказкой", mod: "prompted" },
+  { value: "easy",     label: "Легко",        mod: "easy"     },
 ];
+
+function RatingButtons({ disabled, onRate }) {
+  return (
+    <div className="rating-row">
+      {RATING_BUTTONS.map((btn) => (
+        <button key={btn.value} type="button" className={`rating-btn rating-btn--${btn.mod}`} disabled={disabled} onClick={() => onRate(btn.value)}>
+          {btn.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 // «Сделай»: does the child understand the spoken command? Only the voice
 // comes first ("Прыгай!") - a picture on screen would let the child copy the
 // pose without listening. If nothing happens the adult opens the picture
-// (a prompt), then shows it themselves; the rating records which step it took.
-// No word follows: a third-person "прыгает" said about the child who just
-// jumped is wrong grammar, and a second form of the verb is only noise here.
-function ActOutTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswer, onCardShown, onQuality }) {
+// (a prompt) or shows the action; that is «С подсказкой». No word follows the
+// rating: a third-person "прыгает" said about the child who just jumped is
+// wrong grammar, and a second form of the verb is only noise here.
+function ActOutTask({ task, topicId, soundEnabled, playTopicFile, isTopicAudioPlaying, onQualityAnswer, onCardShown, onQuality }) {
   const { speak } = useSpeech();
   const [rated, setRated] = useState(false);
   const [hint, setHint] = useState(false);
@@ -319,13 +334,7 @@ function ActOutTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswe
     <div className="session-body qa-body">
       {hint
         ? <CardArea topicId={topicId} card={task.card} />
-        : (
-          <div className="card-area">
-            <button type="button" className="act-out-listen" onClick={sayCommand} aria-label="Повторить команду">
-              <span aria-hidden="true">🔊</span>
-            </button>
-          </div>
-        )}
+        : <div className="card-area"><Diktor playing={Boolean(isTopicAudioPlaying)} onClick={sayCommand} label="Повторить команду" /></div>}
       <div className="qa-right-panel">
         <div className="qa-question-area">
           <div className="session-instruction">{task.imperative}</div>
@@ -333,21 +342,7 @@ function ActOutTask({ task, topicId, soundEnabled, playTopicFile, onQualityAnswe
         {!hint && (
           <button type="button" className="act-out-hint" onClick={() => setHint(true)}>Подсказка: картинка</button>
         )}
-        <div className="qa-row">
-          {ACT_OUT_BUTTONS.map((btn, i) => (
-            <button
-              key={btn.value}
-              className={`qa-btn qa-btn--${btn.mod}`}
-              disabled={rated}
-              onClick={() => handleQuality(btn.value)}
-            >
-              {i + 1}
-            </button>
-          ))}
-        </div>
-        <p className="qa-legend">
-          {ACT_OUT_BUTTONS.map((btn, i) => `${i + 1} — ${btn.label}`).join("   ")}
-        </p>
+        <RatingButtons disabled={rated} onRate={handleQuality} />
       </div>
     </div>
   );
@@ -802,7 +797,7 @@ const TASK_RENDERERS = {
   sort_by_attribute:      SortByAttributeTask,
 };
 
-export default function FlashcardsRenderer({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, onCorrect, onIncorrect, onStreakReset, onAdvance, onQualityAnswer, onCardShown, onTap, onQuality }) {
+export default function FlashcardsRenderer({ task, mode, sessionParams, topicId, soundEnabled, playTopicFile, isTopicAudioPlaying, onCorrect, onIncorrect, onStreakReset, onAdvance, onQualityAnswer, onCardShown, onTap, onQuality }) {
   const TaskRenderer = TASK_RENDERERS[task?.type];
   if (!TaskRenderer) return <div className="session-body">Неизвестный тип задания: {task?.type}</div>;
   return (
@@ -813,6 +808,7 @@ export default function FlashcardsRenderer({ task, mode, sessionParams, topicId,
       topicId={topicId}
       soundEnabled={soundEnabled}
       playTopicFile={playTopicFile}
+      isTopicAudioPlaying={isTopicAudioPlaying}
       onCorrect={onCorrect}
       onIncorrect={onIncorrect}
       onStreakReset={onStreakReset}

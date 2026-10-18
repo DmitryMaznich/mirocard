@@ -103,9 +103,11 @@ describe("verbs_v2 ladder — mounted through the real renderer", () => {
     mount({ task, mode: { type: "act_out" }, onQualityAnswer, soundEnabled: true, playTopicFile, topicId: "verbs_v2" });
     expect(playTopicFile).toHaveBeenCalledWith("verbs_v2", "audio/imp_runs.mp3");
     expect(container.querySelector(".card-img")).toBeNull();
+    expect(container.querySelector(".diktor")).not.toBeNull();
+    expect([...container.querySelectorAll(".rating-btn")].map((b) => b.textContent)).toEqual(["Не понимает", "С подсказкой", "Легко"]);
     act(() => container.querySelector(".act-out-hint").click());
     expect(container.querySelector(".act-out-hint")).toBeNull();
-    act(() => [...container.querySelectorAll(".qa-btn")][1].click());
+    act(() => [...container.querySelectorAll(".rating-btn")][1].click());
     act(() => vi.runAllTimers());
     expect(onQualityAnswer).toHaveBeenCalledWith("prompted", "runs", "runs_1");
     expect(playTopicFile).toHaveBeenCalledTimes(1); // no third-person word afterwards
