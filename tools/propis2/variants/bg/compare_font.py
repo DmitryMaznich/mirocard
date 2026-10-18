@@ -4,7 +4,7 @@
 
   python3 tools/propis2/variants/bg/compare_font.py <Boyan_Maga-Regular.ttf> <out.png>
 
-Grey: the font where the underlay showed it under the hand (make_underlays.py), put through the same placing as the tidied letter.
+Grey: the font as a stencil at its own proportions (build_glyphs.stencil_map): as tall as the tidied letter, on its middle.
 Thin dark: the hand as captured. Colour: the tidied strokes (one colour per stroke, a dot where it starts).
 """
 import sys, json, glob
@@ -43,7 +43,9 @@ for n, it in enumerate(items):
     pen = fg.Flat(gs); gs[cm[ord(ch)]].draw(pen)
     polys_t = [[mu.bank_to_tool(*fg.to_bank(x, y)) for x, y in poly] for poly in pen.polys]
     dx = mu.LEFT - min(x for poly in polys_t for x, _ in poly) + 100.0
-    polys = [tt.placed_like_last(np.array([dg.xform((x + dx, y), 2.0, 0) for x, y in poly])) for poly in polys_t]
+    # the font as a stencil at its own proportions, as tall as the letter, on the letter's middle (build_glyphs.stencil_map)
+    fn = bg.stencil_map(ch, like=np.vstack([tt.parse_path(dg.fmt(c)) for c in paper]))
+    polys = [fn(np.array([fg.to_bank(x, y) for x, y in poly])) for poly in pen.polys]
     x0 = min(min(p[0] for poly in polys for p in poly), min(q[0] for c in paper for _, ps in c for q in ps)) - 8
     ox, oy = (n % per) * CW, (n // per) * CH
     P = lambda p: ((p[0] - x0) * S, (p[1] + 70) * S)

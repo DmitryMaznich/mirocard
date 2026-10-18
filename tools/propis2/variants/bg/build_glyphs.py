@@ -185,6 +185,33 @@ def font_centre(label):
     return out
 
 
+def stencil_map(label, like=None):
+    """bank points -> paper: the Boyan letter at the font's own proportions, as a stencil on the deck's paper. Through the deck's
+    geometry (tidy_trace.to_paper), then scaled evenly (across the slant as much as up) until its centre line stands on the baseline
+    and reaches the capital's top line, as the tidied letters do (the font's centre line stops short of both by half its pen).
+    `like` (paper points): set across the slant on their middle. Not where the underlay was under the hand (font_centre): the
+    hand's own height must not change the font's width (owner, 2026-10-18: Л «уже» than the font's)."""
+    g = {d["label"]: d for d in json.loads(DRAFT.read_text())}[label]
+    allp = tt.upright(tt.to_paper(np.vstack([tt.parse_path(st["d"]) for st in g["strokes"]])))
+    lo, hi = allp[:, 1].max(), allp[:, 1].min()
+    s = (tt.BASE - tt.CAP_TOP) / (lo - hi)
+    dx = 0.0
+    if like is not None:
+        u = tt.upright(like)
+        dx = (u[:, 0].min() + u[:, 0].max()) / 2 - (allp[:, 0].min() + allp[:, 0].max()) / 2 * s
+    def fn(p):
+        q = tt.upright(tt.to_paper(np.asarray(p, float)))
+        return tt.from_upright(np.c_[q[:, 0] * s + dx, tt.BASE - (lo - q[:, 1]) * s])
+    return fn
+
+
+def font_stencil(label, like=None):
+    """The Boyan letter's centre line (boyan_glyphs.draft.json) through stencil_map: each stroke as paper points."""
+    fn = stencil_map(label, like)
+    g = {d["label"]: d for d in json.loads(DRAFT.read_text())}[label]
+    return [fn(np.array(tt.parse_path(st["d"]))) for st in g["strokes"]]
+
+
 def _line_fit(p):
     c = p.mean(axis=0); d = np.linalg.svd(p - c)[2][0]
     return c, d / np.hypot(*d)
@@ -213,16 +240,16 @@ def _x_at(line, y):
 
 def spread_like_font(strokes, stroke=0, lo=None, hi=None):
     """Л (and letters like it): the two sides that meet at the top (the rising left side, the stem coming down) moved across onto
-    the font's own sides, each by the shift its line needs at every height, hooks and all; the top is where the moved sides cross
+    the font's own sides (font_stencil: the font at its own proportions, as tall as the letter), each by the shift its line needs at every height, hooks and all; the top is where the moved sides cross
     (owner, 2026-10-18: «раздвинуть левый и правый штрихи точно по шрифтовой подложке, чтобы совпало»). Only the sides' place:
     the hand's hooks and its pen path stay. The top: the left side's moved end (the right side starts from it)."""
     lo = tt.X_TOP + 10 if lo is None else lo        # the sides are measured between these heights (clear of hooks and the top)
     hi = tt.CAP_TOP + 15 if hi is None else hi
-    font = np.vstack(font_centre(PAPER_LABEL[0]))
+    cmds = strokes[stroke]
+    font = np.vstack(font_stencil(PAPER_LABEL[0], like=np.array(tt.parse_path(tt.dg.fmt(cmds)))))
     ftop = int(np.argmin(font[:, 1]))
     pick = lambda p: p[(p[:, 1] > hi) & (p[:, 1] < lo)]
     f_left, f_right = _line_fit(pick(font[:ftop + 1])), _on_slant(_line_fit(pick(font[ftop:])))
-    cmds = strokes[stroke]
     ends = np.array([ps[-1] for _, ps in cmds])
     top = int(np.argmin(ends[:, 1]))  # the command that ends at the top
     ours = np.array(tt.parse_path(tt.dg.fmt(cmds)))
