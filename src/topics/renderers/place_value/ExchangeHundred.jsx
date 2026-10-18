@@ -245,7 +245,9 @@ export function ExchangeHundredTable({ task, onCorrect, onMistake, onFlashIncorr
         <section ref={boardRef} className="sg-card xb-table xh-table" aria-label="Пример по разрядам">
           <span />{head("hundreds", "Сотни")}{head("tens", "Десятки")}{head("ones", "Единицы")}
           <span />
-          <span ref={overHRef} className="xb-over xb-over--hundreds">{plan.carry && done("tens") && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed && done("hundreds") ? <span className="xb-carry">{h - 1}</span> : null}</span>
+          <span ref={overHRef} className="xb-over xb-over--hundreds">{plan.carry && done("tens") && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? (done("hundreds") ? <span className="xb-carry">{h - 1}</span>
+            // A dot over the digit borrowed from; at the last step («7 − 1») it pulses: the answer goes here.
+            : <span className={`xb-borrow-dot${current?.key === "hundreds" ? " xb-borrow-dot--wait" : ""}`} />) : null}</span>
           <span ref={overTRef} className="xb-over xb-over--tens">{borrowed && flight !== "lend" ? <span className="xb-carry xb-lend">1</span> : null}</span>
           <span />
           <span />

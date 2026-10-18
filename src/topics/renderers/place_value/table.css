@@ -120,6 +120,13 @@
 .xb-over--tens .xb-carry { color: #b45309; }
 .xb-over--ones .xb-carry { color: #1d4ed8; }
 @keyframes xb-pop { from { transform: translateY(14px) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+/* The dot over the digit a ten (a hundred) was borrowed from; it pulses at
+   the step whose answer is written there. */
+.xb-borrow-dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; margin-bottom: 6px; animation: xb-pop 0.4s ease-out; }
+.xb-over--hundreds .xb-borrow-dot { color: #15803d; }
+.xb-over--tens .xb-borrow-dot { color: #b45309; }
+.xb-borrow-dot--wait { animation: xb-dot-wait 1s ease-in-out infinite; }
+@keyframes xb-dot-wait { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 currentColor; } 50% { transform: scale(1.5); box-shadow: 0 0 0 6px transparent; } }
 .xb-crossed { position: relative; opacity: 0.45; }
 .xb-crossed::after {
   content: "";

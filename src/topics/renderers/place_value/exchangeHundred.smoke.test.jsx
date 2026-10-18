@@ -83,7 +83,11 @@ describe("Плюс и минус через сотню", () => {
     expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(1);
     expect(h.container.querySelector(".xb-over--tens .xb-lend").textContent).toBe("1");
     expect(over("hundreds")).toBe("");
-    type(8); type(2);
+    // A dot over the hundreds; it pulses at the last step, where 1 goes.
+    expect(h.container.querySelector(".xb-over--hundreds .xb-borrow-dot:not(.xb-borrow-dot--wait)")).not.toBeNull();
+    type(8);
+    expect(h.container.querySelector(".xb-over--hundreds .xb-borrow-dot--wait")).not.toBeNull();
+    type(2);
     expect(h.container.querySelector(".sg-status-note").textContent).toBe("Одну сотню мы отдали десяткам.");
     expect(over("hundreds")).toBe("");
     h.flush(); type(1);

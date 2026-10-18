@@ -151,7 +151,9 @@ export default function ExchangeTable({ task, onCorrect, onMistake, onFlashIncor
           <h3 className="sg-head sg-head--ones">Единицы</h3>
 
           <span />
-          <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed && tensDone ? <span className="xb-carry">{t - 1}</span> : null}</span>
+          <span ref={overTRef} className="xb-over xb-over--tens">{plan.carry && onesDone && flight !== "carry" ? <span className="xb-carry">1</span> : borrowed ? (tensDone ? <span className="xb-carry">{t - 1}</span>
+            // A dot over the digit borrowed from; at its step («3 − 1») it pulses: the answer goes here.
+            : <span className={`xb-borrow-dot${current?.key === "tens" ? " xb-borrow-dot--wait" : ""}`} />) : null}</span>
           <span ref={overORef} className="xb-over xb-over--ones">{borrowed && flight !== "lend" ? <span className="xb-carry xb-lend">1</span> : null}</span>
 
           <span />

@@ -73,6 +73,7 @@ describe("«Плюс и минус через десяток» — «Табли�
     // nothing until «3 − 1» is solved.
     expect(h.container.querySelectorAll(".xb-crossed")).toHaveLength(1);
     expect(h.container.querySelector(".xb-over--ones .xb-lend").textContent).toBe("1");
+    expect(h.container.querySelector(".xb-over--tens .xb-borrow-dot:not(.xb-borrow-dot--wait)")).not.toBeNull();
     expect(text(".xb-over--tens")).toBe("");
     type(9);
     expect(note()).toBe("Посчитай ещё раз: 12 − 4.");
