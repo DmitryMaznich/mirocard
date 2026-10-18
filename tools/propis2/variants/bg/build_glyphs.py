@@ -34,7 +34,7 @@ TAIL = [(9.00, 0.00), (29.40, -18.95), (39.12, -26.00)]
 # the flag of Ъ as a sharp «М», the copybook writes a wave (owner, 2026-10-18: «сгладь только флажок»); the rest keeps its corners.
 LETTERS = {
     # Ъ: from the font now (owner, 2026-10-18: the freehand one «далёк от образца»); its capture stays in captures/ as the record
-    "Ъ": {"font": True, "tail": True, "flag": 3.0, "note": "Ъ (болгарская заглавная: флажок, стойка, овал строчной высоты)"},
+    "Ъ": {"font": True, "flag_like": "К", "tail": True, "flag": 3.0, "note": "Ъ (болгарская заглавная: флажок, стойка, овал строчной высоты)"},
 }
 
 
@@ -484,6 +484,21 @@ def _drop_retrace(p, near=2.5, gap=30):
     return p[:i + 1]
 
 
+def flag_like(cmds, source):
+    """Ъ: its flag (from the start over the top into the stem) is К's, as tidied (owner, 2026-10-18: «флажок слева должен быть как
+    у К»): К's path up to where its stem's line begins, moved so that point lies on this letter's stem line at the same height
+    (the top stays on the top line, the stem on its line and on the slant)."""
+    src = PAPER[source][0]
+    k = next(i for i in range(1, len(src)) if src[i][0] == "L")  # К's stem: the first line; before it, the flag and the turn
+    s_end = np.asarray(src[k - 1][1][-1], float)
+    j = next(i for i in range(1, len(cmds)) if cmds[i][0] == "L")
+    a, b = np.asarray(cmds[j - 1][1][-1], float), np.asarray(cmds[j][1][0], float)  # this letter's stem line
+    stem = (a, tt._unit(b - a))
+    off = np.array([_x_at(stem, s_end[1]), s_end[1]]) - s_end
+    flag = [(c, [np.asarray(q, float) + off for q in ps]) for c, ps in src[:k]]
+    return flag + cmds[j:]
+
+
 def font_letter(label, script, spec):
     """A letter drawn from the font itself (spec "font"): Boyan's pen path (font_stencil, the font's own proportions on the deck's
     paper) tidied like a hand's, every top up its stem to the top line, into the bank; a bowl that ends inside gets Б's connector
@@ -494,6 +509,7 @@ def font_letter(label, script, spec):
     allp = np.vstack([tt.parse_path(dg.fmt(c)) for c in paper])
     k2 = (tt.BASE - tt.CAP_TOP) / (tt.BASE - allp[:, 1].min())  # the tidied letter exactly between its lines, as tidy_letter does
     paper = [[(c, list(tt.shear_scale(np.array(ps, float), k2))) for c, ps in cmds] for cmds in paper]
+    if spec.get("flag_like"): paper[0] = flag_like(paper[0], spec["flag_like"])
     PAPER[label] = paper
     paths = [tt.paper_to_bank_cmds(c) for c in paper]
     out = {"label": label, "kind": "letter", "strokes": [{"d": dg.fmt(c)} for c in paths], "stretch": 1.806, "noOverrides": True,
