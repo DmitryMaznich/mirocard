@@ -34,7 +34,14 @@ K = 52.0 / XH       # font units -> bank units (the bank's x-height is 52)
 SLANT_FONT = 78.0
 UPPER, LOWER = 1.06, 1.13
 STRETCH = 1.806
-START_TOP = set("Ф")
+# the parts that must touch the first one (К: the font leaves a gap between the arms and the stem; the school letter has none):
+# moved left until the nearest point of the part meets the first stroke
+ATTACH = set("К")
+CORNER_DEG_FONT = 120.0  # a font letter has no sharp corners except where the pen turns back: smaller turns are skeleton noise
+START_TOP = set("ФЕЗЬф")  # start at the topmost end (not the leftmost: З's tail is further left than its start)
+# where the pen ends, when not at the rightmost end: "low" the lowest end (З: the tail, not the tick at its waist); "oval" the
+# junction farthest right (ю Ю: the bar meets the oval; the foot of the stem is drawn on the way and gone back over)
+END_HINT = {"З": "low", "Ф": "low", "ю": "oval", "Ю": "oval"}
 MAX_POPS = 400000  # search states per walk (Ж Ш Щ have many lines: without a cap the search runs for minutes)
 N8=[(-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1)]
 
@@ -69,11 +76,11 @@ def build(sk, spur=5):
             q=st.pop()
             for r in nb(q):
                 if r in cl or deg[r]==2: continue
-                if math.dist(r,p)<6: cl[r]=cid; st.append(r)
+                if math.dist(r,p)<10: cl[r]=cid; st.append(r)
         cid+=1
     loops_only = cid==0
-    if loops_only:  # a closed loop (о): make one node
-        p=next(iter(pts)); cl[p]=0; cid=1
+    if loops_only:  # a closed loop (о): one node, at its top (where the pen starts an о)
+        p=min(pts); cl[p]=0; cid=1
     nodes={i:np.mean([q for q,c in cl.items() if c==i],axis=0) for i in range(cid)}
     edges=[]; seen=set()
     for p,c in cl.items():
@@ -97,6 +104,16 @@ def build(sk, spur=5):
         k=(frozenset((a,b)), len(ch)//3)
         if k in sig: continue
         sig.add(k); uniq.append((a,b,ch))
+    # skeleton noise: tiny closed loops at a stroke's tip or at a joint (3-20 px; the loops of the letters are hundreds) are dropped,
+    # else the tip of a stroke is no longer an end (К's arm started in its middle)
+    uniq = [(a, b, ch) for a, b, ch in uniq if not (a == b and len(ch) < 20)]
+    # and a stub left where such a loop sat (a few px from a joint to nowhere) is noise too, not the end of a stroke
+    while True:
+        deg = {}
+        for a, b, _ in uniq: deg[a] = deg.get(a, 0) + 1; deg[b] = deg.get(b, 0) + 1
+        stub = [k for k, (a, b, ch) in enumerate(uniq) if len(ch) < 14 and a != b and min(deg[a], deg[b]) == 1 and max(deg[a], deg[b]) >= 3]
+        if not stub: break
+        uniq = [e for k, e in enumerate(uniq) if k != stub[0]]
     return nodes, uniq
 
 def tangent(chain, at_start, k=10):
@@ -137,7 +154,7 @@ def walk(nodes, edges, start_node, end_node, turn_w=60.0, k=1):
                 r=L[i] if used>>i&1 else 0.0
                 if len(path)>3*E: continue
                 heapq.heappush(h,(cost+t+r,next(cnt),v,used|1<<i,-dend,path+((i,fwd),)))
-                if a==b: break
+                # a closed loop (о) can be gone round either way: both are tried
     return [p for _,p in sorted(found)] if k>1 else best[0]
 
 
@@ -215,10 +232,14 @@ def pen_path(gs, cm, ch, ref=None):
     xs = [p[0] for poly in pen.polys for p in poly]; ys = [p[1] for poly in pen.polys for p in poly]
     x0, y1 = min(xs) - 20, max(ys) + 20
     W, H = int((max(xs) - x0 + 20) * SC) + 2, int((y1 - min(ys) + 20) * SC) + 2
-    acc = np.zeros((H, W), bool)
+    # non-zero winding (the font's own rule): strokes drawn as separate overlapping contours stay joined where they overlap (К's
+    # arms on its stem); counters run the other way and stay open. (Even-odd cut every overlap out: the arms of К hung free.)
+    wind = np.zeros((H, W), int)
     for poly in pen.polys:
         m = Image.new("1", (W, H), 0); ImageDraw.Draw(m).polygon([((x - x0) * SC, (y1 - y) * SC) for x, y in poly], fill=1)
-        acc ^= np.array(m)
+        area = sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(poly, poly[1:] + poly[:1]))
+        wind += np.where(np.array(m), 1 if area > 0 else -1, 0)
+    acc = wind != 0
     nodes_all, edges_all = build(skeletonize(acc))
     # separate parts of the letter (the breve of й): one walk each; the biggest is the letter, the others come after it, left to right
     parent = {i: i for i in nodes_all}
@@ -233,11 +254,18 @@ def pen_path(gs, cm, ch, ref=None):
     out = []
     for k, es in enumerate(parts):
         ns = {i: nodes_all[i] for i in {x for a, b, _ in es for x in (a, b)}}
-        out.append(walk_part(ch, ns, es, to_b, ref if (k == 0 and len(parts) == 1) else None, x0, y1))
+        # a later stroke of a capital (К's arms) starts at its top end, as the school writes it
+        out.append(walk_part(ch, ns, es, to_b, ref if (k == 0 and len(parts) == 1) else None, x0, y1, top=k > 0))
     if len(parts) == 1 or ref is None:
-        marks = sorted(out[1:], key=lambda r: r[0][:, 0].min())
-        return [out[0][0]] + [m[0] for m in marks], out[0][1]
+        marks = [school_direction(m[0]) for m in sorted(out[1:], key=lambda r: r[0][:, 0].min())]
+        return [out[0][0]] + marks, out[0][1]
     return order_parts([o[0] for o in out], ref)
+
+
+def school_direction(p):
+    """A stroke after the first, as the school writes it: a stem or an arm from the top down, a bar or a breve from left to right."""
+    d = p[-1] - p[0]
+    return p[::-1] if (abs(d[1]) >= abs(d[0]) and d[1] < 0) or (abs(d[1]) < abs(d[0]) and d[0] < 0) else p
 
 
 def order_parts(paths, ref):
@@ -255,17 +283,25 @@ def order_parts(paths, ref):
         placed.append((a, p))
     placed.sort(key=lambda t: t[0])
     strokes = [p for _, p in placed]
+    # the strokes after the first, as the school writes them: a stem or an arm from the top down, a bar from left to right
+    # (our letters' own direction was not reliable for them: К's arms and Т's middle stem came out drawn upwards)
+    strokes[1:] = [school_direction(p) for p in strokes[1:]]
     return strokes, dtw(resample_n(np.concatenate(strokes) + [shift, 0]), resample_n(ref))
 
 
-def walk_part(ch, nodes, edges, to_b, ref, x0, y1):
+def walk_part(ch, nodes, edges, to_b, ref, x0, y1, top=False):
     """One connected part of a letter: the pen path (bank units) and its distance from our letter's path (None without a guide)."""
     deg = {i: 0 for i in nodes}
     for a, b, _ in edges: deg[a] += 1; deg[b] += 1
     ends = [i for i in nodes if deg[i] == 1]
-    left = (min(ends, key=lambda i: nodes[i][0]) if ch in START_TOP else min(ends, key=lambda i: nodes[i][1])) if ends else 0
+    left = (min(ends, key=lambda i: nodes[i][0]) if (ch in START_TOP or top) else min(ends, key=lambda i: nodes[i][1])) if ends else 0
     rest = [i for i in ends if i != left]
     right = max(rest, key=lambda i: nodes[i][1]) if rest else left
+    hint = END_HINT.get(ch)
+    if hint == "low" and rest: right = max([i for i in ends if i != left], key=lambda i: nodes[i][0])
+    if hint == "oval":
+        joints = [i for i in nodes if deg[i] > 2]
+        if joints: right = max(joints, key=lambda i: nodes[i][1])
     def walked(path):
         px = []
         for i, fwd in path:
@@ -287,8 +323,11 @@ def walk_part(ch, nodes, edges, to_b, ref, x0, y1):
     shift = rx - (allb[:, 0].min() + allb[:, 0].max()) / 2
     near = lambda q: min(ends, key=lambda i: np.hypot(node_b[i][0] + shift - q[0], node_b[i][1] - q[1])) if ends else 0
     # a letter never starts at its exit (the rightmost end): our letters have no lead-in, so the end nearest to our start can be it (я)
-    starts = {left} | ({near(ref[0])} - ({right} if len(ends) > 1 else set())); finishes = {right, near(ref[-1])}
-    if len(ends) < 2:  # the pen starts inside the letter (б: where its bowl closes): the point nearest to where ours starts
+    starts = {left} | ({near(ref[0])} - ({right} if len(ends) > 1 else set())) if ch not in START_TOP else {left}
+    finishes = {right} if ch in END_HINT else {right, near(ref[-1])}
+    if len(ends) == 1 and nodes[ends[0]][1] < np.mean([nodes[i][1] for i in nodes]):
+        starts, finishes = {ends[0]}, set(nodes) - {ends[0]}  # the one free end is on the left: it is the start (в), the pen ends inside
+    elif len(ends) < 2:  # the pen starts inside the letter (б: where its bowl closes): the point nearest to where ours starts
         starts |= {min(nodes, key=lambda i: np.hypot(node_b[i][0] + shift - ref[0][0], node_b[i][1] - ref[0][1]))}
     best = (math.inf, None)
     R = resample_n(ref)
@@ -303,7 +342,9 @@ def walk_part(ch, nodes, edges, to_b, ref, x0, y1):
 
 def smooth_cmds(raw):
     p = dg.resample(raw, dg.SPACING)
+    keep, dg.CORNER_DEG = dg.CORNER_DEG, CORNER_DEG_FONT
     cuts = [0] + dg.corners(p, dg.SPACING) + [len(p) - 1]
+    dg.CORNER_DEG = keep
     cmds = []
     for a, b in zip(cuts, cuts[1:]):
         piece = p[a:b + 1]
@@ -316,6 +357,17 @@ def smooth_cmds(raw):
 
 def glyph(gs, cm, ch, old):
     raws, score = pen_path(gs, cm, ch, reference_path(old.get(ch)))
+    if ch in ATTACH and len(raws) > 1:
+        main = raws[0]
+        def gap(part):
+            # the smallest horizontal distance from a point of the part to the first stroke on its left at the same height
+            # (the vertex of К's arms; not the part's leftmost point: on the slant that is the foot of its leg)
+            best = np.inf
+            for q in part[::4]:
+                near = main[(np.abs(main[:, 1] - q[1]) < 1.0) & (main[:, 0] < q[0])]
+                if len(near): best = min(best, q[0] - near[:, 0].max())
+            return best if np.isfinite(best) else 0.0
+        raws = [main] + [r - [max(gap(r) - 0.6, 0.0), 0] for r in raws[1:]]
     strokes = [{"d": dg.fmt(smooth_cmds(r))} for r in raws if len(r) > 2]
     p = dg.resample(raws[0], dg.SPACING)
     base = old.get(ch, {})
