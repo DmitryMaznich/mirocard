@@ -397,9 +397,9 @@ def tidy_letter(strokes, capital, script=None, loops=False, adjust=None):
     pts = np.array([q for cmds in out for q in parse_path(dg.fmt(cmds))])
     k2 = (BASE - top) / (BASE - pts[:, 1].min())
     out = [[(c, list(shear_scale(np.array(ps), k2))) for c, ps in cmds] for cmds in out]
-    if adjust: out = adjust(out)  # a letter's own correction the owner asked for, on paper (build_glyphs.py SHAPES)
     global LAST_PLACE
     LAST_PLACE = (dy, k, k2)
+    if adjust: out = adjust(out)  # a letter's own correction the owner asked for, on paper (build_glyphs.py SHAPES)
     return [paper_to_bank_cmds(c) for c in out], out
 
 

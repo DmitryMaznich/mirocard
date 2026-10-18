@@ -168,6 +168,60 @@ def stem_like(source, stroke=0):
     return adjust
 
 
+DRAFT = HERE / "boyan_glyphs.draft.json"   # the font's centre line per letter (font_glyphs.py), bank units
+UNDERLAY_DX = HERE / "underlay_dx.json"    # where the underlay put it on the capture canvas (make_underlays.py)
+
+
+def font_centre(label):
+    """The Boyan letter's centre line, each stroke as paper points, where the underlay showed it under the capture being tidied
+    (call from a SHAPES function: tidy_trace has the capture's placing then). No font file needed."""
+    g = {d["label"]: d for d in json.loads(DRAFT.read_text())}[label]
+    dx = json.loads(UNDERLAY_DX.read_text())["dx"][label]
+    import make_underlays as mu
+    out = []
+    for st in g["strokes"]:
+        tool = np.array([mu.bank_to_tool(*p) for p in tt.parse_path(st["d"])]) + [dx, 0.0]
+        out.append(tt.placed_like_last(np.array([dg.xform(q, 2.0, 0.0) for q in tool])))
+    return out
+
+
+def _line_fit(p):
+    c = p.mean(axis=0); d = np.linalg.svd(p - c)[2][0]
+    return c, d / np.hypot(*d)
+
+
+def _x_at(line, y):
+    c, d = line
+    return c[0] + (y - c[1]) * d[0] / d[1]
+
+
+def spread_like_font(strokes, stroke=0, lo=None, hi=None):
+    """Л (and letters like it): the two sides that meet at the top (the rising left side, the stem coming down) moved across onto
+    the font's own sides, each by the shift its line needs at every height, hooks and all; the top is where the moved sides cross
+    (owner, 2026-10-18: «раздвинуть левый и правый штрихи точно по шрифтовой подложке, чтобы совпало»). Only the sides' place:
+    the hand's hooks and its pen path stay. The top: the left side's moved end (the right side starts from it)."""
+    lo = tt.X_TOP + 10 if lo is None else lo        # the sides are measured between these heights (clear of hooks and the top)
+    hi = tt.CAP_TOP + 15 if hi is None else hi
+    font = np.vstack(font_centre(PAPER_LABEL[0]))
+    ftop = int(np.argmin(font[:, 1]))
+    pick = lambda p: p[(p[:, 1] > hi) & (p[:, 1] < lo)]
+    f_left, f_right = _line_fit(pick(font[:ftop + 1])), _line_fit(pick(font[ftop:]))
+    cmds = strokes[stroke]
+    ends = np.array([ps[-1] for _, ps in cmds])
+    top = int(np.argmin(ends[:, 1]))  # the command that ends at the top
+    ours = np.array(tt.parse_path(tt.dg.fmt(cmds)))
+    otop = int(np.argmin(ours[:, 1]))
+    o_left, o_right = _line_fit(pick(ours[:otop + 1])), _line_fit(pick(ours[otop:]))
+    def moved(part, ol, fl):
+        return [(c, [np.array([q[0] + _x_at(fl, q[1]) - _x_at(ol, q[1]), q[1]]) for q in ps]) for c, ps in part]
+    left = [cmds[0]] + moved(cmds[1:top + 1], o_left, f_left)
+    left[0] = ("M", [np.array([q[0] + _x_at(f_left, q[1]) - _x_at(o_left, q[1]), q[1]]) for q in cmds[0][1]])
+    right = moved(cmds[top + 1:], o_right, f_right)
+    # the top stays one point: both shifts there are the font's top less ours, the same for both sides when the lines cross there
+    strokes[stroke] = left + right
+    return strokes
+
+
 def both(*fns):
     def adjust(strokes):
         for fn in fns: strokes = fn(strokes)
@@ -176,11 +230,15 @@ def both(*fns):
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б"))}
+SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font}
+
+
+PAPER_LABEL = [None]  # the letter being tidied (a SHAPES function reads it)
 
 
 def tidy(label, raw, script):
     """The tidied letter (bank commands, paper commands), its SHAPES correction applied; remembered in PAPER."""
+    PAPER_LABEL[0] = label
     bank, paper = tt.tidy_letter(raw, label.isupper(), script, loops=label in LOOPS, adjust=SHAPES.get(label))
     PAPER[label] = paper
     return bank, paper
