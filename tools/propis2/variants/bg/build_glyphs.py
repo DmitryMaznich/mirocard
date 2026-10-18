@@ -26,9 +26,36 @@ FOOT_Y = 62.0  # the bottom of a capital's bowl on the baseline, as the deck's c
 # Б's connector in wide.json, from the bottom of its bowl: "M 156.94 62.00 C 165.94 62.00 186.34 43.05 196.06 36.00", relative
 TAIL = [(9.00, 0.00), (29.40, -18.95), (39.12, -26.00)]
 # per letter: what it needs beyond the capture (the bowl it ends in gets Б's connector)
+# `flag`: the lead-in up to the top of the stem is smoothed as ONE piece with this sigma (units), its corners not kept: the hand drew
+# the flag of Ъ as a sharp «М», the copybook writes a wave (owner, 2026-10-18: «сгладь только флажок»); the rest keeps its corners.
 LETTERS = {
-    "Ъ": {"tail": True, "note": "Ъ (захват 2026-10-18, болгарская заглавная: флажок, стойка, овал строчной высоты)"},
+    "Ъ": {"tail": True, "flag": 3.0, "note": "Ъ (захват 2026-10-18, болгарская заглавная: флажок, стойка, овал строчной высоты)"},
 }
+
+
+def flag_smoothed_path(d, sigma):
+    """dg.stroke_path, but the lead-in (start .. the top of the stem, the highest point of the stroke's first part) is one smooth
+    piece: no corners inside it, smoothed with `sigma`; the corner at the top of the stem and everything after it as dg does."""
+    p = dg.resample(dg.parse(d), dg.SPACING)
+    top = int(np.argmin(p[: max(2, len(p) * 2 // 5), 1]))
+    w = max(1, int(dg.CORNER_WIN / dg.SPACING))
+    cuts = [0, top] + [c for c in dg.corners(p, dg.SPACING) if c > top + 2 * w] + [len(p) - 1]
+    cmds = []
+    for i, (a, b) in enumerate(zip(cuts, cuts[1:])):
+        piece = p[a:b + 1]
+        if len(piece) < 2: continue
+        if not cmds: cmds.append(("M", [piece[0]]))
+        if i > 0 and dg.straight(piece):
+            cmds.append(("L", [piece[-1]]))
+            continue
+        if i == 0:
+            keep, dg.SIGMA = dg.SIGMA, sigma
+            sm = dg.smooth(piece, dg.SPACING)
+            dg.SIGMA = keep
+        else:
+            sm = dg.smooth(piece, dg.SPACING)
+        for c1, c2, e in dg.beziers(sm, dg.SPACING): cmds.append(("C", [c1, c2, e]))
+    return cmds
 
 
 def glyph_of(item):
@@ -39,7 +66,8 @@ def glyph_of(item):
     dg.DY = 0.0
     lowest = dg.BASE_DECK - (dg.BASE_CAPTURE - allp[:, 1].max()) * s
     dg.DY = FOOT_Y - lowest
-    paths = [dg.to_deck(dg.stroke_path(st["d"]), s, 0.0) for st in item["strokes"]]
+    path_of = (lambda d: flag_smoothed_path(d, spec["flag"])) if spec.get("flag") else dg.stroke_path
+    paths = [dg.to_deck(path_of(st["d"]) if k == 0 else dg.stroke_path(st["d"]), s, 0.0) for k, st in enumerate(item["strokes"])]
     strokes = [{"d": dg.fmt(c)} for c in paths]
     out = {"label": label, "kind": "letter", "strokes": strokes, "stretch": 1.806, "repeatCells": 6, "ascender": True, "noNormalize": True,
            "sourceLabel": f"{spec['note']}; сглажен, масштаб x{s:.3f} = высота заглавной, база y=62"}
