@@ -1592,11 +1592,16 @@ def oval_on_stem(strokes, k=0, tol=0.1, lead=10.0):
     # started as а (owner, 2026-10-19: «должна начинаться как а, потом вертикальный штрих переходит в петлю»): on the oval's upper
     # right, round it up over the top first, down the left, along the bottom and up its right to the stem; up the stem to the
     # x-line; back down it and on into the loop
-    # the start lower down the oval, on the stem's slant (owner: «точка начала расположена на наклонной ниже по линии овала»):
-    # where the stem touches it; once round, up first, back to it
-    fwd = np.r_[e[i:], e[:i + 1]]
-    if fwd[5, 1] > fwd[0, 1]: fwd = fwd[::-1]
-    oval = fwd
+    # the start as а's (owner, 2026-10-19: «сделай начало как у буквы а»; the bank's а starts on its oval's right, 0.28 of the
+    # band down from the x-line, by the stem): round the oval up first, over the top, down the left, along the bottom and up its
+    # right to where the stem touches it
+    mid = e[:, 0].mean()
+    s0 = int(np.argmin(np.where(e[:, 0] > mid, np.abs(e[:, 1] - (tt.X_TOP + 0.28 * (tt.BASE - tt.X_TOP))), np.inf)))
+    n = len(e)
+    fwd = np.r_[e[s0:], e[:s0]]
+    if fwd[5, 1] > fwd[0, 1]: fwd = np.r_[e[s0::-1], e[:s0:-1]]   # up first
+    it = int(np.argmin(np.hypot(*(fwd[n // 4:] - T).T))) + n // 4
+    oval = fwd[:it + 1]
     y0 = tt.X_TOP
     up = np.c_[np.polyval(c0, np.linspace(T[1], y0, 60)), np.linspace(T[1], y0, 60)]
     lo = i2 + int(np.argmax(p[i2:, 1]))                              # the loop's bottom: the stem goes down until here
