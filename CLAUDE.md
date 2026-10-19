@@ -144,7 +144,7 @@ Rules for Claude Code:
 
 Production DB protection (Railway, current):
 
-- The `mirocard-backend` service itself runs the hourly backup loop in-process (`scripts/railway-backup-loop.mjs`), writing to `/data/backups/` on the same Volume, 14-day retention.
+- The `mirocard-backend` service itself runs the hourly backup loop in-process (`scripts/railway-backup-loop.mjs`), writing to `/data/backups/` on the same Volume. Only the newest 3 copies are kept (`BACKUP_KEEP`), and old ones are pruned at startup before the DB opens: the volume is 5 GB (the Hobby maximum), every copy is a full copy of the DB (photos/audio live in it), and 14 days of hourly copies filled it on 2026-10-19 -- every write and startup migration then failed with "database or disk is full".
 - No off-site copy yet — known gap, not yet solved. `scripts/fetch-production-db-backup.py` (SSH-based, below) no longer applies to current production.
 - Do not restart or stop the backend for backups.
 

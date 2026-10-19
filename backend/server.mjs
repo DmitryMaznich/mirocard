@@ -70,12 +70,21 @@ import {
 } from "./lib/billing-providers/lava-top.mjs";
 import { processBillingEvent } from "./lib/billing-orchestrator.mjs";
 import { gitSha } from "../scripts/git-sha.mjs";
+import { pruneBackups, DEFAULT_KEEP as DEFAULT_BACKUP_KEEP } from "../scripts/railway-backup-loop.mjs";
 import { prepareDeletion, confirmDeletion, blockAccount, restoreAccount, cancelScheduledErasure, archiveAccount, eraseAccount, eraseStudent } from "./lib/account-lifecycle.mjs";
 import { reportError, trackEvent } from "./lib/observability.mjs";
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
 const BACKEND_DIR = path.dirname(fileURLToPath(import.meta.url));
+
+// The backups share the Railway volume with the database: drop the old ones
+// before the database is opened, so startup migrations have room even when
+// the volume filled up (2026-10-19: "database or disk is full" at startup).
+const BACKUP_KEEP = Number(process.env.BACKUP_KEEP || DEFAULT_BACKUP_KEEP);
+if (process.env.RAILWAY_ENVIRONMENT) {
+  try { pruneBackups({ dataDir: DATA_DIR, keep: BACKUP_KEEP }); } catch (err) { console.error("[backup] prune failed:", err); }
+}
 
 const db = getDb();
 
@@ -2143,7 +2152,7 @@ if (isMainModule) {
   // injected by Railway itself, so this never runs on the home host.
   if (process.env.RAILWAY_ENVIRONMENT) {
     import("../scripts/railway-backup-loop.mjs")
-      .then(({ startBackupLoop }) => startBackupLoop({ dataDir: DATA_DIR }))
+      .then(({ startBackupLoop }) => startBackupLoop({ dataDir: DATA_DIR, keep: BACKUP_KEEP }))
       .catch((err) => console.error("[backup] failed to start backup loop:", err));
 
     import("./lib/photo-gc.mjs")
