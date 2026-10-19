@@ -7,7 +7,6 @@ import PinGateModal from "@/shared/components/PinGateModal";
 import ZoneSettingsSection from "./ZoneSettingsSection";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import UiLanguagePicker from "@/shared/components/UiLanguagePicker";
-import AccountLessonLanguagePicker from "./AccountLessonLanguagePicker.jsx";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 
 export default function SettingsScreen() {
@@ -81,7 +80,6 @@ export default function SettingsScreen() {
 
       <div className="settings-body">
         <UiLanguagePicker />
-        <AccountLessonLanguagePicker />
         <div className="settings-section">
           <div className="settings-section-title">{t("settings.pace")}</div>
           <div

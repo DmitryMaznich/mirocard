@@ -1,6 +1,4 @@
 import { getUsageReport } from "./lib/usage-repository.mjs";
-import { patchAccountLanguages } from "./lib/account-languages.mjs";
-import { isLessonLanguage } from "../shared/languages.mjs";
 import { applyCatalogOverrides, topicRegistry, updateTopicCatalog } from "./lib/topic-catalog.mjs";
 import { createServer } from "node:http";
 import { randomUUID, createHash, randomBytes, timingSafeEqual } from "node:crypto";
@@ -312,7 +310,6 @@ function serializeStudent(row) {
     name: row.name,
     comment: row.comment,
     primaryLanguage: row.primary_language,
-    preferredLessonLanguage: row.preferred_lesson_language ?? null,
     rewardVideos: safeJson(row.reward_videos, []),
     rewardVideoViews: safeJson(row.reward_video_views, {}),
     rewardVideosUpdatedAt: row.reward_videos_updated_at ?? null,
@@ -754,28 +751,11 @@ async function handlePatchSettings(req, res) {
     pushReminders: "push_reminders",
   };
   const patch = {};
-  // Language writes use an account-scoped operation and server revision.
-  // Keep old clients compatible while refusing invalid language codes.
-  if (("uiLanguage" in body && !["ru", "sl"].includes(body.uiLanguage)) ||
-      ("cardLanguage" in body && !isLessonLanguage(body.cardLanguage))) {
-    return writeJson(res, 400, { error: "Invalid language preference" });
-  }
   for (const [key, col] of Object.entries(allowed)) {
     if (key in body) patch[col] = body[key];
   }
   updateAccountSettings(db, account.id, patch);
   writeJson(res, 200, getAccountSettings(db, account.id));
-}
-
-async function handlePatchLanguages(req, res) {
-  const account = requireAuth(req);
-  const body = await readJsonBody(req);
-  try {
-    writeJson(res, 200, patchAccountLanguages(db, account.id, body));
-  } catch (error) {
-    if (error.status === 400) return writeJson(res, 400, { error: error.message });
-    throw error;
-  }
 }
 
 async function handleHeartbeat(req, res) {
@@ -829,7 +809,6 @@ async function handleUpsertStudent(req, res) {
     name: String(body.name).trim(),
     comment: String(body.comment ?? ""),
     primaryLanguage: body.primaryLanguage ?? null,
-    preferredLessonLanguage: body.preferredLessonLanguage,
     rewardVideos: Array.isArray(body.rewardVideos)
       ? body.rewardVideos
           .map((item) => {
@@ -2017,7 +1996,6 @@ async function router(req, res) {
     if (method === "DELETE" && p === "/account")                  return await handleDeleteAccount(req, res);
     if (method === "PATCH"  && p === "/account/marketing")        return await handlePatchMarketing(req, res);
     if (method === "PATCH"  && p === "/account/settings")         return await handlePatchSettings(req, res);
-    if (method === "PATCH"  && p === "/account/languages")        return await handlePatchLanguages(req, res);
 
     // Students
     if (method === "GET"    && p === "/students")                 return await handleGetStudents(req, res);

@@ -1,9 +1,12 @@
 import { useState, useRef } from "react";
-import { LANGUAGES } from "../../../shared/languages.mjs";
-import LessonLanguagePicker from "@/shared/components/LessonLanguagePicker.jsx";
 import Button from "@/shared/components/Button";
 import AuthenticatedImage from "@/shared/components/AuthenticatedImage";
 import { isValidYoutubeUrl, fetchYoutubeTitle, getVideoUrl, getInitials } from "@/shared/utils/format";
+
+const LANGUAGES = [
+  { value: "ru", label: "Русский" },
+  { value: "en", label: "English" },
+];
 
 function normaliseVideos(raw) {
   if (!Array.isArray(raw)) return [];
@@ -75,7 +78,6 @@ export default function StudentForm({ initial, onSave, onCancel }) {
   const [name,       setName]       = useState(initial?.name    ?? "");
   const [comment,    setComment]    = useState(initial?.comment ?? "");
   const [lang,       setLang]       = useState(initial?.primaryLanguage ?? "");
-  const [lessonLanguage, setLessonLanguage] = useState(initial?.preferredLessonLanguage ?? null);
   const [videos,     setVideos]     = useState(() => normaliseVideos(initial?.rewardVideos));
   const [videoInput, setVideoInput] = useState("");
   const [videoError, setVideoError] = useState("");
@@ -95,7 +97,6 @@ export default function StudentForm({ initial, onSave, onCancel }) {
       name:            name.trim(),
       comment:         comment.trim(),
       primaryLanguage: lang || null,
-      preferredLessonLanguage: lessonLanguage,
       rewardVideos:    videos,
       closeAdults:     adults,
     });
@@ -171,17 +172,15 @@ export default function StudentForm({ initial, onSave, onCancel }) {
         </button>
         {LANGUAGES.map((l) => (
           <button
-            key={l.code}
+            key={l.value}
             type="button"
-            className={`lang-btn ${lang === l.code ? "lang-btn--active" : ""}`}
-            onClick={() => setLang(l.code)}
+            className={`lang-btn ${lang === l.value ? "lang-btn--active" : ""}`}
+            onClick={() => setLang(l.value)}
           >
             {l.label}
           </button>
         ))}
       </div>
-
-      <LessonLanguagePicker value={lessonLanguage} onChange={setLessonLanguage} inherit />
 
       {/* ── Близкие взрослые ── */}
       <div className="student-form__section-label">Близкие взрослые</div>
