@@ -139,13 +139,16 @@ def oval_lower_bowl(strokes, stroke=1, widen=1.12):
 
 
 PAPER = {}  # label -> its tidied strokes on paper, for a letter that takes a part from another (tidy() below)
+# label -> its strokes as tidied before snap_to_font: Г takes Б's hat and stem height from Б as it was before Б was snapped onto
+# the font (2026-10-19); Г gets its own turn
+PAPER_UNSNAPPED = {}
 
 
 def hat_like(source, stroke=1, src_stroke=1):
     """Г, П: the hat (the flag over the stem; `stroke` here, `src_stroke` there) is Б's, placed the same way against the stem's top (owner, 2026-10-18: «верхние шляпы
     должны быть одинаковые ... по текущей шляпе от Б»). Б's capture comes before Г's (captures/ in order)."""
     def adjust(strokes):
-        src = PAPER[source]
+        src = PAPER_UNSNAPPED.get(source, PAPER[source])
         # the same height as there (both stand on the same ruling: the hat on the top line); across, as far from the stem as there,
         # the stem measured at the height where the source's stem begins
         top = np.asarray(src[0][0][1][0], float)
@@ -179,7 +182,7 @@ def stem_like(source, stroke=0):
     paper, Г's 22.1, the hand's Г 18.6). The stroke is stretched from the baseline along the slant, so the stem stays on its line and
     its foot on the baseline."""
     def adjust(strokes):
-        target = np.array(tt.parse_path(tt.dg.fmt(PAPER[source][stroke])))[:, 1].min()
+        target = np.array(tt.parse_path(tt.dg.fmt(PAPER_UNSNAPPED.get(source, PAPER[source])[stroke])))[:, 1].min()
         top = np.array(tt.parse_path(tt.dg.fmt(strokes[stroke])))[:, 1].min()
         k = (tt.BASE - target) / (tt.BASE - top)
         strokes[stroke] = [(c, list(tt.shear_scale(np.array(ps, float), k))) for c, ps in strokes[stroke]]
@@ -554,6 +557,95 @@ def hooks_like_font(strokes, label="А", tol=0.1, ease=3):
     return strokes
 
 
+FONT_SKELETON = HERE / "font_skeleton.json"  # font_flags.py SKELETON: the whole skeleton of some letters, bank units
+
+
+def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1):
+    """A traced letter moved onto the font's lines without changing its path (owner, 2026-10-19, Б: «максимально приблизь наши
+    линии, расширь их, раздвинь без изменения траектории к размерам и линиям шрифта»). Every point of every stroke moves across
+    its own path (along its normal only, so the path keeps its length, order and turns) onto the font's skeleton (font_skeleton.json
+    set by stencil_map). Near a fork (where the bowl leaves the stem) the skeleton bends off into the other stroke, so there the
+    shift is carried over from both sides; it is smoothed along the stroke (`sigma` paper units). A straight line (a stem) moves
+    by one shift, so it stays straight and on the slant. A stroke starting on another one starts on it again after the move.
+    Hooks keep their bottom on the baseline, tops their top line. Curves refitted by cubics within `tol`."""
+    PAPER_UNSNAPPED[label] = [list(c) for c in strokes]
+    sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
+    like = np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes])
+    fn = stencil_map(label, like=like)
+    S = fn(np.array(sk["pts"], float)); F = fn(np.array(sk["forks"], float)).reshape(-1, 2)
+    old = [np.array(tt.parse_path(dg.fmt(c))) for c in strokes]
+    out = []
+    for cmds in strokes:
+        # samples per command, so lines can be kept lines
+        pts, owner = [np.asarray(cmds[0][1][0], float)], [0]
+        for k, (c, ps) in enumerate(cmds[1:], 1):
+            p0 = pts[-1]; ps = [np.asarray(q, float) for q in ps]
+            n = 24
+            for t in np.linspace(0, 1, n + 1)[1:]:
+                pts.append(p0 + t * (ps[0] - p0) if c == "L" else (1-t)**3*p0 + 3*(1-t)**2*t*ps[0] + 3*(1-t)*t**2*ps[1] + t**3*ps[2])
+                owner.append(k)
+        P = np.array(pts); owner = np.array(owner)
+        T = np.gradient(P, axis=0); T /= np.hypot(*T.T)[:, None] + 1e-9
+        N = np.c_[-T[:, 1], T[:, 0]]
+        d = np.hypot(P[:, None, 0] - S[None, :, 0], P[:, None, 1] - S[None, :, 1])
+        q = S[d.argmin(axis=1)]
+        off = np.sum((q - P) * N, axis=1)
+        ok = d.min(axis=1) < reach
+        if len(F): ok &= np.min(np.hypot(P[:, None, 0] - F[None, :, 0], P[:, None, 1] - F[None, :, 1]), axis=1) > fork_r
+        # the stroke's two ends: the skeleton stops half a pen short of the ink, so their nearest point lies along, not across
+        s_ = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(P, axis=0).T))])
+        ok &= (s_ > 2.0) & (s_ < s_[-1] - 2.0)
+        off = np.interp(s_, s_[ok], off[ok]) if ok.sum() > 1 else np.zeros(len(P))
+        for k in set(owner[owner > 0]):
+            if cmds[k][0] == "L": off[owner == k] = off[owner == k].mean()
+        g = np.exp(-0.5 * ((s_[:, None] - s_[None, :]) / sigma) ** 2)
+        lines = np.isin(owner, [k for k in range(1, len(cmds)) if cmds[k][0] == "L"])
+        sm = (g @ off) / g.sum(axis=1)
+        off = np.where(lines, off, sm)
+        # a curve next to a line eases from the line's shift into its own over `blend` units: no kink where a stem meets its hook
+        blend = 8.0
+        for k in set(owner[owner > 0]):
+            if cmds[k][0] != "L": continue
+            idx = np.nonzero(owner == k)[0]
+            for end in (idx[0] - 1, idx[-1]):
+                if end < 0: continue
+                dist = np.abs(s_ - s_[end])
+                w = np.clip(dist / blend, 0, 1); w = w * w * (3 - 2 * w)
+                near = (~lines) & (dist < blend)
+                off[near] = off[end] * (1 - w[near]) + off[near] * w[near]
+        out.append((P + N * off[:, None], owner))
+    new = []
+    for (P, owner), cmds, o in zip(out, strokes, old):
+        res = [("M", [P[0]])]
+        k = 1
+        while k < len(cmds):
+            if cmds[k][0] == "L":
+                res.append(("L", [P[owner == k][-1]])); k += 1; continue
+            k2 = k
+            while k2 < len(cmds) and cmds[k2][0] == "C": k2 += 1
+            i0 = int(np.argmax(owner == k)) - 1; i1 = int(np.nonzero(owner == k2 - 1)[0][-1])
+            seg = P[i0:i1 + 1]
+            t0 = tt._unit(seg[1] - seg[0]); t1 = tt._unit(seg[-1] - seg[-2])
+            # along the line it leaves or joins: a stem runs into its hook without a corner
+            if k > 1 and cmds[k - 1][0] == "L": t0 = tt._unit(P[owner == k - 1][-1] - P[owner == k - 1][0])
+            if k2 < len(cmds) and cmds[k2][0] == "L": t1 = tt._unit(P[owner == k2][-1] - P[owner == k2][0])
+            res += tt._fit_span(seg, t0, t1, tol=tol)
+            k = k2
+        new.append(res)
+    # a stroke that started on another one (Б's bowl on the stem) starts on it again
+    for i, o in enumerate(old):
+        for j, o2 in enumerate(old):
+            if i == j: continue
+            dd = np.hypot(*(dg.resample(o2, 0.3) - o[0]).T)
+            if dd.min() < 0.6:
+                other = dg.resample(np.array(tt.parse_path(dg.fmt(new[j]))), 0.3)
+                p0 = np.asarray(new[i][0][1][0], float)
+                tgt = other[np.argmin(np.hypot(*(other - p0).T))]
+                sh = tgt - p0
+                new[i] = [("M", [p0 + sh])] + [(c, [np.asarray(q, float) + (sh if m == 0 and c == "C" and n_ == 0 else 0) for n_, q in enumerate(ps)]) if m == 0 else (c, ps) for m, (c, ps) in enumerate(new[i][1:])]
+    return new
+
+
 DEEPEN = {"П:2": 3.0}  # a whole stroke's flat run along the top sagged this much more in the middle (paper units)
 FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (font_flag, exact from font_flags.json)
 # SPLIT: the font's pen path cut at its turns back (_turns) into separate strokes: (first, last) piece of each stroke, the rest left
@@ -571,7 +663,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Б": lambda s: snap_to_font(s, "Б"), "В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)

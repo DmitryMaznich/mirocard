@@ -28,6 +28,7 @@ LETTERS = "КНФЮЪ"
 # rise (owner, 2026-10-19: «первый штрих должен иметь чуть больший прогиб в середине вправо ... максимально приближенное к линиям
 # шрифта»; build_glyphs.rise_like_font)
 WHOLE = {"П": 2, "А": 0}
+SKELETON = "Б"  # letters snapped onto the font's lines whole (build_glyphs.snap_to_font; owner, 2026-10-19, Б: «сделай всё то же самое»)
 
 
 def flag_of_draft(p):
@@ -71,6 +72,32 @@ def main():
         out[f"{ch}:{k}" if ch in WHOLE else ch] = [[round(float(x), 3), round(float(y), 3)] for x, y in sm]
         print(ch, len(out[f"{ch}:{k}" if ch in WHOLE else ch]), "points")
     (HERE / "font_flags.json").write_text(json.dumps({"note": __doc__.strip().splitlines()[0], "flags": out}, ensure_ascii=False))
+    # the whole skeleton of some letters (build_glyphs.snap_to_font): every point, and the forks (where strokes join, the skeleton
+    # bends off into the other stroke there and is not the line)
+    skel = {}
+    for ch in SKELETON:
+        sk, fork = skeleton_of(gs, cm, ch)
+        skel[ch] = {"pts": [[round(float(x), 2), round(float(y), 2)] for x, y in sk], "forks": [[round(float(x), 2), round(float(y), 2)] for x, y in fork]}
+        print(ch, len(sk), "skeleton points,", len(fork), "forks")
+    (HERE / "font_skeleton.json").write_text(json.dumps({"note": "The Boyan Maga skeleton (font_flags.py SKELETON), bank units", "letters": skel}, ensure_ascii=False))
+
+
+def skeleton_of(gs, cm, ch):
+    """The skeleton of a letter's fill (PX px per font unit) in bank units, and its fork points (more than two neighbours)."""
+    pen = fg.Flat(gs); gs[cm[ord(ch)]].draw(pen)
+    xs = [x for poly in pen.polys for x, _ in poly]; ys = [y for poly in pen.polys for _, y in poly]
+    x0, y1 = min(xs) - 10, max(ys) + 10
+    W, H = int((max(xs) - x0 + 10) * PX) + 2, int((y1 - min(ys) + 10) * PX) + 2
+    wind = np.zeros((H, W), int)
+    for poly in pen.polys:
+        m = Image.new("1", (W, H), 0); ImageDraw.Draw(m).polygon([((x - x0) * PX, (y1 - y) * PX) for x, y in poly], fill=1)
+        area = sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(poly, poly[1:] + poly[:1]))
+        wind += np.where(np.array(m), 1 if area > 0 else -1, 0)
+    sk = skeletonize(wind != 0)
+    from scipy.ndimage import convolve
+    nb = convolve(sk.astype(int), np.ones((3, 3), int), mode="constant") - 1
+    to = lambda rr, cc: np.array([fg.to_bank(c / PX + x0, y1 - r / PX) for r, c in zip(rr, cc)]).reshape(-1, 2)
+    return to(*np.nonzero(sk)), to(*np.nonzero(sk & (nb > 2)))
 
 
 if __name__ == "__main__":
