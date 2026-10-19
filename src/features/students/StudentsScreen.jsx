@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { languageName } from "../../../shared/languages.mjs";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
@@ -122,7 +123,7 @@ export default function StudentsScreen() {
             </div>
             {panelStudent.primaryLanguage && (
               <div className="student-detail-lang">
-                {panelStudent.primaryLanguage === "ru" ? "Русский" : "English"}
+                {languageName(panelStudent.primaryLanguage)}
               </div>
             )}
             {(panelStudent.rewardVideos?.length ?? 0) > 0 && (
