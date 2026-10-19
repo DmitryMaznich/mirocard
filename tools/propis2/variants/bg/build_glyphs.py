@@ -855,6 +855,34 @@ def zigzag_middle(strokes, k=1, near=10.0):
     return strokes
 
 
+def zigzag_right(strokes, label="Ж", k=2, mid=1, rms=0.25, tol=0.1):
+    """Ж's right element (owner, 2026-10-19): the top of its arc smooth along the font's line, and the whole element moved left
+    until the middle element's right end lies on it. The arc over the top (from the start to below where the middle element meets
+    it) is the smoothing spline through the font's skeleton points along it (its corners were the skeleton's raster steps), within
+    `rms` units of them; then the element is moved along the row so that it passes through the middle element's end."""
+    from scipy.interpolate import UnivariateSpline
+    sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
+    fn = stencil_map(label, like=np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in PAPER_UNSNAPPED[label]]))
+    S = fn(np.array(sk["pts"], float))
+    E = np.asarray(strokes[mid][-1][1][-1], float)
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
+    top = int(np.argmin(p[:, 1]))
+    j = top + int(np.argmax(p[top:, 1] > E[1] + 12.0))  # below where the middle element meets it
+    q = S[np.argmin(np.hypot(p[:j + 1, None, 0] - S[None, :, 0], p[:j + 1, None, 1] - S[None, :, 1]), axis=1)]
+    t = np.arange(len(q)) * 0.3
+    w = np.ones(len(q)); w[-8:] = 50.0  # the end stays on the rest of the line
+    q[-8:] = p[j - 7:j + 1]
+    sx = UnivariateSpline(t, q[:, 0], w=w, s=len(q) * rms ** 2); sy = UnivariateSpline(t, q[:, 1], w=w, s=len(q) * rms ** 2)
+    arc = np.c_[sx(t), sy(t)]
+    p = np.vstack([arc, p[j + 1:]])
+    # moved along the row: where it comes down past the middle element's end, it passes through it
+    after = p[top:]
+    i = int(np.argmin(np.abs(after[:, 1] - E[1])))
+    p = p + np.array([E[0] - after[i, 0], 0.0])
+    strokes[k] = [("M", [p[0]])] + tt._fit_span(p, tt._unit(p[4] - p[0]), tt._unit(p[-1] - p[-5]), tol=tol)
+    return strokes
+
+
 DEEPEN = {"П:2": 3.0}  # a whole stroke's flat run along the top sagged this much more in the middle (paper units)
 FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (font_flag, exact from font_flags.json)
 # SPLIT: the font's pen path cut at its turns back (_turns) into separate strokes: (first, last) piece of each stroke, the rest left
@@ -872,7 +900,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "Ж": lambda s: zigzag_middle(snap_to_font(s, "Ж", arcs=(0,))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
