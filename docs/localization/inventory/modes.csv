@@ -1,0 +1,79 @@
+topic_id,mode_id,type,source,title,provenance,sl_ready
+chat_with_mom,morning_greeting,,content/topics/chat_with_mom/topic.json,"{""ru"": ""Доброе утро 🌅""}",source_manifest,unverified
+chat_with_mom,im_hungry,,content/topics/chat_with_mom/topic.json,"{""ru"": ""Я хочу есть 🍽️""}",source_manifest,unverified
+chat_with_mom,feel_sick,,content/topics/chat_with_mom/topic.json,"{""ru"": ""Мне плохо 🤒""}",source_manifest,unverified
+chat_with_mom,can_i_watch_tv,,content/topics/chat_with_mom/topic.json,"{""ru"": ""Можно мультики? 📺""}",source_manifest,unverified
+chat_with_mom,help_me,,content/topics/chat_with_mom/topic.json,"{""ru"": ""Помоги мне 🙏""}",source_manifest,unverified
+chat_with_mom,good_night,,content/topics/chat_with_mom/topic.json,"{""ru"": ""Спокойной ночи 🌙""}",source_manifest,unverified
+magnetic_alphabet,magnetic_free,magnetic_free,public/decks/magnetic_alphabet_v1.5.0/topic.json,"""Свободная азбука""",source_manifest,unverified
+magnetic_alphabet,magnetic_words,magnetic_words,public/decks/magnetic_alphabet_v1.5.0/topic.json,"""Сборка по заданию""",source_manifest,unverified
+opposites,intro,intro,public/decks/opposites_draft/topic.json,"""Знакомство""",source_manifest,unverified
+opposites,pair_comparison,pair_comparison,public/decks/opposites_draft/topic.json,"""Сравниваем""",source_manifest,unverified
+opposites,choose_two,choose_two,public/decks/opposites_draft/topic.json,"""Покажи""",source_manifest,unverified
+opposites,sort,sort,public/decks/opposites_draft/topic.json,"""Сортировка""",source_manifest,unverified
+opposites,find_all,find_all,public/decks/opposites_draft/topic.json,"""Найди все""",source_manifest,unverified
+opposites,find_opposite,find_opposite,public/decks/opposites_draft/topic.json,"""Найди пару""",source_manifest,unverified
+written_letters,sort_case,sort_case,public/decks/written_letters/topic.json,"{""ru"": ""Строчная или заглавная?""}",source_manifest,unverified
+written_letters,match_print_to_written,match_print_to_written,public/decks/written_letters/topic.json,"{""ru"": ""Найди рукописную""}",source_manifest,unverified
+written_letters,match_written_to_print,match_written_to_print,public/decks/written_letters/topic.json,"{""ru"": ""Найди печатную""}",source_manifest,unverified
+written_letters,match_pair,match_pair,public/decks/written_letters/topic.json,"{""ru"": ""Найди пару""}",source_manifest,unverified
+written_letters,alphabet_pairs,alphabet_pairs,public/decks/written_letters/topic.json,"{""ru"": ""Мои буквы""}",source_manifest,unverified
+print_materials,browse,browse,src/print_materials/topic.json,"{""ru"": ""Печатные материалы""}",source_manifest,unverified
+daily_orientation,daily_orientation,daily_orientation,src/topics/builtinDailyOrientationTopic.js,,static_builtin,unverified
+streak_tracker,streak,streak,src/topics/builtinTopics.js,,static_builtin,unverified
+addition_subtraction,operation_observe,operation_observe,tools/addition_subtraction/topic.json,"""1. Что изменилось?""",source_manifest,unverified
+addition_subtraction,operation_name_action,operation_name_action,tools/addition_subtraction/topic.json,"""2. Назови действие""",source_manifest,unverified
+addition_subtraction,operation_do_action,operation_do_action,tools/addition_subtraction/topic.json,"""3. Сделай действие""",source_manifest,unverified
+addition_subtraction,operation_action_from_sign,operation_action_from_sign,tools/addition_subtraction/topic.json,"""4. Знак ↔ Действие""",source_manifest,unverified
+addition_subtraction,operation_find_sign,operation_find_sign,tools/addition_subtraction/topic.json,"""5. Найди знак""",source_manifest,unverified
+addition_subtraction,operation_result,operation_result,tools/addition_subtraction/topic.json,"""6. Сколько стало?""",source_manifest,unverified
+addition_subtraction,operation_chain,operation_chain,tools/addition_subtraction/topic.json,"""7. Цепочка""",source_manifest,unverified
+addition_subtraction,operation_worksheet,operation_worksheet,tools/addition_subtraction/topic.json,"""8. Контрольная работа""",source_manifest,unverified
+addition_subtraction,operation_missing_term,operation_missing_term,tools/addition_subtraction/topic.json,"""9. Найди неизвестное""",source_manifest,unverified
+addition_subtraction,operation_audio,operation_audio,tools/addition_subtraction/topic.json,"""10. Слушай и посчитай""",source_manifest,unverified
+comparison,compare_visual,compare_visual,tools/comparison/topic.json,"""1. Сравни и нажми. Без знака""",source_manifest,unverified
+comparison,compare_sign,compare_sign,tools/comparison/topic.json,"""2. Вводим знак — Крокодил""",source_manifest,unverified
+comparison,compare_draw_sign,compare_draw_sign,tools/comparison/topic.json,"""3. Нарисуй знак""",source_manifest,unverified
+comparison,compare_evaluate,compare_evaluate,tools/comparison/topic.json,"""4. Сравни и поставь знак""",source_manifest,unverified
+comparison,compare_first_number,compare_first_number,tools/comparison/topic.json,"""5. Сравни первое и второе""",source_manifest,unverified
+comparison,compare_apply,compare_apply,tools/comparison/topic.json,"""6. Применяем сравнение""",source_manifest,unverified
+comparison,compare_test,compare_evaluate,tools/comparison/topic.json,"""7. Контрольная работа""",source_manifest,unverified
+comparison,compare_real_life,compare_real_life,tools/comparison/topic.json,"""8. Сравни в жизни""",source_manifest,unverified
+letter_writing,worksheet,worksheet,tools/letter_writing/topic.json,"""Рабочий лист""",source_manifest,unverified
+letter_writing,letter_demo,letter_demo,tools/letter_writing/topic.json,"""Смотрим, как пишется""",source_manifest,unverified
+letter_writing,letter_follow,letter_follow,tools/letter_writing/topic.json,"""Следим пальцем""",source_manifest,unverified
+letter_writing,letter_trace,letter_trace,tools/letter_writing/topic.json,"""Обводим сами""",source_manifest,unverified
+magnetic_alphabet,magnetic_free,magnetic_free,tools/magnetic_alphabet/topic.json,"""Свободная азбука""",source_manifest,unverified
+magnetic_alphabet,magnetic_words,magnetic_words,tools/magnetic_alphabet/topic.json,"""Сборка по заданию""",source_manifest,unverified
+magnetic_alphabet,magnetic_sentence,magnetic_sentence,tools/magnetic_alphabet/topic.json,"""Предложение (текст)""",source_manifest,unverified
+magnetic_alphabet,magnetic_sentence_audio,magnetic_sentence_audio,tools/magnetic_alphabet/topic.json,"""Предложение (по памяти)""",source_manifest,unverified
+people_names,people_intro,intro,tools/people_names/topic.json,"""1. Знакомство""",source_manifest,unverified
+people_names,people_find_category,find_n,tools/people_names/topic.json,"""2. Покажи человека""",source_manifest,unverified
+people_names,people_choose_all,choose_all,tools/people_names/topic.json,"""3. Найди всех""",source_manifest,unverified
+people_names,people_question_answer,question_answer,tools/people_names/topic.json,"""4. Кто это?""",source_manifest,unverified
+people_names,people_yes_no,yes_no,tools/people_names/topic.json,"""5. Верно или нет?""",source_manifest,unverified
+people_names,people_sort_attribute,sort_by_attribute,tools/people_names/topic.json,"""6. Ребёнок или взрослый?""",source_manifest,unverified
+people_names,people_name_gender,name_gender,tools/people_names/topic.json,"""7. Мужское или женское имя?""",source_manifest,unverified
+people_names,people_generalisation_probe,generalisation_probe,tools/people_names/topic.json,"""8. Проверка переноса""",source_manifest,unverified
+people_names,people_offphoto_probe,offphoto_find_n,tools/people_names/topic.json,"""9. Другое изображение""",source_manifest,unverified
+propis,letters_recognize,letters_recognize,tools/propis/topic.json,"""Узнай букву""",source_manifest,unverified
+propis,letters_case,letters_case,tools/propis/topic.json,"""Строчная и заглавная""",source_manifest,unverified
+propis,letters_alphabet,letters_alphabet,tools/propis/topic.json,"""Мои буквы""",source_manifest,unverified
+propis,write_text,write_text,tools/propis/topic.json,"""Пишем текст""",source_manifest,unverified
+propis,read_text,read_text,tools/propis/topic.json,"""Переписываем текст в тетрадь""",source_manifest,unverified
+propis,read_lines,read_lines,tools/propis/topic.json,"""Тетрадный лист""",source_manifest,unverified
+propis,dictation,dictation,tools/propis/topic.json,"""Диктант""",source_manifest,unverified
+propis,print_materials,browse,tools/propis/topic.json,"""Печатные материалы""",source_manifest,unverified
+propis2,builder,builder,tools/propis2/topic.json,"""Конструктор тетрадей""",source_manifest,unverified
+propis2,letters_recognize,letters_recognize,tools/propis2/topic.json,"""Узнай букву""",source_manifest,unverified
+propis2,letters_case,letters_case,tools/propis2/topic.json,"""Строчная и заглавная""",source_manifest,unverified
+propis2,dictation,dictation,tools/propis2/topic.json,"""Диктант""",source_manifest,unverified
+sentence_puzzle,sentence_puzzle,sentence_puzzle,tools/sentence_puzzle/topic.json,"""Собираем пазл""",source_manifest,unverified
+sentence_puzzle,listen_build_mono,listen_build_mono,tools/sentence_puzzle/topic.json,"""Слушаем и составляем""",source_manifest,unverified
+sentence_puzzle,listen_write_letters,listen_write_letters,tools/sentence_puzzle/topic.json,"""Слушаем и пишем буквами""",source_manifest,unverified
+symmetry_draw,navigator_learning,navigator,tools/symmetry_draw/topic.json,"""Навигатор: обучалка""",source_manifest,unverified
+symmetry_draw,navigator,navigator,tools/symmetry_draw/topic.json,"""Навигатор""",source_manifest,unverified
+symmetry_draw,coordinates,coordinates,tools/symmetry_draw/topic.json,"""Координаты""",source_manifest,unverified
+symmetry_draw,repeat_draw,repeat_draw,tools/symmetry_draw/topic.json,"""Повтори рисунок""",source_manifest,unverified
+symmetry_draw,graphic_dictation,graphic_dictation,tools/symmetry_draw/topic.json,"""Графический диктант""",source_manifest,unverified
+symmetry_draw,symmetry_draw,mirror_draw,tools/symmetry_draw/topic.json,"""Симметричный рисунок""",source_manifest,unverified

@@ -1,0 +1,26 @@
+{
+  "revision": "c667c669ec5fe22eedc003582fe7cd0366fd12fc",
+  "source_files": 508,
+  "cyrillic_lines": 9195,
+  "signal_rows": 9537,
+  "screen_routes": 38,
+  "inventory_topics": 40,
+  "catalog_entries": 29,
+  "source_mode_records": 78,
+  "topics_with_source_modes": 15,
+  "loose_assets": 903,
+  "topic_statuses": {
+    "archived": 1,
+    "beta": 13,
+    "builtin": 4,
+    "hidden": 1,
+    "release": 14,
+    "uncatalogued": 7
+  },
+  "limits": [
+    "Signals include comments and data; they are not unique translation units.",
+    "ZIP contents, generated audio and PDF text were not decoded.",
+    "Mode records can repeat across source manifests; zero bundle modes does not mean zero runnable modes.",
+    "No runtime, device, linguistic or methodology acceptance implied."
+  ]
+}

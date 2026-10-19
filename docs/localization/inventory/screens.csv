@@ -1,0 +1,39 @@
+route,component,source,state_audit
+boot,BootScreen,src/App.jsx (local wrapper),see ../screen-states.md
+login,LoginScreen,@/features/account/LoginScreen,see ../screen-states.md
+register,RegisterScreen,@/features/account/RegisterScreen,see ../screen-states.md
+verify_email_sent,VerifyEmailSentScreen,@/features/account/VerifyEmailSentScreen,see ../screen-states.md
+verify_email,VerifyEmailScreen,@/features/account/VerifyEmailScreen,see ../screen-states.md
+google_complete_profile,GoogleCompleteProfileScreen,@/features/account/GoogleCompleteProfileScreen,see ../screen-states.md
+forgot_password,ForgotPasswordScreen,@/features/account/ForgotPasswordScreen,see ../screen-states.md
+reset_password,ResetPasswordScreen,@/features/account/ResetPasswordScreen,see ../screen-states.md
+home,HomeScreen,@/features/home/HomeScreen,see ../screen-states.md
+students,StudentsScreen,@/features/students/StudentsScreen,see ../screen-states.md
+student_edit,StudentEditScreen,@/features/students/StudentEditScreen,see ../screen-states.md
+my_people_settings,MyPeopleSettingsScreen,@/features/myPeople/MyPeopleSettingsScreen,see ../screen-states.md
+important_dates_settings,ImportantDatesScreen,@/features/importantDates/ImportantDatesScreen,see ../screen-states.md
+topics,TopicLibraryScreen,@/features/topics/TopicLibraryScreen,see ../screen-states.md
+texts,TextPickerScreen,@/features/reading/TextPickerScreen,see ../screen-states.md
+all_texts,AllTextsScreen,@/features/reading/AllTextsScreen,see ../screen-states.md
+modes,ModePickerScreen,@/features/home/ModePickerScreen,see ../screen-states.md
+params,ParamsRoute,src/App.jsx (local wrapper),see ../screen-states.md
+concepts,ConceptPickerScreen,@/features/session/ConceptPickerScreen,see ../screen-states.md
+session,SessionScreen,@/features/session/SessionScreen,see ../screen-states.md
+summary,SessionSummary,@/features/session/SessionSummary,see ../screen-states.md
+chat_params,ChatParamsScreen,@/features/chat/ChatParamsScreen,see ../screen-states.md
+chat_session,ChatSessionScreen,@/features/chat/ChatSessionScreen,see ../screen-states.md
+history,StudentHistoryScreen,@/features/history/StudentHistoryScreen,see ../screen-states.md
+settings,SettingsScreen,@/features/settings/SettingsScreen,see ../screen-states.md
+account,AccountScreen,@/features/settings/AccountScreen,see ../screen-states.md
+help,HelpScreen,@/features/help/HelpScreen,see ../screen-states.md
+privacy,PrivacyScreen,@/features/help/PrivacyScreen,see ../screen-states.md
+planner_menu,PlannerMenuScreen,@/features/planner/PlannerMenuScreen,see ../screen-states.md
+planner_shopping,PlannerShoppingScreen,@/features/planner/PlannerShoppingScreen,see ../screen-states.md
+planner_putaway,PlannerPutawayScreen,@/features/planner/PlannerPutawayScreen,see ../screen-states.md
+instruction_runner,InstructionRunnerScreen,@/features/instructions/InstructionRunnerScreen,see ../screen-states.md
+instruction_constructor,InstructionConstructorScreen,@/features/instructions/InstructionConstructorScreen,see ../screen-states.md
+lesson_plan_period,PeriodPlanScreen,@/features/lessonPlan/PeriodPlanScreen,see ../screen-states.md
+lesson_plan_history,LessonPlanHistoryScreen,@/features/lessonPlan/LessonPlanHistoryScreen,see ../screen-states.md
+subscription,SubscriptionScreen,@/features/billing/SubscriptionScreen,see ../screen-states.md
+checkout_redirect,CheckoutRedirectScreen,@/features/billing/CheckoutRedirectScreen,see ../screen-states.md
+checkout_return,CheckoutReturnScreen,@/features/billing/CheckoutReturnScreen,see ../screen-states.md

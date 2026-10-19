@@ -1,0 +1,31 @@
+key,ru,sl_draft,en_draft,audience,context,status
+app.name,Mironium,Mironium,Mironium,all,Торговое имя не переводится,keep
+language.ui,Язык приложения,Jezik aplikacije,App language,adult,Язык навигации и управления,draft_editor_review
+language.lesson,Язык занятий,Jezik vadbe,Lesson language,adult,Независим от языка интерфейса,draft_editor_and_methodology_review
+language.primary,Основной язык,Primarni jezik,Primary language,adult,Язык ребёнка в существующем поле primaryLanguage,draft_editor_review
+language.inherit,Использовать общую настройку,Uporabi splošno nastavitev,Use default setting,adult,Наследование предпочтения занятий,draft_editor_review
+language.unknown,Язык не указан,Jezik ni naveden,Language not specified,adult,Старый импорт или история без подтверждённого языка,draft_editor_review
+student,Ученик,Učenec,Learner,adult,Выбор термина для ребёнка/взрослого в продукте требует редактора,draft_editor_and_methodology_review
+topic,Тема,Tema,Topic,adult,Общий учебный набор с несколькими режимами,draft_editor_review
+mode,Режим,Način,Mode,adult,Отдельное упражнение темы,draft_editor_and_methodology_review
+concept,Понятие,Pojem,Concept,adult,Единица прогресса conceptId; не обязательно отдельная картинка,draft_editor_and_methodology_review
+card,Карточка,Kartica,Card,adult,Визуальный учебный объект,draft_editor_review
+lesson,Занятие,Vadba,Session,adult,Начатый проход с результатом; согласовать с language.lesson,draft_editor_and_methodology_review
+start,Начать,Začni,Start,adult,Действие взрослого перед занятием,draft_editor_review
+continue,Продолжить,Nadaljuj,Continue,adult,Возобновить сохранённое занятие,draft_editor_review
+finish,Завершить,Zaključi,Finish,adult,Сохранить результат; отличается от отмены,draft_editor_review
+cancel,Отмена,Prekliči,Cancel,adult,Отменить действие без подтверждения,draft_editor_review
+save,Сохранить,Shrani,Save,adult,Сохранение изменений формы,draft_editor_review
+back,Назад,Nazaj,Back,adult,Навигация с сохранением языкового выбора,draft_editor_review
+sound,Звук,Zvok,Sound,adult,Общий переключатель аудио,draft_editor_review
+repeat,Повторить,Ponovi,Repeat,child,Повтор учебной инструкции/записи,draft_editor_and_methodology_review
+hint,Подсказка,Namig,Hint,adult,Действие взрослого для помощи ребёнку,draft_editor_and_methodology_review
+history,История занятий,Zgodovina vadbe,Session history,adult,Список результатов с языком,draft_editor_review
+offline,Без интернета,Brez internetne povezave,Offline,adult,Доступность ранее загруженных материалов,draft_editor_review
+loading,Загрузка,Nalaganje,Loading,adult,Начальный экран и получение данных,draft_editor_review
+download,Скачать,Prenesi,Download,adult,Скачать пакет материалов,draft_editor_review
+install,Установить,Namesti,Install,adult,Установить скачанный пакет в библиотеку,draft_editor_review
+no_material,Материалы на этом языке пока недоступны,Gradivo v tem jeziku še ni na voljo,Materials are not available in this language yet,adult,До старта; не подставлять другой язык,draft_editor_review
+more,Больше,Več,More,child,Количество предметов; не размер изображения,draft_editor_and_methodology_review
+less,Меньше,Manj,Fewer,child,Количество предметов; английский зависит от предметного контекста,draft_editor_and_methodology_review
+equal,Одинаковое количество,Enako število,Same number,child,Равенство количества; не визуальная идентичность,draft_editor_and_methodology_review
