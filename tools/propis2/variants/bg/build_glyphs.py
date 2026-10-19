@@ -496,7 +496,7 @@ def rise_like_font(strokes, label="А", tol=0.3, deg=4, ease=3):
     ends = [np.asarray(ps[-1], float) for _, ps in cmds]
     k = j + int(np.argmin([e[1] for e in ends[j:]]))  # it ends at the top
     a, top = ends[j - 1], ends[k]
-    bar_y = float(np.mean(np.array(tt.parse_path(dg.fmt(strokes[1])))[:, 1]))
+    bar_y = float(np.mean(np.array(tt.parse_path(dg.fmt(strokes[1])))[:, 1])) if len(strokes) > 1 else -1e9  # Л: no bar
     like = np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes])
     exact = json.loads(FONT_FLAGS.read_text())["flags"][f"{label}:0"]
     f = dg.resample(stencil_map(label, like=like)(np.array(exact, float)), 0.6)
@@ -515,6 +515,31 @@ def rise_like_font(strokes, label="А", tol=0.3, deg=4, ease=3):
     t0 = tt._unit(np.asarray(c[-1], float) - np.asarray(c[-2], float)) if len(c) == 3 else tt._unit(r[4] - r[0])
     t1 = tt._unit(r[-1] - r[-5])
     strokes[0] = cmds[:j] + tt._fit_span(r, t0, t1, tol=tol) + cmds[k + 1:]
+    return strokes
+
+
+def stem_on_font(strokes, label, k=0, band=12.0):
+    """The stem (the last line of the stroke, down from the top) moved across onto the middle of the font's stem, still on the
+    slant: the mean offset to the font's skeleton along it, leaving out `band` units at the top (where the rise joins it) and at
+    the bottom (where it bends into the hook). The top moves along the top line to stay on it; the line before it (the rise)
+    ends there."""
+    PAPER_UNSNAPPED.setdefault(label, [list(c) for c in strokes])
+    ink, S, pen = _font_frame(label)
+    cmds = list(strokes[k])
+    lines = [i for i in range(1, len(cmds)) if cmds[i][0] == "L"]
+    top_i = min(lines, key=lambda i: cmds[i][1][0][1])  # the line ending at the top
+    stem = [i for i in lines if i > top_i]
+    a = np.asarray(cmds[top_i][1][0], float); b = np.asarray(cmds[stem[-1]][1][0], float)
+    d = tt._unit(b - a); n = np.array([-d[1], d[0]])
+    L = np.hypot(*(b - a))
+    P = a + np.outer(np.linspace(band / L, 1 - band / L, 60), b - a)
+    q = S[np.argmin(np.hypot(P[:, None, 0] - S[None, :, 0], P[:, None, 1] - S[None, :, 1]), axis=1)]
+    off = float(np.median((q - P) @ n))
+    sh = n * off
+    new_top = a + sh; new_top = new_top + d * (tt.CAP_TOP - new_top[1]) / d[1]
+    cmds[top_i] = ("L", [new_top])
+    for i in stem: cmds[i] = ("L", [np.asarray(cmds[i][1][0], float) + sh])
+    strokes[k] = cmds
     return strokes
 
 
@@ -1118,7 +1143,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
