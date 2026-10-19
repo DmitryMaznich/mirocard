@@ -436,8 +436,32 @@ def both(*fns):
     return adjust
 
 
+def font_flag(cmds, label, tol=0.5):
+    """The flag on the top left (from the start up over the top and into the stem: К Н Ф Ю, and Ъ through К) redrawn from the
+    font's own centre line, its dip in the middle as deep as the font's (owner, 2026-10-18: «крючки у букв К, Н, Ю, Ъ, Ф сделай
+    тщательнее по форме крючка из шрифта, там глубже прогиб в середине крючка»; the tidying's smoothing had flattened it).
+    The font's path (font_stencil, set on this letter) up to where it comes down to the height our stem's line begins, moved
+    across so that point lies on that line; fitted by cubics within `tol` (no lines, no smoothing first: the font's line is
+    smooth), leaving along the font's own start and arriving along our stem."""
+    j = next(i for i in range(1, len(cmds)) if cmds[i][0] == "L")  # our stem: the first line
+    a, b = np.asarray(cmds[j - 1][1][-1], float), np.asarray(cmds[j][1][0], float)
+    stem_dir = tt._unit(b - a)
+    like = np.array(tt.parse_path(tt.dg.fmt(cmds)))
+    f = dg.resample(np.asarray(font_stencil(label, like=like)[0], float), 0.6)
+    top = int(np.argmin(f[: len(f) // 2, 1]))  # the flag's top: the highest point in the first half of the path
+    cut = top + int(np.argmax(f[top:, 1] >= a[1]))  # where it has come down to our stem's start
+    flag = f[:cut + 1]
+    flag = flag + [_x_at((a, stem_dir), flag[-1][1]) - flag[-1][0], 0.0]
+    t0 = tt._unit(flag[min(4, len(flag) - 1)] - flag[0])
+    segs = tt._fit_span(flag, t0, stem_dir, tol=tol)
+    return [("M", [flag[0]])] + segs + cmds[j:]  # the stem's line runs on from the flag's end, which lies on it
+
+
+FONT_FLAG = set("КНФЮ")  # letters whose top-left flag is the font's (font_flag); Ъ takes К's (flag_like)
+
+
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font}
+SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:]}
 
 
 PAPER_LABEL = [None]  # the letter being tidied (a SHAPES function reads it)
@@ -518,6 +542,7 @@ def font_letter(label, script, spec):
     allp = np.vstack([tt.parse_path(dg.fmt(c)) for c in paper])
     k2 = (tt.BASE - tt.CAP_TOP) / (tt.BASE - allp[:, 1].min())  # the tidied letter exactly between its lines, as tidy_letter does
     paper = [[(c, list(tt.shear_scale(np.array(ps, float), k2))) for c, ps in cmds] for cmds in paper]
+    if label in FONT_FLAG: paper[0] = font_flag(paper[0], label)
     if spec.get("flag_like"): paper[0] = flag_like(paper[0], spec["flag_like"])
     PAPER[label] = paper
     paths = [tt.paper_to_bank_cmds(c) for c in paper]
