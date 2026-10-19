@@ -142,6 +142,7 @@ PAPER = {}  # label -> its tidied strokes on paper, for a letter that takes a pa
 # label -> its strokes as tidied before snap_to_font: Г takes Б's hat and stem height from Б as it was before Б was snapped onto
 # the font (2026-10-19); Г gets its own turn
 PAPER_UNSNAPPED = {}
+STENCIL_AT = HERE / "stencil_at.json"  # where the font stencil stood under each snapped letter (review_sheet.py lays it there too)
 
 
 def hat_like(source, stroke=1, src_stroke=1):
@@ -1024,7 +1025,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1))),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
@@ -1228,6 +1229,13 @@ def main():
     keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made}]
     variant["glyphs"] = keep + made
     VARIANT.write_text(json.dumps(variant, ensure_ascii=False, indent=2) + "\n")
+    # the letters moved onto the font were fitted to the stencil set on the letter before the move; a review sheet that set it on
+    # the finished letter (wider or narrower by its ends) would show the font shifted
+    at = {}
+    for label, strokes in PAPER_UNSNAPPED.items():
+        u = tt.upright(np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes]))
+        at[label] = [round(float(u[:, 0].min()), 3), round(float(u[:, 0].max()), 3)]
+    STENCIL_AT.write_text(json.dumps({"note": "upright x range of each snapped letter before snapping (build_glyphs.py)", "at": at}, ensure_ascii=False, indent=1) + "\n")
     print(f"{len(made)} glyphs -> {VARIANT}: {', '.join(m['label'] for m in made)}")
 
 

@@ -28,6 +28,7 @@ out = args[0]; letters = args[1] if len(args) > 1 else "АБВГДЕЖЗИЙКЛ
 CENTRE = "--centre" in sys.argv
 UDX = json.load(open(V / 'underlay_dx.json'))['dx']
 INK = "--no-ink" not in sys.argv
+AT = json.load(open(V / 'stencil_at.json'))['at'] if (V / 'stencil_at.json').exists() else {}
 # the deck's pen on this sheet's paper: PrintPageView draws every stroke 2 page units wide (propisRuling.STROKE_W); on the Bulgarian
 # ruling the lowercase is 4.26 mm (PrintPageView BG_X_MM) = 4.26 * 150 / 25 page units, our paper's lowercase 48 units
 INK_W = 2 * 48 / (4.26 * 150 / 25)
@@ -100,13 +101,16 @@ def fine(cmds):
 for n,ch in enumerate(letters):
     g = G[ch]; strokes=[fine(cmds_of(s['d'])) for s in g['strokes']]
     body=[p for k,p in enumerate(strokes) if k!=g.get('tailStroke')]
-    st = bg.font_stencil(ch, like=np.vstack(body))
+    like = np.vstack(body)
+    if ch in AT:  # a snapped letter: the stencil where the build set it (on the letter before the move)
+        like = tt.from_upright(np.array([[AT[ch][0], tt.BASE], [AT[ch][1], tt.BASE]]))
+    st = bg.font_stencil(ch, like=like)
     x0 = min(min(p[:,0].min() for p in strokes), min(p[:,0].min() for p in st)) - 8
     ox, oy = ((n*cells)%per)*CW, ((n*cells)//per)*CH
     Q = lambda p: (ox+(p[0]-x0)*S, oy+(p[1]+70)*S)
     for y in (tt.BASE, tt.X_TOP, tt.CAP_TOP, tt.BASE+48*tt.SCRIPT.get('lower',1.0)): dd.line([Q((x0,y)),Q((x0+148,y))], fill=(150,180,220), width=2)
     for gx in np.arange(x0-40, x0+190, 15): dd.line([Q((gx,tt.BASE)),Q((gx+(tt.BASE-tt.CAP_TOP)*tt.SLANT_T,tt.CAP_TOP))], fill=(235,205,205), width=1)
-    cell = np.array(img.crop((ox, oy, ox + CW, oy + CH))); cell[font_under(ch, np.vstack(body), x0, S, CW, CH)] = (200, 200, 200)
+    cell = np.array(img.crop((ox, oy, ox + CW, oy + CH))); cell[font_under(ch, like, x0, S, CW, CH)] = (200, 200, 200)
     img.paste(Image.fromarray(cell), (ox, oy)); dd = ImageDraw.Draw(img)
     if CENTRE:
         for p in st: dd.line([Q(q) for q in p], fill=(90, 90, 90), width=2)
