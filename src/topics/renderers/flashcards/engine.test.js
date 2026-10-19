@@ -611,3 +611,61 @@ describe("generateTasks — people and attributes", () => {
     expect(tasks.map((task) => task.targetValue).sort()).toEqual(["adult", "adult", "child", "child"]);
   });
 });
+
+describe("generateTasks — card.alsoShows", () => {
+  // The «ест» boy sits on a chair: in «Покажи: сидит» he is a second right answer.
+  const CARDS = [
+    { id: "sits_1", conceptId: "sits", primary: true, label: "сидит", image: "sits_1.webp" },
+    { id: "eats_chair", conceptId: "eats", primary: true, label: "ест", image: "eats_chair.webp", alsoShows: ["sits"] },
+    { id: "eats_standing", conceptId: "eats", label: "ест", image: "eats_standing.webp" },
+    { id: "reads_chair", conceptId: "reads", primary: true, label: "читает", image: "reads_chair.webp", alsoShows: ["sits"] },
+    { id: "runs_1", conceptId: "runs", primary: true, label: "бежит", image: "runs_1.webp" },
+    { id: "jumps_1", conceptId: "jumps", primary: true, label: "прыгает", image: "jumps_1.webp" },
+  ];
+  const CONCEPTS = deriveConcepts(CARDS);
+  const showsSits = (card) => card.alsoShows?.includes("sits");
+
+  it("find_n never offers a picture that also shows the target", () => {
+    for (let i = 0; i < 30; i++) {
+      const tasks = generateTasks("find_n", CONCEPTS, CARDS, { optionCount: 4 });
+      const sits = tasks.find((t) => t.targetConceptId === "sits");
+      expect(sits.options.filter((o) => !o.isTarget).some((o) => showsSits(o.card))).toBe(false);
+      // «ест» stays in the pool through its other picture; «читает» has none left.
+      expect(sits.options.some((o) => o.conceptId === "reads")).toBe(false);
+    }
+  });
+
+  it("the picture is still a fair distractor for other targets", () => {
+    const seen = new Set();
+    for (let i = 0; i < 60; i++) {
+      for (const t of generateTasks("find_n", CONCEPTS, CARDS, { optionCount: 4 })) {
+        if (t.targetConceptId !== "sits") t.options.forEach((o) => seen.add(o.card.id));
+      }
+    }
+    expect(seen.has("eats_chair") || seen.has("reads_chair")).toBe(true);
+  });
+
+  it("choose_word_by_picture leaves the word the picture also shows out of the options", () => {
+    for (let i = 0; i < 30; i++) {
+      const tasks = generateTasks("choose_word_by_picture", CONCEPTS, CARDS, {});
+      for (const t of tasks.filter((task) => showsSits(task.card))) {
+        expect(t.options.some((o) => o.conceptId === "sits")).toBe(false);
+      }
+    }
+  });
+
+  it("choose_all never fills the grid with a picture that also shows the target", () => {
+    for (let i = 0; i < 30; i++) {
+      const sits = generateTasks("choose_all", CONCEPTS, CARDS, { optionCount: 4 }).find((t) => t.conceptId === "sits");
+      expect(sits.allCards.filter((c) => !sits.targetCardIds.includes(c.id)).some(showsSits)).toBe(false);
+    }
+  });
+
+  it("yes_no never asks «сидит?» as the wrong word for a picture that shows sitting", () => {
+    for (let i = 0; i < 30; i++) {
+      for (const t of generateTasks("yes_no", CONCEPTS, CARDS, {}).filter((task) => showsSits(task.card) && !task.isLabelCorrect)) {
+        expect(t.displayLabel).not.toBe("сидит");
+      }
+    }
+  });
+});

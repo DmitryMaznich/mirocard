@@ -495,7 +495,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_eats_mom",
@@ -526,7 +529,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_eats_girl_apple",
@@ -557,7 +563,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "eats_1",
@@ -588,7 +597,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_eats.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "eats_2",
@@ -619,7 +631,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_eats.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "eats_3",
@@ -650,7 +665,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_eats.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "eats_5",
@@ -681,7 +699,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_eats.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_drinks_boy",
@@ -712,7 +733,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_drinks_mom",
@@ -743,7 +767,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_drinks_1",
@@ -774,7 +801,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_drinks_2",
@@ -805,7 +835,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "drinks_1",
@@ -867,7 +900,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_drinks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "drinks_3",
@@ -898,7 +934,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_drinks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "drinks_5",
@@ -956,7 +995,10 @@
         "group1": "rest",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "s3_c_sleeps_mom",
@@ -983,7 +1025,10 @@
         "group1": "rest",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "s3_v_sleeps_baby_stroller",
@@ -1010,7 +1055,10 @@
         "group1": "rest",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "sleeps_1",
@@ -1037,7 +1085,10 @@
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "sleeps_2",
@@ -1064,7 +1115,10 @@
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "sleeps_3",
@@ -1091,7 +1145,10 @@
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "sleeps_5",
@@ -1118,7 +1175,10 @@
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "s3_c_runs_boy",
@@ -1623,7 +1683,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_draws_mom",
@@ -1654,7 +1717,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_draws_1",
@@ -1685,7 +1751,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_draws_2",
@@ -1747,7 +1816,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_draws.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "draws_2",
@@ -1778,7 +1850,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_draws.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "draws_3",
@@ -1809,7 +1884,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_draws.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_walks_boy",
@@ -2088,7 +2166,10 @@
         "group1": "hygiene",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_brushes_teeth_mom",
@@ -2119,7 +2200,10 @@
         "group1": "hygiene",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_brushes_teeth_1",
@@ -2150,7 +2234,10 @@
         "group1": "hygiene",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_brushes_teeth_2",
@@ -2274,7 +2361,10 @@
         "group1": "play",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_plays_mom",
@@ -2305,7 +2395,10 @@
         "group1": "play",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_plays_1",
@@ -2336,7 +2429,10 @@
         "group1": "play",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_plays_2",
@@ -2367,7 +2463,10 @@
         "group1": "play",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "plays_1",
@@ -2429,7 +2528,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_plays.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "plays_3",
@@ -2460,7 +2562,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_plays.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "plays_4",
@@ -2523,7 +2628,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_plays.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_reads_boy",
@@ -2554,7 +2662,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_reads_mom",
@@ -2585,7 +2696,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_reads_1",
@@ -2616,7 +2730,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_reads_2",
@@ -2647,7 +2764,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "reads_1",
@@ -2709,7 +2829,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_reads.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "reads_5",
@@ -2740,7 +2863,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_reads.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_rides_boy",
@@ -2768,7 +2894,10 @@
         "group1": "transport",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_rides_mom",
@@ -2796,7 +2925,10 @@
         "group1": "transport",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_rides_1",
@@ -2824,7 +2956,10 @@
         "group1": "transport",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_rides_2",
@@ -2852,7 +2987,10 @@
         "group1": "transport",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "rides_1",
@@ -2880,7 +3018,10 @@
       "promptAudio": {
         "ru": "audio/rides.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "rides_2",
@@ -2908,7 +3049,10 @@
       "promptAudio": {
         "ru": "audio/rides.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "rides_3",
@@ -2936,7 +3080,10 @@
       "promptAudio": {
         "ru": "audio/rides.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "rides_5",
@@ -2964,7 +3111,10 @@
       "promptAudio": {
         "ru": "audio/rides.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_cries_boy",
@@ -2991,7 +3141,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_cries_mom",
@@ -3018,7 +3171,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_cries_1",
@@ -3045,7 +3201,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_cries_2",
@@ -3072,7 +3231,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "cries_1",
@@ -3126,7 +3288,10 @@
       "promptAudio": {
         "ru": "audio/cries.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_laughs_boy",
@@ -3157,7 +3322,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_laughs_mom",
@@ -3188,7 +3356,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_laughs_1",
@@ -3219,7 +3390,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_laughs_2",
@@ -3250,7 +3424,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "laughs_1",
@@ -3343,7 +3520,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_laughs.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_washes_face_boy",
@@ -3374,7 +3554,10 @@
         "group1": "hygiene",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_washes_face_mom",
@@ -3405,7 +3588,10 @@
         "group1": "hygiene",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_washes_face_1",
@@ -3436,7 +3622,10 @@
         "group1": "hygiene",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_washes_face_2",
@@ -3467,7 +3656,10 @@
         "group1": "hygiene",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "washes_face_1",
@@ -3560,7 +3752,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_washes_face.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_swims_boy",
@@ -3641,7 +3836,10 @@
         "group1": "water",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "s3_v_swims_2",
@@ -3754,7 +3952,10 @@
         "group1": "voice",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_sings_mom",
@@ -3785,7 +3986,10 @@
         "group1": "voice",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_sings_1",
@@ -3816,7 +4020,10 @@
         "group1": "voice",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_sings_2",
@@ -3847,7 +4054,10 @@
         "group1": "voice",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "sings_2",
@@ -3878,7 +4088,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_sings.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "sings_3",
@@ -3909,7 +4122,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_sings.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "sings_4",
@@ -4192,7 +4408,10 @@
         "group1": "tools",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_cuts_knife_mom",
@@ -4219,7 +4438,10 @@
         "group1": "tools",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_cuts_knife_1",
@@ -4246,7 +4468,10 @@
         "group1": "tools",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_cuts_knife_2",
@@ -4273,7 +4498,10 @@
         "group1": "tools",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "cuts_knife_1",
@@ -4327,7 +4555,10 @@
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "cuts_5",
@@ -4354,7 +4585,10 @@
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "cuts_knife_2",
@@ -4381,7 +4615,10 @@
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_waters_plants_boy",
@@ -4408,7 +4645,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_waters_plants_mom",
@@ -4435,7 +4675,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_waters_plants_1",
@@ -4462,7 +4705,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_waters_plants_2",
@@ -4489,7 +4735,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "waters_plants_1",
@@ -4672,7 +4921,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_vacuums_2",
