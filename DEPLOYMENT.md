@@ -10,7 +10,7 @@ This repo has one production deployment path: Railway.
 - Build: `Dockerfile` at repo root (builds the SPA via `npm run build`, installs `backend/`, runs `node backend/server.mjs`)
 - The backend serves both the API and the built SPA (`SERVE_STATIC=1`) — there is no separate Caddy layer on Railway
 - Data: SQLite on a Railway Volume mounted at `/data` (`MIROCARD_DATA_DIR=/data`), 5 GB allocated
-- Backups: the running backend itself runs an hourly SQLite snapshot loop (`scripts/railway-backup-loop.mjs`, `VACUUM INTO` + integrity check) onto the same volume under `/data/backups/`, 14-day retention. It only activates when `RAILWAY_ENVIRONMENT` is set (Railway injects this automatically), so it never runs on a local checkout.
+- Backups: the running backend itself runs an hourly SQLite snapshot loop (`scripts/railway-backup-loop.mjs`, `VACUUM INTO` + integrity check) onto the same volume under `/data/backups/`. Only the newest 3 copies are kept (`BACKUP_KEEP`), and old ones are pruned at startup before the DB opens: the volume is 5 GB (the Hobby maximum), every copy is a full copy of the DB (photos/audio live in it), and 14 days of hourly copies filled it on 2026-10-19 -- every write and startup migration then failed with "database or disk is full". It only activates when `RAILWAY_ENVIRONMENT` is set (Railway injects this automatically), so it never runs on a local checkout.
 - Env vars live in the Railway dashboard (Service → Variables), not in a local `.env` — there is nothing to SFTP or SSH for a normal deploy.
 
 ### Deploying
