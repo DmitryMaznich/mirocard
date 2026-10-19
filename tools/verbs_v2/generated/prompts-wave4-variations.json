@@ -117,7 +117,7 @@
  {
   "id": "throws",
   "out": "v_throws_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl throws a blue beach ball forward with both hands from above her head on a beach: side view, her arms extended forward after releasing it, body leaning forward, the ball flying away from her in front of her, clearly separated from her hands. Not catching."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl on a lawn throws a small yellow ball towards a big laundry basket standing a few metres away: side view, her throwing arm stretched forward towards the basket after release, the ball flying in an arc halfway between her hand and the basket, her other hand empty. It is obvious that she threw it — she is facing the basket, not waiting for a ball."
  },
  {
   "id": "washes_hands",
@@ -157,7 +157,7 @@
  {
   "id": "gets_dressed",
   "out": "v_gets_dressed_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman in a hallway is in the middle of putting on a beige coat: her right arm is already in its sleeve, the coat hangs off her right shoulder, and her left arm is reaching back and still OUTSIDE the coat, searching for the second sleeve, which hangs empty behind her. The coat is clearly only half on. Her face is visible, whole body."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman sits on a low bench in a hallway and pulls on a tall brown boot with both hands: her foot is halfway inside the boot, the boot's top is pulled up by her hands, the other boot stands empty on the floor next to her, and her other foot is in a sock. Side view, whole body and face visible. Clearly in the middle of getting dressed."
  },
  {
   "id": "falls",
