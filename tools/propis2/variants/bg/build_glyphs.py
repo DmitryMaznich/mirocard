@@ -77,6 +77,8 @@ def flag_smoothed_path(d, sigma):
 # baseline, a capital reaching the top line). Any captured label not in LETTERS is such a letter.
 # BANK_KEPT: traced, but the owner chose the bank's own letter (2026-10-18: «строчную можно взять русскую а»).
 BANK_KEPT = set("а")
+# FONT_LOWER: the lowercase built from the font's pen path (font_lower); а stays the bank's (BANK_KEPT)
+FONT_LOWER = "бвгдежзийклмнопрстуфхцчшщъьюя"
 # FONT_ONLY: capitals built from the font's pen path when no capture of them exists (font_letter); a capture, when it comes, wins
 FONT_ONLY = "НОПРСТУФХЦЧШЩЮЯ"
 # DROPPED: capitals the deck builds itself (propis2 glyphOverrides MARKED_CAPITALS): Й is our И with the breve of the bank's й above
@@ -230,6 +232,18 @@ def stencil_map(label, like=None):
     g = {d["label"]: d for d in json.loads(DRAFT.read_text())}[label]
     allp = tt.upright(tt.to_paper(np.vstack([tt.parse_path(st["d"]) for st in g["strokes"]])))
     lo, hi = allp[:, 1].max(), allp[:, 1].min()
+    if label.islower():
+        # a lowercase letter: the font's own lowercase already fills the deck's band (font_glyphs.py sets the bank so), its
+        # ascenders and descenders stretched by meta.script with the paper's: taken as it is, only moved across onto `like`
+        s, lo = 1.0, tt.BASE
+        dx = 0.0
+        if like is not None:
+            u = tt.upright(like)
+            dx = (u[:, 0].min() + u[:, 0].max()) / 2 - (allp[:, 0].min() + allp[:, 0].max()) / 2
+        def fn_lower(p):
+            q = tt.upright(tt.to_paper(np.asarray(p, float)))
+            return tt.from_upright(np.c_[q[:, 0] + dx, q[:, 1]])
+        return fn_lower
     # a letter going under the baseline (Р У Ф Ц Щ): its foot is not its lowest point; the font's centre line stands that much
     # over the baseline (half its pen, as measured on Л, М: 3.3 units on paper)
     if lo > tt.BASE + 3: lo = tt.BASE - 3.3
@@ -1729,6 +1743,26 @@ def font_letter(label, script, spec):
     return out
 
 
+def font_lower(label, script):
+    """A lowercase letter from the font's own pen path, on the deck's paper as the font has it (stencil_map: no scaling), tidied
+    like the capitals (straight lines straight, bows smooth, tops onto the lines near them); its SHAPES correction after."""
+    tt.use_script(script)
+    PAPER_LABEL[0] = label
+    pens = [_drop_retrace(p) for p in font_stencil(label)]
+    paper = [tt.tidy_stroke(p, tt.X_TOP) for p in pens]
+    if label in SHAPES: paper = SHAPES[label](paper)
+    PAPER[label] = paper
+    paths = [tt.paper_to_bank_cmds(c) for c in paper]
+    out = {"label": label, "kind": "letter", "strokes": [{"d": dg.fmt(c)} for c in paths], "stretch": 1.806, "noOverrides": True,
+           "repeatCells": 4, "noNormalize": True, "sourceLabel": f"{label} (болгарская строчная); путь пера шрифта Boyan Maga, подровнен"}
+    allp = tt.to_paper(np.vstack([tt.parse_path(st["d"]) for st in out["strokes"]]))
+    if allp[:, 1].min() < tt.X_TOP - 12: out["ascender"] = True
+    if allp[:, 1].max() > tt.BASE + 12: out["descender"] = True
+    _exit_flags(out)
+    if label in NO_EXIT: out.pop("exitStroke", None); out["noExit"] = True
+    return out
+
+
 def glyph_of(item, script):
     label = item["label"]
     if label not in LETTERS: return underlay_glyph(item, script)
@@ -1866,6 +1900,9 @@ def main():
             made.append(font_letter(ch, script, {"note": f"{ch} (болгарская заглавная)"}))
     made.append(breve_i(made))
     made = [rescaled(g, deck_script) for g in made]
+    # the lowercase from the font (owner, 2026-10-19: «делаем строчные»), straight on the deck's paper (no DESIGN step)
+    for ch in FONT_LOWER:
+        if ch not in {m["label"] for m in made}: made.append(font_lower(ch, deck_script))
     keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made} | DROPPED]
     variant["glyphs"] = keep + made
     VARIANT.write_text(json.dumps(variant, ensure_ascii=False, indent=2) + "\n")
