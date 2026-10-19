@@ -645,7 +645,7 @@ def _curved_lines(cmds, S, F, fork_r, bend=0.3, force=False):
     return out
 
 
-def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leave=0.5, arcs=()):
+def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leave=0.5, arcs=(), below=None, keep_lines=False, plain=False):
     """A traced letter moved onto the font's lines without changing its path (owner, 2026-10-19, Б: «максимально приблизь наши
     линии, расширь их, раздвинь без изменения траектории к размерам и линиям шрифта»). Every point of every stroke moves across
     its own path (along its normal only, so the path keeps its length, order and turns) onto the font's skeleton (font_skeleton.json
@@ -653,7 +653,10 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leav
     shift is carried over from both sides; it is smoothed along the stroke (`sigma` paper units). A straight line (a stem) moves
     by one shift, so it stays straight and on the slant. A stroke starting on another one starts on it again after the move.
     Hooks keep their bottom on the baseline, tops their top line. Curves refitted by cubics within `tol`. `arcs`: strokes that
-    are one arc in the font, their straight pieces bent onto it too (Ж's left element: its line made a corner, owner 2026-10-19)."""
+    are one arc in the font, their straight pieces bent onto it too (Ж's left element: its line made a corner, owner 2026-10-19).
+    `below`: only what lies below that height moves (eased in over 10 units above it); `keep_lines`: straight lines stay where they
+    are (М: its stems and the rises' meeting with them at the tops, as the owner approved them, stay; its lower parts go onto the
+    font)."""
     PAPER_UNSNAPPED[label] = [list(c) for c in strokes]
     sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
     like = np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes])
@@ -664,7 +667,7 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leav
     # half the pen: how far the outline lies from the skeleton
     PEN = float(np.median(np.min(np.hypot(S[::7, None, 0] - INK[None, :, 0], S[::7, None, 1] - INK[None, :, 1]), axis=1))) if len(INK) else 3.3
     out = []
-    strokes = [_curved_lines(c, S, F, fork_r, force=n in arcs) for n, c in enumerate(strokes)]
+    if not plain: strokes = [_curved_lines(c, S, F, fork_r, force=n in arcs) for n, c in enumerate(strokes)]
     for cmds in strokes:
         # samples per command, so lines can be kept lines
         pts, owner = [np.asarray(cmds[0][1][0], float)], [0]
@@ -707,6 +710,10 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leav
         for grp in groups:
             m = np.isin(owner, grp) | ((owner == 0) & (grp[0] == 1))
             off[m] = off[np.isin(owner, grp)].mean()
+        if keep_lines:
+            for grp in groups: off[np.isin(owner, grp)] = 0.0
+        if below is not None:
+            wy = np.clip((P[:, 1] - (below - 25.0)) / 25.0, 0, 1); off = off * wy * wy * (3 - 2 * wy)
         g = np.exp(-0.5 * ((s_[:, None] - s_[None, :]) / sigma) ** 2)
         lines = np.isin(owner, [k for k in range(1, len(cmds)) if cmds[k][0] == "L"]) | ((owner == 0) & any(g_[0] == 1 for g_ in groups))
         sm = (g @ off) / g.sum(axis=1)
@@ -724,7 +731,7 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leav
                 off[near] = off[end] * (1 - w[near]) + off[near] * w[near]
         disp = N * off[:, None]
         # a small loop (Е's waist) moves whole, its shape kept: snapping its two sides across would fold it onto one line
-        loops = _small_loops(P, s_)
+        loops = [] if plain else _small_loops(P, s_)
         for i, j in loops:
             u = ((s_[i:j + 1] - s_[i]) / (s_[j] - s_[i]))[:, None]
             disp[i:j + 1] = disp[i] * (1 - u) + disp[j] * u
