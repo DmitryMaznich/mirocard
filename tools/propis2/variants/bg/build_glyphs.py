@@ -70,7 +70,11 @@ def flag_smoothed_path(d, sigma):
 # BANK_KEPT: traced, but the owner chose the bank's own letter (2026-10-18: «строчную можно взять русскую а»).
 BANK_KEPT = set("а")
 # FONT_ONLY: capitals built from the font's pen path when no capture of them exists (font_letter); a capture, when it comes, wins
-FONT_ONLY = "ЙНОПРСТУФХЦЧШЩЮЯ"
+FONT_ONLY = "НОПРСТУФХЦЧШЩЮЯ"
+# DROPPED: capitals the deck builds itself (propis2 glyphOverrides MARKED_CAPITALS): Й is our И with the breve of the bank's й above
+# it, as in the Russian deck (owner, 2026-10-19: «должна быть точно такая же, как И, и с шляпкой над линией на небольшом расстоянии
+# сверху ... практически как в русской версии»; the font's Й is shorter, the breve inside the letter's height)
+DROPPED = set("Й")
 # LOOPS: the hand turned back sharply where the font (and the copybook) has a small loop: the waist of Е (font comparison sheet,
 # 2026-10-18). tidy_trace makes every sharp turn away from the ruling a loop in these letters.
 LOOPS = set()  # Е: no loop after all (owner, 2026-10-19: «там не должно быть петли ... две дуги соединяются»)
@@ -1359,7 +1363,7 @@ def main():
     for ch in FONT_ONLY:
         if ch not in {m["label"] for m in made}:
             made.append(font_letter(ch, script, {"note": f"{ch} (болгарская заглавная)"}))
-    keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made}]
+    keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made} | DROPPED]
     variant["glyphs"] = keep + made
     VARIANT.write_text(json.dumps(variant, ensure_ascii=False, indent=2) + "\n")
     # the letters moved onto the font were fitted to the stencil set on the letter before the move; a review sheet that set it on
