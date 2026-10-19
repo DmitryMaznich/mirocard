@@ -573,6 +573,45 @@ def _small_loops(P, s_, near=0.5, max_len=60.0, min_len=4.0):
     return out
 
 
+def _line_groups(cmds, deg=2.0):
+    """Runs of consecutive line commands going the same way (within `deg`): one straight line cut into pieces."""
+    groups = []
+    for k in range(1, len(cmds)):
+        if cmds[k][0] != "L": continue
+        a = np.asarray(cmds[k - 1][1][-1], float); b = np.asarray(cmds[k][1][0], float); d = tt._unit(b - a)
+        if groups and groups[-1][-1] == k - 1:
+            pa = np.asarray(cmds[k - 2][1][-1], float) if k >= 2 else a
+            if abs(np.degrees(np.arctan2(*d[::-1]) - np.arctan2(*tt._unit(a - pa)[::-1])) % 360) < deg or \
+               abs((np.degrees(np.arctan2(*d[::-1]) - np.arctan2(*tt._unit(a - pa)[::-1])) % 360) - 360) < deg:
+                groups[-1].append(k); continue
+        groups.append([k])
+    return groups
+
+
+def _curved_lines(cmds, S, F, fork_r, bend=0.3):
+    """A straight line of the tidied hand where the font's line is not straight (Ж's left arc): made a curve, so snap_to_font bends
+    it onto the font. Measured on the middle 60% of the line (a stem curving into its hook at an end stays a line: snap_to_font
+    ends it where the font leaves it): the font's offset across it, less its straight trend, varies by more than `bend` units."""
+    out = list(cmds)
+    for grp in _line_groups(cmds):
+        # only a line between two curves: the zigzag's lines (Ж, line to line) are straight in the font too
+        if cmds[grp[0] - 1][0] != "C" or grp[-1] + 1 >= len(cmds) or cmds[grp[-1] + 1][0] != "C": continue
+        a = np.asarray(cmds[grp[0] - 1][1][-1], float); b = np.asarray(cmds[grp[-1]][1][-1], float)
+        d = tt._unit(b - a); n = np.array([-d[1], d[0]])
+        u = np.linspace(0.2, 0.8, 40)
+        P = a + np.outer(u, b - a)
+        if len(F): P = P[np.min(np.hypot(P[:, None, 0] - F[None, :, 0], P[:, None, 1] - F[None, :, 1]), axis=1) > fork_r]
+        if len(P) < 10: continue
+        q = S[np.argmin(np.hypot(P[:, None, 0] - S[None, :, 0], P[:, None, 1] - S[None, :, 1]), axis=1)]
+        off = (q - P) @ n; t = (P - a) @ d
+        res = off - np.polyval(np.polyfit(t, off, 1), t)
+        if np.ptp(res) <= bend: continue
+        for k in grp:
+            p0 = np.asarray(out[k - 1][1][-1], float); p1 = np.asarray(cmds[k][1][0], float)
+            out[k] = ("C", [p0 + (p1 - p0) / 3, p0 + 2 * (p1 - p0) / 3, p1])
+    return out
+
+
 def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leave=0.5):
     """A traced letter moved onto the font's lines without changing its path (owner, 2026-10-19, Б: «максимально приблизь наши
     линии, расширь их, раздвинь без изменения траектории к размерам и линиям шрифта»). Every point of every stroke moves across
@@ -591,6 +630,7 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leav
     # half the pen: how far the outline lies from the skeleton
     PEN = float(np.median(np.min(np.hypot(S[::7, None, 0] - INK[None, :, 0], S[::7, None, 1] - INK[None, :, 1]), axis=1))) if len(INK) else 3.3
     out = []
+    strokes = [_curved_lines(c, S, F, fork_r) for c in strokes]
     for cmds in strokes:
         # samples per command, so lines can be kept lines
         pts, owner = [np.asarray(cmds[0][1][0], float)], [0]
@@ -627,10 +667,14 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leav
                 n_ = 0
                 while n_ < len(idx) - 3 and abs(off[idx[n_]] - m) > leave: n_ += 1
                 if n_: owner[idx[:n_]] = k - 1
-        for k in set(owner[owner > 0]):
-            if cmds[k][0] == "L": off[owner == k] = off[owner == k].mean()
+        # straight lines move whole; a line split into collinear pieces (Ж's zigzag, cut at the lowercase line) moves as one, and a
+        # stroke starting on a line moves with it
+        groups = _line_groups(cmds)
+        for grp in groups:
+            m = np.isin(owner, grp) | ((owner == 0) & (grp[0] == 1))
+            off[m] = off[np.isin(owner, grp)].mean()
         g = np.exp(-0.5 * ((s_[:, None] - s_[None, :]) / sigma) ** 2)
-        lines = np.isin(owner, [k for k in range(1, len(cmds)) if cmds[k][0] == "L"])
+        lines = np.isin(owner, [k for k in range(1, len(cmds)) if cmds[k][0] == "L"]) | ((owner == 0) & any(g_[0] == 1 for g_ in groups))
         sm = (g @ off) / g.sum(axis=1)
         off = np.where(lines, off, sm)
         # a curve next to a line eases from the line's shift into its own over `blend` units: no kink where a stem meets its hook
@@ -661,14 +705,31 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leav
             along, across = rel @ dvec, np.abs(rel @ np.array([-dvec[1], dvec[0]]))
             reach_ = along[(across < 4.0) & (along > 0)].max() - PEN
             Q[i:j + 1] = c + (Q[i:j + 1] - c) * (reach_ / np.hypot(*(Q[k_] - c)))
-        out.append((Q, owner))
+        out.append((Q, owner, groups))
     new = []
-    for (P, owner), cmds, o in zip(out, strokes, old):
+    for (P, owner, groups), cmds, o in zip(out, strokes, old):
         res = [("M", [P[0]])]
+        gi = {k: n for n, grp in enumerate(groups) for k in grp}
+        def gline(n):
+            q = P[np.isin(owner, groups[n])]; return q[0], tt._unit(q[-1] - q[0])
         k = 1
         while k < len(cmds):
             if cmds[k][0] == "L":
-                res.append(("L", [P[owner == k][-1]])); k += 1; continue
+                e = P[owner == k][-1]
+                if k + 1 < len(cmds) and cmds[k + 1][0] == "L" and gi[k + 1] != gi[k]:
+                    # two lines meeting at a corner (the zigzag's tops and bottom): the corner where the moved lines cross
+                    (a1, d1), (a2, d2) = gline(gi[k]), gline(gi[k + 1])
+                    y0 = float(np.asarray(cmds[k][1][-1], float)[1])
+                    if min(abs(y0 - tt.CAP_TOP), abs(y0 - tt.BASE)) < 5.0:
+                        # a top on the top line, a bottom on the baseline: on the stem's moved line (the one nearer the slant)
+                        y0 = tt.CAP_TOP if abs(y0 - tt.CAP_TOP) < 5.0 else tt.BASE
+                        sl = tt._unit(np.array([tt.SLANT_T, -1.0]))
+                        a_, d_ = (a1, d1) if abs(d1 @ sl) > abs(d2 @ sl) else (a2, d2)
+                        e = a_ + d_ * (y0 - a_[1]) / d_[1]
+                    else:
+                        tt_ = np.linalg.solve(np.c_[d1, -d2], a2 - a1)
+                        e = a1 + tt_[0] * d1
+                res.append(("L", [e])); k += 1; continue
             k2 = k
             while k2 < len(cmds) and cmds[k2][0] == "C": k2 += 1
             i0 = int(np.argmax(owner == k)) - 1; i1 = int(np.nonzero(owner == k2 - 1)[0][-1])
@@ -685,12 +746,17 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leav
         for j, o2 in enumerate(old):
             if i == j: continue
             dd = np.hypot(*(dg.resample(o2, 0.3) - o[0]).T)
-            if dd.min() < 0.6:
+            if dd.min() < 2.5:  # Б 1.6, Ж 1.3 off the stroke they start on
                 other = dg.resample(np.array(tt.parse_path(dg.fmt(new[j]))), 0.3)
                 p0 = np.asarray(new[i][0][1][0], float)
                 tgt = other[np.argmin(np.hypot(*(other - p0).T))]
                 sh = tgt - p0
-                new[i] = [("M", [p0 + sh])] + [(c, [np.asarray(q, float) + (sh if m == 0 and c == "C" and n_ == 0 else 0) for n_, q in enumerate(ps)]) if m == 0 else (c, ps) for m, (c, ps) in enumerate(new[i][1:])]
+                # the start moved onto it, the first cubic's handles moved less and less along it: no step at the start
+                first = new[i][1]
+                if first[0] == "C":
+                    c1, c2, e = [np.asarray(q, float) for q in first[1]]
+                    first = ("C", [c1 + sh * 2 / 3, c2 + sh / 3, e])
+                new[i] = [("M", [p0 + sh]), first] + new[i][2:]
     return new
 
 
@@ -782,7 +848,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "Ж": lambda s: snap_to_font(s, "Ж"), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
