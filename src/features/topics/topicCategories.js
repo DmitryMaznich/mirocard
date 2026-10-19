@@ -54,3 +54,12 @@ export const CATEGORY_STYLE = {
   "Практика":        { icon: "practice", cls: "topic-tile-row--prac" },
   [OTHER_CATEGORY]:  { icon: "generic",  cls: "topic-tile-row--prac" },
 };
+
+// Labels are translated at render time; persisted/filter category values stay stable.
+export const CATEGORY_LABEL_KEYS = {
+  "Чтение": "topics.categoryReading",
+  "Математика": "topics.categoryMath",
+  "Словарный запас": "topics.categoryVocabulary",
+  "Практика": "topics.categoryPractice",
+  "Другое": "topics.categoryOther",
+};

@@ -1,57 +1,60 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import "./StudentDataInfo.css";
 
-const EXPLANATIONS = {
-  profile: {
-    title: "Имя и фото",
-    text: "Имя и фото помогают узнавать ученика в списке профилей. В теме «Мои люди» имя используется для вопроса «Как тебя зовут?», а фото — как подсказка в заданиях о себе. Фото добавлять необязательно.",
-  },
-  notes: {
-    title: "Заметки",
-    text: "Здесь можно записать цели занятий и особенности, которые важно помнить взрослому. Заметки сохраняются в профиле, чтобы к ним можно было вернуться. Заполняйте их только при необходимости.",
-  },
-  sex: {
-    title: "Пол",
-    text: "В теме «Мои люди» эти данные задают ответ на вопрос «Ты мальчик или девочка?». Так ученик учится рассказывать о себе. Если оставить «Не указан», этот вопрос не появится.",
-  },
-  language: {
-    title: "Язык",
-    text: "Это основной язык ученика. Он отображается в профиле и помогает взрослому помнить, на каком языке ученик общается. Можно оставить «Не задан».",
-  },
-  people: {
-    title: "Окружение ребёнка",
-    text: "Знакомых людей и питомцев добавляют один раз. Тема «Мои люди» использует их имена, фотографии и связь с ребёнком. Для каждого человека отдельно можно включить использование в «Конструкторе предложений» и общении.",
-  },
-  dates: {
-    title: "Важные даты",
-    text: "Дни рождения, праздники и другие события используются на экране «Сегодня». Они помогают связывать календарь с понятными ученику событиями и обсуждать, что происходит сегодня или скоро. Добавлять даты необязательно.",
-  },
-  adults: {
-    title: "Окружение ребёнка",
-    text: "Имена и фото знакомых взрослых используются в заданиях на составление предложений и в настройках общения. Они помогают работать с понятными ученику людьми — например, с мамой или папой. Добавляйте только нужных для этих занятий взрослых.",
-  },
-  videos: {
-    title: "Видео-награды",
-    text: "Ссылки на любимые видео нужны для поощрения во время занятий. Когда предлагается видео-награда, приложение использует видео из этого списка. Подберите подходящие ученику ролики; добавлять их необязательно.",
-  },
-  age: {
-    title: "Возраст и дата рождения",
-    text: "По дате рождения приложение само вычисляет возраст для вопроса «Сколько тебе лет?» в теме «Мои люди». Ответ обновляется с возрастом ученика, поэтому его не нужно менять вручную. Если дату не заполнить, этот вопрос не появится.",
-  },
-  identity: {
-    title: "Имя и фамилия",
-    text: "Имя и фамилия используются в теме «Мои люди», чтобы ученик учился представляться и отвечать на вопросы о себе. Название семьи сохраняется отдельно от фамилии ребёнка. В разделе «Что включать в тему» можно выбрать ответы для занятий.",
-  },
-  address: {
-    title: "Где я живу",
-    text: "Город используется для вопроса «Где ты живёшь?» в теме «Мои люди», если включить этот ответ в занятия. Адрес — необязательная личная запись, к которой взрослый может обращаться при обучении. Заполняйте только нужные данные; с адресом помогает взрослый.",
-  },
-};
-
 export default function StudentDataInfo({ kind }) {
+  const { t } = useUiTranslation();
+  const EXPLANATIONS = {
+    profile: {
+      title: t("students.namePhoto"),
+      text: t("studentInfo.profile"),
+    },
+    notes: {
+      title: t("students.notes"),
+      text: t("studentInfo.notes"),
+    },
+    sex: {
+      title: t("students.sex"),
+      text: t("studentInfo.sex"),
+    },
+    language: {
+      title: t("students.language"),
+      text: t("studentInfo.language"),
+    },
+    people: {
+      title: t("students.people"),
+      text: t("studentInfo.people"),
+    },
+    dates: {
+      title: t("students.dates"),
+      text: t("studentInfo.dates"),
+    },
+    adults: {
+      title: t("students.people"),
+      text: t("studentInfo.adults"),
+    },
+    videos: {
+      title: t("students.videos"),
+      text: t("studentInfo.videos"),
+    },
+    age: {
+      title: t("studentInfo.ageTitle"),
+      text: t("studentInfo.age"),
+    },
+    identity: {
+      title: t("studentInfo.identityTitle"),
+      text: t("studentInfo.identity"),
+    },
+    address: {
+      title: t("studentInfo.addressTitle"),
+      text: t("studentInfo.address"),
+    },
+  };
+
+
   const [open, setOpen] = useState(false);
   const trigger = useRef(null);
   const dialog = useRef(null);
@@ -97,18 +100,18 @@ export default function StudentDataInfo({ kind }) {
         ref={trigger}
         type="button"
         className="student-data-info"
-        aria-label={`Зачем нужны данные: ${info.title}`}
+        aria-label={t("studentInfo.label", { title: info.title })}
         aria-haspopup="dialog"
         onClick={(event) => { event.preventDefault(); setOpen(true); }}
       >
-        <span aria-hidden="true">Зачем?</span>
+        <span aria-hidden="true">{t("studentInfo.why")}</span>
       </button>
       {open && createPortal(
         <div ref={dialog} className="student-data-info-dialog">
           <Modal
             title={<span id={titleId}>{info.title}</span>}
             onClose={() => setOpen(false)}
-            actions={<Button variant="primary" onClick={() => setOpen(false)}>Понятно</Button>}
+            actions={<Button variant="primary" onClick={() => setOpen(false)}>{t("common.understood")}</Button>}
           >
             <p id={descriptionId} className="student-data-info-text">{info.text}</p>
           </Modal>

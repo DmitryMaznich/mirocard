@@ -1,3 +1,4 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState, useRef } from "react";
 import { LANGUAGES } from "../../../shared/languages.mjs";
 import LessonLanguagePicker from "@/shared/components/LessonLanguagePicker.jsx";
@@ -72,6 +73,7 @@ function AdultAvatar({ adult, size = 40 }) {
 }
 
 export default function StudentForm({ initial, onSave, onCancel }) {
+  const { t } = useUiTranslation();
   const [name,       setName]       = useState(initial?.name    ?? "");
   const [comment,    setComment]    = useState(initial?.comment ?? "");
   const [lang,       setLang]       = useState(initial?.primaryLanguage ?? "");
@@ -90,7 +92,7 @@ export default function StudentForm({ initial, onSave, onCancel }) {
   const cameraInputRef  = useRef(null);
 
   function handleSave() {
-    if (!name.trim()) { setError("Введите имя ученика"); return; }
+    if (!name.trim()) { setError(t("students.enterName")); return; }
     onSave({
       name:            name.trim(),
       comment:         comment.trim(),
@@ -103,7 +105,7 @@ export default function StudentForm({ initial, onSave, onCancel }) {
 
   async function addVideo() {
     const url = videoInput.trim();
-    if (!isValidYoutubeUrl(url)) { setVideoError("Неверная ссылка YouTube"); return; }
+    if (!isValidYoutubeUrl(url)) { setVideoError(t("students.invalidVideo")); return; }
     setVideoLoading(true);
     setVideoError("");
     const title = await fetchYoutubeTitle(url);
@@ -150,25 +152,23 @@ export default function StudentForm({ initial, onSave, onCancel }) {
         type="text"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Имя ученика"
+        placeholder={t("students.name")}
         autoFocus
       />
       <textarea
         className="student-form__comment"
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        placeholder="Комментарий (необязательно)"
+        placeholder={t("students.comment")}
         rows={3}
       />
-      <div className="student-form__lang-label">Основной язык</div>
+      <div className="student-form__lang-label">{t("students.primaryLanguage")}</div>
       <div className="student-form__lang-group">
         <button
           type="button"
           className={`lang-btn ${lang === "" ? "lang-btn--active" : ""}`}
           onClick={() => setLang("")}
-        >
-          Не задан
-        </button>
+        >{t("students.unset")}</button>
         {LANGUAGES.map((l) => (
           <button
             key={l.code}
@@ -184,8 +184,8 @@ export default function StudentForm({ initial, onSave, onCancel }) {
       <LessonLanguagePicker value={lessonLanguage} onChange={setLessonLanguage} inherit />
 
       {/* ── Близкие взрослые ── */}
-      <div className="student-form__section-label">Близкие взрослые</div>
-      <div className="student-form__section-hint">Используются как подлежащие в Пазле предложений</div>
+      <div className="student-form__section-label">{t("students.adults")}</div>
+      <div className="student-form__section-hint">{t("students.adultsHelp")}</div>
 
       {adults.map((adult) => (
         <div key={adult.id} className="close-adult-row">
@@ -213,7 +213,7 @@ export default function StudentForm({ initial, onSave, onCancel }) {
                     className="close-adult-add-form__photo-btn"
                     onClick={() => cameraInputRef.current?.click()}
                     disabled={photoLoading}
-                    title="Камера"
+                    title={t("students.camera")}
                   >
                     {photoLoading ? "…" : "📷"}
                   </button>
@@ -222,7 +222,7 @@ export default function StudentForm({ initial, onSave, onCancel }) {
                     className="close-adult-add-form__photo-btn close-adult-add-form__photo-btn--gallery"
                     onClick={() => photoInputRef.current?.click()}
                     disabled={photoLoading}
-                    title="Галерея"
+                    title={t("students.gallery")}
                   >
                     🖼
                   </button>
@@ -232,7 +232,7 @@ export default function StudentForm({ initial, onSave, onCancel }) {
             <input
               className="auth-input close-adult-add-form__name-input"
               type="text"
-              placeholder="Имя (Мама, Папа, …)"
+              placeholder={t("students.adultName")}
               value={newAdultName}
               onChange={(e) => setNewAdultName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && confirmAddAdult()}
@@ -255,10 +255,8 @@ export default function StudentForm({ initial, onSave, onCancel }) {
             />
           </div>
           <div className="close-adult-add-form__actions">
-            <Button variant="secondary" onClick={cancelAddAdult}>Отмена</Button>
-            <Button variant="primary" onClick={confirmAddAdult} disabled={!newAdultName.trim()}>
-              Добавить
-            </Button>
+            <Button variant="secondary" onClick={cancelAddAdult}>{t("common.cancel")}</Button>
+            <Button variant="primary" onClick={confirmAddAdult} disabled={!newAdultName.trim()}>{t("common.add")}</Button>
           </div>
         </div>
       ) : (
@@ -266,14 +264,12 @@ export default function StudentForm({ initial, onSave, onCancel }) {
           type="button"
           className="close-adult-add-btn"
           onClick={() => setAddingAdult(true)}
-        >
-          + Добавить взрослого
-        </button>
+        >{t("students.addAdult")}</button>
       )}
 
       {/* ── Видео-награды ── */}
-      <div className="student-form__section-label">Видео-награды</div>
-      <div className="student-form__section-hint">Показываются при достижении порога успеха</div>
+      <div className="student-form__section-label">{t("students.videos")}</div>
+      <div className="student-form__section-hint">{t("students.videosHelp")}</div>
 
       {videos.map((v, idx) => (
         <div key={idx} className="reward-url-row">
@@ -298,15 +294,15 @@ export default function StudentForm({ initial, onSave, onCancel }) {
           onKeyDown={(e) => e.key === "Enter" && addVideo()}
         />
         <Button variant="secondary" onClick={addVideo} disabled={videoLoading}>
-          {videoLoading ? "…" : "Добавить"}
+          {videoLoading ? "…" : t("common.add")}
         </Button>
       </div>
       {videoError && <div className="form-error">{videoError}</div>}
 
       {error && <div className="form-error">{error}</div>}
       <div className="modal-actions">
-        <Button variant="secondary" onClick={onCancel}>Отмена</Button>
-        <Button variant="primary" onClick={handleSave}>Сохранить</Button>
+        <Button variant="secondary" onClick={onCancel}>{t("common.cancel")}</Button>
+        <Button variant="primary" onClick={handleSave}>{t("common.save")}</Button>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 export default function Modal({
   title,
   children,
@@ -6,6 +7,7 @@ export default function Modal({
   closeOnOverlay = true,
   showCloseButton = true,
 }) {
+  const { t } = useUiTranslation();
   function handleOverlayClick(e) {
     if (closeOnOverlay && e.target === e.currentTarget) onClose?.();
   }
@@ -16,7 +18,7 @@ export default function Modal({
         <div className="modal-header">
           {title && <div className="modal-title">{title}</div>}
           {showCloseButton && (
-            <button className="modal-close" type="button" onClick={onClose} aria-label="Закрыть">
+            <button className="modal-close" type="button" onClick={onClose} aria-label={t("common.close")}>
               ×
             </button>
           )}
