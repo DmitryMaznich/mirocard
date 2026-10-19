@@ -1,8 +1,12 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import slPrivacy from "../../../backend/legal/sl/privacy.html?raw";
 const SUPPORT_EMAIL = "hello@mironium.com";
 
 // Same text as the published policy (backend/legal/privacy.html → /api/privacy),
 // kept identical by PrivacyContent.test.jsx: edit the policy there first, then here.
 export default function PrivacyContent() {
+  const { language } = useUiTranslation();
+  if (language === "sl") return <div className="privacy-body" lang="sl" dangerouslySetInnerHTML={{ __html: slPrivacy.replace(/<h1>[\s\S]*?<\/h1>/, "") }} />;
   return (
     <div className="privacy-body">
       <p className="privacy-intro">

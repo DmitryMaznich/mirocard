@@ -1,16 +1,18 @@
+import { LESSON_SETUP_MESSAGES } from "./lessonSetupMessages.js";
 import { ADULT_MESSAGES } from "./adultMessages.js";
 
 // Slovenian copy is a prototype draft, pending editorial review.
 export const UI_MESSAGES = {
   ru: {
     ...ADULT_MESSAGES.ru,
+    ...LESSON_SETUP_MESSAGES.ru,
     "languages.lesson": "Предпочтительный язык занятий",
     "languages.inherit": "Как в настройках аккаунта",
     "languages.preferenceOnly": "Это предпочтение для будущих языковых версий занятий. Доступные сейчас материалы сохраняют свой язык.",
     "languages.pending": "Языковые настройки ожидают синхронизации с аккаунтом. При восстановлении связи отправка повторится.",
     "languages.notDurable": "Браузер не разрешил сохранить очередь. Не закрывайте страницу до синхронизации.",
     "common.language": "Язык приложения",
-    "common.scope": "Переведены вход, настройки, главная, ученики и библиотека тем. Остальные разделы переводятся поэтапно. Учебные материалы сохраняют свой язык.",
+    "common.scope": "Интерфейс переводится поэтапно. Учебные тексты и озвучка сохраняют свой язык.",
     "common.notSaved": "Браузер не разрешил сохранить язык. Выбор действует до закрытия страницы.",
     "common.loading": "Загрузка…",
     "common.notFound": "Экран не найден",
@@ -74,13 +76,14 @@ export const UI_MESSAGES = {
   },
   sl: {
     ...ADULT_MESSAGES.sl,
+    ...LESSON_SETUP_MESSAGES.sl,
     "languages.lesson": "Želeni jezik vaj",
     "languages.inherit": "Kot v nastavitvah računa",
     "languages.preferenceOnly": "To je nastavitev za prihodnje jezikovne različice vaj. Trenutno dostopna gradiva ohranijo svoj jezik.",
     "languages.pending": "Jezikovne nastavitve čakajo na sinhronizacijo z računom. Po ponovni vzpostavitvi povezave bomo poskusili znova.",
     "languages.notDurable": "Brskalnik ni dovolil shranjevanja čakajočih sprememb. Do sinhronizacije ne zaprite strani.",
     "common.language": "Jezik aplikacije",
-    "common.scope": "Prevedeni so prijava, nastavitve, začetni zaslon, učenci in knjižnica tem. Drugi razdelki se prevajajo postopoma. Učna gradiva ohranijo svoj jezik.",
+    "common.scope": "Vmesnik se prevaja postopoma. Učna besedila in zvočni posnetki ohranijo svoj jezik.",
     "common.notSaved": "Brskalnik ni dovolil shranjevanja jezika. Izbira velja do zaprtja strani.",
     "common.loading": "Nalaganje…",
     "common.notFound": "Zaslon ni najden",

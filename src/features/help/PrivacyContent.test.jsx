@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { describe, it, expect } from "vitest";
+import { setUiLanguage } from "@/shared/i18n/uiLanguage.js";
 import PrivacyContent from "./PrivacyContent.jsx";
 
 const normalize = (s) => s
@@ -14,8 +15,8 @@ const normalize = (s) => s
   .replace(/\s+/g, " ")
   .trim();
 
-function publishedText() {
-  const html = readFileSync(path.resolve(process.cwd(), "backend/legal/privacy.html"), "utf8");
+function publishedText(language = "ru") {
+  const html = readFileSync(path.resolve(process.cwd(), language === "sl" ? "backend/legal/sl/privacy.html" : "backend/legal/privacy.html"), "utf8");
   return normalize(html.replace(/<h1>[\s\S]*?<\/h1>/, "").replace(/<[^>]+>/g, " "));
 }
 
@@ -30,4 +31,16 @@ describe("PrivacyContent", () => {
     act(() => root.unmount());
     expect(inApp).toBe(publishedText());
   });
+});
+
+// Reuse the published Slovenian text rather than a second legal translation.
+it("matches the published Slovenian policy and switches back to Russian", () => {
+  const container = document.createElement("div");
+  const root = createRoot(container);
+  try {
+    act(() => { setUiLanguage("sl"); root.render(<PrivacyContent />); });
+    expect(normalize(container.innerHTML.replace(/<[^>]+>/g, " "))).toBe(publishedText("sl"));
+    act(() => setUiLanguage("ru"));
+    expect(normalize(container.innerHTML.replace(/<[^>]+>/g, " "))).toBe(publishedText());
+  } finally { act(() => { root.unmount(); setUiLanguage("ru"); }); }
 });
