@@ -1577,6 +1577,10 @@ def oval_on_stem(strokes, k=0, tol=0.1, lead=10.0):
     off = np.abs(p[:, 0] - np.polyval(c0, p[:, 1])) > 2.0
     i1 = int(np.argmax(off)); i2 = i1 + int(np.argmax(~off[i1:]))   # the oval: where the pen leaves the stem and comes back
     C, e1, e2, a, bb = _fit_ellipse(p[i1:i2])
+    # the stem exactly on the slant (owner, 2026-10-19: «вертикальный штрих идёт вниз чётко по наклонной»), through the font's at
+    # the top
+    m = top.mean(axis=0)
+    c0 = np.array([-tt.SLANT_T, m[0] + tt.SLANT_T * m[1]])
     T_ = np.linspace(0, 2 * np.pi, 3600, endpoint=False)
     e = C + a * np.cos(T_)[:, None] * e1 + bb * np.sin(T_)[:, None] * e2
     e = e + [0, tt.BASE - e[:, 1].max()]
@@ -1597,10 +1601,14 @@ def oval_on_stem(strokes, k=0, tol=0.1, lead=10.0):
     oval = fwd[:it + 1]
     y0 = tt.X_TOP
     up = np.c_[np.polyval(c0, np.linspace(T[1], y0, 60)), np.linspace(T[1], y0, 60)]
-    down = up[::-1]
     lo = i2 + int(np.argmax(p[i2:, 1]))                              # the loop's bottom: the stem goes down until here
-    j = i2 + int(np.argmin(np.abs(p[i2:lo, 1] - (T[1] + lead))))
-    link = np.array([T + (p[j] - T) * t for t in np.linspace(0, 1, 30)])[1:]
+    yL = p[lo, 1] - 16                                               # straight down to here, then into the loop
+    down = np.c_[np.polyval(c0, np.linspace(y0, yL, 200)), np.linspace(y0, yL, 200)]
+    j = i2 + int(np.argmin(np.abs(p[i2:lo, 1] - (yL + 7))))         # the font's loop taken from here
+    A, B = down[-1], p[j]
+    tA, tB = tt._unit(down[-1] - down[-2]), tt._unit(p[j + 3] - p[j])
+    L = np.hypot(*(B - A)) / 3
+    link = np.array([(1 - t) ** 3 * A + 3 * (1 - t) ** 2 * t * (A + tA * L) + 3 * (1 - t) * t ** 2 * (B - tB * L) + t ** 3 * B for t in np.linspace(0, 1, 30)])[1:]
     first = np.vstack([oval, up[1:]])
     second = np.vstack([down, link, p[j + 1:]])
     out = list(strokes)
