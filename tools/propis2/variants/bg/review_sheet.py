@@ -131,7 +131,7 @@ for n,ch in enumerate(letters):
         w = INK_W * S
         for p in strokes:
             pts = [R(q) for q in p]
-            dd.line(pts, fill=(40,40,60), width=int(round(w)))
+            dd.line(pts, fill=(40,40,60), width=int(round(w)), joint="curve")
             for x, y in pts: dd.ellipse([x-w/2, y-w/2, x+w/2, y+w/2], fill=(40,40,60))
         dd.text((ox2+12,oy+8), ch, fill=(0,0,0), font=font)
         dd.rectangle([ox2,oy,ox2+CW-1,oy+CH-1], outline=(225,225,225))

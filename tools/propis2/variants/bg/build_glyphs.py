@@ -1322,6 +1322,42 @@ def smooth_middle(strokes, ya=-22.0, yb=42.0, gap=0.4, mid=40.0):
     return build(lo) + list(strokes[2:])
 
 
+def _design_height(label, y):
+    """The height on DESIGN's paper that rescaled() puts at height `y` of the deck's paper (as it moves `label`)."""
+    fy, _, _ = frame_map(FRAME_LIKE.get(label, label), DESIGN, json.loads(VARIANT.read_text())["meta"]["script"])
+    tt.use_script(DESIGN)
+    a, b = tt.BASE - 200.0, tt.BASE + 200.0
+    for _ in range(60):
+        m = (a + b) / 2
+        if fy(m) < y: a = m
+        else: b = m
+    return (a + b) / 2
+
+
+def i_with_loop(strokes, label="И", tol=0.1):
+    """Ц as И with the font's loop (owner, 2026-10-19: «бери И и приделай петлю»): И as approved, cut where its last hook,
+    rising from the baseline, reaches the height of Ц's turn back down (the top of the small hook before the loop), and from
+    there Ц's own loop (snapped onto the font), moved across so it starts there; a corner at the turn, as the font has."""
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[0]))), 0.3)
+    it = int(np.argmax(p[:, 1] > tt.BASE + 5))           # the loop goes under the baseline here
+    back = max(0, it - int(40 / 0.3))
+    c = back + int(np.argmin(p[back:it, 1]))              # the turn: the top of the hook before it
+    tail = p[c:]
+    I = PAPER[label][0]
+    cut = tt._split_at(I, [tail[0, 1]])
+    j = max(i for i, (_, ps) in enumerate(cut) if abs(np.asarray(ps[-1])[1] - tail[0, 1]) < 1e-6)
+    head = cut[:j + 1]
+    at = np.asarray(head[-1][1][-1], float)
+    tail = tail + (at - tail[0])
+    # the loop's bottom on the deck's bottom line (Ц's font loop goes deeper than И's frame puts that line): what lies under the
+    # baseline made shorter along the slant
+    low = _design_height(label, tt.R_BASE + tt.R_BAND * json.loads(VARIANT.read_text())["meta"]["script"]["lower"])
+    under = tail[:, 1] > tt.BASE
+    tail[under] = tt.shear_scale(tail[under], (low - tt.BASE) / (tail[:, 1].max() - tt.BASE))
+    PAPER_UNSNAPPED.pop(PAPER_LABEL[0], None)  # the font stencil goes on the finished letter (it is И's, not Ц's font)
+    return [head + tt._fit_span(tail, tt._unit(tail[3] - tail[0]), tt._unit(tail[-1] - tail[-4]), tol=tol)] + strokes[1:]
+
+
 def stem_down(strokes, k=0, cut=24.0):
     """Ф through all three bands (owner, 2026-10-19, after the teacher's video: «растяни Ф на три полосы»; svetlinki.com: «Главната
     Ф — и в двата широки реда»): stroke `k`'s stem cut `cut` units above the baseline (on its straight run, over the hook) and
@@ -1416,7 +1452,7 @@ NO_EXIT = set("Ф")  # Ф: its hook ends to the left, under the letter: nothing 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: stem_down(mirror_ear(ears_on_baseline(ef_three(flag_corner(s))))), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Х": lambda s: smooth_middle(snap_to_font(s, "Х", arcs=(0, 1))), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: stem_down(mirror_ear(ears_on_baseline(ef_three(flag_corner(s))))), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Х": lambda s: smooth_middle(snap_to_font(s, "Х", arcs=(0, 1))), "Ц": lambda s: i_with_loop(snap_to_font(s, "Ц", arcs=(0,))), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
@@ -1617,6 +1653,7 @@ def _bank_cmds(d):
     return out
 
 
+FRAME_LIKE = {"Ц": "И"}  # moved to the deck's paper as this letter is (Ц is И with a loop: its И stays И's)
 MID, RATIO = {}, {}  # label -> the upright x rescaled() moved the letter about, and its scale across the slant there
 
 
@@ -1643,6 +1680,41 @@ def frame_map(label, src, dst):
     return y, s1 / s0, [B - (lo0 - X) * s0, B - (lo0 - B) * s0]
 
 
+def _g1(cmds, ys, deg=12.0):
+    """frame_map stretches heights by a different amount above and below the font's x-line and baseline (`ys`, on the new paper),
+    so a line not on the slant bends a little where it crosses them: such a join turning by less than `deg` (not a corner the
+    letter has) gets one tangent, the mean of the two, each handle keeping its length (a line piece there becomes a cubic)."""
+    out = [(c, [np.asarray(q, float) for q in ps]) for c, ps in cmds]
+    for i in range(1, len(out) - 1):
+        J = out[i][1][-1]
+        if not any(abs(J[1] - y) < 0.6 for y in ys): continue
+        for n in (i, i + 1):
+            if out[n][0] == "L":
+                p0 = out[n - 1][1][-1]; q = out[n][1][0]
+                out[n] = ("C", [p0 + (q - p0) / 3, p0 + (q - p0) * 2 / 3, q])
+        a, b = out[i][1], out[i + 1][1]
+        t0, t1 = J - a[1], b[0] - J
+        if np.hypot(*t0) < 1e-9 or np.hypot(*t1) < 1e-9: continue
+        ang = math.degrees(math.acos(max(-1.0, min(1.0, np.dot(tt._unit(t0), tt._unit(t1))))))
+        if ang > deg: continue
+        t = tt._unit(tt._unit(t0) + tt._unit(t1))
+        a[1] = J - t * np.hypot(*t0); b[0] = J + t * np.hypot(*t1)
+    return out
+
+
+def _merge_tiny(cmds, eps=0.6):
+    """A piece shorter than `eps` (a stroke cut at two heights a hair apart: the font's x-line and the paper's) folded into the
+    piece before it, whose end and last handle move with it: rounded to the bank's two decimals, its handles point anywhere."""
+    out = [cmds[0]]
+    for c, ps in cmds[1:]:
+        p0 = np.asarray(out[-1][1][-1], float); end = np.asarray(ps[-1], float)
+        if len(out) > 1 and out[-1][0] == "C" and np.hypot(*(end - p0)) < eps:
+            h1, h2, _ = out[-1][1]
+            out[-1] = ("C", [h1, np.asarray(h2, float) + (end - p0), end])
+        else: out.append((c, ps))
+    return out
+
+
 def rescaled(glyph, script):
     """A glyph built on DESIGN's paper -> the same strokes on `script`'s paper, moved as the font stencil they were fitted to moves
     (frame_map: the font's own zones re-stretched for the deck's paper, not the letter scaled evenly: the owner checks the letter
@@ -1652,7 +1724,7 @@ def rescaled(glyph, script):
     label = glyph["label"]
     tt.use_script(DESIGN)
     paper = [[(c, list(tt.to_paper(np.array(ps)))) for c, ps in tt._split_at(_bank_cmds(st["d"]), [tt.B_TOP, tt.B_BASE])] for st in glyph["strokes"]]
-    try: fy, r, breaks = frame_map(label, DESIGN, script)
+    try: fy, r, breaks = frame_map(FRAME_LIKE.get(label, label), DESIGN, script)
     except KeyError: fy, r, breaks = (lambda v: tt.BASE - (tt.BASE - np.asarray(v, float)) * CAP_K), CAP_K, []
     tt.use_script(DESIGN)
     paper = [tt._split_at(cmds, breaks) if breaks else cmds for cmds in paper]
@@ -1662,9 +1734,10 @@ def rescaled(glyph, script):
     def k(ps):
         q = tt.upright(np.array(ps))
         return list(tt.from_upright(np.c_[mid + (q[:, 0] - mid) * r, fy(q[:, 1])]))
-    paper = [[(c, k(ps)) for c, ps in cmds] for cmds in paper]
+    ys = [float(fy(np.array([y]))[0]) for y in breaks] + [tt.R_BASE - tt.R_BAND, tt.R_BASE]
+    paper = [_merge_tiny(_g1(_g1([(c, k(ps)) for c, ps in cmds], ys), ys)) for cmds in paper]
     tt.use_script(script)
-    return {**glyph, "strokes": [{**st, "d": dg.fmt(tt.paper_to_bank_cmds(cmds))} for st, cmds in zip(glyph["strokes"], paper)]}
+    return {**glyph, "strokes": [{**st, "d": dg.fmt(_merge_tiny(tt.paper_to_bank_cmds(cmds), 0.05))} for st, cmds in zip(glyph["strokes"], paper)]}
 
 
 def main():
