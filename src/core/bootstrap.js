@@ -1,4 +1,5 @@
 import { kv } from "@/core/db";
+import { getUiLanguage, hydrateUiLanguage } from "@/shared/i18n/uiLanguage.js";
 import { migrateStudentPeople, mergePeopleRecords } from "../../shared/student-people.mjs";
 import { mergeRewardVideoViews } from "@/shared/utils/rewardVideoViews";
 import { useAppStore } from "@/core/store";
@@ -316,6 +317,7 @@ export function normalizeBootstrap(raw = {}) {
 
 export function applyBootstrapToStore(raw) {
   const bootstrap = normalizeBootstrap(raw);
+  hydrateUiLanguage(bootstrap.settings?.uiLanguage);
   const resumeContext = bootstrap.activeSession?.context ?? bootstrap.lastContext;
 
   useAppStore.setState((state) => {
@@ -327,6 +329,7 @@ export function applyBootstrapToStore(raw) {
     account: "account" in raw ? bootstrap.account : state.account,
     settings: (() => {
       const merged = { ...state.settings, ...(bootstrap.settings ?? {}) };
+      merged.uiLanguage = getUiLanguage();
       // Server null must not overwrite a locally-held PIN that hasn't synced yet.
       if (merged.adultPinHash === null && (state.settings.adultPinHash ?? null) !== null) {
         merged.adultPinHash = state.settings.adultPinHash;

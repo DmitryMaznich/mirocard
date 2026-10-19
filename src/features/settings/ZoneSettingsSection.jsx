@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getPlannerZoneCustomizations, savePlannerZoneCustomizations } from "@/core/groupStore";
 import { ZONES, getEffectiveZones } from "@/features/planner/putawayLocations";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 
 const ADD_ZONE_ICONS = ['📦', '🧺', '🚪', '🛁', '🪣', '🧊', '🗄️', '🧴', '🍬', '🪟'];
 
 export default function ZoneSettingsSection() {
+  const { t } = useUiTranslation();
   const studentId = useAppStore((s) => s.activeStudentId);
   const [customizations, setCustomizations] = useState({ renamed: {}, added: [] });
   const [loaded, setLoaded] = useState(false);
@@ -58,7 +60,7 @@ export default function ZoneSettingsSection() {
 
   return (
     <div className="settings-section">
-      <div className="settings-section-title">Зоны хранения</div>
+      <div className="settings-section-title">{t("settings.zones")}</div>
       {zones.map((zone) => (
         <div key={zone.id} className="settings-row settings-row--zone">
           <span className="settings-zone-icon">{zone.icon}</span>
@@ -80,7 +82,7 @@ export default function ZoneSettingsSection() {
             </span>
           )}
           {!baseIds.has(zone.id) && (
-            <button className="settings-zone-del-btn" onClick={() => removeZone(zone.id)} aria-label="Удалить зону">×</button>
+            <button className="settings-zone-del-btn" onClick={() => removeZone(zone.id)} aria-label={t("settings.deleteZone")}>×</button>
           )}
         </div>
       ))}
@@ -92,6 +94,7 @@ export default function ZoneSettingsSection() {
               <button
                 key={icon}
                 type="button"
+                aria-label={t("settings.zoneIcon", { icon })}
                 className={`settings-zone-icon-option${newZoneIcon === icon ? ' settings-zone-icon-option--active' : ''}`}
                 onClick={() => setNewZoneIcon(icon)}
               >
@@ -104,14 +107,15 @@ export default function ZoneSettingsSection() {
             autoFocus
             value={newZoneLabel}
             onChange={(e) => setNewZoneLabel(e.target.value)}
-            placeholder="Название зоны"
+            placeholder={t("settings.zoneName")}
+            aria-label={t("settings.zoneName")}
             onKeyDown={(e) => e.key === 'Enter' && addZone()}
           />
-          <button className="link-btn" onClick={addZone}>Добавить</button>
+          <button className="link-btn" onClick={addZone}>{t("common.add")}</button>
         </div>
       ) : (
         <div className="settings-row">
-          <button className="link-btn" onClick={() => setAddingZone(true)}>+ Добавить зону</button>
+          <button className="link-btn" onClick={() => setAddingZone(true)}>{t("settings.addZone")}</button>
         </div>
       )}
     </div>
