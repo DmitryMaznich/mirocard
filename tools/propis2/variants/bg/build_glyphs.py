@@ -980,6 +980,44 @@ def flag_corner(strokes, k=0, clear=2.0, tol=0.1):
     return strokes
 
 
+def end_like_font(strokes, label, k, end=0, span=25.0, rms=0.15, tol=0.1):
+    """A stroke's end (its last `span` units, and on to where the font's stroke ends) laid along the font's own line (К's top
+    hook on the right: owner, 2026-10-19, «верхний крюк правого элемента сделать ближе к шрифтовой линии»). The way is found
+    along the font's skeleton as a graph (neighbouring points joined), from the skeleton point at `span` units before our end to
+    the skeleton's end nearest ours, then smoothed (a spline within `rms` of it: the raster's steps out, its shape kept)."""
+    from scipy.spatial import cKDTree
+    from scipy.sparse import coo_matrix
+    from scipy.sparse.csgraph import dijkstra
+    from scipy.interpolate import UnivariateSpline
+    ink, S, pen = _font_frame(label)
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
+    if end == 0: p = p[::-1]
+    s_ = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(p, axis=0).T))])
+    j = int(np.argmin(np.abs(s_ - (s_[-1] - span))))
+    tree = cKDTree(S)
+    step = float(np.median(tree.query(S[::11], k=2)[0][:, 1]))
+    pairs = np.array(sorted(tree.query_pairs(step * 2.5)))  # the raster's diagonal neighbours, sheared onto the paper
+    w = np.hypot(*(S[pairs[:, 0]] - S[pairs[:, 1]]).T)
+    G = coo_matrix((np.r_[w, w], (np.r_[pairs[:, 0], pairs[:, 1]], np.r_[pairs[:, 1], pairs[:, 0]])), shape=(len(S), len(S))).tocsr()
+    deg = np.diff(G.indptr)
+    ends = np.nonzero(deg == 1)[0]
+    a = int(tree.query(p[j])[1])
+    b = int(ends[np.argmin(np.hypot(*(S[ends] - p[-1]).T))])
+    _, pred = dijkstra(G, indices=a, return_predecessors=True)
+    route = [b]
+    while route[-1] != a and pred[route[-1]] >= 0: route.append(int(pred[route[-1]]))
+    r = dg.resample(S[route[::-1]], 0.3)
+    t = np.arange(len(r)) * 0.3
+    wt = np.ones(len(r)); wt[:6] = 50.0
+    r[0] = p[j]
+    sx = UnivariateSpline(t, r[:, 0], w=wt, s=len(r) * rms ** 2); sy = UnivariateSpline(t, r[:, 1], w=wt, s=len(r) * rms ** 2)
+    r = np.c_[sx(t), sy(t)]
+    q = np.vstack([p[:j], r])
+    if end == 0: q = q[::-1]
+    strokes[k] = [("M", [q[0]])] + tt._fit_span(q, tt._unit(q[3] - q[0]), tt._unit(q[-1] - q[-4]), tol=tol)
+    return strokes
+
+
 def cusp_to_font_tip(strokes, label, k=0, back=16.0, tol=0.1):
     """A waist that turns back to a point (З, like Е: two arcs meeting at a point, not a loop or a bulge) drawn into the tip of the
     font's (the centre of the pen's round end there). snap_to_font rounds such a turn (the sides' normals flip there), so the path
@@ -1051,7 +1089,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
