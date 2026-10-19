@@ -130,7 +130,7 @@ jobs:
       - name: Start an isolated production container with test-only configuration
         run: |
           docker run -d --name mirocard-runtime-check -p 127.0.0.1:3012:3012 \
-            -e SERVE_STATIC=1 -e MIROCARD_DATA_DIR=/data -e RAILWAY_ENVIRONMENT=ci \
+            -e SERVE_STATIC=1 -e MIROCARD_DATA_DIR=/data -e RAILWAY_ENVIRONMENT=ci -e RAILWAY_GIT_COMMIT_SHA="$GITHUB_SHA" \
             -e AUTH_SECRET=ci-auth-not-a-secret -e ACCOUNT_SECRET=ci-account-not-a-secret \
             -e MIROCARD_DEPLOY_TOKEN=ci-deploy-not-a-secret -e MIROCARD_ADMIN_TOKEN=ci-admin-not-a-secret \
             -e RESEND_API_KEY=ci-unused-mail-key -e LEGAL_DOCS_VERSION=draft \
