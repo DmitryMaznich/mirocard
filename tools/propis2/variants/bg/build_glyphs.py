@@ -34,7 +34,7 @@ TAIL = [(9.00, 0.00), (29.40, -18.95), (39.12, -26.00)]
 # the flag of Ъ as a sharp «М», the copybook writes a wave (owner, 2026-10-18: «сгладь только флажок»); the rest keeps its corners.
 LETTERS = {
     # Ъ: from the font now (owner, 2026-10-18: the freehand one «далёк от образца»); its capture stays in captures/ as the record
-    "Ъ": {"font": True, "flag_like": "К", "tail": True, "flag": 3.0, "note": "Ъ (болгарская заглавная: флажок, стойка, овал строчной высоты)"},
+    "Ъ": {"font": True, "tail": True, "flag": 3.0, "note": "Ъ (болгарская заглавная: флажок, стойка, овал строчной высоты)"},
 }
 
 
@@ -173,6 +173,7 @@ def stem_like(source, stroke=0):
 
 DRAFT = HERE / "boyan_glyphs.draft.json"   # the font's centre line per letter (font_glyphs.py), bank units
 UNDERLAY_DX = HERE / "underlay_dx.json"    # where the underlay put it on the capture canvas (make_underlays.py)
+FONT_FLAGS = HERE / "font_flags.json"      # the exact centre line of some flags, from the outline (font_flags.py)
 
 
 def font_centre(label):
@@ -436,7 +437,7 @@ def both(*fns):
     return adjust
 
 
-def font_flag(cmds, label, tol=0.5):
+def font_flag(cmds, label, tol=0.3):
     """The flag on the top left (from the start up over the top and into the stem: К Н Ф Ю, and Ъ through К) redrawn from the
     font's own centre line, its dip in the middle as deep as the font's (owner, 2026-10-18: «крючки у букв К, Н, Ю, Ъ, Ф сделай
     тщательнее по форме крючка из шрифта, там глубже прогиб в середине крючка»; the tidying's smoothing had flattened it).
@@ -447,7 +448,11 @@ def font_flag(cmds, label, tol=0.5):
     a, b = np.asarray(cmds[j - 1][1][-1], float), np.asarray(cmds[j][1][0], float)
     stem_dir = tt._unit(b - a)
     like = np.array(tt.parse_path(tt.dg.fmt(cmds)))
-    f = dg.resample(np.asarray(font_stencil(label, like=like)[0], float), 0.6)
+    exact = json.loads(FONT_FLAGS.read_text())["flags"] if FONT_FLAGS.exists() else {}
+    if label in exact:  # the flag's centre line from the outline itself (font_flags.py): the draft's is smoothed
+        f = dg.resample(stencil_map(label, like=like)(np.array(exact[label], float)), 0.6)
+    else:
+        f = dg.resample(np.asarray(font_stencil(label, like=like)[0], float), 0.6)
     top = int(np.argmin(f[: len(f) // 2, 1]))  # the flag's top: the highest point in the first half of the path
     cut = top + int(np.argmax(f[top:, 1] >= a[1]))  # where it has come down to our stem's start
     flag = f[:cut + 1]
@@ -457,7 +462,7 @@ def font_flag(cmds, label, tol=0.5):
     return [("M", [flag[0]])] + segs + cmds[j:]  # the stem's line runs on from the flag's end, which lies on it
 
 
-FONT_FLAG = set("КНФЮ")  # letters whose top-left flag is the font's (font_flag); Ъ takes К's (flag_like)
+FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (font_flag, exact from font_flags.json)
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)

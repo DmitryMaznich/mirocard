@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""The exact centre line of the top-left flag of К Н Ф Ю Ъ, taken from the Boyan Maga outline at a fine raster (the draft's
+centre line, boyan_glyphs.draft.json, was smoothed when it was made and flattens the flag's first wave: owner, 2026-10-18,
+«первую волну крючка ты сильно сгладил ... нужна точно форма из шрифта»).
+
+  python3 tools/propis2/variants/bg/font_flags.py <Boyan_Maga-Regular.ttf>
+
+Writes font_flags.json: label -> the flag's centre line, bank units (font_glyphs.to_bank), from its start to where it has come
+down into the stem. The skeleton of the letter's fill at PX px per font unit; of its points those near the draft's flag, each
+put at the draft's place it is nearest to and averaged there, so the line keeps the draft's order and the outline's shape.
+"""
+import sys, json
+from pathlib import Path
+import numpy as np
+from fontTools.ttLib import TTFont
+from PIL import Image, ImageDraw
+from skimage.morphology import skeletonize
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import font_glyphs as fg  # noqa: E402
+import tidy_trace as tt  # noqa: E402
+
+PX = 1.5          # raster pixels per font unit
+NEAR = 6.0        # bank units: skeleton points this close to the draft's flag belong to it
+LETTERS = "КНФЮЪ"
+
+
+def flag_of_draft(p):
+    """The draft's flag: from its start over the top until it has come down a quarter of the capital's height below the top."""
+    top = int(np.argmin(p[: len(p) // 2, 1]))
+    cut = top + int(np.argmax(p[top:, 1] >= p[top, 1] + 26))
+    return p[:cut + 1]
+
+
+def main():
+    f = TTFont(sys.argv[1]); gs = f.getGlyphSet(); cm = f.getBestCmap()
+    draft = {g["label"]: g for g in json.loads((HERE / "boyan_glyphs.draft.json").read_text())}
+    out = {}
+    for ch in LETTERS:
+        pen = fg.Flat(gs); gs[cm[ord(ch)]].draw(pen)
+        xs = [x for poly in pen.polys for x, _ in poly]; ys = [y for poly in pen.polys for _, y in poly]
+        x0, y1 = min(xs) - 10, max(ys) + 10
+        W, H = int((max(xs) - x0 + 10) * PX) + 2, int((y1 - min(ys) + 10) * PX) + 2
+        wind = np.zeros((H, W), int)
+        for poly in pen.polys:
+            m = Image.new("1", (W, H), 0); ImageDraw.Draw(m).polygon([((x - x0) * PX, (y1 - y) * PX) for x, y in poly], fill=1)
+            area = sum(a[0] * b[1] - b[0] * a[1] for a, b in zip(poly, poly[1:] + poly[:1]))
+            wind += np.where(np.array(m), 1 if area > 0 else -1, 0)
+        rr, cc = np.nonzero(skeletonize(wind != 0))
+        sk = np.array([fg.to_bank(c / PX + x0, y1 - r / PX) for r, c in zip(rr, cc)])
+        d = tt.dg.resample(np.array(tt.parse_path(draft[ch]["strokes"][0]["d"])), 0.5)
+        flag = flag_of_draft(d)
+        dist = np.hypot(sk[:, None, 0] - flag[None, :, 0], sk[:, None, 1] - flag[None, :, 1])
+        idx, dmin = dist.argmin(axis=1), dist.min(axis=1)
+        keep = dmin < NEAR
+        line = []
+        for i in range(len(flag)):
+            m = keep & (idx == i)
+            if m.any(): line.append(sk[m].mean(axis=0))
+        line = np.array(line)
+        # a light running mean along it: the raster's one-pixel steps, nothing of the shape
+        k = 3
+        sm = np.array([line[max(0, i - k):i + k + 1].mean(axis=0) for i in range(len(line))])
+        sm[0], sm[-1] = line[0], line[-1]
+        out[ch] = [[round(float(x), 3), round(float(y), 3)] for x, y in sm]
+        print(ch, len(out[ch]), "points")
+    (HERE / "font_flags.json").write_text(json.dumps({"note": __doc__.strip().splitlines()[0], "flags": out}, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()
