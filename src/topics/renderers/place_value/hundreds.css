@@ -81,8 +81,8 @@ button.hd-piece { cursor: pointer; touch-action: manipulation; -webkit-tap-highl
    thing on the screen. */
 .hd-rows-screen .sg-board { justify-items: center; }
 /* Rows share the columns (subgrid), so the words and the scheme line up. */
-.hd-rows { display: grid; grid-template-columns: clamp(40px, 6vh, 60px) auto; column-gap: 14px; padding: 0; overflow: hidden; width: fit-content; min-width: min(100%, 240px); }
-.hd-rows--support { grid-template-columns: clamp(40px, 6vh, 60px) auto auto; }
+.hd-rows { display: grid; grid-template-columns: minmax(clamp(40px, 6vh, 60px), auto) auto; column-gap: 14px; padding: 0; overflow: hidden; width: fit-content; min-width: min(100%, 240px); }
+.hd-rows--support { grid-template-columns: minmax(clamp(40px, 6vh, 60px), auto) auto auto; }
 .hd-row {
   grid-column: 1 / -1;
   display: grid;

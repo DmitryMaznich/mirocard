@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import IdentifyNumberTask from "./IdentifyNumberTask.jsx";
 import BuildNumberTask from "./BuildNumberTask.jsx";
 import { coinHarness } from "./coinTestHelpers.jsx";
+import { generateTasks } from "./engine.js";
 
 describe("«Таблица»", () => {
   const h = coinHarness();
@@ -12,43 +13,61 @@ describe("«Таблица»", () => {
   const identify = (extra = {}) => ({ cardId: "x", conceptId: "x", number: 34, model: { tens: 3, ones: 4 }, layout: "places", seed: 1, supportMode: "learning", view: "table", ...extra });
   const build = (extra = {}) => ({ cardId: "b", conceptId: "b", number: 47, target: { tens: 4, ones: 7 }, prompt: "digits", supportMode: "learning", view: "table", ...extra });
 
-  it("«Какое это число?»: digits in the columns, no picture; the child writes the number", () => {
+  const rows = () => Array.from(h.container.querySelectorAll(".hd-row")).map((r) => r.textContent);
+
+  it("«Какое это число?»: rows «3 десятка / 4 единицы», no picture; the number in two cells", () => {
     const onCorrect = vi.fn(), onMistake = vi.fn();
     h.mount(IdentifyNumberTask, identify(), { onCorrect, onMistake });
-    expect(Array.from(h.container.querySelectorAll(".tb-digit")).map((e) => e.textContent)).toEqual(["3", "4"]);
-    expect(count(".cb-stick, .cb-dot, .cb-coin, .cb-ten-stack")).toBe(0);
+    expect(rows()).toEqual(["3десятка", "4единицы"]);
+    expect(count(".hd-cell")).toBe(2);
+    expect(h.container.querySelector(".hd-row-support--off").children.length).toBe(3);
     type(34); h.click("Проверить");
     expect(value("Какое это число?")).toBe("34");
-    expect(h.container.querySelector(".sg-status-say")).toBeNull();
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("x", "x");
     expect(onMistake).not.toHaveBeenCalled();
   });
 
-  it("«Обучение»: a mistake brings the scheme back under the digits; «Вперемешку» puts ones first", () => {
+  it("«Обучение»: единицы on top; a mistake asks about the tens, the second brings the scheme", () => {
     const onMistake = vi.fn();
-    h.mount(IdentifyNumberTask, identify({ layout: "mixed" }), { onMistake });
-    expect(Array.from(h.container.querySelectorAll(".sg-head")).map((e) => e.textContent)).toEqual(["Единицы", "Десятки"]);
+    h.mount(IdentifyNumberTask, identify({ order: ["ones", "tens"] }), { onMistake });
+    expect(rows()).toEqual(["4единицы", "3десятка"]);
     type(43); h.click("Проверить");
     expect(onMistake).toHaveBeenCalledTimes(1);
-    expect(note()).toContain("Десятки пишут первыми");
-    expect(count(".tb-support .cb-stick")).toBe(3);
-    expect(count(".tb-support .cb-dot")).toBe(4);
+    expect(note()).toBe("Сколько десятков? С них число начинается.");
+    expect(h.container.querySelector(".hd-row--lit").textContent).toBe("3десятка");
+    expect(h.container.querySelector(".hd-row-support--off")).not.toBeNull();
+    h.flush(); type(43); h.click("Проверить");
+    expect(h.container.querySelector(".hd-row-support--off")).toBeNull();
+    expect(count(".hd-row-support .cb-stick")).toBe(3);
+    expect(count(".hd-row-support .cb-dot")).toBe(4);
   });
 
-  it("«Больше девяти»: 2 | 14 is 34, not 214", () => {
+  it("«Больше девяти»: «2 десятка, 14 единиц» is 34", () => {
     h.mount(IdentifyNumberTask, identify({ layout: "over9", model: { tens: 2, ones: 14 } }));
-    type(214); h.click("Проверить");
+    expect(rows()).toEqual(["2десятка", "14единиц"]);
+    type(24); h.click("Проверить");
     expect(note()).toContain("Десять единиц — это ещё один десяток");
     h.flush(); type(34); h.click("Проверить");
     expect(value("Какое это число?")).toBe("34");
   });
 
-  it("«Проверка»: no support after a mistake", () => {
+  it("«Проверка»: no lit row, no scheme after a mistake", () => {
     h.mount(IdentifyNumberTask, identify({ supportMode: "independent" }));
     type(43); h.click("Проверить");
     expect(note()).toBe("Проверь число ещё раз.");
-    expect(count(".tb-support")).toBe(0);
+    expect(count(".hd-row-support")).toBe(0);
+    expect(count(".hd-row--lit")).toBe(0);
+  });
+
+  it("engine: the table has no single digits; rows start in the usual order", () => {
+    const cards = [{ id: "i", conceptId: "i", renderer: "place_value", params: { mode: "identify_number" } }];
+    for (let run = 0; run < 20; run++) {
+      const tasks = generateTasks("identify_number", cards, 10, { view: "table", trick: true });
+      expect(tasks.every((t) => t.number >= 10)).toBe(true);
+      expect(tasks.filter((t) => t.layout === "mixed").every((t) => t.order.join() === "ones,tens")).toBe(true);
+      tasks.slice(0, 2).filter((t) => t.layout !== "mixed").forEach((t) => expect(t.order.join()).toBe("tens,ones"));
+    }
   });
 
   it("«Собери число»: the child writes tens, then ones; a mistake colours the number's digits", () => {

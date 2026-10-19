@@ -142,8 +142,9 @@ Modes 8, 10–14 are built in `topicLoader.js` from the base modes by `hundreds(
 - Addition with carry still asks «3 + 2 + 1» as one chain — owner hasn't asked
   to split it; ask before changing.
 - Mode 10 table redone as rows «3 сотни / 0 десятков / 5 единиц» + three
-  answer cells (methodology §24). Next, after the owner tries it: the same
-  with two rows / two cells in mode 3 (до 100) and the table in test 7.
+  answer cells (methodology §24); mode 3 (до 100) and test 7's table use the
+  same screen with two rows / two cells (committed on the branch, deploy
+  waits for the owner's OK on the screenshots).
 - Thousands: start with «places count from the right» — split «1 305» into
   classes (owner's idea of writing from the units, kept for this stage).
 - Thousands (box of 10 plates «1000», range до 10 000) — the next big stage;

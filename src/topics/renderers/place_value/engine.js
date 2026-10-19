@@ -318,11 +318,18 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
     if (!identifyNumberCards.length) return [];
     const maxOnes = Number(params.maxOnes ?? 9);
     const tasks = [];
+    const table = params.view === "table";
     for (let i = 0; i < count; i++) {
-      const task = generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, Number(params.maxTens ?? 9), params.numberSet ?? "mixed");
+      let task = generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, Number(params.maxTens ?? 9), params.numberSet ?? "mixed");
+      // The table has no single digits: «0 десятков, 7 единиц» would ask for «07».
+      while (table && task.number < 10) task = generateIdentifyNumberTask(identifyNumberCards[i % identifyNumberCards.length], maxOnes, Number(params.maxTens ?? 9), params.numberSet ?? "mixed");
+      const placed = identifyLayout(task.number, params.layout ?? "places");
       tasks.push({
         ...task,
-        ...identifyLayout(task.number, params.layout ?? "places"),
+        ...placed,
+        // Rows on the table: «Вперемешку» puts единицы on top; besides that,
+        // from the third task about half do (see tableRowOrder above).
+        ...(table ? { order: placed.layout === "mixed" || (i >= 2 && Math.random() < 0.5) ? ["ones", "tens"] : ["tens", "ones"] } : {}),
         seed: randomInt(1, 100000),
         supportMode: params.supportMode ?? "learning",
         view: ["scheme", "table"].includes(params.view) ? params.view : "coins",

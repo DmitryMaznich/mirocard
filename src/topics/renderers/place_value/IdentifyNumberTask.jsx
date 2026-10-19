@@ -1,8 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { modelPieces } from "./CoinBlocks.jsx";
-import { IdentifyHundreds } from "./HundredsTasks.jsx";
-import { IdentifyTableTask } from "./TableTasks.jsx";
+import { IdentifyHundreds, IdentifyRowsTask } from "./HundredsTasks.jsx";
 import { numberWords, pluralTens, pluralOnes } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import "./place_value.css";
@@ -52,10 +51,11 @@ export function mixedLayout(tens, ones, seed, cols) {
   return { rows, items };
 }
 
-// «Таблица» has its own screen (TableTasks.jsx); coins and the scheme share this one.
+// «Таблица» has its own screen (IdentifyRowsTask in HundredsTasks.jsx, places as
+// rows); coins and the scheme share this one.
 export default function IdentifyNumberTask(props) {
   if (props.task.model?.hundreds !== undefined) return <IdentifyHundreds {...props} />;
-  return props.task.view === "table" ? <IdentifyTableTask {...props} /> : <IdentifyNumberTaskModel {...props} />;
+  return props.task.view === "table" ? <IdentifyRowsTask {...props} /> : <IdentifyNumberTaskModel {...props} />;
 }
 
 function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect }) {
