@@ -142,3 +142,14 @@ test("unsupported choices do not enter the account queue", async () => {
   assert.equal(f.ui(), "ru");
   assert.equal(f.controller.getSnapshot().status, "synced");
 });
+
+test("an implicit legacy ru boot copy does not become an explicit account preference", async () => {
+  const saved = storage();
+  saved.setItem("mironium.uiLanguage", "ru");
+  let calls = 0;
+  const f = fixture({ saved, request: async () => { calls++; throw Error("should not send"); } });
+  f.login();
+  await f.controller.flush();
+  assert.equal(calls, 0);
+  assert.equal(JSON.parse(saved.getItem(ACCOUNT_LANGUAGES_KEY)).A.revision, 0);
+});

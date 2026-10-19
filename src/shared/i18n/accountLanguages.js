@@ -18,8 +18,12 @@ export function createAccountLanguages({ storage, applyLanguage, request, makeId
   let generation = 0;
   let guestChoice = null;
   try {
+    // LOC-01 also wrote its implicit ru default into the boot cache. Only
+    // migrate a non-default legacy value as a choice; new guest selections
+    // have their own explicit marker, including a deliberate ru choice.
+    const legacy = Object.keys(records).length === 0 ? storage?.getItem("mironium.uiLanguage") : null;
     const saved = storage?.getItem("mironium.guestUiLanguage") ??
-      (Object.keys(records).length === 0 ? storage?.getItem("mironium.uiLanguage") : null);
+      (legacy === "sl" ? legacy : null);
     if (isUiLanguage(saved)) guestChoice = saved;
   } catch { /* guest choice still works in memory */ }
   let snapshot = Object.freeze({ accountId: null, cardLanguage: "ru", status: "local", durable: true });
@@ -46,6 +50,8 @@ export function createAccountLanguages({ storage, applyLanguage, request, makeId
       Object.defineProperty(records, id, { value: { revision: 0, uiLanguage: "ru", cardLanguage: "ru" }, writable: true, enumerable: true, configurable: true });
     }
     const value = records[id];
+    if (!isUiLanguage(value.uiLanguage)) value.uiLanguage = "ru";
+    if (!isLessonLanguage(value.cardLanguage)) value.cardLanguage = "ru";
     if (value.pending && (!validPatch(value.pending.patch) || typeof value.pending.id !== "string" || !validRevision(value.pending.expectedRevision))) delete value.pending;
     return value;
   }
