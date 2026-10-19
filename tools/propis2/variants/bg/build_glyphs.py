@@ -483,7 +483,9 @@ FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
-          "П": both(hat_like("Б", stroke=2), hat_to_stem(hat=2, stem=1))}  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
+          # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
+          # hat_like("Б") + hat_to_stem were the step before)
+          }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
 
 
 PAPER_LABEL = [None]  # the letter being tidied (a SHAPES function reads it)
@@ -565,6 +567,16 @@ def font_letter(label, script, spec):
     k2 = (tt.BASE - tt.CAP_TOP) / (tt.BASE - allp[:, 1].min())  # the tidied letter exactly between its lines, as tidy_letter does
     paper = [[(c, list(tt.shear_scale(np.array(ps, float), k2))) for c, ps in cmds] for cmds in paper]
     if label in FONT_FLAG: paper[0] = font_flag(paper[0], label)
+    exact = json.loads(FONT_FLAGS.read_text())["flags"] if FONT_FLAGS.exists() else {}
+    for key, pts in exact.items():
+        # a whole stroke from the outline's exact centre line (font_flags.py WHOLE; П's hat): set as the stencil sets the letter,
+        # fitted by cubics within 0.3 (the tidying would make its long gentle rise one flat line on the top line)
+        if not key.startswith(label + ":"): continue
+        k = int(key.split(":")[1])
+        like = np.vstack([tt.parse_path(dg.fmt(c)) for c in paper])
+        p = dg.resample(stencil_map(label, like=like)(np.array(pts, float)), 0.6)
+        t0, t1 = tt._unit(p[4] - p[0]), tt._unit(p[-1] - p[-5])
+        paper[k] = [("M", [p[0]])] + tt._fit_span(p, t0, t1, tol=0.3)
     if label in SHAPES: paper = SHAPES[label](paper)
     if spec.get("flag_like"): paper[0] = flag_like(paper[0], spec["flag_like"])
     PAPER[label] = paper
