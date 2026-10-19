@@ -27,7 +27,7 @@ LETTERS = "КНФЮЪ"
 # strokes taken whole, not just their flag: П's hat (owner, 2026-10-19, drawn over the font); А's only stroke, for the bow of its
 # rise (owner, 2026-10-19: «первый штрих должен иметь чуть больший прогиб в середине вправо ... максимально приближенное к линиям
 # шрифта»; build_glyphs.rise_like_font)
-WHOLE = {"П": 2, "А": 0, "Л": 0}
+WHOLE = {"П": 2, "А": 0, "Л": 0, "Т": 3}
 SKELETON = "БВГДЕЖЗИЙКЛМНОРС"  # letters snapped onto the font's lines whole (build_glyphs.snap_to_font; owner, 2026-10-19, Б: «сделай всё то же самое»)
 
 
