@@ -205,14 +205,15 @@ const SQUARE_LETTER_SCALE = (0.75 * SQUARE_CELL) / (TEXT_ROW_PITCH - TEXT_ROW_TH
 // notebook), the first 16 mm from the top; the letters smaller than on the copybook: a lowercase letter 3.2 mm, a capital 6.4 mm.
 const RULED_PITCH = mmToNativeUnits(8);
 const RULED_LETTER_SCALE = mmToNativeUnits(3.2) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
-// `propis2_bg`, the Bulgarian copybook ruling ("bg", measured on «Тетрадка 1 клас», docs/propis2-variants.md): a row of four lines,
-// bold (top of capitals and ascenders) 6.5 mm above a thin line, the 4.26 mm lowercase band down to a thin baseline, 6.24 mm down to
-// the next bold line (the top line of the next row: rows every 17 mm, 11 on an A5 page); no dashes; sparse slant guides at 1 : 4
-// (76deg) every 35 mm. The letters are the copybook's, a lowercase letter 4.26 mm tall; the deck's meta.script stretches their
+// `propis2_bg`, the Bulgarian copybook ruling ("bg", docs/propis2-variants.md): a row of four lines, bold (top of capitals and
+// ascenders) 6.08 mm above a thin line, the 4.94 mm lowercase band down to a thin baseline, 5.98 mm down to the next bold line (the
+// top line of the next row: rows every 17 mm, 11 on an A5 page); no dashes; sparse slant guides at 1 : 4 (76deg) every 35 mm. The
+// bands as on a Bulgarian teacher's writing video (owner, 2026-10-19: 1.23 : 1 : 1.21, near even; «Тетрадка 1 клас» had 6.5 /
+// 4.26 / 6.24). The letters are the copybook's, a lowercase letter 4.94 mm tall; the deck's meta.script stretches their
 // ascenders and descenders to the bold lines (wordEngine / scriptGeometry.js).
-const BG_UP_MM = 6.5;
-const BG_X_MM = 4.26;
-const BG_DOWN_MM = 6.24;
+const BG_UP_MM = 6.08;
+const BG_X_MM = 4.94;
+const BG_DOWN_MM = 5.98;
 const BG_PITCH = mmToNativeUnits(BG_UP_MM + BG_X_MM + BG_DOWN_MM);
 const BG_LETTER_SCALE = mmToNativeUnits(BG_X_MM) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
 const BG_GUIDE_STEP = mmToNativeUnits(35);

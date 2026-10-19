@@ -13,7 +13,7 @@ corners and refit as cubics, then made as tall as a capital (y -42..62, base 62)
 lowest point stands on the baseline. A letter that ends inside its bowl (Ъ) gets the connector of Б: a separate stroke from under
 the bowl to the middle of the band, drawn only when another letter follows (`tailStroke`).
 """
-import json, math, sys
+import json, math, re, sys
 from pathlib import Path
 import numpy as np
 
@@ -25,6 +25,13 @@ sys.path.insert(0, str(HERE))
 import tidy_trace as tt  # noqa: E402  (also parse_path: the capture tool writes cubics, dg.parse reads no C)
 
 VARIANT = HERE / "variant.json"
+
+# The letters are built on the paper they were fitted on, one by one with the owner (DESIGN: «Тетрадка 1 клас»'s bands, 1.526 :
+# 1 : 1.465), then made smaller evenly, across the slant as much as up (CAP_K, rescaled()), to the deck's own paper (meta.script:
+# the bands of a teacher's writing video, 1.231 : 1 : 1.211; owner, 2026-10-19): the font stencil they were fitted to is set
+# evenly to the capital's height too (stencil_map), so on the new paper it is the same letter over the same font, only smaller
+DESIGN = {"slantDeg": 76, "upper": 1.526, "lower": 1.465}
+CAP_K = (1 + json.loads(VARIANT.read_text())["meta"]["script"]["upper"]) / (1 + DESIGN["upper"])
 CAPTURES = HERE / "captures"
 FOOT_Y = 62.0  # the bottom of a capital's bowl on the baseline, as the deck's capitals (Б, В, Ь-like bowls) stand
 # Б's connector in wide.json, from the bottom of its bowl: "M 156.94 62.00 C 165.94 62.00 186.34 43.05 196.06 36.00", relative
@@ -1062,7 +1069,7 @@ def end_like_font(strokes, label, k, end=0, span=25.0, rms=0.15, tol=0.1):
     return strokes
 
 
-INK_W = 2 * 48 / (4.26 * 150 / 25)  # the deck's pen on the Bulgarian paper, in paper units (review_sheet.py INK_W)
+INK_W = 2 * 48 / (4.94 * 150 / 25) / CAP_K  # the deck's pen on the Bulgarian paper (review_sheet.py INK_W), on DESIGN's paper
 
 
 def touch_stem(strokes, k=1, stem_k=0, ease=14.0, tol=0.1):
@@ -1516,9 +1523,40 @@ def glyph_of(item, script):
     return out
 
 
+def _bank_cmds(d):
+    nums = [float(v) for v in re.findall(r"-?\d*\.?\d+(?:[eE][+-]?\d+)?", d)]; out = []; i = 0
+    for t in re.findall(r"[MLQC]", d):
+        k = {"M": 1, "L": 1, "Q": 2, "C": 3}[t]
+        ps = [np.array([nums[i + 2 * j], nums[i + 2 * j + 1]]) for j in range(k)]; i += 2 * k
+        if t == "Q":  # as the cubic it is (Й's breve, from the bank's й)
+            p0 = out[-1][1][-1]; t, ps = "C", [p0 + (ps[0] - p0) * 2 / 3, ps[1] + (ps[0] - ps[1]) * 2 / 3, ps[1]]
+        out.append((t, ps))
+    return out
+
+
+MID = {}  # label -> the upright x rescaled() made the letter smaller about
+
+
+def rescaled(glyph, script):
+    """A glyph built on DESIGN's paper -> the same strokes on `script`'s paper, CAP_K times smaller about the middle of the letter
+    on its baseline (across the slant), exact: the bank -> paper map is affine between the ruling lines, so each stroke is cut
+    there first."""
+    tt.use_script(DESIGN)
+    paper = [[(c, list(tt.to_paper(np.array(ps)))) for c, ps in tt._split_at(_bank_cmds(st["d"]), [tt.B_TOP, tt.B_BASE])] for st in glyph["strokes"]]
+    u = tt.upright(np.vstack([q for cmds in paper for _, ps in cmds for q in ps]))
+    mid = MID[glyph["label"]] = (u[:, 0].min() + u[:, 0].max()) / 2
+    def k(ps):
+        q = tt.upright(np.array(ps))
+        return list(tt.from_upright(np.c_[mid + (q[:, 0] - mid) * CAP_K, tt.BASE - (tt.BASE - q[:, 1]) * CAP_K]))
+    paper = [[(c, k(ps)) for c, ps in cmds] for cmds in paper]
+    tt.use_script(script)
+    return {**glyph, "strokes": [{**st, "d": dg.fmt(tt.paper_to_bank_cmds(cmds))} for st, cmds in zip(glyph["strokes"], paper)]}
+
+
 def main():
     variant = json.loads(VARIANT.read_text())
-    script = variant["meta"].get("script")
+    deck_script = variant["meta"].get("script")
+    script = DESIGN
     made = []
     for f in sorted(CAPTURES.glob("*.json")):
         for item in json.loads(f.read_text()):
@@ -1528,6 +1566,7 @@ def main():
         if ch not in {m["label"] for m in made}:
             made.append(font_letter(ch, script, {"note": f"{ch} (болгарская заглавная)"}))
     made.append(breve_i(made))
+    made = [rescaled(g, deck_script) for g in made]
     keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made} | DROPPED]
     variant["glyphs"] = keep + made
     VARIANT.write_text(json.dumps(variant, ensure_ascii=False, indent=2) + "\n")
@@ -1536,7 +1575,8 @@ def main():
     at = {}
     for label, strokes in PAPER_UNSNAPPED.items():
         u = tt.upright(np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes]))
-        at[label] = [round(float(u[:, 0].min()), 3), round(float(u[:, 0].max()), 3)]
+        m = MID.get(label, 0.0)
+        at[label] = [round(float(m + (u[:, 0].min() - m) * CAP_K), 3), round(float(m + (u[:, 0].max() - m) * CAP_K), 3)]
     STENCIL_AT.write_text(json.dumps({"note": "upright x range of each snapped letter before snapping (build_glyphs.py)", "at": at}, ensure_ascii=False, indent=1) + "\n")
     print(f"{len(made)} glyphs -> {VARIANT}: {', '.join(m['label'] for m in made)}")
 

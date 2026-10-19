@@ -30,8 +30,8 @@ UDX = json.load(open(V / 'underlay_dx.json'))['dx']
 INK = "--no-ink" not in sys.argv
 AT = json.load(open(V / 'stencil_at.json'))['at'] if (V / 'stencil_at.json').exists() else {}
 # the deck's pen on this sheet's paper: PrintPageView draws every stroke 2 page units wide (propisRuling.STROKE_W); on the Bulgarian
-# ruling the lowercase is 4.26 mm (PrintPageView BG_X_MM) = 4.26 * 150 / 25 page units, our paper's lowercase 48 units
-INK_W = 2 * 48 / (4.26 * 150 / 25)
+# ruling the lowercase is 4.94 mm (PrintPageView BG_X_MM) = 4.94 * 150 / 25 page units, our paper's lowercase 48 units
+INK_W = 2 * 48 / (4.94 * 150 / 25)
 
 
 def font_ink(ch):
