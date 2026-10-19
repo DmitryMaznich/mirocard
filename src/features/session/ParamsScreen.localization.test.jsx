@@ -1,6 +1,7 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import ModePickerScreen from "@/features/home/ModePickerScreen";
 import ParamsScreen from "./ParamsScreen";
 import { useAppStore } from "@/core/store";
 import { setUiLanguage } from "@/shared/i18n/uiLanguage.js";
@@ -53,4 +54,14 @@ it("keeps custom lesson content unchanged in the translated text picker", async 
   expect(host.querySelector('[aria-label="Удалить текст"]')).toBeTruthy();
   expect(host.textContent).toContain("Мой русский текст");
   expect(mocks.persist).not.toHaveBeenCalled();
+});
+
+it("keeps assessment-mode styling independent of its translated display name", async () => {
+  const topic=structuredClone(definition);
+  topic.modes=[{ id: "check", type: "check", ui: { title: "7. Контрольная работа" } }, topic.modes[0]];
+  useAppStore.setState({ topicRecords: [topic] });
+  await act(async () => root.render(<ModePickerScreen />));
+  expect(host.querySelector('.mode-item--test .mode-item__title').textContent).toBe("7. Preizkus znanja");
+  await switchLanguage("ru");
+  expect(host.querySelector('.mode-item--test .mode-item__title').textContent).toBe("7. Контрольная работа");
 });
