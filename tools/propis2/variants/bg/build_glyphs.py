@@ -1374,35 +1374,49 @@ def i_doubled(strokes, label="И", h=30.0):
     return [cut[:i2 + 1] + move(cut[i1 + 1:i2 + 1]) + move(cut[i2 + 1:])] + strokes[1:]
 
 
-def stems_to_font(strokes, label, n=3, ys=(-42.0, -36.0, -30.0), gap=3.0, rounds=2):
-    """The letter's stems moved across the slant onto the font's (owner, 2026-10-19, Ш: «немного растянуть, подтянуть
-    вертикальные штрихи к линиям шрифта»): where the last `n` lines cross heights `ys` (in the upper part: only the stems there),
-    on the letter and on the font's skeleton set on it (stencil_map); every point moved across by a smooth monotone map of its
-    distance across the slant through those pairs (so stems stay stems and what lies between them is stretched evenly)."""
+def stems_to_font(strokes, label, n=3, top=-38.0, yr=(-42.0, 46.0), near=3.0, gap=3.0, rounds=3):
+    """The letter's stems put onto the font's, all exactly on the slant (owner, 2026-10-19, Ш: «немного растянуть, подтянуть
+    вертикальные штрихи к линиям шрифта ... все стойки чуть выровнять по наклонной или по стойкам шрифта, сейчас угол чуть
+    разный»). Each of the last `n` lines crossing height `top` (in the upper part only the stems cross it) is followed down
+    (`yr`, its points within `near` across the slant, going along it) and fitted by a line, on the letter and on the font's
+    skeleton set on it (stencil_map, its median per height); every point is moved across the slant by a smooth monotone map
+    through the pairs at its own height: the letter's stem there -> the font's stem's middle, so each stem ends on the slant
+    in the font's place and what lies between them is stretched evenly."""
     from scipy.interpolate import PchipInterpolator
     sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
-    def last(xs):
+    def clusters(xs):
         xs = sorted(xs); cl = []
         for x in xs:
             if cl and x - cl[-1][-1] < gap: cl[-1].append(x)
             else: cl.append([x])
         return [float(np.mean(c)) for c in cl][-n:]
+    def fit(P, x0, along=None):
+        lines = []
+        for x in x0:
+            m = (np.abs(P[:, 0] - x) < near) & (P[:, 1] > yr[0]) & (P[:, 1] < yr[1])
+            if along is not None: m &= along
+            q = P[m]
+            if along is None:  # the skeleton: the median across the slant per height (a rise passing near drops out)
+                ys = np.arange(yr[0], yr[1], 2.0)
+                q = np.array([[np.median(q[(q[:, 1] >= y) & (q[:, 1] < y + 2), 0]), y + 1] for y in ys if ((q[:, 1] >= y) & (q[:, 1] < y + 2)).sum() > 2])
+            lines.append(np.polyfit(q[:, 1], q[:, 0], 1))  # x = k y + c
+        return lines
     for _ in range(rounds):
         pts = [tt.upright(dg.resample(np.array(tt.parse_path(dg.fmt(c))), 0.2)) for c in strokes]
+        P = np.vstack(pts)
+        D = np.vstack([np.gradient(p, axis=0) for p in pts])
+        steep = np.abs(D[:, 0]) < 0.35 * np.abs(D[:, 1])
         fn = stencil_map(label, like=np.vstack([tt.from_upright(p) for p in pts]))
         S = tt.upright(fn(np.array(sk["pts"], float)))
-        src, dst = [], []
-        for y in ys:
-            mine = [q[0] for p in pts for q in p if abs(q[1] - y) < 0.15]
-            font = [q[0] for q in S if abs(q[1] - y) < 0.4]
-            src.append(last(mine)); dst.append(last(font))
-        a, b = np.mean(src, axis=0), np.mean(dst, axis=0)
-        allx = np.concatenate([p[:, 0] for p in pts])
-        lo, hi = allx.min() - 1, allx.max() + 1
-        xs = np.r_[lo, a, hi]; vs = np.r_[lo + (b[0] - a[0]), b, hi + (b[-1] - a[-1])]
-        f = PchipInterpolator(xs, vs)
+        mine = fit(P, clusters([q[0] for q in P if abs(q[1] - top) < 0.15]), steep)
+        font = fit(S, clusters([q[0] for q in S if abs(q[1] - top) < 0.4]))
+        dst = np.array([np.polyval(l, (yr[0] + yr[1]) / 2) for l in font])
+        lo, hi = P[:, 0].min() - 1, P[:, 0].max() + 1
         def move(q):
-            u = tt.upright(np.asarray(q, float).reshape(-1, 2)); u[:, 0] = f(u[:, 0])
+            u = tt.upright(np.asarray(q, float).reshape(-1, 2))
+            src = np.array([np.polyval(l, u[0, 1]) for l in mine])
+            f = PchipInterpolator(np.r_[lo, src, hi], np.r_[lo + dst[0] - src[0], dst, hi + dst[-1] - src[-1]])
+            u[:, 0] = f(u[:, 0])
             return tt.from_upright(u)[0]
         strokes = [[(c, [move(q) for q in ps]) for c, ps in cmds] for cmds in strokes]
     return strokes
