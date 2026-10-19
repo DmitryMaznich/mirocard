@@ -1536,6 +1536,9 @@ def bowl_oval(strokes, k=0, tol=0.1, lead=12.0):
     c0 = np.polyfit(stem[:, 1], stem[:, 0], 1)
     T_ = np.linspace(0, 2 * np.pi, 3600, endpoint=False)
     e = C + a * np.cos(T_)[:, None] * e1 + bb * np.sin(T_)[:, None] * e2
+    # from the baseline up to the x-line, as the font's bowl (owner: «овал чуть выше, чтобы коснулся линии сетки сверху»)
+    e = e + [0, tt.BASE - e[:, 1].max()]
+    e = tt.shear_scale(e, (tt.BASE - tt.X_TOP) / (tt.BASE - e[:, 1].min()))
     gap = e[:, 0] - np.polyval(c0, e[:, 1])
     e = e - [gap.min(), 0]
     i = int(np.argmin(gap))
