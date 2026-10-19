@@ -211,10 +211,11 @@ ids — without them `topicLoader` silently replaces generic flashcards modes' u
 
 ## Разряды числа (place_value)
 
-Topic split out of «Сложение и вычитание в столбик» on 2026-10-07 (coin modes for
-tens and ones); next step is hundreds and thousands. Read `docs/place-value.md`
-before continuing — it has the file map and the agreed plan; the methodology
-rework of the coin modes is in `docs/place-value-methodology.md`.
+Topic split out of «Сложение и вычитание в столбик» on 2026-10-07; tens and
+hundreds are done (menu 1–14 with two tests), thousands are next but on hold.
+**Read the «Handoff» section of `docs/place-value.md` first** — menu, file map,
+the owner's rules learned the hard way, the work procedure and open items;
+per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 
 ## Important
 
