@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { getUiLanguage, subscribeUiLanguage } from "@/shared/i18n/uiLanguage.js";
 import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS, applyBuiltinVisibility } from "@/topics/builtinTopics";
 
 export const useAppStore = create((set) => ({
@@ -88,7 +89,7 @@ export const useAppStore = create((set) => ({
 
   // ─── Settings ──────────────────────────────────────────────────────────────
   settings: {
-    uiLanguage: "ru",
+    uiLanguage: getUiLanguage(),
     cardLanguage: "ru",
     adultPinHash: null,
     pushAppUpdates: true,
@@ -253,3 +254,8 @@ export const useAppStore = create((set) => ({
     gitSha:    typeof __GIT_SHA__     !== "undefined" ? __GIT_SHA__     : "dev",
   },
 }));
+
+// Keep the existing settings contract aligned without changing cardLanguage.
+subscribeUiLanguage(() => {
+  useAppStore.setState((state) => ({ settings: { ...state.settings, uiLanguage: getUiLanguage() } }));
+});

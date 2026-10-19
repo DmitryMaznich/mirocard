@@ -6,6 +6,9 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  box-sizing: border-box;
+  padding: calc(16px + var(--app-safe-top, 0px)) calc(16px + var(--app-safe-right, 0px)) calc(16px + var(--app-safe-bottom, 0px)) calc(16px + var(--app-safe-left, 0px));
+  overflow: auto;
 }
 
 .pin-gate {
@@ -16,7 +19,8 @@
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  width: 300px;
+  box-sizing: border-box;
+  width: min(300px, 100%);
   box-shadow: 0 8px 32px rgba(0,0,0,0.18);
 }
 
