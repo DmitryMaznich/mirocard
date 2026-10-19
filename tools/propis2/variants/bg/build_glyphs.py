@@ -74,7 +74,7 @@ FONT_ONLY = "НОПРСТУФХЦЧШЩЮЯ"
 # DROPPED: capitals the deck builds itself (propis2 glyphOverrides MARKED_CAPITALS): Й is our И with the breve of the bank's й above
 # it, as in the Russian deck (owner, 2026-10-19: «должна быть точно такая же, как И, и с шляпкой над линией на небольшом расстоянии
 # сверху ... практически как в русской версии»; the font's Й is shorter, the breve inside the letter's height)
-DROPPED = set("Й")
+DROPPED = set()  # Й: back as short_breve_i (the deck's own centring missed our И's stems)
 # LOOPS: the hand turned back sharply where the font (and the copybook) has a small loop: the waist of Е (font comparison sheet,
 # 2026-10-18). tidy_trace makes every sharp turn away from the ruling a loop in these letters.
 LOOPS = set()  # Е: no loop after all (owner, 2026-10-19: «там не должно быть петли ... две дуги соединяются»)
@@ -1091,6 +1091,50 @@ def touch_stem(strokes, k=1, stem_k=0, ease=14.0, tol=0.1):
     return strokes
 
 
+BANK_WIDE = HERE.parent.parent.parent / "propis" / "wide.json"
+
+
+def breve_i(made, label="Й", base="И", lower_marked="й", lower_plain="и", scale=1.25):
+    """Й: our И exactly, with the bank's й breve above it (owner, 2026-10-19: the body «точно такая же, как И, и с шляпкой над
+    линией на небольшом расстоянии ... практически как в русской версии»; the breve «точно посередине между двумя наклонными этих
+    вертикальных штрихов»). Height and size as the deck sets the marks of its own Й (glyphOverrides.js markedCapital: as far above
+    the capital's top as above the lowercase, 1.25 times larger); across: its middle exactly halfway between the lines of the two
+    stems, carried up the slant to the breve's height. Those lines: the leftmost and the rightmost ink of И at the lowercase line."""
+    wide = {g["label"]: g for g in json.loads(BANK_WIDE.read_text())["glyphs"]}
+    marks = wide[lower_marked]["strokes"][len(wide[lower_plain]["strokes"]):]
+    mp = np.vstack([np.array(tt.parse_path(m["d"])) for m in marks])
+    mx, my = (mp[:, 0].min() + mp[:, 0].max()) / 2, (mp[:, 1].min() + mp[:, 1].max()) / 2
+    lower_top = min(np.array(tt.parse_path(st["d"]))[:, 1].min() for st in wide[lower_plain]["strokes"])
+    body = next(g for g in made if g["label"] == base)
+    bp = np.vstack([np.array(tt.parse_path(st["d"])) for st in body["strokes"]])
+    cy = bp[:, 1].min() - (lower_top - my) * scale
+    def placed(cx):
+        return [np.c_[(q[:, 0] - mx) * scale + cx, (q[:, 1] - my) * scale + cy] for q in (np.array(tt.parse_path(m["d"])) for m in marks)]
+    # the stems on paper: where И's ink crosses the lowercase line, its leftmost and rightmost crossing, up the slant
+    ink = dg.resample(tt.to_paper(bp), 0.2)
+    near = ink[np.abs(ink[:, 1] - tt.X_TOP) < 0.3]
+    paper0 = tt.to_paper(np.vstack(placed(0.0)))
+    yb = (paper0[:, 1].min() + paper0[:, 1].max()) / 2
+    up = lambda x, y: x + (y - yb) * tt.SLANT_T  # a point's slant line at the breve's height
+    centre = (up(near[:, 0].min(), tt.X_TOP) + up(near[:, 0].max(), tt.X_TOP)) / 2
+    now = (paper0[:, 0].min() + paper0[:, 0].max()) / 2
+    k = tt.to_paper(np.array([[1.0, cy]]))[0, 0] - tt.to_paper(np.array([[0.0, cy]]))[0, 0]  # paper per bank unit across
+    cx = (centre - now) / k
+    breve = []
+    for m in marks:
+        d = m["d"]
+        nums = [float(v) for v in __import__("re").findall(r"-?\d*\.?\d+(?:[eE][+-]?\d+)?", d)]
+        it = iter(nums)
+        out = __import__("re").sub(r"-?\d*\.?\d+(?:[eE][+-]?\d+)?", lambda _: "{:.2f}", d)
+        vals = []
+        for x, y in zip(it, it): vals += [(x - mx) * scale + cx, (y - my) * scale + cy]
+        breve.append({"d": out.format(*vals)})
+    g = dict(body); g["label"] = label; g["strokes"] = body["strokes"] + breve
+    g["sourceLabel"] = f"{label}: {base} + кратка {lower_marked} (банк), посередине между стойками"
+    g["exitStroke"] = 0  # the next letter joins from the body, never from the breve (it ends furthest right)
+    return g
+
+
 def cusp_to_font_tip(strokes, label, k=0, back=16.0, tol=0.1):
     """A waist that turns back to a point (З, like Е: two arcs meeting at a point, not a loop or a bulge) drawn into the tip of the
     font's (the centre of the pen's round end there). snap_to_font rounds such a turn (the sides' normals flip there), so the path
@@ -1363,6 +1407,7 @@ def main():
     for ch in FONT_ONLY:
         if ch not in {m["label"] for m in made}:
             made.append(font_letter(ch, script, {"note": f"{ch} (болгарская заглавная)"}))
+    made.append(breve_i(made))
     keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made} | DROPPED]
     variant["glyphs"] = keep + made
     VARIANT.write_text(json.dumps(variant, ensure_ascii=False, indent=2) + "\n")
