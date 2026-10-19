@@ -1,3 +1,4 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import Modal from "./Modal";
 import { getModeGoal, getModeSummary } from "@/shared/utils/methodology";
 import { getTopicTitle } from "@/shared/utils/format";
@@ -14,6 +15,7 @@ function toTextList(value) {
 }
 
 export default function InfoModal({ title, about, modes, onClose }) {
+  const { t } = useUiTranslation();
   const legacyLines = toTextList(Array.isArray(about) ? about : (about?.ru ?? about?.en));
   const description = getText(about?.description ?? about?.text) || legacyLines[0] || "";
   const goals = toTextList(about?.goals);
@@ -28,14 +30,14 @@ export default function InfoModal({ title, about, modes, onClose }) {
     <Modal title={title} onClose={onClose}>
       {description && (
         <section className="info-modal-section">
-          <div className="info-modal-section-heading">Описание темы</div>
+          <div className="info-modal-section-heading">{t("info.description")}</div>
           <p className="info-modal-text">{description}</p>
         </section>
       )}
 
       {goals.length > 0 && (
         <section className="info-modal-section">
-          <div className="info-modal-section-heading">Цели темы</div>
+          <div className="info-modal-section-heading">{t("info.goals")}</div>
           <ul className="info-modal-tips">
             {goals.map((goal, index) => <li key={index}>{goal}</li>)}
           </ul>
@@ -44,14 +46,14 @@ export default function InfoModal({ title, about, modes, onClose }) {
 
       {finalGoal && (
         <section className="info-modal-section info-modal-section--goal">
-          <div className="info-modal-section-heading">Что должно получиться</div>
+          <div className="info-modal-section-heading">{t("info.result")}</div>
           <p className="info-modal-text">{finalGoal}</p>
         </section>
       )}
 
       {workSteps.length > 0 && (
         <section className="info-modal-section">
-          <div className="info-modal-section-heading">Как изучать</div>
+          <div className="info-modal-section-heading">{t("info.how")}</div>
           <ul className="info-modal-tips">
             {workSteps.map((step, index) => <li key={index}>{step}</li>)}
           </ul>
@@ -59,16 +61,16 @@ export default function InfoModal({ title, about, modes, onClose }) {
       )}
 
       {duration && (
-        <div className="info-modal-duration">Время: {duration}</div>
+        <div className="info-modal-duration">{t("info.duration", { duration })}</div>
       )}
 
       {isEmpty && (
-        <p className="info-modal-text info-modal-text--empty">Описание не добавлено</p>
+        <p className="info-modal-text info-modal-text--empty">{t("info.empty")}</p>
       )}
 
       {modesWithSummary.length > 0 && (
         <div className="info-modal-modes">
-          <div className="info-modal-modes-heading">Режимы</div>
+          <div className="info-modal-modes-heading">{t("info.modes")}</div>
           {modesWithSummary.map((mode) => (
             <div key={mode.id} className="info-modal-mode-item">
               <div className="info-modal-mode-title">{getTopicTitle(mode.ui?.title) || mode.id}</div>
@@ -76,7 +78,7 @@ export default function InfoModal({ title, about, modes, onClose }) {
                 {getModeSummary(mode)}
               </div>
               {getModeGoal(mode) && (
-                <div className="info-modal-mode-goal">Цель: {getModeGoal(mode)}</div>
+                <div className="info-modal-mode-goal">{t("info.goal", { goal: getModeGoal(mode) })}</div>
               )}
             </div>
           ))}

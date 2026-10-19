@@ -1,11 +1,12 @@
+import { translateUi } from "@/shared/i18n/uiLanguage.js";
 import { getDb } from "@/core/db";
 import { importTopic, TopicImportError } from "@/topics/topicLoader";
 import { clearRendererCache } from "@/topics/rendererLoader";
 import { api, getApiToken } from "@/core/api";
 
 export function getImportErrorMessage(err) {
-  if (err instanceof TopicImportError) return err.message;
-  return `Ошибка загрузки: ${err?.message ?? err}`;
+  if (err instanceof TopicImportError) return translateUi("topics.invalidArchive");
+  return translateUi("topics.downloadError", { detail: err?.message ?? String(err) });
 }
 
 // A local therapist profile has an account-shaped display object but no API

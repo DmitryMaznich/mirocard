@@ -1,3 +1,4 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
@@ -5,6 +6,7 @@ import { importTopic, TopicImportError } from "@/topics/topicLoader";
 import Button from "@/shared/components/Button";
 
 export default function TopicImport({ onImported, compact = false }) {
+  const { t } = useUiTranslation();
   const fileRef = useRef(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
@@ -32,7 +34,7 @@ export default function TopicImport({ onImported, compact = false }) {
       setError(
         err instanceof TopicImportError
           ? err.message
-          : "Ошибка импорта. Файл повреждён?"
+          : t("topics.importError")
       );
     } finally {
       if (fileRef.current) fileRef.current.value = "";
@@ -54,7 +56,7 @@ export default function TopicImport({ onImported, compact = false }) {
           onClick={() => fileRef.current?.click()}
           disabled={status === "loading"}
         >
-          {status === "loading" ? "Импортируем…" : "+ Импортировать ZIP"}
+          {status === "loading" ? t("topics.importing") : t("topics.importZipPlus")}
         </button>
       ) : (
         <Button
@@ -62,7 +64,7 @@ export default function TopicImport({ onImported, compact = false }) {
           onClick={() => fileRef.current?.click()}
           disabled={status === "loading"}
         >
-          {status === "loading" ? "Импортируем…" : "Импортировать ZIP"}
+          {status === "loading" ? t("topics.importing") : t("topics.importZip")}
         </Button>
       )}
       {error && <div className="form-error">{error}</div>}
