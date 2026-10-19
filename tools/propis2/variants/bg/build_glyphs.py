@@ -485,13 +485,13 @@ FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (
 # the returns drew double lines (owner, 2026-10-19). Kept: the left half, then the right half from its top through the crossing to
 # the exit. Ю, Н: the stem with its hook, then from the stem (where the walk leaves it again) the rest; the way back up the stem
 # drew it twice (the stem tidied onto the slant, the way up keeping its own angle).
-SPLIT = {"Х": [(0, 0), (2, 2)], "Ю": [(0, 0), (1, 1)], "Н": [(0, 0), (1, 2)]}
+SPLIT = {"Х": [(0, 0), (2, 2)], "Н": [(0, 0), (1, 2)]}
 # SPURS: letters whose walk runs out along a short dead end and back (two turns back close together); the dead end is cut. Ю: a
 # tick past the bar's join with the oval (owner, 2026-10-19: «лишняя чёрточка у перекладины»).
-SPURS = set("Ю")
+SPURS = set()  # Ю deferred (owner, 2026-10-19: «отложи работу по Ю, мы сделаем её по-другому»): built as before
 # NO_EXIT: nothing joins after these, whatever _exit_flags finds: Ю's oval ends back at its bar, inside the letter, as О's does
 # (О gets noExit by itself; Ю's end lies a hair right of the letter's middle, and «Юла» joined from the bar into the oval)
-NO_EXIT = set("Ю")
+NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
