@@ -954,6 +954,32 @@ def short_i(strokes, label="Й", source="И"):
     return body + [breve]
 
 
+def flag_corner(strokes, k=0, clear=2.0, tol=0.1):
+    """К: the stem starts at the top line and the flag runs into it at an angle, a corner, not bending down into it (owner,
+    2026-10-19: «вертикальная часть ... начинается от горизонтальной линии, и флажок должен входить в неё под углом»). The stem's
+    line is carried up to the top line; the flag is kept up to the dip in its middle and rises from there in one even curve
+    into the stem's top, arriving straight at it."""
+    cmds = strokes[k]
+    j = next(i for i in range(1, len(cmds)) if cmds[i][0] == "L")  # the stem: the first line
+    a, b = np.asarray(cmds[j - 1][1][-1], float), np.asarray(cmds[j][1][0], float)
+    d = tt._unit(b - a)
+    T = a + d * (tt.CAP_TOP - a[1]) / d[1]  # the stem's line at the top line
+    flag = dg.resample(np.array(tt.parse_path(dg.fmt(cmds[:j]))), 0.3)
+    ux = tt.upright(flag)[:, 0]; uT = tt.upright(T[None])[0, 0]
+    n = int(np.argmax(ux > uT - clear)) if (ux > uT - clear).any() else len(flag)
+    # from the dip in the middle of the flag (its lowest point after the first wave) one even curve rises into the stem's top:
+    # the flag's own end bends down into the stem, and joining onto it left a kink
+    half = len(flag) * 2 // 5
+    n = half + int(np.argmax(flag[half:n, 1])) + 1
+    f = flag[:max(n, 5)]
+    t_end = tt._unit(f[-1] - f[max(-len(f), -7)])
+    L = np.hypot(*(T - f[-1])); u = np.linspace(0, 1, 30)[:, None]
+    bridge = (2*u**3 - 3*u**2 + 1) * f[-1] + (u**3 - 2*u**2 + u) * L * t_end + (-2*u**3 + 3*u**2) * T + (u**3 - u**2) * L * tt._unit(T - f[-1])
+    q = np.vstack([f, bridge[1:]])
+    strokes[k] = [("M", [q[0]])] + tt._fit_span(q, tt._unit(q[4] - q[0]), tt._unit(q[-1] - q[-4]), tol=tol) + cmds[j:]
+    return strokes
+
+
 def cusp_to_font_tip(strokes, label, k=0, back=16.0, tol=0.1):
     """A waist that turns back to a point (З, like Е: two arcs meeting at a point, not a loop or a bulge) drawn into the tip of the
     font's (the centre of the pen's round end there). snap_to_font rounds such a turn (the sides' normals flip there), so the path
@@ -1025,7 +1051,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1))),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
