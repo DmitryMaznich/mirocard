@@ -157,7 +157,7 @@
  {
   "id": "gets_dressed",
   "out": "v_gets_dressed_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman puts on a beige coat in a hallway: one arm in its sleeve, the other arm going into the second sleeve, her face visible. Whole body."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman in a hallway is in the middle of putting on a beige coat: her right arm is already in its sleeve, the coat hangs off her right shoulder, and her left arm is reaching back and still OUTSIDE the coat, searching for the second sleeve, which hangs empty behind her. The coat is clearly only half on. Her face is visible, whole body."
  },
  {
   "id": "falls",
@@ -167,7 +167,7 @@
  {
   "id": "falls",
   "out": "v_falls_2",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old girl in a snowsuit falls sideways into soft deep snow, her body tilted and half in the snow, arms out, laughing — clearly falling, not jumping."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old girl in a snowsuit is caught in the middle of falling sideways into soft deep snow: her whole body is still in the air, tilted at about 45 degrees, arms flung out, NO part of her body has touched the snow yet except the edge of one boot; surprised laughing face. Clearly the moment of falling, not lying in the snow."
  },
  {
   "id": "falls",
@@ -177,6 +177,6 @@
  {
   "id": "falls",
   "out": "v_falls_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A toddler learning to walk falls back onto his bottom on a soft carpet, arms out for balance, surprised face, not crying."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A toddler learning to walk trips over a soft toy on a carpet and topples forward: side view, his body tilted far forward, both hands stretched out and just about to touch the soft carpet, one foot still on the floor and the other lifted behind, surprised face, not crying. Caught in the middle of falling, not yet on the floor, not jumping."
  }
 ]
