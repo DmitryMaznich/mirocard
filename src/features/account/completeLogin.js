@@ -33,7 +33,9 @@ export async function completeLogin({ account, token }) {
     const uploadOps = [];
     for (const rawStudent of (localStudents ?? [])) {
       const s = migrateStudentPeople(rawStudent);
-      const { photo, closeAdults, myPeople: _people, myPeopleProfile: _profile, ...rest } = s;
+      // Explicit lesson-language edits already have their own durable queued
+      // student.upsert. A login replay must not overwrite a newer remote choice.
+      const { photo, closeAdults, preferredLessonLanguage: _lessonLanguage, myPeople: _people, myPeopleProfile: _profile, ...rest } = s;
       const adultsNoPhoto = (closeAdults ?? []).map(({ photo: _p, ...a }) => a);
       uploadOps.push({ type: "student.upsert", data: { ...rest, closeAdults: adultsNoPhoto } });
       if (s.myPeople?.length) uploadOps.push({ type: 'student.my_people.upsert', data: {
