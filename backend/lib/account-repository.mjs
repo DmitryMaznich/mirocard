@@ -853,14 +853,19 @@ export function upsertStudentTopicLink(db, accountId, {
   id, studentId, topicId,
   selectionMode = "auto", selectedConceptIds = [], repsPerConcept = 1,
   params = {}, videoRewardEnabled = true, rewardThreshold = 90,
+  answersPerStar = null, strictStars = null, deckPosition = null,
 }) {
   if (studentOwnedByAnother(db, accountId, studentId)) return;
   const ts = now();
+  const optionalInt = (value) => (Number.isFinite(value) ? Math.round(value) : null);
+  // answersPerStar/strictStars/deckPosition are optional: an op that omits one
+  // (an older client, the login upload) keeps the value already stored.
   db.prepare(`
     INSERT INTO student_topic_links
       (id, account_id, student_id, topic_id, selection_mode, selected_concept_ids, reps_per_concept,
-       params, video_reward_enabled, reward_threshold, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       params, video_reward_enabled, reward_threshold, answers_per_star, strict_stars, deck_position,
+       created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       selection_mode = excluded.selection_mode,
       selected_concept_ids = excluded.selected_concept_ids,
@@ -868,12 +873,17 @@ export function upsertStudentTopicLink(db, accountId, {
       params = excluded.params,
       video_reward_enabled = excluded.video_reward_enabled,
       reward_threshold = excluded.reward_threshold,
+      answers_per_star = COALESCE(excluded.answers_per_star, student_topic_links.answers_per_star),
+      strict_stars = COALESCE(excluded.strict_stars, student_topic_links.strict_stars),
+      deck_position = COALESCE(excluded.deck_position, student_topic_links.deck_position),
       updated_at = excluded.updated_at
     WHERE student_topic_links.account_id = excluded.account_id
   `).run(
     id, accountId, studentId, topicId,
     selectionMode, JSON.stringify(selectedConceptIds), repsPerConcept,
-    JSON.stringify(params), videoRewardEnabled ? 1 : 0, rewardThreshold, ts, ts
+    JSON.stringify(params), videoRewardEnabled ? 1 : 0, rewardThreshold,
+    optionalInt(answersPerStar), typeof strictStars === "boolean" ? (strictStars ? 1 : 0) : null, optionalInt(deckPosition),
+    ts, ts
   );
 }
 

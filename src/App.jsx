@@ -337,6 +337,10 @@ export default function App() {
       lastSyncAt = Date.now();
       try {
         const db = await getDb();
+        // Push queued local edits before pulling: the pull replaces topic
+        // links, settings and kv values wholesale, so pulling first briefly
+        // reverts an edit whose upload had failed (offline, 5xx) on this device.
+        await flushQueue().catch(() => {});
         const [serverBootstrap, sessionsRaw] = await Promise.all([
           api.get("/account/bootstrap"),
           api.get("/sessions?limit=200"),
