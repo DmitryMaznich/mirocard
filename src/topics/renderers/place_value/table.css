@@ -52,6 +52,52 @@
 
 /* «Плюс и минус через десяток» on the «Таблица» (ExchangeTable.jsx): the
    example in place-value columns, a column sum with headings. */
+/* The exchange as the scheme (ExchangeFlight.jsx): over each column's top
+   cell its digit as pieces — squares, sticks, dots — in rows, on white, so the
+   digit seems to turn into them; one big piece moves across. */
+.xf-layer { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.xf-area { position: absolute; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 3px;
+  background: #fff; border-radius: 12px; box-shadow: 0 0 0 2px #e2e8f0; animation: xf-in .35s ease-out; padding: 4px; box-sizing: border-box; }
+@keyframes xf-in { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
+.xf-area--big { --coin-size: 12px; }
+.xf-area--small { --coin-size: 14px; }
+/* Sticks stand close in a row: ten of them read as one ten. */
+.xf-area { flex-direction: column; align-items: center; }
+.xf-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+.xf-area .cb-stick-cell { width: 6px; }
+.xf-area .cb-stick { width: 4px; }
+/* Ten dots in a row fit the column. */
+.xf-area .cb-dot-cell { width: calc(var(--coin-size) * 0.7); }
+.xf-area .xf-group { gap: 3px 2px; }
+/* The ten just made (or about to leave) on its own row, darker. */
+.xf-group--new { flex-wrap: nowrap; padding: 2px 4px; border-radius: 8px; background: #fef3c7; }
+.xf-group--new { animation: xf-new .5s ease-out; }
+.xf-group--new .cb-stick { background: #92400e; }
+.xf-group--new .cb-dot { background: #1e3a8a; }
+.xf-group--new .cb-square { background: #166534; }
+.xf-piece { display: inline-flex; transition: transform .3s; }
+@keyframes xf-new { from { transform: scale(.2) translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
+.xf-flyer { position: absolute; transform: translate(-50%, -50%); transition-property: left; transition-timing-function: ease-in-out; --coin-size: 12px; z-index: 4; }
+/* Carrying: the sum's ten, big as the result digits, next to its ones (reads
+   «11»), then up over the next column, small as the carry. */
+.xf-carry { position: absolute; transform: translate(-100%, -50%); font-size: clamp(44px, 11vw, 72px); font-weight: 900; line-height: 1;
+  color: #b45309; transition-property: left, top, font-size, transform; transition-timing-function: ease-in-out; animation: xf-fade .3s ease-out; }
+@keyframes xf-fade { from { opacity: 0; } to { opacity: 1; } }
+.xf-carry--up { transform: translate(-50%, -50%); font-size: 24px; }
+.xf-carry--hundreds { color: #15803d; }
+.xf-carry--ones { color: #1d4ed8; }
+/* Lend: starts big beside the digit (reads 13), shrinks as it slides up. */
+.xf-carry--lend.xf-carry--up { font-size: 30px; }
+/* The borrowed ten, written: a small «1» over the digit, to its left, so the
+   two read as 13 (0.36 of the digit's size — LEND_SHIFT in ExchangeFlight). */
+.xb-lend { transform: translateX(calc(-0.36 * clamp(44px, 11vw, 72px))); }
+.xb-table .xf-area--big .cb-stick-cell, .xf-flyer .cb-stick-cell { width: calc(var(--coin-size) * 0.6); }
+.xf-wait { pointer-events: none; opacity: .45; transition: opacity .2s; }
+/* «Что больше?»: the two numbers lit in the table. */
+.xb-cell--compare { background: #fef3c7; box-shadow: 0 0 0 3px #f59e0b; border-radius: 10px; }
+.xb-compare { display: grid; justify-items: center; gap: 10px; }
+.xb-compare-ask { font-size: 20px; font-weight: 900; color: #1a1a2e; text-align: center; }
+.xb-compared { flex-basis: 100%; text-align: center; font-size: 26px; font-weight: 900; color: #92400e; }
 .xb-table {
   display: grid;
   grid-template-columns: 40px 1fr 1fr;
@@ -59,6 +105,7 @@
   align-items: center;
   row-gap: 4px;
   padding: 12px 16px 16px 4px;
+  position: relative;
 }
 .xb-table .sg-head { margin-bottom: 4px; }
 .xb-cell {
@@ -76,6 +123,13 @@
 .xb-over--tens .xb-carry { color: #b45309; }
 .xb-over--ones .xb-carry { color: #1d4ed8; }
 @keyframes xb-pop { from { transform: translateY(14px) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+/* The dot over the digit a ten (a hundred) was borrowed from; it pulses at
+   the step whose answer is written there. */
+.xb-borrow-dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; margin-bottom: 6px; animation: xb-pop 0.4s ease-out; }
+.xb-over--hundreds .xb-borrow-dot { color: #15803d; }
+.xb-over--tens .xb-borrow-dot { color: #b45309; }
+.xb-borrow-dot--wait { animation: xb-dot-wait 1s ease-in-out infinite; }
+@keyframes xb-dot-wait { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 currentColor; } 50% { transform: scale(1.5); box-shadow: 0 0 0 6px transparent; } }
 .xb-crossed { position: relative; opacity: 0.45; }
 .xb-crossed::after {
   content: "";
@@ -91,12 +145,15 @@
 .xb-result { min-height: 1em; }
 
 /* The step being asked: «Единицы: 8 + 4 = [  ]». */
-.xb-step { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; font-size: 24px; font-weight: 900; color: #1a1a2e; }
-.xb-step-head { padding: 3px 12px; border-radius: 8px; color: #fff; font-size: 18px; font-weight: 800; }
+.xb-step { display: flex; flex-direction: column; align-items: center; gap: 8px; font-weight: 900; color: #1a1a2e; }
+.xb-step-head { padding: 4px 16px; border-radius: 10px; color: #fff; font-size: clamp(20px, 3vh, 28px); font-weight: 800; }
+.xb-step-line { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; font-size: clamp(30px, 4.6vh, 44px); }
+/* «Хватает?»: a question, not a sum to write — smaller, the buttons need the room. */
+.xb-step--choice .xb-step-line { font-size: clamp(20px, 3vh, 28px); }
 .xb-step-head--tens { background: #d97706; }
 .xb-step-head--ones { background: #2563eb; }
 
-.xb-choice { display: flex; gap: 12px; justify-content: center; }
+.xb-choice { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 .xb-choice-btn {
   min-width: 140px;
   min-height: 60px;
