@@ -1,3 +1,4 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -40,6 +41,7 @@ function ConceptCard({ concept, topicId, level, selected, onToggle }) {
 }
 
 export default function ConceptPickerScreen() {
+  const { t: tr } = useUiTranslation();
   const setScreen          = useAppStore((s) => s.setScreen);
   const activeTopicId      = useAppStore((s) => s.activeTopicId);
   const activeModeId       = useAppStore((s) => s.activeModeId);
@@ -102,7 +104,7 @@ export default function ConceptPickerScreen() {
     <div className="screen" style={{ height: "100dvh", overflow: "hidden" }}>
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("params")}><BackArrowIcon /></button>
-        <h1 className="screen-title">Понятия ({selected.size})</h1>
+        <h1 className="screen-title">{tr("setup.conceptCount", { count: selected.size })}</h1>
         <button className="header-action-btn" onClick={allFilteredSelected ? selectNone : selectAll}>
           {allFilteredSelected ? "−" : "✓"}
         </button>
@@ -113,9 +115,7 @@ export default function ConceptPickerScreen() {
           <button
             className={`group-filter-btn${activeGroup === null ? " group-filter-btn--active" : ""}`}
             onClick={() => setActiveGroup(null)}
-          >
-            Все
-          </button>
+          >{tr("setup.all")}</button>
           {availableGroups.map((gid) => (
             <button
               key={gid}
@@ -145,7 +145,7 @@ export default function ConceptPickerScreen() {
       </div>
       <div style={{ padding: 16 }}>
         <Button fullWidth disabled={selected.size === 0} onClick={confirm}>
-          Подтвердить ({selected.size})
+          {tr("setup.confirmConcepts", { count: selected.size })}
         </Button>
       </div>
     </div>

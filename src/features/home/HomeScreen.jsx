@@ -1,3 +1,4 @@
+import { setupText } from "@/shared/i18n/setupText.js";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { translateUi as t } from "@/shared/i18n/uiLanguage.js";
@@ -919,7 +920,7 @@ export default function HomeScreen() {
     : topic
       ? `${getInterfaceTopicTitle(topic.meta.id, topic.meta.title)} · ${progress.mastered}/${progress.total}`
       : t("home.notSelectedTopic");
-  const modeTitle = mode ? (getTopicTitle(mode.ui?.title) || mode.id) : "";
+  const modeTitle = mode ? (setupText(mode.ui?.title) || mode.id) : "";
 
   const readingStepValue = isShortStories
     ? (s3 === "prompt" ? t("home.chooseMode") : (modeTitle || t("home.notSelected")))

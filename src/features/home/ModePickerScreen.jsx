@@ -1,3 +1,4 @@
+import { setupText } from "@/shared/i18n/setupText.js";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState, useEffect } from "react";
@@ -53,7 +54,7 @@ function filterReadingModes(modes = [], text) {
 }
 
 function getModeTitle(mode) {
-  return getTopicTitle(mode?.ui?.title) || mode?.id || "";
+  return setupText(mode?.ui?.title) || mode?.id || "";
 }
 
 function getModeInstruction(mode) {

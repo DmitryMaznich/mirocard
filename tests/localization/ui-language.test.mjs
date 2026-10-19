@@ -107,3 +107,19 @@ test("Slovenian counts use CLDR dual and few forms, Russian keeps its own rules"
   });
   assert.equal(translateUiMessage("sl", "students.videoCount", { count: 1.5 }), "1.5 video nagrade");
 });
+
+test("setup metadata translation preserves keys, unknown content and explicit Slovenian labels", async () => {
+  const { setupText, setupLabels, setupInfo } = await import("../../src/shared/i18n/setupText.js");
+  const { setUiLanguage } = await import("../../src/shared/i18n/uiLanguage.js");
+  const definition = Object.freeze({ ru: Object.freeze({ upper: "Заглавную по строчной", custom: "Мой новый текст" }) });
+  try {
+    setUiLanguage("sl");
+    assert.deepEqual(setupLabels(definition), { upper: "Veliko po mali", custom: "Мой новый текст" });
+    assert.equal(setupText({ ru: "Найди картинку", sl: "Lastno slovensko ime" }), "Lastno slovensko ime");
+    assert.equal(setupText("Найди картинку"), "Poišči sliko");
+    assert.deepEqual(setupInfo({ sl: { text: "Opis", tip: "Nasvet" } }), { text: "Opis", tip: "Nasvet" });
+    assert.deepEqual(Object.keys(setupLabels(definition)), ["upper", "custom"]);
+    setUiLanguage("ru");
+    assert.deepEqual(setupLabels(definition), definition.ru);
+  } finally { setUiLanguage("ru"); }
+});

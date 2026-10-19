@@ -1,3 +1,4 @@
+import { setupText } from "@/shared/i18n/setupText.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import Modal from "./Modal";
 import { getModeGoal, getModeSummary } from "@/shared/utils/methodology";
@@ -73,7 +74,7 @@ export default function InfoModal({ title, about, modes, onClose }) {
           <div className="info-modal-modes-heading">{t("info.modes")}</div>
           {modesWithSummary.map((mode) => (
             <div key={mode.id} className="info-modal-mode-item">
-              <div className="info-modal-mode-title">{getTopicTitle(mode.ui?.title) || mode.id}</div>
+              <div className="info-modal-mode-title">{setupText(mode.ui?.title) || mode.id}</div>
               <div className="info-modal-mode-summary">
                 {getModeSummary(mode)}
               </div>
