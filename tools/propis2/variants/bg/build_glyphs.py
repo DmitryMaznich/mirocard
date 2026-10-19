@@ -719,12 +719,28 @@ def flat_hat_to_font_end(strokes, label, stroke=1, flat_deg=10.0, tol=0.1):
     return strokes
 
 
-def waist_cusp(strokes, label="Е", back=6.0, tol=0.1):
+# Е's waist as the owner drew it over the font (2026-10-19, a zoomed review sheet): paper units from the tip of the waist, the upper
+# arc from where it leaves our line to the tip, the lower arc from the tip to where it joins our line again
+WAIST_UPPER = [(-18.0, -10.1), (-15.75, -7.5), (-13.75, -5.5), (-11.25, -4.0), (-7.25, -2.6), (-3.25, -1.1), (0.0, 0.0)]
+WAIST_LOWER = [(0.0, 0.0), (-4.25, 0.0), (-7.25, 0.1), (-10.75, 1.0), (-14.25, 2.25), (-18.25, 4.0), (-22.25, 6.25), (-25.75, 9.1)]
+
+
+def _catmull(pts, before, after, n=12):
+    """A smooth curve through pts (Catmull-Rom), its end directions set by the points `before` and `after` it."""
+    P = np.vstack([before, pts, after]); out = [P[1]]
+    for k in range(1, len(P) - 2):
+        p0, p1, p2, p3 = P[k - 1], P[k], P[k + 1], P[k + 2]
+        for t in np.linspace(0, 1, n + 1)[1:]:
+            out.append(0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t ** 2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t ** 3))
+    return np.array(out)
+
+
+def waist_cusp(strokes, label="Е", tol=0.1):
     """Е's waist: no loop, two arcs meeting at a point (owner, 2026-10-19: «там не должно быть петли, там просто две дуги
-    соединяются ... с нижнего конца этой дуги влево выходит нижняя дуга»). The upper arc runs from above straight into the tip of
-    the font's waist (the centre of the pen's round end there), the lower arc leaves it below, going left; they no longer cross.
-    The way there and back the hand drew (a narrow loop after snap_to_font) is replaced from `back` units before the crossing to
-    `back` units after it: a cubic in along the upper arc's direction, a corner at the tip, a cubic out into the lower arc."""
+    соединяются ... с нижнего конца этой дуги влево выходит нижняя дуга»), along the owner's own drawing of it (WAIST_UPPER,
+    WAIST_LOWER, from the tip): the upper arc comes in gently from above into the tip of the font's waist (the centre of the pen's
+    round end there), the lower arc leaves it a little below level and runs on down to the left without a bulge. The way there and
+    back the hand drew (a narrow loop after snap_to_font) is replaced between where the drawing meets our line."""
     sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
     fn = stencil_map(label, like=np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in PAPER_UNSNAPPED[label]]))
     ink = np.vstack([fn(np.array(poly, float)) for poly in sk["outline"]])
@@ -738,17 +754,11 @@ def waist_cusp(strokes, label="Е", back=6.0, tol=0.1):
     x_ink = band[band[:, 0] < p[t, 0] + 15, 0].max()
     at = band[np.abs(band[:, 0] - (x_ink - pen)) < 1.0]
     T = np.array([x_ink - pen, (at[:, 1].max() + at[:, 1].min()) / 2])
-    a = int(np.argmin(np.abs(s_ - (s_[i] - back)))); b = int(np.argmin(np.abs(s_ - (s_[j] + back))))
-    A, B = p[a], p[b]
-    tA, tB = tt._unit(p[a] - p[a - 3]), tt._unit(p[b + 3] - p[b])
-    def hermite(P0, T0, P1, T1, n=60):
-        L = np.hypot(*(P1 - P0)); u = np.linspace(0, 1, n)[:, None]
-        h00, h10, h01, h11 = 2*u**3 - 3*u**2 + 1, u**3 - 2*u**2 + u, -2*u**3 + 3*u**2, u**3 - u**2
-        return h00 * P0 + h10 * L * T0 + h01 * P1 + h11 * L * T1
-    d_in = tt._unit(T - A + 0.3 * np.hypot(*(T - A)) * tA * 0)  # straight on into the tip
-    d_out = tt._unit(B - T)
-    upper = np.vstack([p[:a], hermite(A, tA, T, d_in)])
-    lower = np.vstack([hermite(T, d_out, B, tB), p[b + 1:]])
+    up, lo = T + np.array(WAIST_UPPER), T + np.array(WAIST_LOWER)
+    a = int(np.argmin(np.hypot(*(p[:i] - up[0]).T)))
+    b = j + int(np.argmin(np.hypot(*(p[j:] - lo[-1]).T)))
+    upper = np.vstack([p[:a], _catmull(np.vstack([p[a], up[1:]]), p[a - 3], 2 * up[-1] - up[-2])])
+    lower = np.vstack([_catmull(np.vstack([lo[:-1], p[b]]), 2 * lo[0] - lo[1], p[b + 3]), p[b + 1:]])
     def fit(q):
         return tt._fit_span(q, tt._unit(q[3] - q[0]), tt._unit(q[-1] - q[-4]), tol=tol)
     strokes[0] = [("M", [upper[0]])] + fit(upper) + fit(lower)
