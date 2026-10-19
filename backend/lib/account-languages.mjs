@@ -18,8 +18,14 @@ export function patchAccountLanguages(db, accountId, body) {
   }
   db.exec("BEGIN IMMEDIATE");
   try {
+    // Older/imported accounts can predate their settings row. An UPDATE of
+    // zero rows must not be acknowledged as a saved language preference.
+    const created = db.prepare("INSERT INTO account_settings(account_id,updated_at) VALUES (?,?) ON CONFLICT(account_id) DO NOTHING")
+      .run(accountId, new Date().toISOString()).changes > 0;
     let result = readAccountLanguages(db, accountId);
-    const applied = db.prepare("SELECT 1 FROM account_language_operations WHERE account_id=? AND operation_id=?").get(accountId, operationId);
+    // A historical no-op could have been logged while this row was absent.
+    // It has no stored preference to deduplicate until the row is repaired.
+    const applied = !created && db.prepare("SELECT 1 FROM account_language_operations WHERE account_id=? AND operation_id=?").get(accountId, operationId);
     if (!applied && (!initializeOnly || result.languageRevision === 0)) {
       if (result.languageRevision !== expectedRevision) {
         db.exec("COMMIT");
@@ -33,7 +39,7 @@ export function patchAccountLanguages(db, accountId, body) {
       db.prepare("INSERT INTO sync_revision(account_id,revision) VALUES (?,1) ON CONFLICT(account_id) DO UPDATE SET revision=revision+1").run(accountId);
       result = readAccountLanguages(db, accountId);
     }
-    if (!applied) db.prepare("INSERT INTO account_language_operations(account_id,operation_id) VALUES (?,?)").run(accountId, operationId);
+    if (!applied) db.prepare("INSERT INTO account_language_operations(account_id,operation_id) VALUES (?,?) ON CONFLICT(account_id,operation_id) DO NOTHING").run(accountId, operationId);
     db.exec("COMMIT");
     return { ...result, conflict: false };
   } catch (error) {

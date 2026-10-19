@@ -46,6 +46,21 @@ test("guest initialization never changes a previously explicit account", () => {
   db.close();
 });
 
+test("a legacy account without a settings row can save its language instead of acknowledging the default", () => {
+  const { db, account, patch } = fixture();
+  db.prepare("DELETE FROM account_settings WHERE account_id=?").run(account.id);
+  const result = patch("legacy-language-choice", 0, { uiLanguage: "sl" });
+  assert.equal(result.uiLanguage, "sl");
+  assert.equal(result.languageRevision, 1);
+  assert.equal(result.conflict, false);
+  assert.equal(buildBootstrap(db, account.id).settings.uiLanguage, "sl");
+  const settings = db.prepare("SELECT * FROM account_settings WHERE account_id=?").get(account.id);
+  assert.equal(settings.card_language, "ru");
+  assert.equal(settings.adult_pin_hash, null);
+  assert.equal(patch("legacy-language-choice", 0, { uiLanguage: "sl" }).languageRevision, 1);
+  db.close();
+});
+
 test("API rejects unsupported codes, fields and revisions before writing", () => {
   const { db, account, patch } = fixture();
   for (const values of [{ uiLanguage: "en" }, { uiLanguage: "sl-SI" }, { cardLanguage: "xx" }, { adultPinHash: "overwrite" }, {}]) {
@@ -53,6 +68,17 @@ test("API rejects unsupported codes, fields and revisions before writing", () =>
   }
   assert.throws(() => patch("bad", -1, { uiLanguage: "sl" }), error => error.status === 400);
   assert.equal(readAccountLanguages(db, account.id).languageRevision, 0);
+  db.close();
+});
+
+test("a retry repairs a legacy no-op that was logged before its settings row existed", () => {
+  const { db, account, patch } = fixture();
+  db.prepare("DELETE FROM account_settings WHERE account_id=?").run(account.id);
+  db.prepare("INSERT INTO account_language_operations(account_id,operation_id) VALUES (?,?)").run(account.id, "previous-no-op");
+  const result = patch("previous-no-op", 0, { uiLanguage: "sl" });
+  assert.equal(result.uiLanguage, "sl");
+  assert.equal(result.languageRevision, 1);
+  assert.equal(patch("previous-no-op", 0, { uiLanguage: "sl" }).languageRevision, 1);
   db.close();
 });
 
