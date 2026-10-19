@@ -478,6 +478,7 @@ def font_flag(cmds, label, tol=0.3):
     return [("M", [flag[0]])] + segs + cmds[j:]  # the stem's line runs on from the flag's end, which lies on it
 
 
+DEEPEN = {"П:2": 3.0}  # a whole stroke's flat run along the top sagged this much more in the middle (paper units)
 FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (font_flag, exact from font_flags.json)
 
 
@@ -575,6 +576,12 @@ def font_letter(label, script, spec):
         k = int(key.split(":")[1])
         like = np.vstack([tt.parse_path(dg.fmt(c)) for c in paper])
         p = dg.resample(stencil_map(label, like=like)(np.array(pts, float)), 0.6)
+        if key in DEEPEN:
+            # the flat run along the top (from where the hat's curve comes up to the top to its end) sagged deeper in the middle by an
+            # even arch (owner, 2026-10-19: «прогиб в середине более выраженный»); its ends stay where they are
+            i0 = int(np.argmax(p[:, 1] < tt.CAP_TOP + 8))
+            s = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(p[i0:], axis=0).T))]); t = s / s[-1]
+            p = p.copy(); p[i0:, 1] += DEEPEN[key] * np.sin(np.pi * t)
         t0, t1 = tt._unit(p[4] - p[0]), tt._unit(p[-1] - p[-5])
         paper[k] = [("M", [p[0]])] + tt._fit_span(p, t0, t1, tol=0.3)
     if label in SHAPES: paper = SHAPES[label](paper)
