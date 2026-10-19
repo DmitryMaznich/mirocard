@@ -560,7 +560,7 @@ def hooks_like_font(strokes, label="А", tol=0.1, ease=3):
 FONT_SKELETON = HERE / "font_skeleton.json"  # font_flags.py SKELETON: the whole skeleton of some letters, bank units
 
 
-def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1):
+def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leave=0.5):
     """A traced letter moved onto the font's lines without changing its path (owner, 2026-10-19, Б: «максимально приблизь наши
     линии, расширь их, раздвинь без изменения траектории к размерам и линиям шрифта»). Every point of every stroke moves across
     its own path (along its normal only, so the path keeps its length, order and turns) onto the font's skeleton (font_skeleton.json
@@ -572,7 +572,7 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1):
     sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
     like = np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes])
     fn = stencil_map(label, like=like)
-    S = fn(np.array(sk["pts"], float)); F = fn(np.array(sk["forks"], float)).reshape(-1, 2)
+    S = fn(np.array(sk["pts"], float)); F = fn(np.array(sk["forks"], float).reshape(-1, 2)) if sk["forks"] else np.zeros((0, 2))
     old = [np.array(tt.parse_path(dg.fmt(c))) for c in strokes]
     out = []
     for cmds in strokes:
@@ -596,6 +596,21 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1):
         s_ = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(P, axis=0).T))])
         ok &= (s_ > 2.0) & (s_ < s_[-1] - 2.0)
         off = np.interp(s_, s_[ok], off[ok]) if ok.sum() > 1 else np.zeros(len(P))
+        # where the font leaves a straight line (a stem curving into its hook earlier than ours does), the line ends there and the
+        # curve next to it takes over that stretch: the line kept to its end would make a corner with the font's bend
+        for k in range(1, len(cmds)):
+            if cmds[k][0] != "L": continue
+            idx = np.nonzero(owner == k)[0]
+            if len(idx) < 6: continue
+            m = np.median(off[idx])
+            if k + 1 < len(cmds) and cmds[k + 1][0] == "C":
+                n_ = 0
+                while n_ < len(idx) - 3 and abs(off[idx[-1 - n_]] - m) > leave: n_ += 1
+                if n_: owner[idx[len(idx) - n_:]] = k + 1
+            if cmds[k - 1][0] == "C" and k > 1:
+                n_ = 0
+                while n_ < len(idx) - 3 and abs(off[idx[n_]] - m) > leave: n_ += 1
+                if n_: owner[idx[:n_]] = k - 1
         for k in set(owner[owner > 0]):
             if cmds[k][0] == "L": off[owner == k] = off[owner == k].mean()
         g = np.exp(-0.5 * ((s_[:, None] - s_[None, :]) / sigma) ** 2)
@@ -688,7 +703,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
