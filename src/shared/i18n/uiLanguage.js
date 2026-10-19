@@ -1,6 +1,6 @@
 import { UI_MESSAGES } from "./messages.js";
 
-// Device preference only in LOC-01. Account sync is a separate LOC-02 change.
+// Synchronous boot copy; account preferences are reconciled separately.
 export const UI_LANGUAGE_STORAGE_KEY = "mironium.uiLanguage";
 export const UI_LANGUAGES = Object.freeze([
   Object.freeze({ code: "ru", label: "Русский" }),
@@ -23,6 +23,7 @@ export function createUiLanguageController({ storage, root } = {}) {
   let explicitChoice = isUiLanguage(stored);
   let snapshot = Object.freeze({ language: explicitChoice ? stored : "ru", saved: true });
   const listeners = new Set();
+  const choiceListeners = new Set();
 
   function applyDocumentLanguage() {
     if (root) root.lang = snapshot.language;
@@ -53,7 +54,16 @@ export function createUiLanguageController({ storage, root } = {}) {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    setLanguage: (language) => change(language, true),
+    setLanguage: (language) => {
+      if (!change(language, true)) return false;
+      choiceListeners.forEach((listener) => listener(language));
+      return true;
+    },
+    subscribeChoice: (listener) => {
+      choiceListeners.add(listener);
+      return () => choiceListeners.delete(listener);
+    },
+    applyAccountLanguage: (language) => change(language, false),
     // A manual device choice always wins over late IDB/server hydration.
     hydrate: (language) => !explicitChoice && isUiLanguage(language) ? change(language, false) : false,
   };
@@ -66,5 +76,7 @@ export const getUiLanguageSnapshot = controller.getSnapshot;
 export const subscribeUiLanguage = controller.subscribe;
 export const setUiLanguage = controller.setLanguage;
 export const hydrateUiLanguage = controller.hydrate;
+export const subscribeUiLanguageChoice = controller.subscribeChoice;
+export const applyAccountUiLanguage = controller.applyAccountLanguage;
 export const getUiLanguage = () => controller.getSnapshot().language;
 export const translateUi = (key, values) => translateUiMessage(getUiLanguage(), key, values);

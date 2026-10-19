@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from "react";
+import { LANGUAGES } from "../../../shared/languages.mjs";
+import LessonLanguagePicker from "@/shared/components/LessonLanguagePicker.jsx";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
@@ -27,8 +29,7 @@ function photoErrorMessage(error) {
 
 const LANGS = [
   { value: "",   label: "Не задан" },
-  { value: "ru", label: "Русский"  },
-  { value: "en", label: "English"  },
+  ...LANGUAGES.map(({ code, label }) => ({ value: code, label })),
 ];
 
 const SEXES = [
@@ -52,6 +53,7 @@ export default function StudentEditScreen() {
   const [name,         setName]         = useState(initial?.name ?? "");
   const [comment,      setComment]      = useState(initial?.comment ?? "");
   const [lang,         setLang]         = useState(initial?.primaryLanguage ?? "");
+  const [lessonLanguage, setLessonLanguage] = useState(initial?.preferredLessonLanguage ?? null);
   const [sex,          setSex]          = useState(initial?.sex ?? "");
   const [photo,        setPhoto]        = useState(initial?.photo ?? null);
   const [photoLoading, setPhotoLoading] = useState(false);
@@ -134,6 +136,8 @@ export default function StudentEditScreen() {
     const data = {
       name: name.trim(), comment: comment.trim(),
       primaryLanguage: lang || null,
+      ...(!isEdit || lessonLanguage !== (initial?.preferredLessonLanguage ?? null)
+        ? { preferredLessonLanguage: lessonLanguage } : {}),
       sex: sex || null,
       rewardVideos: videos,
       healthDataConsent, healthDataConsentAt,
@@ -158,7 +162,11 @@ export default function StudentEditScreen() {
       // student.upsert covers only name/comment/language/sex — photo, video rewards and
       // close adults are each synced independently (their own op + timestamp), so a
       // stale device that hasn't seen another device's additions can't erase them.
-      pushOp("student.upsert", { ...updated, photo: undefined, rewardVideos: undefined, closeAdults: undefined });
+      pushOp("student.upsert", {
+        ...updated, photo: undefined, rewardVideos: undefined, closeAdults: undefined,
+        // An untouched field must not clear a choice made on another device.
+        preferredLessonLanguage: lessonLanguage !== (initial?.preferredLessonLanguage ?? null) ? lessonLanguage : undefined,
+      });
       if (photoChanged) {
         pushOp("student.photo.upsert", { studentId: initial.id, photo: photo ?? null, photoUpdatedAt: ts });
       }
@@ -320,6 +328,10 @@ export default function StudentEditScreen() {
               {lang === value && <span className="se-lang-check">✓</span>}
             </button>
           ))}
+        </div>
+
+        <div className="settings-section">
+          <LessonLanguagePicker value={lessonLanguage} onChange={setLessonLanguage} inherit />
         </div>
 
        </div>{/* /se-col left */}
