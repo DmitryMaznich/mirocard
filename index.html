@@ -2,6 +2,15 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
+    <script id="ui-language-boot">
+      // Keep in sync with shared/i18n/uiLanguage.js; runs before the first paint.
+      try {
+        var savedUiLanguage = localStorage.getItem("mironium.uiLanguage");
+        if (savedUiLanguage === "ru" || savedUiLanguage === "sl") {
+          document.documentElement.lang = savedUiLanguage;
+        }
+      } catch (_) { /* Storage can be disabled; Russian remains the default. */ }
+    </script>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />

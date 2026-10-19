@@ -10,6 +10,8 @@ import { useBackButtonGuard } from "@/shared/hooks/useBackButtonGuard";
 import { getActiveOrientationLock } from "@/shared/utils/orientationLock";
 import { clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot, canResumeActiveSession } from "@/features/session/activeSession";
 import { requestStoragePersistence } from "@/core/storagePersistence";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { translateUi } from "@/shared/i18n/uiLanguage.js";
 
 import LoginScreen from "@/features/account/LoginScreen";
 import RegisterScreen from "@/features/account/RegisterScreen";
@@ -54,8 +56,8 @@ import SubscriptionScreen from "@/features/billing/SubscriptionScreen";
 import CheckoutRedirectScreen from "@/features/billing/CheckoutRedirectScreen";
 import CheckoutReturnScreen from "@/features/billing/CheckoutReturnScreen";
 
-function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
-function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
+function BootScreen() { const { t } = useUiTranslation(); return <div className="screen-center">{t("common.loading")}</div>; }
+function NotFoundScreen() { const { t } = useUiTranslation(); return <div className="screen-center">{t("common.notFound")}</div>; }
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -64,7 +66,7 @@ class ErrorBoundary extends Component {
     if (this.state.error) {
       return (
         <div style={{ padding: 24, fontFamily: "monospace", whiteSpace: "pre-wrap", color: "red" }}>
-          <strong>Ошибка рендера:</strong>{"\n"}
+          <strong>{translateUi("common.renderError")}</strong>{"\n"}
           {String(this.state.error)}{"\n\n"}
           {this.state.error?.stack}
         </div>
@@ -224,12 +226,12 @@ export default function App() {
     if (googleCode || googleError) {
       window.history.replaceState({}, "", "/");
       if (googleError) {
-        useAppStore.setState({ authNotice: "Не получилось войти через Google. Попробуйте ещё раз или войдите по почте." });
+        useAppStore.setState({ authNotice: { key: "auth.googleFailed" } });
         setScreen("login");
         return;
       }
       handleGoogleCode(googleCode).catch(() => {
-        useAppStore.setState({ authNotice: "Ссылка входа через Google устарела. Нажмите «Войти через Google» ещё раз." });
+        useAppStore.setState({ authNotice: { key: "auth.googleExpired" } });
         setScreen("login");
       });
       return;
