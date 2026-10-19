@@ -514,6 +514,46 @@ def rise_like_font(strokes, label="А", tol=0.3, deg=4, ease=3):
     return strokes
 
 
+def hooks_like_font(strokes, label="А", tol=0.1, ease=3):
+    """А: the entry hook (from the start round the bottom up to where the rise begins) and the exit hook (from the end of the
+    stem's line round the bottom to the end) as the font draws them (owner, 2026-10-19: «подгони ... и входящие, и исходящие крюки
+    по шрифту»; the stems and the bar already lie on the font). The outline's exact centre line (font_flags.json "А:0") set by
+    stencil_map: no joins there, so it is taken as it is, from its start to its point nearest the rise's start, and from its point
+    nearest the stem's end to its end. The end that joins our line is moved onto it, the shift taken up near that end (weight
+    w**`ease`), so the rest is the font's; the join keeps the font's direction into the rise and our stem's out of the stem. Each
+    hook is then stretched up or down from its join (by under 2%) until its bottom stands on the baseline: the font's lay 0.3
+    under it and 0.4 over it.
+    Fitted by cubics within `tol`. Before rise_like_font, which takes its start direction from the new entry hook."""
+    cmds = strokes[0]
+    like = np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes])
+    f = dg.resample(stencil_map(label, like=like)(np.array(json.loads(FONT_FLAGS.read_text())["flags"][f"{label}:0"], float)), 0.6)
+    top = int(np.argmin(f[:, 1]))
+    lines = [i for i in range(1, len(cmds)) if cmds[i][0] == "L"]
+    j, last = lines[0], lines[-1]  # the rise's first line; the stem's last
+    a, b = np.asarray(cmds[j - 1][1][-1], float), np.asarray(cmds[last][1][-1], float)
+    stem = tt._unit(b - np.asarray(cmds[last - 1][1][-1], float))
+
+    def eased(p, at_end, target):
+        s_ = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(p, axis=0).T))]); w = (s_ / s_[-1])[:, None]
+        w = w ** ease if at_end else (1 - w) ** ease
+        p = p + w * (target - (p[-1] if at_end else p[0]))
+        y0 = target[1]
+        p[:, 1] = y0 + (p[:, 1] - y0) * (tt.BASE - y0) / (p[:, 1].max() - y0)  # the bottom on the baseline
+        return p
+
+    turns = _turns(f)
+    turn = turns[0] if turns else top  # the walk runs off into the bar after the rise has begun
+    ia = int(np.argmin(np.hypot(*(f[:turn] - a).T)))
+    entry = eased(f[:ia + 1], True, a)
+    ib = top + int(np.argmin(np.hypot(*(f[top:] - b).T)))
+    exit_ = eased(f[ib:], False, b)
+    t_in = tt._unit(entry[-1] - entry[-5])
+    head = [("M", [entry[0]])] + tt._fit_span(entry, tt._unit(entry[4] - entry[0]), t_in, tol=tol)
+    tail = tt._fit_span(exit_, stem, tt._unit(exit_[-1] - exit_[-5]), tol=tol)
+    strokes[0] = head + cmds[j:last + 1] + tail
+    return strokes
+
+
 DEEPEN = {"П:2": 3.0}  # a whole stroke's flat run along the top sagged this much more in the middle (paper units)
 FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (font_flag, exact from font_flags.json)
 # SPLIT: the font's pen path cut at its turns back (_turns) into separate strokes: (first, last) piece of each stroke, the rest left
@@ -531,7 +571,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": rise_like_font, "В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
