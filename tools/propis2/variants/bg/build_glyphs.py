@@ -157,6 +157,22 @@ def hat_like(source, stroke=1, src_stroke=1):
     return adjust
 
 
+def hat_to_stem(hat=2, stem=1):
+    """П: the hat's flat part runs on to the right until its end lies on the slant line through the top of the right stem
+    (owner, 2026-10-19: «удлини шляпу вправо, чтобы край находился на одной наклонной прямой с краем правого вертикального
+    штриха»). The flat line gets longer and the rising tip at its end moves along with it, its shape kept."""
+    def adjust(strokes):
+        h = strokes[hat]
+        top = np.asarray(strokes[stem][0][1][0], float)  # the stem starts at its top
+        end = np.asarray(h[-1][1][-1], float)
+        dx = top[0] + (top[1] - end[1]) * tt.SLANT_T - end[0]
+        k = max(i for i in range(len(h)) if h[i][0] == "L")  # the flat part
+        strokes[hat] = (h[:k] + [("L", [np.asarray(h[k][1][0], float) + [dx, 0.0]])]
+                        + [(c, [np.asarray(q, float) + [dx, 0.0] for q in ps]) for c, ps in h[k + 1:]])
+        return strokes
+    return adjust
+
+
 def stem_like(source, stroke=0):
     """Г: the stem begins as high as Б's (owner, 2026-10-18: «вертикальные штрихи должны тоже одинаковые по высоте ... по
     оригинальному шрифту»; in Boyan Maga both stems begin about a quarter of a capital's height under the hat, Б's 24.7 units on
@@ -467,7 +483,7 @@ FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
-          "П": hat_like("Б", stroke=2)}  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
+          "П": both(hat_like("Б", stroke=2), hat_to_stem(hat=2, stem=1))}  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
 
 
 PAPER_LABEL = [None]  # the letter being tidied (a SHAPES function reads it)
