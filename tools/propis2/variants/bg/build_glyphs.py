@@ -367,6 +367,7 @@ def from_font(strokes):
     owner painted over the font where М's strokes must go (2026-10-18): the rising sides bow up into the stems and run close
     beside them under the tops, the entry hook is the font's, wider than Л's; neither Л twice nor Л squeezed gives that."""
     like = np.vstack([tt.parse_path(tt.dg.fmt(c)) for c in strokes])
+    PAPER_UNSNAPPED[PAPER_LABEL[0]] = [list(c) for c in strokes]  # where the stencil stands (_font_frame, the review sheet)
     out = [tt.tidy_stroke(p, tt.CAP_TOP) for p in font_stencil(PAPER_LABEL[0], like=like)]
     # every top up its stem's line to the capital's top line (the font's first top stops short of it; a capital's tops stand on
     # the line, А's and Л's do): the rise's end and its last handle move up with it, so the rise stays smooth into the top
@@ -444,9 +445,16 @@ def _bow_rises(cmds):
             h = 4 / 3 * math.tan(turn / 4) * (L / 2 / math.sin(turn / 2)) / L if turn > 1e-6 else 1 / 3
             best = bow(h, h)
         else:
-            cands = [bow(h0, h1) for h0 in np.arange(0.2, 0.71, 0.05) for h1 in np.arange(0.15, 0.61, 0.05)]
+            cands = [bow(h0, h1) for h0 in np.arange(0.05, 0.91, 0.025) for h1 in np.arange(0.05, 0.81, 0.025)]
             cands = [c for c in cands if clear(c) and sag(c) <= RISE_BOW]
-            best = max(cands, key=sag) if cands else bow(1 / 3, 1 / 3)
+            # the bow nearest the font's line between the hook and the top (owner, 2026-10-19: the middle stroke's way up «прогиб
+            # в этом месте слишком большой ... по серой линии шрифта»); the deepest one only when there is no font's line to go by
+            S = _font_frame(PAPER_LABEL[0])[1] if PAPER_LABEL[0] in json.loads(FONT_SKELETON.read_text())["letters"] else None
+            def off_font(segs):
+                pts = dg.resample(np.array(tt.parse_path(tt.dg.fmt([("M", [p0])] + segs))), 0.5)
+                pts = pts[(pts[:, 1] > tt.CAP_TOP + 15) & (pts[:, 1] < tt.BASE - 8)]
+                return float(np.mean(np.min(np.hypot(pts[:, None, 0] - S[None, :, 0], pts[:, None, 1] - S[None, :, 1]), axis=1)))
+            best = (min(cands, key=off_font) if S is not None else max(cands, key=sag)) if cands else bow(1 / 3, 1 / 3)
         cmds[s + 1:t + 1] = best
 
 
