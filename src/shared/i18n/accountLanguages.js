@@ -91,6 +91,12 @@ export function createAccountLanguages({ storage, applyLanguage, request, makeId
           });
           if (!current()) return;
           if (!validRevision(result.languageRevision)) throw new Error("Invalid language revision");
+          if (!result.conflict && !op.initializeOnly && result.languageRevision <= op.expectedRevision &&
+              Object.entries(op.patch).some(([key, value]) => result[key] !== value)) {
+            // A default/no-op response has not confirmed this write. Keep the
+            // durable operation and the manual UI choice until a valid retry.
+            throw new Error("Language preference was not saved");
+          }
           if (result.languageRevision >= value.revision) {
             value.revision = result.languageRevision;
             if (isUiLanguage(result.uiLanguage)) value.uiLanguage = result.uiLanguage;

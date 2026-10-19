@@ -153,3 +153,21 @@ test("an implicit legacy ru boot copy does not become an explicit account prefer
   assert.equal(calls, 0);
   assert.equal(JSON.parse(saved.getItem(ACCOUNT_LANGUAGES_KEY)).A.revision, 0);
 });
+
+test("an unchanged default response cannot acknowledge or revert a manual language choice", async () => {
+  let stored = false;
+  const f = fixture({ request: async () => stored
+    ? { uiLanguage: "sl", cardLanguage: "ru", languageRevision: 1, conflict: false }
+    : { uiLanguage: "ru", cardLanguage: "ru", languageRevision: 0, conflict: false },
+  });
+  f.login();
+  f.controller.chooseUiLanguage("sl");
+  await f.controller.flush();
+  assert.equal(f.ui(), "sl");
+  assert.equal(f.controller.getSnapshot().status, "pending");
+  assert.equal(JSON.parse(f.saved.getItem(ACCOUNT_LANGUAGES_KEY)).A.pending.patch.uiLanguage, "sl");
+  stored = true;
+  await f.controller.flush();
+  assert.equal(f.ui(), "sl");
+  assert.equal(f.controller.getSnapshot().status, "synced");
+});
