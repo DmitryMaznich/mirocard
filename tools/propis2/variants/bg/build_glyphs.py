@@ -560,14 +560,16 @@ def hooks_like_font(strokes, label="А", tol=0.1, ease=3):
 FONT_SKELETON = HERE / "font_skeleton.json"  # font_flags.py SKELETON: the whole skeleton of some letters, bank units
 
 
-def _small_loops(P, s_, near=0.5, max_len=60.0, min_len=4.0):
+def _small_loops(P, s_, near=0.5, max_len=60.0, min_len=4.0, min_area=8.0):
     """Where a stroke crosses itself within `max_len` units of its own length (a small loop): (start, end) sample indices."""
     out, i = [], 0
     while i < len(P):
         far = (s_ - s_[i] > min_len) & (s_ - s_[i] < max_len)
         d = np.where(far, np.hypot(*(P - P[i]).T), np.inf)
         j = int(np.argmin(d))
-        if d[j] < near:
+        q = P[i:j + 1]
+        area = 0.5 * abs(np.sum(q[:, 0] * np.roll(q[:, 1], -1) - np.roll(q[:, 0], -1) * q[:, 1]))
+        if d[j] < near and area > min_area:  # a loop, not a sharp turn back whose two sides start close together (З's waist)
             out.append((i, j)); i = j + 1
         else: i += 1
     return out
@@ -883,6 +885,77 @@ def zigzag_right(strokes, label="Ж", k=2, mid=1, rms=0.25, tol=0.1):
     return strokes
 
 
+def _font_frame(label):
+    """The font's outline points, skeleton points and half its pen, on the deck's paper where stencil_map put the letter."""
+    sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
+    fn = stencil_map(label, like=np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in PAPER_UNSNAPPED[label]]))
+    ink = np.vstack([fn(np.array(poly, float)) for poly in sk["outline"]])
+    S = fn(np.array(sk["pts"], float))
+    pen = float(np.median(np.min(np.hypot(S[::7, None, 0] - ink[None, :, 0], S[::7, None, 1] - ink[None, :, 1]), axis=1)))
+    return ink, S, pen
+
+
+def _reach(ink, at, d, pen, band=4.0):
+    """How far from `at` along `d` the font's ink goes (within `band` across), less half the pen: the centre of its round end."""
+    rel = ink - at
+    along, across = rel @ d, np.abs(rel @ np.array([-d[1], d[0]]))
+    m = (across < band) & (along > -2.0)
+    return (along[m].max() if m.any() else 0.0) - pen
+
+
+def cusp_to_font_tip(strokes, label, k=0, back=16.0, tol=0.1):
+    """A waist that turns back to a point (З, like Е: two arcs meeting at a point, not a loop or a bulge) drawn into the tip of the
+    font's (the centre of the pen's round end there). snap_to_font rounds such a turn (the sides' normals flip there), so the path
+    from `back` units before the turn to `back` units after it is replaced: a cubic from the upper arc straight into the tip, a
+    corner, a cubic out of it into the lower arc."""
+    ink, S, pen = _font_frame(label)
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
+    s_ = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(p, axis=0).T))])
+    mid = (p[:, 1] > tt.CAP_TOP + 25) & (p[:, 1] < tt.BASE - 25)
+    c = int(np.nonzero(mid)[0][np.argmin(p[mid, 0])])  # the waist: the leftmost point in the middle of the letter
+    band = ink[np.abs(ink[:, 1] - p[c, 1]) < 8]
+    x_ink = band[:, 0].min()
+    at = band[np.abs(band[:, 0] - (x_ink + pen)) < 1.0]
+    T = np.array([x_ink + pen, (at[:, 1].max() + at[:, 1].min()) / 2])
+    a = int(np.argmin(np.abs(s_ - (s_[c] - back)))); b = int(np.argmin(np.abs(s_ - (s_[c] + back))))
+    A, B = p[a], p[b]
+    tA, tB = tt._unit(p[a] - p[a - 3]), tt._unit(p[b + 3] - p[b])
+    def hermite(P0, T0, P1, T1, n=60):
+        L = np.hypot(*(P1 - P0)); u = np.linspace(0, 1, n)[:, None]
+        return (2*u**3 - 3*u**2 + 1) * P0 + (u**3 - 2*u**2 + u) * L * T0 + (-2*u**3 + 3*u**2) * P1 + (u**3 - u**2) * L * T1
+    upper = np.vstack([p[:a], hermite(A, tA, T, tt._unit(T - A))])
+    lower = np.vstack([hermite(T, tt._unit(B - T), B, tB), p[b + 1:]])
+    def fit(q): return tt._fit_span(q, tt._unit(q[3] - q[0]), tt._unit(q[-1] - q[-4]), tol=tol)
+    strokes[k] = [("M", [upper[0]])] + fit(upper) + fit(lower)
+    return strokes
+
+
+def ends_to_font(strokes, label, which=((0, 0),), tol=0.1):
+    """A stroke's end carried on along the font's line to where the font's stroke ends (the centre of the pen's round end): the
+    hand stopped short of it (snap_to_font moves across, never along). `which`: (stroke, 0 for its start / -1 for its end)."""
+    ink, S, pen = _font_frame(label)
+    for k, e in which:
+        p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
+        if e == 0: p = p[::-1]
+        d = tt._unit(p[-1] - p[-8])
+        L = _reach(ink, p[-1], d, pen)
+        if L <= 0.3: continue
+        # the skeleton beyond the end, in order along it
+        rel = S - p[-1]; along = rel @ d; across = np.abs(rel @ np.array([-d[1], d[0]]))
+        m = (along > 0) & (along < L + 1.0) & (across < 3.0)
+        ext = S[m][np.argsort(along[m])]
+        if len(ext) < 3: continue
+        ext = dg.resample(np.vstack([p[-1], ext]), 0.3)
+        ext = ext[np.concatenate([[0], np.cumsum(np.hypot(*np.diff(ext, axis=0).T))]) <= L]
+        q = np.vstack([p, ext[1:]])
+        sm = q.copy()
+        for _ in range(6): sm[1:-1] = (sm[:-2] + 2 * sm[1:-1] + sm[2:]) / 4  # the raster steps out, the shape kept
+        q[len(p) - 10:] = sm[len(p) - 10:]
+        if e == 0: q = q[::-1]
+        strokes[k] = [("M", [q[0]])] + tt._fit_span(q, tt._unit(q[3] - q[0]), tt._unit(q[-1] - q[-4]), tol=tol)
+    return strokes
+
+
 DEEPEN = {"П:2": 3.0}  # a whole stroke's flat run along the top sagged this much more in the middle (paper units)
 FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (font_flag, exact from font_flags.json)
 # SPLIT: the font's pen path cut at its turns back (_turns) into separate strokes: (first, last) piece of each stroke, the rest left
@@ -900,7 +973,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
