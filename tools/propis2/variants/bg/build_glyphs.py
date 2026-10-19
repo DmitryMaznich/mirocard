@@ -1424,8 +1424,8 @@ def stems_to_font(strokes, label, n=3, top=-38.0, yr=(-42.0, 46.0), near=3.0, ga
 
 def yu_from_parts(strokes):
     """Ю in three strokes (owner, 2026-10-19): Н's left element (flag, stem, hook) on the font's stem; a short bar from the
-    stem to the right; then exactly the letter О, as it is written on its own, set so that its leftmost point is the bar's end
-    («точно буква О с прохождением в крайней левой точке через конец штриха 2»), across the slant where the font's oval is.
+    stem to the right at the font's height; then exactly the letter О, as it is written on its own, across the slant where the font's
+    oval is, its left side going through the bar's end («точно буква О с прохождением в крайней левой точке через конец штриха 2»).
     The font's own pen path (`strokes`) only says where: its stem and its oval."""
     p = tt.upright(dg.resample(np.array(tt.parse_path(dg.fmt(strokes[0]))), 0.5))
     mid = (p[:, 1] > -40) & (p[:, 1] < 0)
@@ -1443,9 +1443,13 @@ def yu_from_parts(strokes):
     O = PAPER["О"][0]
     o = tt.upright(dg.resample(np.array(tt.parse_path(dg.fmt(O))), 0.3))
     O = shift(O, oval_mid - (o[:, 0].min() + o[:, 0].max()) / 2)
+    # the bar at the font's height (owner: «подними туда, где он был»), ending where О's left side crosses that height
+    flat = p[(np.abs(np.gradient(p[:, 1])) < 0.05) & (p[:, 1] > tt.X_TOP - 15) & (p[:, 1] < tt.BASE - 30)]
+    bar_y = float(np.median(flat[:, 1]))
     q = dg.resample(np.array(tt.parse_path(dg.fmt(O))), 0.2)
-    left = q[int(np.argmin(q[:, 0]))]  # its leftmost point on the paper: the bar ends there
-    start = tt.from_upright(np.array([[stem_x, left[1]]]))[0]
+    xs = [q[i, 0] + (q[i + 1, 0] - q[i, 0]) * (bar_y - q[i, 1]) / (q[i + 1, 1] - q[i, 1]) for i in range(len(q) - 1) if (q[i, 1] - bar_y) * (q[i + 1, 1] - bar_y) <= 0 and q[i, 1] != q[i + 1, 1]]
+    left = np.array([min(xs), bar_y])
+    start = tt.from_upright(np.array([[stem_x, bar_y]]))[0]
     B = [("M", [start]), ("L", [left])]
     PAPER_UNSNAPPED.pop(PAPER_LABEL[0], None)
     return [A, B, O]
