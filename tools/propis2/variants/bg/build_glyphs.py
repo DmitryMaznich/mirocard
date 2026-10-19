@@ -930,6 +930,29 @@ def rise_into_stem(strokes, k=0, gap=2.5, tol=0.1):
     return strokes
 
 
+def short_i(strokes, label="Й", source="И"):
+    """Й: the body is И as finished (PAPER), made evenly smaller (across the slant as much as up, about the baseline) to the font's
+    body of Й (its skeleton's top below the breve) and set on the font's body; the breve is the font's, snapped and carried to its
+    ends. И was approved by the owner (2026-10-19); in the font Й's body is И's, the breve makes the whole letter taller, so on the
+    deck's paper, where the letter stands between the same lines, the body is smaller."""
+    snapped = ends_to_font(snap_to_font(strokes, label), label, which=((1, 0), (1, -1)))
+    breve = snapped[1]
+    ink, S, pen = _font_frame(label)
+    bp = np.array(tt.parse_path(dg.fmt(breve)))
+    body_S = S[S[:, 1] > bp[:, 1].max() + 3.0]
+    top_j = body_S[:, 1].min()
+    src = PAPER[source]
+    allp = np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in src])
+    k = (tt.BASE - top_j) / (tt.BASE - allp[:, 1].min())
+    us, uj = tt.upright(allp), tt.upright(body_S)
+    dx = (uj[:, 0].min() + uj[:, 0].max()) / 2 - (us[:, 0].min() + us[:, 0].max()) / 2 * k
+    def move(q):
+        u = tt.upright(np.asarray(q, float).reshape(-1, 2))
+        return tt.from_upright(np.c_[u[:, 0] * k + dx, tt.BASE - (tt.BASE - u[:, 1]) * k])
+    body = [[(c, [move(q)[0] for q in ps]) for c, ps in cmds] for cmds in src]
+    return body + [breve]
+
+
 def cusp_to_font_tip(strokes, label, k=0, back=16.0, tol=0.1):
     """A waist that turns back to a point (З, like Е: two arcs meeting at a point, not a loop or a bulge) drawn into the tip of the
     font's (the centre of the pen's round end there). snap_to_font rounds such a turn (the sides' normals flip there), so the path
@@ -1000,7 +1023,8 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))), "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
