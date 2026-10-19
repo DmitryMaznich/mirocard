@@ -262,24 +262,7 @@ export function initDb(dbPath = DB_PATH) {
 
   `);
 
-  // Additive LOC-02 migration; old application versions can still read this DB.
-  const languageColumns = db.prepare("PRAGMA table_info(account_settings)").all();
-  if (!languageColumns.some(c => c.name === "language_revision")) {
-    db.exec("ALTER TABLE account_settings ADD COLUMN language_revision INTEGER NOT NULL DEFAULT 0");
-    // Preserve non-default preferences saved by older clients.
-    db.exec("UPDATE account_settings SET language_revision=1 WHERE ui_language<>'ru' OR card_language<>'ru'");
-  }
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS account_language_operations (
-      account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-      operation_id TEXT NOT NULL,
-      PRIMARY KEY(account_id, operation_id)
-    )
-  `);
   const studentColumns = db.prepare("PRAGMA table_info(students)").all();
-  if (!studentColumns.some(c => c.name === "preferred_lesson_language")) {
-    db.exec("ALTER TABLE students ADD COLUMN preferred_lesson_language TEXT");
-  }
   if (!studentColumns.some((column) => column.name === "reward_videos")) {
     db.exec("ALTER TABLE students ADD COLUMN reward_videos TEXT DEFAULT '[]'");
   }

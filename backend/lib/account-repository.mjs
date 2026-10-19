@@ -1,5 +1,4 @@
 import { randomUUID, createHash } from "node:crypto";
-import { isLessonLanguage } from "../../shared/languages.mjs";
 import { enqueueAccountNotification } from "./telegram-notifications.mjs";
 import { studentPeople, legacyAdults, applyLegacyAdults, mergePeopleRecords } from "../../shared/student-people.mjs";
 import { mergeRewardVideoViews } from "../../src/shared/utils/rewardVideoViews.js";
@@ -319,15 +318,10 @@ export function updateAccountSettings(db, accountId, patch) {
   ];
   const fields = Object.keys(patch).filter((k) => allowed.includes(k));
   if (fields.length === 0) return;
-  if (("ui_language" in patch && !["ru", "sl"].includes(patch.ui_language)) ||
-      ("card_language" in patch && !isLessonLanguage(patch.card_language))) {
-    throw Object.assign(new Error("Invalid language preference"), { status: 400 });
-  }
 
   const sets = fields.map((f) => `${f} = ?`).join(", ");
   const values = fields.map((f) => patch[f]);
-  const revision = fields.some(f => f === "ui_language" || f === "card_language") ? ", language_revision=language_revision+1" : "";
-  db.prepare(`UPDATE account_settings SET ${sets}${revision}, updated_at = ? WHERE account_id = ?`)
+  db.prepare(`UPDATE account_settings SET ${sets}, updated_at = ? WHERE account_id = ?`)
     .run(...values, now(), accountId);
 }
 
@@ -476,7 +470,6 @@ export function upsertStudent(db, accountId, {
   name,
   comment = "",
   primaryLanguage = null,
-  preferredLessonLanguage = undefined,
   sex = null,
   photo = null,
   rewardVideos = [],
@@ -488,15 +481,10 @@ export function upsertStudent(db, accountId, {
   updatedAt = null,
 }) {
   const serverNow = now();
-  if (preferredLessonLanguage !== undefined && preferredLessonLanguage !== null && !isLessonLanguage(preferredLessonLanguage)) {
-    throw Object.assign(new Error("Invalid lesson language"), { status: 400 });
-  }
   if (db.prepare("SELECT 1 FROM erased_students WHERE student_id=?").get(id)) return;
   const created = createdAt || serverNow;
   const updated = updatedAt || serverNow;
-  const existing = db.prepare('SELECT preferred_lesson_language FROM students WHERE id = ? AND account_id = ?').get(id, accountId);
-  const wasExisting = Boolean(existing);
-  const lessonLanguage = preferredLessonLanguage === undefined ? existing?.preferred_lesson_language ?? null : preferredLessonLanguage;
+  const wasExisting = Boolean(db.prepare('SELECT 1 FROM students WHERE id = ?').get(id));
   // Photo, rewardVideos and closeAdults are each managed independently via their
   // own upsert* functions / sync ops (student.photo.upsert, student.videos.upsert,
   // student.adults.upsert). On INSERT (new student) we set their initial values;
@@ -507,13 +495,12 @@ export function upsertStudent(db, accountId, {
   const processedAdults = processCloseAdultPhotos(db, Array.isArray(closeAdults) ? closeAdults : []);
 
   db.prepare(`
-    INSERT INTO students (id, account_id, name, comment, primary_language, preferred_lesson_language, sex, photo, photo_updated_at, reward_videos, reward_videos_updated_at, close_adults, close_adults_updated_at, health_data_consent, health_data_consent_at, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO students (id, account_id, name, comment, primary_language, sex, photo, photo_updated_at, reward_videos, reward_videos_updated_at, close_adults, close_adults_updated_at, health_data_consent, health_data_consent_at, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       name = excluded.name,
       comment = excluded.comment,
       primary_language = excluded.primary_language,
-      preferred_lesson_language = excluded.preferred_lesson_language,
       sex = excluded.sex,
       health_data_consent = excluded.health_data_consent,
       health_data_consent_at = excluded.health_data_consent_at,
@@ -525,7 +512,6 @@ export function upsertStudent(db, accountId, {
     name,
     comment,
     primaryLanguage,
-    lessonLanguage,
     sex ?? null,
     initialPhotoRef,
     initialPhotoRef ? updated : null,

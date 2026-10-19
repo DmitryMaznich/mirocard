@@ -1,11 +1,6 @@
 // Slovenian copy is a prototype draft, pending editorial review.
 export const UI_MESSAGES = {
   ru: {
-    "languages.lesson": "Предпочтительный язык занятий",
-    "languages.inherit": "Как в настройках аккаунта",
-    "languages.preferenceOnly": "Это предпочтение для будущих языковых версий занятий. Доступные сейчас материалы сохраняют свой язык.",
-    "languages.pending": "Языковые настройки ожидают синхронизации с аккаунтом. При восстановлении связи отправка повторится.",
-    "languages.notDurable": "Браузер не разрешил сохранить очередь. Не закрывайте страницу до синхронизации.",
     "common.language": "Язык приложения",
     "common.scope": "Пока переведены вход и настройки. Учебные материалы сохраняют свой язык.",
     "common.notSaved": "Браузер не разрешил сохранить язык. Выбор действует до закрытия страницы.",
@@ -70,11 +65,6 @@ export const UI_MESSAGES = {
     "pin.erase": "Удалить последнюю цифру",
   },
   sl: {
-    "languages.lesson": "Želeni jezik vaj",
-    "languages.inherit": "Kot v nastavitvah računa",
-    "languages.preferenceOnly": "To je nastavitev za prihodnje jezikovne različice vaj. Trenutno dostopna gradiva ohranijo svoj jezik.",
-    "languages.pending": "Jezikovne nastavitve čakajo na sinhronizacijo z računom. Po ponovni vzpostavitvi povezave bomo poskusili znova.",
-    "languages.notDurable": "Brskalnik ni dovolil shranjevanja čakajočih sprememb. Do sinhronizacije ne zaprite strani.",
     "common.language": "Jezik aplikacije",
     "common.scope": "Za zdaj sta prevedena prijava in nastavitve. Učna gradiva ohranijo svoj jezik.",
     "common.notSaved": "Brskalnik ni dovolil shranjevanja jezika. Izbira velja do zaprtja strani.",

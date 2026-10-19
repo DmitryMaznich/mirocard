@@ -1,5 +1,4 @@
-import { useId, useSyncExternalStore } from "react";
-import { accountLanguages } from "@/core/languageSync.js";
+import { useId } from "react";
 import { UI_LANGUAGES } from "../i18n/uiLanguage.js";
 import { useUiTranslation } from "../i18n/useUiTranslation.js";
 import "./UiLanguagePicker.css";
@@ -7,7 +6,6 @@ import "./UiLanguagePicker.css";
 export default function UiLanguagePicker() {
   const id = useId();
   const { language, saved, setLanguage, t } = useUiTranslation();
-  const sync = useSyncExternalStore(accountLanguages.subscribe, accountLanguages.getSnapshot, accountLanguages.getSnapshot);
   return (
     <div className="ui-language-picker">
       <label className="ui-language-picker__label" htmlFor={id}>{t("common.language")}</label>
@@ -21,8 +19,6 @@ export default function UiLanguagePicker() {
       </div>
       <p className="ui-language-picker__help">{t("common.scope")}</p>
       {!saved && <p className="ui-language-picker__warning" role="status">{t("common.notSaved")}</p>}
-      {sync.accountId && sync.status === "pending" && <p className="ui-language-picker__help" role="status">{t("languages.pending")}</p>}
-      {sync.accountId && !sync.durable && <p className="ui-language-picker__warning" role="status">{t("languages.notDurable")}</p>}
     </div>
   );
 }
