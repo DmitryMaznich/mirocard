@@ -43,7 +43,7 @@
 python3 tools/propis2/variants/bg/build_glyphs.py            # captures/ + шрифт -> variant.json glyphs (TTF не нужен)
 python3 tools/propis2/variants/bg/compare_font.py <ttf> out.png --built   # лист всех заглавных поверх шрифта
 python3 tools/propis2/variants/bg/compare_font.py <ttf> out.png           # обведённые: шрифт, рука, результат
-python3 tools/propis2/variants/bg/review_sheet.py out.png [буквы]  # без TTF: собранные буквы поверх средней линии шрифта
+python3 tools/propis2/variants/bg/review_sheet.py out.png [буквы] [--font <ttf>]  # буквы поверх настоящего контура шрифта
 python3 tools/propis2/variants/bg/font_flags.py <ttf>        # точные средние линии флажков и шляпы П -> font_flags.json
 npx vitest run src/topics/renderers/propis2 src/topics/renderers/propis/scriptGeometry.test.js
 ```
