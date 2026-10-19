@@ -1,0 +1,256 @@
+[
+ {
+  "id": "closes",
+  "out": "c_closes_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands at a low plain wooden table and is closing the lid of a plain cardboard box: the lid is still open at a small angle (about 30 degrees) and moving down, one hand on top of the lid pushing it down, small curved motion lines above the lid; the box is empty, nothing visible inside. Side view so the angle of the lid is clearly visible.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "swings",
+  "out": "c_swings_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits on a simple swing hanging from two ropes on a plain wooden frame, swinging forward: his legs stretched out in front, hands holding the ropes, happy face. Side view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "blows",
+  "out": "c_blows_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy blows soap bubbles: he holds a bubble wand close to his rounded lips, several round soap bubbles float away in front of his face, cheeks slightly puffed. Side three-quarter view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "bathes",
+  "out": "c_bathes_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits in a white bathtub full of foam bubbles, only his head, shoulders and arms above the foam, a yellow rubber duck floating, he splashes water with one hand, happy face. Modest, no nudity visible.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "takes_off",
+  "out": "c_takes_off_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits on a low bench and takes off a red sneaker: he pulls the sneaker off his foot with both hands, the shoe halfway off the heel, the other sneaker already off on the floor next to the bench, his feet in white socks.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "takes",
+  "out": "c_takes_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy bends down and picks up a red ball from the floor: his hand is grasping the ball, lifting it just above the floor. Side view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "wipes",
+  "out": "c_wipes_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy dries his hands with a small blue towel: the towel is wrapped around both hands, he rubs them, standing next to the same white sink as when washing hands; his hands and face are dry, no water running.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "claps",
+  "out": "c_claps_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy claps his hands in front of his chest: palms just meeting, small motion lines around the hands, happy face, standing front view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "tidies",
+  "out": "c_tidies_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy puts toys away into a big open toy box: he drops a toy car into the box, the box already holds a ball and some blocks, two last blocks lie on the floor next to the box. Side view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "builds",
+  "out": "c_builds_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy kneels in a small sandbox and builds a sand castle: he turns a yellow bucket of sand upside down onto a castle that already has two towers, a small spade next to him.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "combs",
+  "out": "c_combs_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy combs his hair with a blue comb: the comb is in his hair on the side of his head, his other hand is relaxed, front three-quarter view, standing.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "catches",
+  "out": "c_catches_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy catches a red ball: both arms reach forward with open hands, the ball is in the air just in front of his hands, a moment before he catches it, eyes on the ball. Side view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "writes",
+  "out": "c_writes_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. The boy sits at a small table and writes in an open lined school notebook with a blue pen. The notebook faces the viewer (rotated towards us, readable from the viewer's side), and on its first line there are three large, clear, upright handwritten Russian capital letters: А, М, А, followed by an empty line. No picture in the notebook. The pen tip touches the paper right after the last letter. Side three-quarter view. No other text, no numbers, no logos.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "crawls",
+  "out": "c_crawls_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy crawls on a plain soft rug on hands and knees, moving forward, looking ahead, one hand lifted in the middle of a step. Side view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "flies",
+  "out": "c_flies_bird",
+  "prompt": "Clean children's picture-book illustration in exactly the same drawing style as the attached image (soft flat colours, clear dark outlines, gentle simple shading), plain very light warm-grey background exactly like it, only the objects named here. No text, no letters, no numbers, no logos. No people. A small blue songbird flies through the air, wings spread wide in mid-flap, body horizontal, nothing below it, clearly in flight, not perched. Realistic bird, no human face or expression.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "flies",
+  "out": "c_flies_butterfly",
+  "prompt": "Clean children's picture-book illustration in exactly the same drawing style as the attached image (soft flat colours, clear dark outlines, gentle simple shading), plain very light warm-grey background exactly like it, only the objects named here. No text, no letters, no numbers, no logos. No people. A yellow butterfly flies through the air, wings open, a dotted curved line behind it showing its flight path, nothing below it. Realistic butterfly, no human face.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "closes",
+  "out": "c_closes_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman is closing the lid of the same cardboard box on the same table, side view: copy the lid position from the boy's picture exactly — the lid is still clearly OPEN at an angle of about 30 degrees, hinged at the back edge, with a visible dark gap between the lid and the box; her hand rests on top of the lid pushing it down, curved motion lines above the lid.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_closes_boy.png"
+  ]
+ },
+ {
+  "id": "swings",
+  "out": "c_swings_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman sits on the same swing, swinging forward, legs stretched out in front, hands on the ropes, happy face. The swing frame is tall enough for an adult.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_swings_boy.png"
+  ]
+ },
+ {
+  "id": "blows",
+  "out": "c_blows_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman blows soap bubbles from a bubble wand held near her rounded lips, round bubbles float away in front of her face.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_blows_boy.png"
+  ]
+ },
+ {
+  "id": "bathes",
+  "out": "c_bathes_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman sits in the same white bathtub full of foam, only her head, shoulders and arms above the foam, splashing water with one hand, the yellow rubber duck floating; her hair is in the same bob. Modest, no nudity visible. Here she wears no clothes visible above the foam except bare shoulders.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_bathes_boy.png"
+  ]
+ },
+ {
+  "id": "takes_off",
+  "out": "c_takes_off_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman sits on the same low bench and takes off a navy flat shoe: she pulls it off her foot with both hands, the shoe halfway off the heel, the other shoe already off on the floor next to the bench.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_takes_off_boy.png"
+  ]
+ },
+ {
+  "id": "takes",
+  "out": "c_takes_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman bends down and picks up the same red ball from the floor, her hand grasping the ball just above the floor.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_takes_boy.png"
+  ]
+ },
+ {
+  "id": "wipes",
+  "out": "c_wipes_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman dries her hands with the same small blue towel next to the same white sink, rubbing her hands in the towel, hands and face dry, no running water.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_wipes_boy.png"
+  ]
+ },
+ {
+  "id": "claps",
+  "out": "c_claps_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman claps her hands in front of her chest, palms just meeting, small motion lines around the hands, happy face, front view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_claps_boy.png"
+  ]
+ },
+ {
+  "id": "tidies",
+  "out": "c_tidies_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman puts toys away into the same big open toy box: she drops a toy car into it, two last blocks lie on the floor next to the box.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_tidies_boy.png"
+  ]
+ },
+ {
+  "id": "builds",
+  "out": "c_builds_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman kneels in the same small sandbox and builds a sand castle, turning the yellow bucket of sand upside down onto a castle with two towers, the small spade next to her.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_builds_boy.png"
+  ]
+ },
+ {
+  "id": "combs",
+  "out": "c_combs_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman combs her chin-length bob with the same blue comb, the comb in her hair on the side of her head.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_combs_boy.png"
+  ]
+ },
+ {
+  "id": "catches",
+  "out": "c_catches_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman catches the same red ball: both arms reach forward with open hands, the ball in the air just in front of her hands, a moment before she catches it.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_catches_boy.png"
+  ]
+ },
+ {
+  "id": "writes",
+  "out": "c_writes_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. Apart from the three letters in the notebook, no text, no numbers, no logos. Action: The woman sits at the same small table and writes in the same open lined school notebook with a blue pen; three large clear upright handwritten Russian capital letters А, М, А on the first line; the pen tip touches the paper after the last letter.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_writes_boy.png"
+  ]
+ },
+ {
+  "id": "crawls",
+  "out": "c_crawls_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman crawls on the same soft rug on hands and knees, moving forward, playful face, one hand lifted mid-step.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_crawls_boy.png"
+  ]
+ }
+]
