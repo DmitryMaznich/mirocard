@@ -42,7 +42,7 @@ TAIL = [(9.00, 0.00), (29.40, -18.95), (39.12, -26.00)]
 # the flag of Ъ as a sharp «М», the copybook writes a wave (owner, 2026-10-18: «сгладь только флажок»); the rest keeps its corners.
 LETTERS = {
     # Ъ: from the font now (owner, 2026-10-18: the freehand one «далёк от образца»); its capture stays in captures/ as the record
-    "Ъ": {"font": True, "tail": True, "flag": 3.0, "note": "Ъ (болгарская заглавная: флажок, стойка, овал строчной высоты)"},
+    "Ъ": {"font": True, "flag": 3.0, "note": "Ъ (болгарская заглавная: флажок, стойка, овал строчной высоты; без связки: соединения отдельно, владелец 2026-10-19)"},
 }
 
 
