@@ -49,6 +49,7 @@ jobs:
       - name: Language and rollout unit checks
         run: |
           node tests/localization/ui-language.test.mjs
+          node tests/localization/account-languages.test.mjs
           node tests/localization/rollout.test.mjs
       - name: Vitest
         run: npx vitest run
