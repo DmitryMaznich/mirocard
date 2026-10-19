@@ -10,7 +10,7 @@
  {
   "id": "lies",
   "out": "c_lies_boy",
-  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy lies on his back on a plain soft light-blue rug on the floor, seen from the side, whole body flat on the rug, arms relaxed along his body, eyes clearly wide open, head turned slightly towards the viewer, calm face. No bed, no pillow, no blanket, nothing in his hands — he is awake and only lying.",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. Horizontal composition: the floor is a horizontal line in the lower part of the picture. The boy lies on his back on a plain soft light-blue rug on that floor, his body stretched out horizontally from left to right, parallel to the floor — camera at floor level, side view, NOT seen from above; his head rests directly on the rug, arms relaxed along his body, eyes clearly wide open, head turned slightly towards the viewer, calm face. No bed, no pillow, no blanket, nothing in his hands — he is awake and only lying.",
   "refs": [
    "tools/verbs_v2/generated/ref_boy_illu.png"
   ]
@@ -50,7 +50,7 @@
  {
   "id": "gets_dressed",
   "out": "c_gets_dressed_boy",
-  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands and puts on a plain yellow zip-up jacket over his clothes: his left arm is already in its sleeve, his right arm is reaching back into the second sleeve, the jacket half on, his face fully visible and looking at the sleeve. Front three-quarter view.",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands and puts on a plain yellow zip-up jacket over his clothes: his left arm is already in its sleeve, his right arm is reaching back into the second sleeve, the jacket half on, his face fully visible and looking at the sleeve with a calm, content face (not sad, not frowning). Front three-quarter view.",
   "refs": [
    "tools/verbs_v2/generated/ref_boy_illu.png"
   ]
