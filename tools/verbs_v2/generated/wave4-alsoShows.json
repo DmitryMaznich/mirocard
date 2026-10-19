@@ -1,0 +1,68 @@
+{
+ "c_gives_boy": [
+  "stands"
+ ],
+ "c_gives_mom": [
+  "stands"
+ ],
+ "c_opens_boy": [
+  "stands"
+ ],
+ "c_opens_mom": [
+  "stands"
+ ],
+ "c_washes_hands_boy": [
+  "stands"
+ ],
+ "c_washes_hands_mom": [
+  "stands"
+ ],
+ "c_gets_dressed_boy": [
+  "stands"
+ ],
+ "c_gets_dressed_mom": [
+  "stands"
+ ],
+ "v_gives_1": [
+  "stands"
+ ],
+ "v_gives_2": [
+  "stands"
+ ],
+ "v_gives_3": [
+  "stands"
+ ],
+ "v_gives_4": [
+  "stands"
+ ],
+ "v_opens_1": [
+  "stands"
+ ],
+ "v_opens_2": [
+  "stands"
+ ],
+ "v_opens_3": [
+  "sits"
+ ],
+ "v_throws_4": [
+  "stands"
+ ],
+ "v_washes_hands_2": [
+  "stands"
+ ],
+ "v_washes_hands_3": [
+  "stands"
+ ],
+ "v_washes_hands_4": [
+  "stands"
+ ],
+ "v_gets_dressed_1": [
+  "stands"
+ ],
+ "v_gets_dressed_2": [
+  "sits"
+ ],
+ "v_gets_dressed_4": [
+  "stands"
+ ]
+}

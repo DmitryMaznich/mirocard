@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { openDb } from "@/core/db";
-import { applyLayout, emptyLibrary, loadLibrary, migrateToNotebooks, normalizeLibrary, openKitCopies, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
+import { applyLayout, emptyLibrary, loadLibrary, mergeNotebook, migrateToNotebooks, normalizeLibrary, openKitCopies, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveLibrary, upsertPage, upsertSet } from "./storage.js";
 import { newPage, newRow, newSet } from "./model.js";
 
 describe("propis2 library storage", () => {
@@ -113,5 +113,47 @@ describe("propis2 library storage", () => {
     const once = openKitCopies(lib);
     expect(once.pages.map((p) => p.locked)).toEqual([false, false, false, true]);
     expect(openKitCopies(once)).toBe(once);
+  });
+
+  describe("saving an open notebook while another device edits it", () => {
+    const setup = () => {
+      const a = newPage("A", { rows: [newRow({ text: "а" })], updatedAt: 1 });
+      const b = newPage("B", { rows: [newRow({ text: "б" })], updatedAt: 1 });
+      const st = newSet("Тетрадь", { pageIds: [a.id, b.id], updatedAt: 1 });
+      const lib = { ...emptyLibrary(), pages: [a, b], sets: [st] };
+      return { a, b, st, lib };
+    };
+    const text = (lib, id) => lib.pages.find((p) => p.id === id).rows[0].text;
+
+    it("writes only the pages edited in the session: a newer text from another device survives", () => {
+      const { a, b, st, lib: base } = setup();
+      // the session edits page A; meanwhile another device's text of page B arrives into the library
+      const session = { ...base, pages: [{ ...a, rows: [newRow({ text: "мама" })] }, b] };
+      const library = { ...base, pages: [a, { ...b, rows: [newRow({ text: "папа" })], updatedAt: 5 }] };
+      const saved = mergeNotebook(library, session, st.id, base);
+      expect(text(saved, a.id)).toBe("мама");
+      expect(text(saved, b.id)).toBe("папа");
+      expect(saved.pages.find((p) => p.id === b.id).updatedAt).toBe(5);
+      expect(saved.sets[0]).toBe(library.sets[0]); // the set was not changed: not restamped
+    });
+
+    it("a page another device added to the notebook is kept, not deleted", () => {
+      const { a, b, st, lib: base } = setup();
+      const c = newPage("C", { rows: [newRow({ text: "в" })], updatedAt: 5 });
+      const library = { ...base, pages: [a, b, c], sets: [{ ...st, pageIds: [a.id, b.id, c.id], updatedAt: 5 }] };
+      // the session took page B out of the notebook
+      const session = { ...base, sets: [{ ...st, pageIds: [a.id] }] };
+      const saved = mergeNotebook(library, session, st.id, base);
+      expect(saved.sets[0].pageIds).toEqual([a.id, c.id]);
+      expect(saved.pages.map((p) => p.id).sort()).toEqual([a.id, c.id].sort());
+      expect(saved.deleted[`propis2:page:${b.id}`]).toBeTruthy();
+    });
+
+    it("a notebook new to the library (a ready one just copied) is written whole", () => {
+      const { a, b, st, lib: base } = setup();
+      const saved = mergeNotebook(emptyLibrary(), base, st.id, base);
+      expect(saved.sets.map((x) => x.id)).toEqual([st.id]);
+      expect(saved.pages.map((p) => p.id).sort()).toEqual([a.id, b.id].sort());
+    });
   });
 });

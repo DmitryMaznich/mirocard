@@ -146,18 +146,40 @@ export function presetsToNotebooks(library) {
 
 // What the adult confirmed goes into the library as THAT notebook only (its set and its pages; pages taken out of it are deleted):
 // the rest of the library is whatever it is now, so a pull that came in while editing is not overwritten.
-export function mergeNotebook(library, sessionLib, sid) {
+// `base`: the library the session started from. With it only what the session itself changed is written: a page edited on another
+// device meanwhile is not overwritten by this session's untouched (older) copy restamped as the newest, and a page another device
+// added to the notebook is not deleted. Without it (a draft resumed) the whole notebook is written.
+export function mergeNotebook(library, sessionLib, sid, base = null) {
   const next = sessionLib.sets.find((st) => st.id === sid);
   const old = library.sets.find((st) => st.id === sid);
   if (!next) return old ? removeSet(library, sid) : library;
+  const baseSet = base?.sets.find((st) => st.id === sid) ?? null;
+  const basePages = new Map((base?.pages ?? []).map((p) => [p.id, p]));
   let lib = library;
   const keep = new Set(next.pageIds);
-  for (const id of old?.pageIds ?? []) if (!keep.has(id)) lib = removePage(lib, id);
+  const removed = baseSet ? baseSet.pageIds.filter((id) => !keep.has(id)) : (old?.pageIds ?? []).filter((id) => !keep.has(id));
+  for (const id of removed) if (lib.pages.some((p) => p.id === id)) lib = removePage(lib, id);
   for (const id of next.pageIds) {
     const pg = sessionLib.pages.find((p) => p.id === id);
-    if (pg) lib = upsertPage(lib, pg);
+    const inLibrary = library.pages.some((p) => p.id === id);
+    if (pg && !(base && inLibrary && sameDoc(pg, basePages.get(id)))) lib = upsertPage(lib, pg);
   }
-  return upsertSet(lib, next);
+  if (!baseSet || !old) return upsertSet(lib, next);
+  if (sameDoc(next, baseSet) && !removed.length) return lib;
+  // pages another device put into this notebook meanwhile stay in it
+  const now = lib.sets.find((st) => st.id === sid);
+  const added = (now?.pageIds ?? []).filter((id) => !keep.has(id) && !baseSet.pageIds.includes(id));
+  return upsertSet(lib, added.length ? { ...next, pageIds: [...next.pageIds, ...added] } : next);
+}
+
+const docJson = (doc) => (doc ? JSON.stringify({ ...doc, updatedAt: undefined }) : "");
+const sameDoc = (a, b) => Boolean(a && b) && docJson(a) === docJson(b);
+
+// Everything a notebook is made of (its set and its pages), to tell whether a sync changed it.
+export function notebookJson(library, sid) {
+  const st = library.sets.find((x) => x.id === sid);
+  if (!st) return "";
+  return JSON.stringify([st, ...st.pageIds.map((id) => library.pages.find((p) => p.id === id) ?? null)]);
 }
 
 export const setTitleOf = (lib, sid, title) => ({ ...lib, sets: lib.sets.map((st) => (st.id === sid ? { ...st, title } : st)) });

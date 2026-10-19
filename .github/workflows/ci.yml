@@ -115,3 +115,37 @@ jobs:
           MIROCARD_EXPECTED_SHA: ${{ github.event_name == 'push' && github.sha || '' }}
           MIROCARD_EXPECT_LOCALIZATION: ${{ github.event_name == 'push' && '1' || '0' }}
         run: node scripts/verify-localization-rollout.mjs
+
+  container-smoke:
+    name: Production container startup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the Railway production image
+        run: docker build --build-arg RAILWAY_GIT_COMMIT_SHA="$GITHUB_SHA" -t mirocard-runtime-check .
+      - name: Start an isolated production container with test-only configuration
+        run: |
+          docker run -d --name mirocard-runtime-check -p 127.0.0.1:3012:3012 \
+            -e SERVE_STATIC=1 -e MIROCARD_DATA_DIR=/data -e RAILWAY_ENVIRONMENT=ci -e RAILWAY_GIT_COMMIT_SHA="$GITHUB_SHA" \
+            -e AUTH_SECRET=ci-auth-not-a-secret -e ACCOUNT_SECRET=ci-account-not-a-secret \
+            -e MIROCARD_DEPLOY_TOKEN=ci-deploy-not-a-secret -e MIROCARD_ADMIN_TOKEN=ci-admin-not-a-secret \
+            -e RESEND_API_KEY=ci-unused-mail-key -e LEGAL_DOCS_VERSION=draft \
+            mirocard-runtime-check
+      - name: Verify image startup, database, SPA and catalog
+        env:
+          MIROCARD_PUBLIC_URL: http://127.0.0.1:3012
+          MIROCARD_EXPECTED_SHA: ${{ github.sha }}
+          MIROCARD_EXPECT_LOCALIZATION: '1'
+        run: |
+          curl --fail --silent --show-error --retry 30 --retry-all-errors --retry-connrefused --retry-delay 1 --retry-max-time 45 --max-time 2 http://127.0.0.1:3012/api/healthz
+          timeout 45s node scripts/verify-localization-rollout.mjs
+      - name: Container logs
+        if: always()
+        run: docker logs mirocard-runtime-check || true
+      - name: Clean up test container
+        if: always()
+        run: docker rm -f mirocard-runtime-check || true

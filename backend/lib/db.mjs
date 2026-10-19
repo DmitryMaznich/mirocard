@@ -345,6 +345,12 @@ export function initDb(dbPath = DB_PATH) {
     db.exec("ALTER TABLE student_topic_links ADD COLUMN video_reward_enabled INTEGER DEFAULT 1");
     db.exec("ALTER TABLE student_topic_links ADD COLUMN reward_threshold INTEGER DEFAULT 90");
   }
+  // Star settings and deck position were sent by clients but never stored, so
+  // they never reached other devices. NULL means "never chosen": the client
+  // falls back to the mode's own default.
+  for (const [column, type] of [["answers_per_star", "INTEGER"], ["strict_stars", "INTEGER"], ["deck_position", "INTEGER"]]) {
+    if (!linkColumns.some(c => c.name === column)) db.exec(`ALTER TABLE student_topic_links ADD COLUMN ${column} ${type}`);
+  }
 
   const sessionColumns = db.prepare("PRAGMA table_info(sessions)").all();
   for (const [column, type] of [["record_state", "TEXT NOT NULL DEFAULT 'final'"], ["record_revision", "INTEGER NOT NULL DEFAULT 0"], ["record_updated_at", "TEXT"]]) {

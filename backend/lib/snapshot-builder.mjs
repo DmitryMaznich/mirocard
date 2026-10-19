@@ -78,6 +78,9 @@ export function buildBootstrap(db, accountId) {
       params:             safeJson(l.params, {}),
       videoRewardEnabled: Boolean(l.video_reward_enabled ?? 1),
       rewardThreshold:    l.reward_threshold ?? 90,
+      answersPerStar:     l.answers_per_star ?? null,
+      strictStars:        l.strict_stars == null ? null : Boolean(l.strict_stars),
+      deckPosition:       l.deck_position ?? null,
       updatedAt:          l.updated_at,
     })),
     conceptProgress: conceptProgress.map((p) => ({

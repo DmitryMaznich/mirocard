@@ -269,7 +269,7 @@ function generateYesNoTasks(concepts, params) {
         if (useCorrect) {
           displayLabel = accusativeLabel(concept.primary) ?? concept.conceptId;
         } else {
-          const others = concepts.filter((c) => c.conceptId !== concept.conceptId);
+          const others = concepts.filter((c) => c.conceptId !== concept.conceptId && !alsoShows(targetCard, c.conceptId));
           const distractor = others[Math.floor(Math.random() * others.length)];
           displayLabel = accusativeLabel(distractor?.primary) ?? accusativeLabel(concept.primary);
         }
@@ -311,6 +311,20 @@ function sameAgePool(concept, concepts, minSize = 2) {
   return narrowed.length >= minSize ? narrowed : concepts;
 }
 
+// card.alsoShows: concepts a picture shows besides its own action - verbs_v2's
+// «ест» boy sits on a chair, so in «Покажи: сидит» that card is a second right
+// answer. A card never stands in for (is never a distractor of) a concept it
+// also shows; a concept left with no such card drops out of the pool. A no-op
+// for topics whose cards never set alsoShows.
+const alsoShows = (card, conceptId) => card?.alsoShows?.includes(conceptId) ?? false;
+function withoutCardsShowing(concepts, targetConceptId) {
+  return concepts.map((c) => {
+    if (c.conceptId === targetConceptId || !c.cards.some((card) => alsoShows(card, targetConceptId))) return c;
+    const cards = c.cards.filter((card) => !alsoShows(card, targetConceptId));
+    return { ...c, cards, primary: cards.find((card) => card.primary) ?? cards[0] ?? c.primary };
+  }).filter((c) => c.cards.length > 0);
+}
+
 function generateFindNTasks(concepts, params) {
   const reps        = params.repsPerConcept ?? 1;
   const optionCount = params.optionCount    ?? 4;
@@ -323,7 +337,7 @@ function generateFindNTasks(concepts, params) {
       // with 3 images must produce 3 find_n tasks (x reps), otherwise most of
       // its variations never appear in a session at all.
       for (const targetCard of concept.cards) {
-        const pool = sameAgePool(concept, concepts, optionCount);
+        const pool = sameAgePool(concept, withoutCardsShowing(concepts, concept.conceptId), optionCount);
         const distractorCount = Math.min(optionCount - 1, pool.length - 1);
         const distractorIds   = selectDistractorConceptIds(
           concept.conceptId, pool, distractorCount, difficulty
@@ -390,7 +404,9 @@ function generateChooseWordTasks(concepts, params) {
       // One task per photo variation, not one random pick per rep - see
       // generateFindNTasks for why.
       for (const targetCard of concept.cards) {
-        const pool = sameAgePool(concept, concepts, 4);
+        // The picture's other actions are right answers too, so never offer
+        // them as wrong words.
+        const pool = sameAgePool(concept, concepts.filter((c) => !alsoShows(targetCard, c.conceptId)), 4);
         const distractorCount = Math.min(3, pool.length - 1);
         const distractorIds   = selectDistractorConceptIds(
           concept.conceptId, pool, distractorCount, "medium"
@@ -428,9 +444,10 @@ function generateChooseAllTasks(concepts, params) {
     for (let start = 0; start < concept.cards.length; start += maxTargets) {
       const targetCards    = concept.cards.slice(start, start + maxTargets);
       const distractorCount = gridSize - targetCards.length;
-      const distractorIds  = selectDistractorConceptIds(concept.conceptId, concepts, distractorCount, "medium");
+      const pool = withoutCardsShowing(concepts, concept.conceptId);
+      const distractorIds  = selectDistractorConceptIds(concept.conceptId, pool, distractorCount, "medium");
       const distractorCards = distractorIds.map((cid) => {
-        const dc = concepts.find((c) => c.conceptId === cid);
+        const dc = pool.find((c) => c.conceptId === cid);
         return pickVariation(dc);
       });
 
