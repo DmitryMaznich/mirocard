@@ -119,8 +119,19 @@ describe("flashcards engine additions", () => {
   it("act_out only offers actions a child can do in the room", () => {
     const tasks = generateTasks("act_out", deriveConcepts(deck.cards), deck.cards, {});
     const ids = tasks.map((t) => t.conceptId);
-    for (const id of ["sleeps", "swims", "rides", "cries", "cuts_knife", "waters_plants", "vacuums"]) expect(ids).not.toContain(id);
-    expect(ids).toHaveLength(13);
+    for (const id of ["sleeps", "swims", "rides", "cries", "cuts_knife", "waters_plants", "vacuums", "falls"]) expect(ids).not.toContain(id);
+    expect(ids).toHaveLength(21);
+  });
+
+  it("wave 4 postures: no picture that also shows сидит / стоит / лежит is a wrong answer for it", () => {
+    const all = deriveConcepts(deck.cards);
+    for (let i = 0; i < 10; i++) {
+      for (const t of generateTasks("find_n", all, deck.cards, { optionCount: 4 })) {
+        for (const o of t.options.filter((option) => !option.isTarget)) {
+          expect(o.card.alsoShows ?? []).not.toContain(t.targetConceptId);
+        }
+      }
+    }
   });
 
   it("act_out speaks the imperative of each verb once", () => {
