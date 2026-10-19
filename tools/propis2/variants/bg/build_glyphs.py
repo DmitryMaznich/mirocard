@@ -480,6 +480,18 @@ def font_flag(cmds, label, tol=0.3):
 
 DEEPEN = {"П:2": 3.0}  # a whole stroke's flat run along the top sagged this much more in the middle (paper units)
 FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (font_flag, exact from font_flags.json)
+# SPLIT: the font's pen path cut at its turns back (_turns) into separate strokes: (first, last) piece of each stroke, the rest left
+# out. Х's walk went down the left half to the end of its hook, back up over it to the top of the right half, and back down that;
+# the returns drew double lines (owner, 2026-10-19). Kept: the left half, then the right half from its top through the crossing to
+# the exit. Ю, Н: the stem with its hook, then from the stem (where the walk leaves it again) the rest; the way back up the stem
+# drew it twice (the stem tidied onto the slant, the way up keeping its own angle).
+SPLIT = {"Х": [(0, 0), (2, 2)], "Ю": [(0, 0), (1, 1)], "Н": [(0, 0), (1, 2)]}
+# SPURS: letters whose walk runs out along a short dead end and back (two turns back close together); the dead end is cut. Ю: a
+# tick past the bar's join with the oval (owner, 2026-10-19: «лишняя чёрточка у перекладины»).
+SPURS = set("Ю")
+# NO_EXIT: nothing joins after these, whatever _exit_flags finds: Ю's oval ends back at its bar, inside the letter, as О's does
+# (О gets noExit by itself; Ю's end lies a hair right of the letter's middle, and «Юла» joined from the bar into the oval)
+NO_EXIT = set("Ю")
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
@@ -542,6 +554,48 @@ def _drop_retrace(p, near=2.5, gap=30):
     return p[:i + 1]
 
 
+def _turns(p, k=5):
+    """Where the pen path turns straight back on itself (the direction over `k` points before and after a point reverses): the
+    sharpest point of each such run."""
+    out = []
+    for i in range(k, len(p) - k):
+        a, b = p[i] - p[i - k], p[i + k] - p[i]
+        c = np.dot(a, b) / (np.hypot(*a) * np.hypot(*b) + 1e-9)
+        if c < -0.5:
+            if out and i - out[-1][0] <= k:
+                if c < out[-1][1]: out[-1] = (i, c)
+            else: out.append((i, c))
+    return [i for i, _ in out]
+
+
+def _drop_spurs(p, span=40, near=1.0):
+    """A dead end the walk runs out along and back (two turns back within `span` points): cut from where the path first reaches the
+    place it leaves the dead end to that place, so the line goes straight on (Ю's bar)."""
+    p = dg.resample(np.asarray(p, float), 0.6)
+    t = _turns(p)
+    for a, b in zip(t, t[1:]):
+        if b - a > span: continue
+        j = next(j for j in range(b, len(p)) if np.min(np.hypot(*(p[:a] - p[j]).T)) > near)  # off the line drawn before
+        i = int(np.argmin(np.hypot(*(p[:a] - p[j]).T)))
+        return _drop_spurs(np.vstack([p[:i], p[j:]]), span, near)
+    return p
+
+
+def _split(label, p, near=1.0):
+    """SPLIT: the pen path cut at its turns back into pieces, only SPLIT[label]'s kept, each its own stroke; a piece starting back
+    over a kept one starts where it leaves it."""
+    p = dg.resample(np.asarray(p, float), 0.6)
+    cuts = [0] + _turns(p) + [len(p) - 1]
+    out = []
+    for a, b in SPLIT[label]:
+        q = p[cuts[a]:cuts[b + 1] + 1]
+        if out:
+            before = np.vstack(out)
+            q = q[next(i for i in range(len(q)) if np.min(np.hypot(*(before - q[i]).T)) > near):]
+        out.append(q)
+    return out
+
+
 def flag_like(cmds, source):
     """Ъ: its flag (from the start over the top into the stem) is К's, as tidied (owner, 2026-10-18: «флажок слева должен быть как
     у К»): К's path up to where its stem's line begins, moved so that point lies on this letter's stem line at the same height
@@ -563,7 +617,10 @@ def font_letter(label, script, spec):
     (spec "tail"). Ъ: the owner's freehand Ъ (2026-10-18, before the underlays) stood far from the font («далёк от образца»)."""
     tt.use_script(script)
     PAPER_LABEL[0] = label
-    paper = [tt.tidy_stroke(_drop_retrace(p), tt.CAP_TOP) for p in font_stencil(label)]
+    pens = [_drop_retrace(p) for p in font_stencil(label)]
+    if label in SPURS: pens = [_drop_spurs(p) for p in pens]
+    if label in SPLIT: pens = [q for p in pens for q in _split(label, p)]
+    paper = [tt.tidy_stroke(p, tt.CAP_TOP) for p in pens]
     allp = np.vstack([tt.parse_path(dg.fmt(c)) for c in paper])
     k2 = (tt.BASE - tt.CAP_TOP) / (tt.BASE - allp[:, 1].min())  # the tidied letter exactly between its lines, as tidy_letter does
     paper = [[(c, list(tt.shear_scale(np.array(ps, float), k2))) for c, ps in cmds] for cmds in paper]
@@ -592,6 +649,7 @@ def font_letter(label, script, spec):
            "repeatCells": 6, "ascender": True, "noNormalize": True, "sourceLabel": f"{spec['note']}; путь пера шрифта Boyan Maga, подровнен"}
     if max(q[1] for st in out["strokes"] for q in tt.parse_path(st["d"])) > FOOT_Y + 5: out["descender"] = True
     if not spec.get("tail"): _exit_flags(out)
+    if label in NO_EXIT: out.pop("exitStroke", None); out["noExit"] = True
     if spec.get("tail"):
         pts = np.array(tt.parse_path(out["strokes"][-1]["d"]))
         bottom = pts[pts[:, 1].argmax()]
