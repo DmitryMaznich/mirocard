@@ -646,6 +646,31 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1):
     return new
 
 
+def flat_hat_to_font_end(strokes, label, stroke=1, flat_deg=10.0, tol=0.1):
+    """After snap_to_font: the hat's run along the top is a straight line to where the font's hat ends (owner, 2026-10-19, Б: the
+    font's run is practically straight and goes on a little further than ours; following the skeleton made it wavy, and snapping
+    across never lengthens a stroke). The run starts where the hat's direction first comes within `flat_deg` of level; it ends at the
+    centre of the pen's round end: the outline's furthest point along the top, less half the hat's thickness, halfway between the
+    outline's top and bottom there. The curve before it is refitted to run into it without a corner."""
+    sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
+    fn = stencil_map(label, like=np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in PAPER_UNSNAPPED[label]]))
+    ink = np.vstack([fn(np.array(poly, float)) for poly in sk["outline"]])
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[stroke]))), 0.3)
+    d = np.diff(p, axis=0); ang = np.degrees(np.arctan2(-d[:, 1], d[:, 0]))
+    level = (np.abs(ang) < flat_deg) & (d[:, 0] > 0)
+    i0 = int(np.argmax(level))  # where the curve over the top first comes level
+    band = ink[np.abs(ink[:, 1] - p[i0:, 1].mean()) < 8]
+    x_ink = band[:, 0].max()
+    mid = band[np.abs(band[:, 0] - (p[i0, 0] + x_ink) / 2) < 1.0]
+    r = (mid[:, 1].max() - mid[:, 1].min()) / 2
+    at = band[np.abs(band[:, 0] - (x_ink - r)) < 1.0]
+    end = np.array([x_ink - r, (at[:, 1].max() + at[:, 1].min()) / 2])
+    run = tt._unit(end - p[i0])
+    head = p[:i0 + 1]
+    strokes[stroke] = [("M", [head[0]])] + tt._fit_span(head, tt._unit(head[4] - head[0]), run, tol=tol) + [("L", [end])]
+    return strokes
+
+
 DEEPEN = {"П:2": 3.0}  # a whole stroke's flat run along the top sagged this much more in the middle (paper units)
 FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (font_flag, exact from font_flags.json)
 # SPLIT: the font's pen path cut at its turns back (_turns) into separate strokes: (first, last) piece of each stroke, the rest left
@@ -663,7 +688,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Б": lambda s: snap_to_font(s, "Б"), "В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)

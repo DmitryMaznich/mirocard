@@ -77,7 +77,10 @@ def main():
     skel = {}
     for ch in SKELETON:
         sk, fork = skeleton_of(gs, cm, ch)
-        skel[ch] = {"pts": [[round(float(x), 2), round(float(y), 2)] for x, y in sk], "forks": [[round(float(x), 2), round(float(y), 2)] for x, y in fork]}
+        pen = fg.Flat(gs); gs[cm[ord(ch)]].draw(pen)
+        ink = [[[round(float(v), 2) for v in fg.to_bank(x, y)] for x, y in poly] for poly in pen.polys]
+        skel[ch] = {"pts": [[round(float(x), 2), round(float(y), 2)] for x, y in sk], "forks": [[round(float(x), 2), round(float(y), 2)] for x, y in fork],
+                    "outline": ink}
         print(ch, len(sk), "skeleton points,", len(fork), "forks")
     (HERE / "font_skeleton.json").write_text(json.dumps({"note": "The Boyan Maga skeleton (font_flags.py SKELETON), bank units", "letters": skel}, ensure_ascii=False))
 
