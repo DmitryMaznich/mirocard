@@ -32,6 +32,7 @@ VARIANT = HERE / "variant.json"
 # evenly to the capital's height too (stencil_map), so on the new paper it is the same letter over the same font, only smaller
 DESIGN = {"slantDeg": 76, "upper": 1.526, "lower": 1.465}
 CAP_K = (1 + json.loads(VARIANT.read_text())["meta"]["script"]["upper"]) / (1 + DESIGN["upper"])
+DECK_LOWER = json.loads(VARIANT.read_text())["meta"]["script"]["lower"]
 CAPTURES = HERE / "captures"
 FOOT_Y = 62.0  # the bottom of a capital's bowl on the baseline, as the deck's capitals (Б, В, Ь-like bowls) stand
 # Б's connector in wide.json, from the bottom of its bowl: "M 156.94 62.00 C 165.94 62.00 186.34 43.05 196.06 36.00", relative
@@ -1262,6 +1263,21 @@ def fit_between_lines(strokes):
     return [[(c, [move(q) for q in ps]) for c, ps in cmds] for cmds in strokes]
 
 
+def stem_down(strokes, k=0, cut=24.0):
+    """Ф through all three bands (owner, 2026-10-19, after the teacher's video: «растяни Ф на три полосы»; svetlinki.com: «Главната
+    Ф — и в двата широки реда»): stroke `k`'s stem cut `cut` units above the baseline (on its straight run, over the hook) and
+    the rest moved down along the slant until the hook's bottom stands on the bottom line of the deck's paper (its place on
+    DESIGN's paper, rescaled() makes the letter smaller); a line along the slant fills the gap. The flag and the ears stay."""
+    low = tt.BASE + tt.R_BAND * DECK_LOWER / CAP_K
+    allp = np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes])
+    d = low - allp[:, 1].max()
+    cmds = tt._split_at(strokes[k], [tt.BASE - cut])
+    i = next(i for i, (_, ps) in enumerate(cmds) if abs(ps[-1][1] - (tt.BASE - cut)) < 1e-6)
+    at, shift = np.asarray(cmds[i][1][-1], float), np.array([-d * tt.SLANT_T, d])
+    rest = [(c, [np.asarray(q, float) + shift for q in ps]) for c, ps in cmds[i + 1:]]
+    return strokes[:k] + [cmds[:i + 1] + [("L", [at + shift])] + rest] + strokes[k + 1:]
+
+
 def cusp_to_font_tip(strokes, label, k=0, back=16.0, tol=0.1):
     """A waist that turns back to a point (З, like Е: two arcs meeting at a point, not a loop or a bulge) drawn into the tip of the
     font's (the centre of the pen's round end there). snap_to_font rounds such a turn (the sides' normals flip there), so the path
@@ -1333,7 +1349,7 @@ NO_EXIT = set("Ф")  # Ф: its hook ends to the left, under the letter: nothing 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: fit_between_lines(ef_three(flag_corner(s))), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: stem_down(fit_between_lines(ef_three(flag_corner(s)))), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
@@ -1358,7 +1374,7 @@ def underlay_glyph(item, script):
     out = {"label": label, "kind": "letter", "strokes": [{"d": dg.fmt(c)} for c in paths], "stretch": 1.806, "noOverrides": True,
            "repeatCells": 6 if label.isupper() else 4, "sourceLabel": f"{label} (обведена по подложке Boyan Maga, подровнена на болгарской линовке)"}
     if label.isupper(): out["ascender"] = True; out["noNormalize"] = True
-    if label in "дзруфцщ": out["descender"] = True
+    if label in "дзруфцщФ": out["descender"] = True
     _exit_flags(out)
     return out
 
