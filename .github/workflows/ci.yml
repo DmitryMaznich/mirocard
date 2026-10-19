@@ -46,6 +46,10 @@ jobs:
           node-version: 22
       - name: npm ci
         run: npm ci
+      - name: Language and rollout unit checks
+        run: |
+          node tests/localization/ui-language.test.mjs
+          node tests/localization/rollout.test.mjs
       - name: Vitest
         run: npx vitest run
 
@@ -93,3 +97,20 @@ jobs:
       - name: Root security audit (build tooling -- informational, see docs/release-evidence.md)
         run: npm audit --audit-level=high
         continue-on-error: true
+
+  railway-smoke:
+    name: Railway application smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify current production on PR; wait for exact rollout on main
+        env:
+          MIROCARD_EXPECTED_SHA: ${{ github.event_name == 'push' && github.sha || '' }}
+          MIROCARD_EXPECT_LOCALIZATION: ${{ github.event_name == 'push' && '1' || '0' }}
+        run: node scripts/verify-localization-rollout.mjs
