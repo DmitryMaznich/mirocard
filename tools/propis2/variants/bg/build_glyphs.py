@@ -1199,6 +1199,48 @@ def reversed_strokes(strokes, ks=(0,)):
     return strokes
 
 
+def ef_three(strokes, k=0, off=1.0, tol=0.1):
+    """Ф in three strokes, as it is written (owner, 2026-10-19): the flag and the stem in one go down into the hook below the line;
+    a pen lift; the left ear, from the stem at the top round to the left and back to the stem at the bottom; a lift; the right
+    ear, from the stem at the top round to the right and back to the stem at the bottom. The font's pen path ran stem, left ear
+    (from the bottom), right ear, descender in one. The parts are cut where the path leaves the stem's line (`off` units) and
+    meets it again; the ears' ends sit on that line; the stem runs on into the descender through the gap between."""
+    cmds = strokes[k]
+    j = next(i for i in range(1, len(cmds)) if cmds[i][0] == "L")
+    a, b = np.asarray(cmds[j - 1][1][-1], float), np.asarray(cmds[j][1][0], float)
+    d = tt._unit(b - a); n = np.array([-d[1], d[0]])
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(cmds))), 0.3)
+    dist = np.abs((p - a) @ n)
+    ib = int(np.argmin(np.hypot(*(p - b).T)))  # the stem's end (the line's last point)
+    lb = ib + int(np.argmax(dist[ib:] > off))  # the path leaves the stem's line: the left ear begins
+    # the top junction: where the path, round the left ear, comes back to the stem's line near the top
+    up = np.nonzero((np.arange(len(p)) > lb + 30) & (p[:, 1] < tt.X_TOP))[0]
+    jt = int(up[np.argmin(dist[up])])
+    # the right ear comes back to the line at the bottom: from there the descender
+    # the right ear: past its lowest point on the right it turns back up to the stem; it ends where it first reaches the line
+    after = np.arange(len(p)) > jt + 30
+    far = int(np.argmax(np.where(after, dist, -1)))  # its widest point, well away from the stem
+    jb = far + int(np.argmax(dist[far:] < off))
+    on = lambda q: a + d * ((q - a) @ d)  # a point onto the stem's line
+    left = p[lb:jt + 1][::-1].copy(); left[0] = on(left[0]); left[-1] = on(left[-1])
+    right = p[jt:jb + 1].copy(); right[0] = on(right[0]); right[-1] = on(right[-1])
+    # the stem straight on through the junction into the descender: the line to its point at the descender's start, then on
+    k0 = jb + int(np.argmax(dist[jb:] > off))
+    # the line ends 12 units before the descender leaves it and bends smoothly into the hook (ending it right there kinked)
+    stem_end = on(p[max(k0 - 40, jb)])
+    desc = p[min(k0 + 30, len(p) - 6):]
+    L = np.hypot(*(desc[0] - stem_end)); u = np.linspace(0, 1, 20)[:, None]
+    t1 = tt._unit(desc[4] - desc[0])
+    bridge = (2*u**3 - 3*u**2 + 1) * stem_end + (u**3 - 2*u**2 + u) * L * d + (-2*u**3 + 3*u**2) * desc[0] + (u**3 - u**2) * L * t1
+    def fit(q, t0=None, t1_=None):
+        return tt._fit_span(q, tt._unit(q[3] - q[0]) if t0 is None else t0, tt._unit(q[-1] - q[-4]) if t1_ is None else t1_, tol=tol)
+    first = cmds[:j + 1] + [("L", [stem_end])] + fit(np.vstack([bridge, desc[1:]]), d)
+    strokes[k] = first
+    strokes.insert(k + 1, [("M", [left[0]])] + fit(left))
+    strokes.insert(k + 2, [("M", [right[0]])] + fit(right))
+    return strokes
+
+
 def cusp_to_font_tip(strokes, label, k=0, back=16.0, tol=0.1):
     """A waist that turns back to a point (З, like Е: two arcs meeting at a point, not a loop or a bulge) drawn into the tip of the
     font's (the centre of the pen's round end there). snap_to_font rounds such a turn (the sides' normals flip there), so the path
@@ -1270,7 +1312,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": flag_corner, "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: ef_three(flag_corner(s)), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
