@@ -12,7 +12,11 @@ export function isUiLanguage(value) {
 }
 
 export function translateUiMessage(language, key, values = {}) {
-  const message = UI_MESSAGES[language]?.[key] ?? UI_MESSAGES.ru[key] ?? key;
+  const dictionary = UI_MESSAGES[language] ?? UI_MESSAGES.ru;
+  const pluralKey = typeof values.count === "number"
+    ? `${key}_${new Intl.PluralRules(language === "sl" ? "sl-SI" : "ru-RU").select(values.count)}`
+    : key;
+  const message = dictionary[pluralKey] ?? dictionary[key] ?? UI_MESSAGES.ru[pluralKey] ?? UI_MESSAGES.ru[key] ?? key;
   // React renders this as text; never interpret translations as HTML.
   return message.replace(/\{\{(\w+)\}\}/g, (match, name) => Object.hasOwn(values, name) ? String(values[name]) : match);
 }
