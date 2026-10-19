@@ -7,7 +7,7 @@ import { openPdf, pdfFileName, pdfTab, printPdf } from "@/topics/renderers/propi
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
 import { NOTEBOOK_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
-import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, openKitCopies, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
+import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
 import Propis2Editor from "./Propis2Editor";
 import Propis2ShowPanel from "./Propis2ShowPanel";
@@ -82,7 +82,16 @@ export default function Propis2Home({ db }) {
       const res = await api.get(`/account/kv?prefix=${encodeURIComponent(SYNC_PREFIX)}`);
       if (!Array.isArray(res?.kv)) return;
       syncedRef.current = snapshotFromRemote(res.kv);
-      persist(openKitCopies(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(mergeRemote(latest.current, res.kv))))));
+      const before = latest.current;
+      const merged = openKitCopies(pagesTakeNotebookRuling(migrateToNotebooks(presetsToNotebooks(mergeRemote(before, res.kv)))));
+      persist(merged);
+      // The open notebook works on its own copy of the library: bring what another device changed in it onto the screen. Unsaved
+      // edits of this session are carried over onto the new copy; the undo history (made of the old copies) starts over.
+      setSession((cur) => {
+        if (!cur || !merged.sets.some((st) => st.id === cur.sid) || notebookJson(merged, cur.sid) === notebookJson(before, cur.sid)) return cur;
+        const lib = cur.lib === cur.base ? merged : mergeNotebook(merged, cur.lib, cur.sid, cur.base);
+        return { ...cur, lib, base: merged, past: [], future: [] };
+      });
     } catch {
       // offline or signed out: the local library keeps working, the queue catches up later
     }
@@ -109,7 +118,9 @@ export default function Propis2Home({ db }) {
   useEffect(() => {
     const onVisible = () => { if (document.visibilityState === "visible") pullRemote(); };
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
+    // two devices both on screen never fire visibilitychange: pull now and then too (like the app-wide sync in App.jsx)
+    const timer = setInterval(() => { if (document.visibilityState === "visible") pullRemote(); }, 20_000);
+    return () => { document.removeEventListener("visibilitychange", onVisible); clearInterval(timer); };
   }, [pullRemote]);
   useEffect(() => () => { clearTimeout(saveTimer.current); flush(); }, [flush]);
 
@@ -175,7 +186,7 @@ export default function Propis2Home({ db }) {
   // what the adult confirmed goes into the library as THAT notebook only
   const keepSession = (name) => {
     const lib = name ? setTitleOf(session.lib, session.sid, name) : session.lib;
-    persist(mergeNotebook(latest.current, lib, session.sid));
+    persist(mergeNotebook(latest.current, lib, session.sid, session.base));
     return lib;
   };
   const requestLeave = () => { if (dirty) setAsk({ mode: "leave" }); else toLibrary(); };
