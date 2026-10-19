@@ -74,3 +74,68 @@ button.hd-piece { cursor: pointer; touch-action: manipulation; -webkit-tap-highl
    was wider than the tens and pushed the bench off a 360px screen). */
 .sg-screen--phone .hd-bench { column-gap: 6px; padding: 10px 6px 12px; }
 .sg-screen--phone .hd-bench .sg-head { font-size: 13px; padding: 2px 7px; }
+
+/* «Сотни: какое это число?» · «Таблица» (IdentifyHundredsTable): the places
+   as rows — digit, word, and (teaching) room kept for the scheme that comes
+   back after a second mistake — then the number in three cells, the biggest
+   thing on the screen. */
+.hd-rows-screen .sg-board { justify-items: center; }
+/* Rows share the columns (subgrid), so the words and the scheme line up. */
+.hd-rows { display: grid; grid-template-columns: clamp(40px, 6vh, 60px) auto; column-gap: 14px; padding: 0; overflow: hidden; width: fit-content; min-width: min(100%, 240px); }
+.hd-rows--support { grid-template-columns: clamp(40px, 6vh, 60px) auto auto; }
+.hd-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  column-gap: inherit;
+  align-items: center;
+  padding: 4px 20px;
+  min-height: clamp(52px, 7vh, 76px);
+  box-shadow: inset 0 0 0 0 transparent;
+  transition: box-shadow 0.15s;
+}
+.hd-row + .hd-row { border-top: 1px solid #e2e8f0; }
+.hd-row--lit { box-shadow: inset 0 0 0 3px #3b82f6; }
+.hd-row-digit { font-size: clamp(40px, 6.5vh, 64px); line-height: 1; text-align: center; }
+.hd-row-word { font-size: clamp(20px, 3vh, 30px); font-weight: 800; line-height: 1.1; }
+.hd-row-support {
+  --coin-size: 12px;
+  width: calc(var(--coin-size) * 2.1 * 5 + 12px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 3px;
+}
+.hd-row-support--off { visibility: hidden; }
+.sg-screen--phone .hd-row-support { --coin-size: 9px; }
+
+.hd-cells-field { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.hd-cells-label { font-size: 19px; font-weight: 900; color: #1a1a2e; }
+.hd-cells { display: flex; gap: 8px; }
+.hd-cell {
+  width: 62px;
+  height: 84px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border: 2.5px solid #cbd5e1;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 60px;
+  font-weight: 900;
+  color: #1a1a2e;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.hd-cell--active { border-color: #3b82f6; box-shadow: 0 0 0 4px #dbeafe; }
+.hd-cells-field--wrong .hd-cell { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
+.hd-cells-field--ok .hd-cell { border-color: #16a34a; background: #f0fdf4; }
+.sg-screen--tablet .hd-cells-label, .sg-screen--wide .hd-cells-label { font-size: 24px; }
+.sg-screen--tablet .hd-cells, .sg-screen--wide .hd-cells { gap: 12px; }
+.sg-screen--tablet .hd-cell, .sg-screen--wide .hd-cell { width: 92px; height: 124px; font-size: 96px; border-radius: 20px; border-width: 3px; }
+
+/* Portrait tablet: rows → number → keypad, one column (not number beside keys). */
+.hd-rows-screen.sg-screen--tablet .sg-answer { grid-template-columns: auto; grid-template-areas: "num" "status" "keys"; row-gap: 10px; }
+.hd-rows-screen.sg-screen--tablet .sg-slot { height: 336px; }
+.hd-rows-screen.sg-screen--tablet .fp-keys .px-key { height: 54px; }

@@ -259,6 +259,16 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   const exchangeCards       = allCards.filter(c => c.params?.mode === "exchange_ten");
   const groupTenCards       = allCards.filter(c => c.params?.mode === "group_ten");
 
+  // «Сотни: какое это число?» on the table: the places are rows, and from the
+  // third task on about half come in another order (единицы on top…) — the
+  // child reads the number by the rows' words, not top to bottom. The first
+  // two keep the usual order so the screen is learnt first.
+  const tableRowOrder = (i) => {
+    const usual = ["hundreds", "tens", "ones"];
+    if (i < 2 || Math.random() < 0.5) return usual;
+    const others = [["ones", "tens", "hundreds"], ["tens", "ones", "hundreds"], ["ones", "hundreds", "tens"], ["tens", "hundreds", "ones"], ["hundreds", "ones", "tens"]];
+    return others[randomInt(0, others.length - 1)];
+  };
   // «Числа: до 1000» — three-digit numbers for «Какое это число?» and «Собери
   // число» (HundredsTasks.jsx). On coins at most 5 hundreds (up to 599: more
   // plates don't fit a phone). A quarter have no tens and some no ones — the
@@ -279,7 +289,7 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
       const prompt = params.prompt ?? "digits";
       tasks.push({
         type: mode, cardId: cards[i % cards.length].id, conceptId: cards[i % cards.length].conceptId, number,
-        ...(mode === "build_number" ? { target: counts, prompt: prompt === "mix" ? (Math.random() < 0.5 ? "digits" : "words") : prompt === "words" ? "words" : "digits" } : { model: counts, layout: "places" }),
+        ...(mode === "build_number" ? { target: counts, prompt: prompt === "mix" ? (Math.random() < 0.5 ? "digits" : "words") : prompt === "words" ? "words" : "digits" } : { model: counts, layout: "places", ...(view === "table" ? { order: tableRowOrder(i) } : {}) }),
         view, supportMode: params.supportMode ?? "learning",
       });
     }

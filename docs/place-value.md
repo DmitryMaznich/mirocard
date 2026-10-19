@@ -103,6 +103,8 @@ Modes 8, 10–14 are built in `topicLoader.js` from the base modes by `hundreds(
 - Tests (7, 14): skills and pictures are switches, all off by default, tasks
   random, one try, no hints; result lists each mistake with the child's answer.
 - Titles: «Послушай», not «Услышь»; no «дес./ед.» abbreviations on screens.
+- Every proposal about a screen comes with a mockup (PNG on the real component
+  — the harness in "How to work" step 5), before any code.
 
 ### How to work (procedure used for every change)
 
@@ -139,6 +141,11 @@ Modes 8, 10–14 are built in `topicLoader.js` from the base modes by `hundreds(
 - «Сравнение по разрядам до 100» (a smaller step than level 5).
 - Addition with carry still asks «3 + 2 + 1» as one chain — owner hasn't asked
   to split it; ask before changing.
+- Mode 10 table redone as rows «3 сотни / 0 десятков / 5 единиц» + three
+  answer cells (methodology §24). Next, after the owner tries it: the same
+  with two rows / two cells in mode 3 (до 100) and the table in test 7.
+- Thousands: start with «places count from the right» — split «1 305» into
+  classes (owner's idea of writing from the units, kept for this stage).
 - Thousands (box of 10 plates «1000», range до 10 000) — the next big stage;
   agreed to wait until hundreds are tried with children.
 - Known: other topics' catalog/inventory mismatch (report, don't fix);
