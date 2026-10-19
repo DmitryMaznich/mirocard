@@ -214,5 +214,17 @@
   "washes_hands": {
     "text": "Моет руки.",
     "model": "eleven_v4"
+  },
+  "stands": {
+    "text": "Стои́т.",
+    "model": "eleven_v4"
+  },
+  "imp_throws": {
+    "text": "Кидай!",
+    "model": "eleven_v4"
+  },
+  "imp_washes_hands": {
+    "text": "МОЙ руки!",
+    "model": "eleven_v4"
   }
 }
