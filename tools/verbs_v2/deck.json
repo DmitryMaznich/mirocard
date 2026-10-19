@@ -1785,7 +1785,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "draws_1",
@@ -1918,7 +1921,10 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_walks_mom",
@@ -1949,7 +1955,10 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_walks_1",
@@ -1980,7 +1989,10 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_walks_2",
@@ -2011,7 +2023,10 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "walks_1",
@@ -2042,7 +2057,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_walks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "walks_2",
@@ -2073,7 +2091,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_walks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "walks_3",
@@ -2798,7 +2819,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_reads.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "reads_3",
@@ -3489,7 +3513,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_laughs.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "laughs_3",
@@ -3721,7 +3748,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_washes_face.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "washes_face_3",
@@ -4189,7 +4219,10 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_dances_mom",
@@ -4221,7 +4254,10 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_dances_1",
@@ -4253,7 +4289,10 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_dances_2",
@@ -4317,7 +4356,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_dances.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "dances_2",
@@ -4470,7 +4512,7 @@
         "group3": "moderate"
       },
       "alsoShows": [
-        "stands"
+        "sits"
       ]
     },
     {
@@ -4765,7 +4807,10 @@
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "waters_plants_2",
@@ -4792,7 +4837,10 @@
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "waters_plants_3",
@@ -4819,7 +4867,10 @@
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "waters_plants_5",
@@ -4846,7 +4897,10 @@
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_vacuums_boy",
@@ -4949,7 +5003,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     }
   ]
 }
