@@ -1160,12 +1160,26 @@
       "id": "verbs_v2",
       "title": {
         "ru": "Глаголы",
-        "en": "Verbs"
+        "en": "verbs_v2"
       },
       "version": "2.2.0",
-      "renderer": null,
-      "sources": [],
-      "bundle": null,
+      "renderer": "flashcards",
+      "sources": [
+        "public/decks/verbs_v2_v2.2.0.zip",
+        "src/topics/renderers/flashcards"
+      ],
+      "bundle": {
+        "version": "2.2.0",
+        "url": "./decks/verbs_v2_v2.2.0.zip",
+        "title": {
+          "ru": "Глаголы",
+          "en": "verbs_v2"
+        },
+        "description": "Двадцать девять частотных действий из жизни ребёнка: ест, пьёт, спит, сидит, даёт, открывает и другие. Для каждого — пара «мальчик и мама», где меняется только действие, и разные картинки: другие люди, предметы, места и рисунки, чтобы ребёнок узнавал само действие. Тема рассчитана в том числе на минимально вербальных детей: основные режимы — выбор картинки по слову.",
+        "renderer": "flashcards",
+        "modes": 9,
+        "cards": 196
+      },
       "builtin": false,
       "catalogEntry": {
         "id": "verbs_v2",
@@ -1182,7 +1196,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": null
+      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
     },
     {
       "id": "vowel_consonant_ru",
