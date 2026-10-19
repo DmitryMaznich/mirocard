@@ -10,6 +10,8 @@ tool geometry (make_underlays.bank_to_tool, its place on the canvas from underla
 
   python3 tools/propis2/variants/bg/review_sheet.py <out.png> [letters] [--centre] [--font <Boyan_Maga-Regular.ttf>]
   --font: the outline straight from the TTF instead of the underlay (the same place; the two agree to a pixel's width)
+  Next to each letter: the same strokes, plain, as thick as the deck draws them on the Bulgarian paper (INK_W; owner, 2026-10-19:
+  «рядом с поправленной буквой эту же букву ... с толщиной линии, которая у нас будет реально использоваться»). --no-ink: without.
   --centre: also the font's centre line (boyan_glyphs.draft.json, what font_letter builds from) as a thin dark line
 """
 import sys, json, re
@@ -25,6 +27,10 @@ args = [a for a in sys.argv[1:] if not a.startswith("--") and a != TTF]
 out = args[0]; letters = args[1] if len(args) > 1 else "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЮЯ"
 CENTRE = "--centre" in sys.argv
 UDX = json.load(open(V / 'underlay_dx.json'))['dx']
+INK = "--no-ink" not in sys.argv
+# the deck's pen on this sheet's paper: PrintPageView draws every stroke 2 page units wide (propisRuling.STROKE_W); on the Bulgarian
+# ruling the lowercase is 4.26 mm (PrintPageView BG_X_MM) = 4.26 * 150 / 25 page units, our paper's lowercase 48 units
+INK_W = 2 * 48 / (4.26 * 150 / 25)
 
 
 def font_ink(ch):
@@ -71,8 +77,9 @@ def font_under(ch, like, x0, S, CW, CH):
     return m.reshape(CH, CW)
 variant = json.load(open(V / 'variant.json')); tt.use_script(variant['meta']['script'])
 G = {g['label']: g for g in variant['glyphs']}
-S, CW, CH, per = 5, 150*5, 200*5, min(4, len(letters))
-rows = (len(letters)+per-1)//per
+S, CW, CH, per = 5, 150*5, 200*5, (min(2, len(letters)) * 2 if INK else min(4, len(letters)))
+cells = 2 if INK else 1
+rows = (len(letters)*cells+per-1)//per
 img = Image.new('RGB', (per*CW, rows*CH), 'white'); dd = ImageDraw.Draw(img)
 font = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 30)
 sm = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', 22)
@@ -95,7 +102,7 @@ for n,ch in enumerate(letters):
     body=[p for k,p in enumerate(strokes) if k!=g.get('tailStroke')]
     st = bg.font_stencil(ch, like=np.vstack(body))
     x0 = min(min(p[:,0].min() for p in strokes), min(p[:,0].min() for p in st)) - 8
-    ox, oy = (n%per)*CW, (n//per)*CH
+    ox, oy = ((n*cells)%per)*CW, ((n*cells)//per)*CH
     Q = lambda p: (ox+(p[0]-x0)*S, oy+(p[1]+70)*S)
     for y in (tt.BASE, tt.X_TOP, tt.CAP_TOP, tt.BASE+48*tt.SCRIPT.get('lower',1.0)): dd.line([Q((x0,y)),Q((x0+148,y))], fill=(150,180,220), width=2)
     for gx in np.arange(x0-40, x0+190, 15): dd.line([Q((gx,tt.BASE)),Q((gx+(tt.BASE-tt.CAP_TOP)*tt.SLANT_T,tt.CAP_TOP))], fill=(235,205,205), width=1)
@@ -111,4 +118,17 @@ for n,ch in enumerate(letters):
         dd.polygon([tuple(b),tuple(b-14*u+7*nrm),tuple(b-14*u-7*nrm)], fill=c)
     dd.text((ox+12,oy+8), ch, fill=(0,0,0), font=font)
     dd.rectangle([ox,oy,ox+CW-1,oy+CH-1], outline=(225,225,225))
+    if INK:
+        # the same letter as the deck writes it: its pen, round ends and joins, on the ruling only
+        ox2 = ox + CW
+        R = lambda p: (ox2+(p[0]-x0)*S, oy+(p[1]+70)*S)
+        for y in (tt.BASE, tt.X_TOP, tt.CAP_TOP, tt.BASE+48*tt.SCRIPT.get('lower',1.0)): dd.line([R((x0,y)),R((x0+148,y))], fill=(150,180,220), width=2)
+        for gx in np.arange(x0-40, x0+190, 15): dd.line([R((gx,tt.BASE)),R((gx+(tt.BASE-tt.CAP_TOP)*tt.SLANT_T,tt.CAP_TOP))], fill=(235,205,205), width=1)
+        w = INK_W * S
+        for p in strokes:
+            pts = [R(q) for q in p]
+            dd.line(pts, fill=(40,40,60), width=int(round(w)))
+            for x, y in pts: dd.ellipse([x-w/2, y-w/2, x+w/2, y+w/2], fill=(40,40,60))
+        dd.text((ox2+12,oy+8), ch, fill=(0,0,0), font=font)
+        dd.rectangle([ox2,oy,ox2+CW-1,oy+CH-1], outline=(225,225,225))
 img.save(out)
