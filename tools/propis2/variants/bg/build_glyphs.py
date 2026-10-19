@@ -1018,6 +1018,30 @@ def end_like_font(strokes, label, k, end=0, span=25.0, rms=0.15, tol=0.1):
     return strokes
 
 
+INK_W = 2 * 48 / (4.26 * 150 / 25)  # the deck's pen on the Bulgarian paper, in paper units (review_sheet.py INK_W)
+
+
+def touch_stem(strokes, k=1, stem_k=0, ease=14.0, tol=0.1):
+    """К: the right stroke's point nearest the stem just touches it as the deck draws them (their centre lines one pen apart),
+    not run into it (owner, 2026-10-19: «правый штрих всё-таки должен касаться левого, буквально касаться, а не сливаться. В
+    шрифте ошибка в написании в этом месте»). That point moves across the stem's line, the path beside it less and less over
+    `ease` units, so its shape is kept."""
+    cmds = strokes[stem_k]
+    j = next(i for i in range(1, len(cmds)) if cmds[i][0] == "L")
+    a, b = np.asarray(cmds[j - 1][1][-1], float), np.asarray(cmds[j][1][0], float)
+    d = tt._unit(b - a); n = np.array([-d[1], d[0]])
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
+    s_ = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(p, axis=0).T))])
+    off = (p - a) @ n
+    side = np.sign(np.median(off))
+    c = int(np.argmin(off * side))
+    shift = n * side * (INK_W - off[c] * side)
+    w = np.clip(1 - np.abs(s_ - s_[c]) / ease, 0, 1)[:, None]; w = w * w * (3 - 2 * w)
+    p = p + w * shift
+    strokes[k] = [("M", [p[0]])] + tt._fit_span(p, tt._unit(p[3] - p[0]), tt._unit(p[-1] - p[-4]), tol=tol)
+    return strokes
+
+
 def cusp_to_font_tip(strokes, label, k=0, back=16.0, tol=0.1):
     """A waist that turns back to a point (З, like Е: two arcs meeting at a point, not a loop or a bulge) drawn into the tip of the
     font's (the centre of the pen's round end there). snap_to_font rounds such a turn (the sides' normals flip there), so the path
@@ -1089,7 +1113,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
