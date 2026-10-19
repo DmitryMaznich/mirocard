@@ -82,7 +82,7 @@
  {
   "id": "takes_off",
   "out": "v_takes_off_1",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl takes off her knitted hat: she pulls it up off her head with both hands, her hair messed up by static. Front view."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl takes off her red knitted hat: she holds the hat in one hand and lifts it up and away above her head, the hat clearly off her head, her hair standing up with static. Front view."
  },
  {
   "id": "takes_off",
@@ -202,7 +202,7 @@
  {
   "id": "combs",
   "out": "v_combs_1",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl brushes her long hair with a hairbrush in front of a mirror."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl brushes her long hair with a pink hairbrush, the brush in the middle of a stroke through her hair. No mirror, only one person in the picture. Front three-quarter view."
  },
  {
   "id": "combs",
@@ -217,12 +217,12 @@
  {
   "id": "combs",
   "out": "v_combs_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A man combs his hair with a comb, front view."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A man combs his hair with a black comb clearly visible in his hand, the comb's teeth in his hair, front view, upper body."
  },
  {
   "id": "catches",
   "out": "v_catches_1",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy catches a soccer ball with both hands in a park, the ball just arriving into his hands."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy is about to catch a soccer ball in a park: both arms stretched forward with open hands, the ball still in the air about a hand's width in front of his hands, NOT yet touching them, eyes on the ball."
  },
  {
   "id": "catches",
