@@ -65,4 +65,39 @@ describe("settings UI language", () => {
     const request = fetchMock.mock.calls.find(([url]) => url.endsWith("/account/languages"));
     expect(JSON.parse(request[1].body).patch).toEqual({ uiLanguage: "ru" });
   });
+
+  it("keeps a native select change to Slovenian while an unchanged default response awaits a successful retry", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => ({ uiLanguage: "ru", cardLanguage: "ru", languageRevision: 0, conflict: false }),
+    });
+    act(() => applyBootstrapToStore({
+      account: { id: "legacy-language-select-test" }, token: "test-token",
+      settings: { uiLanguage: "ru", cardLanguage: "ru", languageRevision: 0 },
+    }));
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () => root.render(<SettingsScreen />));
+    fetchMock.mockClear();
+    await act(async () => {
+      const select = container.querySelector("select");
+      select.value = "sl";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+      await accountLanguages.flush();
+    });
+    expect(container.querySelector("select").value).toBe("sl");
+    expect(container.querySelector("h1").textContent).toBe("Nastavitve");
+    expect(accountLanguages.getSnapshot().status).toBe("pending");
+    expect(useAppStore.getState().settings.uiLanguage).toBe("sl");
+    const request = fetchMock.mock.calls.find(([url]) => url.endsWith("/account/languages"));
+    expect(JSON.parse(request[1].body).patch).toEqual({ uiLanguage: "sl" });
+    fetchMock.mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => ({ uiLanguage: "sl", cardLanguage: "ru", languageRevision: 1, conflict: false }),
+    });
+    await act(async () => accountLanguages.flush());
+    expect(container.querySelector("select").value).toBe("sl");
+    expect(accountLanguages.getSnapshot().status).toBe("synced");
+  });
 });
