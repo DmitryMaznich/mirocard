@@ -1036,7 +1036,12 @@ def touch_stem(strokes, k=1, stem_k=0, ease=14.0, tol=0.1):
     side = np.sign(np.median(off))
     c = int(np.argmin(off * side))
     shift = n * side * (INK_W - off[c] * side)
-    w = np.clip(1 - np.abs(s_ - s_[c]) / ease, 0, 1)[:, None]; w = w * w * (3 - 2 * w)
+    # before the point: the shift grows evenly from below the top hook, so the diagonal coming down to it turns a little and stays
+    # straight (an eased bump bowed it: owner, «заметный прогиб на подходе к поясу»); after it: eased over `ease` units
+    top = int(np.argmax(p[:c, 1] > tt.CAP_TOP + 15.0))
+    w_up = np.clip((s_ - s_[top]) / (s_[c] - s_[top]), 0, 1)
+    w_dn = np.clip(1 - (s_ - s_[c]) / ease, 0, 1); w_dn = w_dn * w_dn * (3 - 2 * w_dn)
+    w = np.where(s_ <= s_[c], w_up, w_dn)[:, None]
     p = p + w * shift
     strokes[k] = [("M", [p[0]])] + tt._fit_span(p, tt._unit(p[3] - p[0]), tt._unit(p[-1] - p[-4]), tol=tol)
     return strokes
