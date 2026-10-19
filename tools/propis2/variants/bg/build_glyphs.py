@@ -73,7 +73,7 @@ BANK_KEPT = set("а")
 FONT_ONLY = "ЙНОПРСТУФХЦЧШЩЮЯ"
 # LOOPS: the hand turned back sharply where the font (and the copybook) has a small loop: the waist of Е (font comparison sheet,
 # 2026-10-18). tidy_trace makes every sharp turn away from the ruling a loop in these letters.
-LOOPS = set("Е")
+LOOPS = set()  # Е: no loop after all (owner, 2026-10-19: «там не должно быть петли ... две дуги соединяются»)
 
 
 def _fit_ellipse(p):
@@ -719,6 +719,42 @@ def flat_hat_to_font_end(strokes, label, stroke=1, flat_deg=10.0, tol=0.1):
     return strokes
 
 
+def waist_cusp(strokes, label="Е", back=6.0, tol=0.1):
+    """Е's waist: no loop, two arcs meeting at a point (owner, 2026-10-19: «там не должно быть петли, там просто две дуги
+    соединяются ... с нижнего конца этой дуги влево выходит нижняя дуга»). The upper arc runs from above straight into the tip of
+    the font's waist (the centre of the pen's round end there), the lower arc leaves it below, going left; they no longer cross.
+    The way there and back the hand drew (a narrow loop after snap_to_font) is replaced from `back` units before the crossing to
+    `back` units after it: a cubic in along the upper arc's direction, a corner at the tip, a cubic out into the lower arc."""
+    sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
+    fn = stencil_map(label, like=np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in PAPER_UNSNAPPED[label]]))
+    ink = np.vstack([fn(np.array(poly, float)) for poly in sk["outline"]])
+    S = fn(np.array(sk["pts"], float))
+    pen = float(np.median(np.min(np.hypot(S[::7, None, 0] - ink[None, :, 0], S[::7, None, 1] - ink[None, :, 1]), axis=1)))
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[0]))), 0.3)
+    s_ = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(p, axis=0).T))])
+    i, j = _small_loops(p, s_)[0]
+    t = i + int(np.argmax(p[i:j + 1, 0]))  # the tip: the loop's rightmost point
+    band = ink[np.abs(ink[:, 1] - p[t, 1]) < 6]
+    x_ink = band[band[:, 0] < p[t, 0] + 15, 0].max()
+    at = band[np.abs(band[:, 0] - (x_ink - pen)) < 1.0]
+    T = np.array([x_ink - pen, (at[:, 1].max() + at[:, 1].min()) / 2])
+    a = int(np.argmin(np.abs(s_ - (s_[i] - back)))); b = int(np.argmin(np.abs(s_ - (s_[j] + back))))
+    A, B = p[a], p[b]
+    tA, tB = tt._unit(p[a] - p[a - 3]), tt._unit(p[b + 3] - p[b])
+    def hermite(P0, T0, P1, T1, n=60):
+        L = np.hypot(*(P1 - P0)); u = np.linspace(0, 1, n)[:, None]
+        h00, h10, h01, h11 = 2*u**3 - 3*u**2 + 1, u**3 - 2*u**2 + u, -2*u**3 + 3*u**2, u**3 - u**2
+        return h00 * P0 + h10 * L * T0 + h01 * P1 + h11 * L * T1
+    d_in = tt._unit(T - A + 0.3 * np.hypot(*(T - A)) * tA * 0)  # straight on into the tip
+    d_out = tt._unit(B - T)
+    upper = np.vstack([p[:a], hermite(A, tA, T, d_in)])
+    lower = np.vstack([hermite(T, d_out, B, tB), p[b + 1:]])
+    def fit(q):
+        return tt._fit_span(q, tt._unit(q[3] - q[0]), tt._unit(q[-1] - q[-4]), tol=tol)
+    strokes[0] = [("M", [upper[0]])] + fit(upper) + fit(lower)
+    return strokes
+
+
 DEEPEN = {"П:2": 3.0}  # a whole stroke's flat run along the top sagged this much more in the middle (paper units)
 FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (font_flag, exact from font_flags.json)
 # SPLIT: the font's pen path cut at its turns back (_turns) into separate strokes: (first, last) piece of each stroke, the rest left
@@ -736,7 +772,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "Е": lambda s: snap_to_font(s, "Е"), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
