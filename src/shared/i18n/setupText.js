@@ -301,7 +301,7 @@ const SLOVENIAN_SETUP_LABELS = {
 
 export function setupText(value, language = getUiLanguage()) {
   const source = getTopicTitle(value, language);
-  return language === "sl" ? SLOVENIAN_SETUP_LABELS[source] ?? source : source;
+  return language === "sl" && Object.hasOwn(SLOVENIAN_SETUP_LABELS, source) ? SLOVENIAN_SETUP_LABELS[source] : source;
 }
 
 export function setupLabels(labels) {

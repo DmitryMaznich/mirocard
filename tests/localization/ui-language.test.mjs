@@ -117,6 +117,7 @@ test("setup metadata translation preserves keys, unknown content and explicit Sl
     assert.deepEqual(setupLabels(definition), { upper: "Veliko po mali", custom: "Мой новый текст" });
     assert.equal(setupText({ ru: "Найди картинку", sl: "Lastno slovensko ime" }), "Lastno slovensko ime");
     assert.equal(setupText("Найди картинку"), "Poišči sliko");
+    for (const label of ["constructor", "toString", "__proto__"]) assert.equal(setupText(label), label);
     assert.deepEqual(setupInfo({ sl: { text: "Opis", tip: "Nasvet" } }), { text: "Opis", tip: "Nasvet" });
     assert.deepEqual(Object.keys(setupLabels(definition)), ["upper", "custom"]);
     setUiLanguage("ru");
