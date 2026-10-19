@@ -1570,8 +1570,7 @@ def down_to_base(strokes):
 
 def oval_on_stem(strokes, k=0, tol=0.1, lead=10.0):
     """д: its oval a true ellipse from the baseline up to the x-line, the stem's line touching it on its right (as б's and в's,
-    owner 2026-10-19: «овал должен быть идеальным»). The font's way kept: down the stem from the x-line to where it touches the
-    oval, once round it (down first), and from that point on down the stem into the loop."""
+    owner 2026-10-19: «овал должен быть идеальным»)."""
     p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.2)
     top = p[p[:, 1] < tt.X_TOP + 20][:40]
     c0 = np.polyfit(top[:, 1], top[:, 0], 1)                       # the stem's line: x = c0[0] y + c0[1]
@@ -1585,18 +1584,29 @@ def oval_on_stem(strokes, k=0, tol=0.1, lead=10.0):
     over = e[:, 0] - np.polyval(c0, e[:, 1])
     e = e - [over.max(), 0]
     i = int(np.argmax(over))
-    ring = np.vstack([e[i:], e[:i + 1]])
-    if ring[5, 1] < ring[0, 1]: ring = ring[::-1]                    # down first, as the font
-    T = ring[0]
-    y0 = min(p[0, 1], tt.X_TOP)
-    head = np.c_[np.polyval(c0, np.linspace(y0, T[1], 60)), np.linspace(y0, T[1], 60)]
+    T = e[i]
+    # started as а (owner, 2026-10-19: «должна начинаться как а, потом вертикальный штрих переходит в петлю»): on the oval's upper
+    # right, round it up over the top first, down the left, along the bottom and up its right to the stem; up the stem to the
+    # x-line; back down it and on into the loop
+    mid = e[:, 0].mean()
+    s0 = int(np.argmin(np.where(e[:, 0] > mid, np.abs(e[:, 1] - (tt.X_TOP + 6)), np.inf)))
+    n = len(e)
+    fwd = np.r_[e[s0:], e[:s0]]
+    if fwd[5, 1] > fwd[0, 1]: fwd = np.r_[e[s0::-1], e[:s0:-1]]   # up first
+    it = int(np.argmin(np.hypot(*(fwd[n // 4:] - T).T))) + n // 4
+    oval = fwd[:it + 1]
+    y0 = tt.X_TOP
+    up = np.c_[np.polyval(c0, np.linspace(T[1], y0, 60)), np.linspace(T[1], y0, 60)]
+    down = up[::-1]
     lo = i2 + int(np.argmax(p[i2:, 1]))                              # the loop's bottom: the stem goes down until here
     j = i2 + int(np.argmin(np.abs(p[i2:lo, 1] - (T[1] + lead))))
     link = np.array([T + (p[j] - T) * t for t in np.linspace(0, 1, 30)])[1:]
-    path = np.vstack([head, ring[1:], link, p[j + 1:]])
+    first = np.vstack([oval, up[1:]])
+    second = np.vstack([down, link, p[j + 1:]])
     out = list(strokes)
     tu = tt._unit
-    out[k] = [("M", [path[0]])] + tt._fit_span(path, tu(path[3] - path[0]), tu(path[-1] - path[-4]), tol=tol)
+    out[k] = [("M", [first[0]])] + tt._fit_span(first, tu(first[3] - first[0]), tu(first[-1] - first[-4]), tol=tol) \
+        + tt._fit_span(second, tu(second[3] - second[0]), tu(second[-1] - second[-4]), tol=tol)
     return out
 
 
