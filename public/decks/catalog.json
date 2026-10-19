@@ -92,16 +92,16 @@
     },
     {
       "id": "verbs_v2",
-      "version": "1.2.0",
+      "version": "2.1.1",
       "title": {
         "ru": "Глаголы",
         "en": "Verbs"
       },
       "description": {
-        "ru": "25 глаголов × 5 вариаций. Аудио произношение. Для детей от 5 лет.",
-        "en": "25 verbs × 5 variations each. Audio pronunciation included."
+        "ru": "20 глаголов в трёх волнах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
+        "en": "20 everyday verbs in three waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
       },
-      "url": "./decks/verbs_v2_v1.2.0.zip",
+      "url": "./decks/verbs_v2_v2.1.1.zip",
       "status": "beta",
       "access": "paid"
     },
@@ -122,7 +122,7 @@
     },
     {
       "id": "comparison",
-      "version": "2.36.1",
+      "version": "2.37.0",
       "title": {
         "ru": "Сравнение",
         "en": "Comparison"
@@ -131,7 +131,7 @@
         "ru": "Восемь режимов сравнения количеств и чисел: зрительный выбор большей стороны, знакомство со знаками <, > и =, рисование и постановка знака, сравнение чисел в заданном порядке, подбор числа по условию, контрольная работа и задачи с персонажами и предметами.",
         "en": "Eight modes: compare quantities and numbers, choose or draw <, >, and =, order numbers, and compare objects in short stories."
       },
-      "url": "./decks/comparison_v2.36.1.zip",
+      "url": "./decks/comparison_v2.37.0.zip",
       "status": "release",
       "access": "free"
     },
@@ -197,8 +197,8 @@
     },
     {
       "id": "place_value",
-      "version": "1.0.6",
-      "url": "./decks/place_value_v1.0.6.zip",
+      "version": "1.0.8",
+      "url": "./decks/place_value_v1.0.8.zip",
       "title": {
         "ru": "Разряды числа",
         "en": "Place Value"
@@ -304,7 +304,7 @@
     },
     {
       "id": "propis2",
-      "version": "0.5.3",
+      "version": "0.5.4",
       "title": {
         "ru": "Прописи",
         "en": "Copybook"
@@ -313,9 +313,9 @@
         "ru": "Конструктор тетрадей по письму и тренажёры письменных букв: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
         "en": "Handwriting notebook builder and written-letter trainers: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
       },
-      "url": "./decks/propis2_v0.5.3.zip",
+      "url": "./decks/propis2_v0.5.4.zip",
       "status": "release",
-      "access": "free"
+      "access": "paid"
     },
     {
       "id": "vowel_consonant_ru",

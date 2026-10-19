@@ -1,7 +1,8 @@
 /* ── Put/draw sign (ComparePutSign, CompareDrawSign) ─────────────── */
 
-.croc-put-sign-numbers { display: flex; align-items: center; gap: 24px; margin: 24px 0 32px; }
-.croc-put-sign-num   { font-size: 96px; font-weight: 900; color: #2d3748; min-width: 120px; text-align: center; line-height: 1; }
+.croc-put-sign-numbers { display: flex; align-items: center; gap: min(24px, 4vw); margin: 24px 0 32px; }
+/* min(): three-digit numbers («По разрядам») must fit a 360px phone. */
+.croc-put-sign-num   { font-size: min(96px, 18vw); font-weight: 900; color: #2d3748; min-width: min(120px, 22vw); text-align: center; line-height: 1; }
 .croc-put-sign-blank { font-size: 72px; font-weight: 900; color: #a0aec0;  min-width: 64px;  text-align: center; line-height: 1; }
 .croc-put-sign-btns  { display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .croc-put-sign-btn {
@@ -746,4 +747,32 @@
      screen), so trim it here too rather than shrinking the grid further
      and risking tap targets. */
   .apply-hint-btn { font-size: clamp(15px, 3.2vw, 18px); padding: 4px 8px; }
+}
+
+/* Level 5 «По разрядам»: the numbers by places after a mistake (PlaceHint.jsx).
+   Place colours as in «Разряды числа», copied here per the family-CSS rule. */
+/* Scrolls on a short phone: the hint goes under the answer buttons, never over them. */
+.cmp-with-place-hint { display: flex; flex-direction: column; flex: 1; min-height: 0; height: 100%; overflow-y: auto; }
+.cmp-with-place-hint > * { flex: 0 0 auto; }
+.cmp-with-place-hint > .compare-body { flex: 1 0 auto; }
+.cmp-place-hint { align-self: center; display: grid; justify-items: center; gap: 8px; margin: 0 16px 16px; padding: 12px 16px; background: #fff; border: 2px solid #e2e8f0; border-radius: 16px; }
+.cmp-place-table { display: grid; gap: 6px 14px; align-items: center; justify-items: center; }
+.cmp-place-head { padding: 2px 10px; border-radius: 8px; color: #fff; font-size: 14px; font-weight: 800; }
+.cmp-place-head--hundreds { background: #16a34a; }
+.cmp-place-head--tens { background: #d97706; }
+.cmp-place-head--ones { background: #2563eb; }
+.cmp-place-num { font-size: 22px; font-weight: 800; color: #475569; justify-self: end; }
+.cmp-place-digit { min-width: 44px; text-align: center; font-size: 32px; font-weight: 900; line-height: 1.15; border-radius: 10px; }
+.cmp-place-digit--hundreds { color: #15803d; }
+.cmp-place-digit--tens { color: #b45309; }
+.cmp-place-digit--ones { color: #1d4ed8; }
+.cmp-place-digit.cmp-place--decide { background: #fef3c7; box-shadow: inset 0 0 0 2px #f59e0b; }
+.cmp-place-say { font-size: 16px; font-weight: 700; color: #334155; text-align: center; max-width: 420px; }
+@media (min-width: 700px) and (min-height: 700px) {
+  .cmp-place-hint { padding: 18px 26px; gap: 12px; }
+  .cmp-place-table { gap: 8px 22px; }
+  .cmp-place-head { font-size: 18px; padding: 3px 14px; }
+  .cmp-place-num { font-size: 30px; }
+  .cmp-place-digit { min-width: 60px; font-size: 46px; }
+  .cmp-place-say { font-size: 22px; max-width: 560px; }
 }

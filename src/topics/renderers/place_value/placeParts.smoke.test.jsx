@@ -11,6 +11,19 @@ describe("«Разрядные слагаемые»", () => {
   const text = (sel) => h.container.querySelector(sel)?.textContent;
   const value = (label) => text(`output[aria-label="${label}"]`);
 
+  it("«Как показываем»: no picture by default; coins / scheme draw the number by places", () => {
+    const n = (sel) => h.container.querySelectorAll(sel).length;
+    h.mount(PlacePartsTask, task());
+    expect(n(".pp-picture")).toBe(0);
+    h.mount(PlacePartsTask, task({ view: "coins" }));
+    expect(n(".pp-pic-col--tens .cb-ten-stack")).toBe(4);
+    expect(n(".pp-pic-col--ones .cb-coin")).toBe(7);
+    h.mount(PlacePartsTask, task({ number: 305, view: "scheme" }));
+    expect(n(".pp-pic-col--hundreds .cb-square")).toBe(3);
+    expect(n(".pp-pic-col--tens .cb-stick")).toBe(0);
+    expect(n(".pp-pic-col--ones .cb-dot")).toBe(5);
+  });
+
   it("«Разложи»: 47 = [40] + [7], then the spoken model", () => {
     const onCorrect = vi.fn(), onMistake = vi.fn();
     h.mount(PlacePartsTask, task(), { onCorrect, onMistake });

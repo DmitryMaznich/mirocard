@@ -75,6 +75,8 @@ scripts/*.svg
 !content/media/*.webp
 !content/media/*.jpg
 !tools/emotions_v2/media/*.webp
+!tools/verbs_v2/media/*.webp
+!tools/verbs_v2/generated/*.webp
 !tools/symmetry_draw/media/*_trace.png
 !public/hands/*.webp
 !public/daily-orientation/*.webp

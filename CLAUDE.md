@@ -198,12 +198,24 @@ recorded voice audio to replace browser TTS), and pitfalls already hit once this
 (don't repeat them — e.g. the raw `chrome --headless --window-size` CLI flag is silently
 ignored in some sandboxes, use Playwright instead when a screenshot's exact width matters).
 
+## Глаголы (verbs_v2) — methodology rework planned
+
+Speech-therapy audit of the topic for minimally verbal children with ASD (2026-10-17):
+per-card verdicts for all 125 images, new vocabulary waves, a 12-step mode ladder and
+a step-by-step implementation plan. **Read `docs/verbs-methodology-review.md` first**
+before touching `verbs_v2`. Source lives in `tools/verbs_v2/` (`node tools/verbs_v2/build.mjs`
+packs only files `deck.json` references). Deck v2.0.0 built (contrast set + variations via `card.set`); before that: steps 0–2, voice, image review with the
+owner done (deck v1.5.1; audio via `tools/verbs_v2/generate-audio-elevenlabs.mjs`); next is step 3's
+pictures — follow sections 5б–5г of the doc (no anthropomorphic animals, real photos, vary objects). The deck needs `meta.customModesOnly` + `verbs_`-prefixed mode
+ids — without them `topicLoader` silently replaces generic flashcards modes' ui/params.
+
 ## Разряды числа (place_value)
 
-Topic split out of «Сложение и вычитание в столбик» on 2026-10-07 (coin modes for
-tens and ones); next step is hundreds and thousands. Read `docs/place-value.md`
-before continuing — it has the file map and the agreed plan; the methodology
-rework of the coin modes is in `docs/place-value-methodology.md`.
+Topic split out of «Сложение и вычитание в столбик» on 2026-10-07; tens and
+hundreds are done (menu 1–14 with two tests), thousands are next but on hold.
+**Read the «Handoff» section of `docs/place-value.md` first** — menu, file map,
+the owner's rules learned the hard way, the work procedure and open items;
+per-mode decisions are in `docs/place-value-methodology.md` (sections 9–23).
 
 ## Important
 

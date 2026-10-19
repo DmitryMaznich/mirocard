@@ -30,9 +30,12 @@ export default function TenFrame({ One = Coin, oneName = "Монета", closeLa
       ? ready
         ? <button type="button" className="px-tf px-tf--full px-tf--ready" aria-label={closeLabel} disabled={disabled} onClick={onClose}>{cells}</button>
         : <div className={`px-tf${count === 10 && closable ? " px-tf--full" : ""}`}>{cells}</div>
-      : <button type="button" className="px-tf-pile" aria-label={tapToClose ? "Сложить десяток" : "Собирается десяток — нажми, чтобы убрать монету"}
+      : <button type="button" className="px-tf-pile" aria-label={tapToClose ? "Сложить десяток" : `Собирается десяток — нажми, чтобы убрать ${One === Coin ? "монету" : "точку"}`}
         disabled={disabled || !count} onClick={tapToClose ? onClose : onPileTap}>
-        <span className="cb-ten-stack">{coinIds.map((id) => <span key={id} className="cb-stack-coin" />)}</span>
+        {One === Coin
+          ? <span className="cb-ten-stack">{coinIds.map((id) => <span key={id} className="cb-stack-coin" />)}</span>
+          // Scheme without the frame: the dots in one loose row, no places to count by.
+          : <span className="px-tf-dots">{coinIds.map((id) => <One key={id} />)}</span>}
       </button>}
     {!tapToClose && <div className="px-tf-foot">
       {slots && <span className={`px-tf-count${count === 10 ? " px-tf-count--full" : ""}`}>{count} из 10</span>}

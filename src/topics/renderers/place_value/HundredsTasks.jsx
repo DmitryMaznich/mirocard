@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { modelPieces, SchemeHundred, SchemeOne, SchemeTen } from "./CoinBlocks.jsx";
-import { numberWords, pluralHundreds, pluralOnes, pluralTens } from "./placeValueLabels.js";
+import { numberWords, pluralHundreds, pluralOnes, pluralTens, spelledPlaces } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
+import { PlaceChoiceRows } from "./TableTasks.jsx";
 import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
@@ -45,7 +46,12 @@ function useScreenMode() {
   return [ref, mode];
 }
 const SIZES = { phone: [18, 9], tablet: [30, 14], wide: [34, 16] };
-const sizeVars = (mode) => ({ "--coin-size": `${SIZES[mode][0]}px`, "--plate-coin": `${SIZES[mode][1]}px` });
+// On a phone the three columns (plates, stacks, coins) must fit the width:
+// they take ≈ 11.8 coin sizes + 170px (headers, gaps, paddings), so 18px
+// pieces need ~380px and shrink with a narrower phone.
+const sizeVars = (mode) => (mode === "phone"
+  ? { "--coin-size": "min(18px, calc((100vw - 170px) / 11.8))", "--plate-coin": "min(9px, calc((100vw - 170px) / 23.6))" }
+  : { "--coin-size": `${SIZES[mode][0]}px`, "--plate-coin": `${SIZES[mode][1]}px` });
 
 const head = (key) => <h3 className={`sg-head sg-head--${key}`}>{PLACES.find((p) => p.key === key).name}</h3>;
 
@@ -106,13 +112,16 @@ function totalHint(n, guess, teaching) {
   return "Сотни пишут первыми, потом десятки, потом единицы. Посчитай ещё раз.";
 }
 
-export function IdentifyHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) {
+export function IdentifyHundreds(props) {
+  return props.task.view === "table" ? <IdentifyHundredsTable {...props} /> : <IdentifyHundredsModel {...props} />;
+}
+
+function IdentifyHundredsModel({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const teaching = task.supportMode !== "independent";
   const view = task.view ?? "coins";
-  const table = view === "table";
   const counts = task.model;
   const n = task.number;
-  const steps = teaching && !table
+  const steps = teaching
     ? [...PLACES.map((p) => ({ key: p.key, label: p.name, expected: counts[p.key] })), { key: "total", label: "Какое это число?", expected: n }]
     : [{ key: "total", label: "Какое это число?", expected: n }];
   const bridge = view === "scheme" && teaching;
@@ -120,7 +129,6 @@ export function IdentifyHundreds({ task, onCorrect, onMistake, onFlashIncorrect 
   const typed = useTypedAnswer(4); // «3005» for 305 is the mistake to catch
   const [step, setStep] = useState(0);
   const [note, setNote] = useState("");
-  const [support, setSupport] = useState(false);
   const [flying, setFlying] = useState(false);
   const solved = step >= steps.length;
   const current = steps[step];
@@ -134,8 +142,7 @@ export function IdentifyHundreds({ task, onCorrect, onMistake, onFlashIncorrect 
       return true;
     }
     setNote(current.key === "total" ? totalHint(n, guess, teaching) : `Посчитай ${current.label.toLowerCase()} ещё раз.`);
-    if (teaching && table) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { field: current.key === "total" ? null : current.label, given: String(guess), expected: String(current.expected) }); onFlashIncorrect?.();
     return false;
   }
   const auto = !solved && !flying && current.key !== "total";
@@ -152,27 +159,18 @@ export function IdentifyHundreds({ task, onCorrect, onMistake, onFlashIncorrect 
     return <AnswerField key={key} label={s.label} tone={key} big={big} bare={!big} ok={ok} active={active} wrong={typed.wrong} value={value} />;
   };
   const faded = bridge && (flying || solved);
-  const { One, Ten } = { One: SchemeOne, Ten: SchemeTen };
   const status = solved ? null
     : note ? <span className="sg-status-note">{note}</span> : null;
 
   return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} hd-screen${view === "scheme" ? " hd-scheme" : ""}`} style={{ ...sizeVars(mode), "--sg-answer-w": "320px" }}>
     <div className="sg-inner">
-      <h2 className="sg-title">{table ? "Запиши число" : view === "scheme" ? "Какое число на схеме?" : "Сколько здесь монет?"}</h2>
+      <h2 className="sg-title">{view === "scheme" ? "Какое число на схеме?" : "Сколько здесь монет?"}</h2>
       <div className="sg-board hd-board">
-        {table
-          ? <section className="sg-card tb-table hd-table">{PLACES.map(({ key }) => <div key={key} className={`tb-col tb-col--${key}`}>
-            {head(key)}
-            <div className={`tb-digit tb-digit--${key}`}>{counts[key]}</div>
-            {support && <div className={`tb-support hd-support--${key}`} aria-hidden="true">
-              {Array.from({ length: counts[key] }, (_, i) => (key === "hundreds" ? <SchemeHundred key={i} /> : key === "tens" ? <Ten key={i} /> : <One key={i} />))}
-            </div>}
-          </div>)}</section>
-          : <section className={`sg-card hd-bench${faded ? " id-board--faded" : ""}`}>
-            {PLACES.map(({ key }) => <div key={key} className="hd-headcell">{head(key)}</div>)}
-            <Zones counts={counts} view={view} renderPiece={(key, i, Piece) => <span key={i} className="hd-piece"><Piece /></span>} />
-            {teaching && PLACES.map(({ key }) => <div key={key} className="hd-fieldcell">{field(key)}</div>)}
-          </section>}
+        <section className={`sg-card hd-bench${faded ? " id-board--faded" : ""}`}>
+          {PLACES.map(({ key }) => <div key={key} className="hd-headcell">{head(key)}</div>)}
+          <Zones counts={counts} view={view} renderPiece={(key, i, Piece) => <span key={i} className="hd-piece"><Piece /></span>} />
+          {teaching && PLACES.map(({ key }) => <div key={key} className="hd-fieldcell">{field(key)}</div>)}
+        </section>
       </div>
       <div className="sg-answer">
         <div className="sg-num">{field("total", true)}</div>
@@ -180,6 +178,90 @@ export function IdentifyHundreds({ task, onCorrect, onMistake, onFlashIncorrect 
         <div className="sg-slot">
           {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
             : <Keypad off={flying} typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={!auto} />}
+        </div>
+      </div>
+    </div>
+  </div>;
+}
+
+// «Таблица»: the places as rows — a digit and its word («3 сотни», «0 десятков»,
+// the empty place said out loud, not left blank), from the third task on often
+// in another order, so the number has to be read by the words, not top to
+// bottom. The answer goes into three cells (every number here has three
+// digits, so the cells tell nothing about this one); «Проверить» wakes up when
+// all three are filled. A mistake names the first wrong place and lights its
+// row — a question, not the answer; the second one (teaching) brings the
+// scheme into the rows, in space kept for it from the start.
+const PLACE_HINT = {
+  hundreds: "Сколько сотен? С них число начинается.",
+  tens: "Сколько десятков? Они пишутся после сотен.",
+  ones: "Сколько единиц? Они пишутся последними.",
+};
+const SCHEME_PIECE = { hundreds: SchemeHundred, tens: SchemeTen, ones: SchemeOne };
+
+function IdentifyHundredsTable({ task, onCorrect, onMistake, onFlashIncorrect }) {
+  const teaching = task.supportMode !== "independent";
+  const counts = task.model;
+  const n = task.number;
+  const order = task.order ?? PLACES.map((p) => p.key);
+  const [ref, mode] = useScreenMode();
+  const typed = useTypedAnswer(3);
+  const [solved, setSolved] = useState(false);
+  const [note, setNote] = useState("");
+  const [lit, setLit] = useState(null);
+  const [misses, setMisses] = useState(0);
+  const support = teaching && misses >= 2;
+  // A wrong number stays red for a moment, then the cells clear for a new try.
+  useEffect(() => {
+    if (!typed.wrong) return undefined;
+    const timer = setTimeout(typed.reset, 800);
+    return () => clearTimeout(timer);
+  }, [typed.wrong]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function enter() {
+    if (solved || typed.digits.length < 3) return;
+    const guess = Number(typed.digits);
+    if (guess === n) { setSolved(true); setNote(""); setLit(null); return; }
+    const want = String(n);
+    const place = PLACES[[0, 1, 2].find((i) => typed.digits[i] !== want[i])].key;
+    setNote(teaching ? PLACE_HINT[place] : "Проверь число ещё раз.");
+    setLit(teaching ? place : null);
+    setMisses(misses + 1);
+    typed.fail();
+    onMistake?.(task.conceptId, task.cardId, { field: null, given: typed.digits, expected: want }); onFlashIncorrect?.();
+  }
+
+  return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} hd-screen hd-rows-screen`} style={{ ...sizeVars(mode), "--sg-answer-w": "320px" }}>
+    <div className="sg-inner">
+      <h2 className="sg-title">Запиши число</h2>
+      <div className="sg-board hd-board">
+        <section className={`sg-card hd-rows${teaching ? " hd-rows--support" : ""}`}>{order.map((key) => {
+          const Piece = SCHEME_PIECE[key];
+          const place = PLACES.find((p) => p.key === key);
+          return <div key={key} className={`hd-row tb-col--${key}${lit === key ? " hd-row--lit" : ""}`}>
+            <span className={`tb-digit hd-row-digit tb-digit--${key}`}>{counts[key]}</span>
+            <span className={`hd-row-word tb-digit--${key}`}>{place.plural(counts[key])}</span>
+            {teaching && <span className={`hd-row-support${support ? "" : " hd-row-support--off"}`} aria-hidden="true">
+              {Array.from({ length: counts[key] }, (_, i) => <Piece key={i} />)}
+            </span>}
+          </div>;
+        })}</section>
+      </div>
+      <div className="sg-answer">
+        <div className="sg-num">
+          <div className={`hd-cells-field${typed.wrong ? " hd-cells-field--wrong" : ""}${solved ? " hd-cells-field--ok" : ""}`}>
+            <span className="hd-cells-label" aria-hidden="true">Какое это число?</span>
+            <output className="hd-cells" aria-label="Какое это число?">{[0, 1, 2].map((i) => {
+              const digit = solved ? String(n)[i] : typed.digits[i];
+              const active = !solved && !typed.wrong && i === typed.digits.length;
+              return <span key={i} className={`hd-cell${active ? " hd-cell--active" : ""}`}>{digit ?? ""}</span>;
+            })}</output>
+          </div>
+        </div>
+        <div className="sg-status" role="status">{!solved && note ? <span className="sg-status-note">{note}</span> : null}</div>
+        <div className="sg-slot">
+          {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
+            : <Keypad typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={typed.digits.length === 3 && !typed.wrong} />}
         </div>
       </div>
     </div>
@@ -198,10 +280,10 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
   const [note, setNote] = useState("");
   const [support, setSupport] = useState(false);
   const [solved, setSolved] = useState(false);
-  const fail = (message) => {
+  const fail = (message, detail) => {
     setNote(message);
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, detail); onFlashIncorrect?.();
   };
   const done = <>
     <div className="sg-status" role="status">{solved ? null : note ? <span className="sg-status-note">{note}</span> : null}</div>
@@ -211,15 +293,15 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
     : <div className="tb-target">{support ? coloredNumber(n) : n}</div>;
 
   // ── «Число»: read the places straight from the written number. ──
-  const [qStep, setQStep] = useState(0);
-  const [wrongChoice, setWrongChoice] = useState(null);
+  const [answered, setAnswered] = useState({});
+  const [wrongChoice, setWrongChoice] = useState({});
   const [questions] = useState(() => PLACES.map(({ key, name }) => {
     const right = target[key];
     const pool = [right, ...PLACES.filter((p) => p.key !== key).map((p) => target[p.key]), n, words && key !== "ones" ? right * (key === "hundreds" ? 100 : 10) : null, right + 1];
     const options = [...new Set(pool.filter((v) => v !== null))].slice(0, 3);
     if (!options.includes(right)) options[2] = right;
     for (let i = options.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [options[i], options[j]] = [options[j], options[i]]; }
-    return { key, ask: `Сколько ${name === "Сотни" ? "сотен" : name === "Десятки" ? "десятков" : "единиц"} в числе ${words ? `«${numberWords(n)}»` : n}?`, right, options };
+    return { key, ask: `Сколько ${name === "Сотни" ? "сотен" : name === "Десятки" ? "десятков" : "единиц"} в числе?`, right, options };
   }));
   // ── «Таблица»: write the digits into the columns. ──
   const typed = useTypedAnswer(2);
@@ -228,7 +310,8 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
   useAutoCheck(typed, { auto: tableAuto, expected: tableAuto ? target[PLACES[col].key] : "", submit: (guess) => {
     const key = PLACES[col].key;
     if (guess === target[key]) { setNote(""); if (col === 2) setSolved(true); else setCol(col + 1); return true; }
-    fail(teaching ? `Сколько ${key === "hundreds" ? "сотен" : key === "tens" ? "десятков" : "единиц"} в числе ${words ? numberWords(n) : n}?${target[key] === 0 ? " Если их нет — пишем 0." : ""}` : "Проверь ещё раз.");
+    fail(teaching ? `Сколько ${key === "hundreds" ? "сотен" : key === "tens" ? "десятков" : "единиц"} в числе ${words ? numberWords(n) : n}?${target[key] === 0 ? " Если их нет — пишем 0." : ""}` : "Проверь ещё раз.",
+      { field: PLACES[col].name, given: String(guess), expected: String(target[key]) });
     return false;
   } });
   // ── Coins / scheme: take plates, stacks and coins. ──
@@ -242,31 +325,36 @@ export function BuildHundreds({ task, onCorrect, onMistake, onFlashIncorrect }) 
       : built.ones > 9 ? `Отдельных ${loose} больше девяти. Десять ${loose} — это десяток.`
         : built.tens > 9 ? "Десятков больше девяти. Десять десятков — это сотня."
           : PLACES.find(({ key }) => built[key] !== target[key]).key === "hundreds" ? "Проверь сотни."
-            : built.tens !== target.tens ? `Проверь десятки.${target.tens === 0 ? " В этом числе десятков нет." : ""}` : "Проверь единицы.");
+            : built.tens !== target.tens ? `Проверь десятки.${target.tens === 0 ? " В этом числе десятков нет." : ""}` : "Проверь единицы.",
+      { given: spelledPlaces(built), expected: spelledPlaces(target) });
   }
 
   if (view === "number") {
-    const q = questions[qStep];
-    const choose = (v) => {
-      if (solved) return;
-      if (v === q.right) { setWrongChoice(null); setNote(""); if (qStep === 2) setSolved(true); else setQStep(qStep + 1); return; }
-      setWrongChoice(v);
+    const choose = (q, v) => {
+      if (solved || answered[q.key]) return;
+      if (v === q.right) {
+        const next = { ...answered, [q.key]: true };
+        setAnswered(next); setNote("");
+        if (questions.every((x) => next[x.key])) setSolved(true);
+        return;
+      }
+      setWrongChoice((w) => ({ ...w, [q.key]: v }));
       fail(!teaching ? "Проверь ещё раз." : v === n ? `${n} — это всё число. А ${q.ask.split(" ")[1]} в нём сколько?`
-        : "Сотни — первая цифра, десятки — вторая, единицы — последняя.");
+        : "Сотни — первая цифра, десятки — вторая, единицы — последняя.",
+        { field: q.ask, given: String(v), expected: String(q.right) });
     };
     return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} tb-screen nl-screen`} style={{ "--sg-answer-w": "340px" }}>
       <div className="sg-inner">
-        <h2 className="sg-title">Какие разряды в числе?</h2>
+        <h2 className="sg-title">Сколько сотен, десятков и единиц в числе?</h2>
         <div className="sg-board nl-board">
-          {words ? shownNumber : <div className="nl-number">{String(n).split("").map((d, i) => <span key={i} className={`nl-place${teaching ? ` tb-digit--${PLACES[i].key}` : ""}`}>{d}{teaching && <small>{["сот.", "дес.", "ед."][i]}</small>}</span>)}</div>}
-          {support && <section className="sg-card tb-table hd-table pp-support" aria-hidden="true">{PLACES.map(({ key }) => <div key={key} className={`tb-col tb-col--${key}`}>{head(key)}<div className={`tb-digit tb-digit--${key}`}>{target[key]}</div></div>)}</section>}
+          {words ? shownNumber : <div className="nl-number">{String(n).split("").map((d, i) => <span key={i} className={`nl-place${teaching ? ` tb-digit--${PLACES[i].key}` : ""}`}>{d}</span>)}</div>}
+          {/* Its place is kept from the start: nothing moves when it shows. */}
+          <section className={`sg-card tb-table hd-table pp-support${support ? "" : " nl-reserved"}`} aria-hidden="true">{PLACES.map(({ key }) => <div key={key} className={`tb-col tb-col--${key}`}>{head(key)}<div className={`tb-digit tb-digit--${key}`}>{target[key]}</div></div>)}</section>
         </div>
         <div className="sg-answer">
-          {!solved && <div className="nl-ask">{q.ask}</div>}
-          {done}
-          {!solved && <div className="sg-slot"><div className="nl-choices" key={qStep}>
-            {q.options.map((v) => <button type="button" key={v} className={`xb-choice-btn nl-choice${wrongChoice === v ? " nl-choice--wrong" : ""}`} onClick={() => choose(v)}>{v}</button>)}
-          </div></div>}
+          <PlaceChoiceRows rows={questions} answered={answered} wrong={wrongChoice} onChoose={choose} />
+          <div className="sg-status" role="status">{solved ? null : note ? <span className="sg-status-note">{note}</span> : null}</div>
+          <div className={`sg-slot${solved ? "" : " nl-reserved"}`}><Button disabled={!solved} onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button></div>
         </div>
       </div>
     </div>;

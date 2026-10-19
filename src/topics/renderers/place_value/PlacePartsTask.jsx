@@ -2,7 +2,9 @@ import { useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { numberWords, pluralHundreds, pluralTens, pluralOnes } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
+import { modelPieces } from "./CoinBlocks.jsx";
 import "./place_value.css";
+import "./coins.css";
 import "./group_ten.css";
 import "./table.css";
 import "./hundreds.css";
@@ -14,6 +16,9 @@ import "./hundreds.css";
 // brings the place-value table (4 | 7) back under the example for this task.
 // The number can be given in words («сорок семь = 40 + 7») — the speech-
 // therapy core: «сорок» is 40, not 4.
+// «Как показываем» (coins / scheme) puts the number's picture above the
+// example — 4 sticks and 7 dots over «47 = 40 + 7»: the support before the
+// digits-only default.
 // See docs/place-value-methodology.md, раздел 8.
 
 function useScreenMode() {
@@ -35,6 +40,18 @@ function useScreenMode() {
 }
 
 const cap = (s) => `${s[0].toUpperCase()}${s.slice(1)}`;
+
+// The number as pieces, one column per place, in rows of five like the ten-frame.
+function Picture({ view, places, digit }) {
+  const { One, Ten, Hundred } = modelPieces(view);
+  const Piece = { hundreds: Hundred, tens: Ten, ones: One };
+  return <section className={`sg-card pp-picture pp-picture--${places.length}`} aria-hidden="true">
+    {places.map((k) => <div key={k} className={`pp-pic-col pp-pic-col--${k}`}>
+      <h3 className={`sg-head sg-head--${k}`}>{PLACE[k].label}</h3>
+      <div className="pp-pic-pieces">{Array.from({ length: digit[k] }, (_, i) => { const P = Piece[k]; return <P key={i} />; })}</div>
+    </div>)}
+  </section>;
+}
 
 const PLACE = {
   hundreds: { label: "Сотни", gen: "сотен", unit: 100, plural: pluralHundreds },
@@ -82,7 +99,7 @@ export default function PlacePartsTask({ task, onCorrect, onMistake, onFlashInco
     if (guess === f.expected) { setNote(""); setStep(step + 1); return true; }
     setNote(hint(f, guess));
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { field: split ? f.label : null, given: String(guess), expected: String(f.expected) }); onFlashIncorrect?.();
     return false;
   }
   // The parts check themselves as they are typed; «Проверить» is live too, so
@@ -110,6 +127,7 @@ export default function PlacePartsTask({ task, onCorrect, onMistake, onFlashInco
     <div className="sg-inner">
       <h2 className="sg-title">{title}</h2>
       <div className="sg-board pp-board">
+        {(task.view === "coins" || task.view === "scheme") && <Picture view={task.view} places={places} digit={digit} />}
         <div className={`pp-row${parts.length > 2 ? " pp-row--long" : ""}${words ? " pp-row--words" : ""}`}>
           {split ? <>{numberShown}<span className="pp-op">=</span>{plusJoined(fields.map((_, i) => field(i)))}</>
             : <>{plusJoined(parts.map((p) => <span key={p.key} className="pp-part">{colored(p.value, p.key)}</span>))}<span className="pp-op">=</span>{field(0)}</>}

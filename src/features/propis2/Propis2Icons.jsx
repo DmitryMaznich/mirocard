@@ -54,14 +54,14 @@ export const IconMarkSample = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}</>);
 export const IconMarkDots = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}{redDot(HX + 12, HY)}</>);
 export const IconMarkClean = () => S(<>{rule(18)}{guide(12)}</>);
 
-// ---- row options: repeat (the element «крючок» and its copies), start dots, copies style ---------------------------------------
+// ---- row options: repeat (the element «крючок» and its copies: dashed, pale solid, fading), start dots ---------------------------------------
 export const IconRepOne = () => S(<>{rule(18)}{hook(3)}</>);
 export const IconRepAll = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, copy)}{hook(2 + 2 * STEP, copy)}</>);
 export const IconRepFade = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { ...copy, opacity: 0.55 })}{hook(2 + 2 * STEP, { ...copy, opacity: 0.22 })}</>);
 export const IconDotsNone = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}<circle cx={HX + 3} cy={HY} r={1.7} stroke={RED} strokeWidth={1.1} /><path d="M3.5 21.5L20.5 3.5" stroke={GRAY} strokeWidth={1.3} /></>);
 export const IconDotsOne = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}</>);
 export const IconDotsAll = () => S(<>{rule(18)}{hook(3)}{hook(12, copy)}{redDot(HX + 3, HY)}{redDot(HX + 12, HY)}</>);
-export const IconCopyDash = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, copy)}{hook(2 + 2 * STEP, copy)}</>);
+export const IconRepSolid = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { stroke: "#9ca3af", strokeWidth: 1.6 })}{hook(2 + 2 * STEP, { stroke: "#9ca3af", strokeWidth: 1.6 })}</>);
 export const IconCopySolid = () => S(<>{rule(18)}{hook(2)}{hook(2 + STEP, { opacity: 0.35 })}{hook(2 + 2 * STEP, { opacity: 0.35 })}</>);
 
 // ---- what to put on the page: a symbol, a word, a text ------------------------------------------------------------------------
@@ -110,7 +110,8 @@ export const IconAsText = () => S(<><path d="M4 6h16M4 10.5h16M4 15h16M4 19.5h9"
 
 export const IconEditPage = () => S(<><path d="M4 20l5.5-1.2L19.8 8.5a2 2 0 000-2.8l-1.5-1.5a2 2 0 00-2.8 0L5.2 14.5z" /><path d="M13 6.7l4.3 4.3" /></>); // pencil: unlock the kit page layout, keep the rows
 
-export const IconPaperAll = () => S(<><rect x="8" y="3" width="12" height="15" rx="1.6" /><path d="M5.5 6.5V19a1.6 1.6 0 001.6 1.6h9" /><path d="M11 8h6M11 11h6M11 14h6" strokeWidth="1.3" /></>); // this page's paper onto all pages of the notebook
+export const IconFitWidth = () => S(<><rect x="7" y="4" width="10" height="16" rx="1.5" strokeWidth="1.4" /><path d="M2.5 12h6M2.5 12l2.2-2.2M2.5 12l2.2 2.2M21.5 12h-6M21.5 12l-2.2-2.2M21.5 12l-2.2 2.2" strokeWidth="1.7" /></>); // the page as wide as the canvas
+export const IconSpread = () => S(<><rect x="9" y="8" width="6" height="8" rx="1" /><path d="M6 12H2m2-2-2 2 2 2M18 12h4m-2-2 2 2-2 2M12 5V2m-2 2 2-2 2 2M12 19v3m-2-2 2 2 2-2" strokeWidth="1.6" /></>); // a setting of this page onto the whole notebook
 export const IconAddPage = () => S(<><rect x="5" y="3" width="14" height="18" rx="1.8" /><path d="M12 8.5v7M8.5 12h7" /></>); // a new blank page in the notebook
 
 export const IconNotebook = () => S(<><rect x="5.5" y="3" width="13" height="18" rx="1.8" /><path d="M9 3v18" /><path d="M12 8h4M12 11.5h4" strokeWidth="1.4" /></>); // a notebook card in the library

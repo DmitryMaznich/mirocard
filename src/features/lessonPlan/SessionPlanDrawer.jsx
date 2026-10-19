@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { useLessonPlan } from "./LessonPlanContext";
 import { computeDefaultParams } from "@/features/session/computeDefaultParams";
+import { writeModeParams } from "@/shared/utils/topicUtils";
 import SessionPlanBuilderSheet from "./SessionPlanBuilderSheet";
 import "./lessonPlan.css";
 
@@ -49,7 +50,8 @@ export default function SessionPlanDrawer({
     if (!topicRecord) return; // topic removed since the item was added — no quick start
     const mode = topicRecord.modes?.find((m) => m.id === item.mode);
     const defaultParams = computeDefaultParams(topicRecord, mode);
-    store.upsertStudentTopicLink(store.activeStudentId, item.topicId, { params: defaultParams });
+    const savedParams = store.studentTopicLinks[`${store.activeStudentId}_${item.topicId}`]?.params;
+    store.upsertStudentTopicLink(store.activeStudentId, item.topicId, { params: writeModeParams(savedParams, mode, defaultParams) });
     useAppStore.setState({
       activeStudentId: store.activeStudentId,
       activeTopicId: item.topicId,

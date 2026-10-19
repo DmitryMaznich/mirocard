@@ -3,7 +3,7 @@ import Button from "@/shared/components/Button";
 import { modelPieces } from "./CoinBlocks.jsx";
 import { BuildHundreds } from "./HundredsTasks.jsx";
 import { BuildTableTask, NumberLevelTask } from "./TableTasks.jsx";
-import { numberWords, pluralTens } from "./placeValueLabels.js";
+import { numberWords, pluralTens, spelledPlaces } from "./placeValueLabels.js";
 import "./place_value.css";
 import "./coins.css";
 import "./exchange.css";
@@ -48,9 +48,11 @@ function BuildNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect }) 
     const measure = () => {
       const { width, height } = main.getBoundingClientRect();
       if (!width || !height) return;
-      const isNarrow = width < 640;
+      // A phone, or a portrait tablet: tens over ones, «Возьми» below — side
+      // by side the zones filled only the top quarter of a tall screen.
+      const isNarrow = width < 640 || height > width * 1.1;
       const size = isNarrow
-        ? Math.min((width - 50) / 6.4, (height - 200) / 9, 40)
+        ? Math.min((width - 50) / 6.4, (height - 200) / 9, width >= 640 ? 56 : 40)
         : Math.min((width - 170) / 17.8, (height - 60) / 5.6, 52);
       setNarrow(isNarrow);
       setCoinSize(Math.max(20, size));
@@ -81,7 +83,7 @@ function BuildNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect }) 
     setNote(message);
     setShake(true);
     setTimeout(() => setShake(false), 450);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: spelledPlaces({ tens, ones }), expected: spelledPlaces(target) }); onFlashIncorrect?.();
   }
 
   const blocks = Math.ceil(ones / 10);

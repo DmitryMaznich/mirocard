@@ -472,8 +472,39 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
 
     const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
-    expect(buildNumber.params).toHaveProperty("maxOnes");
+    expect(buildNumber.params).toHaveProperty("numbers");
     expect(buildNumber.params).not.toHaveProperty("level");
+  });
+
+  it("«Разряды числа»: numbered items, the hundreds as their own items with the range fixed", async () => {
+    const { generateTasks } = await import("./renderers/place_value/engine.js");
+    const db = await freshDb();
+    await kv.set(db, "topic:place_value", {
+      id: "place_value",
+      meta: { id: "place_value", renderer: "place_value", version: "1.0.6", title: { ru: "Разряды числа" } },
+      modes: [{ id: "identify_number", type: "identify_number", evaluation: "instant", ui: { title: "Какое это число?" }, params: {} }],
+      cards: ["identify_number", "build_number", "number_names"].map((id) => ({ id, conceptId: id, renderer: "place_value", params: { mode: id } })),
+      installedAt: new Date().toISOString(),
+    });
+    await kv.set(db, "installedTopicIds", ["place_value"]);
+    const record = await getTopicRecord(db, "place_value");
+    const mode = (id) => record.modes.find((m) => m.id === id);
+    expect(record.modes.map((m) => m.ui.title)).toEqual([
+      "1. Двузначные: читаем и пишем", "2. Собери десяток", "3. Какое это число?", "4. Собери число", "5. Разрядные слагаемые", "6. Плюс и минус через десяток", "7. Контрольная работа: до 100",
+      "8. Трёхзначные: читаем и пишем", "9. Считаем десятками", "10. Сотни: какое это число?", "11. Сотни: собери число", "12. Разрядные слагаемые до 1000", "13. Плюс и минус через сотню", "14. Контрольная работа: сотни",
+    ]);
+    expect(mode("identify_number").params).not.toHaveProperty("range");
+    // The hundreds item makes three-digit numbers whatever was saved…
+    const hundreds = generateTasks(mode("identify_hundreds"), record.cards, 20, {});
+    expect(hundreds.every((t) => t.number >= 100)).toBe(true);
+    // …and an old saved «До 1000» no longer leaks into item 3.
+    const tens = generateTasks(mode("identify_number"), record.cards, 20, { range: "to1000" });
+    expect(tens.every((t) => t.number < 100)).toBe(true);
+    // A saved set item 1 no longer offers falls back to its default.
+    const names = generateTasks(mode("number_names"), record.cards, 20, { set: "hundreds" });
+    expect(names.every((t) => t.number < 100)).toBe(true);
+    const names100 = generateTasks(mode("number_names_hundreds"), record.cards, 20, { set: "three_digit" });
+    expect(names100.every((t) => t.number > 100 && t.number % 100 !== 0)).toBe(true);
   });
 
   it("refreshes a mode's title/instruction/icon to the current default, even if older text was persisted", async () => {
@@ -523,7 +554,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // «Разменяй десяток» was replaced by «Обмен десятка» (exchange_ten); a stale
     // record must not keep the old mode around.
     expect(record.modes.find((m) => m.id === "regroup_ten")).toBeUndefined();
-    expect(record.modes.map((m) => m.id)).toEqual(["number_names", "group_ten", "count_tens", "identify_number", "build_number", "place_parts", "exchange_ten"]);
+    expect(record.modes.map((m) => m.id)).toEqual(["number_names", "group_ten", "identify_number", "build_number", "place_parts", "exchange_ten", "pv_test_100", "number_names_hundreds", "count_tens", "identify_hundreds", "build_hundreds", "place_parts_hundreds", "exchange_hundred", "pv_test_1000"]);
   });
 
   // Widget-type migration (a param's `type` changing between what a stale
@@ -566,8 +597,8 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
     expect(buildNumber.params).not.toHaveProperty("numericBlocks");
-    expect(buildNumber.params).toHaveProperty("maxOnes");
-    expect(buildNumber.params).toHaveProperty("maxTens");
+    expect(buildNumber.params).toHaveProperty("numbers");
+    expect(buildNumber.params).not.toHaveProperty("maxTens");
   });
 
   it("drops identify_number's and exchange_ten's numericBlocks param, same as build_number", async () => {
@@ -615,13 +646,13 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     const byId = Object.fromEntries(record.modes.map((m) => [m.id, m]));
 
     expect(byId.identify_number.params).not.toHaveProperty("numericBlocks");
-    expect(byId.identify_number.params).toHaveProperty("maxOnes");
+    expect(byId.identify_number.params).toHaveProperty("trick");
     // showCounters (identify_number's live tens/ones counter) was dropped on 2026-07-26
     // along with the manipulative/checklist redesign that removed the counter entirely.
     expect(byId.identify_number.params).not.toHaveProperty("showCounters");
 
     expect(byId.exchange_ten.params).not.toHaveProperty("numericBlocks");
-    expect(byId.exchange_ten.params).toHaveProperty("maxTens");
+    expect(byId.exchange_ten.params).toHaveProperty("secondNumber");
   });
 
   it("refreshes column_arithmetic's params to the new reference shape, even if an older shape was persisted", async () => {
@@ -788,7 +819,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     expect(copy.ui.title).toBe("Контрольная работа");
   });
 
-  it("adds the new maxTens param to a build_number record saved before it existed", async () => {
+  it("refreshes build_number's params to the current ones for a record saved long ago", async () => {
     // Simulates a device that installed build_number before maxTens/the coin
     // mechanic existed — on the next load, the new range param and the updated
     // instruction copy must both appear.
@@ -817,9 +848,9 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
 
     const record = await getTopicRecord(db, "place_value");
     const buildNumber = record.modes.find((m) => m.id === "build_number");
-    expect(buildNumber.params.maxTens).toMatchObject({
-      type: "number", min: 1, max: 9, default: 5, label: { ru: "Максимум десятков" },
-    });
+    // The detailed maxTens/maxOnes gave way to «Числа» (2026-10-16).
+    expect(buildNumber.params).not.toHaveProperty("maxTens");
+    expect(buildNumber.params.numbers).toMatchObject({ type: "enum", values: ["teens", "to50", "to100"], default: "to50" });
     expect(buildNumber.ui.instruction).toBe("Положи нужное число десятков и монет");
     expect(buildNumber.params.prompt.default).toBe("digits");
     expect(buildNumber.params.view).toMatchObject({ type: "enum", values: ["coins", "scheme", "table", "number"], default: "coins" });

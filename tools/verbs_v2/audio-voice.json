@@ -1,0 +1,162 @@
+{
+  "eats": {
+    "text": "Ест.",
+    "model": "eleven_v4"
+  },
+  "vacuums": {
+    "text": "Пылесосит.",
+    "model": "eleven_v4"
+  },
+  "imp_jumps": {
+    "text": "Прыгай!",
+    "model": "eleven_v4"
+  },
+  "drinks": {
+    "text": "Пьёт.",
+    "model": "eleven_v4"
+  },
+  "imp_drinks": {
+    "text": "Пей!",
+    "model": "eleven_v4"
+  },
+  "sleeps": {
+    "text": "Спит.",
+    "model": "eleven_v4"
+  },
+  "imp_sleeps": {
+    "text": "Спи!",
+    "model": "eleven_v4"
+  },
+  "imp_runs": {
+    "text": "Беги!",
+    "model": "eleven_v4"
+  },
+  "jumps": {
+    "text": "Прыгает.",
+    "model": "eleven_v4"
+  },
+  "draws": {
+    "text": "Рисует.",
+    "model": "eleven_v4"
+  },
+  "imp_draws": {
+    "text": "Рисуй!",
+    "model": "eleven_v4"
+  },
+  "imp_walks": {
+    "text": "Иди!",
+    "model": "eleven_v4"
+  },
+  "brushes_teeth": {
+    "text": "Чистит зубы.",
+    "model": "eleven_v4"
+  },
+  "imp_brushes_teeth": {
+    "text": "Чисти зубы!",
+    "model": "eleven_v4"
+  },
+  "plays": {
+    "text": "Играет.",
+    "model": "eleven_v4"
+  },
+  "imp_plays": {
+    "text": "Играй!",
+    "model": "eleven_v4"
+  },
+  "reads": {
+    "text": "Читает.",
+    "model": "eleven_v4"
+  },
+  "imp_reads": {
+    "text": "Читай!",
+    "model": "eleven_v4"
+  },
+  "imp_rides": {
+    "text": "Поехали!",
+    "model": "eleven_v4"
+  },
+  "cries": {
+    "text": "Плачет.",
+    "model": "eleven_v4"
+  },
+  "imp_cries": {
+    "text": "Покажи, как плачет",
+    "model": "eleven_v4"
+  },
+  "imp_laughs": {
+    "text": "Смейся!",
+    "model": "eleven_v4"
+  },
+  "washes_face": {
+    "text": "Умывается.",
+    "model": "eleven_v4"
+  },
+  "imp_washes_face": {
+    "text": "Умывайся!",
+    "model": "eleven_v4"
+  },
+  "swims": {
+    "text": "Плавает.",
+    "model": "eleven_v4"
+  },
+  "imp_swims": {
+    "text": "Плыви!",
+    "model": "eleven_v4"
+  },
+  "sings": {
+    "text": "Поёт.",
+    "model": "eleven_v4"
+  },
+  "imp_sings": {
+    "text": "Пой!",
+    "model": "eleven_v4"
+  },
+  "dances": {
+    "text": "Танцует.",
+    "model": "eleven_v4"
+  },
+  "imp_dances": {
+    "text": "Танцуй!",
+    "model": "eleven_v4"
+  },
+  "cuts_knife": {
+    "text": "Режет.",
+    "model": "eleven_v4"
+  },
+  "imp_cuts_knife": {
+    "text": "Покажи, как режет",
+    "model": "eleven_v4"
+  },
+  "waters_plants": {
+    "text": "Поливает.",
+    "model": "eleven_v4"
+  },
+  "imp_waters_plants": {
+    "text": "Поливай!",
+    "model": "eleven_v4"
+  },
+  "imp_vacuums": {
+    "text": "Покажи, как пылесосит",
+    "model": "eleven_v4"
+  },
+  "imp_eats": {
+    "text": "Ешь!",
+    "model": "eleven_v4"
+  },
+  "runs": {
+    "text": "Бежит.",
+    "model": "eleven_v4"
+  },
+  "walks": {
+    "text": "Идёт.",
+    "model": "eleven_v4"
+  },
+  "rides": {
+    "text": "Едет.",
+    "model": "eleven_v4"
+  },
+  "laughs": {
+    "text": "Смеётся.",
+    "model": "eleven_v4"
+  }
+}

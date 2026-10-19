@@ -5,7 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { openPdf, pdfFileName, pdfTab, printPdf } from "@/topics/renderers/propis/printPdf.js";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { NOTEBOOK_KEYS, PAGE_PAPER_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, paperDiffers, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { NOTEBOOK_KEYS, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, openKitCopies, pagesTakeNotebookRuling, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
 import Propis2Library from "./Propis2Library";
@@ -484,9 +484,11 @@ export default function Propis2Home({ db }) {
           if (navSet && navSet.pageIds.length === 1 && next.title !== shown.title) lib = upsertSet(lib, { ...lib.sets.find((st) => st.id === navSet.id), title: next.title });
           edit(upsertPage(lib, next), how);
         }}
-        paperToAll={navSet && navSet.pageIds.length > 1 ? {
-          differs: paperDiffers(navSet, pagesById, shown),
-          apply: () => edit(applyLayout(working, navSet.id, Object.fromEntries(PAGE_PAPER_KEYS.map((k) => [k, shown[k]])))),
+        notebook={navSet && navSet.pageIds.length > 1 ? {
+          total: navSet.pageIds.length,
+          mixed: mixedSettings(navSet, pagesById),
+          othersDiffer: (key, value) => othersDiffer(navSet, pagesById, page.id, key, value),
+          applyAll: (key, value) => edit(applyLayout(working, navSet.id, { [key]: value })),
         } : null}
         onUndo={undo}
         onRedo={redo}

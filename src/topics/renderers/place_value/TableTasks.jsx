@@ -66,7 +66,7 @@ export function IdentifyTableTask({ task, onCorrect, onMistake, onFlashIncorrect
     typed.fail();
     setNote(hint(guess));
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { given: String(guess), expected: String(task.number) }); onFlashIncorrect?.();
   }
 
   const column = (kind) => {
@@ -124,7 +124,7 @@ export function BuildTableTask({ task, onCorrect, onMistake, onFlashIncorrect })
         : (words ? `${name}: сколько единиц сверх десятков?` : "Единицы — последняя цифра числа."));
       setSupport(true);
     } else setNote("Проверь ещё раз.");
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { field: f.key === "tens" ? "Десятки" : "Единицы", given: String(guess), expected: String(f.expected) }); onFlashIncorrect?.();
     return false;
   }
   useAutoCheck(typed, { auto: !solved, expected: solved ? "" : fields[step].expected, submit });
@@ -160,23 +160,40 @@ export function BuildTableTask({ task, onCorrect, onMistake, onFlashIncorrect })
   </div>;
 }
 
-// «Число» (кадр 4): no columns at all — only the written number. The child
-// reads the places straight from it: «Сколько десятков?», «Сколько единиц?»,
-// each with three choices that hold the typical mistakes (the other digit and
-// the whole number — «в 47 сорок семь десятков»; given in words, 40 instead of
-// 4). In «Обучение» the digits keep their place colours with «дес.» / «ед.»
-// under them, and a mistake brings the table back for this task.
+// «Число»: every place on one screen — a row per place («Десятков:», «Единиц:»)
+// in its colour, each with three choices that hold the typical mistakes (the
+// other digit and the whole number — «в 47 сорок семь десятков»; given in
+// words, 40 instead of 4). The rows are answered in any order; a right choice
+// stays marked, the task is done when every row is. One screen, not a question
+// after a question: the questions differed by one word and the child took the
+// second for the first one not accepted.
+const ROW_LABEL = { hundreds: "Сотен", tens: "Десятков", ones: "Единиц" };
+export function PlaceChoiceRows({ rows, answered, wrong, onChoose }) {
+  return <div className="nl-rows">
+    {rows.map((r) => <div key={r.key} className={`nl-row nl-row--${r.key}${answered[r.key] ? " nl-row--done" : ""}`}>
+      <div className={`nl-row-label sg-head sg-head--${r.key}`}>{ROW_LABEL[r.key]}</div>
+      <div className="nl-choices">
+        {r.options.map((v) => {
+          const right = answered[r.key] && v === r.right;
+          return <button type="button" key={v} disabled={answered[r.key]}
+            className={`xb-choice-btn nl-choice${right ? " nl-choice--right" : ""}${!answered[r.key] && wrong[r.key] === v ? " nl-choice--wrong" : ""}${answered[r.key] && !right ? " nl-choice--off" : ""}`}
+            aria-label={`${ROW_LABEL[r.key]}: ${v}`} onClick={() => onChoose(r, v)}>{v}</button>;
+        })}
+      </div>
+    </div>)}
+  </div>;
+}
+
 export function NumberLevelTask({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const teaching = task.supportMode !== "independent";
   const words = task.prompt === "words";
   const { tens, ones } = task.target;
   const n = task.number;
   const [ref, mode] = useScreenMode();
-  const [step, setStep] = useState(0);
+  const [answered, setAnswered] = useState({});
   const [note, setNote] = useState("");
   const [support, setSupport] = useState(false);
-  const [wrong, setWrong] = useState(null);
-  const shown = words ? `«${numberWords(n)}»` : String(n);
+  const [wrong, setWrong] = useState({});
   const questions = useState(() => {
     const pick = (right, others) => {
       const all = [...new Set([right, ...others])];
@@ -184,52 +201,46 @@ export function NumberLevelTask({ task, onCorrect, onMistake, onFlashIncorrect }
       return all;
     };
     return [
-      { key: "tens", ask: `Сколько десятков в числе ${shown}?`, right: tens, options: pick(tens, words ? [tens * 10, ones] : [ones, n]) },
-      { key: "ones", ask: `Сколько единиц в числе ${shown}?`, right: ones, options: pick(ones, words ? [tens, n] : [tens, n]) },
+      { key: "tens", ask: "Сколько десятков в числе?", right: tens, options: pick(tens, words ? [tens * 10, ones] : [ones, n]) },
+      { key: "ones", ask: "Сколько единиц в числе?", right: ones, options: pick(ones, words ? [tens, n] : [tens, n]) },
     ];
   })[0];
-  const solved = step >= questions.length;
-  const q = questions[step];
+  const solved = questions.every((q) => answered[q.key]);
 
-  function choose(value) {
-    if (solved) return;
-    if (value === q.right) { setStep(step + 1); setNote(""); setWrong(null); return; }
-    setWrong(value);
+  function choose(q, value) {
+    if (solved || answered[q.key]) return;
+    if (value === q.right) { setAnswered((a) => ({ ...a, [q.key]: true })); setNote(""); return; }
+    setWrong((w) => ({ ...w, [q.key]: value }));
     setNote(!teaching ? "Проверь ещё раз."
       : value === n ? `${n} — это всё число. А ${q.key === "tens" ? "десятков" : "единиц"} в нём сколько?`
         : value === tens * 10 ? `${tens * 10} — это ${tens} ${pluralTens(tens)}. Сколько десятков?`
           : q.key === "tens" ? "Десятки — первая цифра числа." : "Единицы — последняя цифра числа.");
     if (teaching) setSupport(true);
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { field: q.key === "tens" ? "Сколько десятков?" : "Сколько единиц?", given: String(value), expected: String(q.right) }); onFlashIncorrect?.();
   }
 
   const digits = String(n).padStart(2, "0");
   return <div ref={ref} className={`pv-screen sg-screen sg-screen--${mode} tb-screen nl-screen`} style={{ "--sg-answer-w": "340px" }}>
     <div className="sg-inner">
-      <h2 className="sg-title">Какие разряды в числе?</h2>
+      <h2 className="sg-title">Сколько десятков и единиц в числе?</h2>
       <div className="sg-board nl-board">
         {words ? <div className="tb-target tb-target--words">{numberWords(n)}</div>
           : <div className="nl-number">
-            <span className={`nl-place${teaching ? " tb-digit--tens" : ""}`}>{digits[0]}{teaching && <small>дес.</small>}</span>
-            <span className={`nl-place${teaching ? " tb-digit--ones" : ""}`}>{digits[1]}{teaching && <small>ед.</small>}</span>
+            <span className={`nl-place${teaching ? " tb-digit--tens" : ""}`}>{digits[0]}</span>
+            <span className={`nl-place${teaching ? " tb-digit--ones" : ""}`}>{digits[1]}</span>
           </div>}
-        {support && <section className="sg-card tb-table pp-support" aria-hidden="true">
+        {/* Its place is kept from the start: nothing moves when it shows. */}
+        <section className={`sg-card tb-table pp-support${support ? "" : " nl-reserved"}`} aria-hidden="true">
           <div className="tb-col tb-col--tens">{head("tens")}<div className="tb-digit tb-digit--tens">{tens}</div></div>
           <div className="tb-col tb-col--ones">{head("ones")}<div className="tb-digit tb-digit--ones">{ones}</div></div>
-        </section>}
+        </section>
       </div>
       <div className="sg-answer">
-        {!solved && <div className="nl-ask">{q.ask}</div>}
+        <PlaceChoiceRows rows={questions} answered={answered} wrong={wrong} onChoose={choose} />
         <div className="sg-status" role="status">
           {solved ? null : note ? <span className="sg-status-note">{note}</span> : null}
         </div>
-        <div className="sg-slot">
-          {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-            : <div className="nl-choices" key={step}>
-              {q.options.map((v) => <button type="button" key={v} className={`xb-choice-btn nl-choice${wrong === v ? " nl-choice--wrong" : ""}`}
-                onClick={() => choose(v)}>{v}</button>)}
-            </div>}
-        </div>
+        <div className={`sg-slot${solved ? "" : " nl-reserved"}`}><Button disabled={!solved} onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button></div>
       </div>
     </div>
   </div>;

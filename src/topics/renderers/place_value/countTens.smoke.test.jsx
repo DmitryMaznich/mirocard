@@ -14,12 +14,24 @@ describe("«Считаем десятками» — «Смотри и счита
   const count = (sel) => h.container.querySelectorAll(sel).length;
   const task = (extra = {}) => ({ type: "count_tens", cardId: "c", conceptId: "c", task: "count", number: 70, start: 70, end: 120, supportMode: "independent", ...extra });
 
+  it("«Как показываем»: coins — stacks and a plate; scheme — sticks and a square", async () => {
+    h.mount(CountTensTask, task({ number: 170, start: 170, end: 220 }));
+    await wait();
+    expect(count(".ct-ten .cb-ten-stack")).toBe(7);
+    expect(count(".ct-squares > .cb-plate")).toBe(1);
+    h.mount(CountTensTask, task({ number: 170, start: 170, end: 220, view: "scheme" }));
+    await wait();
+    expect(count(".ct-ten .cb-stick")).toBe(7);
+    expect(count(".ct-squares .cb-square")).toBe(1);
+    expect(count(".cb-ten-stack")).toBe(0);
+  });
+
   it("counts by tens; the tenth ten has to be folded into a hundred by the child", async () => {
     const onCorrect = vi.fn();
     h.mount(CountTensTask, task(), { onCorrect });
     await wait();
     expect(text(".ct-number")).toBe("70");
-    expect(count(".ct-stick")).toBe(7);
+    expect(count(".ct-ten")).toBe(7);
     h.click("+1 десяток"); await wait();
     await wait();
     expect(text(".ct-number")).toBe("80");
@@ -29,14 +41,14 @@ describe("«Считаем десятками» — «Смотри и счита
     h.click("+1 десяток"); await wait();
     await wait();
     // Ten sticks, no number, no «+1 десяток» — only «Сложи сотню».
-    expect(count(".ct-stick")).toBe(10);
-    expect(count(".ct-square")).toBe(0);
+    expect(count(".ct-ten")).toBe(10);
+    expect(count(".ct-squares > .cb-plate")).toBe(0);
     expect(text(".ct-number")).toBe("?");
     expect(h.button("+1 десяток")).toBeUndefined();
     h.click("Сложи сотню"); await wait();
     await wait();
-    expect(count(".ct-square")).toBe(1);
-    expect(count(".ct-stick")).toBe(0);
+    expect(count(".ct-squares > .cb-plate")).toBe(1);
+    expect(count(".ct-ten")).toBe(0);
     expect(text(".ct-number")).toBe("100");
     expect(text(".ct-fold-say")).toBe("10 десятков = 1 сотня");
     expect(text(".ct-caption")).toBe("сто · 1 сотня");
@@ -95,7 +107,7 @@ describe("«Считаем десятками» — «Какое число да
     h.click("100");
     await wait();
     expect(h.container.querySelector(".sg-status-say")).toBeNull();
-    expect(h.container.querySelectorAll(".ct-square")).toHaveLength(1);
+    expect(h.container.querySelectorAll(".ct-squares > .cb-plate")).toHaveLength(1);
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalled();
   });
@@ -106,7 +118,7 @@ describe("«Считаем десятками» — «Какое число да
     h.click("1010");
     await wait();
     expect(text(".sg-status-note")).toBe("В числе 1010 четыре цифры. Сто десять — это 1 сотня и 1 десяток: три цифры.");
-    expect(h.container.querySelector(".ct-stick--ghost")).not.toBeNull();
+    expect(h.container.querySelector(".ct-ten--ghost")).not.toBeNull();
   });
 
   it("engine: the first count is 0 → 100, the rest are short stretches across a hundred", async () => {
@@ -139,7 +151,7 @@ describe("«Считаем десятками» — «Считаем назад�
     h.click("−1 десяток"); await wait();
     await wait();
     expect(text(".ct-number")).toBe("100");
-    expect(count(".ct-stick")).toBe(0);
+    expect(count(".ct-ten")).toBe(0);
     h.click("−1 десяток"); await wait();
     await wait();
     // Nothing taken: the column is empty, the number is still 100.
@@ -148,15 +160,15 @@ describe("«Считаем десятками» — «Считаем назад�
     expect(h.button("−1 десяток")).toBeUndefined();
     h.click("Разложи сотню"); await wait();
     await wait();
-    expect(count(".ct-square")).toBe(0);
-    expect(count(".ct-stick")).toBe(10);
+    expect(count(".ct-squares > .cb-plate")).toBe(0);
+    expect(count(".ct-ten")).toBe(10);
     expect(text(".ct-number")).toBe("100");
     expect(text(".ct-caption")).toBe("сто · 10 десятков");
     expect(text(".ct-fold-say")).toBe("1 сотня = 10 десятков");
     h.click("−1 десяток"); await wait();
     await wait();
     expect(text(".ct-number")).toBe("90");
-    expect(count(".ct-stick")).toBe(9);
+    expect(count(".ct-ten")).toBe(9);
     h.click("−1 десяток"); await wait();
     await wait();
     expect(text(".sg-status-say")).toBe("120 · 110 · 100 · 90 · 80");
@@ -172,7 +184,7 @@ describe("«Считаем десятками» — «Считаем назад�
     h.click("Разложи сотню"); await wait();
     await wait();
     expect(text(".ct-caption")).toBe("двести · 1 сотня и 10 десятков");
-    expect(count(".ct-square")).toBe(1);
+    expect(count(".ct-squares > .cb-plate")).toBe(1);
   });
 
   it("engine: stretches go down across a hundred", async () => {
@@ -185,27 +197,34 @@ describe("«Считаем десятками» — «Считаем назад�
   });
 });
 
-describe("Taps wait for the voice", () => {
+describe("A tap cuts the voice", () => {
   const h = coinHarness();
   const text = (sel) => h.container.querySelector(sel)?.textContent;
 
-  it("a tap while the number is spoken does nothing and isn't replayed after", async () => {
-    // A clip that ends only when we say so.
-    const { holdSpeech } = await import("./numberAudio.js");
-    const finish = holdSpeech();
+  it("a tap while the voice speaks works at once and silences it", async () => {
+    const { registerSpeech, isSpeaking } = await import("./numberAudio.js");
     h.mount(CountTensTask, { type: "count_tens", cardId: "c", conceptId: "c", task: "count", number: 70, start: 70, end: 120, supportMode: "independent" });
-    h.click("+1 десяток");
-    h.click("+1 десяток");
-    expect(text(".ct-number")).toBe("70");
-    finish();
     await wait();
-    expect(text(".ct-number")).toBe("70");
+    // A voice that would go on until stopped.
+    const stopped = vi.fn();
+    const unregister = registerSpeech(() => { stopped(); unregister(); });
+    expect(isSpeaking()).toBe(true);
     h.click("+1 десяток");
+    expect(stopped).toHaveBeenCalled();
     await wait();
     expect(text(".ct-number")).toBe("80");
   });
 
-  it("a hold never outlives its clip: stop releases it", () => {
+  it("«Какое число дальше?»: the answer can be given while the count is still heard", async () => {
+    const onCorrect = vi.fn();
+    h.mount(CountTensTask, { type: "count_tens", cardId: "c", conceptId: "c", task: "next", number: 90, options: [91, 100, 900], supportMode: "learning" }, { onCorrect });
+    h.click("100");
+    expect(h.button("100").className).toContain("ct-option--right");
+    h.click("Далее →");
+    expect(onCorrect).toHaveBeenCalled();
+  });
+
+  it("stop releases a clip", () => {
     return import("./numberAudio.js").then(({ playNumber, isSpeaking }) => {
       const clip = playNumber(90);
       expect(isSpeaking()).toBe(true);
@@ -234,20 +253,20 @@ describe("«Считаем десятками» — «Какое число пе
     await wait();
     expect(text(".sg-title")).toBe("Какое число перед?");
     expect(text(".ct-chain")).toBe("120 · 110 · 100 · ?");
-    expect(count(".ct-square")).toBe(1);
+    expect(count(".ct-squares > .cb-plate")).toBe(1);
     h.click("99");
     await wait();
     expect(text(".sg-status-note")).toBe("99 — это 100 без 1 единицы. А убираем 1 десяток. Сотня — это 10 десятков.");
-    expect(count(".ct-square")).toBe(0);
-    expect(count(".ct-stick")).toBe(10);
-    expect(count(".ct-stick--ghost")).toBe(1);
+    expect(count(".ct-squares > .cb-plate")).toBe(0);
+    expect(count(".ct-ten")).toBe(10);
+    expect(count(".ct-ten--ghost")).toBe(1);
     h.click("0");
     await wait();
     expect(text(".sg-status-note")).toBe("0 — это 100 без 1 сотни. А убираем 1 десяток. Сотня — это 10 десятков.");
     h.click("90");
     await wait();
     expect(h.container.querySelector(".sg-status-say")).toBeNull();
-    expect(count(".ct-stick")).toBe(9);
+    expect(count(".ct-ten")).toBe(9);
     expect(onMistake).toHaveBeenCalledTimes(2);
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalled();

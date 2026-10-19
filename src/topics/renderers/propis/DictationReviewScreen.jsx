@@ -42,7 +42,7 @@ const FALLBACK_FONT_SIZE = 34;
 // тетрадный лист, а не так как ты сделал". No tap-to-animate/Prev-Next here though -- this
 // screen shows every item at once (it can run to ~40), unlike ReadTextView's one-text-at-a-
 // time browsing.
-export default function DictationReviewScreen({ task, onClose, Answers = null }) {
+export default function DictationReviewScreen({ task, onClose, Answers = null, Grading = null }) {
   const items = task?.items ?? [];
   const level = task?.level ?? "letters";
 
@@ -53,6 +53,16 @@ export default function DictationReviewScreen({ task, onClose, Answers = null })
   const activeStudent = students.find((s) => s.id === activeStudentId) ?? null;
 
   const [stage, setStage] = useState("idle"); // "idle" | "pin" | "reward"
+  // With `Grading` (propis2): the adult taps a mark right on this screen (no PIN); the pen writes it, then the footer goes on to the bonus
+  // (that is where the PIN is asked, as before). `writing` is true while the pen writes the mark.
+  const [grade, setGrade] = useState(null);
+  const [writing, setWriting] = useState(false);
+  const afterGrade = grade != null && !writing;
+  function pickGrade(g) {
+    setGrade(g);
+    setWriting(true);
+    window.setTimeout(() => setWriting(false), Grading.writeMs(g) + 300);
+  }
 
   const handleSetPin = useCallback(async (hash) => {
     patchSettings({ adultPinHash: hash });
@@ -132,7 +142,7 @@ export default function DictationReviewScreen({ task, onClose, Answers = null })
           </p>
         </div>
 
-        {Answers ? <Answers items={items} level={level} /> : (
+        {Answers ? <Answers items={items} level={level} grade={grade} /> : (
         <div className="propis-text-grid-scroll" ref={wrapRef}>
           <svg
             className="propis-text-grid-svg"
@@ -181,7 +191,20 @@ export default function DictationReviewScreen({ task, onClose, Answers = null })
         )}
 
         <div className="propis-dictation-review-footer">
-          {task?.videoRewardEnabled ? (
+          {Grading ? (
+            grade == null ? (
+              <>
+                <Grading.Keys onPick={pickGrade} />
+                <button type="button" className="propis2-grade-skip" onClick={() => (task?.videoRewardEnabled ? setStage("pin") : onClose())}>
+                  {task?.videoRewardEnabled ? "Без оценки" : "Закрыть без оценки"}
+                </button>
+              </>
+            ) : (
+              <button type="button" className="propis-dictation-next" disabled={!afterGrade} onClick={() => (task?.videoRewardEnabled ? setStage("pin") : onClose())}>
+                {task?.videoRewardEnabled ? "Дальше — бонус" : "Готово"}
+              </button>
+            )
+          ) : task?.videoRewardEnabled ? (
             <button type="button" className="propis-dictation-next" onClick={() => setStage("pin")}>
               ✓ Всё верно
             </button>

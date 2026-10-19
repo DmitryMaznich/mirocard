@@ -52,6 +52,52 @@
 
 /* «Плюс и минус через десяток» on the «Таблица» (ExchangeTable.jsx): the
    example in place-value columns, a column sum with headings. */
+/* The exchange as the scheme (ExchangeFlight.jsx): over each column's top
+   cell its digit as pieces — squares, sticks, dots — in rows, on white, so the
+   digit seems to turn into them; one big piece moves across. */
+.xf-layer { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+.xf-area { position: absolute; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 3px;
+  background: #fff; border-radius: 12px; box-shadow: 0 0 0 2px #e2e8f0; animation: xf-in .35s ease-out; padding: 4px; box-sizing: border-box; }
+@keyframes xf-in { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
+.xf-area--big { --coin-size: 12px; }
+.xf-area--small { --coin-size: 14px; }
+/* Sticks stand close in a row: ten of them read as one ten. */
+.xf-area { flex-direction: column; align-items: center; }
+.xf-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+.xf-area .cb-stick-cell { width: 6px; }
+.xf-area .cb-stick { width: 4px; }
+/* Ten dots in a row fit the column. */
+.xf-area .cb-dot-cell { width: calc(var(--coin-size) * 0.7); }
+.xf-area .xf-group { gap: 3px 2px; }
+/* The ten just made (or about to leave) on its own row, darker. */
+.xf-group--new { flex-wrap: nowrap; padding: 2px 4px; border-radius: 8px; background: #fef3c7; }
+.xf-group--new { animation: xf-new .5s ease-out; }
+.xf-group--new .cb-stick { background: #92400e; }
+.xf-group--new .cb-dot { background: #1e3a8a; }
+.xf-group--new .cb-square { background: #166534; }
+.xf-piece { display: inline-flex; transition: transform .3s; }
+@keyframes xf-new { from { transform: scale(.2) translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
+.xf-flyer { position: absolute; transform: translate(-50%, -50%); transition-property: left; transition-timing-function: ease-in-out; --coin-size: 12px; z-index: 4; }
+/* Carrying: the sum's ten, big as the result digits, next to its ones (reads
+   «11»), then up over the next column, small as the carry. */
+.xf-carry { position: absolute; transform: translate(-100%, -50%); font-size: clamp(44px, 11vw, 72px); font-weight: 900; line-height: 1;
+  color: #b45309; transition-property: left, top, font-size, transform; transition-timing-function: ease-in-out; animation: xf-fade .3s ease-out; }
+@keyframes xf-fade { from { opacity: 0; } to { opacity: 1; } }
+.xf-carry--up { transform: translate(-50%, -50%); font-size: 24px; }
+.xf-carry--hundreds { color: #15803d; }
+.xf-carry--ones { color: #1d4ed8; }
+/* Lend: starts big beside the digit (reads 13), shrinks as it slides up. */
+.xf-carry--lend.xf-carry--up { font-size: 30px; }
+/* The borrowed ten, written: a small «1» over the digit, to its left, so the
+   two read as 13 (0.36 of the digit's size — LEND_SHIFT in ExchangeFlight). */
+.xb-lend { transform: translateX(calc(-0.36 * clamp(44px, 11vw, 72px))); }
+.xb-table .xf-area--big .cb-stick-cell, .xf-flyer .cb-stick-cell { width: calc(var(--coin-size) * 0.6); }
+.xf-wait { pointer-events: none; opacity: .45; transition: opacity .2s; }
+/* «Что больше?»: the two numbers lit in the table. */
+.xb-cell--compare { background: #fef3c7; box-shadow: 0 0 0 3px #f59e0b; border-radius: 10px; }
+.xb-compare { display: grid; justify-items: center; gap: 10px; }
+.xb-compare-ask { font-size: 20px; font-weight: 900; color: #1a1a2e; text-align: center; }
+.xb-compared { flex-basis: 100%; text-align: center; font-size: 26px; font-weight: 900; color: #92400e; }
 .xb-table {
   display: grid;
   grid-template-columns: 40px 1fr 1fr;
@@ -59,6 +105,7 @@
   align-items: center;
   row-gap: 4px;
   padding: 12px 16px 16px 4px;
+  position: relative;
 }
 .xb-table .sg-head { margin-bottom: 4px; }
 .xb-cell {
@@ -76,6 +123,13 @@
 .xb-over--tens .xb-carry { color: #b45309; }
 .xb-over--ones .xb-carry { color: #1d4ed8; }
 @keyframes xb-pop { from { transform: translateY(14px) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+/* The dot over the digit a ten (a hundred) was borrowed from; it pulses at
+   the step whose answer is written there. */
+.xb-borrow-dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; margin-bottom: 6px; animation: xb-pop 0.4s ease-out; }
+.xb-over--hundreds .xb-borrow-dot { color: #15803d; }
+.xb-over--tens .xb-borrow-dot { color: #b45309; }
+.xb-borrow-dot--wait { animation: xb-dot-wait 1s ease-in-out infinite; }
+@keyframes xb-dot-wait { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 currentColor; } 50% { transform: scale(1.5); box-shadow: 0 0 0 6px transparent; } }
 .xb-crossed { position: relative; opacity: 0.45; }
 .xb-crossed::after {
   content: "";
@@ -91,12 +145,15 @@
 .xb-result { min-height: 1em; }
 
 /* The step being asked: «Единицы: 8 + 4 = [  ]». */
-.xb-step { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; font-size: 24px; font-weight: 900; color: #1a1a2e; }
-.xb-step-head { padding: 3px 12px; border-radius: 8px; color: #fff; font-size: 18px; font-weight: 800; }
+.xb-step { display: flex; flex-direction: column; align-items: center; gap: 8px; font-weight: 900; color: #1a1a2e; }
+.xb-step-head { padding: 4px 16px; border-radius: 10px; color: #fff; font-size: clamp(20px, 3vh, 28px); font-weight: 800; }
+.xb-step-line { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; font-size: clamp(30px, 4.6vh, 44px); }
+/* «Хватает?»: a question, not a sum to write — smaller, the buttons need the room. */
+.xb-step--choice .xb-step-line { font-size: clamp(20px, 3vh, 28px); }
 .xb-step-head--tens { background: #d97706; }
 .xb-step-head--ones { background: #2563eb; }
 
-.xb-choice { display: flex; gap: 12px; justify-content: center; }
+.xb-choice { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 .xb-choice-btn {
   min-width: 140px;
   min-height: 60px;
@@ -119,6 +176,28 @@
 
 /* «Разрядные слагаемые» (PlacePartsTask.jsx): one line, 47 = [40] + [7]. */
 .pp-board { justify-items: center; row-gap: 16px; }
+/* «Как показываем» over the example: one column per place, pieces in rows
+   of five. Sized from the screen width so three columns fit a phone. */
+.pp-picture {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: auto;
+  justify-content: space-evenly;
+  gap: 10px;
+  width: 100%;
+  max-width: 560px;
+  padding: 10px;
+  box-sizing: border-box;
+  --coin-size: min(30px, calc((100vw - 90px) / 13));
+  --plate-coin: min(11px, calc((100vw - 90px) / 34));
+}
+.pp-picture--3 { --coin-size: min(16px, calc((100vw - 110px) / 18)); --plate-coin: min(6.5px, calc((100vw - 110px) / 44)); }
+.pp-pic-col { display: flex; flex-direction: column; align-items: center; gap: 8px; min-height: calc(var(--coin-size) * 2.4 + 34px); }
+.pp-pic-pieces { display: grid; grid-template-columns: repeat(5, auto); gap: 4px; justify-content: center; align-items: end; }
+.pp-pic-col--hundreds .pp-pic-pieces { grid-template-columns: repeat(2, auto); }
+.sg-screen--tablet .pp-pic-col--hundreds .pp-pic-pieces, .sg-screen--wide .pp-pic-col--hundreds .pp-pic-pieces { grid-template-columns: repeat(3, auto); }
+.sg-screen--tablet .pp-picture, .sg-screen--wide .pp-picture { max-width: 720px; --coin-size: 36px; --plate-coin: 13px; }
+.sg-screen--tablet .pp-picture--3, .sg-screen--wide .pp-picture--3 { --coin-size: 28px; --plate-coin: 12px; }
 .pp-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
 .pp-num, .pp-part { font-size: clamp(44px, 12vw, 72px); font-weight: 900; line-height: 1; color: #1a1a2e; font-variant-numeric: tabular-nums; }
 .pp-words { font-size: clamp(26px, 7vw, 40px); font-weight: 900; color: #1a1a2e; }
@@ -129,12 +208,45 @@
 /* «Число» (NumberLevelTask): the written number alone, places read from it. */
 .nl-board { justify-items: center; row-gap: 16px; }
 .nl-number { display: flex; gap: 6px; color: #1a1a2e; }
-.nl-place { display: grid; justify-items: center; font-size: clamp(80px, 22vw, 128px); font-weight: 900; line-height: 1; }
-.nl-place small { font-size: 16px; font-weight: 800; }
-.nl-ask { font-size: 22px; font-weight: 900; color: #1a1a2e; text-align: center; }
-.nl-choices { display: flex; gap: 12px; justify-content: center; }
-.nl-choice { min-width: 88px; font-size: 32px; font-weight: 900; }
-.nl-choice--wrong { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
+/* Sized from the screen itself (width and height), so a tablet gets a big
+   number and big choices, and a short phone still fits. */
+.nl-place { display: grid; justify-items: center; font-size: clamp(56px, min(22vw, 11vh), 168px); font-weight: 900; line-height: 1; }
+/* Kept in place but not shown yet: the support table (after a mistake) and
+   «Далее» — the screen doesn't jump when they appear. */
+.nl-reserved { visibility: hidden; }
+/* «Число»: the question big, the choices under it, the hint under them — on
+   every screen one column (not the keypad layout of the other levels, whose
+   tablet slot is the keypad's width and pushed the choices off the screen). */
+.nl-screen .sg-answer { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.nl-screen .sg-slot { width: 100%; height: auto; min-height: 56px; }
+.nl-screen .sg-status { min-height: 28px; }
+/* The support table after a mistake: its digits follow the screen height too. */
+.nl-screen .pp-support .tb-digit { font-size: clamp(28px, 5vh, 56px); }
+.nl-ask { font-size: 26px; font-weight: 900; line-height: 1.2; color: #1a1a2e; text-align: center; }
+.nl-choices { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.nl-choice { min-width: 92px; min-height: 68px; font-size: 34px; font-weight: 900; }
+.sg-screen--tablet .nl-ask,
+.sg-screen--wide .nl-ask { font-size: 32px; }
+/* Landscape: the answer column wide enough for the question on one line and
+   the three choices in one row. */
+.sg-screen--wide.nl-screen .sg-inner { grid-template-columns: minmax(0, 1fr) min(560px, 52vw); }
+.sg-screen--tablet .nl-choice,
+.sg-screen--wide .nl-choice { min-width: 112px; min-height: 80px; font-size: 40px; }
+/* One screen, a column per place in the digits' order (Сотни · Десятки ·
+   Единицы), each on a pale panel of its colour: the chip, then its three
+   choices stacked. A column answered right turns green, its other choices fade. */
+.nl-rows { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: clamp(8px, 2vw, 18px); width: 100%; max-width: min(100%, 640px); margin: 0 auto; }
+.nl-row { display: flex; flex-direction: column; align-items: stretch; gap: clamp(6px, 1.2vh, 12px); padding: clamp(8px, 1.4vh, 14px) clamp(6px, 1.5vw, 14px); border-radius: 18px; border: 2px solid transparent; }
+.nl-row--hundreds { background: #f0fdf4; }
+.nl-row--tens { background: #fff7ed; }
+.nl-row--ones { background: #eff6ff; }
+.nl-row--done { border-color: #22c55e; }
+.nl-row-label { align-self: center; font-size: clamp(15px, 2.2vh, 22px); }
+.nl-rows .nl-choices { flex-direction: column; flex-wrap: nowrap; gap: clamp(6px, 1.2vh, 12px); }
+.nl-rows .nl-choice { min-width: 0; width: 100%; min-height: clamp(44px, 7vh, 96px); font-size: clamp(24px, 4.4vh, 52px); box-shadow: none; border-color: transparent; background: #fff; padding: 2px 6px; line-height: 1; }
+.nl-choice--right { border-color: #22c55e !important; background: #dcfce7 !important; color: #15803d; }
+.nl-choice--off { opacity: .25; }
+.nl-rows .nl-choice--wrong, .nl-choice--wrong { border-color: #ef4444; background: #fef2f2; animation: px-shake 0.4s ease-in-out; }
 .tb-col--hundreds { background: #f0fdf4; }
 .tb-digit--hundreds { color: #15803d; }
 /* Three parts (347 = 300 + 40 + 7) must fit one phone line; a number in words

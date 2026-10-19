@@ -2,7 +2,7 @@ import { memo, useMemo, useState, useEffect, useRef, useCallback, useId } from "
 import { createPortal } from "react-dom";
 import { layoutTextIntoRows, layoutElementLinesIntoRows, layoutWideLinesIntoRows, WIDE_GRID_STRETCH, WIDE_ROW_MAX_X, paginateRows } from "./wordEngine.js";
 import AnimatedStrokes from "./AnimatedStrokes.jsx";
-import { BrandMarks, StapleMarks } from "./brandMarks.jsx";
+import { BrandMarks, FoldLine, StapleMarks } from "./brandMarks.jsx";
 import { bookletSheets } from "./booklet.js";
 import {
   INK_COLOR, NATIVE_L3, TEXT_ROW_WIDE_DIAGONAL_SPACING,
@@ -1096,7 +1096,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
                 {printCover && (geom.pairedSlots ? (
                   <>
                     {/* the cover on the right half of a landscape sheet, the back cover on its left half, then the empty back of that sheet */}
-                    <div className="propis-print-all__sheet"><div className="propis-print-cover propis-print-cover--back">{printBack}</div><div className="propis-print-cover">{printCover}</div>{booklet && <StapleMarks ovals={false} />}</div>
+                    <div className="propis-print-all__sheet"><div className="propis-print-cover propis-print-cover--back">{printBack}</div><div className="propis-print-cover">{printCover}</div><FoldLine />{booklet && <StapleMarks ovals={false} />}</div>
                     <div className="propis-print-all__sheet" />
                   </>
                 ) : (

@@ -3,3 +3,17 @@
 .propis2-dictation-answers .propis-practice-stage { position: static; inset: auto; height: auto; background: transparent; touch-action: auto; }
 .propis2-dictation-answers .propis-print-frame { height: auto; background: transparent; }
 .propis2-dictation-answers .propis-print-page-wrap { padding: 8px; background: transparent; overflow: visible; touch-action: auto; }
+
+/* The adult's mark for the dictation: written in red over the answer sheet, then the picker dialog. */
+.propis2-dictation-answers { position: relative; }
+.propis2-grade-stamp { position: absolute; top: 46%; right: 8%; width: clamp(110px, 27%, 200px); height: auto; overflow: visible; transform: rotate(-6deg); pointer-events: none; filter: drop-shadow(0 0 0.5px rgba(150, 20, 20, 0.5)); }
+.propis2-grade-stroke { fill: none; stroke: #d22b2b; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; animation-name: propis2-grade-draw; animation-timing-function: cubic-bezier(0.4, 0.1, 0.35, 1); animation-fill-mode: both; }
+@keyframes propis2-grade-draw { 0% { stroke-dashoffset: 1; opacity: 0; } 1% { stroke-dashoffset: 1; opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .propis2-grade-stroke { animation-duration: 1ms !important; animation-delay: 0ms !important; } }
+
+.propis2-grade-skip { display: block; margin: 8px auto 0; padding: 10px 14px; border: 0; background: transparent; color: #5b6b66; font: inherit; font-size: 15px; text-decoration: underline; cursor: pointer; }
+.propis2-grade-btn { min-width: 56px; height: 56px; padding: 0 10px; border: 2px solid #c9bfa8; border-radius: 14px; background: #fff; color: #2b3a36; font: inherit; font-size: 26px; font-weight: 700; cursor: pointer; }
+.propis2-grade-btn--sign { min-width: 52px; height: 52px; font-size: 26px; }
+.propis2-grade-btn.is-on { border-color: #d22b2b; background: #fde8e6; color: #b01f1f; }
+.propis2-grade-keys-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
+.propis2-grade-gap { width: 14px; }

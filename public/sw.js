@@ -49,6 +49,24 @@ self.addEventListener("fetch", (e) => {
   // The pronunciation reviewer is a separate page, never the offline app shell.
   if (/^\/(?:audio-review(?:\.html|\.css|-manifest\.json)|admin-audio-review\.js)$/.test(url.pathname)) return;
 
+  // «Разряды числа» voice clips (the owner's recorded number names): served
+  // from the cache at once, refreshed in the background — network-first meant a
+  // round trip before every number on a slow connection, and silence offline.
+  if (url.pathname.startsWith("/audio/place-value-numbers/")) {
+    e.respondWith(
+      caches.open(CACHE).then(async (cache) => {
+        const cached = await cache.match(e.request);
+        const refresh = fetch(e.request).then((resp) => {
+          if (resp.ok) cache.put(e.request, resp.clone());
+          return resp;
+        });
+        if (cached) { refresh.catch(() => {}); return cached; }
+        return refresh;
+      })
+    );
+    return;
+  }
+
   // Фото учеников — cache-first (контент-адресуемые, immutable)
   if (url.pathname.startsWith("/api/photos/")) {
     e.respondWith(

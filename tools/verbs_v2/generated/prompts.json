@@ -1,0 +1,505 @@
+[
+ {
+  "id": "eats",
+  "out": "c_eats_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits on a plain light wooden chair with a backrest, seen from the side, holding a small white bowl of porridge in one hand; the spoon is deep inside his closed mouth, lips closed around the spoon, cheeks slightly full — he is clearly eating right now. Side three-quarter view.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "drinks",
+  "out": "c_drinks_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits on a plain light wooden chair with a backrest, seen from the side and drinks water from a clear glass held in both hands: the rim of the glass is at his lips, the glass tilted up, water visible flowing to his mouth, eyes looking down at the glass.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "jumps",
+  "out": "c_jumps_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy jumps straight up on the spot: both feet clearly off the floor with a visible gap, a small round shadow on the floor below him, arms raised up, knees slightly bent, happy face. Front view.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "draws",
+  "out": "c_draws_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits on a plain light wooden chair with a backrest, seen from the side at a small plain wooden table and draws with a red crayon on a white sheet of paper; the crayon tip touches the paper; a simple child's drawing of a sun and a house is on the sheet. Three-quarter view so the paper and the drawing are visible.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "walks",
+  "out": "c_walks_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy walks calmly, side view: one foot forward with the heel touching the floor, the other foot behind on its toes, arms swinging gently opposite to the legs, relaxed face. Clearly walking, not running.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "brushes_teeth",
+  "out": "c_brushes_teeth_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands and brushes his teeth: he holds a toothbrush with the head inside his mouth against his teeth, a little white foam at his lips, the other hand relaxed. Three-quarter view so the brush in the mouth is clearly visible. No sink, no mirror.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "plays",
+  "out": "c_plays_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits on the floor playing with colourful wooden building blocks: he is placing one block on top of a small tower of blocks, focused happy face.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "reads",
+  "out": "c_reads_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits on a plain light wooden chair with a backrest, seen from the side holding an open picture book with both hands; his eyes look at the pages; the pages show simple pictures of a cat and a ball, no words.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "rides",
+  "out": "c_rides_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy rides a small children's bicycle, side view, wearing a simple blue helmet: both hands on the handlebars, one foot on each pedal, the chain connects the pedals to the rear wheel, both wheels on the floor line.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "cries",
+  "out": "c_cries_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits on the floor crying: big tears running down both cheeks, eyebrows raised in the middle, mouth turned down, one hand rubbing one eye. Front view.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "laughs",
+  "out": "c_laughs_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands and laughs: head slightly tilted back, eyes crinkled shut with joy, mouth wide open in a laugh, both hands on his belly. Front view.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "washes_face",
+  "out": "c_washes_face_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands at a simple white sink with one tap: water runs from the tap into the sink; he bends over the sink splashing water from his cupped hands onto his face, eyes closed, water drops on his face.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "swims",
+  "out": "c_swims_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy swims front crawl in plain blue water, seen from the side: one arm stretched forward above the water, the other arm under the water, legs kicking behind with small splashes, face turned to the side above the water to breathe with mouth slightly open. Only water around him.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "sings",
+  "out": "c_sings_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands and sings into a handheld wireless microphone held near his mouth, mouth open singing, eyes half closed, free hand open to the side. Three small simple musical note symbols float near him.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "dances",
+  "out": "c_dances_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy dances to music: arms out to the sides, body turning, one knee lifted, happy face; a small simple music speaker stands on the floor next to him with three small musical note symbols floating up from it.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "cuts_knife",
+  "out": "c_cuts_knife_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits at a small plain wooden table and cuts a sheet of yellow paper with child-safe scissors: his thumb and fingers are inside the scissor loops, the blades are closing on the edge of the paper, a short cut line is visible in the paper. Three-quarter view.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "waters_plants",
+  "out": "c_waters_plants_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy waters a flower in a pot standing on the floor, using a small green watering can: the spout points down at the pot and a stream of water flows from the spout onto the soil.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "vacuums",
+  "out": "c_vacuums_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy pushes an upright vacuum cleaner across the floor, side view. The vacuum cleaner is built like a real one: a straight handle tube with a grip at the top, held by both his hands; the tube goes straight down into the vacuum body; the body stands on two small rear wheels; a wide floor brush is at the bottom front touching the floor; a power cord comes out of the back of the body and runs off the edge of the picture. Nothing else.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "eats",
+  "out": "c_eats_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman sits on a plain light wooden chair with a backrest, seen from the side, holding a small white bowl of porridge in one hand; the spoon is deep inside her closed mouth, lips closed around the spoon, cheeks slightly full — she is clearly eating right now. Side three-quarter view.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_eats_boy.png"
+  ],
+  "after": "c_eats_boy"
+ },
+ {
+  "id": "drinks",
+  "out": "c_drinks_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman sits on a plain light wooden chair with a backrest, seen from the side and drinks water from a clear glass held in both hands: the rim of the glass is at her lips, the glass tilted up, water visible flowing to her mouth, eyes looking down at the glass.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_drinks_boy.png"
+  ],
+  "after": "c_drinks_boy"
+ },
+ {
+  "id": "jumps",
+  "out": "c_jumps_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman jumps straight up on the spot: both feet clearly off the floor with a visible gap, a small round shadow on the floor below him, arms raised up, knees slightly bent, happy face. Front view.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_jumps_boy.png"
+  ],
+  "after": "c_jumps_boy"
+ },
+ {
+  "id": "draws",
+  "out": "c_draws_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman sits on a plain light wooden chair with a backrest, seen from the side at a small plain wooden table and draws with a red crayon on a white sheet of paper; the crayon tip touches the paper; a simple child's drawing of a sun and a house is on the sheet. Three-quarter view so the paper and the drawing are visible.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_draws_boy.png"
+  ],
+  "after": "c_draws_boy"
+ },
+ {
+  "id": "walks",
+  "out": "c_walks_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman walks calmly, side view: one foot forward with the heel touching the floor, the other foot behind on its toes, arms swinging gently opposite to the legs, relaxed face. Clearly walking, not running.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_walks_boy.png"
+  ],
+  "after": "c_walks_boy"
+ },
+ {
+  "id": "brushes_teeth",
+  "out": "c_brushes_teeth_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman stands and brushes her teeth: she holds a toothbrush with the head inside her mouth against her teeth, a little white foam at her lips, the other hand relaxed. Three-quarter view so the brush in the mouth is clearly visible. No sink, no mirror.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_brushes_teeth_boy.png"
+  ],
+  "after": "c_brushes_teeth_boy"
+ },
+ {
+  "id": "plays",
+  "out": "c_plays_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman sits on the floor playing with colourful wooden building blocks: she is placing one block on top of a small tower of blocks, focused happy face.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_plays_boy.png"
+  ],
+  "after": "c_plays_boy"
+ },
+ {
+  "id": "reads",
+  "out": "c_reads_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman sits on a plain light wooden chair with a backrest, seen from the side holding an open picture book with both hands; her eyes look at the pages; the pages show simple pictures of a cat and a ball, no words.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_reads_boy.png"
+  ],
+  "after": "c_reads_boy"
+ },
+ {
+  "id": "rides",
+  "out": "c_rides_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman rides a small children's bicycle, side view, wearing a simple blue helmet: both hands on the handlebars, one foot on each pedal, the chain connects the pedals to the rear wheel, both wheels on the floor line.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_rides_boy.png"
+  ],
+  "after": "c_rides_boy"
+ },
+ {
+  "id": "cries",
+  "out": "c_cries_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman sits on the floor crying: big tears running down both cheeks, eyebrows raised in the middle, mouth turned down, one hand rubbing one eye. Front view.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_cries_boy.png"
+  ],
+  "after": "c_cries_boy"
+ },
+ {
+  "id": "laughs",
+  "out": "c_laughs_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman stands and laughs: head slightly tilted back, eyes crinkled shut with joy, mouth wide open in a laugh, both hands on her belly. Front view.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_laughs_boy.png"
+  ],
+  "after": "c_laughs_boy"
+ },
+ {
+  "id": "washes_face",
+  "out": "c_washes_face_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman stands at a simple white sink with one tap: water runs from the tap into the sink; she bends over the sink splashing water from her cupped hands onto her face, eyes closed, water drops on her face.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_washes_face_boy.png"
+  ],
+  "after": "c_washes_face_boy"
+ },
+ {
+  "id": "swims",
+  "out": "c_swims_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman swims front crawl in plain blue water, seen from the side: one arm stretched forward above the water, the other arm under the water, legs kicking behind with small splashes, face turned to the side above the water to breathe with mouth slightly open. Only water around him.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_swims_boy.png"
+  ],
+  "after": "c_swims_boy"
+ },
+ {
+  "id": "sings",
+  "out": "c_sings_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman stands and sings into a handheld wireless microphone held near her mouth, mouth open singing, eyes half closed, free hand open to the side. Three small simple musical note symbols float near him.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_sings_boy.png"
+  ],
+  "after": "c_sings_boy"
+ },
+ {
+  "id": "dances",
+  "out": "c_dances_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman dances to music: arms out to the sides, body turning, one knee lifted, happy face; a small simple music speaker stands on the floor next to him with three small musical note symbols floating up from it.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_dances_boy.png"
+  ],
+  "after": "c_dances_boy"
+ },
+ {
+  "id": "cuts_knife",
+  "out": "c_cuts_knife_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman sits at a small plain wooden table and cuts a sheet of yellow paper with child-safe scissors: her thumb and fingers are inside the scissor loops, the blades are closing on the edge of the paper, a short cut line is visible in the paper. Three-quarter view.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_cuts_knife_boy.png"
+  ],
+  "after": "c_cuts_knife_boy"
+ },
+ {
+  "id": "waters_plants",
+  "out": "c_waters_plants_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman waters a flower in a pot standing on the floor, using a small green watering can: the spout points down at the pot and a stream of water flows from the spout onto the soil.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_waters_plants_boy.png"
+  ],
+  "after": "c_waters_plants_boy"
+ },
+ {
+  "id": "vacuums",
+  "out": "c_vacuums_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, framing, pose, props and background exactly, only replace the boy with this woman (adult size, props sized for an adult). No text, no letters, no numbers, no logos. Action: The woman pushes an upright vacuum cleaner across the floor, side view. The vacuum cleaner is built like a real one: a straight handle tube with a grip at the top, held by both her hands; the tube goes straight down into the vacuum body; the body stands on two small rear wheels; a wide floor brush is at the bottom front touching the floor; a power cord comes out of the back of the body and runs off the edge of the picture. Nothing else.",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/batch/c_vacuums_boy.png"
+  ],
+  "after": "c_vacuums_boy"
+ },
+ {
+  "id": "drinks",
+  "out": "v_drinks_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 6-year-old girl with red pigtails sits at a kitchen table and drinks orange juice through a straw from a glass; the straw is in her mouth. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "drinks",
+  "out": "v_drinks_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 7-year-old boy in sports clothes stands in a park and drinks water from a plastic bottle tilted at his mouth after playing. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "jumps",
+  "out": "v_jumps_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 5-year-old girl in yellow rain boots and a raincoat jumps over a puddle on a path, both feet in the air above the puddle. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "jumps",
+  "out": "v_jumps_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 6-year-old boy jumps high on a garden trampoline with safety net, both feet in the air, arms up. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "draws",
+  "out": "v_draws_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 6-year-old girl paints a flower with a brush on a sheet of paper on an easel; the brush touches the paper; a small paint palette in her other hand. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "draws",
+  "out": "v_draws_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 5-year-old boy kneels on the pavement and draws a big sun with blue chalk on the asphalt; the chalk touches the ground. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "walks",
+  "out": "v_walks_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 5-year-old girl walks along a quiet street holding her mother's hand; both are clearly walking, side view. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "walks",
+  "out": "v_walks_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. An elderly grandfather with a walking stick walks slowly along a park path, side view. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "brushes_teeth",
+  "out": "v_brushes_teeth_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 6-year-old girl stands on a small step at a bathroom sink and brushes her teeth, the toothbrush in her mouth, a cup with water on the sink edge. No mirror reflection visible. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "brushes_teeth",
+  "out": "v_brushes_teeth_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A father in a T-shirt brushes his teeth in a bathroom, toothbrush in his mouth, foam at his lips. No mirror reflection visible. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "plays",
+  "out": "v_plays_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 4-year-old girl sits on a rug and plays with a doll, feeding the doll from a toy bottle. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "plays",
+  "out": "v_plays_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 5-year-old boy lies on his stomach on the floor and pushes a toy car along a toy road mat. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "reads",
+  "out": "v_reads_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A father sits in an armchair reading a book, eyes on the pages, a cup of tea on a small table. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "reads",
+  "out": "v_reads_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 7-year-old girl lies on her stomach on a carpet reading a picture book, chin on her hand, eyes on the pages. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "rides",
+  "out": "v_rides_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 6-year-old girl wearing a helmet rides a kick scooter along a park path: both hands on the handlebar, one foot on the deck, the other foot pushing off the ground. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "rides",
+  "out": "v_rides_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A woman drives a car along a quiet road, seen from the side through the open driver's window, both hands on the steering wheel, eyes on the road. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "cries",
+  "out": "v_cries_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A toddler cries in her mother's arms, tears on the cheeks, mouth open crying; the mother comforts her. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "cries",
+  "out": "v_cries_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 5-year-old boy sits on the ground of a playground holding his scraped knee and cries, tears on his cheeks. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "laughs",
+  "out": "v_laughs_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A father and his 5-year-old daughter laugh together on a sofa, both with mouths open laughing and eyes crinkled. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "laughs",
+  "out": "v_laughs_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A grandmother laughs warmly at a kitchen table, head tilted back, eyes crinkled. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "washes_face",
+  "out": "v_washes_face_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 6-year-old girl at a bathroom sink splashes water on her face from cupped hands, eyes closed, water running from the tap. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "washes_face",
+  "out": "v_washes_face_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A man at a sink washes his face with both hands full of water, water drops flying, a towel hanging nearby. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "swims",
+  "out": "v_swims_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 6-year-old girl swims in a calm sea with an inflatable swim ring around her waist, kicking her legs, happy face. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "swims",
+  "out": "v_swims_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 7-year-old boy wearing swim goggles swims front crawl in a swimming pool lane, one arm forward out of the water. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "sings",
+  "out": "v_sings_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 7-year-old boy sits on a chair and sings while strumming a small ukulele, mouth open singing. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "sings",
+  "out": "v_sings_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A mother sings a lullaby to a baby in her arms, mouth open gently singing, eyes on the baby. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "dances",
+  "out": "v_dances_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 5-year-old girl in a wide skirt twirls around dancing, the skirt flaring out, arms out, happy face. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "dances",
+  "out": "v_dances_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A boy and a girl, both about 6, dance together holding hands in a living room, one foot lifted, laughing. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "cuts_knife",
+  "out": "v_cuts_knife_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A mother cuts a loaf of bread with a bread knife on a wooden cutting board; her other hand holds the loaf away from the blade; a cut slice lies next to it. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "cuts_knife",
+  "out": "v_cuts_knife_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 5-year-old boy cuts a peeled banana into slices with a plastic child's knife on a small plate; the knife is plastic and rounded. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "waters_plants",
+  "out": "v_waters_plants_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 6-year-old boy waters a vegetable bed in a garden with a big metal watering can; water streams from the spout onto the plants. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "waters_plants",
+  "out": "v_waters_plants_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A man waters the lawn with a garden hose; water sprays from the hose nozzle onto the grass; the hose runs back along the ground. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "vacuums",
+  "out": "v_vacuums_1",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A woman vacuums a carpet with a canister vacuum cleaner built like a real one: she holds a handle at the top of a straight metal tube; the tube ends at the floor in a flat floor brush on the carpet; a flexible hose goes from the handle back to the canister body on wheels behind her; a power cord runs from the canister to the wall socket. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "vacuums",
+  "out": "v_vacuums_2",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. A 7-year-old boy cleans crumbs from a sofa cushion with a small handheld cordless vacuum cleaner held in one hand; the nozzle touches the cushion. No text, no letters, no numbers, no logos, no brand names."
+ },
+ {
+  "id": "sleeps",
+  "out": "c_sleeps_mom",
+  "refs": [
+   "/tmp/claude-0/gen/ref_mom_illu.png",
+   "/tmp/claude-0/gen/c_sleeps_boy.png"
+  ],
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact woman (same face, hair, clothes, colours, drawing style). The second attached image shows a boy sleeping in a bed: copy its camera angle (three-quarter side view of the bed), framing, bed, pillow, blanket and plain background exactly, only replace the boy with this woman (adult-sized bed). She lies on her side, eyes clearly closed, hands under her cheek, blanket to her chest. No text, no letters, no logos."
+ }
+]

@@ -30,6 +30,7 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 const fontKey = (family, weight, style) => {
   if (/DM Serif/i.test(family ?? "")) return style === "italic" ? "DMSerif-Italic" : "DMSerif";
   const w = Number(weight) || (weight === "bold" ? 700 : 400);
+  if (/Cover Sans/i.test(family ?? "")) return w >= 600 ? "CoverSans-700" : "CoverSans-400";
   return w >= 850 ? "Nunito-900" : w >= 750 ? "Nunito-800" : w >= 600 ? "Nunito-700" : "Nunito-400";
 };
 
@@ -215,6 +216,9 @@ export async function printPdf(container, { onProgress } = {}) {
       onProgress?.((i + 1) / sheets.length);
       await nextFrame();
     }
+    // the sheets are drawn to the edge: printed at 100%, the printer leaves out what it cannot reach, nothing is shrunk (owner,
+    // 2026-10-15). A hint to the viewer's print dialog; not every viewer follows it.
+    doc?.viewerPreferences({ PrintScaling: "None" });
     return doc ? doc.output("blob") : null;
   } finally {
     container.classList.remove("propis-print-all--export");
@@ -224,7 +228,14 @@ export async function printPdf(container, { onProgress } = {}) {
 // The PDF opens in the device's own viewer, and that is all (owner, 2026-10-15: no share sheet, nothing saved — saving is the
 // viewer's business). A tab opened after the seconds the PDF takes is blocked as a pop-up, so `pdfTab` opens it at the tap and
 // `openPdf` points it at the file when the file is ready; with no tab, `openPdf` runs from a fresh tap (the «Открыть PDF» button).
+// Only on a computer: on a phone / tablet, and in the app installed to the home screen, the tab is a full-screen blank page that the
+// PDF never reaches (iOS, owner 2026-10-15) — there the PDF opens from the «Открыть PDF» tap once it is ready.
+export const canPreopenTab = () => {
+  const mq = (q) => typeof matchMedia === "function" && matchMedia(q).matches;
+  return !(mq("(display-mode: standalone)") || navigator.standalone === true || mq("(pointer: coarse)"));
+};
 export function pdfTab() {
+  if (!canPreopenTab()) return null;
   try {
     const tab = window.open("", "_blank");
     if (tab) { tab.document.title = "PDF"; tab.document.body.textContent = "Готовлю PDF…"; }

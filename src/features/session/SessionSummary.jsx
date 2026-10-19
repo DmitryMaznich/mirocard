@@ -6,6 +6,7 @@ import { computeProgressAfterSession } from "./useConceptProgress";
 import ConceptDot from "@/shared/components/ConceptDot";
 import Button from "@/shared/components/Button";
 import { useTimer } from "@/features/timer/TimerContext";
+import PlaceValueCheckResult from "./PlaceValueCheckResult.jsx";
 
 const ASSESSMENT_LABELS = {
   independent: "Сам",
@@ -54,7 +55,9 @@ export default function SessionSummary() {
   const isEvaluated = session?.percentCorrect !== null && session?.percentCorrect !== undefined;
   const praiseText  = getPraiseText(isReading);
 
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  // A place-value check opens its result for the adult straight away.
+  const isPlaceValueCheck = sessionMode?.type === "pv_test";
+  const [detailsOpen, setDetailsOpen] = useState(isPlaceValueCheck);
 
   // A mode run with "Озвучка" off stays silent here too.
   const voiceOff = session?.paramsSnapshot?.voice === false;
@@ -170,7 +173,9 @@ export default function SessionSummary() {
           <div className="summary-details__body">
             <div className="summary-date">{formatDate(session.completedAt)}</div>
 
-            {isEvaluated ? (
+            {isPlaceValueCheck && <PlaceValueCheckResult session={session} modes={topicRecord?.modes} />}
+
+            {isPlaceValueCheck ? null : isEvaluated ? (
               <div className="summary-score-compact">
                 {session.percentCorrect}% · ✓ {session.correctCount} · ✗ {session.incorrectCount}
               </div>

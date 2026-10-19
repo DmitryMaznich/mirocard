@@ -167,7 +167,7 @@ function IdentifyNumberTaskModel({ task, onCorrect, onMistake, onFlashIncorrect 
     }
     setNote(q.key === "tens" ? "Посчитай десятки."
       : q.key === "ones" ? `Посчитай отдельные ${scheme ? "точки" : "монеты"}.` : totalHint(guess));
-    onMistake?.(task.conceptId, task.cardId); onFlashIncorrect?.();
+    onMistake?.(task.conceptId, task.cardId, { field: q.key === "total" ? null : q.label, given: String(guess), expected: String(q.expected) }); onFlashIncorrect?.();
     return false;
   }
   useEffect(() => {

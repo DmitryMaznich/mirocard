@@ -249,15 +249,20 @@ describe("propis2 (zip topic)", () => {
     await typeInField(host, "б");
     // the paper is each page's own: changed on page 2, page 1 keeps its paper
     const kindBtn = () => host.querySelector('button[aria-label="Тип бумаги"]');
-    const toAll = () => host.querySelector('[aria-label="Бумагу этой страницы на все страницы тетради"]');
     const counter = () => host.querySelector(".propis-text-nav__counter").textContent;
+    const offer = () => host.querySelector('[data-testid="propis2-offer"]');
+    const dotOn = (el) => Boolean(el.querySelector(".p2-mixed"));
     const before = kindBtn().getAttribute("data-value");
-    expect(toAll().disabled).toBe(true); // both pages on the same paper
+    expect(dotOn(kindBtn())).toBe(false); // both pages on the same paper
     await click(kindBtn());
     await click([...host.querySelectorAll('[role="option"]')].find((o) => !o.classList.contains("is-on")));
     const kind = kindBtn().getAttribute("data-value");
     expect(kind).not.toBe(before);
-    expect(toAll().disabled).toBe(false);
+    // the pages differ now: the dot; and the change is offered for the whole notebook
+    expect(dotOn(kindBtn())).toBe(true);
+    expect(kindBtn().getAttribute("aria-description")).toBe("в тетради по-разному");
+    expect(offer().textContent).toMatch(/^Бумага: .+ — на стр\. 2/);
+    expect(offer().textContent).toContain("На всю тетрадь");
     await click(host.querySelector('[aria-label="Предыдущая страница"]'));
     expect(kindBtn().getAttribute("data-value")).toBe(before);
     await click(host.querySelector('[aria-label="Следующая страница"]'));
@@ -270,9 +275,21 @@ describe("propis2 (zip topic)", () => {
     await click(host.querySelector('[aria-label="Следующая страница"]'));
     expect(counter()).toBe("2 / 2");
     await click(host.querySelector(".propis-practice-close"));
-    // the paper of page 2 onto all pages
-    await click(toAll());
-    expect(toAll().disabled).toBe(true);
+    // the offer went with the page; picking the paper again offers it again, and it goes onto all pages
+    expect(offer()).toBeNull();
+    await click(kindBtn());
+    await click([...host.querySelectorAll('[role="option"]')].find((o) => o.classList.contains("is-on")));
+    await click([...offer().querySelectorAll("button")].find((b) => b.textContent === "На всю тетрадь"));
+    expect(offer().textContent).toMatch(/на всех 2 страницах/);
+    expect(dotOn(kindBtn())).toBe(false);
+    // «Отменить» takes it back (the dot too); then once more onto all pages
+    await click([...offer().querySelectorAll("button")].find((b) => b.textContent === "Отменить"));
+    expect(offer()).toBeNull();
+    expect(dotOn(kindBtn())).toBe(true);
+    await click(kindBtn());
+    await click([...host.querySelectorAll('[role="option"]')].find((o) => o.classList.contains("is-on")));
+    await click([...offer().querySelectorAll("button")].find((b) => b.textContent === "На всю тетрадь"));
+    expect(dotOn(kindBtn())).toBe(false);
     await click(host.querySelector('[aria-label="Предыдущая страница"]'));
     expect(kindBtn().getAttribute("data-value")).toBe(kind);
     await click(host.querySelector('[aria-label="Следующая страница"]'));
@@ -368,6 +385,9 @@ describe("propis2 (zip topic)", () => {
     expect(document.querySelectorAll(".propis-print-all > .propis-print-all__sheet")).toHaveLength(4);
     // staple marks on the fold of every sheet «Тетрадью» (the cover's outside too; its white inside has none)
     expect(document.querySelectorAll(".propis-print-all [data-staples]")).toHaveLength(3);
+    // the fold of the cover's sheet, a dashed line (owner, 2026-10-15); the back says the price, as the old school notebooks did
+    expect(document.querySelectorAll(".propis-print-all [data-fold]")).toHaveLength(1);
+    expect(document.querySelector('.propis-print-all [data-testid="propis2-back-price"]').textContent).toBe("Цена 18 коп.");
     await click(host.querySelector('.propis-practice-stage [aria-label="Печать"]'));
     expect(how("Тетрадью").getAttribute("aria-checked")).toBe("true"); // remembered
     await click([...dlg().querySelectorAll("button")].find((b) => b.textContent === "Отмена"));
@@ -471,6 +491,17 @@ describe("propis2 (zip topic)", () => {
     const pickBtn = (group) => host.querySelector(`button[aria-label="${group}"][aria-haspopup]`);
     const pick = async (group, option) => { await click(pickBtn(group)); await click([...host.querySelectorAll(`[role="listbox"][aria-label="${group}"] button`)].find((b) => b.getAttribute("aria-label") === option)); };
     expect(pickBtn("Повтор").disabled).toBe(false);
+    // the copies drawn as pale solid lines are a repeat of their own (no «Копии» button any more): the copies lose the dashes
+    const dashedCopies = () => preview().querySelectorAll('path[stroke-dasharray]').length;
+    const withDashes = dashedCopies();
+    expect(host.querySelector('[aria-label="Копии пунктиром"]')).toBeNull();
+    await pick("Повтор", "Повтор бледной линией");
+    expect(pickBtn("Повтор").dataset.value).toBe("all-solid");
+    await act(async () => { await tick(60); });
+    expect(dashedCopies()).toBeLessThan(withDashes);
+    await pick("Повтор", "Повтор пунктиром");
+    await act(async () => { await tick(60); });
+    expect(dashedCopies()).toBe(withDashes);
     await pick("Повтор", "Повтор с затуханием");
     expect(pickBtn("Повтор").dataset.value).toBe("fade");
     await pick("Красные точки", "Без красных точек");
@@ -558,6 +589,38 @@ describe("propis2 (zip topic)", () => {
     await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: vbH + 500 });
     expect(preview().querySelector('[data-overlay="select"]')).toBeNull();
     expect(fieldOf(host).value).toBe("");
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  }, 40000);
+
+  it("a blank notebook is open to edit: paper, ruling and text on any of its pages (owner, 2026-10-15); the canvas zooms", async () => {
+    const db = await freshDb();
+    localStorage.removeItem("propis2:canvasZoom");
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(60); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    const lbl = (name) => host.querySelector(`[aria-label="${name}"]`);
+    for (let i = 0; i < 40 && !lbl("Изменить тетрадь Тетрадь в клетку"); i += 1) await act(async () => { await tick(50); }); // the kits file loads on open
+    await click(lbl("Изменить тетрадь Тетрадь в клетку"));
+    expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).toBeNull();
+    expect(lbl("Тип бумаги").disabled).toBe(false);
+    expect(lbl("Текст страницы").disabled).toBe(false);
+    expect(host.textContent).toContain("Стр. 1 из 24");
+    await typeInField(host, "мама");
+    expect(fieldOf(host).value).toContain("мама");
+    expect(host.textContent).toContain("Стр. 1 из 24");
+    // the canvas zoom (useCanvasZoom.js): + steps up, the share brings the whole page back; remembered on this device
+    const pct = () => lbl("Вписать страницу");
+    expect(pct().textContent).toBe("100%");
+    expect(lbl("Уменьшить").disabled).toBe(true);
+    await click(lbl("Увеличить"));
+    expect(pct().textContent).toBe("125%");
+    expect(JSON.parse(localStorage.getItem("propis2:canvasZoom")).mode).toBe("z");
+    await click(pct());
+    expect(pct().textContent).toBe("100%");
+    expect(JSON.parse(localStorage.getItem("propis2:canvasZoom")).mode).toBe("fit");
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);

@@ -14,14 +14,14 @@
 // Resumable: existing files are skipped unless --force.
 //
 // Usage (in a cloud session Node's fetch needs NODE_USE_ENV_PROXY=1 to use the proxy):
-//   NODE_USE_ENV_PROXY=1 node scripts/generate-propis-dictation-elevenlabs.mjs [--only=words|texts]
+//   NODE_USE_ENV_PROXY=1 node scripts/generate-propis-dictation-elevenlabs.mjs [--only=words|texts|punct|chunks] [--topic=tools/propis2/topic.json]
 //     [--ids=w001,w006] [--takes=2] [--out=public/audio/propis-elevenlabs-words-pilot]
 //     [--force] [--dry-run]
 // --takes=2 writes <key>.mp3 and <key>__2.mp3 (review playlists); default 1.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { splitIntoSentences, textSentenceDictationKey, wordDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
+import { splitIntoSentences, splitSentenceAtCommas, textChunkDictationKey, textSentenceDictationKey, wordDictationKey, punctuationDictationKey } from "../src/topics/renderers/propis/dictationAudio.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const VOICE_ID = "R2G2Gb9OjCtLhIBQErXd"; // «Дмитрий Мазниченко», cloned
@@ -40,10 +40,12 @@ const apiKey = process.env.ELEVENLABS_API_KEY;
 if (!apiKey) console.warn("ELEVENLABS_API_KEY is not set; requests go out without a key.");
 
 const capitalize = (s) => s[0].toUpperCase() + s.slice(1);
-const sayable = (s) => (/[.!?]$/.test(s) ? s : `${s}.`);
+const sayable = (s) => (/[.!?,]$/.test(s) ? s : `${s}.`);
+// The signs `propis2` voices when «Диктовать знаки препинания» is on.
+const PUNCT_SPEECH = { ",": "Запятая.", ".": "Точка.", "!": "Восклицательный знак.", "?": "Вопросительный знак." };
 
 function buildEntries() {
-  const topic = JSON.parse(readFileSync(join(ROOT, "tools/propis/topic.json"), "utf8"));
+  const topic = JSON.parse(readFileSync(join(ROOT, args.topic ?? "tools/propis/topic.json"), "utf8"));
   const entries = [];
   if (!args.only || args.only === "words") {
     for (const w of topic.words) {
@@ -55,6 +57,19 @@ function buildEntries() {
     for (const t of topic.texts) {
       if (IDS && !IDS.has(t.id)) continue;
       splitIntoSentences(t.text).forEach((sentence, i) => entries.push({ key: textSentenceDictationKey(t, i), text: sayable(sentence) }));
+    }
+  }
+  if (!args.only || args.only === "punct") {
+    for (const [sign, text] of Object.entries(PUNCT_SPEECH)) entries.push({ key: punctuationDictationKey(sign), text });
+  }
+  if (!args.only || args.only === "chunks") {
+    // a sentence with commas is dictated piece by piece when the signs are voiced (propis2)
+    for (const t of topic.texts) {
+      if (IDS && !IDS.has(t.id)) continue;
+      splitIntoSentences(t.text).forEach((sentence, i) => {
+        const chunks = splitSentenceAtCommas(sentence);
+        if (chunks.length > 1) chunks.forEach((chunk, j) => entries.push({ key: textChunkDictationKey(t, i, j), text: sayable(chunk) }));
+      });
     }
   }
   return entries;
