@@ -1,0 +1,86 @@
+[
+ {
+  "id": "sits",
+  "out": "c_sits_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy sits upright on a plain light wooden chair with a backrest, seen from the side three-quarter view, both feet flat on the floor, both hands resting on his knees, nothing in his hands, calm face looking forward. He is doing nothing else — only sitting.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "lies",
+  "out": "c_lies_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. Horizontal composition: the floor is a horizontal line in the lower part of the picture. The boy lies on his back on a plain soft light-blue rug on that floor, his body stretched out horizontally from left to right, parallel to the floor — camera at floor level, side view, NOT seen from above; his head rests directly on the rug, arms relaxed along his body, eyes clearly wide open, head turned slightly towards the viewer, calm face. No bed, no pillow, no blanket, nothing in his hands — he is awake and only lying.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "stands",
+  "out": "c_stands_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands still, front view: both feet flat on the floor side by side, legs straight, arms hanging relaxed at his sides, nothing in his hands, calm face looking at the viewer. He is not walking and not moving — only standing.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "opens",
+  "out": "c_opens_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands at a plain cardboard box on a low plain table and lifts its hinged lid with both hands: the lid is half open and raised, a red toy car is clearly visible inside the box, he leans forward and looks into the box with interest. Side three-quarter view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "throws",
+  "out": "c_throws_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy throws a red ball overhand, side view: his throwing arm is stretched forward at the end of the throw, fingers open, the ball has just left his hand and flies in the air clearly separated from his hand, one foot forward, eyes following the ball. Nothing else in the picture.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "washes_hands",
+  "out": "c_washes_hands_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands at a simple white sink with one tap: water runs from the tap onto his hands; he rubs his hands together under the running water, white soap foam clearly visible on both hands, his face up and dry, looking at his hands. Side three-quarter view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "gets_dressed",
+  "out": "c_gets_dressed_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands and puts on a plain yellow zip-up jacket over his clothes: his left arm is already in its sleeve, his right arm is reaching back into the second sleeve, the jacket half on, his face fully visible and looking at the sleeve with a calm, content face (not sad, not frowning). Front three-quarter view.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "falls",
+  "out": "c_falls_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. Use the attached reference image for this exact character: the same face, hair, clothes, colours and drawing style. Whole body visible, centred, plain very light warm-grey background exactly like the reference. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy trips and falls forward onto a soft plain rug, side view: his body is tilted forward at about 45 degrees, both arms stretched forward with open hands about to touch the rug, one foot still on the floor and the other leg lifted behind, surprised face with round eyes and open mouth, not crying, not hurt. Nothing else in the picture.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png"
+  ]
+ },
+ {
+  "id": "gives",
+  "out": "c_gives_boy",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the boy, the second is the woman: draw these exact two characters (same faces, hair, clothes, colours, drawing style). Both whole bodies visible, plain very light warm-grey background exactly like the references. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The boy stands on the left and gives a red apple to the woman standing on the right, side view: his arm is stretched out towards her, the apple in his open palm; her hand is open and reaching for the apple but not touching it yet; the apple is clearly between their hands; both look at the apple, friendly faces.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png",
+   "tools/verbs_v2/generated/ref_mom2.png"
+  ]
+ },
+ {
+  "id": "gives",
+  "out": "c_gives_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the boy, the second is the woman: draw these exact two characters (same faces, hair, clothes, colours, drawing style). Both whole bodies visible, plain very light warm-grey background exactly like the references. Only the objects named here, nothing else in the picture. No text, no letters, no numbers, no logos. The woman stands on the left and gives a red apple to the boy standing on the right, side view: she bends slightly, her arm stretched out towards him, the apple in her open palm; his hand is open and reaching for the apple but not touching it yet; the apple is clearly between their hands; both look at the apple, friendly faces. Same framing as the first image.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_boy_illu.png",
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_gives_boy.png"
+  ],
+  "after": "c_gives_boy"
+ }
+]

@@ -158,5 +158,73 @@
   "laughs": {
     "text": "Смеётся.",
     "model": "eleven_v4"
+  },
+  "falls": {
+    "text": "Падает.",
+    "model": "eleven_v4"
+  },
+  "gets_dressed": {
+    "text": "Одевается.",
+    "model": "eleven_v4"
+  },
+  "gives": {
+    "text": "Даёт.",
+    "model": "eleven_v4"
+  },
+  "imp_gets_dressed": {
+    "text": "Одевайся!",
+    "model": "eleven_v4"
+  },
+  "imp_gives": {
+    "text": "Дай!",
+    "model": "eleven_v4"
+  },
+  "imp_lies": {
+    "text": "Ложись!",
+    "model": "eleven_v4"
+  },
+  "imp_opens": {
+    "text": "Открой!",
+    "model": "eleven_v4"
+  },
+  "imp_sits": {
+    "text": "Сядь!",
+    "model": "eleven_v4"
+  },
+  "imp_stands": {
+    "text": "Встань!",
+    "model": "eleven_v4"
+  },
+  "lies": {
+    "text": "Лежит.",
+    "model": "eleven_v4"
+  },
+  "opens": {
+    "text": "Открывает.",
+    "model": "eleven_v4"
+  },
+  "sits": {
+    "text": "Сидит.",
+    "model": "eleven_v4"
+  },
+  "throws": {
+    "text": "Кидает.",
+    "model": "eleven_v4"
+  },
+  "washes_hands": {
+    "text": "Моет руки.",
+    "model": "eleven_v4"
+  },
+  "stands": {
+    "text": "Стои́т.",
+    "model": "eleven_v4"
+  },
+  "imp_throws": {
+    "text": "Кидай!",
+    "model": "eleven_v4"
+  },
+  "imp_washes_hands": {
+    "text": "МОЙ руки!",
+    "model": "eleven_v4"
   }
 }

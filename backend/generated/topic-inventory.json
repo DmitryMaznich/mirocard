@@ -33,9 +33,9 @@
         },
         "url": "./decks/addition_subtraction_v1.9.2.zip",
         "status": "release",
-        "access": "paid"
+        "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-08T23:01:27+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "can_i_watch_tv",
@@ -56,7 +56,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "chat_with_mom",
@@ -83,7 +83,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "clothes_basic",
@@ -125,7 +125,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-09-09T18:07:45+02:00"
+      "sourceUpdatedAt": "2026-10-19T19:11:17+00:00"
     },
     {
       "id": "column_addition",
@@ -157,14 +157,14 @@
         "title": {
           "ru": "Сложение и вычитание в столбик"
         },
-        "status": "release",
+        "status": "beta",
         "access": "paid",
         "description": {
           "ru": "Два режима сложения и вычитания в столбик: пошаговый тренажёр, где ребёнок перетаскивает цифры в клетки — единицы, перенос или заём, десятки, — и контрольная работа, где примеры переписываются в тетрадь и решаются самостоятельно. Десятки и единицы на монетах — в теме «Разряды числа», счёт на пальцах — в теме «Плюс и минус».",
           "en": "Seven modes progress from finger counting and tens-and-ones models to regrouping, column arithmetic, and independent written examples."
         }
       },
-      "sourceUpdatedAt": "2026-10-07T16:27:41Z"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "comparison",
@@ -199,9 +199,9 @@
         },
         "url": "./decks/comparison_v2.37.0.zip",
         "status": "release",
-        "access": "paid"
+        "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-05T15:41:44+02:00"
+      "sourceUpdatedAt": "2026-10-17T11:27:52+00:00"
     },
     {
       "id": "daily_orientation",
@@ -214,7 +214,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-10T10:25:46Z"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "emotions_v2",
@@ -253,10 +253,10 @@
           "en": "Ten emotions shown on children's faces and in three situations each; nine modes connect facial expression, emotion word, and event."
         },
         "url": "./decks/emotions_v2_v1.10.1.zip",
-        "status": "release",
+        "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-05T15:41:44+02:00"
+      "sourceUpdatedAt": "2026-10-19T19:11:17+00:00"
     },
     {
       "id": "feel_sick",
@@ -277,7 +277,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "first_then",
@@ -312,7 +312,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-06-03T21:11:15+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "good_night",
@@ -333,7 +333,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "help_me",
@@ -354,7 +354,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "im_hungry",
@@ -375,7 +375,7 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "letter_writing",
@@ -409,10 +409,11 @@
           "en": "33 uppercase Russian letters. Worksheet: letters on lined paper, tap to see stroke-by-stroke animation."
         },
         "url": "./decks/letter_writing_v1.1.0.zip",
-        "status": "beta",
-        "access": "paid"
+        "status": "hidden",
+        "access": "paid",
+        "hidden": true
       },
-      "sourceUpdatedAt": "2026-07-03T07:35:51+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "magnetic_alphabet",
@@ -449,7 +450,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-05-26T12:19:15+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "math_houses",
@@ -488,10 +489,10 @@
           "en": "Number composition from 2 to 10. Learn and complete number houses. Ages 5+."
         },
         "url": "./decks/math_houses_v1.2.1.zip",
-        "status": "release",
+        "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-05T15:41:44+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "morning_greeting",
@@ -512,12 +513,12 @@
         "cards": null
       },
       "builtin": false,
-      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "my_people",
       "title": "Мои люди",
-      "version": "1.3.0",
+      "version": "1.4.0",
       "renderer": null,
       "sources": [
         "src/topics/builtinMyPeopleTopic.js",
@@ -525,7 +526,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-09-30T11:37:58Z"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "opposites",
@@ -559,7 +560,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-08-30T08:20:36+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "people_names",
@@ -602,7 +603,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-09-09T18:07:45+02:00"
+      "sourceUpdatedAt": "2026-10-19T19:11:17+00:00"
     },
     {
       "id": "phonetic_analysis",
@@ -640,7 +641,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-07-06T07:40:14+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "place_value",
@@ -675,14 +676,14 @@
           "ru": "Разряды числа",
           "en": "Place Value"
         },
-        "status": "release",
+        "status": "beta",
         "access": "paid",
         "description": {
           "ru": "Как устроено число: отдельные монеты — единицы, стопка из десяти монет — десяток. Ребёнок сам складывает россыпь монет стопками по десять и называет число, собирает число и читает готовую модель, а затем сам решает, когда нужен обмен десятка: раскладывает стопку, если единиц не хватает, и складывает новую, если единиц набралось десять.",
           "en": "Tens and ones with coins: group a heap into stacks of ten, build and read a number, and decide when a ten must be exchanged (carry and borrow)."
         }
       },
-      "sourceUpdatedAt": "2026-10-12T18:17:07Z"
+      "sourceUpdatedAt": "2026-10-19T06:37:10+00:00"
     },
     {
       "id": "print_materials",
@@ -724,7 +725,7 @@
         "hidden": true,
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-09-15T17:44:40Z"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "propis",
@@ -761,21 +762,21 @@
         "status": "archived",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-12T19:32:00+02:00"
+      "sourceUpdatedAt": "2026-10-15T18:13:28+00:00"
     },
     {
       "id": "propis2",
       "title": "Прописи",
-      "version": "0.5.3",
+      "version": "0.5.4",
       "renderer": "propis2",
       "sources": [
-        "public/decks/propis2_v0.5.3.zip",
+        "public/decks/propis2_v0.5.4.zip",
         "src/topics/renderers/propis2",
         "tools/propis2/topic.json"
       ],
       "bundle": {
-        "version": "0.5.3",
-        "url": "./decks/propis2_v0.5.3.zip",
+        "version": "0.5.4",
+        "url": "./decks/propis2_v0.5.4.zip",
         "title": "Прописи",
         "description": "Конструктор тетрадей по письму и тренажёры письменных букв. Взрослый собирает страницы прописей из элементов, букв, слогов, слов, цифр и текстов или берёт готовую тетрадь по методике; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора в теме три режима с заданиями на экране: «Узнай букву», «Строчная и заглавная» и «Диктант».",
         "renderer": "propis2",
@@ -785,7 +786,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "propis2",
-        "version": "0.5.3",
+        "version": "0.5.4",
         "title": {
           "ru": "Прописи",
           "en": "Copybook"
@@ -794,11 +795,11 @@
           "ru": "Конструктор тетрадей по письму и тренажёры письменных букв: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная», «Диктант».",
           "en": "Handwriting notebook builder and written-letter trainers: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case, Dictation."
         },
-        "url": "./decks/propis2_v0.5.3.zip",
+        "url": "./decks/propis2_v0.5.4.zip",
         "status": "release",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-12T19:32:00+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "reading_dad_instructions",
@@ -837,10 +838,10 @@
           "en": "Forty short instructions: read and perform a daily set of ten, practise left and right, or follow clues to collect a safe code."
         },
         "url": "./decks/reading_dad_instructions_v1.0.7.zip",
-        "status": "release",
+        "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-05T15:41:44+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "reading_dad_poems",
@@ -885,7 +886,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-09-17T07:28:30+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "reading_dad_texts",
@@ -897,7 +898,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-07-21T06:55:09+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "reading_short_stories",
@@ -936,10 +937,10 @@
           "en": "Twelve illustrated stories for shared reading, finding answers in the text, and discussing each story aloud."
         },
         "url": "./decks/reading_short_stories_v1.6.4.zip",
-        "status": "release",
+        "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-05T15:41:44+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "sentence_puzzle",
@@ -976,7 +977,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-12T18:15:29+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "spatial_prepositions_ru",
@@ -1018,7 +1019,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-08-28T13:46:36+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "streak_tracker",
@@ -1031,7 +1032,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-12T13:22:46+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "symmetry_draw",
@@ -1067,9 +1068,9 @@
         },
         "renderer": "flashcards",
         "status": "release",
-        "access": "paid"
+        "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-11T20:22:26Z"
+      "sourceUpdatedAt": "2026-10-19T19:11:17+00:00"
     },
     {
       "id": "tools_functions",
@@ -1108,10 +1109,10 @@
           "en": "12 tools: names, functions, before-and-after scenes"
         },
         "url": "./decks/tools_functions_v1.3.10.zip",
-        "status": "release",
+        "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-05T15:41:44+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "transport_photo",
@@ -1153,7 +1154,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-09-09T18:07:45+02:00"
+      "sourceUpdatedAt": "2026-10-19T19:11:17+00:00"
     },
     {
       "id": "verbs_v2",
@@ -1161,41 +1162,41 @@
         "ru": "Глаголы",
         "en": "verbs_v2"
       },
-      "version": "2.1.1",
+      "version": "2.2.0",
       "renderer": "flashcards",
       "sources": [
-        "public/decks/verbs_v2_v2.1.1.zip",
+        "public/decks/verbs_v2_v2.2.0.zip",
         "src/topics/renderers/flashcards"
       ],
       "bundle": {
-        "version": "2.1.1",
-        "url": "./decks/verbs_v2_v2.1.1.zip",
+        "version": "2.2.0",
+        "url": "./decks/verbs_v2_v2.2.0.zip",
         "title": {
           "ru": "Глаголы",
           "en": "verbs_v2"
         },
-        "description": "Двадцать частотных действий из жизни ребёнка: ест, пьёт, спит, бежит, прыгает, рисует и другие. Для каждого — пара «мальчик и мама», где меняется только действие, и разные картинки: другие люди, предметы, места и рисунки, чтобы ребёнок узнавал само действие. Тема рассчитана в том числе на минимально вербальных детей: основные режимы — выбор картинки по слову.",
+        "description": "Двадцать девять частотных действий из жизни ребёнка: ест, пьёт, спит, сидит, даёт, открывает и другие. Для каждого — пара «мальчик и мама», где меняется только действие, и разные картинки: другие люди, предметы, места и рисунки, чтобы ребёнок узнавал само действие. Тема рассчитана в том числе на минимально вербальных детей: основные режимы — выбор картинки по слову.",
         "renderer": "flashcards",
         "modes": 9,
-        "cards": 142
+        "cards": 196
       },
       "builtin": false,
       "catalogEntry": {
         "id": "verbs_v2",
-        "version": "2.1.1",
+        "version": "2.2.0",
         "title": {
           "ru": "Глаголы",
           "en": "Verbs"
         },
         "description": {
-          "ru": "20 глаголов в трёх волнах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
-          "en": "20 everyday verbs in three waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
+          "ru": "29 глаголов в четырёх волнах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
+          "en": "29 everyday verbs in four waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
         },
-        "url": "./decks/verbs_v2_v2.1.1.zip",
+        "url": "./decks/verbs_v2_v2.2.0.zip",
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-09-09T18:07:45+02:00"
+      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
     },
     {
       "id": "vowel_consonant_ru",
@@ -1232,10 +1233,10 @@
           "en": "31 Russian letters. Drag each letter into the vowel or consonant group."
         },
         "url": "./decks/vowel_consonant_ru_v1.0.1.zip",
-        "status": "release",
+        "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-05T15:41:44+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "word_agreement_ru",
@@ -1273,10 +1274,10 @@
           "en": "Seven modes use short sentence gaps to practise noun, verb, adjective, numeral, and possessive agreement; a picture mode distinguishes in, on, and under."
         },
         "renderer": "word_agreement",
-        "status": "release",
+        "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-05T15:41:44+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "word_formation_soup",
@@ -1311,14 +1312,14 @@
         },
         "renderer": "word_formation",
         "file": "word_formation_soup_v1.0.57.zip",
-        "status": "release",
+        "status": "beta",
         "access": "paid",
         "description": {
           "ru": "В группах «суп», «сок», «варенье», «каша» и «материалы» ребёнок соотносит сочетание «из чего?» с прилагательным. В сценарии «Суп» продукт связан с фотографией готового супа: суп из рыбы — рыбный суп. Три режима: знакомство с парами, выбор прилагательного и согласование прилагательных с существительными. Отдельно представлены погода и времена года.",
           "en": "Word-formation pairs across soup, juice, jam, porridge, materials, weather, and seasons; three modes cover pair recognition, form choice, and seasonal adjective endings."
         }
       },
-      "sourceUpdatedAt": "2026-10-07T12:58:07+02:00"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     },
     {
       "id": "written_letters",
@@ -1356,10 +1357,11 @@
         },
         "url": "./decks/written_letters_v1.0.5.zip",
         "zipUrl": "written_letters_v1.0.5.zip",
-        "status": "beta",
-        "access": "paid"
+        "status": "hidden",
+        "access": "paid",
+        "hidden": true
       },
-      "sourceUpdatedAt": "2026-09-29T10:19:41Z"
+      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
     }
   ],
   "warnings": []
