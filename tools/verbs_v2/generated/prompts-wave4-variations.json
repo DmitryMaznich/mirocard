@@ -1,0 +1,182 @@
+[
+ {
+  "id": "sits",
+  "out": "v_sits_1",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl sits on a grey sofa in a living room, hands resting on her knees, nothing in her hands, looking at the camera calmly. She is not eating, reading, playing or holding anything."
+ },
+ {
+  "id": "sits",
+  "out": "v_sits_2",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy sits cross-legged on a wooden floor, hands on his knees, nothing in his hands, calm face. He is only sitting, doing nothing else."
+ },
+ {
+  "id": "sits",
+  "out": "v_sits_3",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A grandfather in a cardigan sits on a park bench, hands resting on his knees, nothing in his hands, looking ahead calmly. He is only sitting."
+ },
+ {
+  "id": "sits",
+  "out": "v_sits_4",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A golden retriever dog sits upright on green grass, front legs straight, looking at the camera — the classic 'sit' pose. Nothing in its mouth."
+ },
+ {
+  "id": "lies",
+  "out": "v_lies_1",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old boy lies on his back on green grass, eyes clearly wide open, looking up at the sky, arms relaxed at his sides, side view from low height. No blanket, no pillow, no bed — he is awake, only lying."
+ },
+ {
+  "id": "lies",
+  "out": "v_lies_2",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old girl lies on her tummy on a soft carpet, propped on her elbows, eyes open, smiling, nothing in her hands. Not sleeping, not reading."
+ },
+ {
+  "id": "lies",
+  "out": "v_lies_3",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A woman lies on her back on a striped beach towel on sand, eyes open, one hand shading her eyes, awake and relaxed. No book, no phone."
+ },
+ {
+  "id": "lies",
+  "out": "v_lies_4",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A brown dog lies down on a wooden floor, belly on the floor, head raised and eyes wide open, alert — clearly awake, not sleeping."
+ },
+ {
+  "id": "stands",
+  "out": "v_stands_1",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old boy stands still next to a white door, facing the camera, feet together, arms hanging down, calm face. He is not walking, not posing, not waving."
+ },
+ {
+  "id": "stands",
+  "out": "v_stands_2",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old girl in a red jacket stands still on a park path, facing the camera, feet together, arms down. Not walking or running."
+ },
+ {
+  "id": "stands",
+  "out": "v_stands_3",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A man in a coat stands still at a bus stop, facing the viewer, feet together, hands at his sides, waiting. Not walking."
+ },
+ {
+  "id": "stands",
+  "out": "v_stands_4",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A brown horse stands still on a green meadow, side view, all four legs straight on the ground, not walking or grazing."
+ },
+ {
+  "id": "gives",
+  "out": "v_gives_1",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 4-year-old girl holds out a teddy bear to her mother with both arms stretched forward; the mother's open hand is reaching for it but has NOT taken it yet — the toy is still in the girl's hands, between them. Side view, both people fully visible."
+ },
+ {
+  "id": "gives",
+  "out": "v_gives_2",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A father holds out a cup to a 5-year-old boy with his arm stretched forward; the boy's hands reach for the cup but have not taken it yet — the cup is still in the father's hand, between them. Side view."
+ },
+ {
+  "id": "gives",
+  "out": "v_gives_3",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy gives a red ball to a 5-year-old girl: his arms stretched forward holding the ball out, her open hands reaching towards it but not touching it yet. Side view, both children fully visible."
+ },
+ {
+  "id": "gives",
+  "out": "v_gives_4",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A grandmother hands an apple to a 4-year-old girl: her arm stretched out with the apple on her open palm, the girl's hand reaching up towards it, not yet holding it. Side view."
+ },
+ {
+  "id": "opens",
+  "out": "v_opens_1",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy opens a white door: his hand on the handle, the door already swung half open, showing a bright room behind it. Side view, whole body visible."
+ },
+ {
+  "id": "opens",
+  "out": "v_opens_2",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl lifts the lid off a gift box on a table; the lid is in the air above the box and a teddy bear is visible inside. Plain wrapping paper, no text."
+ },
+ {
+  "id": "opens",
+  "out": "v_opens_3",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A 5-year-old boy opens a low kitchen cupboard: the cupboard door swung wide open, cups and plates visible inside, his hand still on the door edge."
+ },
+ {
+  "id": "opens",
+  "out": "v_opens_4",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman opens a glass jar of jam: one hand holds the jar, the other is lifting the lid off, the lid clearly above the jar's mouth. Close enough to see the action, upper body visible."
+ },
+ {
+  "id": "throws",
+  "out": "v_throws_1",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy throws a red ball overhand in a park: arm extended forward after the throw, the ball clearly in the air and separated from his hand. Side view, whole body visible."
+ },
+ {
+  "id": "throws",
+  "out": "v_throws_2",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 7-year-old girl throws a small pebble into a lake from the shore: arm extended forward, the pebble in the air above the water, ripples nearby. Side view."
+ },
+ {
+  "id": "throws",
+  "out": "v_throws_3",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A man throws a yellow frisbee on a lawn: arm extended to the side after the throw, the frisbee flying in the air clearly away from his hand."
+ },
+ {
+  "id": "throws",
+  "out": "v_throws_4",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl throws a blue beach ball forward with both hands from above her head on a beach: side view, her arms extended forward after releasing it, body leaning forward, the ball flying away from her in front of her, clearly separated from her hands. Not catching."
+ },
+ {
+  "id": "washes_hands",
+  "out": "v_washes_hands_1",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl washes her hands at a bathroom sink: soapy foam on her hands under running water, her face dry, looking at her hands. Side view, upper body and sink visible. Plain soap, no logo."
+ },
+ {
+  "id": "washes_hands",
+  "out": "v_washes_hands_2",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A mother helps a 3-year-old boy wash his hands at a sink: the boy stands on a small step stool, his foamy hands under the running tap, the mother's hands guiding his. Faces dry."
+ },
+ {
+  "id": "washes_hands",
+  "out": "v_washes_hands_3",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A man washes his hands at a kitchen sink: foamy hands under running water, rubbing them together, face dry. Side view."
+ },
+ {
+  "id": "washes_hands",
+  "out": "v_washes_hands_4",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy rubs soapy hands together over a white sink, water running from the tap, foam clearly visible, his face dry and smiling."
+ },
+ {
+  "id": "gets_dressed",
+  "out": "v_gets_dressed_1",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old boy puts on a green jacket: one arm already in its sleeve, the other arm reaching back into the second sleeve, his face fully visible. Front three-quarter view, whole body."
+ },
+ {
+  "id": "gets_dressed",
+  "out": "v_gets_dressed_2",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 4-year-old girl sits on the floor and pulls a striped sock onto her foot with both hands, the sock half on. Her face is visible."
+ },
+ {
+  "id": "gets_dressed",
+  "out": "v_gets_dressed_3",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy stands on one leg and pulls on blue trousers: one leg already in, the other foot going into the second trouser leg, hands holding the waistband. Face visible."
+ },
+ {
+  "id": "gets_dressed",
+  "out": "v_gets_dressed_4",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman puts on a beige coat in a hallway: one arm in its sleeve, the other arm going into the second sleeve, her face visible. Whole body."
+ },
+ {
+  "id": "falls",
+  "out": "v_falls_1",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old boy trips over a tree root and falls forward onto soft green grass in a park, caught mid-fall: his body is almost horizontal, tilted far forward, both hands just about to touch the grass, one leg still behind in the air, surprised open-mouthed face, not hurt. Side view. Clearly falling, not running or crouching."
+ },
+ {
+  "id": "falls",
+  "out": "v_falls_2",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old girl in a snowsuit falls sideways into soft deep snow, her body tilted and half in the snow, arms out, laughing — clearly falling, not jumping."
+ },
+ {
+  "id": "falls",
+  "out": "v_falls_3",
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A 4-year-old boy tumbles forward onto a soft blue gym mat, body tilted forward, hands reaching for the mat, surprised face, not hurt."
+ },
+ {
+  "id": "falls",
+  "out": "v_falls_4",
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A toddler learning to walk falls back onto his bottom on a soft carpet, arms out for balance, surprised face, not crying."
+ }
+]
