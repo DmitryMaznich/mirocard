@@ -141,8 +141,8 @@ def oval_lower_bowl(strokes, stroke=1, widen=1.12):
 PAPER = {}  # label -> its tidied strokes on paper, for a letter that takes a part from another (tidy() below)
 
 
-def hat_like(source, stroke=1):
-    """Г: the hat (the flag over the stem) is Б's, placed the same way against the stem's top (owner, 2026-10-18: «верхние шляпы
+def hat_like(source, stroke=1, src_stroke=1):
+    """Г, П: the hat (the flag over the stem; `stroke` here, `src_stroke` there) is Б's, placed the same way against the stem's top (owner, 2026-10-18: «верхние шляпы
     должны быть одинаковые ... по текущей шляпе от Б»). Б's capture comes before Г's (captures/ in order)."""
     def adjust(strokes):
         src = PAPER[source]
@@ -152,7 +152,7 @@ def hat_like(source, stroke=1):
         stem = np.array(tt.parse_path(tt.dg.fmt(strokes[0])))
         at = stem[np.argmin(np.abs(stem[:, 1] - top[1]))]
         offset = np.array([at[0] - top[0], 0.0])
-        strokes[stroke] = [(c, [np.asarray(q, float) + offset for q in ps]) for c, ps in src[stroke]]
+        strokes[stroke] = [(c, [np.asarray(q, float) + offset for q in ps]) for c, ps in src[src_stroke]]
         return strokes
     return adjust
 
@@ -466,7 +466,8 @@ FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:]}
+SHAPES = {"В": oval_lower_bowl, "Г": both(stem_like("Б"), hat_like("Б")), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+          "П": hat_like("Б", stroke=2)}  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
 
 
 PAPER_LABEL = [None]  # the letter being tidied (a SHAPES function reads it)
@@ -548,6 +549,7 @@ def font_letter(label, script, spec):
     k2 = (tt.BASE - tt.CAP_TOP) / (tt.BASE - allp[:, 1].min())  # the tidied letter exactly between its lines, as tidy_letter does
     paper = [[(c, list(tt.shear_scale(np.array(ps, float), k2))) for c, ps in cmds] for cmds in paper]
     if label in FONT_FLAG: paper[0] = font_flag(paper[0], label)
+    if label in SHAPES: paper = SHAPES[label](paper)
     if spec.get("flag_like"): paper[0] = flag_like(paper[0], spec["flag_like"])
     PAPER[label] = paper
     paths = [tt.paper_to_bank_cmds(c) for c in paper]
