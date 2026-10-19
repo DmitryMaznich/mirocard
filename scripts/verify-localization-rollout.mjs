@@ -12,7 +12,9 @@ export async function verifyRollout({ baseUrl, expectedSha = "", expectedVersion
     get("/"), get("/api/version"), get("/api/healthz"), get("/api/decks/catalog"),
   ]);
   const [html, version, health, catalog] = await Promise.all([page.text(), versionResponse.json(), healthResponse.json(), catalogResponse.json()]);
-  if (expectedSha && version.gitSha !== expectedSha) throw new Error("Awaiting commit " + expectedSha + "; serving " + version.gitSha);
+  const actualSha = String(version.gitSha ?? "");
+  // The app exposes gitSha as a seven-character Git prefix, not the full SHA.
+  if (expectedSha && (!/^[0-9a-f]{7,40}$/i.test(actualSha) || !expectedSha.toLowerCase().startsWith(actualSha.toLowerCase()))) throw new Error("Awaiting commit " + expectedSha + "; serving " + actualSha);
   if (expectedVersion && version.version !== expectedVersion) throw new Error("Unexpected app version: " + version.version);
   if (health.status !== "ok" || health.db !== true) throw new Error("Application health check failed");
   if (health.gitSha !== version.gitSha || health.version !== version.version) throw new Error("Version and health responses disagree");
