@@ -24,7 +24,10 @@ import tidy_trace as tt  # noqa: E402
 PX = 1.5          # raster pixels per font unit
 NEAR = 6.0        # bank units: skeleton points this close to the draft's flag belong to it
 LETTERS = "КНФЮЪ"
-WHOLE = {"П": 2}  # strokes taken whole, not just their flag (П's hat: owner, 2026-10-19, drawn over the font)
+# strokes taken whole, not just their flag: П's hat (owner, 2026-10-19, drawn over the font); А's only stroke, for the bow of its
+# rise (owner, 2026-10-19: «первый штрих должен иметь чуть больший прогиб в середине вправо ... максимально приближенное к линиям
+# шрифта»; build_glyphs.rise_like_font)
+WHOLE = {"П": 2, "А": 0}
 
 
 def flag_of_draft(p):
