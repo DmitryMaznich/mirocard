@@ -72,6 +72,15 @@
   "after": "c_draws_boy"
  },
  {
+  "id": "runs",
+  "out": "c_runs_mom",
+  "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman runs to the right, side view: both feet off the ground at the same moment, front knee high, back leg stretched behind, arms bent and swinging, body leaning slightly forward, happy face. Clearly running, not walking.",
+  "refs": [
+   "tools/verbs_v2/generated/ref_mom2.png",
+   "tools/verbs_v2/generated/c_runs_boy.png"
+  ]
+ },
+ {
   "id": "walks",
   "out": "c_walks_mom",
   "prompt": "Clean children's picture-book illustration, soft flat colours, clear dark outlines, gentle simple shading, natural proportions. The first attached image is the character reference: draw this exact adult woman (same face, hair, clothes, adult proportions, drawing style). The second attached image shows a boy doing the same action: copy its camera angle, camera distance and background exactly, and use ONLY the props that are visible in the boy's picture, at the same size — never add any furniture, sink, plant, wall or other object that is not in the boy's picture; only replace the boy with this woman. She always wears exactly the reference outfit (turquoise cardigan, white top, navy skirt, flat navy shoes) and has the same dark brown chin-length bob and the same face. Because she is an adult she is much taller than the boy and fills more of the picture height; never shrink her to the boy's size. No text, no letters, no numbers, no logos. Action: The woman walks calmly, side view: one foot forward with the heel touching the floor, the other foot behind on its toes, arms swinging gently opposite to the legs, relaxed face. Clearly walking, not running.",
