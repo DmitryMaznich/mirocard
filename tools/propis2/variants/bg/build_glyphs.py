@@ -588,7 +588,7 @@ def _line_groups(cmds, deg=2.0):
     return groups
 
 
-def _curved_lines(cmds, S, F, fork_r, bend=0.3):
+def _curved_lines(cmds, S, F, fork_r, bend=0.3, force=False):
     """A straight line of the tidied hand where the font's line is not straight (Ж's left arc): made a curve, so snap_to_font bends
     it onto the font. Measured on the middle 60% of the line (a stem curving into its hook at an end stays a line: snap_to_font
     ends it where the font leaves it): the font's offset across it, less its straight trend, varies by more than `bend` units."""
@@ -596,6 +596,11 @@ def _curved_lines(cmds, S, F, fork_r, bend=0.3):
     for grp in _line_groups(cmds):
         # only a line between two curves: the zigzag's lines (Ж, line to line) are straight in the font too
         if cmds[grp[0] - 1][0] != "C" or grp[-1] + 1 >= len(cmds) or cmds[grp[-1] + 1][0] != "C": continue
+        if force:
+            for k in grp:
+                p0 = np.asarray(out[k - 1][1][-1], float); p1 = np.asarray(cmds[k][1][0], float)
+                out[k] = ("C", [p0 + (p1 - p0) / 3, p0 + 2 * (p1 - p0) / 3, p1])
+            continue
         a = np.asarray(cmds[grp[0] - 1][1][-1], float); b = np.asarray(cmds[grp[-1]][1][-1], float)
         d = tt._unit(b - a); n = np.array([-d[1], d[0]])
         u = np.linspace(0.2, 0.8, 40)
@@ -612,14 +617,15 @@ def _curved_lines(cmds, S, F, fork_r, bend=0.3):
     return out
 
 
-def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leave=0.5):
+def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leave=0.5, arcs=()):
     """A traced letter moved onto the font's lines without changing its path (owner, 2026-10-19, Б: «максимально приблизь наши
     линии, расширь их, раздвинь без изменения траектории к размерам и линиям шрифта»). Every point of every stroke moves across
     its own path (along its normal only, so the path keeps its length, order and turns) onto the font's skeleton (font_skeleton.json
     set by stencil_map). Near a fork (where the bowl leaves the stem) the skeleton bends off into the other stroke, so there the
     shift is carried over from both sides; it is smoothed along the stroke (`sigma` paper units). A straight line (a stem) moves
     by one shift, so it stays straight and on the slant. A stroke starting on another one starts on it again after the move.
-    Hooks keep their bottom on the baseline, tops their top line. Curves refitted by cubics within `tol`."""
+    Hooks keep their bottom on the baseline, tops their top line. Curves refitted by cubics within `tol`. `arcs`: strokes that
+    are one arc in the font, their straight pieces bent onto it too (Ж's left element: its line made a corner, owner 2026-10-19)."""
     PAPER_UNSNAPPED[label] = [list(c) for c in strokes]
     sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
     like = np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes])
@@ -630,7 +636,7 @@ def snap_to_font(strokes, label, fork_r=7.0, reach=8.0, sigma=2.0, tol=0.1, leav
     # half the pen: how far the outline lies from the skeleton
     PEN = float(np.median(np.min(np.hypot(S[::7, None, 0] - INK[None, :, 0], S[::7, None, 1] - INK[None, :, 1]), axis=1))) if len(INK) else 3.3
     out = []
-    strokes = [_curved_lines(c, S, F, fork_r) for c in strokes]
+    strokes = [_curved_lines(c, S, F, fork_r, force=n in arcs) for n, c in enumerate(strokes)]
     for cmds in strokes:
         # samples per command, so lines can be kept lines
         pts, owner = [np.asarray(cmds[0][1][0], float)], [0]
@@ -831,6 +837,24 @@ def waist_cusp(strokes, label="Е", tol=0.1):
     return strokes
 
 
+def zigzag_middle(strokes, k=1, near=10.0):
+    """Ж's middle element, built as the owner described it (2026-10-19): it starts on the left element's arc, goes up the diagonal
+    to its top (as snap_to_font left it, on the top line), comes down exactly along the ruling's slant to the baseline, and goes up
+    again parallel to the first diagonal, as far as it started from the slant: its two ends equally far from the down stroke."""
+    pts = np.array([np.asarray(ps[-1], float) for _, ps in strokes[k]])
+    T = pts[int(np.argmin(pts[:, 1]))]
+    S0 = pts[0]
+    arc = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[0]))), 0.1)
+    d1 = tt._unit(T - S0); n1 = np.array([-d1[1], d1[0]])
+    cand = arc[np.hypot(*(arc - S0).T) < near]
+    S = cand[int(np.argmin(np.abs((cand - T) @ n1)))]  # where the diagonal, carried on down, meets the arc
+    sl = tt._unit(np.array([-tt.SLANT_T, 1.0]))
+    B = T + sl * (tt.BASE - T[1]) / sl[1]
+    E = B + (T - S)
+    strokes[k] = [("M", [S]), ("L", [T]), ("L", [B]), ("L", [E])]
+    return strokes
+
+
 DEEPEN = {"П:2": 3.0}  # a whole stroke's flat run along the top sagged this much more in the middle (paper units)
 FONT_FLAG = set("КНФЮЪ")  # letters whose top-left flag is the font's own (font_flag, exact from font_flags.json)
 # SPLIT: the font's pen path cut at its turns back (_turns) into separate strokes: (first, last) piece of each stroke, the rest left
@@ -848,7 +872,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "Ж": lambda s: snap_to_font(s, "Ж"), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "Ж": lambda s: zigzag_middle(snap_to_font(s, "Ж", arcs=(0,))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
