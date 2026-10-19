@@ -903,25 +903,30 @@ def _reach(ink, at, d, pen, band=4.0):
     return (along[m].max() if m.any() else 0.0) - pen
 
 
-def rise_apart(strokes, k=0, gap=3.0, meet_deg=6.0, tol=0.1):
-    """A rise that snap_to_font laid onto the stem below the top (И: in the font the two run together in one V of ink, so the
-    skeleton is one line there): from where it is still `gap` units off the stem's line, it goes into the top on its own, a cubic
-    arriving `meet_deg` flatter than the stem, so the rise and the stem meet only at the top (the owner's rule for М)."""
+def rise_into_stem(strokes, k=0, gap=2.5, tol=0.1):
+    """И: the rise runs into the stem in the upper third and goes on up along it to the top: one line there, the stem straight on
+    the slant as in А (owner, 2026-10-19: «сверху нет петли ... в верхней трети фактически соединяются в одну линию ... левый штрих
+    сливается с правым»). The rise, from where it is still `gap` units off the stem's line, bends into that line (a cubic arriving
+    along it) where the font's two strokes become one, no lower than a third of the way down from the top line; then straight up
+    the line to the top. The stem down from the top is the same line."""
     p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
-    top = min(_turns(p, k=8), key=lambda i: p[i, 1])  # the top: the turn back from the rise into the stem (not a rounded top)
+    top = min(_turns(p, k=8), key=lambda i: p[i, 1])
+    T = p[top]
     stem = p[top:top + 60]
     sd = tt._unit(stem[-1] - stem[0]); sn = np.array([-sd[1], sd[0]])
-    dist = np.abs((p[:top] - p[top]) @ sn)
-    rb = int(np.argmax(p[:top, 1]))  # the rise begins at the lowest point before the top
-    r = rb + int(np.argmax(dist[rb:] < gap)) - 1  # the last point, going up, still `gap` off the stem
-    up = -sd  # up the stem
-    rot = lambda v, a: np.array([np.cos(a) * v[0] - np.sin(a) * v[1], np.sin(a) * v[0] + np.cos(a) * v[1]])
-    t1 = max((rot(up, np.radians(meet_deg)), rot(up, -np.radians(meet_deg))), key=lambda v: v[0])  # flatter: more to the right
-    A, T = p[r], p[top]; tA = tt._unit(p[r] - p[r - 3]); L = np.hypot(*(T - A)); u = np.linspace(0, 1, 60)[:, None]
-    seg = (2*u**3 - 3*u**2 + 1) * A + (u**3 - 2*u**2 + u) * L * tA + (-2*u**3 + 3*u**2) * T + (u**3 - u**2) * L * t1
-    a, b = np.vstack([p[:r], seg]), p[top:]
+    dist = np.abs((p[:top] - T) @ sn)
+    rb = int(np.argmax(p[:top, 1]))
+    merge = rb + int(np.argmax(dist[rb:] < 0.6))  # where snap_to_font laid the rise onto the stem: the font's strokes are one
+    y_m = min(p[merge, 1], tt.CAP_TOP + (tt.BASE - tt.CAP_TOP) / 3)
+    M = T + sd * (y_m - T[1]) / sd[1]  # on the stem's line
+    r = rb + int(np.argmax(dist[rb:] < gap)) - 1
+    while r > rb and p[r, 1] < y_m + 6: r -= 1  # the bend begins below the merge
+    A = p[r]; tA = tt._unit(p[r] - p[r - 3]); up = -sd; L = np.hypot(*(M - A)); u = np.linspace(0, 1, 60)[:, None]
+    bend = (2*u**3 - 3*u**2 + 1) * A + (u**3 - 2*u**2 + u) * L * tA + (-2*u**3 + 3*u**2) * M + (u**3 - u**2) * L * up
     def fit(q): return tt._fit_span(q, tt._unit(q[3] - q[0]), tt._unit(q[-1] - q[-4]), tol=tol)
-    strokes[k] = [("M", [a[0]])] + fit(a) + fit(b)
+    a = np.vstack([p[:r], bend])
+    rest = p[top:]
+    strokes[k] = [("M", [a[0]])] + fit(a) + [("L", [T])] + fit(rest)
     return strokes
 
 
@@ -995,7 +1000,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
-SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_apart(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))), "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
+SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))), "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": spread_like_font, "М": from_font, "К": lambda s: [font_flag(s[0], "К")] + s[1:],
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
