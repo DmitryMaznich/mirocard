@@ -1292,8 +1292,16 @@ def stem_down(strokes, k=0, cut=24.0):
     """Ф through all three bands (owner, 2026-10-19, after the teacher's video: «растяни Ф на три полосы»; svetlinki.com: «Главната
     Ф — и в двата широки реда»): stroke `k`'s stem cut `cut` units above the baseline (on its straight run, over the hook) and
     the rest moved down along the slant until the hook's bottom stands on the bottom line of the deck's paper (its place on
-    DESIGN's paper, rescaled() makes the letter smaller); a line along the slant fills the gap. The flag and the ears stay."""
-    low = tt.BASE + tt.R_BAND * DECK_LOWER / CAP_K
+    DESIGN's paper that rescaled() moves there); a line along the slant fills the gap. The flag and the ears stay."""
+    deck = json.loads(VARIANT.read_text())["meta"]["script"]
+    fy, _, _ = frame_map(PAPER_LABEL[0], DESIGN, deck)
+    tt.use_script(DESIGN)
+    a, b = tt.BASE, tt.BASE + 200.0  # the height on DESIGN's paper that rescaled() puts on the deck's bottom line
+    for _ in range(60):
+        m = (a + b) / 2
+        if fy(m) < tt.BASE + tt.R_BAND * deck["lower"]: a = m
+        else: b = m
+    low = (a + b) / 2
     allp = np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes])
     d = low - allp[:, 1].max()
     cmds = tt._split_at(strokes[k], [tt.BASE - cut])
@@ -1575,20 +1583,51 @@ def _bank_cmds(d):
     return out
 
 
-MID = {}  # label -> the upright x rescaled() made the letter smaller about
+MID, RATIO = {}, {}  # label -> the upright x rescaled() moved the letter about, and its scale across the slant there
+
+
+def _frame(label, script):
+    """(s, lo) of stencil_map on `script`'s paper: how much the font is scaled there, and its foot."""
+    tt.use_script(script)
+    g = {d["label"]: d for d in json.loads(DRAFT.read_text())}[label]
+    allp = tt.upright(tt.to_paper(np.vstack([tt.parse_path(st["d"]) for st in g["strokes"]])))
+    lo, hi = allp[:, 1].max(), allp[:, 1].min()
+    if lo > tt.BASE + 3: lo = tt.BASE - 3.3
+    return (tt.BASE - tt.CAP_TOP) / (lo - hi), lo
+
+
+def frame_map(label, src, dst):
+    """Paper heights on `src`'s paper -> on `dst`'s, as the font stencil moves (stencil_map): back to the font, its zones above and
+    below the lowercase band stretched by the other script's upper / lower, scaled to the other capital height; and the scale
+    across the slant. Affine between the two break heights it returns (the font's x-line and baseline)."""
+    (s0, lo0), (s1, lo1) = _frame(label, src), _frame(label, dst)
+    X, B = tt.R_BASE - tt.R_BAND, tt.R_BASE
+    def y(v):
+        f = lo0 - (B - np.asarray(v, float)) / s0
+        f = np.where(f < X, X - (X - f) / src["upper"] * dst["upper"], np.where(f > B, B + (f - B) / src["lower"] * dst["lower"], f))
+        return B - (lo1 - f) * s1
+    return y, s1 / s0, [B - (lo0 - X) * s0, B - (lo0 - B) * s0]
 
 
 def rescaled(glyph, script):
-    """A glyph built on DESIGN's paper -> the same strokes on `script`'s paper, CAP_K times smaller about the middle of the letter
-    on its baseline (across the slant), exact: the bank -> paper map is affine between the ruling lines, so each stroke is cut
-    there first."""
+    """A glyph built on DESIGN's paper -> the same strokes on `script`'s paper, moved as the font stencil they were fitted to moves
+    (frame_map: the font's own zones re-stretched for the deck's paper, not the letter scaled evenly: the owner checks the letter
+    over the font set on the deck's paper, 2026-10-19 Х: «не лежит»), about the middle of the letter across the slant; exact: the
+    bank -> paper map and frame_map are affine between their heights, so each stroke is cut there first. A letter the font has
+    no draft of: CAP_K times smaller, evenly."""
+    label = glyph["label"]
     tt.use_script(DESIGN)
     paper = [[(c, list(tt.to_paper(np.array(ps)))) for c, ps in tt._split_at(_bank_cmds(st["d"]), [tt.B_TOP, tt.B_BASE])] for st in glyph["strokes"]]
+    try: fy, r, breaks = frame_map(label, DESIGN, script)
+    except KeyError: fy, r, breaks = (lambda v: tt.BASE - (tt.BASE - np.asarray(v, float)) * CAP_K), CAP_K, []
+    tt.use_script(DESIGN)
+    paper = [tt._split_at(cmds, breaks) if breaks else cmds for cmds in paper]
     u = tt.upright(np.vstack([q for cmds in paper for _, ps in cmds for q in ps]))
-    mid = MID[glyph["label"]] = (u[:, 0].min() + u[:, 0].max()) / 2
+    mid = MID[label] = (u[:, 0].min() + u[:, 0].max()) / 2
+    RATIO[label] = r
     def k(ps):
         q = tt.upright(np.array(ps))
-        return list(tt.from_upright(np.c_[mid + (q[:, 0] - mid) * CAP_K, tt.BASE - (tt.BASE - q[:, 1]) * CAP_K]))
+        return list(tt.from_upright(np.c_[mid + (q[:, 0] - mid) * r, fy(q[:, 1])]))
     paper = [[(c, k(ps)) for c, ps in cmds] for cmds in paper]
     tt.use_script(script)
     return {**glyph, "strokes": [{**st, "d": dg.fmt(tt.paper_to_bank_cmds(cmds))} for st, cmds in zip(glyph["strokes"], paper)]}
@@ -1617,7 +1656,8 @@ def main():
     for label, strokes in PAPER_UNSNAPPED.items():
         u = tt.upright(np.vstack([np.array(tt.parse_path(dg.fmt(c))) for c in strokes]))
         m = MID.get(label, 0.0)
-        at[label] = [round(float(m + (u[:, 0].min() - m) * CAP_K), 3), round(float(m + (u[:, 0].max() - m) * CAP_K), 3)]
+        r = RATIO.get(label, CAP_K)
+        at[label] = [round(float(m + (u[:, 0].min() - m) * r), 3), round(float(m + (u[:, 0].max() - m) * r), 3)]
     STENCIL_AT.write_text(json.dumps({"note": "upright x range of each snapped letter before snapping (build_glyphs.py)", "at": at}, ensure_ascii=False, indent=1) + "\n")
     print(f"{len(made)} glyphs -> {VARIANT}: {', '.join(m['label'] for m in made)}")
 
