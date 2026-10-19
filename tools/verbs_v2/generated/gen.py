@@ -1,4 +1,4 @@
-import json, base64, sys, urllib.request, time
+import json, base64, os, sys, urllib.request, time
 MODEL = "gemini-3-pro-image"
 URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
 def generate(prompt, out, refs=()):
@@ -7,7 +7,7 @@ def generate(prompt, out, refs=()):
         parts.append({"inlineData": {"mimeType": "image/png", "data": base64.b64encode(open(r, "rb").read()).decode()}})
     body = {"contents": [{"parts": parts}],
             "generationConfig": {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "1:1"}}}
-    req = urllib.request.Request(URL, data=json.dumps(body).encode(), headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(URL, data=json.dumps(body).encode(), headers={"Content-Type": "application/json", "x-goog-api-key": os.environ["GEMINI_API_KEY"]})
     for attempt in range(3):
         try:
             with urllib.request.urlopen(req, timeout=180) as r:
