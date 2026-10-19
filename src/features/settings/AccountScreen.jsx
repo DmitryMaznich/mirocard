@@ -1,3 +1,4 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
@@ -7,11 +8,12 @@ import AccountCard from "./AccountCard";
 import ChangePasswordModal from "./ChangePasswordModal";
 import DangerZone from "./DangerZone";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { PLAN_LABELS, formatPeriodEnd, isUnlimitedPlan } from "@/features/billing/planLabels";
+import { getPlanLabel, formatPeriodEnd, isUnlimitedPlan } from "@/features/billing/planLabels";
 import { PAID_PLANS_PAUSED } from "@/features/billing/entitlement";
 import { saveMarketingConsent } from "@/features/account/marketingConsent";
 
 export default function AccountScreen() {
+  const { t: tr } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const logout    = useAppStore((s) => s.logout);
   const subscription = useAppStore((s) => s.subscription);
@@ -39,33 +41,31 @@ export default function AccountScreen() {
     <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
-        <h1 className="screen-title">Аккаунт</h1>
+        <h1 className="screen-title">{tr("nav.account")}</h1>
       </div>
 
       <div className="settings-body">
         <AccountCard onLogout={handleLogout} />
 
         {!PAID_PLANS_PAUSED && <div className="settings-section">
-          <div className="settings-section-title">Подписка</div>
+          <div className="settings-section-title">{tr("account.subscription")}</div>
           <div className="settings-row">
             <span className="settings-row__label">
               {!subscription
-                ? "Подписка не оформлена"
+                ? tr("account.noSubscription")
                 : isUnlimitedPlan(subscription.plan)
-                  ? PLAN_LABELS.all_access
-                  : `${PLAN_LABELS[subscription.plan] ?? subscription.plan} · до ${formatPeriodEnd(subscription.currentPeriodEnd)}`}
+                  ? getPlanLabel("all_access")
+                  : tr("billing.until", { plan: getPlanLabel(subscription.plan), date: formatPeriodEnd(subscription.currentPeriodEnd) })}
             </span>
-            <button className="link-btn" onClick={() => setScreen("subscription")}>
-              Управлять подпиской
-            </button>
+            <button className="link-btn" onClick={() => setScreen("subscription")}>{tr("account.manageSubscription")}</button>
           </div>
         </div>}
 
         {account?.id && (
           <div className="settings-section">
-            <div className="settings-section-title">Письма</div>
+            <div className="settings-section-title">{tr("account.mail")}</div>
             <label className="settings-row">
-              <span className="settings-row__label">Письма о новых темах</span>
+              <span className="settings-row__label">{tr("account.marketing")}</span>
               <input
                 type="checkbox"
                 name="marketingOptIn"
@@ -78,12 +78,10 @@ export default function AccountScreen() {
         )}
 
         <div className="settings-section">
-          <div className="settings-section-title">Безопасность</div>
+          <div className="settings-section-title">{tr("account.security")}</div>
           <div className="settings-row">
-            <span className="settings-row__label">Пароль</span>
-            <button className="link-btn" onClick={() => setChangePasswordOpen(true)}>
-              Сменить пароль
-            </button>
+            <span className="settings-row__label">{tr("auth.password")}</span>
+            <button className="link-btn" onClick={() => setChangePasswordOpen(true)}>{tr("account.changePassword")}</button>
           </div>
         </div>
       </div>

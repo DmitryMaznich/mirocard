@@ -1,3 +1,4 @@
+import { setupText } from "@/shared/i18n/setupText.js";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState, useEffect } from "react";
@@ -53,7 +54,7 @@ function filterReadingModes(modes = [], text) {
 }
 
 function getModeTitle(mode) {
-  return getTopicTitle(mode?.ui?.title) || mode?.id || "";
+  return setupText(mode?.ui?.title) || mode?.id || "";
 }
 
 function getModeInstruction(mode) {
@@ -221,7 +222,7 @@ export default function ModePickerScreen() {
               <div
                 // «Контрольная работа» stands out on a light tint — by `finite`
                 // (place_value) or by its title (comparison, the other math topics).
-                className={`mode-item mode-item--flex${mode.finite || /Контрольная работа/.test(getModeTitle(mode)) ? " mode-item--test" : ""}`}
+                className={`mode-item mode-item--flex${mode.finite || /Контрольная работа/.test(getTopicTitle(mode?.ui?.title)) ? " mode-item--test" : ""}`}
                 role="button"
                 tabIndex={myPeopleModeAvailable(mode) ? 0 : -1}
                 onClick={() => myPeopleModeAvailable(mode) && pickMode(mode)}

@@ -1,3 +1,4 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { getTopicTitle } from "@/shared/utils/format";
 import { buildModeSettings, getModeGoal } from "@/shared/utils/methodology";
 
@@ -15,6 +16,7 @@ function toTextList(value) {
 }
 
 export default function ModeMethodology({ mode }) {
+  const { t } = useUiTranslation();
   const description = (
     getLocalizedText(mode?.methodology?.text)
     || getLocalizedText(mode?.methodology?.description)
@@ -29,13 +31,13 @@ export default function ModeMethodology({ mode }) {
     <div className="methodology-panel">
       {description && (
         <section className="methodology-section">
-          <div className="methodology-section__label">Общее описание</div>
+          <div className="methodology-section__label">{t("methodology.description")}</div>
           <p className="methodology-section__text">{description}</p>
         </section>
       )}
 
       <section className="methodology-section">
-        <div className="methodology-section__label">Настройки</div>
+        <div className="methodology-section__label">{t("nav.settings")}</div>
         <ul className="methodology-list">
           {settings.map((setting, index) => (
             <li key={index}>{setting}</li>
@@ -45,14 +47,14 @@ export default function ModeMethodology({ mode }) {
 
       {goal && (
         <section className="methodology-section methodology-section--goal">
-          <div className="methodology-section__label">Конечная цель</div>
+          <div className="methodology-section__label">{t("methodology.goal")}</div>
           <p className="methodology-section__text">{goal}</p>
         </section>
       )}
 
       {tips.length > 0 && (
         <section className="methodology-section">
-          <div className="methodology-section__label">Как проводить</div>
+          <div className="methodology-section__label">{t("methodology.how")}</div>
           <ul className="methodology-list">
             {tips.map((tip, index) => (
               <li key={index}>{tip}</li>
@@ -62,7 +64,7 @@ export default function ModeMethodology({ mode }) {
       )}
 
       {duration && (
-        <div className="methodology-duration">Время: {duration}</div>
+        <div className="methodology-duration">{t("info.duration", { duration })}</div>
       )}
     </div>
   );
