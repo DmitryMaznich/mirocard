@@ -1153,6 +1153,36 @@ def close_smooth(strokes, k=0, span=12.0, tol=0.1):
     return strokes
 
 
+def oval_start(strokes, k=0, down=1 / 8, round_r=14.0, sigma=4.0, tol=0.1):
+    """О (owner, 2026-10-19): the oval starts not at its very top but on its right side, «на одну седьмую правой половины вниз.
+    Можно даже одну восьмую», and goes up over the top as before; and the top is round, not the font's little peak («верхний
+    горбик убери ... там немножко острый край овала»). The closed line is smoothed around the top (within `round_r` units of it,
+    eased in), then started `down` of the right half's length below the top; it ends where it starts, along the same direction."""
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
+    if np.hypot(*(p[-1] - p[0])) < 1.0: p = p[:-1]
+    n = len(p)
+    seg = np.hypot(*np.diff(np.vstack([p, p[:1]]), axis=0).T)
+    s_ = np.concatenate([[0], np.cumsum(seg)])[:n]; total = s_[-1] + seg[-1]
+    top = int(np.argmin(p[:, 1]))
+    d_top = np.abs((s_ - s_[top] + total / 2) % total - total / 2)  # distance along the loop from the top
+    w = np.clip(1 - d_top / round_r, 0, 1); w = (w * w * (3 - 2 * w))[:, None]
+    m = int(round(sigma * 3 / 0.3)); kern = np.exp(-0.5 * (np.arange(-m, m + 1) * 0.3 / sigma) ** 2); kern /= kern.sum()
+    ext = np.vstack([p[-m:], p, p[:m]])
+    sm = np.c_[np.convolve(ext[:, 0], kern, "valid"), np.convolve(ext[:, 1], kern, "valid")]
+    p = p * (1 - w) + sm * w
+    p = tt.shear_scale(p, (tt.BASE - tt.CAP_TOP) / (tt.BASE - p[:, 1].min()))  # the rounding lowered the top: back on the top line
+    top = int(np.argmin(p[:, 1])); bot = int(np.argmax(p[:, 1]))
+    # the right half: from the top the way the pen does NOT go first (it goes left over the top), i.e. backwards along the loop
+    back = (top - np.arange(n)) % n
+    right = back[: int((top - bot) % n) + 1]
+    rs = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(p[right], axis=0).T))])
+    start = right[int(np.argmin(np.abs(rs - rs[-1] * down)))]
+    q = np.vstack([p[start:], p[:start], p[start:start + 1]])
+    t0 = tt._unit(q[4] - q[0])
+    strokes[k] = [("M", [q[0]])] + tt._fit_span(q, t0, t0, tol=tol)
+    return strokes
+
+
 def cusp_to_font_tip(strokes, label, k=0, back=16.0, tol=0.1):
     """A waist that turns back to a point (З, like Е: two arcs meeting at a point, not a loop or a bulge) drawn into the tip of the
     font's (the centre of the pen's round end there). snap_to_font rounds such a turn (the sides' normals flip there), so the path
@@ -1224,7 +1254,7 @@ NO_EXIT = set()  # Ю deferred, see SPURS
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "О": lambda s: close_smooth(snap_to_font(s, "О")), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
