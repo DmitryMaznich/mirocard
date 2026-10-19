@@ -144,3 +144,33 @@ test("student.important_dates.upsert stores photos from the day itself, and drop
   stored = JSON.parse(getStudents(db, acc.id)[0].important_dates);
   assert.deepEqual(stored[0].eventPhotos, {});
 });
+
+test("student_topic_link.upsert carries star settings and deck position to other devices", async () => {
+  const { buildBootstrap } = await import("../lib/snapshot-builder.mjs");
+  const db = makeDb();
+  const acc = makeAcc(db);
+  processSync(db, acc.id, [{ type: "student.upsert", data: { id: "s1", name: "Маша" } }]);
+  const link = { id: "s1_t1", studentId: "s1", topicId: "t1", params: { level: 2 } };
+  const linkOf = () => buildBootstrap(db, acc.id).studentTopicLinks.find((l) => l.id === "s1_t1");
+
+  processSync(db, acc.id, [{ type: "student_topic_link.upsert", data: { ...link } }]);
+  // Never chosen: null, so the client keeps using the mode's own default.
+  assert.equal(linkOf().answersPerStar, null);
+  assert.equal(linkOf().strictStars, null);
+  assert.equal(linkOf().deckPosition, null);
+
+  processSync(db, acc.id, [{ type: "student_topic_link.upsert", data: { ...link, answersPerStar: 3, strictStars: false, deckPosition: 7 } }]);
+  assert.equal(linkOf().answersPerStar, 3);
+  assert.equal(linkOf().strictStars, false);
+  assert.equal(linkOf().deckPosition, 7);
+
+  // An op without these fields (older client, login upload) keeps them.
+  processSync(db, acc.id, [{ type: "student_topic_link.upsert", data: { ...link, answersPerStar: null } }]);
+  assert.equal(linkOf().answersPerStar, 3);
+  assert.equal(linkOf().strictStars, false);
+  assert.equal(linkOf().deckPosition, 7);
+
+  // Resetting the deck to its start is a real value, not "unset".
+  processSync(db, acc.id, [{ type: "student_topic_link.upsert", data: { ...link, deckPosition: 0 } }]);
+  assert.equal(linkOf().deckPosition, 0);
+});

@@ -61,6 +61,9 @@ export async function completeLogin({ account, token }) {
             params: link.params ?? {},
             videoRewardEnabled: link.videoRewardEnabled ?? true,
             rewardThreshold: link.rewardThreshold ?? 90,
+            answersPerStar: link.answersPerStar ?? null,
+            strictStars: link.strictStars ?? null,
+            deckPosition: link.deckPosition ?? null,
           },
         });
       }
