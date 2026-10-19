@@ -1568,6 +1568,38 @@ def down_to_base(strokes):
     return [[(c, list(tt.shear_scale(np.array(ps, float), k, base=top))) for c, ps in cmds] for cmds in strokes]
 
 
+def oval_on_stem(strokes, k=0, tol=0.1, lead=10.0):
+    """д: its oval a true ellipse from the baseline up to the x-line, the stem's line touching it on its right (as б's and в's,
+    owner 2026-10-19: «овал должен быть идеальным»). The font's way kept: down the stem from the x-line to where it touches the
+    oval, once round it (down first), and from that point on down the stem into the loop."""
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.2)
+    top = p[p[:, 1] < tt.X_TOP + 20][:40]
+    c0 = np.polyfit(top[:, 1], top[:, 0], 1)                       # the stem's line: x = c0[0] y + c0[1]
+    off = np.abs(p[:, 0] - np.polyval(c0, p[:, 1])) > 2.0
+    i1 = int(np.argmax(off)); i2 = i1 + int(np.argmax(~off[i1:]))   # the oval: where the pen leaves the stem and comes back
+    C, e1, e2, a, bb = _fit_ellipse(p[i1:i2])
+    T_ = np.linspace(0, 2 * np.pi, 3600, endpoint=False)
+    e = C + a * np.cos(T_)[:, None] * e1 + bb * np.sin(T_)[:, None] * e2
+    e = e + [0, tt.BASE - e[:, 1].max()]
+    e = tt.shear_scale(e, (tt.BASE - tt.X_TOP) / (tt.BASE - e[:, 1].min()))
+    over = e[:, 0] - np.polyval(c0, e[:, 1])
+    e = e - [over.max(), 0]
+    i = int(np.argmax(over))
+    ring = np.vstack([e[i:], e[:i + 1]])
+    if ring[5, 1] < ring[0, 1]: ring = ring[::-1]                    # down first, as the font
+    T = ring[0]
+    y0 = min(p[0, 1], tt.X_TOP)
+    head = np.c_[np.polyval(c0, np.linspace(y0, T[1], 60)), np.linspace(y0, T[1], 60)]
+    lo = i2 + int(np.argmax(p[i2:, 1]))                              # the loop's bottom: the stem goes down until here
+    j = i2 + int(np.argmin(np.abs(p[i2:lo, 1] - (T[1] + lead))))
+    link = np.array([T + (p[j] - T) * t for t in np.linspace(0, 1, 30)])[1:]
+    path = np.vstack([head, ring[1:], link, p[j + 1:]])
+    out = list(strokes)
+    tu = tt._unit
+    out[k] = [("M", [path[0]])] + tt._fit_span(path, tu(path[3] - path[0]), tu(path[-1] - path[-4]), tol=tol)
+    return out
+
+
 def stem_down(strokes, k=0, cut=24.0):
     """Ф through all three bands (owner, 2026-10-19, after the teacher's video: «растяни Ф на три полосы»; svetlinki.com: «Главната
     Ф — и в двата широки реда»): stroke `k`'s stem cut `cut` units above the baseline (on its straight run, over the hook) and
@@ -1662,7 +1694,7 @@ NO_EXIT = set("ФЮ")  # Ф: its hook ends to the left, under the letter; Ю: it
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: stem_down(mirror_ear(ears_on_baseline(ef_three(flag_corner(s))))), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Х": lambda s: smooth_middle(snap_to_font(s, "Х", arcs=(0, 1))), "Ц": lambda s: i_with_loop(snap_to_font(s, "Ц", arcs=(0,))), "Ч": lambda s: snap_to_font(s, "Ч", arcs=(0,)), "Ш": lambda s: stems_to_font(i_doubled(s), "Ш"), "Ю": yu_from_parts, "г": lambda s: down_to_base(snap_to_font(s, "г", arcs=(0,))), "в": lambda s: bowl_oval(snap_to_font(s, "в", arcs=(0,))), "б": lambda s: perfect_oval(snap_to_font(s, "б", arcs=(0,))), "Я": lambda s: ya_lift(snap_to_font(s, "Я", arcs=(0,))), "Щ": lambda s: i_with_loop(snap_to_font(s, "Щ", arcs=(0,)), "Ш"), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: stem_down(mirror_ear(ears_on_baseline(ef_three(flag_corner(s))))), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Х": lambda s: smooth_middle(snap_to_font(s, "Х", arcs=(0, 1))), "Ц": lambda s: i_with_loop(snap_to_font(s, "Ц", arcs=(0,))), "Ч": lambda s: snap_to_font(s, "Ч", arcs=(0,)), "Ш": lambda s: stems_to_font(i_doubled(s), "Ш"), "Ю": yu_from_parts, "д": lambda s: oval_on_stem(snap_to_font(s, "д", arcs=(0,))), "г": lambda s: down_to_base(snap_to_font(s, "г", arcs=(0,))), "в": lambda s: bowl_oval(snap_to_font(s, "в", arcs=(0,))), "б": lambda s: perfect_oval(snap_to_font(s, "б", arcs=(0,))), "Я": lambda s: ya_lift(snap_to_font(s, "Я", arcs=(0,))), "Щ": lambda s: i_with_loop(snap_to_font(s, "Щ", arcs=(0,)), "Ш"), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
