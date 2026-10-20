@@ -137,10 +137,10 @@ it("imports the actual ZIP without altering original topic, files or progress", 
   await kv.set(db, "studentTopicLinks", links);
   await kv.set(db, "conceptProgress", progress);
   await kv.set(db, "sessions", history);
-  const bytes = await readFile(resolve("public/decks/comparison_language_pilot_v0.4.0.zip"));
-  await importTopic(db, bytes, "1.0.2675");
+  const bytes = await readFile(resolve("public/decks/comparison_language_pilot_v0.5.0.zip"));
+  await importTopic(db, bytes, "1.0.2676");
   const installed = await getTopicRecord(db, topic.meta.id);
-  expect(installed.modes).toHaveLength(2);
+  expect(installed.modes).toHaveLength(3);
   expect(installed.languageResources.content.sl).toBeUndefined();
   expect(Object.keys(installed.languageContract.packages)).toEqual(["ru", "sl"]);
   expect(installed.meta.title.sl).toBe(topic.meta.title.sl);
@@ -151,7 +151,7 @@ it("imports the actual ZIP without altering original topic, files or progress", 
   expect(await kv.get(db, "sessions")).toEqual(history);
   const invalidZip = await JSZip.loadAsync(bytes);
   invalidZip.remove("ui/sl.json");
-  await expect(importTopic(db, await invalidZip.generateAsync({ type: "arraybuffer" }), "1.0.2675")).rejects.toThrow(/missing file/);
+  await expect(importTopic(db, await invalidZip.generateAsync({ type: "arraybuffer" }), "1.0.2676")).rejects.toThrow(/missing file/);
   expect(await getTopicRecord(db, topic.meta.id)).toEqual(installed);
   db.close();
 });
@@ -264,13 +264,13 @@ describe("crocodile mode", () => {
 it("upgrades the actual 0.1 ZIP without losing visual settings or sharing them with the new mode", async () => {
   const db = await openDb(`pilot-upgrade-${Math.random()}`);
   const oldBytes = await readFile(resolve("test-fixtures/decks/comparison_language_pilot_v0.1.0.zip"));
-  await importTopic(db, oldBytes, "1.0.2675");
+  await importTopic(db, oldBytes, "1.0.2676");
   const legacy = { contentLanguage: "sl", level: 4, question: "less", showEqual: true, visualMode: "numbers" };
   const links = { kid_comparison_language_pilot: { params: legacy } };
   const history = [{ id: "previous", topicId: topic.meta.id, modeId: "compare_visual", conceptIds: ["pilot_visual"] }];
   await kv.set(db, "studentTopicLinks", links);
   await kv.set(db, "sessions", history);
-  await importTopic(db, await readFile(resolve("public/decks/comparison_language_pilot_v0.4.0.zip")), "1.0.2675");
+  await importTopic(db, await readFile(resolve("public/decks/comparison_language_pilot_v0.5.0.zip")), "1.0.2676");
   expect(await kv.get(db, "studentTopicLinks")).toEqual(links);
   expect(await kv.get(db, "sessions")).toEqual(history);
   const { contentLanguage: ignoredLanguage, ...visualSettings } = legacy;
@@ -302,7 +302,7 @@ for (const contentLanguage of ["ru", "sl"]) for (const soundEnabled of [true, fa
     const wrong = task.left < task.right ? 0 : 1;
     await act(async () => host.querySelectorAll('.pilot-compare-side')[wrong].click());
     expect(onIncorrect).toHaveBeenCalledTimes(1);
-    if (contentLanguage === "ru" && soundEnabled) expect(playTopicFile).toHaveBeenCalledWith(topic.meta.id, "content/ru/0.4.0/retry.mp3");
+    if (contentLanguage === "ru" && soundEnabled) expect(playTopicFile).toHaveBeenCalledWith(topic.meta.id, "content/ru/0.5.0/retry.mp3");
     else expect(playTopicFile).not.toHaveBeenCalled();
   });
 }

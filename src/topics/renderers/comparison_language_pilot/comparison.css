@@ -98,3 +98,12 @@
 
 
 @media (min-width: 768px) { .pilot-compare-sign-row { max-width: 720px; gap: 24px; } }
+
+/* Isolated drawing layout and recognizer surface from comparison 2.37.0. */
+.pilot-draw-sign-layout { display: flex; align-items: center; justify-content: center; gap: clamp(8px, 2vw, 24px); max-width: 100%; }
+.pilot-draw-sign-number { min-width: 0; font-size: clamp(64px, 14vw, 112px); font-weight: 900; line-height: 1; }
+.pilot-draw-sign-pad-wrapper { position: relative; display: flex; align-items: center; justify-content: center; }
+.pilot-draw-sign-canvas { background: white; border: 3px dashed #cbd5e1; border-radius: 20px; touch-action: none; cursor: crosshair; width: clamp(100px, 30vw, 220px); height: clamp(100px, 30vw, 220px); box-shadow: 0 4px 16px rgba(71,61,48,0.08); }
+.pilot-draw-sign-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: clamp(60px, 12vw, 100px); font-weight: 900; border-radius: 20px; pointer-events: none; backdrop-filter: blur(2px); }
+.pilot-draw-sign-overlay.success { background: rgba(220,252,231,0.85); color: #22c55e; }
+.pilot-draw-sign-overlay.error { background: rgba(254,226,226,0.85); color: #ef4444; }
