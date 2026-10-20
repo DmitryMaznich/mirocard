@@ -82,7 +82,7 @@ function LanguagePicker({ request }) {
           const ready = record?.languageResources?.content?.[code] && (!delivery || record.installation?.packages?.[code]?.sha256 === pack.sha256);
           return <label key={code} className={`topic-language-option${selected === code ? " is-selected" : ""}`}>
             <input type="radio" name={`topic-language-${request.id}`} value={code} checked={selected === code} disabled={busy} onChange={() => setSelected(code)} />
-            <span><strong lang={code}>{nativeLanguageName(code)}</strong><span className="topic-language-detail">{t("topicLanguage.modeCount", { count: pack.modeIds.length })} · {t(pack.audio === "recorded" ? "topicLanguage.speech" : "topicLanguage.noSpeech")} · {ready ? t("topicLanguage.installed") : formatBytes(pack.bytes ?? 0, uiLanguage)}</span></span>
+            <span><strong lang={code}>{nativeLanguageName(code)}</strong><span className="topic-language-detail">{t("topicLanguage.modeCount", { count: pack.modeIds.length })} · {t(pack.audio === "recorded" ? pack.audioScope === "feedback" ? "topicLanguage.feedbackSpeech" : "topicLanguage.speech" : "topicLanguage.noSpeech")} · {ready ? t("topicLanguage.installed") : formatBytes(pack.bytes ?? 0, uiLanguage)}</span></span>
           </label>;
         })}
       </div>

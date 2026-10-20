@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "language": "ru",
   "packageId": "comparison_language_pilot.ru",
-  "version": "0.3.0",
-  "audio": "none",
+  "version": "0.4.0",
+  "audio": "recorded",
   "messages": {
     "prompt.dots.more": "Где больше точек?",
     "prompt.dots.less": "Где меньше точек?",
@@ -22,7 +22,19 @@
     "prompt.sign.more": "Нажми на большее число",
     "prompt.sign.less": "Нажми на меньшее число",
     "prompt.sign.equal": "Числа одинаковые — нажми на крокодила",
-    "sign.crocTip": "Пасть крокодила всегда открывается к большему числу."
+    "sign.crocTip": "Пасть крокодила всегда открывается к большему числу.",
+    "feedback.retry": "Посмотри ещё раз."
   },
-  "assets": []
+  "assets": [
+    {
+      "path": "content/ru/0.4.0/retry.mp3",
+      "kind": "audio",
+      "bytes": 16512,
+      "sha256": "dedc4766737c5b2c4988b0ca16c6b15e27dd1301a98fe7fcb7b2d74d21cb9ed5"
+    }
+  ],
+  "audioScope": "feedback",
+  "recordings": {
+    "feedback.retry": "content/ru/0.4.0/retry.mp3"
+  }
 }

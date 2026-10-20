@@ -209,16 +209,16 @@
         "ru": "Сравнение · языковой пилот",
         "sl": "Primerjanje · jezikovni pilot"
       },
-      "version": "0.3.0",
+      "version": "0.4.0",
       "renderer": "comparison_language_pilot",
       "sources": [
-        "public/decks/comparison_language_pilot_v0.3.0.zip",
+        "public/decks/comparison_language_pilot_v0.4.0.zip",
         "src/topics/renderers/comparison_language_pilot",
         "tools/comparison_language_pilot/topic.json"
       ],
       "bundle": {
-        "version": "0.3.0",
-        "url": "./decks/comparison_language_pilot_v0.3.0.zip",
+        "version": "0.4.0",
+        "url": "./decks/comparison_language_pilot_v0.4.0.zip",
         "title": {
           "ru": "Сравнение · языковой пилот",
           "sl": "Primerjanje · jezikovni pilot"
@@ -231,7 +231,7 @@
       "builtin": false,
       "catalogEntry": {
         "id": "comparison_language_pilot",
-        "version": "0.3.0",
+        "version": "0.4.0",
         "title": {
           "ru": "Сравнение · языковой пилот",
           "sl": "Primerjanje · jezikovni pilot"
@@ -240,39 +240,40 @@
           "ru": "Два режима пилотной копии: сравнение количеств и чисел с крокодилом. Русский и словенский материал выбираются независимо от интерфейса. Без речевой озвучки.",
           "sl": "Dva načina v pilotni kopiji: primerjanje količin in števil s krokodilom. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Brez govornega zvoka."
         },
-        "url": "./decks/comparison_language_pilot_v0.3.0.zip",
+        "url": "./decks/comparison_language_pilot_v0.4.0.zip",
         "status": "hidden",
         "hidden": true,
         "access": "free",
         "languageDownload": {
           "schemaVersion": 1,
           "core": {
-            "url": "./decks/comparison_language_pilot_v0.3.0.zip",
-            "version": "0.3.0",
-            "bytes": 8080,
-            "sha256": "67db0b851a8cf454d834b2a807c5afa7c770d67d39bfc960378cf61629cddd1c"
+            "url": "./decks/comparison_language_pilot_v0.4.0.zip",
+            "version": "0.4.0",
+            "bytes": 8201,
+            "sha256": "1f77a73714f8167ce1890ddde3e6a94a225d251826894fd3f1c337c1c1672dbe"
           },
           "languages": {
             "ru": {
-              "url": "./decks/languages/comparison_language_pilot/ru_v0.3.0.zip",
-              "bytes": 765,
-              "sha256": "354a6f073f694afcbba21c3e99838720c4c03795cf6d2465a0bfd41e4b4400bb",
+              "url": "./decks/languages/comparison_language_pilot/ru_v0.4.0.zip",
+              "bytes": 16240,
+              "sha256": "fba69ac031c9e3cedbdb7fcc786bd1bec9ad1a18d978940e7c2ed8135a257817",
               "language": "ru",
               "packageId": "comparison_language_pilot.ru",
-              "version": "0.3.0",
+              "version": "0.4.0",
               "modeIds": [
                 "compare_visual",
                 "compare_sign"
               ],
-              "audio": "none"
+              "audio": "recorded",
+              "audioScope": "feedback"
             },
             "sl": {
-              "url": "./decks/languages/comparison_language_pilot/sl_v0.3.0.zip",
+              "url": "./decks/languages/comparison_language_pilot/sl_v0.4.0.zip",
               "bytes": 700,
-              "sha256": "7bf54398a4b52ce6f8f59c518152f5fded0172f526b1183b376d4eaff0d251b5",
+              "sha256": "58db13af54a739004d159ca35604b880d7b1317e406b1ce3c3136c4d6c16a064",
               "language": "sl",
               "packageId": "comparison_language_pilot.sl",
-              "version": "0.3.0",
+              "version": "0.4.0",
               "modeIds": [
                 "compare_visual",
                 "compare_sign"
@@ -282,7 +283,7 @@
           }
         }
       },
-      "sourceUpdatedAt": "2026-10-20T10:47:29+02:00"
+      "sourceUpdatedAt": "2026-10-20T11:58:12+02:00"
     },
     {
       "id": "daily_orientation",

@@ -16,6 +16,7 @@ import { generateTasks as originalTasks } from "../comparison/engine";
 import { generateTasks } from "./engine";
 import CompareVisual from "./CompareVisual";
 import CompareSign from "./CompareSign.jsx";
+import Pilot from "./index.jsx";
 import { readModeParams, writeModeParams, getConceptCards } from "@/shared/utils/topicUtils";
 import { resolveModeSelection } from "@/features/session/useSessionEngine";
 import { createContentContext, initialContentLanguage, loadTopicLanguages, validateTopicLanguages } from "../../../../shared/topic-language-contract.mjs";
@@ -122,7 +123,7 @@ it("persists pinned package identity in checkpoints/history and rejects incompat
   const context = { studentId: "kid", topicId: topic.meta.id, modeId: mode.id, topicVersion: topic.meta.version, conceptIds: ["pilot_visual"], languageContext: state.languageContext };
   expect(restoreActiveSessionState(snapshot, context)?.languageContext).toEqual(state.languageContext);
   expect(restoreActiveSessionState(snapshot, { ...context, languageContext: { ...state.languageContext, contentLanguage: "ru" } })).toBeNull();
-  expect(restoreActiveSessionState(snapshot, { ...context, languageContext: { ...state.languageContext, contentVersion: "0.4.0" } })).toBeNull();
+  expect(restoreActiveSessionState(snapshot, { ...context, languageContext: { ...state.languageContext, contentVersion: "0.99.0" } })).toBeNull();
 });
 
 it("imports the actual ZIP without altering original topic, files or progress", async () => {
@@ -136,8 +137,8 @@ it("imports the actual ZIP without altering original topic, files or progress", 
   await kv.set(db, "studentTopicLinks", links);
   await kv.set(db, "conceptProgress", progress);
   await kv.set(db, "sessions", history);
-  const bytes = await readFile(resolve("public/decks/comparison_language_pilot_v0.3.0.zip"));
-  await importTopic(db, bytes, "1.0.2674");
+  const bytes = await readFile(resolve("public/decks/comparison_language_pilot_v0.4.0.zip"));
+  await importTopic(db, bytes, "1.0.2675");
   const installed = await getTopicRecord(db, topic.meta.id);
   expect(installed.modes).toHaveLength(2);
   expect(installed.languageResources.content.sl).toBeUndefined();
@@ -150,7 +151,7 @@ it("imports the actual ZIP without altering original topic, files or progress", 
   expect(await kv.get(db, "sessions")).toEqual(history);
   const invalidZip = await JSZip.loadAsync(bytes);
   invalidZip.remove("ui/sl.json");
-  await expect(importTopic(db, await invalidZip.generateAsync({ type: "arraybuffer" }), "1.0.2674")).rejects.toThrow(/missing file/);
+  await expect(importTopic(db, await invalidZip.generateAsync({ type: "arraybuffer" }), "1.0.2675")).rejects.toThrow(/missing file/);
   expect(await getTopicRecord(db, topic.meta.id)).toEqual(installed);
   db.close();
 });
@@ -263,13 +264,13 @@ describe("crocodile mode", () => {
 it("upgrades the actual 0.1 ZIP without losing visual settings or sharing them with the new mode", async () => {
   const db = await openDb(`pilot-upgrade-${Math.random()}`);
   const oldBytes = await readFile(resolve("test-fixtures/decks/comparison_language_pilot_v0.1.0.zip"));
-  await importTopic(db, oldBytes, "1.0.2674");
+  await importTopic(db, oldBytes, "1.0.2675");
   const legacy = { contentLanguage: "sl", level: 4, question: "less", showEqual: true, visualMode: "numbers" };
   const links = { kid_comparison_language_pilot: { params: legacy } };
   const history = [{ id: "previous", topicId: topic.meta.id, modeId: "compare_visual", conceptIds: ["pilot_visual"] }];
   await kv.set(db, "studentTopicLinks", links);
   await kv.set(db, "sessions", history);
-  await importTopic(db, await readFile(resolve("public/decks/comparison_language_pilot_v0.3.0.zip")), "1.0.2674");
+  await importTopic(db, await readFile(resolve("public/decks/comparison_language_pilot_v0.4.0.zip")), "1.0.2675");
   expect(await kv.get(db, "studentTopicLinks")).toEqual(links);
   expect(await kv.get(db, "sessions")).toEqual(history);
   const { contentLanguage: ignoredLanguage, ...visualSettings } = legacy;
@@ -290,3 +291,18 @@ it("upgrades the actual 0.1 ZIP without losing visual settings or sharing them w
   }
   db.close();
 });
+
+
+for (const contentLanguage of ["ru", "sl"]) for (const soundEnabled of [true, false]) {
+  it(`${contentLanguage} recorded feedback follows the pinned material, sound=${soundEnabled}`, async () => {
+    const context = createContentContext(topic, signMode, { contentLanguage });
+    const task = generateTasks(signMode, topic.cards, 1, { question: "more" }, context, topic.languageResources.content[contentLanguage])[0];
+    const playTopicFile = vi.fn(), onIncorrect = vi.fn();
+    await act(async () => root.render(<Pilot mode={signMode} topicId={topic.meta.id} task={task} sessionStatus="task_active" soundEnabled={soundEnabled} playTopicFile={playTopicFile} onCorrect={vi.fn()} onIncorrect={onIncorrect} />));
+    const wrong = task.left < task.right ? 0 : 1;
+    await act(async () => host.querySelectorAll('.pilot-compare-side')[wrong].click());
+    expect(onIncorrect).toHaveBeenCalledTimes(1);
+    if (contentLanguage === "ru" && soundEnabled) expect(playTopicFile).toHaveBeenCalledWith(topic.meta.id, "content/ru/0.4.0/retry.mp3");
+    else expect(playTopicFile).not.toHaveBeenCalled();
+  });
+}

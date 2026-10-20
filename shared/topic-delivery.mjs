@@ -24,7 +24,7 @@ export function topicDownloadDescriptor(record) {
   if (!delivery) return null;
   return { schemaVersion: 1,
     core: { url: delivery.coreUrl, version: record.meta.version, bytes: record.installation?.coreBytes, sha256: record.installation?.coreSha256 },
-    languages: Object.fromEntries(Object.entries(record.languageContract.packages).map(([language, pack]) => [language, { ...pack.download, language, packageId: pack.packageId, version: pack.version, modeIds: pack.modeIds, audio: pack.audio }])),
+    languages: Object.fromEntries(Object.entries(record.languageContract.packages).map(([language, pack]) => [language, { ...pack.download, language, packageId: pack.packageId, version: pack.version, modeIds: pack.modeIds, audio: pack.audio, ...(pack.audioScope ? { audioScope: pack.audioScope } : {}) }])),
   };
 }
 
