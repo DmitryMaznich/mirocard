@@ -1660,7 +1660,11 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             ? prevToken.startX + ((prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) + pendingGap) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
             : (cursorX === null ? WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
         const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
-        let startX = even
+        // a deck whose exits and lead-ins already meet (meta.script.exactJoins, the Bulgarian variant: every exit ends and every
+        // lead-in starts halfway up the x-band at the same angle): the next letter starts exactly where the last one ended, off
+        // the grid, and the tail is left as drawn (snapping the start and nudging the tail onto it bent the join)
+        const exactJoin = Boolean(glyphsByLabel?.script?.exactJoins) && Boolean(prevExit) && !loose && !inCell && Math.abs(prevExit[1] - local.start[1]) < 0.75 * scale;
+        let startX = exactJoin ? prevExit[0] : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
           : loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
         // a digit inside a number («25») is set on the grid too, on the first slant line not left of where it would go (a sign is never written between lines)
@@ -1710,7 +1714,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
         let highJoined = false;
-        if (prevExit) {
+        if (prevExit && !exactJoin) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
           // letter's first stroke, where that stroke crosses the tail's own height. The tail's
           // end is nudged (by the sub-grid slack left after snapping the start) to land exactly

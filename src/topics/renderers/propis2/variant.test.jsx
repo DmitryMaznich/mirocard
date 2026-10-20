@@ -113,3 +113,19 @@ describe("applyVariant", () => {
     expect(buildGlyphMap(base).get("п1").strokes[0].d).toBe("M 0 0 L 1 1");
   });
 });
+
+describe("Bulgarian joins (meta.script.exactJoins)", () => {
+  it("the next letter starts exactly where the previous one's exit ends: no step, no bent tail", async () => {
+    const { applyVariant } = await import("../../../../scripts/lib/propis2-variant.mjs");
+    const topic = JSON.parse(await readFile("tools/propis2/topic.json", "utf-8"));
+    topic.wide = JSON.parse(await readFile("tools/propis/wide.json", "utf-8")).glyphs;
+    applyVariant(topic, JSON.parse(await readFile("tools/propis2/variants/bg/variant.json", "utf-8")));
+    const map = buildGlyphMap(topic);
+    for (const w of ["ии", "ни", "ки", "ик", "ми", "иш"]) {
+      const st = layoutWideLinesIntoRows([w], map, undefined, false, 1).placed[0].segments.flatMap((s) => s.trajectory?.strokes ?? []);
+      const link = st.find((s, i) => i > 0 && s.continuous);
+      const { start, end } = getPathEndpoints(link.d);
+      expect(Math.hypot(end[0] - start[0], end[1] - start[1]), w).toBeLessThan(1e-6);
+    }
+  });
+});

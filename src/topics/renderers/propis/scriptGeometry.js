@@ -5,6 +5,7 @@
 // unslanted to the vertical, the zone above the lowercase band stretched by `upper` and the one below it by `lower`, leaned again at
 // `slantDeg`. The lowercase band itself does not move vertically and the map is continuous, so every join stays joined.
 // `script` (a deck's meta.script): { slantDeg, upper, lower }, all optional; none / all defaults = the Russian copybook, nothing done.
+// (`exactJoins`, read by wordEngine: the next letter starts exactly at the previous one's exit end, no grid snap, no tail nudging.)
 export const RU_SLANT_DEG = 65;
 
 const tanFromVertical = (deg) => Math.tan(((90 - deg) * Math.PI) / 180);
