@@ -1899,20 +1899,19 @@ def k_three(strokes, tol=0.1, back=12.0):
     j0 = max(j0, int(np.argmax(col[:, 1] - col[:, 2] > 0)))
     # straight down from where it starts (owner: «он идёт сразу вниз из точки начала»): one line from where it leaves the
     # diagonal to the lower end of the font's column
-    # from a little higher up the diagonal than where the font's hook leaves it (owner: «точку начала подними выше по линии
-    # второго, чтобы на нижнем крюке не было искривления по пути вниз»), one smooth curve: down the font's column first, into
-    # the bottom curve along its own way, no bend on the way down
+    # as the owner drew it (2026-10-20, over the review sheet): from the diagonal at 43 units down, a straight line 14.8 down and
+    # 2.8 across (nearly the slant), then one smooth curve into the bottom and out as the snapped trace has it
+    xs0 = dx_at(d, 43.0)
+    start = np.array([min(xs0), 43.0])
+    mid_ = start + np.array([2.8, 14.8])
+    line = np.array([start + (mid_ - start) * t for t in np.linspace(0, 1, 50)])[1:]
     lo = int(np.argmax(h[:, 1]))
-    k = int(np.argmin(np.abs(h[:lo + 1, 1] - (tt.BASE - 9))))
-    end = h[k]; tE = tt._unit(h[k + 4] - h[k])
-    ys0 = col[j0, 0] - 4.0
-    xs0 = dx_at(d, ys0)
-    start = np.array([min(xs0), ys0])
-    tS = tt._unit(np.array([col[-1, 1], col[-1, 0]]) - np.array([col[j0, 1], col[j0, 0]]))
-    L = np.hypot(*(end - start))
-    t = np.linspace(0, 1, 80)[1:-1, None]
-    column = (1 - t) ** 3 * start + 3 * (1 - t) ** 2 * t * (start + tS * L * 0.45) + 3 * (1 - t) * t ** 2 * (end - tE * L * 0.3) + t ** 3 * end
-    column = np.vstack([column, end])
+    k = min(len(h) - 5, lo + int(4 / 0.3))                     # a little past the bottom
+    end = h[k]; tE = tt._unit(h[k + 4] - h[k]); tM = tt._unit(mid_ - start)
+    L = np.hypot(*(end - mid_))
+    t = np.linspace(0, 1, 50)[1:-1, None]
+    curve = (1 - t) ** 3 * mid_ + 3 * (1 - t) ** 2 * t * (mid_ + tM * L * 0.5) + 3 * (1 - t) * t ** 2 * (end - tE * L * 0.4) + t ** 3 * end
+    column = np.vstack([line, curve, end])
     hk = np.vstack([start, column, h[k + 1:]])
     hk = dg.resample(_smooth_runs(dg.resample(hk, 0.3), [], sigma=1.2), 0.3)
     h = hk
