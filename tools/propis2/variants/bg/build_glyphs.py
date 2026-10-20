@@ -1800,6 +1800,17 @@ def i_lower(strokes, k=0, near=4.0, tol=0.1):
     strokes = to_band(strokes)
     p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
     p = _smooth_runs(p, _corners(p, deg=100), sigma=2.5)
+    # the left element down to the baseline too (owner: «левый элемент растяни до нижней линии»): heights stretched from the
+    # x-line, along the slant, the rise after its bottom following less and less up to half the band
+    n = len(p)
+    b1 = int(np.argmax(p[: int(n * 0.55), 1]))
+    r_end = b1 + int(np.argmax(p[b1:, 1] < tt.X_TOP + 0.5 * (tt.BASE - tt.X_TOP)))
+    d = tt.BASE - p[b1, 1]
+    wh = np.clip((p[:, 1] - tt.X_TOP) / (p[b1, 1] - tt.X_TOP), 0, 1)
+    wi = np.ones(n); wi[b1:] = np.clip(1 - (np.arange(b1, n) - b1) / max(1, r_end - b1), 0, 1)
+    wi = 0.5 - 0.5 * np.cos(np.pi * wi)
+    dd = d * wh * wi
+    p = np.c_[p[:, 0] - dd * tt.SLANT_T, p[:, 1] + dd]
     out = list(strokes)
     out[k] = _fit_corners(p, _corners(p, deg=100), tol=tol)
     return out
