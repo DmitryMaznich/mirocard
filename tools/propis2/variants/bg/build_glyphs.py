@@ -2209,28 +2209,23 @@ def f_lower(strokes, k=0, tol=0.1):
 
 
 def x_lower(strokes, k=0, tol=0.1):
-    """х (lowercase) in two strokes, as Х: the font's pen path went down the left half into its hook, back up over it to the right
-    half's top and back down that; cut at those two turns back: the left half (lead-in, arch, down, the hook to the left), a
-    lift, the right half from its top (arch, down, the exit). Each smoothed, its top's ink on the x-line, its bottom on the
-    baseline (the rest moved with them)."""
+    """х (lowercase) as two с back to back (owner, 2026-10-20: «склеить просто две С: левую берём зеркальной, сначала по
+    горизонтали, потом по вертикали»): the finished с turned through 180° and written from its end (the lead-in at the middle,
+    over the top, down, into the hook at the bottom left); a lift; the с itself. They touch where the font's two halves meet."""
     p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
-    n = len(p)
-    low = np.nonzero(p[:, 1] > tt.BASE - 0.4 * (tt.BASE - tt.X_TOP))[0]
-    i1 = int(low[np.argmin(p[low[low < n // 2], 0])])                 # the left hook's end
-    i2 = i1 + int(np.argmax(p[i1:int(n * 0.75), 0]))                  # the right half's top end
-    top = tt.X_TOP + INK_W * CAP_K / 2
-    out = []
-    for q in (p[:i1 + 1], p[i2:]):
-        q = _smooth_runs(_smooth_runs(q, [], sigma=3.0), [], sigma=3.0)
-        t = int(np.argmin(q[:, 1])); b = t + int(np.argmax(q[t:, 1]))
-        y, ny = q[:, 1], q[:, 1].copy()
-        ny[:t] = y[:t] + (top - y[t])                                  # before the top: moved with it
-        ny[t:b + 1] = top + (y[t:b + 1] - y[t]) * (tt.BASE - top) / (y[b] - y[t])
-        ny[b:] = y[b:] + (tt.BASE - y[b])                              # after the bottom: moved with it
-        q = np.c_[q[:, 0] - (ny - y) * tt.SLANT_T, ny]
-        q = _ends_on_font(q, "х", t, b)                                # its ends where the font's are (the right half's curl)
-        out.append(_fit_corners(q, [], tol=tol))
-    return out
+    C = dg.resample(np.array(tt.parse_path(dg.fmt(PAPER["с"][0]))), 0.3)
+    gap = INK_W * CAP_K / 2
+    L = (-C)[::-1]
+    L = L + np.array([0.0, tt.BASE - L[:, 1].max()])                  # its bottom on the baseline (its top's ink on the x-line)
+    # where the font's halves meet: the pen path's middle, half way up the band
+    mid = 0.5 * (tt.X_TOP + tt.BASE)
+    U = tt.upright(p)
+    m = np.abs(p[:, 1] - mid) < 2.0
+    xs = U[m, 0]; lo, hi = U[:, 0].min(), U[:, 0].max()
+    c = float(np.median(xs[(xs > lo + 0.25 * (hi - lo)) & (xs < hi - 0.25 * (hi - lo))]))
+    UL, UR = tt.upright(L), tt.upright(C)
+    UL[:, 0] += c - UL[:, 0].max(); UR[:, 0] += c - UR[:, 0].min()
+    return [_fit_corners(tt.from_upright(u), [], tol=tol) for u in (UL, UR)]
 
 
 def i_breve_lower(strokes, gap=INK_W * CAP_K / 2):
