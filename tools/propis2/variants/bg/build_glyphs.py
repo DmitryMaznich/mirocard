@@ -1714,6 +1714,34 @@ def waist_to_font_tip(strokes, label, k=0, back=14.0):
     w = np.clip(1 - np.abs(s_ - s_[c]) / back, 0, 1)
     w = 0.5 - 0.5 * np.cos(np.pi * w)
     p = p.copy(); p[:, 0] += dx * w
+    # both arms come into the tip inside the font's narrow wedge (owner: «к ней оба элемента уже должны подойти под минимальным
+    # углом, ещё раз тщательно проверь серую линию»): over `near` units from the tip each arm is set at the pen's half inside the
+    # wedge's edge on its side (where the wedge is narrower than the pen, both on its middle), fading out beyond
+    sk = json.loads(FONT_SKELETON.read_text())["letters"][label]
+    fn = stencil_map(label, like=np.vstack([np.array(tt.parse_path(dg.fmt(c_))) for c_ in PAPER_UNSNAPPED[label]]))
+    polys = [fn(np.array(poly, float)) for poly in sk["outline"]]
+    tip = p[c].copy()
+    def edges(x):
+        ys = []
+        for P in polys:
+            a, b = P, np.roll(P, -1, axis=0)
+            m = (a[:, 0] - x) * (b[:, 0] - x) < 0
+            t = (x - a[m, 0]) / (b[m, 0] - a[m, 0])
+            ys += list(a[m, 1] + t * (b[m, 1] - a[m, 1]))
+        ys = [y for y in ys if abs(y - tip[1]) < 9]
+        return (min(ys), max(ys)) if len(ys) >= 2 else None
+    near = 16.0
+    s_ = np.r_[0, np.cumsum(np.hypot(*np.diff(p, axis=0).T))]
+    for i in range(len(p)):
+        d = abs(s_[i] - s_[c])
+        if d > near or i == c: continue
+        e = edges(p[i, 0])
+        if e is None: continue
+        lo_, hi_ = e
+        mid = (lo_ + hi_) / 2
+        y = min(lo_ + pen, mid) if i < c else max(hi_ - pen, mid)
+        w = 1.0 if d < near * 0.5 else 0.5 + 0.5 * math.cos(math.pi * (d - near * 0.5) / (near * 0.5))
+        p[i, 1] += (y - p[i, 1]) * w
     out = list(strokes)
     out[k] = _fit_corners(p, _corners(p))
     return out
