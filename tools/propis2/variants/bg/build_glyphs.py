@@ -3110,7 +3110,6 @@ def bottom_tail(g, tol=0.05):
     B = q[int(np.argmax(q[:, 1]))]
     # и's exit hook as it is, from its bottom (flat there, as the oval's bottom): along the oval first, then away from it,
     # into the middle of the band at JOIN_DEG, as far right as after и
-    H = HOOK["и"].copy()
     # as far right of the oval as и's exit is of its last stem (both at the middle of the band): the hook widened to get there
     def x_at_mid(path, right=True):
         xs = [path[i, 0] + (path[i + 1, 0] - path[i, 0]) * (mid - path[i, 1]) / (path[i + 1, 1] - path[i, 1]) for i in range(len(path) - 1) if (path[i, 1] - mid) * (path[i + 1, 1] - mid) <= 0 and path[i, 1] != path[i + 1, 1]]
@@ -3119,8 +3118,12 @@ def bottom_tail(g, tol=0.05):
     I = dg.resample(tt.to_paper(np.array(tt.parse_path(HOOK_STEM["и"]))), 0.2)
     gap = I[-1, 0] - x_at_mid(I[:-int(len(I) * 0.15)])               # и's exit end beyond its last stem's crossing of the middle
     want = x_at_mid(q) + gap - B[0]
-    H[:, 0] *= want / H[-1, 0]
-    tail = H + B
+    # one cubic: flat out of the oval's lowest point (along it), into the middle of the band exactly, rising at JOIN_DEG there
+    E = np.array([B[0] + want, mid])
+    u = np.array([math.cos(math.radians(JOIN_DEG)), -math.sin(math.radians(JOIN_DEG))])
+    h0, h1 = 0.55 * want, 0.35 * np.hypot(*(E - B))
+    w = np.linspace(0, 1, 120)[:, None]
+    tail = (1 - w) ** 3 * B + 3 * (1 - w) ** 2 * w * (B + [h0, 0]) + 3 * (1 - w) * w ** 2 * (E - u * h1) + w ** 3 * E
     tail = dg.resample(tail, 0.3)
     cmds = _fit_corners(tail, [], tol=tol)
     g["strokes"].append({"d": dg.fmt(tt.paper_to_bank_cmds(cmds))})
