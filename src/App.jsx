@@ -20,6 +20,7 @@ import VerifyEmailSentScreen from "@/features/account/VerifyEmailSentScreen";
 import VerifyEmailScreen from "@/features/account/VerifyEmailScreen";
 import GoogleCompleteProfileScreen from "@/features/account/GoogleCompleteProfileScreen";
 import { handleGoogleCode } from "@/features/account/googleSignIn";
+import { googleAuthErrorKey } from "@/features/account/authErrors";
 import ForgotPasswordScreen from "@/features/account/ForgotPasswordScreen";
 import ResetPasswordScreen from "@/features/account/ResetPasswordScreen";
 import HomeScreen from "@/features/home/HomeScreen";
@@ -231,8 +232,8 @@ export default function App() {
         setScreen("login");
         return;
       }
-      handleGoogleCode(googleCode).catch(() => {
-        useAppStore.setState({ authNotice: { key: "auth.googleExpired" } });
+      handleGoogleCode(googleCode).catch((error) => {
+        useAppStore.setState({ authNotice: { key: googleAuthErrorKey(error) } });
         setScreen("login");
       });
       return;
