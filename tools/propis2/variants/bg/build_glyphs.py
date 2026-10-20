@@ -2257,7 +2257,7 @@ def ts_lower(strokes, k=0, tol=0.1):
     return out
 
 
-def ch_flag(strokes, k=0, tol=0.1, src="Н"):
+def ch_flag(strokes, k=0, tol=0.1, src="Н", right=2.0, dip=1.8):
     """ч (lowercase): its top is Н's left flag (owner, 2026-10-20: «взять флажок левый от заглавной Н»), on the font's grey line
     («чётко соответствовало серой линии»): the lead-in is ч's own rise from the middle of the band (the font's), up to the
     font's arch top; from there the flag (from its hump), made smaller as a whole along the slant so its hump sits on that arch
@@ -2268,7 +2268,7 @@ def ch_flag(strokes, k=0, tol=0.1, src="Н"):
     _, S, _ = _font_frame("ч")
     hi = S[S[:, 1] < tt.X_TOP + 6]
     Uh = tt.upright(hi)
-    corner = hi[int(np.argmax(Uh[:, 0]))]                              # the rightmost top point
+    corner = hi[int(np.argmax(Uh[:, 0]))] + np.array([right, 0.0])   # the rightmost top point, a little further right (owner, 2026-10-20)
     xc = Uh[:, 0].max()
     left = hi[Uh[:, 0] < xc - 0.4 * (xc - Uh[:, 0].min())]            # clear of the corner and the dip before it
     arch = left[int(np.argmin(left[:, 1]))]
@@ -2280,6 +2280,9 @@ def ch_flag(strokes, k=0, tol=0.1, src="Н"):
     f = (Uc[0] - Ua[0]) / (UF[-1, 0] - UF[ft, 0])
     UF = Uc + f * (UF - UF[-1])
     flag = tt.from_upright(UF)[ft:]
+    # the dip between the hump and the corner `dip` times deeper below the line joining them (owner: «прогиб ещё больше, это всё-таки Ч»)
+    ch = flag[0] + np.linspace(0, 1, len(flag))[:, None] * (flag[-1] - flag[0])
+    flag = np.c_[flag[:, 0], ch[:, 1] + dip * (flag[:, 1] - ch[:, 1])]
     def moved(q, to, at_end):   # q's end (or start) moved onto `to`, the move fading out along q
         v = np.linspace(0, 1, len(q))[:, None]; v = v * v * (3 - 2 * v)
         w = v if at_end else 1 - v
