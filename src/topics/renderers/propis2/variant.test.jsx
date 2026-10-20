@@ -103,3 +103,13 @@ describe("propis2 variant: Bulgarian", () => {
     expect(ink.slice(1).some((s) => s.continuous)).toBe(true);
   });
 });
+
+describe("applyVariant", () => {
+  it("a variant glyph wins over a base glyph's alias of the same letter (the Russian «п1» is also «п»)", async () => {
+    const { applyVariant } = await import("../../../../scripts/lib/propis2-variant.mjs");
+    const base = { meta: { id: "propis2", renderer: "propis2" }, modes: [], wide: [{ label: "п1", aliases: ["п"], strokes: [{ d: "M 0 0 L 1 1" }] }] };
+    applyVariant(base, { meta: {}, modes: [], glyphs: [{ label: "п", strokes: [{ d: "M 5 5 L 6 6" }] }] });
+    expect(buildGlyphMap(base).get("п").strokes[0].d).toBe("M 5 5 L 6 6");
+    expect(buildGlyphMap(base).get("п1").strokes[0].d).toBe("M 0 0 L 1 1");
+  });
+});
