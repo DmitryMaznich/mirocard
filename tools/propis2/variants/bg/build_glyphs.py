@@ -2446,6 +2446,16 @@ def ya_lower(strokes, k=0, tol=0.1):
     cand = [i for i in range(len(E)) if (E[i, 1] - mid) * (E[(i + 1) % len(E), 1] - mid) <= 0]
     j = max(cand, key=lambda i: UE[i, 0])                              # the oval's right side at the middle
     part = part + (E[j] - part[-1])
+    # the stroke up to the oval bent out to the left onto the font's hook (owner, 2026-10-20: «отгибаем влево и разгибаем по
+    # траектории шрифтового крюка»): the font's own lead-in, hook and way up (smoothed, the hook's bottom on the baseline) as
+    # far as the middle, its end eased onto the oval's point there
+    fb = int(_fp(p[:, 1], prominence=0.2 * band)[0][0])
+    fm = fb + int(np.argmax(p[fb:, 1] <= mid))
+    F = _smooth_runs(p[:fm + 1], [], sigma=2.0)
+    wy = np.r_[np.linspace(0, 1, fb + 1) ** 2, np.linspace(1, 0, fm - fb + 1)[1:] ** 2]
+    F = np.c_[F[:, 0], F[:, 1] + (tt.BASE - F[fb, 1]) * wy]
+    v = np.r_[np.zeros(fb + 1), np.linspace(0, 1, fm - fb + 1)[1:]][:, None]; v = v * v * (3 - 2 * v)
+    part = F + v * (E[j] - F[-1])
     ring = np.vstack([E[j:], E[:j + 1]])
     if ring[5, 1] > ring[0, 1]: ring = ring[::-1]                      # up the right side first, as о
     first = dg.resample(np.vstack([part, ring[1:]]), 0.3)
