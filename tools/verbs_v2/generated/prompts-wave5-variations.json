@@ -7,17 +7,17 @@
  {
   "id": "closes",
   "out": "v_closes_2",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy closes a book: the cover is half-way down over the pages, his hand pushing it closed."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old boy closes a refrigerator door: the door is still half open and swinging shut, his hand pushing it. Side view."
  },
  {
   "id": "closes",
   "out": "v_closes_3",
-  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A boy closes the lid of a wooden toy chest: the lid is still open at an angle and moving down, both his hands on top."
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A girl closes a white door from inside the room: the door is swinging shut towards the door frame, only a narrow gap left, her palm flat on the door pushing it closed, small curved motion lines by the door edge."
  },
  {
   "id": "closes",
   "out": "v_closes_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman closes a kitchen drawer with her hand, the drawer still a little open and sliding in."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman closes the back door of a car: the door is still a little open and swinging shut, her hand pushing it. Side view."
  },
  {
   "id": "swings",
@@ -67,12 +67,12 @@
  {
   "id": "bathes",
   "out": "v_bathes_2",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl sits in a bathtub with foam and a rubber duck, splashing water, only head and shoulders above the foam. Modest."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A small sparrow bathes in a stone bird bath in a garden: it splashes the water with its wings, droplets flying around it."
  },
  {
   "id": "bathes",
   "out": "v_bathes_3",
-  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A boy sits in a bathtub full of bubbles and plays with a toy boat, only head and shoulders above the foam."
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A boy sits in a bathtub full of foam bubbles and plays with a toy boat; he wears NO clothes — only his head, bare shoulders and bare arms are above the foam. Modest."
  },
  {
   "id": "bathes",
@@ -92,12 +92,12 @@
  {
   "id": "takes_off",
   "out": "v_takes_off_3",
-  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A boy takes off his jacket: the jacket already slipped off his shoulders and down to his elbows behind him, one arm coming out of the sleeve."
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A girl takes off a yellow knitted hat with a pompom: she holds the hat in her raised hand above her head, already off, her hair standing up with static."
  },
  {
   "id": "takes_off",
   "out": "v_takes_off_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman takes off her coat: the coat already slid off her shoulders, one arm out of the sleeve, the coat hanging from the other arm."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A man has just taken off his grey knitted winter hat: he holds the hat in his raised hand ABOVE his head, a clear gap between the hat and his messy hair. Front view."
  },
  {
   "id": "takes",
@@ -112,7 +112,7 @@
  {
   "id": "takes",
   "out": "v_takes_3",
-  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A child takes a toy car from a toy shelf with both hands."
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A girl takes a book from a table: her hand closes around the book and lifts it up off the table. Side view."
  },
  {
   "id": "takes",
@@ -122,7 +122,7 @@
  {
   "id": "wipes",
   "out": "v_wipes_1",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 4-year-old girl dries her hands with a large white towel hanging on a hook in a bathroom, rubbing them."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 4-year-old girl dries her hands with a small white hand towel that she holds in both hands: her hands are wrapped inside the towel, rubbing them together. Bathroom, front view."
  },
  {
   "id": "wipes",
@@ -132,7 +132,7 @@
  {
   "id": "wipes",
   "out": "v_wipes_3",
-  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A child dries their face with a big fluffy towel after washing, only the eyes visible above the towel."
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A mother wipes a toddler's dirty hands with a wet wipe after eating; the toddler sits at a table, one small hand inside the wipe."
  },
  {
   "id": "wipes",
@@ -162,22 +162,22 @@
  {
   "id": "tidies",
   "out": "v_tidies_1",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl puts toys into a plastic storage box on the floor, holding a doll and placing it in."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A messy children's room: many toys scattered across the floor. A 5-year-old girl carries an armful of toys towards an open toy box and is dropping them inside; the part of the floor behind her is already clear."
  },
  {
   "id": "tidies",
   "out": "v_tidies_2",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy puts books back on a shelf, sliding one into place."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy picks up his clothes from the floor and puts them into a laundry basket: a T-shirt in his hand going into the basket, socks and trousers still on the floor next to him."
  },
  {
   "id": "tidies",
   "out": "v_tidies_3",
-  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A child gathers scattered blocks from the floor into a basket with both hands."
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A child tidies the hallway: shoes are scattered on the floor, and the child puts a pair of shoes neatly onto a low shoe rack where other pairs already stand in a row."
  },
  {
   "id": "tidies",
   "out": "v_tidies_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A mother and a child tidy up toys together into a toy box, both placing toys inside."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman clears the table after a meal: she stacks dirty plates and cups onto a tray and lifts them off the table; crumbs and a napkin still on the table."
  },
  {
   "id": "builds",
@@ -197,17 +197,17 @@
  {
   "id": "builds",
   "out": "v_builds_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A father and a child build a wooden birdhouse together at a workbench, the child holding a board."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old girl builds a toy house from big plastic construction bricks on the floor: the house already has walls, a window and half a roof, and she is placing one more brick on top of the wall."
  },
  {
   "id": "combs",
   "out": "v_combs_1",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl brushes her long hair with a pink hairbrush, the brush in the middle of a stroke through her hair. No mirror, only one person in the picture. Front three-quarter view."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl combs her own long hair with a plain comb (a comb with teeth, not a brush), the comb in the middle of a stroke. Only one person, no mirror. Front three-quarter view."
  },
  {
   "id": "combs",
   "out": "v_combs_2",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A mother combs her little daughter's hair; the girl sits on a chair."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 7-year-old boy combs his own hair with a comb, parting it neatly, front view. Only one person, no mirror."
  },
  {
   "id": "combs",
