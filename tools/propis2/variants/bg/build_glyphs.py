@@ -2723,7 +2723,7 @@ SPLIT = {"Х": [(0, 0), (2, 2)], "Н": [(0, 0), (1, 2)]}
 SPURS = set()  # Ю: from Н and О now (yu_from_parts), not from the font pen path
 # NO_EXIT: nothing joins after these, whatever _exit_flags finds: Ю's oval ends back at its bar, inside the letter, as О's does
 # (О gets noExit by itself; Ю's end lies a hair right of the letter's middle, and «Юла» joined from the bar into the oval)
-NO_EXIT = set("ФЮ")  # Ф: its hook ends to the left, under the letter; Ю: its oval ends back at the bar: nothing joins after them
+NO_EXIT = set("ФЮР")  # Ф: its hook ends to the left, under the letter; Ю: its oval ends back at the bar; Р: its bowl ends on the stem: nothing joins after them
 
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)

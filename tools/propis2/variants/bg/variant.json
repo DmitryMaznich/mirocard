@@ -394,6 +394,7 @@
       "ascender": true,
       "noNormalize": true,
       "sourceLabel": "Р (болгарская заглавная); путь пера шрифта Boyan Maga, подровнен",
+      "noExit": true,
       "noLiftExit": true
     },
     {
