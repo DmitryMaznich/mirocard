@@ -1,4 +1,5 @@
 import { loadTopicLanguages } from "../../shared/topic-language-contract.mjs";
+import { clearRendererCache } from "./rendererLoader";
 import JSZip from "jszip";
 import { CHECK_SKILLS, CHECK_VIEWS } from "./renderers/place_value/engine.js";
 import { kv, topics } from "@/core/db";
@@ -2452,6 +2453,8 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
   });
 
   await kv.set(db, `topic:${topicId}`, record);
+  // Re-importing an updated copy must replace its cached IIFE on the next launch.
+  clearRendererCache(topicId);
   await addToIndex(db, topicId);
 
   return record;

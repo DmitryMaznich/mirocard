@@ -209,43 +209,43 @@
         "ru": "Сравнение · языковой пилот",
         "sl": "Primerjanje · jezikovni pilot"
       },
-      "version": "0.1.0",
+      "version": "0.2.0",
       "renderer": "comparison_language_pilot",
       "sources": [
-        "public/decks/comparison_language_pilot_v0.1.0.zip",
+        "public/decks/comparison_language_pilot_v0.2.0.zip",
         "src/topics/renderers/comparison_language_pilot",
         "tools/comparison_language_pilot/topic.json"
       ],
       "bundle": {
-        "version": "0.1.0",
-        "url": "./decks/comparison_language_pilot_v0.1.0.zip",
+        "version": "0.2.0",
+        "url": "./decks/comparison_language_pilot_v0.2.0.zip",
         "title": {
           "ru": "Сравнение · языковой пилот",
           "sl": "Primerjanje · jezikovni pilot"
         },
         "description": null,
         "renderer": "comparison_language_pilot",
-        "modes": 1,
-        "cards": 1
+        "modes": 2,
+        "cards": 2
       },
       "builtin": false,
       "catalogEntry": {
         "id": "comparison_language_pilot",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "title": {
           "ru": "Сравнение · языковой пилот",
           "sl": "Primerjanje · jezikovni pilot"
         },
         "description": {
-          "ru": "Пилотная копия первого режима. Русский и словенский материал выбираются независимо от интерфейса. Без речевой озвучки.",
-          "sl": "Pilotna kopija prvega načina. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Brez govornega zvoka."
+          "ru": "Два режима пилотной копии: сравнение количеств и чисел с крокодилом. Русский и словенский материал выбираются независимо от интерфейса. Без речевой озвучки.",
+          "sl": "Dva načina v pilotni kopiji: primerjanje količin in števil s krokodilom. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Brez govornega zvoka."
         },
-        "url": "./decks/comparison_language_pilot_v0.1.0.zip",
+        "url": "./decks/comparison_language_pilot_v0.2.0.zip",
         "status": "hidden",
         "hidden": true,
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-20T07:17:05+00:00"
+      "sourceUpdatedAt": "2026-10-20T08:44:17+00:00"
     },
     {
       "id": "daily_orientation",

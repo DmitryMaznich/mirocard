@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "language": "sl",
   "packageId": "comparison_language_pilot.sl",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "audio": "none",
   "messages": {
     "prompt.dots.more": "Kje je več pik?",
@@ -11,13 +11,17 @@
     "prompt.dots_numbers.less": "Kje je manj?",
     "prompt.numbers.more": "Katero število je večje?",
     "prompt.numbers.less": "Katero število je manjše?",
-    "prompt.pairing.more": "Razporedi pike v pare, nato pokaži, kje jih je več",
-    "prompt.pairing.less": "Razporedi pike v pare, nato pokaži, kje jih je manj",
-    "equal.hint": "Če je enako, pritisni na sredino",
-    "equal.numbersHint": "Če sta števili enaki, pritisni rumeni kvadrat",
+    "prompt.pairing.more": "Razporedi pike v pare, nato pokaži, kje jih je več.",
+    "prompt.pairing.less": "Razporedi pike v pare, nato pokaži, kje jih je manj.",
+    "equal.hint": "Če je na obeh straneh enako pik, pritisni na sredino.",
+    "equal.numbersHint": "Če sta števili enaki, pritisni na rumeni kvadrat.",
     "equal.label": "Enako",
     "verdict.more": "{{larger}} je več kot {{smaller}}",
     "verdict.less": "{{smaller}} je manj kot {{larger}}",
-    "verdict.equal": "{{left}} = {{right}}"
+    "verdict.equal": "{{left}} = {{right}}",
+    "prompt.sign.more": "Pritisni na večje število.",
+    "prompt.sign.less": "Pritisni na manjše število.",
+    "prompt.sign.equal": "Števili sta enaki. Pritisni na krokodila.",
+    "sign.crocTip": "Krokodil vedno odpre gobec proti večjemu številu."
   }
 }
