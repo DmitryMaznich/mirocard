@@ -34,7 +34,7 @@ beforeEach(async () => {
   useAppStore.setState({ ...original, screen: "topics", account: { id: "adult", email: "local" }, token: null,
     students: [{ id: "one", name: "Миша", preferredLessonLanguage: "sl" }, { id: "two", name: "Аня", preferredLessonLanguage: "ru" }],
     activeStudentId: "one", activeTopicId: entry.id, activeModeId: "compare_visual", topicRecords: [], studentTopicLinks: {}, sessions: [], ownedTopics: [],
-    buildInfo: { version: "1.0.2674" }, settings: { ...original.settings, cardLanguage: "ru" }, topicLanguageRequest: null });
+    buildInfo: { version: "1.0.2675" }, settings: { ...original.settings, cardLanguage: "ru" }, topicLanguageRequest: null });
   fetchMock = vi.fn(async (url) => {
     const path = new URL(String(url), "https://example.test").pathname;
     const bytes = archives.get(path);
@@ -63,7 +63,7 @@ async function settle(predicate) {
 }
 
 it("downloads only the selected language and reuses core and each cached package", async () => {
-  const sl = await installTopicLanguage(entry, "sl", "1.0.2674");
+  const sl = await installTopicLanguage(entry, "sl", "1.0.2675");
   expect(urls()).toEqual([entry.url.slice(1), entry.languageDownload.languages.sl.url.slice(1)]);
   expect(Object.keys(sl.languageResources.content)).toEqual(["sl"]);
   expect(await dbModule.topics.getFile(db, entry.id, "content/ru.json")).toBeNull();
@@ -72,12 +72,12 @@ it("downloads only the selected language and reuses core and each cached package
   expect(remainingDownloadBytes(sl, entry.languageDownload, "ru")).toBe(entry.languageDownload.languages.ru.bytes);
   expect(await dbModule.kv.get(db, `topicCore:${entry.id}`)).not.toHaveProperty("buffer");
   fetchMock.mockClear();
-  const both = await installTopicLanguage(entry, "ru", "1.0.2674");
+  const both = await installTopicLanguage(entry, "ru", "1.0.2675");
   expect(urls()).toEqual([entry.languageDownload.languages.ru.url.slice(1)]);
   expect(Object.keys(both.languageResources.content).sort()).toEqual(["ru", "sl"]);
   expect(await dbModule.topics.getFile(db, entry.id, "content/sl.json")).not.toBeNull();
   fetchMock.mockClear();
-  const offline = await installTopicLanguage(entry, "sl", "1.0.2674");
+  const offline = await installTopicLanguage(entry, "sl", "1.0.2675");
   expect(fetchMock).not.toHaveBeenCalled();
   expect(remainingDownloadBytes(offline, entry.languageDownload, "sl")).toBe(0);
 });
@@ -90,6 +90,7 @@ for (const ui of ["ru", "sl"]) {
     expect(host.querySelector('input[value="sl"]').checked).toBe(true);
     expect(host.textContent).toContain(ui === "ru" ? "Без речевой озвучки" : "Brez govornega zvoka");
     expect(host.textContent).toContain(ui === "ru" ? "2 режима" : "2 načina");
+    expect(host.textContent).toContain(ui === "ru" ? "Озвучена подсказка после ошибки" : "Govorjeni namig po napaki");
     expect(fetchMock).not.toHaveBeenCalled();
     await act(async () => findButton(ui === "ru" ? "Отмена" : "Prekliči").click());
     expect(await result).toBeNull();
@@ -128,7 +129,7 @@ it("one topic choice applies to both modes, remains student-specific and survive
 });
 
 it("mode parameters no longer contain language controls after a topic is selected", async () => {
-  const record = await installTopicLanguage(entry, "sl", "1.0.2674");
+  const record = await installTopicLanguage(entry, "sl", "1.0.2675");
   useAppStore.setState({ topicRecords: [record], studentTopicLinks: { [`one_${entry.id}`]: { params: { topicContentLanguage: "sl" }, videoRewardEnabled: false } } });
   await act(async () => root.render(<ParamsScreen />));
   expect(host.textContent).not.toContain("Язык занятия");
@@ -139,7 +140,7 @@ it("mode parameters no longer contain language controls after a topic is selecte
 
 it("manual core import waits for selection and fetches only a language package", async () => {
   let promise;
-  await act(async () => { promise = importTopicArchive(db, coreBytes, "1.0.2674"); root.render(<TopicLanguageDialog />); });
+  await act(async () => { promise = importTopicArchive(db, coreBytes, "1.0.2675"); root.render(<TopicLanguageDialog />); });
   await settle(() => Boolean(host.querySelector('input[value="sl"]')));
   expect(await dbModule.kv.get(db, `topic:${entry.id}`)).toBeNull();
   await submit(); await settle(() => !useAppStore.getState().topicLanguageRequest);
@@ -149,22 +150,22 @@ it("manual core import waits for selection and fetches only a language package",
 });
 
 it("damaged or interrupted downloads preserve the working topic, files and history", async () => {
-  const installed = await installTopicLanguage(entry, "sl", "1.0.2674");
+  const installed = await installTopicLanguage(entry, "sl", "1.0.2675");
   const files = await dbModule.topics.listFiles(db, entry.id);
   const history = [{ id: "lesson", topicId: entry.id }];
   await dbModule.kv.set(db, "sessions", history);
   fetchMock.mockImplementationOnce(async () => new Response("broken"));
-  await expect(installTopicLanguage(entry, "ru", "1.0.2674")).rejects.toThrow(/integrity/);
+  await expect(installTopicLanguage(entry, "ru", "1.0.2675")).rejects.toThrow(/integrity/);
   expect(await dbModule.kv.get(db, `topic:${entry.id}`)).toEqual(installed);
   expect(await dbModule.topics.listFiles(db, entry.id)).toEqual(files);
   expect(await dbModule.kv.get(db, "sessions")).toEqual(history);
   fetchMock.mockImplementationOnce(async () => { throw new Error("offline"); });
-  await expect(installTopicLanguage(entry, "ru", "1.0.2674")).rejects.toThrow(/offline/);
+  await expect(installTopicLanguage(entry, "ru", "1.0.2675")).rejects.toThrow(/offline/);
   expect(await dbModule.kv.get(db, `topic:${entry.id}`)).toEqual(installed);
 });
 
 it("a failed IndexedDB transaction rolls back record and files together", async () => {
-  const before = await installTopicLanguage(entry, "sl", "1.0.2674");
+  const before = await installTopicLanguage(entry, "sl", "1.0.2675");
   const files = await dbModule.topics.listFiles(db, entry.id);
   await expect(dbModule.topics.replaceTopic(db, entry.id, { invalid: { buf: () => {} } }, { meta: { id: entry.id, version: "broken" } })).rejects.toThrow();
   expect(await dbModule.kv.get(db, `topic:${entry.id}`)).toEqual(before);
@@ -172,7 +173,7 @@ it("a failed IndexedDB transaction rolls back record and files together", async 
 });
 
 it("refuses to commit a download after its account/student context changes", async () => {
-  await expect(installTopicLanguage(entry, "sl", "1.0.2674", { ensureCurrent: () => { throw new Error("context changed"); } })).rejects.toThrow(/context changed/);
+  await expect(installTopicLanguage(entry, "sl", "1.0.2675", { ensureCurrent: () => { throw new Error("context changed"); } })).rejects.toThrow(/context changed/);
   expect(await dbModule.kv.get(db, `topic:${entry.id}`)).toBeNull();
 });
 
@@ -203,7 +204,7 @@ for (const kind of ["audio", "image"]) {
     const nextCore = await core.generateAsync({ type: "uint8array" });
     next.languageDownload.core.sha256 = await sha256Bytes(nextCore); next.languageDownload.core.bytes = nextCore.length;
     fetchMock.mockImplementation(async (url) => new Response(String(url).includes("/languages/") ? languageBytes : nextCore));
-    const installed = await installTopicLanguage(next, "sl", "1.0.2674");
+    const installed = await installTopicLanguage(next, "sl", "1.0.2675");
     expect(Object.keys(installed.languageResources.content)).toEqual(["sl"]);
     expect(await (await dbModule.topics.getFile(db, entry.id, path)).text()).toBe("slovensko gradivo");
     expect((await dbModule.topics.listFiles(db, entry.id)).some((name) => name.startsWith("content/ru"))).toBe(false);
@@ -221,12 +222,30 @@ it("paid language downloads use the checked API for every part and never fall ba
     const part = parsed.searchParams.get("part") === "core" ? entry.languageDownload.core : entry.languageDownload.languages[parsed.searchParams.get("language")];
     return new Response(archives.get(part.url.slice(1)));
   });
-  const installed = await installTopicLanguage(paid, "sl", "1.0.2674");
+  const installed = await installTopicLanguage(paid, "sl", "1.0.2675");
   expect(installed.installation.access).toBe("paid");
   expect(fetchMock).toHaveBeenCalledTimes(2);
   fetchMock.mockClear();
   fetchMock.mockResolvedValueOnce(new Response("Forbidden", { status: 403 }));
-  await expect(installTopicLanguage(paid, "ru", "1.0.2674")).rejects.toThrow(/403/);
+  await expect(installTopicLanguage(paid, "ru", "1.0.2675")).rejects.toThrow(/403/);
   expect(fetchMock).toHaveBeenCalledTimes(1);
   expect(await dbModule.kv.get(db, `topic:${entry.id}`)).toEqual(installed);
+});
+
+
+it("downloads the actual Russian recording with RU, never with SL, and keeps it available offline", async () => {
+  const sl = await installTopicLanguage(entry, "sl", "1.0.2675");
+  const voicePath = "content/ru/0.4.0/retry.mp3";
+  expect(await dbModule.topics.getFile(db, entry.id, voicePath)).toBeNull();
+  expect(sl.languageContract.packages.ru.audioScope).toBe("feedback");
+  fetchMock.mockClear();
+  const ru = await installTopicLanguage(entry, "ru", "1.0.2675");
+  expect(urls()).toEqual([entry.languageDownload.languages.ru.url.slice(1)]);
+  const installedVoice = new Uint8Array(await (await dbModule.topics.getFile(db, entry.id, voicePath)).arrayBuffer());
+  const originalVoice = await readFile(resolve("public/audio/addition-subtraction/phrases/look_again.mp3"));
+  expect(await sha256Bytes(installedVoice)).toBe(await sha256Bytes(originalVoice));
+  expect(ru.languageResources.content.ru.recordings["feedback.retry"]).toBe(voicePath);
+  fetchMock.mockImplementation(async () => { throw new Error("offline"); });
+  const cached = await installTopicLanguage(entry, "ru", "1.0.2675");
+  expect(cached.languageResources.content.ru.recordings["feedback.retry"]).toBe(voicePath);
 });

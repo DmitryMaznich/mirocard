@@ -48,6 +48,7 @@ export function generateTasks(mode, cards, count = 20, params = {}, context, pac
       equalLabel: contentMessage(pack, "equal.label"),
       verdictText: contentMessage(pack, `verdict.${taskQuestion}`, { left, right, larger: Math.max(left, right), smaller: Math.min(left, right) }),
       languageContext: context,
+      retryAudio: pack.recordings?.["feedback.retry"] ?? null,
     });
   }
   return shuffle(tasks);
