@@ -4,6 +4,7 @@ import * as apiModule from "@/core/api";
 import { getDb, kv } from "@/core/db";
 import { completeLogin } from "./completeLogin";
 import { hasActiveEntitlement } from "@/features/billing/entitlement";
+import { loginDiagnosticCode } from "./loginDiagnostics";
 
 function mockServer({ students = [{ id: "s-server", name: "С сервера" }], subscription = null, builtinVisibility = {}, erasedStudentIds = [] } = {}) {
   vi.spyOn(apiModule.api, "get").mockImplementation(async (path) => {
@@ -25,6 +26,38 @@ describe("completeLogin", () => {
     await kv.del(db, "students");
   });
   afterEach(() => vi.restoreAllMocks());
+
+  it("identifies local storage failures and leaves existing offline records intact", async () => {
+    const students = [{ id: "offline", name: "Not yet synced" }];
+    await kv.set(db, "accountId", "a1");
+    await kv.set(db, "students", students);
+    const originalGet = kv.get;
+    const failure = new DOMException("private data", "InvalidStateError");
+    vi.spyOn(kv, "get").mockImplementation((database, key) => {
+      if (key === "students") return Promise.reject(failure);
+      return originalGet(database, key);
+    });
+    const post = mockServer();
+    await expect(completeLogin({ account: { id: "a1" }, token: "t1" })).rejects.toBe(failure);
+    expect(loginDiagnosticCode(failure, "password-request")).toMatch(/\/read-local-data\/InvalidStateError$/);
+    expect(await originalGet(db, "students")).toEqual(students);
+    expect(post).not.toHaveBeenCalled();
+    expect(useAppStore.getState().account).toBeNull();
+  });
+
+  it("distinguishes a quota failure while saving from a rejected password", async () => {
+    await kv.set(db, "accountId", "a1");
+    mockServer();
+    const originalSet = kv.set;
+    const failure = new DOMException("private data", "QuotaExceededError");
+    vi.spyOn(kv, "set").mockImplementation((database, key, value) => {
+      if (key === "settings") return Promise.reject(failure);
+      return originalSet(database, key, value);
+    });
+    await expect(completeLogin({ account: { id: "a1" }, token: "t1" })).rejects.toBe(failure);
+    expect(loginDiagnosticCode(failure, "google-exchange")).toMatch(/\/save-local-data\/QuotaExceededError$/);
+    expect(useAppStore.getState().account).toBeNull();
+  });
 
   it("lands on home with the server's students and tags IDB with the account", async () => {
     mockServer();

@@ -1,3 +1,5 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { translateUi as tr } from "@/shared/i18n/uiLanguage.js";
 import { useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import Button from "@/shared/components/Button";
@@ -6,7 +8,7 @@ import { formatDate, getTopicTitle } from "@/shared/utils/format";
 import { getUserRecipes } from "@/core/groupStore";
 import { BackArrowIcon, ChevronRightIcon } from "@/shared/components/ArrowIcons";
 
-const KIND_LABELS = { poem: "стих", instruction: "инструкция", shopping_list: "список", safe_code: "сейф", sentence_pool: "задания", poem_book: "книга" };
+const KIND_LABELS = () => ({ poem: tr("reading.poem"), instruction: tr("reading.instruction"), shopping_list: tr("reading.list"), safe_code: tr("reading.safe"), sentence_pool: tr("reading.tasks"), poem_book: tr("reading.book") });
 
 function getTextTitle(text) {
   return getTopicTitle(text?.title) || text?.id || "";
@@ -19,11 +21,13 @@ function getLastTextSession(sessions, studentId, topicId, textId) {
 }
 
 function TextResultBadge({ session }) {
-  if (!session) return <span className="mode-badge mode-badge--none">Не проходили</span>;
-  return <span className="mode-badge mode-badge--browse">Было занятие · {formatDate(session.completedAt)}</span>;
+  const { t: tr } = useUiTranslation();
+  if (!session) return <span className="mode-badge mode-badge--none">{tr("mode.notTried")}</span>;
+  return <span className="mode-badge mode-badge--browse">{tr("reading.lastSession", { date: formatDate(session.completedAt) })}</span>;
 }
 
 function ReadingTextThumb({ topicId, text }) {
+  const { t: tr } = useUiTranslation();
   const url = useTopicFile(topicId, text?.image);
 
   if (text?.image && url) {
@@ -31,16 +35,17 @@ function ReadingTextThumb({ topicId, text }) {
       <img
         className="reading-text-thumb"
         src={url}
-        alt={`Иллюстрация: ${getTextTitle(text)}`}
+        alt={tr("reading.illustration", { title: getTextTitle(text) })}
         draggable={false}
       />
     );
   }
 
-  return <div className="reading-text-kind">{KIND_LABELS[text.kind] ?? "проза"}</div>;
+  return <div className="reading-text-kind">{KIND_LABELS()[text.kind] ?? tr("reading.prose")}</div>;
 }
 
 export default function TextPickerScreen() {
+  const { t: tr } = useUiTranslation();
   const setScreen        = useAppStore((s) => s.setScreen);
   const activeTopicId    = useAppStore((s) => s.activeTopicId);
   const activeStudentId  = useAppStore((s) => s.activeStudentId);
@@ -105,11 +110,11 @@ export default function TextPickerScreen() {
       <div className="screen">
         <div className="screen-header">
           <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
-          <h1 className="screen-title">Тексты</h1>
+          <h1 className="screen-title">{tr("reading.title")}</h1>
         </div>
         <div className="empty-state">
-          <div className="empty-state__text">Тема чтения не выбрана</div>
-          <Button onClick={() => setScreen("topics")}>Выбрать тему</Button>
+          <div className="empty-state__text">{tr("reading.noTopic")}</div>
+          <Button onClick={() => setScreen("topics")}>{tr("mode.chooseTopic")}</Button>
         </div>
       </div>
     );
@@ -120,12 +125,12 @@ export default function TextPickerScreen() {
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("home")}>←</button>
         <h1 className="screen-title">{getTopicTitle(topicRecord.meta.title)}</h1>
-        <button className="header-action-btn" onClick={() => setScreen("all_texts")} title="Все тексты">≡</button>
+        <button className="header-action-btn" onClick={() => setScreen("all_texts")} title={tr("setup.allTexts")}>≡</button>
       </div>
 
       {texts.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state__text">В теме нет текстов</div>
+          <div className="empty-state__text">{tr("reading.noTexts")}</div>
         </div>
       ) : (
         <ul className="topic-list reading-text-list">
@@ -152,7 +157,7 @@ export default function TextPickerScreen() {
                   )}
                   {text.status === "final" && (
                     <div className="topic-item__meta">
-                      <span className="recipe-status-badge">✓ финал</span>
+                      <span className="recipe-status-badge">{tr("reading.final")}</span>
                     </div>
                   )}
                   <TextResultBadge session={lastSession} />

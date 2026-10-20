@@ -22,3 +22,9 @@ export function authErrorMessage(error, fallback) {
   const key = authErrorKey(error);
   return key ? translateUi(key) : fallback;
 }
+
+export function googleAuthErrorKey(error) {
+  if (error?.status === 429) return "auth.tooManyAttempts";
+  return error?.status === 400 && error.message === "invalid_or_expired_code"
+    ? "auth.googleExpired" : "auth.googleFailed";
+}

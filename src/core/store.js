@@ -1,11 +1,14 @@
 import { create } from "zustand";
 import { getUiLanguage, subscribeUiLanguage } from "@/shared/i18n/uiLanguage.js";
+import { accountLanguages } from "./languageSync.js";
 import { BUILTIN_TOPICS, BUILTIN_TOPIC_IDS, applyBuiltinVisibility } from "@/topics/builtinTopics";
 
 export const useAppStore = create((set) => ({
   // ─── Navigation ────────────────────────────────────────────────────────────
   screen: "boot",
   setScreen: (screen) => set({ screen }),
+  topicLanguageRequest: null,
+  setTopicLanguageRequest: (topicLanguageRequest) => set({ topicLanguageRequest }),
   // Where a session launched from a non-standard entry point (e.g. the
   // Planner's recipe list) should return to instead of the usual "texts"
   // screen. Null means "use the default flow".
@@ -78,14 +81,17 @@ export const useAppStore = create((set) => ({
   token: null,
   setAccount: (account) => set({ account }),
   setToken: (token) => set({ token }),
-  logout: () => set({
-    account: null,
-    token: null,
-    students: [],
-    ownedTopics: [],
-    activeSessionSnapshot: null,
-    screen: "login",
-  }),
+  logout: () => {
+    accountLanguages.disconnect();
+    set({
+      account: null,
+      token: null,
+      students: [],
+      ownedTopics: [],
+      activeSessionSnapshot: null,
+      screen: "login",
+    });
+  },
 
   // ─── Settings ──────────────────────────────────────────────────────────────
   settings: {
@@ -258,4 +264,10 @@ export const useAppStore = create((set) => ({
 // Keep the existing settings contract aligned without changing cardLanguage.
 subscribeUiLanguage(() => {
   useAppStore.setState((state) => ({ settings: { ...state.settings, uiLanguage: getUiLanguage() } }));
+});
+accountLanguages.subscribe(() => {
+  const language = accountLanguages.getSnapshot();
+  if (language.accountId) {
+    useAppStore.setState((state) => ({ settings: { ...state.settings, cardLanguage: language.cardLanguage } }));
+  }
 });

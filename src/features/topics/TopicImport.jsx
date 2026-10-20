@@ -1,15 +1,17 @@
+import { importTopicArchive } from "./topicArchiveImport.js";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
-import { importTopic, TopicImportError } from "@/topics/topicLoader";
+import { TopicImportError } from "@/topics/topicLoader";
 import Button from "@/shared/components/Button";
 
 export default function TopicImport({ onImported, compact = false }) {
+  const { t } = useUiTranslation();
   const fileRef = useRef(null);
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
-  const topicRecords    = useAppStore((s) => s.topicRecords);
-  const setTopicRecords = useAppStore((s) => s.setTopicRecords);
+  const upsertTopicRecord = useAppStore((s) => s.upsertTopicRecord);
   const buildInfo = useAppStore((s) => s.buildInfo);
 
   async function handleFile(e) {
@@ -20,11 +22,8 @@ export default function TopicImport({ onImported, compact = false }) {
     try {
       const buf = await file.arrayBuffer();
       const db = await getDb();
-      const record = await importTopic(db, buf, buildInfo.version, { origin: "imported" });
-      setTopicRecords([
-        ...topicRecords.filter((r) => r.meta.id !== record.meta.id),
-        record,
-      ]);
+      const record = await importTopicArchive(db, buf, buildInfo.version);
+      if (record) upsertTopicRecord(record);
       setStatus("idle");
       onImported?.(record);
     } catch (err) {
@@ -32,7 +31,7 @@ export default function TopicImport({ onImported, compact = false }) {
       setError(
         err instanceof TopicImportError
           ? err.message
-          : "Ошибка импорта. Файл повреждён?"
+          : t("topics.importError")
       );
     } finally {
       if (fileRef.current) fileRef.current.value = "";
@@ -54,7 +53,7 @@ export default function TopicImport({ onImported, compact = false }) {
           onClick={() => fileRef.current?.click()}
           disabled={status === "loading"}
         >
-          {status === "loading" ? "Импортируем…" : "+ Импортировать ZIP"}
+          {status === "loading" ? t("topics.importing") : t("topics.importZipPlus")}
         </button>
       ) : (
         <Button
@@ -62,7 +61,7 @@ export default function TopicImport({ onImported, compact = false }) {
           onClick={() => fileRef.current?.click()}
           disabled={status === "loading"}
         >
-          {status === "loading" ? "Импортируем…" : "Импортировать ZIP"}
+          {status === "loading" ? t("topics.importing") : t("topics.importZip")}
         </Button>
       )}
       {error && <div className="form-error">{error}</div>}

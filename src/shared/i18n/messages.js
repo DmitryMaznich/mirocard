@@ -1,8 +1,20 @@
+import { TOPIC_LANGUAGE_MESSAGES } from "./topicLanguageMessages.js";
+import { LESSON_SETUP_MESSAGES } from "./lessonSetupMessages.js";
+import { ADULT_MESSAGES } from "./adultMessages.js";
+
 // Slovenian copy is a prototype draft, pending editorial review.
 export const UI_MESSAGES = {
   ru: {
+    ...TOPIC_LANGUAGE_MESSAGES.ru,
+    ...ADULT_MESSAGES.ru,
+    ...LESSON_SETUP_MESSAGES.ru,
+    "languages.lesson": "Предпочтительный язык занятий",
+    "languages.inherit": "Как в настройках аккаунта",
+    "languages.preferenceOnly": "Это предпочтение для будущих языковых версий занятий. Доступные сейчас материалы сохраняют свой язык.",
+    "languages.pending": "Языковые настройки ожидают синхронизации с аккаунтом. При восстановлении связи отправка повторится.",
+    "languages.notDurable": "Браузер не разрешил сохранить очередь. Не закрывайте страницу до синхронизации.",
     "common.language": "Язык приложения",
-    "common.scope": "Пока переведены вход и настройки. Учебные материалы сохраняют свой язык.",
+    "common.scope": "Интерфейс переводится поэтапно. Учебные тексты и озвучка сохраняют свой язык.",
     "common.notSaved": "Браузер не разрешил сохранить язык. Выбор действует до закрытия страницы.",
     "common.loading": "Загрузка…",
     "common.notFound": "Экран не найден",
@@ -22,7 +34,8 @@ export const UI_MESSAGES = {
     "auth.register": "Нет аккаунта? Зарегистрироваться",
     "auth.localMode": "Без аккаунта (локальный режим)",
     "auth.emailNotVerified": "Email не подтверждён. Проверьте почту или запросите новое письмо.",
-    "auth.loginFailed": "Ошибка входа. Проверьте email и пароль.",
+    "auth.loginFailed": "Не удалось завершить вход. Повторите попытку.",
+    "auth.supportCode": "Код для поддержки",
     "auth.invalidCredentials": "Неверный email или пароль.",
     "auth.invalidEmail": "Проверьте адрес email.",
     "auth.shortPassword": "Пароль должен быть не короче 8 символов.",
@@ -65,8 +78,16 @@ export const UI_MESSAGES = {
     "pin.erase": "Удалить последнюю цифру",
   },
   sl: {
+    ...TOPIC_LANGUAGE_MESSAGES.sl,
+    ...ADULT_MESSAGES.sl,
+    ...LESSON_SETUP_MESSAGES.sl,
+    "languages.lesson": "Želeni jezik vaj",
+    "languages.inherit": "Kot v nastavitvah računa",
+    "languages.preferenceOnly": "To je nastavitev za prihodnje jezikovne različice vaj. Trenutno dostopna gradiva ohranijo svoj jezik.",
+    "languages.pending": "Jezikovne nastavitve čakajo na sinhronizacijo z računom. Po ponovni vzpostavitvi povezave bomo poskusili znova.",
+    "languages.notDurable": "Brskalnik ni dovolil shranjevanja čakajočih sprememb. Do sinhronizacije ne zaprite strani.",
     "common.language": "Jezik aplikacije",
-    "common.scope": "Za zdaj sta prevedena prijava in nastavitve. Učna gradiva ohranijo svoj jezik.",
+    "common.scope": "Vmesnik se prevaja postopoma. Učna besedila in zvočni posnetki ohranijo svoj jezik.",
     "common.notSaved": "Brskalnik ni dovolil shranjevanja jezika. Izbira velja do zaprtja strani.",
     "common.loading": "Nalaganje…",
     "common.notFound": "Zaslon ni najden",
@@ -86,7 +107,8 @@ export const UI_MESSAGES = {
     "auth.register": "Še nimate računa? Registrirajte se",
     "auth.localMode": "Brez računa (lokalni način)",
     "auth.emailNotVerified": "E-poštni naslov ni potrjen. Preverite pošto ali zahtevajte novo sporočilo.",
-    "auth.loginFailed": "Prijava ni uspela. Preverite e-poštni naslov in geslo.",
+    "auth.loginFailed": "Prijave ni bilo mogoče dokončati. Poskusite znova.",
+    "auth.supportCode": "Koda za podporo",
     "auth.invalidCredentials": "Napačen e-poštni naslov ali geslo.",
     "auth.invalidEmail": "Preverite e-poštni naslov.",
     "auth.shortPassword": "Geslo mora vsebovati vsaj 8 znakov.",

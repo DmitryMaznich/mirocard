@@ -1,3 +1,7 @@
+import { requestTopicLanguage, topicLanguageForStudent } from "./topicLanguageChoice.js";
+import { persistStudentTopicLink } from "@/core/linkUtils";
+import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useCallback, useState, useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
@@ -11,7 +15,6 @@ import TopicActionSheet from "./TopicActionSheet";
 import StatisticsScreen from "@/features/analytics/StatisticsScreen";
 import TopicTile from "./TopicTile";
 import ContinueStrip from "./ContinueStrip";
-import { getTopicTitle } from "@/shared/utils/format";
 import {
   fetchCatalog,
   fetchCatalogTopic,
@@ -21,12 +24,13 @@ import {
   isFreeStaticInstall,
 } from "./catalogService";
 import { hasActiveEntitlement } from "@/features/billing/entitlement";
-import { CATEGORY_ORDER, getTopicCategory } from "./topicCategories";
+import { CATEGORY_ORDER, CATEGORY_LABEL_KEYS, getTopicCategory } from "./topicCategories";
 import { getPersonalTopicCaption } from "./topicOrigin";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 import { isPickableMode } from "@/shared/utils/topicUtils";
 
 export default function TopicLibraryScreen() {
+  const { t, language } = useUiTranslation();
   const setScreen         = useAppStore((s) => s.setScreen);
   const topicRecords      = useAppStore((s) => s.topicRecords);
   const setTopicRecords   = useAppStore((s) => s.setTopicRecords);
@@ -68,6 +72,10 @@ export default function TopicLibraryScreen() {
     const owned = (ownedTopics ?? []).find((o) => o.topicId === entry.id);
     const isGranted = owned != null && owned.source !== "request";
     const isFreeStaticDeck = isFreeStaticInstall(entry);
+    if (entry.languageDownload) {
+      if ((entry.access ?? "free") !== "free" && !hasActiveEntitlement(account, subscription)) { setScreen("subscription"); return; }
+      return requestTopicLanguage({ entry, record: topicRecords.find((r) => r.meta.id === entry.id) });
+    }
 
     // A free deck is a self-contained public file. Download it first, rather
     // than making installation depend on an account call that may be stale or
@@ -120,9 +128,19 @@ export default function TopicLibraryScreen() {
       }
     }
     return record;
-  }, [buildInfo.version, token, account, upsertTopicRecord, upsertOwnedTopic, ownedTopics, setScreen]);
+  }, [topicRecords, subscription, buildInfo.version, token, account, upsertTopicRecord, upsertOwnedTopic, ownedTopics, setScreen]);
 
-  function handleSelectTopic(record) {
+  async function handleSelectTopic(record) {
+    if (record.languageContract) {
+      const language = topicLanguageForStudent(record);
+      if (!record.languageResources?.content?.[language]) {
+        if (!await requestTopicLanguage({ record })) return;
+      } else {
+        const state = useAppStore.getState();
+        const link = state.studentTopicLinks[`${state.activeStudentId}_${record.meta.id}`] ?? {};
+        if (!link.params?.topicContentLanguage) await persistStudentTopicLink(state.activeStudentId, record.meta.id, { params: { ...link.params, topicContentLanguage: language } });
+      }
+    }
     setActiveTopicId(record.meta.id);
     setScreen("home");
   }
@@ -167,7 +185,7 @@ export default function TopicLibraryScreen() {
   for (const entry of visibleDecks) {
     itemsById.set(entry.id, {
       id: entry.id,
-      title: entry.title?.ru ?? entry.id,
+      title: getInterfaceTopicTitle(entry.id, entry.title) || entry.id,
       category: getTopicCategory(entry.id),
       entry,
       installedRecord: null,
@@ -176,7 +194,7 @@ export default function TopicLibraryScreen() {
   for (const record of visibleRecords) {
     const existing = itemsById.get(record.meta.id) ?? {
       id: record.meta.id,
-      title: getTopicTitle(record.meta.title),
+      title: getInterfaceTopicTitle(record.meta.id, record.meta.title),
       category: getTopicCategory(record.meta.id),
       entry: null,
     };
@@ -188,7 +206,7 @@ export default function TopicLibraryScreen() {
 
   // "Coming soon" teasers go after everything that can actually be opened.
   const isSoonItem = (item) => Boolean(item.entry?.comingSoon) && !item.installedRecord;
-  const byTitle = (a, b) => (isSoonItem(a) - isSoonItem(b)) || a.title.localeCompare(b.title, "ru");
+  const byTitle = (a, b) => (isSoonItem(a) - isSoonItem(b)) || a.title.localeCompare(b.title, language);
 
   const trimmedQuery = query.trim().toLowerCase();
   const searchResults = trimmedQuery
@@ -233,6 +251,7 @@ export default function TopicLibraryScreen() {
         entitlementExpired={entitlementExpired}
         hasAccess={hasActiveEntitlement(account, subscription)}
         onLockedTap={() => setScreen("subscription")}
+        materialLanguage={item.installedRecord?.languageContract ? topicLanguageForStudent(item.installedRecord) : null}
         personalCaption={personalCaption}
         onInstall={installCatalogEntry}
         onSelect={handleSelectTopic}
@@ -248,14 +267,14 @@ export default function TopicLibraryScreen() {
     <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
-        <h1 className="screen-title">Темы</h1>
+        <h1 className="screen-title">{t("topics.title")}</h1>
       </div>
 
       <div className="topics-search">
         <input
           type="text"
           inputMode="search"
-          placeholder="Найти тему…"
+          placeholder={t("topics.search")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -271,23 +290,19 @@ export default function TopicLibraryScreen() {
             <button
               className={`topic-chip topic-chip--mine${filter === "mine" ? " is-active" : ""}`}
               onClick={() => setFilter("mine")}
-            >
-              Мои темы
-              {installedCount > 0 && <span className="topic-chip__count">{installedCount}</span>}
+            >{t("topics.mine")}{installedCount > 0 && <span className="topic-chip__count">{installedCount}</span>}
             </button>
             <button
               className={`topic-chip${filter === "all" ? " is-active" : ""}`}
               onClick={() => setFilter("all")}
-            >
-              Всё
-            </button>
+            >{t("topics.all")}</button>
             {CATEGORY_ORDER.map((label) => (
               <button
                 key={label}
                 className={`topic-chip${filter === label ? " is-active" : ""}`}
                 onClick={() => setFilter(label)}
               >
-                {label}
+                {t(CATEGORY_LABEL_KEYS[label])}
               </button>
             ))}
           </nav>
@@ -295,11 +310,11 @@ export default function TopicLibraryScreen() {
 
         {trimmedQuery ? (
           <section className="topics-section">
-            <div className="topics-section__head"><h2>Результаты поиска</h2></div>
+            <div className="topics-section__head"><h2>{t("topics.results")}</h2></div>
             {searchResults.length > 0 ? (
               <div className="topics-grid">{searchResults.map(renderItem)}</div>
             ) : (
-              <div className="empty-state"><div className="empty-state__text">Ничего не найдено</div></div>
+              <div className="empty-state"><div className="empty-state__text">{t("topics.noResults")}</div></div>
             )}
           </section>
         ) : (
@@ -311,12 +326,12 @@ export default function TopicLibraryScreen() {
             )}
 
             {!catalog && !catalogError && (
-              <div className="empty-state"><div className="empty-state__text">Загружаем каталог…</div></div>
+              <div className="empty-state"><div className="empty-state__text">{t("topics.loading")}</div></div>
             )}
             {catalogError && (
               <div className="empty-state">
-                <div className="empty-state__text">Не удалось загрузить каталог</div>
-                <Button variant="secondary" onClick={loadCatalog}>Повторить</Button>
+                <div className="empty-state__text">{t("topics.loadError")}</div>
+                <Button variant="secondary" onClick={loadCatalog}>{t("common.retry")}</Button>
               </div>
             )}
 
@@ -332,13 +347,14 @@ export default function TopicLibraryScreen() {
           onClose={() => setActionSheetRecord(null)}
           onInfo={(r) => { setInfoTopic(r); }}
           onStatistics={setStatisticsTopic}
+          onLanguage={(record) => requestTopicLanguage({ record })}
           onDelete={(r) => setDeleting(r)}
         />
       )}
 
       {infoTopic && (
         <InfoModal
-          title={getTopicTitle(infoTopic.meta.title)}
+          title={getInterfaceTopicTitle(infoTopic.meta.id, infoTopic.meta.title)}
           about={infoTopic.meta.about}
           modes={infoTopic.modes?.filter(isPickableMode)}
           onClose={() => setInfoTopic(null)}
@@ -347,16 +363,15 @@ export default function TopicLibraryScreen() {
 
       {deleting && (
         <Modal
-          title="Удалить тему?"
+          title={t("topics.deleteTitle")}
           onClose={() => setDeleting(null)}
           actions={
             <>
-              <Button variant="secondary" onClick={() => setDeleting(null)}>Отмена</Button>
-              <Button variant="danger" onClick={handleDelete}>Удалить</Button>
+              <Button variant="secondary" onClick={() => setDeleting(null)}>{t("common.cancel")}</Button>
+              <Button variant="danger" onClick={handleDelete}>{t("common.delete")}</Button>
             </>
           }
-        >
-          Удалить <strong>{getTopicTitle(deleting.meta.title)}</strong>? История сессий сохранится.
+        >{t("topics.deleteConfirm", { title: getInterfaceTopicTitle(deleting.meta.id, deleting.meta.title) })}
         </Modal>
       )}
 

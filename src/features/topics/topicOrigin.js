@@ -1,3 +1,4 @@
+import { translateUi } from "@/shared/i18n/uiLanguage.js";
 // A topic is "personal" — belongs in the "Мои темы" section instead of the
 // shared category grid — when it was either imported by hand (a therapist's
 // own ZIP, never published to the shared catalog) or explicitly granted to
@@ -16,7 +17,7 @@ export function isPersonalTopic(meta, ownedTopics) {
 
 export function getPersonalTopicCaption(meta, ownedTopics) {
   const origin = getTopicOrigin(meta, ownedTopics);
-  if (origin === "imported") return "Импортирована вручную";
-  if (origin === "grant")    return "Открыта специально для вас";
+  if (origin === "imported") return translateUi("topics.imported");
+  if (origin === "grant")    return translateUi("topics.granted");
   return null;
 }

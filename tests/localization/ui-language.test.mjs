@@ -96,3 +96,31 @@ test("pre-React HTML bootstrap uses the same key and validation, including block
   const context = { document: { documentElement: { lang: "ru" } }, get localStorage() { throw new Error("blocked"); } };
   assert.doesNotThrow(() => vm.runInNewContext(script, context));
 });
+
+test("Slovenian counts use CLDR dual and few forms, Russian keeps its own rules", () => {
+  const counts = [0, 1, 2, 3, 4, 5, 11, 12, 101, 102];
+  const sl = ["video nagrad", "video nagrada", "video nagradi", "video nagrade", "video nagrade", "video nagrad", "video nagrad", "video nagrad", "video nagrada", "video nagradi"];
+  const ru = ["видео-наград", "видео-награда", "видео-награды", "видео-награды", "видео-награды", "видео-наград", "видео-наград", "видео-наград", "видео-награда", "видео-награды"];
+  counts.forEach((count, i) => {
+    assert.equal(translateUiMessage("sl", "students.videoCount", { count }), `${count} ${sl[i]}`);
+    assert.equal(translateUiMessage("ru", "students.videoCount", { count }), `${count} ${ru[i]}`);
+  });
+  assert.equal(translateUiMessage("sl", "students.videoCount", { count: 1.5 }), "1.5 video nagrade");
+});
+
+test("setup metadata translation preserves keys, unknown content and explicit Slovenian labels", async () => {
+  const { setupText, setupLabels, setupInfo } = await import("../../src/shared/i18n/setupText.js");
+  const { setUiLanguage } = await import("../../src/shared/i18n/uiLanguage.js");
+  const definition = Object.freeze({ ru: Object.freeze({ upper: "Заглавную по строчной", custom: "Мой новый текст" }) });
+  try {
+    setUiLanguage("sl");
+    assert.deepEqual(setupLabels(definition), { upper: "Veliko po mali", custom: "Мой новый текст" });
+    assert.equal(setupText({ ru: "Найди картинку", sl: "Lastno slovensko ime" }), "Lastno slovensko ime");
+    assert.equal(setupText("Найди картинку"), "Poišči sliko");
+    for (const label of ["constructor", "toString", "__proto__"]) assert.equal(setupText(label), label);
+    assert.deepEqual(setupInfo({ sl: { text: "Opis", tip: "Nasvet" } }), { text: "Opis", tip: "Nasvet" });
+    assert.deepEqual(Object.keys(setupLabels(definition)), ["upper", "custom"]);
+    setUiLanguage("ru");
+    assert.deepEqual(setupLabels(definition), definition.ru);
+  } finally { setUiLanguage("ru"); }
+});

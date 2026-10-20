@@ -1,3 +1,8 @@
+import { setupText } from "@/shared/i18n/setupText.js";
+import TopicLanguageBar from "@/features/topics/TopicLanguageBar.jsx";
+import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { translateUi as t } from "@/shared/i18n/uiLanguage.js";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
@@ -52,15 +57,16 @@ function MenuIcon() {
 
 function getTimeGreeting(date = new Date()) {
   const hour = date.getHours();
-  if (hour >= 5 && hour < 12) return "Доброе утро,";
-  if (hour >= 12 && hour < 18) return "Добрый день,";
-  return "Добрый вечер,";
+  if (hour >= 5 && hour < 12) return t("home.morning");
+  if (hour >= 12 && hour < 18) return t("home.afternoon");
+  return t("home.evening");
 }
 
 function HomeHeader({
   student, buildInfo, hasUpdate, refreshingAll, refreshFailed, versionTitle,
   onRefresh, onMenu, onAvatarTap,
 }) {
+  const { t } = useUiTranslation();
   return (
     <header className="home-header">
       {/* Secret 5-tap shortcut into the "streak_tracker" test topic — a dev/QA
@@ -73,7 +79,7 @@ function HomeHeader({
       <div className="home-header__copy">
         <span className="home-header__eyebrow">{getTimeGreeting()}</span>
         <span className="home-header__student-name">
-          {student ? student.name : 'Ученик не выбран'}
+          {student ? student.name : t("home.noStudent")}
         </span>
       </div>
       <button
@@ -86,7 +92,7 @@ function HomeHeader({
         v{buildInfo.version}
         {(hasUpdate || refreshingAll || refreshFailed) && <span className="home-header__version__dot" />}
       </button>
-      <button className="home-header__settings-btn" onClick={onMenu} aria-label="Меню">
+      <button className="home-header__settings-btn" onClick={onMenu} aria-label={t("nav.menu")}>
         <MenuIcon />
       </button>
     </header>
@@ -141,6 +147,7 @@ function LessonPlanTabIcon() {
 }
 
 function HomeTabs({ active, onChange, showPlanner, showInstructions, showLessonPlan, statisticsAvailable, statisticsDisabledReason }) {
+  const { t } = useUiTranslation();
   return (
     <nav className="home-tabbar" role="tablist">
       <button
@@ -150,7 +157,7 @@ function HomeTabs({ active, onChange, showPlanner, showInstructions, showLessonP
         onClick={() => onChange('session')}
       >
         <SessionTabIcon />
-        <span>Занятие</span>
+        <span>{t("home.lesson")}</span>
       </button>
       <button
         role="tab"
@@ -158,11 +165,11 @@ function HomeTabs({ active, onChange, showPlanner, showInstructions, showLessonP
         className={`home-tabbar__item${active === 'statistics' ? ' home-tabbar__item--active' : ''}`}
         onClick={() => onChange('statistics')}
         disabled={!statisticsAvailable}
-        title={statisticsAvailable ? "Статистика выбранной темы" : statisticsDisabledReason}
+        title={statisticsAvailable ? t("home.topicStatistics") : statisticsDisabledReason}
         aria-describedby={!statisticsAvailable ? "home-statistics-disabled-reason" : undefined}
       >
         <StatisticsTabIcon />
-        <span>Статистика</span>
+        <span>{t("nav.statistics")}</span>
       </button>
       {!statisticsAvailable && <span id="home-statistics-disabled-reason" className="home-tabbar__disabled-reason">{statisticsDisabledReason}</span>}
       {showLessonPlan && (
@@ -172,7 +179,7 @@ function HomeTabs({ active, onChange, showPlanner, showInstructions, showLessonP
           onClick={() => onChange('lesson_plan')}
         >
           <LessonPlanTabIcon />
-          <span>План занятий</span>
+          <span>{t("home.lessonPlan")}</span>
         </button>
       )}
       {showPlanner && (
@@ -182,7 +189,7 @@ function HomeTabs({ active, onChange, showPlanner, showInstructions, showLessonP
           onClick={() => onChange('planner')}
         >
           <PlannerTabIcon />
-          <span>Меню и магазин</span>
+          <span>{t("home.shopping")}</span>
         </button>
       )}
       {showInstructions && (
@@ -192,7 +199,7 @@ function HomeTabs({ active, onChange, showPlanner, showInstructions, showLessonP
           onClick={() => onChange('instructions')}
         >
           <InstructionsTabIcon />
-          <span>Инструкции</span>
+          <span>{t("home.instructions")}</span>
         </button>
       )}
     </nav>
@@ -242,13 +249,12 @@ function JourneyStep({ state, number, label, value, onClick, avatar, spotlight, 
 // "Ученики" list screen with nothing in it yet.
 
 function AddFirstStudentPanel({ onAdd }) {
+  const { t } = useUiTranslation();
   return (
     <div className="home-tab-empty">
-      <p className="home-tab-empty__title">Добавим первого ученика</p>
-      <p className="home-tab-empty__hint">
-        Ученик — тот, с кем вы будете заниматься. Достаточно имени, чтобы начать.
-      </p>
-      <Button onClick={onAdd}>Добавить ученика</Button>
+      <p className="home-tab-empty__title">{t("home.firstStudent")}</p>
+      <p className="home-tab-empty__hint">{t("home.firstStudentHelp")}</p>
+      <Button onClick={onAdd}>{t("students.add")}</Button>
     </div>
   );
 }
@@ -263,6 +269,7 @@ function SessionTab({
   spotlight, onTopicStepClick, onModeStepClick, onAddFirstStudent,
   topicHintRef, modeHintRef, onShowHints, hintsOpen,
 }) {
+  const { t } = useUiTranslation();
   if (!student) {
     return <AddFirstStudentPanel onAdd={onAddFirstStudent} />;
   }
@@ -270,20 +277,18 @@ function SessionTab({
   return (
     <section className="home-section">
       <div className="home-section-header">
-        <span className="home-section-label">Собери занятие</span>
+        <span className="home-section-label">{t("home.buildLesson")}</span>
         <HintButton onClick={onShowHints} hidden={hintsOpen} />
       </div>
       {(s2 === "prompt" || s3 === "prompt") && (
-        <p className="home-section-hint">
-          Тема и режим подобраны автоматически — нажми на карточку, чтобы выбрать свою.
-        </p>
+        <p className="home-section-hint">{t("home.defaultSelection")}</p>
       )}
       <div className="journey-steps">
         <JourneyStep
           state={s2}
           number="1"
           targetRef={topicHintRef}
-          label="Тема"
+          label={t("home.topic")}
           value={topicLabel}
           onClick={onTopicStepClick}
           spotlight={spotlight === "topic"}
@@ -300,8 +305,8 @@ function SessionTab({
           state={s3}
           number="2"
           targetRef={modeHintRef}
-          label={isReading && !isShortStories ? "Текст и режим" : "Режим"}
-          value={isReading ? readingStepValue : (s3 === "prompt" ? "Выбери режим" : (modeTitle || "Не выбран"))}
+          label={isReading && !isShortStories ? t("home.textAndMode") : t("home.mode")}
+          value={isReading ? readingStepValue : (s3 === "prompt" ? t("home.chooseMode") : (modeTitle || t("home.notSelected")))}
           onClick={onModeStepClick}
           spotlight={spotlight === "mode"}
           avatar={
@@ -314,24 +319,13 @@ function SessionTab({
         />
       </div>
       <div className={`home-actions home-actions--footer${spotlight === "start" ? " home-actions--spotlight" : ""}`}>
-        <Button fullWidth disabled={!canStart} onClick={startOrContinue}>
-          ▶ Начать занятие
-        </Button>
+        <Button fullWidth disabled={!canStart} onClick={startOrContinue}>{t("home.startLesson")}</Button>
       </div>
     </section>
   );
 }
 
 // ─── Planner tab ──────────────────────────────────────────────────────────────
-
-function pluralItems(n) {
-  const abs = Math.abs(n) % 100;
-  const m = abs % 10;
-  if (abs >= 11 && abs <= 19) return 'товаров';
-  if (m === 1) return 'товар';
-  if (m >= 2 && m <= 4) return 'товара';
-  return 'товаров';
-}
 
 function CycleHistoryPhotoThumb({ studentId, tripId, zoneId, icon, onOpen }) {
   const [url, setUrl] = useState(null);
@@ -363,16 +357,17 @@ function CycleHistoryPhotoThumb({ studentId, tripId, zoneId, icon, onOpen }) {
 }
 
 function CycleHistorySheet({ studentId, history, onClose }) {
+  const { t } = useUiTranslation();
   const [viewerUrl, setViewerUrl] = useState(null);
   return (
     <>
       <div className="portions-sheet-backdrop" onClick={onClose}>
         <div className="portions-sheet cycle-history-sheet" onClick={(e) => e.stopPropagation()}>
           <div className="portions-sheet__handle" />
-          <h2 className="portions-sheet__title">История</h2>
+          <h2 className="portions-sheet__title">{t("planner.history")}</h2>
           <div className="shop-history-list">
             {history.length === 0 ? (
-              <div className="shop-history-empty">История пока пуста</div>
+              <div className="shop-history-empty">{t("planner.historyEmpty")}</div>
             ) : history.map((entry) => (
               <div key={entry.id} className="shop-history-entry">
                 <div className="shop-history-meta">
@@ -380,16 +375,16 @@ function CycleHistorySheet({ studentId, history, onClose }) {
                 </div>
                 {entry.recipes.length > 0 && (
                   <div className="cycle-history-recipes">
-                    🍽️ Готовили: {entry.recipes.map((r) => `${getTopicTitle(r.title)} ${r.cooked ? '✓' : '✗'}`).join(', ')}
+                    {t("planner.cooked", { recipes: entry.recipes.map((r) => `${getTopicTitle(r.title)} ${r.cooked ? '✓' : '✗'}`).join(', ') })}
                   </div>
                 )}
                 {entry.trips.length > 0 && (
                   <div className="cycle-history-trips">
-                    <div className="cycle-history-trips__label">🛒 Походы в магазин ({entry.trips.length}):</div>
+                    <div className="cycle-history-trips__label">{t("planner.trips", { count: entry.trips.length })}</div>
                     {entry.trips.map((trip) => (
                       <div key={trip.tripId} className="cycle-history-trip">
                         <span className="cycle-history-trip__meta">
-                          {trip.date}{trip.store ? `, ${trip.store}` : ''} • {trip.count} {pluralItems(trip.count)}
+                          {trip.date}{trip.store ? `, ${trip.store}` : ''} • {t("planner.items", { count: trip.count })}
                         </span>
                         {trip.hasReceipt && (
                           <CycleHistoryPhotoThumb studentId={studentId} tripId={trip.tripId} zoneId={null} icon="🧾" onOpen={setViewerUrl} />
@@ -415,7 +410,7 @@ function CycleHistorySheet({ studentId, history, onClose }) {
               </div>
             ))}
           </div>
-          <button type="button" className="portions-sheet__cancel" onClick={onClose}>Закрыть</button>
+          <button type="button" className="portions-sheet__cancel" onClick={onClose}>{t("common.close")}</button>
         </div>
       </div>
       {viewerUrl && (
@@ -428,6 +423,7 @@ function CycleHistorySheet({ studentId, history, onClose }) {
 }
 
 function PlannerTab({ student, setScreen, onAddFirstStudent }) {
+  const { t } = useUiTranslation();
   const topicRecords = useAppStore((s) => s.topicRecords);
   const setActiveTopicId = useAppStore((s) => s.setActiveTopicId);
   const setActiveText = useAppStore((s) => s.setActiveText);
@@ -483,7 +479,7 @@ function PlannerTab({ student, setScreen, onAddFirstStudent }) {
   if (existingPlan === undefined) {
     return (
       <div className="planner-hub">
-        <div className="home-tab-loading">Загрузка…</div>
+        <div className="home-tab-loading">{t("common.loading")}</div>
       </div>
     );
   }
@@ -545,16 +541,16 @@ function PlannerTab({ student, setScreen, onAddFirstStudent }) {
         <HubCard
           state={menuDone ? 'done' : 'active'}
           icon="📋"
-          title="Меню"
-          value={menuDone ? 'Готово' : hasSelection ? `${selectedCount} рецептов отобрано` : 'Что будем готовить?'}
+          title={t("nav.menu")}
+          value={menuDone ? t("common.done") : hasSelection ? t("planner.selectedRecipes", { count: selectedCount }) : t("planner.whatCook")}
           onClick={() => setScreen('planner_menu')}
         />
 
         <HubCard
           state={!hasSelection ? 'locked' : shoppingDone ? 'done' : 'active'}
           icon="📝"
-          title="Что купить?"
-          value={!hasSelection ? 'Сначала меню' : shoppingDone ? 'Всё куплено' : 'Список готов'}
+          title={t("planner.whatBuy")}
+          value={!hasSelection ? t("planner.firstMenu") : shoppingDone ? t("planner.allBought") : t("planner.listReady")}
           onClick={() => setScreen('planner_shopping')}
           disabled={!hasSelection}
         />
@@ -562,8 +558,8 @@ function PlannerTab({ student, setScreen, onAddFirstStudent }) {
         <HubCard
           state={!menuDone ? 'locked' : !needsToShop ? 'done' : shoppingDone ? 'done' : 'active'}
           icon="🛒"
-          title="В магазин"
-          value={!menuDone ? 'Сначала список' : !needsToShop ? 'Всё уже дома' : shoppingDone ? 'Всё куплено' : 'Список готов'}
+          title={t("planner.goShop")}
+          value={!menuDone ? t("planner.firstList") : !needsToShop ? t("planner.allHome") : shoppingDone ? t("planner.allBought") : t("planner.listReady")}
           onClick={handleGoShopping}
           disabled={!menuDone}
         />
@@ -571,13 +567,13 @@ function PlannerTab({ student, setScreen, onAddFirstStudent }) {
         <HubCard
           state={!menuDone ? 'locked' : !needsToShop ? 'done' : !shoppingDone ? 'locked' : putawayDone ? 'done' : 'active'}
           icon="📦"
-          title="Раскладка"
+          title={t("planner.putAway")}
           value={
-            !menuDone ? 'Сначала список' :
-            !needsToShop ? 'Нечего раскладывать' :
-            !shoppingDone ? 'После покупок' :
-            putawayDone ? 'Всё разложено' :
-            `${boughtCount} товаров готово к раскладке`
+            !menuDone ? t("planner.firstList") :
+            !needsToShop ? t("planner.nothingPutAway") :
+            !shoppingDone ? t("planner.afterShopping") :
+            putawayDone ? t("planner.putAwayDone") :
+            t("planner.itemsReady", { count: boughtCount })
           }
           onClick={() => setScreen('planner_putaway')}
           disabled={!needsToShop || !shoppingDone}
@@ -593,10 +589,10 @@ function PlannerTab({ student, setScreen, onAddFirstStudent }) {
         hint={
           hasSelection && !readyToCook
             ? (!menuDone
-                ? 'Сначала реши «Дома» или «Купить» для каждого продукта'
+                ? t("planner.resolveItems")
                 : !shoppingDone
-                  ? 'Сначала докупи всё по списку'
-                  : 'Сначала разложи продукты')
+                  ? t("planner.finishShopping")
+                  : t("planner.finishPutAway"))
             : null
         }
         onOpenCatalog={() => setCatalogPickerOpen(true)}
@@ -607,18 +603,18 @@ function PlannerTab({ student, setScreen, onAddFirstStudent }) {
       />
       {confirmNewMenu && (
         <Modal
-          title="Начать новое меню?"
+          title={t("planner.newMenu")}
           onClose={() => setConfirmNewMenu(false)}
           actions={
             <>
-              <Button variant="secondary" onClick={() => setConfirmNewMenu(false)}>Нет</Button>
-              <Button variant="danger" onClick={handleStartNewMenu}>Начать</Button>
+              <Button variant="secondary" onClick={() => setConfirmNewMenu(false)}>{t("common.no")}</Button>
+              <Button variant="danger" onClick={handleStartNewMenu}>{t("common.start")}</Button>
             </>
           }
         >
           {cookedTextIds.size < menuRecipes.length
-            ? `Готово только ${cookedTextIds.size} из ${menuRecipes.length} блюд. Всё равно начать новое меню?`
-            : 'Начать новое меню? Текущее будет закрыто.'}
+            ? t("planner.incompleteMenu", { ready: cookedTextIds.size, total: menuRecipes.length })
+            : t("planner.closeMenu")}
         </Modal>
       )}
 
@@ -748,6 +744,7 @@ function conceptProgressSummary(sessions, studentId, topicId, topicRecord) {
 // ─── HomeScreen ───────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
+  const { t } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const setEditingStudentId = useAppStore((s) => s.setEditingStudentId);
   const setStudentEditReturnScreen = useAppStore((s) => s.setStudentEditReturnScreen);
@@ -824,11 +821,11 @@ export default function HomeScreen() {
   const isReading      = topic?.meta?.renderer === "reading";
   const isShortStories = topic?.meta?.id === "reading_short_stories";
   const homeHintSteps = useMemo(() => [
-    { targetRef: topicHintRef, title: "Выберите тему занятия", text: "Нажмите на карточку «Тема», чтобы выбрать, чем будете заниматься." },
-    { targetRef: modeHintRef, title: "Выберите тип занятия", text: isReading && !isShortStories
-      ? "Нажмите на карточку «Текст и режим», чтобы выбрать текст и нужный тип занятия."
-      : "Нажмите на карточку «Режим», чтобы выбрать нужный тип занятия." },
-  ], [isReading, isShortStories]);
+    { targetRef: topicHintRef, title: t("home.hintTopic"), text: t("home.hintTopicText") },
+    { targetRef: modeHintRef, title: t("home.hintMode"), text: isReading && !isShortStories
+      ? t("home.hintTextModeText")
+      : t("home.hintModeText") },
+  ], [isReading, isShortStories, t]);
   const isChatPractice = topic?.meta?.renderer === "chat_practice";
   const activeText = isReading
     ? (topic?.texts?.find((text) => text.id === activeTextId) ?? (activeTextStored?.id === activeTextId ? activeTextStored : null))
@@ -895,10 +892,10 @@ export default function HomeScreen() {
     studentId: student?.id, topicId: topic?.meta.id, enabled: statisticsContextReady,
     sessions, token, accountId: account?.id,
   });
-  const statisticsDisabledReason = !student ? "Выберите ученика"
-    : !statisticsContextReady ? "Выберите тему"
-    : statisticsChecking ? "Проверяем наличие результатов"
-    : "Для этой темы у ученика пока нет сохраненных результатов";
+  const statisticsDisabledReason = !student ? t("home.chooseStudent")
+    : !statisticsContextReady ? t("home.selectTopic")
+    : statisticsChecking ? t("home.checkResults")
+    : t("home.noResults");
   const visibleTab = activeTab === 'statistics' && !statisticsAvailable ? 'session' : activeTab;
 
   const s2Raw = stepState(!!topic, !!student);
@@ -920,19 +917,19 @@ export default function HomeScreen() {
   );
 
   const topicLabel = s2 === "prompt"
-    ? "Выбери тему"
+    ? t("home.chooseTopic")
     : topic
-      ? `${getTopicTitle(topic.meta.title)} · ${progress.mastered}/${progress.total}`
-      : "Не выбрана";
-  const modeTitle = mode ? (getTopicTitle(mode.ui?.title) || mode.id) : "";
+      ? `${getInterfaceTopicTitle(topic.meta.id, topic.meta.title)} · ${progress.mastered}/${progress.total}`
+      : t("home.notSelectedTopic");
+  const modeTitle = mode ? (setupText(mode.ui?.title) || mode.id) : "";
 
   const readingStepValue = isShortStories
-    ? (s3 === "prompt" ? "Выбери режим" : (modeTitle || "Не выбран"))
+    ? (s3 === "prompt" ? t("home.chooseMode") : (modeTitle || t("home.notSelected")))
     : s3 === "prompt"
-      ? "Выбери текст и режим"
+      ? t("home.chooseTextMode")
       : activeText
       ? `${getTopicTitle(activeText.title)}${mode ? ` · ${modeTitle}` : ""}`
-      : "Не выбран";
+      : t("home.notSelected");
 
   const onboardingSpotlight = !student || hasEverStarted
     ? null
@@ -1010,10 +1007,10 @@ export default function HomeScreen() {
   }
 
   const versionTitle = refreshingAll
-    ? "Обновляем приложение и темы…"
+    ? t("home.updating")
     : refreshFailed
-      ? "Часть тем не обновилась. Нажмите, чтобы повторить"
-      : "Обновить приложение и активные темы";
+      ? t("home.updateFailed")
+      : t("home.update");
 
   return (
     <div className={`screen home-screen-v2${visibleTab === 'statistics' ? ' home-screen-v2--statistics' : ''}`}>
@@ -1030,6 +1027,7 @@ export default function HomeScreen() {
       />
 
       <div className="home-main">
+        {visibleTab === "session" && <TopicLanguageBar topic={topic} />}
         <div className="home-tab-content">
           {visibleTab !== 'statistics' && <MarketingPromptCard />}
           {visibleTab === 'statistics' ? (

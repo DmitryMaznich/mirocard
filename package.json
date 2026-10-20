@@ -1,7 +1,7 @@
 {
   "name": "mirocard2",
   "private": true,
-  "version": "1.0.2667",
+  "version": "1.0.2678",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"
@@ -28,7 +28,8 @@
     "test:harness": "node --test tests/harness/*.test.mjs",
     "test:e2e": "playwright test -c tests/e2e/playwright.config.mjs",
     "test:load": "node scripts/load/signup-burst.mjs",
-    "test:microbench": "node scripts/load/microbench.mjs"
+    "test:microbench": "node scripts/load/microbench.mjs",
+    "topics:validate-languages": "node scripts/validate-topic-languages.mjs"
   },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",

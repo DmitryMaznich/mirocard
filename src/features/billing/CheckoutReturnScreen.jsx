@@ -1,8 +1,9 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { PLAN_LABELS, formatPeriodEnd } from "./planLabels";
+import { getPlanLabel, formatPeriodEnd } from "./planLabels";
 
 const POLL_INTERVAL_MS = 2000;
 const POLL_TIMEOUT_MS = 20000;
@@ -15,6 +16,7 @@ const SUPPORT_EMAIL = "hello@mironium.com";
 //                 chargeback/abandoned) -- must never be shown as "active"
 //   timeout    -- POLL_TIMEOUT_MS elapsed with no resolution either way
 export default function CheckoutReturnScreen() {
+  const { t: tr } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const checkoutOrderId = useAppStore((s) => s.checkoutOrderId);
   const [state, setState] = useState("processing");
@@ -89,7 +91,7 @@ export default function CheckoutReturnScreen() {
     return () => { cancelled = true; };
   }, [checkoutOrderId, pollToken]);
 
-  const planLabel = result ? (PLAN_LABELS[result.plan] ?? result.plan) : null;
+  const planLabel = result ? (getPlanLabel(result.plan)) : null;
 
   return (
     <div className="screen checkout-transition-screen">
@@ -101,8 +103,8 @@ export default function CheckoutReturnScreen() {
           <>
             <div className="checkout-spinner" />
             <div>
-              <div className="checkout-return__title">Обрабатываем оплату…</div>
-              <div className="checkout-transition__sub">Обычно это занимает несколько<br />секунд. Не закрывайте приложение.</div>
+              <div className="checkout-return__title">{tr("billing.processing")}</div>
+              <div className="checkout-transition__sub">{tr("billing.processingHelp")}</div>
             </div>
           </>
         )}
@@ -111,8 +113,8 @@ export default function CheckoutReturnScreen() {
           <>
             <div className="checkout-return__check">✓</div>
             <div>
-              <div className="checkout-return__title">Подписка активна!</div>
-              <div className="checkout-transition__sub">{planLabel} · действует до {formatPeriodEnd(result.currentPeriodEnd)}</div>
+              <div className="checkout-return__title">{tr("billing.success")}</div>
+              <div className="checkout-transition__sub">{tr("billing.until", { plan: planLabel, date: formatPeriodEnd(result.currentPeriodEnd) })}</div>
             </div>
           </>
         )}
@@ -120,12 +122,12 @@ export default function CheckoutReturnScreen() {
         {(state === "failed" || state === "timeout") && (
           <>
             <div className="checkout-return__title">
-              {state === "failed" ? "Оплата не прошла" : "Проверка занимает больше времени, чем обычно"}
+              {state === "failed" ? tr("billing.failed") : tr("billing.longCheck")}
             </div>
             <div className="checkout-transition__sub">
               {state === "failed"
-                ? "Платёж не был завершён — доступ не открыт. Если деньги списались, напишите нам."
-                : <>Если вы уже оплатили, доступ откроется в течение<br />нескольких минут. Можно проверить ещё раз.</>}
+                ? tr("billing.failedHelp")
+                : tr("billing.retryHelp")}
             </div>
           </>
         )}
@@ -133,17 +135,17 @@ export default function CheckoutReturnScreen() {
 
       <div className="subscription-footer checkout-return__actions">
         {state === "success" && (
-          <button type="button" className="btn btn-primary" onClick={() => setScreen("home")}>Начать заниматься</button>
+          <button type="button" className="btn btn-primary" onClick={() => setScreen("home")}>{tr("billing.start")}</button>
         )}
         {(state === "failed" || state === "timeout") && (
           <>
             {state === "timeout" && (
-              <button type="button" className="btn btn-primary" onClick={checkNow}>Проверить статус</button>
+              <button type="button" className="btn btn-primary" onClick={checkNow}>{tr("billing.check")}</button>
             )}
             <button type="button" className="btn btn-secondary" onClick={() => setScreen("subscription")}>
-              {state === "failed" ? "Попробовать снова" : "Вернуться"}
+              {state === "failed" ? tr("billing.retry") : tr("billing.return")}
             </button>
-            <a className="checkout-return__support" href={`mailto:${SUPPORT_EMAIL}`}>Написать в поддержку</a>
+            <a className="checkout-return__support" href={`mailto:${SUPPORT_EMAIL}`}>{tr("help.contact")}</a>
           </>
         )}
       </div>

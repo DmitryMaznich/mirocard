@@ -1,9 +1,11 @@
+import { getUiLanguage } from "@/shared/i18n/uiLanguage.js";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { api } from "@/core/api";
 
-const ROLE_LABELS = { parent: "Родитель", specialist: "Специалист" };
+
 
 function initialsOf(account) {
   const a = (account?.firstName || "").trim();
@@ -16,13 +18,16 @@ function initialsOf(account) {
 function memberSince(account) {
   if (!account?.createdAt) return null;
   try {
-    return new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric" }).format(new Date(account.createdAt));
+    return new Intl.DateTimeFormat(getUiLanguage() === "sl" ? "sl-SI" : "ru-RU", { month: "long", year: "numeric" }).format(new Date(account.createdAt));
   } catch {
     return null;
   }
 }
 
 export default function AccountCard({ onLogout }) {
+  const { t: tr } = useUiTranslation();
+const ROLE_LABELS = { parent: tr("account.parent"), specialist: tr("account.specialist") };
+
   const account = useAppStore((s) => s.account);
   const setAccount = useAppStore((s) => s.setAccount);
 
@@ -44,7 +49,7 @@ export default function AccountCard({ onLogout }) {
 
   async function handleSave() {
     if (!firstName.trim()) {
-      setError("Имя обязательно");
+      setError("account.nameRequired");
       return;
     }
     setSaving(true);
@@ -60,8 +65,8 @@ export default function AccountCard({ onLogout }) {
       const db = await getDb();
       await kv.set(db, "account", merged);
       setEditing(false);
-    } catch (err) {
-      setError(err.message || "Не удалось сохранить изменения");
+    } catch {
+      setError("account.saveError");
     } finally {
       setSaving(false);
     }
@@ -74,13 +79,11 @@ export default function AccountCard({ onLogout }) {
       <div className="account-card__glow" aria-hidden="true" />
 
       {!confirmLogout ? (
-        <button className="account-card__logout-btn" onClick={() => setConfirmLogout(true)}>
-          Выйти
-        </button>
+        <button className="account-card__logout-btn" onClick={() => setConfirmLogout(true)}>{tr("account.logout")}</button>
       ) : (
         <div className="account-card__logout-confirm">
-          <button className="account-card__logout-no" onClick={() => setConfirmLogout(false)}>Нет</button>
-          <button className="account-card__logout-yes" onClick={onLogout}>Выйти</button>
+          <button className="account-card__logout-no" onClick={() => setConfirmLogout(false)}>{tr("common.no")}</button>
+          <button className="account-card__logout-yes" onClick={onLogout}>{tr("account.logout")}</button>
         </div>
       )}
 
@@ -90,19 +93,17 @@ export default function AccountCard({ onLogout }) {
         <div className="account-card__body">
           <div className="account-card__name">
             {account?.firstName || account?.lastName
-              ? `${account.firstName} ${account.lastName}`.trim()
-              : (account?.displayName || "Без имени")}
+              ? `${account.firstName ?? ""} ${account.lastName ?? ""}`.trim()
+              : (account?.displayName || tr("account.unnamed"))}
           </div>
           {ROLE_LABELS[account?.role] && (
             <span className="account-card__role-pill">{ROLE_LABELS[account.role]}</span>
           )}
           <div className="account-card__email">{account?.email ?? "—"}</div>
-          {sinceLabel && <div className="account-card__since">С нами с {sinceLabel}</div>}
+          {sinceLabel && <div className="account-card__since">{tr("account.since", { date: sinceLabel })}</div>}
 
           <div className="account-card__actions">
-            <button className="account-card__edit-btn" onClick={startEdit} aria-label="Редактировать профиль">
-              ✎ Изменить
-            </button>
+            <button className="account-card__edit-btn" onClick={startEdit} aria-label={tr("account.editProfile")}>{tr("account.edit")}</button>
           </div>
         </div>
       ) : (
@@ -112,32 +113,30 @@ export default function AccountCard({ onLogout }) {
             className="account-card__input"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
-            placeholder="Имя"
+            placeholder={tr("account.firstName")}
             autoFocus
           />
           <input
             className="account-card__input"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
-            placeholder="Фамилия (необязательно)"
+            placeholder={tr("account.lastName")}
           />
           <select
             className="account-card__input"
             value={role}
             onChange={(e) => setRole(e.target.value)}
           >
-            <option value="parent">Родитель</option>
-            <option value="specialist">Специалист</option>
+            <option value="parent">{tr("account.parent")}</option>
+            <option value="specialist">{tr("account.specialist")}</option>
           </select>
 
-          {error && <div className="form-error">{error}</div>}
+          {error && <div className="form-error">{tr(error)}</div>}
 
           <div className="account-card__edit-actions">
-            <button className="account-card__cancel-btn" onClick={() => setEditing(false)} disabled={saving}>
-              Отмена
-            </button>
+            <button className="account-card__cancel-btn" onClick={() => setEditing(false)} disabled={saving}>{tr("common.cancel")}</button>
             <button className="account-card__save-btn" onClick={handleSave} disabled={saving}>
-              {saving ? "Сохраняем…" : "Сохранить"}
+              {saving ? tr("account.saving") : tr("common.save")}
             </button>
           </div>
         </div>

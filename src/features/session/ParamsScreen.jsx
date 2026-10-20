@@ -1,5 +1,11 @@
+import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
+import { availableContentLanguages, initialContentLanguage, contentLanguageParam } from "../../../shared/topic-language-contract.mjs";
+import { setupText, setupLabels, setupInfo } from "@/shared/i18n/setupText.js";
+import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { translateUi as tr } from "@/shared/i18n/uiLanguage.js";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { MY_PEOPLE_SECTION_TITLE, myPeopleModeReadiness, openMyPeopleSettings } from "@/features/myPeople/myPeopleReadiness";
+import { myPeopleModeReadiness, openMyPeopleSettings } from "@/features/myPeople/myPeopleReadiness";
 import { useTimer } from "@/features/timer/TimerContext";
 import { useAppStore } from "@/core/store";
 import { persistStudentTopicLink } from "@/core/linkUtils";
@@ -41,6 +47,7 @@ import DailyOrientationSettings from "@/features/session/DailyOrientationSetting
 // ─── Recipe start (portions only — no group/chef/edit tooling) ───────────────
 
 function RecipeStartParams({ topicId, activeText, student }) {
+  const { t: tr } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const setSessionPortionsOverride = useAppStore((s) => s.setSessionPortionsOverride);
   const setSessionIngredientOverrides = useAppStore((s) => s.setSessionIngredientOverrides);
@@ -149,9 +156,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
                   delete next[t.key];
                   return next;
                 })}
-              >
-                правка · вернуть
-              </button>
+              >{tr("setup.revert")}</button>
             </span>
           )}
         </span>
@@ -214,7 +219,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
           </div>
         )}
         <div className="params-info-start">
-          <Button fullWidth onClick={startSession}>Начать готовить</Button>
+          <Button fullWidth onClick={startSession}>{tr("setup.startCooking")}</Button>
         </div>
       </div>
 
@@ -222,8 +227,8 @@ function RecipeStartParams({ topicId, activeText, student }) {
         <div className="params-body">
           {fixedPortions ? (
             <div className="param-row">
-              <div className="param-label">Порций</div>
-              <span className="all-texts-portions-fixed">готовим {fixedPortions}</span>
+              <div className="param-label">{tr("setup.portions")}</div>
+              <span className="all-texts-portions-fixed">{tr("setup.fixedPortions", { count: fixedPortions })}</span>
             </div>
           ) : (
             <section className="rp-people-hero">
@@ -253,9 +258,9 @@ function RecipeStartParams({ topicId, activeText, student }) {
               </div>
               <p className="rp-people-phrase">{formatPortionsPhrase(portions)}</p>
               <div className="rp-people-control">
-                <button className="rp-dial-btn" onClick={() => changePortions(Math.max(1, portions - 1))} disabled={portions <= 1} aria-label="Меньше порций">−</button>
+                <button className="rp-dial-btn" onClick={() => changePortions(Math.max(1, portions - 1))} disabled={portions <= 1} aria-label={tr("setup.fewerPortions")}>−</button>
                 <span className="rp-people-count" key={portions}>{portions}</span>
-                <button className="rp-dial-btn" onClick={() => changePortions(Math.min(maxPortions, portions + 1))} disabled={portions >= maxPortions} aria-label="Больше порций">+</button>
+                <button className="rp-dial-btn" onClick={() => changePortions(Math.min(maxPortions, portions + 1))} disabled={portions >= maxPortions} aria-label={tr("setup.morePortions")}>+</button>
               </div>
             </section>
           )}
@@ -266,7 +271,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
                   <path d="M4 9.5h14a7 6.3 0 0 1-14 0Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M4.6 8c0-1 .6-1.6 1.2-1.6M17.4 8c0-1-.6-1.6-1.2-1.6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
-                <span>Ингредиенты</span>
+                <span>{tr("setup.ingredients")}</span>
               </div>
               <ul className="rp-ledger">{ingredientTemplates.map(renderLedgerRow)}</ul>
             </>
@@ -279,25 +284,23 @@ function RecipeStartParams({ topicId, activeText, student }) {
                   <path d="M11 7.6V12l3.2 2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M8.4 2.6h5.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
                 </svg>
-                <span>Время готовки</span>
+                <span>{tr("setup.cookTime")}</span>
               </div>
               <ul className="rp-ledger">{timeTemplates.map(renderLedgerRow)}</ul>
             </>
           )}
           <div className="param-row">
-            <div className="param-label">Цифры на плите</div>
+            <div className="param-label">{tr("setup.stoveNumbers")}</div>
             <button
               type="button"
               className="link-btn"
               onClick={() => setStoveModalOpen(true)}
-            >
-              Настроить
-            </button>
+            >{tr("setup.configure")}</button>
           </div>
           {optionGroups.map(([groupId, choices]) => (
             <OptionsPicker
               key={groupId}
-              label={optionGroupsMeta[groupId]?.label ?? "Топпинг (можно несколько или ничего)"}
+              label={optionGroupsMeta[groupId]?.label ?? tr("setup.topping")}
               mode={optionGroupsMeta[groupId]?.mode ?? "multi"}
               choices={withQtyLabels(choices, groupId)}
               selected={effectiveOptions[groupId] ?? []}
@@ -306,7 +309,7 @@ function RecipeStartParams({ topicId, activeText, student }) {
           ))}
         </div>
         <div className="params-start-phone">
-          <Button fullWidth onClick={startSession}>Начать готовить</Button>
+          <Button fullWidth onClick={startSession}>{tr("setup.startCooking")}</Button>
         </div>
       </div>
 
@@ -323,7 +326,7 @@ function ParamLabel({ label, info, onShowInfo }) {
         <button
           type="button"
           className="param-info-btn"
-          aria-label={`Что означает: ${label}`}
+          aria-label={tr("setup.explain", { label })}
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -377,14 +380,7 @@ function EnumParam({ label, options, labels, value, onChange, disabledValues, in
   );
 }
 
-function figureCountLabel(count) {
-  const lastTwo = count % 100;
-  const last = count % 10;
-  if (lastTwo >= 11 && lastTwo <= 14) return `${count} заданий`;
-  if (last === 1) return `${count} задание`;
-  if (last >= 2 && last <= 4) return `${count} задания`;
-  return `${count} заданий`;
-}
+function figureCountLabel(count) { return tr("setup.taskCount", { count }); }
 
 function FigureDifficultyParam({
   topicRecord,
@@ -397,11 +393,12 @@ function FigureDifficultyParam({
   topicId,
   children,
 }) {
+  const { t: tr } = useUiTranslation();
   const def = mode?.params?.figureDifficulty;
   if (!def) return null;
   const figureFilter = getFigureFilter(params, mode);
   const value = figureFilter.type === "difficulty" ? figureFilter.difficulty : null;
-  const labels = def.labels?.ru ?? {};
+  const labels = setupLabels(def.labels);
   const recommendation = getFigureDifficultyRecommendation(sessions, {
     studentId,
     topicId,
@@ -410,7 +407,7 @@ function FigureDifficultyParam({
   });
   return (
     <div className="param-row param-row--block figure-difficulty-param">
-      <ParamLabel label={def.label?.ru ?? "Сложность фигур"} info={def.info?.ru} onShowInfo={onShowInfo} />
+      <ParamLabel label={setupText(def.label) || tr("setup.figureDifficulty")} info={setupInfo(def.info)} onShowInfo={onShowInfo} />
       <div className="param-enum-group figure-difficulty-options">
         {def.values.map((option) => {
           const count = getConceptCards(topicRecord, mode, withFigureFilter(params, mode, { type: "difficulty", difficulty: option })).length;
@@ -420,7 +417,7 @@ function FigureDifficultyParam({
               className={`enum-btn figure-difficulty-option ${value === option ? "enum-btn--active" : ""}`}
               onClick={() => onChange((current) => withFigureFilter(current, mode, { type: "difficulty", difficulty: option }))}
             >
-              <span>{labels[option] ?? option}</span>
+              <span>{setupText(labels[option] ?? option)}</span>
               <span className="figure-difficulty-option__count">{figureCountLabel(count)}</span>
             </button>
           );
@@ -429,14 +426,12 @@ function FigureDifficultyParam({
       </div>
       {recommendation && figureFilter.type === "difficulty" && (
         <div className="param-hint figure-difficulty-recommendation" role="status">
-          <span>{recommendation.successfulSessions} уверенных занятия позади. Можно попробовать «{labels[recommendation.nextDifficulty] ?? recommendation.nextDifficulty}».</span>
+          <span>{tr("setup.recommendation", { count: recommendation.successfulSessions, level: setupText(labels[recommendation.nextDifficulty] ?? recommendation.nextDifficulty) })}</span>
           <button
             type="button"
             className="link-btn"
             onClick={() => onChange((current) => withFigureFilter(current, mode, { type: "difficulty", difficulty: recommendation.nextDifficulty }))}
-          >
-            Выбрать
-          </button>
+          >{tr("common.select")}</button>
         </div>
       )}
     </div>
@@ -498,6 +493,7 @@ function FigureThumbnail({ card }) {
 }
 
 function FigurePickerParam({ topicRecord, mode, params, onChange }) {
+  const { t: tr } = useUiTranslation();
   const figureFilter = getFigureFilter(params, mode);
   const allFigures = getConceptCards(
     topicRecord,
@@ -508,7 +504,7 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
   const [open, setOpen] = useState(false);
   const [draftIds, setDraftIds] = useState(() => new Set());
   const [browseDifficulty, setBrowseDifficulty] = useState("all");
-  const difficultyLabels = mode?.params?.figureDifficulty?.labels?.ru ?? {};
+  const difficultyLabels = setupLabels(mode?.params?.figureDifficulty?.labels);
   const selectedIds = figureFilter.type === "manual" ? figureFilter.cardIds : null;
   const selectedCount = activeFigures.length;
   const minimumSelection = requiredFigureSelectionCount(allFigures.length);
@@ -551,26 +547,26 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
         className={`enum-btn figure-difficulty-option figure-picker-trigger ${selectedIds ? "enum-btn--active" : ""}`}
         onClick={openPicker}
       >
-        <span>Свой набор</span>
+        <span>{tr("setup.customSet")}</span>
         <span className="figure-difficulty-option__count">
           {selectedIds
-            ? (selectedCount >= minimumSelection ? `${selectedCount} выбрано` : `Выберите ещё ${minimumSelection - selectedCount}`)
-            : "Выбрать рисунки"}
+            ? (selectedCount >= minimumSelection ? tr("setup.selected", { count: selectedCount }) : tr("setup.selectMore", { count: minimumSelection - selectedCount }))
+            : tr("setup.chooseFigures")}
         </span>
       </button>
       {open && (
         <Modal
-          title="Выберите рисунки"
+          title={tr("setup.chooseFiguresTitle")}
           onClose={() => setOpen(false)}
           actions={(
             <>
-              <Button variant="secondary" onClick={() => setOpen(false)}>Отмена</Button>
-              <Button onClick={applySelection} disabled={!selectionReady}>Выбрать {draftIds.size || ""}</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>{tr("common.cancel")}</Button>
+              <Button onClick={applySelection} disabled={!selectionReady}>{tr("setup.applySelection", { count: draftIds.size || "" })}</Button>
             </>
           )}
         >
-          <p className="figure-picker__intro">Отметьте не меньше {minimumSelection} рисунков для занятия — тогда ребёнок сможет заработать приз за серию из пяти. Выбор заменяет быстрый фильтр сложности; кнопки сложности вернут набор целиком.</p>
-          <div className="figure-picker__filters" aria-label="Показать рисунки по сложности">
+          <p className="figure-picker__intro">{tr("setup.figureSelectionHelp", { count: minimumSelection })}</p>
+          <div className="figure-picker__filters" aria-label={tr("setup.filterFigures")}>
             {mode?.params?.figureDifficulty?.values?.map((difficulty) => (
               <button
                 type="button"
@@ -578,14 +574,14 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
                 className={`enum-btn enum-btn--compact ${browseDifficulty === difficulty ? "enum-btn--active" : ""}`}
                 onClick={() => setBrowseDifficulty(difficulty)}
               >
-                {difficultyLabels[difficulty] ?? difficulty}
+                {setupText(difficultyLabels[difficulty] ?? difficulty)}
               </button>
             ))}
           </div>
           <div className="figure-picker__toolbar">
             <span className="param-hint">
-              {draftIds.size} из {allFigures.length} отмечено
-              {!selectionReady && ` · выберите ещё ${minimumSelection - draftIds.size}`}
+              {tr("setup.selectionOf", { selected: draftIds.size, total: allFigures.length })}
+              {!selectionReady && ` · ${tr("setup.selectMore", { count: minimumSelection - draftIds.size })}`}
             </span>
             <label className="figure-picker__select-all">
               <input
@@ -593,10 +589,10 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
                 checked={allFigures.length > 0 && draftIds.size === allFigures.length}
                 onChange={(event) => setDraftIds(event.target.checked ? new Set(allFigures.map((card) => card.id)) : new Set())}
               />
-              <span>Все рисунки</span>
+              <span>{tr("setup.allFigures")}</span>
             </label>
           </div>
-          <div className="figure-picker__grid" role="group" aria-label="Рисунки">
+          <div className="figure-picker__grid" role="group" aria-label={tr("setup.figures")}>
             {visibleFigures.map((card) => {
               const selected = draftIds.has(card.id);
               return (
@@ -622,6 +618,7 @@ function FigurePickerParam({ topicRecord, mode, params, onChange }) {
 }
 
 function EnumMultiParam({ label, options, labels, value, onChange, info, onShowInfo }) {
+  const { t: tr } = useUiTranslation();
   const selected = Array.isArray(value) ? value : [];
   const allSelected = selected.length === 0;
 
@@ -643,9 +640,7 @@ function EnumMultiParam({ label, options, labels, value, onChange, info, onShowI
         <button
           className={`enum-btn ${allSelected ? "enum-btn--active" : ""}`}
           onClick={() => onChange([])}
-        >
-          Все
-        </button>
+        >{tr("setup.all")}</button>
         {options.map((opt) => (
           <button
             key={opt}
@@ -661,6 +656,7 @@ function EnumMultiParam({ label, options, labels, value, onChange, info, onShowI
 }
 
 function StorySelectionParam({ options, labels, value, onChange, info, onShowInfo }) {
+  const { t: tr } = useUiTranslation();
   const selected = Array.isArray(value) ? value.filter((id) => options.includes(id)) : [];
   const allSelected = selected.length === 0;
   const selectedCount = allSelected ? options.length : selected.length;
@@ -680,18 +676,18 @@ function StorySelectionParam({ options, labels, value, onChange, info, onShowInf
 
   return (
     <div className="param-row param-row--block story-selection-param">
-      <ParamLabel label="Рассказы" info={info} onShowInfo={onShowInfo} />
+      <ParamLabel label={tr("setup.stories")} info={info} onShowInfo={onShowInfo} />
       <div className="story-selection-summary" aria-live="polite">
-        {allSelected ? `Все ${options.length} рассказов` : `Выбрано: ${selectedCount} из ${options.length}`}
+        {allSelected ? tr("setup.allStoryCount", { count: options.length }) : tr("setup.selectionOf", { selected: selectedCount, total: options.length })}
       </div>
-      <div className="story-selection-options" role="group" aria-label="Выбор рассказов">
+      <div className="story-selection-options" role="group" aria-label={tr("setup.chooseStories")}>
         <label className={`story-selection-option story-selection-option--all${allSelected ? " story-selection-option--selected" : ""}`}>
           <input
             type="checkbox"
             checked={allSelected}
             onChange={() => onChange([])}
           />
-          <span>Все рассказы</span>
+          <span>{tr("setup.allStories")}</span>
         </label>
         {options.map((id) => {
           const checked = !allSelected && selected.includes(id);
@@ -712,6 +708,7 @@ function StorySelectionParam({ options, labels, value, onChange, info, onShowInf
 }
 
 function StoryQuizEditorParam({ value, defaultText, stories, selectedStoryIds, onChange }) {
+  const { t: tr } = useUiTranslation();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const effectiveText = value?.trim() ? value : defaultText;
@@ -737,46 +734,46 @@ function StoryQuizEditorParam({ value, defaultText, stories, selectedStoryIds, o
   return (
     <>
       <div className="param-row param-row--block story-quiz-param">
-        <div className="param-label">Вопросы и ответы</div>
+        <div className="param-label">{tr("setup.questions")}</div>
         <div className="param-concept-col">
           <div className={`param-hint${validation.valid ? "" : " story-quiz-param__invalid"}`}>
             {validation.valid
-              ? (edited ? "Свой вариант для ребёнка" : "Базовый вариант темы")
-              : "Вопросы нужно исправить"}
+              ? (edited ? tr("setup.customQuestions") : tr("setup.defaultQuestions"))
+              : tr("setup.invalidQuestions")}
           </div>
-          <button type="button" className="link-btn" onClick={openEditor}>Изменить</button>
+          <button type="button" className="link-btn" onClick={openEditor}>{tr("setup.edit")}</button>
         </div>
       </div>
 
       {open && (
         <Modal
-          title="Вопросы и ответы"
+          title={tr("setup.questions")}
           onClose={() => setOpen(false)}
           actions={(
             <>
-              <Button variant="secondary" onClick={() => setDraft(defaultText)}>Вернуть по умолчанию</Button>
-              <Button variant="secondary" onClick={() => setOpen(false)}>Отмена</Button>
-              <Button onClick={save} disabled={!draftValidation.valid}>Сохранить</Button>
+              <Button variant="secondary" onClick={() => setDraft(defaultText)}>{tr("setup.restoreDefault")}</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>{tr("common.cancel")}</Button>
+              <Button onClick={save} disabled={!draftValidation.valid}>{tr("common.save")}</Button>
             </>
           )}
         >
           <div className="story-quiz-editor__intro">
-            <p>Один блок начинается с <code># Название рассказа</code>. Вопрос начинается с <code>?</code>, а слово или фраза, которую ребёнок ищет в тексте, – с <code>+</code>.</p>
-            <p>Для каждого выбранного рассказа нужно не меньше пяти таких вопросов. Фрагмент после <code>+</code> должен быть в самом рассказе.</p>
-            <p>Необязательно можно добавить один вопрос на обсуждение со знаком <code>*</code> – без фрагмента в тексте, ребёнок отвечает вслух, а не тапом по рассказу.</p>
+            <p>{tr("setup.quizSyntax")}</p>
+            <p>{tr("setup.quizMinimum")}</p>
+            <p>{tr("setup.quizDiscussion")}</p>
           </div>
           <textarea
             className="story-quiz-editor__textarea"
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             spellCheck="true"
-            aria-label="Текст вопросов и ответов"
+            aria-label={tr("setup.questionText")}
           />
           {!draftValidation.valid && (
             <div className="story-quiz-editor__errors" role="alert">
               {draftValidation.errors.map((error, index) => (
                 <div key={`${error.line ?? "general"}_${index}`}>
-                  {error.line ? `Строка ${error.line}: ` : ""}{error.message}
+                  {error.line ? tr("setup.errorLine", { line: error.line }) : ""}{error.message}
                 </div>
               ))}
             </div>
@@ -837,6 +834,7 @@ function VisualBooleanParam({ label, offLabel, value, onChange, disabled, info, 
 }
 
 function SentenceListParam({ label, predefined, value, onChange }) {
+  const { t: tr } = useUiTranslation();
   const selected = Array.isArray(value) ? value : [];
   const [customText, setCustomText] = useState(() =>
     selected.filter((s) => !predefined.some((p) => p.text === s)).join("\n")
@@ -880,13 +878,13 @@ function SentenceListParam({ label, predefined, value, onChange }) {
           </div>
         )}
         <div className="param-sentence-list__custom">
-          <div className="param-hint">Свои предложения (по одному на строку):</div>
+          <div className="param-hint">{tr("setup.customSentences")}</div>
           <textarea
             className="param-sentence-textarea"
             rows={3}
             value={customText}
             onChange={handleCustomChange}
-            placeholder="Например: Ваня читает книгу."
+            placeholder={tr("setup.sentenceExample")}
           />
         </div>
       </div>
@@ -914,6 +912,7 @@ function normalizeUploadedText(raw) {
 }
 
 function TextListParam({ label, predefined, value, maxLength, onChange }) {
+  const { t: tr } = useUiTranslation();
   const selected = Array.isArray(value) ? value : [];
   const customMaxLength = maxLength ?? TEXT_LIST_CUSTOM_MAX_LENGTH_DEFAULT;
 
@@ -948,7 +947,7 @@ function TextListParam({ label, predefined, value, maxLength, onChange }) {
     const normalized = normalizeUploadedText(raw);
     if (!normalized) return;
     if (normalized.length > customMaxLength) {
-      setCustomError(`Слишком длинный текст: ${normalized.length} символов, максимум ${customMaxLength}.`);
+      setCustomError(tr("setup.tooLong", { length: normalized.length, max: customMaxLength }));
       return;
     }
     setCustomError(null);
@@ -966,7 +965,7 @@ function TextListParam({ label, predefined, value, maxLength, onChange }) {
     try {
       addCustomText(await file.text());
     } catch {
-      setCustomError("Не удалось прочитать файл. Убедитесь, что это текстовый .txt файл.");
+      setCustomError(tr("setup.fileError"));
     } finally {
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -988,21 +987,21 @@ function TextListParam({ label, predefined, value, maxLength, onChange }) {
         onClick={openPicker}
       >
         <span>{label}</span>
-        <span className="figure-difficulty-option__count">{selected.length ? `${selected.length} выбрано` : "Выбрать тексты"}</span>
+        <span className="figure-difficulty-option__count">{selected.length ? tr("setup.selected", { count: selected.length }) : tr("setup.chooseTexts")}</span>
       </button>
       {open && (
         <Modal
-          title="Выберите тексты"
+          title={tr("setup.chooseTextsTitle")}
           onClose={() => setOpen(false)}
           actions={(
             <>
-              <Button variant="secondary" onClick={() => setOpen(false)}>Отмена</Button>
-              <Button onClick={applySelection} disabled={!totalSelected}>Выбрать {totalSelected || ""}</Button>
+              <Button variant="secondary" onClick={() => setOpen(false)}>{tr("common.cancel")}</Button>
+              <Button onClick={applySelection} disabled={!totalSelected}>{tr("setup.applySelection", { count: totalSelected || "" })}</Button>
             </>
           )}
         >
           <div className="text-picker__custom-section">
-            <div className="param-hint">Свои тексты</div>
+            <div className="param-hint">{tr("setup.customTexts")}</div>
             {draftCustomTexts.length > 0 && (
               <div className="text-picker__custom-list">
                 {draftCustomTexts.map((t, i) => (
@@ -1012,7 +1011,7 @@ function TextListParam({ label, predefined, value, maxLength, onChange }) {
                       type="button"
                       className="text-picker__custom-item-remove"
                       onClick={() => removeCustomText(i)}
-                      aria-label="Удалить текст"
+                      aria-label={tr("setup.deleteText")}
                     >
                       ✕
                     </button>
@@ -1025,7 +1024,7 @@ function TextListParam({ label, predefined, value, maxLength, onChange }) {
               rows={3}
               value={customDraftText}
               onChange={(e) => setCustomDraftText(e.target.value)}
-              placeholder="Напечатайте свой текст…"
+              placeholder={tr("setup.typeText")}
             />
             <div className="text-picker__custom-actions">
               <button
@@ -1033,12 +1032,8 @@ function TextListParam({ label, predefined, value, maxLength, onChange }) {
                 className="param-text-upload__link"
                 onClick={() => addCustomText(customDraftText)}
                 disabled={!customDraftText.trim()}
-              >
-                + Добавить текст
-              </button>
-              <button type="button" className="param-text-upload__link" onClick={() => fileRef.current?.click()}>
-                📄 Загрузить .txt
-              </button>
+              >{tr("setup.addText")}</button>
+              <button type="button" className="param-text-upload__link" onClick={() => fileRef.current?.click()}>{tr("setup.uploadTxt")}</button>
             </div>
             {customError && <div className="param-text-upload__error">{customError}</div>}
             <input
@@ -1051,14 +1046,14 @@ function TextListParam({ label, predefined, value, maxLength, onChange }) {
           </div>
 
           <div className="figure-picker__toolbar">
-            <span className="param-hint">{draftPredefinedIds.size} из {predefined.length} отмечено</span>
+            <span className="param-hint">{tr("setup.selectionOf", { selected: draftPredefinedIds.size, total: predefined.length })}</span>
             <label className="figure-picker__select-all">
               <input
                 type="checkbox"
                 checked={predefined.length > 0 && draftPredefinedIds.size === predefined.length}
                 onChange={(e) => setDraftPredefinedIds(e.target.checked ? new Set(predefined.map((t) => t.id)) : new Set())}
               />
-              <span>Все тексты</span>
+              <span>{tr("setup.allTexts")}</span>
             </label>
           </div>
           <div className="param-sentence-list__predefined text-picker__predefined-list">
@@ -1101,6 +1096,7 @@ function FreeTextParam({ label, hint, value, onChange, rows = 4, placeholder }) 
 }
 
 function TextUploadParam({ label, maxLength, value, onChange }) {
+  const { t: tr } = useUiTranslation();
   const fileRef = useRef(null);
   const [error, setError] = useState(null);
 
@@ -1116,13 +1112,13 @@ function TextUploadParam({ label, maxLength, value, onChange }) {
       // file renders with an empty ruled row after every single line (2026-08-14).
       const normalized = raw.replace(/\r\n?/g, "\n").replace(/\n{2,}/g, "\n").trim();
       if (normalized.length > maxLength) {
-        setError(`Слишком длинный текст: ${normalized.length} символов, максимум ${maxLength}.`);
+        setError(tr("setup.tooLong", { length: normalized.length, max: maxLength }));
         return;
       }
       setError(null);
       onChange(normalized);
     } catch {
-      setError("Не удалось прочитать файл. Убедитесь, что это текстовый .txt файл.");
+      setError(tr("setup.fileError"));
     } finally {
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -1136,18 +1132,12 @@ function TextUploadParam({ label, maxLength, value, onChange }) {
           <>
             <div className="param-text-upload__preview">{value}</div>
             <div className="param-text-upload__actions">
-              <button type="button" className="param-text-upload__link" onClick={() => fileRef.current?.click()}>
-                Заменить файл
-              </button>
-              <button type="button" className="param-text-upload__link" onClick={() => onChange("")}>
-                Очистить
-              </button>
+              <button type="button" className="param-text-upload__link" onClick={() => fileRef.current?.click()}>{tr("setup.replaceFile")}</button>
+              <button type="button" className="param-text-upload__link" onClick={() => onChange("")}>{tr("setup.clear")}</button>
             </div>
           </>
         ) : (
-          <button type="button" className="param-text-upload__trigger" onClick={() => fileRef.current?.click()}>
-            📄 Загрузить .txt
-          </button>
+          <button type="button" className="param-text-upload__trigger" onClick={() => fileRef.current?.click()}>{tr("setup.uploadTxt")}</button>
         )}
         {error && <div className="param-text-upload__error">{error}</div>}
         <input
@@ -1203,10 +1193,11 @@ function ElementPreviewSvg({ element }) {
 // not grouped by category -- 11/27 captured as of 2026-09-17, too few yet for grouping to earn
 // its own UI weight; revisit once the set is closer to complete.
 function ElementPickerModal({ elements, onPick, onClose }) {
+  const { t: tr } = useUiTranslation();
   return (
-    <Modal title="Выберите элемент" onClose={onClose}>
+    <Modal title={tr("setup.chooseElement")} onClose={onClose}>
       {elements.length === 0 ? (
-        <div className="element-picker-empty">Пока не оцифрован ни один элемент.</div>
+        <div className="element-picker-empty">{tr("setup.noElements")}</div>
       ) : (
         <div className="element-picker-grid">
           {elements.map((el) => (
@@ -1235,6 +1226,7 @@ function ElementPickerModal({ elements, onPick, onClose }) {
 // change (still one string per row) so engine.js/wordEngine.js only need a new
 // interpretation of that string when the mode's own useElements flag is on, not a new field.
 function LineListParam({ label, value, maxLength, onChange, useElements = false, elements = [] }) {
+  const { t: tr } = useUiTranslation();
   const lines = Array.isArray(value) && value.length > 0 ? value : [""];
   const inputRefs = useRef([]);
   const focusIndexRef = useRef(null);
@@ -1286,7 +1278,7 @@ function LineListParam({ label, value, maxLength, onChange, useElements = false,
                 className={`param-line-list__element-btn${!line ? " param-line-list__element-btn--empty" : ""}`}
                 onClick={() => setPickerRowIndex(i)}
               >
-                {line ? (elementsById.get(line)?.labelRu ?? line) : `Строка ${i + 1} — выбрать элемент`}
+                {line ? (elementsById.get(line)?.labelRu ?? line) : tr("setup.lineElement", { line: i + 1 })}
               </button>
             ) : (
               <input
@@ -1295,7 +1287,7 @@ function LineListParam({ label, value, maxLength, onChange, useElements = false,
                 className="param-line-list__input"
                 value={line}
                 maxLength={maxLength}
-                placeholder={`Строка ${i + 1}`}
+                placeholder={tr("setup.line", { line: i + 1 })}
                 onChange={(e) => updateLine(i, e.target.value)}
               />
             )}
@@ -1304,7 +1296,7 @@ function LineListParam({ label, value, maxLength, onChange, useElements = false,
               className="param-line-list__remove"
               onClick={() => removeLine(i)}
               disabled={lines.length === 1 && !line}
-              aria-label="Удалить строку"
+              aria-label={tr("setup.deleteLine")}
             >
               ✕
             </button>
@@ -1318,14 +1310,13 @@ function LineListParam({ label, value, maxLength, onChange, useElements = false,
           onClose={() => setPickerRowIndex(null)}
         />
       )}
-      <button type="button" className="param-text-upload__link" onClick={addLine}>
-        + Добавить строку
-      </button>
+      <button type="button" className="param-text-upload__link" onClick={addLine}>{tr("setup.addLine")}</button>
     </div>
   );
 }
 
 function SentencePoolSelector({ lines, value, onChange }) {
+  const { t: tr } = useUiTranslation();
   const allSelected = value === null || value === undefined;
   const selectedSet = allSelected
     ? new Set(lines.map((l) => l.id))
@@ -1346,9 +1337,7 @@ function SentencePoolSelector({ lines, value, onChange }) {
   return (
     <div className="param-row param-row--block param-sentence-list">
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <div className="param-label" style={{ margin: 0 }}>
-          Предложения
-          <span className="param-hint" style={{ fontWeight: "normal", marginLeft: 6 }}>{count} / {lines.length}</span>
+        <div className="param-label" style={{ margin: 0 }}>{tr("setup.sentences")}<span className="param-hint" style={{ fontWeight: "normal", marginLeft: 6 }}>{count} / {lines.length}</span>
         </div>
         <label className="param-sentence-list__item" style={{ margin: 0 }}>
           <input
@@ -1357,7 +1346,7 @@ function SentencePoolSelector({ lines, value, onChange }) {
             checked={allSelected}
             onChange={(e) => onChange(e.target.checked ? null : [])}
           />
-          <span>Выбрать все</span>
+          <span>{tr("setup.selectAll")}</span>
         </label>
       </div>
       <div className="param-sentence-list__predefined" style={{ maxHeight: 300, overflowY: "auto" }}>
@@ -1378,35 +1367,42 @@ function SentencePoolSelector({ lines, value, onChange }) {
 }
 
 function getModeTitle(mode) {
-  return getTopicTitle(mode?.ui?.title) || mode?.id || "";
+  return setupText(mode?.ui?.title) || mode?.id || "";
 }
 
 function getModeInstruction(mode) {
   return getTopicTitle(mode?.ui?.instruction);
 }
 
-const LEVEL_DESCRIPTIONS = {
-  1: "Начальный — числа до 10, разница не менее 5",
-  2: "Базовый — числа до 10, любая разница",
-  3: "Средний — числа до 20, любая разница",
-  4: "Сложный — двузначные числа до 99",
-  5: "По разрядам — числа до 1000 с ловушками: 47 и 74, 305 и 350, 99 и 100, 300 и 299. После ошибки — оба числа по разрядам",
-};
 
-const QUESTION_OPTIONS = [
-  { value: "more", label: "Больше",  hint: "Ребёнок всегда ищет большее" },
-  { value: "less", label: "Меньше",  hint: "Ребёнок всегда ищет меньшее" },
-  { value: "mix",  label: "Микс",    hint: "Вопросы «больше» и «меньше» чередуются" },
-];
 
-const VISUAL_OPTIONS = [
-  { value: "dots",         label: "Точки" },
-  { value: "dots_numbers", label: "Точки + цифра" },
-  { value: "numbers",      label: "Только цифры" },
-  { value: "pairing",      label: "Пары" },
-];
+
+
+
 
 function ComparisonParams({ params, onChange }) {
+  const { t: tr } = useUiTranslation();
+  const VISUAL_OPTIONS = [
+    { value: "dots",         label: tr("setup.dots") },
+    { value: "dots_numbers", label: tr("setup.dotsNumbers") },
+    { value: "numbers",      label: tr("setup.numbersOnly") },
+    { value: "pairing",      label: tr("setup.pairs") },
+  ];
+
+  const QUESTION_OPTIONS = [
+    { value: "more", label: tr("setup.more"),  hint: tr("setup.alwaysMore") },
+    { value: "less", label: tr("setup.less"),  hint: tr("setup.alwaysLess") },
+    { value: "mix",  label: tr("setup.mix"),    hint: tr("setup.mixHint") },
+  ];
+
+  const LEVEL_DESCRIPTIONS = {
+    1: tr("setup.levelOne"),
+    2: tr("setup.levelTwo"),
+    3: tr("setup.levelThree"),
+    4: tr("setup.levelFour"),
+    5: tr("setup.levelFive"),
+  };
+
   const activeModeId     = useAppStore((s) => s.activeModeId);
   const levels           = COMPARISON_LEVELS.filter((l) => l.id !== 5 || PLACE_VALUE_MODE_IDS.includes(activeModeId));
   const shownLevel       = params.level === 5 && !levels.some((l) => l.id === 5) ? 4 : params.level;
@@ -1455,7 +1451,7 @@ function ComparisonParams({ params, onChange }) {
           (same reasoning as compare_apply's showEqual exclusion below). */}
       {!isRealLifeMode && (
         <div className="param-row param-row--block">
-          <div className="param-label">Уровень</div>
+          <div className="param-label">{tr("setup.level")}</div>
           <div className="param-enum-row">
             <div className="param-enum-section">
               <div className="param-enum-group">
@@ -1471,7 +1467,7 @@ function ComparisonParams({ params, onChange }) {
                 ))}
               </div>
               {activeLevel && <div className="param-hint">{LEVEL_DESCRIPTIONS[activeLevel.id]}</div>}
-              {dotsOnly && <div className="param-hint">Уровни 3–4 доступны только в режиме «Только цифры»</div>}
+              {dotsOnly && <div className="param-hint">{tr("setup.levelRestriction")}</div>}
             </div>
 
             {/* compare_apply never reads showEqual (see engine.js's
@@ -1492,7 +1488,7 @@ function ComparisonParams({ params, onChange }) {
                     =
                   </button>
                   <div className="param-hint">
-                    {params.showEqual ? "С одинаковыми (~30%)" : "Без одинаковых"}
+                    {params.showEqual ? tr("setup.withEqual") : tr("setup.withoutEqual")}
                   </div>
                 </div>
               </>
@@ -1503,7 +1499,7 @@ function ComparisonParams({ params, onChange }) {
 
       {!isEvaluateFamily && !isDrawSignMode && !isFirstNumberMode && !isApplyMode && (
         <div className="param-row param-row--block">
-          <div className="param-label">Что учим</div>
+          <div className="param-label">{tr("setup.teach")}</div>
           <div className="param-enum-section">
             <div className="param-enum-group">
               {QUESTION_OPTIONS.map((opt) => (
@@ -1523,9 +1519,9 @@ function ComparisonParams({ params, onChange }) {
 
       {isEvaluateFamily && (
         <EnumParam
-          label="Тип ответа"
+          label={tr("setup.answerType")}
           options={["sign", "verbal"]}
-          labels={{ sign: "Символы < = >", verbal: "Слова Больше / Меньше / Равно" }}
+          labels={{ sign: tr("setup.symbols"), verbal: tr("setup.answerWords") }}
           value={params.style ?? "sign"}
           onChange={(v) => onChange({ ...params, style: v })}
         />
@@ -1533,7 +1529,7 @@ function ComparisonParams({ params, onChange }) {
 
       {isTestMode && (
         <NumberStepper
-          label="Примеров на экране"
+          label={tr("setup.examplesOnScreen")}
           value={params.examplesCount ?? 4}
           min={2}
           max={10}
@@ -1543,7 +1539,7 @@ function ComparisonParams({ params, onChange }) {
 
       {isFirstNumberMode && (
         <BooleanParam
-          label='Подписи «Первое» и «Второе»'
+          label={tr("setup.firstSecondLabels")}
           value={params.showLabels ?? true}
           onChange={(v) => onChange({ ...params, showLabels: v })}
         />
@@ -1551,9 +1547,9 @@ function ComparisonParams({ params, onChange }) {
 
       {isApplyMode && (
         <EnumParam
-          label="Тип задания"
+          label={tr("setup.taskType")}
           options={["generate", "order"]}
-          labels={{ generate: "Выбери число", order: "Расставь по порядку" }}
+          labels={{ generate: tr("setup.chooseNumber"), order: tr("setup.orderNumbers") }}
           value={params.taskType ?? "generate"}
           onChange={(v) => onChange({ ...params, taskType: v })}
         />
@@ -1561,7 +1557,7 @@ function ComparisonParams({ params, onChange }) {
 
       {isApplyMode && params.taskType === "order" && (
         <NumberStepper
-          label="Чисел в задании"
+          label={tr("setup.numbersInTask")}
           value={params.numbersCount ?? 3}
           min={3}
           max={5}
@@ -1571,9 +1567,9 @@ function ComparisonParams({ params, onChange }) {
 
       {isApplyMode && params.taskType === "order" && (
         <EnumParam
-          label="Направление"
+          label={tr("setup.direction")}
           options={["asc", "desc"]}
-          labels={{ asc: "Меньше → Больше", desc: "Больше → Меньше" }}
+          labels={{ asc: tr("setup.ascending"), desc: tr("setup.descending") }}
           value={params.orderDirection ?? "asc"}
           onChange={(v) => onChange({ ...params, orderDirection: v })}
         />
@@ -1581,7 +1577,7 @@ function ComparisonParams({ params, onChange }) {
 
       {isVisualMode && (
         <div className="param-row param-row--block">
-          <div className="param-label">Вид</div>
+          <div className="param-label">{tr("setup.view")}</div>
           <div className="param-enum-section">
             <div className="param-enum-group">
               {VISUAL_OPTIONS.map((opt) => (
@@ -1606,8 +1602,8 @@ function ComparisonParams({ params, onChange }) {
         // of them, so don't expose a control that can't change anything
         // (same bug as compare_draw_sign's old "Что учим").
         <BooleanParam
-          label="Ответ словами"
-          hint='Вместо «7 больше 4» — «Семь больше четырёх»'
+          label={tr("setup.verbalAnswer")}
+          hint={tr("setup.verbalHint")}
           value={params.wordsVerdict}
           disabled={multiMode}
           onChange={(v) => onChange({ ...params, wordsVerdict: v })}
@@ -1618,6 +1614,7 @@ function ComparisonParams({ params, onChange }) {
 }
 
 export default function ParamsScreen() {
+  const { t: tr } = useUiTranslation();
   const setScreen              = useAppStore((s) => s.setScreen);
   const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
@@ -1685,7 +1682,7 @@ export default function ParamsScreen() {
               topicId={activeTopicId}
               textId={activeTextId}
               filePath={activeText.file}
-              topicTitle={getTopicTitle(topicRecord.meta.title)}
+              topicTitle={getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title)}
               textTitle={getTopicTitle(activeText.title)}
               student={student}
               kind={activeText.kind}
@@ -1711,7 +1708,7 @@ export default function ParamsScreen() {
         </div>
         <SafeCodeParamsContent
           topicId={activeTopicId}
-          topicTitle={getTopicTitle(topicRecord.meta.title)}
+          topicTitle={getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title)}
           textTitle={getTopicTitle(activeText.title)}
           student={student}
         />
@@ -1771,6 +1768,10 @@ export default function ParamsScreen() {
       ? { figureFilters: saved.figureFilters }
       : {};
     for (const [key, def] of Object.entries(modeParams)) {
+      if (def.type === "content_language") {
+        out[key] = initialContentLanguage(topicRecord, mode.id, saved[key], student?.preferredLessonLanguage, settings.cardLanguage);
+        continue;
+      }
       if (def.type === "concept_selector") continue;
       if (def.type === "sentence_list") {
         out[key] = saved[key] ?? [];
@@ -1847,9 +1848,9 @@ export default function ParamsScreen() {
       <div className="screen">
         <div className="screen-header">
           <button className="back-btn" onClick={() => setScreen("modes")}><BackArrowIcon /></button>
-          <h1 className="screen-title">Параметры</h1>
+          <h1 className="screen-title">{tr("setup.title")}</h1>
         </div>
-        <div className="empty-state"><div className="empty-state__text">Режим не выбран</div></div>
+        <div className="empty-state"><div className="empty-state__text">{tr("setup.noMode")}</div></div>
       </div>
     );
   }
@@ -1889,6 +1890,7 @@ export default function ParamsScreen() {
   const { markSessionStart } = useTimer();
 
   function openPinGate() {
+    if (topicRecord?.languageContract && !availableContentLanguages(topicRecord, mode?.id).includes(topicLanguageForStudent(topicRecord))) return;
     if (isReading && !activeText) {
       setScreen("texts");
       return;
@@ -1923,7 +1925,7 @@ export default function ParamsScreen() {
     }
 
     persistStudentTopicLink(activeStudentId, activeTopicId, {
-      params: writeModeParams(link.params, mode, params),
+      params: writeModeParams(topicRecord.languageContract ? { ...link.params, topicContentLanguage: topicLanguageForStudent(topicRecord) } : link.params, mode, params),
       videoRewardEnabled: hideVideoReward ? false : videoReward,
       answersPerStar,
       strictStars,
@@ -1976,10 +1978,10 @@ export default function ParamsScreen() {
     <>
       {activeText?.kind !== "sentence_pool" && !isShortStories && (
         <div className="param-row param-row--block">
-          <div className="param-label">Текст</div>
+          <div className="param-label">{tr("setup.text")}</div>
           <div className="param-concept-col">
-            <div className="param-hint">{getTopicTitle(activeText?.title) || "Не выбран"}</div>
-            <button className="link-btn" onClick={() => setScreen("texts")}>Изменить</button>
+            <div className="param-hint">{getTopicTitle(activeText?.title) || tr("home.notSelected")}</div>
+            <button className="link-btn" onClick={() => setScreen("texts")}>{tr("setup.edit")}</button>
           </div>
         </div>
       )}
@@ -2009,10 +2011,10 @@ export default function ParamsScreen() {
               <StorySelectionParam
                 key={key}
                 options={def.values}
-                labels={def.labels?.ru}
+                labels={setupLabels(def.labels)}
                 value={params[key] ?? def.default ?? []}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-                info={def.info?.ru}
+                info={setupInfo(def.info)}
                 onShowInfo={setActiveInfo}
               />
             );
@@ -2020,12 +2022,12 @@ export default function ParamsScreen() {
           return (
             <EnumMultiParam
               key={key}
-              label={def.label?.ru ?? key}
+              label={setupText(def.label) || key}
               options={def.values}
-              labels={def.labels?.ru}
+              labels={setupLabels(def.labels)}
               value={params[key] ?? def.default ?? []}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-              info={def.info?.ru}
+              info={setupInfo(def.info)}
               onShowInfo={setActiveInfo}
             />
           );
@@ -2034,16 +2036,16 @@ export default function ParamsScreen() {
           return (
             <EnumParam
               key={key}
-              label={def.label?.ru ?? key}
+              label={setupText(def.label) || key}
               options={def.values}
-              labels={def.labels?.ru}
+              labels={setupLabels(def.labels)}
               value={params[key] ?? def.default}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
               disabledValues={def.disabledValues}
-              info={def.info?.ru}
+              info={setupInfo(def.info)}
               onShowInfo={setActiveInfo}
               ordered={def.ordered === true}
-              hint={def.hint?.ru ?? ""}
+              hint={setupText(def.hint) || ""}
             />
           );
         }
@@ -2051,12 +2053,12 @@ export default function ParamsScreen() {
           return (
             <BooleanParam
               key={key}
-              label={def.label?.ru ?? key}
-              hint={def.hint?.ru ?? ""}
+              label={setupText(def.label) || key}
+              hint={setupText(def.hint) || ""}
               value={params[key] ?? def.default ?? false}
               disabled={def.dependsOn ? !params[def.dependsOn] : false}
               onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-              info={def.info?.ru}
+              info={setupInfo(def.info)}
               onShowInfo={setActiveInfo}
             />
           );
@@ -2079,36 +2081,36 @@ export default function ParamsScreen() {
         <FigurePickerParam topicRecord={topicRecord} mode={mode} params={params} onChange={setParams} />
       </FigureDifficultyParam>
       <EnumParam
-        label="Как строить рисунок"
+        label={tr("setup.buildDrawing")}
         options={["directions", "coordinates"]}
-        labels={{ directions: "По направлениям", coordinates: "По координатам" }}
+        labels={{ directions: tr("setup.byDirection"), coordinates: tr("setup.byCoordinate") }}
         value={params.dictationCommand ?? "directions"}
         onChange={(v) => setParams((p) => ({ ...p, dictationCommand: v }))}
-        info={mode?.params?.dictationCommand?.info?.ru}
+        info={setupInfo(mode?.params?.dictationCommand?.info)}
         onShowInfo={setActiveInfo}
       />
       <div className="param-plate">
         <BooleanParam
-          label="Текст команды"
+          label={tr("setup.commandText")}
           value={params.showCommandText ?? true}
           onChange={(v) => setParams((p) => ({ ...p, showCommandText: v }))}
-          info={mode?.params?.showCommandText?.info?.ru}
+          info={setupInfo(mode?.params?.showCommandText?.info)}
           onShowInfo={setActiveInfo}
         />
         {(params.dictationCommand ?? "directions") === "directions" && (
           <BooleanParam
-            label="Стрелка направления"
+            label={tr("setup.directionArrow")}
             value={params.showArrow ?? true}
             onChange={(v) => setParams((p) => ({ ...p, showArrow: v }))}
-            info={mode?.params?.showArrow?.info?.ru}
+            info={setupInfo(mode?.params?.showArrow?.info)}
             onShowInfo={setActiveInfo}
           />
         )}
         <BooleanParam
-          label="Голосовая команда"
+          label={tr("setup.voiceCommand")}
           value={params.playCommandVoice ?? true}
           onChange={(v) => setParams((p) => ({ ...p, playCommandVoice: v }))}
-          info={mode?.params?.playCommandVoice?.info?.ru}
+          info={setupInfo(mode?.params?.playCommandVoice?.info)}
           onShowInfo={setActiveInfo}
         />
       </div>
@@ -2130,7 +2132,7 @@ export default function ParamsScreen() {
     <>
       {!modeHasCategoryParam && !mode?.hideConceptPicker && (
         <div className="param-row param-row--block">
-          <div className="param-label">Понятия</div>
+          <div className="param-label">{tr("setup.concepts")}</div>
           <div className="param-concept-col">
             <div className="param-concept-dots">
               {allConcepts.map((c) => (
@@ -2142,8 +2144,8 @@ export default function ParamsScreen() {
               ))}
             </div>
             <div className="param-concept-row">
-              <span className="param-hint">{selectedConceptIds.length} из {allConcepts.length} выбрано</span>
-              <button className="link-btn" onClick={() => setScreen("concepts")}>Изменить</button>
+              <span className="param-hint">{tr("setup.selectionOf", { selected: selectedConceptIds.length, total: allConcepts.length })}</span>
+              <button className="link-btn" onClick={() => setScreen("concepts")}>{tr("setup.edit")}</button>
             </div>
           </div>
         </div>
@@ -2157,15 +2159,15 @@ export default function ParamsScreen() {
       {showRangeFilter && (
         <div className="param-row param-row--block">
           <ParamLabel
-            label="Диапазон чисел"
+            label={tr("setup.numberRange")}
             info={{
-              text: "Сужает примеры до пар чисел ≤5 или пар, где хотя бы одно число больше 5 — быстрый выбор вместо ручного отбора карточек-понятий.",
-              tip: "Начните с «≤5», пока ребёнок считает на одной руке; переходите на «>5», когда счёт с переходом через пятёрку освоен.",
+              text: tr("setup.numberRangeInfo"),
+              tip: tr("setup.numberRangeTip"),
             }}
             onShowInfo={setActiveInfo}
           />
           <div className="param-enum-group">
-            {[{ key: "all", label: "Все" }, { key: "le5", label: "≤5" }, { key: "gt5", label: ">5" }].map(({ key, label }) => (
+            {[{ key: "all", label: tr("setup.all") }, { key: "le5", label: "≤5" }, { key: "gt5", label: ">5" }].map(({ key, label }) => (
               <button key={key}
                 className={`enum-btn enum-btn--compact ${activeCFilter === key ? "enum-btn--active" : ""}`}
                 onClick={() => applyConceptFilter(key)}>
@@ -2180,7 +2182,7 @@ export default function ParamsScreen() {
           return <DailyOrientationSettings params={params} setParams={setParams} student={student} onOpenImportantDates={openImportantDates} />;
         }
         function renderParam(key, def) {
-          if (def.type === "concept_selector") return null;
+          if (def.type === "concept_selector" || def.type === "content_language") return null;
           if (def.showWhen) {
             const [condKey, condVal] = Object.entries(def.showWhen)[0];
             if ((params[condKey] ?? mode.params?.[condKey]?.default) !== condVal) return null;
@@ -2192,33 +2194,33 @@ export default function ParamsScreen() {
             return (
               <NumberStepper
                 key={key}
-                label={def.label?.ru ?? key}
+                label={setupText(def.label) || key}
                 value={params[key] ?? def.default}
                 min={def.min}
                 max={def.max}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-                info={def.info?.ru}
+                info={setupInfo(def.info)}
                 onShowInfo={setActiveInfo}
                 disabled={isDisabled}
               />
             );
           }
-          if (def.type === "enum") {
+          if (def.type === "enum" || def.type === "content_language") {
             return (
               <EnumParam
                 key={key}
-                label={def.label?.ru ?? key}
+                label={setupText(def.label) || key}
                 options={def.values}
-                labels={def.labels?.ru}
+                labels={setupLabels(def.labels)}
                 value={params[key] ?? def.default}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
                 disabledValues={def.disabledValues}
                 disabled={isDisabled}
                 compact={def.compact}
-                info={def.info?.ru}
+                info={setupInfo(def.info)}
                 onShowInfo={setActiveInfo}
                 ordered={def.ordered === true}
-                hint={def.hint?.ru ?? ""}
+                hint={setupText(def.hint) || ""}
               />
             );
           }
@@ -2226,12 +2228,12 @@ export default function ParamsScreen() {
             return (
               <EnumMultiParam
                 key={key}
-                label={def.label?.ru ?? key}
+                label={setupText(def.label) || key}
                 options={def.values}
-                labels={def.labels?.ru}
+                labels={setupLabels(def.labels)}
                 value={params[key] ?? def.default ?? []}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-                info={def.info?.ru}
+                info={setupInfo(def.info)}
                 onShowInfo={setActiveInfo}
               />
             );
@@ -2240,12 +2242,12 @@ export default function ParamsScreen() {
             return (
               <NumberStepper
                 key={key}
-                label={def.label?.ru ?? key}
+                label={setupText(def.label) || key}
                 value={params[key] ?? def.default ?? def.min}
                 min={def.min}
                 max={def.max}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-                info={def.info?.ru}
+                info={setupInfo(def.info)}
                 onShowInfo={setActiveInfo}
               />
             );
@@ -2259,12 +2261,12 @@ export default function ParamsScreen() {
             return (
               <BooleanParam
                 key={key}
-                label={def.label?.ru ?? key}
-                hint={def.hint?.ru ?? ""}
+                label={setupText(def.label) || key}
+                hint={setupText(def.hint) || ""}
                 value={value}
                 disabled={(def.dependsOn ? !params[def.dependsOn] : false) || isLastDailyOrientationContent}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-                info={def.info?.ru}
+                info={setupInfo(def.info)}
                 onShowInfo={setActiveInfo}
               />
             );
@@ -2273,12 +2275,12 @@ export default function ParamsScreen() {
             return (
               <VisualBooleanParam
                 key={key}
-                label={def.label?.ru ?? key}
-                offLabel={def.offLabel?.ru ?? "Выкл"}
+                label={setupText(def.label) || key}
+                offLabel={setupText(def.offLabel) || tr("setup.off")}
                 value={params[key] ?? def.default ?? false}
                 disabled={def.dependsOn ? !params[def.dependsOn] : false}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
-                info={def.info?.ru}
+                info={setupInfo(def.info)}
                 onShowInfo={setActiveInfo}
               />
             );
@@ -2288,7 +2290,7 @@ export default function ParamsScreen() {
             return (
               <SentenceListParam
                 key={key}
-                label={def.label?.ru ?? key}
+                label={setupText(def.label) || key}
                 predefined={predefined}
                 value={params[key] ?? []}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
@@ -2300,7 +2302,7 @@ export default function ParamsScreen() {
             return (
               <TextListParam
                 key={key}
-                label={def.label?.ru ?? key}
+                label={setupText(def.label) || key}
                 predefined={predefined}
                 maxLength={def.maxLength}
                 value={params[key] ?? []}
@@ -2312,7 +2314,7 @@ export default function ParamsScreen() {
             return (
               <TextUploadParam
                 key={key}
-                label={def.label?.ru ?? key}
+                label={setupText(def.label) || key}
                 maxLength={def.maxLength}
                 value={params[key] ?? ""}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
@@ -2323,8 +2325,8 @@ export default function ParamsScreen() {
             return (
               <FreeTextParam
                 key={key}
-                label={def.label?.ru ?? key}
-                hint={def.hint?.ru}
+                label={setupText(def.label) || key}
+                hint={setupText(def.hint)}
                 value={params[key] ?? def.default ?? ""}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
                 rows={def.rows}
@@ -2336,7 +2338,7 @@ export default function ParamsScreen() {
             return (
               <LineListParam
                 key={key}
-                label={def.label?.ru ?? key}
+                label={setupText(def.label) || key}
                 maxLength={def.maxLength}
                 value={params[key] ?? [""]}
                 onChange={(v) => setParams((p) => ({ ...p, [key]: v }))}
@@ -2363,7 +2365,7 @@ export default function ParamsScreen() {
             {ungrouped.map(([key, def]) => renderParam(key, def))}
             {Object.entries(sectionMap).map(([sectionName, entries]) => (
               <div key={sectionName} className="param-section">
-                <div className="param-section__header">{sectionName}</div>
+                <div className="param-section__header">{setupText(sectionName)}</div>
                 {entries.map(([key, def]) => renderParam(key, def))}
               </div>
             ))}
@@ -2399,32 +2401,34 @@ export default function ParamsScreen() {
   // pictures is on (`startRequires` in topicLoader.js).
   const isOn = (key) => Boolean(params[key] ?? mode?.params?.[key]?.default);
   const unmetStartRequirement = (mode?.startRequires ?? []).find((req) => (!req.when || req.when.some(isOn)) && !req.anyOf.some(isOn));
-  const isStartDisabled = sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid) || isManualFigureSetTooSmall || Boolean(unmetStartRequirement);
+  const needsContentLanguage = Boolean(topicRecord?.languageContract) && !availableContentLanguages(topicRecord, mode?.id).includes(topicLanguageForStudent(topicRecord));
+  const isStartDisabled = needsContentLanguage || sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid) || isManualFigureSetTooSmall || Boolean(unmetStartRequirement);
 
   return (
     <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen(modeBackScreen)}><BackArrowIcon /></button>
         <h1 className="screen-title">{modeTitle}</h1>
-        <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
+        <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title={tr("mode.about")}>?</button>
       </div>
 
+      {needsContentLanguage && <div className="param-hint" role="alert"><p>{tr("topicLanguage.required")}</p><button className="link-btn" onClick={() => requestTopicLanguage({ record: topicRecord })}>{tr("topicLanguage.change")}</button></div>}
       <div className="params-layout">
         {/* Left info column — visible only on tablet via CSS */}
         <div className="params-info-col">
           <div className="params-info-topic">
-            {getTopicTitle(topicRecord.meta.title)}
+            {getInterfaceTopicTitle(topicRecord.meta.id, topicRecord.meta.title)}
           </div>
           <div className="params-info-mode">
             {modeTitle}
-            <button className="params-info-mode-btn" onClick={() => setShowModeInfo(true)} title="О режиме">?</button>
+            <button className="params-info-mode-btn" onClick={() => setShowModeInfo(true)} title={tr("mode.about")}>?</button>
           </div>
           {modeInstruction && (
             <div className="params-info-desc">{modeInstruction}</div>
           )}
           {modeGoal && (
             <div className="params-info-goal">
-              <span>Цель</span>
+              <span>{tr("setup.goal")}</span>
               {modeGoal}
             </div>
           )}
@@ -2437,7 +2441,7 @@ export default function ParamsScreen() {
             </div>
           )}
           <div className="params-info-start">
-            <Button fullWidth onClick={openPinGate} disabled={isStartDisabled}>Начать занятие</Button>
+            <Button fullWidth onClick={openPinGate} disabled={isStartDisabled}>{tr("setup.start")}</Button>
           </div>
         </div>
 
@@ -2446,19 +2450,19 @@ export default function ParamsScreen() {
           <div className="params-body">
             {paramsContent}
             {isManualFigureSetTooSmall && (
-              <div className="param-hint" role="alert">Для занятия с наградой выберите не меньше {MIN_FIGURES_FOR_REWARD} рисунков.</div>
+              <div className="param-hint" role="alert">{tr("setup.minimumFigures", { count: MIN_FIGURES_FOR_REWARD })}</div>
             )}
             {unmetStartRequirement && (
-              <div className="param-hint param-hint--start-required" role="alert">{unmetStartRequirement.message?.ru}</div>
+              <div className="param-hint param-hint--start-required" role="alert">{setupText(unmetStartRequirement.message)}</div>
             )}
             {isMyPeople && !myPeopleReady && (
               <div className="param-section" role="status">
                 <div className="param-section__header">
-                  {myPeopleReadiness.tab ? `Не хватает данных в «${MY_PEOPLE_SECTION_TITLE}»` : "Режим пока недоступен"}
+                  {myPeopleReadiness.tab ? tr("setup.missingPeople") : tr("setup.unavailable")}
                 </div>
                 <div className="param-hint">{myPeopleReadiness.reason}</div>
                 {myPeopleReadiness.tab && student && (
-                  <Button variant="secondary" onClick={openMyPeopleProfile}>Перейти к заполнению</Button>
+                  <Button variant="secondary" onClick={openMyPeopleProfile}>{tr("mode.setup")}</Button>
                 )}
               </div>
             )}
@@ -2466,21 +2470,21 @@ export default function ParamsScreen() {
 
           {hasVideos && isNavigatorFlashCards && (
             <div className="param-section">
-              <div className="param-section__header">Карточки — знакомство</div>
-              <div className="param-hint">Здесь ребёнок спокойно знакомится со стрелками, без оценки и видеонаграды. Для проверки и награды выберите «Выбери слово» или «Выбери стрелку».</div>
+              <div className="param-section__header">{tr("setup.flashcards")}</div>
+              <div className="param-hint">{tr("setup.flashcardsHelp")}</div>
             </div>
           )}
 
           {hasVideos && !hideVideoReward && !isAlphabetPairs && !isNavigatorFlashCards && !isPropis && !isShortStoriesReadingMode && (
             <div className="param-section">
-              <div className="param-section__header">Награда за занятие</div>
+              <div className="param-section__header">{tr("setup.reward")}</div>
 
               <div className="param-row">
                 <ParamLabel
-                  label="Видео-награда"
+                  label={tr("setup.videoReward")}
                   info={{
-                    text: "Включает показ бонусного видео ученику за успешную серию правильных ответов в этом занятии.",
-                    tip: "Выключите, если видео отвлекает ребёнка от задания сильнее, чем мотивирует.",
+                    text: tr("setup.videoRewardInfo"),
+                    tip: tr("setup.videoRewardTip"),
                   }}
                   onShowInfo={setActiveInfo}
                 />
@@ -2488,7 +2492,7 @@ export default function ParamsScreen() {
                   type="button"
                   role="switch"
                   aria-checked={videoReward}
-                  aria-label="Видео-награда"
+                  aria-label={tr("setup.videoReward")}
                   className={`param-toggle ${videoReward ? "param-toggle--on" : ""}`}
                   onClick={() => setVideoReward((v) => !v)}
                 />
@@ -2498,10 +2502,10 @@ export default function ParamsScreen() {
                 <>
                   <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
                     <ParamLabel
-                      label="Серия для видеонаграды"
+                      label={tr("setup.rewardSeries")}
                       info={{
-                        text: "Сколько правильных ответов подряд без ошибок нужно набрать, чтобы получить бонусное видео — отображается как 5 звёзд по пути.",
-                        tip: "Начните с 5, чтобы награда приходила быстро и не терялась мотивация; увеличивайте до 10-15 по мере уверенности ребёнка.",
+                        text: tr("setup.rewardSeriesInfo"),
+                        tip: tr("setup.rewardSeriesTip"),
                       }}
                       onShowInfo={setActiveInfo}
                     />
@@ -2521,14 +2525,14 @@ export default function ParamsScreen() {
 
                   <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
                     <ParamLabel
-                      label={forceStrictStars ? "Строгий подсчёт — обязателен" : "Строгий подсчёт"}
+                      label={forceStrictStars ? tr("setup.strictRequired") : tr("setup.strict")}
                       info={{
                         text: forceStrictStars
-                          ? "В этом режиме неверная точка всегда обнуляет серию звёзд: здесь важна последовательность точных ответов."
-                          : "В «Строго» любая ошибка — даже одна неверная цифра в отдельной клетке примера — сразу обнуляет серию для звёзд. В «Мягко» ошибки в клетках не сбрасывают серию, она растёт по мере решённых примеров.",
+                          ? tr("setup.strictCoordinatesInfo")
+                          : tr("setup.strictInfo"),
                         tip: forceStrictStars
-                          ? "Сначала закрепляйте уверенное чтение координат короткими сериями из пяти точных ответов."
-                          : "Для «Столбика» рекомендуем «Мягко» — ошибка в одной цифре трёхзначного числа при «Строго» может обнулить всю серию за один случайный тап.",
+                          ? tr("setup.strictCoordinatesTip")
+                          : tr("setup.strictTip"),
                       }}
                       onShowInfo={setActiveInfo}
                     />
@@ -2536,7 +2540,7 @@ export default function ParamsScreen() {
                       type="button"
                       role="switch"
                       aria-checked={strictStars}
-                      aria-label="Строгий подсчёт"
+                      aria-label={tr("setup.strict")}
                       className={`param-toggle ${strictStars ? "param-toggle--on" : ""}`}
                       disabled={!videoReward || forceStrictStars}
                       onClick={() => setStrictStars((v) => !v)}
@@ -2549,7 +2553,7 @@ export default function ParamsScreen() {
 
           {/* Start button — phone only, hidden on tablet via CSS */}
           <div className="params-start-phone">
-            <Button fullWidth onClick={openPinGate} disabled={isStartDisabled}>Начать занятие</Button>
+            <Button fullWidth onClick={openPinGate} disabled={isStartDisabled}>{tr("setup.start")}</Button>
           </div>
         </div>
       </div>
@@ -2564,7 +2568,7 @@ export default function ParamsScreen() {
         <Modal title={activeInfo.title} onClose={() => setActiveInfo(null)}>
           <p className="info-modal-text">{activeInfo.text}</p>
           {activeInfo.tip && (
-            <div className="info-modal-tip"><b>Совет:</b> {activeInfo.tip}</div>
+            <div className="info-modal-tip"><b>{tr("setup.tip")}</b> {activeInfo.tip}</div>
           )}
         </Modal>
       )}

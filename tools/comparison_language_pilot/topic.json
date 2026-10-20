@@ -1,0 +1,253 @@
+{
+  "meta": {
+    "id": "comparison_language_pilot",
+    "version": "0.5.0",
+    "renderer": "comparison_language_pilot",
+    "title": {
+      "ru": "Сравнение · языковой пилот",
+      "sl": "Primerjanje · jezikovni pilot"
+    },
+    "minAppVersion": "1.0.2676",
+    "avatar": "media/avatar.svg"
+  },
+  "sourceCopy": {
+    "topicId": "comparison",
+    "topicVersion": "2.37.0",
+    "appCommit": "cef0fc5c1cda6fec2ea504115a4a0816b1fcf84f",
+    "scope": [
+      "compare_visual",
+      "compare_sign",
+      "compare_draw_sign"
+    ]
+  },
+  "languageContract": {
+    "schemaVersion": 1,
+    "ui": {
+      "ru": "ui/ru.json",
+      "sl": "ui/sl.json"
+    },
+    "packages": {
+      "ru": {
+        "packageId": "comparison_language_pilot.ru",
+        "version": "0.5.0",
+        "file": "content/ru.json",
+        "modeIds": [
+          "compare_visual",
+          "compare_sign",
+          "compare_draw_sign"
+        ],
+        "audio": "recorded",
+        "download": {
+          "url": "./decks/languages/comparison_language_pilot/ru_v0.5.0.zip",
+          "bytes": 16342,
+          "sha256": "ccec8a8979223f0d0553fb6ad4d05651e0961c38eca353f1c91597c8a9b4f5d0"
+        },
+        "audioScope": "feedback"
+      },
+      "sl": {
+        "packageId": "comparison_language_pilot.sl",
+        "version": "0.5.0",
+        "file": "content/sl.json",
+        "modeIds": [
+          "compare_visual",
+          "compare_sign",
+          "compare_draw_sign"
+        ],
+        "audio": "none",
+        "download": {
+          "url": "./decks/languages/comparison_language_pilot/sl_v0.5.0.zip",
+          "bytes": 783,
+          "sha256": "51544e8a6ad89326139a887d25aacb28f2a8fef981a1d1445bfb0355fd7b37df"
+        }
+      }
+    },
+    "selectionScope": "topic",
+    "delivery": {
+      "version": 1,
+      "coreUrl": "./decks/comparison_language_pilot_v0.5.0.zip"
+    }
+  },
+  "modes": [
+    {
+      "id": "compare_visual",
+      "type": "compare_visual",
+      "evaluation": "auto",
+      "defaultCardId": "pilot_visual",
+      "hideConceptPicker": true,
+      "params": {
+        "level": {
+          "type": "enum",
+          "values": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "default": 1
+        },
+        "question": {
+          "type": "enum",
+          "values": [
+            "more",
+            "less",
+            "mix"
+          ],
+          "default": "more"
+        },
+        "showEqual": {
+          "type": "boolean",
+          "default": false
+        },
+        "visualMode": {
+          "type": "enum",
+          "values": [
+            "dots",
+            "dots_numbers",
+            "numbers",
+            "pairing"
+          ],
+          "default": "dots"
+        }
+      },
+      "contentKeys": [
+        "prompt.dots.more",
+        "prompt.dots.less",
+        "prompt.dots_numbers.more",
+        "prompt.dots_numbers.less",
+        "prompt.numbers.more",
+        "prompt.numbers.less",
+        "prompt.pairing.more",
+        "prompt.pairing.less",
+        "equal.hint",
+        "equal.numbersHint",
+        "equal.label",
+        "verdict.more",
+        "verdict.less",
+        "verdict.equal"
+      ],
+      "ui": {
+        "icon": "media/avatar.svg"
+      },
+      "paramsScope": "mode",
+      "legacyParamsScope": "topic",
+      "cardIds": [
+        "pilot_visual"
+      ]
+    },
+    {
+      "id": "compare_sign",
+      "type": "compare_sign",
+      "evaluation": "auto",
+      "defaultCardId": "pilot_sign",
+      "hideConceptPicker": true,
+      "params": {
+        "level": {
+          "type": "enum",
+          "values": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "default": 2
+        },
+        "question": {
+          "type": "enum",
+          "values": [
+            "more",
+            "less",
+            "mix"
+          ],
+          "default": "more"
+        },
+        "showEqual": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "contentKeys": [
+        "prompt.sign.more",
+        "prompt.sign.less",
+        "prompt.sign.equal",
+        "sign.crocTip",
+        "equal.label",
+        "verdict.more",
+        "verdict.less",
+        "verdict.equal"
+      ],
+      "ui": {
+        "icon": "media/avatar.svg"
+      },
+      "paramsScope": "mode",
+      "cardIds": [
+        "pilot_sign"
+      ]
+    },
+    {
+      "id": "compare_draw_sign",
+      "type": "compare_draw_sign",
+      "evaluation": "auto",
+      "defaultCardId": "pilot_draw",
+      "hideConceptPicker": true,
+      "params": {
+        "level": {
+          "type": "enum",
+          "values": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "default": 2
+        },
+        "showEqual": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "contentKeys": [
+        "prompt.draw",
+        "draw.canvasLabel",
+        "verdict.draw.more",
+        "verdict.draw.less",
+        "verdict.draw.equal"
+      ],
+      "ui": {
+        "icon": "media/avatar.svg"
+      },
+      "paramsScope": "mode",
+      "cardIds": [
+        "pilot_draw"
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "id": "pilot_visual",
+      "conceptId": "pilot_visual",
+      "primary": true,
+      "label": {
+        "ru": "Сравнение количеств",
+        "sl": "Primerjanje količin"
+      }
+    },
+    {
+      "id": "pilot_sign",
+      "conceptId": "pilot_sign",
+      "primary": true,
+      "label": {
+        "ru": "Сравнение чисел со знаком",
+        "sl": "Primerjanje števil z znakom"
+      }
+    },
+    {
+      "id": "pilot_draw",
+      "conceptId": "pilot_draw",
+      "primary": true,
+      "label": {
+        "ru": "Рисование знака сравнения",
+        "sl": "Risanje primerjalnega znaka"
+      }
+    }
+  ]
+}

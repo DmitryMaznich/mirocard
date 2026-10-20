@@ -1,3 +1,4 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useEffect } from "react";
 import { useAppStore } from "@/core/store";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
@@ -9,6 +10,7 @@ import { BackArrowIcon } from "@/shared/components/ArrowIcons";
 // reassuring transition before the status-poll screen, plus an explicit
 // fallback in case that auto-open was blocked or the tab got closed.
 export default function CheckoutRedirectScreen() {
+  const { t: tr } = useUiTranslation();
   const checkoutUrl = useAppStore((s) => s.checkoutUrl);
   const setScreen = useAppStore((s) => s.setScreen);
 
@@ -29,15 +31,13 @@ export default function CheckoutRedirectScreen() {
       <div className="checkout-transition__center">
         <div className="checkout-spinner" />
         <div>
-          <div className="checkout-transition__title">Открываем страницу оплаты…</div>
-          <div className="checkout-transition__sub">Если страница оплаты не открылась<br />в новой вкладке, нажмите кнопку ниже.</div>
+          <div className="checkout-transition__title">{tr("billing.opening")}</div>
+          <div className="checkout-transition__sub">{tr("billing.openingHelp")}</div>
         </div>
-        <div className="checkout-lock-note">Данные карты нам не передаются</div>
+        <div className="checkout-lock-note">{tr("billing.cardPrivacy")}</div>
       </div>
       <div className="subscription-footer">
-        <button type="button" className="btn btn-secondary" disabled={!checkoutUrl} onClick={openManually}>
-          Открыть оплату
-        </button>
+        <button type="button" className="btn btn-secondary" disabled={!checkoutUrl} onClick={openManually}>{tr("billing.open")}</button>
       </div>
     </div>
   );
