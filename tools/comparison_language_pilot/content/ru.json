@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "language": "ru",
+  "packageId": "comparison_language_pilot.ru",
+  "version": "0.1.0",
+  "audio": "none",
+  "messages": {
+    "prompt.dots.more": "Где больше точек?",
+    "prompt.dots.less": "Где меньше точек?",
+    "prompt.dots_numbers.more": "Где больше?",
+    "prompt.dots_numbers.less": "Где меньше?",
+    "prompt.numbers.more": "Какое число больше?",
+    "prompt.numbers.less": "Какое число меньше?",
+    "prompt.pairing.more": "Раздели точки на пары, потом покажи, где больше",
+    "prompt.pairing.less": "Раздели точки на пары, потом покажи, где меньше",
+    "equal.hint": "Если одинаково — нажми посередине",
+    "equal.numbersHint": "Если числа одинаковые — нажми жёлтый квадрат",
+    "equal.label": "Одинаково",
+    "verdict.more": "{{larger}} больше {{smaller}}",
+    "verdict.less": "{{smaller}} меньше {{larger}}",
+    "verdict.equal": "{{left}} = {{right}}"
+  }
+}

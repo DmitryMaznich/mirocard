@@ -1,3 +1,4 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { RENDERER_REGISTRY } from "@/topics/registry";
@@ -40,6 +41,7 @@ export function shouldPreferBundledRenderer(renderer) {
 }
 
 export default function SessionScreen() {
+  const { language: uiLanguage, t } = useUiTranslation();
   const setScreen             = useAppStore((s) => s.setScreen);
   const sessionReturnScreen    = useAppStore((s) => s.sessionReturnScreen);
   const setSessionReturnScreen = useAppStore((s) => s.setSessionReturnScreen);
@@ -253,8 +255,8 @@ export default function SessionScreen() {
     return (
       <div className="session-screen">
         <div className="screen-center" style={{ gap: 16, padding: 24, textAlign: "center" }}>
-          <div>Нет данных для сессии</div>
-          <button className="btn btn--secondary" onClick={() => setScreen("home")}><BackArrowIcon size={16} /> На главную</button>
+          <div>{topicRecord?.languageContract ? t("setup.contentLanguageRequired") : "Нет данных для сессии"}</div>
+          <button className="btn btn--secondary" onClick={() => setScreen(topicRecord?.languageContract ? "params" : "home")}><BackArrowIcon size={16} /> {topicRecord?.languageContract ? t("nav.settings") : "На главную"}</button>
         </div>
       </div>
     );
@@ -268,8 +270,8 @@ export default function SessionScreen() {
     ? (pillFlash === "correct" ? "answer_correct" : "answer_incorrect")
     : status;
 
-  const topicTitle = getTopicTitle(topicRecord.meta.title) || topicRecord.meta.id;
-  const modeTitle  = getTopicTitle(mode.ui?.title) || mode.id;
+  const topicTitle = getTopicTitle(topicRecord.meta.title, topicRecord.languageContract ? uiLanguage : "ru") || topicRecord.meta.id;
+  const modeTitle  = getTopicTitle(mode.ui?.title, topicRecord.languageContract ? uiLanguage : "ru") || mode.id;
 
   const isNavigatorFlashCards = topicRecord.meta.id === "symmetry_draw"
     && mode.id === "navigator_learning"
@@ -349,6 +351,8 @@ export default function SessionScreen() {
             topicId={topicRecord.meta.id}
             topicRecord={topicRecord}
             sessionParams={sessionParams}
+            uiLanguage={uiLanguage}
+            languageContext={sessionState.languageContext}
             student={activeStudent}
             soundEnabled={soundEnabled}
             playFeedback={playFeedback}

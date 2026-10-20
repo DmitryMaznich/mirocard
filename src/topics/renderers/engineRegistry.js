@@ -24,7 +24,10 @@ import { generateTasks as propis2Engine }              from "./propis2/engine.js
 import { generateTasks as myPeopleEngine }             from "./my_people/engine.js";
 import { generateTasks as dailyOrientationEngine }     from "./daily_orientation/engine.js";
 
+import { generateTasks as comparisonLanguagePilotEngine } from "./comparison_language_pilot/engine.js";
+
 export const ENGINE_REGISTRY = {
+  comparison_language_pilot: comparisonLanguagePilotEngine,
   flashcards:            flashcardsEngine,
   comparison:            comparisonEngine,
   math_houses:           mathHousesEngine,

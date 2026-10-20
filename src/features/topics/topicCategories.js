@@ -11,6 +11,7 @@ export const CATALOG_CATEGORIES = {
   vowel_consonant_ru:       "Чтение",
   magnetic_alphabet:        "Чтение",
   comparison:               "Математика",
+  comparison_language_pilot: "Математика",
   math_houses:              "Математика",
   addition_subtraction:     "Математика",
   place_value:              "Математика",
