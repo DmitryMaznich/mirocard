@@ -13,7 +13,7 @@ corners and refit as cubics, then made as tall as a capital (y -42..62, base 62)
 lowest point stands on the baseline. A letter that ends inside its bowl (Ъ) gets the connector of Б: a separate stroke from under
 the bowl to the middle of the band, drawn only when another letter follows (`tailStroke`).
 """
-import json, math, re, sys
+import json, math, re, sys, unicodedata
 from pathlib import Path
 import numpy as np
 
@@ -3180,6 +3180,8 @@ def main():
         g["noLiftExit"] = True
         if g["label"].islower(): g["noNormalize"] = True   # on the deck's paper already (к, from a capture, was rescaled by the engine)
     for g in made: bottom_tail(g)   # after every mid_joins: it takes и's finished exit hook
+    by = {g["label"]: g for g in made}
+    made += [grave_from(by["й"], "ѝ"), grave_from(by["Й"], "Ѝ")]
     keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made} | DROPPED]
     variant["glyphs"] = keep + made
     VARIANT.write_text(json.dumps(variant, ensure_ascii=False, indent=2) + "\n")
@@ -3194,6 +3196,42 @@ def main():
     STENCIL_AT.write_text(json.dumps({"note": "upright x range of each snapped letter before snapping (build_glyphs.py)", "at": at}, ensure_ascii=False, indent=1) + "\n")
     print("mid:", "; ".join(MID_LOG))
     print(f"{len(made)} glyphs -> {VARIANT}: {', '.join(m['label'] for m in made)}")
+
+
+# GRAVE: Boyan's ѝ (uni045D; the font has no Ѝ) next to its й breve, measured once off the font's outlines (font units, y up, in
+# и's frame): the grave runs 144 long (its whole outline: the font's pen is three times ours, so its centre line, 76, came out a dot
+# under our pen) on (-0.409, 0.912) from its bottom right up to the top left, its middle 14 left of the breve's; the breve's centre
+# line is 184 wide (outline 252 less the pen)
+GRAVE = {"len": 144.0, "dir": (-0.409, 0.912), "dx": -14.1, "breve_w": 184.0}
+
+
+def grave_from(g, label):
+    """ѝ / Ѝ (owner, 2026-10-20: the Bulgarian keyboard has it): our й / Й with its breve swapped for the font's grave, as big as
+    the breve is (to the font's proportion), its middle as the font sets it, its bottom where the breve's is (just on the line).
+    Measured where it is seen: the engine widens every glyph by its `stretch` about the 65deg slant (wordEngine
+    stretchKeepSlantPathD), so the grave is set there and carried back; set on the stored points it came out flat."""
+    st, t, yb = g.get("stretch", 1.0), math.tan(math.radians(25)), 62.0
+    fwd = lambda x, y: st * x - (st - 1) * t * (yb - y)
+    back = lambda X, y: (X + (st - 1) * t * (yb - y)) / st
+    br = dg.resample(np.array(tt.parse_path(g["strokes"][-1]["d"])), 0.2)
+    bx = np.array([fwd(x, y) for x, y in br])
+    k = (bx.max() - bx.min()) / GRAVE["breve_w"]
+    half = GRAVE["len"] * k / 2
+    ux, uy = -GRAVE["dir"][0], GRAVE["dir"][1]          # down the stroke, on paper (y down): to the right and down
+    cx = (bx.min() + bx.max()) / 2 + GRAVE["dx"] * k
+    cy = br[:, 1].max() - half * uy
+    a, b = (cx - half * ux, cy - half * uy), (cx + half * ux, cy + half * uy)
+    a, b = (back(*a), a[1]), (back(*b), b[1])
+    c1 = (a[0] + (b[0] - a[0]) / 3, a[1] + (b[1] - a[1]) / 3)
+    c2 = (a[0] + 2 * (b[0] - a[0]) / 3, a[1] + 2 * (b[1] - a[1]) / 3)
+    out = json.loads(json.dumps(g))
+    out["label"] = label
+    # a cubic, not an L: stretchKeepSlantPathD reads only M and C
+    out["strokes"][-1] = {"d": "M {:.2f} {:.2f} C {:.2f} {:.2f} {:.2f} {:.2f} {:.2f} {:.2f}".format(*a, *c1, *c2, *b)}
+    out["sourceLabel"] = f"{label}: {g['label']} с ударением шрифта Boyan Maga вместо краткой"
+    # a keyboard that types it as и + the combining grave (U+0300) gets the same letter (labels are matched greedily, 4 chars)
+    out["aliases"] = [unicodedata.normalize("NFD", label)]
+    return out
 
 
 if __name__ == "__main__":

@@ -97,6 +97,12 @@ describe("propis2 variant: Bulgarian", () => {
     for (const ch of "ъЪюЮяЯщЩ") expect(map.get(ch), ch).toBeTruthy();
   });
 
+  it("writes ѝ / Ѝ (the Bulgarian keyboard has them), typed whole or as и + the combining grave (2026-10-20)", async () => {
+    const map = buildGlyphMap(await installed());
+    for (const ch of ["ѝ", "Ѝ", "и\u0300", "И\u0300"]) expect(map.get(ch)?.strokes.length, ch).toBe(2);
+    expect(map.get("и\u0300")).toBe(map.get("ѝ"));
+  });
+
   it("Ъ is written: a capital as tall as the others, and «Ъгъл» starts with it, joined to the г", async () => {
     const rec = await installed();
     const map = buildGlyphMap(rec);
