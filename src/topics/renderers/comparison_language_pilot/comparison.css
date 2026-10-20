@@ -77,3 +77,24 @@
 
 @keyframes pilot-shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-6px); } 50% { transform: translateX(6px); } }
 @keyframes pilot-fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Number comparison / crocodile, isolated from the original topic. */
+.pilot-compare-sign-row {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(6px, 2.5vw, 16px); width: 100%; max-width: 420px;
+}
+.pilot-compare-croc-area { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+.pilot-croc-tap-btn { all: unset; display: inline-flex; flex-direction: column; align-items: center; cursor: pointer; border-radius: 50%; padding: 4px; transition: transform 0.15s; }
+.pilot-croc-tap-btn:hover  { transform: scale(1.1); }
+.pilot-croc-tap-btn:active { transform: scale(0.95); }
+.pilot-compare-croc-tip {
+  display: flex; align-items: center; gap: 10px;
+  background: #e8f5e9; border: 2px solid #66bb6a; border-radius: 16px;
+  padding: 6px 18px 6px 6px; max-width: 400px; width: 100%;
+}
+.pilot-compare-croc-tip__icon { flex-shrink: 0; line-height: 0; margin-top: 6px; }
+.pilot-compare-croc-tip__text { margin: 0; color: #1b5e20; font-size: clamp(13px, 2.8vw, 17px); font-weight: 600; line-height: 1.35; }
+.pilot-compare-croc-tip__text strong { color: #2e7d32; font-size: 1.12em; font-weight: 800; }
+
+
+@media (min-width: 768px) { .pilot-compare-sign-row { max-width: 720px; gap: 24px; } }
