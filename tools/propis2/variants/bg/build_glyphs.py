@@ -1858,23 +1858,24 @@ def l_lower(strokes, k=0, sigma=5.0, tol=0.1, label=None):
     # the smoothing lifts the bottoms (and the font's own tops sit a little apart): every run between a top and a bottom
     # stretched along the slant so the tops lie on the x-line and the bottoms on the baseline; the ends stay free
     from scipy.signal import find_peaks
+    top = tt.X_TOP + INK_W * CAP_K / 2   # the tops' ink just touches the x-line, as the font's does (not the pen's centre on it)
     pr = 0.2 * (tt.BASE - tt.X_TOP)
-    ext = sorted([(i, tt.BASE) for i in find_peaks(p[:, 1], prominence=pr)[0]] + [(i, tt.X_TOP) for i in find_peaks(-p[:, 1], prominence=pr)[0]])
+    ext = sorted([(i, tt.BASE) for i in find_peaks(p[:, 1], prominence=pr)[0]] + [(i, top) for i in find_peaks(-p[:, 1], prominence=pr)[0]])
     y, ny = p[:, 1], p[:, 1].copy()
     for (i, yi), (j, yj) in zip(ext, ext[1:]):   # inner runs: one turn to the other, linearly
         ny[i:j + 1] = yi + (y[i:j + 1] - y[i]) * (yj - yi) / (y[j] - y[i])
     for i, yi in ext[:1] + ext[-1:]:             # the end runs: stretched from the x-line so only their turn moves
         r = slice(0, i + 1) if i == ext[0][0] else slice(i, len(p))
         if yi == tt.BASE:
-            ny[r] = tt.X_TOP + (y[r] - tt.X_TOP) * (tt.BASE - tt.X_TOP) / (y[i] - tt.X_TOP)
+            ny[r] = top + (y[r] - top) * (tt.BASE - top) / (y[i] - top)
         else:   # a top whose bottom is too shallow to count as a turn (м's last hook): that bottom onto the baseline too
-            ny[r] = tt.X_TOP + (y[r] - y[i]) * (tt.BASE - tt.X_TOP) / (y[r].max() - y[i])
+            ny[r] = top + (y[r] - y[i]) * (tt.BASE - top) / (y[r].max() - y[i])
     dy = ny - y
     p = np.c_[p[:, 0] - dy * tt.SLANT_T, ny]
     if label:   # the start and the end exactly where the font's start and end are (owner: «точки начала и окончания ... точно по образцу»)
         i0, i1 = ext[0][0], ext[-1][0]   # the move fades out at the bottom next to each end (м's last one too shallow to be in ext)
-        if ext[0][1] == tt.X_TOP: i0 = int(np.argmax(p[:i0 + 1, 1]))
-        if ext[-1][1] == tt.X_TOP: i1 = i1 + int(np.argmax(p[i1:, 1]))
+        if ext[0][1] == top: i0 = int(np.argmax(p[:i0 + 1, 1]))
+        if ext[-1][1] == top: i1 = i1 + int(np.argmax(p[i1:, 1]))
         p = _ends_on_font(p, label, i0, i1)
     out = list(strokes)
     out[k] = _fit_corners(p, c, tol=tol)
