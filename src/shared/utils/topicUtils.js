@@ -79,7 +79,10 @@ export function withFigureFilter(params = {}, mode, filter) {
 // cards that mode never uses. Every other renderer keeps one card set per
 // mode already, so this is a no-op for them.
 export function getConceptCards(topicRecord, mode, params = {}) {
-  const cards = topicRecord?.cards ?? [];
+  const allCards = topicRecord?.cards ?? [];
+  const cards = Array.isArray(mode?.cardIds)
+    ? allCards.filter((card) => mode.cardIds.includes(card.id))
+    : allCards;
   if (topicRecord?.meta?.renderer === "word_agreement" && mode?.type) {
     return cards.filter((c) => c.skill === mode.type);
   }
@@ -192,7 +195,13 @@ export function readModeParams(savedParams, mode) {
   const defaults = Object.fromEntries(Object.entries(mode.params ?? {})
     .filter(([, def]) => def?.default !== undefined)
     .map(([key, def]) => [key, def.default]));
-  return { ...defaults, ...(saved.byMode?.[mode.id] ?? {}) };
+  const scoped = saved.byMode?.[mode.id];
+  // Explicit opt-in for a topic upgrading from one shared mode to several.
+  // Copy only declared controls so byMode cannot recursively nest into itself.
+  const legacy = mode.legacyParamsScope === "topic" && scoped === undefined
+    ? Object.fromEntries(Object.keys(mode.params ?? {}).filter((key) => Object.hasOwn(saved, key)).map((key) => [key, saved[key]]))
+    : {};
+  return { ...defaults, ...legacy, ...(scoped ?? {}) };
 }
 
 export function writeModeParams(savedParams, mode, params) {

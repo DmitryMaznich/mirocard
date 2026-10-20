@@ -31,6 +31,7 @@ export function buildBootstrap(db, accountId) {
     settings: {
       uiLanguage:       settings?.ui_language ?? "ru",
       cardLanguage:     settings?.card_language ?? "ru",
+      languageRevision: settings?.language_revision ?? 0,
       adultPinHash:     settings?.adult_pin_hash ?? null,
       pushAppUpdates:   Boolean(settings?.push_app_updates ?? 1),
       pushTopicUpdates: Boolean(settings?.push_topic_updates ?? 1),
@@ -42,6 +43,7 @@ export function buildBootstrap(db, accountId) {
       name:            s.name,
       comment:         s.comment,
       primaryLanguage: s.primary_language,
+      preferredLessonLanguage: s.preferred_lesson_language ?? null,
       sex:             s.sex ?? null,
       photo:           s.photo ?? null,
       photoUpdatedAt:  s.photo_updated_at ?? null,
@@ -76,6 +78,9 @@ export function buildBootstrap(db, accountId) {
       params:             safeJson(l.params, {}),
       videoRewardEnabled: Boolean(l.video_reward_enabled ?? 1),
       rewardThreshold:    l.reward_threshold ?? 90,
+      answersPerStar:     l.answers_per_star ?? null,
+      strictStars:        l.strict_stars == null ? null : Boolean(l.strict_stars),
+      deckPosition:       l.deck_position ?? null,
       updatedAt:          l.updated_at,
     })),
     conceptProgress: conceptProgress.map((p) => ({

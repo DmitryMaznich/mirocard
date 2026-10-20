@@ -1,3 +1,4 @@
+import TopicLanguageDialog from "@/features/topics/TopicLanguageDialog.jsx";
 import { useCallback, useEffect, useRef, Component } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
@@ -10,6 +11,8 @@ import { useBackButtonGuard } from "@/shared/hooks/useBackButtonGuard";
 import { getActiveOrientationLock } from "@/shared/utils/orientationLock";
 import { clearActiveSessionSnapshot as clearPersistedActiveSessionSnapshot, canResumeActiveSession } from "@/features/session/activeSession";
 import { requestStoragePersistence } from "@/core/storagePersistence";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
+import { translateUi } from "@/shared/i18n/uiLanguage.js";
 
 import LoginScreen from "@/features/account/LoginScreen";
 import RegisterScreen from "@/features/account/RegisterScreen";
@@ -17,6 +20,8 @@ import VerifyEmailSentScreen from "@/features/account/VerifyEmailSentScreen";
 import VerifyEmailScreen from "@/features/account/VerifyEmailScreen";
 import GoogleCompleteProfileScreen from "@/features/account/GoogleCompleteProfileScreen";
 import { handleGoogleCode } from "@/features/account/googleSignIn";
+import { googleAuthErrorKey } from "@/features/account/authErrors";
+import { loginDiagnosticCode } from "@/features/account/loginDiagnostics";
 import ForgotPasswordScreen from "@/features/account/ForgotPasswordScreen";
 import ResetPasswordScreen from "@/features/account/ResetPasswordScreen";
 import HomeScreen from "@/features/home/HomeScreen";
@@ -54,8 +59,8 @@ import SubscriptionScreen from "@/features/billing/SubscriptionScreen";
 import CheckoutRedirectScreen from "@/features/billing/CheckoutRedirectScreen";
 import CheckoutReturnScreen from "@/features/billing/CheckoutReturnScreen";
 
-function BootScreen() { return <div className="screen-center">Загрузка…</div>; }
-function NotFoundScreen() { return <div className="screen-center">Экран не найден</div>; }
+function BootScreen() { const { t } = useUiTranslation(); return <div className="screen-center">{t("common.loading")}</div>; }
+function NotFoundScreen() { const { t } = useUiTranslation(); return <div className="screen-center">{t("common.notFound")}</div>; }
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -64,7 +69,7 @@ class ErrorBoundary extends Component {
     if (this.state.error) {
       return (
         <div style={{ padding: 24, fontFamily: "monospace", whiteSpace: "pre-wrap", color: "red" }}>
-          <strong>Ошибка рендера:</strong>{"\n"}
+          <strong>{translateUi("common.renderError")}</strong>{"\n"}
           {String(this.state.error)}{"\n\n"}
           {this.state.error?.stack}
         </div>
@@ -224,12 +229,12 @@ export default function App() {
     if (googleCode || googleError) {
       window.history.replaceState({}, "", "/");
       if (googleError) {
-        useAppStore.setState({ authNotice: "Не получилось войти через Google. Попробуйте ещё раз или войдите по почте." });
+        useAppStore.setState({ authNotice: { key: "auth.googleFailed", diagnostic: loginDiagnosticCode(null, "google-callback") } });
         setScreen("login");
         return;
       }
-      handleGoogleCode(googleCode).catch(() => {
-        useAppStore.setState({ authNotice: "Ссылка входа через Google устарела. Нажмите «Войти через Google» ещё раз." });
+      handleGoogleCode(googleCode).catch((error) => {
+        useAppStore.setState({ authNotice: { key: googleAuthErrorKey(error), diagnostic: loginDiagnosticCode(error, "google-exchange") } });
         setScreen("login");
       });
       return;
@@ -281,6 +286,7 @@ export default function App() {
                 api.get("/account/bootstrap"),
                 api.get("/sessions?limit=200"),
               ]);
+              if (useAppStore.getState().token !== bootstrap.token) return;
               console.log(`[boot] serverBootstrap ${(performance.now()-_t2).toFixed(0)}ms (students:${serverBootstrap.students?.length}, sessions:${sessionsRaw?.length})`);
               const localStudents = useAppStore.getState().students;
               const merged = mergeStudents(localStudents, serverBootstrap.students);
@@ -301,7 +307,7 @@ export default function App() {
               const _t3 = performance.now();
               await persistBootstrap(db, payload);
               console.log(`[boot] persistBootstrap ${(performance.now()-_t3).toFixed(0)}ms`);
-              applyBootstrapToStore(payload);
+              if (useAppStore.getState().token === bootstrap.token) applyBootstrapToStore(payload);
             } catch (err) {
               if (err?.status === 401) setScreen("login");
             }
@@ -310,7 +316,8 @@ export default function App() {
         } else {
           setScreen("login");
         }
-      } catch {
+      } catch (error) {
+        useAppStore.setState({ authNotice: { key: "auth.loginFailed", diagnostic: loginDiagnosticCode(error, "boot-local") } });
         setScreen("login");
       }
     })();
@@ -328,17 +335,23 @@ export default function App() {
     let lastSyncAt = 0;
     let syncing = false;
     async function syncFromServer({ force = false } = {}) {
-      if (!useAppStore.getState().token) return;
+      const syncToken = useAppStore.getState().token;
+      if (!syncToken) return;
       if (syncing) return;
       if (!force && Date.now() - lastSyncAt < 15_000) return;
       syncing = true;
       lastSyncAt = Date.now();
       try {
         const db = await getDb();
+        // Push queued local edits before pulling: the pull replaces topic
+        // links, settings and kv values wholesale, so pulling first briefly
+        // reverts an edit whose upload had failed (offline, 5xx) on this device.
+        await flushQueue().catch(() => {});
         const [serverBootstrap, sessionsRaw] = await Promise.all([
           api.get("/account/bootstrap"),
           api.get("/sessions?limit=200"),
         ]);
+        if (useAppStore.getState().token !== syncToken) return;
         const localStudents = useAppStore.getState().students;
         const merged = mergeStudents(localStudents, serverBootstrap.students);
         const payload = {
@@ -356,11 +369,11 @@ export default function App() {
           kvStore: serverBootstrap.kvStore,
         };
         await persistBootstrap(db, payload);
-        applyBootstrapToStore(payload);
+        if (useAppStore.getState().token === syncToken) applyBootstrapToStore(payload);
       } catch {
         // A temporary network failure must not interrupt local use.
       }
-      syncing = false;
+      finally { syncing = false; }
       flushQueue().catch(() => {});
     }
     // Visibility change always syncs immediately — user explicitly switched to this device.
@@ -385,6 +398,7 @@ export default function App() {
       <ErrorBoundary key={screen}>
         <Screen />
       </ErrorBoundary>
+      <TopicLanguageDialog />
       <OrientationGuard orientationLock={orientationLock} />
       {screen !== "boot" && screen !== "session" && <InstallBanner />}
     </>

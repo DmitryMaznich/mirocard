@@ -5,12 +5,12 @@
       "ru": "Глаголы",
       "en": "verbs_v2"
     },
-    "version": "2.1.1",
+    "version": "2.3.0",
     "renderer": "flashcards",
-    "conceptCount": 20,
+    "conceptCount": 44,
     "questionKey": "Что делает?",
     "about": {
-      "description": "Двадцать частотных действий из жизни ребёнка: ест, пьёт, спит, бежит, прыгает, рисует и другие. Для каждого — пара «мальчик и мама», где меняется только действие, и разные картинки: другие люди, предметы, места и рисунки, чтобы ребёнок узнавал само действие. Тема рассчитана в том числе на минимально вербальных детей: основные режимы — выбор картинки по слову.",
+      "description": "Сорок четыре частотных действия из жизни ребёнка: ест, пьёт, спит, сидит, даёт, открывает, берёт, пишет и другие. Для каждого — пара «мальчик и мама», где меняется только действие (у «летит» — птица и бабочка), и разные картинки: другие люди, предметы, места и рисунки, чтобы ребёнок узнавал само действие. Тема рассчитана в том числе на минимально вербальных детей: основные режимы — выбор картинки по слову.",
       "goals": [
         "Понимать глагол на слух: по слову находить картинку с этим действием.",
         "Узнавать действие независимо от исполнителя и изображения и отличать его от похожих действий.",
@@ -18,14 +18,15 @@
       ],
       "finalGoal": "Ребёнок по слову уверенно находит картинку с действием среди похожих и обозначает действие на картинке доступным ему способом.",
       "flow": [
-        "Работайте волнами. Волна 1: ест, пьёт, спит, бежит, прыгает, рисует. Волна 2: идёт, чистит зубы, играет, читает, едет, плачет, смеётся. Волна 3: умывается, плавает, поёт, танцует, режет, поливает, пылесосит.",
+        "Работайте волнами. Волна 1: ест, пьёт, спит, бежит, прыгает, рисует. Волна 2: идёт, чистит зубы, играет, читает, едет, плачет, смеётся. Волна 3: умывается, плавает, поёт, танцует, режет, поливает, пылесосит. Волна 4 — ранние бытовые глаголы, вводите по три: сидит, даёт, открывает → моет руки, кидает, лежит → одевается, стоит, падает. Волна 5 — тоже по три: закрывает, берёт, хлопает → дует, вытирает, снимает → убирает, ловит, ползёт → причёсывается, пишет, строит → качается, купается, летит.",
         "Внутри волны: Знакомство → Сделай → Покажи (сначала из двух, потом из четырёх) → Найди все картинки → Что делает?",
         "Переходите к следующему режиму и следующей волне, когда ребёнок отвечает верно 8 раз из 10 два занятия подряд."
       ],
       "tips": [
         "Начинайте с 3–4 глаголов: отметьте их в точках над режимом.",
         "Показывайте действия в жизни и в игре — «Мишка спит», «Прыгай!» — это важнее экрана.",
-        "При ошибке не говорите «нет»: покажите и назовите правильное действие."
+        "При ошибке не говорите «нет»: покажите и назовите правильное действие.",
+        "«Дай!» в режиме «Сделай»: протяните ребёнку раскрытую ладонь, а в руки ему дайте предмет — иначе выполнить нечего. Так же с «Возьми!»: протяните предмет. Для «Закрой!», «Подуй!», «Вытри руки!», «Сними!», «Убери!», «Причешись!», «Лови!» держите под рукой коробку, мыльные пузыри, полотенце, шапку, игрушку, расчёску, мяч."
       ]
     },
     "customModesOnly": true
@@ -46,7 +47,7 @@
         "goal": "Ребёнок связывает звучащее слово с действием на картинке.",
         "duration": "2–4 минуты",
         "tips": [
-          "Включайте в точках над режимом 3–4 глагола текущей волны, а не все 20 сразу.",
+          "Включайте в точках над режимом 3–4 глагола текущей волны, а не все 44 сразу.",
           "После картинки покажите это действие сами или с игрушкой: «Мишка ест — ам-ам».",
           "Предложите ребёнку повторить движение (прыгнуть, «попить» из пустой чашки) — так глагол запоминается лучше, чем со слов."
         ]
@@ -73,7 +74,7 @@
         "tips": [
           "Перед командой привлеките внимание ребёнка, но не смотрите на нужный предмет и не начинайте движение сами — это тоже подсказка.",
           "Для «Ешь!», «Пей!», «Чисти зубы!» дайте предмет понарошку: ложку, пустую чашку, щётку.",
-          "В режиме только те 13 действий, которые можно выполнить в комнате. Плавает, едет, спит, плачет, режет, поливает, пылесосит здесь нет.",
+          "В режиме 31 действие — те, что можно выполнить в комнате. Плавает, едет, спит, плачет, режет, поливает, пылесосит, падает, качается, купается, строит, пишет, летит здесь нет.",
           "Цель — «Легко» 8 раз из 10 на глаголах текущей волны."
         ]
       }
@@ -237,7 +238,7 @@
         "goal": "Ребёнок по слову выбирает картинку с нужным действием среди двух далёких.",
         "duration": "3–5 минут",
         "tips": [
-          "Включайте в точках над режимом 3–4 глагола текущей волны, а не все 20 сразу.",
+          "Включайте в точках над режимом 3–4 глагола текущей волны, а не все 44 сразу.",
           "При ошибке не говорите «нет»: покажите правильную картинку и назовите действие («Вот — бежит»).",
           "Переходите к режиму «Покажи: из четырёх», когда ребёнок выбирает верно 8 раз из 10 два занятия подряд."
         ]
@@ -457,7 +458,7 @@
     }
   ],
   "annotation": {
-    "ru": "20 частотных глаголов в трёх волнах: пара «мальчик и мама» для начала и разные картинки для переноса. Для минимально вербальных детей, в том числе с РАС; логопеды и родители.",
+    "ru": "44 частотных глагола в пяти волнах: пара «мальчик и мама» для начала и разные картинки для переноса. Для минимально вербальных детей, в том числе с РАС; логопеды и родители.",
     "en": ""
   },
   "semanticSchema": {
@@ -495,7 +496,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_eats_mom",
@@ -526,7 +530,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_eats_girl_apple",
@@ -557,7 +564,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "eats_1",
@@ -588,7 +598,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_eats.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "eats_2",
@@ -619,7 +632,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_eats.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "eats_3",
@@ -650,7 +666,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_eats.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "eats_5",
@@ -681,7 +700,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_eats.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_drinks_boy",
@@ -712,7 +734,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_drinks_mom",
@@ -743,7 +768,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_drinks_1",
@@ -774,7 +802,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_drinks_2",
@@ -805,7 +836,10 @@
         "group1": "food",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "drinks_1",
@@ -867,7 +901,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_drinks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "drinks_3",
@@ -898,7 +935,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_drinks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "drinks_5",
@@ -956,7 +996,10 @@
         "group1": "rest",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "s3_c_sleeps_mom",
@@ -983,7 +1026,10 @@
         "group1": "rest",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "s3_v_sleeps_baby_stroller",
@@ -1010,7 +1056,10 @@
         "group1": "rest",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "sleeps_1",
@@ -1037,7 +1086,10 @@
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "sleeps_2",
@@ -1064,7 +1116,10 @@
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "sleeps_3",
@@ -1091,7 +1146,10 @@
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "sleeps_5",
@@ -1118,7 +1176,10 @@
       "promptAudio": {
         "ru": "audio/sleeps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "s3_c_runs_boy",
@@ -1623,7 +1684,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_draws_mom",
@@ -1654,7 +1718,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_draws_1",
@@ -1685,7 +1752,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_draws_2",
@@ -1716,7 +1786,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "draws_1",
@@ -1747,7 +1820,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_draws.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "draws_2",
@@ -1778,7 +1854,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_draws.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "draws_3",
@@ -1809,7 +1888,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_draws.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_walks_boy",
@@ -2088,7 +2170,10 @@
         "group1": "hygiene",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_brushes_teeth_mom",
@@ -2119,7 +2204,10 @@
         "group1": "hygiene",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_brushes_teeth_1",
@@ -2150,7 +2238,10 @@
         "group1": "hygiene",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_brushes_teeth_2",
@@ -2274,7 +2365,11 @@
         "group1": "play",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits",
+        "builds"
+      ]
     },
     {
       "id": "s3_c_plays_mom",
@@ -2305,7 +2400,11 @@
         "group1": "play",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits",
+        "builds"
+      ]
     },
     {
       "id": "s3_v_plays_1",
@@ -2336,7 +2435,10 @@
         "group1": "play",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_plays_2",
@@ -2367,7 +2469,10 @@
         "group1": "play",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "plays_1",
@@ -2398,7 +2503,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_plays.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "catches"
+      ]
     },
     {
       "id": "plays_2",
@@ -2429,7 +2537,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_plays.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "plays_3",
@@ -2460,7 +2571,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_plays.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "plays_4",
@@ -2523,7 +2637,11 @@
       "imperativeAudio": {
         "ru": "audio/imp_plays.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands",
+        "catches"
+      ]
     },
     {
       "id": "s3_c_reads_boy",
@@ -2554,7 +2672,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_reads_mom",
@@ -2585,7 +2706,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_reads_1",
@@ -2616,7 +2740,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_reads_2",
@@ -2647,7 +2774,10 @@
         "group1": "table",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "reads_1",
@@ -2678,7 +2808,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_reads.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "reads_3",
@@ -2709,7 +2842,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_reads.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "reads_5",
@@ -2740,7 +2876,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_reads.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_rides_boy",
@@ -2768,7 +2907,10 @@
         "group1": "transport",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_rides_mom",
@@ -2796,7 +2938,10 @@
         "group1": "transport",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_rides_1",
@@ -2824,7 +2969,10 @@
         "group1": "transport",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_rides_2",
@@ -2852,7 +3000,10 @@
         "group1": "transport",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "rides_1",
@@ -2880,7 +3031,10 @@
       "promptAudio": {
         "ru": "audio/rides.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "rides_2",
@@ -2908,7 +3062,10 @@
       "promptAudio": {
         "ru": "audio/rides.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "rides_3",
@@ -2936,7 +3093,10 @@
       "promptAudio": {
         "ru": "audio/rides.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "rides_5",
@@ -2964,7 +3124,10 @@
       "promptAudio": {
         "ru": "audio/rides.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_cries_boy",
@@ -2991,7 +3154,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_cries_mom",
@@ -3018,7 +3184,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_cries_1",
@@ -3045,7 +3214,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_cries_2",
@@ -3072,7 +3244,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "cries_1",
@@ -3126,7 +3301,10 @@
       "promptAudio": {
         "ru": "audio/cries.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_laughs_boy",
@@ -3157,7 +3335,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_laughs_mom",
@@ -3188,7 +3369,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_laughs_1",
@@ -3219,7 +3403,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_laughs_2",
@@ -3250,7 +3437,10 @@
         "group1": "emotion",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "laughs_1",
@@ -3312,7 +3502,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_laughs.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "laughs_3",
@@ -3343,7 +3536,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_laughs.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_washes_face_boy",
@@ -3374,7 +3570,10 @@
         "group1": "hygiene",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_washes_face_mom",
@@ -3405,7 +3604,10 @@
         "group1": "hygiene",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_washes_face_1",
@@ -3436,7 +3638,10 @@
         "group1": "hygiene",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_washes_face_2",
@@ -3467,7 +3672,10 @@
         "group1": "hygiene",
         "group2": "face",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "washes_face_1",
@@ -3529,7 +3737,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_washes_face.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "washes_face_3",
@@ -3560,7 +3771,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_washes_face.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_swims_boy",
@@ -3641,7 +3855,10 @@
         "group1": "water",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "lies"
+      ]
     },
     {
       "id": "s3_v_swims_2",
@@ -3754,7 +3971,10 @@
         "group1": "voice",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_sings_mom",
@@ -3785,7 +4005,10 @@
         "group1": "voice",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_sings_1",
@@ -3816,7 +4039,10 @@
         "group1": "voice",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_sings_2",
@@ -3847,7 +4073,10 @@
         "group1": "voice",
         "group2": "face",
         "group3": "active"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "sings_2",
@@ -3878,7 +4107,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_sings.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "sings_3",
@@ -3909,7 +4141,10 @@
       "imperativeAudio": {
         "ru": "audio/imp_sings.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "sings_4",
@@ -4192,7 +4427,10 @@
         "group1": "tools",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_c_cuts_knife_mom",
@@ -4219,7 +4457,10 @@
         "group1": "tools",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_cuts_knife_1",
@@ -4246,7 +4487,10 @@
         "group1": "tools",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "s3_v_cuts_knife_2",
@@ -4273,7 +4517,10 @@
         "group1": "tools",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "cuts_knife_1",
@@ -4327,7 +4574,10 @@
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "cuts_5",
@@ -4354,7 +4604,10 @@
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "cuts_knife_2",
@@ -4381,7 +4634,10 @@
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_waters_plants_boy",
@@ -4408,7 +4664,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_waters_plants_mom",
@@ -4435,7 +4694,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_waters_plants_1",
@@ -4462,7 +4724,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_waters_plants_2",
@@ -4489,7 +4754,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "waters_plants_1",
@@ -4516,7 +4784,10 @@
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "waters_plants_2",
@@ -4543,7 +4814,10 @@
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "waters_plants_3",
@@ -4570,7 +4844,10 @@
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "sits"
+      ]
     },
     {
       "id": "waters_plants_5",
@@ -4597,7 +4874,10 @@
       "promptAudio": {
         "ru": "audio/waters_plants.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_c_vacuums_boy",
@@ -4672,7 +4952,10 @@
         "group1": "house",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "alsoShows": [
+        "stands"
+      ]
     },
     {
       "id": "s3_v_vacuums_2",
@@ -4697,6 +4980,4654 @@
         "group1": "house",
         "group2": "hands",
         "group3": "moderate"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s4_c_sits_boy",
+      "primary": true,
+      "image": "media/s4_c_sits_boy.webp",
+      "set": "contrast",
+      "conceptId": "sits",
+      "label": "сидит",
+      "answerKey": "сидит",
+      "audio": {
+        "ru": "audio/sits.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/sits.mp3"
+      },
+      "imperative": "Сядь!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sits.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_c_sits_mom",
+      "primary": false,
+      "image": "media/s4_c_sits_mom.webp",
+      "set": "contrast",
+      "conceptId": "sits",
+      "label": "сидит",
+      "answerKey": "сидит",
+      "audio": {
+        "ru": "audio/sits.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/sits.mp3"
+      },
+      "imperative": "Сядь!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sits.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_sits_1",
+      "primary": false,
+      "image": "media/s4_v_sits_1.webp",
+      "set": "variation",
+      "conceptId": "sits",
+      "label": "сидит",
+      "answerKey": "сидит",
+      "audio": {
+        "ru": "audio/sits.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/sits.mp3"
+      },
+      "imperative": "Сядь!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sits.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_sits_2",
+      "primary": false,
+      "image": "media/s4_v_sits_2.webp",
+      "set": "variation",
+      "conceptId": "sits",
+      "label": "сидит",
+      "answerKey": "сидит",
+      "audio": {
+        "ru": "audio/sits.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/sits.mp3"
+      },
+      "imperative": "Сядь!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sits.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_sits_3",
+      "primary": false,
+      "image": "media/s4_v_sits_3.webp",
+      "set": "variation",
+      "conceptId": "sits",
+      "label": "сидит",
+      "answerKey": "сидит",
+      "audio": {
+        "ru": "audio/sits.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/sits.mp3"
+      },
+      "imperative": "Сядь!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sits.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_sits_4",
+      "primary": false,
+      "image": "media/s4_v_sits_4.webp",
+      "set": "variation",
+      "conceptId": "sits",
+      "label": "сидит",
+      "answerKey": "сидит",
+      "audio": {
+        "ru": "audio/sits.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/sits.mp3"
+      },
+      "imperative": "Сядь!",
+      "imperativeAudio": {
+        "ru": "audio/imp_sits.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "agent": "animal"
+    },
+    {
+      "id": "s4_c_gives_boy",
+      "primary": true,
+      "image": "media/s4_c_gives_boy.webp",
+      "set": "contrast",
+      "conceptId": "gives",
+      "label": "даёт",
+      "answerKey": "даёт",
+      "audio": {
+        "ru": "audio/gives.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gives.mp3"
+      },
+      "imperative": "Дай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gives.mp3"
+      },
+      "wave": 4,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "request"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "takes"
+      ]
+    },
+    {
+      "id": "s4_c_gives_mom",
+      "primary": false,
+      "image": "media/s4_c_gives_mom.webp",
+      "set": "contrast",
+      "conceptId": "gives",
+      "label": "даёт",
+      "answerKey": "даёт",
+      "audio": {
+        "ru": "audio/gives.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gives.mp3"
+      },
+      "imperative": "Дай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gives.mp3"
+      },
+      "wave": 4,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "request"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "takes"
+      ]
+    },
+    {
+      "id": "s4_v_gives_1",
+      "primary": false,
+      "image": "media/s4_v_gives_1.webp",
+      "set": "variation",
+      "conceptId": "gives",
+      "label": "даёт",
+      "answerKey": "даёт",
+      "audio": {
+        "ru": "audio/gives.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gives.mp3"
+      },
+      "imperative": "Дай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gives.mp3"
+      },
+      "wave": 4,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "request"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "takes"
+      ]
+    },
+    {
+      "id": "s4_v_gives_2",
+      "primary": false,
+      "image": "media/s4_v_gives_2.webp",
+      "set": "variation",
+      "conceptId": "gives",
+      "label": "даёт",
+      "answerKey": "даёт",
+      "audio": {
+        "ru": "audio/gives.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gives.mp3"
+      },
+      "imperative": "Дай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gives.mp3"
+      },
+      "wave": 4,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "request"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "takes"
+      ]
+    },
+    {
+      "id": "s4_v_gives_3",
+      "primary": false,
+      "image": "media/s4_v_gives_3.webp",
+      "set": "variation",
+      "conceptId": "gives",
+      "label": "даёт",
+      "answerKey": "даёт",
+      "audio": {
+        "ru": "audio/gives.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gives.mp3"
+      },
+      "imperative": "Дай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gives.mp3"
+      },
+      "wave": 4,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "request"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "takes"
+      ]
+    },
+    {
+      "id": "s4_v_gives_4",
+      "primary": false,
+      "image": "media/s4_v_gives_4.webp",
+      "set": "variation",
+      "conceptId": "gives",
+      "label": "даёт",
+      "answerKey": "даёт",
+      "audio": {
+        "ru": "audio/gives.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gives.mp3"
+      },
+      "imperative": "Дай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gives.mp3"
+      },
+      "wave": 4,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "request"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "takes"
+      ]
+    },
+    {
+      "id": "s4_c_opens_boy",
+      "primary": true,
+      "image": "media/s4_c_opens_boy.webp",
+      "set": "contrast",
+      "conceptId": "opens",
+      "label": "открывает",
+      "answerKey": "открывает",
+      "audio": {
+        "ru": "audio/opens.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/opens.mp3"
+      },
+      "imperative": "Открой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_opens.mp3"
+      },
+      "wave": 4,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "closes"
+      ]
+    },
+    {
+      "id": "s4_c_opens_mom",
+      "primary": false,
+      "image": "media/s4_c_opens_mom.webp",
+      "set": "contrast",
+      "conceptId": "opens",
+      "label": "открывает",
+      "answerKey": "открывает",
+      "audio": {
+        "ru": "audio/opens.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/opens.mp3"
+      },
+      "imperative": "Открой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_opens.mp3"
+      },
+      "wave": 4,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "closes"
+      ]
+    },
+    {
+      "id": "s4_v_opens_1",
+      "primary": false,
+      "image": "media/s4_v_opens_1.webp",
+      "set": "variation",
+      "conceptId": "opens",
+      "label": "открывает",
+      "answerKey": "открывает",
+      "audio": {
+        "ru": "audio/opens.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/opens.mp3"
+      },
+      "imperative": "Открой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_opens.mp3"
+      },
+      "wave": 4,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "closes"
+      ]
+    },
+    {
+      "id": "s4_v_opens_2",
+      "primary": false,
+      "image": "media/s4_v_opens_2.webp",
+      "set": "variation",
+      "conceptId": "opens",
+      "label": "открывает",
+      "answerKey": "открывает",
+      "audio": {
+        "ru": "audio/opens.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/opens.mp3"
+      },
+      "imperative": "Открой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_opens.mp3"
+      },
+      "wave": 4,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "closes"
+      ]
+    },
+    {
+      "id": "s4_v_opens_3",
+      "primary": false,
+      "image": "media/s4_v_opens_3.webp",
+      "set": "variation",
+      "conceptId": "opens",
+      "label": "открывает",
+      "answerKey": "открывает",
+      "audio": {
+        "ru": "audio/opens.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/opens.mp3"
+      },
+      "imperative": "Открой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_opens.mp3"
+      },
+      "wave": 4,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s4_v_opens_4",
+      "primary": false,
+      "image": "media/s4_v_opens_4.webp",
+      "set": "variation",
+      "conceptId": "opens",
+      "label": "открывает",
+      "answerKey": "открывает",
+      "audio": {
+        "ru": "audio/opens.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/opens.mp3"
+      },
+      "imperative": "Открой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_opens.mp3"
+      },
+      "wave": 4,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_c_washes_hands_boy",
+      "primary": true,
+      "image": "media/s4_c_washes_hands_boy.webp",
+      "set": "contrast",
+      "conceptId": "washes_hands",
+      "label": "моет руки",
+      "answerKey": "моет руки",
+      "audio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s4_c_washes_hands_mom",
+      "primary": false,
+      "image": "media/s4_c_washes_hands_mom.webp",
+      "set": "contrast",
+      "conceptId": "washes_hands",
+      "label": "моет руки",
+      "answerKey": "моет руки",
+      "audio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s4_v_washes_hands_1",
+      "primary": false,
+      "image": "media/s4_v_washes_hands_1.webp",
+      "set": "variation",
+      "conceptId": "washes_hands",
+      "label": "моет руки",
+      "answerKey": "моет руки",
+      "audio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_washes_hands_2",
+      "primary": false,
+      "image": "media/s4_v_washes_hands_2.webp",
+      "set": "variation",
+      "conceptId": "washes_hands",
+      "label": "моет руки",
+      "answerKey": "моет руки",
+      "audio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s4_v_washes_hands_3",
+      "primary": false,
+      "image": "media/s4_v_washes_hands_3.webp",
+      "set": "variation",
+      "conceptId": "washes_hands",
+      "label": "моет руки",
+      "answerKey": "моет руки",
+      "audio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s4_v_washes_hands_4",
+      "primary": false,
+      "image": "media/s4_v_washes_hands_4.webp",
+      "set": "variation",
+      "conceptId": "washes_hands",
+      "label": "моет руки",
+      "answerKey": "моет руки",
+      "audio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/washes_hands.mp3"
+      },
+      "imperative": "Мой руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_washes_hands.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s4_c_throws_boy",
+      "primary": true,
+      "image": "media/s4_c_throws_boy.webp",
+      "set": "contrast",
+      "conceptId": "throws",
+      "label": "кидает",
+      "answerKey": "кидает",
+      "audio": {
+        "ru": "audio/throws.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/throws.mp3"
+      },
+      "imperative": "Кидай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_throws.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "catches"
+      ]
+    },
+    {
+      "id": "s4_c_throws_mom",
+      "primary": false,
+      "image": "media/s4_c_throws_mom.webp",
+      "set": "contrast",
+      "conceptId": "throws",
+      "label": "кидает",
+      "answerKey": "кидает",
+      "audio": {
+        "ru": "audio/throws.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/throws.mp3"
+      },
+      "imperative": "Кидай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_throws.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "catches"
+      ]
+    },
+    {
+      "id": "s4_v_throws_1",
+      "primary": false,
+      "image": "media/s4_v_throws_1.webp",
+      "set": "variation",
+      "conceptId": "throws",
+      "label": "кидает",
+      "answerKey": "кидает",
+      "audio": {
+        "ru": "audio/throws.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/throws.mp3"
+      },
+      "imperative": "Кидай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_throws.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s4_v_throws_2",
+      "primary": false,
+      "image": "media/s4_v_throws_2.webp",
+      "set": "variation",
+      "conceptId": "throws",
+      "label": "кидает",
+      "answerKey": "кидает",
+      "audio": {
+        "ru": "audio/throws.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/throws.mp3"
+      },
+      "imperative": "Кидай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_throws.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s4_v_throws_3",
+      "primary": false,
+      "image": "media/s4_v_throws_3.webp",
+      "set": "variation",
+      "conceptId": "throws",
+      "label": "кидает",
+      "answerKey": "кидает",
+      "audio": {
+        "ru": "audio/throws.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/throws.mp3"
+      },
+      "imperative": "Кидай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_throws.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s4_v_throws_4",
+      "primary": false,
+      "image": "media/s4_v_throws_4.webp",
+      "set": "variation",
+      "conceptId": "throws",
+      "label": "кидает",
+      "answerKey": "кидает",
+      "audio": {
+        "ru": "audio/throws.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/throws.mp3"
+      },
+      "imperative": "Кидай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_throws.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s4_c_lies_boy",
+      "primary": true,
+      "image": "media/s4_c_lies_boy.webp",
+      "set": "contrast",
+      "conceptId": "lies",
+      "label": "лежит",
+      "answerKey": "лежит",
+      "audio": {
+        "ru": "audio/lies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/lies.mp3"
+      },
+      "imperative": "Ложись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_lies.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "rest"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_c_lies_mom",
+      "primary": false,
+      "image": "media/s4_c_lies_mom.webp",
+      "set": "contrast",
+      "conceptId": "lies",
+      "label": "лежит",
+      "answerKey": "лежит",
+      "audio": {
+        "ru": "audio/lies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/lies.mp3"
+      },
+      "imperative": "Ложись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_lies.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "rest"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_lies_1",
+      "primary": false,
+      "image": "media/s4_v_lies_1.webp",
+      "set": "variation",
+      "conceptId": "lies",
+      "label": "лежит",
+      "answerKey": "лежит",
+      "audio": {
+        "ru": "audio/lies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/lies.mp3"
+      },
+      "imperative": "Ложись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_lies.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "rest"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_lies_2",
+      "primary": false,
+      "image": "media/s4_v_lies_2.webp",
+      "set": "variation",
+      "conceptId": "lies",
+      "label": "лежит",
+      "answerKey": "лежит",
+      "audio": {
+        "ru": "audio/lies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/lies.mp3"
+      },
+      "imperative": "Ложись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_lies.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "rest"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_lies_3",
+      "primary": false,
+      "image": "media/s4_v_lies_3.webp",
+      "set": "variation",
+      "conceptId": "lies",
+      "label": "лежит",
+      "answerKey": "лежит",
+      "audio": {
+        "ru": "audio/lies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/lies.mp3"
+      },
+      "imperative": "Ложись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_lies.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "rest"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_lies_4",
+      "primary": false,
+      "image": "media/s4_v_lies_4.webp",
+      "set": "variation",
+      "conceptId": "lies",
+      "label": "лежит",
+      "answerKey": "лежит",
+      "audio": {
+        "ru": "audio/lies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/lies.mp3"
+      },
+      "imperative": "Ложись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_lies.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "rest"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "agent": "animal"
+    },
+    {
+      "id": "s4_c_gets_dressed_boy",
+      "primary": true,
+      "image": "media/s4_c_gets_dressed_boy.webp",
+      "set": "contrast",
+      "conceptId": "gets_dressed",
+      "label": "одевается",
+      "answerKey": "одевается",
+      "audio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "imperative": "Одевайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gets_dressed.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "whole_body",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s4_c_gets_dressed_mom",
+      "primary": false,
+      "image": "media/s4_c_gets_dressed_mom.webp",
+      "set": "contrast",
+      "conceptId": "gets_dressed",
+      "label": "одевается",
+      "answerKey": "одевается",
+      "audio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "imperative": "Одевайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gets_dressed.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "whole_body",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s4_v_gets_dressed_1",
+      "primary": false,
+      "image": "media/s4_v_gets_dressed_1.webp",
+      "set": "variation",
+      "conceptId": "gets_dressed",
+      "label": "одевается",
+      "answerKey": "одевается",
+      "audio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "imperative": "Одевайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gets_dressed.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "whole_body",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s4_v_gets_dressed_2",
+      "primary": false,
+      "image": "media/s4_v_gets_dressed_2.webp",
+      "set": "variation",
+      "conceptId": "gets_dressed",
+      "label": "одевается",
+      "answerKey": "одевается",
+      "audio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "imperative": "Одевайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gets_dressed.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "whole_body",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s4_v_gets_dressed_3",
+      "primary": false,
+      "image": "media/s4_v_gets_dressed_3.webp",
+      "set": "variation",
+      "conceptId": "gets_dressed",
+      "label": "одевается",
+      "answerKey": "одевается",
+      "audio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "imperative": "Одевайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gets_dressed.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "whole_body",
+        "group3": "moderate"
+      }
+    },
+    {
+      "id": "s4_v_gets_dressed_4",
+      "primary": false,
+      "image": "media/s4_v_gets_dressed_4.webp",
+      "set": "variation",
+      "conceptId": "gets_dressed",
+      "label": "одевается",
+      "answerKey": "одевается",
+      "audio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/gets_dressed.mp3"
+      },
+      "imperative": "Одевайся!",
+      "imperativeAudio": {
+        "ru": "audio/imp_gets_dressed.mp3"
+      },
+      "wave": 4,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "whole_body",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s4_c_stands_boy",
+      "primary": true,
+      "image": "media/s4_c_stands_boy.webp",
+      "set": "contrast",
+      "conceptId": "stands",
+      "label": "стоит",
+      "answerKey": "стоит",
+      "audio": {
+        "ru": "audio/stands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/stands.mp3"
+      },
+      "imperative": "Встань!",
+      "imperativeAudio": {
+        "ru": "audio/imp_stands.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_c_stands_mom",
+      "primary": false,
+      "image": "media/s4_c_stands_mom.webp",
+      "set": "contrast",
+      "conceptId": "stands",
+      "label": "стоит",
+      "answerKey": "стоит",
+      "audio": {
+        "ru": "audio/stands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/stands.mp3"
+      },
+      "imperative": "Встань!",
+      "imperativeAudio": {
+        "ru": "audio/imp_stands.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_stands_1",
+      "primary": false,
+      "image": "media/s4_v_stands_1.webp",
+      "set": "variation",
+      "conceptId": "stands",
+      "label": "стоит",
+      "answerKey": "стоит",
+      "audio": {
+        "ru": "audio/stands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/stands.mp3"
+      },
+      "imperative": "Встань!",
+      "imperativeAudio": {
+        "ru": "audio/imp_stands.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_stands_2",
+      "primary": false,
+      "image": "media/s4_v_stands_2.webp",
+      "set": "variation",
+      "conceptId": "stands",
+      "label": "стоит",
+      "answerKey": "стоит",
+      "audio": {
+        "ru": "audio/stands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/stands.mp3"
+      },
+      "imperative": "Встань!",
+      "imperativeAudio": {
+        "ru": "audio/imp_stands.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_stands_3",
+      "primary": false,
+      "image": "media/s4_v_stands_3.webp",
+      "set": "variation",
+      "conceptId": "stands",
+      "label": "стоит",
+      "answerKey": "стоит",
+      "audio": {
+        "ru": "audio/stands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/stands.mp3"
+      },
+      "imperative": "Встань!",
+      "imperativeAudio": {
+        "ru": "audio/imp_stands.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s4_v_stands_4",
+      "primary": false,
+      "image": "media/s4_v_stands_4.webp",
+      "set": "variation",
+      "conceptId": "stands",
+      "label": "стоит",
+      "answerKey": "стоит",
+      "audio": {
+        "ru": "audio/stands.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/stands.mp3"
+      },
+      "imperative": "Встань!",
+      "imperativeAudio": {
+        "ru": "audio/imp_stands.mp3"
+      },
+      "wave": 4,
+      "category": "posture",
+      "tags": [
+        "posture",
+        "body",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "posture",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "agent": "animal"
+    },
+    {
+      "id": "s4_c_falls_boy",
+      "primary": true,
+      "image": "media/s4_c_falls_boy.webp",
+      "set": "contrast",
+      "conceptId": "falls",
+      "label": "падает",
+      "answerKey": "падает",
+      "audio": {
+        "ru": "audio/falls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/falls.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "body",
+        "active"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s4_c_falls_mom",
+      "primary": false,
+      "image": "media/s4_c_falls_mom.webp",
+      "set": "contrast",
+      "conceptId": "falls",
+      "label": "падает",
+      "answerKey": "падает",
+      "audio": {
+        "ru": "audio/falls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/falls.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "body",
+        "active"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s4_v_falls_1",
+      "primary": false,
+      "image": "media/s4_v_falls_1.webp",
+      "set": "variation",
+      "conceptId": "falls",
+      "label": "падает",
+      "answerKey": "падает",
+      "audio": {
+        "ru": "audio/falls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/falls.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "body",
+        "active"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s4_v_falls_2",
+      "primary": false,
+      "image": "media/s4_v_falls_2.webp",
+      "set": "variation",
+      "conceptId": "falls",
+      "label": "падает",
+      "answerKey": "падает",
+      "audio": {
+        "ru": "audio/falls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/falls.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "body",
+        "active"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s4_v_falls_3",
+      "primary": false,
+      "image": "media/s4_v_falls_3.webp",
+      "set": "variation",
+      "conceptId": "falls",
+      "label": "падает",
+      "answerKey": "падает",
+      "audio": {
+        "ru": "audio/falls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/falls.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "body",
+        "active"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s4_v_falls_4",
+      "primary": false,
+      "image": "media/s4_v_falls_4.webp",
+      "set": "variation",
+      "conceptId": "falls",
+      "label": "падает",
+      "answerKey": "падает",
+      "audio": {
+        "ru": "audio/falls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/falls.mp3"
+      },
+      "wave": 4,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "body",
+        "active"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s5_c_closes_boy",
+      "primary": true,
+      "image": "media/s5_c_closes_boy.webp",
+      "set": "contrast",
+      "conceptId": "closes",
+      "label": "закрывает",
+      "answerKey": "закрывает",
+      "audio": {
+        "ru": "audio/closes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/closes.mp3"
+      },
+      "imperative": "Закрой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_closes.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "opens"
+      ]
+    },
+    {
+      "id": "s5_c_closes_mom",
+      "primary": false,
+      "image": "media/s5_c_closes_mom.webp",
+      "set": "contrast",
+      "conceptId": "closes",
+      "label": "закрывает",
+      "answerKey": "закрывает",
+      "audio": {
+        "ru": "audio/closes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/closes.mp3"
+      },
+      "imperative": "Закрой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_closes.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "opens"
+      ]
+    },
+    {
+      "id": "s5_v_closes_1",
+      "primary": false,
+      "image": "media/s5_v_closes_1.webp",
+      "set": "variation",
+      "conceptId": "closes",
+      "label": "закрывает",
+      "answerKey": "закрывает",
+      "audio": {
+        "ru": "audio/closes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/closes.mp3"
+      },
+      "imperative": "Закрой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_closes.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_closes_2",
+      "primary": false,
+      "image": "media/s5_v_closes_2.webp",
+      "set": "variation",
+      "conceptId": "closes",
+      "label": "закрывает",
+      "answerKey": "закрывает",
+      "audio": {
+        "ru": "audio/closes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/closes.mp3"
+      },
+      "imperative": "Закрой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_closes.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_closes_3",
+      "primary": false,
+      "image": "media/s5_v_closes_3.webp",
+      "set": "variation",
+      "conceptId": "closes",
+      "label": "закрывает",
+      "answerKey": "закрывает",
+      "audio": {
+        "ru": "audio/closes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/closes.mp3"
+      },
+      "imperative": "Закрой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_closes.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "opens"
+      ]
+    },
+    {
+      "id": "s5_v_closes_4",
+      "primary": false,
+      "image": "media/s5_v_closes_4.webp",
+      "set": "variation",
+      "conceptId": "closes",
+      "label": "закрывает",
+      "answerKey": "закрывает",
+      "audio": {
+        "ru": "audio/closes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/closes.mp3"
+      },
+      "imperative": "Закрой!",
+      "imperativeAudio": {
+        "ru": "audio/imp_closes.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "object_manip",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_c_swings_boy",
+      "primary": true,
+      "image": "media/s5_c_swings_boy.webp",
+      "set": "contrast",
+      "conceptId": "swings",
+      "label": "качается",
+      "answerKey": "качается",
+      "audio": {
+        "ru": "audio/swings.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/swings.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "play",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_c_swings_mom",
+      "primary": false,
+      "image": "media/s5_c_swings_mom.webp",
+      "set": "contrast",
+      "conceptId": "swings",
+      "label": "качается",
+      "answerKey": "качается",
+      "audio": {
+        "ru": "audio/swings.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/swings.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "play",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_v_swings_1",
+      "primary": false,
+      "image": "media/s5_v_swings_1.webp",
+      "set": "variation",
+      "conceptId": "swings",
+      "label": "качается",
+      "answerKey": "качается",
+      "audio": {
+        "ru": "audio/swings.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/swings.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "play",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_v_swings_2",
+      "primary": false,
+      "image": "media/s5_v_swings_2.webp",
+      "set": "variation",
+      "conceptId": "swings",
+      "label": "качается",
+      "answerKey": "качается",
+      "audio": {
+        "ru": "audio/swings.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/swings.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "play",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "sits",
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_swings_3",
+      "primary": false,
+      "image": "media/s5_v_swings_3.webp",
+      "set": "variation",
+      "conceptId": "swings",
+      "label": "качается",
+      "answerKey": "качается",
+      "audio": {
+        "ru": "audio/swings.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/swings.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "play",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_v_swings_4",
+      "primary": false,
+      "image": "media/s5_v_swings_4.webp",
+      "set": "variation",
+      "conceptId": "swings",
+      "label": "качается",
+      "answerKey": "качается",
+      "audio": {
+        "ru": "audio/swings.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/swings.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "play",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "whole_body",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_c_blows_boy",
+      "primary": true,
+      "image": "media/s5_c_blows_boy.webp",
+      "set": "contrast",
+      "conceptId": "blows",
+      "label": "дует",
+      "answerKey": "дует",
+      "audio": {
+        "ru": "audio/blows.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/blows.mp3"
+      },
+      "imperative": "Подуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_blows.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "play",
+        "mouth",
+        "breath"
+      ],
+      "semantic": {
+        "group1": "breath",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_c_blows_mom",
+      "primary": false,
+      "image": "media/s5_c_blows_mom.webp",
+      "set": "contrast",
+      "conceptId": "blows",
+      "label": "дует",
+      "answerKey": "дует",
+      "audio": {
+        "ru": "audio/blows.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/blows.mp3"
+      },
+      "imperative": "Подуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_blows.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "play",
+        "mouth",
+        "breath"
+      ],
+      "semantic": {
+        "group1": "breath",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_blows_1",
+      "primary": false,
+      "image": "media/s5_v_blows_1.webp",
+      "set": "variation",
+      "conceptId": "blows",
+      "label": "дует",
+      "answerKey": "дует",
+      "audio": {
+        "ru": "audio/blows.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/blows.mp3"
+      },
+      "imperative": "Подуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_blows.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "play",
+        "mouth",
+        "breath"
+      ],
+      "semantic": {
+        "group1": "breath",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_blows_2",
+      "primary": false,
+      "image": "media/s5_v_blows_2.webp",
+      "set": "variation",
+      "conceptId": "blows",
+      "label": "дует",
+      "answerKey": "дует",
+      "audio": {
+        "ru": "audio/blows.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/blows.mp3"
+      },
+      "imperative": "Подуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_blows.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "play",
+        "mouth",
+        "breath"
+      ],
+      "semantic": {
+        "group1": "breath",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_v_blows_3",
+      "primary": false,
+      "image": "media/s5_v_blows_3.webp",
+      "set": "variation",
+      "conceptId": "blows",
+      "label": "дует",
+      "answerKey": "дует",
+      "audio": {
+        "ru": "audio/blows.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/blows.mp3"
+      },
+      "imperative": "Подуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_blows.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "play",
+        "mouth",
+        "breath"
+      ],
+      "semantic": {
+        "group1": "breath",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_blows_4",
+      "primary": false,
+      "image": "media/s5_v_blows_4.webp",
+      "set": "variation",
+      "conceptId": "blows",
+      "label": "дует",
+      "answerKey": "дует",
+      "audio": {
+        "ru": "audio/blows.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/blows.mp3"
+      },
+      "imperative": "Подуй!",
+      "imperativeAudio": {
+        "ru": "audio/imp_blows.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "play",
+        "mouth",
+        "breath"
+      ],
+      "semantic": {
+        "group1": "breath",
+        "group2": "mouth",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_c_bathes_boy",
+      "primary": true,
+      "image": "media/s5_c_bathes_boy.webp",
+      "set": "contrast",
+      "conceptId": "bathes",
+      "label": "купается",
+      "answerKey": "купается",
+      "audio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "water"
+      ],
+      "semantic": {
+        "group1": "water",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_c_bathes_mom",
+      "primary": false,
+      "image": "media/s5_c_bathes_mom.webp",
+      "set": "contrast",
+      "conceptId": "bathes",
+      "label": "купается",
+      "answerKey": "купается",
+      "audio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "water"
+      ],
+      "semantic": {
+        "group1": "water",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_v_bathes_1",
+      "primary": false,
+      "image": "media/s5_v_bathes_1.webp",
+      "set": "variation",
+      "conceptId": "bathes",
+      "label": "купается",
+      "answerKey": "купается",
+      "audio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "water"
+      ],
+      "semantic": {
+        "group1": "water",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits",
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_v_bathes_2",
+      "primary": false,
+      "image": "media/s5_v_bathes_2.webp",
+      "set": "variation",
+      "conceptId": "bathes",
+      "label": "купается",
+      "answerKey": "купается",
+      "audio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "water"
+      ],
+      "semantic": {
+        "group1": "water",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "agent": "animal"
+    },
+    {
+      "id": "s5_v_bathes_3",
+      "primary": false,
+      "image": "media/s5_v_bathes_3.webp",
+      "set": "variation",
+      "conceptId": "bathes",
+      "label": "купается",
+      "answerKey": "купается",
+      "audio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "water"
+      ],
+      "semantic": {
+        "group1": "water",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits",
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_v_bathes_4",
+      "primary": false,
+      "image": "media/s5_v_bathes_4.webp",
+      "set": "variation",
+      "conceptId": "bathes",
+      "label": "купается",
+      "answerKey": "купается",
+      "audio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/bathes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "water"
+      ],
+      "semantic": {
+        "group1": "water",
+        "group2": "whole_body",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits",
+        "swims",
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_c_takes_off_boy",
+      "primary": true,
+      "image": "media/s5_c_takes_off_boy.webp",
+      "set": "contrast",
+      "conceptId": "takes_off",
+      "label": "снимает",
+      "answerKey": "снимает",
+      "audio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "imperative": "Сними!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes_off.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_c_takes_off_mom",
+      "primary": false,
+      "image": "media/s5_c_takes_off_mom.webp",
+      "set": "contrast",
+      "conceptId": "takes_off",
+      "label": "снимает",
+      "answerKey": "снимает",
+      "audio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "imperative": "Сними!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes_off.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_takes_off_1",
+      "primary": false,
+      "image": "media/s5_v_takes_off_1.webp",
+      "set": "variation",
+      "conceptId": "takes_off",
+      "label": "снимает",
+      "answerKey": "снимает",
+      "audio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "imperative": "Сними!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes_off.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_takes_off_2",
+      "primary": false,
+      "image": "media/s5_v_takes_off_2.webp",
+      "set": "variation",
+      "conceptId": "takes_off",
+      "label": "снимает",
+      "answerKey": "снимает",
+      "audio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "imperative": "Сними!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes_off.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_takes_off_3",
+      "primary": false,
+      "image": "media/s5_v_takes_off_3.webp",
+      "set": "variation",
+      "conceptId": "takes_off",
+      "label": "снимает",
+      "answerKey": "снимает",
+      "audio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "imperative": "Сними!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes_off.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "walks"
+      ]
+    },
+    {
+      "id": "s5_v_takes_off_4",
+      "primary": false,
+      "image": "media/s5_v_takes_off_4.webp",
+      "set": "variation",
+      "conceptId": "takes_off",
+      "label": "снимает",
+      "answerKey": "снимает",
+      "audio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes_off.mp3"
+      },
+      "imperative": "Сними!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes_off.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "clothes"
+      ],
+      "semantic": {
+        "group1": "dressing",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_c_takes_boy",
+      "primary": true,
+      "image": "media/s5_c_takes_boy.webp",
+      "set": "contrast",
+      "conceptId": "takes",
+      "label": "берёт",
+      "answerKey": "берёт",
+      "audio": {
+        "ru": "audio/takes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes.mp3"
+      },
+      "imperative": "Возьми!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes.mp3"
+      },
+      "wave": 5,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s5_c_takes_mom",
+      "primary": false,
+      "image": "media/s5_c_takes_mom.webp",
+      "set": "contrast",
+      "conceptId": "takes",
+      "label": "берёт",
+      "answerKey": "берёт",
+      "audio": {
+        "ru": "audio/takes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes.mp3"
+      },
+      "imperative": "Возьми!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes.mp3"
+      },
+      "wave": 5,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s5_v_takes_1",
+      "primary": false,
+      "image": "media/s5_v_takes_1.webp",
+      "set": "variation",
+      "conceptId": "takes",
+      "label": "берёт",
+      "answerKey": "берёт",
+      "audio": {
+        "ru": "audio/takes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes.mp3"
+      },
+      "imperative": "Возьми!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes.mp3"
+      },
+      "wave": 5,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_takes_2",
+      "primary": false,
+      "image": "media/s5_v_takes_2.webp",
+      "set": "variation",
+      "conceptId": "takes",
+      "label": "берёт",
+      "answerKey": "берёт",
+      "audio": {
+        "ru": "audio/takes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes.mp3"
+      },
+      "imperative": "Возьми!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes.mp3"
+      },
+      "wave": 5,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s5_v_takes_3",
+      "primary": false,
+      "image": "media/s5_v_takes_3.webp",
+      "set": "variation",
+      "conceptId": "takes",
+      "label": "берёт",
+      "answerKey": "берёт",
+      "audio": {
+        "ru": "audio/takes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes.mp3"
+      },
+      "imperative": "Возьми!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes.mp3"
+      },
+      "wave": 5,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits",
+        "eats"
+      ]
+    },
+    {
+      "id": "s5_v_takes_4",
+      "primary": false,
+      "image": "media/s5_v_takes_4.webp",
+      "set": "variation",
+      "conceptId": "takes",
+      "label": "берёт",
+      "answerKey": "берёт",
+      "audio": {
+        "ru": "audio/takes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/takes.mp3"
+      },
+      "imperative": "Возьми!",
+      "imperativeAudio": {
+        "ru": "audio/imp_takes.mp3"
+      },
+      "wave": 5,
+      "category": "social",
+      "tags": [
+        "social",
+        "hands",
+        "objects"
+      ],
+      "semantic": {
+        "group1": "exchange",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "opens"
+      ]
+    },
+    {
+      "id": "s5_c_wipes_boy",
+      "primary": true,
+      "image": "media/s5_c_wipes_boy.webp",
+      "set": "contrast",
+      "conceptId": "wipes",
+      "label": "вытирает",
+      "answerKey": "вытирает",
+      "audio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "household"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "washes_hands"
+      ]
+    },
+    {
+      "id": "s5_c_wipes_mom",
+      "primary": false,
+      "image": "media/s5_c_wipes_mom.webp",
+      "set": "contrast",
+      "conceptId": "wipes",
+      "label": "вытирает",
+      "answerKey": "вытирает",
+      "audio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "household"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "washes_hands"
+      ]
+    },
+    {
+      "id": "s5_v_wipes_1",
+      "primary": false,
+      "image": "media/s5_v_wipes_1.webp",
+      "set": "variation",
+      "conceptId": "wipes",
+      "label": "вытирает",
+      "answerKey": "вытирает",
+      "audio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "household"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s5_v_wipes_2",
+      "primary": false,
+      "image": "media/s5_v_wipes_2.webp",
+      "set": "variation",
+      "conceptId": "wipes",
+      "label": "вытирает",
+      "answerKey": "вытирает",
+      "audio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "household"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_wipes_3",
+      "primary": false,
+      "image": "media/s5_v_wipes_3.webp",
+      "set": "variation",
+      "conceptId": "wipes",
+      "label": "вытирает",
+      "answerKey": "вытирает",
+      "audio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "household"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits",
+        "washes_face"
+      ]
+    },
+    {
+      "id": "s5_v_wipes_4",
+      "primary": false,
+      "image": "media/s5_v_wipes_4.webp",
+      "set": "variation",
+      "conceptId": "wipes",
+      "label": "вытирает",
+      "answerKey": "вытирает",
+      "audio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/wipes.mp3"
+      },
+      "imperative": "Вытри руки!",
+      "imperativeAudio": {
+        "ru": "audio/imp_wipes.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "household"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "sits",
+        "washes_face"
+      ]
+    },
+    {
+      "id": "s5_c_claps_boy",
+      "primary": true,
+      "image": "media/s5_c_claps_boy.webp",
+      "set": "contrast",
+      "conceptId": "claps",
+      "label": "хлопает",
+      "answerKey": "хлопает",
+      "audio": {
+        "ru": "audio/claps.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/claps.mp3"
+      },
+      "imperative": "Хлопай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_claps.mp3"
+      },
+      "wave": 5,
+      "category": "emotional",
+      "tags": [
+        "social",
+        "hands",
+        "music"
+      ],
+      "semantic": {
+        "group1": "body_play",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_c_claps_mom",
+      "primary": false,
+      "image": "media/s5_c_claps_mom.webp",
+      "set": "contrast",
+      "conceptId": "claps",
+      "label": "хлопает",
+      "answerKey": "хлопает",
+      "audio": {
+        "ru": "audio/claps.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/claps.mp3"
+      },
+      "imperative": "Хлопай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_claps.mp3"
+      },
+      "wave": 5,
+      "category": "emotional",
+      "tags": [
+        "social",
+        "hands",
+        "music"
+      ],
+      "semantic": {
+        "group1": "body_play",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_claps_1",
+      "primary": false,
+      "image": "media/s5_v_claps_1.webp",
+      "set": "variation",
+      "conceptId": "claps",
+      "label": "хлопает",
+      "answerKey": "хлопает",
+      "audio": {
+        "ru": "audio/claps.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/claps.mp3"
+      },
+      "imperative": "Хлопай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_claps.mp3"
+      },
+      "wave": 5,
+      "category": "emotional",
+      "tags": [
+        "social",
+        "hands",
+        "music"
+      ],
+      "semantic": {
+        "group1": "body_play",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "stands",
+        "laughs"
+      ]
+    },
+    {
+      "id": "s5_v_claps_2",
+      "primary": false,
+      "image": "media/s5_v_claps_2.webp",
+      "set": "variation",
+      "conceptId": "claps",
+      "label": "хлопает",
+      "answerKey": "хлопает",
+      "audio": {
+        "ru": "audio/claps.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/claps.mp3"
+      },
+      "imperative": "Хлопай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_claps.mp3"
+      },
+      "wave": 5,
+      "category": "emotional",
+      "tags": [
+        "social",
+        "hands",
+        "music"
+      ],
+      "semantic": {
+        "group1": "body_play",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_v_claps_3",
+      "primary": false,
+      "image": "media/s5_v_claps_3.webp",
+      "set": "variation",
+      "conceptId": "claps",
+      "label": "хлопает",
+      "answerKey": "хлопает",
+      "audio": {
+        "ru": "audio/claps.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/claps.mp3"
+      },
+      "imperative": "Хлопай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_claps.mp3"
+      },
+      "wave": 5,
+      "category": "emotional",
+      "tags": [
+        "social",
+        "hands",
+        "music"
+      ],
+      "semantic": {
+        "group1": "body_play",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "sits",
+        "laughs"
+      ]
+    },
+    {
+      "id": "s5_v_claps_4",
+      "primary": false,
+      "image": "media/s5_v_claps_4.webp",
+      "set": "variation",
+      "conceptId": "claps",
+      "label": "хлопает",
+      "answerKey": "хлопает",
+      "audio": {
+        "ru": "audio/claps.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/claps.mp3"
+      },
+      "imperative": "Хлопай!",
+      "imperativeAudio": {
+        "ru": "audio/imp_claps.mp3"
+      },
+      "wave": 5,
+      "category": "emotional",
+      "tags": [
+        "social",
+        "hands",
+        "music"
+      ],
+      "semantic": {
+        "group1": "body_play",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "sits",
+        "laughs"
+      ]
+    },
+    {
+      "id": "s5_c_tidies_boy",
+      "primary": true,
+      "image": "media/s5_c_tidies_boy.webp",
+      "set": "contrast",
+      "conceptId": "tidies",
+      "label": "убирает",
+      "answerKey": "убирает",
+      "audio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "imperative": "Убери!",
+      "imperativeAudio": {
+        "ru": "audio/imp_tidies.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "toys",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "house",
+        "group2": "hands",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "stands",
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_c_tidies_mom",
+      "primary": false,
+      "image": "media/s5_c_tidies_mom.webp",
+      "set": "contrast",
+      "conceptId": "tidies",
+      "label": "убирает",
+      "answerKey": "убирает",
+      "audio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "imperative": "Убери!",
+      "imperativeAudio": {
+        "ru": "audio/imp_tidies.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "toys",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "house",
+        "group2": "hands",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_tidies_1",
+      "primary": false,
+      "image": "media/s5_v_tidies_1.webp",
+      "set": "variation",
+      "conceptId": "tidies",
+      "label": "убирает",
+      "answerKey": "убирает",
+      "audio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "imperative": "Убери!",
+      "imperativeAudio": {
+        "ru": "audio/imp_tidies.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "toys",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "house",
+        "group2": "hands",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "stands",
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_v_tidies_2",
+      "primary": false,
+      "image": "media/s5_v_tidies_2.webp",
+      "set": "variation",
+      "conceptId": "tidies",
+      "label": "убирает",
+      "answerKey": "убирает",
+      "audio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "imperative": "Убери!",
+      "imperativeAudio": {
+        "ru": "audio/imp_tidies.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "toys",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "house",
+        "group2": "hands",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_v_tidies_3",
+      "primary": false,
+      "image": "media/s5_v_tidies_3.webp",
+      "set": "variation",
+      "conceptId": "tidies",
+      "label": "убирает",
+      "answerKey": "убирает",
+      "audio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "imperative": "Убери!",
+      "imperativeAudio": {
+        "ru": "audio/imp_tidies.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "toys",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "house",
+        "group2": "hands",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_tidies_4",
+      "primary": false,
+      "image": "media/s5_v_tidies_4.webp",
+      "set": "variation",
+      "conceptId": "tidies",
+      "label": "убирает",
+      "answerKey": "убирает",
+      "audio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/tidies.mp3"
+      },
+      "imperative": "Убери!",
+      "imperativeAudio": {
+        "ru": "audio/imp_tidies.mp3"
+      },
+      "wave": 5,
+      "category": "household",
+      "tags": [
+        "household",
+        "toys",
+        "daily_routine"
+      ],
+      "semantic": {
+        "group1": "house",
+        "group2": "hands",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_c_builds_boy",
+      "primary": true,
+      "image": "media/s5_c_builds_boy.webp",
+      "set": "contrast",
+      "conceptId": "builds",
+      "label": "строит",
+      "answerKey": "строит",
+      "audio": {
+        "ru": "audio/builds.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/builds.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "construction"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_c_builds_mom",
+      "primary": false,
+      "image": "media/s5_c_builds_mom.webp",
+      "set": "contrast",
+      "conceptId": "builds",
+      "label": "строит",
+      "answerKey": "строит",
+      "audio": {
+        "ru": "audio/builds.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/builds.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "construction"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "hands",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s5_v_builds_1",
+      "primary": false,
+      "image": "media/s5_v_builds_1.webp",
+      "set": "variation",
+      "conceptId": "builds",
+      "label": "строит",
+      "answerKey": "строит",
+      "audio": {
+        "ru": "audio/builds.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/builds.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "construction"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_v_builds_2",
+      "primary": false,
+      "image": "media/s5_v_builds_2.webp",
+      "set": "variation",
+      "conceptId": "builds",
+      "label": "строит",
+      "answerKey": "строит",
+      "audio": {
+        "ru": "audio/builds.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/builds.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "construction"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_v_builds_3",
+      "primary": false,
+      "image": "media/s5_v_builds_3.webp",
+      "set": "variation",
+      "conceptId": "builds",
+      "label": "строит",
+      "answerKey": "строит",
+      "audio": {
+        "ru": "audio/builds.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/builds.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "construction"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "plays",
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_builds_4",
+      "primary": false,
+      "image": "media/s5_v_builds_4.webp",
+      "set": "variation",
+      "conceptId": "builds",
+      "label": "строит",
+      "answerKey": "строит",
+      "audio": {
+        "ru": "audio/builds.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/builds.mp3"
+      },
+      "wave": 5,
+      "category": "creative",
+      "tags": [
+        "creative",
+        "play",
+        "construction"
+      ],
+      "semantic": {
+        "group1": "play",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "plays",
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_c_combs_boy",
+      "primary": true,
+      "image": "media/s5_c_combs_boy.webp",
+      "set": "contrast",
+      "conceptId": "combs",
+      "label": "причёсывается",
+      "answerKey": "причёсывается",
+      "audio": {
+        "ru": "audio/combs.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/combs.mp3"
+      },
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_c_combs_mom",
+      "primary": false,
+      "image": "media/s5_c_combs_mom.webp",
+      "set": "contrast",
+      "conceptId": "combs",
+      "label": "причёсывается",
+      "answerKey": "причёсывается",
+      "audio": {
+        "ru": "audio/combs.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/combs.mp3"
+      },
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_combs_1",
+      "primary": false,
+      "image": "media/s5_v_combs_1.webp",
+      "set": "variation",
+      "conceptId": "combs",
+      "label": "причёсывается",
+      "answerKey": "причёсывается",
+      "audio": {
+        "ru": "audio/combs.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/combs.mp3"
+      },
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_combs_2",
+      "primary": false,
+      "image": "media/s5_v_combs_2.webp",
+      "set": "variation",
+      "conceptId": "combs",
+      "label": "причёсывается",
+      "answerKey": "причёсывается",
+      "audio": {
+        "ru": "audio/combs.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/combs.mp3"
+      },
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands"
+      ]
+    },
+    {
+      "id": "s5_v_combs_3",
+      "primary": false,
+      "image": "media/s5_v_combs_3.webp",
+      "set": "variation",
+      "conceptId": "combs",
+      "label": "причёсывается",
+      "answerKey": "причёсывается",
+      "audio": {
+        "ru": "audio/combs.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/combs.mp3"
+      },
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_v_combs_4",
+      "primary": false,
+      "image": "media/s5_v_combs_4.webp",
+      "set": "variation",
+      "conceptId": "combs",
+      "label": "причёсывается",
+      "answerKey": "причёсывается",
+      "audio": {
+        "ru": "audio/combs.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/combs.mp3"
+      },
+      "imperative": "Причешись!",
+      "imperativeAudio": {
+        "ru": "audio/imp_combs.mp3"
+      },
+      "wave": 5,
+      "category": "self_care",
+      "tags": [
+        "self_care",
+        "hygiene",
+        "morning_routine"
+      ],
+      "semantic": {
+        "group1": "hygiene",
+        "group2": "hands",
+        "group3": "calm"
+      }
+    },
+    {
+      "id": "s5_c_catches_boy",
+      "primary": true,
+      "image": "media/s5_c_catches_boy.webp",
+      "set": "contrast",
+      "conceptId": "catches",
+      "label": "ловит",
+      "answerKey": "ловит",
+      "audio": {
+        "ru": "audio/catches.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/catches.mp3"
+      },
+      "imperative": "Лови!",
+      "imperativeAudio": {
+        "ru": "audio/imp_catches.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "stands",
+        "throws"
+      ]
+    },
+    {
+      "id": "s5_c_catches_mom",
+      "primary": false,
+      "image": "media/s5_c_catches_mom.webp",
+      "set": "contrast",
+      "conceptId": "catches",
+      "label": "ловит",
+      "answerKey": "ловит",
+      "audio": {
+        "ru": "audio/catches.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/catches.mp3"
+      },
+      "imperative": "Лови!",
+      "imperativeAudio": {
+        "ru": "audio/imp_catches.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "stands",
+        "throws"
+      ]
+    },
+    {
+      "id": "s5_v_catches_1",
+      "primary": false,
+      "image": "media/s5_v_catches_1.webp",
+      "set": "variation",
+      "conceptId": "catches",
+      "label": "ловит",
+      "answerKey": "ловит",
+      "audio": {
+        "ru": "audio/catches.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/catches.mp3"
+      },
+      "imperative": "Лови!",
+      "imperativeAudio": {
+        "ru": "audio/imp_catches.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "stands",
+        "throws",
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_v_catches_2",
+      "primary": false,
+      "image": "media/s5_v_catches_2.webp",
+      "set": "variation",
+      "conceptId": "catches",
+      "label": "ловит",
+      "answerKey": "ловит",
+      "audio": {
+        "ru": "audio/catches.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/catches.mp3"
+      },
+      "imperative": "Лови!",
+      "imperativeAudio": {
+        "ru": "audio/imp_catches.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "stands",
+        "throws",
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_v_catches_3",
+      "primary": false,
+      "image": "media/s5_v_catches_3.webp",
+      "set": "variation",
+      "conceptId": "catches",
+      "label": "ловит",
+      "answerKey": "ловит",
+      "audio": {
+        "ru": "audio/catches.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/catches.mp3"
+      },
+      "imperative": "Лови!",
+      "imperativeAudio": {
+        "ru": "audio/imp_catches.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "alsoShows": [
+        "stands",
+        "throws",
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_v_catches_4",
+      "primary": false,
+      "image": "media/s5_v_catches_4.webp",
+      "set": "variation",
+      "conceptId": "catches",
+      "label": "ловит",
+      "answerKey": "ловит",
+      "audio": {
+        "ru": "audio/catches.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/catches.mp3"
+      },
+      "imperative": "Лови!",
+      "imperativeAudio": {
+        "ru": "audio/imp_catches.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "ball",
+        "play"
+      ],
+      "semantic": {
+        "group1": "ball",
+        "group2": "hands",
+        "group3": "active"
+      },
+      "agent": "animal",
+      "alsoShows": [
+        "jumps",
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_c_writes_boy",
+      "primary": true,
+      "image": "media/s5_c_writes_boy.webp",
+      "set": "contrast",
+      "conceptId": "writes",
+      "label": "пишет",
+      "answerKey": "пишет",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/writes.mp3"
+      },
+      "wave": 5,
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "writing"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_c_writes_mom",
+      "primary": false,
+      "image": "media/s5_c_writes_mom.webp",
+      "set": "contrast",
+      "conceptId": "writes",
+      "label": "пишет",
+      "answerKey": "пишет",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/writes.mp3"
+      },
+      "wave": 5,
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "writing"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_v_writes_1",
+      "primary": false,
+      "image": "media/s5_v_writes_1.webp",
+      "set": "variation",
+      "conceptId": "writes",
+      "label": "пишет",
+      "answerKey": "пишет",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/writes.mp3"
+      },
+      "wave": 5,
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "writing"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_v_writes_2",
+      "primary": false,
+      "image": "media/s5_v_writes_2.webp",
+      "set": "variation",
+      "conceptId": "writes",
+      "label": "пишет",
+      "answerKey": "пишет",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/writes.mp3"
+      },
+      "wave": 5,
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "writing"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "stands",
+        "draws"
+      ]
+    },
+    {
+      "id": "s5_v_writes_3",
+      "primary": false,
+      "image": "media/s5_v_writes_3.webp",
+      "set": "variation",
+      "conceptId": "writes",
+      "label": "пишет",
+      "answerKey": "пишет",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/writes.mp3"
+      },
+      "wave": 5,
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "writing"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "draws"
+      ]
+    },
+    {
+      "id": "s5_v_writes_4",
+      "primary": false,
+      "image": "media/s5_v_writes_4.webp",
+      "set": "variation",
+      "conceptId": "writes",
+      "label": "пишет",
+      "answerKey": "пишет",
+      "audio": {
+        "ru": "audio/writes.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/writes.mp3"
+      },
+      "wave": 5,
+      "category": "cognitive",
+      "tags": [
+        "cognitive",
+        "learning",
+        "writing"
+      ],
+      "semantic": {
+        "group1": "table",
+        "group2": "hands",
+        "group3": "calm"
+      },
+      "alsoShows": [
+        "sits"
+      ]
+    },
+    {
+      "id": "s5_c_crawls_boy",
+      "primary": true,
+      "image": "media/s5_c_crawls_boy.webp",
+      "set": "contrast",
+      "conceptId": "crawls",
+      "label": "ползёт",
+      "answerKey": "ползёт",
+      "audio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "imperative": "Ползи!",
+      "imperativeAudio": {
+        "ru": "audio/imp_crawls.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "whole_body",
+        "group3": "moderate"
+      }
+    },
+    {
+      "id": "s5_c_crawls_mom",
+      "primary": false,
+      "image": "media/s5_c_crawls_mom.webp",
+      "set": "contrast",
+      "conceptId": "crawls",
+      "label": "ползёт",
+      "answerKey": "ползёт",
+      "audio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "imperative": "Ползи!",
+      "imperativeAudio": {
+        "ru": "audio/imp_crawls.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "whole_body",
+        "group3": "moderate"
+      }
+    },
+    {
+      "id": "s5_v_crawls_1",
+      "primary": false,
+      "image": "media/s5_v_crawls_1.webp",
+      "set": "variation",
+      "conceptId": "crawls",
+      "label": "ползёт",
+      "answerKey": "ползёт",
+      "audio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "imperative": "Ползи!",
+      "imperativeAudio": {
+        "ru": "audio/imp_crawls.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "whole_body",
+        "group3": "moderate"
+      }
+    },
+    {
+      "id": "s5_v_crawls_2",
+      "primary": false,
+      "image": "media/s5_v_crawls_2.webp",
+      "set": "variation",
+      "conceptId": "crawls",
+      "label": "ползёт",
+      "answerKey": "ползёт",
+      "audio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "imperative": "Ползи!",
+      "imperativeAudio": {
+        "ru": "audio/imp_crawls.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "whole_body",
+        "group3": "moderate"
+      },
+      "alsoShows": [
+        "plays"
+      ]
+    },
+    {
+      "id": "s5_v_crawls_3",
+      "primary": false,
+      "image": "media/s5_v_crawls_3.webp",
+      "set": "variation",
+      "conceptId": "crawls",
+      "label": "ползёт",
+      "answerKey": "ползёт",
+      "audio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "imperative": "Ползи!",
+      "imperativeAudio": {
+        "ru": "audio/imp_crawls.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "whole_body",
+        "group3": "moderate"
+      }
+    },
+    {
+      "id": "s5_v_crawls_4",
+      "primary": false,
+      "image": "media/s5_v_crawls_4.webp",
+      "set": "variation",
+      "conceptId": "crawls",
+      "label": "ползёт",
+      "answerKey": "ползёт",
+      "audio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/crawls.mp3"
+      },
+      "imperative": "Ползи!",
+      "imperativeAudio": {
+        "ru": "audio/imp_crawls.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "locomotion"
+      ],
+      "semantic": {
+        "group1": "legs",
+        "group2": "whole_body",
+        "group3": "moderate"
+      },
+      "agent": "animal"
+    },
+    {
+      "id": "s5_c_flies_bird",
+      "primary": true,
+      "image": "media/s5_c_flies_bird.webp",
+      "set": "contrast",
+      "conceptId": "flies",
+      "label": "летит",
+      "answerKey": "летит",
+      "audio": {
+        "ru": "audio/flies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/flies.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "sky",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s5_c_flies_butterfly",
+      "primary": false,
+      "image": "media/s5_c_flies_butterfly.webp",
+      "set": "contrast",
+      "conceptId": "flies",
+      "label": "летит",
+      "answerKey": "летит",
+      "audio": {
+        "ru": "audio/flies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/flies.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "sky",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s5_v_flies_1",
+      "primary": false,
+      "image": "media/s5_v_flies_1.webp",
+      "set": "variation",
+      "conceptId": "flies",
+      "label": "летит",
+      "answerKey": "летит",
+      "audio": {
+        "ru": "audio/flies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/flies.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "sky",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s5_v_flies_2",
+      "primary": false,
+      "image": "media/s5_v_flies_2.webp",
+      "set": "variation",
+      "conceptId": "flies",
+      "label": "летит",
+      "answerKey": "летит",
+      "audio": {
+        "ru": "audio/flies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/flies.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "sky",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s5_v_flies_3",
+      "primary": false,
+      "image": "media/s5_v_flies_3.webp",
+      "set": "variation",
+      "conceptId": "flies",
+      "label": "летит",
+      "answerKey": "летит",
+      "audio": {
+        "ru": "audio/flies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/flies.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "sky",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
+      }
+    },
+    {
+      "id": "s5_v_flies_4",
+      "primary": false,
+      "image": "media/s5_v_flies_4.webp",
+      "set": "variation",
+      "conceptId": "flies",
+      "label": "летит",
+      "answerKey": "летит",
+      "audio": {
+        "ru": "audio/flies.mp3"
+      },
+      "promptAudio": {
+        "ru": "audio/flies.mp3"
+      },
+      "wave": 5,
+      "category": "movement",
+      "tags": [
+        "movement",
+        "sky",
+        "outdoor"
+      ],
+      "semantic": {
+        "group1": "motion",
+        "group2": "whole_body",
+        "group3": "active"
       }
     }
   ]

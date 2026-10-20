@@ -1,4 +1,6 @@
 import { kv } from "@/core/db";
+import { getUiLanguage, hydrateUiLanguage } from "@/shared/i18n/uiLanguage.js";
+import { accountLanguages } from "./languageSync.js";
 import { migrateStudentPeople, mergePeopleRecords } from "../../shared/student-people.mjs";
 import { mergeRewardVideoViews } from "@/shared/utils/rewardVideoViews";
 import { useAppStore } from "@/core/store";
@@ -152,6 +154,11 @@ export function mergeStudentRecords(local, server) {
 
     byId.set(student.id, {
       ...winner,
+      // Legacy clients/records do not know this field. Missing differs from
+      // an explicit null, which means inheriting the account preference.
+      preferredLessonLanguage: winner.preferredLessonLanguage === undefined
+        ? (student.preferredLessonLanguage !== undefined ? student.preferredLessonLanguage : current.preferredLessonLanguage ?? null)
+        : winner.preferredLessonLanguage,
       photo:          resolvedPhoto,
       photoUpdatedAt: resolvedPhotoTs,
       sex:            student.sex   ?? current.sex   ?? null,
@@ -316,6 +323,12 @@ export function normalizeBootstrap(raw = {}) {
 
 export function applyBootstrapToStore(raw) {
   const bootstrap = normalizeBootstrap(raw);
+  const current = useAppStore.getState();
+  const account = "account" in raw ? bootstrap.account : current.account;
+  const token = "token" in raw ? bootstrap.token : current.token;
+  if (account?.id && token) {
+    accountLanguages.reconcile({ accountId: account.id, token, settings: bootstrap.settings });
+  } else hydrateUiLanguage(bootstrap.settings?.uiLanguage);
   const resumeContext = bootstrap.activeSession?.context ?? bootstrap.lastContext;
 
   useAppStore.setState((state) => {
@@ -327,6 +340,8 @@ export function applyBootstrapToStore(raw) {
     account: "account" in raw ? bootstrap.account : state.account,
     settings: (() => {
       const merged = { ...state.settings, ...(bootstrap.settings ?? {}) };
+      merged.uiLanguage = getUiLanguage();
+      if (accountLanguages.getSnapshot().accountId === account?.id) merged.cardLanguage = accountLanguages.getSnapshot().cardLanguage;
       // Server null must not overwrite a locally-held PIN that hasn't synced yet.
       if (merged.adultPinHash === null && (state.settings.adultPinHash ?? null) !== null) {
         merged.adultPinHash = state.settings.adultPinHash;

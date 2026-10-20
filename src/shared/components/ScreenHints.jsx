@@ -1,14 +1,17 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import "./ScreenHints.css";
 
 export function HintButton({ onClick, className = "", hidden = false }) {
-  return <button type="button" className={`screen-hint-button ${className}`} style={hidden ? { visibility: "hidden" } : undefined} onClick={onClick} aria-label="Показать подсказки">💡</button>;
+  const { t } = useUiTranslation();
+  return <button type="button" className={`screen-hint-button ${className}`} style={hidden ? { visibility: "hidden" } : undefined} onClick={onClick} aria-label={t("hints.show")}>💡</button>;
 }
 
 // Each screen owns its step descriptions and targets; this component owns
 // placement, navigation and dismissal. The highlighted control stays usable.
 export default function ScreenHints({ steps, onClose }) {
+  const { t } = useUiTranslation();
   const [index, setIndex] = useState(0);
   const [layout, setLayout] = useState(null);
   const cardRef = useRef(null);
@@ -70,13 +73,13 @@ export default function ScreenHints({ steps, onClose }) {
   return createPortal(<div className="screen-hints">
     {layout && <div className="screen-hints__target" style={layout.target} aria-hidden="true" />}
     <aside ref={cardRef} className="screen-hints__card" style={{ ...layout?.card, visibility: layout ? "visible" : "hidden" }} role="dialog" aria-labelledby={titleId} tabIndex={-1}>
-      <button type="button" className="screen-hints__close" onClick={onClose} aria-label="Скрыть подсказки">×</button>
-      <span className="screen-hints__eyebrow">ПОДСКАЗКИ · {index + 1} ИЗ {steps.length}</span>
+      <button type="button" className="screen-hints__close" onClick={onClose} aria-label={t("hints.hide")}>×</button>
+      <span className="screen-hints__eyebrow">{t("hints.position", { current: index + 1, total: steps.length })}</span>
       <strong id={titleId} aria-live="polite">{step.title}</strong>
       <p>{step.text}</p>
       <div className="screen-hints__actions">
-        {index > 0 && <button type="button" onClick={() => setIndex(index - 1)}>Назад</button>}
-        <button type="button" className="screen-hints__primary" onClick={() => index === steps.length - 1 ? onClose() : setIndex(index + 1)}>{index === steps.length - 1 ? "Готово" : "Далее"}</button>
+        {index > 0 && <button type="button" onClick={() => setIndex(index - 1)}>{t("common.back")}</button>}
+        <button type="button" className="screen-hints__primary" onClick={() => index === steps.length - 1 ? onClose() : setIndex(index + 1)}>{index === steps.length - 1 ? t("common.done") : t("common.next")}</button>
       </div>
     </aside>
   </div>, document.body);

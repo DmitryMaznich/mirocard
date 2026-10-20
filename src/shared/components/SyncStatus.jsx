@@ -1,14 +1,16 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useAppStore } from "@/core/store";
 
 export default function SyncStatus() {
+  const { t } = useUiTranslation();
   const syncStatus = useAppStore((s) => s.syncStatus);
   const buildInfo  = useAppStore((s) => s.buildInfo);
 
   const dot = {
-    idle:    { color: "#4caf50", title: "Синхронизировано" },
-    syncing: { color: "#ff9800", title: "Синхронизация…"  },
-    error:   { color: "#f44336", title: "Ошибка синхронизации" },
-  }[syncStatus] ?? { color: "#9e9e9e", title: "Нет соединения" };
+    idle:    { color: "#4caf50", title: t("sync.synced") },
+    syncing: { color: "#ff9800", title: t("sync.syncing")  },
+    error:   { color: "#f44336", title: t("sync.error") },
+  }[syncStatus] ?? { color: "#9e9e9e", title: t("sync.offline") };
 
   return (
     <span

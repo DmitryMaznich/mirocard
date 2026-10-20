@@ -57,6 +57,15 @@ const catalog = {
     },
   ],
 };
+for (const entry of catalog.decks) {
+  const directory = path.join(decksDir, "languages", entry.id);
+  mkdirSync(directory, { recursive: true });
+  entry.languageDownload = { schemaVersion: 1, core: { url: entry.url, bytes: 14, sha256: "a".repeat(64) }, languages: {} };
+  for (const language of ["ru", "sl"]) {
+    writeFileSync(path.join(directory, `${language}_v1.zip`), `${entry.id}-${language}-PACKAGE`);
+    entry.languageDownload.languages[language] = { url: `./decks/languages/${entry.id}/${language}_v1.zip`, bytes: 42, sha256: "b".repeat(64), language };
+  }
+}
 writeFileSync(path.join(decksDir, "catalog.json"), JSON.stringify(catalog));
 
 process.env.MIROCARD_DATA_DIR = dataDir;
@@ -375,4 +384,46 @@ test("archive is admin-only despite free access, assignment, ownership and catal
   const admin = await fetch(base + "/api/admin/catalog", { headers: { Authorization: "Bearer test-admin-token" } });
   assert.equal(admin.status, 200);
   assert.ok((await admin.json()).decks.some(d => d.id === "archived_deck" && d.publication === "archived"));
+});
+
+
+test("language artifact catalog strips paid and teaser URLs at every level", async () => {
+  const body = await (await fetch(`${base}/api/decks/catalog`)).json();
+  const free = body.decks.find((d) => d.id === "free_deck");
+  assert.ok(free.languageDownload.core.url);
+  assert.ok(free.languageDownload.languages.sl.url);
+  for (const id of ["paid_deck", "beta_deck"]) {
+    const entry = body.decks.find((d) => d.id === id);
+    assert.equal(entry.url, undefined);
+    assert.equal(entry.languageDownload.core.url, undefined);
+    assert.equal(entry.languageDownload.languages.ru.url, undefined);
+    assert.equal(entry.languageDownload.languages.sl.url, undefined);
+  }
+});
+
+test("static language archives are public only for a current free topic", async () => {
+  const free = await fetch(`${base}/decks/languages/free_deck/sl_v1.zip`);
+  assert.equal(free.status, 200);
+  assert.equal(await free.text(), "free_deck-sl-PACKAGE");
+  for (const id of ["paid_deck", "beta_deck", "hidden_deck", "archived_deck", "unknown_deck"]) {
+    assert.equal((await fetch(`${base}/decks/languages/${id}/sl_v1.zip`)).status, 404);
+  }
+});
+
+test("each language download enforces authentication, ownership and current entitlement", async () => {
+  assert.equal((await fetch(`${base}/api/decks/paid_deck/download?part=language&language=sl`)).status, 401);
+  const { token, accountId } = await registerAndLogin();
+  const headers = { Authorization: `Bearer ${token}` };
+  assert.equal((await fetch(`${base}/api/decks/paid_deck/download?part=language&language=sl`, { headers })).status, 403);
+  await fetch(`${base}/api/decks/paid_deck/claim`, { method: "POST", headers });
+  const downloaded = await fetch(`${base}/api/decks/paid_deck/download?part=language&language=sl`, { headers });
+  assert.equal(downloaded.status, 200);
+  assert.equal(await downloaded.text(), "paid_deck-sl-PACKAGE");
+  assert.equal(downloaded.headers.get("cache-control"), "no-store");
+  assert.equal((await fetch(`${base}/api/decks/paid_deck/download?part=core`, { headers })).status, 200);
+  for (const query of ["part=language&language=__proto__", "part=language&language=missing", "part=unknown", "part=language&language=..%2Fru"]) {
+    assert.equal((await fetch(`${base}/api/decks/paid_deck/download?${query}`, { headers })).status, 404);
+  }
+  expireEntitlement(accountId);
+  assert.equal((await fetch(`${base}/api/decks/paid_deck/download?part=language&language=sl`, { headers })).status, 403);
 });

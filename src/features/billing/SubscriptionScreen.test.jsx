@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { useAppStore } from "@/core/store";
 import * as apiModule from "@/core/api";
+import { setUiLanguage } from "@/shared/i18n/uiLanguage.js";
 import SubscriptionScreen from "./SubscriptionScreen.jsx";
 
 // The plans are paused for the free launch (PAID_PLANS_PAUSED); these tests cover the paid
@@ -16,6 +17,25 @@ vi.mock("./entitlement", async (importOriginal) => {
 describe("SubscriptionScreen", () => {
   let container = null;
   let root = null;
+
+  it("starts legal consent in Slovenian and clears consent when its own locale changes", async () => {
+    vi.spyOn(apiModule.api, "get").mockResolvedValue({ checkoutEnabled: true });
+    const post = vi.spyOn(apiModule.api, "post");
+    try {
+      act(() => setUiLanguage("sl"));
+      mountOnPayStep();
+      await act(async () => {});
+      expect(container.querySelector(".subscription-consents").lang).toBe("sl");
+      expect(container.textContent).toContain("Sprejemam");
+      const checks = container.querySelectorAll('input[type="checkbox"]');
+      act(() => checks[0].click());
+      expect(checks[0].checked).toBe(true);
+      act(() => container.querySelectorAll(".consent-lang__btn")[0].click());
+      expect([...checks].every(input => !input.checked)).toBe(true);
+      expect(container.querySelector(".subscription-consents").lang).toBe("ru");
+      expect(post).not.toHaveBeenCalled();
+    } finally { act(() => setUiLanguage("ru")); }
+  });
 
   beforeEach(() => {
     pause.value = false;

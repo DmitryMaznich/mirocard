@@ -46,6 +46,10 @@ export function restoreActiveSessionState(snapshot, context) {
   if ((normalized.context.textId ?? null) !== (context.textId ?? null)) return null;
   if (normalized.context.modeId !== context.modeId) return null;
   if (normalized.sessionState.topicVersion !== context.topicVersion) return null;
+  if (context.languageContext) {
+    const saved = normalized.sessionState.languageContext;
+    if (!saved || Object.entries(context.languageContext).some(([key, value]) => saved[key] !== value)) return null;
+  }
   // A parent can alter a mode's selected concepts without changing the topic
   // version. Never revive an earlier queue in that case: it would make the
   // picker show the new selection while the child still sees the old cards.

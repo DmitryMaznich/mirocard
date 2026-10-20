@@ -1,7 +1,9 @@
+import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { FIRST_PARTY_DECK_IDS } from "@/topics/builtinTopics";
-import { getTopicTitle } from "@/shared/utils/format";
 
-export default function TopicActionSheet({ record, onClose, onInfo, onDelete, onStatistics }) {
+export default function TopicActionSheet({ record, onClose, onInfo, onDelete, onStatistics, onLanguage }) {
+  const { t } = useUiTranslation();
   const isBuiltin    = Boolean(record.meta.builtin);
   const isFirstParty = FIRST_PARTY_DECK_IDS.has(record.meta.id);
   const isDeletable  = !isBuiltin && !isFirstParty;
@@ -13,25 +15,20 @@ export default function TopicActionSheet({ record, onClose, onInfo, onDelete, on
   return (
     <div className="action-sheet-overlay" onClick={handleOverlay}>
       <div className="action-sheet" role="dialog" aria-modal="true">
-        <div className="action-sheet__title">{getTopicTitle(record.meta.title)}</div>
-        {onStatistics && <button className="action-sheet__item" onClick={() => { onStatistics(record); onClose(); }}>Статистика</button>}
+        <div className="action-sheet__title">{getInterfaceTopicTitle(record.meta.id, record.meta.title)}</div>
+        {record.languageContract && onLanguage && <button className="action-sheet__item" onClick={() => { onLanguage(record); onClose(); }}>{t("topicLanguage.change")}</button>}
+        {onStatistics && <button className="action-sheet__item" onClick={() => { onStatistics(record); onClose(); }}>{t("nav.statistics")}</button>}
         <button
           className="action-sheet__item"
           onClick={() => { onInfo(record); onClose(); }}
-        >
-          О теме
-        </button>
+        >{t("topics.about")}</button>
         {isDeletable && (
           <button
             className="action-sheet__item action-sheet__item--danger"
             onClick={() => { onDelete(record); onClose(); }}
-          >
-            Удалить
-          </button>
+          >{t("common.delete")}</button>
         )}
-        <button className="action-sheet__item action-sheet__item--cancel" onClick={onClose}>
-          Отмена
-        </button>
+        <button className="action-sheet__item action-sheet__item--cancel" onClick={onClose}>{t("common.cancel")}</button>
       </div>
     </div>
   );

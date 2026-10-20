@@ -1,11 +1,12 @@
+import { translateUi } from "@/shared/i18n/uiLanguage.js";
 import { getDb } from "@/core/db";
 import { importTopic, TopicImportError } from "@/topics/topicLoader";
 import { clearRendererCache } from "@/topics/rendererLoader";
 import { api, getApiToken } from "@/core/api";
 
 export function getImportErrorMessage(err) {
-  if (err instanceof TopicImportError) return err.message;
-  return `Ошибка загрузки: ${err?.message ?? err}`;
+  if (err instanceof TopicImportError) return translateUi("topics.invalidArchive");
+  return translateUi("topics.downloadError", { detail: err?.message ?? String(err) });
 }
 
 // A local therapist profile has an account-shaped display object but no API
@@ -56,7 +57,7 @@ export async function claimDeck(topicId) {
 // Reports a 0..1 fraction, or null when the total size is unknown (no
 // Content-Length, or a Content-Encoding makes the header's byte count differ
 // from the decoded bytes the stream yields).
-async function readBodyWithProgress(res, onProgress) {
+export async function readBodyWithProgress(res, onProgress) {
   const total = Number(res.headers.get("Content-Length"));
   const encoded = Boolean(res.headers.get("Content-Encoding"));
   if (!onProgress || !res.body?.getReader || !total || encoded) {
@@ -79,7 +80,13 @@ async function readBodyWithProgress(res, onProgress) {
   return out.buffer;
 }
 
-export async function fetchCatalogTopic(entry, appVersion, { onProgress } = {}) {
+export async function fetchCatalogTopic(entry, appVersion, options = {}) {
+  const { onProgress } = options;
+  if (entry.languageDownload) {
+    if (!options.contentLanguage) throw new Error("Select the topic language before downloading");
+    const { installTopicLanguage } = await import("./topicLanguageInstaller.js");
+    return installTopicLanguage(entry, options.contentLanguage, appVersion, options);
+  }
   const access = entry.access ?? "free";
   const token = getApiToken();
 
@@ -129,7 +136,7 @@ export async function silentUpdateOutdatedTopics({ topicRecords, appVersion }) {
     const installedById = Object.fromEntries(topicRecords.map((r) => [r.meta.id, r]));
     const outdated = (catalog.decks ?? []).filter((entry) => {
       const installed = installedById[entry.id];
-      return installed && installed.meta.version !== entry.version;
+      return installed && !entry.languageDownload && installed.meta.version !== entry.version;
     });
     if (!outdated.length) return { nextRecords: topicRecords, updated: [] };
 
@@ -152,7 +159,7 @@ export async function silentUpdateOutdatedTopics({ topicRecords, appVersion }) {
 export async function refreshInstalledCatalogTopics({ topicRecords, appVersion }) {
   const catalog = await fetchCatalog();
   const installedIds = new Set(topicRecords.map((record) => record.meta.id));
-  const entries = (catalog.decks ?? []).filter((entry) => installedIds.has(entry.id));
+  const entries = (catalog.decks ?? []).filter((entry) => installedIds.has(entry.id) && !entry.languageDownload);
 
   const nextRecords = [...topicRecords];
   const failed = [];

@@ -1,3 +1,4 @@
+import { translateUi as t } from "../i18n/uiLanguage.js";
 // Turns a picked image file into a centre-cropped square JPEG data URL.
 //
 // Two failure modes this exists to close (both used to leave the upload
@@ -85,13 +86,13 @@ async function decode(file) {
     return await loadImage(file);
   } catch {
     if (!(await looksLikeHeif(file))) {
-      throw new PhotoPrepareError("Не получилось открыть это фото. Попробуйте другое — в формате JPG или PNG.");
+      throw new PhotoPrepareError(t("photo.decodeError"));
     }
   }
   try {
     return await loadImage(await convertHeifToJpeg(file));
   } catch {
-    throw new PhotoPrepareError("Не получилось открыть фото HEIC. Попробуйте ещё раз или выберите фото в формате JPG.");
+    throw new PhotoPrepareError(t("photo.heicError"));
   }
 }
 

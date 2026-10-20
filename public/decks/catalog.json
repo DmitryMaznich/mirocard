@@ -92,16 +92,16 @@
     },
     {
       "id": "verbs_v2",
-      "version": "2.1.1",
+      "version": "2.3.0",
       "title": {
         "ru": "Глаголы",
         "en": "Verbs"
       },
       "description": {
-        "ru": "20 глаголов в трёх волнах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
-        "en": "20 everyday verbs in three waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
+        "ru": "44 глагола в пяти волнах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
+        "en": "44 everyday verbs in five waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
       },
-      "url": "./decks/verbs_v2_v2.1.1.zip",
+      "url": "./decks/verbs_v2_v2.3.0.zip",
       "status": "beta",
       "access": "paid"
     },
@@ -134,6 +134,62 @@
       "url": "./decks/comparison_v2.37.0.zip",
       "status": "release",
       "access": "free"
+    },
+    {
+      "id": "comparison_language_pilot",
+      "version": "0.5.0",
+      "title": {
+        "ru": "Сравнение · языковой пилот",
+        "sl": "Primerjanje · jezikovni pilot"
+      },
+      "description": {
+        "ru": "Три режима пилотной копии: сравнение количеств и чисел с крокодилом, рисование знака. Русский и словенский материал выбираются независимо от интерфейса. В русском пакете озвучена подсказка после ошибки; словенский пока без речи.",
+        "sl": "Trije načini v pilotni kopiji: primerjanje količin in števil s krokodilom ter risanje znaka. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Ruski paket vsebuje govorjeni namig po napaki; slovenski je za zdaj brez govora."
+      },
+      "url": "./decks/comparison_language_pilot_v0.5.0.zip",
+      "status": "hidden",
+      "hidden": true,
+      "access": "free",
+      "languageDownload": {
+        "schemaVersion": 1,
+        "core": {
+          "url": "./decks/comparison_language_pilot_v0.5.0.zip",
+          "version": "0.5.0",
+          "bytes": 10620,
+          "sha256": "5ee5a3a5153ab732795d483470c6d185db4d49916e8b4e092d40ac96c0c367af"
+        },
+        "languages": {
+          "ru": {
+            "url": "./decks/languages/comparison_language_pilot/ru_v0.5.0.zip",
+            "bytes": 16342,
+            "sha256": "ccec8a8979223f0d0553fb6ad4d05651e0961c38eca353f1c91597c8a9b4f5d0",
+            "language": "ru",
+            "packageId": "comparison_language_pilot.ru",
+            "version": "0.5.0",
+            "modeIds": [
+              "compare_visual",
+              "compare_sign",
+              "compare_draw_sign"
+            ],
+            "audio": "recorded",
+            "audioScope": "feedback"
+          },
+          "sl": {
+            "url": "./decks/languages/comparison_language_pilot/sl_v0.5.0.zip",
+            "bytes": 783,
+            "sha256": "51544e8a6ad89326139a887d25aacb28f2a8fef981a1d1445bfb0355fd7b37df",
+            "language": "sl",
+            "packageId": "comparison_language_pilot.sl",
+            "version": "0.5.0",
+            "modeIds": [
+              "compare_visual",
+              "compare_sign",
+              "compare_draw_sign"
+            ],
+            "audio": "none"
+          }
+        }
+      }
     },
     {
       "id": "math_houses",

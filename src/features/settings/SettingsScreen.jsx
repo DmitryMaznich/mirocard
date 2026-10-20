@@ -6,8 +6,12 @@ import { api } from "@/core/api";
 import PinGateModal from "@/shared/components/PinGateModal";
 import ZoneSettingsSection from "./ZoneSettingsSection";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
+import UiLanguagePicker from "@/shared/components/UiLanguagePicker";
+import AccountLessonLanguagePicker from "./AccountLessonLanguagePicker.jsx";
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 
 export default function SettingsScreen() {
+  const { t } = useUiTranslation();
   const setScreen        = useAppStore((s) => s.setScreen);
   const buildInfo        = useAppStore((s) => s.buildInfo);
   const settings         = useAppStore((s) => s.settings);
@@ -71,21 +75,24 @@ export default function SettingsScreen() {
   return (
     <div className="screen">
       <div className="screen-header">
-        <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
-        <h1 className="screen-title">Настройки</h1>
+        <button className="back-btn" aria-label={t("common.back")} onClick={() => setScreen("home")}><BackArrowIcon /></button>
+        <h1 className="screen-title">{t("settings.title")}</h1>
       </div>
 
       <div className="settings-body">
+        <UiLanguagePicker />
+        <AccountLessonLanguagePicker />
         <div className="settings-section">
-          <div className="settings-section-title">Темп продолжения</div>
+          <div className="settings-section-title">{t("settings.pace")}</div>
           <div
             className="settings-row"
             style={{ cursor: "pointer" }}
             onClick={() => handlePatchSettings({ adultConfirmAdvance: !adultConfirmAdvance })}
           >
-            <span className="settings-row__label">Переход после подтверждения</span>
+            <span className="settings-row__label">{t("settings.confirmAdvance")}</span>
             <input
               type="checkbox"
+              aria-label={t("settings.confirmAdvance")}
               checked={adultConfirmAdvance}
               readOnly
               style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
@@ -98,10 +105,11 @@ export default function SettingsScreen() {
               if (!adultConfirmAdvance) handlePatchSettings({ tapToAdvance: !tapToAdvance });
             }}
           >
-            <span className="settings-row__label">Следующая карта по тапу</span>
+            <span className="settings-row__label">{t("settings.tapAdvance")}</span>
             <input
               type="checkbox"
               checked={adultConfirmAdvance ? true : tapToAdvance}
+              aria-label={t("settings.tapAdvance")}
               readOnly
               disabled={adultConfirmAdvance}
               style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
@@ -111,40 +119,43 @@ export default function SettingsScreen() {
             className="settings-row"
             style={{ opacity: requiresTapToAdvance ? 0.4 : 1, pointerEvents: requiresTapToAdvance ? "none" : "auto" }}
           >
-            <div className="settings-row__label">Задержка (сек)</div>
+            <div className="settings-row__label">{t("settings.delay")}</div>
             <div className="param-stepper">
               <button
                 className="stepper-btn"
                 disabled={autoAdvanceDelay <= 1}
+                aria-label={t("settings.decreaseDelay")}
                 onClick={() => handlePatchSettings({ autoAdvanceDelay: autoAdvanceDelay - 1 })}
               >−</button>
               <span className="stepper-value">{autoAdvanceDelay}</span>
               <button
                 className="stepper-btn"
                 disabled={autoAdvanceDelay >= 10}
+                aria-label={t("settings.increaseDelay")}
                 onClick={() => handlePatchSettings({ autoAdvanceDelay: autoAdvanceDelay + 1 })}
               >+</button>
             </div>
           </div>
           <div className="settings-row">
-            <span className="settings-label">PIN-код занятия</span>
+            <span className="settings-label">{t("settings.pin")}</span>
             <button className="link-btn" onClick={startPinReset}>
-              {adultPinHash ? "Изменить PIN" : "Задать PIN"}
+              {t(adultPinHash ? "settings.changePin" : "settings.setPin")}
             </button>
           </div>
         </div>
 
         <div className="settings-section">
-          <div className="settings-section-title">Управление</div>
+          <div className="settings-section-title">{t("settings.controls")}</div>
           <div
             className="settings-row"
             style={{ cursor: "pointer" }}
             onClick={() => handlePatchSettings({ physicalKeyboard: !physicalKeyboard })}
           >
-            <span className="settings-row__label">Физическая клавиатура</span>
+            <span className="settings-row__label">{t("settings.keyboard")}</span>
             <input
               type="checkbox"
               checked={physicalKeyboard}
+              aria-label={t("settings.keyboard")}
               readOnly
               style={{ width: 18, height: 18, accentColor: "var(--color-primary, #5b8def)", flexShrink: 0, cursor: "pointer" }}
             />
@@ -152,21 +163,17 @@ export default function SettingsScreen() {
         </div>
 
         <div className="settings-section">
-          <div className="settings-section-title">Данные на этом устройстве</div>
+          <div className="settings-section-title">{t("settings.deviceData")}</div>
           <div className="settings-row">
             <span className="settings-row__label">
-              Защита локальных данных: {storageStatus === "granted" ? "включена"
-                : storageStatus === "not_granted" ? "не включена"
-                  : storageStatus === "unsupported" ? "недоступна в этом браузере"
-                    : storageStatus === "error" ? "не удалось проверить" : "проверяем…"}
+              {t(`settings.protection.${storageStatus}`)}
             </span>
             {(storageStatus === "not_granted" || storageStatus === "error") && (
-              <button className="link-btn" onClick={handleStorageRequest}>Включить</button>
+              <button className="link-btn" onClick={handleStorageRequest}>{t("settings.enable")}</button>
             )}
           </div>
           <p className="settings-row__label">
-            Если браузер разрешит, это снизит риск автоматической потери локальных тем, текстов и настроек.
-            Это не резервная копия: удаление данных сайта удалит их и при включённой защите.
+            {t("settings.storageHelp")}
           </p>
         </div>
 

@@ -1,4 +1,6 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
+import { languageName } from "../../../shared/languages.mjs";
 import { useAppStore } from "@/core/store";
 import { getDb, kv } from "@/core/db";
 import { pushOp } from "@/core/syncApi";
@@ -14,6 +16,7 @@ async function persistStudents(db, students, setStudents) {
 }
 
 export default function StudentsScreen() {
+  const { t } = useUiTranslation();
   const students           = useAppStore((s) => s.students);
   const setStudents        = useAppStore((s) => s.setStudents);
   const setActiveStudentId = useAppStore((s) => s.setActiveStudentId);
@@ -58,7 +61,7 @@ export default function StudentsScreen() {
     <div className="screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
-        <h1 className="screen-title">Ученики</h1>
+        <h1 className="screen-title">{t("nav.students")}</h1>
         <button className="header-action-btn" onClick={openAdd}>+</button>
       </div>
 
@@ -67,8 +70,8 @@ export default function StudentsScreen() {
         <div className="students-sidebar">
           {students.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state__text">Учеников пока нет</div>
-              <Button onClick={openAdd}>Добавить ученика</Button>
+              <div className="empty-state__text">{t("students.empty")}</div>
+              <Button onClick={openAdd}>{t("students.add")}</Button>
             </div>
           ) : (
             <ul className="student-list">
@@ -91,12 +94,12 @@ export default function StudentsScreen() {
                         <div className="student-comment">{student.comment}</div>
                       )}
                       <div className="student-meta">
-                        Добавлен {formatDate(student.createdAt)}
+                        {t("students.added", { date: formatDate(student.createdAt) })}
                       </div>
                     </div>
                   </button>
                   <div className="student-item__actions">
-                    <button className="icon-btn" aria-label={`Статистика: ${student.name}`} title="Статистика" onClick={() => { setActiveStudentId(student.id); setScreen("history"); }}>▥</button>
+                    <button className="icon-btn" aria-label={t("students.statisticsFor", { name: student.name })} title={t("nav.statistics")} onClick={() => { setActiveStudentId(student.id); setScreen("history"); }}>▥</button>
                     <button className="icon-btn" onClick={() => openEdit(student)}>✎</button>
                     <button className="icon-btn icon-btn--danger" onClick={() => setDeleting(student)}>✕</button>
                   </div>
@@ -118,53 +121,49 @@ export default function StudentsScreen() {
               <div className="student-detail-comment">{panelStudent.comment}</div>
             )}
             <div className="student-detail-meta">
-              Добавлен {formatDate(panelStudent.createdAt)}
+              {t("students.added", { date: formatDate(panelStudent.createdAt) })}
             </div>
             {panelStudent.primaryLanguage && (
               <div className="student-detail-lang">
-                {panelStudent.primaryLanguage === "ru" ? "Русский" : "English"}
+                {languageName(panelStudent.primaryLanguage)}
               </div>
             )}
             {(panelStudent.rewardVideos?.length ?? 0) > 0 && (
               <div className="student-detail-meta">
-                🎬 {panelStudent.rewardVideos.length} видео-{panelStudent.rewardVideos.length === 1 ? "награда" : "награды"}
+                🎬 {t("students.videoCount", { count: panelStudent.rewardVideos.length })}
               </div>
             )}
             <div className="student-detail-actions">
-              <Button variant="secondary" fullWidth onClick={() => { setActiveStudentId(panelStudent.id); setScreen("history"); }}>Статистика</Button>
+              <Button variant="secondary" fullWidth onClick={() => { setActiveStudentId(panelStudent.id); setScreen("history"); }}>{t("nav.statistics")}</Button>
               <Button
                 fullWidth
                 onClick={() => { setActiveStudentId(panelStudent.id); setScreen("home"); }}
-              >
-                Выбрать <ChevronRightIcon size={14} />
+              >{t("common.select")}<ChevronRightIcon size={14} />
               </Button>
               <div style={{ display: "flex", gap: 8 }}>
-                <Button variant="secondary" fullWidth onClick={() => openEdit(panelStudent)}>
-                  Редактировать
-                </Button>
+                <Button variant="secondary" fullWidth onClick={() => openEdit(panelStudent)}>{t("common.edit")}</Button>
                 <Button variant="danger" onClick={() => setDeleting(panelStudent)}>✕</Button>
               </div>
             </div>
           </div>
         ) : students.length > 0 ? (
           <div className="students-detail-panel students-detail-panel--empty">
-            <div className="students-detail-empty-text">Выберите ученика<br/>чтобы открыть настройки</div>
+            <div className="students-detail-empty-text">{t("students.selectDetails")}</div>
           </div>
         ) : null}
       </div>
 
       {deleting && (
         <Modal
-          title="Удалить ученика?"
+          title={t("students.deleteTitle")}
           onClose={() => setDeleting(null)}
           actions={
             <>
-              <Button variant="secondary" onClick={() => setDeleting(null)}>Отмена</Button>
-              <Button variant="danger" onClick={handleDelete}>Удалить</Button>
+              <Button variant="secondary" onClick={() => setDeleting(null)}>{t("common.cancel")}</Button>
+              <Button variant="danger" onClick={handleDelete}>{t("common.delete")}</Button>
             </>
           }
-        >
-          Удалить <strong>{deleting.name}</strong>? История сессий будет утеряна.
+        >{t("students.deleteConfirm", { name: deleting.name })}
         </Modal>
       )}
     </div>

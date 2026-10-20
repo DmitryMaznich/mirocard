@@ -1,19 +1,16 @@
+import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/core/store";
 import { api } from "@/core/api";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { PLAN_LABELS, formatPeriodEnd, daysLeft, isUnlimitedPlan } from "./planLabels";
+import { getPlanLabel, formatPeriodEnd, daysLeft, isUnlimitedPlan } from "./planLabels";
 import { PAID_PLANS_PAUSED } from "./entitlement";
 
-const PLANS = [
-  { id: "monthly", name: "Месяц", hint: "Без долгих обязательств", priceLabel: "€ 9,90" },
-  { id: "half_year", name: "Полгода", hint: "€ 8,32 в месяц · выгода 16%", priceLabel: "€ 49,90" },
-  { id: "annual", name: "Год", hint: "€ 7,49 в месяц · максимальная выгода", priceLabel: "€ 89,90" },
-];
+
 
 // Pre-contract consent text is offered in Slovenian too (ZVPot-1: consumer
-// dealings in Slovenia must be available in Slovenian). The rest of the app
-// UI stays Russian. The chosen locale is sent with checkout, stored on the
+// dealings in Slovenia must be available in Slovenian). The consent selector
+// is independent of the interface language. Its locale is sent with checkout, stored on the
 // consent row, and decides the purchase-confirmation email's language.
 const CONSENT_TEXT = {
   ru: {
@@ -36,13 +33,6 @@ function legalLink(href, label) {
   return <a href={href} target="_blank" rel="noopener noreferrer">{label}</a>;
 }
 
-function pluralDays(n) {
-  const mod10 = n % 10, mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return "день";
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "дня";
-  return "дней";
-}
-
 function formatMinor(amountMinor) {
   return (amountMinor / 100).toFixed(2).replace(".", ",");
 }
@@ -54,6 +44,7 @@ export default function SubscriptionScreen() {
 // Every path that still leads here (a ?plan= link, a locked topic, the checkout-return screen)
 // lands on this note while paid plans are paused, so nobody can pay for nothing.
 function FreeForNowScreen() {
+  const { t: tr } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const setPendingCheckoutPlan = useAppStore((s) => s.setPendingCheckoutPlan);
   useEffect(() => { setPendingCheckoutPlan?.(null); }, [setPendingCheckoutPlan]);
@@ -61,20 +52,27 @@ function FreeForNowScreen() {
     <div className="screen subscription-screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
-        <h1 className="screen-title">Подписка</h1>
+        <h1 className="screen-title">{tr("account.subscription")}</h1>
       </div>
       <div className="subscription-body">
         <div className="subscription-status">
-          <span className="subscription-status__label">Сейчас Mironium бесплатный</span>
-          <span className="subscription-status__value">Платить ни за что не нужно</span>
+          <span className="subscription-status__label">{tr("billing.freeTitle")}</span>
+          <span className="subscription-status__value">{tr("billing.freeValue")}</span>
         </div>
-        <p className="subscription-free-note">Когда тем станет больше, появится подписка. Мы предупредим заранее, а всё, что вы создали, останется с вами.</p>
+        <p className="subscription-free-note">{tr("billing.freeNote")}</p>
       </div>
     </div>
   );
 }
 
 function PaidPlansScreen() {
+  const { t: tr, language } = useUiTranslation();
+  const PLANS = [
+    { id: "monthly", name: tr("billing.month"), hint: tr("billing.monthHint"), priceLabel: "€ 9,90" },
+    { id: "half_year", name: tr("billing.halfYear"), hint: tr("billing.halfYearHint"), priceLabel: "€ 49,90" },
+    { id: "annual", name: tr("billing.year"), hint: tr("billing.yearHint"), priceLabel: "€ 89,90" },
+  ];
+
   const pendingCheckoutPlan = useAppStore((s) => s.pendingCheckoutPlan);
   const subscription = useAppStore((s) => s.subscription);
   const setScreen = useAppStore((s) => s.setScreen);
@@ -91,7 +89,7 @@ function PaidPlansScreen() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [pricePeriodConfirmed, setPricePeriodConfirmed] = useState(false);
   const [digitalContentAck, setDigitalContentAck] = useState(false);
-  const [consentLocale, setConsentLocale] = useState("ru");
+  const [consentLocale, setConsentLocale] = useState(language);
   // Two steps: "choose" shows the current access and the plans; payment
   // method, promo-discounted total and the legal consents only appear on
   // "pay", after the user deliberately moves on to paying.
@@ -190,8 +188,8 @@ function PaidPlansScreen() {
     return (
       <div className="screen subscription-screen">
         <div className="screen-header">
-          <button className="back-btn" onClick={() => setStep("choose")} aria-label="Назад к выбору плана"><BackArrowIcon /></button>
-          <h1 className="screen-title">Оплата</h1>
+          <button className="back-btn" onClick={() => setStep("choose")} aria-label={tr("billing.backToPlans")}><BackArrowIcon /></button>
+          <h1 className="screen-title">{tr("billing.payment")}</h1>
         </div>
 
         <div className="subscription-body">
@@ -200,18 +198,18 @@ function PaidPlansScreen() {
             <span className="subscription-summary__price">{priceText}</span>
           </div>
           {subscription && !unlimited && (
-            <p className="subscription-summary__note">Новый период добавится к текущему — после {formatPeriodEnd(subscription.currentPeriodEnd)}.</p>
+            <p className="subscription-summary__note">{tr("billing.extendsAfter", { date: formatPeriodEnd(subscription.currentPeriodEnd) })}</p>
           )}
 
-          <p className="section-label">Способ оплаты</p>
+          <p className="section-label">{tr("billing.method")}</p>
           <div className="pay-methods">
-            <button type="button" className={`pay-chip${method === "card" ? " pay-chip--selected" : ""}`} onClick={() => setMethod("card")}>Картой</button>
+            <button type="button" className={`pay-chip${method === "card" ? " pay-chip--selected" : ""}`} onClick={() => setMethod("card")}>{tr("billing.card")}</button>
             {/* Launch is EU/Stripe only. МИР/СБП (Lava Top) is shown disabled
                 to signal it's planned, not forgotten; the server refuses it
                 too (DISABLED_CHECKOUT_METHODS in backend/server.mjs). */}
-            <button type="button" className="pay-chip pay-chip--disabled" disabled aria-disabled="true" title="Скоро">
+            <button type="button" className="pay-chip pay-chip--disabled" disabled aria-disabled="true" title={tr("topics.soon")}>
               МИР / СБП
-              <span className="pay-chip__soon">скоро</span>
+              <span className="pay-chip__soon">{tr("billing.soonLower")}</span>
             </button>
           </div>
 
@@ -246,7 +244,7 @@ function PaidPlansScreen() {
             {ct.disclaimer(consentPlanName)}
           </p>
           <button type="button" className="btn btn-primary subscription-cta" disabled={submitting || !consentsGiven} onClick={submit}>
-            Оплатить — {priceText}
+            {tr("billing.payAmount", { price: priceText })}
           </button>
         </div>
       </div>
@@ -257,30 +255,30 @@ function PaidPlansScreen() {
     <div className="screen subscription-screen">
       <div className="screen-header">
         <button className="back-btn" onClick={() => setScreen("home")}><BackArrowIcon /></button>
-        <h1 className="screen-title">Подписка</h1>
+        <h1 className="screen-title">{tr("account.subscription")}</h1>
       </div>
 
       <div className="subscription-body">
         <div className={`subscription-status${subscription ? "" : " subscription-status--none"}`}>
-          <span className="subscription-status__label">Ваш доступ</span>
+          <span className="subscription-status__label">{tr("billing.access")}</span>
           {unlimited ? (
             <>
-              <span className="subscription-status__value">Бессрочный доступ</span>
-              <span className="subscription-status__hint">Все темы открыты без ограничения срока — покупать ничего не нужно.</span>
+              <span className="subscription-status__value">{tr("billing.unlimited")}</span>
+              <span className="subscription-status__hint">{tr("billing.unlimitedHelp")}</span>
             </>
           ) : subscription ? (
             <>
               <span className="subscription-status__value">
-                {PLAN_LABELS[subscription.plan] ?? subscription.plan} · до {formatPeriodEnd(subscription.currentPeriodEnd)}
+                {tr("billing.until", { plan: getPlanLabel(subscription.plan), date: formatPeriodEnd(subscription.currentPeriodEnd) })}
               </span>
               <span className="subscription-status__hint">
-                {remaining > 0 ? `Осталось ${remaining} ${pluralDays(remaining)}` : "Заканчивается сегодня"}
+                {remaining > 0 ? tr("billing.daysLeft", { count: remaining }) : tr("billing.endsToday")}
               </span>
             </>
           ) : (
             <>
-              <span className="subscription-status__value">Нет активного доступа</span>
-              <span className="subscription-status__hint">Платные темы закрыты. Выберите план, чтобы открыть их.</span>
+              <span className="subscription-status__value">{tr("billing.noAccess")}</span>
+              <span className="subscription-status__hint">{tr("billing.noAccessHelp")}</span>
             </>
           )}
         </div>
@@ -288,8 +286,8 @@ function PaidPlansScreen() {
         {!unlimited && (
           <>
             <div className="subscription-lead">
-              <p className="subscription-lead__eyebrow">{subscription ? "Продление" : "Оформление"}</p>
-              <h2 className="subscription-lead__title">Все занятия — в одной подписке</h2>
+              <p className="subscription-lead__eyebrow">{subscription ? tr("billing.renew") : tr("billing.purchase")}</p>
+              <h2 className="subscription-lead__title">{tr("billing.allLessons")}</h2>
             </div>
 
             <div className="plan-list">
@@ -311,13 +309,13 @@ function PaidPlansScreen() {
             </div>
 
             {!promoOpen && (
-              <button type="button" className="promo-toggle" onClick={() => setPromoOpen(true)}>У меня есть промокод</button>
+              <button type="button" className="promo-toggle" onClick={() => setPromoOpen(true)}>{tr("billing.havePromo")}</button>
             )}
             {promoOpen && (
               <div className="promo-row">
-                <input className="promo-input" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} placeholder="ПРОМОКОД" />
-                <button type="button" className="promo-apply" onClick={applyPromo}>Применить</button>
-                {promoError && <span className="promo-error">Код не подходит</span>}
+                <input className="promo-input" value={promoInput} onChange={(e) => setPromoInput(e.target.value)} placeholder={tr("billing.promo")} />
+                <button type="button" className="promo-apply" onClick={applyPromo}>{tr("billing.apply")}</button>
+                {promoError && <span className="promo-error">{tr("billing.invalidCode")}</span>}
               </div>
             )}
           </>
@@ -328,14 +326,12 @@ function PaidPlansScreen() {
         <div className="subscription-footer">
           {checkoutEnabled ? (
             <button type="button" className="btn btn-primary subscription-cta" onClick={() => setStep("pay")}>
-              Перейти к оплате — {priceText}
+              {tr("billing.proceedAmount", { price: priceText })}
             </button>
           ) : (
             <>
-              <p className="subscription-summary__note">Оплата картой появится совсем скоро. Если у вас есть промокод — введите его выше.</p>
-              <button type="button" className="btn btn-primary subscription-cta" disabled>
-                Оплата скоро появится
-              </button>
+              <p className="subscription-summary__note">{tr("billing.paymentSoonHelp")}</p>
+              <button type="button" className="btn btn-primary subscription-cta" disabled>{tr("billing.paymentSoon")}</button>
             </>
           )}
         </div>

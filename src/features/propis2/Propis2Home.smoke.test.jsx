@@ -671,6 +671,37 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
+  it("sync: an open notebook shows the text another device saved, and saving here does not overwrite it", async () => {
+    const db = await freshDb();
+    const a = newPage("A", { rows: [newRow({ text: "а" })], updatedAt: 1 });
+    const b = newPage("B", { rows: [newRow({ text: "б" })], updatedAt: 1 });
+    const st = newSet("Общая", { pageIds: [a.id, b.id], updatedAt: 1 });
+    await saveLibrary(upsertSet(upsertPage(upsertPage(emptyLibrary(), a), b), st), db);
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(60); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    await click(host.querySelector('[aria-label="Изменить тетрадь Общая"]'));
+    // the other device changed both pages; the pull comes while the notebook is open here
+    const later = Date.now() + 1000;
+    api.get.mockResolvedValue({ kv: [
+      { key: `propis2:page:${a.id}`, value: { ...a, rows: [newRow({ text: "мама" })], updatedAt: later } },
+      { key: `propis2:page:${b.id}`, value: { ...b, rows: [newRow({ text: "папа" })], updatedAt: later } },
+    ] });
+    await act(async () => { document.dispatchEvent(new Event("visibilitychange")); await tick(60); });
+    pushOp.mockClear();
+    // a row added to page A here, saved: it goes on top of the other device's text, and page B is not sent back at all
+    await typeInField(host, "рама");
+    await click(byLabel(host, "Сохранить тетрадь"));
+    await act(async () => { await tick(500); });
+    const sent = new Map(pushOp.mock.calls.filter((c) => c[0] === "kv.upsert").map((c) => [c[1].key, c[1].value]));
+    expect(sent.get(`propis2:page:${a.id}`).rows.map((r) => r.text)).toEqual(["мама", "рама"]);
+    expect(sent.has(`propis2:page:${b.id}`)).toBe(false);
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  }, 40000);
+
   it("icon controls carry their name: a title for the mouse, a press-and-hold bubble for touch (which does not click)", async () => {
     const db = await freshDb();
     const host = document.createElement("div");

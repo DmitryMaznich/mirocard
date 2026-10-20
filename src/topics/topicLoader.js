@@ -1,3 +1,6 @@
+import { sha256Bytes } from "../../shared/topic-delivery.mjs";
+import { loadTopicLanguages } from "../../shared/topic-language-contract.mjs";
+import { clearRendererCache } from "./rendererLoader";
 import JSZip from "jszip";
 import { CHECK_SKILLS, CHECK_VIEWS } from "./renderers/place_value/engine.js";
 import { kv, topics } from "@/core/db";
@@ -783,10 +786,10 @@ const DEFAULT_MODE_METHODOLOGY = {
     },
     identify_hundreds: {
       summary: "Посмотри на сотни, десятки и единицы и скажи, какое это число.",
-      text: "Как «3. Какое это число?», но с сотнями: на монетах сотня — тарелка из десяти стопок (не больше 5 сотен, до 599), на схеме — зелёный квадрат, в таблице — третья колонка «Сотни». Каждое четвёртое число без десятков (305) — нуль на месте разряда.",
+      text: "Как «3. Какое это число?», но с сотнями: на монетах сотня — тарелка из десяти стопок (не больше 5 сотен, до 599), на схеме — зелёный квадрат, в таблице — строки «3 сотни», «0 десятков», «5 единиц», с третьего задания примерно в половине случаев не по порядку: число читается по словам, а не сверху вниз; ответ — в три клетки. Каждое четвёртое число без десятков (305) — нуль на месте разряда.",
       settings: ["«Как показываем»: монеты, схема или таблица."],
       goal: "Ребёнок читает модель трёхзначного числа и пишет нуль на месте пустого разряда.",
-      tips: ["Начинайте после «8. Считаем десятками»: сотня должна быть десятью десятками, а не «первой цифрой».", "Главная ловушка — 305: нет десятков, значит в середине нуль."],
+      tips: ["Начинайте после «8. Считаем десятками»: сотня должна быть десятью десятками, а не «первой цифрой».", "Главная ловушка — 305: нет десятков, значит в середине нуль.", "В таблице проговаривайте строки вместе с ребёнком: «3 сотни, 0 десятков, 5 единиц — триста пять»; неговорящий ребёнок показывает строку пальцем."],
     },
     build_hundreds: {
       summary: "Собери трёхзначное число из сотен, десятков и единиц.",
@@ -2338,10 +2341,11 @@ export function getDefaultModeSettings(renderer, modeId) {
   };
 }
 
-export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin } = {}) {
+export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin, installedContent = {}, keepFiles = [], installation, coreBuffer } = {}) {
   const zip = await JSZip.loadAsync(zipBuffer);
 
   let manifest = await parseManifest(zip);
+  manifest = await loadTopicLanguages(manifest, (path) => zip.file(path)?.async("string"), { allowMissingContent: Boolean(manifest.languageContract?.delivery), installedContent });
   manifest = normalizeReading(manifest);
   manifest = normalizeProcedural(manifest);
   manifest = normalizeFlashcards(manifest);
@@ -2371,17 +2375,11 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
     cardImageUrls[card.id] = `data:${inferMimeType(card.image)};base64,${btoa(binary)}`;
   }
 
-  // Delete old assets if re-importing
-  await topics.deleteTopic(db, topicId);
-
-  // Save all non-manifest files as blobs
+  // Prepare outside the transaction. Quota/write failures leave the old topic intact.
+  const files = {};
   for (const filename of Object.keys(zip.files)) {
-    if (zip.files[filename].dir) continue;
-    if (filename === "topic.json" || filename === "deck.json") continue;
-    const raw = await zip.files[filename].async("blob");
-    const mime = raw.type || inferMimeType(filename);
-    const blob = mime !== raw.type ? new Blob([raw], { type: mime }) : raw;
-    await topics.saveFile(db, topicId, filename, blob);
+    if (zip.files[filename].dir || filename === "topic.json" || filename === "deck.json") continue;
+    files[filename] = { buf: await zip.files[filename].async("arraybuffer"), type: inferMimeType(filename) };
   }
 
   // Pre-resolve scene image and audio paths to base64 data URLs (same approach as card images)
@@ -2403,10 +2401,14 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
     }
   }
 
+  const core = manifest.languageContract?.delivery ? (coreBuffer ?? zipBuffer) : null;
+  const installed = installation ?? (core ? { coreSha256: await sha256Bytes(core), coreBytes: core.byteLength, packages: {} } : null);
   const record = applyReleaseTopicCopy({
+    ...(installed ? { installation: installed } : {}),
     id: topicId,
     meta: manifest.meta,
     modes: manifest.modes ?? [],
+    ...(manifest.languageContract ? { languageContract: manifest.languageContract, languageResources: manifest.languageResources } : {}),
     cards: (manifest.cards ?? []).map((card) => {
       const imageUrl = cardImageUrls[card.id];
       return imageUrl ? { ...card, imageUrl, photo: imageUrl } : card;
@@ -2448,8 +2450,20 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
     installedAt: new Date().toISOString(),
   });
 
-  await kv.set(db, `topic:${topicId}`, record);
-  await addToIndex(db, topicId);
+  let coreCache = null;
+  if (core) {
+    const coreZip = await JSZip.loadAsync(new Uint8Array(core));
+    const inventory = {};
+    for (const [name, file] of Object.entries(coreZip.files)) {
+      if (file.dir || name === "topic.json") continue;
+      const bytes = await file.async("arraybuffer");
+      inventory[name] = { bytes: bytes.byteLength, sha256: await sha256Bytes(bytes) };
+    }
+    coreCache = { sha256: installed.coreSha256, manifest: JSON.parse(await coreZip.file("topic.json").async("string")), files: inventory };
+  }
+  await topics.replaceTopic(db, topicId, files, record, { keepFiles, extraValues: { [`topicCore:${topicId}`]: coreCache } });
+  // Re-importing an updated copy must replace its cached IIFE on the next launch.
+  clearRendererCache(topicId);
 
   return record;
 }
@@ -2602,6 +2616,7 @@ export async function installFirstPartyDeckIfNeeded(db, topicId) {
 export async function deleteTopicRecord(db, topicId) {
   await topics.deleteTopic(db, topicId);
   await kv.del(db, `topic:${topicId}`);
+  await kv.del(db, `topicCore:${topicId}`);
   await removeFromIndex(db, topicId);
 }
 
@@ -2610,6 +2625,7 @@ export async function clearAllInstalledTopics(db) {
   await Promise.all([
     ...ids.map((id) => topics.deleteTopic(db, id)),
     ...ids.map((id) => kv.del(db, `topic:${id}`)),
+    ...ids.map((id) => kv.del(db, `topicCore:${id}`)),
     kv.set(db, "installedTopicIds", []),
   ]);
 }
