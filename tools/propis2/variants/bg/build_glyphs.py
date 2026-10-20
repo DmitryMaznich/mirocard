@@ -76,9 +76,10 @@ def flag_smoothed_path(d, sigma):
 # and then tidied ON THE DECK'S PAPER (tidy_trace.py: straight lines straight, hooks smooth, the bar horizontal, standing on the
 # baseline, a capital reaching the top line). Any captured label not in LETTERS is such a letter.
 # BANK_KEPT: traced, but the owner chose the bank's own letter (2026-10-18: «строчную можно взять русскую а»).
-BANK_KEPT = set("а")
+FONT_ONLY_LOWER = set("а")  # lowercase built from the font even though a capture exists
+BANK_KEPT = set()  # а: from the font now (owner, 2026-10-20: «делай а по шрифту»), as д starts
 # FONT_LOWER: the lowercase built from the font's pen path (font_lower); а stays the bank's (BANK_KEPT)
-FONT_LOWER = "бвгдежзийклмнопрстуфхцчшщъьюя"
+FONT_LOWER = "бвгдежзийклмнопрстуфхцчшщъьюяа"  # а last: it is built from д and н
 # FONT_ONLY: capitals built from the font's pen path when no capture of them exists (font_letter); a capture, when it comes, wins
 FONT_ONLY = "НОПРСТУФХЦЧШЩЮЯ"
 # DROPPED: capitals the deck builds itself (propis2 glyphOverrides MARKED_CAPITALS): Й is our И with the breve of the bank's й above
@@ -2476,6 +2477,24 @@ def ya_lower(strokes, k=0, tol=0.1):
     return [_fit_corners(first, _corners(first, deg=60), tol=tol), _fit_corners(R, _corners(R, deg=60), tol=tol)]
 
 
+def a_lower(strokes, k=0, tol=0.1):
+    """а (lowercase): д as far as its stem's way down reaches the middle of the band (its start, the true oval, the stem up and
+    straight down on the slant: д «начинается как а»), and from there н's right element (its straight stem on, its hook, its exit
+    through the middle at JOIN_DEG)."""
+    mid = 0.5 * (tt.X_TOP + tt.BASE)
+    D = dg.resample(np.array(tt.parse_path(dg.fmt(PAPER["д"][0]))), 0.3)
+    from scipy.signal import find_peaks
+    ts = [int(t) for t in find_peaks(-D[:, 1], prominence=2.0)[0] if D[t, 1] < tt.X_TOP + 0.2 * (tt.BASE - tt.X_TOP)]
+    st = ts[-1]                                                         # the stem's top (after the oval, not the oval's own top)
+    i = st + int(np.argmax(D[st:, 1] >= mid))
+    R = dg.resample(np.array(tt.parse_path(dg.fmt(PAPER["н"][2]))), 0.3)
+    j = int(np.argmax(R[:, 1] >= mid))
+    q = dg.resample(np.vstack([D[:i + 1], (R[j + 1:] + (D[i] - R[j]))]), 0.3)
+    out = list(strokes)
+    out[k] = _fit_corners(q, _corners(q, deg=60), tol=tol)
+    return out[:1]
+
+
 def hard_sign(strokes, k=0, tol=0.1):
     """ъ (lowercase): ч's top (its rise from the middle, Н's flag, the sharp corner), and from that corner ь's stem and bowl (ь
     from its sharp top on), the corner on the font's (its rightmost top point)."""
@@ -2692,7 +2711,7 @@ NO_EXIT = set("ФЮ")  # Ф: its hook ends to the left, under the letter; Ю: it
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: stem_down(mirror_ear(ears_on_baseline(ef_three(flag_corner(s))))), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Х": lambda s: smooth_middle(snap_to_font(s, "Х", arcs=(0, 1))), "Ц": lambda s: i_with_loop(snap_to_font(s, "Ц", arcs=(0,))), "Ч": lambda s: snap_to_font(s, "Ч", arcs=(0,)), "Ш": lambda s: stems_to_font(i_doubled(s), "Ш"), "Ю": yu_from_parts, "л": lambda s: l_lower(snap_to_font(s, "л", arcs=(0,)), label="л"),  "м": lambda s: l_lower(snap_to_font(s, "м", arcs=(0,)), label="м"),  "п": lambda s: p_from_g(snap_to_font(s, "п", arcs=(0,))),  "р": lambda s: p_from_g(snap_to_font(s, "р", arcs=(0,)), label="р"),  "ъ": lambda s: hard_sign(snap_to_font(s, "ъ", arcs=(0,))),  "ь": lambda s: soft_sign(smooth_in_band(snap_to_font(s, "ь", arcs=(0,)), deg=60)),  "я": lambda s: ya_lower(snap_to_font(s, "я", arcs=(0,))),  "ю": lambda s: yu_lower(snap_to_font(s, "ю", arcs=(0,))),  "щ": lambda s: ts_lower(snap_to_font(s, "щ", arcs=(0,)), base="ш", label="щ"),  "ш": lambda s: tops_on_line(stems_to_font(i_doubled(s, "и", h=46.0), "ш", top=20.0, yr=(18.0, 62.0))),  "ч": lambda s: ch_flag(smooth_in_band(snap_to_font(s, "ч", arcs=(0,)), deg=60)),  "ц": lambda s: ts_lower(snap_to_font(s, "ц", arcs=(0,))),  "х": lambda s: x_lower(snap_to_font(s, "х", arcs=(0,))),  "ф": lambda s: f_lower(snap_to_font(s, "ф", arcs=(0,))),  "у": lambda s: u_lower(snap_to_font(s, "у", arcs=(0,))),  "т": lambda s: t_lower(snap_to_font(s, "т", arcs=(0,))),  "с": lambda s: smooth_in_band(snap_to_font(s, "с", arcs=(0,))),  "о": lambda s: o_lower(snap_to_font(s, "о", arcs=(0,))),  "н": lambda s: n_three(l_lower(snap_to_font(s, "н", arcs=(0,)), label="н")), "к": lambda s: tops_touch_line(k_three(k_lower(snap_to_font(s, "к", arcs=(0, 1))))),  "й": i_breve_lower, "и": lambda s: i_lower(snap_to_font(s, "и", arcs=(0,))), "з": lambda s: desc_to_line(waist_to_font_tip(snap_to_font(s, "з", arcs=(0,)), "з")), "ж": lambda s: zh_lower(snap_to_font(s, "ж", arcs=(0,))), "е": lambda s: snap_to_font(s, "е", arcs=(0,)), "д": lambda s: oval_on_stem(snap_to_font(s, "д", arcs=(0,))), "г": lambda s: down_to_base(snap_to_font(s, "г", arcs=(0,))), "в": lambda s: bowl_oval(snap_to_font(s, "в", arcs=(0,))), "б": lambda s: perfect_oval(snap_to_font(s, "б", arcs=(0,))), "Я": lambda s: ya_lift(snap_to_font(s, "Я", arcs=(0,))), "Щ": lambda s: i_with_loop(snap_to_font(s, "Щ", arcs=(0,)), "Ш"), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: stem_down(mirror_ear(ears_on_baseline(ef_three(flag_corner(s))))), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Х": lambda s: smooth_middle(snap_to_font(s, "Х", arcs=(0, 1))), "Ц": lambda s: i_with_loop(snap_to_font(s, "Ц", arcs=(0,))), "Ч": lambda s: snap_to_font(s, "Ч", arcs=(0,)), "Ш": lambda s: stems_to_font(i_doubled(s), "Ш"), "Ю": yu_from_parts, "л": lambda s: l_lower(snap_to_font(s, "л", arcs=(0,)), label="л"),  "м": lambda s: l_lower(snap_to_font(s, "м", arcs=(0,)), label="м"),  "п": lambda s: p_from_g(snap_to_font(s, "п", arcs=(0,))),  "р": lambda s: p_from_g(snap_to_font(s, "р", arcs=(0,)), label="р"),  "ъ": lambda s: hard_sign(snap_to_font(s, "ъ", arcs=(0,))),  "ь": lambda s: soft_sign(smooth_in_band(snap_to_font(s, "ь", arcs=(0,)), deg=60)),  "а": a_lower,  "я": lambda s: ya_lower(snap_to_font(s, "я", arcs=(0,))),  "ю": lambda s: yu_lower(snap_to_font(s, "ю", arcs=(0,))),  "щ": lambda s: ts_lower(snap_to_font(s, "щ", arcs=(0,)), base="ш", label="щ"),  "ш": lambda s: tops_on_line(stems_to_font(i_doubled(s, "и", h=46.0), "ш", top=20.0, yr=(18.0, 62.0))),  "ч": lambda s: ch_flag(smooth_in_band(snap_to_font(s, "ч", arcs=(0,)), deg=60)),  "ц": lambda s: ts_lower(snap_to_font(s, "ц", arcs=(0,))),  "х": lambda s: x_lower(snap_to_font(s, "х", arcs=(0,))),  "ф": lambda s: f_lower(snap_to_font(s, "ф", arcs=(0,))),  "у": lambda s: u_lower(snap_to_font(s, "у", arcs=(0,))),  "т": lambda s: t_lower(snap_to_font(s, "т", arcs=(0,))),  "с": lambda s: smooth_in_band(snap_to_font(s, "с", arcs=(0,))),  "о": lambda s: o_lower(snap_to_font(s, "о", arcs=(0,))),  "н": lambda s: n_three(l_lower(snap_to_font(s, "н", arcs=(0,)), label="н")), "к": lambda s: tops_touch_line(k_three(k_lower(snap_to_font(s, "к", arcs=(0, 1))))),  "й": i_breve_lower, "и": lambda s: i_lower(snap_to_font(s, "и", arcs=(0,))), "з": lambda s: desc_to_line(waist_to_font_tip(snap_to_font(s, "з", arcs=(0,)), "з")), "ж": lambda s: zh_lower(snap_to_font(s, "ж", arcs=(0,))), "е": lambda s: snap_to_font(s, "е", arcs=(0,)), "д": lambda s: oval_on_stem(snap_to_font(s, "д", arcs=(0,))), "г": lambda s: down_to_base(snap_to_font(s, "г", arcs=(0,))), "в": lambda s: bowl_oval(snap_to_font(s, "в", arcs=(0,))), "б": lambda s: perfect_oval(snap_to_font(s, "б", arcs=(0,))), "Я": lambda s: ya_lift(snap_to_font(s, "Я", arcs=(0,))), "Щ": lambda s: i_with_loop(snap_to_font(s, "Щ", arcs=(0,)), "Ш"), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
@@ -3082,7 +3101,7 @@ def main():
     made, lower = [], []
     for f in sorted(CAPTURES.glob("*.json")):
         for item in json.loads(f.read_text()):
-            if item["label"] in BANK_KEPT: continue
+            if item["label"] in BANK_KEPT or item["label"] in FONT_ONLY_LOWER: continue
             # a lowercase capture (к, owner 2026-10-20) straight on the deck's paper, as the font's lowercase (no DESIGN step)
             if item["label"].islower(): lower.append(glyph_of(item, deck_script))
             else: made.append(glyph_of(item, script))
