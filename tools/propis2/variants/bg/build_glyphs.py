@@ -2429,7 +2429,7 @@ def ya_lower(strokes, k=0, tol=0.1):
     b0 = int(find_peaks(p[:, 1], prominence=0.2 * band)[0][0])        # the bottom of the lead-in's hook
     tO = b0 + int(np.argmin(p[b0:, 1]))
     bO = tO + int(find_peaks(p[tO:, 1], prominence=0.1 * band)[0][0])  # the oval's bottom
-    yb = float(p[bO, 1])
+    yb = float(p[bO, 1]) - INK_W * CAP_K                              # one pen width shorter (owner, 2026-10-20)
     O = tt.upright(dg.resample(np.array(tt.parse_path(dg.fmt(PAPER["о"][0]))), 0.3))
     O = np.c_[xl + (O[:, 0] - O[:, 0].min()) * (cs - xl) / np.ptp(O[:, 0]), top + (O[:, 1] - O[:, 1].min()) * (yb - top) / np.ptp(O[:, 1])]
     E = tt.from_upright(O)
