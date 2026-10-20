@@ -3022,6 +3022,7 @@ def rescaled(glyph, script):
 MID_LOG = []
 PAPER_DECK_FLAG = {}  # label -> a capital's first stroke, dense, on the deck's paper
 JOIN_DEG = 55.0  # the rise of every join at the middle of the x-band: the font's own (lowercase lead-ins 51-58°, exits 52-60°)
+HOOK_STEM = {}  # label -> its finished exit stroke (d), for the width of its exit beyond its stem
 HOOK = {}  # label -> its finished exit hook from its last bottom (relative), for letters whose own is too shallow
 
 
@@ -3087,11 +3088,44 @@ def mid_joins(g, tol=0.05):
                 q[t:, 1] = q[t, 1] + (q[t:, 1] - q[t, 1]) * (mid - q[t, 1]) / (q[-1, 1] - q[t, 1])
             changed = True
         if not changed: continue
-        if e == -1 and g["label"] == "и": HOOK["и"] = q[t:] - q[t]
+        if e == -1 and g["label"] == "и": HOOK["и"] = q[t:] - q[t]; HOOK_STEM["и"] = None
         q = q if e == -1 else q[::-1]
         cmds = _fit_corners(q, _corners(q, deg=100), tol=0.05)
         g["strokes"][k]["d"] = dg.fmt(tt.paper_to_bank_cmds(cmds))
         P[k] = q
+        if e == -1 and g["label"] == "и": HOOK_STEM["и"] = g["strokes"][k]["d"]
+
+
+BOTTOM_TAIL = {"о": 0, "б": 0, "в": 0, "ю": 2}  # letter -> the stroke whose oval the connector leaves from
+
+
+def bottom_tail(g, tol=0.05):
+    """о б в ю: the connector to the next letter (drawn only when one follows: the engine's `tailStroke`) leaves the oval's lowest
+    point: и's exit hook, flat there as the oval is, along it first and then away from it, straight at JOIN_DEG into the
+    middle of the band, where the next letter starts or touches it like after any other exit (owner, 2026-10-20: «выходом из
+    нижней точки, плавно сначала по овалу, потом прямой линией»)."""
+    k = BOTTOM_TAIL.get(g["label"])
+    if k is None or "и" not in HOOK: return
+    q = dg.resample(tt.to_paper(np.array(tt.parse_path(g["strokes"][k]["d"]))), 0.2)
+    B = q[int(np.argmax(q[:, 1]))]
+    # и's exit hook as it is, from its bottom (flat there, as the oval's bottom): along the oval first, then away from it,
+    # into the middle of the band at JOIN_DEG, as far right as after и
+    H = HOOK["и"].copy()
+    # as far right of the oval as и's exit is of its last stem (both at the middle of the band): the hook widened to get there
+    def x_at_mid(path, right=True):
+        xs = [path[i, 0] + (path[i + 1, 0] - path[i, 0]) * (mid - path[i, 1]) / (path[i + 1, 1] - path[i, 1]) for i in range(len(path) - 1) if (path[i, 1] - mid) * (path[i + 1, 1] - mid) <= 0 and path[i, 1] != path[i + 1, 1]]
+        return max(xs) if right else min(xs)
+    mid = 0.5 * (tt.X_TOP + tt.BASE)
+    I = dg.resample(tt.to_paper(np.array(tt.parse_path(HOOK_STEM["и"]))), 0.2)
+    gap = I[-1, 0] - x_at_mid(I[:-int(len(I) * 0.15)])               # и's exit end beyond its last stem's crossing of the middle
+    want = x_at_mid(q) + gap - B[0]
+    H[:, 0] *= want / H[-1, 0]
+    tail = H + B
+    tail = dg.resample(tail, 0.3)
+    cmds = _fit_corners(tail, [], tol=tol)
+    g["strokes"].append({"d": dg.fmt(tt.paper_to_bank_cmds(cmds))})
+    g["tailStroke"] = len(g["strokes"]) - 1
+    g.pop("noExit", None); g.pop("exitStroke", None)
 
 
 def main():
@@ -3125,6 +3159,7 @@ def main():
         # middle line (the Russian copybook's rule) would leave a step at every join (meta.script.exactJoins)
         g["noLiftExit"] = True
         if g["label"].islower(): g["noNormalize"] = True   # on the deck's paper already (к, from a capture, was rescaled by the engine)
+    for g in made: bottom_tail(g)   # after every mid_joins: it takes и's finished exit hook
     keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made} | DROPPED]
     variant["glyphs"] = keep + made
     VARIANT.write_text(json.dumps(variant, ensure_ascii=False, indent=2) + "\n")
