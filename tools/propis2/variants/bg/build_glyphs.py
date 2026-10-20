@@ -2094,10 +2094,17 @@ def p_from_g(strokes, k=0, tol=0.1, label="п"):
     L = dg.resample(np.array(tt.parse_path(dg.fmt(PAPER["н"][0]))), 0.3)
     lt = int(np.argmin(L[:, 1]))
     L = L + np.array([np.polyval(sl, ym) - np.polyval(stem(L[lt:]), ym), 0.0])
-    if label == "р":   # р: the left element's stem on down its own line to where the font's long stem ends (owner: «левый элемент продли вниз»)
+    if label == "р":
+        # р's left element is not н's: a rise to a sharp top, as the font's (owner, 2026-10-20: «верхний крючок под острым
+        # углом, не плавный, как у п»), then the stem straight down its line to where the font's long stem ends («продли вниз»)
         _, S, _ = _font_frame("р")
         ye = float(S[:, 1].max())
-        L = np.vstack([L, np.linspace(L[-1], [np.polyval(sl, ye), ye], 200)[1:]])
+        rise = p[:t1 + 1].copy()
+        if len(rise) > 12: rise = _smooth_runs(rise, [], sigma=2.0)
+        top = np.array([np.polyval(sl, tt.X_TOP + INK_W * CAP_K / 2), tt.X_TOP + INK_W * CAP_K / 2])
+        v = np.linspace(0, 1, len(rise))[:, None]; v = v * v * (3 - 2 * v)
+        rise = rise + v * (top - rise[-1])
+        L = np.vstack([rise, np.linspace(top, [np.polyval(sl, ye), ye], 200)[1:]])
     G = dg.resample(np.array(tt.parse_path(dg.fmt(PAPER["г"][0]))), 0.3)
     gt = int(np.argmin(G[:, 1]))
     G = _turned_to_slant(G, gt)
@@ -2132,6 +2139,9 @@ def t_lower(strokes, k=0, tol=0.1):
     t2 = [i for i in ts if bs[0] < i < bs[1]][0]; s2 = stem(p[t2:bs[1] + 1])
     t3 = [i for i in ts if i > bs[1]][0]; s3 = stem_down(t3)
     ym = 0.5 * (tt.X_TOP + tt.BASE)
+    # the three stems equally far apart (owner, 2026-10-20): the last one moved left to where the step from the first to the
+    # second puts it; its element then starts later on the second stem
+    s3 = s3.copy(); s3[1] += 2 * np.polyval(s2, ym) - np.polyval(s1, ym) - np.polyval(s3, ym)
     def on(q, top_i, s_stem, s_start=None):
         b_ = top_i + int(np.argmax(q[top_i:, 1]))
         q = q + np.array([np.polyval(s_stem, ym) - np.polyval(stem(q[top_i:b_ + 1]), ym), 0.0])
