@@ -2258,19 +2258,39 @@ def ts_lower(strokes, k=0, tol=0.1):
 
 
 def ch_flag(strokes, k=0, tol=0.1, src="Н"):
-    """ч (lowercase): its top, from the start to the sharp corner on the right, is Н's left flag (owner, 2026-10-20: «взять
-    флажок левый от заглавной Н»), made smaller as a whole (along the slant) so it spans the same width up to the same corner;
-    from the corner on, ч's own diagonal and hook."""
+    """ч (lowercase): its top is Н's left flag (owner, 2026-10-20: «взять флажок левый от заглавной Н»). The corner it ends in is
+    moved right, onto the line ч's diagonal has where it crosses the middle of the band, so from the corner the pen goes straight
+    down to there («из неё вниз какое-то время линия шла по прямой до середины строки»); the flag, made smaller as a whole
+    (along the slant), spans from the font's arch top to that corner (its dip deeper as it grows: «прогиб сильнее ... точнее
+    по шрифтовой букве»)."""
     p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
     ci = _corners(p, deg=60)[0]
+    mid = 0.5 * (tt.X_TOP + tt.BASE)
+    top = tt.X_TOP + INK_W * CAP_K / 2
+    im = ci + int(np.argmax(p[ci:, 1] >= mid))
+    d = tt._unit(p[im + 4] - p[im - 4])
+    corner = p[im] - d * ((p[im, 1] - top) / d[1])
+    # the font's arch top: the highest skeleton point left of the dip
+    _, S, _ = _font_frame("ч")
+    hi = S[S[:, 1] < tt.X_TOP + 6]
+    Uh = tt.upright(hi)
+    left = hi[Uh[:, 0] < 0.5 * (Uh[:, 0].min() + Uh[:, 0].max())]
+    arch = left[int(np.argmin(left[:, 1]))]
     G = PAPER_DECK_FLAG.get(src)
     F = G[: _corners(G, deg=60)[0] + 1]
-    UF, Up = tt.upright(F), tt.upright(p)
-    f = (Up[ci, 0] - Up[0, 0]) / (UF[-1, 0] - UF[0, 0])
-    UF = Up[ci] + f * (UF - UF[-1])
-    q = np.vstack([tt.from_upright(UF), p[ci + 1:]])
+    UF = tt.upright(F)
+    ft = int(np.argmin(F[:, 1]))                                       # the flag's hump
+    Uc, Ua = tt.upright(corner.reshape(1, 2))[0], tt.upright(arch.reshape(1, 2))[0]
+    f = (Uc[0] - Ua[0]) / (UF[-1, 0] - UF[ft, 0])
+    UF = Uc + f * (UF - UF[-1])
+    flag = tt.from_upright(UF)                                         # its hump on the font's arch top, its end on the corner
+    # the lead-in: the flag's start carried on back, the way it comes in, down to the middle of the band
+    d0 = tt._unit(flag[0] - flag[8])
+    lead = np.linspace(flag[0] + d0 * ((mid - flag[0, 1]) / d0[1]), flag[0], 60) if d0[1] > 0.2 else flag[:1]
+    line = np.linspace(corner, p[im], 40)
+    q = dg.resample(np.vstack([lead, flag[1:], line[1:], p[im + 1:]]), 0.3)
     out = list(strokes)
-    out[k] = _fit_corners(q, [len(UF) - 1], tol=tol)
+    out[k] = _fit_corners(q, _corners(q, deg=60)[:1], tol=tol)
     return out
 
 
