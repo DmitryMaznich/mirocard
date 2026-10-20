@@ -7,7 +7,7 @@
  {
   "id": "closes",
   "out": "v_closes_2",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old boy closes a refrigerator door: the door is still half open and swinging shut, his hand pushing it. Side view."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy closes a window: the window pane is swinging shut with only a narrow gap left, his palm pushing it, curtains slightly moving. Side view."
  },
  {
   "id": "closes",
@@ -17,7 +17,7 @@
  {
   "id": "closes",
   "out": "v_closes_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman closes the back door of a car: the door is still a little open and swinging shut, her hand pushing it. Side view."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A woman closes the boot (trunk) of a car: she pulls the raised boot lid down with one hand, the lid half-way down and moving, shopping bags visible inside. Rear view of the car."
  },
  {
   "id": "swings",
@@ -92,12 +92,12 @@
  {
   "id": "takes_off",
   "out": "v_takes_off_3",
-  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A girl takes off a yellow knitted hat with a pompom: she holds the hat in her raised hand above her head, already off, her hair standing up with static."
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A girl has just taken off her knitted winter hat: her hand holds the hat by its TOP (the pompom), the hat is already completely off and lifted ABOVE her head, a clear gap between the hat and her messy hair."
  },
  {
   "id": "takes_off",
   "out": "v_takes_off_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A man has just taken off his grey knitted winter hat: he holds the hat in his raised hand ABOVE his head, a clear gap between the hat and his messy hair. Front view."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A man has just taken off his brown felt hat with a brim: his hand holds the hat by its crown from above, the hat lifted clearly ABOVE his head with a visible gap between the hat and his hair. Front view."
  },
  {
   "id": "takes",
@@ -112,7 +112,7 @@
  {
   "id": "takes",
   "out": "v_takes_3",
-  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A girl takes a book from a table: her hand closes around the book and lifts it up off the table. Side view."
+  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A small boy, whole body visible, reaches into a basket full of colourful balls on the floor and takes out one red ball: the red ball is held firmly in his hand, lifted just above the other balls. Only balls in the basket, no ball in the air."
  },
  {
   "id": "takes",
@@ -167,7 +167,7 @@
  {
   "id": "tidies",
   "out": "v_tidies_2",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy picks up his clothes from the floor and puts them into a laundry basket: a T-shirt in his hand going into the basket, socks and trousers still on the floor next to him."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 7-year-old girl tidies her messy desk: she puts loose pencils back into a pencil cup with one hand; one side of the desk is still messy with scattered papers and crayons, the other side already neat with a stack of books."
  },
  {
   "id": "tidies",
@@ -197,7 +197,7 @@
  {
   "id": "builds",
   "out": "v_builds_4",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old girl builds a toy house from big plastic construction bricks on the floor: the house already has walls, a window and half a roof, and she is placing one more brick on top of the wall."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. Two children build a fort from sofa cushions and a blanket on the living-room floor: the walls of cushions are already standing, one child is placing another cushion on top, the other child spreads the blanket over as a roof."
  },
  {
   "id": "combs",
