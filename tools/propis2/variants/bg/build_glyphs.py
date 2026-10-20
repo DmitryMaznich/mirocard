@@ -1833,11 +1833,14 @@ def i_breve_lower(strokes, gap=4.0):
     t1 = q[int(np.argmin(q[: n // 2, 1]))]
     t2 = q[n // 2 + int(np.argmin(q[n // 2:, 1]))]
     mid = (t1[0] + t2[0]) / 2
-    br = strokes[-1]
-    b = tt.upright(dg.resample(np.array(tt.parse_path(dg.fmt(br))), 0.3))
+    # the breve exactly as the font draws it (its own centre line, not the tidied one: «не такой сильный прогиб, сделай точно
+    # по шрифту»)
+    raw = dg.resample(np.asarray(font_stencil(PAPER_LABEL[0])[-1], float), 0.3)
+    b = tt.upright(raw)
     dx = mid - (b[:, 0].min() + b[:, 0].max()) / 2
     dy = (tt.X_TOP - gap) - b[:, 1].max()
-    br = [(c, [tt.from_upright(tt.upright(np.asarray(v, float).reshape(1, 2)) + [dx, dy])[0] for v in ps]) for c, ps in br]
+    q = tt.from_upright(b + [dx, dy])
+    br = [("M", [q[0]])] + tt._fit_span(q, tt._unit(q[3] - q[0]), tt._unit(q[-1] - q[-4]), tol=0.1)
     PAPER_UNSNAPPED.pop(PAPER_LABEL[0], None)
     return I + [br]
 
