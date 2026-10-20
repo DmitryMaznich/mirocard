@@ -28,7 +28,7 @@ LETTERS = "КНФЮЪ"
 # rise (owner, 2026-10-19: «первый штрих должен иметь чуть больший прогиб в середине вправо ... максимально приближенное к линиям
 # шрифта»; build_glyphs.rise_like_font)
 WHOLE = {"П": 2, "А": 0, "Л": 0, "Т": 3}
-SKELETON = "БВГДЕЖЗИЙКЛМНОРСХЦЧШЩЯбвгдежзиклмн"  # letters snapped onto the font's lines whole (build_glyphs.snap_to_font; owner, 2026-10-19, Б: «сделай всё то же самое»)
+SKELETON = "БВГДЕЖЗИЙКЛМНОРСХЦЧШЩЯбвгдежзиклмно"  # letters snapped onto the font's lines whole (build_glyphs.snap_to_font; owner, 2026-10-19, Б: «сделай всё то же самое»)
 
 
 def flag_of_draft(p):
