@@ -1847,12 +1847,12 @@ def _ends_on_font(p, label, first, last):
     return p
 
 
-def l_lower(strokes, k=0, sigma=5.0, tol=0.1, label=None):
+def l_lower(strokes, k=0, sigma=5.0, tol=0.1, label=None, deg=100):
     """л (lowercase): the snapped stroke in the band, its lines smoothed harder than и's (owner: «линии без виляния»), the top
     turn kept sharp."""
     strokes = to_band(strokes)
     p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
-    c = _corners(p, deg=100)
+    c = _corners(p, deg=deg)
     for _ in range(2):
         p = _smooth_runs(p, c, sigma=sigma)
     # the smoothing lifts the bottoms (and the font's own tops sit a little apart): every run between a top and a bottom
@@ -1868,17 +1868,62 @@ def l_lower(strokes, k=0, sigma=5.0, tol=0.1, label=None):
         r = slice(0, i + 1) if i == ext[0][0] else slice(i, len(p))
         if yi == tt.BASE:
             ny[r] = top + (y[r] - top) * (tt.BASE - top) / (y[i] - top)
-        else:   # a top whose bottom is too shallow to count as a turn (м's last hook): that bottom onto the baseline too
-            ny[r] = top + (y[r] - y[i]) * (tt.BASE - top) / (y[r].max() - y[i])
+        elif 0 < int(np.argmax(y[r])) < len(y[r]) - 1:   # a top whose bottom is too shallow to count as a turn (м's last hook):
+            ny[r] = top + (y[r] - y[i]) * (tt.BASE - top) / (y[r].max() - y[i])   # that bottom onto the baseline too
+        else:   # a top with just the free end beyond it (н's start): only moved with it
+            ny[r] = y[r] + (top - y[i])
     dy = ny - y
     p = np.c_[p[:, 0] - dy * tt.SLANT_T, ny]
     if label:   # the start and the end exactly where the font's start and end are (owner: «точки начала и окончания ... точно по образцу»)
         i0, i1 = ext[0][0], ext[-1][0]   # the move fades out at the bottom next to each end (м's last one too shallow to be in ext)
-        if ext[0][1] == top: i0 = int(np.argmax(p[:i0 + 1, 1]))
+        if ext[0][1] == top: i0 = int(np.argmax(p[:i0 + 1, 1])) or i0 // 2
         if ext[-1][1] == top: i1 = i1 + int(np.argmax(p[i1:, 1]))
+        if i1 == len(p) - 1: i1 = (ext[-1][0] + len(p)) // 2
         p = _ends_on_font(p, label, i0, i1)
     out = list(strokes)
     out[k] = _fit_corners(p, c, tol=tol)
+    return out
+
+
+def n_bar(strokes, k=0, r=2.5, tol=0.1):
+    """н (lowercase): from the left stem's bottom back up the same line, then the font's bar flat across at its own height, into
+    the right stem going up (the smoothing and the snapping had made the bar a diagonal S). Short rounded turns of `r` units."""
+    ink, S, pen = _font_frame("н")
+    p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
+    from scipy.signal import find_peaks
+    pr = 0.2 * (tt.BASE - tt.X_TOP)
+    b1 = int(find_peaks(p[:, 1], prominence=pr)[0][0])
+    t2 = int([i for i in find_peaks(-p[:, 1], prominence=pr)[0] if i > b1][0])
+    # the bar's height and the stems where it meets them
+    t1 = int(np.argmin(p[:b1 + 1, 1]))                             # the arch's top
+    down = p[t1:b1 + 1]
+    lo = down[down[:, 1] > tt.X_TOP + 0.25 * (tt.BASE - tt.X_TOP)]
+    sl = np.polyfit(lo[:, 1], lo[:, 0], 1)                        # left stem: x of y
+    dn = p[t2:]; dn = dn[: int(np.argmax(dn[:, 1] > tt.X_TOP + 0.6 * (tt.BASE - tt.X_TOP)))]
+    sr = np.polyfit(dn[:, 1], dn[:, 0], 1)                        # right stem: its way down from the top, the way up the same line
+    ym = 0.5 * (tt.X_TOP + tt.BASE)
+    xm = 0.5 * (np.polyval(sl, ym) + np.polyval(sr, ym))
+    col = S[(np.abs(S[:, 0] - xm) < 1.5) & (S[:, 1] > tt.X_TOP + 0.3 * (tt.BASE - tt.X_TOP)) & (S[:, 1] < tt.BASE - 0.2 * (tt.BASE - tt.X_TOP))]
+    yb = float(np.median(col[:, 1]))   # the font's bar: its skeleton halfway between the stems
+    xl, xr = np.polyval(sl, yb), np.polyval(sr, yb)
+    # left: up the stem to r below the bar; the turn; the bar; the turn into the right stem, r above the bar
+    a = np.array([np.polyval(sl, yb + r), yb + r]); ta = tt._unit(np.array([np.polyval(sl, yb) - a[0], -r]))
+    b = np.array([xl + r, yb]); c = np.array([xr - r, yb])
+    pj = np.array([np.polyval(sr, yb - r), yb - r]); tj = tt._unit(p[t2] - pj)
+    rise = np.linspace(pj, p[t2], 40)
+    h = 0.55 * r
+    def cub(P0, T0, P3, T3, n=20):
+        P1, P2 = P0 + T0 * h, P3 - T3 * h
+        u = np.linspace(0, 1, n)[:, None]
+        return (1 - u) ** 3 * P0 + 3 * (1 - u) ** 2 * u * P1 + 3 * (1 - u) * u ** 2 * P2 + u ** 3 * P3
+    stem_up = down[down[:, 1] >= yb + r][::-1]
+    stem_up = stem_up[np.argsort(-stem_up[:, 1])]
+    stem_up = np.vstack([np.c_[np.polyval(sl, stem_up[:, 1]), stem_up[:, 1]], a])
+    mid = np.vstack([stem_up, cub(a, ta, b, np.array([1.0, 0]))[1:], np.linspace(b, c, 20)[1:], cub(c, np.array([1.0, 0]), pj, tj)[1:], rise[1:]])
+    q = np.vstack([p[:b1 + 1], dg.resample(mid, 0.3)[1:], p[t2 + 1:]])
+    q = dg.resample(q, 0.3)
+    out = list(strokes)
+    out[k] = _fit_corners(q, _corners(q, deg=100), tol=tol)
     return out
 
 
@@ -2072,7 +2117,7 @@ NO_EXIT = set("ФЮ")  # Ф: its hook ends to the left, under the letter; Ю: it
 
 # SHAPES: a letter's own correction on paper after the tidying (tidy_trace.tidy_letter adjust)
 SHAPES = {"А": lambda s: rise_like_font(hooks_like_font(s)), "Д": lambda s: snap_to_font(s, "Д"), "И": lambda s: ends_to_font(rise_into_stem(snap_to_font(s, "И")), "И", which=((0, 0), (0, -1))),
-          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: stem_down(mirror_ear(ears_on_baseline(ef_three(flag_corner(s))))), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Х": lambda s: smooth_middle(snap_to_font(s, "Х", arcs=(0, 1))), "Ц": lambda s: i_with_loop(snap_to_font(s, "Ц", arcs=(0,))), "Ч": lambda s: snap_to_font(s, "Ч", arcs=(0,)), "Ш": lambda s: stems_to_font(i_doubled(s), "Ш"), "Ю": yu_from_parts, "л": lambda s: l_lower(snap_to_font(s, "л", arcs=(0,)), label="л"),  "м": lambda s: l_lower(snap_to_font(s, "м", arcs=(0,)), label="м"), "к": lambda s: k_three(k_lower(snap_to_font(s, "к", arcs=(0, 1)))),  "й": i_breve_lower, "и": lambda s: i_lower(snap_to_font(s, "и", arcs=(0,))), "з": lambda s: desc_to_line(waist_to_font_tip(snap_to_font(s, "з", arcs=(0,)), "з")), "ж": lambda s: zh_lower(snap_to_font(s, "ж", arcs=(0,))), "е": lambda s: snap_to_font(s, "е", arcs=(0,)), "д": lambda s: oval_on_stem(snap_to_font(s, "д", arcs=(0,))), "г": lambda s: down_to_base(snap_to_font(s, "г", arcs=(0,))), "в": lambda s: bowl_oval(snap_to_font(s, "в", arcs=(0,))), "б": lambda s: perfect_oval(snap_to_font(s, "б", arcs=(0,))), "Я": lambda s: ya_lift(snap_to_font(s, "Я", arcs=(0,))), "Щ": lambda s: i_with_loop(snap_to_font(s, "Щ", arcs=(0,)), "Ш"), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
+          "Й": short_i, "З": lambda s: ends_to_font(cusp_to_font_tip(snap_to_font(s, "З"), "З"), "З", which=((0, 0), (0, -1))), "Ж": lambda s: zigzag_right(zigzag_middle(snap_to_font(s, "Ж", arcs=(0,)))), "Е": lambda s: waist_cusp(snap_to_font(s, "Е")), "Б": lambda s: flat_hat_to_font_end(snap_to_font(s, "Б"), "Б"), "В": lambda s: snap_to_font(oval_lower_bowl(s), "В"), "Г": lambda s: flat_hat_to_font_end(snap_to_font(both(stem_like("Б"), hat_like("Б"))(s), "Г"), "Г"), "Л": lambda s: rise_like_font(hooks_like_font(stem_on_font(spread_like_font(s), "Л"), "Л"), "Л"), "М": from_font, "П": reversed_strokes, "Ф": lambda s: stem_down(mirror_ear(ears_on_baseline(ef_three(flag_corner(s))))), "Т": reversed_strokes, "С": lambda s: snap_to_font(s, "С", arcs=(0,)), "Х": lambda s: smooth_middle(snap_to_font(s, "Х", arcs=(0, 1))), "Ц": lambda s: i_with_loop(snap_to_font(s, "Ц", arcs=(0,))), "Ч": lambda s: snap_to_font(s, "Ч", arcs=(0,)), "Ш": lambda s: stems_to_font(i_doubled(s), "Ш"), "Ю": yu_from_parts, "л": lambda s: l_lower(snap_to_font(s, "л", arcs=(0,)), label="л"),  "м": lambda s: l_lower(snap_to_font(s, "м", arcs=(0,)), label="м"),  "н": lambda s: n_bar(l_lower(snap_to_font(s, "н", arcs=(0,)), label="н")), "к": lambda s: k_three(k_lower(snap_to_font(s, "к", arcs=(0, 1)))),  "й": i_breve_lower, "и": lambda s: i_lower(snap_to_font(s, "и", arcs=(0,))), "з": lambda s: desc_to_line(waist_to_font_tip(snap_to_font(s, "з", arcs=(0,)), "з")), "ж": lambda s: zh_lower(snap_to_font(s, "ж", arcs=(0,))), "е": lambda s: snap_to_font(s, "е", arcs=(0,)), "д": lambda s: oval_on_stem(snap_to_font(s, "д", arcs=(0,))), "г": lambda s: down_to_base(snap_to_font(s, "г", arcs=(0,))), "в": lambda s: bowl_oval(snap_to_font(s, "в", arcs=(0,))), "б": lambda s: perfect_oval(snap_to_font(s, "б", arcs=(0,))), "Я": lambda s: ya_lift(snap_to_font(s, "Я", arcs=(0,))), "Щ": lambda s: i_with_loop(snap_to_font(s, "Щ", arcs=(0,)), "Ш"), "Р": lambda s: [s[0]] + snap_to_font([list(c) for c in s], "Р", plain=True)[1:], "О": lambda s: oval_start(close_smooth(snap_to_font(s, "О"))), "Н": lambda s: ends_to_font(flag_corner(snap_to_font(s, "Н", plain=True)), "Н", which=((0, -1), (1, -1))), "К": lambda s: touch_stem(end_like_font(flag_corner(ends_to_font(snap_to_font([font_flag(s[0], "К")] + s[1:], "К"), "К", which=((0, -1), (1, -1)))), "К", 1, 0)),
           # П: the font's own hat after all (owner, 2026-10-19, drawn over the font: it runs on along the top line to the font's end;
           # hat_like("Б") + hat_to_stem were the step before)
           }  # П: its stems as the font draws them, Б's hat over them (owner, 2026-10-19)
