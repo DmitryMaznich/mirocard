@@ -22,7 +22,10 @@ import Propis2Renderer              from "./renderers/propis2/index.jsx";
 import MyPeopleRenderer             from "./renderers/my_people/index.jsx";
 import DailyOrientationRenderer     from "./renderers/daily_orientation/index.jsx";
 
+import ComparisonLanguagePilotRenderer from "./renderers/comparison_language_pilot/index.jsx";
+
 export const RENDERER_REGISTRY = {
+  comparison_language_pilot: ComparisonLanguagePilotRenderer,
   flashcards:            FlashcardsRenderer,
   comparison:            ComparisonRenderer,
   math_houses:           MathHousesRenderer,

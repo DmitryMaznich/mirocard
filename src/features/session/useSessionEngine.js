@@ -1,3 +1,4 @@
+import { createContentContext } from "../../../shared/topic-language-contract.mjs";
 import { recordUsage } from "@/shared/hooks/useUsageTracking";
 import { peopleFor } from "../../../shared/student-people.mjs";
 import { useState, useCallback, useEffect, useRef } from "react";
@@ -109,7 +110,7 @@ export function cardsForRenderer(topicRecord, mode, selectedConceptIds) {
   };
 }
 
-function buildGeneratedSessionState({
+export function buildGeneratedSessionState({
   topicRecord,
   mode,
   activeStudentId,
@@ -123,6 +124,12 @@ function buildGeneratedSessionState({
 }) {
   if (!topicRecord || !mode) return null;
 
+  let languageContext = null;
+  if (topicRecord.languageContract) {
+    try { languageContext = createContentContext(topicRecord, mode, sessionParams); }
+    catch { return null; } // Invalid/unavailable material must never start with a fallback.
+  }
+  const contentArgs = languageContext ? [languageContext, topicRecord.languageResources.content[languageContext.contentLanguage]] : [];
   const renderer = topicRecord.meta.renderer;
   let tasks;
   let isDeckMode = false;
@@ -192,12 +199,12 @@ function buildGeneratedSessionState({
     // selection cannot silently hide the requested cards.
     const { selectedCards, cards: cardsForEngine } = cardsForRenderer(topicRecord, mode, selectedConceptIds);
     tasks = generateTasks
-      ? generateTasks(mode, cardsForEngine, sessionSize, sessionParams)
+      ? generateTasks(mode, cardsForEngine, sessionSize, sessionParams, ...contentArgs)
       : [];
     // If the concept filter excluded cards required for this mode (e.g. only finger cards
     // selected but mode needs arithmetic cards), fall back to all cards so the session starts.
     if (!tasks.length && selectedCards.length && generateTasks) {
-      tasks = generateTasks(mode, topicRecord.cards, sessionSize, sessionParams);
+      tasks = generateTasks(mode, topicRecord.cards, sessionSize, sessionParams, ...contentArgs);
     }
   }
 
@@ -219,6 +226,11 @@ function buildGeneratedSessionState({
   );
 
   baseState.statistics.conditions = captureConditions(topicRecord, mode, sessionParams, tasks, sessionConceptIds, renderer === "reading" ? activeTextId : null);
+
+  if (languageContext) {
+    baseState.languageContext = languageContext;
+    baseState.statistics.conditions.languageContext = languageContext;
+  }
 
   if (mode.type === "assemble_text") {
     const totalWords = tasks.reduce((sum, task) => sum + (task.tokenCount ?? 0), 0);
@@ -287,6 +299,7 @@ export function useSessionEngine() {
       modeId: activeModeId,
       topicVersion: topicRecord.meta.version,
       conceptIds: selectedConceptIds,
+      languageContext: generatedState.languageContext,
     }) ?? generatedState;
   });
   const { getActiveDurationMs } = useActiveSessionTimer(

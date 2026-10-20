@@ -26,6 +26,3 @@ Specialized calendar/Today, letter-case, print/PDF, recipe and safe-code setting
 ## Release
 
 Version is bumped in a separate commit. Baseline: 1.0.2670 / `7684484ebbf146b37734bffc74911ffe360a1d48`; preserve `codex/rollback-before-lesson-localization-2671` before merging. No database/schema, deck ZIP, backend or published legal-text changes are required.
-## Published result
-
-PR #33 and main CI passed all six jobs; final frontend suite: 192 files / 2241 tests. Railway verified 1.0.2671 / cef0fc5, health=ok, catalogEntries=25.

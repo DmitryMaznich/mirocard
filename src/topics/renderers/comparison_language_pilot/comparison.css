@@ -1,0 +1,79 @@
+/* Isolated snapshot of comparison 2.37.0 visual-mode styles. */
+.pilot-compare-body {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px; flex: 1; min-height: 0; padding: 16px;
+}
+.pilot-compare-instruction      { font-size: clamp(22px, 4vw, 34px); font-weight: 800; text-align: center; color: #263131; }
+.pilot-compare-instruction-hint { font-size: clamp(16px, 2.5vw, 22px); font-weight: 500; text-align: center; color: #718096; margin-top: 4px; }
+
+.pilot-compare-sides { display: flex; gap: 16px; justify-content: center; width: 100%; max-width: 760px; }
+
+.pilot-compare-side {
+  width: clamp(90px, 26vw, 220px);
+  height: clamp(90px, 26vw, 220px);
+  flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; background: #fff; border: 3px solid #e0e0e0; border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10); cursor: pointer; padding: 12px;
+  transition: transform 0.15s, border-color 0.25s;
+}
+.pilot-compare-side:hover:not(:disabled) { transform: scale(1.03); }
+.pilot-compare-side:active { border-color: #4a90e2; }
+.pilot-compare-side--number { width: clamp(90px, 26vw, 220px); height: clamp(90px, 26vw, 220px); }
+.pilot-compare-side--dots   { height: auto; min-height: clamp(90px, 26vw, 220px); justify-content: flex-start; padding-top: 14px; padding-bottom: 14px; }
+.pilot-compare-side--shake  { animation: pilot-shake 0.35s; }
+
+.pilot-compare-big-number { font-size: clamp(48px, 14vw, 96px); font-weight: 900; line-height: 1; }
+.pilot-compare-number     { font-size: 1.8rem; font-weight: 700; }
+
+.pilot-dot-group-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.pilot-dot-group      { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; max-width: min(140px, 100%); }
+.pilot-dot-group-number { font-size: 1.6rem; font-weight: 700; line-height: 1; }
+.pilot-dot            { width: 22px; height: 22px; border-radius: 50%; }
+
+.pilot-compare-pairing-col  { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; max-width: min(140px, 100%); }
+.pilot-compare-pairing-dot  { transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s; }
+.pilot-compare-pairing-dot--paired   { opacity: 0.25; transform: scale(0.8); }
+.pilot-compare-pairing-dot--leftover { animation: pilot-compare-pairing-pulse 0.6s ease-in-out infinite; }
+@keyframes pilot-compare-pairing-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(245,158,11,0.55); }
+  50%      { box-shadow: 0 0 0 7px rgba(245,158,11,0.15); }
+}
+
+.pilot-compare-verdict {
+  font-size: clamp(22px, 4vw, 34px); font-weight: 800; text-align: center; color: #2d6fb5;
+  margin-top: 8px; animation: pilot-fadeIn 0.3s ease;
+}
+
+.pilot-compare-equal-btn {
+  margin-top: 4px; width: 72px; height: 56px;
+  border: 3px solid #cbd5e1; border-radius: 12px; background: #fff;
+  font-size: 1.6rem; font-weight: 800; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.pilot-compare-equal-btn:hover:not(:disabled) { border-color: #94a3b8; background: #f1f5f9; }
+.pilot-compare-equal-btn--empty {
+  margin-top: 0; width: clamp(90px, 26vw, 220px); height: clamp(90px, 26vw, 220px);
+  background: transparent; border: 3px dashed #cbd5e1; border-radius: 20px;
+  box-shadow: none; font-size: 0;
+}
+.pilot-compare-equal-btn--empty:hover:not(:disabled) { border-color: #94a3b8; background: rgba(255,255,255,0.5); }
+.pilot-compare-equal-btn--hint { background: #fef3c7; border-color: #f59e0b; }
+.pilot-compare-equal-btn--hint:hover:not(:disabled) { background: #fde68a; border-color: #d97706; }
+.pilot-compare-equal-btn--shake { animation: pilot-shake 0.35s; }
+
+
+@media (min-width: 768px) {
+  .pilot-compare-sides            { max-width: 860px; gap: 24px; }
+  .pilot-compare-side             { width: 200px; height: 200px; }
+  .pilot-compare-side--number     { width: 200px; height: 200px; }
+  .pilot-compare-side--dots       { width: 260px; height: auto; min-height: 200px; }
+  .pilot-compare-equal-btn--empty { width: 200px; height: 200px; }
+  .pilot-compare-big-number       { font-size: 96px; }
+  .pilot-dot                      { width: 54px; height: 54px; }
+  .pilot-dot-group                { gap: 12px; max-width: min(186px, 100%); }
+
+}
+
+@keyframes pilot-shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-6px); } 50% { transform: translateX(6px); } }
+@keyframes pilot-fadeIn { from { opacity: 0; } to { opacity: 1; } }

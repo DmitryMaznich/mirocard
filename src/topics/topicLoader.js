@@ -1,3 +1,4 @@
+import { loadTopicLanguages } from "../../shared/topic-language-contract.mjs";
 import JSZip from "jszip";
 import { CHECK_SKILLS, CHECK_VIEWS } from "./renderers/place_value/engine.js";
 import { kv, topics } from "@/core/db";
@@ -2342,6 +2343,7 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
   const zip = await JSZip.loadAsync(zipBuffer);
 
   let manifest = await parseManifest(zip);
+  manifest = await loadTopicLanguages(manifest, (path) => zip.file(path)?.async("string"));
   manifest = normalizeReading(manifest);
   manifest = normalizeProcedural(manifest);
   manifest = normalizeFlashcards(manifest);
@@ -2407,6 +2409,7 @@ export async function importTopic(db, zipBuffer, appVersion = "0.0.0", { origin 
     id: topicId,
     meta: manifest.meta,
     modes: manifest.modes ?? [],
+    ...(manifest.languageContract ? { languageContract: manifest.languageContract, languageResources: manifest.languageResources } : {}),
     cards: (manifest.cards ?? []).map((card) => {
       const imageUrl = cardImageUrls[card.id];
       return imageUrl ? { ...card, imageUrl, photo: imageUrl } : card;

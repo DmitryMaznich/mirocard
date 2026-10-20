@@ -41,6 +41,20 @@ export default defineConfig([
     },
   },
   {
+    files: [
+      'src/topics/renderers/comparison_language_pilot/engine.js',
+      'src/topics/renderers/comparison_language_pilot/mechanics.js',
+      'shared/topic-language-contract.mjs',
+    ],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [{
+        group: ['**/core/**', '**/i18n/**', 'react', 'react-dom*'],
+        message: 'Lesson generation receives explicit content context; UI/account state is not a dependency.',
+      }] }],
+      'no-restricted-globals': ['error', 'window', 'document', 'navigator', 'localStorage'],
+    },
+  },
+  {
     files: ['public/admin*.js'],
     extends: [js.configs.recommended],
     languageOptions: { globals: globals.browser },
@@ -57,6 +71,7 @@ export default defineConfig([
     files: [
       'backend/**/*.mjs',
       'scripts/**/*.mjs',
+      'shared/topic-language-contract.mjs',
       'tools/**/*.{js,mjs}',
       'landing/**/*.mjs',
       '*.config.{js,mjs}',

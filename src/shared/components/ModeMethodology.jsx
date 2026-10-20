@@ -16,13 +16,16 @@ function toTextList(value) {
 }
 
 export default function ModeMethodology({ mode }) {
-  const { t } = useUiTranslation();
+  const { t, language } = useUiTranslation();
+  const localize = (value) => getTopicTitle(value, mode?.methodology?.uiLocalized ? language : "ru");
   const description = (
-    getLocalizedText(mode?.methodology?.text)
-    || getLocalizedText(mode?.methodology?.description)
-    || getLocalizedText(mode?.ui?.instruction)
+    localize(mode?.methodology?.text)
+    || localize(mode?.methodology?.description)
+    || localize(mode?.ui?.instruction)
   );
-  const settings = buildModeSettings(mode);
+  const settings = mode?.methodology?.uiLocalized
+    ? (mode.methodology.settings ?? []).map(localize)
+    : buildModeSettings(mode);
   const goal = getModeGoal(mode);
   const tips = toTextList(mode?.methodology?.tips);
   const duration = getLocalizedText(mode?.methodology?.duration);
