@@ -216,6 +216,14 @@ owner done (deck v1.5.1; audio via `tools/verbs_v2/generate-audio-elevenlabs.mjs
 pictures — follow sections 5б–5г of the doc (no anthropomorphic animals, real photos, vary objects). The deck needs `meta.customModesOnly` + `verbs_`-prefixed mode
 ids — without them `topicLoader` silently replaces generic flashcards modes' ui/params.
 
+## Мои люди (my_people) — разбор логопеда и редизайн
+
+Второй методический проход по теме (2026-10-20): оценка всех режимов глазами логопеда (РАС),
+пробелы (нет критерия перехода, нет ответа выбором для неговорящих, детская и взрослая зоны
+экрана смешаны) и предложение по редизайну. **Read `docs/my-people-methodology-review.md` first**
+before touching `my_people`; макеты — `docs/mockups/my-people-redesign.html`. История прошлых правок —
+`docs/my-people-review.md`.
+
 ## Разряды числа (place_value)
 
 Topic split out of «Сложение и вычитание в столбик» on 2026-10-07; tens and
