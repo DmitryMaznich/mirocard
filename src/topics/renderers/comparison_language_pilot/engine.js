@@ -12,12 +12,13 @@ const LEVELS = [
 // The host pins this context at lesson start; UI language is never an input.
 export function generateTasks(mode, cards, count = 20, params = {}, context, pack) {
   if (!context || !pack || context.contentLanguage !== pack.language || context.packageId !== pack.packageId || context.contentVersion !== pack.version) throw new Error("Explicit matching content package required");
-  if (!["compare_visual", "compare_sign"].includes(mode.type)) throw new Error("Unsupported pilot mode");
+  if (!["compare_visual", "compare_sign", "compare_draw_sign"].includes(mode.type)) throw new Error("Unsupported pilot mode");
   const card = cards.find((c) => c.id === (params.cardId ?? mode.defaultCardId)) ?? cards[0];
   if (!card) return [];
   const isSign = mode.type === "compare_sign";
-  const { level = isSign ? 2 : 1, question = "more", showEqual = false } = params;
-  const visualMode = isSign ? "numbers" : (params.visualMode ?? "dots");
+  const isDraw = mode.type === "compare_draw_sign";
+  const { level = isSign || isDraw ? 2 : 1, question = "more", showEqual = false } = params;
+  const visualMode = isSign || isDraw ? "numbers" : (params.visualMode ?? "dots");
   if (!LEVELS[level - 1] || !["more", "less", "mix"].includes(question) || !["dots", "dots_numbers", "numbers", "pairing"].includes(visualMode)) throw new Error("Invalid pilot parameters");
   const range = LEVELS[level - 1];
   const used = new Set();
@@ -42,11 +43,12 @@ export function generateTasks(mode, cards, count = 20, params = {}, context, pac
     tasks.push({
       type: mode.type, left, right, conceptId: card.conceptId,
       question: taskQuestion, showEqual, visualMode,
-      instruction: contentMessage(pack, isSign ? `prompt.sign.${taskQuestion}` : `prompt.${visualMode}.${promptQuestion}`),
+      instruction: contentMessage(pack, isDraw ? "prompt.draw" : isSign ? `prompt.sign.${taskQuestion}` : `prompt.${visualMode}.${promptQuestion}`),
+      ...(isDraw ? { canvasLabel: contentMessage(pack, "draw.canvasLabel") } : {}),
       ...(isSign ? { crocTip: contentMessage(pack, "sign.crocTip") } : {}),
-      equalHint: !isSign && showEqual ? contentMessage(pack, visualMode === "numbers" ? "equal.numbersHint" : "equal.hint") : null,
-      equalLabel: contentMessage(pack, "equal.label"),
-      verdictText: contentMessage(pack, `verdict.${taskQuestion}`, { left, right, larger: Math.max(left, right), smaller: Math.min(left, right) }),
+      equalHint: !isSign && !isDraw && showEqual ? contentMessage(pack, visualMode === "numbers" ? "equal.numbersHint" : "equal.hint") : null,
+      equalLabel: isDraw ? null : contentMessage(pack, "equal.label"),
+      verdictText: contentMessage(pack, isDraw ? `verdict.draw.${left === right ? "equal" : left > right ? "more" : "less"}` : `verdict.${taskQuestion}`, { left, right, larger: Math.max(left, right), smaller: Math.min(left, right) }),
       languageContext: context,
       retryAudio: pack.recordings?.["feedback.retry"] ?? null,
     });

@@ -1,13 +1,13 @@
 {
   "meta": {
     "id": "comparison_language_pilot",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "renderer": "comparison_language_pilot",
     "title": {
       "ru": "Сравнение · языковой пилот",
       "sl": "Primerjanje · jezikovni pilot"
     },
-    "minAppVersion": "1.0.2675",
+    "minAppVersion": "1.0.2676",
     "avatar": "media/avatar.svg"
   },
   "sourceCopy": {
@@ -16,7 +16,8 @@
     "appCommit": "cef0fc5c1cda6fec2ea504115a4a0816b1fcf84f",
     "scope": [
       "compare_visual",
-      "compare_sign"
+      "compare_sign",
+      "compare_draw_sign"
     ]
   },
   "languageContract": {
@@ -28,40 +29,42 @@
     "packages": {
       "ru": {
         "packageId": "comparison_language_pilot.ru",
-        "version": "0.4.0",
+        "version": "0.5.0",
         "file": "content/ru.json",
         "modeIds": [
           "compare_visual",
-          "compare_sign"
+          "compare_sign",
+          "compare_draw_sign"
         ],
         "audio": "recorded",
         "download": {
-          "url": "./decks/languages/comparison_language_pilot/ru_v0.4.0.zip",
-          "bytes": 16240,
-          "sha256": "fba69ac031c9e3cedbdb7fcc786bd1bec9ad1a18d978940e7c2ed8135a257817"
+          "url": "./decks/languages/comparison_language_pilot/ru_v0.5.0.zip",
+          "bytes": 16342,
+          "sha256": "ccec8a8979223f0d0553fb6ad4d05651e0961c38eca353f1c91597c8a9b4f5d0"
         },
         "audioScope": "feedback"
       },
       "sl": {
         "packageId": "comparison_language_pilot.sl",
-        "version": "0.4.0",
+        "version": "0.5.0",
         "file": "content/sl.json",
         "modeIds": [
           "compare_visual",
-          "compare_sign"
+          "compare_sign",
+          "compare_draw_sign"
         ],
         "audio": "none",
         "download": {
-          "url": "./decks/languages/comparison_language_pilot/sl_v0.4.0.zip",
-          "bytes": 700,
-          "sha256": "58db13af54a739004d159ca35604b880d7b1317e406b1ce3c3136c4d6c16a064"
+          "url": "./decks/languages/comparison_language_pilot/sl_v0.5.0.zip",
+          "bytes": 783,
+          "sha256": "51544e8a6ad89326139a887d25aacb28f2a8fef981a1d1445bfb0355fd7b37df"
         }
       }
     },
     "selectionScope": "topic",
     "delivery": {
       "version": 1,
-      "coreUrl": "./decks/comparison_language_pilot_v0.4.0.zip"
+      "coreUrl": "./decks/comparison_language_pilot_v0.5.0.zip"
     }
   },
   "modes": [
@@ -179,6 +182,43 @@
       "cardIds": [
         "pilot_sign"
       ]
+    },
+    {
+      "id": "compare_draw_sign",
+      "type": "compare_draw_sign",
+      "evaluation": "auto",
+      "defaultCardId": "pilot_draw",
+      "hideConceptPicker": true,
+      "params": {
+        "level": {
+          "type": "enum",
+          "values": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "default": 2
+        },
+        "showEqual": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "contentKeys": [
+        "prompt.draw",
+        "draw.canvasLabel",
+        "verdict.draw.more",
+        "verdict.draw.less",
+        "verdict.draw.equal"
+      ],
+      "ui": {
+        "icon": "media/avatar.svg"
+      },
+      "paramsScope": "mode",
+      "cardIds": [
+        "pilot_draw"
+      ]
     }
   ],
   "cards": [
@@ -198,6 +238,15 @@
       "label": {
         "ru": "Сравнение чисел со знаком",
         "sl": "Primerjanje števil z znakom"
+      }
+    },
+    {
+      "id": "pilot_draw",
+      "conceptId": "pilot_draw",
+      "primary": true,
+      "label": {
+        "ru": "Рисование знака сравнения",
+        "sl": "Risanje primerjalnega znaka"
       }
     }
   ]
