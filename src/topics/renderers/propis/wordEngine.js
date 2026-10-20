@@ -1646,7 +1646,10 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         let liftJoin = false;
         if (pendingTail && !glyph.noJoin && glyphsByLabel?.script?.exactJoins && pendingTouchX !== null && !inCell) {
           const te = getPathEndpoints(pendingTail.d).end;
-          if (Math.abs(te[1] - local.start[1]) < 0.75 * scale) {
+          // a lead-in HOOK (rising steeply, as every exit: 55°), not a start on an arc (е starts on its loop, flat: it gets the connector)
+          const q0 = samplePath(local.strokes[0].d, 40).find((q) => Math.hypot(q[0] - local.start[0], q[1] - local.start[1]) > 3 * scale);
+          const rise = q0 ? Math.atan2(local.start[1] - q0[1], q0[0] - local.start[0]) * (180 / Math.PI) : 0;
+          if (Math.abs(te[1] - local.start[1]) < 0.75 * scale && rise > 40 && rise < 80) {
             prevExit = [pendingTouchX, te[1]];
             prevExitStroke = -1;
             liftJoin = true;
