@@ -1,13 +1,13 @@
 {
   "meta": {
     "id": "comparison_language_pilot",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "renderer": "comparison_language_pilot",
     "title": {
       "ru": "Сравнение · языковой пилот",
       "sl": "Primerjanje · jezikovni pilot"
     },
-    "minAppVersion": "1.0.2673",
+    "minAppVersion": "1.0.2674",
     "avatar": "media/avatar.svg"
   },
   "sourceCopy": {
@@ -28,24 +28,39 @@
     "packages": {
       "ru": {
         "packageId": "comparison_language_pilot.ru",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "file": "content/ru.json",
         "modeIds": [
           "compare_visual",
           "compare_sign"
         ],
-        "audio": "none"
+        "audio": "none",
+        "download": {
+          "url": "./decks/languages/comparison_language_pilot/ru_v0.3.0.zip",
+          "bytes": 765,
+          "sha256": "354a6f073f694afcbba21c3e99838720c4c03795cf6d2465a0bfd41e4b4400bb"
+        }
       },
       "sl": {
         "packageId": "comparison_language_pilot.sl",
-        "version": "0.2.0",
+        "version": "0.3.0",
         "file": "content/sl.json",
         "modeIds": [
           "compare_visual",
           "compare_sign"
         ],
-        "audio": "none"
+        "audio": "none",
+        "download": {
+          "url": "./decks/languages/comparison_language_pilot/sl_v0.3.0.zip",
+          "bytes": 700,
+          "sha256": "7bf54398a4b52ce6f8f59c518152f5fded0172f526b1183b376d4eaff0d251b5"
+        }
       }
+    },
+    "selectionScope": "topic",
+    "delivery": {
+      "version": 1,
+      "coreUrl": "./decks/comparison_language_pilot_v0.3.0.zip"
     }
   },
   "modes": [
@@ -56,13 +71,6 @@
       "defaultCardId": "pilot_visual",
       "hideConceptPicker": true,
       "params": {
-        "contentLanguage": {
-          "type": "content_language",
-          "values": [
-            "ru",
-            "sl"
-          ]
-        },
         "level": {
           "type": "enum",
           "values": [
@@ -129,13 +137,6 @@
       "defaultCardId": "pilot_sign",
       "hideConceptPicker": true,
       "params": {
-        "contentLanguage": {
-          "type": "content_language",
-          "values": [
-            "ru",
-            "sl"
-          ]
-        },
         "level": {
           "type": "enum",
           "values": [

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "language": "ru",
   "packageId": "comparison_language_pilot.ru",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "audio": "none",
   "messages": {
     "prompt.dots.more": "Где больше точек?",
@@ -23,5 +23,6 @@
     "prompt.sign.less": "Нажми на меньшее число",
     "prompt.sign.equal": "Числа одинаковые — нажми на крокодила",
     "sign.crocTip": "Пасть крокодила всегда открывается к большему числу."
-  }
+  },
+  "assets": []
 }

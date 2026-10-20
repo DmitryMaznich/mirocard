@@ -60,10 +60,11 @@ describe("independent interface and lesson languages", () => {
         studentTopicLinks: { kid_comparison: originalLink, kid_comparison_language_pilot: { params: { contentLanguage } } },
         screen: "params", sessionReturnScreen: null });
       await act(async () => root.render(<ParamsScreen />));
-      expect(host.textContent).toContain(uiLanguage === "ru" ? "Язык занятия" : "Jezik učnega gradiva");
-      expect(button(contentLanguage === "ru" ? "Русский" : "Slovenščina").className).toContain("enum-btn--active");
+      expect(host.textContent).not.toContain(uiLanguage === "ru" ? "Язык занятия" : "Jezik učnega gradiva");
+      expect(button("Русский")).toBeUndefined();
+      expect(button("Slovenščina")).toBeUndefined();
       await act(async () => setUiLanguage(uiLanguage === "ru" ? "sl" : "ru"));
-      expect(button(contentLanguage === "ru" ? "Русский" : "Slovenščina").className).toContain("enum-btn--active");
+      expect(button("Slovenščina")).toBeUndefined();
       expect(mocks.persist).not.toHaveBeenCalled();
       expect(useAppStore.getState().studentTopicLinks.kid_comparison).toBe(originalLink);
       const state = stateFor(contentLanguage);
@@ -90,12 +91,12 @@ describe("independent interface and lesson languages", () => {
       students: [{ id: "kid", name: "Миша", preferredLessonLanguage: "en" }], topicRecords: [topic], sessions: [],
       studentTopicLinks: { kid_comparison_language_pilot: { videoRewardEnabled: false } }, settings: { ...originalStore.settings, cardLanguage: "ru" }, screen: "params" });
     await act(async () => root.render(<ParamsScreen />));
-    expect(host.querySelector('[role="alert"]').textContent).toContain("Izberite");
+    expect(host.querySelector('[role="alert"]').textContent).toContain("izberite");
     expect(button("Začni učno uro").disabled).toBe(true);
-    await act(async () => button("Slovenščina").click());
+    await act(async () => useAppStore.setState({ studentTopicLinks: { kid_comparison_language_pilot: { params: { topicContentLanguage: "sl" }, videoRewardEnabled: false } } }));
     expect(button("Začni učno uro").disabled).toBe(false);
     await act(async () => button("Začni učno uro").click());
-    expect(mocks.persist).toHaveBeenCalledWith("kid", topic.meta.id, expect.objectContaining({ params: expect.objectContaining({ byMode: expect.objectContaining({ compare_visual: expect.objectContaining({ contentLanguage: "sl" }) }) }) }));
+    expect(mocks.persist).toHaveBeenCalledWith("kid", topic.meta.id, expect.objectContaining({ params: expect.objectContaining({ topicContentLanguage: "sl" }) }));
   });
 });
 
@@ -121,7 +122,7 @@ it("persists pinned package identity in checkpoints/history and rejects incompat
   const context = { studentId: "kid", topicId: topic.meta.id, modeId: mode.id, topicVersion: topic.meta.version, conceptIds: ["pilot_visual"], languageContext: state.languageContext };
   expect(restoreActiveSessionState(snapshot, context)?.languageContext).toEqual(state.languageContext);
   expect(restoreActiveSessionState(snapshot, { ...context, languageContext: { ...state.languageContext, contentLanguage: "ru" } })).toBeNull();
-  expect(restoreActiveSessionState(snapshot, { ...context, languageContext: { ...state.languageContext, contentVersion: "0.3.0" } })).toBeNull();
+  expect(restoreActiveSessionState(snapshot, { ...context, languageContext: { ...state.languageContext, contentVersion: "0.4.0" } })).toBeNull();
 });
 
 it("imports the actual ZIP without altering original topic, files or progress", async () => {
@@ -135,11 +136,12 @@ it("imports the actual ZIP without altering original topic, files or progress", 
   await kv.set(db, "studentTopicLinks", links);
   await kv.set(db, "conceptProgress", progress);
   await kv.set(db, "sessions", history);
-  const bytes = await readFile(resolve("public/decks/comparison_language_pilot_v0.2.0.zip"));
-  await importTopic(db, bytes, "1.0.2673");
+  const bytes = await readFile(resolve("public/decks/comparison_language_pilot_v0.3.0.zip"));
+  await importTopic(db, bytes, "1.0.2674");
   const installed = await getTopicRecord(db, topic.meta.id);
   expect(installed.modes).toHaveLength(2);
-  expect(installed.languageResources.content.sl.language).toBe("sl");
+  expect(installed.languageResources.content.sl).toBeUndefined();
+  expect(Object.keys(installed.languageContract.packages)).toEqual(["ru", "sl"]);
   expect(installed.meta.title.sl).toBe(topic.meta.title.sl);
   expect(await kv.get(db, "topic:comparison")).toEqual(original);
   expect(await (await topics.getFile(db, "comparison", "renderer")).text()).toBe("original renderer");
@@ -147,8 +149,8 @@ it("imports the actual ZIP without altering original topic, files or progress", 
   expect(await kv.get(db, "conceptProgress")).toEqual(progress);
   expect(await kv.get(db, "sessions")).toEqual(history);
   const invalidZip = await JSZip.loadAsync(bytes);
-  invalidZip.remove("content/sl.json");
-  await expect(importTopic(db, await invalidZip.generateAsync({ type: "arraybuffer" }), "1.0.2673")).rejects.toThrow(/missing file/);
+  invalidZip.remove("ui/sl.json");
+  await expect(importTopic(db, await invalidZip.generateAsync({ type: "arraybuffer" }), "1.0.2674")).rejects.toThrow(/missing file/);
   expect(await getTopicRecord(db, topic.meta.id)).toEqual(installed);
   db.close();
 });
@@ -160,7 +162,7 @@ it("rejects incomplete UI, missing lesson messages, mismatched packages and unsu
     (t) => { t.languageResources.content.sl.language = "ru"; },
     (t) => { t.languageResources.content.sl.messages["verdict.more"] = "{{wrong}}"; },
     (t) => { t.languageContract.packages.sl.audio = "recorded"; },
-    (t) => { t.languageContract.packages.sl.modeIds = ["compare_sign"]; },
+    (t) => { t.languageContract.packages.sl.modeIds = ["not_a_mode"]; },
     (t) => { t.languageContract.packages.sl.file = "/content/sl.json"; },
   ]) {
     const invalid = structuredClone(topic); change(invalid);
@@ -261,20 +263,22 @@ describe("crocodile mode", () => {
 it("upgrades the actual 0.1 ZIP without losing visual settings or sharing them with the new mode", async () => {
   const db = await openDb(`pilot-upgrade-${Math.random()}`);
   const oldBytes = await readFile(resolve("test-fixtures/decks/comparison_language_pilot_v0.1.0.zip"));
-  await importTopic(db, oldBytes, "1.0.2673");
+  await importTopic(db, oldBytes, "1.0.2674");
   const legacy = { contentLanguage: "sl", level: 4, question: "less", showEqual: true, visualMode: "numbers" };
   const links = { kid_comparison_language_pilot: { params: legacy } };
   const history = [{ id: "previous", topicId: topic.meta.id, modeId: "compare_visual", conceptIds: ["pilot_visual"] }];
   await kv.set(db, "studentTopicLinks", links);
   await kv.set(db, "sessions", history);
-  await importTopic(db, await readFile(resolve("public/decks/comparison_language_pilot_v0.2.0.zip")), "1.0.2673");
+  await importTopic(db, await readFile(resolve("public/decks/comparison_language_pilot_v0.3.0.zip")), "1.0.2674");
   expect(await kv.get(db, "studentTopicLinks")).toEqual(links);
   expect(await kv.get(db, "sessions")).toEqual(history);
-  expect(readModeParams(legacy, mode)).toEqual(legacy);
+  const { contentLanguage: ignoredLanguage, ...visualSettings } = legacy;
+  void ignoredLanguage;
+  expect(readModeParams(legacy, mode)).toEqual(visualSettings);
   expect(readModeParams(legacy, signMode)).toEqual({ level: 2, question: "more", showEqual: false });
   const signParams = { contentLanguage: "ru", level: 2, question: "more", showEqual: false };
   const first = writeModeParams(legacy, signMode, signParams);
-  expect(readModeParams(first, mode)).toEqual(legacy);
+  expect(readModeParams(first, mode)).toEqual(visualSettings);
   const second = writeModeParams(first, mode, { ...legacy, level: 3 });
   expect(readModeParams(second, signMode)).toEqual(signParams);
   expect(readModeParams(second, mode)).toEqual({ ...legacy, level: 3 });

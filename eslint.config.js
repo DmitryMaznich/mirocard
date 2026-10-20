@@ -45,6 +45,7 @@ export default defineConfig([
       'src/topics/renderers/comparison_language_pilot/engine.js',
       'src/topics/renderers/comparison_language_pilot/mechanics.js',
       'shared/topic-language-contract.mjs',
+      'shared/topic-delivery.mjs',
     ],
     rules: {
       'no-restricted-imports': ['error', { patterns: [{
@@ -72,6 +73,7 @@ export default defineConfig([
       'backend/**/*.mjs',
       'scripts/**/*.mjs',
       'shared/topic-language-contract.mjs',
+      'shared/topic-delivery.mjs',
       'tools/**/*.{js,mjs}',
       'landing/**/*.mjs',
       '*.config.{js,mjs}',

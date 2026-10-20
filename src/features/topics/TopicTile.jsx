@@ -1,3 +1,4 @@
+import { nativeLanguageName } from "../../../shared/topic-delivery.mjs";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useState } from "react";
 import { getImportErrorMessage } from "./catalogService";
@@ -35,6 +36,7 @@ export default function TopicTile({
   isActive,
   access = "free",
   claimSource,        // ownedTopics[...].source, or null
+  materialLanguage,
   personalCaption,    // getPersonalTopicCaption() result, or null — imported/granted topics only
   // True when this is a previously-claimed PAID topic whose entitlement
   // (subscription/trial/promo) has since expired. A downloaded copy may
@@ -109,6 +111,7 @@ export default function TopicTile({
   function requestAction() {
     if (status === "soon") setShowingSoon(true);
     else if (entitlementExpired && onLockedTap) onLockedTap(entry);
+    else if ((status === "install" || status === "update") && entry?.languageDownload) handleAction();
     else if (status === "install") setConfirmingInstall(true);
     else handleAction();
   }
@@ -169,6 +172,7 @@ export default function TopicTile({
         <div className="topic-tile-row__title">{title}</div>
         <div className="topic-tile-row__eyebrow">
           <span>{versionText}</span>
+          {materialLanguage && <span>{t("topicLanguage.material", { language: nativeLanguageName(materialLanguage) })}</span>}
           {statusBadge && !personalCaption && <span className={`topic-tile-row__tag topic-tile-row__tag--${statusKey}`}>{t(`topics.badge.${statusKey}`)}</span>}
           {personalCaption && <span className="topic-tile-row__tag topic-tile-row__tag--personal" title={personalCaption}>{t("topics.personal")}</span>}
           {loading && <span className="topic-tile-row__loading">{progress != null ? `${Math.round(progress * 100)}%` : t("topics.downloading")}</span>}

@@ -1,3 +1,4 @@
+import TopicLanguageDialog from "@/features/topics/TopicLanguageDialog.jsx";
 import { useCallback, useEffect, useRef, Component } from "react";
 import { useAppStore } from "@/core/store";
 import { getDb } from "@/core/db";
@@ -394,6 +395,7 @@ export default function App() {
       <ErrorBoundary key={screen}>
         <Screen />
       </ErrorBoundary>
+      <TopicLanguageDialog />
       <OrientationGuard orientationLock={orientationLock} />
       {screen !== "boot" && screen !== "session" && <InstallBanner />}
     </>

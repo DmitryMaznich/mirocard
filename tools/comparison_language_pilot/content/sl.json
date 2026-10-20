@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "language": "sl",
   "packageId": "comparison_language_pilot.sl",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "audio": "none",
   "messages": {
     "prompt.dots.more": "Kje je več pik?",
@@ -23,5 +23,6 @@
     "prompt.sign.less": "Pritisni na manjše število.",
     "prompt.sign.equal": "Števili sta enaki. Pritisni na krokodila.",
     "sign.crocTip": "Krokodil vedno odpre gobec proti večjemu številu."
-  }
+  },
+  "assets": []
 }

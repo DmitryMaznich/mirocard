@@ -22974,3 +22974,12 @@ body { background: #eef0ef; }
 .pvc-track i { display: block; height: 100%; }
 .pvc-count { color: #5b7470; white-space: nowrap; }
 .pvc-next { margin-top: 12px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 9px 11px; font-size: 0.86rem; color: #7c2d12; }
+
+/* Topic-level material selection; shares the standard safe-area modal shell. */
+.topic-language-options { display: grid; gap: 12px; }
+.topic-language-option { display: flex; align-items: center; gap: 12px; padding: 14px; border: 2px solid #dce5e3; border-radius: 14px; cursor: pointer; }
+.topic-language-option.is-selected { border-color: #157b70; background: #eef8f5; }
+.topic-language-option input { width: 20px; height: 20px; flex-shrink: 0; accent-color: #157b70; }
+.topic-language-option > span { min-width: 0; }
+.topic-language-detail { display: block; font-size: 13px; line-height: 1.5; color: #526663; margin-top: 4px; }
+.topic-language-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 16px; color: #526663; font-size: 14px; }

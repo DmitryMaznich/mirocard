@@ -3,6 +3,7 @@ import { patchAccountLanguages } from "./lib/account-languages.mjs";
 import { isLessonLanguage } from "../shared/languages.mjs";
 import { applyCatalogOverrides, topicRegistry, updateTopicCatalog } from "./lib/topic-catalog.mjs";
 import { createServer } from "node:http";
+import { downloadParts, withoutDownloadUrls } from "../shared/topic-delivery.mjs";
 import { randomUUID, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync, createReadStream, statSync, readdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -977,12 +978,10 @@ async function handleGetDecksCatalog(req, res) {
         // teaser: no download URL, and claim/download keep refusing it (they
         // check isCatalogEntryVisible, not this listing).
         if (getTopicPublication(d) !== "beta") return [];
-        const { url, zipUrl, ...rest } = d;
-        return [{ ...rest, comingSoon: true }];
+        return [{ ...withoutDownloadUrls(d), comingSoon: true }];
       }
       if ((d.access ?? "free") === "free") return [d];
-      const { url, ...rest } = d;
-      return [rest];
+      return [withoutDownloadUrls(d)];
     });
   const archivedTopicIds = (catalog.decks ?? []).filter(d => getTopicPublication(d) === "archived").map(d => d.id);
   writeJson(res, 200, { ...catalog, decks, archivedTopicIds });
@@ -1064,7 +1063,13 @@ async function handleDownloadDeck(req, res) {
   }
 
   // entry.url is like "./decks/foo_v1.0.zip" — resolve relative to DECKS_DIR parent
-  const zipRelPath = entry.url.replace(/^\.\/decks\//, "");
+  const part = url.searchParams.get("part");
+  const language = url.searchParams.get("language");
+  const artifact = !part ? { url: entry.url }
+    : part === "core" ? entry.languageDownload?.core
+      : part === "language" && Object.hasOwn(entry.languageDownload?.languages ?? {}, language) ? entry.languageDownload.languages[language] : null;
+  if (!artifact?.url || !/^\.\/decks\/[\w./-]+\.zip$/.test(artifact.url) || artifact.url.split("/").some((segment) => segment === "..")) return writeJson(res, 404, { error: "Deck part not found" });
+  const zipRelPath = artifact.url.replace(/^\.\/decks\//, "");
   const zipPath = path.join(DECKS_DIR, zipRelPath);
 
   if (!existsSync(zipPath)) return writeJson(res, 404, { error: "Deck file not found" });
@@ -1945,8 +1950,7 @@ function isPubliclyServableDeckAsset(relative) {
     return false;
   }
   const entry = (catalog.decks ?? []).find((d) => {
-    const entryRelative = (d.url ?? "").replace(/^\.\/decks\//, "");
-    return entryRelative === rest.split(path.sep).join("/");
+    return [{ url: d.url }, ...downloadParts(d)].some((part) => (part.url ?? "").replace(/^\.\/decks\//, "") === rest.split(path.sep).join("/"));
   });
   // An unrecognized filename under decks/ (stale build artifact, directory
   // listing probe, etc.) is refused the same as a paid one -- there is no
