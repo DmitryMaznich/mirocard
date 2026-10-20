@@ -1,3 +1,4 @@
+/* global __APP_VERSION__: readonly */
 // Only fixed categories: never copy messages, stacks, credentials or user data.
 const stages = new WeakMap();
 const errorNames = new Set([
