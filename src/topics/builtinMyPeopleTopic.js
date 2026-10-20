@@ -60,9 +60,9 @@ const labelPhotosMode = {
       type: "enum",
       label: { ru: "Фото на странице" },
       // Eight words to sort was too many for most of these children; three
-      // fits one row.
+      // fits one row. Two to start with, as in «Покажи».
       values: [2, 3, 4, 6],
-      default: 4,
+      default: 2,
     },
   },
   ui: {
@@ -135,8 +135,8 @@ const aboutMeMode = {
     levels: {
       type: "enum_multi",
       label: { ru: "Разделы вопросов" },
-      values: ["self", "family", "safety", "day"],
-      labels: { ru: { self: "Я: имя, возраст", family: "Семья и питомцы", safety: "Фамилия, адрес, телефон", day: "Садик или школа, день рождения" } },
+      values: ["self", "family", "day", "safety"],
+      labels: { ru: { self: "Я: имя, возраст", family: "Семья и питомцы", day: "Садик или школа, день рождения", safety: "Фамилия, адрес, телефон" } },
       default: ["self", "family"],
     },
     questionCount: {

@@ -566,7 +566,7 @@ export default function MyPeopleSettingsScreen() {
             </div>
             <div className="mp-form-card">
               <h3 className="student-data-heading">Где я живу <StudentDataInfo kind="address" /></h3>
-              <p className="mp-form-card__lead">Для вопросов «Где ты живёшь?» и «Какой у тебя адрес?».</p>
+              <p className="mp-form-card__lead">Для вопросов «В каком городе ты живёшь?» и «Какой у тебя адрес?».</p>
               <label className="mp-field"><span>Город</span><input value={profile.city} onChange={(event) => updateProfile({ city: event.target.value })} /></label>
               <label className="mp-field"><span>Адрес — необязательно</span><input value={profile.address} onChange={(event) => updateProfile({ address: event.target.value })} /></label>
             </div>

@@ -107,6 +107,61 @@ describe("people album renderer", () => {
     expect(container.querySelector('[data-person-id="anna"] .people-album-photo__label')?.textContent).toBe("Анна");
     expect(word.disabled).toBe(true);
   });
+
+  it("after a miss lights the word's own photo and keeps the word picked", () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    const onStreakReset = vi.fn();
+    act(() => {
+      root.render(
+        <MyPeopleRenderer
+          task={{
+            type: "people_album",
+            conceptId: "album:label_photos:relation:anna_boris",
+            axis: "relation",
+            prompt: "Подпиши: кто это",
+            answerTitle: "Кто это",
+            entries: [
+              { personId: "anna", conceptId: "anna:relation", image: "", label: "мама" },
+              { personId: "boris", conceptId: "boris:relation", image: "", label: "папа" },
+            ],
+            answers: [
+              { id: "answer:anna", personId: "anna", label: "мама" },
+              { id: "answer:boris", personId: "boris", label: "папа" },
+            ],
+          }}
+          topicId="my_people"
+          soundEnabled={false}
+          onCorrect={vi.fn()}
+          onStreakReset={onStreakReset}
+        />,
+      );
+    });
+    const words = [...container.querySelectorAll(".people-album-answer")];
+    const tap = (button) => act(() => {
+      for (const type of ["pointerdown", "pointerup"]) button.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, clientX: 10, clientY: 10 }));
+    });
+    const mama = words.find((button) => button.textContent === "мама");
+    const papa = words.find((button) => button.textContent === "папа");
+    const photo = (id) => container.querySelector(`[data-person-id="${id}"]`);
+
+    tap(mama);
+    act(() => photo("boris").click());
+    expect(onStreakReset).toHaveBeenCalledTimes(1);
+    expect(photo("anna").className).toContain("people-album-photo--hint");
+    expect(mama.getAttribute("aria-pressed")).toBe("true");
+
+    // Picking the other word puts the light out.
+    tap(papa);
+    expect(photo("anna").className).not.toContain("people-album-photo--hint");
+    tap(mama);
+    expect(photo("anna").className).toContain("people-album-photo--hint");
+
+    act(() => photo("anna").click());
+    expect(photo("anna").className).toContain("people-album-photo--matched");
+    expect(photo("anna").className).not.toContain("people-album-photo--hint");
+  });
 });
 
 describe("person intro renderer", () => {

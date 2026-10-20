@@ -77,15 +77,17 @@ function usePeopleAlbumScale(task) {
   return { viewportRef, contentRef, fit };
 }
 
-function AlbumPhoto({ entry, topicId, match, wrong, dropTarget, onChoose }) {
+function AlbumPhoto({ entry, topicId, match, wrong, hint, dropTarget, onChoose }) {
   const url = useTopicFile(topicId, entry.image);
   const state = match
     ? " people-album-photo--matched"
     : wrong
       ? " people-album-photo--wrong"
-      : dropTarget
-        ? " people-album-photo--drop-target"
-        : "";
+      : hint
+        ? " people-album-photo--hint"
+        : dropTarget
+          ? " people-album-photo--drop-target"
+          : "";
   return (
     <button
       type="button"
@@ -112,6 +114,8 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
   const [dragging, setDragging] = useState(null);
   const [matches, setMatches] = useState({});
   const [wrongPersonId, setWrongPersonId] = useState(null);
+  // After a miss: which photo the word belongs to, lit up until it is placed.
+  const [hintPersonId, setHintPersonId] = useState(null);
   const dragRef = useRef(null);
   const wrongTimer = useRef(null);
   const { viewportRef, contentRef, fit } = usePeopleAlbumScale(task);
@@ -148,12 +152,18 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     setSelectedAnswerId(null);
 
     if (!correct) {
+      // Errorless, as in «Покажи»: the wrong photo flashes red, the word's
+      // own photo lights up and the word stays picked, so the next tap on
+      // the lit photo finishes the match. The miss is still recorded.
       setWrongPersonId(entry.personId);
+      setHintPersonId(answer.personId);
+      setSelectedAnswerId(answer.id);
       onStreakReset?.(entry.conceptId, entry.personId);
       if (wrongTimer.current) clearTimeout(wrongTimer.current);
       wrongTimer.current = setTimeout(() => setWrongPersonId(null), 620);
       return;
     }
+    setHintPersonId(null);
 
     const nextMatches = { ...matches, [entry.personId]: { answerId: answer.id, label: answer.label } };
     setMatches(nextMatches);
@@ -238,6 +248,9 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
   }
 
   const chosenAnswer = answersById[selectedAnswerId];
+  // The light follows the missed word: pick another word and it goes out.
+  const heldPersonId = dragging ? answersById[dragging.answerId]?.personId : chosenAnswer?.personId;
+  const litPersonId = hintPersonId && heldPersonId === hintPersonId ? hintPersonId : null;
   const completedCount = Object.keys(matches).length;
   // Three people sit in one row rather than 2 + 1: two rows made the album
   // tall enough to be scaled down to fit a phone, shrinking the answer
@@ -272,6 +285,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
             topicId={topicId}
             match={matches[entry.personId]}
             wrong={wrongPersonId === entry.personId}
+            hint={litPersonId === entry.personId}
             dropTarget={dragging?.overPersonId === entry.personId}
             onChoose={chooseKeyboardPerson}
           />

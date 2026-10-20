@@ -22,6 +22,7 @@ describe("my_people album engine", () => {
     const whoIsThis = topic.modes.find((mode) => mode.id === "who_is_this");
 
     expect(labelPhotos.params.peopleCount.values).toEqual([2, 3, 4, 6]);
+    expect(labelPhotos.params.peopleCount.default).toBe(2);
     expect(labelPhotos.params.circle.values).toEqual(["family", "home", "school", "all"]);
     expect(topic.modes.every((mode) => mode.loop && mode.regenerateOnLoop)).toBe(true);
     expect(aboutMe).toEqual(expect.objectContaining({ type: "about_me", evaluation: "adult" }));
@@ -156,7 +157,7 @@ describe("my_people album engine", () => {
     expect(generateTasks({ id: "school_names", type: "people_album" }, singlePersonStudent)).toEqual([]);
   });
 
-  it("asks to name only introduced axes without repeating a person in the round", () => {
+  it("asks to name only people already met, 6–8 trials, one concept per person", () => {
     const people = [
       { id: "anna", name: "Анна", relation: "мама", contexts: ["family"], photos: ["/api/photos/anna"], introducedAxes: ["name"], enabled: true },
       { id: "teacher_1", name: "Ирина", relation: "учитель", contexts: ["school"], photos: ["/api/photos/teacher_1"], introducedAxes: ["relation"], enabled: true },
@@ -165,14 +166,25 @@ describe("my_people album engine", () => {
     ];
     const tasks = generateTasks({ id: "who_is_this", type: "person_naming" }, { ...student, myPeople: people });
 
-    expect(tasks).toHaveLength(3);
+    expect(tasks).toHaveLength(MIN_POINT_TRIALS_PER_ROUND);
     expect(tasks.every((task) => task.type === "person_naming")).toBe(true);
-    expect(new Set(tasks.map((task) => task.personId)).size).toBe(tasks.length);
-    expect(tasks.map((task) => task.personId).sort()).toEqual(["anna", "teacher_1", "teacher_2"]);
+    // Three people met, two trials each; the newcomer is not asked about.
+    const ids = tasks.map((task) => task.personId);
+    expect([...new Set(ids)].sort()).toEqual(["anna", "teacher_1", "teacher_2"]);
+    for (const id of ["anna", "teacher_1", "teacher_2"]) expect(ids.filter((other) => other === id)).toHaveLength(2);
     expect(tasks.find((task) => task.personId === "anna")).toEqual(expect.objectContaining({
-      axis: "name", prompt: "Кто это?", answer: "мама · Анна", hintWord: "мама", hintSyllable: "ма",
+      conceptId: "person_naming:anna", prompt: "Кто это?", answer: "мама · Анна", hintWord: "мама", hintSyllable: "ма",
     }));
-    expect(tasks.filter((task) => task.axis === "relation").map((task) => task.answer).sort()).toEqual(["Ирина · учитель", "Марина · учитель"]);
+    expect(tasks.find((task) => task.personId === "teacher_1").answer).toBe("Ирина · учитель");
+  });
+
+  it("never asks «Кто это?» about one person three times running", () => {
+    const people = student.myPeople.slice(0, 2).map((person) => ({ ...person, introducedAxes: ["name"] }));
+    for (let i = 0; i < 50; i += 1) {
+      const ids = generateTasks({ id: "who_is_this", type: "person_naming" }, { ...student, myPeople: people }).map((task) => task.personId);
+      expect(ids).toHaveLength(MIN_POINT_TRIALS_PER_ROUND);
+      expect(ids.some((id, index) => index >= 2 && id === ids[index - 1] && id === ids[index - 2])).toBe(false);
+    }
   });
 
   it("does not ask naming questions before any axis was introduced", () => {
@@ -311,10 +323,11 @@ describe("«Обо мне»: short questions", () => {
       ["family", "Как зовут сестру?", "Маша или Катя"],
       // A pet of unknown kind ("брат" is no animal) is "питомец".
       ["family", "Как зовут твоего питомца?", "Барсик"],
-      // A filled-in field is a question: the old "include" ticks are ignored.
-      ["safety", "Как твоя фамилия?", "Петров"],
-      ["safety", "Где ты живёшь?", "Любляна"],
       ["day", "Когда у тебя день рождения?", "15 октября"],
+      // A filled-in field is a question: the old "include" ticks are ignored.
+      // «Безопасность» comes last: the most to memorise.
+      ["safety", "Как твоя фамилия?", "Петров"],
+      ["safety", "В каком городе ты живёшь?", "Любляна"],
     ]);
     // A switched-off person produces no question.
     expect(JSON.stringify(questions)).not.toMatch(/Иван/);
@@ -327,7 +340,7 @@ describe("«Обо мне»: short questions", () => {
     const withYes = getAboutMeQuestions({ ...child, myPeopleProfile: { ...profile, includeAddress: true, includePhone: true } }, now);
     expect(withYes.filter((q) => q.level === "safety").map((q) => [q.question, q.answer])).toEqual([
       ["Как твоя фамилия?", "Петров"],
-      ["Где ты живёшь?", "Любляна"],
+      ["В каком городе ты живёшь?", "Любляна"],
       ["Какой у тебя адрес?", "ул. Ленина, 5"],
       ["Назови телефон папы.", "+7 900 123-45-67"],
     ]);
@@ -379,7 +392,7 @@ describe("«Обо мне»: short questions", () => {
 
   it("asks only the chosen levels, as many as asked for", () => {
     const tasks = generateTasks({ id: "about_me", type: "about_me" }, child, { levels: ["safety", "day"], questionCount: 4 });
-    expect(tasks.map((task) => task.conceptId)).toEqual(["about_q:family_name", "about_q:city", "about_q:birthday"]);
+    expect(tasks.map((task) => task.conceptId)).toEqual(["about_q:birthday", "about_q:family_name", "about_q:city"]);
     expect(generateTasks({ id: "about_me", type: "about_me" }, child, { levels: ["self", "family", "safety", "day"], questionCount: 4 })).toHaveLength(4);
     expect(hasEnoughAboutMeQuestions(child, { levels: ["day"] })).toBe(false);
   });
@@ -396,7 +409,7 @@ describe("«Обо мне»: short questions", () => {
     ]);
     const ids = generateTasks({ id: "about_me", type: "about_me" }, child, all, new Map(), {}, 0, history).map((task) => task.conceptId);
     // 4 to learn (never asked first, then the city answered with a prompt) + 2 known, oldest first; in ladder order.
-    expect(ids).toEqual(["about_q:name", "about_q:gender", "about_q:rel:сестра", "about_q:pet:cat", "about_q:family_name", "about_q:birthday"]);
+    expect(ids).toEqual(["about_q:name", "about_q:gender", "about_q:rel:сестра", "about_q:pet:cat", "about_q:birthday", "about_q:family_name"]);
   });
 
   it("reads the history from saved lessons: the last answer to each question", () => {

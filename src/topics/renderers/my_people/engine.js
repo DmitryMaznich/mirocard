@@ -76,10 +76,11 @@ export function hasEnoughAboutMeFacts(student) {
 // Four levels, in teaching order. The adult picks which ones a lesson uses:
 //   self    -- name, boy/girl, age
 //   family  -- names of close family and pets
-//   safety  -- surname, city, address, a parent's phone: what a lost child
-//              must be able to tell an adult
 //   day     -- birthday, kindergarten/school, group/class, the teacher
-export const ABOUT_ME_LEVELS = ["self", "family", "safety", "day"];
+//   safety  -- surname, city, address, a parent's phone: what a lost child
+//              must be able to tell an adult. Last: the most to memorise,
+//              with the least to see.
+export const ABOUT_ME_LEVELS = ["self", "family", "day", "safety"];
 export const ABOUT_ME_DEFAULT_LEVELS = ["self", "family"];
 const ABOUT_ME_QUESTION_COUNTS = [4, 6, 8];
 export const MAX_ABOUT_ME_QUESTIONS_PER_ROUND = 6;
@@ -163,21 +164,23 @@ export function getAboutMeQuestions(student, now = new Date()) {
     add("family", `pet:${pet.id}`, `Как зовут ${accusative ?? "твоего питомца"}?`, pet.name.trim(), pet.photos.find(Boolean));
   }
 
-  // safety
-  add("safety", "family_name", "Как твоя фамилия?", profile.familyName);
-  add("safety", "city", "Где ты живёшь?", profile.city);
-  if (profile.includeAddress) add("safety", "address", "Какой у тебя адрес?", profile.address);
-  if (profile.includePhone) {
-    const owner = String(profile.phoneOwner ?? "").trim() || "мамы";
-    add("safety", "phone", `Назови телефон ${owner}.`, profile.phone);
-  }
-
   // day
   add("day", "birthday", "Когда у тебя день рождения?", birthdayFromBirthDate(profile.birthDate));
   const atSchool = profile.schoolKind === "school";
   add("day", "school", atSchool ? "В какую школу ты ходишь?" : "В какой детский сад ты ходишь?", profile.school);
   add("day", "group", atSchool ? "В каком ты классе?" : "Как называется твоя группа?", profile.group);
   addRelations("day", TEACHER_QUESTIONS);
+
+  // safety
+  add("safety", "family_name", "Как твоя фамилия?", profile.familyName);
+  // "Где ты живёшь?" has several true answers ("дома", the street); the
+  // question names the one it wants.
+  add("safety", "city", "В каком городе ты живёшь?", profile.city);
+  if (profile.includeAddress) add("safety", "address", "Какой у тебя адрес?", profile.address);
+  if (profile.includePhone) {
+    const owner = String(profile.phoneOwner ?? "").trim() || "мамы";
+    add("safety", "phone", `Назови телефон ${owner}.`, profile.phone);
+  }
 
   return questions;
 }
@@ -498,9 +501,11 @@ export function labelAxes(mode, params) {
   return [mode.id.endsWith("_relations") ? "relation" : "name"];
 }
 
-function albumSize(params, available) {
+// «Подпиши фото» starts at two photos, the usual first field for these
+// children; the retired album modes kept their old default of four.
+function albumSize(mode, params, available) {
   const requested = Number(params?.peopleCount);
-  const selectedSize = ALBUM_SIZES.includes(requested) ? requested : 4;
+  const selectedSize = ALBUM_SIZES.includes(requested) ? requested : (mode.id === "label_photos" ? 2 : 4);
   return Math.min(Math.max(MIN_ALBUM_SIZE, selectedSize), MAX_ALBUM_SIZE, available);
 }
 
@@ -615,7 +620,7 @@ function byCreation(a, b) {
 function albumTasks(people, axis, mode, params, photoPlanner, preferDifferentPhoto = false) {
   const suitablePeople = axis === "relation" ? people.filter((person) => person.relation?.trim()) : people;
   if (suitablePeople.length < MIN_ALBUM_SIZE) return [];
-  const groups = toGroups(shuffle(suitablePeople), albumSize(params, suitablePeople.length));
+  const groups = toGroups(shuffle(suitablePeople), albumSize(mode, params, suitablePeople.length));
   return groups.map((group) => taskForGroup(group, axis, mode.id, photoPlanner, preferDifferentPhoto));
 }
 
@@ -685,36 +690,41 @@ function introduceTasks(student, params, round) {
 }
 
 function personNamingTasks(people, mode, photoPlanner) {
-  return shuffle(people).flatMap((person) => {
-    const axes = ["name", "relation"].filter((axis) => (
-      (axis === "name" || person.relation?.trim()) && hasIntroducedAxis(person, axis)
-    ));
-    if (!axes.length) return [];
-
-    // Each person contributes at most one open-answer card per round. When
-    // both axes were introduced, vary which one the child is asked to name.
-    const axis = axes[Math.floor(Math.random() * axes.length)];
-    // One question for both: a child who reaches for the kin word ("мама")
-    // and one who says the name are both answering "Кто это?".
-    const prompt = "Кто это?";
-    const conceptId = `person_naming:${person.id}:${axis}`;
+  const known = people.filter((person) => ["name", "relation"].some((axis) => (
+    (axis === "name" || person.relation?.trim()) && hasIntroducedAxis(person, axis)
+  )));
+  if (!known.length) return [];
+  // A round is 6–8 trials as in «Покажи»: with two or three people met so
+  // far, one pass was two or three questions. People repeat evenly, never
+  // three times running, and a repeat comes on another photo when there is
+  // one. A single person met so far is asked about once -- six "Кто это?"
+  // in a row with one answer is echoing, not naming.
+  const sequence = known.length >= 2 ? pointTargetSequence(known) : known;
+  return sequence.map((person, trialIndex) => {
     const word = mainWord(person);
-    return [{
+    // One concept per person: the question and the accepted answers ("мама"
+    // and "Анна") don't depend on the axis, so the progress shouldn't either.
+    // Older sessions recorded `person_naming:<id>:<axis>`; the summary reads
+    // both.
+    const conceptId = `person_naming:${person.id}`;
+    const axis = pointAxis(person, word);
+    return {
       type: "person_naming",
       conceptId,
       targetConceptId: conceptId,
       progressConceptIds: [conceptId],
+      trialIndex,
       personId: person.id,
       axis,
-      image: photoPlanner.imageFor(person, axis),
-      prompt,
-      promptSpeech: prompt,
+      image: photoPlanner.imageFor(person, "naming", true),
+      prompt: "Кто это?",
+      promptSpeech: "Кто это?",
       // Both answers are right, so the adult sees both: "мама · Анна".
       answer: namingAnswers(person).join(" · "),
       // The prompts lead to the word the child uses for this person.
       hintWord: word,
       hintSyllable: firstSyllable(word),
-    }];
+    };
   });
 }
 
