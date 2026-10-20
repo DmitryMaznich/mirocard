@@ -1823,10 +1823,10 @@ def i_lower(strokes, k=0, near=4.0, tol=0.1):
     return out
 
 
-def i_breve_lower(strokes, gap=4.0):
+def i_breve_lower(strokes, gap=0.0):
     """й (lowercase): exactly и, and the font's breve over it, its middle across the slant halfway between и's two tops, its
-    bottom `gap` over the x-line (as Й: «точно такая же, как И, и шляпка над линией на небольшом расстоянии сверху ... точно
-    посередине между двумя наклонными»)."""
+    bottom `gap` over the x-line: on it (owner, 2026-10-20: «краткая должна лежать на линии»; its middle as Й's: «точно посередине
+    между двумя наклонными»)."""
     I = [list(c) for c in PAPER["и"]]
     q = tt.upright(dg.resample(np.array(tt.parse_path(dg.fmt(I[0]))), 0.3))
     n = len(q)
