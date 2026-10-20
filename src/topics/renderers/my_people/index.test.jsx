@@ -10,6 +10,9 @@ const persistence = vi.hoisted(() => ({
 
 vi.mock("@/features/myPeople/myPeoplePersistence", () => persistence);
 
+// A grade button holds a coloured mark and a label; match by the label.
+const buttonLabel = (button) => button.querySelector(".people-grade__label")?.textContent ?? button.textContent;
+
 describe("people album matching", () => {
   it("accepts the matching person for a name", () => {
     expect(isCorrectAssociation("name", { personId: "anna", label: "Анна" }, { personId: "anna", label: "Анна" })).toBe(true);
@@ -32,7 +35,7 @@ describe("people album renderer", () => {
     container = null;
   });
 
-  it("renders one progress dot for every person alongside the text count", () => {
+  it("renders one progress dot for every person, the count only for screen readers", () => {
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -66,7 +69,9 @@ describe("people album renderer", () => {
     });
 
     expect(container.querySelectorAll(".people-album__progress-dot")).toHaveLength(3);
-    expect(container.querySelector(".people-album__answers-progress")?.textContent).toContain("0 из 3");
+    expect(container.querySelector(".people-album__answers-progress")?.getAttribute("aria-label")).toBe("Подписано 0 из 3");
+    // No instructions for the adult on the child's screen.
+    expect(container.textContent).not.toMatch(/Перетащи|нажми/);
   });
 
   it("places a word with a tap on it and a tap on the photo, no dragging needed", () => {
@@ -212,6 +217,41 @@ describe("person intro renderer", () => {
     expect(persistence.markPersonAxisIntroduced).toHaveBeenCalledWith("student_1", "anna", "name");
     expect(onAdvance).toHaveBeenCalledOnce();
   });
+
+  it("lets the child touch the photo: the word settles under it and the lesson moves on", () => {
+    vi.useFakeTimers();
+    try {
+      const onAdvance = vi.fn();
+      container = document.createElement("div");
+      document.body.appendChild(container);
+      root = createRoot(container);
+      act(() => {
+        root.render(
+          <MyPeopleRenderer
+            task={{ type: "person_intro", conceptId: "intro:label_photos:anna:relation", personId: "anna", axis: "relation", image: "", label: "мама", promptSpeech: "Это мама." }}
+            topicId="my_people"
+            student={{ id: "student_1" }}
+            soundEnabled={false}
+            onAdvance={onAdvance}
+          />,
+        );
+      });
+      const photo = container.querySelector(".person-intro__photo-wrap");
+      expect(container.querySelector(".person-intro__label--placed")).toBeNull();
+      act(() => photo.click());
+      expect(container.querySelector(".person-intro__label--placed")?.textContent).toBe("мама");
+      expect(onAdvance).not.toHaveBeenCalled();
+      act(() => { vi.advanceTimersByTime(1400); });
+      expect(persistence.markPersonAxisIntroduced).toHaveBeenCalledWith("student_1", "anna", "relation");
+      expect(onAdvance).toHaveBeenCalledOnce();
+      // A second touch does nothing more.
+      act(() => photo.click());
+      act(() => { vi.advanceTimersByTime(1400); });
+      expect(onAdvance).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("«Покажи» renderer", () => {
@@ -356,7 +396,7 @@ describe("«Покажи» with one photo", () => {
 });
 
 describe("«Обо мне» renderer", () => {
-  it("no longer offers «Знает» once a hint was shown", () => {
+  it("no longer offers «Сам» once a hint was shown", () => {
     const container = document.createElement("div");
     document.body.appendChild(container);
     const root = createRoot(container);
@@ -370,11 +410,11 @@ describe("«Обо мне» renderer", () => {
         />,
       );
     });
-    const knows = () => [...container.querySelectorAll(".people-grade")].find((button) => button.textContent === "Знает");
+    const knows = () => [...container.querySelectorAll(".people-grade")].find((button) => buttonLabel(button) === "Сам");
     expect(knows().disabled).toBe(false);
     act(() => [...container.querySelectorAll("button")].find((button) => button.textContent === "Показать фото").click());
     expect(knows().disabled).toBe(true);
-    expect([...container.querySelectorAll(".people-grade")].find((button) => button.textContent === "С подсказкой").disabled).toBe(false);
+    expect([...container.querySelectorAll(".people-grade")].find((button) => buttonLabel(button) === "С подсказкой").disabled).toBe(false);
     act(() => root.unmount());
     container.remove();
   });
@@ -395,16 +435,19 @@ describe("«Кто это?» renderer", () => {
         />,
       );
     });
-    const button = (text) => [...container.querySelectorAll("button")].find((item) => item.textContent === text);
-    expect(button("Знает").disabled).toBe(false);
+    const button = (text) => [...container.querySelectorAll("button")].find((item) => buttonLabel(item) === text);
+    expect(button("Сам").disabled).toBe(false);
 
     act(() => button("Первый слог").click());
     expect(container.querySelector(".person-naming__syllable")?.textContent).toBe("ма…");
-    expect(button("Знает").disabled).toBe(true);
-    expect(button("Первый слог")).toBeUndefined();
+    expect(button("Сам").disabled).toBe(true);
+    // A used step stays on the adult's panel, ticked and inactive.
+    expect(button("Первый слог").disabled).toBe(true);
 
     act(() => button("Показать ответ").click());
-    expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("мама · Анна");
+    // The stage shows the child's word to echo, the adult's panel both answers.
+    expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("мама");
+    expect(container.querySelector(".people-adult__label")?.textContent).toBe("Ответ: мама · Анна");
     expect(container.querySelector(".person-naming__syllable")?.textContent).toBe("");
     expect(button("С подсказкой").disabled).toBe(false);
     act(() => root.unmount());
@@ -422,17 +465,17 @@ describe("«Представься» renderer", () => {
     document.body.appendChild(container);
     const root = createRoot(container);
     act(() => { root.render(<MyPeopleRenderer task={{ ...task, hintLevel }} topicId="my_people" soundEnabled={false} onQualityAnswer={vi.fn()} />); });
-    const button = (text) => [...container.querySelectorAll("button")].find((item) => item.textContent === text);
+    const button = (text) => [...container.querySelectorAll("button")].find((item) => buttonLabel(item) === text);
     return { container, button, done: () => { act(() => root.unmount()); container.remove(); } };
   }
 
   it("without a script grades freely, then fades in the starter and the answer", () => {
     const { container, button, done } = mount(0);
     expect(container.textContent).toContain("С тобой знакомится: Доктор");
-    expect(button("Знает").disabled).toBe(false);
+    expect(button("Сам").disabled).toBe(false);
     act(() => button("Начало фразы").click());
     expect(container.querySelector(".introduce-turn__starter")?.textContent).toBe("Меня зовут …");
-    expect(button("Знает").disabled).toBe(true);
+    expect(button("Сам").disabled).toBe(true);
     act(() => button("Весь ответ").click());
     expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("Меня зовут Лиза.");
     done();
@@ -441,8 +484,8 @@ describe("«Представься» renderer", () => {
   it("starting from the whole script shows it at once and allows «С подсказкой» at best", () => {
     const { container, button, done } = mount(2);
     expect(container.querySelector(".about-me-task__answer--shown")?.textContent).toBe("Меня зовут Лиза.");
-    expect(button("Начало фразы")).toBeUndefined();
-    expect(button("Знает").disabled).toBe(true);
+    expect(button("Начало фразы").disabled).toBe(true);
+    expect(button("Сам").disabled).toBe(true);
     expect(button("С подсказкой").disabled).toBe(false);
     done();
   });
