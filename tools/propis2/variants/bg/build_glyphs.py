@@ -1742,6 +1742,18 @@ def waist_to_font_tip(strokes, label, k=0, back=14.0):
         y = min(lo_ + pen, mid) if i < c else max(hi_ - pen, mid)
         w = 1.0 if d < near * 0.5 else 0.5 + 0.5 * math.cos(math.pi * (d - near * 0.5) / (near * 0.5))
         p[i, 1] += (y - p[i, 1]) * w
+    # the lower arm, as the owner drew it (2026-10-20): out of the tip level to the right, flat, then bending down in one smooth
+    # curve into the arm `join` units on
+    join = 17.0
+    s_ = np.r_[0, np.cumsum(np.hypot(*np.diff(p, axis=0).T))]
+    jj = int(np.argmin(np.abs(s_ - (s_[c] + join))))
+    A, B = p[c], p[jj]
+    tB = tt._unit(p[jj + 3] - p[jj])
+    L = np.hypot(*(B - A))
+    h0, h1 = A + np.array([0.62 * L, 0.0]), B - tB * 0.32 * L
+    t = np.linspace(0, 1, 60)[1:-1, None]
+    arm = (1 - t) ** 3 * A + 3 * (1 - t) ** 2 * t * h0 + 3 * (1 - t) * t ** 2 * h1 + t ** 3 * B
+    p = np.vstack([p[:c + 1], arm, p[jj:]])
     out = list(strokes)
     out[k] = _fit_corners(p, _corners(p))
     return out
