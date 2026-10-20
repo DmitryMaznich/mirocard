@@ -1084,6 +1084,7 @@ const WIDE_WORD_SPACE = 44; // a plain space between two words of a text (ink to
 // A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
 // with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
 const WIDE_PUNCT_GAP = 6;
+const WIDE_NO_EXIT_GAP = 10; // centre line to centre line after a capital with no exit (exactJoins): a clear gap, a bit wider than Boyan's own
 const EVEN_GAP = 22; // `#v` rows: the gap after a letter (row-local units at full scale), ink to ink
 const WIDE_DIGIT_GAP = 10; // between the ink of two digits of one number on a page whose snapping grid is not drawn (row-local units at full scale)
 // Largest sideways nudge (native units) allowed when landing a tail on the next letter's stroke.
@@ -1636,6 +1637,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let pendingTouchX = null; // meta.script.exactJoins: x of the previous glyph's right side at its connector's end height
       // the previous glyph has no exit (`noExit`: it ends on its own left side, Boyan's Ф): the next one stands after its ink, not joined
       let afterNoExit = false;
+      let prevGlyphStrokes = null; // the last glyph's strokes as placed (meta.script.exactJoins: the gap after a noExit capital)
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
@@ -1691,6 +1693,17 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
           : loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
+        // meta.script.exactJoins (Boyan's Б В Г Д З Ъ О У Ф Ю): after a capital with no exit the next letter stands one steady gap
+        // from its ink at the narrowest height, not from its box (и goes under Г's bar, Д's and Ъ's bellies no longer touch it)
+        if (loose && afterNoExit && !glyph.noJoin && glyphsByLabel?.script?.exactJoins && prevGlyphStrokes && !inCell) {
+          const rows = new Map();
+          for (const m of prevGlyphStrokes) for (const [x, y] of samplePath(m.d, 40)) { const k = Math.round(y); rows.set(k, Math.max(rows.get(k) ?? -Infinity, x)); }
+          let need = -Infinity;
+          for (const m of local.strokes) for (const [x, y] of samplePath(m.d, 40)) {
+            for (const k of [Math.round(y) - 1, Math.round(y), Math.round(y) + 1]) if (rows.has(k)) need = Math.max(need, rows.get(k) - x);
+          }
+          if (Number.isFinite(need)) startX = need + WIDE_NO_EXIT_GAP * scale + local.start[0];
+        }
         // a digit inside a number («25») is set on the grid too, on the first slant line not left of where it would go (a sign is never written between lines)
         if (inCell) {
           // the cell: the next one inside a number, one cell skipped before a new token, the first whole cell after anything else
@@ -1801,6 +1814,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         if (glyph.noJoin || glyph.noExit) { prevExit = null; prevExitStroke = -1; }
         afterNoExit = Boolean(glyph.noExit);
+        prevGlyphStrokes = moved;
         pendingTouchX = null;
         if (local.tail) {
           if (glyphsByLabel?.script?.exactJoins) {
