@@ -1753,7 +1753,15 @@ def waist_to_font_tip(strokes, label, k=0, back=14.0):
     h0, h1 = A + np.array([0.62 * L, 0.0]), B - tB * 0.32 * L
     t = np.linspace(0, 1, 60)[1:-1, None]
     arm = (1 - t) ** 3 * A + 3 * (1 - t) ** 2 * t * h0 + 3 * (1 - t) * t ** 2 * h1 + t ** 3 * B
-    p = np.vstack([p[:c + 1], arm, p[jj:]])
+    # the upper arm too, one smooth curve from `join` units back into the tip, arriving there nearly flat (8 degrees down), at the
+    # least angle to the lower arm (owner: «у верхнего сгладь небольшое искривление у дуги на подходе к соединению с нижним»)
+    ju = int(np.argmin(np.abs(s_ - (s_[c] - join))))
+    U = p[ju]; tU = tt._unit(p[ju + 3] - p[ju - 3])
+    tT = np.array([-math.cos(math.radians(8)), math.sin(math.radians(8))])
+    Lu = np.hypot(*(A - U))
+    g0, g1 = U + tU * 0.35 * Lu, A - tT * 0.5 * Lu
+    upper = (1 - t) ** 3 * U + 3 * (1 - t) ** 2 * t * g0 + 3 * (1 - t) * t ** 2 * g1 + t ** 3 * A
+    p = np.vstack([p[:ju + 1], upper, p[c:c + 1], arm, p[jj:]])
     out = list(strokes)
     out[k] = _fit_corners(p, _corners(p))
     return out
