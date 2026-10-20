@@ -1,0 +1,129 @@
+{
+  "meta": {
+    "id": "comparison_language_pilot",
+    "version": "0.1.0",
+    "renderer": "comparison_language_pilot",
+    "title": {
+      "ru": "Сравнение · языковой пилот",
+      "sl": "Primerjanje · jezikovni pilot"
+    },
+    "minAppVersion": "1.0.2672",
+    "avatar": "media/avatar.svg"
+  },
+  "sourceCopy": {
+    "topicId": "comparison",
+    "topicVersion": "2.37.0",
+    "appCommit": "cef0fc5c1cda6fec2ea504115a4a0816b1fcf84f",
+    "scope": [
+      "compare_visual"
+    ]
+  },
+  "languageContract": {
+    "schemaVersion": 1,
+    "ui": {
+      "ru": "ui/ru.json",
+      "sl": "ui/sl.json"
+    },
+    "packages": {
+      "ru": {
+        "packageId": "comparison_language_pilot.ru",
+        "version": "0.1.0",
+        "file": "content/ru.json",
+        "modeIds": [
+          "compare_visual"
+        ],
+        "audio": "none"
+      },
+      "sl": {
+        "packageId": "comparison_language_pilot.sl",
+        "version": "0.1.0",
+        "file": "content/sl.json",
+        "modeIds": [
+          "compare_visual"
+        ],
+        "audio": "none"
+      }
+    }
+  },
+  "modes": [
+    {
+      "id": "compare_visual",
+      "type": "compare_visual",
+      "evaluation": "auto",
+      "defaultCardId": "pilot_visual",
+      "hideConceptPicker": true,
+      "params": {
+        "contentLanguage": {
+          "type": "content_language",
+          "values": [
+            "ru",
+            "sl"
+          ]
+        },
+        "level": {
+          "type": "enum",
+          "values": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "default": 1
+        },
+        "question": {
+          "type": "enum",
+          "values": [
+            "more",
+            "less",
+            "mix"
+          ],
+          "default": "more"
+        },
+        "showEqual": {
+          "type": "boolean",
+          "default": false
+        },
+        "visualMode": {
+          "type": "enum",
+          "values": [
+            "dots",
+            "dots_numbers",
+            "numbers",
+            "pairing"
+          ],
+          "default": "dots"
+        }
+      },
+      "contentKeys": [
+        "prompt.dots.more",
+        "prompt.dots.less",
+        "prompt.dots_numbers.more",
+        "prompt.dots_numbers.less",
+        "prompt.numbers.more",
+        "prompt.numbers.less",
+        "prompt.pairing.more",
+        "prompt.pairing.less",
+        "equal.hint",
+        "equal.numbersHint",
+        "equal.label",
+        "verdict.more",
+        "verdict.less",
+        "verdict.equal"
+      ],
+      "ui": {
+        "icon": "media/avatar.svg"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "id": "pilot_visual",
+      "conceptId": "pilot_visual",
+      "primary": true,
+      "label": {
+        "ru": "Сравнение количеств",
+        "sl": "Primerjanje količin"
+      }
+    }
+  ]
+}

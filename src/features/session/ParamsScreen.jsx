@@ -1,3 +1,4 @@
+import { availableContentLanguages, initialContentLanguage, contentLanguageParam } from "../../../shared/topic-language-contract.mjs";
 import { setupText, setupLabels, setupInfo } from "@/shared/i18n/setupText.js";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
@@ -1766,6 +1767,10 @@ export default function ParamsScreen() {
       ? { figureFilters: saved.figureFilters }
       : {};
     for (const [key, def] of Object.entries(modeParams)) {
+      if (def.type === "content_language") {
+        out[key] = initialContentLanguage(topicRecord, mode.id, saved[key], student?.preferredLessonLanguage, settings.cardLanguage);
+        continue;
+      }
       if (def.type === "concept_selector") continue;
       if (def.type === "sentence_list") {
         out[key] = saved[key] ?? [];
@@ -1884,6 +1889,7 @@ export default function ParamsScreen() {
   const { markSessionStart } = useTimer();
 
   function openPinGate() {
+    if (topicRecord?.languageContract && !availableContentLanguages(topicRecord, mode?.id).includes(params[contentLanguageParam(mode)])) return;
     if (isReading && !activeText) {
       setScreen("texts");
       return;
@@ -2198,7 +2204,7 @@ export default function ParamsScreen() {
               />
             );
           }
-          if (def.type === "enum") {
+          if (def.type === "enum" || def.type === "content_language") {
             return (
               <EnumParam
                 key={key}
@@ -2394,7 +2400,8 @@ export default function ParamsScreen() {
   // pictures is on (`startRequires` in topicLoader.js).
   const isOn = (key) => Boolean(params[key] ?? mode?.params?.[key]?.default);
   const unmetStartRequirement = (mode?.startRequires ?? []).find((req) => (!req.when || req.when.some(isOn)) && !req.anyOf.some(isOn));
-  const isStartDisabled = sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid) || isManualFigureSetTooSmall || Boolean(unmetStartRequirement);
+  const needsContentLanguage = Boolean(topicRecord?.languageContract) && !availableContentLanguages(topicRecord, mode?.id).includes(params[contentLanguageParam(mode)]);
+  const isStartDisabled = needsContentLanguage || sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid) || isManualFigureSetTooSmall || Boolean(unmetStartRequirement);
 
   return (
     <div className="screen">
@@ -2404,6 +2411,7 @@ export default function ParamsScreen() {
         <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title={tr("mode.about")}>?</button>
       </div>
 
+      {needsContentLanguage && <p className="param-hint" role="alert">{tr("setup.contentLanguageRequired")}</p>}
       <div className="params-layout">
         {/* Left info column — visible only on tablet via CSS */}
         <div className="params-info-col">

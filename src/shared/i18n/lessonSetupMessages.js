@@ -1,6 +1,7 @@
 // Adult lesson setup, account and reporting UI; lesson content stays separate.
 export const LESSON_SETUP_MESSAGES = {
   "ru": {
+    "setup.contentLanguageRequired": "Выберите доступный язык занятия. Автоматическая подмена материала отключена.",
     "account.subscription": "Подписка",
     "account.noSubscription": "Подписка не оформлена",
     "account.manageSubscription": "Управлять подпиской",
@@ -384,6 +385,7 @@ export const LESSON_SETUP_MESSAGES = {
     "methodology.how": "Как проводить"
   },
   "sl": {
+    "setup.contentLanguageRequired": "Izberite razpoložljivi jezik učnega gradiva. Samodejna zamenjava gradiva je izklopljena.",
     "account.subscription": "Naročnina",
     "account.noSubscription": "Naročnina ni sklenjena",
     "account.manageSubscription": "Upravljaj naročnino",
