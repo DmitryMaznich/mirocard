@@ -2192,37 +2192,20 @@ def u_lower(strokes, k=0, tol=0.1):
 
 
 def f_lower(strokes, k=0, tol=0.1):
-    """ф (lowercase) in three strokes, as Ф (owner, 2026-10-19 for the capital): the stem straight on the slant from the font's
-    top down to the font's descender end; a lift; the left bowl, from the stem at the top round to the left and back to the stem
-    at the bottom, its ink just touching the x-line, its bottom on the baseline; a lift; the right bowl, the left one mirrored
-    across the stem, drawn the same way."""
+    """ф (lowercase) as the Bulgarians write it (owner, 2026-10-20): an о on the left, its right side touching the stem; a lift; the
+    stem straight on the slant from the font's top down to the font's descender end; a lift; the same о mirrored across the stem
+    (so written the other way round), its left side touching the stem."""
     p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.3)
-    band = tt.BASE - tt.X_TOP
-    top = tt.X_TOP + INK_W * CAP_K / 2
-    # the stem: the slant line nearest the path above the x-line and below the baseline
     out_band = p[(p[:, 1] < tt.X_TOP - 3) | (p[:, 1] > tt.BASE + 3)]
-    up = tt.upright(out_band)
-    c = float(np.median(up[:, 0]))                                  # upright x of the stem
-    line = lambda y: tt.from_upright(np.c_[np.full(len(y), c), y])[:, 0]
+    c = float(np.median(tt.upright(out_band)[:, 0]))               # upright x of the stem (the slant line nearest the font's)
     y0, y1 = p[:, 1].min(), p[:, 1].max()
-    stem = np.c_[line(np.linspace(y0, y1, 400)), np.linspace(y0, y1, 400)]
-    # the left bowl: the path left of the stem inside the band, from the top junction round to the bottom one
-    U = tt.upright(p)
-    left = (U[:, 0] < c - 1.0) & (p[:, 1] > tt.X_TOP - 4) & (p[:, 1] < tt.BASE + 4)
-    idx = np.nonzero(left)[0]
-    runs = np.split(idx, np.nonzero(np.diff(idx) > 1)[0] + 1)
-    run = max(runs, key=len)
-    q = p[run[0]:run[-1] + 1].copy()
-    if q[0, 1] > q[-1, 1]: q = q[::-1]                              # from the top junction
-    # its ends onto the stem, then its height: ink touching the x-line at the top, the bottom on the baseline, along the slant
-    for e in (0, -1): q[e, 0] = line(q[e:e + 1, 1] if e == 0 else q[-1:, 1])[0]
-    ya, yb = q[:, 1].min(), q[:, 1].max()
-    ny = top + (q[:, 1] - ya) * (tt.BASE - top) / (yb - ya)
-    q = np.c_[q[:, 0] - (ny - q[:, 1]) * tt.SLANT_T, ny]
-    q = _smooth_runs(q, [], sigma=2.0)
-    Uq = tt.upright(q)
-    right = tt.from_upright(np.c_[2 * c - Uq[:, 0], Uq[:, 1]])
-    return [_fit_corners(r, [], tol=tol) for r in (stem, q, right)]
+    ys = np.linspace(y0, y1, 400)
+    stem = tt.from_upright(np.c_[np.full(len(ys), c), ys])
+    O = dg.resample(np.array(tt.parse_path(dg.fmt(PAPER["о"][0]))), 0.3)
+    U = tt.upright(O); U[:, 0] += c - U[:, 0].max()                 # its right side on the stem
+    left = tt.from_upright(U)
+    right = tt.from_upright(np.c_[2 * c - U[:, 0], U[:, 1]])
+    return [_fit_corners(r, [], tol=tol) for r in (left, stem, right)]
 
 
 def i_breve_lower(strokes, gap=INK_W * CAP_K / 2):
