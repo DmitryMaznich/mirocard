@@ -1,6 +1,7 @@
 import "./comparison.css";
 import CompareVisual from "./CompareVisual.jsx";
 import CompareSign from "./CompareSign.jsx";
+import CompareDrawSign from "./CompareDrawSign.jsx";
 
 export default function ComparisonLanguagePilot(props) {
   function onIncorrect(...args) {
@@ -9,5 +10,6 @@ export default function ComparisonLanguagePilot(props) {
   }
   if (props.mode.type === "compare_visual") return <CompareVisual {...props} onIncorrect={onIncorrect} />;
   if (props.mode.type === "compare_sign") return <CompareSign {...props} onIncorrect={onIncorrect} />;
+  if (props.mode.type === "compare_draw_sign") return <CompareDrawSign {...props} onIncorrect={onIncorrect} />;
   throw new Error("Unsupported comparison pilot mode");
 }
