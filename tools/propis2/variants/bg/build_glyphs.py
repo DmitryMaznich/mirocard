@@ -2460,6 +2460,55 @@ def rescaled(glyph, script):
     return {**glyph, "strokes": [{**st, "d": dg.fmt(_merge_tiny(tt.paper_to_bank_cmds(cmds), 0.05))} for st, cmds in zip(glyph["strokes"], paper)]}
 
 
+MID_LOG = []
+HOOK = {}  # label -> its finished exit hook from its last bottom (relative), for letters whose own is too shallow
+
+
+def _first_turn(q, tol=0.05):
+    """Index of the first point where the path's height stops going the way it went from q[0] (its first turn up or down)."""
+    sg = np.sign(q[min(6, len(q) - 1), 1] - q[0, 1])
+    i = 1
+    while i < len(q) and (q[i, 1] - q[i - 1, 1]) * sg > -tol: i += 1
+    return i - 1
+
+
+def mid_joins(g, tol=0.05):
+    """Every lead-in starts and every exit hook ends exactly halfway up the x-band (owner, 2026-10-20: the joins between letters
+    are drawn later from there, «начинаться от середины и на этой же линии заканчиваться исходящие крюки»). Only the run from the
+    end to its first turn is stretched in height about that turn, so the rest of the letter stays as it is. A lead-in: the first
+    stroke's start in the x-band, on the letter's left, heading right into it; an exit: the joining stroke's end in the x-band, on
+    the letter's right, heading right."""
+    mid = 0.5 * (tt.X_TOP + tt.BASE)
+    band = tt.BASE - tt.X_TOP
+    P = [dg.resample(tt.to_paper(np.array(tt.parse_path(st["d"]))), 0.3) for st in g["strokes"]]
+    allx = np.vstack(P)[:, 0]; x0, x1 = allx.min(), allx.max()
+    ins = lambda y: tt.X_TOP + 0.15 * band < y < tt.BASE - 0.1 * band
+    jobs = [(0, 0)]
+    if not g.get("noExit"):
+        jobs.append((g.get("exitStroke", int(np.argmax([q[-1, 0] for q in P]))), -1))
+    for k, e in jobs:
+        q = P[k] if e == -1 else P[k][::-1]
+        end, d = q[-1], q[-1] - q[-7]
+        side = (end[0] - x0) / max(1e-6, x1 - x0)
+        heading = d[0] > 0 if e == -1 else True        # an exit goes on to the right
+        if not (ins(end[1]) and heading and (side > 0.6 if e == -1 else side < 0.4)): continue
+        r = q[::-1]; t = len(q) - 1 - _first_turn(r)     # the run from the turn nearest the end
+        yt = q[t, 1]
+        if abs(yt - end[1]) < 1.0 or abs(end[1] - mid) < 0.05 or (yt - mid) * (yt - end[1]) <= 0: continue
+        q = q.copy()
+        f = (mid - yt) / (end[1] - yt)
+        if e == -1 and f > 1.6 and "и" in HOOK:   # a hook too shallow to stretch (м's, ending low): и's exit hook instead
+            q = np.vstack([q[:t], HOOK["и"] + q[t]])
+        else:
+            q[t:, 1] = yt + (q[t:, 1] - yt) * f
+        MID_LOG.append(f"{g['label']} {'вход' if e == 0 else 'выход'} {end[1] - mid:+.1f}")
+        if e == -1 and g["label"] == "и": HOOK["и"] = q[t:] - q[t]
+        q = q if e == -1 else q[::-1]
+        cmds = _fit_corners(q, _corners(q, deg=100), tol=0.05)
+        g["strokes"][k]["d"] = dg.fmt(tt.paper_to_bank_cmds(cmds))
+        P[k] = q
+
+
 def main():
     variant = json.loads(VARIANT.read_text())
     deck_script = variant["meta"].get("script")
@@ -2480,6 +2529,8 @@ def main():
     # the lowercase from the font (owner, 2026-10-19: «делаем строчные»), straight on the deck's paper (no DESIGN step)
     for ch in FONT_LOWER:
         if ch not in {m["label"] for m in made}: made.append(font_lower(ch, deck_script))
+    tt.use_script(deck_script)
+    for g in made: mid_joins(g)
     keep = [g for g in variant.get("glyphs", []) if g["label"] not in {m["label"] for m in made} | DROPPED]
     variant["glyphs"] = keep + made
     VARIANT.write_text(json.dumps(variant, ensure_ascii=False, indent=2) + "\n")
@@ -2492,6 +2543,7 @@ def main():
         r = RATIO.get(label, 1.0 if label.islower() else CAP_K)
         at[label] = [round(float(m + (u[:, 0].min() - m) * r), 3), round(float(m + (u[:, 0].max() - m) * r), 3)]
     STENCIL_AT.write_text(json.dumps({"note": "upright x range of each snapped letter before snapping (build_glyphs.py)", "at": at}, ensure_ascii=False, indent=1) + "\n")
+    print("mid:", "; ".join(MID_LOG))
     print(f"{len(made)} glyphs -> {VARIANT}: {', '.join(m['label'] for m in made)}")
 
 

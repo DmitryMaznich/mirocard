@@ -110,6 +110,7 @@ for n,ch in enumerate(letters):
     Q = lambda p: (ox+(p[0]-x0)*S, oy+(p[1]+70)*S)
     for y in (tt.BASE, tt.X_TOP, tt.CAP_TOP, tt.BASE+48*tt.SCRIPT.get('lower',1.0)): dd.line([Q((x0,y)),Q((x0+148,y))], fill=(150,180,220), width=2)
     for gx in np.arange(x0-40, x0+190, 15): dd.line([Q((gx,tt.BASE)),Q((gx+(tt.BASE-tt.CAP_TOP)*tt.SLANT_T,tt.CAP_TOP))], fill=(235,205,205), width=1)
+    for gx in np.arange(x0, x0+148, 3): dd.line([Q((gx,(tt.BASE+tt.X_TOP)/2)),Q((gx+1.5,(tt.BASE+tt.X_TOP)/2))], fill=(80,170,90), width=1)  # the middle of the x-band (joins), review only
     cell = np.array(img.crop((ox, oy, ox + CW, oy + CH))); cell[font_under(ch, like, x0, S, CW, CH)] = (200, 200, 200)
     img.paste(Image.fromarray(cell), (ox, oy)); dd = ImageDraw.Draw(img)
     if CENTRE:
@@ -128,6 +129,7 @@ for n,ch in enumerate(letters):
         R = lambda p: (ox2+(p[0]-x0)*S, oy+(p[1]+70)*S)
         for y in (tt.BASE, tt.X_TOP, tt.CAP_TOP, tt.BASE+48*tt.SCRIPT.get('lower',1.0)): dd.line([R((x0,y)),R((x0+148,y))], fill=(150,180,220), width=2)
         for gx in np.arange(x0-40, x0+190, 15): dd.line([R((gx,tt.BASE)),R((gx+(tt.BASE-tt.CAP_TOP)*tt.SLANT_T,tt.CAP_TOP))], fill=(235,205,205), width=1)
+        for gx in np.arange(x0, x0+148, 3): dd.line([R((gx,(tt.BASE+tt.X_TOP)/2)),R((gx+1.5,(tt.BASE+tt.X_TOP)/2))], fill=(80,170,90), width=1)  # the middle of the x-band (joins), review only
         w = INK_W * S
         for p in strokes:
             pts = [R(q) for q in p]
