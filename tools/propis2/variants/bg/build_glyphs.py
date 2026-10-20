@@ -1897,8 +1897,11 @@ def k_three(strokes, tol=0.1, back=12.0):
     col = np.array(col)
     j0 = int(np.argmin(col[:, 1] - col[:, 2]))           # where the hook is closest to the diagonal: it leaves it there
     j0 = max(j0, int(np.argmax(col[:, 1] - col[:, 2] > 0)))
+    # straight down from where it starts (owner: «он идёт сразу вниз из точки начала»): one line from where it leaves the
+    # diagonal to the lower end of the font's column
     start = np.array([col[j0, 2], col[j0, 0]])
-    column = np.c_[col[j0 + 1:, 1], col[j0 + 1:, 0]]
+    end = np.array([col[-1, 1], col[-1, 0]])
+    column = np.array([start + (end - start) * t for t in np.linspace(0, 1, 80)])[1:]
     k = int(np.argmin(np.abs(h[:, 1] - column[-1, 1]) + 100 * (np.arange(len(h)) < int(np.argmax(h[:, 1])) * 0)))
     lo = int(np.argmax(h[:, 1]))
     k = int(np.argmin(np.abs(h[:lo + 1, 1] - column[-1, 1])))
