@@ -40,8 +40,7 @@ export function validateTopicLanguages(topic, { requireAllContent = true } = {})
     if (!pack && !requireAllContent) continue;
     if (!pack || pack.schemaVersion !== 1 || pack.language !== language || pack.packageId !== descriptor.packageId || pack.version !== descriptor.version) fail(`package identity mismatch: ${language}`);
     if (!descriptor.packageId || !/^\d+\.\d+\.\d+$/.test(descriptor.version)) fail(`invalid package version: ${language}`);
-    // Version 1 is intentionally text/neutral graphics only. Recorded speech needs
-    // a separate resource contract; it must never borrow another language's audio.
+    // Speech and every recording belong to the explicitly selected package.
     if (descriptor.audio !== pack.audio || !["none", ...(contract.delivery ? ["recorded"] : [])].includes(pack.audio)) fail(`unsupported speech capability: ${language}`);
     const assets = pack.assets ?? [];
     if (!Array.isArray(assets) || new Set(assets.map((a) => a.path)).size !== assets.length) fail(`invalid assets: ${language}`);
@@ -50,6 +49,11 @@ export function validateTopicLanguages(topic, { requireAllContent = true } = {})
     }
     if ((pack.audio === "recorded") !== assets.some((a) => a.kind === "audio")) fail(`audio assets mismatch: ${language}`);
     messageMap(pack.messages, `content ${language}`);
+    if (descriptor.audioScope !== pack.audioScope || (pack.audioScope != null && (pack.audio !== "recorded" || pack.audioScope !== "feedback"))) fail(`invalid audio scope: ${language}`);
+    for (const [key, path] of Object.entries(pack.recordings ?? {})) {
+      if (!Object.hasOwn(pack.messages, key) || !assets.some((asset) => asset.kind === "audio" && asset.path === path)) fail(`invalid recording: ${language}/${key}`);
+    }
+    if (pack.audioScope === "feedback" && !Object.keys(pack.recordings ?? {}).length) fail(`missing feedback recordings: ${language}`);
     if (!descriptor.modeIds?.length || descriptor.modeIds.some((id) => !modes.some((m) => m.id === id))) fail(`invalid mode availability: ${language}`);
     for (const modeId of descriptor.modeIds) {
       const mode = modes.find((m) => m.id === modeId);

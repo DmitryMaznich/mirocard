@@ -19,7 +19,7 @@ for (const [language, descriptor] of Object.entries(manifest.languageContract.pa
   await mkdir(new URL("./", output), { recursive: true });
   await writeFile(output, bytes);
   descriptor.download = { url: `./decks/${relative}`, bytes: bytes.length, sha256: await sha256Bytes(bytes) };
-  languages[language] = { ...descriptor.download, language, packageId: pack.packageId, version: pack.version, modeIds: descriptor.modeIds, audio: pack.audio };
+  languages[language] = { ...descriptor.download, language, packageId: pack.packageId, version: pack.version, modeIds: descriptor.modeIds, audio: pack.audio, ...(pack.audioScope ? { audioScope: pack.audioScope } : {}) };
 }
 await writeFile(new URL("topic.json", base), JSON.stringify(manifest, null, 2) + "\n");
 await loadTopicLanguages(manifest, (path) => readFile(new URL(path, base), "utf8"));

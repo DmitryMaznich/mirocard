@@ -1,8 +1,8 @@
 {
   "topic.title": "Primerjanje · jezikovni pilot",
-  "topic.description": "Kopija prvih dveh načinov primerjanja: količine in števila s krokodilom. Ločena izbira jezika učnega gradiva. Brez govornega zvoka.",
+  "topic.description": "Kopija prvih dveh načinov primerjanja: količine in števila s krokodilom. Ločena izbira jezika učnega gradiva. Ruski paket vsebuje govorjeni namig po napaki; slovenski je za zdaj brez govora.",
   "compare_visual.title": "Primerjaj in pritisni · pilot",
-  "compare_visual.methodology": "Otrok primerja količine in pritisne na ustrezno stran. Začnite s prvo stopnjo. Jezik učnega gradiva izberete za temo ločeno od jezika vmesnika in ostane enak do konca vaje. Pilot nima govornega zvoka; na voljo so običajni zvoki za povratne informacije.",
+  "compare_visual.methodology": "Otrok primerja količine in pritisne na ustrezno stran. Začnite s prvo stopnjo. Jezik učnega gradiva izberete za temo ločeno od jezika vmesnika in ostane enak do konca vaje. Ruski paket vsebuje govorjeni namig po napaki; slovenski je za zdaj brez govora.",
   "compare_visual.params.level.label": "Zahtevnost",
   "compare_visual.params.question.label": "Kaj iščemo",
   "compare_visual.params.showEqual.label": "Dodaj enake količine",
@@ -30,6 +30,6 @@
   "compare_sign.params.question.option.less": "Manjše število",
   "compare_sign.params.question.option.mix": "Mešano",
   "compare_sign.title": "Krokodil · primerjaj števili",
-  "compare_sign.methodology": "Otrok izbere večje ali manjše število. Po pravilnem odgovoru se krokodilov gobec odpre proti večjemu številu, ne glede na to, katero število je otrok iskal. Če sta števili enaki, otrok pritisne na krokodila med številoma. Začnite s prvo stopnjo, nato preidite na števila z manjšo razliko. Jezik navodil za otroka izberete za celotno temo ločeno od jezika vmesnika. Govornega zvoka ni.",
+  "compare_sign.methodology": "Otrok izbere večje ali manjše število. Po pravilnem odgovoru se krokodilov gobec odpre proti večjemu številu, ne glede na to, katero število je otrok iskal. Če sta števili enaki, otrok pritisne na krokodila med številoma. Začnite s prvo stopnjo, nato preidite na števila z manjšo razliko. Jezik navodil za otroka izberete za celotno temo ločeno od jezika vmesnika. Ruski paket vsebuje govorjeni namig po napaki; slovenski je za zdaj brez govora.",
   "compare_sign.settings": "Izberite zahtevnost in večje ali manjše število. Enaka števila lahko dodate posebej. Jezik učnega gradiva velja za celotno temo."
 }
