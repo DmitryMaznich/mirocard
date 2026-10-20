@@ -3096,11 +3096,11 @@ def mid_joins(g, tol=0.05):
         if e == -1 and g["label"] == "и": HOOK_STEM["и"] = g["strokes"][k]["d"]
 
 
-BOTTOM_TAIL = {"о": 0, "б": 0, "в": 0, "ю": 2}  # letter -> the stroke whose oval the connector leaves from
+BOTTOM_TAIL = {"о": 0, "б": 0, "в": 0, "ю": 2, "ь": 0, "ъ": 0}  # letter -> the stroke whose oval the connector leaves from
 
 
 def bottom_tail(g, tol=0.05):
-    """о б в ю: the connector to the next letter (drawn only when one follows: the engine's `tailStroke`) leaves the oval's lowest
+    """о б в ю ь ъ: the connector to the next letter (drawn only when one follows: the engine's `tailStroke`) leaves the oval's lowest
     point: и's exit hook, flat there as the oval is, along it first and then away from it, straight at JOIN_DEG into the
     middle of the band, where the next letter starts or touches it like after any other exit (owner, 2026-10-20: «выходом из
     нижней точки, плавно сначала по овалу, потом прямой линией»)."""
