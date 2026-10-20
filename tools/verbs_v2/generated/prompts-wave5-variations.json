@@ -7,7 +7,7 @@
  {
   "id": "closes",
   "out": "v_closes_2",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy closes a window: the window pane is swinging shut with only a narrow gap left, his palm pushing it, curtains slightly moving. Side view."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl plays hide and seek: she presses both open palms flat over her eyes, fingers together, her eyes fully covered by her hands, smiling mouth visible, standing facing a wall. Front three-quarter view."
  },
  {
   "id": "closes",
@@ -112,7 +112,7 @@
  {
   "id": "takes",
   "out": "v_takes_3",
-  "prompt": "Warm watercolour children's picture-book illustration, soft colours, natural proportions, calm uncluttered background. No text, no letters, no numbers, no logos, no brand names. A small boy, whole body visible, reaches into a basket full of colourful balls on the floor and takes out one red ball: the red ball is held firmly in his hand, lifted just above the other balls. Only balls in the basket, no ball in the air."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 4-year-old boy takes a cookie from a plate of cookies on a table and is already bringing it towards his mouth with a happy face; his hand with the cookie is clearly moving away from the plate."
  },
  {
   "id": "takes",
@@ -122,7 +122,7 @@
  {
   "id": "wipes",
   "out": "v_wipes_1",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 4-year-old girl dries her hands with a small white hand towel that she holds in both hands: her hands are wrapped inside the towel, rubbing them together. Bathroom, front view."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old girl wipes up spilled orange juice from a wooden table with a cloth: half of the puddle is already wiped clean, the cloth moving through the rest, a tipped-over cup next to it."
  },
  {
   "id": "wipes",
@@ -202,12 +202,12 @@
  {
   "id": "combs",
   "out": "v_combs_1",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 5-year-old girl combs her own long hair with a plain comb (a comb with teeth, not a brush), the comb in the middle of a stroke. Only one person, no mirror. Front three-quarter view."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 6-year-old boy with SHORT hair neatly combs his hair to one side with a small comb, making a tidy side parting; the combed side already smooth. Front view, only one person, no mirror."
  },
  {
   "id": "combs",
   "out": "v_combs_2",
-  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. A 7-year-old boy combs his own hair with a comb, parting it neatly, front view. Only one person, no mirror."
+  "prompt": "Realistic natural photograph, soft daylight, simple uncluttered background, the whole body and the action clearly visible and centred. No text, no letters, no numbers, no logos, no brand names. An elderly woman with SHORT grey hair neatly combs her hair with a comb, smoothing it into place, calm face. Front three-quarter view, only one person, no mirror."
  },
  {
   "id": "combs",
