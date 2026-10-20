@@ -21,6 +21,7 @@ import VerifyEmailScreen from "@/features/account/VerifyEmailScreen";
 import GoogleCompleteProfileScreen from "@/features/account/GoogleCompleteProfileScreen";
 import { handleGoogleCode } from "@/features/account/googleSignIn";
 import { googleAuthErrorKey } from "@/features/account/authErrors";
+import { loginDiagnosticCode } from "@/features/account/loginDiagnostics";
 import ForgotPasswordScreen from "@/features/account/ForgotPasswordScreen";
 import ResetPasswordScreen from "@/features/account/ResetPasswordScreen";
 import HomeScreen from "@/features/home/HomeScreen";
@@ -228,12 +229,12 @@ export default function App() {
     if (googleCode || googleError) {
       window.history.replaceState({}, "", "/");
       if (googleError) {
-        useAppStore.setState({ authNotice: { key: "auth.googleFailed" } });
+        useAppStore.setState({ authNotice: { key: "auth.googleFailed", diagnostic: loginDiagnosticCode(null, "google-callback") } });
         setScreen("login");
         return;
       }
       handleGoogleCode(googleCode).catch((error) => {
-        useAppStore.setState({ authNotice: { key: googleAuthErrorKey(error) } });
+        useAppStore.setState({ authNotice: { key: googleAuthErrorKey(error), diagnostic: loginDiagnosticCode(error, "google-exchange") } });
         setScreen("login");
       });
       return;
@@ -315,7 +316,8 @@ export default function App() {
         } else {
           setScreen("login");
         }
-      } catch {
+      } catch (error) {
+        useAppStore.setState({ authNotice: { key: "auth.loginFailed", diagnostic: loginDiagnosticCode(error, "boot-local") } });
         setScreen("login");
       }
     })();

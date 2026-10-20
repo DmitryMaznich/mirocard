@@ -42,4 +42,14 @@ describe("LoginScreen — Google", () => {
     act(() => root.unmount()); root = null;
     expect(useAppStore.getState().authNotice).toBeNull();
   });
+
+  it("shows a Google failure that arrives while the login screen is already mounted", async () => {
+    vi.spyOn(apiModule.api, "get").mockResolvedValue({ google: null });
+    await mount();
+    act(() => useAppStore.setState({ authNotice: {
+      key: "auth.googleFailed", diagnostic: "2678/read-local-data/InvalidStateError",
+    } }));
+    expect(container.textContent).toContain("2678/read-local-data/InvalidStateError");
+    expect(container.textContent).toMatch(/Не получилось войти через Google/);
+  });
 });
