@@ -1633,12 +1633,26 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let pendingNudge = WIDE_MAX_CONTACT_NUDGE; // how far (units) the pending connector's end may be moved to reach the next letter (glyph.exitNudge)
       let curNudge = WIDE_MAX_CONTACT_NUDGE;
       let pendingTail = null; // connector of the previous glyph (glyph.tailStroke), drawn only once a letter follows it
+      let pendingTouchX = null; // meta.script.exactJoins: x of the previous glyph's right side at its connector's end height
       // the previous glyph has no exit (`noExit`: it ends on its own left side, Boyan's Ф): the next one stands after its ink, not joined
       let afterNoExit = false;
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
         const inCell = Boolean(cellGrid) && glyph.kind === "digit";
+        const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
+        // meta.script.exactJoins (the Bulgarian о б в ю): the connector is drawn only before a letter that starts on its oval; a
+        // letter with a lead-in hook from the middle starts right on the oval's side there, the pen lifted, no connector
+        let liftJoin = false;
+        if (pendingTail && !glyph.noJoin && glyphsByLabel?.script?.exactJoins && pendingTouchX !== null && !inCell) {
+          const te = getPathEndpoints(pendingTail.d).end;
+          if (Math.abs(te[1] - local.start[1]) < 0.75 * scale) {
+            prevExit = [pendingTouchX, te[1]];
+            prevExitStroke = -1;
+            liftJoin = true;
+            pendingTail = null;
+          }
+        }
         if (pendingTail && !glyph.noJoin) {
           delete pendingTail.always;
           strokes.push(pendingTail);
@@ -1647,7 +1661,6 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           curNudge = pendingNudge;
           pendingTail = null;
         }
-        const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
         const loose = (Boolean(glyph.noJoin) || afterNoExit) && tokenStartX !== null; // punctuation inside a word: after the ink so far
         if (loose) { prevExit = null; prevExitStroke = -1; }
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
@@ -1768,7 +1781,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         strokes.push(...moved);
         const cellRec = inCell ? { first: firstMovedIndex, count: moved.length, minX: local.minX + dx, maxX: local.maxX + dx, sign: isCellSign(label), dotFrom: startPoints.length, dotTo: startPoints.length } : null;
         cellRun.push(cellRec);
-        if (prevExit && !exactTouch) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
+        if (prevExit && !exactTouch && !liftJoin) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
         if (tokenStartX === null) {
           // every token's first glyph gets its red start dot(s); only the very first one also gets direction arrows
           for (const [si, s] of moved.entries()) {
@@ -1785,7 +1798,13 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
         if (glyph.noJoin || glyph.noExit) { prevExit = null; prevExitStroke = -1; }
         afterNoExit = Boolean(glyph.noExit);
+        pendingTouchX = null;
         if (local.tail) {
+          if (glyphsByLabel?.script?.exactJoins) {
+            const ty = getPathEndpoints(local.tail.d).end[1];
+            const xs = moved.flatMap((m) => pathXsAtY(m.d, ty));
+            if (xs.length) pendingTouchX = Math.max(...xs);
+          }
           pendingNudge = glyph.exitNudge ?? WIDE_MAX_CONTACT_NUDGE;
           pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), always: !!glyph.tailAlways, ...(glyph.tailContinuous ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) };
           prevExit = null;
