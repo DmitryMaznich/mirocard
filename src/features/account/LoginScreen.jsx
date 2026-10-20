@@ -10,6 +10,7 @@ import { getDb } from "@/core/db";
 import { ApiError } from "@/core/api";
 import { persistBootstrap, applyBootstrapToStore } from "@/core/bootstrap";
 import { completeLogin } from "./completeLogin";
+import { recoverLogin } from "./recoverLogin";
 import { fetchSignupStatus } from "./signupStatus";
 import GoogleSignInButton from "./GoogleSignInButton";
 import Button from "@/shared/components/Button";
@@ -18,6 +19,7 @@ export default function LoginScreen() {
   const { language, t } = useUiTranslation();
   const setScreen = useAppStore((s) => s.setScreen);
   const setPendingVerificationEmail = useAppStore((s) => s.setPendingVerificationEmail);
+  const loginRecovery = useAppStore((s) => s.loginRecovery);
 
   const [email,          setEmail]          = useState("");
   const [password,       setPassword]       = useState("");
@@ -46,6 +48,7 @@ export default function LoginScreen() {
     setError("");
     setDiagnostic("");
     setLoading(true);
+    useAppStore.setState({ loginRecovery: null });
     try {
       const { account, token } = await api.post("/auth/login", { email, password });
       await completeLogin({ account, token });
@@ -59,6 +62,21 @@ export default function LoginScreen() {
         if (!authErrorKey(err)) setDiagnostic(loginDiagnosticCode(err, "password-request"));
       }
     } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRecovery() {
+    if (loading) return;
+    setLoading(true);
+    setError("");
+    setDiagnostic("");
+    try {
+      await recoverLogin();
+      window.location.reload();
+    } catch (err) {
+      setError("auth.recoveryFailed");
+      setDiagnostic(loginDiagnosticCode(err, "recovery-load-account"));
       setLoading(false);
     }
   }
@@ -78,6 +96,15 @@ export default function LoginScreen() {
       <UiLanguagePicker />
       {notice && <p className="auth-notice auth-notice--standalone">{typeof notice === "string" ? notice : t(notice.key)}</p>}
       {notice?.diagnostic && <p className="auth-notice"><small>{t("auth.supportCode")}: {notice.diagnostic}</small></p>}
+      {loginRecovery && (
+        <div className="auth-form">
+          <p>{t("auth.recoveryExplanation")}</p>
+          <p>{t("auth.recoveryLocalCopy")}</p>
+          <Button disabled={loading} fullWidth onClick={handleRecovery}>
+            {t(loading ? "auth.recovering" : "auth.recoverFromCloud")}
+          </Button>
+        </div>
+      )}
       {google && (
         <div className="auth-google">
           <GoogleSignInButton clientId={google.clientId} text="signin_with" locale={language} />
