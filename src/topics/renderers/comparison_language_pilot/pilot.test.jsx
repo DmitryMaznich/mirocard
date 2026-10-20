@@ -125,7 +125,12 @@ it("imports the actual ZIP without altering original topic, files or progress", 
   const original = { id: "comparison", meta: { id: "comparison", renderer: "comparison", version: "2.37.0" }, modes: [], cards: [] };
   await kv.set(db, "topic:comparison", original);
   await topics.saveFile(db, "comparison", "renderer", new Blob(["original renderer"]));
-  await kv.set(db, "studentTopicLink:kid_comparison", { correct: 42 });
+  const links = { kid_comparison: { params: { level: 4 }, correct: 42 } };
+  const progress = { kid_comparison_compare_easy: { correct: 17 } };
+  const history = [{ id: "previous", topicId: "comparison", correctCount: 12 }];
+  await kv.set(db, "studentTopicLinks", links);
+  await kv.set(db, "conceptProgress", progress);
+  await kv.set(db, "sessions", history);
   const bytes = await readFile(resolve("public/decks/comparison_language_pilot_v0.1.0.zip"));
   await importTopic(db, bytes, "1.0.2672");
   const installed = await getTopicRecord(db, topic.meta.id);
@@ -134,7 +139,9 @@ it("imports the actual ZIP without altering original topic, files or progress", 
   expect(installed.meta.title.sl).toBe(topic.meta.title.sl);
   expect(await kv.get(db, "topic:comparison")).toEqual(original);
   expect(await (await topics.getFile(db, "comparison", "renderer")).text()).toBe("original renderer");
-  expect(await kv.get(db, "studentTopicLink:kid_comparison")).toEqual({ correct: 42 });
+  expect(await kv.get(db, "studentTopicLinks")).toEqual(links);
+  expect(await kv.get(db, "conceptProgress")).toEqual(progress);
+  expect(await kv.get(db, "sessions")).toEqual(history);
   const invalidZip = await JSZip.loadAsync(bytes);
   invalidZip.remove("content/sl.json");
   await expect(importTopic(db, await invalidZip.generateAsync({ type: "arraybuffer" }), "1.0.2672")).rejects.toThrow(/missing file/);
@@ -150,6 +157,7 @@ it("rejects incomplete UI, missing lesson messages, mismatched packages and unsu
     (t) => { t.languageResources.content.sl.messages["verdict.more"] = "{{wrong}}"; },
     (t) => { t.languageContract.packages.sl.audio = "recorded"; },
     (t) => { t.languageContract.packages.sl.modeIds = ["compare_sign"]; },
+    (t) => { t.languageContract.packages.sl.file = "/content/sl.json"; },
   ]) {
     const invalid = structuredClone(topic); change(invalid);
     expect(() => validateTopicLanguages(invalid)).toThrow(/Topic language contract/);

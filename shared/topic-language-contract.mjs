@@ -1,7 +1,7 @@
 // Opt-in contract. This module deliberately has no application/store/UI imports.
 const fail = (message) => { throw new Error(`Topic language contract: ${message}`); };
 const placeholders = (text) => [...text.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]).sort().join(",");
-const safePath = (path) => typeof path === "string" && /^[\w/-]+\.json$/.test(path) && !path.split("/").includes("..");
+const safePath = (path) => typeof path === "string" && /^[\w-]+(?:\/[\w-]+)*\.json$/.test(path);
 
 function messageMap(value, name) {
   if (!value || typeof value !== "object" || Array.isArray(value) || !Object.keys(value).length) fail(`${name}: empty messages`);
