@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { authErrorMessage } from "./authErrors";
+import { authErrorMessage, googleAuthErrorKey } from "./authErrors";
 
 describe("authErrorMessage", () => {
   it("translates rate limiting and known server errors", () => {
@@ -10,5 +10,12 @@ describe("authErrorMessage", () => {
   it("never shows an unknown English server message", () => {
     expect(authErrorMessage({ status: 500, message: "Internal server error" }, "Ошибка входа.")).toBe("Ошибка входа.");
     expect(authErrorMessage(new TypeError("Failed to fetch"), "Ошибка входа.")).toBe("Ошибка входа.");
+  });
+
+  it("distinguishes an expired Google code from a failure after authentication", () => {
+    expect(googleAuthErrorKey({ status: 400, message: "invalid_or_expired_code" })).toBe("auth.googleExpired");
+    expect(googleAuthErrorKey(new TypeError("Object.hasOwn is not a function"))).toBe("auth.googleFailed");
+    expect(googleAuthErrorKey({ name: "QuotaExceededError" })).toBe("auth.googleFailed");
+    expect(googleAuthErrorKey({ status: 429 })).toBe("auth.tooManyAttempts");
   });
 });
