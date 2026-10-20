@@ -1664,7 +1664,15 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         // lead-in starts halfway up the x-band at the same angle): the next letter starts exactly where the last one ended, off
         // the grid, and the tail is left as drawn (snapping the start and nudging the tail onto it bent the join)
         const exactJoin = Boolean(glyphsByLabel?.script?.exactJoins) && Boolean(prevExit) && !loose && !inCell && Math.abs(prevExit[1] - local.start[1]) < 0.75 * scale;
-        let startX = exactJoin ? prevExit[0] : even
+        // ...and a letter that starts elsewhere (on its oval: о а д с б ф) just touches the exit's end with its left side at that
+        // height; the pen lifts there and writes the letter from its own start (the Bulgarian way: «просто контактом»)
+        let touchDx = null;
+        if (!exactJoin && glyphsByLabel?.script?.exactJoins && prevExit && !loose && !inCell && local.start[1] < prevExit[1] - 3 * scale) {
+          const xs = pathXsAtY(local.strokes[0].d, prevExit[1]);
+          if (xs.length) touchDx = local.start[0] - Math.min(...xs);
+        }
+        const exactTouch = touchDx !== null;
+        let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
           : loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
         // a digit inside a number («25») is set on the grid too, on the first slant line not left of where it would go (a sign is never written between lines)
@@ -1714,7 +1722,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
         let highJoined = false;
-        if (prevExit && !exactJoin) {
+        if (prevExit && !exactJoin && !exactTouch) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
           // letter's first stroke, where that stroke crosses the tail's own height. The tail's
           // end is nudged (by the sub-grid slack left after snapping the start) to land exactly
@@ -1760,7 +1768,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         strokes.push(...moved);
         const cellRec = inCell ? { first: firstMovedIndex, count: moved.length, minX: local.minX + dx, maxX: local.maxX + dx, sign: isCellSign(label), dotFrom: startPoints.length, dotTo: startPoints.length } : null;
         cellRun.push(cellRec);
-        if (prevExit) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
+        if (prevExit && !exactTouch) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
         if (tokenStartX === null) {
           // every token's first glyph gets its red start dot(s); only the very first one also gets direction arrows
           for (const [si, s] of moved.entries()) {
