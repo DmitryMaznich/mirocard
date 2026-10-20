@@ -66,6 +66,9 @@ export const useAppStore = create((set) => ({
   googleSignup: null,
   // One-shot message for the login screen (e.g. a failed Google sign-in).
   authNotice: null,
+  // A server-verified login blocked only by reading this same account's local copy.
+  // Memory only; never persisted or included in diagnostic codes.
+  loginRecovery: null,
   // Timestamp (ms) before which "Отправить повторно" stays disabled. Lives
   // in the store rather than component state so bouncing away from this
   // screen and back (e.g. via the login screen's email_not_verified path)
@@ -86,6 +89,7 @@ export const useAppStore = create((set) => ({
     set({
       account: null,
       token: null,
+      loginRecovery: null,
       students: [],
       ownedTopics: [],
       activeSessionSnapshot: null,

@@ -10,10 +10,13 @@ import { persistBootstrap, applyBootstrapToStore, indexStudentTopicLinks, mergeS
 // account, never leak another account's local data, and land on home.
 export async function completeLogin({ account, token }) {
   let stage = "open-storage";
+  let localDatabaseName;
+  useAppStore.setState({ loginRecovery: null });
   try {
     setApiToken(token);
 
     const db = await getDb();
+    localDatabaseName = db.name;
 
     // Check whether IDB holds data for this same account (offline edits to preserve)
     // or for a different account (stale data that must not leak into this login).
@@ -124,6 +127,11 @@ export async function completeLogin({ account, token }) {
     useAppStore.getState().setScreen("home");
   } catch (error) {
     markLoginFailure(error, stage);
+    if (stage === "read-local-data") {
+      // The server has authenticated this account, and the local owner matched.
+      // Offer a separate cloud copy; never skip or overwrite the unreadable data.
+      useAppStore.setState({ loginRecovery: { account, token, databaseName: localDatabaseName } });
+    }
     throw error;
   }
 }

@@ -43,6 +43,7 @@ describe("completeLogin", () => {
     expect(await originalGet(db, "students")).toEqual(students);
     expect(post).not.toHaveBeenCalled();
     expect(useAppStore.getState().account).toBeNull();
+    expect(useAppStore.getState().loginRecovery).toEqual({ account: { id: "a1" }, token: "t1", databaseName: db.name });
   });
 
   it("distinguishes a quota failure while saving from a rejected password", async () => {
@@ -57,6 +58,7 @@ describe("completeLogin", () => {
     await expect(completeLogin({ account: { id: "a1" }, token: "t1" })).rejects.toBe(failure);
     expect(loginDiagnosticCode(failure, "google-exchange")).toMatch(/\/save-local-data\/QuotaExceededError$/);
     expect(useAppStore.getState().account).toBeNull();
+    expect(useAppStore.getState().loginRecovery).toBeNull();
   });
 
   it("lands on home with the server's students and tags IDB with the account", async () => {
