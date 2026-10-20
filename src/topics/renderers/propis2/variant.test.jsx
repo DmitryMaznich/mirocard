@@ -91,6 +91,12 @@ describe("propis2 variant: Bulgarian", () => {
     expect((Math.atan2(y1 - y2, x2 - x1) * 180) / Math.PI).toBeCloseTo(76, 0);
   });
 
+  it("writes no letter outside its alphabet: a pasted Russian ы э ё is «нет начертания», not the Russian hand (2026-10-20)", async () => {
+    const map = buildGlyphMap(await installed());
+    for (const ch of "ыэёЫЭЁ") expect(map.get(ch), ch).toBeFalsy();
+    for (const ch of "ъЪюЮяЯщЩ") expect(map.get(ch), ch).toBeTruthy();
+  });
+
   it("Ъ is written: a capital as tall as the others, and «Ъгъл» starts with it, joined to the г", async () => {
     const rec = await installed();
     const map = buildGlyphMap(rec);

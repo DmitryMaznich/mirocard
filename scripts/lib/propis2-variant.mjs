@@ -16,4 +16,11 @@ export function applyVariant(base, v) {
   // a base glyph's alias naming a variant glyph would win over it (aliases are mapped last: the Russian «п1» is also «п», «г1» «г»)
   base.wide = base.wide.map((g) => (g.aliases?.some((a) => own.has(a)) && !own.has(g.label) ? { ...g, aliases: g.aliases.filter((a) => !own.has(a)) } : g));
   if (v.meta.methodology === false) base.wideSheets = {}; // the methodology sheets are Russian letters and words
+  // a variant with its own alphabet writes none of the base's other letters (Bulgarian: no Ё Ы Э): a Russian ы pasted into a page is
+  // then flagged «нет начертания» instead of being written in the Russian hand
+  if (v.meta.alphabet?.lower) {
+    const keep = new Set([...v.meta.alphabet.lower, ...v.meta.alphabet.lower.toUpperCase()]);
+    const foreign = (s) => /^[а-яё]$/i.test(s) && !keep.has(s);
+    base.wide = base.wide.filter((g) => !foreign(g.label)).map((g) => (g.aliases?.some(foreign) ? { ...g, aliases: g.aliases.filter((a) => !foreign(a)) } : g));
+  }
 }
