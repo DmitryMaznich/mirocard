@@ -137,16 +137,16 @@
     },
     {
       "id": "comparison_language_pilot",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "title": {
         "ru": "Сравнение · языковой пилот",
         "sl": "Primerjanje · jezikovni pilot"
       },
       "description": {
-        "ru": "Пилотная копия первого режима. Русский и словенский материал выбираются независимо от интерфейса. Без речевой озвучки.",
-        "sl": "Pilotna kopija prvega načina. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Brez govornega zvoka."
+        "ru": "Два режима пилотной копии: сравнение количеств и чисел с крокодилом. Русский и словенский материал выбираются независимо от интерфейса. Без речевой озвучки.",
+        "sl": "Dva načina v pilotni kopiji: primerjanje količin in števil s krokodilom. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Brez govornega zvoka."
       },
-      "url": "./decks/comparison_language_pilot_v0.1.0.zip",
+      "url": "./decks/comparison_language_pilot_v0.2.0.zip",
       "status": "hidden",
       "hidden": true,
       "access": "free"
