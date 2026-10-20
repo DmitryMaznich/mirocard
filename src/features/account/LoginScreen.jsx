@@ -1,6 +1,7 @@
 import MironiumLogo from "@/shared/components/MironiumLogo";
 import { useEffect, useState } from "react";
 import { authErrorKey } from "./authErrors";
+import { loginDiagnosticCode } from "./loginDiagnostics";
 import UiLanguagePicker from "@/shared/components/UiLanguagePicker";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useAppStore } from "@/core/store";
@@ -22,11 +23,14 @@ export default function LoginScreen() {
   const [password,       setPassword]       = useState("");
   const [showPass,       setShowPass]       = useState(false);
   const [error,          setError]          = useState("");
+  const [diagnostic, setDiagnostic] = useState("");
   const [loading,        setLoading]        = useState(false);
   const [showResendHint, setShowResendHint] = useState(false);
   const [google,         setGoogle]         = useState(null);
   // Read once: a one-shot message from an earlier step (e.g. failed Google sign-in).
-  const [notice] = useState(() => useAppStore.getState().authNotice);
+  const [initialNotice] = useState(() => useAppStore.getState().authNotice);
+  const incomingNotice = useAppStore((s) => s.authNotice);
+  const notice = incomingNotice ?? initialNotice;
 
   useEffect(() => {
     let alive = true;
@@ -40,6 +44,7 @@ export default function LoginScreen() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setDiagnostic("");
     setLoading(true);
     try {
       const { account, token } = await api.post("/auth/login", { email, password });
@@ -51,6 +56,7 @@ export default function LoginScreen() {
         setError("auth.emailNotVerified");
       } else {
         setError(authErrorKey(err) ?? "auth.loginFailed");
+        if (!authErrorKey(err)) setDiagnostic(loginDiagnosticCode(err, "password-request"));
       }
     } finally {
       setLoading(false);
@@ -71,6 +77,7 @@ export default function LoginScreen() {
       <MironiumLogo className="auth-logo" />
       <UiLanguagePicker />
       {notice && <p className="auth-notice auth-notice--standalone">{typeof notice === "string" ? notice : t(notice.key)}</p>}
+      {notice?.diagnostic && <p className="auth-notice"><small>{t("auth.supportCode")}: {notice.diagnostic}</small></p>}
       {google && (
         <div className="auth-google">
           <GoogleSignInButton clientId={google.clientId} text="signin_with" locale={language} />
@@ -111,6 +118,7 @@ export default function LoginScreen() {
           </button>
         </div>
         {error && <div className="form-error" role="alert">{t(error)}</div>}
+        {diagnostic && <p className="auth-notice"><small>{t("auth.supportCode")}: {diagnostic}</small></p>}
         <button
           type="button"
           className="auth-link auth-link--forgot"
@@ -134,6 +142,7 @@ export default function LoginScreen() {
       <button className="auth-link" onClick={() => setScreen("register")}>
         {t("auth.register")}
       </button>
+      <small className="auth-build">v{useAppStore.getState().buildInfo.version}</small>
       {/* Hidden from ordinary visitors: work done in local mode silently
           vanishes once they register (launch testing finding N9). Kept
           reachable via ?local=1 for the owner/dev. */}
