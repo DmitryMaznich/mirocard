@@ -80,7 +80,7 @@ for (const source of files.filter(
   add(data.meta ?? data, source, null, data);
 }
 const latest = new Map();
-for (const source of files.filter((f) => /^public\/.*\.zip$/.test(f))) {
+for (const source of files.filter((f) => /^public\/.*\.zip$/.test(f) && !f.startsWith("public/decks/languages/"))) {
   const match = path.basename(source).match(/^(.*)_v(\d[\d.]*)\.zip$/);
   const key = match?.[1] ?? source;
   if (

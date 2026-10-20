@@ -7,6 +7,8 @@ export const useAppStore = create((set) => ({
   // ─── Navigation ────────────────────────────────────────────────────────────
   screen: "boot",
   setScreen: (screen) => set({ screen }),
+  topicLanguageRequest: null,
+  setTopicLanguageRequest: (topicLanguageRequest) => set({ topicLanguageRequest }),
   // Where a session launched from a non-standard entry point (e.g. the
   // Planner's recipe list) should return to instead of the usual "texts"
   // screen. Null means "use the default flow".

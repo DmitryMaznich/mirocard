@@ -1,25 +1,43 @@
 import JSZip from "jszip";
 import { execFileSync } from "node:child_process";
-import { readFile, writeFile, copyFile } from "node:fs/promises";
+import { readFile, writeFile, copyFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { topicLanguageBuildProof } from "../../scripts/topic-language-build-proof.mjs";
 import { loadTopicLanguages } from "../../shared/topic-language-contract.mjs";
+import { sha256Bytes } from "../../shared/topic-delivery.mjs";
 
 const base = new URL("./", import.meta.url);
 const manifest = JSON.parse(await readFile(new URL("topic.json", base), "utf8"));
+const languages = {};
+for (const [language, descriptor] of Object.entries(manifest.languageContract.packages)) {
+  const pack = JSON.parse(await readFile(new URL(descriptor.file, base), "utf8"));
+  const zip = new JSZip();
+  for (const path of [descriptor.file, ...(pack.assets ?? []).map((a) => a.path)]) zip.file(path, await readFile(new URL(path, base)));
+  const bytes = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
+  const relative = `languages/${manifest.meta.id}/${language}_v${pack.version}.zip`;
+  const output = new URL(`../../public/decks/${relative}`, base);
+  await mkdir(new URL("./", output), { recursive: true });
+  await writeFile(output, bytes);
+  descriptor.download = { url: `./decks/${relative}`, bytes: bytes.length, sha256: await sha256Bytes(bytes) };
+  languages[language] = { ...descriptor.download, language, packageId: pack.packageId, version: pack.version, modeIds: descriptor.modeIds, audio: pack.audio };
+}
+await writeFile(new URL("topic.json", base), JSON.stringify(manifest, null, 2) + "\n");
 await loadTopicLanguages(manifest, (path) => readFile(new URL(path, base), "utf8"));
-execFileSync("npm", ["run", "build:renderer"], {
-  cwd: fileURLToPath(new URL("../../", base)),
-  env: { ...process.env, RENDERER: manifest.meta.renderer },
-  stdio: "inherit",
-});
-const zip = new JSZip();
-zip.file("language-build.json", JSON.stringify(await topicLanguageBuildProof(fileURLToPath(new URL("../../", base)), manifest.meta.renderer)));
-const files = ["topic.json", "media/avatar.svg", ...Object.values(manifest.languageContract.ui), ...Object.values(manifest.languageContract.packages).map((p) => p.file)];
-for (const path of files) zip.file(path, await readFile(new URL(path, base)));
-zip.file("renderer", await readFile(new URL("dist/renderer", base)));
-zip.file("mirocard2.css", await readFile(new URL("dist/mirocard2.css", base)));
+execFileSync("npm", ["run", "build:renderer"], { cwd: fileURLToPath(new URL("../../", base)), env: { ...process.env, RENDERER: manifest.meta.renderer }, stdio: "inherit" });
+const core = new JSZip();
+core.file("language-build.json", JSON.stringify(await topicLanguageBuildProof(fileURLToPath(new URL("../../", base)), manifest.meta.renderer)));
+for (const path of ["topic.json", "media/avatar.svg", ...Object.values(manifest.languageContract.ui)]) core.file(path, await readFile(new URL(path, base)));
+core.file("renderer", await readFile(new URL("dist/renderer", base)));
+core.file("mirocard2.css", await readFile(new URL("dist/mirocard2.css", base)));
+const buffer = await core.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 const output = new URL(`../../public/decks/${manifest.meta.id}_v${manifest.meta.version}.zip`, base);
-await writeFile(output, await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" }));
+await writeFile(output, buffer);
 await copyFile(output, new URL(`${manifest.meta.id}.zip`, base));
-console.log(`Built isolated pilot: ${fileURLToPath(output)}`);
+const catalogPath = new URL("../../public/decks/catalog.json", base);
+const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
+const entry = catalog.decks.find((d) => d.id === manifest.meta.id);
+entry.version = manifest.meta.version;
+entry.url = manifest.languageContract.delivery.coreUrl;
+entry.languageDownload = { schemaVersion: 1, core: { url: entry.url, version: manifest.meta.version, bytes: buffer.length, sha256: await sha256Bytes(buffer) }, languages };
+await writeFile(catalogPath, JSON.stringify(catalog, null, 2) + "\n");
+console.log(`Built core (${buffer.length} bytes) and ${Object.keys(languages).length} independent language archives`);

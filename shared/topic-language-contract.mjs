@@ -10,7 +10,7 @@ function messageMap(value, name) {
   }
 }
 
-export function validateTopicLanguages(topic) {
+export function validateTopicLanguages(topic, { requireAllContent = true } = {}) {
   const contract = topic.languageContract;
   if (!contract) return topic;
   if (contract.schemaVersion !== 1) fail("unsupported schemaVersion");
@@ -29,15 +29,26 @@ export function validateTopicLanguages(topic) {
     }
   }
   if (!Object.keys(contract.packages ?? {}).length) fail("no content packages");
+  if (contract.delivery && (contract.delivery.version !== 1 || contract.selectionScope !== "topic" || !/^\.\/decks\/[\w./-]+\.zip$/.test(contract.delivery.coreUrl) || contract.delivery.coreUrl.split("/").includes(".."))) fail("invalid delivery contract");
   const modes = topic.modes ?? [];
   for (const [language, descriptor] of Object.entries(contract.packages)) {
     const pack = content[language];
+    if (!descriptor.packageId || !/^\d+\.\d+\.\d+$/.test(descriptor.version)) fail(`invalid package version: ${language}`);
+    if (!descriptor.modeIds?.length || descriptor.modeIds.some((id) => !modes.some((m) => m.id === id))) fail(`invalid mode availability: ${language}`);
+    if (contract.delivery && (!/^\.\/decks\/[\w./-]+\.zip$/.test(descriptor.download?.url) || descriptor.download.url.split("/").includes("..") || !Number.isSafeInteger(descriptor.download.bytes) || descriptor.download.bytes < 1 || !/^[a-f0-9]{64}$/.test(descriptor.download.sha256))) fail(`invalid download descriptor: ${language}`);
     if (!safePath(descriptor.file)) fail(`unsafe content path: ${language}`);
+    if (!pack && !requireAllContent) continue;
     if (!pack || pack.schemaVersion !== 1 || pack.language !== language || pack.packageId !== descriptor.packageId || pack.version !== descriptor.version) fail(`package identity mismatch: ${language}`);
     if (!descriptor.packageId || !/^\d+\.\d+\.\d+$/.test(descriptor.version)) fail(`invalid package version: ${language}`);
     // Version 1 is intentionally text/neutral graphics only. Recorded speech needs
     // a separate resource contract; it must never borrow another language's audio.
-    if (descriptor.audio !== "none" || pack.audio !== "none") fail(`unsupported speech capability: ${language}`);
+    if (descriptor.audio !== pack.audio || !["none", ...(contract.delivery ? ["recorded"] : [])].includes(pack.audio)) fail(`unsupported speech capability: ${language}`);
+    const assets = pack.assets ?? [];
+    if (!Array.isArray(assets) || new Set(assets.map((a) => a.path)).size !== assets.length) fail(`invalid assets: ${language}`);
+    for (const asset of assets) {
+      if (!asset.path?.startsWith(`content/${language}/${pack.version}/`) || asset.path.split("/").some((part) => !part || part === "." || part === "..") || !/^[\w./-]+$/.test(asset.path) || !["image", "audio"].includes(asset.kind) || !Number.isSafeInteger(asset.bytes) || asset.bytes < 1 || !/^[a-f0-9]{64}$/.test(asset.sha256)) fail(`invalid asset: ${language}/${asset.path}`);
+    }
+    if ((pack.audio === "recorded") !== assets.some((a) => a.kind === "audio")) fail(`audio assets mismatch: ${language}`);
     messageMap(pack.messages, `content ${language}`);
     if (!descriptor.modeIds?.length || descriptor.modeIds.some((id) => !modes.some((m) => m.id === id))) fail(`invalid mode availability: ${language}`);
     for (const modeId of descriptor.modeIds) {
@@ -53,6 +64,11 @@ export function validateTopicLanguages(topic) {
   }
   for (const mode of modes) {
     const controls = Object.values(mode.params ?? {}).filter((def) => def.type === "content_language");
+    if (contract.selectionScope === "topic") {
+      if (controls.length) fail(`topic language must not be a mode control: ${mode.id}`);
+      if (!Object.values(contract.packages).some((p) => p.modeIds.includes(mode.id))) fail(`no package for mode: ${mode.id}`);
+      continue;
+    }
     if (controls.length !== 1) fail(`one content_language control required: ${mode.id}`);
     const available = Object.entries(contract.packages).filter(([, p]) => p.modeIds.includes(mode.id)).map(([language]) => language).sort();
     if (!available.length || JSON.stringify([...controls[0].values].sort()) !== JSON.stringify(available)) fail(`language options mismatch: ${mode.id}`);
@@ -60,7 +76,7 @@ export function validateTopicLanguages(topic) {
   return topic;
 }
 
-export async function loadTopicLanguages(manifest, readText) {
+export async function loadTopicLanguages(manifest, readText, { allowMissingContent = false, installedContent = {} } = {}) {
   if (!manifest.languageContract) return manifest;
   const contract = manifest.languageContract;
   if (contract.schemaVersion !== 1 || !contract.ui || !contract.packages) fail("invalid contract");
@@ -72,8 +88,14 @@ export async function loadTopicLanguages(manifest, readText) {
   };
   const ui = Object.create(null), content = Object.create(null);
   for (const [language, path] of Object.entries(contract.ui)) ui[language] = await read(path);
-  for (const [language, pack] of Object.entries(contract.packages)) content[language] = await read(pack.file);
-  const topic = validateTopicLanguages({ ...manifest, languageResources: { ui, content } });
+  for (const [language, pack] of Object.entries(contract.packages)) {
+    if (!safePath(pack.file)) fail(`unsafe resource path: ${pack.file}`);
+    const text = await readText(pack.file);
+    if (text != null) content[language] = JSON.parse(text);
+    else if (installedContent[language]?.packageId === pack.packageId && installedContent[language]?.version === pack.version) content[language] = installedContent[language];
+    else if (!allowMissingContent) fail(`missing file: ${pack.file}`);
+  }
+  const topic = validateTopicLanguages({ ...manifest, languageResources: { ui, content } }, { requireAllContent: !allowMissingContent });
   const localized = (key) => Object.fromEntries(Object.entries(ui).map(([language, messages]) => {
     if (!Object.hasOwn(messages, key)) fail(`missing UI: ${language}/${key}`);
     return [language, messages[key]];
@@ -114,8 +136,8 @@ export function initialContentLanguage(topic, modeId, ...preferences) {
 }
 
 export function createContentContext(topic, mode, params) {
-  validateTopicLanguages(topic);
-  const language = params[contentLanguageParam(mode)];
+  validateTopicLanguages(topic, { requireAllContent: false });
+  const language = params.contentLanguage ?? params[contentLanguageParam(mode)];
   if (!availableContentLanguages(topic, mode.id).includes(language)) fail(`content language unavailable: ${language ?? "not selected"}`);
   const descriptor = topic.languageContract.packages[language];
   const pack = topic.languageResources.content[language];
@@ -130,4 +152,15 @@ export function contentMessage(pack, key, values = {}) {
     if (!Object.hasOwn(values, name)) fail(`missing placeholder: ${key}/${name}`);
     return String(values[name]);
   });
+}
+
+// Topic choice belongs to the student-topic link, never the global UI locale.
+// Conflicting legacy per-mode choices require an explicit one-time selection.
+export function selectedTopicLanguage(topic, params = {}, ...preferences) {
+  const declared = topic?.languageContract?.packages ?? {};
+  if (params.topicContentLanguage) return Object.hasOwn(declared, params.topicContentLanguage) ? params.topicContentLanguage : null;
+  const legacy = [...new Set([params.contentLanguage, ...Object.values(params.byMode ?? {}).map((p) => p.contentLanguage)].filter(Boolean))];
+  if (legacy.length > 1) return null;
+  const language = legacy[0] ?? preferences.find((value) => typeof value === "string" && value);
+  return Object.hasOwn(declared, language) ? language : null;
 }

@@ -1,9 +1,11 @@
+import { TOPIC_LANGUAGE_MESSAGES } from "./topicLanguageMessages.js";
 import { LESSON_SETUP_MESSAGES } from "./lessonSetupMessages.js";
 import { ADULT_MESSAGES } from "./adultMessages.js";
 
 // Slovenian copy is a prototype draft, pending editorial review.
 export const UI_MESSAGES = {
   ru: {
+    ...TOPIC_LANGUAGE_MESSAGES.ru,
     ...ADULT_MESSAGES.ru,
     ...LESSON_SETUP_MESSAGES.ru,
     "languages.lesson": "Предпочтительный язык занятий",
@@ -75,6 +77,7 @@ export const UI_MESSAGES = {
     "pin.erase": "Удалить последнюю цифру",
   },
   sl: {
+    ...TOPIC_LANGUAGE_MESSAGES.sl,
     ...ADULT_MESSAGES.sl,
     ...LESSON_SETUP_MESSAGES.sl,
     "languages.lesson": "Želeni jezik vaj",

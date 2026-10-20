@@ -1,4 +1,5 @@
 import { setupText } from "@/shared/i18n/setupText.js";
+import TopicLanguageBar from "@/features/topics/TopicLanguageBar.jsx";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { translateUi as t } from "@/shared/i18n/uiLanguage.js";
@@ -1026,6 +1027,7 @@ export default function HomeScreen() {
       />
 
       <div className="home-main">
+        {visibleTab === "session" && <TopicLanguageBar topic={topic} />}
         <div className="home-tab-content">
           {visibleTab !== 'statistics' && <MarketingPromptCard />}
           {visibleTab === 'statistics' ? (
