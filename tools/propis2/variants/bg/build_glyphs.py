@@ -2433,14 +2433,38 @@ def ya_lower(strokes, k=0, tol=0.1):
     O = tt.upright(dg.resample(np.array(tt.parse_path(dg.fmt(PAPER["о"][0]))), 0.3))
     O = np.c_[xl + (O[:, 0] - O[:, 0].min()) * (cs - xl) / np.ptp(O[:, 0]), top + (O[:, 1] - O[:, 1].min()) * (yb - top) / np.ptp(O[:, 1])]
     E = tt.from_upright(O)
-    # the diagonal, smoothed, up to where it first comes within reach of the oval
-    D = _smooth_runs(p[:tO + 1], [], sigma=2.0)
-    d = np.min(np.hypot(*(D[:, None, :] - E[None, :, :]).transpose(2, 0, 1)), axis=1)
-    ia = b0 + int(np.argmax(d[b0:] < 0.8))
-    j = int(np.argmin(np.hypot(*(E - D[ia]).T)))
+    # the lead-in down into the hook, its bottom on the baseline (owner, 2026-10-20: «нижний крюк должен касаться базовой
+    # линии»); out of it the pen goes straight, without bending, to where о starts, and writes о from there, once round
+    hook = _smooth_runs(p[:b0 + 1], [], sigma=2.0)
+    hook = np.c_[hook[:, 0], hook[:, 1] + (tt.BASE - hook[-1, 1]) * np.linspace(0, 1, len(hook)) ** 2]
+    B = hook[-1]
+    # where о is entered: the point on its right side the straight line from the hook just touches (no bend there)
+    n = len(E)
+    tg = np.array([tt._unit(E[(i + 1) % n] - E[i - 1]) for i in range(n)])
+    to = (E - B) / np.hypot(*(E - B).T)[:, None]
+    cross = np.abs(tg[:, 0] * to[:, 1] - tg[:, 1] * to[:, 0])
+    UE = tt.upright(E)
+    right = UE[:, 0] > np.median(UE[:, 0])
+    j = int(np.argmin(np.where(right, cross, 9)))
+    J = E[j]
     ring = np.vstack([E[j:], E[:j + 1]])
-    if ring[8, 1] > ring[0, 1]: ring = ring[::-1]                      # up first
-    first = dg.resample(np.vstack([D[:ia], ring]), 0.3)
+    if np.dot(ring[5] - ring[0], J - B) < 0: ring = ring[::-1]         # on the way the line goes (up the right side)
+    u = tt._unit(J - B)
+    P1 = B + u * 0.3 * np.hypot(*(J - B))                              # the straight run starts here
+    # the hook's round bottom: one cubic from the lead-in a quarter of the band up to the line, its lowest point on the baseline
+    ic = int(np.argmax(hook[:, 1] >= tt.BASE - 0.25 * (tt.BASE - tt.X_TOP)))
+    H = hook[ic]; th = tt._unit(hook[ic + 3] - hook[ic])
+    w = np.linspace(0, 1, 80)[:, None]
+    def bend(k):
+        h0, h1 = k * np.hypot(*(H - B)), k * np.hypot(*(P1 - B))
+        return (1 - w) ** 3 * H + 3 * (1 - w) ** 2 * w * (H + th * h0) + 3 * (1 - w) * w ** 2 * (P1 - u * h1) + w ** 3 * P1
+    lo, hi = 0.05, 3.0
+    for _ in range(50):
+        k_ = 0.5 * (lo + hi)
+        if bend(k_)[:, 1].max() < tt.BASE: lo = k_
+        else: hi = k_
+    line = np.linspace(P1, J, 60)
+    first = dg.resample(np.vstack([hook[:ic], bend(0.5 * (lo + hi)), line[1:], ring[1:]]), 0.3)
     R = dg.resample(np.array(tt.parse_path(dg.fmt(PAPER["н"][2]))), 0.3)
     rb = int(np.argmax(R[:, 1])); rs = R[:rb + 1]; rs = rs[(rs[:, 1] > tt.X_TOP + 0.2 * band) & (rs[:, 1] < tt.BASE - 0.25 * band)]
     R = tt.from_upright(tt.upright(R) + [cs - float(np.median(tt.upright(rs)[:, 0])), 0])
