@@ -203,7 +203,7 @@ ignored in some sandboxes, use Playwright instead when a screenshot's exact widt
 Speech-therapy audit of the topic for minimally verbal children with ASD (2026-10-17):
 per-card verdicts for all 125 images, new vocabulary waves, a 12-step mode ladder and
 a step-by-step implementation plan. **Read `docs/verbs-methodology-review.md` first**
-before touching `verbs_v2`. Which verbs to add next (waves 4–5, Russian CDI norms) — `docs/verbs-research.md`. Wave 4 (сидит, даёт, открывает, моет руки, кидает, лежит, одевается, стоит, падает) is built into deck v2.2.0 with `card.alsoShows` (a picture is never a distractor for a posture it also shows) — status and pitfalls in `docs/verbs-wave4-shotlist.md`, section 6. Source lives in `tools/verbs_v2/` (`node tools/verbs_v2/build.mjs`
+before touching `verbs_v2`. Which verbs to add next (waves 4–5, Russian CDI norms) — `docs/verbs-research.md`. Wave 4 (сидит, даёт, открывает, моет руки, кидает, лежит, одевается, стоит, падает) is built into deck v2.2.0 with `card.alsoShows` (a picture is never a distractor for a posture it also shows) — status and pitfalls in `docs/verbs-wave4-shotlist.md`, section 6. Wave 5 (15 verbs: закрывает … пишет, летит) is built into deck v2.3.0 — status in `docs/verbs-wave5-shotlist.md`. Source lives in `tools/verbs_v2/` (`node tools/verbs_v2/build.mjs`
 packs only files `deck.json` references). Deck v2.0.0 built (contrast set + variations via `card.set`); before that: steps 0–2, voice, image review with the
 owner done (deck v1.5.1; audio via `tools/verbs_v2/generate-audio-elevenlabs.mjs`); next is step 3's
 pictures — follow sections 5б–5г of the doc (no anthropomorphic animals, real photos, vary objects). The deck needs `meta.customModesOnly` + `verbs_`-prefixed mode

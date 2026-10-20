@@ -98,6 +98,7 @@ describe("pictures", () => {
     const show = deck.modes.find((m) => m.id === "verbs_show");
     expect(generateTasks("find_n", deriveConcepts(deck.cards), deck.cards, { step: 2 }, show).some((t) => t.options.some((o) => o.isTarget && o.card.agent === "animal"))).toBe(true);
   });
+  // «летит» has a bird and a butterfly instead: people do not fly.
   it("every verb has a boy and a mum card plus at least two other pictures", () => {
     for (const c of deriveConcepts(deck.cards)) {
       expect(c.cards.filter((card) => card.set === "contrast"), c.conceptId).toHaveLength(2);
@@ -119,11 +120,11 @@ describe("flashcards engine additions", () => {
   it("act_out only offers actions a child can do in the room", () => {
     const tasks = generateTasks("act_out", deriveConcepts(deck.cards), deck.cards, {});
     const ids = tasks.map((t) => t.conceptId);
-    for (const id of ["sleeps", "swims", "rides", "cries", "cuts_knife", "waters_plants", "vacuums", "falls"]) expect(ids).not.toContain(id);
-    expect(ids).toHaveLength(21);
+    for (const id of ["sleeps", "swims", "rides", "cries", "cuts_knife", "waters_plants", "vacuums", "falls", "swings", "bathes", "builds", "writes", "flies"]) expect(ids).not.toContain(id);
+    expect(ids).toHaveLength(31);
   });
 
-  it("wave 4 postures: no picture that also shows сидит / стоит / лежит is a wrong answer for it", () => {
+  it("postures and look-alikes: no picture that also shows сидит / стоит / лежит is a wrong answer for it", () => {
     const all = deriveConcepts(deck.cards);
     for (let i = 0; i < 10; i++) {
       for (const t of generateTasks("find_n", all, deck.cards, { optionCount: 4 })) {

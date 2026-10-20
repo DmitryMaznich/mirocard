@@ -125,7 +125,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-19T19:11:17+00:00"
+      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
     },
     {
       "id": "column_addition",
@@ -256,7 +256,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-19T19:11:17+00:00"
+      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
     },
     {
       "id": "feel_sick",
@@ -603,7 +603,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-19T19:11:17+00:00"
+      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
     },
     {
       "id": "phonetic_analysis",
@@ -799,7 +799,7 @@
         "status": "release",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
+      "sourceUpdatedAt": "2026-10-19T16:25:59+00:00"
     },
     {
       "id": "reading_dad_instructions",
@@ -1070,7 +1070,7 @@
         "status": "release",
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-19T19:11:17+00:00"
+      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
     },
     {
       "id": "tools_functions",
@@ -1154,7 +1154,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-19T19:11:17+00:00"
+      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
     },
     {
       "id": "verbs_v2",
@@ -1162,37 +1162,37 @@
         "ru": "Глаголы",
         "en": "verbs_v2"
       },
-      "version": "2.2.0",
+      "version": "2.3.0",
       "renderer": "flashcards",
       "sources": [
-        "public/decks/verbs_v2_v2.2.0.zip",
+        "public/decks/verbs_v2_v2.3.0.zip",
         "src/topics/renderers/flashcards"
       ],
       "bundle": {
-        "version": "2.2.0",
-        "url": "./decks/verbs_v2_v2.2.0.zip",
+        "version": "2.3.0",
+        "url": "./decks/verbs_v2_v2.3.0.zip",
         "title": {
           "ru": "Глаголы",
           "en": "verbs_v2"
         },
-        "description": "Двадцать девять частотных действий из жизни ребёнка: ест, пьёт, спит, сидит, даёт, открывает и другие. Для каждого — пара «мальчик и мама», где меняется только действие, и разные картинки: другие люди, предметы, места и рисунки, чтобы ребёнок узнавал само действие. Тема рассчитана в том числе на минимально вербальных детей: основные режимы — выбор картинки по слову.",
+        "description": "Сорок четыре частотных действия из жизни ребёнка: ест, пьёт, спит, сидит, даёт, открывает, берёт, пишет и другие. Для каждого — пара «мальчик и мама», где меняется только действие (у «летит» — птица и бабочка), и разные картинки: другие люди, предметы, места и рисунки, чтобы ребёнок узнавал само действие. Тема рассчитана в том числе на минимально вербальных детей: основные режимы — выбор картинки по слову.",
         "renderer": "flashcards",
         "modes": 9,
-        "cards": 196
+        "cards": 286
       },
       "builtin": false,
       "catalogEntry": {
         "id": "verbs_v2",
-        "version": "2.2.0",
+        "version": "2.3.0",
         "title": {
           "ru": "Глаголы",
           "en": "Verbs"
         },
         "description": {
-          "ru": "29 глаголов в четырёх волнах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
-          "en": "29 everyday verbs in four waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
+          "ru": "44 глагола в пяти волнах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
+          "en": "44 everyday verbs in five waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
         },
-        "url": "./decks/verbs_v2_v2.2.0.zip",
+        "url": "./decks/verbs_v2_v2.3.0.zip",
         "status": "beta",
         "access": "paid"
       },
