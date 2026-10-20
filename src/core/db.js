@@ -1,4 +1,24 @@
 const DB_VERSION = 3;
+export const ACTIVE_DATABASE_KEY = "mironium.activeDatabase";
+
+export function getActiveDatabaseName() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(ACTIVE_DATABASE_KEY) ?? "null");
+    if (/^mirocard-recovery-[a-f0-9-]{36}$/.test(saved?.name)) return saved.name;
+  } catch { /* The original database remains the default. */ }
+  return "mirocard";
+}
+
+// Called only after a complete server snapshot has committed in a NEW DB.
+// The source database (including unreadable entries and the sync queue) stays intact.
+export function activateRecoveredDatabase(db, preservedDatabase) {
+  if (!/^mirocard-recovery-[a-f0-9-]{36}$/.test(db.name) || db.name === preservedDatabase) {
+    throw new Error("Invalid recovery database");
+  }
+  localStorage.setItem(ACTIVE_DATABASE_KEY, JSON.stringify({ name: db.name, preservedDatabase }));
+  _dbName = db.name;
+  _dbPromise = Promise.resolve(db);
+}
 
 export function openDb(name = "mirocard") {
   return new Promise((resolve, reject) => {
@@ -28,9 +48,16 @@ export function openDb(name = "mirocard") {
 // ─── Singleton ────────────────────────────────────────────────────────────────
 
 let _dbPromise = null;
+let _dbName = null;
 
 export function getDb() {
-  if (!_dbPromise) _dbPromise = openDb();
+  const name = getActiveDatabaseName();
+  if (!_dbPromise || _dbName !== name) {
+    _dbName = name;
+    const promise = openDb(name);
+    _dbPromise = promise;
+    promise.catch(() => { if (_dbPromise === promise) _dbPromise = null; });
+  }
   return _dbPromise;
 }
 

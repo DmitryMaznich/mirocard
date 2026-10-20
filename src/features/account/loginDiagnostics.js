@@ -5,12 +5,14 @@ const errorNames = new Set([
   "TypeError", "ReferenceError", "SyntaxError", "RangeError", "AbortError",
   "QuotaExceededError", "SecurityError", "InvalidStateError", "VersionError",
   "NotFoundError", "DataError", "DataCloneError", "UnknownError", "TransactionInactiveError",
+  "NotReadableError", "OperationError",
 ]);
 const knownStages = new Set([
   "password-request", "google-exchange", "google-callback", "boot-local",
   "open-storage", "read-local-owner", "read-local-data", "prepare-local-data",
   "switch-account", "load-account", "merge-data", "save-local-data",
   "save-local-owner", "apply-account",
+  "recovery-load-account", "recovery-save-copy", "recovery-activate",
 ]);
 
 export function markLoginFailure(error, stage) {
