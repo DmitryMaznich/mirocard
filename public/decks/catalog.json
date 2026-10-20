@@ -143,8 +143,8 @@
         "sl": "Primerjanje · jezikovni pilot"
       },
       "description": {
-        "ru": "Два режима пилотной копии: сравнение количеств и чисел с крокодилом. Русский и словенский материал выбираются независимо от интерфейса. Без речевой озвучки.",
-        "sl": "Dva načina v pilotni kopiji: primerjanje količin in števil s krokodilom. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Brez govornega zvoka."
+        "ru": "Два режима пилотной копии: сравнение количеств и чисел с крокодилом. Русский и словенский материал выбираются независимо от интерфейса. В русском пакете озвучена подсказка после ошибки; словенский пока без речи.",
+        "sl": "Dva načina v pilotni kopiji: primerjanje količin in števil s krokodilom. Rusko ali slovensko gradivo izberete neodvisno od jezika vmesnika. Ruski paket vsebuje govorjeni namig po napaki; slovenski je za zdaj brez govora."
       },
       "url": "./decks/comparison_language_pilot_v0.4.0.zip",
       "status": "hidden",
