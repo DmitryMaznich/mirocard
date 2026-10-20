@@ -1,3 +1,4 @@
+import { selectedTopicLanguage } from "../../../shared/topic-language-contract.mjs";
 import { createContentContext } from "../../../shared/topic-language-contract.mjs";
 import { recordUsage } from "@/shared/hooks/useUsageTracking";
 import { peopleFor } from "../../../shared/student-people.mjs";
@@ -53,6 +54,11 @@ function resolveMode(topicRecord, modeId) {
 // mode switch (via ModePickerScreen -> params) would have produced.
 export function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) {
   const sessionParams = { ...readModeParams(link.params, mode), strictStars: resolveStrictStars(mode, link.strictStars) };
+  if (topicRecord?.languageContract) {
+    const state = useAppStore.getState();
+    const student = state.students.find((s) => s.id === state.activeStudentId);
+    sessionParams.contentLanguage = selectedTopicLanguage(topicRecord, link.params, student?.preferredLessonLanguage, state.settings.cardLanguage);
+  }
   const isFigurePickerMode = topicRecord?.meta?.id === "symmetry_draw"
     && ["mirror_draw", "repeat_draw", "graphic_dictation"].includes(mode?.type);
   const defaultModeConceptIds = getConceptCards(topicRecord, mode, sessionParams)

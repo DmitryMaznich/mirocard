@@ -1,3 +1,4 @@
+import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
 import { availableContentLanguages, initialContentLanguage, contentLanguageParam } from "../../../shared/topic-language-contract.mjs";
 import { setupText, setupLabels, setupInfo } from "@/shared/i18n/setupText.js";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
@@ -1889,7 +1890,7 @@ export default function ParamsScreen() {
   const { markSessionStart } = useTimer();
 
   function openPinGate() {
-    if (topicRecord?.languageContract && !availableContentLanguages(topicRecord, mode?.id).includes(params[contentLanguageParam(mode)])) return;
+    if (topicRecord?.languageContract && !availableContentLanguages(topicRecord, mode?.id).includes(topicLanguageForStudent(topicRecord))) return;
     if (isReading && !activeText) {
       setScreen("texts");
       return;
@@ -1924,7 +1925,7 @@ export default function ParamsScreen() {
     }
 
     persistStudentTopicLink(activeStudentId, activeTopicId, {
-      params: writeModeParams(link.params, mode, params),
+      params: writeModeParams(topicRecord.languageContract ? { ...link.params, topicContentLanguage: topicLanguageForStudent(topicRecord) } : link.params, mode, params),
       videoRewardEnabled: hideVideoReward ? false : videoReward,
       answersPerStar,
       strictStars,
@@ -2181,7 +2182,7 @@ export default function ParamsScreen() {
           return <DailyOrientationSettings params={params} setParams={setParams} student={student} onOpenImportantDates={openImportantDates} />;
         }
         function renderParam(key, def) {
-          if (def.type === "concept_selector") return null;
+          if (def.type === "concept_selector" || def.type === "content_language") return null;
           if (def.showWhen) {
             const [condKey, condVal] = Object.entries(def.showWhen)[0];
             if ((params[condKey] ?? mode.params?.[condKey]?.default) !== condVal) return null;
@@ -2400,7 +2401,7 @@ export default function ParamsScreen() {
   // pictures is on (`startRequires` in topicLoader.js).
   const isOn = (key) => Boolean(params[key] ?? mode?.params?.[key]?.default);
   const unmetStartRequirement = (mode?.startRequires ?? []).find((req) => (!req.when || req.when.some(isOn)) && !req.anyOf.some(isOn));
-  const needsContentLanguage = Boolean(topicRecord?.languageContract) && !availableContentLanguages(topicRecord, mode?.id).includes(params[contentLanguageParam(mode)]);
+  const needsContentLanguage = Boolean(topicRecord?.languageContract) && !availableContentLanguages(topicRecord, mode?.id).includes(topicLanguageForStudent(topicRecord));
   const isStartDisabled = needsContentLanguage || sentenceListEmpty || textListEmpty || lineListEmpty || poolEmpty || !myPeopleReady || (storyQuizValidation && !storyQuizValidation.valid) || isManualFigureSetTooSmall || Boolean(unmetStartRequirement);
 
   return (
@@ -2411,7 +2412,7 @@ export default function ParamsScreen() {
         <button className="header-info-btn" onClick={() => setShowModeInfo(true)} title={tr("mode.about")}>?</button>
       </div>
 
-      {needsContentLanguage && <p className="param-hint" role="alert">{tr("setup.contentLanguageRequired")}</p>}
+      {needsContentLanguage && <div className="param-hint" role="alert"><p>{tr("topicLanguage.required")}</p><button className="link-btn" onClick={() => requestTopicLanguage({ record: topicRecord })}>{tr("topicLanguage.change")}</button></div>}
       <div className="params-layout">
         {/* Left info column — visible only on tablet via CSS */}
         <div className="params-info-col">

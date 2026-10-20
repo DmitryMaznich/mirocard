@@ -60,6 +60,35 @@ function topicKey(topicId, filename) {
 }
 
 export const topics = {
+  replaceTopic(db, topicId, files, record, { keepFiles = [], extraValues = {} } = {}) {
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(["topics", "keyval"], "readwrite");
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error ?? new Error("Topic installation aborted"));
+      const store = transaction.objectStore("topics");
+      const values = transaction.objectStore("keyval");
+      const prefix = `${topicId}/`;
+      const retained = new Set(keepFiles.map((file) => topicKey(topicId, file)));
+      const abort = (error) => { transaction.abort(); reject(error); };
+      try {
+        const keys = store.getAllKeys(IDBKeyRange.bound(prefix, prefix + "￿", false, false));
+        keys.onsuccess = () => {
+          try {
+            for (const key of keys.result) if (!retained.has(key)) store.delete(key);
+            for (const [name, file] of Object.entries(files)) store.put(file, topicKey(topicId, name));
+          } catch (error) { abort(error); }
+        };
+        values.put(record, `topic:${topicId}`);
+        for (const [key, value] of Object.entries(extraValues)) values.put(value, key);
+        const index = values.get("installedTopicIds");
+        index.onsuccess = () => {
+          const ids = index.result ?? [];
+          try { if (!ids.includes(topicId)) values.put([...ids, topicId], "installedTopicIds"); } catch (error) { abort(error); }
+        };
+      } catch (error) { abort(error); }
+    });
+  },
   async saveFile(db, topicId, filename, blob) {
     const buf = await blob.arrayBuffer();
     return req2p(tx(db, "topics", "readwrite").put({ buf, type: blob.type }, topicKey(topicId, filename)));

@@ -1,3 +1,5 @@
+import { requestTopicLanguage, topicLanguageForStudent } from "./topicLanguageChoice.js";
+import { persistStudentTopicLink } from "@/core/linkUtils";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useCallback, useState, useEffect } from "react";
@@ -70,6 +72,10 @@ export default function TopicLibraryScreen() {
     const owned = (ownedTopics ?? []).find((o) => o.topicId === entry.id);
     const isGranted = owned != null && owned.source !== "request";
     const isFreeStaticDeck = isFreeStaticInstall(entry);
+    if (entry.languageDownload) {
+      if ((entry.access ?? "free") !== "free" && !hasActiveEntitlement(account, subscription)) { setScreen("subscription"); return; }
+      return requestTopicLanguage({ entry, record: topicRecords.find((r) => r.meta.id === entry.id) });
+    }
 
     // A free deck is a self-contained public file. Download it first, rather
     // than making installation depend on an account call that may be stale or
@@ -122,9 +128,19 @@ export default function TopicLibraryScreen() {
       }
     }
     return record;
-  }, [buildInfo.version, token, account, upsertTopicRecord, upsertOwnedTopic, ownedTopics, setScreen]);
+  }, [topicRecords, subscription, buildInfo.version, token, account, upsertTopicRecord, upsertOwnedTopic, ownedTopics, setScreen]);
 
-  function handleSelectTopic(record) {
+  async function handleSelectTopic(record) {
+    if (record.languageContract) {
+      const language = topicLanguageForStudent(record);
+      if (!record.languageResources?.content?.[language]) {
+        if (!await requestTopicLanguage({ record })) return;
+      } else {
+        const state = useAppStore.getState();
+        const link = state.studentTopicLinks[`${state.activeStudentId}_${record.meta.id}`] ?? {};
+        if (!link.params?.topicContentLanguage) await persistStudentTopicLink(state.activeStudentId, record.meta.id, { params: { ...link.params, topicContentLanguage: language } });
+      }
+    }
     setActiveTopicId(record.meta.id);
     setScreen("home");
   }
@@ -235,6 +251,7 @@ export default function TopicLibraryScreen() {
         entitlementExpired={entitlementExpired}
         hasAccess={hasActiveEntitlement(account, subscription)}
         onLockedTap={() => setScreen("subscription")}
+        materialLanguage={item.installedRecord?.languageContract ? topicLanguageForStudent(item.installedRecord) : null}
         personalCaption={personalCaption}
         onInstall={installCatalogEntry}
         onSelect={handleSelectTopic}
@@ -330,6 +347,7 @@ export default function TopicLibraryScreen() {
           onClose={() => setActionSheetRecord(null)}
           onInfo={(r) => { setInfoTopic(r); }}
           onStatistics={setStatisticsTopic}
+          onLanguage={(record) => requestTopicLanguage({ record })}
           onDelete={(r) => setDeleting(r)}
         />
       )}

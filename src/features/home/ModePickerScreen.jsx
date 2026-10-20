@@ -1,3 +1,5 @@
+import TopicLanguageBar from "@/features/topics/TopicLanguageBar.jsx";
+import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
 import { setupText } from "@/shared/i18n/setupText.js";
 import { getInterfaceTopicTitle } from "@/shared/i18n/topicTitles.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
@@ -97,7 +99,9 @@ export default function ModePickerScreen() {
 
   // The topic lists its modes in teaching order already; retired ones (the
   // old album modes) stay out of the list.
-  const modes = rawModes.filter(isPickableMode);
+  useAppStore((s) => s.studentTopicLinks);
+  const topicLanguage = topicRecord?.languageContract ? topicLanguageForStudent(topicRecord) : null;
+  const modes = rawModes.filter(isPickableMode).filter((mode) => !topicLanguage || topicRecord.languageContract.packages[topicLanguage]?.modeIds.includes(mode.id));
 
   // Short stories deliberately keep their picker instead of auto-opening
   // settings: the parent chooses between reading together and comprehension
@@ -147,6 +151,7 @@ export default function ModePickerScreen() {
   }
 
   function pickMode(mode) {
+    if (topicRecord.languageContract && !topicRecord.languageResources?.content?.[topicLanguage]) { requestTopicLanguage({ record: topicRecord }); return; }
     navigateToMode(mode);
   }
 
@@ -170,6 +175,7 @@ export default function ModePickerScreen() {
         </button>
       </div>
 
+      <TopicLanguageBar topic={topicRecord} />
       <ul className="mode-list">
         {isMyPeople && activeStudent && isMyPeopleProfileEmpty(activeStudent) && (
           // Every photo mode is closed until there are two people with
