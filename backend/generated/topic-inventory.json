@@ -125,7 +125,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
+      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
     },
     {
       "id": "column_addition",
@@ -285,7 +285,7 @@
           }
         }
       },
-      "sourceUpdatedAt": "2026-10-20T13:32:53+02:00"
+      "sourceUpdatedAt": "2026-10-20T17:13:29+02:00"
     },
     {
       "id": "daily_orientation",
@@ -340,7 +340,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
+      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
     },
     {
       "id": "feel_sick",
@@ -687,7 +687,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
+      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
     },
     {
       "id": "phonetic_analysis",
@@ -1154,7 +1154,7 @@
         "status": "release",
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
+      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
     },
     {
       "id": "tools_functions",
@@ -1238,7 +1238,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
+      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
     },
     {
       "id": "verbs_v2",
@@ -1280,7 +1280,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-19T19:35:47+00:00"
+      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
     },
     {
       "id": "vowel_consonant_ru",
