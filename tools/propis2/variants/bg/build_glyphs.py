@@ -1561,7 +1561,7 @@ def bowl_oval(strokes, k=0, tol=0.1, lead=12.0):
 
 def o_lower(strokes, k=0, tol=0.1):
     """о (lowercase): a true ellipse fitted to the snapped oval, its bottom on the baseline and its top's ink just touching the
-    x-line (as л, м), along the slant; the stroke starts where the font's does and goes once round the same way back to it."""
+    x-line (as л, м), along the slant; once round the font's way, from a start on the right side as О's."""
     p = dg.resample(np.array(tt.parse_path(dg.fmt(strokes[k]))), 0.2)
     C, e1, e2, a, bb = _fit_ellipse(p[int(3 / 0.2): len(p) - int(3 / 0.2)])
     T_ = np.linspace(0, 2 * np.pi, 3600, endpoint=False)
@@ -1569,9 +1569,16 @@ def o_lower(strokes, k=0, tol=0.1):
     e = e + [0, tt.BASE - e[:, 1].max()]
     top = tt.X_TOP + INK_W * CAP_K / 2
     e = tt.shear_scale(e, (tt.BASE - top) / (tt.BASE - e[:, 1].min()))
-    i = int(np.argmin(np.hypot(*(e - p[0]).T)))
-    ring = np.vstack([e[i:], e[:i + 1]])
-    if np.dot(ring[5] - ring[0], p[5] - p[0]) < 0: ring = ring[::-1]   # the font's way round
+    i = int(np.argmin(e[:, 1]))
+    ring = np.vstack([e[i:], e[:i]])
+    if ring[5, 0] > ring[0, 0]: ring = ring[::-1]                      # from the top the pen goes left first, as the font's
+    # started on the right side an eighth of the right half down from the top, as О (owner, 2026-10-20: «чуть правее и чуть
+    # ниже ... в пропорции, как в заглавной»)
+    bot = int(np.argmax(ring[:, 1]))
+    rh = np.vstack([ring[:1], ring[bot:][::-1]])                       # the right half, from the top down
+    rs = np.concatenate([[0], np.cumsum(np.hypot(*np.diff(rh, axis=0).T))])
+    j = len(ring) - int(np.argmin(np.abs(rs - rs[-1] / 8)))
+    ring = np.vstack([ring[j:], ring[:j + 1]])
     out = list(strokes)
     out[k] = [("M", [ring[0]])] + tt._fit_span(ring, tt._unit(ring[3] - ring[0]), tt._unit(ring[-1] - ring[-4]), tol=tol)
     return out
