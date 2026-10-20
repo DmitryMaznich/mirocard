@@ -2645,6 +2645,7 @@ def rescaled(glyph, script):
 
 
 MID_LOG = []
+JOIN_DEG = 55.0  # the rise of every join at the middle of the x-band: the font's own (lowercase lead-ins 51-58°, exits 52-60°)
 HOOK = {}  # label -> its finished exit hook from its last bottom (relative), for letters whose own is too shallow
 
 
@@ -2678,14 +2679,38 @@ def mid_joins(g, tol=0.05):
         if not (ins(end[1]) and heading and (side > 0.6 if e == -1 else side < 0.4)): continue
         r = q[::-1]; t = len(q) - 1 - _first_turn(r)     # the run from the turn nearest the end
         yt = q[t, 1]
-        if abs(yt - end[1]) < 1.0 or abs(end[1] - mid) < 0.05 or (yt - mid) * (yt - end[1]) <= 0: continue
+        if abs(yt - end[1]) < 1.0 or (yt - mid) * (yt - end[1]) <= 0: continue
         q = q.copy()
-        f = (mid - yt) / (end[1] - yt)
-        if e == -1 and f > 1.6 and "и" in HOOK:   # a hook too shallow to stretch (м's, ending low): и's exit hook instead
-            q = np.vstack([q[:t], HOOK["и"] + q[t]])
-        else:
-            q[t:, 1] = yt + (q[t:, 1] - yt) * f
-        MID_LOG.append(f"{g['label']} {'вход' if e == 0 else 'выход'} {end[1] - mid:+.1f}")
+        changed = False
+        if abs(end[1] - mid) >= 0.05:
+            f = (mid - yt) / (end[1] - yt)
+            if e == -1 and f > 1.6 and "и" in HOOK:   # a hook too shallow to stretch (м's, ending low): и's exit hook instead
+                q = np.vstack([q[:t], HOOK["и"] + q[t]])
+            else:
+                q[t:, 1] = yt + (q[t:, 1] - yt) * f
+            MID_LOG.append(f"{g['label']} {'вход' if e == 0 else 'выход'} {end[1] - mid:+.1f}")
+            changed = True
+        # the last stretch through the middle straight at JOIN_DEG, so any exit and any lead-in meet in one straight line
+        # (owner, 2026-10-20: «соединение должно выглядеть практически идеально ровно»): only a run that rises to the right
+        # (exits; lead-ins that go up into the letter), not the ones coming down (л м я А Л М Я) nor е's flat start
+        d = q[-1] - q[-11]
+        rises = (d[0] > 0 > d[1]) if e == -1 else (d[0] < 0 < d[1])
+        a_now = math.degrees(math.atan2(abs(d[1]), abs(d[0])))
+        if rises and 35 < a_now < 85:
+            # the run bent a little more (or less) all along it, more and more towards the end, until it leaves the middle at
+            # JOIN_DEG; its height about its turn put back on the middle after each bend (a few rounds: the two settle)
+            for _ in range(4):
+                seg = np.diff(q[t:], axis=0)
+                d = q[-1] - q[-11]
+                cur = math.degrees(math.atan2(abs(d[1]), abs(d[0])))
+                dth = math.radians(cur - JOIN_DEG)   # a positive turn (y down) lowers the rise, for an exit and a reversed lead-in alike
+                sv = np.linspace(0, 1, len(seg)); th = dth * sv * sv * (3 - 2 * sv)
+                c_, s_ = np.cos(th), np.sin(th)
+                seg = np.c_[c_ * seg[:, 0] - s_ * seg[:, 1], s_ * seg[:, 0] + c_ * seg[:, 1]]
+                q[t + 1:] = q[t] + np.cumsum(seg, axis=0)
+                q[t:, 1] = q[t, 1] + (q[t:, 1] - q[t, 1]) * (mid - q[t, 1]) / (q[-1, 1] - q[t, 1])
+            changed = True
+        if not changed: continue
         if e == -1 and g["label"] == "и": HOOK["и"] = q[t:] - q[t]
         q = q if e == -1 else q[::-1]
         cmds = _fit_corners(q, _corners(q, deg=100), tol=0.05)
