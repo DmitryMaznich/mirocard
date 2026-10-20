@@ -1811,6 +1811,13 @@ def i_lower(strokes, k=0, near=4.0, tol=0.1):
     wi = 0.5 - 0.5 * np.cos(np.pi * wi)
     dd = d * wh * wi
     p = np.c_[p[:, 0] - dd * tt.SLANT_T, p[:, 1] + dd]
+    # and the right element's bottom on it as well, the same height as the left's (owner: «выровнять снизу левый и правый
+    # элементы по линии, высота должна быть одинаковая»): from the second stem's top on
+    b2 = int(n * 0.55) + int(np.argmax(p[int(n * 0.55):, 1]))
+    t2 = r_end + int(np.argmin(p[r_end:b2, 1]))
+    d2 = tt.BASE - p[b2, 1]
+    w2 = np.zeros(n); w2[t2:] = np.clip((p[t2:, 1] - tt.X_TOP) / (p[b2, 1] - tt.X_TOP), 0, 1)
+    p = np.c_[p[:, 0] - d2 * w2 * tt.SLANT_T, p[:, 1] + d2 * w2]
     out = list(strokes)
     out[k] = _fit_corners(p, _corners(p, deg=100), tol=tol)
     return out
