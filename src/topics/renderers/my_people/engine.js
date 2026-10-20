@@ -407,9 +407,21 @@ export function hasTwoPhotos(person) {
   return new Set((person?.photos ?? []).filter(Boolean)).size >= 2;
 }
 
+// «Образец»: "same" is the step below -- the very photo on top is among the
+// choices (identical matching), so one photo per person is enough; "other"
+// (the default) is the same person on a different photo.
+export function matchUsesSamePhoto(params) {
+  return params?.sample === "same";
+}
+
+export function matchTargets(people, params) {
+  return matchUsesSamePhoto(params) ? people : people.filter(hasTwoPhotos);
+}
+
 function matchTasks(people, params, round) {
-  const targets = people.filter(hasTwoPhotos);
+  const targets = matchTargets(people, params);
   if (targets.length < 2 || people.length < 2) return [];
+  const samePhoto = matchUsesSamePhoto(params);
   const requested = Number(params?.fieldSize);
   const fieldSize = Math.min(MATCH_FIELD_SIZES.includes(requested) ? requested : 2, people.length);
   const randomPhoto = (person) => {
@@ -418,8 +430,11 @@ function matchTasks(people, params, round) {
   };
   const positions = [];
   return pointTargetSequence(targets).map((target, trialIndex) => {
-    // Two different photos of the target: one on top, one to find.
-    const [sample, match] = shuffle([...new Set(target.photos.filter(Boolean))]);
+    // Two different photos of the target: one on top, one to find -- or
+    // the same photo twice at the identical-matching step.
+    const photos = shuffle([...new Set(target.photos.filter(Boolean))]);
+    const sample = photos[0];
+    const match = samePhoto ? sample : photos[1];
     // Distractors are chosen by person, not by word: two "Маша" are two
     // different faces here, so they may share a screen.
     const distractors = pickPointDistractors(target, people, null, fieldSize - 1, round);
@@ -746,6 +761,42 @@ export function firstSyllable(word) {
   if (vowelIndex < 0) return text[0];
   if (vowelIndex === 0) return text.length > 1 && !VOWELS.test(text[1]) && /\p{L}/u.test(text[1]) ? text.slice(0, 2) : text[0];
   return text.slice(0, vowelIndex + 1);
+}
+
+// Error correction in «Покажи» and «Найди такого же»: a trial the child got
+// only with help (a miss, or the light after a pause) comes back once, after
+// one or two other trials, now without the light -- the "transfer trial"
+// that checks the correction took. The photos swap places; a repeat is not
+// repeated again. Pure: the session hook calls it on the round's task list.
+const RETRY_TYPES = new Set(["person_point", "person_match"]);
+
+export function insertRetryTrial(tasks, index) {
+  const task = tasks?.[index];
+  if (!task || task.retry || !RETRY_TYPES.has(task.type) || task.errorless) return tasks;
+  const retry = { ...task, retry: true, introduces: false, choices: reorderChoices(task) };
+  const samePersonRun = (list, at) => {
+    const ids = list.slice(Math.max(0, at - 2), at + 3).map((item) => item.personId);
+    return ids.some((id, i) => i >= 2 && id === ids[i - 1] && id === ids[i - 2]);
+  };
+  // After one other trial, else after two; past the end of the round it
+  // closes the round.
+  for (const at of [index + 2, index + 3]) {
+    if (at > tasks.length) break;
+    const candidate = [...tasks.slice(0, at), retry, ...tasks.slice(at)];
+    if (!samePersonRun(candidate, at)) return candidate;
+  }
+  return [...tasks, retry];
+}
+
+function reorderChoices(task) {
+  const choices = task.choices ?? [];
+  if (choices.length < 2) return choices;
+  const oldSlot = choices.findIndex((choice) => choice.personId === task.personId);
+  const others = shuffle(choices.filter((choice) => choice.personId !== task.personId));
+  const slots = Array.from({ length: choices.length }, (_, i) => i).filter((i) => i !== oldSlot);
+  const slot = slots[Math.floor(Math.random() * slots.length)];
+  others.splice(slot, 0, choices[oldSlot]);
+  return others;
 }
 
 // sessionIntroduced: { name?: Set<personId>, relation?: Set<personId> } of

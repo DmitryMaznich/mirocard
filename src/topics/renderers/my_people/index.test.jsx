@@ -274,6 +274,50 @@ describe("«Покажи» renderer", () => {
 
     act(() => mama.click());
     expect(onCorrect).toHaveBeenCalledTimes(1);
+    // Found only after the correction: the trial is asked again later.
+    expect(onCorrect).toHaveBeenCalledWith("point:anna", "anna", expect.objectContaining({ retryLater: true }));
+  });
+
+  it("asks for no repeat after a first-try answer", () => {
+    const onCorrect = vi.fn();
+    const [, mama] = mount({ onCorrect, onStreakReset: vi.fn() });
+    act(() => mama.click());
+    expect(onCorrect).toHaveBeenCalledWith("point:anna", "anna", expect.objectContaining({ retryLater: false }));
+  });
+
+  it("lights the right photo after the pause set in «Подсказка через»", () => {
+    vi.useFakeTimers();
+    try {
+      const onCorrect = vi.fn();
+      const onStreakReset = vi.fn();
+      const [papa, mama] = mount({ onCorrect, onStreakReset, sessionParams: { promptDelay: 3 } });
+
+      act(() => { vi.advanceTimersByTime(2900); });
+      expect(mama.className).not.toContain("people-point-photo--hint");
+      act(() => { vi.advanceTimersByTime(200); });
+      expect(mama.className).toContain("people-point-photo--hint");
+      expect(papa.className).toContain("people-point-photo--faded");
+      expect(papa.disabled).toBe(true);
+      expect(onStreakReset).toHaveBeenCalledTimes(1);
+
+      act(() => mama.click());
+      expect(onCorrect).toHaveBeenCalledWith("point:anna", "anna", expect.objectContaining({ retryLater: true }));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("waits as long as it takes with «Подсказка через: нет»", () => {
+    vi.useFakeTimers();
+    try {
+      const onStreakReset = vi.fn();
+      const [, mama] = mount({ onCorrect: vi.fn(), onStreakReset, sessionParams: { promptDelay: 0 } });
+      act(() => { vi.advanceTimersByTime(60_000); });
+      expect(mama.className).not.toContain("people-point-photo--hint");
+      expect(onStreakReset).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("marks a newcomer introduced by the word's axis once found", () => {

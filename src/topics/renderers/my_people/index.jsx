@@ -108,8 +108,10 @@ function AlbumPhoto({ entry, topicId, match, wrong, hint, dropTarget, onChoose }
   );
 }
 
-function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset, onCardShown, onTap }) {
+function PeopleAlbumTask({ task, topicId, soundEnabled, sessionParams, onCorrect, onStreakReset, onCardShown, onTap }) {
   const { speak } = useSpeech();
+  // «Озвучивать слово при нажатии» off: the child has to read the word.
+  const speakWords = soundEnabled && sessionParams?.speakWords !== false;
   const [selectedAnswerId, setSelectedAnswerId] = useState(null);
   const [dragging, setDragging] = useState(null);
   const [matches, setMatches] = useState({});
@@ -190,7 +192,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     if ((event.pointerType === "mouse" && event.button !== 0) || usedAnswerIds.has(answer.id)) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    if (soundEnabled) speak(answer.label);
+    if (speakWords) speak(answer.label);
     dragRef.current = {
       answerId: answer.id,
       label: answer.label,
@@ -244,7 +246,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     event.preventDefault();
     if (usedAnswerIds.has(answer.id)) return;
     setSelectedAnswerId(answer.id);
-    if (soundEnabled) speak(answer.label);
+    if (speakWords) speak(answer.label);
   }
 
   const chosenAnswer = answersById[selectedAnswerId];
@@ -571,27 +573,56 @@ function PointPhoto({ choice, topicId, state, disabled, onChoose }) {
 // photo fades, the right one is lit up and named ("Вот мама"), and only it
 // stays tappable -- the child finishes the trial correctly instead of
 // guessing again. The miss is still recorded.
-function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAdvance, onStreakReset, onCardShown }) {
+function PersonPointTask({ task, topicId, student, soundEnabled, sessionParams, onCorrect, onAdvance, onStreakReset, onCardShown }) {
   const { speak } = useSpeech();
-  const [trial, setTrial] = useState({ taskId: null, missedId: null, done: false });
-  const current = trial.taskId === task.conceptId ? trial : { taskId: task.conceptId, missedId: null, done: false };
+  // `prompted`: the light came on after a pause, not after a miss.
+  const fresh = { taskId: task.conceptId, missedId: null, prompted: false, done: false };
+  const [trial, setTrial] = useState({ ...fresh, taskId: null });
+  const current = trial.taskId === task.conceptId ? trial : fresh;
+  const helped = Boolean(current.missedId) || current.prompted;
   const advanceTimer = useRef(null);
+  const delayTimer = useRef(null);
+  // What the delay timer sees when it fires.
+  const currentRef = useRef(current);
+  useEffect(() => { currentRef.current = current; });
+  // «Подсказка через»: seconds of no answer before the right photo lights
+  // up. Not on the one-photo errorless level -- there is nothing to choose.
+  const delaySeconds = Number(sessionParams?.promptDelay ?? 5);
+  const usesDelay = delaySeconds > 0 && !task.errorless;
+
+  function startDelay() {
+    if (delayTimer.current) clearTimeout(delayTimer.current);
+    if (!usesDelay) return;
+    delayTimer.current = setTimeout(() => {
+      const now = currentRef.current;
+      if (now.done || now.missedId || now.prompted) return;
+      setTrial({ ...now, prompted: true });
+      // No answer is not an independent answer: the streak goes, as on a miss.
+      onStreakReset?.(task.conceptId, task.personId);
+      if (soundEnabled) speak(task.missSpeech ?? `Вот ${task.word}.`);
+    }, delaySeconds * 1000);
+  }
 
   useEffect(() => {
     onCardShown?.(null, task.conceptId);
     if (soundEnabled) speak(task.promptSpeech);
+    startDelay();
     return () => {
       if (advanceTimer.current) clearTimeout(advanceTimer.current);
+      if (delayTimer.current) clearTimeout(delayTimer.current);
     };
-  }, [task, soundEnabled, speak, onCardShown]);
+  }, [task, soundEnabled, speak, onCardShown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function repeatPrompt() {
     if (soundEnabled) speak(task.promptSpeech);
+    // The adult asked again: the wait starts over.
+    if (!helped && !current.done) startDelay();
   }
 
   function choose(choice) {
     if (current.done) return;
     if (choice.personId === task.personId) {
+      if (delayTimer.current) clearTimeout(delayTimer.current);
       setTrial({ ...current, done: true });
       // The child has now found this person by the word -- an introduction
       // for «Кто это?», which asks only about people already met.
@@ -602,10 +633,13 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAd
         advanceTimer.current = setTimeout(() => onAdvance?.(), 1400);
         return;
       }
-      onCorrect?.(task.conceptId, task.personId, { autoAdvance: true, autoAdvanceDelayMs: 1400 });
+      // Found only with help: the same trial comes back a little later,
+      // without the light (insertRetryTrial).
+      onCorrect?.(task.conceptId, task.personId, { autoAdvance: true, autoAdvanceDelayMs: 1400, retryLater: helped });
       return;
     }
-    if (current.missedId) return;
+    if (helped) return;
+    if (delayTimer.current) clearTimeout(delayTimer.current);
     setTrial({ ...current, missedId: choice.personId });
     onStreakReset?.(task.conceptId, task.personId);
     if (soundEnabled) speak(task.missSpeech ?? `Вот ${task.word}.`);
@@ -624,8 +658,8 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAd
         {task.choices.map((choice) => {
           const isTarget = choice.personId === task.personId;
           const state = current.done && isTarget ? "correct"
-            : current.missedId && isTarget ? "hint"
-              : current.missedId === choice.personId || (current.missedId && !isTarget) ? "faded"
+            : helped && isTarget ? "hint"
+              : helped && !isTarget ? "faded"
                 : "";
           return (
             <PointPhoto
@@ -633,7 +667,7 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAd
               choice={choice}
               topicId={topicId}
               state={state}
-              disabled={current.done || (Boolean(current.missedId) && !isTarget)}
+              disabled={current.done || (helped && !isTarget)}
               onChoose={choose}
             />
           );

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMyPeopleTopicRecord } from "@/topics/builtinMyPeopleTopic";
-import { aboutMeHistory, ageFromBirthDate, firstSyllable, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
+import { aboutMeHistory, ageFromBirthDate, firstSyllable, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, insertRetryTrial, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
 
 const student = {
   id: "student_1",
@@ -650,6 +650,16 @@ describe("«Найди такого же»", () => {
     }
   });
 
+  it("at «Одинаковое фото» shows the very same picture, so one photo per person is enough", () => {
+    const onePhotoEach = { id: "s1", myPeople: [person("olga", ["/o1"]), person("ivan", ["/i1"]), person("cat", ["/c1"], { type: "pet" })] };
+    expect(generateTasks(matchSame, onePhotoEach, { sample: "other" })).toEqual([]);
+    const tasks = generateTasks(matchSame, onePhotoEach, { sample: "same", fieldSize: 2 });
+    expect(tasks.length).toBeGreaterThanOrEqual(MIN_POINT_TRIALS_PER_ROUND);
+    for (const task of tasks) {
+      expect(task.choices.find((choice) => choice.personId === task.personId).image).toBe(task.sample);
+    }
+  });
+
   it("lets a one-photo person be a distractor but never the one to find", () => {
     const ids = new Set();
     for (let i = 0; i < 30; i += 1) {
@@ -663,5 +673,50 @@ describe("«Найди такого же»", () => {
   it("needs two people with two photos each", () => {
     const one = { ...student, myPeople: [person("anna", ["/a1", "/a2"]), person("olga", ["/o1"]), person("ivan", ["/i1", "/i1"])] };
     expect(generateTasks(matchSame, one)).toEqual([]);
+  });
+});
+
+describe("repeat after a helped trial (insertRetryTrial)", () => {
+  const trial = (personId, extra = {}) => ({
+    type: "person_point",
+    conceptId: `point:${personId}`,
+    personId,
+    choices: [{ personId }, { personId: personId === "x" ? "y" : "x" }],
+    ...extra,
+  });
+
+  it("brings the trial back after one or two others, photos in new places", () => {
+    for (let i = 0; i < 30; i += 1) {
+      const tasks = [trial("anna"), trial("pavel"), trial("anna"), trial("pavel"), trial("anna")];
+      const next = insertRetryTrial(tasks, 0);
+      expect(next).toHaveLength(6);
+      const at = next.findIndex((task) => task.retry);
+      expect([2, 3]).toContain(at);
+      expect(next[at].personId).toBe("anna");
+      expect(next[at].choices.findIndex((c) => c.personId === "anna")).not.toBe(tasks[0].choices.findIndex((c) => c.personId === "anna"));
+    }
+  });
+
+  it("never makes three of one person in a row", () => {
+    const tasks = [trial("anna"), trial("pavel"), trial("pavel"), trial("anna"), trial("pavel")];
+    // Right after the next trial would make pavel three times running, so
+    // the repeat waits one more trial.
+    const next = insertRetryTrial(tasks, 1);
+    expect(next.findIndex((task) => task.retry)).toBe(4);
+    const ids = next.map((task) => task.personId);
+    expect(ids.some((id, i) => i >= 2 && id === ids[i - 1] && id === ids[i - 2])).toBe(false);
+  });
+
+  it("closes the round when the miss was at its end", () => {
+    const tasks = [trial("anna"), trial("pavel")];
+    const next = insertRetryTrial(tasks, 1);
+    expect(next.at(-1)).toEqual(expect.objectContaining({ personId: "pavel", retry: true }));
+  });
+
+  it("does not repeat a repeat, the errorless level or other task types", () => {
+    const tasks = [trial("anna", { retry: true }), trial("pavel", { errorless: true }), { type: "person_naming", personId: "olga" }];
+    expect(insertRetryTrial(tasks, 0)).toBe(tasks);
+    expect(insertRetryTrial(tasks, 1)).toBe(tasks);
+    expect(insertRetryTrial(tasks, 2)).toBe(tasks);
   });
 });
