@@ -92,8 +92,11 @@ def letter_pages(notebook):
 
 
 kits = []
-for nb, name in ((lg.NOTEBOOKS[0], "часть 1 (простые формы)"), (lg.NOTEBOOKS[1], "часть 2 (сложные формы)")):
-    kits.append(kit(f"letters-{nb['id']}", f"Прописи — {name}", "Для каждой буквы две страницы: с образцом и повторами, затем самостоятельно. Строчная и заглавная.", letter_pages(nb)))
+# Titles: the step of the one ladder of ready notebooks (src/topics/renderers/propis2/data.js PROPIS2_LADDER, owner 2026-10-21) and what
+# the notebook trains; the description says what is inside and when to take it (shown on the card of a ready notebook).
+for nb, title, what in ((lg.NOTEBOOKS[0], "2. Простые буквы: строчная и заглавная", "и л м ш п т ц щ а е ё о с э — буквы из элементов первого шага, теперь на узкой строке"),
+                        (lg.NOTEBOOKS[1], "4. Сложные буквы: строчная и заглавная", "б в д з у ф г ж к н х ч ю я й р ъ ы ь — петли, овалы, буквы выше и ниже строки")):
+    kits.append(kit(f"letters-{nb['id']}", title, f"Узкая строка, по букве: {what}. На каждую две страницы — с образцом и повторами, затем самостоятельно.", letter_pages(nb)))
 
 
 # ---- letters in alphabet order (owner, 2026-10-21: «просто буквы для отработки»): one page per letter, from tracing to writing alone ----
@@ -117,13 +120,13 @@ def alphabet_page(lower):
     return page(f"{upper} {lower}", ladder(lower, 8) + ladder(upper, 8) + [pair(upper, lower, "one", "all")])
 
 
-for kid, part, letters in (("alphabet-1", "А–О", ALPHABET[:ALPHABET.index("о") + 1]), ("alphabet-2", "П–Я", ALPHABET[ALPHABET.index("п"):])):
-    kits.append(kit(kid, f"Буквы по алфавиту, {part}", f"Буквы {part} по порядку, по странице на букву: строчная и заглавная — с затухающими копиями, обводка по строке, по точкам начала и самостоятельно.",
+for kid, step, part, letters in (("alphabet-1", 5, "А–О", ALPHABET[:ALPHABET.index("о") + 1]), ("alphabet-2", 6, "П–Я", ALPHABET[ALPHABET.index("п"):])):
+    kits.append(kit(kid, f"{step}. Весь алфавит: {part}", f"Повторение пройденного: буквы {part} по порядку, страница на букву — строчная и заглавная от затухающих копий до самостоятельного письма.",
                     [alphabet_page(ch) for ch in letters]))
 
 # ---- syllables: 160 pairs, three rows each, the model once at the start of a row ------------------------------------------------
 syl_rows = [sample(c + v) for c, v in syllables.all_pairs() for _ in range(syllables.ROWS_PER_SYLLABLE)]
-kits.append(kit("syllables", "Прописи — соединения букв", "Слоги: согласная и гласная а, о, и, е, строчные и с заглавной согласной. По три строки на слог.",
+kits.append(kit("syllables", "7. Слоги: соединяем буквы", "Первые соединения: согласная + гласная а, о, и, е — строчными и с заглавной. По три строки на слог.",
                 [page(f"Слоги {i + 1}", r) for i, r in enumerate(chunks(syl_rows))]))
 
 # ---- words: two blocks, two rows per word --------------------------------------------------------------------------------------
@@ -131,13 +134,13 @@ def word_rows(ws):
     return [sample(w) for w in ws for _ in range(words.ROWS_PER_WORD)]
 
 
-kits.append(kit("words-1", "Прописи — слова, часть 1 (простые формы)", "Слова из букв первой части; каждое слово строчными и с заглавной. По две строки на слово.",
+kits.append(kit("words-1", "8. Слова из простых букв", "Короткие слова из букв шага 2: каждое строчными и с заглавной буквы. По две строки на слово.",
                 [page(f"Слова {i + 1}", r) for i, r in enumerate(chunks(word_rows(words.block_a_notebook_words())))]))
-kits.append(kit("words-2", "Прописи — слова, часть 2 (любые буквы)", "Слова с любыми буквами. По две строки на слово.",
+kits.append(kit("words-2", "9. Слова со всеми буквами", "Слова из близкого ребёнку: дом, семья, еда, одежда, игрушки, имена. Любые буквы. По две строки на слово.",
                 [page(f"Слова {i + 1}", r) for i, r in enumerate(chunks(word_rows(words.BLOCK_B)))]))
 
 # ---- texts: a model text at the top of the page, the rest of the page is for copying ----------------------------------------------
-kits.append(kit("texts", "Тетрадь — тексты для переписывания", "Образец текста вверху страницы, ниже пустые строки для переписывания.",
+kits.append(kit("texts", "12. Списываем текст", "Последняя ступень: короткий текст образцом вверху страницы, ниже строки, чтобы списать его целиком.",
                 [page(f"Текст {i + 1}", [row(t, "one", "one", as_text=True, kind="passage")]) for i, t in enumerate(texts.TEXTS)]))
 
 # ---- digits: the digits workbook (scripts/digits_workbook, the printed «Прописи — цифры»), page for page --------------------------
@@ -276,7 +279,7 @@ digit_pages += [
                                  ["Сегодня 1 сентября.", "Урок в 9 утра.", "Обед в 1 час.", "Сон в 9 вечера.", "Новый год 1 января.", "8 марта праздник.", "в 7 утра, в 9 вечера"])),
     tx("Списываем", [model(t) for t in ["На столе 3 яблока.", "У Маши 2 кошки.", "Мы едем в 8 утра.", "В классе 20 детей.", "У папы 5 рыб.", "В саду 4 утки.", "Мне 7 лет!"]] + [blank()] * 10),
 ]
-digits_kit = kit("digits", "Прописи — цифры", "Цифры по одной на страницу (1–9, потом 0) с точками начала и повторением пройденных, числа 10–20, десятки, порядок цифр, знаки + − = и примеры — в клетку; в конце цифры в тексте на косой линейке. Как печатная тетрадь «Прописи — цифры».", digit_pages)
+digits_kit = kit("digits", "10. Цифры", "В клетку: цифры по одной (1–9, 0) с повторением пройденных, числа до 20, знаки + − = и примеры; в конце цифры в тексте на косой линейке. Можно вести параллельно с шагами 5–9.", digit_pages)
 digits_kit["page"] = SQUARE
 kits.append(digits_kit)
 
@@ -410,7 +413,7 @@ P.append(pw_page("По памяти 2", distance_rows(["Ваня, стой! Та
                                                "Кто это? Это я, Витя.", "Смотри, птица! Где?", "Ты рад? Да, очень!"], 23)))
 P.append(pw_page("По памяти 3", distance_rows(["Ура, снег! Бежим, Оля!", "Ой, какой кот! Чей он?", "Лови мяч, Оля! Лови!", "Кто съел торт? Не я!",
                                                "Мы ели суп, кашу и сыр.", "Ура! Снег, горка, санки!", "Где мяч? Вот он, Оля!", "Кто там? Это я, мама."], 24)))
-kits.append(kit("punctuation", "Прописи — знаки препинания", "Точка, запятая, ! и ?: отдельный знак на частой косой (ритм по наклонным), знак после буквы и слова, перечисление, предложения, списывание под образцом и по памяти. Как печатная тетрадь «Прописи — знаки препинания».", P))
+kits.append(kit("punctuation", "11. Знаки препинания", "Точка, запятая, ! и ?: сначала знак отдельно на частой косой, затем после буквы и слова, в перечислении и предложении, списывание под образцом и по памяти.", P))
 
 # Blank copybooks (owner, 2026-10-14: «пустографки»): 12 notebook leaves = 24 pages of the copybook ruling, nothing written, the red
 # margin as in the printed notebooks; one on the narrow row, one on the wide. Printed with any cover, «По порядку» or «Тетрадью».

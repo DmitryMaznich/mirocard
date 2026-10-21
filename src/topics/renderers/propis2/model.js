@@ -160,6 +160,7 @@ export function methodNotebooks(sheets, elementLabels) {
   return PROPIS2_METHOD_NOTEBOOKS.map((m) => ({
     id: m.id,
     title: m.title,
+    description: m.description,
     page: { ruling: m.ruling, grid: "dense", midDash: true },
     pages: m.sheets.filter(([id]) => sheets?.[id]).map(([id, title]) => ({ title, rows: pageFromLines(title, sheets[id], m.ruling, elementLabels).rows })),
   }));

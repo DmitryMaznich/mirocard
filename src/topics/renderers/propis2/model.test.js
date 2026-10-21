@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { taskGrid, pageRuling, paperKey, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, mixedSettings, othersDiffer } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
+import { PROPIS2_LADDER, ladderIndex } from "./data.js";
 import { buildGlyphMap } from "./pageTask.js";
 import { rowAtSvgY } from "../propis/PrintPageView.jsx";
 
@@ -482,6 +483,18 @@ describe("«Методика» kits (kits.json, built from the `propis` notebook
     // digits are kept as glyph labels, also before a comma or a full stop
     expect(k.pages[0].rows[0]).toMatchObject({ text: "№1", repeat: "fade" });
     expect(k.pages[21].rows.some((r) => r.text === "Мне №5 лет, а Оле №3.")).toBe(true);
+  });
+  it("the ready notebooks are ONE ladder: every one but the blank ones is a numbered step, in order, methodology sheets interleaved", () => {
+    const rec = record();
+    const labels = new Set([...rec.elements.map((e) => e.id), ...rec.wide.filter((g) => g.kind === "element").map((g) => g.label)]);
+    const all = [...methodNotebooks(rec.wideSheets, labels), ...kits];
+    expect(PROPIS2_LADDER.every((id) => all.some((k) => k.id === id))).toBe(true);
+    const steps = PROPIS2_LADDER.map((id) => all.find((k) => k.id === id));
+    expect(steps.map((k) => k.title.match(/^(\d+)\. /)?.[1])).toEqual(steps.map((_, i) => String(i + 1)));
+    expect(steps.every((k) => k.description?.length > 20)).toBe(true);
+    // the rest are the blank notebooks, after the ladder
+    expect(all.filter((k) => !PROPIS2_LADDER.includes(k.id)).every((k) => k.id.startsWith("blank-"))).toBe(true);
+    expect(ladderIndex("blank-narrow")).toBe(PROPIS2_LADDER.length);
   });
   it("letters in alphabet order: one page per letter, all 33 letters in order, the capital where there is a glyph for it", () => {
     const pages = kits.filter((k) => k.id.startsWith("alphabet-")).flatMap((k) => k.pages);
