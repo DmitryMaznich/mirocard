@@ -34,11 +34,18 @@ it("opens with the saved selection: verbs switched off stay off", async () => {
   expect(mocks.persist).toHaveBeenCalledWith("kid", "verbs", expect.objectContaining({ selectedConceptIds: ["eats", "sits"] }));
 });
 
-it("«Выбрать только» keeps exactly the chosen set", async () => {
+it("tapping a set chooses exactly that set; «Все» keeps the choice", async () => {
   await open(["eats", "drinks", "sits", "gives"]);
-  expect(button("Выбрать только: Набор 2")).toBeUndefined();
   await act(async () => button("Набор 2").click());
-  await act(async () => button("Выбрать только: Набор 2").click());
+  expect(confirmButton().textContent).toBe("Подтвердить (2)");
+  await act(async () => button("Все").click());
+  expect(confirmButton().textContent).toBe("Подтвердить (2)");
   await act(async () => confirmButton().click());
   expect(mocks.persist.mock.calls[0][2].selectedConceptIds.sort()).toEqual(["gives", "sits"]);
+});
+
+it("opens on the set that was saved", async () => {
+  await open(["eats", "drinks"]);
+  expect(button("Набор 1").className).toContain("group-filter-btn--active");
+  expect(host.querySelectorAll(".concept-grid > *")).toHaveLength(2);
 });

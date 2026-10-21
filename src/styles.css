@@ -14928,10 +14928,6 @@ kbd {
   border-color: #4a9b8f;
   color: #fff;
 }
-.concept-group-only {
-  padding: 8px 12px 0;
-  flex-shrink: 0;
-}
 
 /* ─── History ────────────────────────────────────────────────────────────── */
 .history-list { list-style: none; margin: 0; padding: 12px; display: flex; flex-direction: column; gap: 8px; }

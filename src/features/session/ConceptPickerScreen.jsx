@@ -66,7 +66,21 @@ export default function ConceptPickerScreen() {
   const saved = savedIds ? savedIds.filter((id) => allIds.includes(id)) : allIds;
 
   const [selected, setSelected]   = useState(new Set(saved));
-  const [activeGroup, setActiveGroup] = useState(null);
+  const groupIds = (gid) => concepts.filter((c) => c.primary?.group === gid).map((c) => c.conceptId);
+  // Opened on a saved selection that is exactly one group: show that group.
+  const [activeGroup, setActiveGroup] = useState(() => availableGroups.find((gid) => {
+    const ids = groupIds(gid);
+    return ids.length > 0 && ids.length === saved.length && ids.every((id) => saved.includes(id));
+  }) ?? null);
+
+  // A group chip is a choice, not just a view: the adult taps «Набор 2» and
+  // expects the lesson to be that set (the chips used to only hide the other
+  // concepts while every one stayed selected). «Все» shows everything and
+  // keeps the selection, so single concepts can still be added or removed.
+  function pickGroup(gid) {
+    setActiveGroup(gid);
+    setSelected(new Set(groupIds(gid)));
+  }
 
   const filteredConcepts = activeGroup
     ? concepts.filter((c) => c.primary?.group === activeGroup)
@@ -86,9 +100,6 @@ export default function ConceptPickerScreen() {
 
   function selectAll()  {
     setSelected((s) => new Set([...s, ...filteredConcepts.map((c) => c.conceptId)]));
-  }
-  function selectOnlyGroup() {
-    setSelected(new Set(filteredConcepts.map((c) => c.conceptId)));
   }
   function selectNone() {
     const ids = new Set(filteredConcepts.map((c) => c.conceptId));
@@ -123,18 +134,11 @@ export default function ConceptPickerScreen() {
             <button
               key={gid}
               className={`group-filter-btn${activeGroup === gid ? " group-filter-btn--active" : ""}`}
-              onClick={() => setActiveGroup(gid)}
+              onClick={() => pickGroup(gid)}
             >
               {groupMeta[gid]?.ru ?? gid}
             </button>
           ))}
-        </div>
-      )}
-      {activeGroup && (
-        <div className="concept-group-only">
-          <button className="link-btn" onClick={selectOnlyGroup}>
-            {tr("setup.onlyThisGroup", { group: groupMeta[activeGroup]?.ru ?? activeGroup })}
-          </button>
         </div>
       )}
 
