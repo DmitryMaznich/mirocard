@@ -1,7 +1,9 @@
 {
   "eats": {
     "text": "Ест.",
-    "model": "eleven_v4"
+    "model": "eleven_v4",
+    "direction": "[calm, clear, like a teacher dictating to a class, a crisp hard T at the end, not soft]",
+    "note": "2026-10-21: re-recorded, the old take sounded like «есть»"
   },
   "vacuums": {
     "text": "Пылесосит.",

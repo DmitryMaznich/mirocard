@@ -5,7 +5,7 @@
       "ru": "Глаголы",
       "en": "verbs_v2"
     },
-    "version": "2.4.2",
+    "version": "2.4.3",
     "renderer": "flashcards",
     "conceptCount": 44,
     "questionKey": "Что делает?",
