@@ -490,7 +490,7 @@ describe("«Методика» kits (kits.json, built from the `propis` notebook
     expect(a.title).toBe("А а");
     expect(a.rows.map((r) => r.repeat)).toEqual(["fade", "fade", "all", "all", "one", "one", "one", "one", "fade", "fade", "all", "all", "one", "one", "one", "one", "one"]);
     expect(a.rows[8].text).toBe("А");
-    expect(a.rows.at(-1)).toMatchObject({ text: "А  а", dots: "all", gap: 2 });
+    expect(a.rows.at(-1)).toMatchObject({ text: "А а", dots: "all", gap: 2, even: true });
     for (const L of "ёйъыь") expect(pages.find((p) => p.title === L).rows.every((r) => r.text === L), L).toBe(true); // no capital glyph
     for (const k of kits.filter((x) => x.id.startsWith("alphabet-"))) expect(k.pages.length).toBeLessThanOrEqual(24); // prints as a booklet
   });
@@ -507,7 +507,7 @@ describe("«Методика» kits (kits.json, built from the `propis` notebook
     const first = kits[0].pages;
     expect(first[0].title).toContain("И и"); // a pair: the capital first, then the lowercase
     expect(first[0].rows[0]).toMatchObject({ text: "и", repeat: "fade" });
-    expect(first[0].rows[3]).toMatchObject({ text: "И  и", asText: false, gap: 2 });
+    expect(first[0].rows[3]).toMatchObject({ text: "И и", asText: false, gap: 2, even: true });
     expect(first[1].rows[0]).toMatchObject({ text: "и", repeat: "one", dots: "one" });
     const last = kits[1].pages.at(-1);
     expect(last.rows.every((r) => !/[ЁЙЫ]/.test(r.text))).toBe(true); // no capital glyph for those: lowercase only
@@ -545,6 +545,20 @@ describe("pairs «Аа»: capital first, a gap inside the pair, a bigger one bet
     // within a pair the same distance, the next pair starts 2 cells (30 units at the narrow scale) later each time
     expect(apart[1] - apart[0]).toBeCloseTo(plain[1] - plain[0], 0);
     expect(apart[2] - apart[1]).toBeGreaterThan(plain[2] - plain[1] + 20);
+  });
+  it("kit pairs are evenly spaced (`even` -> #v): the lowercase stands as far from a wide capital as from a narrow one", () => {
+    expect(rowToLine(newRow({ text: "Г г", repeat: "fade", gap: 2, even: true }))).toBe("Г г#f#g2#v");
+    const w = (line) => layoutWideLinesIntoRows([line], map, undefined, false, 0.5).placed[0].segments[0].width;
+    // ink gap inside the pair, up to a constant (the left pad): pair width − capital width − lowercase width
+    const gap = (U, l, flags) => w(`${U} ${l}${flags}`) - w(`${U}${flags}`) - w(`${l}${flags}`);
+    const spread = (flags) => { const g = ["Ии", "Гг", "Бб", "Дд", "Жж", "Фф", "Яя"].map(([U, l]) => gap(U, l, flags)); return Math.max(...g) - Math.min(...g); };
+    expect(spread("#1#c")).toBeGreaterThan(8); // counted in slant cells: Г г a whole cell wider than И и (the bug)
+    expect(spread("#1#c#v")).toBeLessThan(0.5);
+    // a pair row of a kit keeps the same gap in every copy across the row
+    const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
+    const pairs = kits.flatMap((k) => k.pages.flatMap((pg) => pg.rows)).filter((r) => /^\p{Lu} \p{Ll}$/u.test(r.text));
+    expect(pairs.length).toBeGreaterThan(100);
+    expect(pairs.every((r) => r.even)).toBe(true);
   });
 });
 

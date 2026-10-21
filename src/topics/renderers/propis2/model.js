@@ -213,6 +213,9 @@ export function rowToLine(row) {
   if (copies === "solid") flags.push("s");
   // `gap`: extra cells between the repeated units of the row (a kit's pairs «Аа»: the pair is told from the next one)
   if (Number(row?.gap) > 0 && (repeat === "all" || repeat === "fade" || dots === "all")) flags.push(`g${Math.min(8, Math.floor(row.gap))}`);
+  // `even`: the symbols stand a fixed gap after each other's ink, off the slant grid (wordEngine `#v`, as the alphabet on the cover's
+  // back): a kit's pairs «Г г» — counted in cells from the capital's start, a wide capital pushed its lowercase a whole cell further
+  if (row?.even) flags.push("v");
   return `${text}${flags.map((f) => `#${f}`).join("")}`;
 }
 

@@ -1548,7 +1548,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       const rowOf = (n) => Array.from({ length: n }, (_, k) => (k && gap ? [`_${gap}`, ...unit] : unit)).flat().join(" ");
       // how many units fit. A probe is a whole layout, so estimate from the pitch of two copies and check the neighbours
       // (the width only grows with the count)
-      const widthOf = (n) => layoutWideLinesIntoRowsRu([rowOf(n)], glyphsByLabel, rowSnap(rowIndex), false, scale, WIDE_ROW_MAX_X).placed[0].segments[0]?.width ?? 0;
+      const widthOf = (n) => layoutWideLinesIntoRowsRu([`${rowOf(n)}${evens[rowIndex] ? "#v" : ""}`], glyphsByLabel, rowSnap(rowIndex), false, scale, WIDE_ROW_MAX_X).placed[0].segments[0]?.width ?? 0;
       const memo = new Map();
       const fits = (n) => { if (!memo.has(n)) memo.set(n, widthOf(n) <= maxX); return memo.get(n); };
       const start = Math.max(1, toks.length / unit.length); // the row as typed is taken as fitting

@@ -24,18 +24,28 @@ HAVE = {g["label"] for g in wide["glyphs"]} | {a for g in wide["glyphs"] for a i
 PAGE = {"ruling": "narrow", "grid": "regular", "gridKind": "propis", "margin": "left", "format": "a5", "midDash": True}
 
 
-def row(text, repeat="all", dots="all", as_text=None, kind="text", gap=None):
+def row(text, repeat="all", dots="all", as_text=None, kind="text", gap=None, even=False):
     r = {"text": text, "kind": kind, "repeat": repeat, "dots": dots, "copies": "dash"}
     if as_text is not None:
         r["asText"] = as_text
     if gap:
         r["gap"] = gap
+    if even:
+        r["even"] = True
     return r
 
 
-def sample(text, repeat="one", gap=None):
+def sample(text, repeat="one", gap=None, even=False):
     """A row of the independent-practice pages: the model once at the start, the rest of the row is the child's."""
-    return row(text, repeat=repeat, dots="one", as_text=False, gap=gap)
+    return row(text, repeat=repeat, dots="one", as_text=False, gap=gap, even=even)
+
+
+def pair(upper, lower, repeat="fade", dots="all"):
+    """A pair «Аа»: the capital FIRST, then the lowercase (there is no connection in front of a capital, and the lowercase must not
+    run into it), the next pair 2 cells further off. `even` (model.js, wordEngine `#v`): every letter a fixed gap after the ink of
+    the one before, as the alphabet on the cover's back. Counted in slant cells from the capital's start instead, a wide capital
+    (Г Б Д Ж Ф …) pushed its lowercase a whole cell further than И did its и (owner, 2026-10-21)."""
+    return row(f"{upper} {lower}", repeat, dots, as_text=False, gap=2, even=True)
 
 
 def chunks(rows, n=ROWS):
@@ -68,16 +78,13 @@ def letter_pages(notebook):
     for group in lg.notebook_groups(notebook):
         for lower, upper in group["letters"]:
             up = upper if upper and upper in HAVE else None
-            # a pair is the capital FIRST, then the lowercase, with a gap between them (there is no connection in front of a capital, and a
-            # lowercase letter must not run into it); the next pair stands further off than the letters of one pair
-            pair = f"{up}  {lower}" if up else None
-            base = [row(lower, "fade"), row(lower, "fade")] + ([row(up, "fade"), row(pair, "fade", as_text=False, gap=2), row(pair, "fade", as_text=False, gap=2)] if up else [])
+            base = [row(lower, "fade"), row(lower, "fade")] + ([row(up, "fade"), pair(up, lower), pair(up, lower)] if up else [])
             reps = -(-ROWS // len(base))
             title = f"{up} {lower}" if up else lower
             out.append(page(f"{title} — с образцом", (base * reps)[:ROWS]))
             if up:
                 n_lower, n_upper = round(ROWS * 0.3), round(ROWS * 0.3)
-                rows = [sample(lower)] * n_lower + [sample(up)] * n_upper + [sample(pair, gap=2)] * (ROWS - n_lower - n_upper)
+                rows = [sample(lower)] * n_lower + [sample(up)] * n_upper + [pair(up, lower, "one", "one")] * (ROWS - n_lower - n_upper)
             else:
                 rows = [sample(lower)] * ROWS
             out.append(page(f"{title} — самостоятельно", rows))
@@ -107,7 +114,7 @@ def alphabet_page(lower):
     upper = lower.upper()
     if upper not in HAVE:
         return page(lower, ladder(lower, ROWS))
-    return page(f"{upper} {lower}", ladder(lower, 8) + ladder(upper, 8) + [row(f"{upper}  {lower}", "one", "all", as_text=False, gap=2)])
+    return page(f"{upper} {lower}", ladder(lower, 8) + ladder(upper, 8) + [pair(upper, lower, "one", "all")])
 
 
 for kid, part, letters in (("alphabet-1", "А–О", ALPHABET[:ALPHABET.index("о") + 1]), ("alphabet-2", "П–Я", ALPHABET[ALPHABET.index("п"):])):
