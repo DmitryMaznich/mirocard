@@ -441,7 +441,7 @@ describe("long text wraps by the grid the page is drawn with", () => {
 describe("«Методика» kits (kits.json, built from the `propis` notebooks' content lists)", () => {
   const kits = JSON.parse(readFileSync("src/topics/renderers/propis2/kits.json", "utf-8")).kits;
   it("the notebooks are there, every page fits one page and every letter has a glyph", () => {
-    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "syllables", "words-1", "words-2", "texts", "digits", "blank-narrow", "blank-wide", "blank-square", "blank-ruled"]);
+    expect(kits.map((k) => k.id)).toEqual(["letters-1", "letters-2", "alphabet-1", "alphabet-2", "syllables", "words-1", "words-2", "texts", "digits", "punctuation", "blank-narrow", "blank-wide", "blank-dense", "blank-square", "blank-ruled"]);
     for (const k of kits) {
       expect(k.pages.length, k.id).toBeGreaterThan(5);
       for (const pg of k.pages) {
@@ -450,8 +450,8 @@ describe("«Методика» kits (kits.json, built from the `propis` notebook
       }
     }
   });
-  it("the blank notebooks: 12 leaves (24 pages) of empty rows, a whole page each: copybook narrow / wide, squared, ruled", () => {
-    for (const [id, grid] of [["blank-narrow", "regular"], ["blank-wide", "regular"], ["blank-square", "square"], ["blank-ruled", "ruled"]]) {
+  it("the blank notebooks: 12 leaves (24 pages) of empty rows, a whole page each: copybook narrow / wide / frequent slants, squared, ruled", () => {
+    for (const [id, grid] of [["blank-narrow", "regular"], ["blank-wide", "regular"], ["blank-dense", "dense"], ["blank-square", "square"], ["blank-ruled", "ruled"]]) {
       const k = kits.find((x) => x.id === id);
       expect(k.pages).toHaveLength(24);
       expect(taskGrid(k.page)).toBe(grid);
@@ -482,6 +482,26 @@ describe("«Методика» kits (kits.json, built from the `propis` notebook
     // digits are kept as glyph labels, also before a comma or a full stop
     expect(k.pages[0].rows[0]).toMatchObject({ text: "№1", repeat: "fade" });
     expect(k.pages[21].rows.some((r) => r.text === "Мне №5 лет, а Оле №3.")).toBe(true);
+  });
+  it("letters in alphabet order: one page per letter, all 33 letters in order, the capital where there is a glyph for it", () => {
+    const pages = kits.filter((k) => k.id.startsWith("alphabet-")).flatMap((k) => k.pages);
+    expect(pages.map((p) => p.title.split(" ").at(-1)).join("")).toBe("абвгдеёжзийклмнопрстуфхцчшщъыьэюя");
+    const a = pages[0];
+    expect(a.title).toBe("А а");
+    expect(a.rows.map((r) => r.repeat)).toEqual(["fade", "fade", "all", "all", "one", "one", "one", "one", "fade", "fade", "all", "all", "one", "one", "one", "one", "one"]);
+    expect(a.rows[8].text).toBe("А");
+    expect(a.rows.at(-1)).toMatchObject({ text: "А  а", dots: "all", gap: 2 });
+    for (const L of "ёйъыь") expect(pages.find((p) => p.title === L).rows.every((r) => r.text === L), L).toBe(true); // no capital glyph
+    for (const k of kits.filter((x) => x.id.startsWith("alphabet-"))) expect(k.pages.length).toBeLessThanOrEqual(24); // prints as a booklet
+  });
+  it("the punctuation kit: the 24 pages of the printed workbook, the rhythm pages on the frequent slants", () => {
+    const k = kits.find((x) => x.id === "punctuation");
+    expect(k.pages).toHaveLength(24);
+    const { pages } = kitToLibraryItems(k);
+    expect(pages.map((p, i) => (p.grid === "dense" ? i + 1 : 0)).filter(Boolean)).toEqual([1, 2, 3, 8, 9, 10, 13, 14]);
+    expect(k.pages[0].rows[1]).toMatchObject({ text: ".", repeat: "all", dots: "none" }); // no start dot on top of a full stop
+    expect(k.pages[5].rows.slice(0, 2).map((r) => r.kind)).toEqual(["text", "blank"]); // model, then the row to copy it into
+    expect(k.pages.flatMap((p) => p.rows).some((r) => r.text === "Где мяч? Вот он, Оля!")).toBe(true);
   });
   it("letter pages: practice with fading copies, then independent writing with a sample at the start", () => {
     const first = kits[0].pages;

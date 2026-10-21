@@ -88,6 +88,32 @@ kits = []
 for nb, name in ((lg.NOTEBOOKS[0], "часть 1 (простые формы)"), (lg.NOTEBOOKS[1], "часть 2 (сложные формы)")):
     kits.append(kit(f"letters-{nb['id']}", f"Прописи — {name}", "Для каждой буквы две страницы: с образцом и повторами, затем самостоятельно. Строчная и заглавная.", letter_pages(nb)))
 
+
+# ---- letters in alphabet order (owner, 2026-10-21: «просто буквы для отработки»): one page per letter, from tracing to writing alone ----
+# The two parts above go by letter shape and give a letter two pages; these are plain practice in the order of the alphabet, the
+# whole page one letter: the lowercase (fading copies, the row to trace, start dots, the model alone), then the capital the same way,
+# a pair row at the bottom. No capital glyph (Ё Й, and Ъ Ы Ь have none) -> the whole page is the lowercase.
+ALPHABET = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+
+
+def ladder(t, n):
+    """n rows of one letter, help shrinking down the page: fading copies, copies across the row, start dots only, the model alone."""
+    steps = [row(t, "fade"), row(t, "all", gap=1), row(t, "one", "all", as_text=False, gap=1), sample(t)]
+    shares = {8: (2, 2, 3, 1), ROWS: (3, 4, 7, 3)}[n]
+    return [s for s, k in zip(steps, shares) for _ in range(k)]
+
+
+def alphabet_page(lower):
+    upper = lower.upper()
+    if upper not in HAVE:
+        return page(lower, ladder(lower, ROWS))
+    return page(f"{upper} {lower}", ladder(lower, 8) + ladder(upper, 8) + [row(f"{upper}  {lower}", "one", "all", as_text=False, gap=2)])
+
+
+for kid, part, letters in (("alphabet-1", "А–О", ALPHABET[:ALPHABET.index("о") + 1]), ("alphabet-2", "П–Я", ALPHABET[ALPHABET.index("п"):])):
+    kits.append(kit(kid, f"Буквы по алфавиту, {part}", f"Буквы {part} по порядку, по странице на букву: строчная и заглавная — с затухающими копиями, обводка по строке, по точкам начала и самостоятельно.",
+                    [alphabet_page(ch) for ch in letters]))
+
 # ---- syllables: 160 pairs, three rows each, the model once at the start of a row ------------------------------------------------
 syl_rows = [sample(c + v) for c, v in syllables.all_pairs() for _ in range(syllables.ROWS_PER_SYLLABLE)]
 kits.append(kit("syllables", "Прописи — соединения букв", "Слоги: согласная и гласная а, о, и, е, строчные и с заглавной согласной. По три строки на слог.",
@@ -247,6 +273,138 @@ digits_kit = kit("digits", "Прописи — цифры", "Цифры по о�
 digits_kit["page"] = SQUARE
 kits.append(digits_kit)
 
+# ---- punctuation: the punctuation workbook (scripts/punctuation_workbook, the printed «Прописи — знаки препинания»), page for page ---
+# The same 24 pages and the same order: a mark alone on the frequent slants (rhythm pages), the mark after a letter and after a word,
+# in lists, in sentences, copying under a model and from a distance. What the constructor has no row for is simplified as in the
+# digits kit: a printed row of DIFFERENT items to trace («а, Б, в, …») is one item per row with its copies across the row; the
+# «grow a dot into the mark» page (p18) is the same sequences with fading copies.
+sys.path.insert(0, str(ROOT / "scripts" / "punctuation_workbook"))
+import random  # noqa: E402
+
+import pages as pw  # noqa: E402
+
+DENSE = {**PAGE, "grid": "dense"}
+
+
+def pw_page(title, rows, dense=False):
+    assert len(rows) <= ROWS, (title, len(rows))
+    p = page(title, rows)
+    if dense:
+        p["paper"] = DENSE
+    return p
+
+
+def mark(t, repeat="all", gap=None):
+    """A mark (or a short group of marks: «. .», «,.,») across the row; `gap` = extra cells between the copies."""
+    return row(t, repeat, "none", as_text=False, gap=gap)  # a start dot would sit right on a full stop and hide it
+
+
+def gap(group):
+    return 5 if " " in group else 3  # spaced marks: the group must stand clearly apart from the next one
+
+
+def rhythm_marks(title, one, groups):
+    """A rhythm page: the mark wide apart, then close, then groups of marks, then a model with fading copies (the printed page's
+    four blocks of four rows), the name of the mark as a model at the top."""
+    rows = [row(title, "one", "none", as_text=False)]
+    rows += [mark(one, gap=3)] * 4 + [mark(one, gap=1)] * 4
+    rows += [mark(g, gap=gap(g)) for g in (groups * 4)[:4]]
+    rows += [mark(g, "fade", gap=gap(g)) for g in (([one] + groups) * 4)[:4]]
+    return rows
+
+
+def items_rows(items, seed):
+    """One item per row with its copies across the row, a different item opening every row (the printed chain rows)."""
+    rng = random.Random(seed)
+    items = items[:]
+    rng.shuffle(items)
+    return [mark(items[i % len(items)], gap=2) for i in range(ROWS)]
+
+
+def ok(t):
+    return not missing(t)
+
+
+def letters_with_comma(seed):
+    rng = random.Random(seed)
+    out = []
+    for ch in pw.LETTERS:
+        up = ch.upper()
+        out.append(f"{up if up in HAVE and rng.random() < 0.5 else ch},")
+    return out
+
+
+def copy_rows(models, seed):
+    """Model + an empty row under it, eight times; the 17th row is a letter with a comma (the printed copy pages)."""
+    rows = []
+    for m in models:
+        rows += [model(m), blank()]
+    return rows + [mark(letters_with_comma(seed)[seed % len(pw.LETTERS)], gap=2)]
+
+
+def distance_rows(models, seed):
+    """All models at the top, the rows to write them into below (copying from a distance); what is left over: a word with a mark."""
+    rows = [model(m) for m in models] + [blank()] * len(models)
+    rng = random.Random(seed)
+    words = pw.SHORT_WORDS[:]
+    rng.shuffle(words)
+    while len(rows) < ROWS:
+        w = words[len(rows) % len(words)]
+        m = rng.choice(".,?!")
+        rows.append(mark((w.capitalize() if m != "," else w) + m, gap=2))
+    return rows
+
+
+def seq_rows(seqs, tail):
+    """The printed «grow the dot into the mark» page: a sequence of marks to continue along the row. The printed dots (the part every
+    mark shares) do not exist here, and start dots under every mark crowd the row: the model with copies fading out, the child goes on."""
+    return [mark(s, "fade", gap=gap(s)) for s in (seqs + tail * ROWS)[:ROWS]]
+
+
+def sp(group):
+    """A printed group of marks two cells apart: «.,» -> «. ,» (a group written as in a text, «!!» «!!!», is given as it is)."""
+    return " ".join(group)
+
+
+P = []
+P.append(pw_page("Точка", rhythm_marks("Точка", ".", [sp("..")]), dense=True))
+P.append(pw_page("Запятая", rhythm_marks("Запятая", ",", [sp(",,")]), dense=True))
+P.append(pw_page("Точка и запятая", rhythm_marks("Точка и запятая", sp(".,"), [sp(s) for s in (".,,.", ",.,.", "..,,", ",..,")]), dense=True))
+P.append(pw_page("Буква и запятая", items_rows([x for x in letters_with_comma(4) if ok(x)], 4)))
+P.append(pw_page("Слово и запятая", items_rows([w + "," for w in pw.SHORT_WORDS], 5)))
+P.append(pw_page("Перечисление", copy_rows(["хлеб, сыр, сок, чай", "кот, пёс, мышь, ёж", "мама, папа, я, Оля", "рыба, рак, кит, сом",
+                                             "шар, мяч, кукла, юла", "дом, сад, лес, луг", "суп, каша, чай, торт", "зима, весна, лето, осень"], 6)))
+P.append(pw_page("Перечисление в предложении", copy_rows(["Я взял хлеб, сыр и сок.", "Тут кот, пёс и ёж.", "Вот лук, мак и мёд.", "Там лес, луг и сад.",
+                                                           "Я ем суп, кашу и сыр.", "Там рыба, рак и кит.", "Я вижу дом, сад и лес.", "У Оли мяч, шар и кот."], 7)))
+P.append(pw_page("Запятая и точка", rhythm_marks("Запятая и точка", ",", [sp(s) for s in (",,.", ".,,", ",.,", ",,,")]), dense=True))
+P.append(pw_page("Восклицательный знак", rhythm_marks("Ура!", "!", ["!!", "!!!"]), dense=True))
+P.append(pw_page("Точка и !", rhythm_marks("Точка и !", sp(".!,"), [sp(s) for s in (".!,", "!,.", ",.!", "!.,")]), dense=True))
+P.append(pw_page("Слово и !", items_rows(pw.EXCLAMATIONS, 11)))
+P.append(pw_page("Предложения с !", copy_rows(["Какой большой кот!", "Какой чудесный день!", "Какой добрый пёс!", "Тише, тут спят!", "Стой, тут лужа!",
+                                                "Мама, иди сюда!", "Смотри, радуга!", "Папа, лови мяч!"], 12)))
+P.append(pw_page("Вопросительный знак", rhythm_marks("Кто?", "?", [sp("??"), sp("?!")]), dense=True))
+P.append(pw_page("? и !", rhythm_marks("Где? Ура!", sp("?!"), [sp(s) for s in ("?!.", "!?,", ".?!", ",!?")]), dense=True))
+P.append(pw_page("Слово и ?", items_rows(pw.QUESTIONS, 15)))
+P.append(pw_page("Вопросы", copy_rows(["Кто там стучит?", "Где лежит книга?", "Почему небо синее?", "Когда будет обед?", "Ты любишь кашу?",
+                                        "Куда идёт папа?", "Что ты рисуешь?", "Кто съел торт?"], 16)))
+P.append(pw_page(". ? !", copy_rows(["Да. Да? Да!", "Нет. Нет? Нет!", "Кот. Кот? Кот!", "Иди. Иди? Иди!", "Это кот. Это кот?", "Он спит. Он спит!",
+                                     "Мы тут. Мы тут?", "Снег идёт. Снег идёт!"], 17)))
+P.append(pw_page("Ряды знаков", seq_rows(["  ".join(s) for s in [",", "!", "?", ",", ",!", "?,", "!?", ".,", "?!", ",!?.", "?.,!", "!,.?", ".?!,"]],
+                                          ["  ".join(s) for s in (",!?.", "!.,?", "?,.!", ".!?,")])))
+P.append(pw_page("Запятая, ? и !", copy_rows(["Смотри, какой дом!", "Где хлеб, сыр и сок?", "Коля, иди обедать!", "Аня, где мой мяч?", "Ах, какая роза!",
+                                              "Мама, можно сок?", "Ой, какой ёжик!", "Бабушка, ты где?"], 19)))
+P.append(pw_page("Списываем 1", copy_rows(["Кто там? Это я.", "Где кот? Вот он!", "Мама, ты где? Я тут.", "Ура! Снег идёт.", "Что это? Это ёж.",
+                                           "Ой, дождь! Беги домой.", "Папа, ты дома? Да.", "Тише! Малыш спит."], 20)))
+P.append(pw_page("Списываем 2", copy_rows(["Можно сок? Можно.", "Где мяч? Он там.", "Кто это? Это Оля.", "Ты рад? Очень!", "Аня, ты где? Иди есть!",
+                                           "Где книга? Вот она.", "Стой! Там лужа.", "Кто пришёл? Бабушка!"], 21)))
+P.append(pw_page("По памяти 1", distance_rows(["Оля, ты где? Я тут!", "Ой, снег! Ура, зима!", "Кто там? Папа, ты?", "Где кот? Вон, на окне.",
+                                               "Кто там? Это я, Оля.", "Где сыр? Вот, на столе."], 22)))
+P.append(pw_page("По памяти 2", distance_rows(["Ваня, стой! Там лужа.", "Ура! Мы едем в лес.", "Мама, где сок? Вот он.", "Ой, дождь! Беги, Оля!",
+                                               "Кто это? Это я, Витя.", "Смотри, птица! Где?", "Ты рад? Да, очень!"], 23)))
+P.append(pw_page("По памяти 3", distance_rows(["Ура, снег! Бежим, Оля!", "Ой, какой кот! Чей он?", "Лови мяч, Оля! Лови!", "Кто съел торт? Не я!",
+                                               "Мы ели суп, кашу и сыр.", "Ура! Снег, горка, санки!", "Где мяч? Вот он, Оля!", "Кто там? Это я, мама."], 24)))
+kits.append(kit("punctuation", "Прописи — знаки препинания", "Точка, запятая, ! и ?: отдельный знак на частой косой (ритм по наклонным), знак после буквы и слова, перечисление, предложения, списывание под образцом и по памяти. Как печатная тетрадь «Прописи — знаки препинания».", P))
+
 # Blank copybooks (owner, 2026-10-14: «пустографки»): 12 notebook leaves = 24 pages of the copybook ruling, nothing written, the red
 # margin as in the printed notebooks; one on the narrow row, one on the wide. Printed with any cover, «По порядку» or «Тетрадью».
 BLANK_LEAVES = 12
@@ -256,6 +414,13 @@ for kid, ruling, name, rows in (("blank-narrow", "narrow", "узкая стро�
     blank_kit["group"] = "Чистые тетради"
     blank_kit["page"] = {**PAGE, "ruling": ruling}
     kits.append(blank_kit)
+# the frequent slants (owner, 2026-10-21: the `propis` «Тетрадь — плотная косая», 3 mm slants, had no blank notebook here): the
+# editor's «Частая» slants on the narrow row (2.5 mm, the letters' own cell)
+blank_kit = kit("blank-dense", "Пропись — частая косая", f"Чистая тетрадь на {BLANK_LEAVES} листов: {BLANK_LEAVES * 2} страницы узкой строки с частыми косыми линиями (через 2,5 мм) без образцов.",
+                [page(f"Стр. {i + 1}", [blank()] * ROWS) for i in range(BLANK_LEAVES * 2)])
+blank_kit["group"] = "Чистые тетради"
+blank_kit["page"] = DENSE
+kits.append(blank_kit)
 # and the plain school papers (owner, 2026-10-14), the same paper as «Клетка» / «Линейка» in the editor; ruled paper has its own
 # rows: a line every 8 mm, 24 on an A5 page (PrintPageView OWN_ROWS)
 RULED_ROWS = 24
