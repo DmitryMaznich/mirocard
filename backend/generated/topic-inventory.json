@@ -125,7 +125,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
+      "sourceUpdatedAt": "2026-10-21T04:42:12+00:00"
     },
     {
       "id": "column_addition",
@@ -340,7 +340,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
+      "sourceUpdatedAt": "2026-10-21T04:42:12+00:00"
     },
     {
       "id": "feel_sick",
@@ -610,7 +610,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-16T17:33:03+00:00"
+      "sourceUpdatedAt": "2026-10-20T21:26:22+00:00"
     },
     {
       "id": "opposites",
@@ -687,7 +687,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
+      "sourceUpdatedAt": "2026-10-21T04:42:12+00:00"
     },
     {
       "id": "phonetic_analysis",
@@ -846,7 +846,7 @@
         "status": "archived",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-15T18:13:28+00:00"
+      "sourceUpdatedAt": "2026-10-20T16:08:08+00:00"
     },
     {
       "id": "propis2",
@@ -883,7 +883,43 @@
         "status": "release",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-19T16:25:59+00:00"
+      "sourceUpdatedAt": "2026-10-20T18:02:39+00:00"
+    },
+    {
+      "id": "propis2_bg",
+      "title": "Български прописи",
+      "version": "0.5.4",
+      "renderer": "propis2",
+      "sources": [
+        "public/decks/propis2_bg_v0.5.4.zip",
+        "src/topics/renderers/propis2"
+      ],
+      "bundle": {
+        "version": "0.5.4",
+        "url": "./decks/propis2_bg_v0.5.4.zip",
+        "title": "Български прописи",
+        "description": "Конструктор тетрадей по письму на болгарской кириллице (30 букв: без Ё, Ы, Э). Взрослый собирает страницы прописей из элементов, букв, слогов, слов, цифр и текстов; ребёнок пишет ручкой на бумаге, а на экране смотрит, как пишется любой образец. Тетради печатаются с обложкой и номерами страниц. Кроме конструктора в теме два режима с заданиями на экране: «Узнай букву» и «Строчная и заглавная».",
+        "renderer": "propis2",
+        "modes": 3,
+        "cards": 1
+      },
+      "builtin": false,
+      "catalogEntry": {
+        "id": "propis2_bg",
+        "version": "0.5.4",
+        "title": {
+          "ru": "Български прописи",
+          "en": "Copybook (Bulgarian Cyrillic)"
+        },
+        "description": {
+          "ru": "Конструктор тетрадей по письму на болгарской кириллице: страницы из элементов, букв, слов, цифр и текстов, показ анимации, печать; режимы «Узнай букву», «Строчная и заглавная».",
+          "en": "Handwriting notebook builder for Bulgarian Cyrillic: pages of elements, letters, words, digits and texts, pen animation, printing; modes: Recognise the letter, Upper and lower case."
+        },
+        "url": "./decks/propis2_bg_v0.5.4.zip",
+        "status": "individual",
+        "access": "paid"
+      },
+      "sourceUpdatedAt": "2026-10-20T18:02:39+00:00"
     },
     {
       "id": "reading_dad_instructions",
@@ -1154,7 +1190,7 @@
         "status": "release",
         "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
+      "sourceUpdatedAt": "2026-10-21T04:42:12+00:00"
     },
     {
       "id": "tools_functions",
@@ -1238,7 +1274,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
+      "sourceUpdatedAt": "2026-10-21T04:42:12+00:00"
     },
     {
       "id": "verbs_v2",
@@ -1280,7 +1316,7 @@
         "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": "2026-10-20T15:10:35+00:00"
+      "sourceUpdatedAt": "2026-10-21T04:42:12+00:00"
     },
     {
       "id": "vowel_consonant_ru",
