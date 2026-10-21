@@ -306,6 +306,7 @@ export function useSessionEngine() {
       topicVersion: topicRecord.meta.version,
       conceptIds: selectedConceptIds,
       languageContext: generatedState.languageContext,
+      params: generatedState.statistics?.conditions?.params,
     }) ?? generatedState;
   });
   const { getActiveDurationMs } = useActiveSessionTimer(
