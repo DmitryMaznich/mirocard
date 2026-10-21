@@ -638,7 +638,7 @@ function PointPhoto({ choice, topicId, state, disabled, onChoose }) {
 // photo fades, the right one is lit up and named ("Вот мама"), and only it
 // stays tappable -- the child finishes the trial correctly instead of
 // guessing again. The miss is still recorded.
-function PersonPointTask({ task, topicId, student, soundEnabled, sessionParams, onCorrect, onAdvance, onStreakReset, onCardShown }) {
+function PersonPointTask({ task, topicId, student, soundEnabled, sessionParams, onCorrect, onStreakReset, onCardShown }) {
   const { speak } = useSpeech();
   // `prompted`: the light came on after a pause, not after a miss.
   const fresh = { taskId: task.conceptId, missedId: null, prompted: false, done: false };
@@ -651,9 +651,9 @@ function PersonPointTask({ task, topicId, student, soundEnabled, sessionParams, 
   const currentRef = useRef(current);
   useEffect(() => { currentRef.current = current; });
   // «Подсказка через»: seconds of no answer before the right photo lights
-  // up. Not on the one-photo errorless level -- there is nothing to choose.
+  // up.
   const delaySeconds = Number(sessionParams?.promptDelay ?? 5);
-  const usesDelay = delaySeconds > 0 && !task.errorless;
+  const usesDelay = delaySeconds > 0;
 
   function startDelay() {
     if (delayTimer.current) clearTimeout(delayTimer.current);
@@ -693,11 +693,6 @@ function PersonPointTask({ task, topicId, student, soundEnabled, sessionParams, 
       // for «Кто это?», which asks only about people already met.
       if (task.introduces) markPersonAxisIntroduced(student?.id, task.personId, task.axis).catch(() => {});
       if (soundEnabled) speak(task.correctSpeech ?? `Да, это ${task.word}!`);
-      // One photo, nothing to choose: praise and move on without scoring.
-      if (task.errorless) {
-        advanceTimer.current = setTimeout(() => onAdvance?.(), 1400);
-        return;
-      }
       // Found only with help: the same trial comes back a little later,
       // without the light (insertRetryTrial).
       onCorrect?.(task.conceptId, task.personId, { autoAdvance: true, autoAdvanceDelayMs: 1400, retryLater: helped });
@@ -710,8 +705,7 @@ function PersonPointTask({ task, topicId, student, soundEnabled, sessionParams, 
     if (soundEnabled) speak(task.missSpeech ?? `Вот ${task.word}.`);
   }
 
-  const columns = task.choices.length === 4 ? " people-point__photos--grid"
-    : task.choices.length === 1 ? " people-point__photos--single" : "";
+  const columns = task.choices.length === 4 ? " people-point__photos--grid" : "";
   return (
     <div className={`session-body people-point${task.sample ? " people-point--match" : ""}`} aria-label={task.sample ? "Найди такого же" : "Покажи человека"}>
       <div className="people-point__prompt">

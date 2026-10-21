@@ -138,8 +138,7 @@ const showMeMode = {
     fieldSize: {
       type: "enum",
       label: { ru: "Фото на экране" },
-      values: [1, 2, 3, 4],
-      labels: { ru: { 1: "1 · без выбора" } },
+      values: [2, 3, 4],
       default: 2,
     },
     promptDelay: promptDelayParam,

@@ -281,7 +281,7 @@ function aboutMeQuestionTasks(student, params, round, history) {
 // without it, the kin word for close family (mama, not "Анна") and the
 // name for everyone else and for pets.
 const KIN_WORDS = new Set(["мама", "папа", "бабушка", "дедушка", "брат", "сестра", "тётя", "тетя", "дядя"]);
-const POINT_FIELD_SIZES = [1, 2, 3, 4];
+const POINT_FIELD_SIZES = [2, 3, 4];
 export const MIN_POINT_TRIALS_PER_ROUND = 6;
 export const MAX_POINT_TRIALS_PER_ROUND = 8;
 
@@ -319,9 +319,6 @@ function pointTasks(people, params, photoPlanner, sessionIntroduced = {}, round 
   const targets = pool.length >= 2 ? pool : people;
   const requested = Number(params?.fieldSize);
   const fieldSize = Math.min(POINT_FIELD_SIZES.includes(requested) ? requested : 2, people.length);
-  // One photo on screen: the errorless entry level ("Где мама?" -- the only
-  // photo is mum). Nothing to choose, so nothing is scored either.
-  const errorless = fieldSize === 1;
 
   const positions = [];
   return pointTargetSequence(targets).map((target, trialIndex) => {
@@ -338,9 +335,8 @@ function pointTasks(people, params, photoPlanner, sessionIntroduced = {}, round 
       type: "person_point",
       conceptId,
       targetConceptId: conceptId,
-      progressConceptIds: errorless ? [] : [conceptId],
+      progressConceptIds: [conceptId],
       trialIndex,
-      errorless,
       personId: target.id,
       word,
       axis: pointAxis(target, word),
@@ -352,7 +348,7 @@ function pointTasks(people, params, photoPlanner, sessionIntroduced = {}, round 
         image: photoPlanner.imageFor(person, "point", person.id === target.id),
       })),
     };
-  }).filter((task) => task.choices.length >= (errorless ? 1 : 2));
+  }).filter((task) => task.choices.length >= 2);
 }
 
 // A round has 6–8 trials however few people there are: with two people one
@@ -772,7 +768,7 @@ const RETRY_TYPES = new Set(["person_point", "person_match"]);
 
 export function insertRetryTrial(tasks, index) {
   const task = tasks?.[index];
-  if (!task || task.retry || !RETRY_TYPES.has(task.type) || task.errorless) return tasks;
+  if (!task || task.retry || !RETRY_TYPES.has(task.type)) return tasks;
   const retry = { ...task, retry: true, introduces: false, choices: reorderChoices(task) };
   const samePersonRun = (list, at) => {
     const ids = list.slice(Math.max(0, at - 2), at + 3).map((item) => item.personId);

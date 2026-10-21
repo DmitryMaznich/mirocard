@@ -538,13 +538,10 @@ describe("«Покажи»", () => {
     }
   });
 
-  it("with one photo on screen is errorless and scores nothing", () => {
-    const tasks = generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 1 });
-    expect(tasks.length).toBeGreaterThan(0);
-    for (const task of tasks) {
-      expect(task.choices).toEqual([expect.objectContaining({ personId: task.personId })]);
-      expect(task.errorless).toBe(true);
-      expect(task.progressConceptIds).toEqual([]);
+  it("treats a saved one-photo field as two", () => {
+    for (const task of generateTasks({ id: "show_me", type: "person_point" }, family, { fieldSize: 1 })) {
+      expect(task.choices).toHaveLength(2);
+      expect(task.progressConceptIds).toEqual([task.conceptId]);
     }
   });
 
@@ -713,10 +710,9 @@ describe("repeat after a helped trial (insertRetryTrial)", () => {
     expect(next.at(-1)).toEqual(expect.objectContaining({ personId: "pavel", retry: true }));
   });
 
-  it("does not repeat a repeat, the errorless level or other task types", () => {
-    const tasks = [trial("anna", { retry: true }), trial("pavel", { errorless: true }), { type: "person_naming", personId: "olga" }];
+  it("does not repeat a repeat or other task types", () => {
+    const tasks = [trial("anna", { retry: true }), { type: "person_naming", personId: "olga" }];
     expect(insertRetryTrial(tasks, 0)).toBe(tasks);
     expect(insertRetryTrial(tasks, 1)).toBe(tasks);
-    expect(insertRetryTrial(tasks, 2)).toBe(tasks);
   });
 });
