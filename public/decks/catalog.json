@@ -92,7 +92,7 @@
     },
     {
       "id": "verbs_v2",
-      "version": "2.4.0",
+      "version": "2.4.1",
       "title": {
         "ru": "Глаголы",
         "en": "Verbs"
@@ -101,7 +101,7 @@
         "ru": "44 глагола в пяти наборах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
         "en": "44 everyday verbs in five sets, from picking a picture by the spoken word to telling similar actions apart. Audio included."
       },
-      "url": "./decks/verbs_v2_v2.4.0.zip",
+      "url": "./decks/verbs_v2_v2.4.1.zip",
       "status": "beta",
       "access": "paid"
     },
