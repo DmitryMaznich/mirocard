@@ -4,7 +4,6 @@
 import { layoutWideLinesIntoRows, WIDE_ZONE_UNITS } from "../propis/wordEngine.js";
 import { samplePath } from "../propis/pathGeometry.js";
 import { NATIVE_L3, TEXT_ROW_THIN_OFFSET } from "../propis/propisRuling.js";
-import { LETTER_DATA } from "../propis/letters/letterData.js";
 
 const ROW_BASELINE = NATIVE_L3 - TEXT_ROW_THIN_OFFSET; // wordEngine WIDE_BASELINE_Y
 const CARD_BASELINE = 88;
@@ -23,16 +22,14 @@ const mapPoints = (d, fn) => {
   }).replace(/ +/g, " ");
 };
 
-// The letters these modes show: both cases of every letter that has a capital, the lowercase of ъ ь ы.
-export const CARD_LETTERS = LETTER_DATA.flatMap((l) => (l.params.has_upper ? [l.params.printed_upper, l.params.printed_lower] : [l.params.printed_lower]));
-
 const cache = new WeakMap();
-// glyphMap (pageTask.js buildGlyphMap) -> { letter: { strokes: [d], width, minX } } as glyphs.js buildGlyphMap gives for the old cards
-export function cardGlyphs(glyphMap) {
+// glyphMap (pageTask.js buildGlyphMap) -> { letter: { strokes: [d], width, minX } } as glyphs.js buildGlyphMap gives for the old cards;
+// `letters`: which ones (alphabet.js cardLetters, the deck's own alphabet)
+export function cardGlyphs(glyphMap, letters) {
   if (!glyphMap) return {};
   if (cache.has(glyphMap)) return cache.get(glyphMap);
   const out = {};
-  for (const ch of CARD_LETTERS) {
+  for (const ch of letters) {
     if (!glyphMap.get(ch)) continue;
     const placed = layoutWideLinesIntoRows([`${ch}#1`], glyphMap, undefined, false, 1).placed[0];
     const ink = placed?.segments?.flatMap((seg) => seg.strokes ?? []) ?? [];
@@ -42,6 +39,8 @@ export function cardGlyphs(glyphMap) {
     const minX = Math.min(...xs);
     out[ch] = { strokes, width: Math.max(...xs) - minX, minX };
   }
+  // the slant of the cards' ruling (SortCaseView), when the deck writes with its own (scriptGeometry.js); not a letter, so not enumerable
+  if (glyphMap.script?.slantDeg) Object.defineProperty(out, "slantDeg", { value: glyphMap.script.slantDeg });
   cache.set(glyphMap, out);
   return out;
 }

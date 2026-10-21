@@ -8,7 +8,7 @@ import { getDb, kv } from "@/core/db";
 import { flushQueue } from "@/core/syncApi";
 import { deriveConcepts, getConceptCards, readModeParams, readModeSelectedConceptIds } from "@/shared/utils/topicUtils";
 import { ENGINE_REGISTRY } from "@/topics/renderers/engineRegistry";
-import { aboutMeHistory } from "@/topics/renderers/my_people/engine";
+import { aboutMeHistory, insertRetryTrial } from "@/topics/renderers/my_people/engine";
 import { createSessionState, markSessionAction, handleAnswer, handleAdvance, handleQualityAnswer, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
 import { persistSessionRecord } from "./sessionPersistence";
 import { captureConditions, recordResponse } from "@/features/analytics/sessionMetrics";
@@ -641,7 +641,9 @@ export function useSessionEngine() {
         if (next.status === "completed") finishSession(next);
         return next;
       }
-      const next = handleAnswer(s, true, conceptId, cardId, options);
+      let next = handleAnswer(s, true, conceptId, cardId, options);
+      // «Мои люди»: a trial answered only with help comes back a little later.
+      if (options.retryLater) next = { ...next, tasks: insertRetryTrial(next.tasks, next.taskIndex) };
       if (next.status === "deck_exhausted") { setDeckExhausted(true); return next; }
       if (next.status === "completed") finishSession(next);
       return next;

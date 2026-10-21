@@ -1,4 +1,5 @@
 import { getPathEndpoints, transformPathD, samplePath, findClosestApproach, getMidpointTangent, toCubicPathD, stretchKeepSlantPathD, shiftPathEndXD } from "./pathGeometry.js";
+import { mapRowInk, scriptKey, scriptPointMap } from "./scriptGeometry.js";
 import {
   GUIDE_LINES, NATIVE_L2, NATIVE_L3, TEXT_ROW_PITCH, TEXT_ROW_THIN_OFFSET, TEXT_ROW_ELEMENT_DIAGONAL_SPACING,
   TEXT_ROW_WIDE_DIAGONAL_SPACING,
@@ -1083,6 +1084,7 @@ const WIDE_WORD_SPACE = 44; // a plain space between two words of a text (ink to
 // A glyph flagged `noJoin` (punctuation, wide.json kind "punct") stands right after the previous glyph of its token
 // with this small gap, in the same pass of the pen but never joined to it by a connector, and nothing joins to it.
 const WIDE_PUNCT_GAP = 6;
+const WIDE_NO_EXIT_GAP = 10; // centre line to centre line after a capital with no exit (exactJoins): a clear gap, a bit wider than Boyan's own
 const EVEN_GAP = 22; // `#v` rows: the gap after a letter (row-local units at full scale), ink to ink
 const WIDE_DIGIT_GAP = 10; // between the ink of two digits of one number on a page whose snapping grid is not drawn (row-local units at full scale)
 // Largest sideways nudge (native units) allowed when landing a tail on the next letter's stroke.
@@ -1456,7 +1458,26 @@ const WIDE_MARK_COPY_CELLS = 6;
 // finished row is kept and reused: typing in one row of a page lays out only that row again, not the whole page.
 const WIDE_ROW_CACHE = new WeakMap(); // glyphsByLabel -> WeakMap(snapX) -> Map(key -> row)
 const WIDE_ROW_CACHE_MAX = 4000;
+// A glyph bank with a writing geometry of its own (`glyphsByLabel.script`, a variant deck's meta.script: another slant, other heights
+// above and below the lowercase band — scriptGeometry.js) gets every finished row mapped to it; the layout itself is the Russian one.
 export function layoutWideLinesIntoRows(lines, glyphsByLabel, snapX, multiply = true, scale = 1, maxX = WIDE_ROW_MAX_X) {
+  const key = scriptKey(glyphsByLabel?.script);
+  if (key === null) return layoutWideLinesIntoRowsRu(lines, glyphsByLabel, snapX, multiply, scale, maxX);
+  const own = layoutWideLinesIntoRowsRu(lines, glyphsByLabel, snapX, multiply, scale, maxX);
+  // the scale the rows were really laid out at (squared / ruled paper set their own, as layoutWideLinesIntoRowsNow does)
+  const rowScale = snapX?.cell?.scale ?? snapX?.letterScale ?? scale;
+  const fn = scriptPointMap(glyphsByLabel.script, { baseline: WIDE_BASELINE_Y, xHeight: WIDE_ZONE_UNITS * rowScale });
+  return { ...own, placed: own.placed.map((row) => scriptRow(row, `${key}|${rowScale}`, fn)) };
+}
+const SCRIPT_ROW_CACHE = new WeakMap(); // laid-out row -> Map(script|scale -> mapped row)
+function scriptRow(row, key, fn) {
+  let byKey = SCRIPT_ROW_CACHE.get(row);
+  if (!byKey) { byKey = new Map(); SCRIPT_ROW_CACHE.set(row, byKey); }
+  if (!byKey.has(key)) byKey.set(key, mapRowInk(row, fn));
+  return byKey.get(key);
+}
+
+function layoutWideLinesIntoRowsRu(lines, glyphsByLabel, snapX, multiply, scale, maxX) {
   if (!snapX?.cacheable || !glyphsByLabel) return layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX, multiply, scale, maxX);
   let bySnap = WIDE_ROW_CACHE.get(glyphsByLabel);
   if (!bySnap) { bySnap = new WeakMap(); WIDE_ROW_CACHE.set(glyphsByLabel, bySnap); }
@@ -1527,7 +1548,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       const rowOf = (n) => Array.from({ length: n }, (_, k) => (k && gap ? [`_${gap}`, ...unit] : unit)).flat().join(" ");
       // how many units fit. A probe is a whole layout, so estimate from the pitch of two copies and check the neighbours
       // (the width only grows with the count)
-      const widthOf = (n) => layoutWideLinesIntoRows([rowOf(n)], glyphsByLabel, rowSnap(rowIndex), false, scale).placed[0].segments[0]?.width ?? 0;
+      const widthOf = (n) => layoutWideLinesIntoRowsRu([rowOf(n)], glyphsByLabel, rowSnap(rowIndex), false, scale, WIDE_ROW_MAX_X).placed[0].segments[0]?.width ?? 0;
       const memo = new Map();
       const fits = (n) => { if (!memo.has(n)) memo.set(n, widthOf(n) <= maxX); return memo.get(n); };
       const start = Math.max(1, toks.length / unit.length); // the row as typed is taken as fitting
@@ -1613,10 +1634,30 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
       let pendingNudge = WIDE_MAX_CONTACT_NUDGE; // how far (units) the pending connector's end may be moved to reach the next letter (glyph.exitNudge)
       let curNudge = WIDE_MAX_CONTACT_NUDGE;
       let pendingTail = null; // connector of the previous glyph (glyph.tailStroke), drawn only once a letter follows it
+      let pendingTouchX = null; // meta.script.exactJoins: x of the previous glyph's right side at its connector's end height
+      // the previous glyph has no exit (`noExit`: it ends on its own left side, Boyan's Ф): the next one stands after its ink, not joined
+      let afterNoExit = false;
+      let prevGlyphStrokes = null; // the last glyph's strokes as placed (meta.script.exactJoins: the gap after a noExit capital)
       for (const label of labels) {
         const glyph = glyphsByLabel.get(label);
         if (!glyph) continue;
         const inCell = Boolean(cellGrid) && glyph.kind === "digit";
+        const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
+        // meta.script.exactJoins (the Bulgarian о б в ю): the connector is drawn only before a letter that starts on its oval; a
+        // letter with a lead-in hook from the middle starts right on the oval's side there, the pen lifted, no connector
+        let liftJoin = false;
+        if (pendingTail && !glyph.noJoin && glyphsByLabel?.script?.exactJoins && pendingTouchX !== null && !inCell) {
+          const te = getPathEndpoints(pendingTail.d).end;
+          // a lead-in HOOK (rising steeply, as every exit: 55°), not a start on an arc (е starts on its loop, flat: it gets the connector)
+          const q0 = samplePath(local.strokes[0].d, 40).find((q) => Math.hypot(q[0] - local.start[0], q[1] - local.start[1]) > 3 * scale);
+          const rise = q0 ? Math.atan2(local.start[1] - q0[1], q0[0] - local.start[0]) * (180 / Math.PI) : 0;
+          if (Math.abs(te[1] - local.start[1]) < 0.75 * scale && rise > 40 && rise < 80) {
+            prevExit = [pendingTouchX, te[1]];
+            prevExitStroke = -1;
+            liftJoin = true;
+            pendingTail = null;
+          }
+        }
         if (pendingTail && !glyph.noJoin) {
           delete pendingTail.always;
           strokes.push(pendingTail);
@@ -1625,8 +1666,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
           curNudge = pendingNudge;
           pendingTail = null;
         }
-        const local = inCell ? cellGlyphLocal(glyph, scale, cellGrid.size) : wideGlyphLocal(glyph, scale);
-        const loose = Boolean(glyph.noJoin) && tokenStartX !== null; // punctuation inside a word: after the ink so far
+        const loose = (Boolean(glyph.noJoin) || afterNoExit) && tokenStartX !== null; // punctuation inside a word: after the ink so far
         if (loose) { prevExit = null; prevExitStroke = -1; }
         // Where the glyph's start WOULD go without a grid, then moved onto the nearest line.
         const wantStartX = loose
@@ -1638,9 +1678,32 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
             ? prevToken.startX + ((prevToken.repeatCells ?? Math.max(prevToken.isElement ? 2 : 1, Math.ceil(prevToken.width / CELL + (prevToken.isWord ? 0.6 : 0.4) - 1e-6))) + pendingGap) * CELL - (local.start[1] - prevToken.startY) * WIDE_JOIN_TAN
             : (cursorX === null ? WIDE_LEFT_PAD + (indents[rowIndex] + pendingGap) * CELL - local.minX + local.start[0] : cursorX + WIDE_TOKEN_GAP * scale - local.minX + local.start[0]);
         const even = evens[rowIndex] && !loose && !prevExit && prevToken && tokenStartX === null && Number.isFinite(prevToken.inkMaxX);
-        let startX = even
+        // a deck whose exits and lead-ins already meet (meta.script.exactJoins, the Bulgarian variant: every exit ends and every
+        // lead-in starts halfway up the x-band at the same angle): the next letter starts exactly where the last one ended, off
+        // the grid, and the tail is left as drawn (snapping the start and nudging the tail onto it bent the join)
+        const exactJoin = Boolean(glyphsByLabel?.script?.exactJoins) && Boolean(prevExit) && !loose && !inCell && Math.abs(prevExit[1] - local.start[1]) < 0.75 * scale;
+        // ...and a letter that starts elsewhere (on its oval: о а д с б ф) just touches the exit's end with its left side at that
+        // height; the pen lifts there and writes the letter from its own start (the Bulgarian way: «просто контактом»)
+        let touchDx = null;
+        if (!exactJoin && glyphsByLabel?.script?.exactJoins && prevExit && !loose && !inCell && local.start[1] < prevExit[1] - 3 * scale) {
+          const xs = pathXsAtY(local.strokes[0].d, prevExit[1]);
+          if (xs.length) touchDx = local.start[0] - Math.min(...xs);
+        }
+        const exactTouch = touchDx !== null;
+        let startX = exactJoin ? prevExit[0] : exactTouch ? prevExit[0] + touchDx : even
           ? prevToken.inkMaxX + EVEN_GAP * scale + pendingGap * CELL + (local.start[0] - local.minX)
           : loose ? wantStartX : snapX(rowIndex, wantStartX, local.start[1]);
+        // meta.script.exactJoins (Boyan's Б В Г Д З Ъ О У Ф Ю): after a capital with no exit the next letter stands one steady gap
+        // from its ink at the narrowest height, not from its box (и goes under Г's bar, Д's and Ъ's bellies no longer touch it)
+        if (loose && afterNoExit && !glyph.noJoin && glyphsByLabel?.script?.exactJoins && prevGlyphStrokes && !inCell) {
+          const rows = new Map();
+          for (const m of prevGlyphStrokes) for (const [x, y] of samplePath(m.d, 40)) { const k = Math.round(y); rows.set(k, Math.max(rows.get(k) ?? -Infinity, x)); }
+          let need = -Infinity;
+          for (const m of local.strokes) for (const [x, y] of samplePath(m.d, 40)) {
+            for (const k of [Math.round(y) - 1, Math.round(y), Math.round(y) + 1]) if (rows.has(k)) need = Math.max(need, rows.get(k) - x);
+          }
+          if (Number.isFinite(need)) startX = need + WIDE_NO_EXIT_GAP * scale + local.start[0];
+        }
         // a digit inside a number («25») is set on the grid too, on the first slant line not left of where it would go (a sign is never written between lines)
         if (inCell) {
           // the cell: the next one inside a number, one cell skipped before a new token, the first whole cell after anything else
@@ -1688,7 +1751,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         const dx = startX - local.start[0];
                 const moved = local.strokes.map((s, si) => ({ d: transformPathD(s.d, { translateX: dx }), ...(glyph.continuousStrokes?.includes(si) ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) }));
         let highJoined = false;
-        if (prevExit) {
+        if (prevExit && !exactJoin && !exactTouch) {
           // No connector stroke in this method: the previous letter's tail ends ON the next
           // letter's first stroke, where that stroke crosses the tail's own height. The tail's
           // end is nudged (by the sub-grid slack left after snapping the start) to land exactly
@@ -1734,7 +1797,7 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         strokes.push(...moved);
         const cellRec = inCell ? { first: firstMovedIndex, count: moved.length, minX: local.minX + dx, maxX: local.maxX + dx, sign: isCellSign(label), dotFrom: startPoints.length, dotTo: startPoints.length } : null;
         cellRun.push(cellRec);
-        if (prevExit) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
+        if (prevExit && !exactTouch && !liftJoin) { joins.set(firstMovedIndex, prevExitStroke); if (glyph.joinLeft) joinLeftAt.add(firstMovedIndex); }
         if (tokenStartX === null) {
           // every token's first glyph gets its red start dot(s); only the very first one also gets direction arrows
           for (const [si, s] of moved.entries()) {
@@ -1749,8 +1812,16 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
         prevExit = [local.end[0] + dx, local.end[1]];
         curNudge = WIDE_MAX_CONTACT_NUDGE;
         prevExitStroke = firstMovedIndex + local.exitStrokeIndex;
-        if (glyph.noJoin) { prevExit = null; prevExitStroke = -1; }
+        if (glyph.noJoin || glyph.noExit) { prevExit = null; prevExitStroke = -1; }
+        afterNoExit = Boolean(glyph.noExit);
+        prevGlyphStrokes = moved;
+        pendingTouchX = null;
         if (local.tail) {
+          if (glyphsByLabel?.script?.exactJoins) {
+            const ty = getPathEndpoints(local.tail.d).end[1];
+            const xs = moved.flatMap((m) => pathXsAtY(m.d, ty));
+            if (xs.length) pendingTouchX = Math.max(...xs);
+          }
           pendingNudge = glyph.exitNudge ?? WIDE_MAX_CONTACT_NUDGE;
           pendingTail = { d: transformPathD(local.tail.d, { translateX: dx }), always: !!glyph.tailAlways, ...(glyph.tailContinuous ? { continuous: true } : {}), ...(dashed ? { dashed: true, opacity: WIDE_FLAT_COPY_OPACITY, copyX: tokenStartX ?? startX } : {}) };
           prevExit = null;

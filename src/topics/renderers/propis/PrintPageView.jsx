@@ -205,10 +205,24 @@ const SQUARE_LETTER_SCALE = (0.75 * SQUARE_CELL) / (TEXT_ROW_PITCH - TEXT_ROW_TH
 // notebook), the first 16 mm from the top; the letters smaller than on the copybook: a lowercase letter 3.2 mm, a capital 6.4 mm.
 const RULED_PITCH = mmToNativeUnits(8);
 const RULED_LETTER_SCALE = mmToNativeUnits(3.2) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
-// Papers with rows of their own (`ownRows`: "square" | "ruled"): pitch, first baseline, the room kept under the last row, letter scale.
+// `propis2_bg`, the Bulgarian copybook ruling ("bg", docs/propis2-variants.md): a row of four lines, bold (top of capitals and
+// ascenders) 6.08 mm above a thin line, the 4.94 mm lowercase band down to a thin baseline, 5.98 mm down to the next bold line (the
+// top line of the next row: rows every 17 mm, 11 on an A5 page); no dashes; sparse slant guides at 1 : 4 (76deg) every 35 mm. The
+// bands as on a Bulgarian teacher's writing video (owner, 2026-10-19: 1.23 : 1 : 1.21, near even; «Тетрадка 1 клас» had 6.5 /
+// 4.26 / 6.24). The letters are the copybook's, a lowercase letter 4.94 mm tall; the deck's meta.script stretches their
+// ascenders and descenders to the bold lines (wordEngine / scriptGeometry.js).
+const BG_UP_MM = 6.08;
+const BG_X_MM = 4.94;
+const BG_DOWN_MM = 5.98;
+const BG_PITCH = mmToNativeUnits(BG_UP_MM + BG_X_MM + BG_DOWN_MM);
+const BG_LETTER_SCALE = mmToNativeUnits(BG_X_MM) / (TEXT_ROW_PITCH - TEXT_ROW_THIN_OFFSET);
+const BG_GUIDE_STEP = mmToNativeUnits(35);
+const BG_GUIDE_TAN = 1 / 4; // horizontal run per unit of height of the guides (76deg from the horizontal)
+// Papers with rows of their own (`ownRows`: "square" | "ruled" | "bg"): pitch, first baseline, the room kept under the last row, letter scale.
 const OWN_ROWS = {
   square: { pitch: SQUARE_PITCH, first: SQUARE_FIRST_BASELINE, foot: SQUARE_CELL, scale: SQUARE_LETTER_SCALE },
   ruled: { pitch: RULED_PITCH, first: 2 * RULED_PITCH, foot: RULED_PITCH, scale: RULED_LETTER_SCALE },
+  bg: { pitch: BG_PITCH, first: mmToNativeUnits(10 + BG_UP_MM + BG_X_MM), foot: mmToNativeUnits(BG_DOWN_MM + 5), scale: BG_LETTER_SCALE },
 };
 const ownOf = (kind) => OWN_ROWS[kind === true ? "square" : kind] ?? null;
 const ownRowsOf = (geom, kind) => { const o = ownOf(kind); return Math.floor((geom.h - o.foot - o.first) / o.pitch) + 1; };
@@ -404,13 +418,13 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   // on the wide one: the step follows the row, it is the distance between the two tops of «и» on that row.
   const simpleStep = Boolean(simpleGrid);
   // "square" / "ruled": plain paper, an ordinary school notebook page: only each row's baseline is kept, no thin line, no dashes
-  const plain = simpleGrid === "square" || simpleGrid === "ruled";
+  const plain = simpleGrid === "square" || simpleGrid === "ruled" || simpleGrid === "bg";
   // "square": an ordinary school squared grid, 5 mm cells (vertical and horizontal lines), under the row guides.
   // dashed guide lines are slightly red on the `propis2` pages (the `propis` sheets keep the grid colour)
   const dashColor = simpleGrid ? "#e57d7a" : guideColor;
   // wide ruling: the slants live only inside the wide bands, none in the narrow strips between them (as in the methodology)
   const clipId = `p2c${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
-  const slantClip = simpleGrid && wideRows && !narrowRows && simpleGrid !== "square" && simpleGrid !== "ruled";
+  const slantClip = simpleGrid && wideRows && !narrowRows && !plain;
   const squareEls = simpleGrid === "square" ? (
     <g data-simple-grid="square">
       {Array.from({ length: Math.floor(PAGE_W_UNITS / SQUARE_CELL) + 1 }, (_, i) => (
@@ -430,7 +444,33 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
       })}
     </g>
   ) : null;
-  const simpleEls = squareEls ?? ruledEls ?? (simpleGrid && simpleGrid !== "ruled" ? (
+  // "bg": the Bulgarian copybook ruling (BG_* above): per row bold - thin - thin(baseline), the next row's bold line closing it, and the
+  // 76deg guides over the whole ruled part of the page
+  const bgEls = ownRows === "bg" ? (() => {
+    const rows = Array.from({ length: ownRowsOf(geom, "bg") }, (_, r) => r).filter((r) => onlyRow === null || r === onlyRow);
+    const base = (r) => ownRowY(r, "bg") + WIDE_BAND_BOTTOM_LOCAL;
+    const top = base(rows[0] ?? 0) - mmToNativeUnits(BG_UP_MM + BG_X_MM);
+    const bottom = base(rows[rows.length - 1] ?? 0) + mmToNativeUnits(BG_DOWN_MM);
+    const run = (bottom - top) * BG_GUIDE_TAN;
+    const guides = Array.from({ length: Math.ceil((PAGE_W_UNITS + run) / BG_GUIDE_STEP) + 1 }, (_, k) => mmToNativeUnits(10) + k * BG_GUIDE_STEP);
+    return (
+      <g data-simple-grid="bg">
+        {onlyRow === null && guides.map((x) => <line key={`s${x}`} x1={x - run} y1={bottom} x2={x} y2={top} stroke={GUIDE_COLOR} strokeWidth={GUIDE_DIAG_W} />)}
+        {rows.map((r) => {
+          const y = base(r);
+          return (
+            <g key={r} data-bg-row={r}>
+              <line x1={0} y1={y - mmToNativeUnits(BG_UP_MM + BG_X_MM)} x2={PAGE_W_UNITS} y2={y - mmToNativeUnits(BG_UP_MM + BG_X_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W} />
+              <line x1={0} y1={y - mmToNativeUnits(BG_X_MM)} x2={PAGE_W_UNITS} y2={y - mmToNativeUnits(BG_X_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} />
+              <line x1={0} y1={y} x2={PAGE_W_UNITS} y2={y} stroke={GUIDE_COLOR} strokeWidth={GUIDE_THIN_W} />
+              {(onlyRow !== null || r === rows[rows.length - 1]) && <line x1={0} y1={y + mmToNativeUnits(BG_DOWN_MM)} x2={PAGE_W_UNITS} y2={y + mmToNativeUnits(BG_DOWN_MM)} stroke={GUIDE_COLOR} strokeWidth={GUIDE_BOLD_W} />}
+            </g>
+          );
+        })}
+      </g>
+    );
+  })() : null;
+  const simpleEls = squareEls ?? ruledEls ?? bgEls ?? (simpleGrid && simpleGrid !== "ruled" && simpleGrid !== "bg" ? (
     <g data-simple-grid={simpleGrid} clipPath={slantClip ? `url(#${clipId})` : undefined}>
       {slantClip && (
         <clipPath id={clipId}>
@@ -787,14 +827,15 @@ function squareSnapFor(margin, geom) {
   return snap;
 }
 
-// Ruled paper: no cells; the letters smaller (`letterScale`), on the same undrawn slant grid scaled with them (see squareSnapFor).
-function ruledSnapFor() {
-  const step = TEXT_ROW_WIDE_DIAGONAL_SPACING * RULED_LETTER_SCALE;
+// Ruled paper (and the Bulgarian ruling, `scale` BG_LETTER_SCALE): no cells; the letters smaller (`letterScale`), on the same undrawn
+// slant grid scaled with them (see squareSnapFor).
+function ruledSnapFor(scale = RULED_LETTER_SCALE) {
+  const step = TEXT_ROW_WIDE_DIAGONAL_SPACING * scale;
   const snap = (_rowIndex, x, y) => {
     const lean = (WIDE_BAND_BOTTOM_LOCAL - y) * WIDE_SLANT_TAN;
     return Math.round((x - lean) / step) * step + lean;
   };
-  snap.letterScale = RULED_LETTER_SCALE;
+  snap.letterScale = scale;
   return snap;
 }
 
@@ -846,6 +887,7 @@ function makeSnapX({ narrowRows, simpleGrid, margin = "off", format = "a5", narr
   const geom = geomOf(format);
   if (simpleGrid === "square") return squareSnapFor(margin, geom);
   if (simpleGrid === "ruled") return ruledSnapFor();
+  if (simpleGrid === "bg") return ruledSnapFor(BG_LETTER_SCALE);
   const dense = simpleGrid === "dense";
   if (dense) return narrowRows ? drawnGridSnapX(NARROW_CELL, margin, geom, narrow17) : drawnGridSnapX(TEXT_ROW_WIDE_DIAGONAL_SPACING, margin, geom);
   // the methodology grid the letters snap to is NOT drawn on these pages (only the 20 mm slants): `hidden` tells the layout so
@@ -888,6 +930,7 @@ function layoutTaskPages(task) {
     wideGlyphsByLabel.set(item.label, item);
     for (const alias of item.aliases ?? []) wideGlyphsByLabel.set(alias, item);
   }
+  if (task?.script) wideGlyphsByLabel.script = task.script; // `propis2` variant decks: their own slant and heights (scriptGeometry.js)
   const layout = wideRows
     ? layoutWideLinesIntoRows(lines, wideGlyphsByLabel, snapXFor({ narrowRows, simpleGrid: task?.simpleGrid, margin, format: geom.format, narrow17 }), true, narrowRows ? NARROW_SCALE : 1, rowMaxX)
     : useElements

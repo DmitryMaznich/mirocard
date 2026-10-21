@@ -177,6 +177,13 @@ geometry, glyph capture) — still worth reading when touching the shared engine
 
 Independent from `letter_writing` ("Написание букв") — don't touch that topic.
 
+**Variants (other alphabets) — `propis2_bg` (Bulgarian), started 2026-10-18.** A variant is its own
+ZIP topic with the same `propis2` renderer, built from data only
+(`tools/propis2/variants/<id>/variant.json`, `node scripts/build-propis2-deck.mjs --variant <id>`),
+shown to one account via catalog status `individual`. Never fork `propis2` code for a language: the
+alphabet comes from `meta.alphabet` (`src/topics/renderers/propis2/alphabet.js`), never from a
+hard-coded letter string. Read `docs/propis2-variants.md` before continuing.
+
 ## Важные даты (important dates) for the "Сегодня" screen
 
 Birthdays, holidays and one-off events kept on the student
@@ -208,6 +215,14 @@ packs only files `deck.json` references). Deck v2.0.0 built (contrast set + vari
 owner done (deck v1.5.1; audio via `tools/verbs_v2/generate-audio-elevenlabs.mjs`); next is step 3's
 pictures — follow sections 5б–5г of the doc (no anthropomorphic animals, real photos, vary objects). The deck needs `meta.customModesOnly` + `verbs_`-prefixed mode
 ids — without them `topicLoader` silently replaces generic flashcards modes' ui/params.
+
+## Мои люди (my_people) — разбор логопеда и редизайн
+
+Второй методический проход по теме (2026-10-20): оценка всех режимов глазами логопеда (РАС),
+пробелы (нет критерия перехода, нет ответа выбором для неговорящих, детская и взрослая зоны
+экрана смешаны) и предложение по редизайну. **Read `docs/my-people-methodology-review.md` first**
+before touching `my_people`; макеты — `docs/mockups/my-people-redesign.html`. История прошлых правок —
+`docs/my-people-review.md`.
 
 ## Разряды числа (place_value)
 

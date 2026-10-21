@@ -13,6 +13,19 @@ const voiceParam = {
   },
 };
 
+// Time delay for «Покажи» and «Найди такого же»: when the child doesn't
+// answer, the right photo lights up after this many seconds. A trial
+// answered after the light counts like a corrected miss and comes back a
+// little later without it. 0 -- no light, wait.
+const promptDelayParam = {
+  type: "enum",
+  label: { ru: "Подсказка через" },
+  hint: { ru: "Если ребёнок не отвечает, верное фото подсветится через столько секунд." },
+  values: [0, 3, 5],
+  labels: { ru: { 0: "Нет", 3: "3 секунды", 5: "5 секунд" } },
+  default: 5,
+};
+
 // The seven old album modes (a circle × names/relations, plus «Все люди»).
 // Replaced by «Подпиши фото» with the same two choices as parameters; kept
 // as `retired` so session history and saved lesson plans that name them
@@ -56,13 +69,21 @@ const labelPhotosMode = {
       labels: { ru: { relation: "Мама, папа…", name: "Имена", both: "И то и другое" } },
       default: "relation",
     },
+    // On while the words are new (the word is heard as it's picked); off to
+    // check the child really reads it.
+    speakWords: {
+      type: "boolean",
+      label: { ru: "Озвучивать слово при нажатии" },
+      hint: { ru: "Выключите, чтобы проверить, что ребёнок читает слово сам, а не узнаёт на слух." },
+      default: true,
+    },
     peopleCount: {
       type: "enum",
       label: { ru: "Фото на странице" },
       // Eight words to sort was too many for most of these children; three
-      // fits one row.
+      // fits one row. Two to start with, as in «Покажи».
       values: [2, 3, 4, 6],
-      default: 4,
+      default: 2,
     },
   },
   ui: {
@@ -82,16 +103,25 @@ const matchSameMode = {
   regenerateOnLoop: true,
   hideConceptPicker: true,
   params: {
+    sample: {
+      type: "enum",
+      label: { ru: "Образец" },
+      values: ["same", "other"],
+      labels: { ru: { same: "Одинаковое фото", other: "Другое фото" } },
+      hint: { ru: "«Одинаковое фото» — ступень проще: среди фото внизу то же самое, что сверху." },
+      default: "other",
+    },
     fieldSize: {
       type: "enum",
       label: { ru: "Фото на выбор" },
       values: [2, 3, 4],
       default: 2,
     },
+    promptDelay: promptDelayParam,
   },
   ui: {
     title: { ru: "Найди такого же" },
-    instruction: { ru: "Без слов: найти того же человека на другом фото. Нужно хотя бы 2 фото у человека" },
+    instruction: { ru: "Без слов: найти того же человека на фото внизу. Для другого фото нужно хотя бы 2 фото у человека" },
   },
 };
 
@@ -112,6 +142,7 @@ const showMeMode = {
       labels: { ru: { 1: "1 · без выбора" } },
       default: 2,
     },
+    promptDelay: promptDelayParam,
   },
   ui: {
     title: { ru: "Покажи" },
@@ -135,8 +166,8 @@ const aboutMeMode = {
     levels: {
       type: "enum_multi",
       label: { ru: "Разделы вопросов" },
-      values: ["self", "family", "safety", "day"],
-      labels: { ru: { self: "Я: имя, возраст", family: "Семья и питомцы", safety: "Фамилия, адрес, телефон", day: "Садик или школа, день рождения" } },
+      values: ["self", "family", "day", "safety"],
+      labels: { ru: { self: "Я: имя, возраст", family: "Семья и питомцы", day: "Садик или школа, день рождения", safety: "Фамилия, адрес, телефон" } },
       default: ["self", "family"],
     },
     questionCount: {

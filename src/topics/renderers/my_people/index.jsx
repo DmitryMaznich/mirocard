@@ -6,16 +6,20 @@ import { markPersonAxisIntroduced } from "@/features/myPeople/myPeoplePersistenc
 import { isCorrectAssociation } from "./matching";
 import "./my_people.css";
 
-// Three grades are all an adult needs here: the child knows it, needs a
-// small hint, or doesn't know it yet. (A fourth "Легко!" step only made the
-// adult split hairs mid-lesson.) Red / yellow / green, labelled in words.
 // Movement (px) that turns a press on a word into a drag; less is a tap.
 const DRAG_START_DISTANCE = 8;
 
+// Three grades are all an adult needs here: the child answered alone, with a
+// hint, or not yet. (A fourth "Легко!" step only made the adult split hairs
+// mid-lesson.) They sit in the adult's panel as light buttons with a
+// coloured mark: the adult tells them apart by colour, while nothing in them
+// outshines the photo for the child -- solid red/green buttons were the
+// brightest things on screen, and red read as "bad". The words don't judge
+// either: «Пока нет», not «Не знает».
 const QUALITY_BUTTONS = [
-  { value: "fail", label: "Не знает", mod: "fail" },
-  { value: "prompted", label: "С подсказкой", mod: "prompted" },
-  { value: "correct", label: "Знает", mod: "correct" },
+  { value: "correct", label: "Сам", mark: "✓", mod: "correct" },
+  { value: "prompted", label: "С подсказкой", mark: "½", mod: "prompted" },
+  { value: "fail", label: "Пока нет", mark: "·", mod: "fail" },
 ];
 
 // "Hear it again". Drawn as a plain speaker, not a filled teal tile: in the
@@ -77,15 +81,17 @@ function usePeopleAlbumScale(task) {
   return { viewportRef, contentRef, fit };
 }
 
-function AlbumPhoto({ entry, topicId, match, wrong, dropTarget, onChoose }) {
+function AlbumPhoto({ entry, topicId, match, wrong, hint, dropTarget, onChoose }) {
   const url = useTopicFile(topicId, entry.image);
   const state = match
     ? " people-album-photo--matched"
     : wrong
       ? " people-album-photo--wrong"
-      : dropTarget
-        ? " people-album-photo--drop-target"
-        : "";
+      : hint
+        ? " people-album-photo--hint"
+        : dropTarget
+          ? " people-album-photo--drop-target"
+          : "";
   return (
     <button
       type="button"
@@ -106,12 +112,16 @@ function AlbumPhoto({ entry, topicId, match, wrong, dropTarget, onChoose }) {
   );
 }
 
-function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset, onCardShown, onTap }) {
+function PeopleAlbumTask({ task, topicId, soundEnabled, sessionParams, onCorrect, onStreakReset, onCardShown, onTap }) {
   const { speak } = useSpeech();
+  // «Озвучивать слово при нажатии» off: the child has to read the word.
+  const speakWords = soundEnabled && sessionParams?.speakWords !== false;
   const [selectedAnswerId, setSelectedAnswerId] = useState(null);
   const [dragging, setDragging] = useState(null);
   const [matches, setMatches] = useState({});
   const [wrongPersonId, setWrongPersonId] = useState(null);
+  // After a miss: which photo the word belongs to, lit up until it is placed.
+  const [hintPersonId, setHintPersonId] = useState(null);
   const dragRef = useRef(null);
   const wrongTimer = useRef(null);
   const { viewportRef, contentRef, fit } = usePeopleAlbumScale(task);
@@ -148,12 +158,18 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     setSelectedAnswerId(null);
 
     if (!correct) {
+      // Errorless, as in «Покажи»: the wrong photo flashes red, the word's
+      // own photo lights up and the word stays picked, so the next tap on
+      // the lit photo finishes the match. The miss is still recorded.
       setWrongPersonId(entry.personId);
+      setHintPersonId(answer.personId);
+      setSelectedAnswerId(answer.id);
       onStreakReset?.(entry.conceptId, entry.personId);
       if (wrongTimer.current) clearTimeout(wrongTimer.current);
       wrongTimer.current = setTimeout(() => setWrongPersonId(null), 620);
       return;
     }
+    setHintPersonId(null);
 
     const nextMatches = { ...matches, [entry.personId]: { answerId: answer.id, label: answer.label } };
     setMatches(nextMatches);
@@ -180,7 +196,7 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     if ((event.pointerType === "mouse" && event.button !== 0) || usedAnswerIds.has(answer.id)) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    if (soundEnabled) speak(answer.label);
+    if (speakWords) speak(answer.label);
     dragRef.current = {
       answerId: answer.id,
       label: answer.label,
@@ -234,20 +250,18 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
     event.preventDefault();
     if (usedAnswerIds.has(answer.id)) return;
     setSelectedAnswerId(answer.id);
-    if (soundEnabled) speak(answer.label);
+    if (speakWords) speak(answer.label);
   }
 
   const chosenAnswer = answersById[selectedAnswerId];
+  // The light follows the missed word: pick another word and it goes out.
+  const heldPersonId = dragging ? answersById[dragging.answerId]?.personId : chosenAnswer?.personId;
+  const litPersonId = hintPersonId && heldPersonId === hintPersonId ? hintPersonId : null;
   const completedCount = Object.keys(matches).length;
   // Three people sit in one row rather than 2 + 1: two rows made the album
   // tall enough to be scaled down to fit a phone, shrinking the answer
   // buttons along with it.
   const columnClass = task.entries.length === 3 || task.entries.length >= 5 ? " people-album-photos--three-columns" : "";
-  const dragHint = dragging
-    ? `Перенеси «${dragging.label}» на нужную фотографию`
-    : chosenAnswer
-      ? `Найди: ${chosenAnswer.label}`
-      : `Перетащи ${task.axis === "name" ? "имя" : "слово"} на фото или нажми его, потом фото`;
 
   return (
     <div className="people-album-fit" ref={viewportRef}>
@@ -261,9 +275,6 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
         <div className="people-album__question">{task.prompt}</div>
         <SpeakerButton onClick={repeatPrompt} label="Повторить задание" />
       </div>
-      <div className="people-album__hint">
-        {dragHint}
-      </div>
       <div className={`people-album-photos${columnClass}`}>
         {task.entries.map((entry) => (
           <AlbumPhoto
@@ -272,15 +283,16 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
             topicId={topicId}
             match={matches[entry.personId]}
             wrong={wrongPersonId === entry.personId}
+            hint={litPersonId === entry.personId}
             dropTarget={dragging?.overPersonId === entry.personId}
             onChoose={chooseKeyboardPerson}
           />
         ))}
       </div>
+      {/* No words for the child here ("Перетащи имя на фото…" was the
+          adult's instruction on the child's screen); the dots show progress. */}
       <div className="people-album__answers-heading">
-        <span>{task.answerTitle}</span>
-        <div className="people-album__answers-progress">
-          <span>{completedCount} из {task.entries.length}</span>
+        <div className="people-album__answers-progress" aria-label={`Подписано ${completedCount} из ${task.entries.length}`}>
           <span className="people-album__progress-dots" aria-hidden="true">
             {task.entries.map((entry) => (
               <span
@@ -326,14 +338,23 @@ function PeopleAlbumTask({ task, topicId, soundEnabled, onCorrect, onStreakReset
   );
 }
 
+// Meeting someone new: the photo, the word under it and the voice ("Это
+// мама."). The child touches the photo -- the first, errorless trial -- and
+// the word settles into the photo's caption, is said again and the lesson
+// moves on. The adult can skip from the panel below.
 function PersonIntroTask({ task, topicId, student, soundEnabled, onAdvance, onCardShown }) {
   const { speak } = useSpeech();
   const imageUrl = useTopicFile(topicId, task.image);
+  const [touched, setTouched] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
+  const advanceTimer = useRef(null);
 
   useEffect(() => {
     onCardShown?.(null, task.conceptId);
     if (task.promptSpeech && soundEnabled) speak(task.promptSpeech);
+    return () => {
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    };
   }, [task, soundEnabled, speak, onCardShown]);
 
   function repeatPrompt() {
@@ -347,27 +368,73 @@ function PersonIntroTask({ task, topicId, student, soundEnabled, onAdvance, onCa
     onAdvance?.();
   }
 
+  function touchPhoto() {
+    if (touched) return;
+    setTouched(true);
+    if (soundEnabled) speak(task.label);
+    advanceTimer.current = setTimeout(confirmIntroduction, 1300);
+  }
+
   return (
-    <div className="session-body person-intro" aria-label="Знакомство с человеком">
-      <span className="person-intro__eyebrow">Познакомимся</span>
-      <div className="person-intro__photo-wrap">
-        {imageUrl
-          ? <img className="person-intro__photo" src={imageUrl} alt="" />
-          : <span className="person-intro__photo person-intro__photo--loading" aria-hidden="true" />
-        }
+    <div className="people-zones" aria-label="Знакомство с человеком">
+      <div className="session-body person-intro">
+        <button
+          type="button"
+          className={`person-intro__photo-wrap${touched ? " person-intro__photo-wrap--touched" : ""}`}
+          onClick={touchPhoto}
+          aria-label={`Фотография: ${task.label}`}
+        >
+          {imageUrl
+            ? <img className="person-intro__photo" src={imageUrl} alt="" draggable={false} />
+            : <span className="person-intro__photo person-intro__photo--loading" aria-hidden="true" />
+          }
+          {!touched && <span className="person-intro__touch" aria-hidden="true" />}
+        </button>
+        <div className="person-intro__label-row">
+          <div className={`person-intro__label${touched ? " person-intro__label--placed" : ""}`}>{task.label}</div>
+          <SpeakerButton onClick={repeatPrompt} label="Повторить" />
+        </div>
       </div>
-      <div className="person-intro__label-row">
-        <div className="person-intro__label">{task.label}</div>
-        <SpeakerButton onClick={repeatPrompt} label="Повторить" />
+      <div className="people-adult" aria-label="Для взрослого">
+        <div className="people-adult__row">
+          <span className="people-adult__label">Знакомство: ребёнок касается фото сам</span>
+          <button type="button" className="people-adult__skip person-intro__next" onClick={confirmIntroduction} disabled={confirmed}>
+            Дальше
+          </button>
+        </div>
       </div>
-      <p className="person-intro__hint">Посмотри на фотографию и послушай.</p>
-      <button type="button" className="person-intro__next" onClick={confirmIntroduction} disabled={confirmed}>
-        Дальше
-      </button>
     </div>
   );
 }
 
+// The adult's hint ladder as a row of steps: each one stays on screen once
+// used (ticked), so the adult sees how far up the ladder this answer went.
+function HintSteps({ steps, level }) {
+  if (!steps.length) return null;
+  return (
+    <div className="people-adult__steps">
+      {steps.map((step) => {
+        const used = level >= step.level;
+        return (
+          <button
+            key={step.label}
+            type="button"
+            className={`people-adult__step${used ? " people-adult__step--used" : ""}`}
+            onClick={step.onClick}
+            disabled={used}
+            aria-pressed={used}
+          >
+            {step.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Two zones: the child's stage on top (photo, question, the word to echo)
+// and the adult's panel at the bottom -- the answer to listen for, the hint
+// steps and the grade, on a grey ground behind a line.
 function QualityAnswerTask({
   task,
   soundEnabled,
@@ -377,7 +444,9 @@ function QualityAnswerTask({
   className,
   ariaLabel,
   answerShown = false,
+  stageAnswer,
   hinted = false,
+  hints = null,
   children,
 }) {
   const { speak } = useSpeech();
@@ -401,32 +470,41 @@ function QualityAnswerTask({
     if (answered) return;
     setAnsweredTaskId(task.conceptId);
     onQuality?.(quality, null, task.conceptId);
-    // Match the established open-answer cards: briefly show the adult's
-    // response model before the shared quality handler advances the session.
+    // Match the established open-answer cards: briefly show the response
+    // model before the shared quality handler advances the session.
     advanceTimer.current = setTimeout(() => {
       onQualityAnswer?.(quality, task.conceptId, null);
     }, 700);
   }
 
   return (
-    <div className={`session-body ${className}`} aria-label={ariaLabel}>
-      {children({ repeatPrompt })}
-      <div className={`about-me-task__answer${answered || answerShown ? " about-me-task__answer--shown" : ""}`} aria-live="polite">
-        {task.answer}
+    <div className="people-zones" aria-label={ariaLabel}>
+      <div className={`session-body ${className}`}>
+        {children({ repeatPrompt })}
+        {/* The word or sentence to echo: on the stage only once the adult
+            shows it (or after grading). */}
+        <div className={`about-me-task__answer${answered || answerShown ? " about-me-task__answer--shown" : ""}`} aria-live="polite">
+          {answered || answerShown ? (stageAnswer ?? task.answer) : ""}
+        </div>
       </div>
-      <div className="people-grade-row">
-        {QUALITY_BUTTONS.map((button) => (
-          <button
-            key={button.value}
-            type="button"
-            className={`people-grade people-grade--${button.mod}`}
-            // After any hint the answer is at best "С подсказкой".
-            disabled={answered || (hinted && button.value === "correct")}
-            onClick={() => markAnswer(button.value)}
-          >
-            {button.label}
-          </button>
-        ))}
+      <div className="people-adult" aria-label="Для взрослого">
+        <div className="people-adult__label">Ответ: <b>{task.answer}</b></div>
+        {hints}
+        <div className="people-grade-row">
+          {QUALITY_BUTTONS.map((button) => (
+            <button
+              key={button.value}
+              type="button"
+              className={`people-grade people-grade--${button.mod}`}
+              // After any hint the answer is at best "С подсказкой".
+              disabled={answered || (hinted && button.value === "correct")}
+              onClick={() => markAnswer(button.value)}
+            >
+              <span className="people-grade__mark" aria-hidden="true">{button.mark}</span>
+              <span className="people-grade__label">{button.label}</span>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -452,24 +530,26 @@ function IntroduceTurnTask(props) {
   }
 
   return (
-    <QualityAnswerTask {...props} className="about-me-task introduce-turn" ariaLabel="Знакомство с новым человеком" answerShown={level >= 2} hinted={level >= 1}>
+    <QualityAnswerTask
+      {...props}
+      className="about-me-task introduce-turn"
+      ariaLabel="Знакомство с новым человеком"
+      answerShown={level >= 2}
+      hinted={level >= 1}
+      hints={<HintSteps level={level} steps={[
+        { level: 1, label: "Начало фразы", onClick: showStarter },
+        { level: 2, label: "Весь ответ", onClick: showAnswer },
+      ]} />}
+    >
       {({ repeatPrompt }) => (
         <>
-          <span className="about-me-task__eyebrow">С тобой знакомится: {props.task.partner}</span>
+          <span className="introduce-turn__partner">С тобой знакомится: {props.task.partner}</span>
           <div className="introduce-turn__bubble">
             <div className="introduce-turn__question">{props.task.prompt}</div>
             <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
           </div>
           <div className={`introduce-turn__starter${level === 1 ? " introduce-turn__starter--shown" : ""}`} aria-live="polite">
             {level === 1 ? props.task.starter : ""}
-          </div>
-          <div className="about-me-question__hints person-naming__hints">
-            {level < 1 && (
-              <button type="button" className="about-me-question__hint-btn" onClick={showStarter}>Начало фразы</button>
-            )}
-            {level < 2 && (
-              <button type="button" className="about-me-question__hint-btn" onClick={showAnswer}>Весь ответ</button>
-            )}
           </div>
         </>
       )}
@@ -494,10 +574,19 @@ function AboutMeQuestionTask(props) {
   }
 
   return (
-    <QualityAnswerTask {...props} className="about-me-task about-me-question" ariaLabel="Вопрос обо мне" answerShown={level >= 2} hinted={level >= 1}>
+    <QualityAnswerTask
+      {...props}
+      className="about-me-task about-me-question"
+      ariaLabel="Вопрос обо мне"
+      answerShown={level >= 2}
+      hinted={level >= 1}
+      hints={<HintSteps level={level} steps={[
+        ...(props.task.cueImage ? [{ level: 1, label: "Показать фото", onClick: showPhoto }] : []),
+        { level: 2, label: "Показать ответ", onClick: showAnswer },
+      ]} />}
+    >
       {({ repeatPrompt }) => (
         <>
-          <span className="about-me-task__eyebrow">Обо мне</span>
           <div className="about-me-task__prompt-row">
             <div className="about-me-task__prompt about-me-question__prompt">{props.task.prompt}</div>
             <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
@@ -509,14 +598,6 @@ function AboutMeQuestionTask(props) {
                 : <span className="person-naming__photo person-naming__photo--loading" aria-hidden="true" />}
             </div>
           )}
-          <div className="about-me-question__hints">
-            {props.task.cueImage && level < 1 && (
-              <button type="button" className="about-me-question__hint-btn" onClick={showPhoto}>Показать фото</button>
-            )}
-            {level < 2 && (
-              <button type="button" className="about-me-question__hint-btn" onClick={showAnswer}>Показать ответ</button>
-            )}
-          </div>
         </>
       )}
     </QualityAnswerTask>
@@ -557,27 +638,56 @@ function PointPhoto({ choice, topicId, state, disabled, onChoose }) {
 // photo fades, the right one is lit up and named ("Вот мама"), and only it
 // stays tappable -- the child finishes the trial correctly instead of
 // guessing again. The miss is still recorded.
-function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAdvance, onStreakReset, onCardShown }) {
+function PersonPointTask({ task, topicId, student, soundEnabled, sessionParams, onCorrect, onAdvance, onStreakReset, onCardShown }) {
   const { speak } = useSpeech();
-  const [trial, setTrial] = useState({ taskId: null, missedId: null, done: false });
-  const current = trial.taskId === task.conceptId ? trial : { taskId: task.conceptId, missedId: null, done: false };
+  // `prompted`: the light came on after a pause, not after a miss.
+  const fresh = { taskId: task.conceptId, missedId: null, prompted: false, done: false };
+  const [trial, setTrial] = useState({ ...fresh, taskId: null });
+  const current = trial.taskId === task.conceptId ? trial : fresh;
+  const helped = Boolean(current.missedId) || current.prompted;
   const advanceTimer = useRef(null);
+  const delayTimer = useRef(null);
+  // What the delay timer sees when it fires.
+  const currentRef = useRef(current);
+  useEffect(() => { currentRef.current = current; });
+  // «Подсказка через»: seconds of no answer before the right photo lights
+  // up. Not on the one-photo errorless level -- there is nothing to choose.
+  const delaySeconds = Number(sessionParams?.promptDelay ?? 5);
+  const usesDelay = delaySeconds > 0 && !task.errorless;
+
+  function startDelay() {
+    if (delayTimer.current) clearTimeout(delayTimer.current);
+    if (!usesDelay) return;
+    delayTimer.current = setTimeout(() => {
+      const now = currentRef.current;
+      if (now.done || now.missedId || now.prompted) return;
+      setTrial({ ...now, prompted: true });
+      // No answer is not an independent answer: the streak goes, as on a miss.
+      onStreakReset?.(task.conceptId, task.personId);
+      if (soundEnabled) speak(task.missSpeech ?? `Вот ${task.word}.`);
+    }, delaySeconds * 1000);
+  }
 
   useEffect(() => {
     onCardShown?.(null, task.conceptId);
     if (soundEnabled) speak(task.promptSpeech);
+    startDelay();
     return () => {
       if (advanceTimer.current) clearTimeout(advanceTimer.current);
+      if (delayTimer.current) clearTimeout(delayTimer.current);
     };
-  }, [task, soundEnabled, speak, onCardShown]);
+  }, [task, soundEnabled, speak, onCardShown]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function repeatPrompt() {
     if (soundEnabled) speak(task.promptSpeech);
+    // The adult asked again: the wait starts over.
+    if (!helped && !current.done) startDelay();
   }
 
   function choose(choice) {
     if (current.done) return;
     if (choice.personId === task.personId) {
+      if (delayTimer.current) clearTimeout(delayTimer.current);
       setTrial({ ...current, done: true });
       // The child has now found this person by the word -- an introduction
       // for «Кто это?», which asks only about people already met.
@@ -588,10 +698,13 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAd
         advanceTimer.current = setTimeout(() => onAdvance?.(), 1400);
         return;
       }
-      onCorrect?.(task.conceptId, task.personId, { autoAdvance: true, autoAdvanceDelayMs: 1400 });
+      // Found only with help: the same trial comes back a little later,
+      // without the light (insertRetryTrial).
+      onCorrect?.(task.conceptId, task.personId, { autoAdvance: true, autoAdvanceDelayMs: 1400, retryLater: helped });
       return;
     }
-    if (current.missedId) return;
+    if (helped) return;
+    if (delayTimer.current) clearTimeout(delayTimer.current);
     setTrial({ ...current, missedId: choice.personId });
     onStreakReset?.(task.conceptId, task.personId);
     if (soundEnabled) speak(task.missSpeech ?? `Вот ${task.word}.`);
@@ -610,8 +723,8 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAd
         {task.choices.map((choice) => {
           const isTarget = choice.personId === task.personId;
           const state = current.done && isTarget ? "correct"
-            : current.missedId && isTarget ? "hint"
-              : current.missedId === choice.personId || (current.missedId && !isTarget) ? "faded"
+            : helped && isTarget ? "hint"
+              : helped && !isTarget ? "faded"
                 : "";
           return (
             <PointPhoto
@@ -619,7 +732,7 @@ function PersonPointTask({ task, topicId, student, soundEnabled, onCorrect, onAd
               choice={choice}
               topicId={topicId}
               state={state}
-              disabled={current.done || (Boolean(current.missedId) && !isTarget)}
+              disabled={current.done || (helped && !isTarget)}
               onChoose={choose}
             />
           );
@@ -651,7 +764,20 @@ function PersonNamingTask(props) {
   }
 
   return (
-    <QualityAnswerTask {...props} className="about-me-task person-naming" ariaLabel="Задание назвать человека" answerShown={level >= 2} hinted={level >= 1}>
+    <QualityAnswerTask
+      {...props}
+      className="about-me-task person-naming"
+      ariaLabel="Задание назвать человека"
+      answerShown={level >= 2}
+      // The stage shows the child's own word to echo; the adult's panel
+      // has both right answers.
+      stageAnswer={hintWord}
+      hinted={level >= 1}
+      hints={<HintSteps level={level} steps={[
+        ...(syllable ? [{ level: 1, label: "Первый слог", onClick: showSyllable }] : []),
+        { level: 2, label: "Показать ответ", onClick: showAnswer },
+      ]} />}
+    >
       {({ repeatPrompt }) => (
         <>
           <div className="person-naming__photo-wrap">
@@ -664,18 +790,10 @@ function PersonNamingTask(props) {
             <div className="about-me-task__prompt">{props.task.prompt}</div>
             <SpeakerButton onClick={repeatPrompt} label="Повторить вопрос" />
           </div>
-          {/* The cue slots keep their height so the photo stays put as
-              the hints come and go. */}
+          {/* The cue slot keeps its height so the photo stays put as the
+              hints come and go. */}
           <div className={`person-naming__syllable${level === 1 ? " person-naming__syllable--shown" : ""}`} aria-live="polite">
             {level === 1 ? `${syllable}…` : ""}
-          </div>
-          <div className="about-me-question__hints person-naming__hints">
-            {syllable && level < 1 && (
-              <button type="button" className="about-me-question__hint-btn" onClick={showSyllable}>Первый слог</button>
-            )}
-            {level < 2 && (
-              <button type="button" className="about-me-question__hint-btn" onClick={showAnswer}>Показать ответ</button>
-            )}
           </div>
         </>
       )}

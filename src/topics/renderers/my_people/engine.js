@@ -76,10 +76,11 @@ export function hasEnoughAboutMeFacts(student) {
 // Four levels, in teaching order. The adult picks which ones a lesson uses:
 //   self    -- name, boy/girl, age
 //   family  -- names of close family and pets
-//   safety  -- surname, city, address, a parent's phone: what a lost child
-//              must be able to tell an adult
 //   day     -- birthday, kindergarten/school, group/class, the teacher
-export const ABOUT_ME_LEVELS = ["self", "family", "safety", "day"];
+//   safety  -- surname, city, address, a parent's phone: what a lost child
+//              must be able to tell an adult. Last: the most to memorise,
+//              with the least to see.
+export const ABOUT_ME_LEVELS = ["self", "family", "day", "safety"];
 export const ABOUT_ME_DEFAULT_LEVELS = ["self", "family"];
 const ABOUT_ME_QUESTION_COUNTS = [4, 6, 8];
 export const MAX_ABOUT_ME_QUESTIONS_PER_ROUND = 6;
@@ -163,21 +164,23 @@ export function getAboutMeQuestions(student, now = new Date()) {
     add("family", `pet:${pet.id}`, `Как зовут ${accusative ?? "твоего питомца"}?`, pet.name.trim(), pet.photos.find(Boolean));
   }
 
-  // safety
-  add("safety", "family_name", "Как твоя фамилия?", profile.familyName);
-  add("safety", "city", "Где ты живёшь?", profile.city);
-  if (profile.includeAddress) add("safety", "address", "Какой у тебя адрес?", profile.address);
-  if (profile.includePhone) {
-    const owner = String(profile.phoneOwner ?? "").trim() || "мамы";
-    add("safety", "phone", `Назови телефон ${owner}.`, profile.phone);
-  }
-
   // day
   add("day", "birthday", "Когда у тебя день рождения?", birthdayFromBirthDate(profile.birthDate));
   const atSchool = profile.schoolKind === "school";
   add("day", "school", atSchool ? "В какую школу ты ходишь?" : "В какой детский сад ты ходишь?", profile.school);
   add("day", "group", atSchool ? "В каком ты классе?" : "Как называется твоя группа?", profile.group);
   addRelations("day", TEACHER_QUESTIONS);
+
+  // safety
+  add("safety", "family_name", "Как твоя фамилия?", profile.familyName);
+  // "Где ты живёшь?" has several true answers ("дома", the street); the
+  // question names the one it wants.
+  add("safety", "city", "В каком городе ты живёшь?", profile.city);
+  if (profile.includeAddress) add("safety", "address", "Какой у тебя адрес?", profile.address);
+  if (profile.includePhone) {
+    const owner = String(profile.phoneOwner ?? "").trim() || "мамы";
+    add("safety", "phone", `Назови телефон ${owner}.`, profile.phone);
+  }
 
   return questions;
 }
@@ -404,9 +407,21 @@ export function hasTwoPhotos(person) {
   return new Set((person?.photos ?? []).filter(Boolean)).size >= 2;
 }
 
+// «Образец»: "same" is the step below -- the very photo on top is among the
+// choices (identical matching), so one photo per person is enough; "other"
+// (the default) is the same person on a different photo.
+export function matchUsesSamePhoto(params) {
+  return params?.sample === "same";
+}
+
+export function matchTargets(people, params) {
+  return matchUsesSamePhoto(params) ? people : people.filter(hasTwoPhotos);
+}
+
 function matchTasks(people, params, round) {
-  const targets = people.filter(hasTwoPhotos);
+  const targets = matchTargets(people, params);
   if (targets.length < 2 || people.length < 2) return [];
+  const samePhoto = matchUsesSamePhoto(params);
   const requested = Number(params?.fieldSize);
   const fieldSize = Math.min(MATCH_FIELD_SIZES.includes(requested) ? requested : 2, people.length);
   const randomPhoto = (person) => {
@@ -415,8 +430,11 @@ function matchTasks(people, params, round) {
   };
   const positions = [];
   return pointTargetSequence(targets).map((target, trialIndex) => {
-    // Two different photos of the target: one on top, one to find.
-    const [sample, match] = shuffle([...new Set(target.photos.filter(Boolean))]);
+    // Two different photos of the target: one on top, one to find -- or
+    // the same photo twice at the identical-matching step.
+    const photos = shuffle([...new Set(target.photos.filter(Boolean))]);
+    const sample = photos[0];
+    const match = samePhoto ? sample : photos[1];
     // Distractors are chosen by person, not by word: two "Маша" are two
     // different faces here, so they may share a screen.
     const distractors = pickPointDistractors(target, people, null, fieldSize - 1, round);
@@ -498,9 +516,11 @@ export function labelAxes(mode, params) {
   return [mode.id.endsWith("_relations") ? "relation" : "name"];
 }
 
-function albumSize(params, available) {
+// «Подпиши фото» starts at two photos, the usual first field for these
+// children; the retired album modes kept their old default of four.
+function albumSize(mode, params, available) {
   const requested = Number(params?.peopleCount);
-  const selectedSize = ALBUM_SIZES.includes(requested) ? requested : 4;
+  const selectedSize = ALBUM_SIZES.includes(requested) ? requested : (mode.id === "label_photos" ? 2 : 4);
   return Math.min(Math.max(MIN_ALBUM_SIZE, selectedSize), MAX_ALBUM_SIZE, available);
 }
 
@@ -615,7 +635,7 @@ function byCreation(a, b) {
 function albumTasks(people, axis, mode, params, photoPlanner, preferDifferentPhoto = false) {
   const suitablePeople = axis === "relation" ? people.filter((person) => person.relation?.trim()) : people;
   if (suitablePeople.length < MIN_ALBUM_SIZE) return [];
-  const groups = toGroups(shuffle(suitablePeople), albumSize(params, suitablePeople.length));
+  const groups = toGroups(shuffle(suitablePeople), albumSize(mode, params, suitablePeople.length));
   return groups.map((group) => taskForGroup(group, axis, mode.id, photoPlanner, preferDifferentPhoto));
 }
 
@@ -685,36 +705,41 @@ function introduceTasks(student, params, round) {
 }
 
 function personNamingTasks(people, mode, photoPlanner) {
-  return shuffle(people).flatMap((person) => {
-    const axes = ["name", "relation"].filter((axis) => (
-      (axis === "name" || person.relation?.trim()) && hasIntroducedAxis(person, axis)
-    ));
-    if (!axes.length) return [];
-
-    // Each person contributes at most one open-answer card per round. When
-    // both axes were introduced, vary which one the child is asked to name.
-    const axis = axes[Math.floor(Math.random() * axes.length)];
-    // One question for both: a child who reaches for the kin word ("мама")
-    // and one who says the name are both answering "Кто это?".
-    const prompt = "Кто это?";
-    const conceptId = `person_naming:${person.id}:${axis}`;
+  const known = people.filter((person) => ["name", "relation"].some((axis) => (
+    (axis === "name" || person.relation?.trim()) && hasIntroducedAxis(person, axis)
+  )));
+  if (!known.length) return [];
+  // A round is 6–8 trials as in «Покажи»: with two or three people met so
+  // far, one pass was two or three questions. People repeat evenly, never
+  // three times running, and a repeat comes on another photo when there is
+  // one. A single person met so far is asked about once -- six "Кто это?"
+  // in a row with one answer is echoing, not naming.
+  const sequence = known.length >= 2 ? pointTargetSequence(known) : known;
+  return sequence.map((person, trialIndex) => {
     const word = mainWord(person);
-    return [{
+    // One concept per person: the question and the accepted answers ("мама"
+    // and "Анна") don't depend on the axis, so the progress shouldn't either.
+    // Older sessions recorded `person_naming:<id>:<axis>`; the summary reads
+    // both.
+    const conceptId = `person_naming:${person.id}`;
+    const axis = pointAxis(person, word);
+    return {
       type: "person_naming",
       conceptId,
       targetConceptId: conceptId,
       progressConceptIds: [conceptId],
+      trialIndex,
       personId: person.id,
       axis,
-      image: photoPlanner.imageFor(person, axis),
-      prompt,
-      promptSpeech: prompt,
+      image: photoPlanner.imageFor(person, "naming", true),
+      prompt: "Кто это?",
+      promptSpeech: "Кто это?",
       // Both answers are right, so the adult sees both: "мама · Анна".
       answer: namingAnswers(person).join(" · "),
       // The prompts lead to the word the child uses for this person.
       hintWord: word,
       hintSyllable: firstSyllable(word),
-    }];
+    };
   });
 }
 
@@ -736,6 +761,42 @@ export function firstSyllable(word) {
   if (vowelIndex < 0) return text[0];
   if (vowelIndex === 0) return text.length > 1 && !VOWELS.test(text[1]) && /\p{L}/u.test(text[1]) ? text.slice(0, 2) : text[0];
   return text.slice(0, vowelIndex + 1);
+}
+
+// Error correction in «Покажи» and «Найди такого же»: a trial the child got
+// only with help (a miss, or the light after a pause) comes back once, after
+// one or two other trials, now without the light -- the "transfer trial"
+// that checks the correction took. The photos swap places; a repeat is not
+// repeated again. Pure: the session hook calls it on the round's task list.
+const RETRY_TYPES = new Set(["person_point", "person_match"]);
+
+export function insertRetryTrial(tasks, index) {
+  const task = tasks?.[index];
+  if (!task || task.retry || !RETRY_TYPES.has(task.type) || task.errorless) return tasks;
+  const retry = { ...task, retry: true, introduces: false, choices: reorderChoices(task) };
+  const samePersonRun = (list, at) => {
+    const ids = list.slice(Math.max(0, at - 2), at + 3).map((item) => item.personId);
+    return ids.some((id, i) => i >= 2 && id === ids[i - 1] && id === ids[i - 2]);
+  };
+  // After one other trial, else after two; past the end of the round it
+  // closes the round.
+  for (const at of [index + 2, index + 3]) {
+    if (at > tasks.length) break;
+    const candidate = [...tasks.slice(0, at), retry, ...tasks.slice(at)];
+    if (!samePersonRun(candidate, at)) return candidate;
+  }
+  return [...tasks, retry];
+}
+
+function reorderChoices(task) {
+  const choices = task.choices ?? [];
+  if (choices.length < 2) return choices;
+  const oldSlot = choices.findIndex((choice) => choice.personId === task.personId);
+  const others = shuffle(choices.filter((choice) => choice.personId !== task.personId));
+  const slots = Array.from({ length: choices.length }, (_, i) => i).filter((i) => i !== oldSlot);
+  const slot = slots[Math.floor(Math.random() * slots.length)];
+  others.splice(slot, 0, choices[oldSlot]);
+  return others;
 }
 
 // sessionIntroduced: { name?: Set<personId>, relation?: Set<personId> } of

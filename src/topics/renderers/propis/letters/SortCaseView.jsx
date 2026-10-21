@@ -30,8 +30,9 @@ const ROW_PITCH = (L3 - L2) + (L4 - L3);  // 78 SVG units — NO mid-gap line
 // Fixed viewBox height — zone dimensions never change
 const ZONE_VBH  = VBH + (MAX_ROWS - 1) * ROW_PITCH;  // 150 + 5×78 = 540
 
-// Diagonal slant lines (косые линейки) — standard Russian cursive 65° angle
-const SLANT_TAN     = Math.tan(65 * Math.PI / 180);  // ≈ 2.145
+// Diagonal slant lines (косые линейки) — standard Russian cursive 65° angle; a `propis2` variant deck with its own slant
+// (Bulgarian: 76°) hands it in on the glyph context (propis2/letterCards.js `slantDeg`)
+const slantTanOf = (glyphs) => Math.tan(((glyphs?.slantDeg ?? 65) * Math.PI) / 180);  // 65° ≈ 2.145
 const SLANT_SPACING = 80;  // horizontal gap between slant lines in SVG units
 
 // Wrap chips into rows — positions within fixed grid, does NOT affect zone size
@@ -61,6 +62,7 @@ function ZonePaper({ chips, isActive, zoneRef, label, color }) {
 
   // Slant lines spanning fixed ZONE_VBH height, clipped to viewBox
   const slantLines = [];
+  const SLANT_TAN = slantTanOf(glyphs);
   const xFirst = -Math.floor(ZONE_VBH / SLANT_TAN) - SLANT_SPACING;
   for (let x0 = xFirst; x0 <= ROW_W + SLANT_SPACING; x0 += SLANT_SPACING) {
     slantLines.push(

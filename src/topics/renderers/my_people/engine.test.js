@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMyPeopleTopicRecord } from "@/topics/builtinMyPeopleTopic";
-import { aboutMeHistory, ageFromBirthDate, firstSyllable, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
+import { aboutMeHistory, ageFromBirthDate, firstSyllable, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, insertRetryTrial, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
 
 const student = {
   id: "student_1",
@@ -22,6 +22,7 @@ describe("my_people album engine", () => {
     const whoIsThis = topic.modes.find((mode) => mode.id === "who_is_this");
 
     expect(labelPhotos.params.peopleCount.values).toEqual([2, 3, 4, 6]);
+    expect(labelPhotos.params.peopleCount.default).toBe(2);
     expect(labelPhotos.params.circle.values).toEqual(["family", "home", "school", "all"]);
     expect(topic.modes.every((mode) => mode.loop && mode.regenerateOnLoop)).toBe(true);
     expect(aboutMe).toEqual(expect.objectContaining({ type: "about_me", evaluation: "adult" }));
@@ -156,7 +157,7 @@ describe("my_people album engine", () => {
     expect(generateTasks({ id: "school_names", type: "people_album" }, singlePersonStudent)).toEqual([]);
   });
 
-  it("asks to name only introduced axes without repeating a person in the round", () => {
+  it("asks to name only people already met, 6–8 trials, one concept per person", () => {
     const people = [
       { id: "anna", name: "Анна", relation: "мама", contexts: ["family"], photos: ["/api/photos/anna"], introducedAxes: ["name"], enabled: true },
       { id: "teacher_1", name: "Ирина", relation: "учитель", contexts: ["school"], photos: ["/api/photos/teacher_1"], introducedAxes: ["relation"], enabled: true },
@@ -165,14 +166,25 @@ describe("my_people album engine", () => {
     ];
     const tasks = generateTasks({ id: "who_is_this", type: "person_naming" }, { ...student, myPeople: people });
 
-    expect(tasks).toHaveLength(3);
+    expect(tasks).toHaveLength(MIN_POINT_TRIALS_PER_ROUND);
     expect(tasks.every((task) => task.type === "person_naming")).toBe(true);
-    expect(new Set(tasks.map((task) => task.personId)).size).toBe(tasks.length);
-    expect(tasks.map((task) => task.personId).sort()).toEqual(["anna", "teacher_1", "teacher_2"]);
+    // Three people met, two trials each; the newcomer is not asked about.
+    const ids = tasks.map((task) => task.personId);
+    expect([...new Set(ids)].sort()).toEqual(["anna", "teacher_1", "teacher_2"]);
+    for (const id of ["anna", "teacher_1", "teacher_2"]) expect(ids.filter((other) => other === id)).toHaveLength(2);
     expect(tasks.find((task) => task.personId === "anna")).toEqual(expect.objectContaining({
-      axis: "name", prompt: "Кто это?", answer: "мама · Анна", hintWord: "мама", hintSyllable: "ма",
+      conceptId: "person_naming:anna", prompt: "Кто это?", answer: "мама · Анна", hintWord: "мама", hintSyllable: "ма",
     }));
-    expect(tasks.filter((task) => task.axis === "relation").map((task) => task.answer).sort()).toEqual(["Ирина · учитель", "Марина · учитель"]);
+    expect(tasks.find((task) => task.personId === "teacher_1").answer).toBe("Ирина · учитель");
+  });
+
+  it("never asks «Кто это?» about one person three times running", () => {
+    const people = student.myPeople.slice(0, 2).map((person) => ({ ...person, introducedAxes: ["name"] }));
+    for (let i = 0; i < 50; i += 1) {
+      const ids = generateTasks({ id: "who_is_this", type: "person_naming" }, { ...student, myPeople: people }).map((task) => task.personId);
+      expect(ids).toHaveLength(MIN_POINT_TRIALS_PER_ROUND);
+      expect(ids.some((id, index) => index >= 2 && id === ids[index - 1] && id === ids[index - 2])).toBe(false);
+    }
   });
 
   it("does not ask naming questions before any axis was introduced", () => {
@@ -311,10 +323,11 @@ describe("«Обо мне»: short questions", () => {
       ["family", "Как зовут сестру?", "Маша или Катя"],
       // A pet of unknown kind ("брат" is no animal) is "питомец".
       ["family", "Как зовут твоего питомца?", "Барсик"],
-      // A filled-in field is a question: the old "include" ticks are ignored.
-      ["safety", "Как твоя фамилия?", "Петров"],
-      ["safety", "Где ты живёшь?", "Любляна"],
       ["day", "Когда у тебя день рождения?", "15 октября"],
+      // A filled-in field is a question: the old "include" ticks are ignored.
+      // «Безопасность» comes last: the most to memorise.
+      ["safety", "Как твоя фамилия?", "Петров"],
+      ["safety", "В каком городе ты живёшь?", "Любляна"],
     ]);
     // A switched-off person produces no question.
     expect(JSON.stringify(questions)).not.toMatch(/Иван/);
@@ -327,7 +340,7 @@ describe("«Обо мне»: short questions", () => {
     const withYes = getAboutMeQuestions({ ...child, myPeopleProfile: { ...profile, includeAddress: true, includePhone: true } }, now);
     expect(withYes.filter((q) => q.level === "safety").map((q) => [q.question, q.answer])).toEqual([
       ["Как твоя фамилия?", "Петров"],
-      ["Где ты живёшь?", "Любляна"],
+      ["В каком городе ты живёшь?", "Любляна"],
       ["Какой у тебя адрес?", "ул. Ленина, 5"],
       ["Назови телефон папы.", "+7 900 123-45-67"],
     ]);
@@ -379,7 +392,7 @@ describe("«Обо мне»: short questions", () => {
 
   it("asks only the chosen levels, as many as asked for", () => {
     const tasks = generateTasks({ id: "about_me", type: "about_me" }, child, { levels: ["safety", "day"], questionCount: 4 });
-    expect(tasks.map((task) => task.conceptId)).toEqual(["about_q:family_name", "about_q:city", "about_q:birthday"]);
+    expect(tasks.map((task) => task.conceptId)).toEqual(["about_q:birthday", "about_q:family_name", "about_q:city"]);
     expect(generateTasks({ id: "about_me", type: "about_me" }, child, { levels: ["self", "family", "safety", "day"], questionCount: 4 })).toHaveLength(4);
     expect(hasEnoughAboutMeQuestions(child, { levels: ["day"] })).toBe(false);
   });
@@ -396,7 +409,7 @@ describe("«Обо мне»: short questions", () => {
     ]);
     const ids = generateTasks({ id: "about_me", type: "about_me" }, child, all, new Map(), {}, 0, history).map((task) => task.conceptId);
     // 4 to learn (never asked first, then the city answered with a prompt) + 2 known, oldest first; in ladder order.
-    expect(ids).toEqual(["about_q:name", "about_q:gender", "about_q:rel:сестра", "about_q:pet:cat", "about_q:family_name", "about_q:birthday"]);
+    expect(ids).toEqual(["about_q:name", "about_q:gender", "about_q:rel:сестра", "about_q:pet:cat", "about_q:birthday", "about_q:family_name"]);
   });
 
   it("reads the history from saved lessons: the last answer to each question", () => {
@@ -637,6 +650,16 @@ describe("«Найди такого же»", () => {
     }
   });
 
+  it("at «Одинаковое фото» shows the very same picture, so one photo per person is enough", () => {
+    const onePhotoEach = { id: "s1", myPeople: [person("olga", ["/o1"]), person("ivan", ["/i1"]), person("cat", ["/c1"], { type: "pet" })] };
+    expect(generateTasks(matchSame, onePhotoEach, { sample: "other" })).toEqual([]);
+    const tasks = generateTasks(matchSame, onePhotoEach, { sample: "same", fieldSize: 2 });
+    expect(tasks.length).toBeGreaterThanOrEqual(MIN_POINT_TRIALS_PER_ROUND);
+    for (const task of tasks) {
+      expect(task.choices.find((choice) => choice.personId === task.personId).image).toBe(task.sample);
+    }
+  });
+
   it("lets a one-photo person be a distractor but never the one to find", () => {
     const ids = new Set();
     for (let i = 0; i < 30; i += 1) {
@@ -650,5 +673,50 @@ describe("«Найди такого же»", () => {
   it("needs two people with two photos each", () => {
     const one = { ...student, myPeople: [person("anna", ["/a1", "/a2"]), person("olga", ["/o1"]), person("ivan", ["/i1", "/i1"])] };
     expect(generateTasks(matchSame, one)).toEqual([]);
+  });
+});
+
+describe("repeat after a helped trial (insertRetryTrial)", () => {
+  const trial = (personId, extra = {}) => ({
+    type: "person_point",
+    conceptId: `point:${personId}`,
+    personId,
+    choices: [{ personId }, { personId: personId === "x" ? "y" : "x" }],
+    ...extra,
+  });
+
+  it("brings the trial back after one or two others, photos in new places", () => {
+    for (let i = 0; i < 30; i += 1) {
+      const tasks = [trial("anna"), trial("pavel"), trial("anna"), trial("pavel"), trial("anna")];
+      const next = insertRetryTrial(tasks, 0);
+      expect(next).toHaveLength(6);
+      const at = next.findIndex((task) => task.retry);
+      expect([2, 3]).toContain(at);
+      expect(next[at].personId).toBe("anna");
+      expect(next[at].choices.findIndex((c) => c.personId === "anna")).not.toBe(tasks[0].choices.findIndex((c) => c.personId === "anna"));
+    }
+  });
+
+  it("never makes three of one person in a row", () => {
+    const tasks = [trial("anna"), trial("pavel"), trial("pavel"), trial("anna"), trial("pavel")];
+    // Right after the next trial would make pavel three times running, so
+    // the repeat waits one more trial.
+    const next = insertRetryTrial(tasks, 1);
+    expect(next.findIndex((task) => task.retry)).toBe(4);
+    const ids = next.map((task) => task.personId);
+    expect(ids.some((id, i) => i >= 2 && id === ids[i - 1] && id === ids[i - 2])).toBe(false);
+  });
+
+  it("closes the round when the miss was at its end", () => {
+    const tasks = [trial("anna"), trial("pavel")];
+    const next = insertRetryTrial(tasks, 1);
+    expect(next.at(-1)).toEqual(expect.objectContaining({ personId: "pavel", retry: true }));
+  });
+
+  it("does not repeat a repeat, the errorless level or other task types", () => {
+    const tasks = [trial("anna", { retry: true }), trial("pavel", { errorless: true }), { type: "person_naming", personId: "olga" }];
+    expect(insertRetryTrial(tasks, 0)).toBe(tasks);
+    expect(insertRetryTrial(tasks, 1)).toBe(tasks);
+    expect(insertRetryTrial(tasks, 2)).toBe(tasks);
   });
 });

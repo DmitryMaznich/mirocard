@@ -25,7 +25,7 @@ export const SPINE_PAPERS = [
 // `notebookPaper`: the grid kind of the notebook's first page ("propis" | "square" | "ruled")
 export const spinePaperOf = (cover, notebookPaper) => {
   const id = cover?.spine && cover.spine !== "auto" ? cover.spine : notebookPaper;
-  return ["propis", "square", "ruled"].includes(id) ? id : "propis";
+  return ["propis", "square", "ruled", "bg"].includes(id) ? id : "propis";
 };
 
 export const FIELDS = [
