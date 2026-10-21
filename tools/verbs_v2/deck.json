@@ -5,7 +5,7 @@
       "ru": "Глаголы",
       "en": "verbs_v2"
     },
-    "version": "2.3.0",
+    "version": "2.4.0",
     "renderer": "flashcards",
     "conceptCount": 44,
     "questionKey": "Что делает?",
@@ -18,9 +18,9 @@
       ],
       "finalGoal": "Ребёнок по слову уверенно находит картинку с действием среди похожих и обозначает действие на картинке доступным ему способом.",
       "flow": [
-        "Работайте волнами. Волна 1: ест, пьёт, спит, бежит, прыгает, рисует. Волна 2: идёт, чистит зубы, играет, читает, едет, плачет, смеётся. Волна 3: умывается, плавает, поёт, танцует, режет, поливает, пылесосит. Волна 4 — ранние бытовые глаголы, вводите по три: сидит, даёт, открывает → моет руки, кидает, лежит → одевается, стоит, падает. Волна 5 — тоже по три: закрывает, берёт, хлопает → дует, вытирает, снимает → убирает, ловит, ползёт → причёсывается, пишет, строит → качается, купается, летит.",
-        "Внутри волны: Знакомство → Сделай → Покажи (сначала из двух, потом из четырёх) → Найди все картинки → Что делает?",
-        "Переходите к следующему режиму и следующей волне, когда ребёнок отвечает верно 8 раз из 10 два занятия подряд."
+        "Работайте наборами. Набор 1: ест, пьёт, спит, бежит, прыгает, рисует. Набор 2: идёт, чистит зубы, играет, читает, едет, плачет, смеётся. Набор 3: умывается, плавает, поёт, танцует, режет, поливает, пылесосит. Набор 4 — ранние бытовые глаголы, вводите по три: сидит, даёт, открывает → моет руки, кидает, лежит → одевается, стоит, падает. Набор 5 — тоже по три: закрывает, берёт, хлопает → дует, вытирает, снимает → убирает, ловит, ползёт → причёсывается, пишет, строит → качается, купается, летит.",
+        "Внутри набора: Знакомство → Сделай → Покажи (сначала из двух, потом из четырёх) → Найди все картинки → Что делает?",
+        "Переходите к следующему режиму и следующему набору, когда ребёнок отвечает верно 8 раз из 10 два занятия подряд."
       ],
       "tips": [
         "Начинайте с 3–4 глаголов: отметьте их в точках над режимом.",
@@ -29,7 +29,24 @@
         "«Дай!» в режиме «Сделай»: протяните ребёнку раскрытую ладонь, а в руки ему дайте предмет — иначе выполнить нечего. Так же с «Возьми!»: протяните предмет. Для «Закрой!», «Подуй!», «Вытри руки!», «Сними!», «Убери!», «Причешись!», «Лови!» держите под рукой коробку, мыльные пузыри, полотенце, шапку, игрушку, расчёску, мяч."
       ]
     },
-    "customModesOnly": true
+    "customModesOnly": true,
+    "groups": {
+      "set1": {
+        "ru": "Набор 1"
+      },
+      "set2": {
+        "ru": "Набор 2"
+      },
+      "set3": {
+        "ru": "Набор 3"
+      },
+      "set4": {
+        "ru": "Набор 4"
+      },
+      "set5": {
+        "ru": "Набор 5"
+      }
+    }
   },
   "modes": [
     {
@@ -43,18 +60,42 @@
       },
       "methodology": {
         "summary": "Посмотри на действие и послушай, как оно называется.",
-        "text": "Ребёнок листает картинки выбранных глаголов: все картинки одного действия подряд, звучит его название. Оценки нет.",
+        "text": "Ребёнок листает картинки выбранных глаголов: картинки одного действия подряд, звучит его название. Сколько картинок на глагол — в настройке: сначала мальчик и мама, потом другие, каждый раз новые. Оценки нет.",
         "goal": "Ребёнок связывает звучащее слово с действием на картинке.",
         "duration": "2–4 минуты",
         "tips": [
-          "Включайте в точках над режимом 3–4 глагола текущей волны, а не все 44 сразу.",
+          "Включайте 3–4 глагола текущего набора, а не все 44 сразу: «Изменить» под точками → набор → «Выбрать только этот набор», затем снимите лишние.",
           "После картинки покажите это действие сами или с игрушкой: «Мишка ест — ам-ам».",
           "Предложите ребёнку повторить движение (прыгнуть, «попить» из пустой чашки) — так глагол запоминается лучше, чем со слов."
         ]
       },
       "paramsScope": "mode",
       "groupByConcept": true,
-      "excludeAnimals": true
+      "excludeAnimals": true,
+      "params": {
+        "picturesPerConcept": {
+          "type": "enum",
+          "label": {
+            "ru": "Картинок на глагол"
+          },
+          "values": [
+            2,
+            4,
+            "all"
+          ],
+          "labels": {
+            "ru": {
+              "2": "2",
+              "4": "4",
+              "all": "Все"
+            }
+          },
+          "default": 4,
+          "hint": {
+            "ru": "Сначала мальчик и мама, потом другие картинки — каждый раз новые. «Все» — для 1–2 глаголов."
+          }
+        }
+      }
     },
     {
       "id": "verbs_act_out",
@@ -75,7 +116,7 @@
           "Перед командой привлеките внимание ребёнка, но не смотрите на нужный предмет и не начинайте движение сами — это тоже подсказка.",
           "Для «Ешь!», «Пей!», «Чисти зубы!» дайте предмет понарошку: ложку, пустую чашку, щётку.",
           "В режиме 31 действие — те, что можно выполнить в комнате. Плавает, едет, спит, плачет, режет, поливает, пылесосит, падает, качается, купается, строит, пишет, летит здесь нет.",
-          "Цель — «Легко» 8 раз из 10 на глаголах текущей волны."
+          "Цель — «Легко» 8 раз из 10 на глаголах текущего набора."
         ]
       }
     },
@@ -130,7 +171,7 @@
         "duration": "3–6 минут",
         "tips": [
           "Начните с двух картинок.",
-          "Включайте в точках над режимом 3–4 глагола текущей волны.",
+          "Включайте 3–4 глагола текущего набора («Изменить» под точками).",
           "При ошибке не говорите «нет»: назовите действие на подсвеченной картинке («Вот — бежит»)."
         ]
       },
@@ -238,7 +279,7 @@
         "goal": "Ребёнок по слову выбирает картинку с нужным действием среди двух далёких.",
         "duration": "3–5 минут",
         "tips": [
-          "Включайте в точках над режимом 3–4 глагола текущей волны, а не все 44 сразу.",
+          "Включайте 3–4 глагола текущего набора, а не все 44 сразу: «Изменить» под точками → набор → «Выбрать только этот набор», затем снимите лишние.",
           "При ошибке не говорите «нет»: покажите правильную картинку и назовите действие («Вот — бежит»).",
           "Переходите к режиму «Покажи: из четырёх», когда ребёнок выбирает верно 8 раз из 10 два занятия подряд."
         ]
@@ -458,7 +499,7 @@
     }
   ],
   "annotation": {
-    "ru": "44 частотных глагола в пяти волнах: пара «мальчик и мама» для начала и разные картинки для переноса. Для минимально вербальных детей, в том числе с РАС; логопеды и родители.",
+    "ru": "44 частотных глагола в пяти наборах: пара «мальчик и мама» для начала и разные картинки для переноса. Для минимально вербальных детей, в том числе с РАС; логопеды и родители.",
     "en": ""
   },
   "semanticSchema": {
@@ -499,7 +540,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_c_eats_mom",
@@ -533,7 +575,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_v_eats_girl_apple",
@@ -567,7 +610,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "eats_1",
@@ -601,7 +645,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "eats_2",
@@ -635,7 +680,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "eats_3",
@@ -669,7 +715,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "eats_5",
@@ -703,7 +750,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_c_drinks_boy",
@@ -737,7 +785,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_c_drinks_mom",
@@ -771,7 +820,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_v_drinks_1",
@@ -805,7 +855,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_v_drinks_2",
@@ -839,7 +890,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "drinks_1",
@@ -870,7 +922,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_drinks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set1"
     },
     {
       "id": "drinks_2",
@@ -904,7 +957,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "drinks_3",
@@ -938,7 +992,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "drinks_5",
@@ -969,7 +1024,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_drinks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set1"
     },
     {
       "id": "s3_c_sleeps_boy",
@@ -999,7 +1055,8 @@
       },
       "alsoShows": [
         "lies"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_c_sleeps_mom",
@@ -1029,7 +1086,8 @@
       },
       "alsoShows": [
         "lies"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_v_sleeps_baby_stroller",
@@ -1059,7 +1117,8 @@
       },
       "alsoShows": [
         "lies"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "sleeps_1",
@@ -1089,7 +1148,8 @@
       "set": "variation",
       "alsoShows": [
         "lies"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "sleeps_2",
@@ -1119,7 +1179,8 @@
       "set": "variation",
       "alsoShows": [
         "lies"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "sleeps_3",
@@ -1149,7 +1210,8 @@
       "set": "variation",
       "alsoShows": [
         "lies"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "sleeps_5",
@@ -1179,7 +1241,8 @@
       "set": "variation",
       "alsoShows": [
         "lies"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_c_runs_boy",
@@ -1211,7 +1274,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set1"
     },
     {
       "id": "s3_c_runs_mom",
@@ -1243,7 +1307,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set1"
     },
     {
       "id": "s3_v_runs_boy_beach",
@@ -1275,7 +1340,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set1"
     },
     {
       "id": "runs_1",
@@ -1307,7 +1373,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_runs.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set1"
     },
     {
       "id": "runs_2",
@@ -1339,7 +1406,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_runs.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set1"
     },
     {
       "id": "runs_3",
@@ -1371,7 +1439,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_runs.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set1"
     },
     {
       "id": "runs_4",
@@ -1404,7 +1473,8 @@
         "ru": "audio/imp_runs.mp3"
       },
       "set": "variation",
-      "agent": "animal"
+      "agent": "animal",
+      "group": "set1"
     },
     {
       "id": "runs_5",
@@ -1436,7 +1506,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_runs.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set1"
     },
     {
       "id": "s3_c_jumps_boy",
@@ -1467,7 +1538,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set1"
     },
     {
       "id": "s3_c_jumps_mom",
@@ -1498,7 +1570,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set1"
     },
     {
       "id": "s3_v_jumps_1",
@@ -1529,7 +1602,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set1"
     },
     {
       "id": "s3_v_jumps_2",
@@ -1560,7 +1634,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set1"
     },
     {
       "id": "jumps_1",
@@ -1591,7 +1666,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_jumps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set1"
     },
     {
       "id": "jumps_2",
@@ -1622,7 +1698,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_jumps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set1"
     },
     {
       "id": "jumps_3",
@@ -1653,7 +1730,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_jumps.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set1"
     },
     {
       "id": "s3_c_draws_boy",
@@ -1687,7 +1765,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_c_draws_mom",
@@ -1721,7 +1800,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_v_draws_1",
@@ -1755,7 +1835,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_v_draws_2",
@@ -1789,7 +1870,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "draws_1",
@@ -1823,7 +1905,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "draws_2",
@@ -1857,7 +1940,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "draws_3",
@@ -1891,7 +1975,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set1"
     },
     {
       "id": "s3_c_walks_boy",
@@ -1922,7 +2007,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "moderate"
-      }
+      },
+      "group": "set2"
     },
     {
       "id": "s3_c_walks_mom",
@@ -1953,7 +2039,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "moderate"
-      }
+      },
+      "group": "set2"
     },
     {
       "id": "s3_v_walks_1",
@@ -1984,7 +2071,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "moderate"
-      }
+      },
+      "group": "set2"
     },
     {
       "id": "s3_v_walks_2",
@@ -2015,7 +2103,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "moderate"
-      }
+      },
+      "group": "set2"
     },
     {
       "id": "walks_1",
@@ -2046,7 +2135,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_walks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set2"
     },
     {
       "id": "walks_2",
@@ -2077,7 +2167,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_walks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set2"
     },
     {
       "id": "walks_3",
@@ -2108,7 +2199,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_walks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set2"
     },
     {
       "id": "walks_5",
@@ -2139,7 +2231,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_walks.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set2"
     },
     {
       "id": "s3_c_brushes_teeth_boy",
@@ -2173,7 +2266,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_brushes_teeth_mom",
@@ -2207,7 +2301,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_brushes_teeth_1",
@@ -2241,7 +2336,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_brushes_teeth_2",
@@ -2272,7 +2368,8 @@
         "group1": "hygiene",
         "group2": "mouth",
         "group3": "calm"
-      }
+      },
+      "group": "set2"
     },
     {
       "id": "brushes_teeth_1",
@@ -2303,7 +2400,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_brushes_teeth.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set2"
     },
     {
       "id": "brushes_teeth_5",
@@ -2334,7 +2432,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_brushes_teeth.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set2"
     },
     {
       "id": "s3_c_plays_boy",
@@ -2369,7 +2468,8 @@
       "alsoShows": [
         "sits",
         "builds"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_plays_mom",
@@ -2404,7 +2504,8 @@
       "alsoShows": [
         "sits",
         "builds"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_plays_1",
@@ -2438,7 +2539,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_plays_2",
@@ -2472,7 +2574,8 @@
       },
       "alsoShows": [
         "lies"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "plays_1",
@@ -2506,7 +2609,8 @@
       "set": "variation",
       "alsoShows": [
         "catches"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "plays_2",
@@ -2540,7 +2644,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "plays_3",
@@ -2574,7 +2679,8 @@
       "set": "variation",
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "plays_4",
@@ -2606,7 +2712,8 @@
         "ru": "audio/imp_plays.mp3"
       },
       "set": "variation",
-      "agent": "animal"
+      "agent": "animal",
+      "group": "set2"
     },
     {
       "id": "plays_5",
@@ -2641,7 +2748,8 @@
       "alsoShows": [
         "stands",
         "catches"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_reads_boy",
@@ -2675,7 +2783,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_reads_mom",
@@ -2709,7 +2818,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_reads_1",
@@ -2743,7 +2853,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_reads_2",
@@ -2777,7 +2888,8 @@
       },
       "alsoShows": [
         "lies"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "reads_1",
@@ -2811,7 +2923,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "reads_3",
@@ -2845,7 +2958,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "reads_5",
@@ -2879,7 +2993,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_rides_boy",
@@ -2910,7 +3025,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_rides_mom",
@@ -2941,7 +3057,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_rides_1",
@@ -2972,7 +3089,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_rides_2",
@@ -3003,7 +3121,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "rides_1",
@@ -3034,7 +3153,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "rides_2",
@@ -3065,7 +3185,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "rides_3",
@@ -3096,7 +3217,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "rides_5",
@@ -3127,7 +3249,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_cries_boy",
@@ -3157,7 +3280,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_cries_mom",
@@ -3187,7 +3311,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_cries_1",
@@ -3217,7 +3342,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_cries_2",
@@ -3247,7 +3373,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "cries_1",
@@ -3274,7 +3401,8 @@
       "promptAudio": {
         "ru": "audio/cries.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set2"
     },
     {
       "id": "cries_3",
@@ -3304,7 +3432,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_laughs_boy",
@@ -3338,7 +3467,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_laughs_mom",
@@ -3372,7 +3502,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_laughs_1",
@@ -3406,7 +3537,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_v_laughs_2",
@@ -3440,7 +3572,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "laughs_1",
@@ -3471,7 +3604,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_laughs.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set2"
     },
     {
       "id": "laughs_2",
@@ -3505,7 +3639,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "laughs_3",
@@ -3539,7 +3674,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set2"
     },
     {
       "id": "s3_c_washes_face_boy",
@@ -3573,7 +3709,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_c_washes_face_mom",
@@ -3607,7 +3744,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_v_washes_face_1",
@@ -3641,7 +3779,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_v_washes_face_2",
@@ -3675,7 +3814,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "washes_face_1",
@@ -3706,7 +3846,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_washes_face.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set3"
     },
     {
       "id": "washes_face_2",
@@ -3740,7 +3881,8 @@
       "set": "variation",
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "washes_face_3",
@@ -3774,7 +3916,8 @@
       "set": "variation",
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_c_swims_boy",
@@ -3801,7 +3944,8 @@
         "group1": "water",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set3"
     },
     {
       "id": "s3_c_swims_mom",
@@ -3828,7 +3972,8 @@
         "group1": "water",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set3"
     },
     {
       "id": "s3_v_swims_1",
@@ -3858,7 +4003,8 @@
       },
       "alsoShows": [
         "lies"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_v_swims_2",
@@ -3885,7 +4031,8 @@
         "group1": "water",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set3"
     },
     {
       "id": "swims_1",
@@ -3912,7 +4059,8 @@
       "promptAudio": {
         "ru": "audio/swims.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set3"
     },
     {
       "id": "swims_4",
@@ -3940,7 +4088,8 @@
         "ru": "audio/swims.mp3"
       },
       "set": "variation",
-      "agent": "animal"
+      "agent": "animal",
+      "group": "set3"
     },
     {
       "id": "s3_c_sings_boy",
@@ -3974,7 +4123,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_c_sings_mom",
@@ -4008,7 +4158,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_v_sings_1",
@@ -4042,7 +4193,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_v_sings_2",
@@ -4076,7 +4228,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "sings_2",
@@ -4110,7 +4263,8 @@
       "set": "variation",
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "sings_3",
@@ -4144,7 +4298,8 @@
       "set": "variation",
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "sings_4",
@@ -4176,7 +4331,8 @@
         "ru": "audio/imp_sings.mp3"
       },
       "set": "variation",
-      "agent": "animal"
+      "agent": "animal",
+      "group": "set3"
     },
     {
       "id": "s3_c_dances_boy",
@@ -4208,7 +4364,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set3"
     },
     {
       "id": "s3_c_dances_mom",
@@ -4240,7 +4397,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set3"
     },
     {
       "id": "s3_v_dances_1",
@@ -4272,7 +4430,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set3"
     },
     {
       "id": "s3_v_dances_2",
@@ -4304,7 +4463,8 @@
         "group1": "legs",
         "group2": "legs",
         "group3": "active"
-      }
+      },
+      "group": "set3"
     },
     {
       "id": "dances_1",
@@ -4336,7 +4496,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_dances.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set3"
     },
     {
       "id": "dances_2",
@@ -4368,7 +4529,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_dances.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set3"
     },
     {
       "id": "dances_3",
@@ -4400,7 +4562,8 @@
       "imperativeAudio": {
         "ru": "audio/imp_dances.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set3"
     },
     {
       "id": "s3_c_cuts_knife_boy",
@@ -4430,7 +4593,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_c_cuts_knife_mom",
@@ -4460,7 +4624,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_v_cuts_knife_1",
@@ -4490,7 +4655,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_v_cuts_knife_2",
@@ -4520,7 +4686,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "cuts_knife_1",
@@ -4547,7 +4714,8 @@
       "promptAudio": {
         "ru": "audio/cuts_knife.mp3"
       },
-      "set": "variation"
+      "set": "variation",
+      "group": "set3"
     },
     {
       "id": "cuts_3",
@@ -4577,7 +4745,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "cuts_5",
@@ -4607,7 +4776,8 @@
       "set": "variation",
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "cuts_knife_2",
@@ -4637,7 +4807,8 @@
       "set": "variation",
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_c_waters_plants_boy",
@@ -4667,7 +4838,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_c_waters_plants_mom",
@@ -4697,7 +4869,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_v_waters_plants_1",
@@ -4727,7 +4900,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_v_waters_plants_2",
@@ -4757,7 +4931,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "waters_plants_1",
@@ -4787,7 +4962,8 @@
       "set": "variation",
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "waters_plants_2",
@@ -4817,7 +4993,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "waters_plants_3",
@@ -4847,7 +5024,8 @@
       "set": "variation",
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "waters_plants_5",
@@ -4877,7 +5055,8 @@
       "set": "variation",
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_c_vacuums_boy",
@@ -4902,7 +5081,8 @@
         "group1": "house",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "group": "set3"
     },
     {
       "id": "s3_c_vacuums_mom",
@@ -4927,7 +5107,8 @@
         "group1": "house",
         "group2": "hands",
         "group3": "moderate"
-      }
+      },
+      "group": "set3"
     },
     {
       "id": "s3_v_vacuums_1",
@@ -4955,7 +5136,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s3_v_vacuums_2",
@@ -4983,7 +5165,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set3"
     },
     {
       "id": "s4_c_sits_boy",
@@ -5014,7 +5197,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_c_sits_mom",
@@ -5045,7 +5229,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_sits_1",
@@ -5076,7 +5261,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_sits_2",
@@ -5107,7 +5293,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_sits_3",
@@ -5138,7 +5325,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_sits_4",
@@ -5170,7 +5358,8 @@
         "group2": "whole_body",
         "group3": "calm"
       },
-      "agent": "animal"
+      "agent": "animal",
+      "group": "set4"
     },
     {
       "id": "s4_c_gives_boy",
@@ -5205,7 +5394,8 @@
       "alsoShows": [
         "stands",
         "takes"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_c_gives_mom",
@@ -5240,7 +5430,8 @@
       "alsoShows": [
         "stands",
         "takes"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_gives_1",
@@ -5275,7 +5466,8 @@
       "alsoShows": [
         "stands",
         "takes"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_gives_2",
@@ -5310,7 +5502,8 @@
       "alsoShows": [
         "stands",
         "takes"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_gives_3",
@@ -5345,7 +5538,8 @@
       "alsoShows": [
         "stands",
         "takes"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_gives_4",
@@ -5380,7 +5574,8 @@
       "alsoShows": [
         "stands",
         "takes"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_c_opens_boy",
@@ -5415,7 +5610,8 @@
       "alsoShows": [
         "stands",
         "closes"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_c_opens_mom",
@@ -5450,7 +5646,8 @@
       "alsoShows": [
         "stands",
         "closes"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_opens_1",
@@ -5485,7 +5682,8 @@
       "alsoShows": [
         "stands",
         "closes"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_opens_2",
@@ -5520,7 +5718,8 @@
       "alsoShows": [
         "stands",
         "closes"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_opens_3",
@@ -5554,7 +5753,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_opens_4",
@@ -5585,7 +5785,8 @@
         "group1": "object_manip",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_c_washes_hands_boy",
@@ -5619,7 +5820,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_c_washes_hands_mom",
@@ -5653,7 +5855,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_washes_hands_1",
@@ -5684,7 +5887,8 @@
         "group1": "hygiene",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_washes_hands_2",
@@ -5718,7 +5922,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_washes_hands_3",
@@ -5752,7 +5957,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_washes_hands_4",
@@ -5786,7 +5992,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_c_throws_boy",
@@ -5820,7 +6027,8 @@
       },
       "alsoShows": [
         "catches"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_c_throws_mom",
@@ -5854,7 +6062,8 @@
       },
       "alsoShows": [
         "catches"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_throws_1",
@@ -5885,7 +6094,8 @@
         "group1": "ball",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_throws_2",
@@ -5916,7 +6126,8 @@
         "group1": "ball",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_throws_3",
@@ -5947,7 +6158,8 @@
         "group1": "ball",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_throws_4",
@@ -5981,7 +6193,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_c_lies_boy",
@@ -6012,7 +6225,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_c_lies_mom",
@@ -6043,7 +6257,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_lies_1",
@@ -6074,7 +6289,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_lies_2",
@@ -6105,7 +6321,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_lies_3",
@@ -6136,7 +6353,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_lies_4",
@@ -6168,7 +6386,8 @@
         "group2": "whole_body",
         "group3": "calm"
       },
-      "agent": "animal"
+      "agent": "animal",
+      "group": "set4"
     },
     {
       "id": "s4_c_gets_dressed_boy",
@@ -6202,7 +6421,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_c_gets_dressed_mom",
@@ -6236,7 +6456,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_gets_dressed_1",
@@ -6270,7 +6491,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_gets_dressed_2",
@@ -6304,7 +6526,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_v_gets_dressed_3",
@@ -6335,7 +6558,8 @@
         "group1": "dressing",
         "group2": "whole_body",
         "group3": "moderate"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_gets_dressed_4",
@@ -6369,7 +6593,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set4"
     },
     {
       "id": "s4_c_stands_boy",
@@ -6400,7 +6625,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_c_stands_mom",
@@ -6431,7 +6657,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_stands_1",
@@ -6462,7 +6689,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_stands_2",
@@ -6493,7 +6721,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_stands_3",
@@ -6524,7 +6753,8 @@
         "group1": "posture",
         "group2": "whole_body",
         "group3": "calm"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_stands_4",
@@ -6556,7 +6786,8 @@
         "group2": "whole_body",
         "group3": "calm"
       },
-      "agent": "animal"
+      "agent": "animal",
+      "group": "set4"
     },
     {
       "id": "s4_c_falls_boy",
@@ -6583,7 +6814,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_c_falls_mom",
@@ -6610,7 +6842,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_falls_1",
@@ -6637,7 +6870,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_falls_2",
@@ -6664,7 +6898,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_falls_3",
@@ -6691,7 +6926,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s4_v_falls_4",
@@ -6718,7 +6954,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set4"
     },
     {
       "id": "s5_c_closes_boy",
@@ -6753,7 +6990,8 @@
       "alsoShows": [
         "stands",
         "opens"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_closes_mom",
@@ -6788,7 +7026,8 @@
       "alsoShows": [
         "stands",
         "opens"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_closes_1",
@@ -6822,7 +7061,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_closes_2",
@@ -6856,7 +7096,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_closes_3",
@@ -6891,7 +7132,8 @@
       "alsoShows": [
         "stands",
         "opens"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_closes_4",
@@ -6925,7 +7167,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_swings_boy",
@@ -6955,7 +7198,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_swings_mom",
@@ -6985,7 +7229,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_swings_1",
@@ -7015,7 +7260,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_swings_2",
@@ -7046,7 +7292,8 @@
       "alsoShows": [
         "sits",
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_swings_3",
@@ -7076,7 +7323,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_swings_4",
@@ -7106,7 +7354,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_blows_boy",
@@ -7140,7 +7389,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_blows_mom",
@@ -7174,7 +7424,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_blows_1",
@@ -7208,7 +7459,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_blows_2",
@@ -7242,7 +7494,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_blows_3",
@@ -7276,7 +7529,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_blows_4",
@@ -7310,7 +7564,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_bathes_boy",
@@ -7340,7 +7595,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_bathes_mom",
@@ -7370,7 +7626,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_bathes_1",
@@ -7401,7 +7658,8 @@
       "alsoShows": [
         "sits",
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_bathes_2",
@@ -7429,7 +7687,8 @@
         "group2": "whole_body",
         "group3": "calm"
       },
-      "agent": "animal"
+      "agent": "animal",
+      "group": "set5"
     },
     {
       "id": "s5_v_bathes_3",
@@ -7460,7 +7719,8 @@
       "alsoShows": [
         "sits",
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_bathes_4",
@@ -7492,7 +7752,8 @@
         "sits",
         "swims",
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_takes_off_boy",
@@ -7525,7 +7786,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_takes_off_mom",
@@ -7558,7 +7820,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_takes_off_1",
@@ -7591,7 +7854,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_takes_off_2",
@@ -7624,7 +7888,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_takes_off_3",
@@ -7658,7 +7923,8 @@
       "alsoShows": [
         "stands",
         "walks"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_takes_off_4",
@@ -7691,7 +7957,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_takes_boy",
@@ -7722,7 +7989,8 @@
         "group1": "exchange",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_c_takes_mom",
@@ -7753,7 +8021,8 @@
         "group1": "exchange",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_takes_1",
@@ -7787,7 +8056,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_takes_2",
@@ -7818,7 +8088,8 @@
         "group1": "exchange",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_takes_3",
@@ -7853,7 +8124,8 @@
       "alsoShows": [
         "sits",
         "eats"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_takes_4",
@@ -7888,7 +8160,8 @@
       "alsoShows": [
         "stands",
         "opens"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_wipes_boy",
@@ -7923,7 +8196,8 @@
       "alsoShows": [
         "stands",
         "washes_hands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_wipes_mom",
@@ -7958,7 +8232,8 @@
       "alsoShows": [
         "stands",
         "washes_hands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_wipes_1",
@@ -7989,7 +8264,8 @@
         "group1": "hygiene",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_wipes_2",
@@ -8023,7 +8299,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_wipes_3",
@@ -8058,7 +8335,8 @@
       "alsoShows": [
         "sits",
         "washes_face"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_wipes_4",
@@ -8094,7 +8372,8 @@
         "stands",
         "sits",
         "washes_face"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_claps_boy",
@@ -8128,7 +8407,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_claps_mom",
@@ -8162,7 +8442,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_claps_1",
@@ -8197,7 +8478,8 @@
       "alsoShows": [
         "stands",
         "laughs"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_claps_2",
@@ -8231,7 +8513,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_claps_3",
@@ -8266,7 +8549,8 @@
       "alsoShows": [
         "sits",
         "laughs"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_claps_4",
@@ -8301,7 +8585,8 @@
       "alsoShows": [
         "sits",
         "laughs"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_tidies_boy",
@@ -8336,7 +8621,8 @@
       "alsoShows": [
         "stands",
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_tidies_mom",
@@ -8370,7 +8656,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_tidies_1",
@@ -8405,7 +8692,8 @@
       "alsoShows": [
         "stands",
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_tidies_2",
@@ -8439,7 +8727,8 @@
       },
       "alsoShows": [
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_tidies_3",
@@ -8473,7 +8762,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_tidies_4",
@@ -8507,7 +8797,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_builds_boy",
@@ -8537,7 +8828,8 @@
       },
       "alsoShows": [
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_builds_mom",
@@ -8564,7 +8856,8 @@
         "group1": "play",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_builds_1",
@@ -8594,7 +8887,8 @@
       },
       "alsoShows": [
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_builds_2",
@@ -8624,7 +8918,8 @@
       },
       "alsoShows": [
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_builds_3",
@@ -8655,7 +8950,8 @@
       "alsoShows": [
         "plays",
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_builds_4",
@@ -8686,7 +8982,8 @@
       "alsoShows": [
         "plays",
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_combs_boy",
@@ -8720,7 +9017,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_combs_mom",
@@ -8754,7 +9052,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_combs_1",
@@ -8788,7 +9087,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_combs_2",
@@ -8822,7 +9122,8 @@
       },
       "alsoShows": [
         "stands"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_combs_3",
@@ -8856,7 +9157,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_combs_4",
@@ -8887,7 +9189,8 @@
         "group1": "hygiene",
         "group2": "hands",
         "group3": "calm"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_c_catches_boy",
@@ -8922,7 +9225,8 @@
       "alsoShows": [
         "stands",
         "throws"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_catches_mom",
@@ -8957,7 +9261,8 @@
       "alsoShows": [
         "stands",
         "throws"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_catches_1",
@@ -8993,7 +9298,8 @@
         "stands",
         "throws",
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_catches_2",
@@ -9029,7 +9335,8 @@
         "stands",
         "throws",
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_catches_3",
@@ -9065,7 +9372,8 @@
         "stands",
         "throws",
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_catches_4",
@@ -9101,7 +9409,8 @@
       "alsoShows": [
         "jumps",
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_writes_boy",
@@ -9131,7 +9440,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_writes_mom",
@@ -9161,7 +9471,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_writes_1",
@@ -9191,7 +9502,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_writes_2",
@@ -9222,7 +9534,8 @@
       "alsoShows": [
         "stands",
         "draws"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_writes_3",
@@ -9252,7 +9565,8 @@
       },
       "alsoShows": [
         "draws"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_writes_4",
@@ -9282,7 +9596,8 @@
       },
       "alsoShows": [
         "sits"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_c_crawls_boy",
@@ -9312,7 +9627,8 @@
         "group1": "legs",
         "group2": "whole_body",
         "group3": "moderate"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_c_crawls_mom",
@@ -9342,7 +9658,8 @@
         "group1": "legs",
         "group2": "whole_body",
         "group3": "moderate"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_crawls_1",
@@ -9372,7 +9689,8 @@
         "group1": "legs",
         "group2": "whole_body",
         "group3": "moderate"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_crawls_2",
@@ -9405,7 +9723,8 @@
       },
       "alsoShows": [
         "plays"
-      ]
+      ],
+      "group": "set5"
     },
     {
       "id": "s5_v_crawls_3",
@@ -9435,7 +9754,8 @@
         "group1": "legs",
         "group2": "whole_body",
         "group3": "moderate"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_crawls_4",
@@ -9466,7 +9786,8 @@
         "group2": "whole_body",
         "group3": "moderate"
       },
-      "agent": "animal"
+      "agent": "animal",
+      "group": "set5"
     },
     {
       "id": "s5_c_flies_bird",
@@ -9493,7 +9814,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_c_flies_butterfly",
@@ -9520,7 +9842,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_flies_1",
@@ -9547,7 +9870,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_flies_2",
@@ -9574,7 +9898,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_flies_3",
@@ -9601,7 +9926,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set5"
     },
     {
       "id": "s5_v_flies_4",
@@ -9628,7 +9954,8 @@
         "group1": "motion",
         "group2": "whole_body",
         "group3": "active"
-      }
+      },
+      "group": "set5"
     }
   ]
 }

@@ -6,10 +6,17 @@ import { selectDistractorConceptIds } from "@/shared/utils/distractorEngine";
 // in the session's already-shuffled order - verbs_v2 shows a verb on all its
 // performers back to back so the child hears one word on many pictures,
 // instead of 80 unrelated cards interleaved at random.
-function generateIntroTasks(concepts, { groupByConcept = false } = {}) {
+// picturesPerConcept (verbs_v2 «Знакомство»: 2 / 4 / "all"): the boy and mum
+// pair first, then randomly chosen other pictures, so one session stays short.
+function generateIntroTasks(concepts, { groupByConcept = false, picturesPerConcept = "all" } = {}) {
   const tasks = [];
   for (const concept of concepts) {
-    for (const card of concept.cards) {
+    let cards = concept.cards;
+    if (typeof picturesPerConcept === "number") {
+      const contrast = cards.filter((card) => card.set === "contrast").sort((a, b) => Number(!!b.primary) - Number(!!a.primary));
+      cards = [...contrast, ...shuffle(cards.filter((card) => card.set !== "contrast"))].slice(0, picturesPerConcept);
+    }
+    for (const card of cards) {
       tasks.push({
         type: "intro",
         conceptId: concept.conceptId,
@@ -555,7 +562,7 @@ export function generateTasks(modeType, concepts, allCards, rawParams = {}, mode
     return { ...c, cards: displayCards, primary: displayCards.find((card) => card.primary) ?? displayCards[0] ?? c.primary };
   }).filter((c) => (cardSet === "all" && !mode?.excludeAnimals) || c.cards.length > 0);
   switch (modeType) {
-    case "intro":                  return generateIntroTasks(displayConcepts, { groupByConcept: mode?.groupByConcept === true });
+    case "intro":                  return generateIntroTasks(displayConcepts, { groupByConcept: mode?.groupByConcept === true, picturesPerConcept: params.picturesPerConcept });
     case "act_out":                return generateActOutTasks(displayConcepts);
     case "mirror_draw":            return generateMirrorDrawTasks(displayConcepts);
     case "repeat_draw":            return generateRepeatDrawTasks(displayConcepts);

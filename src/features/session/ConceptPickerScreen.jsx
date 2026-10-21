@@ -60,10 +60,10 @@ export default function ConceptPickerScreen() {
   const allIds  = concepts.map((c) => c.conceptId);
   const rawSavedIds = studentTopicLinks[linkKey]?.selectedConceptIds;
   const savedIds = readModeSelectedConceptIds(topicRecord, mode, rawSavedIds);
-  // merge saved with any new concepts not yet in selection (new groups added after last save)
-  const saved = savedIds
-    ? [...new Set([...savedIds.filter((id) => allIds.includes(id)), ...allIds.filter((id) => !savedIds.includes(id))])]
-    : allIds;
+  // Open with exactly what the session plays: concepts left out on purpose stay
+  // off (re-adding every unselected concept here undid the adult's choice on the
+  // next visit), and concepts a deck update adds stay off until picked.
+  const saved = savedIds ? savedIds.filter((id) => allIds.includes(id)) : allIds;
 
   const [selected, setSelected]   = useState(new Set(saved));
   const [activeGroup, setActiveGroup] = useState(null);
@@ -86,6 +86,9 @@ export default function ConceptPickerScreen() {
 
   function selectAll()  {
     setSelected((s) => new Set([...s, ...filteredConcepts.map((c) => c.conceptId)]));
+  }
+  function selectOnlyGroup() {
+    setSelected(new Set(filteredConcepts.map((c) => c.conceptId)));
   }
   function selectNone() {
     const ids = new Set(filteredConcepts.map((c) => c.conceptId));
@@ -125,6 +128,13 @@ export default function ConceptPickerScreen() {
               {groupMeta[gid]?.ru ?? gid}
             </button>
           ))}
+        </div>
+      )}
+      {activeGroup && (
+        <div className="concept-group-only">
+          <button className="link-btn" onClick={selectOnlyGroup}>
+            {tr("setup.onlyThisGroup", { group: groupMeta[activeGroup]?.ru ?? activeGroup })}
+          </button>
         </div>
       )}
 

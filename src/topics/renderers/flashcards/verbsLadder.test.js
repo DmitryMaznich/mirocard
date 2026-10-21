@@ -34,6 +34,9 @@ describe("verbs_v2 deck as the app loads it", () => {
     expect(show.params.step.default).toBe(1);
     expect(reread.modes.filter((m) => m.type === "find_n" && !m.retired).map((m) => m.id)).toEqual(["verbs_show"]);
     expect(reread.modes.some((m) => m.type === "yes_no")).toBe(false);
+    expect(reread.meta.groups.set5.ru).toBe("Набор 5");
+    expect(reread.cards.find((c) => c.conceptId === "flies").group).toBe("set5");
+    expect(reread.modes.find((m) => m.id === "verbs_intro").params.picturesPerConcept.default).toBe(4);
   });
 
   it("every mode builds tasks for wave 1 with its default params", () => {
@@ -104,6 +107,36 @@ describe("pictures", () => {
       expect(c.cards.filter((card) => card.set === "contrast"), c.conceptId).toHaveLength(2);
       expect(c.cards.filter((card) => card.set === "variation").length, c.conceptId).toBeGreaterThanOrEqual(2);
     }
+  });
+});
+
+describe("«Знакомство»: pictures per verb and sets", () => {
+  const intro = deck.modes.find((m) => m.id === "verbs_intro");
+  const concepts = deriveConcepts(deck.cards).filter((c) => ["eats", "closes"].includes(c.conceptId));
+
+  it("defaults to four pictures per verb, the boy and mum first", () => {
+    const tasks = generateTasks("intro", concepts, deck.cards, computeDefaultParams(deck, intro), intro);
+    for (const id of ["eats", "closes"]) {
+      const cards = tasks.filter((t) => t.conceptId === id).map((t) => t.card);
+      expect(cards).toHaveLength(4);
+      expect(cards[0].primary).toBe(true);
+      expect(cards[1].set).toBe("contrast");
+      expect(cards.slice(2).every((card) => card.set === "variation")).toBe(true);
+    }
+  });
+
+  it("«2» is the boy and mum pair, «Все» every picture but animals", () => {
+    const two = generateTasks("intro", concepts, deck.cards, { picturesPerConcept: 2 }, intro);
+    expect(two.every((t) => t.card.set === "contrast")).toBe(true);
+    expect(two).toHaveLength(4);
+    const all = generateTasks("intro", concepts, deck.cards, { picturesPerConcept: "all" }, intro);
+    expect(all).toHaveLength(deck.cards.filter((c) => ["eats", "closes"].includes(c.conceptId) && c.agent !== "animal").length);
+  });
+
+  it("every verb belongs to the set of its wave, and the set names say «Набор»", () => {
+    expect(Object.values(deck.meta.groups).map((g) => g.ru)).toEqual(["Набор 1", "Набор 2", "Набор 3", "Набор 4", "Набор 5"]);
+    for (const c of deriveConcepts(deck.cards)) expect(c.primary.group).toBe(`set${c.primary.wave}`);
+    expect(JSON.stringify(deck)).not.toMatch(/[Вв]олн[аеуыо]/);
   });
 });
 

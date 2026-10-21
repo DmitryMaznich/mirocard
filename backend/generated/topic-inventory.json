@@ -1246,15 +1246,15 @@
         "ru": "Глаголы",
         "en": "verbs_v2"
       },
-      "version": "2.3.0",
+      "version": "2.4.0",
       "renderer": "flashcards",
       "sources": [
-        "public/decks/verbs_v2_v2.3.0.zip",
+        "public/decks/verbs_v2_v2.4.0.zip",
         "src/topics/renderers/flashcards"
       ],
       "bundle": {
-        "version": "2.3.0",
-        "url": "./decks/verbs_v2_v2.3.0.zip",
+        "version": "2.4.0",
+        "url": "./decks/verbs_v2_v2.4.0.zip",
         "title": {
           "ru": "Глаголы",
           "en": "verbs_v2"
@@ -1267,16 +1267,16 @@
       "builtin": false,
       "catalogEntry": {
         "id": "verbs_v2",
-        "version": "2.3.0",
+        "version": "2.4.0",
         "title": {
           "ru": "Глаголы",
           "en": "Verbs"
         },
         "description": {
-          "ru": "44 глагола в пяти волнах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
-          "en": "44 everyday verbs in five waves, from picking a picture by the spoken word to telling similar actions apart. Audio included."
+          "ru": "44 глагола в пяти наборах: от выполнения команды до выбора картинки по слову и называния. Аудио. Для минимально вербальных детей, в том числе с РАС.",
+          "en": "44 everyday verbs in five sets, from picking a picture by the spoken word to telling similar actions apart. Audio included."
         },
-        "url": "./decks/verbs_v2_v2.3.0.zip",
+        "url": "./decks/verbs_v2_v2.4.0.zip",
         "status": "beta",
         "access": "paid"
       },
