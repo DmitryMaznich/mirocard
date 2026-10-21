@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildMyPeopleTopicRecord } from "@/topics/builtinMyPeopleTopic";
+import { readModeParams, writeModeParams } from "@/shared/utils/topicUtils";
 import { aboutMeHistory, ageFromBirthDate, firstSyllable, generateTasks, mainWord, MAX_POINT_TRIALS_PER_ROUND, MIN_POINT_TRIALS_PER_ROUND, getAboutMeQuestions, hasEnoughAboutMeQuestions, insertRetryTrial, MAX_ABOUT_ME_QUESTIONS_PER_ROUND } from "./engine";
 
 const student = {
@@ -35,6 +36,20 @@ describe("my_people album engine", () => {
       .toEqual(["match_same", "show_me", "who_is_this", "about_me", "label_photos", "introduce_self"]);
     expect(modes.filter((mode) => mode.retired).map((mode) => mode.id))
       .toEqual(["family_names", "family_relations", "home_names", "home_relations", "school_names", "school_relations", "mix"]);
+  });
+
+  it("keeps each mode's settings apart, carrying over the old shared ones", () => {
+    const modes = buildMyPeopleTopicRecord().modes;
+    const match = modes.find((mode) => mode.id === "match_same");
+    const showMe = modes.find((mode) => mode.id === "show_me");
+    // Saved before, in one object for the whole topic.
+    let saved = { sample: "same", fieldSize: 3 };
+    expect(readModeParams(saved, match)).toEqual(expect.objectContaining({ sample: "same", fieldSize: 3 }));
+    saved = writeModeParams(saved, match, { ...readModeParams(saved, match), sample: "same" });
+    // A lesson of «Покажи» on 4 photos no longer resets «Образец» or the field.
+    saved = writeModeParams(saved, showMe, { ...readModeParams(saved, showMe), fieldSize: 4 });
+    expect(readModeParams(saved, match)).toEqual(expect.objectContaining({ sample: "same", fieldSize: 3 }));
+    expect(readModeParams(saved, showMe).fieldSize).toBe(4);
   });
 
   const introduce = { id: "introduce_self", type: "about_me" };

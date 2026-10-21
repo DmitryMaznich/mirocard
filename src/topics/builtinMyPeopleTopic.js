@@ -224,8 +224,16 @@ const whoIsThisMode = {
   },
 };
 
-// "Озвучка" goes last in every mode's settings.
-const withVoice = (mode) => ({ ...mode, params: { ...(mode.params ?? {}), ...voiceParam } });
+// "Озвучка" goes last in every mode's settings. Each mode keeps its own
+// settings (readModeParams): «Образец» chosen in «Найди такого же» survives a
+// lesson of «Покажи», and the two modes' «Фото на экране» stay apart. Values
+// saved before, in the shared topic object, are carried over on first open.
+const withVoice = (mode) => ({
+  ...mode,
+  paramsScope: "mode",
+  legacyParamsScope: "topic",
+  params: { ...(mode.params ?? {}), ...voiceParam },
+});
 
 export function buildMyPeopleTopicRecord() {
   return {
