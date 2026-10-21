@@ -78,6 +78,22 @@ function trim(file) {
   renameSync(tmp, file);
 }
 
+// v4 often opens with a 40-70 ms click or breath, then ~0.1 s of silence,
+// then the word (16 of 75 clips, e.g. «Умывается», «Лежит», 2026-10-21). trim()
+// keeps it: any 10 ms above -50 dB counts as voice. No Russian word starts
+// with a sound and then a pause, so a burst ending by 0.15 s and followed by
+// 60+ ms of silence is cut; the clip restarts 30 ms before the word. A long
+// fricative («Спит», «Стоит») ends later and is kept.
+function dropLeadingClick(file) {
+  const log = spawnSync("ffmpeg", ["-v", "info", "-i", file, "-af", "silencedetect=noise=-38dB:d=0.06", "-f", "null", "-"], { encoding: "utf8" }).stderr;
+  const start = Number(log.match(/silence_start: ([\d.]+)/)?.[1]);
+  const end = Number(log.match(/silence_end: ([\d.]+)/)?.[1]);
+  if (!(start > 0.02 && start <= 0.15 && end > start)) return;
+  const tmp = join(AUDIO, `.tmp-${Date.now()}.mp3`);
+  execFileSync("ffmpeg", ["-y", "-v", "error", "-ss", (end - 0.03).toFixed(3), "-i", file, "-af", "afade=t=in:d=0.012,adelay=30:all=1", "-c:a", "libmp3lame", "-b:a", "128k", tmp]);
+  renameSync(tmp, file);
+}
+
 // eleven_v4 acts the word out, so «Спит» comes out whispered (-21 dB mean)
 // and «Пей!» loud (-11 dB). Bring every clip to one mean level, peak kept
 // under -1 dB. (loudnorm is unreliable on sub-second clips; a plain gain is not.)
@@ -145,6 +161,7 @@ for (const clip of clips) {
     const model = MODEL_ID;
     writeFileSync(file, await synthesize(clip.text, clip.tag, model));
     trim(file);
+    dropLeadingClick(file);
     level(file);
     let heard = await transcribe(file);
     let pauses = innerPauses(file);
