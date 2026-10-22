@@ -76,31 +76,155 @@ const SUBJECTS = {
     "a block of yellow cheese on a small wooden board",
     "a wedge of pale hard cheese",
   ],
-  // Not food: the distractors for the Malica-only trial (a distractor comes from
-  // another situation). Words of later sets, so the pictures are reused there.
+  // The distractors of the Malica-only trial come first (1–2); words of later
+  // sets, so the pictures are reused there (3–4 added for sets 2–5).
   zoga: [
     "a red and white children's rubber ball",
     "a blue children's play ball",
+    "a classic black and white football",
+    "a yellow children's rubber ball",
   ],
   knjiga: [
     "a closed children's hardcover book with a plain red cover, no title",
     "an open book lying flat, pages blank of readable text",
+    "a closed thick book with a plain green cover, no title",
+    "a small stack of three closed books with plain covers, no titles",
   ],
   cevlji: [
     "a pair of children's sneakers, plain, no brand",
     "a pair of brown children's shoes",
+    "a pair of red children's sneakers with velcro straps, no brand",
+    "a pair of children's winter boots",
   ],
   svincnik: [
     "one yellow pencil with a pink eraser, lying diagonally",
     "one green wooden pencil, sharpened, lying diagonally",
+    "one blue wooden pencil, sharpened, lying diagonally",
+    "one red wooden pencil with an eraser, lying diagonally",
   ],
   kapa: [
     "a knitted children's winter hat with a pompom",
     "a plain blue knitted winter hat",
+    "a red knitted children's winter hat with a pompom",
+    "a grey knitted beanie hat",
   ],
   skarje: [
     "a pair of children's safety scissors with round tips and blue handles",
     "a pair of children's scissors with red handles",
+    "a pair of children's scissors with green handles",
+    "a pair of children's scissors with yellow handles, open",
+  ],
+
+  // Set 2: the body (from school commands such as «umij roke»).
+  nos: [
+    "close-up of a child's nose, face cropped from the eyes to the mouth",
+    "close-up of an adult's nose, face cropped from the eyes to the mouth",
+    "a child touching the tip of their own nose with one finger, face visible, neutral background",
+    "side profile close-up of a child's nose",
+  ],
+  uho: [
+    "close-up of a child's ear, side of the head",
+    "close-up of an adult's ear, side of the head",
+    "a child pointing at their own ear with one finger, side view",
+    "close-up of a child's ear with short hair around it",
+  ],
+  noga: [
+    "a child's bare leg and foot standing, from the knee down, side view",
+    "a child's leg in trousers and a sock, from the knee down",
+    "an adult's bare leg and foot from the knee down, side view",
+    "a child standing on one leg, whole child visible, simple background",
+  ],
+  roke: [
+    "two open child's hands, palms up",
+    "two adult hands, palms facing the camera",
+    "a child washing both hands under a running tap with soap",
+    "two child's hands, backs of the hands up",
+  ],
+
+  // Set 3: the classroom.
+  sola: [
+    "a modern two-storey school building with large windows, daytime, no signs, no text",
+    "the entrance of a school building with glass doors, no signs, no text",
+    "a small rural school building with a red roof, no signs",
+    "a school building with a playground in front, no signs, no text",
+  ],
+  miza: [
+    "a plain wooden school desk, no chair",
+    "a plain white table with four legs, no chair",
+    "a round wooden kitchen table, no chairs",
+    "a child's small classroom table, no chairs",
+  ],
+  zvezek: [
+    "a closed school exercise notebook with a plain blue cover, no text",
+    "an open school exercise notebook with lined pages, no writing",
+    "a closed school exercise notebook with a plain yellow cover, no text",
+    "an open squared-paper school notebook, no writing",
+  ],
+  barvice: [
+    "a set of coloured pencils fanned out in a rainbow row",
+    "an open box of wax crayons, many colours, no brand",
+    "a few coloured pencils standing in a cup",
+    "a handful of coloured pencils lying in a loose row",
+  ],
+  lepilo: [
+    "a glue stick with the cap off, plain, no label",
+    "a small white bottle of school glue, no label",
+    "a glue stick with the cap on, plain purple, no label",
+    "a glue stick and its cap lying next to it, plain, no label",
+  ],
+  tabla: [
+    "a green classroom chalkboard on a wall, empty, no writing",
+    "a white classroom whiteboard on a wall, empty, no writing",
+    "a small black chalkboard on a wooden frame, empty",
+    "a classroom wall with a large empty whiteboard",
+  ],
+  torba: [
+    "a children's school backpack, plain blue, no logo",
+    "a children's school backpack, plain red, no logo",
+    "a rigid children's school bag with straps, plain green, no logo",
+    "a children's school backpack, plain yellow and grey, no logo",
+  ],
+
+  // Set 4: the cloakroom, the playground, the way to school.
+  copati: [
+    "a pair of children's indoor slippers, plain blue",
+    "a pair of children's indoor slippers with a velcro strap, plain red",
+    "a pair of children's felt house slippers, grey",
+    "a pair of children's indoor slippers, plain green",
+  ],
+  jakna: [
+    "a children's winter jacket, plain red, front view, laid flat",
+    "a children's rain jacket, plain yellow, front view",
+    "a children's padded jacket, plain dark blue, on a hanger",
+    "a children's light jacket, plain green, front view, laid flat",
+  ],
+  avtobus: [
+    "a city bus seen from the side, plain white and blue, no text, no advertising",
+    "a white minibus seen from the front three-quarters, no text, no logos",
+    "a red bus seen from the side, no text",
+    "a small school minibus, plain white, no text",
+  ],
+
+  // Set 1, later: the bread and the snack itself.
+  kruh: [
+    "a loaf of brown bread",
+    "a few slices of white bread",
+    "a round loaf of crusty bread",
+    "a bread roll",
+  ],
+  malica: [
+    "an open children's lunchbox with a sandwich and pieces of fruit",
+    "a school canteen tray with a sandwich, a cup and a piece of fruit",
+    "a plate with a small sandwich, a yogurt and cucumber slices",
+    "an open lunchbox with crackers, cheese cubes and grapes",
+  ],
+
+  // Set 5: stol (стул) — never next to miza (стол).
+  stol: [
+    "a plain wooden chair, side view",
+    "a children's school chair, plain blue seat",
+    "a white plastic chair",
+    "a wooden kitchen chair, front three-quarter view",
   ],
 };
 
