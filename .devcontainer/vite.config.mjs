@@ -4,7 +4,14 @@ import baseConfig from "../vite.config.js";
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g,
   (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character]);
 
-export default mergeConfig(baseConfig, {
+// The production single-file plugin also runs in bundled dev mode and strips
+// the module/HMR boundary. Keep it confined to the production configuration.
+const devBaseConfig = {
+  ...baseConfig,
+  plugins: baseConfig.plugins.flat(Infinity).filter((plugin) => plugin.name !== "vite:singlefile"),
+};
+
+export default mergeConfig(devBaseConfig, {
   envDir: false,
   // Keep hot updates while avoiding hundreds of module requests over the tunnel.
   // Set MIROCARD_DEV_UNBUNDLED=1 to use the standard Vite server for comparison.

@@ -38,6 +38,7 @@ try {
     if (message.type() === "error") errors.push(message.text());
   });
   await page.goto(appUrl, { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Войти", exact: true }).waitFor({ timeout: 60000 });
   await page.locator("#splash").waitFor({ state: "hidden", timeout: 60000 });
   console.log("DEV_LOAD_METRICS", JSON.stringify(await page.evaluate(() => {
     const resources = performance.getEntriesByType("resource");
