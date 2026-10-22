@@ -76,6 +76,32 @@ const SUBJECTS = {
     "a block of yellow cheese on a small wooden board",
     "a wedge of pale hard cheese",
   ],
+  // Not food: the distractors for the Malica-only trial (a distractor comes from
+  // another situation). Words of later sets, so the pictures are reused there.
+  zoga: [
+    "a red and white children's rubber ball",
+    "a blue children's play ball",
+  ],
+  knjiga: [
+    "a closed children's hardcover book with a plain red cover, no title",
+    "an open book lying flat, pages blank of readable text",
+  ],
+  cevlji: [
+    "a pair of children's sneakers, plain, no brand",
+    "a pair of brown children's shoes",
+  ],
+  svincnik: [
+    "one yellow pencil with a pink eraser, lying diagonally",
+    "one green wooden pencil, sharpened, lying diagonally",
+  ],
+  kapa: [
+    "a knitted children's winter hat with a pompom",
+    "a plain blue knitted winter hat",
+  ],
+  skarje: [
+    "a pair of children's safety scissors with round tips and blue handles",
+    "a pair of children's scissors with red handles",
+  ],
 };
 
 async function generate(prompt) {
