@@ -1,0 +1,474 @@
+<title>Словенские буквы</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Nunito:wght@400;600;700;800;900&display=swap">
+<style>
+/* Letters through Russian: every Slovenian capital is learned next to the
+   Russian letter with the same sound. Slovenian = blue (school), Russian =
+   orange (home). One light look on purpose, like the child's screens in the app. */
+:root {
+  --paper: #fdfcf9;
+  --panel: #ffffff;
+  --ink: #1f2937;
+  --muted: #4b5563;
+  --line: #e5e7eb;
+  --sl: #1d4ed8;
+  --sl-line: #2563eb;
+  --sl-tint: #e8f0ff;
+  --ru: #9a3f06;
+  --ru-line: #c2570c;
+  --ru-tint: #fff1e2;
+  --teal: #4a9b8f;
+  --teal-dark: #2a6b60;
+  --ok: #16a34a;
+  --ok-tint: #f0fdf4;
+  --trap: #dc2626;
+  --trap-tint: #fef2f2;
+  --hat: #6d28d9;
+  --letters: "Andika", "Segoe UI", system-ui, sans-serif;
+  --font: "Nunito", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+html, body { height: 100%; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font); font-size: 16px; }
+button { font-family: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--sl-line); outline-offset: 2px; }
+.L { font-family: var(--letters); font-weight: 700; line-height: 1; }
+
+/* ── Menu ── */
+.menu { max-width: 1000px; margin: 0 auto; padding-block: 24px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 24px; }
+.menu h1 { margin: 0; font-size: clamp(30px, 5vw, 42px); font-weight: 900; }
+.lead { margin: 6px 0 0; color: var(--muted); font-size: 17px; max-width: 64ch; line-height: 1.5; }
+.h2 { margin: 0 0 12px; font-size: 20px; font-weight: 900; }
+.box { background: var(--panel); border: 2px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+.mode { text-align: left; background: var(--panel); border: 2px solid var(--line); border-radius: 16px; padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 6px; color: var(--ink); min-height: 112px; }
+.mode:hover:not(:disabled) { border-color: var(--teal); }
+.mode:disabled { opacity: .45; cursor: default; }
+.mode b { font-size: 18px; font-weight: 900; }
+.mode .L { font-size: 24px; color: var(--sl); }
+.mode span { color: var(--muted); font-size: 14px; line-height: 1.35; }
+.groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.group { border: 2px solid var(--line); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; background: var(--panel); text-align: left; color: var(--ink); }
+.group[aria-pressed="true"] { border-color: var(--teal); box-shadow: 0 0 0 3px #4a9b8f33; }
+.group[aria-pressed="false"] { opacity: .55; }
+.group-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 900; }
+.check { width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--line); display: grid; place-items: center; color: #fff; font-size: 16px; }
+.group[aria-pressed="true"] .check { background: var(--teal); border-color: var(--teal-dark); }
+.minis { display: flex; flex-wrap: wrap; gap: 6px; }
+.mini { width: 46px; height: 62px; border-radius: 10px; background: #f7f7f5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; border: 2px solid transparent; }
+.mini .s { font-size: 26px; color: var(--sl); }
+.mini .r { font-size: 17px; color: var(--ru); }
+.mini.known { background: #dcfce7; border-color: var(--ok); }
+.mini.learning { background: #fff7ed; border-color: #f59e0b; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg button { min-width: 48px; min-height: 44px; padding: 0 10px; border-radius: 12px; border: 2px solid var(--line); background: var(--panel); font-weight: 800; font-size: 15px; cursor: pointer; color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--teal); border-color: var(--teal-dark); color: #fff; }
+.hint { color: var(--muted); font-size: 14px; line-height: 1.45; margin: 0; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; }
+.settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+
+/* ── Stage ── */
+.stage { position: fixed; inset: 0; background: var(--paper); display: flex; flex-direction: column; z-index: 5; }
+.topbar { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); padding-bottom: 10px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: var(--panel); border-bottom: 2px solid #eee8dc; }
+.close { min-height: 44px; padding: 0 16px; border-radius: 12px; border: 0; background: var(--teal); box-shadow: 0 3px 0 var(--teal-dark); color: #fff; font-weight: 800; font-size: 15px; cursor: pointer; }
+.close:active { transform: translateY(3px); box-shadow: none; }
+.dots { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.dots i { width: 14px; height: 14px; border-radius: 50%; background: var(--line); }
+.dots i.self { background: #f59e0b; }
+.dots i.help { background: #fcd9a8; }
+.dots i.now { box-shadow: 0 0 0 3px #f59e0b55; }
+.count { font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+.field { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(18px, 4vh, 40px); padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.card { box-sizing: border-box; border-radius: 28px; display: flex; align-items: center; justify-content: center; position: relative; }
+.card--sl { background: var(--sl-tint); border: 5px solid var(--sl-line); color: var(--sl); }
+.card--ru { background: var(--ru-tint); border: 5px solid var(--ru-line); color: var(--ru); }
+.card--trap { outline: 4px dashed var(--trap); outline-offset: 8px; }
+.trap-tag { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); background: var(--trap); color: #fff; font-family: var(--font); font-size: 14px; font-weight: 900; letter-spacing: .5px; padding: 4px 12px; border-radius: 10px; }
+.big { width: min(34vw, 46vh, 300px); height: min(38vw, 52vh, 330px); font-size: min(26vw, 36vh, 230px); }
+.mid { min-width: min(30vw, 34vh, 220px); height: min(30vw, 34vh, 220px); padding: 0 24px; font-size: min(22vw, 25vh, 160px); }
+.pair { display: flex; align-items: center; gap: clamp(16px, 4vw, 40px); }
+.pair-col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.pair-label { font-size: 14px; font-weight: 800; letter-spacing: .5px; }
+.eq { font-size: clamp(40px, 8vw, 90px); color: #9ca3af; }
+.fade-in { animation: fade .5s ease-out both; }
+@keyframes fade { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
+.opts { display: flex; gap: clamp(12px, 3vw, 28px); flex-wrap: wrap; justify-content: center; }
+.opt { position: relative; min-width: min(20vw, 22vh, 170px); height: min(20vw, 22vh, 170px); padding: 0 16px; box-sizing: border-box; border-radius: 24px; background: var(--panel); border: 3px solid var(--line); box-shadow: 0 6px 18px rgba(31,41,55,.08); font-size: min(14vw, 15vh, 120px); color: var(--ru); cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: transform .25s, opacity .3s, border-color .2s, background .2s; display: flex; align-items: center; justify-content: center; }
+.opt.sl { color: var(--sl); }
+.opt.pic { padding: min(1.5vw, 12px); width: min(30vw, 34vh, 260px); height: min(30vw, 34vh, 260px); }
+.opt.pic img { width: 100%; height: 100%; object-fit: contain; border-radius: 16px; pointer-events: none; }
+.opt.faded { opacity: .3; }
+.opt.hintme { border: 5px solid var(--sl-line); box-shadow: 0 0 0 10px rgba(37,99,235,.18); transform: scale(1.06); }
+.opt.correct { border: 5px solid var(--ok); background: var(--ok-tint); transform: scale(1.08); }
+.opt.shake { animation: shake .4s ease; }
+@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.word { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.word .card { padding: 6px clamp(18px, 4vw, 40px); font-size: min(13vw, 17vh, 120px); letter-spacing: .08em; }
+.translit { font-size: min(6vw, 7vh, 46px); letter-spacing: .3em; color: var(--ru); transition: opacity .3s; }
+.slots { display: flex; gap: clamp(6px, 1.5vw, 14px); flex-wrap: wrap; justify-content: center; }
+.slot { width: min(11vw, 13vh, 110px); height: min(13vw, 15vh, 130px); box-sizing: border-box; border-radius: 16px; border: 4px dashed #94a3b8; background: var(--panel); display: flex; align-items: center; justify-content: center; font-size: min(9vw, 10vh, 86px); color: var(--sl); }
+.slot.filled { border: 4px solid var(--sl-line); background: var(--sl-tint); }
+.tray { display: flex; gap: clamp(8px, 2vw, 16px); padding: 12px 18px; border-radius: 22px; background: #f1f5f9; flex-wrap: wrap; justify-content: center; }
+.tile { width: min(10vw, 12vh, 96px); height: min(10vw, 12vh, 96px); border-radius: 16px; border: 0; background: var(--panel); box-shadow: 0 4px 0 #cbd5e1; font-size: min(7vw, 8vh, 66px); color: var(--sl); cursor: pointer; touch-action: manipulation; }
+.tile:disabled { visibility: hidden; }
+.tile.shake { animation: shake .4s ease; }
+.cue { display: flex; align-items: center; gap: clamp(12px, 3vw, 28px); }
+.cue img { width: min(18vw, 20vh, 150px); height: min(18vw, 20vh, 150px); object-fit: contain; border-radius: 20px; background: var(--panel); border: 3px solid var(--line); }
+.cue .card { padding: 6px 20px; font-size: min(8vw, 9vh, 64px); letter-spacing: .1em; }
+.next { min-width: 200px; min-height: 60px; border: 0; border-radius: 18px; background: var(--teal); box-shadow: 0 4px 0 var(--teal-dark); color: #fff; font-size: 22px; font-weight: 900; cursor: pointer; }
+.next:active { transform: translateY(4px); box-shadow: none; }
+.done h2 { margin: 0; font-size: 30px; font-weight: 900; text-align: center; }
+.done p { margin: 0; color: var(--muted); font-size: 18px; text-align: center; }
+.ghost { min-height: 52px; padding: 0 20px; border-radius: 14px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); font-size: 17px; font-weight: 800; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .opt, .fade-in, .opt.shake, .tile.shake { animation: none; transition: none; } }
+</style>
+
+<main id="app"></main>
+
+<script>
+// ── The 25 pairs: Slovenian capital → Russian letter with the same sound ──
+const GROUPS = [
+  { id: 1, title: "1 · Друзья", text: "Вид и звук как в русском.", pairs: "A:А E:Е K:К M:М O:О T:Т" },
+  { id: 2, title: "2 · Звук тот же, вид другой", text: "Новые буквы. Пара — по звуку.", pairs: "S:С R:Р N:Н L:Л I:И U:У V:В Z:З D:Д G:Г F:Ф J:Й" },
+  { id: 3, title: "3 · Шапочки", text: "Шапочка = шипит.", pairs: "Č:Ч Š:Ш Ž:Ж" },
+  { id: 4, title: "4 · Ловушки", text: "Похожи на русские, звучат иначе.", pairs: "B:Б C:Ц H:Х P:П" },
+].map((g) => ({ ...g, pairs: g.pairs.split(" ").map((p) => { const [sl, ru] = p.split(":"); return { sl, ru, group: g.id }; }) }));
+const ALL = GROUPS.flatMap((g) => g.pairs);
+const RU = Object.fromEntries(ALL.map((p) => [p.sl, p.ru]));
+// The Russian letter a trap is easy to misread as.
+const TWIN = { B: "В", C: "С", H: "Н", P: "Р" };
+const VOWELS = ["A", "E", "I", "O", "U"];
+// Letters a child might confuse; used for distractors in syllables and tiles.
+const NEAR = { S: "ŠZ", Š: "SŽ", Z: "ŽS", Ž: "ZŠ", C: "ČS", Č: "CŠ", K: "GH", G: "K", T: "D", D: "T", P: "B", B: "PV", V: "BF", F: "V", M: "N", N: "ML", L: "NR", R: "L", H: "K", J: "I", A: "OE", O: "AU", E: "IA", I: "EU", U: "OI" };
+
+// Words with a picture and a recording in Ana's voice. Transliteration is
+// letter by letter (NJ = НЬ); the recording gives the real pronunciation.
+const WORDS = [
+  ["voda", "VODA", "ВОДА"], ["sok", "SOK", "СОК"], ["caj", "ČAJ", "ЧАЙ"], ["sir", "SIR", "СИР"],
+  ["kapa", "KAPA", "КАПА"], ["zoga", "ŽOGA", "ЖОГА"], ["mleko", "MLEKO", "МЛЕКО"], ["banana", "BANANA", "БАНАНА"],
+  ["hruska", "HRUŠKA", "ХРУШКА"], ["jabolko", "JABOLKO", "ЯБОЛКО"], ["knjiga", "KNJIGA", "КНЬИГА"],
+  ["skarje", "ŠKARJE", "ШКАРЬЕ"], ["svincnik", "SVINČNIK", "СВИНЧНИК"],
+].map(([id, sl, ru]) => ({ id, sl, ru, pic: `media/${id}_1.webp`, audio: `audio/${id}.mp3` }));
+
+// ── Helpers ──
+const $ = (s, r = document) => r.querySelector(s);
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null) n.append(kid.nodeType ? kid : document.createTextNode(kid));
+  return n;
+};
+const lettersOf = (word) => [...word];
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* optional */ } },
+};
+const settings = Object.assign({ groups: [1], count: 6, dir: "sl_ru", hint: "auto" }, store.get("letters-settings", {}));
+const save = () => store.set("letters-settings", settings);
+// Per letter: streak of sessions answered alone every time; known at 3.
+const progress = store.get("letters-progress", {});
+// Per word: how many times read without a mistake (drives the auto hint).
+const wordReads = store.get("letters-words", {});
+const letterState = (sl) => (progress[sl]?.streak ?? 0) >= 3 ? "known" : progress[sl] ? "learning" : "";
+
+let current = null;
+function play(path) {
+  if (current) current.pause();
+  const a = new Audio(path);
+  current = a;
+  return new Promise((res) => { a.onended = () => res(); a.onerror = () => res(); a.play().catch(() => res()); });
+}
+
+const pool = () => ALL.filter((p) => settings.groups.includes(p.group));
+const poolSet = () => new Set(pool().map((p) => p.sl));
+const readableWords = () => { const s = poolSet(); return WORDS.filter((w) => lettersOf(w.sl).every((c) => s.has(c))); };
+
+// ── Task builders ──
+function cycle(items, n) {
+  const out = [];
+  while (out.length < n && items.length) {
+    let order = shuffle(items);
+    if (order.length > 1 && order[0] === out[out.length - 1]) order = [...order.slice(1), order[0]];
+    out.push(...order);
+  }
+  return out.slice(0, n);
+}
+function letterOptions(target, field) {
+  const others = shuffle(pool().filter((p) => p.sl !== target.sl && p[field] !== target[field]));
+  return shuffle([target, ...others.slice(0, 2)]);
+}
+const BUILD = {
+  pair: () => pool().map((p) => ({ type: "pair", p, letters: [p.sl] })),
+  find: () => cycle(pool(), settings.count).map((p) => {
+    const dir = settings.dir === "mix" ? pick(["sl_ru", "ru_sl"]) : settings.dir;
+    return { type: "find", p, dir, options: letterOptions(p, dir === "sl_ru" ? "ru" : "sl"), letters: [p.sl] };
+  }),
+  traps: () => cycle(GROUPS[3].pairs, Math.max(4, settings.count)).map((p) => ({ type: "trap", p, options: shuffle([{ ru: p.ru, ok: true }, { ru: TWIN[p.sl], ok: false }]), letters: [p.sl] })),
+  syll: () => {
+    const s = poolSet();
+    const cons = [...s].filter((c) => !VOWELS.includes(c) && c !== "J");
+    const vows = VOWELS.filter((v) => s.has(v));
+    if (!cons.length || !vows.length) return [];
+    const all = cons.flatMap((c) => vows.map((v) => c + v));
+    return cycle(all, settings.count).map((syl) => {
+      const tr = (x) => [...x].map((c) => RU[c]).join("");
+      const variants = new Set();
+      for (const [i, c] of [...syl].entries()) for (const n of (NEAR[c] ?? "")) if (s.has(n)) variants.add(syl.slice(0, i) + n + syl.slice(i + 1));
+      let wrong = shuffle([...variants]).slice(0, 2);
+      while (wrong.length < 2) { const r = pick(all); if (r !== syl && !wrong.includes(r)) wrong.push(r); if (all.length < 3) break; }
+      return { type: "syll", syl, options: shuffle([{ ru: tr(syl), ok: true }, ...wrong.map((w) => ({ ru: tr(w), ok: false }))]), letters: [...syl] };
+    });
+  },
+  words: () => {
+    const ws = readableWords();
+    if (!ws.length) return [];
+    return cycle(ws, settings.count).map((w) => {
+      const other = shuffle(WORDS.filter((x) => x.id !== w.id))[0];
+      return { type: "word", w, options: shuffle([{ w, ok: true }, { w: other, ok: false }]), letters: lettersOf(w.sl) };
+    });
+  },
+  build: () => {
+    const ws = readableWords().filter((w) => w.sl.length <= 6);
+    if (!ws.length) return [];
+    const s = poolSet();
+    return cycle(ws, Math.min(settings.count, 6)).map((w) => {
+      const extra = shuffle([...new Set(lettersOf(w.sl).flatMap((c) => [...(NEAR[c] ?? "")]))].filter((c) => s.has(c) && !w.sl.includes(c))).slice(0, 2);
+      return { type: "build", w, tiles: shuffle([...lettersOf(w.sl), ...extra]), letters: lettersOf(w.sl) };
+    });
+  },
+};
+const MODES = [
+  { id: "pair", title: "1. Пара букв", sample: "S = С", text: "Показ: словенская буква рядом с русской. Ошибиться нельзя." },
+  { id: "find", title: "2. Найди пару", sample: "R → Р", text: "Выбрать пару из трёх. Направление — в настройках." },
+  { id: "traps", title: "3. Ловушки", sample: "P = П", text: "B C H P против русских двойников." },
+  { id: "syll", title: "4. Слоги", sample: "MA → МА", text: "Прочитать слог, выбрать русский." },
+  { id: "words", title: "5. Слова", sample: "VODA", text: "Прочитать слово, выбрать картинку. Подсказка кириллицей гаснет." },
+  { id: "build", title: "6. Собери слово", sample: "S O K", text: "Собрать слово из латинских плиток." },
+];
+
+// ── Menu ──
+function renderMenu() {
+  const app = $("#app");
+  const nWords = readableWords().length;
+  const avail = { pair: true, find: pool().length >= 3, traps: true, syll: BUILD.syll().length > 0, words: nWords > 0, build: nWords > 0 };
+  const why = { find: "Нужно хотя бы 3 буквы.", syll: "Нужны гласные и согласные.", words: "Нет слов из выбранных букв — добавьте группу 2.", build: "Нет слов из выбранных букв — добавьте группу 2." };
+  const seg = (key, values) => el("div", { class: "seg" }, values.map(([v, label]) => el("button", {
+    type: "button", "aria-pressed": String(settings[key] === v), onclick: () => { settings[key] = v; save(); renderMenu(); },
+  }, label)));
+  const known = ALL.filter((p) => letterState(p.sl) === "known").length;
+  app.replaceChildren(el("div", { class: "menu" },
+    el("header", {},
+      el("h1", {}, "Словенские буквы"),
+      el("p", { class: "lead" }, "Каждая словенская буква учится рядом с русской, у которой тот же звук. Синим — словенская, оранжевым — русская. Только печатные заглавные."),
+    ),
+    el("section", {},
+      el("h2", { class: "h2" }, `Какие буквы в занятии · знает ${known} из 25`),
+      el("div", { class: "groups" }, GROUPS.map((g) => {
+        const on = settings.groups.includes(g.id);
+        return el("button", {
+          type: "button", class: "group", "aria-pressed": String(on),
+          onclick: () => { settings.groups = on ? settings.groups.filter((x) => x !== g.id) : [...settings.groups, g.id].sort(); if (!settings.groups.length) settings.groups = [1]; save(); renderMenu(); },
+        },
+        el("span", { class: "group-head" }, el("span", {}, g.title), el("span", { class: "check", "aria-hidden": "true" }, on ? "✓" : "")),
+        el("span", { class: "hint" }, g.text),
+        el("span", { class: "minis" }, g.pairs.map((p) => el("span", { class: `mini ${letterState(p.sl)}` }, el("span", { class: "L s" }, p.sl), el("span", { class: "L r" }, p.ru)))));
+      })),
+      el("p", { class: "legend" }, el("span", {}, el("i", { style: "background:#dcfce7;border:2px solid #16a34a" }), "знает: 3 занятия подряд без ошибок"), el("span", {}, el("i", { style: "background:#fff7ed;border:2px solid #f59e0b" }), "учит"), el("span", {}, el("i", { style: "background:#f7f7f5" }), "ещё не было")),
+    ),
+    el("section", {},
+      el("h2", { class: "h2" }, "Режимы"),
+      el("div", { class: "modes" }, MODES.map((m) => el("button", { type: "button", class: "mode", disabled: !avail[m.id], title: avail[m.id] ? null : why[m.id], onclick: () => start(m) },
+        el("b", {}, m.title), el("span", { class: "L" }, m.sample), el("span", {}, avail[m.id] ? m.text : why[m.id])))),
+    ),
+    el("section", { class: "settings" },
+      el("div", { class: "box" },
+        el("div", { class: "row" }, el("b", {}, "Заданий"), seg("count", [[6, "6"], [10, "10"], [15, "15"]])),
+        el("div", { class: "row" }, el("b", {}, "«Найди пару»"), seg("dir", [["sl_ru", "S → С"], ["ru_sl", "С → S"], ["mix", "вперемешку"]])),
+      ),
+      el("div", { class: "box" },
+        el("div", { class: "row" }, el("b", {}, "Подсказка в словах"), seg("hint", [["auto", "сама"], ["bright", "ярко"], ["faint", "бледно"], ["none", "нет"]])),
+        el("p", { class: "hint" }, "«Сама»: кириллица под словом ярко, после двух прочтений без ошибки — бледно, после четырёх — исчезает."),
+      ),
+    ),
+  ));
+}
+
+// ── Session ──
+let S = null;
+function start(mode) {
+  const tasks = BUILD[mode.id]();
+  if (!tasks.length) return;
+  S = { mode, tasks, i: 0, results: [] };
+  document.body.append(el("div", { class: "stage" },
+    el("div", { class: "topbar" },
+      el("button", { type: "button", class: "close", onclick: finish }, "Закончить"),
+      el("div", { class: "dots", id: "dots" }),
+      el("span", { class: "count", id: "count" }),
+    ),
+    el("div", { class: "field", id: "field" }),
+  ));
+  show();
+}
+function dots() {
+  $("#dots").replaceChildren(...S.tasks.map((_, i) => el("i", { class: [S.results[i]?.self ? "self" : S.results[i] ? "help" : "", i === S.i ? "now" : ""].join(" ") })));
+  $("#count").textContent = `${S.i + 1} / ${S.tasks.length}`;
+}
+function next(result) {
+  S.results[S.i] = result;
+  S.i += 1;
+  if (S.i >= S.tasks.length) finish(); else show();
+}
+function show() {
+  dots();
+  const t = S.tasks[S.i];
+  const field = $("#field");
+  field.replaceChildren();
+  ({ pair: showPair, find: showFind, trap: showTrap, syll: showSyll, word: showWord, build: showBuild })[t.type](t, field);
+}
+
+// Answer handling shared by the choice modes: a wrong tap fades that option
+// and shows the right one; the child then taps it (counted as with help).
+function choice(field, options, renderOpt, onDone) {
+  let errors = 0;
+  let locked = false;
+  const btns = options.map((o) => {
+    const b = renderOpt(o);
+    b.onclick = async () => {
+      if (locked) return;
+      if (o.ok) {
+        locked = true;
+        btns.forEach((x) => { if (x !== b) x.classList.add("faded"); });
+        b.classList.remove("hintme"); b.classList.add("correct");
+        await onDone(errors === 0, o);
+        return;
+      }
+      if (b.classList.contains("faded")) return;
+      errors += 1;
+      b.classList.add("shake", "faded");
+      btns[options.findIndex((x) => x.ok)].classList.add("hintme");
+    };
+    return b;
+  });
+  field.append(el("div", { class: "opts" }, btns));
+}
+
+function showPair(t, field) {
+  const ru = el("div", { class: "card card--ru big L fade-in" }, t.p.ru);
+  const sl = el("div", { class: `card card--sl big L fade-in${t.p.group === 4 ? " card--trap" : ""}`, style: "animation-delay:.6s" }, t.p.sl, t.p.group === 4 ? el("span", { class: "trap-tag" }, "ЛОВУШКА") : null);
+  field.append(
+    el("div", { class: "pair" },
+      el("div", { class: "pair-col" }, el("span", { class: "pair-label", style: "color:var(--ru)" }, "ПО-РУССКИ"), ru),
+      el("span", { class: "eq L" }, "="),
+      el("div", { class: "pair-col" }, el("span", { class: "pair-label", style: "color:var(--sl)" }, "PO SLOVENSKO"), sl),
+    ),
+    el("button", { type: "button", class: "next", onclick: () => next({ letters: t.letters, self: true, pair: true }) }, "Дальше"),
+  );
+}
+
+function showFind(t, field) {
+  const fromSl = t.dir === "sl_ru";
+  field.append(el("div", { class: `card ${fromSl ? "card--sl" : "card--ru"} mid L` }, fromSl ? t.p.sl : t.p.ru));
+  choice(field, t.options.map((p) => ({ p, ok: p.sl === t.p.sl })),
+    (o) => el("button", { type: "button", class: `opt L${fromSl ? "" : " sl"}`, "aria-label": fromSl ? o.p.ru : o.p.sl }, fromSl ? o.p.ru : o.p.sl),
+    async (self) => { await wait(1100); next({ letters: t.letters, self }); });
+}
+
+function showTrap(t, field) {
+  field.append(el("div", { class: "card card--sl card--trap mid L" }, t.p.sl, el("span", { class: "trap-tag" }, "ЛОВУШКА")));
+  choice(field, t.options,
+    (o) => el("button", { type: "button", class: "opt L", "aria-label": o.ru }, o.ru),
+    async (self) => { await wait(1100); next({ letters: t.letters, self }); });
+}
+
+function showSyll(t, field) {
+  field.append(el("div", { class: "card card--sl mid L", style: "letter-spacing:.05em" }, t.syl));
+  choice(field, t.options,
+    (o) => el("button", { type: "button", class: "opt L", "aria-label": o.ru }, o.ru),
+    async (self) => { await wait(1100); next({ letters: t.letters, self }); });
+}
+
+function hintLevel(w) {
+  if (settings.hint !== "auto") return settings.hint;
+  const n = wordReads[w.id] ?? 0;
+  return n >= 4 ? "none" : n >= 2 ? "faint" : "bright";
+}
+function showWord(t, field) {
+  const level = hintLevel(t.w);
+  const tr = el("div", { class: "translit L", style: `opacity:${level === "bright" ? 0.85 : level === "faint" ? 0.3 : 0}` }, t.w.ru);
+  field.append(el("div", { class: "word" }, el("div", { class: "card card--sl L" }, t.w.sl), tr));
+  choice(field, t.options,
+    (o) => el("button", { type: "button", class: "opt pic", "aria-label": o.w.sl }, el("img", { src: o.w.pic, alt: "" })),
+    async (self) => {
+      tr.style.opacity = 0.85;
+      if (self) { wordReads[t.w.id] = (wordReads[t.w.id] ?? 0) + 1; store.set("letters-words", wordReads); }
+      await play(t.w.audio); await wait(500);
+      next({ letters: t.letters, self });
+    });
+}
+
+function showBuild(t, field) {
+  const target = lettersOf(t.w.sl);
+  let pos = 0;
+  let errors = 0;
+  const slots = target.map(() => el("div", { class: "slot L" }));
+  const tiles = t.tiles.map((c) => {
+    const b = el("button", { type: "button", class: "tile L", "aria-label": c }, c);
+    b.onclick = async () => {
+      if (pos >= target.length) return;
+      if (c !== target[pos]) { errors += 1; b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); return; }
+      slots[pos].textContent = c; slots[pos].classList.add("filled");
+      b.disabled = true;
+      pos += 1;
+      if (pos === target.length) { await play(t.w.audio); await wait(500); next({ letters: t.letters, self: errors === 0 }); }
+    };
+    return b;
+  });
+  field.append(
+    el("div", { class: "cue" }, el("img", { src: t.w.pic, alt: "" }), el("div", { class: "card card--ru L" }, t.w.ru)),
+    el("div", { class: "slots" }, slots),
+    el("div", { class: "tray" }, tiles),
+  );
+}
+
+function finish() {
+  if (current) current.pause();
+  const stage = $(".stage");
+  const done = S?.results.filter(Boolean) ?? [];
+  const graded = done.filter((r) => !r.pair);
+  // Update each letter's streak: a session where every task with it was answered alone.
+  if (graded.length) {
+    const seen = {};
+    for (const r of graded) for (const c of new Set(r.letters)) seen[c] = (seen[c] ?? true) && r.self;
+    for (const [c, clean] of Object.entries(seen)) progress[c] = { streak: clean ? (progress[c]?.streak ?? 0) + 1 : 0 };
+    store.set("letters-progress", progress);
+  }
+  if (!done.length) { stage?.remove(); S = null; renderMenu(); return; }
+  const self = graded.filter((r) => r.self).length;
+  const hard = [...new Set(graded.filter((r) => !r.self).flatMap((r) => r.letters))];
+  const mode = S.mode;
+  S = null;
+  $("#dots").replaceChildren();
+  $("#count").textContent = "";
+  $(".close").onclick = () => { stage.remove(); renderMenu(); };
+  $("#field").replaceChildren(...[
+    el("div", { class: "done" }, el("h2", {}, "Готово!")),
+    el("p", {}, graded.length ? `Сам: ${self} из ${graded.length}` : `Показано пар: ${done.length}`),
+    hard.length ? el("p", {}, "С помощью: ", el("span", { class: "L", style: "color:var(--sl)" }, hard.join(" "))) : null,
+    el("div", { class: "row", style: "justify-content:center" },
+      el("button", { type: "button", class: "next", onclick: () => { stage.remove(); start(mode); } }, "Ещё раз"),
+      el("button", { type: "button", class: "ghost", onclick: () => { stage.remove(); renderMenu(); } }, "К режимам"),
+    ),
+  ].filter(Boolean));
+}
+
+renderMenu();
+</script>
