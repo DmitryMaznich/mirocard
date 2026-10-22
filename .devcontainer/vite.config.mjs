@@ -13,6 +13,13 @@ export default mergeConfig(baseConfig, {
   },
   plugins: [{
     name: "mirocard-dev-inbox",
+    transformIndexHtml(html) {
+      // Private Codespaces ports require their session cookie even for the
+      // browser's manifest request (which otherwise omits credentials).
+      return html.replace(/<link\b(?=[^>]*\brel=["']manifest["'])[^>]*>/gi,
+        (tag) => tag.replace(/\s+crossorigin(?:=["'][^"']*["'])?/gi, "")
+          .replace(/\s*\/?\s*>$/, ' crossorigin="use-credentials">'));
+    },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         if (req.url?.split("?")[0] !== "/__dev/mail") return next();

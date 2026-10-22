@@ -5,7 +5,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { mkdirSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
-const appUrl = "http://127.0.0.1:8080";
+const appUrl = "http://localhost:8080";
 const env = { ...process.env };
 delete env.CODESPACE_NAME;
 const child = spawn(process.execPath, [".devcontainer/start.mjs"], { env, stdio: "inherit" });
