@@ -224,6 +224,13 @@ ids — without them `topicLoader` silently replaces generic flashcards modes' u
 before touching `my_people`; макеты — `docs/mockups/my-people-redesign.html`. История прошлых правок —
 `docs/my-people-review.md`.
 
+## Учим словенский — новая тема (started 2026-10-22)
+
+Second language (Slovenian) for the owner's minimally verbal autistic son, starting from a
+listening mode «Одна вещь — два слова» (Russian word = home, Slovenian word = school, Russian
+faded out as a prompt). Not the app's Slovenian UI localization. **Read
+`docs/learn-slovene.md` first** — methodology, vocabulary, chosen voices, plan and status.
+
 ## Разряды числа (place_value)
 
 Topic split out of «Сложение и вычитание в столбик» on 2026-10-07; tens and
