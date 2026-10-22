@@ -23,7 +23,7 @@ try {
     await delay(250);
   }
   assert.ok(ready, "Development server must start");
-  browser = await chromium.launch();
+  browser = await chromium.launch({ executablePath: process.env.MIROCARD_TEST_BROWSER_PATH || undefined });
   const context = await browser.newContext();
   page = await context.newPage();
   page.setDefaultNavigationTimeout(90000);
@@ -34,8 +34,16 @@ try {
     downloadThroughput: 2 * 1024 * 1024, uploadThroughput: 1024 * 1024,
   });
   page.on("pageerror", (error) => errors.push(String(error)));
+  page.on("response", (response) => {
+    if (response.status() >= 400) console.error("Browser HTTP error:", response.status(), new URL(response.url()).pathname);
+  });
   page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
+    if (message.type() === "error") {
+      // System Chromium may request this optional icon outside Playwright's
+      // page request stream; it is unrelated to app startup and script errors.
+      if (message.location().url.endsWith("/favicon.ico")) return;
+      errors.push(message.text());
+    }
   });
   await page.goto(appUrl, { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Войти", exact: true }).waitFor({ timeout: 60000 });
@@ -73,6 +81,17 @@ try {
   await page.locator("#splash").waitFor({ state: "hidden", timeout: 60000 });
   await page.getByText("Email подтверждён!", { exact: true }).waitFor({ timeout: 30000 });
   await page.getByRole("button", { name: "Перейти в приложение", exact: true }).click();
+  await page.waitForFunction(() => globalThis.__store?.getState().screen === "home");
+  const homeOrigin = await page.evaluate(() => performance.timeOrigin);
+  let unexpectedNavigations = 0;
+  const onNavigation = (frame) => { if (frame === page.mainFrame()) unexpectedNavigations++; };
+  page.on("framenavigated", onNavigation);
+  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+  await delay(6000);
+  assert.equal(unexpectedNavigations, 0, "Home must remain open without automatic version-mismatch reloads");
+  assert.equal(await page.evaluate(() => performance.timeOrigin), homeOrigin);
+  assert.equal(await page.evaluate(() => globalThis.__store.getState().screen), "home");
+  page.off("framenavigated", onNavigation);
   console.log("Browser verification passed: dev inbox link, splash dismissal, email confirmation and entry into the app.");
   assert.deepEqual(errors, [], "Browser must not report runtime errors");
 } catch (error) {

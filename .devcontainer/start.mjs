@@ -85,6 +85,7 @@ run([
   TMPDIR: process.env.TMPDIR || "/tmp",
   NODE_ENV: "development",
   VITE_API_URL: "/api",
+  npm_package_version: JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")).version,
   MIROCARD_DEV_UNBUNDLED: process.env.MIROCARD_DEV_UNBUNDLED || "0",
   ...(process.env.CODESPACE_NAME ? { CODESPACE_NAME: process.env.CODESPACE_NAME } : {}),
   ...(process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN
