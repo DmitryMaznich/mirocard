@@ -22,3 +22,12 @@ jobs:
         run: node .devcontainer/setup.mjs
       - name: Check startup, API, mail and persistence across restart
         run: node .devcontainer/smoke.mjs
+      - name: Install browser for the actual email-link flow
+        run: npx playwright install --with-deps chromium
+      - name: Verify email confirmation in the development browser
+        run: node .devcontainer/browser-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: codespaces-browser
+          path: output/codespaces-browser.png
