@@ -389,6 +389,21 @@
       "access": "paid"
     },
     {
+      "id": "learn_slovene",
+      "version": "0.1.0",
+      "title": {
+        "ru": "Учим словенский",
+        "en": "Learning Slovenian"
+      },
+      "description": {
+        "ru": "Одна вещь — два слова: дома слово звучит по-русски, в школе — по-словенски. Ребёнок выбирает картинку, говорить не нужно; русское слово постепенно становится подсказкой. Первый набор — школьный перекус (malica).",
+        "en": "One thing, two words: Russian at home, Slovenian at school. The child picks a picture; the Russian word turns into a prompt and fades. First set: the school snack (malica)."
+      },
+      "url": "./decks/learn_slovene_v0.1.0.zip",
+      "status": "individual",
+      "access": "paid"
+    },
+    {
       "id": "vowel_consonant_ru",
       "version": "1.0.1",
       "title": {

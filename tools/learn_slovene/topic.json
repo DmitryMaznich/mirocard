@@ -1,0 +1,911 @@
+{
+  "meta": {
+    "id": "learn_slovene",
+    "version": "0.1.0",
+    "renderer": "bilingual_words",
+    "title": {
+      "ru": "Учим словенский",
+      "en": "Learning Slovenian"
+    },
+    "avatar": "media/avatar.svg",
+    "questionKey": "Найди",
+    "about": {
+      "description": "Второй язык для ребёнка, который говорит по-русски: одна вещь — два слова. Дома (оранжевая рамка слева) слово звучит по-русски, в школе (синяя рамка справа) — по-словенски. Русское слово сначала звучит всегда, потом становится подсказкой и уходит. Отвечать — выбором картинки, говорить не нужно. Первый набор — школьный перекус (malica).",
+      "goals": [
+        "Понять, что у одной вещи есть домашнее и школьное название.",
+        "Узнавать на слух словенские слова школьного дня, сначала с опорой на русское."
+      ],
+      "finalGoal": "По словенскому слову ребёнок сам находит картинку среди трёх, без русской подсказки.",
+      "flow": [
+        "1 → 2 → 3 → 4. Переходите дальше, когда ребёнок уверенно справляется сам.",
+        "2 → 3: два занятия подряд выбирает уверенно, без случайных нажатий. 3 → 4: около 80% заданий сам.",
+        "Слова выбираются в «Изменить» под точками: снимите те, которых ребёнок не понимает по-русски.",
+        "Носитель языка проверяет записи в режиме «Прослушать все слова»."
+      ]
+    }
+  },
+  "cards": [
+    {
+      "id": "voda_1",
+      "conceptId": "voda",
+      "primary": true,
+      "image": "media/voda_1.webp",
+      "label": "voda · вода",
+      "word": {
+        "sl": "voda",
+        "ru": "вода"
+      },
+      "audio": {
+        "ru": "audio/ru/voda.mp3",
+        "sl": "audio/sl/voda.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "voda_2",
+      "conceptId": "voda",
+      "primary": false,
+      "image": "media/voda_2.webp",
+      "label": "voda · вода",
+      "word": {
+        "sl": "voda",
+        "ru": "вода"
+      },
+      "audio": {
+        "ru": "audio/ru/voda.mp3",
+        "sl": "audio/sl/voda.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "voda_3",
+      "conceptId": "voda",
+      "primary": false,
+      "image": "media/voda_3.webp",
+      "label": "voda · вода",
+      "word": {
+        "sl": "voda",
+        "ru": "вода"
+      },
+      "audio": {
+        "ru": "audio/ru/voda.mp3",
+        "sl": "audio/sl/voda.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "sok_1",
+      "conceptId": "sok",
+      "primary": true,
+      "image": "media/sok_1.webp",
+      "label": "sok · сок",
+      "word": {
+        "sl": "sok",
+        "ru": "сок"
+      },
+      "audio": {
+        "ru": "audio/ru/sok.mp3",
+        "sl": "audio/sl/sok.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "sok_2",
+      "conceptId": "sok",
+      "primary": false,
+      "image": "media/sok_2.webp",
+      "label": "sok · сок",
+      "word": {
+        "sl": "sok",
+        "ru": "сок"
+      },
+      "audio": {
+        "ru": "audio/ru/sok.mp3",
+        "sl": "audio/sl/sok.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "sok_3",
+      "conceptId": "sok",
+      "primary": false,
+      "image": "media/sok_3.webp",
+      "label": "sok · сок",
+      "word": {
+        "sl": "sok",
+        "ru": "сок"
+      },
+      "audio": {
+        "ru": "audio/ru/sok.mp3",
+        "sl": "audio/sl/sok.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "caj_1",
+      "conceptId": "caj",
+      "primary": true,
+      "image": "media/caj_1.webp",
+      "label": "čaj · чай",
+      "word": {
+        "sl": "čaj",
+        "ru": "чай"
+      },
+      "audio": {
+        "ru": "audio/ru/caj.mp3",
+        "sl": "audio/sl/caj.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "caj_2",
+      "conceptId": "caj",
+      "primary": false,
+      "image": "media/caj_2.webp",
+      "label": "čaj · чай",
+      "word": {
+        "sl": "čaj",
+        "ru": "чай"
+      },
+      "audio": {
+        "ru": "audio/ru/caj.mp3",
+        "sl": "audio/sl/caj.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "caj_3",
+      "conceptId": "caj",
+      "primary": false,
+      "image": "media/caj_3.webp",
+      "label": "čaj · чай",
+      "word": {
+        "sl": "čaj",
+        "ru": "чай"
+      },
+      "audio": {
+        "ru": "audio/ru/caj.mp3",
+        "sl": "audio/sl/caj.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "jabolko_1",
+      "conceptId": "jabolko",
+      "primary": true,
+      "image": "media/jabolko_1.webp",
+      "label": "jabolko · яблоко",
+      "word": {
+        "sl": "jabolko",
+        "ru": "яблоко"
+      },
+      "audio": {
+        "ru": "audio/ru/jabolko.mp3",
+        "sl": "audio/sl/jabolko.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "jabolko_2",
+      "conceptId": "jabolko",
+      "primary": false,
+      "image": "media/jabolko_2.webp",
+      "label": "jabolko · яблоко",
+      "word": {
+        "sl": "jabolko",
+        "ru": "яблоко"
+      },
+      "audio": {
+        "ru": "audio/ru/jabolko.mp3",
+        "sl": "audio/sl/jabolko.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "jabolko_3",
+      "conceptId": "jabolko",
+      "primary": false,
+      "image": "media/jabolko_3.webp",
+      "label": "jabolko · яблоко",
+      "word": {
+        "sl": "jabolko",
+        "ru": "яблоко"
+      },
+      "audio": {
+        "ru": "audio/ru/jabolko.mp3",
+        "sl": "audio/sl/jabolko.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "banana_1",
+      "conceptId": "banana",
+      "primary": true,
+      "image": "media/banana_1.webp",
+      "label": "banana · банан",
+      "word": {
+        "sl": "banana",
+        "ru": "банан"
+      },
+      "audio": {
+        "ru": "audio/ru/banana.mp3",
+        "sl": "audio/sl/banana.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "banana_2",
+      "conceptId": "banana",
+      "primary": false,
+      "image": "media/banana_2.webp",
+      "label": "banana · банан",
+      "word": {
+        "sl": "banana",
+        "ru": "банан"
+      },
+      "audio": {
+        "ru": "audio/ru/banana.mp3",
+        "sl": "audio/sl/banana.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "banana_3",
+      "conceptId": "banana",
+      "primary": false,
+      "image": "media/banana_3.webp",
+      "label": "banana · банан",
+      "word": {
+        "sl": "banana",
+        "ru": "банан"
+      },
+      "audio": {
+        "ru": "audio/ru/banana.mp3",
+        "sl": "audio/sl/banana.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "hruska_1",
+      "conceptId": "hruska",
+      "primary": true,
+      "image": "media/hruska_1.webp",
+      "label": "hruška · груша",
+      "word": {
+        "sl": "hruška",
+        "ru": "груша"
+      },
+      "audio": {
+        "ru": "audio/ru/hruska.mp3",
+        "sl": "audio/sl/hruska.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "hruska_2",
+      "conceptId": "hruska",
+      "primary": false,
+      "image": "media/hruska_2.webp",
+      "label": "hruška · груша",
+      "word": {
+        "sl": "hruška",
+        "ru": "груша"
+      },
+      "audio": {
+        "ru": "audio/ru/hruska.mp3",
+        "sl": "audio/sl/hruska.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "hruska_3",
+      "conceptId": "hruska",
+      "primary": false,
+      "image": "media/hruska_3.webp",
+      "label": "hruška · груша",
+      "word": {
+        "sl": "hruška",
+        "ru": "груша"
+      },
+      "audio": {
+        "ru": "audio/ru/hruska.mp3",
+        "sl": "audio/sl/hruska.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "mleko_1",
+      "conceptId": "mleko",
+      "primary": true,
+      "image": "media/mleko_1.webp",
+      "label": "mleko · молоко",
+      "word": {
+        "sl": "mleko",
+        "ru": "молоко"
+      },
+      "audio": {
+        "ru": "audio/ru/mleko.mp3",
+        "sl": "audio/sl/mleko.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "mleko_2",
+      "conceptId": "mleko",
+      "primary": false,
+      "image": "media/mleko_2.webp",
+      "label": "mleko · молоко",
+      "word": {
+        "sl": "mleko",
+        "ru": "молоко"
+      },
+      "audio": {
+        "ru": "audio/ru/mleko.mp3",
+        "sl": "audio/sl/mleko.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "mleko_3",
+      "conceptId": "mleko",
+      "primary": false,
+      "image": "media/mleko_3.webp",
+      "label": "mleko · молоко",
+      "word": {
+        "sl": "mleko",
+        "ru": "молоко"
+      },
+      "audio": {
+        "ru": "audio/ru/mleko.mp3",
+        "sl": "audio/sl/mleko.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "sir_1",
+      "conceptId": "sir",
+      "primary": true,
+      "image": "media/sir_1.webp",
+      "label": "sir · сыр",
+      "word": {
+        "sl": "sir",
+        "ru": "сыр"
+      },
+      "audio": {
+        "ru": "audio/ru/sir.mp3",
+        "sl": "audio/sl/sir.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "sir_2",
+      "conceptId": "sir",
+      "primary": false,
+      "image": "media/sir_2.webp",
+      "label": "sir · сыр",
+      "word": {
+        "sl": "sir",
+        "ru": "сыр"
+      },
+      "audio": {
+        "ru": "audio/ru/sir.mp3",
+        "sl": "audio/sl/sir.mp3"
+      },
+      "group": "malica"
+    },
+    {
+      "id": "sir_3",
+      "conceptId": "sir",
+      "primary": false,
+      "image": "media/sir_3.webp",
+      "label": "sir · сыр",
+      "word": {
+        "sl": "sir",
+        "ru": "сыр"
+      },
+      "audio": {
+        "ru": "audio/ru/sir.mp3",
+        "sl": "audio/sl/sir.mp3"
+      },
+      "group": "malica"
+    }
+  ],
+  "modes": [
+    {
+      "id": "ls_pair",
+      "type": "bw_pair",
+      "evaluation": "none",
+      "ui": {
+        "title": "1. Показ пары",
+        "instruction": "Послушай: дома — по-русски, в школе — по-словенски"
+      },
+      "methodology": {
+        "summary": "Картинка, слово по-русски («дом»), затем по-словенски («школа»).",
+        "text": "Звучит русское слово, светится рамка дома слева; через паузу — словенское, светится рамка школы справа. Ребёнок касается картинки — следующая. Ошибиться нельзя. Можно нажать на дом или школу, чтобы услышать слово ещё раз.",
+        "goal": "Ребёнок связывает одну вещь с двумя названиями и с двумя местами.",
+        "duration": "1–2 минуты",
+        "tips": [
+          "Покажите настоящий предмет, если он под рукой: «Сок. В школе — sok».",
+          "Говорите по-русски, как обычно; словенское слово звучит из приложения."
+        ]
+      }
+    },
+    {
+      "id": "ls_find_both",
+      "type": "bw_find",
+      "evaluation": "instant",
+      "finite": true,
+      "audioOrder": "ru_sl",
+      "optionCount": 2,
+      "distractors": [
+        {
+          "id": "zoga_1",
+          "conceptId": "zoga",
+          "image": "media/zoga_1.webp",
+          "word": {
+            "sl": "žoga"
+          },
+          "group": "igrisce"
+        },
+        {
+          "id": "zoga_2",
+          "conceptId": "zoga",
+          "image": "media/zoga_2.webp",
+          "word": {
+            "sl": "žoga"
+          },
+          "group": "igrisce"
+        },
+        {
+          "id": "knjiga_1",
+          "conceptId": "knjiga",
+          "image": "media/knjiga_1.webp",
+          "word": {
+            "sl": "knjiga"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "cevlji_1",
+          "conceptId": "cevlji",
+          "image": "media/cevlji_1.webp",
+          "word": {
+            "sl": "čevlji"
+          },
+          "group": "garderoba"
+        },
+        {
+          "id": "svincnik_1",
+          "conceptId": "svincnik",
+          "image": "media/svincnik_1.webp",
+          "word": {
+            "sl": "svinčnik"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "svincnik_2",
+          "conceptId": "svincnik",
+          "image": "media/svincnik_2.webp",
+          "word": {
+            "sl": "svinčnik"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "kapa_1",
+          "conceptId": "kapa",
+          "image": "media/kapa_1.webp",
+          "word": {
+            "sl": "kapa"
+          },
+          "group": "garderoba"
+        },
+        {
+          "id": "kapa_2",
+          "conceptId": "kapa",
+          "image": "media/kapa_2.webp",
+          "word": {
+            "sl": "kapa"
+          },
+          "group": "garderoba"
+        },
+        {
+          "id": "skarje_1",
+          "conceptId": "skarje",
+          "image": "media/skarje_1.webp",
+          "word": {
+            "sl": "škarje"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "skarje_2",
+          "conceptId": "skarje",
+          "image": "media/skarje_2.webp",
+          "word": {
+            "sl": "škarje"
+          },
+          "group": "razred"
+        }
+      ],
+      "paramsScope": "mode",
+      "ui": {
+        "title": "2. Найди: оба слова",
+        "instruction": "Послушай и найди картинку"
+      },
+      "methodology": {
+        "summary": "Звучат оба слова, ребёнок выбирает одну из двух картинок.",
+        "text": "Русское слово (дом) → словенское (школа) → выбор из двух картинок. Вторая картинка — из другой темы (не еда рядом с едой). Учим само действие «выбрать». После ответа звучит пара «voda — вода».",
+        "goal": "Ребёнок выбирает картинку по слову.",
+        "duration": "2–3 минуты",
+        "tips": [
+          "Если ребёнок нажимает подряд одну и ту же сторону, вернитесь к режиму 1."
+        ]
+      },
+      "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Заданий в занятии"
+          },
+          "values": [
+            4,
+            6,
+            10
+          ],
+          "labels": {
+            "ru": {
+              "4": "4",
+              "6": "6",
+              "10": "10"
+            }
+          },
+          "default": 6,
+          "hint": {
+            "ru": "Мотивация невысокая — лучше короткое занятие, чем брошенное на середине."
+          }
+        }
+      }
+    },
+    {
+      "id": "ls_find_sl",
+      "type": "bw_find",
+      "evaluation": "instant",
+      "finite": true,
+      "audioOrder": "sl",
+      "optionCount": 2,
+      "distractors": [
+        {
+          "id": "zoga_1",
+          "conceptId": "zoga",
+          "image": "media/zoga_1.webp",
+          "word": {
+            "sl": "žoga"
+          },
+          "group": "igrisce"
+        },
+        {
+          "id": "zoga_2",
+          "conceptId": "zoga",
+          "image": "media/zoga_2.webp",
+          "word": {
+            "sl": "žoga"
+          },
+          "group": "igrisce"
+        },
+        {
+          "id": "knjiga_1",
+          "conceptId": "knjiga",
+          "image": "media/knjiga_1.webp",
+          "word": {
+            "sl": "knjiga"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "cevlji_1",
+          "conceptId": "cevlji",
+          "image": "media/cevlji_1.webp",
+          "word": {
+            "sl": "čevlji"
+          },
+          "group": "garderoba"
+        },
+        {
+          "id": "svincnik_1",
+          "conceptId": "svincnik",
+          "image": "media/svincnik_1.webp",
+          "word": {
+            "sl": "svinčnik"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "svincnik_2",
+          "conceptId": "svincnik",
+          "image": "media/svincnik_2.webp",
+          "word": {
+            "sl": "svinčnik"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "kapa_1",
+          "conceptId": "kapa",
+          "image": "media/kapa_1.webp",
+          "word": {
+            "sl": "kapa"
+          },
+          "group": "garderoba"
+        },
+        {
+          "id": "kapa_2",
+          "conceptId": "kapa",
+          "image": "media/kapa_2.webp",
+          "word": {
+            "sl": "kapa"
+          },
+          "group": "garderoba"
+        },
+        {
+          "id": "skarje_1",
+          "conceptId": "skarje",
+          "image": "media/skarje_1.webp",
+          "word": {
+            "sl": "škarje"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "skarje_2",
+          "conceptId": "skarje",
+          "image": "media/skarje_2.webp",
+          "word": {
+            "sl": "škarje"
+          },
+          "group": "razred"
+        }
+      ],
+      "paramsScope": "mode",
+      "ui": {
+        "title": "3. Найди по-словенски",
+        "instruction": "Послушай и найди картинку"
+      },
+      "methodology": {
+        "summary": "Только словенское слово; русское — подсказка при затруднении.",
+        "text": "Звучит словенское слово, две картинки. Если ребёнок молчит: повтор словенского → русское слово (рамка дома) → нужная картинка увеличивается. Неверное нажатие: картинка бледнеет, без резкого звука, звучит пара, ребёнок нажимает правильную. Ответ после русской подсказки, выделения или ошибки считается ответом «с помощью».",
+        "goal": "Ребёнок узнаёт словенское слово, опираясь на русское всё реже.",
+        "duration": "2–3 минуты",
+        "tips": [
+          "Рамка дома здесь пунктирная: русский — только подсказка. Ребёнок может нажать на неё сам — это тоже помощь.",
+          "Если больше половины ответов «с помощью», вернитесь к режиму 2."
+        ]
+      },
+      "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Заданий в занятии"
+          },
+          "values": [
+            4,
+            6,
+            10
+          ],
+          "labels": {
+            "ru": {
+              "4": "4",
+              "6": "6",
+              "10": "10"
+            }
+          },
+          "default": 6,
+          "hint": {
+            "ru": "Мотивация невысокая — лучше короткое занятие, чем брошенное на середине."
+          }
+        },
+        "promptDelay": {
+          "type": "enum",
+          "label": {
+            "ru": "Подсказка через"
+          },
+          "values": [
+            3,
+            5,
+            8
+          ],
+          "labels": {
+            "ru": {
+              "3": "3 с",
+              "5": "5 с",
+              "8": "8 с"
+            }
+          },
+          "default": 5,
+          "hint": {
+            "ru": "Сколько ждать ответа перед каждой следующей подсказкой: повтор → русское слово → выделение картинки."
+          }
+        }
+      }
+    },
+    {
+      "id": "ls_find_sl3",
+      "type": "bw_find",
+      "evaluation": "instant",
+      "finite": true,
+      "audioOrder": "sl",
+      "optionCount": 3,
+      "distractors": [
+        {
+          "id": "zoga_1",
+          "conceptId": "zoga",
+          "image": "media/zoga_1.webp",
+          "word": {
+            "sl": "žoga"
+          },
+          "group": "igrisce"
+        },
+        {
+          "id": "zoga_2",
+          "conceptId": "zoga",
+          "image": "media/zoga_2.webp",
+          "word": {
+            "sl": "žoga"
+          },
+          "group": "igrisce"
+        },
+        {
+          "id": "knjiga_1",
+          "conceptId": "knjiga",
+          "image": "media/knjiga_1.webp",
+          "word": {
+            "sl": "knjiga"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "cevlji_1",
+          "conceptId": "cevlji",
+          "image": "media/cevlji_1.webp",
+          "word": {
+            "sl": "čevlji"
+          },
+          "group": "garderoba"
+        },
+        {
+          "id": "svincnik_1",
+          "conceptId": "svincnik",
+          "image": "media/svincnik_1.webp",
+          "word": {
+            "sl": "svinčnik"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "svincnik_2",
+          "conceptId": "svincnik",
+          "image": "media/svincnik_2.webp",
+          "word": {
+            "sl": "svinčnik"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "kapa_1",
+          "conceptId": "kapa",
+          "image": "media/kapa_1.webp",
+          "word": {
+            "sl": "kapa"
+          },
+          "group": "garderoba"
+        },
+        {
+          "id": "kapa_2",
+          "conceptId": "kapa",
+          "image": "media/kapa_2.webp",
+          "word": {
+            "sl": "kapa"
+          },
+          "group": "garderoba"
+        },
+        {
+          "id": "skarje_1",
+          "conceptId": "skarje",
+          "image": "media/skarje_1.webp",
+          "word": {
+            "sl": "škarje"
+          },
+          "group": "razred"
+        },
+        {
+          "id": "skarje_2",
+          "conceptId": "skarje",
+          "image": "media/skarje_2.webp",
+          "word": {
+            "sl": "škarje"
+          },
+          "group": "razred"
+        }
+      ],
+      "paramsScope": "mode",
+      "ui": {
+        "title": "4. Три картинки",
+        "instruction": "Послушай и найди картинку"
+      },
+      "methodology": {
+        "summary": "Только словенское слово, три картинки.",
+        "text": "Как режим 3, но картинок три. Слово освоено, когда ребёнок три занятия подряд находит его сам.",
+        "goal": "Ребёнок по словенскому слову находит картинку среди трёх без русской подсказки.",
+        "duration": "2–3 минуты",
+        "tips": [
+          "Проверьте слово в жизни: на перекусе дайте выбрать между двумя предметами по словенскому слову."
+        ]
+      },
+      "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Заданий в занятии"
+          },
+          "values": [
+            4,
+            6,
+            10
+          ],
+          "labels": {
+            "ru": {
+              "4": "4",
+              "6": "6",
+              "10": "10"
+            }
+          },
+          "default": 6,
+          "hint": {
+            "ru": "Мотивация невысокая — лучше короткое занятие, чем брошенное на середине."
+          }
+        },
+        "promptDelay": {
+          "type": "enum",
+          "label": {
+            "ru": "Подсказка через"
+          },
+          "values": [
+            3,
+            5,
+            8
+          ],
+          "labels": {
+            "ru": {
+              "3": "3 с",
+              "5": "5 с",
+              "8": "8 с"
+            }
+          },
+          "default": 5,
+          "hint": {
+            "ru": "Сколько ждать ответа перед каждой следующей подсказкой: повтор → русское слово → выделение картинки."
+          }
+        }
+      }
+    },
+    {
+      "id": "ls_listen_all",
+      "type": "bw_listen_all",
+      "evaluation": "none",
+      "ui": {
+        "title": "Прослушать все слова",
+        "instruction": "Для взрослого и для проверки произношения"
+      },
+      "methodology": {
+        "summary": "Список слов с записями на обоих языках — для взрослого и носителя языка.",
+        "text": "Каждое слово: SL — словенская запись, RU — русская, RU → SL — пара, как в занятии. Носитель языка проверяет словенские записи здесь же, в приложении.",
+        "goal": "Проверить произношение до занятий с ребёнком.",
+        "duration": "по необходимости",
+        "tips": [
+          "Отмечайте слова, где ударение или звук не так, — их перезапишем."
+        ]
+      }
+    }
+  ]
+}
