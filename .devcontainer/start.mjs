@@ -85,6 +85,7 @@ run([
   TMPDIR: process.env.TMPDIR || "/tmp",
   NODE_ENV: "development",
   VITE_API_URL: "/api",
+  MIROCARD_DEV_UNBUNDLED: process.env.MIROCARD_DEV_UNBUNDLED || "0",
   ...(process.env.CODESPACE_NAME ? { CODESPACE_NAME: process.env.CODESPACE_NAME } : {}),
   ...(process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN
     ? { GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN } : {}),

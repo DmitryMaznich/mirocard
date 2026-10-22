@@ -13,6 +13,12 @@ jobs:
   dev-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [bundled, unbundled]
+    env:
+      MIROCARD_DEV_UNBUNDLED: ${{ matrix.mode == 'unbundled' && '1' || '0' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,5 +35,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: codespaces-browser
+          name: codespaces-browser-${{ matrix.mode }}
           path: output/codespaces-browser.png

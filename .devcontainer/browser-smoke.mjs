@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { setTimeout as delay } from "node:timers/promises";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
 const appUrl = "http://localhost:8080";
@@ -12,6 +12,8 @@ const child = spawn(process.execPath, [".devcontainer/start.mjs"], { env, stdio:
 let browser;
 let page;
 const errors = [];
+let hmrSource;
+const hmrPath = "src/features/account/LoginScreen.jsx";
 try {
   let ready = false;
   for (let attempt = 0; attempt < 120; attempt++) {
@@ -24,12 +26,37 @@ try {
   browser = await chromium.launch();
   const context = await browser.newContext();
   page = await context.newPage();
+  page.setDefaultNavigationTimeout(90000);
+  const cdp = await context.newCDPSession(page);
+  await cdp.send("Network.enable");
+  await cdp.send("Network.emulateNetworkConditions", {
+    offline: false, latency: 80,
+    downloadThroughput: 2 * 1024 * 1024, uploadThroughput: 1024 * 1024,
+  });
   page.on("pageerror", (error) => errors.push(String(error)));
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
   });
   await page.goto(appUrl, { waitUntil: "domcontentloaded" });
   await page.locator("#splash").waitFor({ state: "hidden", timeout: 60000 });
+  console.log("DEV_LOAD_METRICS", JSON.stringify(await page.evaluate(() => {
+    const resources = performance.getEntriesByType("resource");
+    return {
+      elapsedMs: Math.round(performance.now()),
+      requests: resources.length,
+      scripts: resources.filter((r) => r.initiatorType === "script").length,
+      bytes: resources.reduce((sum, r) => sum + r.transferSize, 0),
+    };
+  })));
+  assert.equal(await page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length), 0,
+    "Development must not install a service worker");
+  hmrSource = readFileSync(hmrPath, "utf8");
+  const timeOrigin = await page.evaluate(() => performance.timeOrigin);
+  writeFileSync(hmrPath, `${hmrSource}\nglobalThis.__mirocardHmrProbe = "updated";\n`);
+  await page.waitForFunction(() => globalThis.__mirocardHmrProbe === "updated", null, { timeout: 30000 });
+  assert.equal(await page.evaluate(() => performance.timeOrigin), timeOrigin, "Code edits must hot-update without a page reload");
+  writeFileSync(hmrPath, hmrSource);
+  hmrSource = undefined;
   const email = `browser-${Date.now()}@example.test`;
   const response = await context.request.post(`${appUrl}/api/auth/register`, {
     data: { email, password: "Codespaces-browser-123", firstName: "Browser", role: "parent", referralSource: "other", consentPersonalData: true },
@@ -56,6 +83,7 @@ try {
   }
   throw error;
 } finally {
+  if (hmrSource !== undefined) writeFileSync(hmrPath, hmrSource);
   await browser?.close();
   if (child.exitCode === null && child.signalCode === null) {
     const exited = once(child, "exit");

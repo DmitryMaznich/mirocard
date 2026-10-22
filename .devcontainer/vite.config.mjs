@@ -6,6 +6,9 @@ const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g,
 
 export default mergeConfig(baseConfig, {
   envDir: false,
+  // Keep hot updates while avoiding hundreds of module requests over the tunnel.
+  // Set MIROCARD_DEV_UNBUNDLED=1 to use the standard Vite server for comparison.
+  experimental: { bundledDev: process.env.MIROCARD_DEV_UNBUNDLED !== "1" },
   server: {
     allowedHosts: process.env.CODESPACE_NAME
       ? [`${process.env.CODESPACE_NAME}-8080.${process.env.GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN || "app.github.dev"}`]
@@ -22,6 +25,12 @@ export default mergeConfig(baseConfig, {
     },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
+        if (req.url?.split("?")[0] === "/__dev/reset") {
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.setHeader("Cache-Control", "no-store");
+          res.end(`<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Перезапуск тестовой среды</title><p id="status">Отключаем старый service worker. Аккаунт и данные сохранятся.</p><script type="module">try { if ("serviceWorker" in navigator) { const registrations = await navigator.serviceWorker.getRegistrations(); await Promise.all(registrations.map(r => r.unregister())); } location.replace("/"); } catch { document.getElementById("status").textContent = "Не удалось отключить service worker. Откройте DevTools → Application → Service Workers → Unregister, затем обновите приложение."; }</script></html>`);
+          return;
+        }
         if (req.url?.split("?")[0] !== "/__dev/mail") return next();
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader("Cache-Control", "no-store");
