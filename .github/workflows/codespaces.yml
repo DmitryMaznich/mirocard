@@ -1,0 +1,24 @@
+name: Codespaces development smoke
+
+on:
+  pull_request:
+    paths:
+      - '.devcontainer/**'
+      - '.github/workflows/codespaces.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  dev-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install and prepare the development environment
+        run: node .devcontainer/setup.mjs
+      - name: Check startup, API, mail and persistence across restart
+        run: node .devcontainer/smoke.mjs
