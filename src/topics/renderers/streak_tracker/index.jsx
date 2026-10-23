@@ -1,3 +1,5 @@
+import "./streakTracker.css";
+
 // Reuses the shared "Серия для видеонаграды" selector every other topic
 // already has (answersPerStar 1/2/3, labeled 5/10/15 in ParamsScreen.jsx)
 // instead of a topic-specific param. SessionHeader's own compact bar stays
@@ -17,7 +19,7 @@ export default function StreakTrackerRenderer({ task, onCorrect, onIncorrect, st
   const rows = [];
   for (let start = 0; start < starsTarget; start += 5) rows.push(start);
   return (
-    <div className="operation-stage operation-stage--manual">
+    <div className="operation-stage operation-stage--manual streak-tracker-stage" style={{ "--streak-rows": rows.length }}>
       <div className={`operation-manual__stars-rows${starsTarget > 5 ? " operation-manual__stars-rows--compact" : ""}`}>
         {rows.map((start) => (
           <div key={start} className="operation-manual__stars">

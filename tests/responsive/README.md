@@ -1,5 +1,18 @@
 # Word formation responsive checks
 
+The «5 из 5» tracker has a separate suite:
+
+```sh
+npx playwright test -c tests/responsive/streak-tracker.playwright.config.mjs
+```
+
+It runs the real session header, renderer and application CSS without an account
+or backend. It checks 5/10/15 stars at nine iPhone/iPad sizes (both orientations,
+iPad split view and simulated iOS safe areas), correct/incorrect answers, touch
+target sizes and rotation without losing the current streak. These are Chromium
+viewport checks, not a substitute for checking physical iOS devices. Screenshots
+are saved in `.cache/streak-tracker-screenshots`.
+
 Run from the repository root:
 
 ```powershell
