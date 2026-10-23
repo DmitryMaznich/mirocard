@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode, generateExamples } from "./engine.js";
+import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode, generateCopySheet, COPY_KINDS, hasCarry, hasBorrow } from "./engine.js";
 
 const CARDS = [
   { id: "col_add", conceptId: "col_add", renderer: "column_addition", params: { operation: "add" } },
@@ -233,48 +233,63 @@ describe("generateTasks – column_arithmetic, digits: \"round10\" (Круглы
   });
 });
 
-describe("generateExamples – digits: \"round10\" (column_copy print mode)", () => {
-  it("both operands are multiples of 10", () => {
-    const examples = generateExamples(20, { operation: "mixed", carryMode: "mixed", digits: "round10" });
-    expect(examples).toHaveLength(20);
-    for (const ex of examples) {
-      expect(ex.top % 10).toBe(0);
-      expect(ex.bottom % 10).toBe(0);
+describe("generateCopySheet – «Контрольная работа»", () => {
+  const all = Object.fromEntries(COPY_KINDS.map((k) => [k.key, true]));
+  const answer = (e) => (e.operation === "add" ? e.top + e.bottom : e.top - e.bottom);
+  const len = (n) => String(n).length;
+
+  it("mixes every ticked kind on one sheet, no example twice", () => {
+    const sheet = generateCopySheet(16, { ...all, operation: "mixed", carryMode: "mixed" });
+    expect(sheet).toHaveLength(16);
+    expect(new Set(sheet.map((e) => e.kind)).size).toBe(8);
+    expect(new Set(sheet.map((e) => `${e.operation}${e.top},${e.bottom}`)).size).toBe(16);
+  });
+
+  it("numbers stay within three digits; only «Новый разряд» changes the answer's width", () => {
+    for (let run = 0; run < 30; run++) {
+      for (const e of generateCopySheet(10, { ...all, operation: "mixed", carryMode: "mixed" })) {
+        expect(e.top).toBeLessThan(1000);
+        expect(e.bottom).toBeLessThanOrEqual(e.operation === "subtract" ? e.top : 999);
+        expect(answer(e)).toBeGreaterThan(0);
+        const wide = Math.max(len(e.top), len(e.bottom));
+        if (e.kind === "newplace") expect(len(answer(e))).not.toBe(e.operation === "add" ? wide : len(e.top));
+        else expect(len(answer(e))).toBe(wide);
+      }
     }
   });
 
-  it("add sum never exceeds 100, regardless of carryMode", () => {
-    for (const carryMode of ["none", "carry", "mixed"]) {
-      const examples = generateExamples(15, { operation: "add", carryMode, digits: "round10" });
-      expect(examples.length).toBeGreaterThan(0);
-      for (const ex of examples) expect(ex.top + ex.bottom).toBeLessThanOrEqual(100);
+  it("each kind has its shape", () => {
+    const shapes = { 22: [2, 2], 21: [2, 1], 33: [3, 3], 32: [3, 2], 31: [3, 1] };
+    for (let run = 0; run < 20; run++) {
+      for (const e of generateCopySheet(12, { ...all, operation: "mixed", carryMode: "mixed" })) {
+        if (shapes[e.kind]) expect([len(e.top), len(e.bottom)]).toEqual(shapes[e.kind]);
+        if (e.kind === "round") { expect(e.top % 10).toBe(0); expect(e.bottom % 10).toBe(0); }
+        if (e.kind === "zero") expect(String(e.top).slice(1)).toContain("0");
+      }
     }
   });
 
-  it("subtract + carryMode:\"carry\" still produces tasks (carryMode is a no-op here, not a dead end)", () => {
-    const examples = generateExamples(10, { operation: "subtract", carryMode: "carry", digits: "round10" });
-    expect(examples).toHaveLength(10);
-  });
-});
-
-describe("generateExamples – digits: \"2+1\" (column_copy print mode)", () => {
-  it("top is always 2-digit, bottom is always 1-digit", () => {
-    const examples = generateExamples(20, { operation: "mixed", carryMode: "mixed", digits: "2+1" });
-    expect(examples).toHaveLength(20);
-    for (const ex of examples) {
-      expect(ex.top).toBeGreaterThanOrEqual(10);
-      expect(ex.top).toBeLessThanOrEqual(99);
-      expect(ex.bottom).toBeGreaterThanOrEqual(1);
-      expect(ex.bottom).toBeLessThanOrEqual(9);
+  it("«Перенос / заём» filters every kind but «Новый разряд»", () => {
+    for (const carryMode of ["none", "carry"]) {
+      for (const operation of ["add", "subtract"]) {
+        const sheet = generateCopySheet(10, { ...all, kind_newplace: false, operation, carryMode });
+        expect(sheet.length).toBeGreaterThan(0);
+        for (const e of sheet) {
+          const crosses = operation === "add" ? hasCarry(e.top, e.bottom) : hasBorrow(e.top, e.bottom);
+          expect(crosses).toBe(carryMode === "carry");
+        }
+      }
     }
   });
 
-  it("add sum never exceeds 99, regardless of carryMode (the reported 97+4 bug)", () => {
-    for (const carryMode of ["none", "carry", "mixed"]) {
-      const examples = generateExamples(15, { operation: "add", carryMode, digits: "2+1" });
-      expect(examples.length).toBeGreaterThan(0);
-      for (const ex of examples) expect(ex.top + ex.bottom).toBeLessThanOrEqual(99);
-    }
+  it("«С нулём» with a borrow brings the borrow through zero (305 − 7, 400 − 126)", () => {
+    const sheet = generateCopySheet(10, { kind_zero: true, operation: "subtract", carryMode: "carry" });
+    expect(sheet).toHaveLength(10);
+    expect(sheet.every((e) => hasBorrow(e.top, e.bottom))).toBe(true);
+  });
+
+  it("nothing ticked falls back to 2 + 2", () => {
+    expect(generateCopySheet(6, {}).every((e) => e.kind === "22")).toBe(true);
   });
 });
 
