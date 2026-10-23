@@ -124,9 +124,9 @@ export default function SessionScreen() {
     "numeral_agreement", "adjective_agreement", "possessive_agreement",
     "preposition_recognize", "preposition_place", "preposition_phrase",
     "operation_observe",
-    // «Учим словенский»: the pair «voda — вода» is the feedback; a buzz after
-    // a wrong tap is exactly what the mode avoids (docs/learn-slovene.md).
-    "bw_pair", "bw_find",
+    // «Учим словенский»: a wrong tap only fades that option and shows the
+    // right one — no buzz (docs/learn-slovene.md); a word plays its own recording.
+    "lb_pair", "lb_find", "lb_trap", "lb_syll", "lb_word", "lb_build",
   ]);
   const ownsFeedback = OWNS_FEEDBACK_TYPES.has(currentTask?.type);
 

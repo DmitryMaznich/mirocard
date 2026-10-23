@@ -390,17 +390,17 @@
     },
     {
       "id": "learn_slovene",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "title": {
         "ru": "Учим словенский",
         "en": "Learning Slovenian"
       },
       "description": {
-        "ru": "Одна вещь — два слова: дома слово звучит по-русски, в школе — по-словенски. Ребёнок выбирает картинку, говорить не нужно; русское слово постепенно становится подсказкой. Первый набор — школьный перекус (malica).",
-        "en": "One thing, two words: Russian at home, Slovenian at school. The child picks a picture; the Russian word turns into a prompt and fades. First set: the school snack (malica)."
+        "ru": "Словенские печатные буквы через русские: S = С, Č = Ч. Пары букв, ловушки (B = Б, P = П), слоги, чтение слов с гаснущей подсказкой кириллицей и сборка слов. Для ребёнка, который читает по-русски.",
+        "en": "Slovenian capitals through Russian letters with the same sound: letter pairs, look-alike traps, syllables, reading words with a fading Cyrillic hint, building words."
       },
-      "url": "./decks/learn_slovene_v0.1.0.zip",
-      "status": "individual",
+      "url": "./decks/learn_slovene_v0.2.0.zip",
+      "status": "beta",
       "access": "paid"
     },
     {

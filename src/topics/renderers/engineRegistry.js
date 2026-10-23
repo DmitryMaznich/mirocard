@@ -23,7 +23,7 @@ import { generateTasks as propisEngine }               from "./propis/engine.js"
 import { generateTasks as propis2Engine }              from "./propis2/engine.js";
 import { generateTasks as myPeopleEngine }             from "./my_people/engine.js";
 import { generateTasks as dailyOrientationEngine }     from "./daily_orientation/engine.js";
-import { generateTasks as bilingualWordsEngine }       from "./bilingual_words/engine.js";
+import { generateTasks as letterBridgeEngine }         from "./letter_bridge/engine.js";
 
 import { generateTasks as comparisonLanguagePilotEngine } from "./comparison_language_pilot/engine.js";
 
@@ -54,5 +54,5 @@ export const ENGINE_REGISTRY = {
   propis2:               propis2Engine,
   my_people:             myPeopleEngine,
   daily_orientation:     dailyOrientationEngine,
-  bilingual_words:       bilingualWordsEngine,
+  letter_bridge:         letterBridgeEngine,
 };
