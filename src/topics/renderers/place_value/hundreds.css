@@ -97,6 +97,15 @@ button.hd-piece { cursor: pointer; touch-action: manipulation; -webkit-tap-highl
 .hd-row + .hd-row { border-top: 1px solid #e2e8f0; }
 .hd-row--lit { box-shadow: inset 0 0 0 3px #3b82f6; }
 .hd-row-digit { font-size: clamp(40px, 6.5vh, 64px); line-height: 1; text-align: center; }
+/* «Словами»: the amount is a word as big as the place's own («шесть десятков»),
+   right-aligned so the places' words stand in one column. */
+.hd-rows--words { grid-template-columns: auto auto; }
+.hd-rows--words.hd-rows--support { grid-template-columns: auto auto auto; }
+.hd-rows--words .hd-row-digit { font-size: clamp(20px, 3vh, 30px); font-weight: 800; line-height: 1.1; text-align: right; }
+/* A phone has no width for «четырнадцать единиц» and the scheme side by side:
+   the scheme goes under the words (its line kept from the start). */
+.sg-screen--phone .hd-rows--words.hd-rows--support { grid-template-columns: auto auto; }
+.sg-screen--phone .hd-rows--words .hd-row-support { grid-column: 1 / -1; width: auto; max-width: 260px; height: 22px; flex-wrap: nowrap; justify-self: center; justify-content: center; padding-bottom: 4px; }
 .hd-row-word { font-size: clamp(20px, 3vh, 30px); font-weight: 800; line-height: 1.1; }
 .hd-row-support {
   --coin-size: 12px;

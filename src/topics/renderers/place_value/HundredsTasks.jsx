@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/shared/components/Button";
 import { modelPieces, SchemeHundred, SchemeOne, SchemeTen } from "./CoinBlocks.jsx";
-import { numberWords, pluralHundreds, pluralOnes, pluralTens, spelledPlaces } from "./placeValueLabels.js";
+import { amountWords, numberWords, pluralHundreds, pluralOnes, pluralTens, spelledPlaces } from "./placeValueLabels.js";
 import { AnswerField, Keypad, useAutoCheck, useTypedAnswer } from "./FieldPad.jsx";
 import { PlaceChoiceRows } from "./TableTasks.jsx";
 import "./place_value.css";
@@ -113,7 +113,7 @@ function totalHint(n, guess, teaching) {
 }
 
 export function IdentifyHundreds(props) {
-  return props.task.view === "table" ? <IdentifyHundredsTable {...props} /> : <IdentifyHundredsModel {...props} />;
+  return props.task.view === "table" ? <IdentifyPlaceRows {...props} /> : <IdentifyHundredsModel {...props} />;
 }
 
 function IdentifyHundredsModel({ task, onCorrect, onMistake, onFlashIncorrect }) {
@@ -184,28 +184,37 @@ function IdentifyHundredsModel({ task, onCorrect, onMistake, onFlashIncorrect })
   </div>;
 }
 
-// «Таблица»: the places as rows — a digit and its word («3 сотни», «0 десятков»,
-// the empty place said out loud, not left blank), from the third task on often
-// in another order, so the number has to be read by the words, not top to
-// bottom. The answer goes into three cells (every number here has three
-// digits, so the cells tell nothing about this one); «Проверить» wakes up when
-// all three are filled. A mistake names the first wrong place and lights its
-// row — a question, not the answer; the second one (teaching) brings the
-// scheme into the rows, in space kept for it from the start.
+// «Таблица» of «Какое это число?», up to 100 and up to 1000: the places as
+// rows — an amount and its word («3 сотни», «0 десятков», the empty place said
+// out loud, not left blank), from the third task on often in another order,
+// so the number has to be read by the words, not top to bottom. «Словами»
+// (task.amounts) gives the amount as a word too — «шесть десятков»: no digit
+// to copy, it has to be made from the word. The answer goes into a cell per
+// place (every number here has that many digits, so the cells tell nothing
+// about this one); «Проверить» wakes up when all are filled. A mistake names
+// the first wrong place and lights its row — a question, not the answer; the
+// second one (teaching) brings the scheme into the rows, in space kept for it
+// from the start. Up to 100 the ones may be more than nine («2 десятка,
+// 14 единиц» is 34). docs/place-value-methodology.md, §24–25.
 const PLACE_HINT = {
   hundreds: "Сколько сотен? С них число начинается.",
   tens: "Сколько десятков? Они пишутся после сотен.",
   ones: "Сколько единиц? Они пишутся последними.",
 };
+const PLACE_HINT_100 = { ...PLACE_HINT, tens: "Сколько десятков? С них число начинается." };
+const OVER9_HINT = "Единиц не может быть больше девяти. Десять единиц — это ещё один десяток.";
 const SCHEME_PIECE = { hundreds: SchemeHundred, tens: SchemeTen, ones: SchemeOne };
 
-function IdentifyHundredsTable({ task, onCorrect, onMistake, onFlashIncorrect }) {
+export function IdentifyPlaceRows({ task, onCorrect, onMistake, onFlashIncorrect }) {
   const teaching = task.supportMode !== "independent";
   const counts = task.model;
+  const places = PLACES.filter((p) => counts[p.key] !== undefined);
+  const size = places.length;
+  const words = task.amounts === "words";
   const n = task.number;
-  const order = task.order ?? PLACES.map((p) => p.key);
+  const order = task.order ?? places.map((p) => p.key);
   const [ref, mode] = useScreenMode();
-  const typed = useTypedAnswer(3);
+  const typed = useTypedAnswer(size);
   const [solved, setSolved] = useState(false);
   const [note, setNote] = useState("");
   const [lit, setLit] = useState(null);
@@ -219,13 +228,15 @@ function IdentifyHundredsTable({ task, onCorrect, onMistake, onFlashIncorrect })
   }, [typed.wrong]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function enter() {
-    if (solved || typed.digits.length < 3) return;
+    if (solved || typed.digits.length < size) return;
     const guess = Number(typed.digits);
     if (guess === n) { setSolved(true); setNote(""); setLit(null); return; }
     const want = String(n);
-    const place = PLACES[[0, 1, 2].find((i) => typed.digits[i] !== want[i])].key;
-    setNote(teaching ? PLACE_HINT[place] : "Проверь число ещё раз.");
-    setLit(teaching ? place : null);
+    const place = places[places.findIndex((_, i) => typed.digits[i] !== want[i])].key;
+    // «2 десятка, 14 единиц» written as «24»: the ten inside the ones is lost.
+    const over9 = counts.ones > 9 && place === "tens" && Number(typed.digits[0]) === counts.tens;
+    setNote(!teaching ? "Проверь число ещё раз." : over9 ? OVER9_HINT : (size === 3 ? PLACE_HINT : PLACE_HINT_100)[place]);
+    setLit(teaching ? (over9 ? "ones" : place) : null);
     setMisses(misses + 1);
     typed.fail();
     onMistake?.(task.conceptId, task.cardId, { field: null, given: typed.digits, expected: want }); onFlashIncorrect?.();
@@ -235,11 +246,11 @@ function IdentifyHundredsTable({ task, onCorrect, onMistake, onFlashIncorrect })
     <div className="sg-inner">
       <h2 className="sg-title">Запиши число</h2>
       <div className="sg-board hd-board">
-        <section className={`sg-card hd-rows${teaching ? " hd-rows--support" : ""}`}>{order.map((key) => {
+        <section className={`sg-card hd-rows${teaching ? " hd-rows--support" : ""}${words ? " hd-rows--words" : ""}`}>{order.map((key) => {
           const Piece = SCHEME_PIECE[key];
           const place = PLACES.find((p) => p.key === key);
           return <div key={key} className={`hd-row tb-col--${key}${lit === key ? " hd-row--lit" : ""}`}>
-            <span className={`tb-digit hd-row-digit tb-digit--${key}`}>{counts[key]}</span>
+            <span className={`tb-digit hd-row-digit tb-digit--${key}`}>{words ? amountWords(counts[key], key) : counts[key]}</span>
             <span className={`hd-row-word tb-digit--${key}`}>{place.plural(counts[key])}</span>
             {teaching && <span className={`hd-row-support${support ? "" : " hd-row-support--off"}`} aria-hidden="true">
               {Array.from({ length: counts[key] }, (_, i) => <Piece key={i} />)}
@@ -251,7 +262,7 @@ function IdentifyHundredsTable({ task, onCorrect, onMistake, onFlashIncorrect })
         <div className="sg-num">
           <div className={`hd-cells-field${typed.wrong ? " hd-cells-field--wrong" : ""}${solved ? " hd-cells-field--ok" : ""}`}>
             <span className="hd-cells-label" aria-hidden="true">Какое это число?</span>
-            <output className="hd-cells" aria-label="Какое это число?">{[0, 1, 2].map((i) => {
+            <output className="hd-cells" aria-label="Какое это число?">{places.map((_, i) => {
               const digit = solved ? String(n)[i] : typed.digits[i];
               const active = !solved && !typed.wrong && i === typed.digits.length;
               return <span key={i} className={`hd-cell${active ? " hd-cell--active" : ""}`}>{digit ?? ""}</span>;
@@ -261,7 +272,7 @@ function IdentifyHundredsTable({ task, onCorrect, onMistake, onFlashIncorrect })
         <div className="sg-status" role="status">{!solved && note ? <span className="sg-status-note">{note}</span> : null}</div>
         <div className="sg-slot">
           {solved ? <Button onClick={() => onCorrect(task.conceptId, task.cardId)}>Далее →</Button>
-            : <Keypad typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={typed.digits.length === 3 && !typed.wrong} />}
+            : <Keypad typed={typed} onEnter={enter} grid={mode !== "phone"} canEnter={typed.digits.length === size && !typed.wrong} />}
         </div>
       </div>
     </div>

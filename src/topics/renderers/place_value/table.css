@@ -28,17 +28,6 @@
 .tb-digit--tens { color: #b45309; }
 .tb-digit--ones { color: #1d4ed8; }
 
-/* The step below, back after a mistake: the scheme under the digit. */
-.tb-support {
-  --coin-size: 22px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2px 4px;
-  max-width: 150px;
-}
-.tb-support--ones { max-width: calc(22px * 5 + 16px); }
-
 /* «Собери число»: the number above the table. */
 .tb-build-board { justify-items: center; }
 .tb-target {
