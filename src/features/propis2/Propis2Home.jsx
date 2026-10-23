@@ -399,6 +399,7 @@ export default function Propis2Home({ db }) {
             onPageCount: onPartPages,
             printParts: runTasks.length > 1 ? runTasks : null,
             onEdge: (dir) => { setFragment(null); setPart({ index: partIndex + dir, startAt: dir < 0 ? "last" : 0 }); },
+            onJump: (where) => { setFragment(null); setPart(where === "first" ? { index: 0, startAt: 0 } : { index: sections.list.length - 1, startAt: "last" }); },
           } : {})}
           onClose={() => { setFragment(null); if (view.from === "editor") setView({ ...view, name: "editor" }); else requestLeave(); }}
           onFragmentTap={({ row, localX }) => setFragment(pickFragment(row.word, localX, glyphMap, ruling))}

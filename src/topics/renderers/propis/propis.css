@@ -218,6 +218,14 @@
   padding: 0 12px;
   white-space: nowrap;
 }
+/* « ‹ n / N › » 🖨 in one row left of the pencil and the close button: on a phone the circles get smaller so the row fits
+   (390 px: 116 px for ✎ ✕ on the right, the row itself ~240 px); on the narrowest ones the counter gives way. */
+@media (max-width: 480px) {
+  .propis-text-nav--top { gap: 4px; }
+  .propis-text-nav--top .propis-ctrl-btn { width: 34px; height: 34px; min-width: 34px; min-height: 34px; font-size: 18px; }
+  .propis-text-nav--top .propis-text-nav__counter { height: 34px; line-height: 34px; padding: 0 8px; font-size: 12px; }
+}
+@media (max-width: 350px) { .propis-text-nav--top .propis-text-nav__counter { display: none; } }
 @media print { .propis-text-nav--top { display: none; } }
 
 .propis-text-nav__counter {

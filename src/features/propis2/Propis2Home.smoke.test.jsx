@@ -191,6 +191,28 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   });
 
+  it("« and » jump to the first / last page of the whole notebook, across its parts on different paper", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    const open = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь Цифры"]';
+    for (let i = 0; i < 40 && !host.querySelector(open); i += 1) await act(async () => { await tick(100); }); // kits.json loads lazily
+    await click(host.querySelector(open)); // squared pages 1-20, then the copybook ruling: two parts
+    const counter = () => host.querySelector(".propis-text-nav__counter").textContent;
+    expect(counter()).toBe("1 / 24");
+    expect(byLabel(host, "В начало").disabled).toBe(true);
+    await click(byLabel(host, "В конец"));
+    expect(counter()).toBe("24 / 24");
+    expect(byLabel(host, "В конец").disabled).toBe(true);
+    await click(byLabel(host, "В начало"));
+    expect(counter()).toBe("1 / 24");
+    await act(async () => { root.unmount(); await tick(100); });
+    host.remove();
+  }, 40000);
+
   it("tap on a row opens the show panel (repeat, slow, close) and closing keeps the page you were on", async () => {
     const db = await freshDb();
     const host = document.createElement("div");

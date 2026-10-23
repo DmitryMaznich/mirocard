@@ -956,7 +956,8 @@ export function PrintPageTop({ task, rows = 5 }) {
 // A long document can be shown in parts (`propis2`: a notebook whose pages are on different paper is laid out one run of pages at a
 // time): `pageBase` is the number of screen pages before this part, `pageTotal` the pages of the whole document, `onEdge(dir)` is
 // called when ‹ is pressed on the first page of the part (dir -1) or › on its last one (dir +1), `startAt` is the page of the part it opens on
-// (a number, or "last" when coming back from the next part), `onPageCount(n)` reports how many pages the part really takes. The page
+// (a number, or "last" when coming back from the next part), `onPageCount(n)` reports how many pages the part really takes;
+// `onJump("first" | "last")` is called by « / » when the first / last page of the document is in another part. The page
 // counter, `onPageIndexChange` and the side of the margin (it alternates from page to page) follow the whole document.
 // `printParts`: the tasks of ALL the parts, in order: printing then prints the whole document, every part on its own paper (the
 // pages numbered through, two A5 pages on an A4 sheet across the parts); without it the print is this task's pages.
@@ -966,7 +967,7 @@ export function PrintPageTop({ task, rows = 5 }) {
 // left half of the cover's landscape sheet; A4: the second sheet, in place of the empty one; `pageNumbers`: number the printed pages (the cover is not counted).
 // `booklet` (A5 only): print «Тетрадью» — the pages in saddle-stitch order (booklet.js), padded with ruled pages to a multiple of 4; the
 // cover sheet stays the outer one (white inside). `brandMarks`: the quiet Mironium mark on every printed page (brandMarks.jsx).
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false, booklet = false, brandMarks = false }) {
+export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, onJump = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false, booklet = false, brandMarks = false }) {
   const own = useMemo(() => layoutTaskPages(task), [task]);
   const { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages } = own;
   // what printing prints: every page of the document with the paper it is laid out on
@@ -994,6 +995,11 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
   const canNext = pageIndex < pages.length - 1 || Boolean(onEdge && pageBase + pages.length < total);
   const goPrev = () => { if (pageIndex > 0) setPageIndex(pageIndex - 1); else if (canPrev) onEdge(-1); };
   const goNext = () => { if (pageIndex < pages.length - 1) setPageIndex(pageIndex + 1); else if (canNext) onEdge(1); };
+  // « / »: to the first / last page of the whole document (owner, 2026-10-23: a 24-page notebook is a long way page by page)
+  const canFirst = pageBase + pageIndex > 0;
+  const canLast = pageBase + pageIndex < total - 1;
+  const goFirst = () => { if (pageBase > 0 && onJump) onJump("first"); else setPageIndex(0); };
+  const goLast = () => { if (pageBase + pages.length < total && onJump) onJump("last"); else setPageIndex(pages.length - 1); };
 
   // `focus`: a window on the first row only (the show panel). The writing row stands in the MIDDLE of the window (the room left
   // for the pen above it is left below it too) and the window is centred on the ink of the sample, not on the row's start; with
@@ -1095,6 +1101,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
             </div>
 
             <div className={topNav ? "propis-text-nav propis-text-nav--top" : "propis-text-nav"}>
+              <button type="button" className="propis-ctrl-btn" onClick={goFirst} disabled={!canFirst} aria-label="В начало" title="В начало">«</button>
               <button
                 type="button"
                 className="propis-ctrl-btn"
@@ -1114,6 +1121,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               >
                 ›
               </button>
+              <button type="button" className="propis-ctrl-btn" onClick={goLast} disabled={!canLast} aria-label="В конец" title="В конец">»</button>
               <button type="button" className="propis-ctrl-btn propis-print-btn" onClick={() => (onPrint ? onPrint() : window.print())} aria-label="Печать" title="Печать">
                 {topNav ? "🖨" : "🖨 Печать"}
               </button>
