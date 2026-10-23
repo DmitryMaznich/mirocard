@@ -310,19 +310,36 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   }, [owners, analysis, page.rows, selectedId, caretMarks]);
 
   const zoom = useCanvasZoom({ colRef: wrapRef, boxRef, fitW: pageW, widthW: colW });
-  // the selected row stays in sight while it is edited, the page zoomed in or not (the canvas scrolls up or down to it)
+  // The caret (or, not typing, the selected row) stays in sight, the page zoomed in or not: the canvas scrolls to it. Also when the
+  // canvas itself changes size — above all when a phone's or a tablet's keyboard opens (the editor then takes only the visible part
+  // of the screen) — so the caret never stays under the keyboard (owner, 2026-10-23). Not on a zoom: Ctrl + wheel keeps the point under
+  // the pointer.
+  const keepInView = () => {
+    const col = wrapRef.current;
+    const mark = col?.querySelector('[data-overlay="caret"]') ?? col?.querySelector('[data-overlay="select"]');
+    if (!mark) return;
+    const c = col.getBoundingClientRect();
+    const r = mark.getBoundingClientRect();
+    const pad = 16;
+    const below = 28; // a little more room under the caret: the next row shows too
+    if (r.top < c.top + pad) col.scrollTop -= c.top + pad - r.top;
+    else if (r.bottom > c.bottom - below) col.scrollTop += Math.min(r.bottom - (c.bottom - below), r.top - (c.top + pad));
+    // zoomed in: sideways too (the caret only; a selected row spans the whole width)
+    if (mark.getAttribute("data-overlay") === "caret") {
+      if (r.left < c.left + pad) col.scrollLeft -= c.left + pad - r.left;
+      else if (r.right > c.right - pad) col.scrollLeft += r.right - (c.right - pad);
+    }
+  };
+  const keepRef = useRef(keepInView);
+  keepRef.current = keepInView;
+  useEffect(() => { keepInView(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [overlays, keyboard.open, keyboard.height]);
   useEffect(() => {
     const col = wrapRef.current;
-    const row = col?.querySelector('[data-overlay="select"]');
-    if (!row) return;
-    const c = col.getBoundingClientRect();
-    const r = row.getBoundingClientRect();
-    const pad = 12;
-    if (r.top < c.top + pad) col.scrollTop -= c.top + pad - r.top;
-    else if (r.bottom > c.bottom - pad) col.scrollTop += Math.min(r.bottom - (c.bottom - pad), r.top - (c.top + pad));
-    // (not on a zoom: Ctrl + wheel keeps the point under the pointer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [overlays]);
+    if (!col || typeof ResizeObserver === "undefined") return undefined;
+    const ro = new ResizeObserver(() => requestAnimationFrame(() => keepRef.current()));
+    ro.observe(col);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => { if (selectedId && selectedIndex < 0) setSelectedId(null); }, [selectedId, selectedIndex]);
 
@@ -441,11 +458,12 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         <div className="propis2-dock propis2-dock--keys">
           {warnsEl}
           {side && locked && <p className="p2-ed-locked">Страница из готовой тетради закрыта: правится только выбранная строка. Кнопка «Править» вверху откроет всю страницу.</p>}
-          <p className="p2-keys-hint" data-testid="propis2-keys-hint">
+          {/* with the keyboard open (or typing on a phone / portrait tablet: Android shrinks the window itself) the hint gives its room to the page */}
+          {!keyboard.open && !(typing && !side) && <p className="p2-keys-hint" data-testid="propis2-keys-hint">
             {typing
               ? "Enter — новая строка. Слово — образец, фраза с пробелами — связный текст. Элементы — кнопкой «Элемент»."
               : "Нажмите на строку листа и печатайте: буквы встают прямо на строку."}
-          </p>
+          </p>}
           <Propis2Keys inputRef={keysRef} value={draft} onChange={(v, pos) => { setSel({ start: pos, end: pos }); onField(v, true); }} onSelect={onKeysSelect} onFocusChange={setTyping} onUndo={onUndo} onRedo={onRedo} request={caretRequest} readOnly={locked && !selected} />
         </div>
       </div>

@@ -516,7 +516,10 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 /* Typing straight onto the sheet (2026-10-23): the page's text is held by a textarea nobody sees (Propis2Keys); it must stay
    focusable (a phone opens its keyboard for it) and must not scroll the page when it takes the focus. 16px: iOS does not zoom in. */
 /* wide and not wrapped (wrap="off"): ↑ ↓ go from line to line of the text = row to row, not through a word wrapped letter by letter */
-.p2-keys { position: fixed; top: 40%; left: 0; width: 4000px; height: 1px; white-space: pre; padding: 0; border: 0; opacity: 0; font-size: 16px; resize: none; overflow: hidden; pointer-events: none; caret-color: transparent; color: transparent; background: transparent; }
+/* near the top of the screen: iOS scrolls the page to keep a focused field above its keyboard, up there there is nothing to scroll */
+.p2-keys { position: fixed; top: calc(60px + var(--app-safe-top, 0px)); left: 0; width: 4000px; height: 1px; white-space: pre; padding: 0; border: 0; opacity: 0; font-size: 16px; resize: none; overflow: hidden; pointer-events: none; caret-color: transparent; color: transparent; background: transparent; }
 .propis2-dock--keys { justify-content: center; }
 .p2-keys-hint { margin: 0; font-size: 13px; line-height: 1.35; color: #6b7385; }
 .propis2-page-col svg.propis-print-page-svg { cursor: text; }
+/* keyboard open and nothing to warn about: the strip under the page is empty, all the room goes to the page */
+.propis2-editor2--kb .propis2-dock--keys:not(:has(.p2-warns)) { padding: 0; min-height: 0; box-shadow: none; }
