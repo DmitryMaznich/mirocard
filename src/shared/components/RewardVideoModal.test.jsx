@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { useState, useEffect, useReducer } from "react";
+import { useState, useEffect, useReducer, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { act } from "react";
 import RewardVideoModal from "./RewardVideoModal.jsx";
@@ -32,6 +32,14 @@ function ChurningParent({ tickMs }) {
 let container;
 let playerEvents;
 let destroyPlayer;
+let playerInstance;
+let autoReady;
+let roots;
+function createTestRoot() {
+  const root = createRoot(container);
+  roots.push(root);
+  return root;
+}
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const PLAYING = 1;
 const PAUSED = 2;
@@ -42,17 +50,26 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers();
   playerEvents = null;
+  playerInstance = null;
+  autoReady = true;
+  roots = [];
   destroyPlayer = vi.fn();
   window.YT = {
     Player: vi.fn(function (_iframe, { events }) {
       playerEvents = events;
       this.destroy = destroyPlayer;
+      this.loadVideoById = vi.fn();
+      this.unMute = vi.fn();
+      this.playVideo = vi.fn();
+      playerInstance = this;
+      if (autoReady) Promise.resolve().then(() => events.onReady({ target: this }));
     }),
   };
   container = document.createElement("div");
   document.body.appendChild(container);
 });
-afterEach(() => {
+afterEach(async () => {
+  for (const root of roots) await act(async () => root.unmount());
   delete window.YT;
   vi.useRealTimers();
   container.remove();
@@ -60,7 +77,7 @@ afterEach(() => {
 });
 describe("RewardVideoModal", () => {
   it("counts only a playing video, once despite parent re-renders", async () => {
-    const root = createRoot(container);
+    const root = createTestRoot();
     await act(async () => root.render(<ChurningParent tickMs={300} />));
     expect(recordRewardVideoView).not.toHaveBeenCalled();
     await act(async () => container.querySelector(".reward-modal__btn--watch").click());
@@ -72,7 +89,7 @@ describe("RewardVideoModal", () => {
     await act(async () => root.unmount());
   });
   it("auto-dismisses at ~120s even when the caller re-renders every 300ms with a fresh onDismiss (regression: column_addition's Контрольная работа never timed out)", async () => {
-    const root = createRoot(container);
+    const root = createTestRoot();
     await act(async () => {
       root.render(<ChurningParent tickMs={300} />);
     });
@@ -109,7 +126,7 @@ describe("RewardVideoModal", () => {
         />
       );
     }
-    const root = createRoot(container);
+    const root = createTestRoot();
     await act(async () => { root.render(<Parent />); });
     await act(async () => {
       container.querySelector(".reward-modal__btn--watch")
@@ -131,7 +148,7 @@ describe("RewardVideoModal", () => {
     // (answersPerStar 2 or 3 -> 10 or 15), and callers unrelated to the
     // streak mechanism (column_addition's Контрольная работа, chat's
     // reward button) never had a "five in a row" to report at all.
-    const root = createRoot(container);
+    const root = createTestRoot();
     await act(async () => {
       root.render(
         <RewardVideoModal rewardVideos={["https://youtu.be/aaaaaaaaaaa"]} studentId="s1" onDismiss={() => {}} />
@@ -143,7 +160,7 @@ describe("RewardVideoModal", () => {
   });
 
   it("still supports a caller-supplied title (e.g. SessionScreen's real streak count)", async () => {
-    const root = createRoot(container);
+    const root = createTestRoot();
     await act(async () => {
       root.render(
         <RewardVideoModal
@@ -158,16 +175,14 @@ describe("RewardVideoModal", () => {
   });
 
   it("keeps native Play tappable and does not spend reward time when autoplay is blocked", async () => {
-    const root = createRoot(container);
+    const root = createTestRoot();
     const dismiss = vi.fn();
     await act(async () => root.render(
       <RewardVideoModal rewardVideos={["https://youtu.be/aaaaaaaaaaa"]} studentId="s1" onDismiss={dismiss} />
     ));
     await act(async () => container.querySelector(".reward-modal__btn--watch").click());
     const iframe = container.querySelector("iframe");
-    const playVideo = vi.fn();
-    await act(async () => playerEvents.onReady({ target: { playVideo } }));
-    expect(playVideo).toHaveBeenCalledOnce();
+    expect(playerInstance.loadVideoById).toHaveBeenCalledExactlyOnceWith("aaaaaaaaaaa");
     expect(new URL(iframe.src).searchParams.get("enablejsapi")).toBe("1");
     expect(iframe.style.pointerEvents).toBe("auto");
     expect(container.querySelector(".video-reward-blocker")).toBeNull();
@@ -189,7 +204,7 @@ describe("RewardVideoModal", () => {
   });
 
   it("pauses the countdown during buffering or pause, then resumes without counting another view", async () => {
-    const root = createRoot(container);
+    const root = createTestRoot();
     const dismiss = vi.fn();
     await act(async () => root.render(
       <RewardVideoModal rewardVideos={["https://youtu.be/aaaaaaaaaaa"]} studentId="s1" onDismiss={dismiss} />
@@ -212,7 +227,7 @@ describe("RewardVideoModal", () => {
   });
 
   it("unblocks interaction and stops the countdown on a YouTube error; close still works", async () => {
-    const root = createRoot(container);
+    const root = createTestRoot();
     const dismiss = vi.fn();
     await act(async () => root.render(
       <RewardVideoModal rewardVideos={["https://youtu.be/aaaaaaaaaaa"]} studentId="s1" onDismiss={dismiss} />
@@ -230,7 +245,7 @@ describe("RewardVideoModal", () => {
   });
 
   it("dismisses once when a short video ends after playback starts", async () => {
-    const root = createRoot(container);
+    const root = createTestRoot();
     const dismiss = vi.fn();
     await act(async () => root.render(
       <RewardVideoModal rewardVideos={["https://youtu.be/aaaaaaaaaaa"]} onDismiss={dismiss} />
@@ -247,7 +262,7 @@ describe("RewardVideoModal", () => {
 
   it("reports an unavailable API without spending reward time and allows a later retry", async () => {
     delete window.YT;
-    const root = createRoot(container);
+    const root = createTestRoot();
     const dismiss = vi.fn();
     await act(async () => root.render(
       <RewardVideoModal rewardVideos={["https://youtu.be/aaaaaaaaaaa"]} onDismiss={dismiss} />
@@ -257,25 +272,63 @@ describe("RewardVideoModal", () => {
     await act(async () => vi.advanceTimersByTime(15000));
     expect(container.querySelector('[role="alert"]')).toBeTruthy();
     expect(document.getElementById("reward-youtube-api")).toBeNull();
-    expect(container.querySelector(".video-reward-progress__label").textContent).toBe("2:00");
+    expect(container.querySelector(".reward-modal__btn--watch").disabled).toBe(true);
     expect(dismiss).not.toHaveBeenCalled();
     await act(async () => root.unmount());
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it("detects autoplay that began before the API state listener was ready", async () => {
-    const root = createRoot(container);
+  it("prepares the iframe before Watch and starts in the same click without replacing it", async () => {
+    autoReady = false;
+    const root = createTestRoot();
     await act(async () => root.render(
       <RewardVideoModal rewardVideos={["https://youtu.be/aaaaaaaaaaa"]} onDismiss={() => {}} />
     ));
-    await act(async () => container.querySelector(".reward-modal__btn--watch").click());
-    await act(async () => playerEvents.onReady({ target: {
-      playVideo: vi.fn(), getPlayerState: () => PLAYING,
-    } }));
-    expect(container.querySelector(".video-reward-blocker")).toBeTruthy();
+    const iframe = container.querySelector("iframe");
+    expect(iframe).toBeTruthy();
+    expect(new URL(iframe.src).searchParams.get("autoplay")).toBe("0");
+    expect(container.querySelector(".reward-modal__btn--watch").disabled).toBe(true);
+    await act(async () => playerEvents.onReady({ target: playerInstance }));
+    expect(playerInstance.loadVideoById).not.toHaveBeenCalled();
+    expect(playerInstance.playVideo).not.toHaveBeenCalled();
+    expect(recordRewardVideoView).not.toHaveBeenCalled();
+    expect(container.querySelector(".video-reward-overlay").style.visibility).toBe("hidden");
+
+    let insideClick = false;
+    playerInstance.loadVideoById.mockImplementation(() => {
+      expect(insideClick).toBe(true);
+      expect(container.querySelector("iframe")).toBe(iframe);
+      expect(container.querySelector(".video-reward-overlay").style.visibility).toBe("visible");
+    });
+    await act(async () => {
+      insideClick = true;
+      container.querySelector(".reward-modal__btn--watch").click();
+      insideClick = false;
+    });
+    expect(playerInstance.unMute).toHaveBeenCalledOnce();
+    expect(playerInstance.loadVideoById).toHaveBeenCalledExactlyOnceWith("aaaaaaaaaaa");
+    expect(window.YT.Player).toHaveBeenCalledTimes(1);
+    await setPlayerState(PLAYING);
     await act(async () => vi.advanceTimersByTime(1000));
     expect(container.querySelector(".video-reward-progress__label").textContent).toBe("1:59");
     await act(async () => root.unmount());
+  });
+
+  it("recreates the preloaded iframe safely under StrictMode without starting hidden playback", async () => {
+    const root = createTestRoot();
+    await act(async () => root.render(
+      <StrictMode><RewardVideoModal rewardVideos={["https://youtu.be/aaaaaaaaaaa"]} onDismiss={() => {}} /></StrictMode>
+    ));
+    expect(container.querySelectorAll("iframe")).toHaveLength(1);
+    expect(playerInstance.loadVideoById).not.toHaveBeenCalled();
+    expect(container.querySelector(".reward-modal__btn--watch").disabled).toBe(false);
+    await act(async () => container.querySelector(".reward-modal__btn--watch").click());
+    expect(playerInstance.loadVideoById).toHaveBeenCalledExactlyOnceWith("aaaaaaaaaaa");
+    await setPlayerState(PLAYING);
+    await act(async () => vi.advanceTimersByTime(1000));
+    expect(container.querySelector(".video-reward-progress__label").textContent).toBe("1:59");
+    await act(async () => root.unmount());
+    expect(container.querySelectorAll("iframe")).toHaveLength(0);
   });
 
 });
