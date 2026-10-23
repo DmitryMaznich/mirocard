@@ -45,6 +45,7 @@ const ERROR_NAME = {
 
 export default function FindErrorTask({ task, onCorrect, onMistake }) {
   const rootRef = useRef(null);
+  const columnRef = useRef(null);
   const [cell, setCell] = useState(56);
   const [found, setFound] = useState(false);
   const [fixed, setFixed] = useState(false);
@@ -65,6 +66,20 @@ export default function FindErrorTask({ task, onCorrect, onMistake }) {
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);
   }, [cols]);
+
+  // A notebook: the background cells are the column's cells — every digit
+  // sits in one (same as the trainer).
+  useLayoutEffect(() => {
+    const screen = rootRef.current, column = columnRef.current;
+    if (!screen || !column) return;
+    const lr = column.getBoundingClientRect();
+    for (const el of [screen, screen.parentElement]) {
+      if (!el) continue;
+      const r = el.getBoundingClientRect();
+      el.style.backgroundSize = `${cell}px ${cell}px`;
+      el.style.backgroundPosition = `${((lr.left - r.left) % cell + cell) % cell}px ${((lr.top - r.top) % cell + cell) % cell}px`;
+    }
+  }, [cell, found, fixed, note]);
 
   function mistake(key, text) {
     setShake(key);
@@ -100,10 +115,10 @@ export default function FindErrorTask({ task, onCorrect, onMistake }) {
     <div className="col-screen cfe-screen" ref={rootRef}>
       <h2 className="cfe-title">Найди ошибку</h2>
       <div className="cfe-ask">{fixed ? "Верно!" : found ? "Какая цифра должна быть?" : "Нажми на неверную цифру ответа"}</div>
-      <div className="cfe-column" style={{ "--cfe-cell": px(cell) }}>
+      <div className="cfe-column" ref={columnRef} style={{ marginTop: px(cell) }}>
         {row(task.top, null)}
         {row(task.bottom, task.operation === "add" ? "+" : "−")}
-        <div className="cfe-line" style={{ width: px(cell * cols) }} />
+        <div className="cfe-line" style={{ top: px(cell * 2), width: px(cell * cols) }} />
         <div className="cfe-row">
           <span className="cfe-cell" style={cellStyle} />
           {answer.map((ch, j) => {
