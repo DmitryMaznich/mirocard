@@ -5,6 +5,7 @@ import CrossoutGesture from "./CrossoutGesture.jsx";
 import HelperPanel from "../addition_subtraction/HelperPanel.jsx";
 import DigitKeypad from "./DigitKeypad.jsx";
 import ColumnHints from "./ColumnHints.jsx";
+import FindErrorTask from "./FindErrorTask.jsx";
 import { useTapButtonSize } from "./useTapButtonSize.js";
 import "./tapKeyboard.css";
 import "./column_addition.css";
@@ -1114,6 +1115,9 @@ export default function ColumnAdditionRenderer({ task, mode, sessionParams, onCo
   const strictMistake = sessionParams?.strictStars ? onMistake : undefined;
   if (mode?.type === "column_copy") {
     return <ColumnCopyView sessionParams={sessionParams} onCorrect={onCorrect} student={student} />;
+  }
+  if (task?.type === "column_find_error") {
+    return <FindErrorTask key={`${task.cardId}-${task.top}-${task.bottom}-${task.operation}`} task={task} onCorrect={onCorrect} onMistake={strictMistake} />;
   }
   if (!task || task.type !== "column_arithmetic") {
     return <div className="col-screen" style={{ color: "#666", fontSize: 18 }}>Нет задания</div>;

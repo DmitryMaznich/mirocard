@@ -487,3 +487,33 @@ describe("borrowing through a zero (trainer and the tablet check)", () => {
   });
 });
 
+
+describe("«Найди ошибку» (column_find_error)", () => {
+  const cards = [{ id: "c", conceptId: "c", renderer: "column_addition", params: {} }];
+  const digitAt = (n, i) => Math.floor(n / 10 ** i) % 10;
+
+  it("exactly one wrong digit, the answer keeps its width; the mistake types take turns", () => {
+    for (const [operation, digits] of [["add", 2], ["subtract", 2], ["add", 3], ["subtract", 3], ["mixed", "mixed"]]) {
+      const tasks = generateTasks("column_find_error", cards, 12, { operation, digits });
+      expect(tasks).toHaveLength(12);
+      for (const t of tasks) {
+        const right = t.operation === "add" ? t.top + t.bottom : t.top - t.bottom;
+        expect(t.result).toBe(right);
+        expect(String(t.shown).length).toBe(String(right).length);
+        const diff = [...Array(String(right).length).keys()].filter((i) => digitAt(right, i) !== digitAt(t.shown, i));
+        expect(diff).toEqual([t.wrongPlace]);
+      }
+      expect(new Set(tasks.map((t) => t.errorType)).size).toBeGreaterThan(1);
+    }
+  });
+
+  it("each mistake is the one it names", () => {
+    for (let run = 0; run < 20; run++) {
+      for (const t of generateTasks("column_find_error", cards, 12, { operation: "mixed", digits: 3 })) {
+        if (t.errorType === "carry") expect(t.result - t.shown).toBe(10 ** t.wrongPlace);
+        if (t.errorType === "reduce") expect(t.shown - t.result).toBe(10 ** t.wrongPlace);
+        if (t.errorType === "zero") { expect(digitAt(t.top, 1)).toBe(0); expect(digitAt(t.shown, 1)).toBe(0); expect(digitAt(t.result, 1)).toBe(9); }
+      }
+    }
+  });
+});

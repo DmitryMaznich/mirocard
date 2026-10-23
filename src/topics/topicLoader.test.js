@@ -810,6 +810,7 @@ describe("getTopicRecord + listTopicRecords + deleteTopicRecord", () => {
     // as leftover "custom" modes.
     expect(record.modes.map((m) => m.id)).toEqual([
       "column_arithmetic",
+      "column_find_error",
       "column_copy",
     ]);
 

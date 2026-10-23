@@ -293,6 +293,17 @@ export function generateTasks(modeOrObj, cards, countOrParams, maybeParams) {
   if (!arithmeticCards.length) return [];
 
   const operation = params.operation ?? "add";
+  if (mode === "column_find_error") {
+    const used = new Set();
+    const tasks = [];
+    for (let i = 0, misses = 0; tasks.length < count && misses < count * 5; i++) {
+      const op = operation === "mixed" ? (Math.random() < 0.5 ? "add" : "subtract") : operation;
+      const digits = params.digits === "mixed" ? randomInt(2, 3) : Number(params.digits ?? 2) === 3 ? 3 : 2;
+      const task = generateFindErrorTask(op, digits, arithmeticCards[i % arithmeticCards.length], used, i);
+      if (task) tasks.push(task); else misses++;
+    }
+    return tasks;
+  }
   const carryMode = params.carryMode ?? "none";
   const { digits, bottomDigits, roundTens } = resolveDigitsParam(params.digits);
   const kind = TRAINER_KINDS[params.digits];
@@ -475,4 +486,76 @@ function trainerTaskFrom(ex, card) {
     columns,
     steps: op === "add" ? buildAddSteps(columns) : buildSubSteps(columns),
   };
+}
+
+// ── «Найди ошибку» (column_find_error) ───────────────────────────────────────
+// A solved column with exactly one wrong digit in the answer, from a typical
+// mistake: the carry forgotten (47 + 25 = 62), the digit lent from not
+// reduced (52 − 27 = 35), the zero lent through not turned into 9
+// (305 − 7 = 208), a slip in one place (34 + 25 = 58). The child taps the wrong
+// digit, then types the right one. Only mistakes that change one digit and
+// keep the answer's width, so «which digit» has one answer.
+const FIND_ERROR_TYPES = { add: ["carry", "calc"], subtract: ["reduce", "zero", "calc"] };
+const digitAt = (n, i) => Math.floor(n / 10 ** i) % 10;
+
+function oneDigitOff(right, wrong) {
+  if (wrong <= 0 || width(wrong) !== width(right)) return null;
+  const diff = [...Array(width(right)).keys()].filter((i) => digitAt(right, i) !== digitAt(wrong, i));
+  return diff.length === 1 ? diff[0] : null;
+}
+
+function drawFindError(type, op, digits) {
+  const top = ofWidth(digits);
+  let bottom = ofWidth(digits);
+  if (type === "zero") {
+    // 305 − 7, 402 − 36: a zero in the tens, the ones must borrow.
+    const t = randomInt(1, 9) * 100 + randomInt(1, 8);
+    bottom = randomInt(t % 10 + 1, 9) + (Math.random() < 0.5 ? randomInt(1, 9) * 10 : 0);
+    return [t, bottom];
+  }
+  if (op === "subtract" && bottom >= top) bottom = randomInt(10 ** (digits - 1), top - 1);
+  return [top, bottom];
+}
+
+function wrongAnswerFor(type, op, top, bottom) {
+  const right = op === "add" ? top + bottom : top - bottom;
+  if (type === "calc") {
+    const i = randomInt(0, width(right) - 1);
+    const d = digitAt(right, i);
+    const to = d === 0 ? 1 : d === 9 ? 8 : d + (Math.random() < 0.5 ? 1 : -1);
+    return right + (to - d) * 10 ** i;
+  }
+  const cols = op === "add" ? buildAddColumns(top, bottom, width(top)) : buildSubColumns(top, bottom, width(top));
+  if (type === "carry") {
+    const i = cols.findIndex((c) => c.carryOut > 0);
+    return i < 0 || i === cols.length - 1 ? null : right - 10 ** (i + 1);
+  }
+  if (type === "reduce") {
+    const i = cols.findIndex((c) => c.borrowOut > 0);
+    return i < 0 || cols[i + 1]?.throughZero ? null : right + 10 ** (i + 1);
+  }
+  // zero: the 0 of the tens left as 0 instead of 9 (the hundreds reduced).
+  return cols[1]?.throughZero ? right - 90 : null;
+}
+
+// `turn` takes the mistake types in turn (a slip in counting is the easiest
+// to make up and would crowd the others out if drawn freely).
+export function generateFindErrorTask(op, digits, card, used, turn = randomInt(0, 5)) {
+  const types = FIND_ERROR_TYPES[op].filter((t) => t !== "zero" || digits === 3);
+  const type = types[turn % types.length];
+  for (let attempt = 0; attempt < 300; attempt++) {
+    const [top, bottom] = drawFindError(type, op, digits);
+    if (op === "subtract" && top <= bottom) continue;
+    const result = op === "add" ? top + bottom : top - bottom;
+    // The answer as wide as the top number: no new place, no leading zero.
+    if (width(result) !== width(top) || width(bottom) > width(top)) continue;
+    const shown = wrongAnswerFor(type, op, top, bottom);
+    const wrongPlace = shown === null ? null : oneDigitOff(result, shown);
+    if (wrongPlace === null) continue;
+    const key = `${op}:${top},${bottom}`;
+    if (used?.has(key)) continue;
+    used?.add(key);
+    return { type: "column_find_error", cardId: card.id, conceptId: card.conceptId, operation: op, top, bottom, result, shown, wrongPlace, errorType: type };
+  }
+  return null;
 }

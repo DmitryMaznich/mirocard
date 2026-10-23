@@ -46,11 +46,23 @@ out first (3 → 2), then the 0 of the tens (→ 9), then the tens and hundreds 
 counted. A leading zero of the answer is not written (102 − 7 = 95, 52 − 47 =
 5): no step and no cell for it.
 
-## Next
+## «Найди ошибку» (column_find_error, 2026-10-23)
 
-- «Найди ошибку» — new mode, mockup shown to the owner 2026-10-23, waiting for
-  a go: a solved column with one typical mistake (carry written but not added,
-  smaller digit taken from the larger, the borrowed-from digit not reduced,
-  a 1-digit number under the hundreds, the zero not turned into 9 in
-  305 − 7); the child taps the wrong digit of the answer, then types the right
-  one; the hint is a question about that place.
+`FindErrorTask.jsx`, `generateFindErrorTask` in `engine.js`. A solved column
+(numbers set up, answer below the line, no carry/borrow marks — as a classmate
+would leave it) with exactly one wrong digit, from a typical mistake taken in
+turn (`turn`, else counting slips crowd out the rest): carry forgotten
+(47 + 25 = 62), the digit lent from not reduced (52 − 27 = 35), the zero lent
+through not turned into 9 (305 − 7 = 208, 3-digit only), a slip in one place.
+Only mistakes that change one digit and keep the answer's width. The child taps
+the wrong digit (a right one: «Эта цифра верная… Проверь другой разряд»), then
+types the right digit on the keypad (its place kept from the start); a wrong
+digit gets a question about that place (formula with no-break spaces), the
+right one names the mistake; «Далее». Settings: «Операция», «Разрядность»
+(2, 3, микс). Mode order: Тренажёр → Найди ошибку → Контрольная работа.
+
+Deck ZIP `column_addition_v1.3.3` carries the new about-copy
+(`releaseTopicCopy.js`); `scripts/sync-release-topic-copy.mjs` currently stops
+on `reading_short_stories`, so it was run for this topic only.
+
+Possible next step: sometimes «Ошибки нет» (a correct solution to confirm).
