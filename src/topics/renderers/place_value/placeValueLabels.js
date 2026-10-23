@@ -82,6 +82,15 @@ export function numberWords(n) {
   return ones ? `${TENS_WORDS[tens]} ${UNIT_WORDS[ones]}` : TENS_WORDS[tens];
 }
 
+// How many of a place, in words, agreeing with it: «одна сотня», «две
+// единицы», but «один десяток», «два десятка». Up to 19 («четырнадцать
+// единиц» — more than nine ones on the table).
+export function amountWords(n, place) {
+  if (n === 1) return place === "tens" ? "один" : "одна";
+  if (n === 2) return place === "tens" ? "два" : "две";
+  return numberWords(n);
+}
+
 // The one speech pattern every place-value answer ends with. Zero ones are
 // named on purpose («3 десятка и 0 единиц») — that's the placeholder zero.
 export function placeValuePhrase(n) {

@@ -12,43 +12,65 @@ describe("«Таблица»", () => {
   const identify = (extra = {}) => ({ cardId: "x", conceptId: "x", number: 34, model: { tens: 3, ones: 4 }, layout: "places", seed: 1, supportMode: "learning", view: "table", ...extra });
   const build = (extra = {}) => ({ cardId: "b", conceptId: "b", number: 47, target: { tens: 4, ones: 7 }, prompt: "digits", supportMode: "learning", view: "table", ...extra });
 
-  it("«Какое это число?»: digits in the columns, no picture; the child writes the number", () => {
+  const rows = () => Array.from(h.container.querySelectorAll(".hd-row")).map((r) => r.textContent);
+  const cells = () => Array.from(h.container.querySelectorAll(".hd-cell")).map((e) => e.textContent).join("|");
+
+  it("«Какое это число?»: rows «digit + word» like the hundreds, no picture; the number in two cells", () => {
     const onCorrect = vi.fn(), onMistake = vi.fn();
     h.mount(IdentifyNumberTask, identify(), { onCorrect, onMistake });
-    expect(Array.from(h.container.querySelectorAll(".tb-digit")).map((e) => e.textContent)).toEqual(["3", "4"]);
-    expect(count(".cb-stick, .cb-dot, .cb-coin, .cb-ten-stack")).toBe(0);
-    type(34); h.click("Проверить");
-    expect(value("Какое это число?")).toBe("34");
-    expect(h.container.querySelector(".sg-status-say")).toBeNull();
+    expect(rows()).toEqual(["3десятка", "4единицы"]);
+    expect(count(".hd-row-support--off")).toBe(2);
+    expect(count(".hd-row-support .cb-stick, .hd-row-support .cb-dot")).toBe(7);
+    type(3);
+    expect(cells()).toBe("3|");
+    expect(h.button("Проверить").disabled).toBe(true);
+    type(4); h.click("Проверить");
+    expect(cells()).toBe("3|4");
     h.click("Далее →");
     expect(onCorrect).toHaveBeenCalledWith("x", "x");
     expect(onMistake).not.toHaveBeenCalled();
   });
 
-  it("«Обучение»: a mistake brings the scheme back under the digits; «Вперемешку» puts ones first", () => {
+  it("«Обучение»: the wrong place is asked about and lit; the second mistake brings the scheme into the rows", () => {
     const onMistake = vi.fn();
-    h.mount(IdentifyNumberTask, identify({ layout: "mixed" }), { onMistake });
-    expect(Array.from(h.container.querySelectorAll(".sg-head")).map((e) => e.textContent)).toEqual(["Единицы", "Десятки"]);
+    h.mount(IdentifyNumberTask, identify({ layout: "mixed", order: ["ones", "tens"] }), { onMistake });
+    expect(rows()).toEqual(["4единицы", "3десятка"]);
     type(43); h.click("Проверить");
-    expect(onMistake).toHaveBeenCalledTimes(1);
-    expect(note()).toContain("Десятки пишут первыми");
-    expect(count(".tb-support .cb-stick")).toBe(3);
-    expect(count(".tb-support .cb-dot")).toBe(4);
+    expect(onMistake).toHaveBeenCalledWith("x", "x", { field: null, given: "43", expected: "34" });
+    expect(note()).toBe("Сколько десятков? С них число начинается.");
+    expect(h.container.querySelector(".hd-row--lit").textContent).toBe("3десятка");
+    expect(count(".hd-row-support--off")).toBe(2);
+    h.flush();
+    expect(cells()).toBe("|");
+    type(35); h.click("Проверить");
+    expect(note()).toBe("Сколько единиц? Они пишутся последними.");
+    expect(count(".hd-row-support--off")).toBe(0);
   });
 
-  it("«Больше девяти»: 2 | 14 is 34, not 214", () => {
+  it("«Больше девяти»: 2 десятка, 14 единиц is 34, not 24", () => {
     h.mount(IdentifyNumberTask, identify({ layout: "over9", model: { tens: 2, ones: 14 } }));
-    type(214); h.click("Проверить");
+    expect(rows()).toEqual(["2десятка", "14единиц"]);
+    type(24); h.click("Проверить");
     expect(note()).toContain("Десять единиц — это ещё один десяток");
+    expect(h.container.querySelector(".hd-row--lit").textContent).toBe("14единиц");
     h.flush(); type(34); h.click("Проверить");
-    expect(value("Какое это число?")).toBe("34");
+    expect(cells()).toBe("3|4");
+  });
+
+  it("«Словами»: the amounts are words agreeing with the place", () => {
+    h.mount(IdentifyNumberTask, identify({ number: 61, model: { tens: 6, ones: 1 }, amounts: "words" }));
+    expect(rows()).toEqual(["шестьдесятков", "однаединица"]);
+    expect(h.container.querySelector(".hd-rows--words")).not.toBeNull();
+    type(61); h.click("Проверить");
+    expect(cells()).toBe("6|1");
   });
 
   it("«Проверка»: no support after a mistake", () => {
     h.mount(IdentifyNumberTask, identify({ supportMode: "independent" }));
     type(43); h.click("Проверить");
     expect(note()).toBe("Проверь число ещё раз.");
-    expect(count(".tb-support")).toBe(0);
+    expect(count(".hd-row-support")).toBe(0);
+    expect(h.container.querySelector(".hd-row--lit")).toBeNull();
   });
 
   it("«Собери число»: the child writes tens, then ones; a mistake colours the number's digits", () => {
