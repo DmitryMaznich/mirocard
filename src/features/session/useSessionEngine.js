@@ -1,3 +1,4 @@
+import { effectiveRewardSettings, rewardPolicy, rewardAttemptComplete } from "../../../shared/reward-policy.mjs";
 import { selectedTopicLanguage } from "../../../shared/topic-language-contract.mjs";
 import { createContentContext } from "../../../shared/topic-language-contract.mjs";
 import { recordUsage } from "@/shared/hooks/useUsageTracking";
@@ -24,11 +25,11 @@ import {
 const INCORRECT_FEEDBACK_MS = 1500;
 const ignoreCardEvent = () => {};
 
-function resolveStrictStars(mode, savedValue) {
+function resolveStrictStars(mode, savedValue, flexible = false) {
   // Some reaction drills are a true "correct answers in a row" exercise.
   // Their progression must not inherit a soft-count setting saved in another
   // mode of the same topic.
-  if (mode?.rewardDefaults?.forceStrictStars) return true;
+  if (mode?.rewardDefaults?.forceStrictStars && !flexible) return true;
   return savedValue ?? mode?.rewardDefaults?.strictStars ?? true;
 }
 
@@ -53,7 +54,12 @@ function resolveMode(topicRecord, modeId) {
 // so a freshly picked next mode gets the same concept selection a normal
 // mode switch (via ModePickerScreen -> params) would have produced.
 export function resolveModeSelection(topicRecord, mode, link, isReading, activeTextId) {
-  const sessionParams = { ...readModeParams(link.params, mode), strictStars: resolveStrictStars(mode, link.strictStars) };
+  const selectedStudent = useAppStore.getState().students.find(s => s.id === useAppStore.getState().activeStudentId);
+  const flexible = effectiveRewardSettings(selectedStudent?.rewardSettings).algorithm === "flexible";
+  // Legacy ZIP renderers use this field only to forward intermediate mistakes.
+  // In the new policy always collect them; the engine decides whether to penalize.
+  const sessionParams = { ...readModeParams(link.params, mode), strictStars: flexible || resolveStrictStars(mode, link.strictStars) };
+  if (flexible) sessionParams.rewardPolicyVersion = 2;
   if (topicRecord?.languageContract) {
     const state = useAppStore.getState();
     const student = state.students.find((s) => s.id === state.activeStudentId);
@@ -228,10 +234,13 @@ export function buildGeneratedSessionState({
     renderer === "reading" ? activeTextId : null,
     isDeckMode,
     link.answersPerStar ?? 1,
-    resolveStrictStars(mode, link.strictStars),
+    resolveStrictStars(mode, link.strictStars, effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible"),
+    effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible"
+      ? rewardPolicy(effectiveRewardSettings(activeStudent.rewardSettings), sessionParams.rewardLossMode) : undefined,
   );
 
-  baseState.statistics.conditions = captureConditions(topicRecord, mode, sessionParams, tasks, sessionConceptIds, renderer === "reading" ? activeTextId : null);
+  baseState.rewardSettings = effectiveRewardSettings(activeStudent?.rewardSettings);
+  baseState.statistics.conditions = captureConditions(topicRecord, mode, { ...sessionParams, strictStars: baseState.strictStars }, tasks, sessionConceptIds, renderer === "reading" ? activeTextId : null);
 
   if (languageContext) {
     baseState.languageContext = languageContext;
@@ -307,6 +316,9 @@ export function useSessionEngine() {
       conceptIds: selectedConceptIds,
       languageContext: generatedState.languageContext,
       params: generatedState.statistics?.conditions?.params,
+      rewardPolicy: generatedState.rewardPolicy,
+      rewardSettings: generatedState.rewardSettings,
+      strictStars: generatedState.strictStars,
     }) ?? generatedState;
   });
   const { getActiveDurationMs } = useActiveSessionTimer(
@@ -333,8 +345,11 @@ export function useSessionEngine() {
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSessionState(() => {
-      const rebuilt = createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null);
-      rebuilt.statistics.conditions = captureConditions(topicRecord, mode, sessionParams, tasks, selectedConceptIds, null);
+      const rebuilt = createSessionState(tasks, mode, activeStudentId, activeTopicId, topicRecord.meta.version, selectedConceptIds, null, false, link.answersPerStar ?? 1,
+        resolveStrictStars(mode, link.strictStars, effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible"),
+        effectiveRewardSettings(activeStudent?.rewardSettings).algorithm === "flexible" ? rewardPolicy(effectiveRewardSettings(activeStudent.rewardSettings), sessionParams.rewardLossMode) : undefined);
+      rebuilt.rewardSettings = effectiveRewardSettings(activeStudent?.rewardSettings);
+      rebuilt.statistics.conditions = captureConditions(topicRecord, mode, { ...sessionParams, strictStars: rebuilt.strictStars }, tasks, selectedConceptIds, null);
       return rebuilt;
     });
   }, [activeStudent]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -622,7 +637,7 @@ export function useSessionEngine() {
   const onPrevious = useCallback(() => {
     setSessionState(s => {
       if (s.taskIndex <= 0) return s;
-      return { ...markSessionAction(s), taskIndex: s.taskIndex - 1, status: "task_active", ...(s.statistics ? { statistics: { ...s.statistics, current: null } } : {}) };
+      return { ...rewardAttemptComplete(markSessionAction(s)), taskIndex: s.taskIndex - 1, status: "task_active", ...(s.statistics ? { statistics: { ...s.statistics, current: null } } : {}) };
     });
   }, []);
 
@@ -760,13 +775,14 @@ export function useSessionEngine() {
     currentTask,
     mode,
     topicRecord,
-    sessionParams,
+    sessionParams: { ...sessionParams, strictStars: sessionState?.rewardPolicy?.version === 2 ? true : sessionState?.strictStars },
     completedRecord,
     rewardProgress,
     streakCount,
     bestStreak,
     answersPerStar,
     rewardPending,
+    rewardChangeReason: sessionState?.rewardChangeReason,
     clearRewardPending,
     deckExhausted,
     sessionSaveError,

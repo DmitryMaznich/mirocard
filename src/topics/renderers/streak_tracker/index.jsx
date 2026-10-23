@@ -1,17 +1,29 @@
+import { useEffect, useRef, useState } from "react";
+import { useRewardSettings } from "@/features/rewards/useRewardSettings.js";
+import "@/features/rewards/rewards.css";
 import "./streakTracker.css";
 
-// Reuses the shared "Серия для видеонаграды" selector every other topic
-// already has (answersPerStar 1/2/3, labeled 5/10/15 in ParamsScreen.jsx)
-// instead of a topic-specific param. SessionHeader's own compact bar stays
-// fixed at 5 stars with a scaled (2-per-star at "10", 3 at "15") reading —
-// untouched, that's its own separate display. This one shows the real
-// target itself as individual stars (5*answersPerStar — 5, 10, or 15,
-// matching the option one-to-one) and lights exactly one per correct
-// answer, so the count on screen always equals the option chosen.
-export default function StreakTrackerRenderer({ task, onCorrect, onIncorrect, streakCount = 0, answersPerStar = 1 }) {
+// Legacy keeps its 5/10/15 individual stars. The opt-in policy uses the same
+// five grouped stars as the header, so a one-star penalty always looks identical.
+export default function StreakTrackerRenderer({ task, onCorrect, onIncorrect, streakCount = 0, answersPerStar = 1, rewardChangeReason, rewardSettings }) {
+  const currentSettings = useRewardSettings();
+  const settings = rewardSettings ?? currentSettings;
+  const starsTarget = settings.algorithm === "flexible" ? 5 : 5 * answersPerStar;
+  const litCount = Math.min(starsTarget, settings.algorithm === "flexible" ? Math.floor(streakCount / answersPerStar) : streakCount);
+  const previousCount = useRef(litCount);
+  const [burning, setBurning] = useState([]);
+  useEffect(() => {
+    const previous = previousCount.current;
+    previousCount.current = litCount;
+    if (settings.algorithm !== "flexible" || rewardChangeReason === "exchange" || litCount >= previous) {
+      setBurning([]);
+      return;
+    }
+    setBurning(Array.from({ length: previous - litCount }, (_, i) => litCount + i));
+    const timer = setTimeout(() => setBurning([]), 750);
+    return () => clearTimeout(timer);
+  }, [litCount, settings.algorithm, rewardChangeReason]);
   if (!task) return null;
-  const starsTarget = 5 * answersPerStar;
-  const litCount = Math.min(starsTarget, streakCount);
   // Explicit rows of 5 (1/2/3 rows for the 5/10/15 options) instead of
   // leaving a single flex-wrap row to break wherever the screen width
   // happens to allow — keeps the "5" grouping visible and the layout the
@@ -28,7 +40,7 @@ export default function StreakTrackerRenderer({ task, onCorrect, onIncorrect, st
               return (
                 <span
                   key={i}
-                  className={`operation-manual__star${i < litCount ? " operation-manual__star--lit" : ""}`}
+                  className={`operation-manual__star${i < litCount ? " operation-manual__star--lit" : ""}${burning.includes(i) ? settings.animation === "soft" ? " operation-manual__star--soft-burn" : " operation-manual__star--burn" : ""}`}
                 >★</span>
               );
             })}

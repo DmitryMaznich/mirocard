@@ -280,6 +280,12 @@ export function initDb(dbPath = DB_PATH) {
   if (!studentColumns.some(c => c.name === "preferred_lesson_language")) {
     db.exec("ALTER TABLE students ADD COLUMN preferred_lesson_language TEXT");
   }
+  if (!studentColumns.some(c => c.name === "reward_settings")) {
+    db.exec("ALTER TABLE students ADD COLUMN reward_settings TEXT DEFAULT '{}'");
+  }
+  if (!studentColumns.some(c => c.name === "reward_settings_updated_at")) {
+    db.exec("ALTER TABLE students ADD COLUMN reward_settings_updated_at TEXT");
+  }
   if (!studentColumns.some((column) => column.name === "reward_videos")) {
     db.exec("ALTER TABLE students ADD COLUMN reward_videos TEXT DEFAULT '[]'");
   }

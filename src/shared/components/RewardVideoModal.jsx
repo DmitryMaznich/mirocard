@@ -1,10 +1,12 @@
+import { useRewardSettings } from "@/features/rewards/useRewardSettings.js";
+import { rewardVideoSeconds } from "../../../shared/reward-policy.mjs";
+import { rewardText } from "@/features/rewards/rewardText.js";
 import { useState, useEffect, useRef } from "react";
 import { flushSync } from "react-dom";
 import { pickStoredRewardVideoId } from "@/shared/utils/rewardVideoPicker";
 import { formatRewardTime } from "@/shared/utils/format";
 import { recordRewardVideoView } from "@/core/rewardVideoViews";
 
-const REWARD_SECONDS = 120;
 
 function blockInteraction(event) {
   if (event.target instanceof Element && event.target.closest(".video-reward-close")) return;
@@ -15,9 +17,16 @@ function blockInteraction(event) {
 export default function RewardVideoModal({
   rewardVideos = [],
   studentId,
+  settingsOverride,
   onDismiss,
   title = "Молодец! 🎉",
 }) {
+  const currentSettings = useRewardSettings(studentId);
+  // A promised prize keeps its duration even if a remote device edits the student.
+  const [rewardSettings] = useState(() => settingsOverride ?? currentSettings);
+  const maxSeconds = rewardVideoSeconds(rewardSettings);
+  const [videoBudget, setVideoBudget] = useState(maxSeconds);
+  const playbackElapsedRef = useRef(0);
   const [videoId, setVideoId] = useState(null);
   const [playerReady, setPlayerReady] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
@@ -69,6 +78,14 @@ export default function RewardVideoModal({
       setIsPlaying(playing);
       if (playing) {
         clearTimeout(timeout);
+        if (!started) {
+          const duration = playerRef.current?.getDuration?.();
+          if (Number.isFinite(duration) && duration > 0) {
+            const budget = Math.min(maxSeconds, Math.ceil(duration));
+            setVideoBudget(budget);
+            setSecondsLeft(budget);
+          }
+        }
         started = true;
         setHasStarted(true);
         setPlaybackError(null);
@@ -123,7 +140,7 @@ export default function RewardVideoModal({
       iframe.remove();
       iframeRef.current = null;
     };
-  }, []);
+  }, [maxSeconds]);
 
   useEffect(() => {
     if (iframeRef.current) iframeRef.current.style.pointerEvents = isPlaying ? "none" : "auto";
@@ -131,11 +148,14 @@ export default function RewardVideoModal({
 
   useEffect(() => {
     if (!isPlaying) return undefined;
-    const t = setInterval(() => {
-      setSecondsLeft((prev) => Math.max(0, prev - 1));
-    }, 1000);
-    return () => clearInterval(t);
-  }, [isPlaying]);
+    const start = performance.now();
+    const update = () => setSecondsLeft(Math.max(0, Math.ceil((videoBudget * 1000 - playbackElapsedRef.current - (performance.now() - start)) / 1000)));
+    const timer = setInterval(update, 250);
+    return () => {
+      playbackElapsedRef.current += Math.max(0, performance.now() - start);
+      clearInterval(timer);
+    };
+  }, [isPlaying, videoBudget]);
 
   useEffect(() => {
     if (!hasStarted || secondsLeft > 0 || expiredRef.current) return;
@@ -153,7 +173,7 @@ export default function RewardVideoModal({
     // No effect, timer, network callback, or iframe replacement before playback.
     flushSync(() => {
       setVideoId(selectedId);
-      setSecondsLeft(REWARD_SECONDS);
+      setSecondsLeft(maxSeconds);
       setPlaybackError(null);
     });
     player.unMute();
@@ -185,9 +205,9 @@ export default function RewardVideoModal({
         <div className="video-reward-progress">
           <div
             className="video-reward-progress__bar"
-            style={{ width: `${(secondsLeft / REWARD_SECONDS) * 100}%` }}
+            style={{ width: `${(secondsLeft / videoBudget) * 100}%` }}
           />
-          <span className="video-reward-progress__label">{formatRewardTime(secondsLeft)}</span>
+          <span className="video-reward-progress__label">{formatRewardTime(secondsLeft)}{rewardSettings.duration === "end" && !hasStarted ? ` · ${rewardText("endLabel")}` : ""}</span>
         </div>
       </div>
       {!videoId && (

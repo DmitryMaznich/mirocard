@@ -1,3 +1,6 @@
+import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
+import { RewardLossControl } from "@/features/rewards/RewardSettingsSection.jsx";
+import { rewardText } from "@/features/rewards/rewardText.js";
 import { topicLanguageForStudent, requestTopicLanguage } from "@/features/topics/topicLanguageChoice.js";
 import { availableContentLanguages, initialContentLanguage, contentLanguageParam } from "../../../shared/topic-language-contract.mjs";
 import { setupText, setupLabels, setupInfo } from "@/shared/i18n/setupText.js";
@@ -1809,7 +1812,9 @@ export default function ParamsScreen() {
   const [params,         setParams]        = useState(getInitialParams);
   const [videoReward,   setVideoReward]   = useState(hideVideoReward ? false : (link.videoRewardEnabled ?? true));
   const [answersPerStar, setAnswersPerStar] = useState(link.answersPerStar ?? 1);
-  const forceStrictStars = mode?.rewardDefaults?.forceStrictStars === true;
+  const flexibleRewards = effectiveRewardSettings(student?.rewardSettings).algorithm === "flexible";
+  const [rewardLossMode, setRewardLossMode] = useState(readModeParams(link.params, mode).rewardLossMode === "all" ? "all" : "one");
+  const forceStrictStars = !flexibleRewards && mode?.rewardDefaults?.forceStrictStars === true;
   const [strictStarsSetting, setStrictStars] = useState(link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true);
   const strictStars = forceStrictStars ? true : strictStarsSetting;
   const [showModeInfo,   setShowModeInfo]    = useState(false);
@@ -1915,17 +1920,18 @@ export default function ParamsScreen() {
     const baseline = {
       params: getInitialParams(),
       videoRewardEnabled: hideVideoReward ? false : (link.videoRewardEnabled ?? true),
+      rewardLossMode: readModeParams(link.params, mode).rewardLossMode === "all" ? "all" : "one",
       answersPerStar: link.answersPerStar ?? 1,
       strictStars: forceStrictStars ? true : (link.strictStars ?? mode?.rewardDefaults?.strictStars ?? true),
     };
-    const current = { params, videoRewardEnabled: hideVideoReward ? false : videoReward, answersPerStar, strictStars };
+    const current = { params, videoRewardEnabled: hideVideoReward ? false : videoReward, answersPerStar, strictStars, rewardLossMode };
     if (sessionSettingsChanged(current, baseline)) {
       clearActiveSessionSnapshot();
       getDb().then((db) => clearPersistedActiveSessionSnapshot(db)).catch(() => {});
     }
 
     persistStudentTopicLink(activeStudentId, activeTopicId, {
-      params: writeModeParams(topicRecord.languageContract ? { ...link.params, topicContentLanguage: topicLanguageForStudent(topicRecord) } : link.params, mode, params),
+      params: writeModeParams(topicRecord.languageContract ? { ...link.params, topicContentLanguage: topicLanguageForStudent(topicRecord) } : link.params, mode, { ...params, ...(flexibleRewards || readModeParams(link.params, mode).rewardLossMode ? { rewardLossMode } : {}) }),
       videoRewardEnabled: hideVideoReward ? false : videoReward,
       answersPerStar,
       strictStars,
@@ -2502,9 +2508,9 @@ export default function ParamsScreen() {
                 <>
                   <div className={`param-row${!videoReward ? " param-row--disabled" : ""}`}>
                     <ParamLabel
-                      label={tr("setup.rewardSeries")}
+                      label={flexibleRewards ? rewardText("series") : tr("setup.rewardSeries")}
                       info={{
-                        text: tr("setup.rewardSeriesInfo"),
+                        text: flexibleRewards ? rewardText("seriesInfo") : tr("setup.rewardSeriesInfo"),
                         tip: tr("setup.rewardSeriesTip"),
                       }}
                       onShowInfo={setActiveInfo}
@@ -2527,10 +2533,10 @@ export default function ParamsScreen() {
                     <ParamLabel
                       label={forceStrictStars ? tr("setup.strictRequired") : tr("setup.strict")}
                       info={{
-                        text: forceStrictStars
+                        text: flexibleRewards ? rewardText("strictInfo") : forceStrictStars
                           ? tr("setup.strictCoordinatesInfo")
                           : tr("setup.strictInfo"),
-                        tip: forceStrictStars
+                        tip: flexibleRewards ? rewardText("attempt") : forceStrictStars
                           ? tr("setup.strictCoordinatesTip")
                           : tr("setup.strictTip"),
                       }}
@@ -2546,6 +2552,8 @@ export default function ParamsScreen() {
                       onClick={() => setStrictStars((v) => !v)}
                     />
                   </div>
+                  {flexibleRewards ? <RewardLossControl value={rewardLossMode} onChange={setRewardLossMode} disabled={!videoReward} />
+                    : <p className="param-hint">{rewardText("legacyLesson")}</p>}
                 </>
               )}
             </div>

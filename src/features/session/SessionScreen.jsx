@@ -1,3 +1,5 @@
+import { effectiveRewardSettings } from "../../../shared/reward-policy.mjs";
+import { rewardText } from "@/features/rewards/rewardText.js";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAppStore } from "@/core/store";
@@ -59,11 +61,13 @@ export default function SessionScreen() {
   const {
     sessionState, currentTask, mode, topicRecord, sessionParams,
     completedRecord, rewardProgress, streakCount, bestStreak, answersPerStar,
-    rewardPending, clearRewardPending,
+    rewardPending, clearRewardPending, rewardChangeReason,
     deckExhausted, sessionSaveError, handleRestartDeck, handleFinishDeck, finishCurrentSession,
     onCorrect, onPrevious, onIncorrect, onMistake, onStreakReset, onAdvance, onQualityAnswer,
     onCardShown, onTap, onQuality,
   } = useSessionEngine();
+
+  const sessionRewardSettings = sessionState?.rewardSettings ?? effectiveRewardSettings(null);
 
   const { soundEnabled, playFeedback, playTopicFile, playTopicFiles, isAudioPlaying, isTopicAudioPlaying } = useAudio();
   const pendingAudioAdvanceRef = useRef(null);
@@ -326,6 +330,8 @@ export default function SessionScreen() {
           showProgress={showProgress}
           showStreak={showStreak}
           streakCount={streakCount}
+          rewardChangeReason={rewardChangeReason}
+          rewardSettings={sessionRewardSettings}
           rewardAvailable={rewardProgress?.available ?? false}
           answersPerStar={answersPerStar}
           taskIndex={taskIndex}
@@ -375,6 +381,8 @@ export default function SessionScreen() {
             onTap={onTap}
             onQuality={onQuality}
             streakCount={streakCount}
+          rewardChangeReason={rewardChangeReason}
+          rewardSettings={sessionRewardSettings}
             bestStreak={bestStreak}
             answersPerStar={answersPerStar}
           />
@@ -415,9 +423,10 @@ export default function SessionScreen() {
       {rewardPending && activeStudent && (
         <RewardVideoModal
           rewardVideos={activeStudent.rewardVideos ?? []}
+          settingsOverride={sessionRewardSettings}
           studentId={activeStudent.id}
           onDismiss={clearRewardPending}
-          title={`Молодец! ${5 * answersPerStar} правильных подряд!`}
+          title={sessionState.rewardPolicy?.version === 2 ? rewardText("rewardTitle") : `Молодец! ${5 * answersPerStar} правильных подряд!`}
         />
       )}
 

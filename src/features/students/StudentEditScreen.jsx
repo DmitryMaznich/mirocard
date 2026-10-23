@@ -1,3 +1,5 @@
+import RewardSettingsSection from "@/features/rewards/RewardSettingsSection.jsx";
+import { normalizeRewardSettings } from "../../../shared/reward-policy.mjs";
 import { useUiTranslation } from "@/shared/i18n/useUiTranslation.js";
 import { translateUi as t } from "@/shared/i18n/uiLanguage.js";
 import { useState, useRef, useCallback, useMemo } from "react";
@@ -62,6 +64,8 @@ export default function StudentEditScreen() {
   const [photo,        setPhoto]        = useState(initial?.photo ?? null);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  const initialRewardSettingsRef = useRef(normalizeRewardSettings(initial?.rewardSettings));
+  const [rewardSettings, setRewardSettings] = useState(() => initialRewardSettingsRef.current);
   const [videos,       setVideos]       = useState(() => normaliseVideos(initial?.rewardVideos));
   const [videoInput,   setVideoInput]   = useState("");
   const [videoError,   setVideoError]   = useState("");
@@ -137,7 +141,9 @@ export default function StudentEditScreen() {
     const healthDataConsentAt = healthDataConsent
       ? (healthConsentChanged ? ts : (initial?.healthDataConsentAt ?? ts))
       : null;
+    const rewardSettingsChanged = JSON.stringify(rewardSettings) !== JSON.stringify(initialRewardSettingsRef.current);
     const data = {
+      ...(!isEdit || rewardSettingsChanged ? { rewardSettings, rewardSettingsUpdatedAt: ts } : {}),
       name: name.trim(), comment: comment.trim(),
       primaryLanguage: lang || null,
       ...(!isEdit || lessonLanguage !== (initial?.preferredLessonLanguage ?? null)
@@ -167,12 +173,15 @@ export default function StudentEditScreen() {
       // close adults are each synced independently (their own op + timestamp), so a
       // stale device that hasn't seen another device's additions can't erase them.
       pushOp("student.upsert", {
-        ...updated, photo: undefined, rewardVideos: undefined, closeAdults: undefined,
+        ...updated, photo: undefined, rewardVideos: undefined, closeAdults: undefined, rewardSettings: undefined, rewardSettingsUpdatedAt: undefined,
         // An untouched field must not clear a choice made on another device.
         preferredLessonLanguage: lessonLanguage !== (initial?.preferredLessonLanguage ?? null) ? lessonLanguage : undefined,
       });
       if (photoChanged) {
         pushOp("student.photo.upsert", { studentId: initial.id, photo: photo ?? null, photoUpdatedAt: ts });
+      }
+      if (rewardSettingsChanged) {
+        pushOp("student.reward_settings.upsert", { studentId: initial.id, settings: rewardSettings, updatedAt: ts });
       }
       if (videosChanged) {
         pushOp("student.videos.upsert", { studentId: initial.id, rewardVideos: videos, updatedAt: ts });
@@ -357,6 +366,9 @@ export default function StudentEditScreen() {
           </div>
         )}
 
+        <div className="settings-section">
+          <RewardSettingsSection value={rewardSettings} onChange={setRewardSettings} />
+        </div>
         {/* ── Видео-награды ── */}
         <div className="settings-section">
           <div className="settings-section-title student-data-heading">{t("students.videos")}<StudentDataInfo kind="videos" /></div>

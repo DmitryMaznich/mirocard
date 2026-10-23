@@ -47,6 +47,9 @@ export async function completeLogin({ account, token }) {
         const { photo, closeAdults, preferredLessonLanguage: _lessonLanguage, myPeople: _people, myPeopleProfile: _profile, ...rest } = s;
         const adultsNoPhoto = (closeAdults ?? []).map(({ photo: _p, ...a }) => a);
         uploadOps.push({ type: "student.upsert", data: { ...rest, closeAdults: adultsNoPhoto } });
+        if (s.rewardSettingsUpdatedAt) uploadOps.push({ type: "student.reward_settings.upsert", data: {
+          studentId: s.id, settings: s.rewardSettings, updatedAt: s.rewardSettingsUpdatedAt,
+        } });
         if (s.myPeople?.length) uploadOps.push({ type: 'student.my_people.upsert', data: {
           studentId: s.id, people: s.myPeople, updatedAt: s.myPeopleUpdatedAt ?? s.closeAdultsUpdatedAt ?? s.updatedAt,
         } });

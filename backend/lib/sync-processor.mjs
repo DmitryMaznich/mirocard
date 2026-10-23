@@ -2,6 +2,7 @@ import { appendUsageEvent } from "./usage-repository.mjs";
 import {
   upsertStudent, softDeleteStudent, upsertStudentPhoto,
   upsertStudentVideos, upsertStudentAdults,
+  upsertStudentRewardSettings,
   recordStudentVideoViews,
   upsertStudentMyPeopleProfile, upsertStudentMyPeople,
   upsertStudentImportantDates,
@@ -14,6 +15,7 @@ import {
 } from "./account-repository.mjs";
 
 const HANDLERS = {
+  "student.reward_settings.upsert": (db, accountId, data) => upsertStudentRewardSettings(db, accountId, data),
   "usage.append": (db, accountId, data) => appendUsageEvent(db, accountId, data),
   "student.video_view.record": (db, accountId, data) =>
     recordStudentVideoViews(db, accountId, data),

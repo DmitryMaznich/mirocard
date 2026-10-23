@@ -332,3 +332,41 @@ describe("RewardVideoModal", () => {
   });
 
 });
+
+describe("individual viewing duration", () => {
+  for (const [duration, seconds] of [["60", 60], ["120", 120], ["180", 180], ["end", 180]]) {
+    it(`limits ${duration} to ${seconds} seconds of actual playback`, async () => {
+      const { useAppStore } = await import("@/core/store");
+      useAppStore.setState({ students: [{ id: "s1", rewardSettings: { algorithm: "flexible", duration } }] });
+      const root = createTestRoot();
+      const dismiss = vi.fn();
+      await act(async () => root.render(<RewardVideoModal studentId="s1" rewardVideos={["aaaaaaaaaaa"]} onDismiss={dismiss} />));
+      await act(async () => container.querySelector(".reward-modal__btn--watch").click());
+      await setPlayerState(PLAYING);
+      await act(async () => vi.advanceTimersByTime(seconds * 1000 - 1));
+      expect(dismiss).not.toHaveBeenCalled();
+      await act(async () => vi.advanceTimersByTime(1));
+      expect(dismiss).toHaveBeenCalledOnce();
+      await act(async () => root.unmount());
+      useAppStore.setState({ students: [] });
+    });
+  }
+  it("uses a shorter known clip duration and keeps fractional playback across pauses", async () => {
+    const { useAppStore } = await import("@/core/store");
+    useAppStore.setState({ students: [{ id: "s1", rewardSettings: { algorithm: "flexible", duration: "end" } }] });
+    const root = createTestRoot();
+    await act(async () => root.render(<RewardVideoModal studentId="s1" rewardVideos={["aaaaaaaaaaa"]} onDismiss={() => {}} />));
+    await act(async () => container.querySelector(".reward-modal__btn--watch").click());
+    playerInstance.getDuration = () => 48;
+    await setPlayerState(PLAYING);
+    expect(container.querySelector(".video-reward-progress__label").textContent).toBe("48с");
+    await act(async () => vi.advanceTimersByTime(500));
+    await setPlayerState(PAUSED);
+    await act(async () => vi.advanceTimersByTime(10000));
+    await setPlayerState(PLAYING);
+    await act(async () => vi.advanceTimersByTime(500));
+    expect(container.querySelector(".video-reward-progress__label").textContent).toBe("47с");
+    await act(async () => root.unmount());
+    useAppStore.setState({ students: [] });
+  });
+});

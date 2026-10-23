@@ -48,6 +48,8 @@ export function buildBootstrap(db, accountId) {
       photo:           s.photo ?? null,
       photoUpdatedAt:  s.photo_updated_at ?? null,
       rewardVideos:    safeJson(s.reward_videos, []),
+      rewardSettings: safeJson(s.reward_settings, {}),
+      rewardSettingsUpdatedAt: s.reward_settings_updated_at ?? null,
       rewardVideoViews: safeJson(s.reward_video_views, {}),
       rewardVideosUpdatedAt: s.reward_videos_updated_at ?? null,
       closeAdults:     safeJson(s.close_adults, []),

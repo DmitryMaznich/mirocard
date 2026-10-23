@@ -324,6 +324,8 @@ function serializeStudent(row) {
     primaryLanguage: row.primary_language,
     preferredLessonLanguage: row.preferred_lesson_language ?? null,
     rewardVideos: safeJson(row.reward_videos, []),
+    rewardSettings: safeJson(row.reward_settings, {}),
+    rewardSettingsUpdatedAt: row.reward_settings_updated_at ?? null,
     rewardVideoViews: safeJson(row.reward_video_views, {}),
     rewardVideosUpdatedAt: row.reward_videos_updated_at ?? null,
     closeAdults:  safeJson(row.close_adults, []),

@@ -112,6 +112,7 @@ export function mergeStudentRecords(local, server) {
     const resolvedPhotoTs = photoWinner.photoUpdatedAt ?? null;
 
     const videosWinner = pickByFieldTimestamp("rewardVideosUpdatedAt");
+    const rewardSettingsWinner = pickByFieldTimestamp("rewardSettingsUpdatedAt");
     const resolvedVideos   = videosWinner.rewardVideos ?? [];
     const resolvedVideosTs = videosWinner.rewardVideosUpdatedAt ?? null;
 
@@ -163,6 +164,8 @@ export function mergeStudentRecords(local, server) {
       photoUpdatedAt: resolvedPhotoTs,
       sex:            student.sex   ?? current.sex   ?? null,
       rewardVideos:          resolvedVideos,
+      rewardSettings: rewardSettingsWinner.rewardSettings ?? {},
+      rewardSettingsUpdatedAt: rewardSettingsWinner.rewardSettingsUpdatedAt ?? null,
       rewardVideosUpdatedAt: resolvedVideosTs,
       rewardVideoViews: mergeRewardVideoViews(current.rewardVideoViews, student.rewardVideoViews),
       closeAdults:           closeAdults,

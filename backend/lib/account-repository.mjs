@@ -1,4 +1,5 @@
 import { randomUUID, createHash } from "node:crypto";
+import { normalizeRewardSettings } from "../../shared/reward-policy.mjs";
 import { isLessonLanguage } from "../../shared/languages.mjs";
 import { enqueueAccountNotification } from "./telegram-notifications.mjs";
 import { studentPeople, legacyAdults, applyLegacyAdults, mergePeopleRecords } from "../../shared/student-people.mjs";
@@ -477,6 +478,7 @@ export function upsertStudent(db, accountId, {
   comment = "",
   primaryLanguage = null,
   preferredLessonLanguage = undefined,
+  rewardSettings = undefined,
   sex = null,
   photo = null,
   rewardVideos = [],
@@ -539,9 +541,19 @@ export function upsertStudent(db, accountId, {
     updated,
   );
   if (!wasExisting) {
+    if (rewardSettings !== undefined) upsertStudentRewardSettings(db, accountId, { studentId: id, settings: rewardSettings, updatedAt: updated });
     const people = studentPeople({ myPeople, closeAdults: processedAdults, closeAdultsUpdatedAt: updated });
     if (people.length) upsertStudentMyPeople(db, accountId, { studentId: id, people, updatedAt: updated });
   }
+}
+
+export function upsertStudentRewardSettings(db, accountId, { studentId, settings, updatedAt }) {
+  if (!updatedAt || !Number.isFinite(Date.parse(updatedAt))) throw Object.assign(new Error("Invalid reward settings timestamp"), { status: 400 });
+  const stamp = new Date(updatedAt).toISOString();
+  const existing = db.prepare("SELECT reward_settings_updated_at FROM students WHERE id=? AND account_id=? AND deleted_at IS NULL").get(studentId, accountId);
+  if (!existing || (existing.reward_settings_updated_at && existing.reward_settings_updated_at > stamp)) return;
+  db.prepare("UPDATE students SET reward_settings=?, reward_settings_updated_at=? WHERE id=? AND account_id=?")
+    .run(JSON.stringify(normalizeRewardSettings(settings)), stamp, studentId, accountId);
 }
 
 export function upsertStudentPhoto(db, accountId, { studentId, photo, photoUpdatedAt }) {
