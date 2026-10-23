@@ -390,7 +390,7 @@ const RowInk = memo(function RowInk({ segments, narrowRows }) {
 // two A5 pages the left page's is on the left, the right page's on the right; a whole A4 page alternates like a book (1 right, 2 left).
 const PAGE_NUMBER_R_MM = 2.6;
 const PAGE_NUMBER_INSET_MM = 6.5;
-function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
+function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap, onSheetPoint = null, crop = null, speedFactor = 1, overlays = null, simpleGrid = null, midDash = true, margin = "off", format = "a5", narrow17 = false, ownRows = null, useElements, wideRows = false, narrowRows = false, pageNumber = null, brand = false }) {
   const geom = geomOf(format);
   // this page's own sheet size and diagonal grids (shadow the A5 module defaults)
   const PAGE_W_UNITS = geom.w;
@@ -492,6 +492,21 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
   return (
     <svg
       className="propis-print-page-svg"
+      // `onSheetPoint({ row, x, shiftKey })`: a click on the sheet — the row of this page under it and the x in that row's own units
+      // (`propis2` typing on the sheet puts the caret there)
+      onClick={onSheetPoint ? (e) => {
+        const svg = e.currentTarget;
+        const m = svg.getScreenCTM?.();
+        let q;
+        if (m && svg.createSVGPoint) { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; q = pt.matrixTransform(m.inverse()); } else {
+          // no screen matrix (a test DOM): the box on the screen scaled to the viewBox
+          const box = svg.getBoundingClientRect();
+          const [vx, vy, vw, vh] = String(svg.getAttribute("viewBox") ?? "").split(/\s+/).map(Number);
+          q = { x: vx + ((e.clientX - box.left) / (box.width || 1)) * vw, y: vy + ((e.clientY - box.top) / (box.height || 1)) * vh };
+        }
+        const row = rowAtSvgY(q.y, format, narrow17, ownRows);
+        onSheetPoint({ row, x: q.x - contentXUnits - (page.find((p) => p.rowIndex === row)?.x ?? 0), shiftKey: e.shiftKey });
+      } : undefined}
       viewBox={crop ? `${crop.x} ${crop.y} ${crop.w} ${crop.h}` : `0 0 ${PAGE_W_UNITS} ${PAGE_H_UNITS}`}
       style={crop ? { "--crop-ratio": crop.w / crop.h } : undefined}
       xmlns="http://www.w3.org/2000/svg"
@@ -623,6 +638,12 @@ function PrintPage({ page, pageIndex, activeIndex, onToggleActive, onFragmentTap
       {overlays?.map((o, k) => {
         const { y: oy, h } = ownRows ? { y: ownRowY(o.row, ownRows) + WIDE_BAND_BOTTOM_LOCAL - ownOf(ownRows).pitch, h: ownOf(ownRows).pitch } : overlayRect(o.row, rowOff);
         const y = ownRows ? oy : oy + n17;
+        // `propis2` typing on the sheet: the caret / the selected stretch of a row, `x` (and `x2`) in the row's own units
+        if (o.tone === "caret" || o.tone === "range") {
+          const rowX = contentXUnits + (page.find((p) => p.rowIndex === o.row)?.x ?? 0);
+          if (o.tone === "range") return <rect key={`ov${k}`} x={rowX + Math.min(o.x, o.x2)} y={y + h * 0.18} width={Math.abs(o.x2 - o.x)} height={h * 0.8} fill="rgba(37,99,235,.22)" pointerEvents="none" data-overlay="range" />;
+          return <line key={`ov${k}`} className="propis-caret" x1={rowX + o.x} y1={y + h * 0.18} x2={rowX + o.x} y2={y + h * 0.98} stroke="#1d4ed8" strokeWidth={h * 0.035} strokeLinecap="round" pointerEvents="none" data-overlay="caret" />;
+        }
         return <rect key={`ov${k}`} x="0" y={y} width={PAGE_W_UNITS} height={h} fill={OVERLAY_FILL[o.tone] ?? OVERLAY_FILL.select} pointerEvents="none" data-overlay={o.tone} />;
       })}
       {brand && (
@@ -967,7 +988,7 @@ export function PrintPageTop({ task, rows = 5 }) {
 // left half of the cover's landscape sheet; A4: the second sheet, in place of the empty one; `pageNumbers`: number the printed pages (the cover is not counted).
 // `booklet` (A5 only): print «Тетрадью» — the pages in saddle-stitch order (booklet.js), padded with ruled pages to a multiple of 4; the
 // cover sheet stays the outer one (white inside). `brandMarks`: the quiet Mironium mark on every printed page (brandMarks.jsx).
-export default function PrintPageView({ task, onClose, onFragmentTap, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, onJump = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false, booklet = false, brandMarks = false }) {
+export default function PrintPageView({ task, onClose, onFragmentTap, onSheetPoint = null, bare = false, focus = false, fitAspect = 0, speedFactor = 1, overlays = null, onPageIndexChange = null, topNav = false, pageBase = 0, pageTotal = null, onEdge = null, onJump = null, startAt = 0, onPageCount = null, printParts = null, onPrint = null, printCover = null, printBack = null, pageNumbers = false, booklet = false, brandMarks = false }) {
   const own = useMemo(() => layoutTaskPages(task), [task]);
   const { lines, wideRows, margin, geom, narrowRows, narrow17, ownRows, perPage, useElements, pages } = own;
   // what printing prints: every page of the document with the paper it is laid out on
@@ -1045,6 +1066,7 @@ export default function PrintPageView({ task, onClose, onFragmentTap, bare = fal
               speedFactor={speedFactor}
               simpleGrid={task?.simpleGrid ?? null} midDash={task?.midDash !== false} margin={margin} format={geom.format} narrow17={narrow17} ownRows={ownRows}
               overlays={overlays?.filter((o) => Math.floor(o.row / perPage) === shownIndex).map((o) => ({ ...o, row: o.row % perPage }))}
+              onSheetPoint={onSheetPoint ? (p) => onSheetPoint({ ...p, row: p.row < 0 ? -1 : shownIndex * perPage + p.row }) : null}
               useElements={useElements}
               wideRows={wideRows}
               narrowRows={narrowRows}

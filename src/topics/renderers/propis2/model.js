@@ -268,7 +268,7 @@ const wrapSlack = (ruling) => TEXT_ROW_WIDE_DIAGONAL_SPACING * (ruling === "narr
 
 // Spaces typed before running text: the text starts that many slant cells in (a cell is 5 mm on the wide ruling, 2.5 on the narrow).
 export const leadingSpaces = (text) => (/^\s*/.exec(String(text ?? ""))?.[0].length ?? 0);
-const indentUnitsOf = (text, ruling) => leadingSpaces(text) * TEXT_ROW_WIDE_DIAGONAL_SPACING * (ruling === "narrow" ? 0.5 : 1);
+export const indentUnitsOf = (text, ruling) => leadingSpaces(text) * TEXT_ROW_WIDE_DIAGONAL_SPACING * (ruling === "narrow" ? 0.5 : 1);
 
 // Greedy wrap of running text into lines that fit the printable width. A single word wider than
 // the line stays on its own line (the editor warns about it); nothing is cut.

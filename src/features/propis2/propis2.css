@@ -358,8 +358,9 @@
 /* the element list shows what lands in the text: the id in curly braces under each tile */
 .p2-elements-panel .propis2-tile { gap: 2px; padding-bottom: 3px; }
 .p2-el-id { font: 700 .8rem/1 inherit; font-family: inherit; color: var(--p2-blue); }
-/* no gap between the tool strips and the page */
-.propis2-editor2:not(.propis2-editor2--side) .propis2-page-col { padding-top: 0; }
+/* the page starts below the floating zoom pill and undo / redo (2026-10-23: the text is typed by tapping the rows, and the start of
+   the first row lay under the pill) */
+.propis2-editor2:not(.propis2-editor2--side) .propis2-page-col { padding-top: 62px; }
 .propis2-editor2:not(.propis2-editor2--side) .propis2-preview .propis-print-page-wrap { padding-top: 0; }
 
 /* the app switches the system callout off on <body> (inherited): the typed text needs its copy / paste menu back */
@@ -511,3 +512,11 @@ button.p2-warn.is-open { box-shadow: inset 0 -3px 0 #b91c1c; }
 /* the PDF being made / ready (Propis2Home) */
 .p2-pdf-card { gap: 16px; }
 .p2-pdf-text { margin: 0; font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+
+/* Typing straight onto the sheet (2026-10-23): the page's text is held by a textarea nobody sees (Propis2Keys); it must stay
+   focusable (a phone opens its keyboard for it) and must not scroll the page when it takes the focus. 16px: iOS does not zoom in. */
+/* wide and not wrapped (wrap="off"): ↑ ↓ go from line to line of the text = row to row, not through a word wrapped letter by letter */
+.p2-keys { position: fixed; top: 40%; left: 0; width: 4000px; height: 1px; white-space: pre; padding: 0; border: 0; opacity: 0; font-size: 16px; resize: none; overflow: hidden; pointer-events: none; caret-color: transparent; color: transparent; background: transparent; }
+.propis2-dock--keys { justify-content: center; }
+.p2-keys-hint { margin: 0; font-size: 13px; line-height: 1.35; color: #6b7385; }
+.propis2-page-col svg.propis-print-page-svg { cursor: text; }

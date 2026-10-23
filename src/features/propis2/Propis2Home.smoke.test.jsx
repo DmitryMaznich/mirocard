@@ -583,7 +583,7 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
-  it("a tap on an empty ruled row selects it (it is created); the field starts at the selected row", async () => {
+  it("typing on the sheet: a click on an empty ruled row creates it and puts the caret there; a click between letters puts it there", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -592,27 +592,35 @@ describe("propis2 (zip topic)", () => {
     const click = async (el, init = {}) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true, ...init })); await tick(60); }); };
     await click([...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes("Новая тетрадь")));
     const preview = () => host.querySelector('[data-testid="propis2-preview"]');
-    const svg = preview().querySelector("svg.propis-print-page-svg");
-    const vbH = Number(svg.getAttribute("viewBox").split(/\s+/)[3]);
-    svg.getBoundingClientRect = () => ({ left: 0, top: 0, right: 400, bottom: vbH, width: 400, height: vbH });
+    const svg = () => preview().querySelector("svg.propis-print-page-svg");
+    const [, , vbW, vbH] = svg().getAttribute("viewBox").split(/\s+/).map(Number);
+    const sheetAt = (x, y) => { const el = svg(); el.getBoundingClientRect = () => ({ left: 0, top: 0, right: vbW, bottom: vbH, width: vbW, height: vbH }); return el; };
     const yOfRow = (r) => { let y = 0; while (rowAtSvgY(y) !== r && y < vbH) y += 1; return y + 4; };
+    const field = () => fieldOf(host);
     expect(preview().querySelector('[data-overlay="select"]')).toBeNull();
-    // tap row 3 of an empty page: a row is created there and selected; the field starts at it and is empty
-    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(3) });
+    expect(host.querySelector('[data-testid="propis2-keys-hint"]').textContent).toContain("Нажмите на строку листа");
+    // click row 3 of an empty page: the rows up to it are made, the caret stands on that row's (empty) line of the page's text
+    await click(sheetAt(), { clientX: 200, clientY: yOfRow(3) });
     expect(preview().querySelector('[data-overlay="select"]')).not.toBeNull();
-    expect(fieldOf(host).value).toBe("");
-    // typing writes into that row (blank rows fill the gap above it)
-    await typeInField(host, "м");
-    expect(fieldOf(host).value).toBe("м");
-    // another tap on it shows its text again; a tap on a row above starts the field there and shows everything below
-    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(3) });
-    expect(fieldOf(host).value).toBe("м");
-    await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: yOfRow(1) });
-    expect(fieldOf(host).value).toBe("\n\nм");
-    // a tap outside the ruled rows clears the selection and empties the field (the next typing goes below the last row)
+    expect(field().value).toBe("\n\n\n");
+    expect(field().selectionStart).toBe(3);
+    expect(document.activeElement).toBe(field()); // the keyboard goes to the invisible text: a phone opens its keyboard
+    expect(preview().querySelector('[data-overlay="caret"]')).not.toBeNull();
+    // typing writes into that row
+    await typeInField(host, "\n\n\nмама");
+    expect(field().value).toBe("\n\n\nмама");
+    // a click in the middle of the word puts the caret between its letters (the nearest boundary), Shift + click selects
+    await click(sheetAt(), { clientX: 2000, clientY: yOfRow(3) }); // far right: after the last letter
+    expect(field().selectionStart).toBe(7);
+    await click(sheetAt(), { clientX: 0, clientY: yOfRow(3) }); // far left: before the first letter
+    expect(field().selectionStart).toBe(3);
+    await click(sheetAt(), { clientX: 2000, clientY: yOfRow(3), shiftKey: true });
+    expect([field().selectionStart, field().selectionEnd]).toEqual([3, 7]);
+    expect(preview().querySelector('[data-overlay="range"]')).not.toBeNull();
+    // a click outside the ruled rows: no caret, no selected row
     await click(host.querySelector(".propis2-page-col"), { clientX: 100, clientY: vbH + 500 });
     expect(preview().querySelector('[data-overlay="select"]')).toBeNull();
-    expect(fieldOf(host).value).toBe("");
+    expect(preview().querySelector('[data-overlay="caret"]')).toBeNull();
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);
@@ -717,7 +725,7 @@ describe("propis2 (zip topic)", () => {
     await act(async () => { document.dispatchEvent(new Event("visibilitychange")); await tick(60); });
     pushOp.mockClear();
     // a row added to page A here, saved: it goes on top of the other device's text, and page B is not sent back at all
-    await typeInField(host, "рама");
+    await typeInField(host, "мама\nрама"); // the page's text: the other device's row, then a new one typed here
     await click(byLabel(host, "Сохранить тетрадь"));
     await act(async () => { await tick(500); });
     const sent = new Map(pushOp.mock.calls.filter((c) => c[0] === "kv.upsert").map((c) => [c[1].key, c[1].value]));

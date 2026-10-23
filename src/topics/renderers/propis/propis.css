@@ -771,3 +771,8 @@
 /* staple marks over a sheet printed «Тетрадью» (brandMarks.jsx StapleMarks), on print and in the PDF */
 .propis-print-all__sheet { position: relative; }
 .propis-print-staples { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+/* `propis2` typing on the sheet: the caret blinks as in a word processor */
+.propis-caret { animation: propis-caret-blink 1.06s steps(1, end) infinite; }
+@keyframes propis-caret-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+@media print { .propis-caret, [data-overlay="range"] { display: none; } }

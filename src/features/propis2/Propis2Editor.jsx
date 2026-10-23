@@ -1,23 +1,24 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { rowAtSvgY } from "@/topics/renderers/propis/PrintPageView";
 import { GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, ownRowGrid, MARGINS, multipliesByDefault, pageAspect, pageFormat, rowsPerPage, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { buildTiles } from "./Propis2Carousel";
-import Propis2Field from "./Propis2Field";
-import Propis2TextEditor from "./Propis2TextEditor";
+import { ElementPicker } from "./Propis2Field";
+import Propis2Keys from "./Propis2Keys";
 import { useKeyboardInset } from "./useKeyboardInset";
 import { bracesIn, bracesOut, fieldFromRows, insertToken, rowIdAtCaret, rowsFromField } from "@/topics/renderers/propis2/fieldText.js";
+import { caretFromSheet, caretOnSheet } from "@/topics/renderers/propis2/caret.js";
 import Propis2Preview from "./Propis2Preview";
 import * as I from "./Propis2Icons";
 import Propis2Picker from "./Propis2Picker";
 import { useHint } from "./Propis2Hint";
 
-// The page constructor. The page canvas, with settings above it and the tools below it (tabs «Символ», «Слово», «Текст»).
-// No dragging: select a row (tap it on the page) and tap a symbol, it goes into that row; with no row selected a tapped
-// symbol starts a new row. The selected row's bar edits its text, kind of row, repeat, order. The page is saved by the
-// parent on every change; nothing is ever dropped silently.
+// The page constructor: the page canvas with the settings of the page and of the row above it. The text is typed STRAIGHT ONTO THE
+// SHEET (owner, 2026-10-23, «как в Word»): a click on a row puts the caret there, between the letters, and the keyboard writes into the
+// row; there is no text field to look at. The page's text is one string, one line per row (fieldText.js), held by an invisible
+// textarea (Propis2Keys) — the caret, the selection, Enter, Backspace, the arrows are its own; caret.js maps them onto the sheet.
+// The selected row (the one the caret is in) gets its options from the row strip. The page is saved by the parent on every change.
 const OFFER_MS = 5000;
 const MAX_OVERFLOW = 1.2; // portrait tablet: the page may be this much taller than the room for it (a little scroll)
 
@@ -101,6 +102,9 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const [fieldStartId, setFieldStartId] = useState(null);
   const [draft, setDraft] = useState("");
   const [caretRequest, setCaretRequest] = useState(null);
+  const keysRef = useRef(null);
+  const [sel, setSel] = useState({ start: 0, end: 0 });
+  const [typing, setTyping] = useState(false); // the invisible text has the focus: the caret shows on the sheet
   const [pageW, setPageW] = useState(0);
   const [colW, setColW] = useState(0); // the canvas width: the page at «По ширине»
   const locked = isLocked(page);
@@ -120,8 +124,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const elementCodes = useMemo(() => new Map(elementTiles.map((t) => [t.text, t.code])), [elementTiles]);
   const side = useMedia(SIDE_QUERY);
   const phone = useMedia(PHONE_QUERY) && !side;
-  // wide screens: the text of the WHOLE page in a tall editor (line numbers, one line per row); a locked kit page edits one row in the small field
-  const full = side && !locked;
+  // the invisible text holds the WHOLE page, one line per row (a locked kit page: the selected row only)
+  const full = !locked;
   const sideRef = useRef(side);
   const phoneRef = useRef(phone);
   phoneRef.current = phone;
@@ -194,42 +198,32 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
   const setRows = (rows) => onChange({ ...page, rows: rows.length ? rows : [newRow()] });
   const patchSelected = (patch) => setRows(page.rows.map((r) => (r.id === selectedId ? { ...r, ...patch } : r)));
 
-  // Which physical row (0-based over the whole page) is under a screen point; -1 if none.
-  const rowAtPoint = (cx, cy) => {
-    const svg = wrapRef.current?.querySelector("svg.propis-print-page-svg");
-    if (!svg) return -1;
-    const box = svg.getBoundingClientRect();
-    if (cx < box.left || cx > box.right || cy < box.top || cy > box.bottom) return -1;
-    let y;
-    try {
-      const m = svg.getScreenCTM?.();
-      if (m && svg.createSVGPoint) { const pt = svg.createSVGPoint(); pt.x = cx; pt.y = cy; y = pt.matrixTransform(m.inverse()).y; }
-    } catch { y = undefined; }
-    if (!Number.isFinite(y)) {
-      const vbH = Number(String(svg.getAttribute("viewBox") ?? "").split(/\s+/)[3]) || box.height;
-      y = ((cy - box.top) / (box.height || 1)) * vbH;
-    }
-    const local = rowAtSvgY(y, pageFormat(page), page.ruling === "narrow", ownRowGrid(taskGrid(page)) ? taskGrid(page) : null);
-    return local < 0 ? -1 : pageIndexRef.current * rowsPerPage(page) + local;
-  };
-
-  // Tap on the page: select the row under the finger; an empty place on the sheet gets a new, empty row (so any ruled
-  // row can be tapped and filled); a tap outside the ruled rows clears the selection.
-  const onPageClick = (e) => {
-    const abs = rowAtPoint(e.clientX, e.clientY);
-    if (abs < 0) { setSelectedId(null); setFieldStartId(null); return; }
+  // A click on the sheet (PrintPage onSheetPoint: the sheet row under it, the x in the row): the caret goes to the nearest letter
+  // boundary of that row — an empty place on the sheet gets a new, empty row first (any ruled row can be clicked and typed into);
+  // Shift + click selects from the caret to there. Outside the ruled rows: the caret goes away.
+  const onSheetPoint = ({ row: abs, x, shiftKey }) => {
+    if (abs < 0) { keysRef.current?.blur(); setSelectedId(null); setFieldStartId(null); return; }
+    // focus now, inside the click: a phone opens its keyboard only for a field focused by the user's own tap
+    keysRef.current?.focus({ preventScroll: true });
     if (locked) {
       const owner = abs < owners.length ? owners[abs] : undefined;
       setSelectedId(owner != null ? page.rows[owner].id : null);
+      setCaretRequest({ pos: owner != null ? String(page.rows[owner].text ?? "").length : 0, n: Date.now() });
       return;
     }
     const result = selectRowAt(page, glyphMap, abs);
     if (result.page !== page) onChange(result.page);
-    setSelectedId(result.rowId);
-    setFieldStartId(result.rowId);
-    // the full-page editor: the caret goes to the line of the tapped row
-    if (full) setCaretRequest({ line: result.page.rows.findIndex((r) => r.id === result.rowId), n: Date.now() });
+    const next = result.page;
+    const lines = bracesIn(fieldFromRows(next.rows, 0, true), elementCodes).split("\n");
+    const hit = caretFromSheet({ page: next, glyphMap, owners: lineOwners(next, glyphMap), abs, x, lines, codes: elementCodes })
+      ?? { rowIndex: Math.max(0, next.rows.findIndex((r) => r.id === result.rowId)), offset: 0 };
+    const pos = lines.slice(0, hit.rowIndex).reduce((n, l) => n + l.length + 1, 0) + hit.offset;
+    setSelectedId(next.rows[hit.rowIndex]?.id ?? result.rowId);
+    setFieldStartId(next.rows[0]?.id ?? null);
+    setCaretRequest({ pos, anchor: shiftKey ? sel.start : pos, n: Date.now() });
   };
+  // a click on the canvas around the sheet: the caret goes away
+  const onPageClick = (e) => { if (!e.target.closest?.("svg.propis-print-page-svg")) { keysRef.current?.blur(); setSelectedId(null); } };
 
   // undone, like any other change, with the undo arrow
   const clear = () => { if (typeof window !== "undefined" && window.confirm && !window.confirm("Очистить страницу? Все строки будут стёрты.")) return; setSelectedId(null); setFieldStartId(null); onChange(clearPage(page)); };
@@ -270,25 +264,40 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
     const id = rowIdAtCaret(page.rows, startId, draft, caret);
     if (id && id !== selectedId) setSelectedId(id);
   };
-  const insertElement = (token, caret) => {
+  const insertElement = (token, caret = sel.start) => {
     if (locked) { if (selected) onField(token, false); return; }
     const { value, caret: pos } = insertToken(draft, caret, token);
     onField(value, false);
     setCaretRequest({ pos, n: Date.now() });
   };
+  const onKeysSelect = ({ start, end }) => { setSel({ start, end }); onCaret(start); };
   const setRowAsText = (asText) => {
     if (!selected) return;
     patchSelected({ asText, kind: asText ? "passage" : "text" });
   };
 
-  // the number of the sheet's row each line of the full-page editor starts at (a running text covers several rows: its first)
-  const rowNumbers = useMemo(() => {
-    const out = [];
-    owners.forEach((o, abs) => { if (o != null && out[o] === undefined) out[o] = String(abs + 1); });
+  // Overlays on the page: the selected row (blue), problems (red), and while typing the caret / the selected stretch (caret.js).
+  const ownersNow = useMemo(() => lineOwners(page, glyphMap), [page, glyphMap]);
+  const caretMarks = useMemo(() => {
+    if (!typing || locked) return [];
+    const lines = draft.split("\n");
+    const at = (pos) => {
+      const before = draft.slice(0, Math.max(0, Math.min(draft.length, pos))).split("\n");
+      const rowIndex = before.length - 1;
+      return caretOnSheet({ page, glyphMap, owners: ownersNow, rowIndex, line: lines[rowIndex] ?? "", offset: before[rowIndex].length, codes: elementCodes });
+    };
+    const a = at(sel.start);
+    if (!a) return [];
+    if (sel.end <= sel.start) return [{ row: a.abs, tone: "caret", x: a.x }];
+    const b = at(sel.end);
+    if (!b) return [];
+    if (a.abs === b.abs) return [{ row: a.abs, tone: "range", x: a.x, x2: b.x }];
+    // over several sheet rows: from the start to the row's right edge, whole rows between, the last row from its start
+    const out = [{ row: a.abs, tone: "range", x: a.x, x2: 10000 }];
+    for (let r = a.abs + 1; r < b.abs; r += 1) out.push({ row: r, tone: "range", x: 0, x2: 10000 });
+    out.push({ row: b.abs, tone: "range", x: 0, x2: b.x });
     return out;
-  }, [owners]);
-
-  // Overlays on the page: the selected row (blue), problems (red).
+  }, [typing, locked, draft, sel, page, glyphMap, ownersNow, elementCodes]);
   const overlays = useMemo(() => {
     const out = [];
     owners.forEach((o, abs) => {
@@ -297,8 +306,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
       if (info && (info.unsupported.length || info.outside?.length || info.overflow)) out.push({ row: abs, tone: "warn" });
       if (page.rows[o]?.id === selectedId) out.push({ row: abs, tone: "select" });
     });
-    return out;
-  }, [owners, analysis, page.rows, selectedId]);
+    return [...out, ...caretMarks];
+  }, [owners, analysis, page.rows, selectedId, caretMarks]);
 
   const zoom = useCanvasZoom({ colRef: wrapRef, boxRef, fitW: pageW, widthW: colW });
   // the selected row stays in sight while it is edited, the page zoomed in or not (the canvas scrolls up or down to it)
@@ -389,6 +398,7 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         <div className="propis2-settings propis2-settings--row" role="group" aria-label="Настройки строки">
           <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} onChange={(id) => patchSelected(repeatPatch(id))} options={REPEAT_OPTS} />
           <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
+          <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
           <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
           <span className="p2-sep" aria-hidden="true" />
           <div className="p2-seg" role="group" aria-label="Строка">
@@ -424,30 +434,19 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
         </div>
         <div className={`propis2-page-col${zoom.z > 1.001 ? " is-zoomed" : ""}`} ref={wrapRef} onClick={onPageClick}>
           <div className="propis2-page-box" ref={boxRef} style={pageW ? { width: Math.round(pageW * zoom.z) } : undefined}>
-            <Propis2Preview page={page} topicRecord={topicRecord} overlays={overlays} onPageIndexChange={(i) => { pageIndexRef.current = i; }} />
+            <Propis2Preview page={page} topicRecord={topicRecord} overlays={overlays} onSheetPoint={onSheetPoint} onPageIndexChange={(i) => { pageIndexRef.current = i; }} />
           </div>
         </div>
 
-        <div className="propis2-dock">
-          {full ? (
-            <Propis2TextEditor value={draft} onChange={onField} onCaret={onCaret} placeholder="Буква, слово или текст. Enter — новая строка" elements={elementTiles} onInsertElement={insertElement} caretRequest={caretRequest} numbers={rowNumbers} activeLine={selectedIndex} bar={warnsEl} />
-          ) : (
-            <>
-              {warnsEl}
-              {side && locked && <p className="p2-ed-locked">Страница из готовой тетради закрыта: правится только выбранная строка. Кнопка «Править» вверху откроет всю страницу.</p>}
-          <Propis2Field
-            value={draft}
-            onChange={onField}
-            onCaret={onCaret}
-            disabled={locked && !selected}
-            singleLine={locked}
-            placeholder={locked ? "Выберите строку на странице" : "Буква, слово или текст. Enter — новая строка"}
-            elements={elementTiles}
-            onInsertElement={insertElement}
-            caretRequest={caretRequest}
-          />
-            </>
-          )}
+        <div className="propis2-dock propis2-dock--keys">
+          {warnsEl}
+          {side && locked && <p className="p2-ed-locked">Страница из готовой тетради закрыта: правится только выбранная строка. Кнопка «Править» вверху откроет всю страницу.</p>}
+          <p className="p2-keys-hint" data-testid="propis2-keys-hint">
+            {typing
+              ? "Enter — новая строка. Слово — образец, фраза с пробелами — связный текст. Элементы — кнопкой «Элемент»."
+              : "Нажмите на строку листа и печатайте: буквы встают прямо на строку."}
+          </p>
+          <Propis2Keys inputRef={keysRef} value={draft} onChange={(v, pos) => { setSel({ start: pos, end: pos }); onField(v, true); }} onSelect={onKeysSelect} onFocusChange={setTyping} onUndo={onUndo} onRedo={onRedo} request={caretRequest} readOnly={locked && !selected} />
         </div>
       </div>
     </div>
