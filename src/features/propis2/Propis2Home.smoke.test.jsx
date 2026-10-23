@@ -158,9 +158,10 @@ describe("propis2 (zip topic)", () => {
 
     // a ready notebook lies in the list like our own: editing it makes our copy quietly
     expect(host.querySelectorAll('[data-testid="propis2-ready-card"]').length).toBeGreaterThan(5);
-    await click(host.querySelector('[aria-label="Изменить тетрадь 3. Сложные буквы и заглавные"]'));
+    for (let i = 0; i < 40 && !host.querySelector('[aria-label="Изменить тетрадь 9. Буквы б в ф и весь алфавит"]'); i += 1) await act(async () => { await tick(100); }); // the ready notebooks load lazily (kits.json)
+    await click(host.querySelector('[aria-label="Изменить тетрадь 9. Буквы б в ф и весь алфавит"]'));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
-    expect(host.querySelector('[aria-label="Название тетради"]').value).toBe("3. Сложные буквы и заглавные");
+    expect(host.querySelector('[aria-label="Название тетради"]').value).toBe("9. Буквы б в ф и весь алфавит");
     expect(host.querySelector('[data-testid="propis2-preview"] svg path')).not.toBeNull();
 
     await act(async () => { root.unmount(); await tick(500); });
@@ -199,8 +200,9 @@ describe("propis2 (zip topic)", () => {
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     const btn = (text) => [...host.querySelectorAll("button")].find((b) => (b.getAttribute("aria-label") ?? b.textContent).includes(text));
 
-    // a page long enough for two screens: pick the ready sheet (12 rows) and add more rows
-    await click(host.querySelector('[aria-label="Изменить тетрадь 1. Элементы и первые буквы"]'));
+    // a notebook long enough for two screens: a ready one
+    for (let i = 0; i < 40 && !host.querySelector('[aria-label="Изменить тетрадь 3. Буквы и й ш н п т г к"]'); i += 1) await act(async () => { await tick(100); }); // the ready notebooks load lazily (kits.json)
+    await click(host.querySelector('[aria-label="Изменить тетрадь 3. Буквы и й ш н п т г к"]'));
     await click(byLabel(host, "Показать ученику"));
     expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
     expect(host.querySelector('[data-testid="propis2-panel"]')).toBeNull();
@@ -625,7 +627,7 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   }, 40000);
 
-  it("kits: the copy of a method's notebook is the user's own — open to edit in full, the kit stays the sample", async () => {
+  it("kits: the copy of a ready notebook is the user's own — open to edit in full, the kit stays the sample", async () => {
     const db = await freshDb();
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -633,7 +635,8 @@ describe("propis2 (zip topic)", () => {
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
     const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
     const lbl = (name) => host.querySelector(`[aria-label="${name}"]`);
-    await click(lbl("Изменить тетрадь 3. Сложные буквы и заглавные"));
+    for (let i = 0; i < 40 && !host.querySelector('[aria-label="Изменить тетрадь 9. Буквы б в ф и весь алфавит"]'); i += 1) await act(async () => { await tick(100); }); // the ready notebooks load lazily (kits.json)
+    await click(lbl("Изменить тетрадь 9. Буквы б в ф и весь алфавит"));
     expect(host.querySelector('[role="img"][aria-label^="Страница из тетради"]')).toBeNull();
     expect(lbl("Тип бумаги").disabled).toBe(false);
     expect(lbl("Разлиновка").disabled).toBe(false);
@@ -751,7 +754,7 @@ describe("propis2 (zip topic)", () => {
     const root = createRoot(host);
     await act(async () => { root.render(<Propis2Home db={db} />); await tick(80); });
     const click = async (el) => { await act(async () => { el.click(); await tick(); }); };
-    const openKit = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь 7. Слоги: соединяем буквы"]';
+    const openKit = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь 12. Слоги и соединения"]';
     for (let i = 0; i < 40 && !host.querySelector(openKit); i += 1) await act(async () => { await tick(100); });
     expect(host.querySelector('[data-testid="propis2-set-card"]')).toBeNull(); // nothing of ours yet
     await click(host.querySelector(openKit));
@@ -903,8 +906,9 @@ describe("propis2 (zip topic)", () => {
     it("a ready notebook only looked at or opened for editing is not copied into the list until a change is confirmed", async () => {
       const db = await freshDb();
       const { host, click, unmount, cards } = await mount(db);
-      const ready = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь 1. Элементы и первые буквы"]';
-      const edit = '[data-testid="propis2-ready-card"] [aria-label="Изменить тетрадь 1. Элементы и первые буквы"]';
+      const ready = '[data-testid="propis2-ready-card"] [aria-label="Открыть тетрадь 1. Палочки и заборчики"]';
+      const edit = '[data-testid="propis2-ready-card"] [aria-label="Изменить тетрадь 1. Палочки и заборчики"]';
+      for (let i = 0; i < 40 && !host.querySelector(ready); i += 1) await act(async () => { await tick(100); }); // kits.json loads lazily
       await click(host.querySelector(ready));
       expect(host.querySelector('[data-testid="propis2-view"] svg')).not.toBeNull();
       await click(host.querySelector(".propis-practice-close"));

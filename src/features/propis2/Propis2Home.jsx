@@ -5,7 +5,7 @@ import { pushOp } from "@/core/syncApi";
 import PrintPageView from "@/topics/renderers/propis/PrintPageView";
 import { openPdf, pdfFileName, pdfTab, printPdf } from "@/topics/renderers/propis/printPdf.js";
 import { buildGlyphMap, buildPageTask } from "@/topics/renderers/propis2/pageTask.js";
-import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, methodNotebooks, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
+import { NOTEBOOK_KEYS, deckPapers, kitToLibraryItems, layoutChange, newId, newPage, newSet, notebookLayout, notebookSections, pageFromPreset, pageFormat, pageGridKind, pageMargin, pageToLines, mixedSettings, othersDiffer, pickFragment, rowsPerPage, setToLines, taskGrid } from "@/topics/renderers/propis2/model.js";
 import { ladderIndex } from "@/topics/renderers/propis2/data.js";
 import { SYNC_PREFIX, diffOps, mergeRemote, snapshotDocs, snapshotFromRemote } from "@/topics/renderers/propis2/syncLib.js";
 import { applyLayout, clearDraft, emptyLibrary, isBlankNotebook, loadDraft, loadLibrary, mergeNotebook, migrateToNotebooks, notebookJson, openKitCopies, pagesTakeNotebookRuling, retitleKitCopies, presetsToNotebooks, removePage, removeSet, saveDraft, saveLibrary, setTitleOf, upsertPage, upsertSet } from "@/topics/renderers/propis2/storage.js";
@@ -125,26 +125,22 @@ export default function Propis2Home({ db }) {
   }, [pullRemote]);
   useEffect(() => () => { clearTimeout(saveTimer.current); flush(); }, [flush]);
 
-  const sheets = useMemo(() => topicRecord?.wideSheets ?? {}, [topicRecord]);
-  const elementLabels = useMemo(() => new Set([...(topicRecord?.elements ?? []).map((e) => e.id), ...(topicRecord?.wide ?? []).filter((g) => g.kind === "element").map((g) => g.label)]), [topicRecord]);
   const glyphMap = useMemo(() => buildGlyphMap(topicRecord), [topicRecord]);
-  // the methodology workbook as two ready notebooks: part 1 on the WIDE ruling, part 2 on the NARROW one (data.js)
-  const methodKits = useMemo(() => methodNotebooks(sheets, elementLabels), [sheets, elementLabels]);
   // a variant deck (another alphabet, scripts/build-propis2-deck.mjs --variant) has no ready notebooks yet: the Russian methodology
   // and kits are written in Russian letters and words
   const ownKits = topicRecord?.meta?.methodology !== false;
   // a new notebook starts on the deck's first paper (a variant deck: its own ruling, model.js deckPapers)
   const newPaper = useMemo(() => { const id = deckPapers(topicRecord)[0]?.id; return id && id !== "propis" ? { gridKind: id } : {}; }, [topicRecord]);
-  // one ladder of difficulty (data.js PROPIS2_LADDER): the methodology sheets and the kits interleaved, the blank notebooks after it
-  const kitPresets = useMemo(() => (ownKits ? [...methodKits, ...kits] : []).map((k, i) => ({ k, i })).sort((a, b) => ladderIndex(a.k.id) - ladderIndex(b.k.id) || a.i - b.i)
-    .map(({ k }) => ({ id: `kit:${k.id}`, title: k.title, description: k.description, kit: k, builtin: true })), [ownKits, methodKits, kits]);
+  // one series (data.js PROPIS2_LADDER), then the digits and the blank notebooks
+  const kitPresets = useMemo(() => (ownKits ? kits : []).map((k, i) => ({ k, i })).sort((a, b) => ladderIndex(a.k.id) - ladderIndex(b.k.id) || a.i - b.i)
+    .map(({ k }) => ({ id: `kit:${k.id}`, title: k.title, description: k.description, kit: k, builtin: true })), [ownKits, kits]);
   const readyAll = useMemo(() => kitPresets.map((ps) => ({ id: ps.id, title: ps.title, description: ps.description, pages: ps.kit ? ps.kit.pages.length : 1, ps })), [kitPresets]);
   // copies taken before the ready notebooks got their ladder titles follow the new title while they still have the old one
   useEffect(() => {
     if (!loaded || !ownKits || !kits.length) return;
-    const next = retitleKitCopies(library, Object.fromEntries([...methodKits, ...kits].map((k) => [k.id, k.title])));
+    const next = retitleKitCopies(library, Object.fromEntries(kits.map((k) => [k.id, k.title])));
     if (next !== library) persist(next);
-  }, [loaded, ownKits, kits, methodKits, library, persist]);
+  }, [loaded, ownKits, kits, library, persist]);
   const takenIds = useMemo(() => new Set(library.sets.map((st) => st.sourceId ?? (st.kit ? `kit:${st.kit}` : null)).filter(Boolean)), [library.sets]);
   const ready = useMemo(() => readyAll.filter((r) => !takenIds.has(r.id)), [readyAll, takenIds]);
   const ownCopyOf = (ps) => {

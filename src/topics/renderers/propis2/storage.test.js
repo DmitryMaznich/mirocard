@@ -158,24 +158,32 @@ describe("propis2 library storage", () => {
   });
 });
 
-describe("copies of ready notebooks follow the ladder titles", () => {
+describe("copies of ready notebooks follow the ready titles", () => {
   const lib = (sets) => ({ ...emptyLibrary(), sets });
-  const titles = { "letters-1": "2. Простые буквы: строчная и заглавная", "method-1": "1. Элементы и первые буквы" };
-  it("a copy that still has the old title takes the new one (and a new stamp, so it wins on the other devices)", () => {
+  const titles = { texts: "16. Списываем текст", digits: "Цифры" };
+  it("a copy that still has an old title takes the new one (and a new stamp, so it wins on the other devices)", () => {
     const before = lib([
-      newSet("Прописи — часть 1 (простые формы)", { id: "a", kit: "letters-1", sourceId: "kit:letters-1", updatedAt: 5 }),
-      newSet("Листы методики, часть 1 (широкая строка)", { id: "b", sourceId: "kit:method-1", updatedAt: 5 }),
+      newSet("11. Списываем текст", { id: "a", kit: "texts", sourceId: "kit:texts", updatedAt: 5 }),
+      newSet("Прописи — цифры", { id: "b", kit: "digits", sourceId: "kit:digits", updatedAt: 5 }),
     ]);
     const after = retitleKitCopies(before, titles, undefined, 99);
-    expect(after.sets.map((s) => [s.title, s.updatedAt])).toEqual([["2. Простые буквы: строчная и заглавная", 99], ["1. Элементы и первые буквы", 99]]);
+    expect(after.sets.map((s) => [s.title, s.updatedAt])).toEqual([["16. Списываем текст", 99], ["Цифры", 99]]);
     expect(retitleKitCopies(after, titles, undefined, 100)).toBe(after); // nothing left to rename
+  });
+  it("a copy of a notebook the series replaced keeps its title but loses the step number of the old ladder", () => {
+    const before = lib([
+      newSet("2. Простые буквы: строчная и заглавная", { id: "a", kit: "letters-1", sourceId: "kit:letters-1" }),
+      newSet("1. Элементы и первые буквы", { id: "b", sourceId: "kit:method-1" }),
+      newSet("Прописи — часть 2 (сложные формы)", { id: "c", kit: "letters-2", sourceId: "kit:letters-2" }),
+    ]);
+    const after = retitleKitCopies(before, titles, undefined, 7);
+    expect(after.sets.map((s) => s.title)).toEqual(["Простые буквы: строчная и заглавная", "Элементы и первые буквы", "Прописи — часть 2 (сложные формы)"]);
   });
   it("a copy the adult renamed, and notebooks of their own, stay as they are", () => {
     const before = lib([
-      newSet("Прописи Маши", { id: "a", kit: "letters-1", sourceId: "kit:letters-1" }),
-      newSet("Прописи — часть 1 (простые формы)", { id: "c" }),
+      newSet("Тексты Маши", { id: "a", kit: "texts", sourceId: "kit:texts" }),
+      newSet("11. Списываем текст", { id: "c" }),
     ]);
     expect(retitleKitCopies(before, titles)).toBe(before);
   });
 });
-

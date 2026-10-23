@@ -1,6 +1,6 @@
 // `propis2` library: the adult's pages and page sets, stored on this device (IndexedDB keyval,
 // own key, nothing added to the app's shared tables). Account sync is a later step.
-import { PROPIS2_OLD_TITLES } from "./data.js";
+import { PROPIS2_OLD_TITLES, PROPIS2_RETIRED } from "./data.js";
 import { getDb, kv } from "@/core/db";
 import { docKey } from "./syncLib.js";
 import { pageFromPreset } from "./model.js";
@@ -109,17 +109,21 @@ export function openKitCopies(library) {
   return { ...library, pages: library.pages.map((p) => (p.locked && ids.has(p.id) ? { ...p, locked: false } : p)) };
 }
 
-// A copy of a ready notebook keeps the title it got when it was taken. When the ready notebooks were renamed into the ladder
-// (data.js PROPIS2_LADDER), a copy that still has the OLD title (the adult never renamed it) takes the new one, stamped now so it
-// goes up to the account and wins over the old title on the other devices (each device would rename it the same anyway; once renamed
-// nothing matches any more). `titles`: ready id -> current title.
-export function retitleKitCopies(library, titles, oldTitles = PROPIS2_OLD_TITLES, now = Date.now()) {
+// A copy of a ready notebook keeps the title it got when it was taken. When the ready notebooks are renamed (data.js), a copy that still
+// has an OLD title (the adult never renamed it) takes the new one; a copy of a notebook the series replaced (PROPIS2_RETIRED) that is
+// still numbered as a step («2. Простые буквы…») loses the number. Stamped now, so it goes up to the account and wins over the old
+// title on the other devices (each device would rename it the same anyway; once renamed nothing matches any more).
+// `titles`: ready id -> current title.
+export function retitleKitCopies(library, titles, oldTitles = PROPIS2_OLD_TITLES, now = Date.now(), retired = PROPIS2_RETIRED) {
   let changed = false;
   const sets = library.sets.map((st) => {
     const id = String(st.sourceId ?? (st.kit ? `kit:${st.kit}` : "")).replace(/^kit:/, "");
-    if (!oldTitles[id] || !titles[id] || st.title !== oldTitles[id]) return st;
+    let title = null;
+    if (retired.includes(id) && /^\d+\.\s/.test(st.title ?? "")) title = st.title.replace(/^\d+\.\s+/, "");
+    else if (titles[id] && (oldTitles[id] ?? []).includes(st.title)) title = titles[id];
+    if (title === null) return st;
     changed = true;
-    return { ...st, title: titles[id], updatedAt: now };
+    return { ...st, title, updatedAt: now };
   });
   return changed ? { ...library, sets } : library;
 }

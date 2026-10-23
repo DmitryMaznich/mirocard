@@ -1570,7 +1570,8 @@ function layoutWideLinesIntoRowsNow(lines, glyphsByLabel, snapX = (_row, x) => x
     // A single closed-pattern element (the fence rows: one stroke that ends at the height it started) is copied to the end of the row END TO START, with no gaps, so tracing it all gives one unbroken line.
     const chainToks = line.split(/\s+/).filter(Boolean);
     const chainGlyph = chainToks.length === 1 ? glyphsByLabel.get(wideTokenToLabels(chainToks[0], glyphsByLabel)[0]) : null;
-    if (chainGlyph && chainGlyph.kind === "element" && chainGlyph.strokes.length === 1 && wideTokenToLabels(chainToks[0], glyphsByLabel).length === 1) {
+    // ...but not on a row written once (`#1`, «Одна запись» / a sample the child continues alone): the model stays one element.
+    if (!once[rowIndex] && chainGlyph && chainGlyph.kind === "element" && chainGlyph.strokes.length === 1 && wideTokenToLabels(chainToks[0], glyphsByLabel).length === 1) {
       const local = wideGlyphLocal(chainGlyph, scale);
       if (Math.abs(local.end[1] - local.start[1]) < 1) {
         const startX = snapX(rowIndex, WIDE_LEFT_PAD - local.minX + local.start[0], local.start[1]);
