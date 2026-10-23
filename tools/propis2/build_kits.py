@@ -404,7 +404,7 @@ def as_element(r):
 
 
 def s_fade(t):
-    return chain_row(t) if t in CHAIN else as_element(row(t, "fade"))
+    return chain_row(t) if t in CHAIN else as_element(row(t, "fade", gap=s_gap(t)))  # the same step as the traced row above it
 
 
 def s_trace(t):
@@ -420,35 +420,30 @@ def s_alone(t):
 
 
 def s_intro(t, n):
-    """«Знакомство»: 4 fading copies, 4 traced across the row, 4 by the start dots, the rest alone, the last row an easy trace (end on success)."""
-    return [s_fade(t)] * 4 + [s_trace(t)] * 4 + [s_dots(t)] * 4 + [s_alone(t)] * (n - 13) + [s_trace(t)]
+    """«Знакомство», help going down the page (owner, 2026-10-23): the whole row to trace, then fading copies (trace, then go on
+    alone), then the start dots only, then the model alone at the start of the row."""
+    return [s_trace(t)] * 4 + [s_fade(t)] * 4 + [s_dots(t)] * 4 + [s_alone(t)] * (n - 12)
 
 
 def s_cons(t, n):
-    """«Закрепление»: less help, more alone; the last row an easy trace."""
-    f, d = max(1, round(n * 2 / 16)), round(n * 6 / 16)
-    return [s_fade(t)] * f + [s_dots(t)] * d + [s_alone(t)] * (n - f - d - 1) + [s_trace(t)]
+    """«Закрепление»: the same order with less help — a traced row, fading copies, the start dots, the rest alone."""
+    f, d = max(1, round(n * 2 / 16)), round(n * 5 / 16)
+    return [s_trace(t)] + [s_fade(t)] * f + [s_dots(t)] * d + [s_alone(t)] * (n - 1 - f - d)
 
 
 def s_review(items, n):
-    """«Повторение»: every row another item already learnt — first half by the start dots, then alone; the last row an easy trace."""
-    k = n - 1
-    rows = [(s_dots if i < k // 2 else s_alone)(items[i % len(items)]) for i in range(k)]
-    return rows + [s_trace(items[0])]
+    """«Повторение»: every row another item already learnt — first half by the start dots, then alone."""
+    return [(s_dots if i < n // 2 else s_alone)(items[i % len(items)]) for i in range(n)]
 
 
 def s_words(ws, n):
-    """«Слоги и слова»: two rows an item (traced across the row, then the model and alone); the last row an easy trace."""
-    rows = []
-    for i in range(n):
-        w = ws[(i // 2) % len(ws)]
-        rows.append(s_trace(w) if i % 2 == 0 else s_alone(w))
-    return rows[: n - 1] + [s_trace(ws[0])]
+    """«Слоги и слова»: two rows an item — traced across the row, then the model and alone (an odd last row: the model alone)."""
+    return [(s_trace if i % 2 == 0 and i < n - 1 else s_alone)(ws[(i // 2) % len(ws)]) for i in range(n)]
 
 
 def s_final(items, n):
     """«Итог»: everything of the notebook, a model at the start of each row only."""
-    return [s_alone(items[i % len(items)]) for i in range(n - 1)] + [s_trace(items[0])]
+    return [s_alone(items[i % len(items)]) for i in range(n)]
 
 
 def s_page(title, rows, paper):
@@ -632,7 +627,7 @@ def capital_pages(caps):
     out = []
     for C in caps:
         c = C.lower()
-        rows = s_intro(C, N_ROWS)[:-3] + [pair(C, c, "one", "all"), pair(C, c, "one", "one"), s_trace(C)]
+        rows = s_intro(C, N_ROWS)[:-3] + [pair(C, c, "one", "all"), pair(C, c, "one", "one"), s_alone(C)]
         out.append(s_page(f"{C} {c}", rows, S_NARROW))
     return out
 

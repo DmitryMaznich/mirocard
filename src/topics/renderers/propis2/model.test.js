@@ -481,12 +481,18 @@ describe("ready notebooks (kits.json): one series of 16 notebooks × 24 pages, t
       expect([...letters].filter((ch) => !have.includes(ch)), series[i].id).toEqual([]);
     });
   });
-  it("pages are built the same way: a new letter starts with fading copies, tracing, start dots, then alone; every page ends with an easy trace", () => {
+  it("pages are built the same way, help going down the page: the whole row traced, fading copies, start dots, then the model alone", () => {
+    const shape = (pg) => pg.rows.map((r) => (r.repeat === "one" ? `one/${r.dots}` : r.repeat));
     const first = kitOf("s03-letters-i").pages[0];
     expect(first.title).toBe("и");
-    expect(first.rows.map((r) => (r.repeat === "one" ? `one/${r.dots}` : r.repeat))).toEqual([
-      ...Array(4).fill("fade"), ...Array(4).fill("all"), ...Array(4).fill("one/all"), ...Array(3).fill("one/one"), "all"]);
-    for (const k of series.slice(0, 14)) for (const pg of k.pages) expect(["all", "auto"], `${k.id} ${pg.title}`).toContain(pg.rows.at(-1).repeat);
+    expect(shape(first)).toEqual([...Array(4).fill("all"), ...Array(4).fill("fade"), ...Array(4).fill("one/all"), ...Array(4).fill("one/one")]);
+    // on every letter/element page of the series the help never goes up again further down the page
+    const level = { all: 0, auto: 0, fade: 1, "one/all": 2, "one/one": 3 };
+    for (const k of series.slice(0, 14)) for (const pg of k.pages) {
+      if (new Set(pg.rows.map((r) => r.text)).size > 1) continue; // pages of several items (words, reviews, two letters) go item by item
+      const lv = shape(pg).map((x) => level[x]);
+      expect(lv, `${k.id} ${pg.title}`).toEqual([...lv].sort((a, b) => a - b));
+    }
     // fences are traced as one unbroken line (the engine's own rule), a fading copy would cut them into pieces
     expect(rowsOf(kitOf("s01-sticks")).filter((r) => r.text === "заборчик" && r.repeat !== "one").every((r) => r.repeat === "auto")).toBe(true);
   });
@@ -495,7 +501,7 @@ describe("ready notebooks (kits.json): one series of 16 notebooks × 24 pages, t
     expect(set.pageIds).toHaveLength(kits[0].pages.length);
     expect(pages.every((p) => !p.locked && p.kitId === set.id && p.ruling === "wide" && p.grid === "dense" && p.margin === "left")).toBe(true);
     expect(new Set(pages.flatMap((p) => p.rows.map((r) => r.id))).size).toBe(pages.reduce((n, p) => n + p.rows.length, 0));
-    expect(pageToLines(pages[0], map)[0]).toMatch(/^\|#f/);
+    expect(pageToLines(pages[0], map)[0]).toBe("|#r#g1"); // the whole row to trace first, a stick every other slant line
   });
   it("the blank notebooks: 12 leaves (24 pages) of empty rows, a whole page each: copybook narrow / wide / frequent slants, squared, ruled", () => {
     for (const [id, grid] of [["blank-narrow", "regular"], ["blank-wide", "regular"], ["blank-dense", "dense"], ["blank-square", "square"], ["blank-ruled", "ruled"]]) {
