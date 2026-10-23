@@ -492,8 +492,9 @@ describe("«Методика» kits (kits.json, built from the `propis` notebook
     const steps = PROPIS2_LADDER.map((id) => all.find((k) => k.id === id));
     expect(steps.map((k) => k.title.match(/^(\d+)\. /)?.[1])).toEqual(steps.map((_, i) => String(i + 1)));
     expect(steps.every((k) => k.description?.length > 20)).toBe(true);
-    // the rest are the blank notebooks, after the ladder
-    expect(all.filter((k) => !PROPIS2_LADDER.includes(k.id)).every((k) => k.id.startsWith("blank-"))).toBe(true);
+    // the rest are not steps, after the ladder: the digits (a track of their own) and the blank notebooks
+    expect(all.filter((k) => !PROPIS2_LADDER.includes(k.id)).map((k) => k.id)).toEqual(["digits", "blank-narrow", "blank-wide", "blank-dense", "blank-square", "blank-ruled"]);
+    expect(all.find((k) => k.id === "digits").title).toBe("Цифры");
     expect(ladderIndex("blank-narrow")).toBe(PROPIS2_LADDER.length);
   });
   it("letters in alphabet order: one page per letter, all 33 letters in order, the capital where there is a glyph for it", () => {

@@ -44,8 +44,9 @@ export const PROPIS2_METHOD_NOTEBOOKS = [
 // The ready notebooks as ONE ladder of difficulty (owner, 2026-10-21: «выстроить в один логический ряд», as a primary teacher and a
 // speech therapist for children with ASD would): the methodology sheets (the teacher's method) and the kits (kits.json) interleaved, one
 // new demand at a time — first the bigger wide row and the elements, then the narrow row with the same simple letters, then the hard
-// forms, the alphabet as a review, joins, words, digits, marks, and copying whole texts last. The step is in the title («1. …»).
-// Blank notebooks are not steps: they stay after the ladder, in their own order.
+// forms, the alphabet as a review, joins, words, marks, and copying whole texts last. The step is in the title («1. …»).
+// Not steps, after the ladder in their own order: the digits (owner, 2026-10-23: «цифры отдельно, это не в структуре лесенки» —
+// a track of its own, squared paper, learnt alongside the letters) and the blank notebooks.
 export const PROPIS2_LADDER = [
   "method-1", // 1. elements and the first lowercase letters, wide row
   "letters-1", // 2. the same simple forms, one letter at a time, lowercase and capital, narrow row
@@ -56,9 +57,8 @@ export const PROPIS2_LADDER = [
   "syllables", // 7. joins: a consonant and a vowel
   "words-1", // 8. words of the simple forms
   "words-2", // 9. words with any letters
-  "digits", // 10. digits (a track of its own, squared paper: can go along with steps 5-9)
-  "punctuation", // 11. full stop, comma, ! and ? — in words and sentences
-  "texts", // 12. copying a whole text
+  "punctuation", // 10. full stop, comma, ! and ? — in words and sentences
+  "texts", // 11. copying a whole text
 ];
 export const ladderIndex = (id) => { const i = PROPIS2_LADDER.indexOf(id); return i < 0 ? PROPIS2_LADDER.length : i; };
 
