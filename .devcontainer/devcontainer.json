@@ -1,0 +1,22 @@
+{
+  "name": "Mirocard development",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Mirocard development",
+      "onAutoForward": "openBrowser",
+      "visibility": "private"
+    },
+    "3012": { "onAutoForward": "ignore" },
+    "4311": { "onAutoForward": "ignore" }
+  },
+  "postCreateCommand": "node .devcontainer/setup.mjs",
+  "postStartCommand": "mkdir -p runtime/codespaces && nohup node .devcontainer/start.mjs > runtime/codespaces/dev.log 2>&1 < /dev/null &",
+  "waitFor": "postCreateCommand",
+  "customizations": {
+    "vscode": {
+      "settings": { "remote.autoForwardPorts": false }
+    }
+  }
+}
