@@ -610,7 +610,7 @@
       ],
       "bundle": null,
       "builtin": true,
-      "sourceUpdatedAt": "2026-10-20T21:26:22+00:00"
+      "sourceUpdatedAt": "2026-10-21T10:23:52+00:00"
     },
     {
       "id": "opposites",
@@ -1313,10 +1313,10 @@
           "en": "44 everyday verbs in five sets, from picking a picture by the spoken word to telling similar actions apart. Audio included."
         },
         "url": "./decks/verbs_v2_v2.4.3.zip",
-        "status": "beta",
-        "access": "paid"
+        "status": "release",
+        "access": "free"
       },
-      "sourceUpdatedAt": "2026-10-21T04:42:12+00:00"
+      "sourceUpdatedAt": "2026-10-21T07:34:19+00:00"
     },
     {
       "id": "vowel_consonant_ru",
