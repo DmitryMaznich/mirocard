@@ -467,27 +467,42 @@
         "ru": "Учим словенский",
         "en": "Learning Slovenian"
       },
-      "version": "0.1.0",
-      "renderer": null,
-      "sources": [],
-      "bundle": null,
+      "version": "0.2.0",
+      "renderer": "letter_bridge",
+      "sources": [
+        "public/decks/learn_slovene_v0.2.0.zip",
+        "src/topics/renderers/letter_bridge",
+        "tools/learn_slovene/topic.json"
+      ],
+      "bundle": {
+        "version": "0.2.0",
+        "url": "./decks/learn_slovene_v0.2.0.zip",
+        "title": {
+          "ru": "Учим словенский",
+          "en": "Learning Slovenian"
+        },
+        "description": "Словенские печатные заглавные буквы для ребёнка, который читает по-русски. Каждая словенская буква учится рядом с русской, у которой тот же звук: S = С, Č = Ч. Выучив 25 пар, ребёнок читает словенские слова: SOK = СОК. Ответ — выбором, говорить не нужно.",
+        "renderer": "letter_bridge",
+        "modes": 6,
+        "cards": 25
+      },
       "builtin": false,
       "catalogEntry": {
         "id": "learn_slovene",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "title": {
           "ru": "Учим словенский",
           "en": "Learning Slovenian"
         },
         "description": {
-          "ru": "Одна вещь — два слова: дома слово звучит по-русски, в школе — по-словенски. Ребёнок выбирает картинку, говорить не нужно; русское слово постепенно становится подсказкой. Первый набор — школьный перекус (malica).",
-          "en": "One thing, two words: Russian at home, Slovenian at school. The child picks a picture; the Russian word turns into a prompt and fades. First set: the school snack (malica)."
+          "ru": "Словенские печатные буквы через русские: S = С, Č = Ч. Пары букв, ловушки (B = Б, P = П), слоги, чтение слов с гаснущей подсказкой кириллицей и сборка слов. Для ребёнка, который читает по-русски.",
+          "en": "Slovenian capitals through Russian letters with the same sound: letter pairs, look-alike traps, syllables, reading words with a fading Cyrillic hint, building words."
         },
-        "url": "./decks/learn_slovene_v0.1.0.zip",
-        "status": "individual",
+        "url": "./decks/learn_slovene_v0.2.0.zip",
+        "status": "beta",
         "access": "paid"
       },
-      "sourceUpdatedAt": null
+      "sourceUpdatedAt": "2026-10-23T05:42:23+00:00"
     },
     {
       "id": "letter_writing",
