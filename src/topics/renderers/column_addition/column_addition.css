@@ -709,3 +709,43 @@
 }
 .col-copy-result-btn--again { background: #e2e8f0; color: #1a1a2e; }
 
+/* «На планшете»: an example to open, the hint line, the trainer over the sheet. */
+.col-copy-expr-row--open { cursor: pointer; border-radius: 6px; }
+.col-copy-expr-row--open:active { background: rgba(59, 130, 246, 0.12); }
+.col-copy-cell-ask { color: #d97706; }
+.col-copy-tap-note {
+  margin-bottom: calc(16px + var(--app-safe-bottom, 0px));
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  font-family: system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+  text-align: center;
+}
+.col-copy-solve {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  background: #f0f6ff;
+}
+.col-copy-solve-back {
+  position: absolute;
+  top: 10px;
+  left: calc(10px + var(--app-safe-left, 0px));
+  z-index: 30;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(100, 130, 200, 0.25);
+  font-family: system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: #1a1a2e;
+}
+.col-copy-result-note { margin-top: -6px; text-align: center; font-size: 15px; color: #64748b; }
+.col-copy-result-slips { color: #b45309; font-size: 16px; }

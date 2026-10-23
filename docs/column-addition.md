@@ -29,6 +29,22 @@ no longer needed for the column.
     (reward video, then the session's `onCorrect`). Not written to session
     statistics yet.
   - Old saved «Разрядность» of this mode is not carried over: default is 2 + 2.
+  - «Где решаем: в тетради / на планшете» (`solveOn`, settings only — the
+    child can't switch it during the lesson). On the tablet the sheet has no
+    keypad: a tap on an example opens it in the trainer (`ColumnArithmeticTask`
+    with `noHints`: no 💡, no first-time hints card; compare on borrow as in the
+    trainer), «← К листу» goes back. A slip inside doesn't burn the example —
+    it counts once solved; the slips are counted, and the result says «Без
+    ошибок N из M», by kind, and «С ошибками по ходу» with the count.
+
+## Borrowing through a zero (fixed 2026-10-23)
+
+The trainer used to ask for «−1» over the 0 in 302 − 195 (≈6 % of 3-digit
+borrows got stuck: no such key). Now the school's order (`throughZero` in
+`buildSubColumns`/`buildSubSteps`): the ones borrow, the hundreds are crossed
+out first (3 → 2), then the 0 of the tens (→ 9), then the tens and hundreds are
+counted. A leading zero of the answer is not written (102 − 7 = 95, 52 − 47 =
+5): no step and no cell for it.
 
 ## Next
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode, generateCopySheet, COPY_KINDS, hasCarry, hasBorrow } from "./engine.js";
+import { generateTasks, taskNeedsBorrowTeaching, buildSubColumns, resolveCompareMode, generateCopySheet, COPY_KINDS, hasCarry, hasBorrow, columnTaskOfExample } from "./engine.js";
 
 const CARDS = [
   { id: "col_add", conceptId: "col_add", renderer: "column_addition", params: { operation: "add" } },
@@ -376,7 +376,8 @@ describe("buildSubSteps borrow/adjust step shape", () => {
 
   it("step order is borrow, result(lower) — finish the current column — then crossout, adjust, result(higher)", () => {
     const tasks = generateTasks("column_arithmetic", CARDS, 30, { operation: "subtract", carryMode: "carry", digits: 2 });
-    const t = tasks.find((task) => task.columns[0].borrowOut > 0);
+    // (52 − 47 = 5 has no tens to write — a leading zero is not written)
+    const t = tasks.find((task) => task.columns[0].borrowOut > 0 && task.result >= 10);
     expect(t.steps.map((s) => s.cellType)).toEqual(["borrow", "result", "crossout", "adjust", "result"]);
   });
 
@@ -456,3 +457,33 @@ describe("generateTasks – column_arithmetic with leftover finger cards", () =>
     expect(tasks.every(t => t.type === "column_arithmetic")).toBe(true);
   });
 });
+
+describe("borrowing through a zero (trainer and the tablet check)", () => {
+  const steps = (top, bottom) => columnTaskOfExample({ operation: "subtract", top, bottom }).steps
+    .map((st) => `${st.cellType}:${st.position}:${st.digit}`);
+
+  it("302 − 195: the hundreds give first, the 0 becomes 9 — never «−1»", () => {
+    expect(steps(302, 195)).toEqual([
+      "borrow:units:1", "result:units:7",
+      "crossout:hundreds:null", "adjust:hundreds:2",
+      "crossout:tens:null", "adjust:tens:9",
+      "result:tens:0", "result:hundreds:1",
+    ]);
+  });
+
+  it("no step asks for a digit outside 0–9, the result digits make the answer", () => {
+    const cards = [{ id: "s", conceptId: "s", renderer: "column_addition", params: { operation: "subtract" } }];
+    for (let run = 0; run < 100; run++) {
+      for (const t of generateTasks("column_arithmetic", cards, 10, { digits: run % 2 ? 3 : "zero", carryMode: "carry", operation: "subtract" })) {
+        expect(t.steps.every((st) => st.digit === null || (st.digit >= 0 && st.digit <= 9))).toBe(true);
+        const r = Object.fromEntries(t.steps.filter((st) => st.cellType === "result").map((st) => [st.position, st.digit]));
+        expect((r.hundreds ?? 0) * 100 + (r.tens ?? 0) * 10 + r.units).toBe(t.result);
+      }
+    }
+  });
+
+  it("102 − 7 = 95: no leading zero to write", () => {
+    expect(steps(102, 7).filter((st) => st.startsWith("result"))).toEqual(["result:units:5", "result:tens:9"]);
+  });
+});
+

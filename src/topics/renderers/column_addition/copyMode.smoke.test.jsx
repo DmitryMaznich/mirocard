@@ -4,6 +4,8 @@ import { describe, it, expect, afterEach, vi } from "vitest";
 import ColumnAdditionRenderer from "./index.jsx";
 
 Element.prototype.scrollIntoView ??= () => {};
+// jsdom has no matchMedia; the trainer's tap keyboard sizing needs one.
+window.matchMedia ??= () => ({ matches: false, addEventListener: () => {}, removeEventListener: () => {} });
 
 vi.mock("@/shared/components/RewardVideoModal", () => ({ default: ({ onDismiss }) => <button type="button" onClick={onDismiss}>reward</button> }));
 
@@ -49,5 +51,21 @@ describe("«Контрольная работа» (column_copy)", () => {
     press("Готово");
     press("reward");
     expect(onCorrect).toHaveBeenCalledTimes(1);
+  });
+
+  it("«На планшете»: no keypad on the sheet; a tap opens the example in the column, «← К листу» goes back", () => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    act(() => root.render(<ColumnAdditionRenderer mode={{ type: "column_copy" }} sessionParams={{ ...params, solveOn: "tablet" }} onCorrect={() => {}} student={{}} />));
+    expect(container.querySelector('button[aria-label="Проверить"]')).toBeNull();
+    expect(container.querySelectorAll(".col-copy-cell-ask")).toHaveLength(6);
+    act(() => rows()[0].click());
+    expect(container.querySelector(".col-copy-solve .col-problem")).not.toBeNull();
+    // No hints on the check.
+    expect(container.querySelector(".col-hint-toggle")).toBeNull();
+    press("← К листу");
+    expect(container.querySelector(".col-copy-solve")).toBeNull();
+    expect(container.querySelectorAll(".col-copy-cell-ask")).toHaveLength(6);
   });
 });

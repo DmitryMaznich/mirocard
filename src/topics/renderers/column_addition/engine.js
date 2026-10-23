@@ -40,7 +40,11 @@ export function buildSubColumns(top, bottom, digits, bottomDigits = digits) {
     const borrowOut = needsBorrow ? 1 : 0;
     const effectiveTopDigit = effective + (needsBorrow ? 10 : 0);
     const writeDigit = effectiveTopDigit - bd[i];
-    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], hasBottomDigit: i < bottomDigits, borrowIn: borrow, borrowOut, effectiveTopDigit, compareTopDigit: effective, writeDigit });
+    // A zero lent through (302 − 195: the ones borrow, the tens have 0): it
+    // borrows from the next place itself and is left with 9, written over the
+    // crossed-out 0 — never «−1». See buildSubSteps.
+    const throughZero = effective < 0;
+    cols.push({ position: POSITIONS[i], topDigit: td[i], bottomDigit: bd[i], hasBottomDigit: i < bottomDigits, borrowIn: borrow, borrowOut, effectiveTopDigit, compareTopDigit: throughZero ? 9 : effective, writeDigit, ...(throughZero ? { throughZero } : {}) });
     borrow = borrowOut;
   }
   return cols;
@@ -64,11 +68,30 @@ function buildSubSteps(columns) {
   for (let i = 0; i < columns.length; i++) {
     const col = columns[i];
     const next = columns[i + 1];
+    // The zero in the middle was settled when the column below it borrowed
+    // (the school's order: the hundreds give first, 3 → 2, then the 0 of the
+    // tens becomes 10 and gives one, 9): only its result is left.
+    if (col.throughZero) {
+      if (next || col.writeDigit !== 0) steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
+      continue;
+    }
+    if (col.borrowOut > 0 && next?.throughZero) {
+      const far = columns[i + 2];
+      steps.push({ cellType: "borrow", position: col.position, digit: 1 });
+      steps.push({ cellType: "result", position: col.position, digit: col.writeDigit });
+      steps.push({ cellType: "crossout", position: far.position, digit: null });
+      steps.push({ cellType: "adjust", position: far.position, digit: far.topDigit - 1 });
+      steps.push({ cellType: "crossout", position: next.position, digit: null });
+      steps.push({ cellType: "adjust", position: next.position, digit: 9 });
+      continue;
+    }
     if (col.borrowOut > 0 && next) {
       // "borrow" sits at the column that RECEIVES the extra ten (the one that
       // was short) — the child types "1" here to acknowledge the borrow.
       steps.push({ cellType: "borrow", position: col.position, digit: 1 });
     }
+    // 102 − 7 = 95: a leading zero is not written.
+    if (!next && i > 0 && col.writeDigit === 0) continue;
     // The current column is finished — borrowed if it needed to, then its
     // own result — BEFORE touching the source column at all. Only once this
     // column is fully done does work move to the source (crossout+adjust
@@ -420,6 +443,12 @@ export function generateCopySheet(count, params) {
   return sheet;
 }
 
+// «Контрольная работа» on the tablet: one example of the sheet as a trainer
+// task (the child sets it up in the column and solves it).
+export function columnTaskOfExample(ex) {
+  return trainerTaskFrom(ex, { id: "copy", conceptId: "copy" });
+}
+
 // «Разрядность» of the trainer that come from the sheet's kinds (3 + 2, 3 + 1,
 // круглые до 1000, с нулём): numbers as in the check, the grid as wide as the
 // top number — the answer never grows a place here (no «Новый разряд»).
@@ -427,7 +456,11 @@ const TRAINER_KINDS = { "3+2": "32", "3+1": "31", round: "round", zero: "zero" }
 
 function trainerTaskOfKind(kind, op, carryMode, card, usedPairs) {
   const ex = generateCopyExample(kind, op, carryMode, usedPairs);
-  if (!ex) return null;
+  return ex && trainerTaskFrom(ex, card);
+}
+
+function trainerTaskFrom(ex, card) {
+  const op = ex.operation;
   const digits = width(ex.top), bottomDigits = width(ex.bottom);
   const columns = op === "add" ? buildAddColumns(ex.top, ex.bottom, digits, bottomDigits) : buildSubColumns(ex.top, ex.bottom, digits, bottomDigits);
   return {

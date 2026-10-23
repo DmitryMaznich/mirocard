@@ -7,6 +7,7 @@ function overlap(a, b) {
 }
 
 const place = { units: "единицы", tens: "десятки", hundreds: "сотни" };
+const POS_INDEX_HINT = { units: 0, tens: 1, hundreds: 2 };
 
 function hintFor({ task, phase, formActiveStep, activeStep, showingCompare, solved }) {
   if (solved) return ["Готово", "Пример решён!", "Посмотри на ответ сверху и похвали себя за каждый выполненный шаг."];
@@ -22,7 +23,12 @@ function hintFor({ task, phase, formActiveStep, activeStep, showingCompare, solv
   const label = place[activeStep.position];
   if (activeStep.cellType === "carry") return ["Шаг 2", "Переносим десяток", `В ${label} получилось больше 9. Перенеси 1 в маленькую клетку сверху.`];
   if (activeStep.cellType === "borrow") return showingCompare ? ["Шаг 2", "Проверяем: хватает ли?", `Сравни ${col.compareTopDigit} и ${col.bottomDigit}. ${col.compareTopDigit} меньше ${col.bottomDigit}.`] : ["Шаг 2", "Занимаем десяток", `В ${label} не хватает единиц. Поставь маленькую 1.`];
+  // Borrowing through a zero (302 − 195): the hundreds give first, then the
+  // zero of the tens becomes 10 and gives one — 9 is left.
+  const lender = task.columns[POS_INDEX_HINT[activeStep.position] - 1];
+  if (activeStep.cellType === "crossout" && lender?.throughZero) return ["Шаг 2", "Занимаем через ноль", `В десятках 0 — занимать не из чего. Отдают сотни: проведи пальцем по цифре сотен.`];
   if (activeStep.cellType === "crossout") return ["Шаг 2", "Отдаём один десяток", `Проведи пальцем по цифре в разряде «${label}».`];
+  if (activeStep.cellType === "adjust" && col.throughZero) return ["Шаг 2", "Ноль стал девяткой", `Сотня — это 10 десятков, один отдали единицам: 10 − 1 = 9. Впиши 9 в маленький уголок.`];
   if (activeStep.cellType === "adjust") return ["Шаг 2", "Уменьшаем цифру", `${col.topDigit} − 1 = ${activeStep.digit}. Впиши ${activeStep.digit} в маленький уголок.`];
   // A shorter bottom number (e.g. "2-зн. + 1-зн.") has no digit at this
   // position — nothing to add or subtract, the top digit just comes down.
