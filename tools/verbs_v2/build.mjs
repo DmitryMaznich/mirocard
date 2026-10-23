@@ -2,6 +2,7 @@ import JSZip from "jszip";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { AVATAR_PATH, AVATAR_SVG, MODE_ICONS } from "./icons.mjs";
 
 const dir = dirname(fileURLToPath(import.meta.url));
 const deck = JSON.parse(readFileSync(join(dir, "deck.json"), "utf8"));
@@ -23,6 +24,13 @@ for (const file of [...files].sort()) {
   const source = join(dir, file);
   if (!existsSync(source)) throw new Error(`Missing ${file}`);
   zip.file(file, readFileSync(source));
+}
+
+// Avatar and mode icons are drawn in icons.mjs, not kept as files.
+const icons = new Map([[AVATAR_PATH, AVATAR_SVG], ...Object.values(MODE_ICONS).map(({ path, svg }) => [path, svg])]);
+for (const path of [deck.meta.avatar, ...deck.modes.map((m) => m.ui?.icon)].filter(Boolean)) {
+  if (icons.has(path)) zip.file(path, icons.get(path));
+  else if (!path.startsWith("media/icons/flashcards_")) throw new Error(`No icon for ${path}`);
 }
 
 const output = join(dir, "verbs_v2.zip");

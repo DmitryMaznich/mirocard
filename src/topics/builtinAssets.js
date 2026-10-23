@@ -878,15 +878,26 @@ const TOPIC_AVATAR_VARIANTS = {
   <circle cx="44" cy="88" r="4" fill="#cbd5e1"/>
   <circle cx="84" cy="88" r="4" fill="#cbd5e1"/>
 </svg>`,
+  // Same picture as the deck ZIP ships (tools/verbs_v2/icons.mjs), for the catalog before install.
   verbs_v2: `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#f5f3ff"/>
-  <circle cx="40" cy="38" r="12" fill="#fb7185"/>
-  <path d="M38 52 56 66 50 76 32 62z" fill="#fb7185"/>
-  <path d="M56 66 74 56 80 66 62 76z" fill="#8b5cf6"/>
-  <path d="M50 76 40 98" stroke="#1f2937" stroke-width="8" stroke-linecap="round"/>
-  <path d="M62 76 84 96" stroke="#1f2937" stroke-width="8" stroke-linecap="round"/>
-  <path d="M76 36h20l-8-8m8 8-8 8" fill="none" stroke="#22c55e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect width="128" height="128" rx="24" fill="#eef7f5"/>
+  <ellipse cx="66" cy="106" rx="30" ry="5" fill="#d3e8e3"/>
+  <g stroke="#ef6f5e" stroke-width="4" stroke-linecap="round">
+  <path d="M36 48 h-12"/>
+  <path d="M39 58 h-14"/>
+  <path d="M36 68 h-10"/>
+  </g>
+  <g transform="translate(70 78) scale(1.35)">
+  <circle cx="9" cy="-33" r="7" fill="#4a9b8f"/>
+  <g fill="none" stroke="#4a9b8f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 -25 L0 0"/>
+  <path d="M5 -19 L-5 -11 L-12 -14"/>
+  <path d="M5 -19 L15 -13 L20 -21"/>
+  <path d="M0 0 L12 5 L10 17"/>
+  <path d="M0 0 L-7 10 L-17 9"/>
+  </g>
+  </g>
 </svg>`,
   comparison: `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">

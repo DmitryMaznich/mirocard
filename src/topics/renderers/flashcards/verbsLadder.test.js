@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
+import JSZip from "jszip";
 import { openDb } from "@/core/db";
 import { importTopic, getTopicRecord } from "@/topics/topicLoader";
 import { generateTasks } from "./engine.js";
@@ -37,6 +38,11 @@ describe("verbs_v2 deck as the app loads it", () => {
     expect(reread.meta.groups.set5.ru).toBe("Набор 5");
     expect(reread.cards.find((c) => c.conceptId === "flies").group).toBe("set5");
     expect(reread.modes.find((m) => m.id === "verbs_intro").params.picturesPerConcept.default).toBe(4);
+    // A missing icon file draws nothing at all, so every path must be in the ZIP.
+    const zip = await JSZip.loadAsync(readFileSync("tools/verbs_v2/verbs_v2.zip"));
+    for (const path of [deck.meta.avatar, ...deck.modes.filter((m) => !m.retired).map((m) => m.ui.icon)]) {
+      expect(zip.file(path), path).not.toBeNull();
+    }
   });
 
   it("every mode builds tasks for wave 1 with its default params", () => {

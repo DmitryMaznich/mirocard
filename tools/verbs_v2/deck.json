@@ -5,7 +5,7 @@
       "ru": "Глаголы",
       "en": "verbs_v2"
     },
-    "version": "2.4.3",
+    "version": "2.4.4",
     "renderer": "flashcards",
     "conceptCount": 44,
     "questionKey": "Что делает?",
@@ -46,7 +46,8 @@
       "set5": {
         "ru": "Набор 5"
       }
-    }
+    },
+    "avatar": "media/avatar.svg"
   },
   "modes": [
     {
@@ -56,7 +57,7 @@
       "ui": {
         "title": "Знакомство",
         "instruction": "Посмотри и послушай",
-        "icon": "media/icons/flashcards_intro.svg"
+        "icon": "media/icons/verbs_intro.svg"
       },
       "methodology": {
         "summary": "Посмотри на действие и послушай, как оно называется.",
@@ -105,7 +106,7 @@
       "ui": {
         "title": "Сделай",
         "instruction": "Послушай и сделай",
-        "icon": "media/icons/flashcards_question_answer.svg"
+        "icon": "media/icons/verbs_act_out.svg"
       },
       "methodology": {
         "summary": "Звучит команда «Прыгай!» — ребёнок выполняет. Картинки сначала нет.",
@@ -129,7 +130,7 @@
         "title": "Покажи",
         "instruction": "Послушай и нажми на картинку",
         "promptTemplate": "Покажи: {label}",
-        "icon": "media/icons/flashcards_find_n.svg"
+        "icon": "media/icons/verbs_show.svg"
       },
       "stepPresets": {
         "1": {
@@ -184,7 +185,7 @@
       "ui": {
         "title": "Найди все картинки",
         "instruction": "Найди все картинки с этим действием",
-        "icon": "media/icons/flashcards_choose_all.svg",
+        "icon": "media/icons/verbs_choose_all.svg",
         "promptTemplate": "Найди все: {label}",
         "autoplayPrompt": true
       },
@@ -220,7 +221,7 @@
       "ui": {
         "title": "Что делает?",
         "instruction": "Что делает?",
-        "icon": "media/icons/flashcards_question_answer.svg",
+        "icon": "media/icons/verbs_question_answer.svg",
         "rating": "three"
       },
       "methodology": {
@@ -244,7 +245,7 @@
       "ui": {
         "title": "Выбери слово",
         "instruction": "Нажми на правильное слово",
-        "icon": "media/icons/flashcards_choose_word.svg"
+        "icon": "media/icons/verbs_choose_word.svg"
       },
       "methodology": {
         "summary": "По картинке выбери написанное слово — для читающих детей.",
