@@ -191,6 +191,43 @@ describe("propis2 (zip topic)", () => {
     host.remove();
   });
 
+  it("the computer layout: one tool bar, the notebook's pages as thumbnails (a click opens one), a status bar", async () => {
+    const before = window.matchMedia;
+    // a wide landscape screen: the editor's SIDE_QUERY matches
+    window.matchMedia = (q) => ({ matches: q.includes("min-width: 900px"), media: q, addEventListener() {}, removeEventListener() {} });
+    try {
+      const db = await freshDb();
+      const host = document.createElement("div");
+      document.body.appendChild(host);
+      const root = createRoot(host);
+      await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+      const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(60); }); };
+      const edit = '[data-testid="propis2-ready-card"] [aria-label="Изменить тетрадь 4. Буквы л м я о а ю с"]';
+      for (let i = 0; i < 40 && !host.querySelector(edit); i += 1) await act(async () => { await tick(100); }); // kits.json loads lazily
+      await click(host.querySelector(edit));
+      const editor = host.querySelector('[data-testid="propis2-editor"]');
+      expect(editor.classList.contains("propis2-editor2--desk")).toBe(true);
+      // the tools in one bar: undo, the paper, the row's tools, the zoom; no floating undo / zoom over the sheet
+      const bar = host.querySelector(".p2-desk-bar");
+      for (const name of ["Отменить", "Тип бумаги", "Разлиновка", "Повтор", "Элементы", "Удалить строку", "Увеличить"]) expect(bar.querySelector(`[aria-label="${name}"]`), name).not.toBeNull();
+      expect(host.querySelector(".p2-history")).toBeNull();
+      // the pages as thumbnails, the open one marked; a click on another opens it
+      const thumbs = host.querySelectorAll(".p2-thumb");
+      expect(thumbs).toHaveLength(24);
+      expect(host.querySelector('.p2-thumb[aria-current="page"]').getAttribute("aria-label")).toBe("Страница 1");
+      expect(host.querySelector(".p2-status").textContent).toContain("Стр. 1 из 24");
+      await click(host.querySelector('.p2-thumb[aria-label="Страница 3"]'));
+      expect(host.querySelector('.p2-thumb[aria-current="page"]').getAttribute("aria-label")).toBe("Страница 3");
+      expect(host.querySelector(".p2-status").textContent).toContain("Стр. 3 из 24");
+      // the page's own actions under the thumbnails
+      for (const name of ["Добавить страницу", "Копия страницы", "Переместить страницу раньше", "Удалить страницу из тетради"]) expect(host.querySelector(`.p2-thumbs [aria-label="${name}"]`), name).not.toBeNull();
+      await act(async () => { root.unmount(); await tick(100); });
+      host.remove();
+    } finally {
+      window.matchMedia = before;
+    }
+  }, 40000);
+
   it("« and » jump to the first / last page of the whole notebook, across its parts on different paper", async () => {
     const db = await freshDb();
     const host = document.createElement("div");

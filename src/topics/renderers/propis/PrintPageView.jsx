@@ -963,8 +963,9 @@ function layoutTaskPages(task) {
 
 // The top rows of the first page of a task, as printed (its own paper): the window on a notebook on its cover. `rows`: how much of
 // the page, in its rows.
+const TOP_DOCS = new WeakMap(); // task -> its layout: thumbnails of a notebook's pages are drawn again and again as the editor remounts
 export function PrintPageTop({ task, rows = 5 }) {
-  const doc = useMemo(() => layoutTaskPages(task), [task]);
+  const doc = useMemo(() => { if (!TOP_DOCS.has(task)) TOP_DOCS.set(task, layoutTaskPages(task)); return TOP_DOCS.get(task); }, [task]);
   const h = Math.min(doc.geom.h, doc.geom.h * ((rows + 0.6) / Math.max(1, doc.perPage)));
   return (
     <PrintPage page={doc.pages[0] ?? []} pageIndex={0} crop={{ x: 0, y: 0, w: doc.geom.w, h }} useElements={doc.useElements} wideRows={doc.wideRows} narrowRows={doc.narrowRows}

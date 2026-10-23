@@ -460,6 +460,11 @@ export default function Propis2Home({ db }) {
     const nav = navSet && navIndex >= 0 ? {
       index: navIndex,
       total: navSet.pageIds.length,
+      // the notebook's pages with its paper (the computer layout shows them as thumbnails to click), and a jump to any of them
+      // (the stored page objects themselves, so a thumbnail is laid out again only when its page changed; `layout`: what the notebook imposes)
+      pages: navSet.pageIds.map((id) => (id === page.id ? page : pagesById.get(id))).filter(Boolean),
+      layout: notebookLayout(navSet, pagesById),
+      onGo: (i) => goPage(navSet.pageIds[i]),
       onPrev: () => goPage(navSet.pageIds[navIndex - 1]),
       onNext: () => goPage(navSet.pageIds[navIndex + 1]),
       onMoveBefore: () => { const ids = [...navSet.pageIds]; [ids[navIndex - 1], ids[navIndex]] = [ids[navIndex], ids[navIndex - 1]]; edit(upsertSet(working, { ...navSet, pageIds: ids })); },
