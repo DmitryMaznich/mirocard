@@ -77,6 +77,24 @@ describe("activeSession helpers", () => {
     expect(restoreActiveSessionState(snapshot, { ...context, conceptIds: ["yachta"] })).toEqual(savedState);
     expect(restoreActiveSessionState(snapshot, { ...context, conceptIds: ["symmetry_house", "yachta"] })).toBeNull();
   });
+
+  it("starts a fresh session when the settings it was built with changed", () => {
+    const savedState = {
+      status: "task_active",
+      topicVersion: "1.4.0",
+      tasks: [{ type: "person_match" }],
+      statistics: { conditions: { params: { sample: "same", fieldSize: 2 } } },
+    };
+    const context = { studentId: "s1", topicId: "my_people", textId: null, modeId: "match_same", topicVersion: "1.4.0" };
+    const snapshot = { context, sessionState: savedState };
+
+    expect(restoreActiveSessionState(snapshot, { ...context, params: { fieldSize: 2, sample: "same" } })).toEqual(savedState);
+    expect(restoreActiveSessionState(snapshot, { ...context, params: { sample: "other", fieldSize: 2 } })).toBeNull();
+    expect(restoreActiveSessionState(snapshot, { ...context, params: { sample: "same", fieldSize: 2, voice: false } })).toBeNull();
+    // A snapshot from before the settings were recorded still resumes.
+    const legacy = { context, sessionState: { ...savedState, statistics: {} } };
+    expect(restoreActiveSessionState(legacy, { ...context, params: { sample: "other" } })).toEqual(legacy.sessionState);
+  });
 });
 
 describe("canResumeActiveSession", () => {

@@ -10,6 +10,7 @@ export const CATALOG_CATEGORIES = {
   sentence_puzzle:          "Чтение",
   vowel_consonant_ru:       "Чтение",
   magnetic_alphabet:        "Чтение",
+  learn_slovene:            "Чтение",
   comparison:               "Математика",
   comparison_language_pilot: "Математика",
   math_houses:              "Математика",

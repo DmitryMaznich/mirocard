@@ -21,6 +21,7 @@ import PropisRenderer               from "./renderers/propis/index.jsx";
 import Propis2Renderer              from "./renderers/propis2/index.jsx";
 import MyPeopleRenderer             from "./renderers/my_people/index.jsx";
 import DailyOrientationRenderer     from "./renderers/daily_orientation/index.jsx";
+import LetterBridgeRenderer         from "./renderers/letter_bridge/index.jsx";
 
 import ComparisonLanguagePilotRenderer from "./renderers/comparison_language_pilot/index.jsx";
 
@@ -49,4 +50,5 @@ export const RENDERER_REGISTRY = {
   propis2:               Propis2Renderer,
   my_people:             MyPeopleRenderer,
   daily_orientation:     DailyOrientationRenderer,
+  letter_bridge:         LetterBridgeRenderer,
 };

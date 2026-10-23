@@ -1,0 +1,163 @@
+/* «Учим словенский» (letter_bridge). Slovenian letter = blue (school),
+   Russian letter = orange (home); traps get a red dashed frame. Own file on
+   purpose — see the per-family convention in designing-mirocard-screens. */
+
+.lb-stage {
+  --lb-sl: #1d4ed8;
+  --lb-sl-line: #2563eb;
+  --lb-sl-tint: #e8f0ff;
+  --lb-ru: #9a3f06;
+  --lb-ru-line: #c2570c;
+  --lb-ru-tint: #fff1e2;
+  --lb-trap: #dc2626;
+  background: #fdfcf9;
+  font-family: "Nunito", sans-serif;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 4vh, 40px);
+  padding: 16px calc(16px + var(--app-safe-right, 0px)) calc(16px + var(--app-safe-bottom, 0px)) calc(16px + var(--app-safe-left, 0px));
+}
+
+.lb-card {
+  position: relative;
+  box-sizing: border-box;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  line-height: 1;
+}
+.lb-card--sl { background: var(--lb-sl-tint); border: 5px solid var(--lb-sl-line); color: var(--lb-sl); }
+.lb-card--ru { background: var(--lb-ru-tint); border: 5px solid var(--lb-ru-line); color: var(--lb-ru); }
+.lb-card--trap { outline: 4px dashed var(--lb-trap); outline-offset: 8px; }
+.lb-card--big { width: min(34vw, 44vh, 300px); height: min(38vw, 50vh, 330px); font-size: min(24vw, 33vh, 220px); }
+.lb-card--mid { min-width: min(30vw, 32vh, 220px); height: min(30vw, 32vh, 220px); padding: 0 24px; font-size: min(20vw, 23vh, 150px); }
+.lb-card--wide { letter-spacing: 0.05em; }
+.lb-card--word { padding: 8px clamp(18px, 4vw, 40px); font-size: min(12vw, 16vh, 116px); letter-spacing: 0.08em; }
+.lb-card--cue { padding: 6px 20px; font-size: min(8vw, 9vh, 64px); letter-spacing: 0.1em; border-width: 4px; }
+
+.lb-trap-tag {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--lb-trap);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
+.lb-pair { display: flex; align-items: center; gap: clamp(16px, 4vw, 40px); }
+.lb-pair__col { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.lb-label { font-size: 14px; font-weight: 800; letter-spacing: 0.5px; }
+.lb-label--ru { color: var(--lb-ru); }
+.lb-label--sl { color: var(--lb-sl); }
+.lb-eq { font-size: clamp(40px, 8vw, 90px); font-weight: 900; color: #9ca3af; }
+.lb-appear { animation: lb-appear 0.5s 0.6s ease-out both; }
+@keyframes lb-appear { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: none; } }
+
+.lb-opts { display: flex; gap: clamp(12px, 3vw, 28px); flex-wrap: wrap; justify-content: center; }
+.lb-opt {
+  position: relative;
+  min-width: min(20vw, 22vh, 170px);
+  height: min(20vw, 22vh, 170px);
+  padding: 0 16px;
+  box-sizing: border-box;
+  border-radius: 24px;
+  background: #fff;
+  border: 3px solid #e5e7eb;
+  box-shadow: 0 6px 18px rgba(31, 41, 55, 0.08);
+  font-family: inherit;
+  font-weight: 900;
+  font-size: min(13vw, 14vh, 112px);
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.25s ease, opacity 0.3s ease, border-color 0.2s ease, background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lb-opt--ru { color: var(--lb-ru); }
+.lb-opt--sl { color: var(--lb-sl); }
+.lb-opt--wide { font-size: min(10vw, 11vh, 84px); padding: 0 24px; }
+.lb-opt--pic { padding: min(1.5vw, 12px); width: min(30vw, 34vh, 260px); height: min(30vw, 34vh, 260px); }
+.lb-opt--pic img { width: 100%; height: 100%; object-fit: contain; border-radius: 16px; pointer-events: none; }
+.lb-img-loading { width: 100%; height: 100%; border-radius: 16px; background: #f3f4f6; }
+.lb-opt--faded { opacity: 0.3; }
+.lb-opt--hint { border: 5px solid var(--lb-sl-line); box-shadow: 0 0 0 10px rgba(37, 99, 235, 0.18); transform: scale(1.06); }
+.lb-opt--correct { border: 5px solid #16a34a; background: #f0fdf4; transform: scale(1.08); }
+.lb-opt--shake { animation: lb-shake 0.4s ease; }
+@keyframes lb-shake {
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.lb-word { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.lb-translit { font-size: min(6vw, 7vh, 46px); font-weight: 900; letter-spacing: 0.3em; color: var(--lb-ru); transition: opacity 0.3s ease; }
+
+.lb-cue { display: flex; align-items: center; gap: clamp(12px, 3vw, 28px); }
+.lb-cue__img { width: min(18vw, 20vh, 150px); height: min(18vw, 20vh, 150px); display: flex; border-radius: 20px; background: #fff; border: 3px solid #e5e7eb; overflow: hidden; }
+.lb-cue__img img { width: 100%; height: 100%; object-fit: contain; }
+.lb-slots { display: flex; gap: clamp(6px, 1.5vw, 14px); flex-wrap: wrap; justify-content: center; }
+.lb-slot {
+  width: min(11vw, 13vh, 110px);
+  height: min(13vw, 15vh, 130px);
+  box-sizing: border-box;
+  border-radius: 16px;
+  border: 4px dashed #94a3b8;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: min(9vw, 10vh, 86px);
+  color: var(--lb-sl);
+  transition: border-color 0.15s, background 0.15s;
+}
+.lb-slot--filled { border: 4px solid var(--lb-sl-line); background: var(--lb-sl-tint); }
+.lb-tray { display: flex; gap: clamp(8px, 2vw, 16px); padding: 12px 18px; border-radius: 22px; background: #f1f5f9; flex-wrap: wrap; justify-content: center; }
+.lb-tile {
+  width: min(10vw, 12vh, 96px);
+  height: min(10vw, 12vh, 96px);
+  border-radius: 16px;
+  border: 0;
+  background: #fff;
+  box-shadow: 0 4px 0 #cbd5e1;
+  font-family: inherit;
+  font-weight: 900;
+  font-size: min(7vw, 8vh, 64px);
+  color: var(--lb-sl);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.lb-tile:active { transform: translateY(3px); box-shadow: none; }
+.lb-tile:disabled { visibility: hidden; }
+.lb-tile--shake { animation: lb-shake 0.4s ease; }
+
+.lb-next {
+  min-width: 200px;
+  min-height: 60px;
+  border: 0;
+  border-radius: 18px;
+  background: #4a9b8f;
+  box-shadow: 0 4px 0 #2a6b60;
+  color: #fff;
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.lb-next:active { transform: translateY(4px); box-shadow: none; }
+.lb-need-more { max-width: 32ch; margin: 0; text-align: center; font-size: 20px; font-weight: 700; color: #374151; line-height: 1.45; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lb-opt, .lb-appear, .lb-opt--shake, .lb-tile--shake { animation: none; transition: none; }
+}

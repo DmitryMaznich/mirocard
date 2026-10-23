@@ -102,8 +102,8 @@
         "en": "44 everyday verbs in five sets, from picking a picture by the spoken word to telling similar actions apart. Audio included."
       },
       "url": "./decks/verbs_v2_v2.4.3.zip",
-      "status": "beta",
-      "access": "paid"
+      "status": "release",
+      "access": "free"
     },
     {
       "id": "transport_photo",
@@ -386,6 +386,21 @@
       },
       "url": "./decks/propis2_bg_v0.5.4.zip",
       "status": "individual",
+      "access": "paid"
+    },
+    {
+      "id": "learn_slovene",
+      "version": "0.2.0",
+      "title": {
+        "ru": "Учим словенский",
+        "en": "Learning Slovenian"
+      },
+      "description": {
+        "ru": "Словенские печатные буквы через русские: S = С, Č = Ч. Пары букв, ловушки (B = Б, P = П), слоги, чтение слов с гаснущей подсказкой кириллицей и сборка слов. Для ребёнка, который читает по-русски.",
+        "en": "Slovenian capitals through Russian letters with the same sound: letter pairs, look-alike traps, syllables, reading words with a fading Cyrillic hint, building words."
+      },
+      "url": "./decks/learn_slovene_v0.2.0.zip",
+      "status": "beta",
       "access": "paid"
     },
     {

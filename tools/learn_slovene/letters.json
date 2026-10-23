@@ -1,0 +1,30 @@
+{
+  "groups": [
+    { "id": "g1", "title": "1 · Друзья", "pairs": "A:А E:Е K:К M:М O:О T:Т" },
+    { "id": "g2", "title": "2 · Звук тот же", "pairs": "S:С R:Р N:Н L:Л I:И U:У V:В Z:З D:Д G:Г F:Ф J:Й" },
+    { "id": "g3", "title": "3 · Шапочки", "pairs": "Č:Ч Š:Ш Ž:Ж" },
+    { "id": "g4", "title": "4 · Ловушки", "pairs": "B:Б C:Ц H:Х P:П" }
+  ],
+  "twins": { "B": "В", "C": "С", "H": "Н", "P": "Р" },
+  "vowels": ["A", "E", "I", "O", "U"],
+  "near": {
+    "S": "ŠZ", "Š": "SŽ", "Z": "ŽS", "Ž": "ZŠ", "C": "ČS", "Č": "CŠ", "K": "GH", "G": "K", "T": "D", "D": "T",
+    "P": "B", "B": "PV", "V": "BF", "F": "V", "M": "N", "N": "ML", "L": "NR", "R": "L", "H": "K", "J": "I",
+    "A": "OE", "O": "AU", "E": "IA", "I": "EU", "U": "OI"
+  },
+  "words": [
+    { "id": "voda", "sl": "VODA", "ru": "ВОДА" },
+    { "id": "sok", "sl": "SOK", "ru": "СОК" },
+    { "id": "caj", "sl": "ČAJ", "ru": "ЧАЙ" },
+    { "id": "sir", "sl": "SIR", "ru": "СИР" },
+    { "id": "kapa", "sl": "KAPA", "ru": "КАПА" },
+    { "id": "zoga", "sl": "ŽOGA", "ru": "ЖОГА" },
+    { "id": "mleko", "sl": "MLEKO", "ru": "МЛЕКО" },
+    { "id": "banana", "sl": "BANANA", "ru": "БАНАНА" },
+    { "id": "hruska", "sl": "HRUŠKA", "ru": "ХРУШКА" },
+    { "id": "jabolko", "sl": "JABOLKO", "ru": "ЯБОЛКО" },
+    { "id": "knjiga", "sl": "KNJIGA", "ru": "КНЬИГА" },
+    { "id": "skarje", "sl": "ŠKARJE", "ru": "ШКАРЬЕ" },
+    { "id": "svincnik", "sl": "SVINČNIK", "ru": "СВИНЧНИК" }
+  ]
+}

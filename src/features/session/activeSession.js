@@ -54,8 +54,18 @@ export function restoreActiveSessionState(snapshot, context) {
   // version. Never revive an earlier queue in that case: it would make the
   // picker show the new selection while the child still sees the old cards.
   if (Array.isArray(context.conceptIds) && !sameConceptIds(normalized.sessionState.conceptIds, context.conceptIds)) return null;
+  // Nor one built with other settings: the tasks were generated from them
+  // («Найди такого же» resumed on «Одинаковое фото» while «Другое фото» was
+  // chosen). Snapshots from before conditions were recorded still resume.
+  const savedParams = normalized.sessionState.statistics?.conditions?.params;
+  if (context.params && savedParams && !sameParams(savedParams, context.params)) return null;
 
   return normalized.sessionState;
+}
+
+function sameParams(saved, expected) {
+  const keys = new Set([...Object.keys(saved), ...Object.keys(expected)]);
+  return [...keys].every((key) => JSON.stringify(saved[key]) === JSON.stringify(expected[key]));
 }
 
 function sameConceptIds(saved, expected) {

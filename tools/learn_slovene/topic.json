@@ -1,0 +1,792 @@
+{
+  "meta": {
+    "id": "learn_slovene",
+    "version": "0.2.0",
+    "renderer": "letter_bridge",
+    "title": {
+      "ru": "Учим словенский",
+      "en": "Learning Slovenian"
+    },
+    "avatar": "media/avatar.svg",
+    "groups": {
+      "g1": {
+        "ru": "1 · Друзья"
+      },
+      "g2": {
+        "ru": "2 · Звук тот же"
+      },
+      "g3": {
+        "ru": "3 · Шапочки"
+      },
+      "g4": {
+        "ru": "4 · Ловушки"
+      }
+    },
+    "about": {
+      "description": "Словенские печатные заглавные буквы для ребёнка, который читает по-русски. Каждая словенская буква учится рядом с русской, у которой тот же звук: S = С, Č = Ч. Выучив 25 пар, ребёнок читает словенские слова: SOK = СОК. Ответ — выбором, говорить не нужно.",
+      "goals": [
+        "Знать 25 пар «словенская буква — русская буква с тем же звуком».",
+        "Не путать ловушки: B = Б, C = Ц, H = Х, P = П.",
+        "Читать словенские слоги и слова, сначала с подсказкой кириллицей."
+      ],
+      "finalGoal": "Ребёнок читает короткие словенские слова без подсказки и собирает их из латинских букв.",
+      "flow": [
+        "Буквы выбираются в «Изменить» под точками, по группам: сначала «Друзья» (A E K M O T), потом «Звук тот же» по 3 буквы, потом «Шапочки», «Ловушки» — в конце.",
+        "Новые буквы: режим 1, потом 2. Ловушки — режим 3. Когда букв достаточно — слоги (4), слова (5), сборка слова (6).",
+        "Буква знакома, когда её точка стала зелёной: несколько занятий подряд без ошибок."
+      ]
+    }
+  },
+  "cards": [
+    {
+      "id": "letter_A",
+      "conceptId": "A",
+      "primary": true,
+      "sl": "A",
+      "ru": "А",
+      "label": "A = А",
+      "group": "g1"
+    },
+    {
+      "id": "letter_E",
+      "conceptId": "E",
+      "primary": true,
+      "sl": "E",
+      "ru": "Е",
+      "label": "E = Е",
+      "group": "g1"
+    },
+    {
+      "id": "letter_K",
+      "conceptId": "K",
+      "primary": true,
+      "sl": "K",
+      "ru": "К",
+      "label": "K = К",
+      "group": "g1"
+    },
+    {
+      "id": "letter_M",
+      "conceptId": "M",
+      "primary": true,
+      "sl": "M",
+      "ru": "М",
+      "label": "M = М",
+      "group": "g1"
+    },
+    {
+      "id": "letter_O",
+      "conceptId": "O",
+      "primary": true,
+      "sl": "O",
+      "ru": "О",
+      "label": "O = О",
+      "group": "g1"
+    },
+    {
+      "id": "letter_T",
+      "conceptId": "T",
+      "primary": true,
+      "sl": "T",
+      "ru": "Т",
+      "label": "T = Т",
+      "group": "g1"
+    },
+    {
+      "id": "letter_S",
+      "conceptId": "S",
+      "primary": false,
+      "sl": "S",
+      "ru": "С",
+      "label": "S = С",
+      "group": "g2"
+    },
+    {
+      "id": "letter_R",
+      "conceptId": "R",
+      "primary": false,
+      "sl": "R",
+      "ru": "Р",
+      "label": "R = Р",
+      "group": "g2"
+    },
+    {
+      "id": "letter_N",
+      "conceptId": "N",
+      "primary": false,
+      "sl": "N",
+      "ru": "Н",
+      "label": "N = Н",
+      "group": "g2"
+    },
+    {
+      "id": "letter_L",
+      "conceptId": "L",
+      "primary": false,
+      "sl": "L",
+      "ru": "Л",
+      "label": "L = Л",
+      "group": "g2"
+    },
+    {
+      "id": "letter_I",
+      "conceptId": "I",
+      "primary": false,
+      "sl": "I",
+      "ru": "И",
+      "label": "I = И",
+      "group": "g2"
+    },
+    {
+      "id": "letter_U",
+      "conceptId": "U",
+      "primary": false,
+      "sl": "U",
+      "ru": "У",
+      "label": "U = У",
+      "group": "g2"
+    },
+    {
+      "id": "letter_V",
+      "conceptId": "V",
+      "primary": false,
+      "sl": "V",
+      "ru": "В",
+      "label": "V = В",
+      "group": "g2"
+    },
+    {
+      "id": "letter_Z",
+      "conceptId": "Z",
+      "primary": false,
+      "sl": "Z",
+      "ru": "З",
+      "label": "Z = З",
+      "group": "g2"
+    },
+    {
+      "id": "letter_D",
+      "conceptId": "D",
+      "primary": false,
+      "sl": "D",
+      "ru": "Д",
+      "label": "D = Д",
+      "group": "g2"
+    },
+    {
+      "id": "letter_G",
+      "conceptId": "G",
+      "primary": false,
+      "sl": "G",
+      "ru": "Г",
+      "label": "G = Г",
+      "group": "g2"
+    },
+    {
+      "id": "letter_F",
+      "conceptId": "F",
+      "primary": false,
+      "sl": "F",
+      "ru": "Ф",
+      "label": "F = Ф",
+      "group": "g2"
+    },
+    {
+      "id": "letter_J",
+      "conceptId": "J",
+      "primary": false,
+      "sl": "J",
+      "ru": "Й",
+      "label": "J = Й",
+      "group": "g2"
+    },
+    {
+      "id": "letter_Č",
+      "conceptId": "Č",
+      "primary": false,
+      "sl": "Č",
+      "ru": "Ч",
+      "label": "Č = Ч",
+      "group": "g3"
+    },
+    {
+      "id": "letter_Š",
+      "conceptId": "Š",
+      "primary": false,
+      "sl": "Š",
+      "ru": "Ш",
+      "label": "Š = Ш",
+      "group": "g3"
+    },
+    {
+      "id": "letter_Ž",
+      "conceptId": "Ž",
+      "primary": false,
+      "sl": "Ž",
+      "ru": "Ж",
+      "label": "Ž = Ж",
+      "group": "g3"
+    },
+    {
+      "id": "letter_B",
+      "conceptId": "B",
+      "primary": false,
+      "sl": "B",
+      "ru": "Б",
+      "label": "B = Б",
+      "group": "g4"
+    },
+    {
+      "id": "letter_C",
+      "conceptId": "C",
+      "primary": false,
+      "sl": "C",
+      "ru": "Ц",
+      "label": "C = Ц",
+      "group": "g4"
+    },
+    {
+      "id": "letter_H",
+      "conceptId": "H",
+      "primary": false,
+      "sl": "H",
+      "ru": "Х",
+      "label": "H = Х",
+      "group": "g4"
+    },
+    {
+      "id": "letter_P",
+      "conceptId": "P",
+      "primary": false,
+      "sl": "P",
+      "ru": "П",
+      "label": "P = П",
+      "group": "g4"
+    }
+  ],
+  "modes": [
+    {
+      "id": "lb_pair",
+      "type": "lb_pair",
+      "evaluation": "none",
+      "ui": {
+        "title": "1. Пара букв"
+      },
+      "twins": {
+        "B": "В",
+        "C": "С",
+        "H": "Н",
+        "P": "Р"
+      },
+      "methodology": {
+        "summary": "Русская буква и рядом словенская с тем же звуком.",
+        "text": "Слева русская буква — её ребёнок читает сам. Рядом появляется словенская. «Дальше» — следующая пара. Ловушки отмечены красной рамкой. Ошибиться нельзя.",
+        "goal": "Связать новую букву со знакомой русской.",
+        "duration": "1–2 минуты",
+        "tips": [
+          "Новые буквы — по 3 за раз, остальные — уже знакомые.",
+          "Попросите прочитать русскую букву вслух, если ребёнок может."
+        ]
+      }
+    },
+    {
+      "id": "lb_find",
+      "type": "lb_find",
+      "evaluation": "instant",
+      "finite": true,
+      "paramsScope": "mode",
+      "ui": {
+        "title": "2. Найди пару"
+      },
+      "methodology": {
+        "summary": "Видна буква — найти её пару среди трёх.",
+        "text": "S → С: словенская буква, выбрать русскую. С → S — наоборот. Неверный вариант бледнеет без резкого звука, правильный подсвечивается; ответ после этого считается «с помощью».",
+        "goal": "Узнавать каждую словенскую букву без подсказки.",
+        "duration": "2–3 минуты",
+        "tips": [
+          "Начните с S → С: читать русскую ребёнку проще."
+        ]
+      },
+      "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Заданий в занятии"
+          },
+          "values": [
+            6,
+            10,
+            15
+          ],
+          "labels": {
+            "ru": {
+              "6": "6",
+              "10": "10",
+              "15": "15"
+            }
+          },
+          "default": 6
+        },
+        "direction": {
+          "type": "enum",
+          "label": {
+            "ru": "Направление"
+          },
+          "values": [
+            "sl_ru",
+            "ru_sl",
+            "mix"
+          ],
+          "labels": {
+            "ru": {
+              "sl_ru": "S → С",
+              "ru_sl": "С → S",
+              "mix": "Вперемешку"
+            }
+          },
+          "default": "sl_ru",
+          "hint": {
+            "ru": "S → С: видна словенская буква, выбрать русскую. С → S — наоборот."
+          }
+        }
+      }
+    },
+    {
+      "id": "lb_trap",
+      "type": "lb_trap",
+      "evaluation": "instant",
+      "finite": true,
+      "paramsScope": "mode",
+      "ui": {
+        "title": "3. Ловушки"
+      },
+      "methodology": {
+        "summary": "B C H P против русских двойников В С Н Р.",
+        "text": "Словенская буква-ловушка и два варианта: двойник (похож на вид) и настоящая пара (тот же звук). Ребёнок, читающий по-русски, на автомате прочтёт P как «Р» — поэтому отдельный тренажёр.",
+        "goal": "B = Б, C = Ц, H = Х, P = П — без ошибок.",
+        "duration": "1–2 минуты",
+        "tips": [
+          "Режим работает и без выбора группы «Ловушки»: в нём всегда четыре ловушки."
+        ]
+      },
+      "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Заданий в занятии"
+          },
+          "values": [
+            6,
+            10,
+            15
+          ],
+          "labels": {
+            "ru": {
+              "6": "6",
+              "10": "10",
+              "15": "15"
+            }
+          },
+          "default": 6
+        }
+      },
+      "twins": {
+        "B": "В",
+        "C": "С",
+        "H": "Н",
+        "P": "Р"
+      }
+    },
+    {
+      "id": "lb_syll",
+      "type": "lb_syll",
+      "evaluation": "instant",
+      "finite": true,
+      "paramsScope": "mode",
+      "ui": {
+        "title": "4. Слоги"
+      },
+      "methodology": {
+        "summary": "Прочитать словенский слог, выбрать русский.",
+        "text": "Слоги собираются из выбранных букв: MA, SO, ŠU. Неверные варианты отличаются одной похожей буквой (SO / ŠO / ZO).",
+        "goal": "Читать слоги из новых букв.",
+        "duration": "2–3 минуты",
+        "tips": [
+          "Нужны и гласные, и согласные — хотя бы «Друзья»."
+        ]
+      },
+      "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Заданий в занятии"
+          },
+          "values": [
+            6,
+            10,
+            15
+          ],
+          "labels": {
+            "ru": {
+              "6": "6",
+              "10": "10",
+              "15": "15"
+            }
+          },
+          "default": 6
+        }
+      },
+      "vowels": [
+        "A",
+        "E",
+        "I",
+        "O",
+        "U"
+      ],
+      "near": {
+        "S": "ŠZ",
+        "Š": "SŽ",
+        "Z": "ŽS",
+        "Ž": "ZŠ",
+        "C": "ČS",
+        "Č": "CŠ",
+        "K": "GH",
+        "G": "K",
+        "T": "D",
+        "D": "T",
+        "P": "B",
+        "B": "PV",
+        "V": "BF",
+        "F": "V",
+        "M": "N",
+        "N": "ML",
+        "L": "NR",
+        "R": "L",
+        "H": "K",
+        "J": "I",
+        "A": "OE",
+        "O": "AU",
+        "E": "IA",
+        "I": "EU",
+        "U": "OI"
+      }
+    },
+    {
+      "id": "lb_word",
+      "type": "lb_word",
+      "evaluation": "instant",
+      "finite": true,
+      "paramsScope": "mode",
+      "ui": {
+        "title": "5. Слова"
+      },
+      "methodology": {
+        "summary": "Прочитать словенское слово, выбрать картинку.",
+        "text": "Под словом — подсказка кириллицей (VODA — ВОДА); она бледнеет и исчезает, когда ребёнок читает слово сам. После ответа слово звучит так, как его говорят в школе.",
+        "goal": "Читать короткие словенские слова без подсказки.",
+        "duration": "2–3 минуты",
+        "tips": [
+          "Слова появляются, только когда выбраны все их буквы: с одной группой «Друзья» слов нет."
+        ]
+      },
+      "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Заданий в занятии"
+          },
+          "values": [
+            6,
+            10,
+            15
+          ],
+          "labels": {
+            "ru": {
+              "6": "6",
+              "10": "10",
+              "15": "15"
+            }
+          },
+          "default": 6
+        },
+        "hint": {
+          "type": "enum",
+          "label": {
+            "ru": "Подсказка кириллицей"
+          },
+          "values": [
+            "auto",
+            "bright",
+            "faint",
+            "none"
+          ],
+          "labels": {
+            "ru": {
+              "auto": "Сама",
+              "bright": "Ярко",
+              "faint": "Бледно",
+              "none": "Нет"
+            }
+          },
+          "default": "auto",
+          "hint": {
+            "ru": "«Сама»: ярко, после двух прочтений слова без ошибки — бледно, после четырёх — нет."
+          }
+        }
+      },
+      "words": [
+        {
+          "id": "voda",
+          "sl": "VODA",
+          "ru": "ВОДА",
+          "image": "media/voda_1.webp",
+          "audio": "audio/sl/voda.mp3"
+        },
+        {
+          "id": "sok",
+          "sl": "SOK",
+          "ru": "СОК",
+          "image": "media/sok_1.webp",
+          "audio": "audio/sl/sok.mp3"
+        },
+        {
+          "id": "caj",
+          "sl": "ČAJ",
+          "ru": "ЧАЙ",
+          "image": "media/caj_1.webp",
+          "audio": "audio/sl/caj.mp3"
+        },
+        {
+          "id": "sir",
+          "sl": "SIR",
+          "ru": "СИР",
+          "image": "media/sir_1.webp",
+          "audio": "audio/sl/sir.mp3"
+        },
+        {
+          "id": "kapa",
+          "sl": "KAPA",
+          "ru": "КАПА",
+          "image": "media/kapa_1.webp",
+          "audio": "audio/sl/kapa.mp3"
+        },
+        {
+          "id": "zoga",
+          "sl": "ŽOGA",
+          "ru": "ЖОГА",
+          "image": "media/zoga_1.webp",
+          "audio": "audio/sl/zoga.mp3"
+        },
+        {
+          "id": "mleko",
+          "sl": "MLEKO",
+          "ru": "МЛЕКО",
+          "image": "media/mleko_1.webp",
+          "audio": "audio/sl/mleko.mp3"
+        },
+        {
+          "id": "banana",
+          "sl": "BANANA",
+          "ru": "БАНАНА",
+          "image": "media/banana_1.webp",
+          "audio": "audio/sl/banana.mp3"
+        },
+        {
+          "id": "hruska",
+          "sl": "HRUŠKA",
+          "ru": "ХРУШКА",
+          "image": "media/hruska_1.webp",
+          "audio": "audio/sl/hruska.mp3"
+        },
+        {
+          "id": "jabolko",
+          "sl": "JABOLKO",
+          "ru": "ЯБОЛКО",
+          "image": "media/jabolko_1.webp",
+          "audio": "audio/sl/jabolko.mp3"
+        },
+        {
+          "id": "knjiga",
+          "sl": "KNJIGA",
+          "ru": "КНЬИГА",
+          "image": "media/knjiga_1.webp",
+          "audio": "audio/sl/knjiga.mp3"
+        },
+        {
+          "id": "skarje",
+          "sl": "ŠKARJE",
+          "ru": "ШКАРЬЕ",
+          "image": "media/skarje_1.webp",
+          "audio": "audio/sl/skarje.mp3"
+        },
+        {
+          "id": "svincnik",
+          "sl": "SVINČNIK",
+          "ru": "СВИНЧНИК",
+          "image": "media/svincnik_1.webp",
+          "audio": "audio/sl/svincnik.mp3"
+        }
+      ]
+    },
+    {
+      "id": "lb_build",
+      "type": "lb_build",
+      "evaluation": "instant",
+      "finite": true,
+      "paramsScope": "mode",
+      "ui": {
+        "title": "6. Собери слово"
+      },
+      "methodology": {
+        "summary": "Собрать словенское слово из латинских плиток.",
+        "text": "Картинка и русское слово (СОК) → собрать SOK. Среди плиток 1–2 похожие лишние. Неверная плитка вздрагивает и остаётся на месте.",
+        "goal": "Писать короткие словенские слова — пока без моторики.",
+        "duration": "2–3 минуты",
+        "tips": [
+          "Потом то же слово можно написать в тетради печатными буквами."
+        ]
+      },
+      "params": {
+        "taskCount": {
+          "type": "enum",
+          "label": {
+            "ru": "Заданий в занятии"
+          },
+          "values": [
+            6,
+            10,
+            15
+          ],
+          "labels": {
+            "ru": {
+              "6": "6",
+              "10": "10",
+              "15": "15"
+            }
+          },
+          "default": 6
+        }
+      },
+      "words": [
+        {
+          "id": "voda",
+          "sl": "VODA",
+          "ru": "ВОДА",
+          "image": "media/voda_1.webp",
+          "audio": "audio/sl/voda.mp3"
+        },
+        {
+          "id": "sok",
+          "sl": "SOK",
+          "ru": "СОК",
+          "image": "media/sok_1.webp",
+          "audio": "audio/sl/sok.mp3"
+        },
+        {
+          "id": "caj",
+          "sl": "ČAJ",
+          "ru": "ЧАЙ",
+          "image": "media/caj_1.webp",
+          "audio": "audio/sl/caj.mp3"
+        },
+        {
+          "id": "sir",
+          "sl": "SIR",
+          "ru": "СИР",
+          "image": "media/sir_1.webp",
+          "audio": "audio/sl/sir.mp3"
+        },
+        {
+          "id": "kapa",
+          "sl": "KAPA",
+          "ru": "КАПА",
+          "image": "media/kapa_1.webp",
+          "audio": "audio/sl/kapa.mp3"
+        },
+        {
+          "id": "zoga",
+          "sl": "ŽOGA",
+          "ru": "ЖОГА",
+          "image": "media/zoga_1.webp",
+          "audio": "audio/sl/zoga.mp3"
+        },
+        {
+          "id": "mleko",
+          "sl": "MLEKO",
+          "ru": "МЛЕКО",
+          "image": "media/mleko_1.webp",
+          "audio": "audio/sl/mleko.mp3"
+        },
+        {
+          "id": "banana",
+          "sl": "BANANA",
+          "ru": "БАНАНА",
+          "image": "media/banana_1.webp",
+          "audio": "audio/sl/banana.mp3"
+        },
+        {
+          "id": "hruska",
+          "sl": "HRUŠKA",
+          "ru": "ХРУШКА",
+          "image": "media/hruska_1.webp",
+          "audio": "audio/sl/hruska.mp3"
+        },
+        {
+          "id": "jabolko",
+          "sl": "JABOLKO",
+          "ru": "ЯБОЛКО",
+          "image": "media/jabolko_1.webp",
+          "audio": "audio/sl/jabolko.mp3"
+        },
+        {
+          "id": "knjiga",
+          "sl": "KNJIGA",
+          "ru": "КНЬИГА",
+          "image": "media/knjiga_1.webp",
+          "audio": "audio/sl/knjiga.mp3"
+        },
+        {
+          "id": "skarje",
+          "sl": "ŠKARJE",
+          "ru": "ШКАРЬЕ",
+          "image": "media/skarje_1.webp",
+          "audio": "audio/sl/skarje.mp3"
+        },
+        {
+          "id": "svincnik",
+          "sl": "SVINČNIK",
+          "ru": "СВИНЧНИК",
+          "image": "media/svincnik_1.webp",
+          "audio": "audio/sl/svincnik.mp3"
+        }
+      ],
+      "near": {
+        "S": "ŠZ",
+        "Š": "SŽ",
+        "Z": "ŽS",
+        "Ž": "ZŠ",
+        "C": "ČS",
+        "Č": "CŠ",
+        "K": "GH",
+        "G": "K",
+        "T": "D",
+        "D": "T",
+        "P": "B",
+        "B": "PV",
+        "V": "BF",
+        "F": "V",
+        "M": "N",
+        "N": "ML",
+        "L": "NR",
+        "R": "L",
+        "H": "K",
+        "J": "I",
+        "A": "OE",
+        "O": "AU",
+        "E": "IA",
+        "I": "EU",
+        "U": "OI"
+      }
+    }
+  ]
+}
