@@ -140,28 +140,34 @@ function finiteDone(state) {
   return Boolean(state.mode?.finite) && state.taskIndex + 1 >= state.tasks.length;
 }
 
-export function handleInstantCorrect(state) {
-  state = markSessionAction(state);
-  state = recordAdvance(recordResponse(state, "correct"));
+// One right answer toward the reward series: the streak grows, and a full
+// series (5 × answersPerStar) earns a reward and starts the next one.
+function creditRewardStreak(state) {
   const streakTarget = 5 * (state.answersPerStar ?? 1);
   const rewardScore = state.rewardPolicy?.version === 2 && (state.rewardAttemptBlocked || state.rewardAttemptCredited) ? 0 : 1;
   const streakCount = (state.streakCount ?? 0) + rewardScore;
-  const correctCount = state.correctCount + 1;
   const rewardEarnedCount = streakCount >= streakTarget
     ? (state.rewardEarnedCount ?? 0) + 1
     : (state.rewardEarnedCount ?? 0);
-  const finalStreak = streakCount >= streakTarget ? 0 : streakCount;
-  const nextIndex = (state.taskIndex + 1) % state.tasks.length;
   return {
-    ...rewardAttemptComplete(state),
-    status: finiteDone(state) ? "completed" : "task_active",
-    taskIndex: nextIndex,
-    taskRetry: 0,
-    correctCount,
-    streakCount: finalStreak,
+    ...state,
+    streakCount: streakCount >= streakTarget ? 0 : streakCount,
     bestStreak: Math.max(state.bestStreak ?? 0, state.rewardPolicy?.version === 2 ? learningStreakAfterCorrect(state, 1) : streakCount),
     rewardEarnedCount,
     ...(state.rewardPolicy?.version === 2 ? { learningStreakCount: learningStreakAfterCorrect(state, 1), rewardChangeReason: streakCount >= streakTarget ? "exchange" : rewardScore > 0 ? "gain" : state.rewardChangeReason } : {}),
+  };
+}
+
+export function handleInstantCorrect(state) {
+  state = markSessionAction(state);
+  state = recordAdvance(recordResponse(state, "correct"));
+  const nextIndex = (state.taskIndex + 1) % state.tasks.length;
+  return {
+    ...rewardAttemptComplete(creditRewardStreak(state)),
+    status: finiteDone(state) ? "completed" : "task_active",
+    taskIndex: nextIndex,
+    taskRetry: 0,
+    correctCount: state.correctCount + 1,
   };
 }
 
@@ -213,9 +219,21 @@ export function handleStreakReset(state, conceptId, cardId) {
   };
 }
 
+// In a mode the adult rates («Сделай», «Что делает?»: evaluation "adult"),
+// the rating drives the reward series like a right or wrong answer elsewhere:
+// «Легко» (done alone) counts toward it, «Не понимает» is a mistake (resets it
+// under «Без ошибок»), «С подсказкой» neither - a prompted answer is not
+// rewarded, but the child is not punished for needing help.
+const REWARD_CREDIT_QUALITIES = new Set(["easy", "independent", "correct"]);
+const REWARD_MISTAKE_QUALITIES = new Set(["fail"]);
+
 export function handleQualityAnswer(state, quality, conceptId, cardId) {
   state = markSessionAction(state);
   state = recordQuality(state, quality);
+  if (state.mode?.evaluation === "adult") {
+    if (REWARD_CREDIT_QUALITIES.has(quality)) state = creditRewardStreak(state);
+    else if (REWARD_MISTAKE_QUALITIES.has(quality)) state = applyRewardMistake(state);
+  }
   const assessment = { quality, conceptId, cardId, taskIndex: state.taskIndex };
   return handleAdvance({
     ...state,

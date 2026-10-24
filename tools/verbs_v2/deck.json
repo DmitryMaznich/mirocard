@@ -5,7 +5,7 @@
       "ru": "Глаголы",
       "en": "verbs_v2"
     },
-    "version": "2.4.5",
+    "version": "2.4.6",
     "renderer": "flashcards",
     "conceptCount": 44,
     "questionKey": "Что делает?",
@@ -101,7 +101,7 @@
     {
       "id": "verbs_act_out",
       "type": "act_out",
-      "evaluation": "none",
+      "evaluation": "adult",
       "paramsScope": "mode",
       "ui": {
         "title": "Сделай",
@@ -217,7 +217,7 @@
     {
       "id": "verbs_question_answer",
       "type": "question_answer",
-      "evaluation": "none",
+      "evaluation": "adult",
       "ui": {
         "title": "Что делает?",
         "instruction": "Что делает?",

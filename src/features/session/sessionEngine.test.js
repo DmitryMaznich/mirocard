@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSessionState, handleAnswer, handleAdvance, handleInstantCorrect, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
+import { createSessionState, handleAnswer, handleAdvance, handleInstantCorrect, handleQualityAnswer, handleInstantIncorrect, handleInPlaceIncorrect, handleStreakReset, computeSessionRecord } from "./sessionEngine";
 
 const TASKS = [
   { type: "yes_no", conceptId: "tshirt", card: { id: "t1" }, displayLabel: "футболка", isLabelCorrect: true },
@@ -354,4 +354,25 @@ it("keeps the session identity from start through completion", () => {
  expect(record.id).toBe(state.id);
  expect(record.activeDurationMs).toBe(1000);
  expect(createSessionState(TASKS,MODE,"student_1","clothes","1.0.0",["tshirt"]).id).not.toBe(state.id);
+});
+
+describe("adult-rated modes earn the reward from the rating", () => {
+  const rated = (evaluation, strict = true) => createSessionState(
+    Array.from({ length: 12 }, (_, i) => ({ type: "act_out", conceptId: `c${i}` })),
+    { id: "verbs_act_out", type: "act_out", evaluation, loop: true }, "s1", "verbs_v2", "1", [], null, false, 1, strict);
+  const rate = (state, ...qualities) => qualities.reduce((s, q) => handleQualityAnswer(s, q, "c0", null), state);
+
+  it("five «Легко» in a row earn one reward", () => {
+    const state = rate(rated("adult"), "easy", "easy", "easy", "easy", "easy");
+    expect(state.rewardEarnedCount).toBe(1);
+    expect(state.streakCount).toBe(0);
+  });
+  it("«С подсказкой» neither counts nor resets; «Не понимает» resets under «Без ошибок»", () => {
+    expect(rate(rated("adult"), "easy", "easy", "prompted").streakCount).toBe(2);
+    expect(rate(rated("adult"), "easy", "easy", "fail").streakCount).toBe(0);
+    expect(rate(rated("adult", false), "easy", "easy", "fail").streakCount).toBe(2);
+  });
+  it("a mode without evaluation never earns one", () => {
+    expect(rate(rated("none"), "easy", "easy", "easy", "easy", "easy").rewardEarnedCount).toBe(0);
+  });
 });

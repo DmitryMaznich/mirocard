@@ -102,6 +102,10 @@ describe("pictures", () => {
     expect(generateTasks("find_n", deriveConcepts(deck.cards), deck.cards, { step: 2 }, show).some((t) => t.options.some((o) => o.isTarget && o.card.agent === "animal"))).toBe(true);
   });
   // No answers are counted there, so a reward could never be earned: the switch is hidden.
+  // The adult rates these, and the rating earns the reward (handleQualityAnswer).
+  it("«Сделай» and «Что делает?» are rated by the adult", () => {
+    for (const id of ["verbs_act_out", "verbs_question_answer"]) expect(deck.modes.find((m) => m.id === id).evaluation).toBe("adult");
+  });
   it("«Знакомство» has no video-reward switch", () => {
     expect(deck.modes.find((m) => m.id === "verbs_intro").hideVideoReward).toBe(true);
   });

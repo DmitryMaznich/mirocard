@@ -894,11 +894,20 @@ const DEFAULT_MODE_METHODOLOGY = {
   },
 };
 
+// The adult rates the answer in these modes («Легко» / «С подсказкой» / «Не
+// понимает»), and the rating drives the reward series (handleQualityAnswer).
+// Decks installed earlier say evaluation "none" there, which hid the series
+// settings and never earned a reward.
+const ADULT_RATED_TYPES = new Set(["question_answer", "act_out"]);
+function withAdultRating(mode) {
+  return ADULT_RATED_TYPES.has(mode?.type) && mode.evaluation === "none" ? { ...mode, evaluation: "adult" } : mode;
+}
+
 function buildFlashcardModes(meta, existingModes) {
   // Opt-out for decks that define their own complete mode list (e.g. symmetry_draw)
   // and never want the generic find_n/yes_no/choose_word_by_picture/choose_all set
   // merged in alongside it.
-  if (meta.customModesOnly) return existingModes ?? [];
+  if (meta.customModesOnly) return (existingModes ?? []).map(withAdultRating);
   const base = existingModes?.length
     ? mergeDefaultModes(existingModes, DEFAULT_FLASHCARD_MODES)
     : DEFAULT_FLASHCARD_MODES;
@@ -928,7 +937,7 @@ function buildFlashcardModes(meta, existingModes) {
       },
       params: QA_PARAMS,
     };
-  return [...sorted, qaMode];
+  return [...sorted, withAdultRating(qaMode)];
 }
 
 const DEFAULT_MODES = {
