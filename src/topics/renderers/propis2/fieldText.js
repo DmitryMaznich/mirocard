@@ -1,7 +1,7 @@
 // `propis2`: the one text field of the constructor. It holds the rows of the page from a chosen row to the end, one row
 // per line (Enter = a new row on the sheet). Typing in it rewrites exactly that tail of the page; the rows above are not
 // touched. This module is the pure part: rows -> field text, field text -> rows.
-import { newRow } from "./model.js";
+import { inheritedRowParams, newRow } from "./model.js";
 
 const isEmptyRow = (r) => r.kind === "blank" || (r.kind !== "passage" && !String(r.text ?? "").trim());
 
@@ -26,8 +26,7 @@ export function inferRowKind(line, glyphMap, page, asText) {
   return /\s/.test(t) ? "passage" : "text";
 }
 
-const PARAM_KEYS = ["repeat", "dots", "copies", "mark", "asText", "gap"];
-const paramsOf = (row) => Object.fromEntries(PARAM_KEYS.filter((k) => row?.[k] !== undefined).map((k) => [k, row[k]]));
+const paramsOf = inheritedRowParams;
 
 // Rewrites the tail of the page that starts at row `startId` (null = after the last row with content) from the field's
 // text. A line keeps the row that stood at its place (its id and options); a new line gets the options of the row above it;

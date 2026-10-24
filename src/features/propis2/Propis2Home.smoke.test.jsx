@@ -157,8 +157,8 @@ describe("propis2 (zip topic)", () => {
     expect(host.querySelectorAll('[data-testid="propis2-set-card"]')).toHaveLength(2);
 
     // a ready notebook lies in the list like our own: editing it makes our copy quietly
-    expect(host.querySelectorAll('[data-testid="propis2-ready-card"]').length).toBeGreaterThan(5);
     for (let i = 0; i < 40 && !host.querySelector('[aria-label="Изменить тетрадь 9. Буквы б в ф и весь алфавит"]'); i += 1) await act(async () => { await tick(100); }); // the ready notebooks load lazily (kits.json)
+    expect(host.querySelectorAll('[data-testid="propis2-ready-card"]').length).toBeGreaterThan(5);
     await click(host.querySelector('[aria-label="Изменить тетрадь 9. Буквы б в ф и весь алфавит"]'));
     expect(host.querySelector('[data-testid="propis2-editor"]')).not.toBeNull();
     expect(host.querySelector('[aria-label="Название тетради"]').value).toBe("9. Буквы б в ф и весь алфавит");
@@ -690,6 +690,38 @@ describe("propis2 (zip topic)", () => {
     await click(pct());
     expect(pct().textContent).toBe("100%");
     expect(JSON.parse(localStorage.getItem("propis2:canvasZoom")).mode).toBe("fit");
+    await act(async () => { root.unmount(); await tick(400); });
+    host.remove();
+  }, 40000);
+
+  it("row settings: offered to the next rows set as the row was, down to the first row set otherwise (owner, 2026-10-24)", async () => {
+    const db = await freshDb();
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => { root.render(<Propis2Home db={db} />); await tick(); });
+    const click = async (el) => { await act(async () => { el.dispatchEvent(new MouseEvent("click", { bubbles: true })); await tick(); }); };
+    const pickBtn = (group) => host.querySelector(`button[aria-label="${group}"][aria-haspopup]`);
+    const pick = async (group, option) => { await click(pickBtn(group)); await click([...host.querySelectorAll(`[role="listbox"][aria-label="${group}"] button`)].find((b) => b.getAttribute("aria-label") === option)); };
+    const caretTo = async (pos) => { await act(async () => { const f = fieldOf(host); f.focus(); f.setSelectionRange(pos, pos); f.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true })); await tick(); }); };
+    await click(byLabel(host, "Новая тетрадь"));
+    await typeInField(host, "и\nи\nи\nи");
+    // row 3 gets its own setting, then row 1 is changed: row 2 is set as row 1 was, row 3 is not — the offer stops there
+    await caretTo(4);
+    await pick("Повтор", "Одна запись");
+    await caretTo(0);
+    expect(pickBtn("Повтор").querySelector(".p2-mixed")).not.toBeNull(); // the rows of the page differ
+    await pick("Повтор", "Повтор с затуханием");
+    const offer = () => host.querySelector('[data-testid="propis2-offer"]');
+    expect(offer().textContent).toMatch(/^Образец: повтор с затуханием — на строке 1/);
+    await click([...offer().querySelectorAll("button")].find((b) => b.textContent === "На следующие строки"));
+    expect(offer().textContent).toMatch(/ещё на 1 строке ниже/);
+    await caretTo(2);
+    expect(pickBtn("Повтор").dataset.value).toBe("fade");
+    await caretTo(4);
+    expect(pickBtn("Повтор").dataset.value).toBe("one");
+    await caretTo(6);
+    expect(pickBtn("Повтор").dataset.value).toBe("all");
     await act(async () => { root.unmount(); await tick(400); });
     host.remove();
   }, 40000);

@@ -394,6 +394,40 @@ export function tapSymbol(page, glyphMap, selectedId, tile) {
   return { page: { ...page, rows: page.rows.map((r, i) => (i === idx ? { ...r, ...patch } : r)) }, rowId: row.id };
 }
 
+// ---- the row strip's settings over several rows (owner, 2026-10-24) ----
+// The options a new row takes from the row above it (typed with Enter in fieldText.js, or a tap on an empty place of the sheet).
+export const INHERITED_ROW_KEYS = ["repeat", "dots", "copies", "mark", "asText", "gap"];
+export const inheritedRowParams = (row) => Object.fromEntries(INHERITED_ROW_KEYS.filter((k) => row?.[k] !== undefined).map((k) => [k, row[k]]));
+// «Повтор бледной линией» in the strip = repeat "all" + copies "solid"
+export const SOLID_REPEAT = "all-solid";
+// A row with a sample: the rows the strip's «Образец» and «Точки» work on (blank rows and running text have neither).
+export const isSampleRow = (row) => (row?.kind === "text" || row?.kind === "element") && Boolean(String(row?.text ?? "").trim());
+// A row's setting as the strip shows it: `repeat` (a strip choice, the engine's own rule resolved) or `dots`.
+export function rowSetting(row, key, glyphMap) {
+  const p = rowParams(row);
+  if (key === "dots") return p.dots;
+  const rep = p.repeat === "auto" ? (multipliesByDefault(row?.text, glyphMap) ? "all" : "one") : p.repeat;
+  return rep === "all" && p.copies === "solid" ? SOLID_REPEAT : rep;
+}
+// The rows below row `index` that are set as it was (`old`): the sample rows down to the first one set otherwise — that one the
+// adult set on purpose and it stays; blank and running-text rows are passed over. On this page only. Ids, in order.
+export function followingSameRows(rows, index, key, old, glyphMap) {
+  const out = [];
+  for (let i = index + 1; i < rows.length; i += 1) {
+    if (!isSampleRow(rows[i])) continue;
+    if (rowSetting(rows[i], key, glyphMap) !== old) break;
+    out.push(rows[i].id);
+  }
+  return out;
+}
+// Which row settings differ between the sample rows of the page (the dot on a strip button): { repeat: true, dots: true }
+export function mixedRowSettings(rows, glyphMap) {
+  const out = {};
+  const samples = rows.filter(isSampleRow);
+  for (const key of ["repeat", "dots"]) if (new Set(samples.map((r) => rowSetting(r, key, glyphMap))).size > 1) out[key] = true;
+  return out;
+}
+
 // A tap on physical row `absRow` of the sheet: a row that exists is selected; an empty place below the last row gets a
 // new, empty row, with blank rows filling any gap above it. Returns { page, rowId } so the caller can select it.
 export function selectRowAt(page, glyphMap, absRow) {
@@ -401,7 +435,9 @@ export function selectRowAt(page, glyphMap, absRow) {
   const owner = absRow >= 0 && absRow < owners.length ? owners[absRow] : undefined;
   if (owner === null) return { page, rowId: null }; // the writing space the "write after" option adds: not a row of its own
   if (owner !== undefined) return { page, rowId: page.rows[owner].id };
-  const row = newRow();
+  // the new row takes the options of the last row with something on it (as a row typed with Enter does)
+  const above = [...page.rows].reverse().find((r) => String(r.text ?? "").trim());
+  const row = newRow(above ? inheritedRowParams(above) : {});
   const gap = Math.max(0, absRow - owners.length);
   return { page: { ...page, rows: [...page.rows, ...Array.from({ length: gap }, () => newRow({ kind: "blank" })), row] }, rowId: row.id };
 }

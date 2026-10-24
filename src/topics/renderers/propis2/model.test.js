@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
-import { taskGrid, pageRuling, paperKey, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, mixedSettings, othersDiffer } from "./model.js";
+import { taskGrid, pageRuling, paperKey, methodNotebooks, kitToLibraryItems, PAGE_FORMATS, pageFormat, pageAspect, rowsPerPage, MARGINS, pageMargin, rowMaxX, rowParams, multipliesByDefault, clearPage, isLocked, pageFromPreset, presetFromPage, replaceSymbol, selectRowAt, findOutsideRow, appendTile, dropTile, lineOwners, analyzePage, analyzeRow, duplicateRow, findUnsupported, moveRow, newPage, newRow, pageFromLines, pageFromMarked, newSet, pageToLines, pickFragment, rowToLine, setPageStarts, setToLines, ROWS_PER_PAGE, wrapPassage, notebookSections, notebookLayout, mixedSettings, othersDiffer, followingSameRows, rowSetting, mixedRowSettings } from "./model.js";
 import { layoutWideLinesIntoRows } from "../propis/wordEngine.js";
 import { PROPIS2_LADDER, ladderIndex } from "./data.js";
 import { outsideRowLabels } from "./glyphReach.js";
@@ -831,5 +831,27 @@ describe("ruled paper: the school ruled notebook (owner, 2026-10-14)", () => {
     expect(rowsPerPage({ ...ruled, ruling: "wide" })).toBe(24);
     expect(pageRuling({ ...ruled, ruling: "wide" })).toBe("narrow");
     expect(paperKey(ruled)).toBe(paperKey({ ...ruled, ruling: "wide" }));
+  });
+});
+
+describe("row settings over the next rows (owner, 2026-10-24)", () => {
+  const r = (text, patch = {}) => newRow({ kind: "text", text, ...patch });
+  it("the rows below set as the row was, down to the first row set otherwise; blank and running-text rows passed over", () => {
+    const rows = [r("и"), r("и"), newRow({ kind: "blank", text: "" }), r("мама мыла", { kind: "passage" }), r("и"), r("и", { repeat: "one" }), r("и")];
+    expect(followingSameRows(rows, 0, "repeat", "all", map)).toEqual([rows[1].id, rows[4].id]);
+    expect(followingSameRows(rows, 0, "dots", "all", map)).toEqual([rows[1].id, rows[4].id, rows[5].id, rows[6].id]);
+    expect(followingSameRows(rows, 6, "repeat", "all", map)).toEqual([]);
+  });
+  it("«Повтор бледной линией» is a setting of its own; the engine's own rule is resolved", () => {
+    expect(rowSetting(r("и", { copies: "solid" }), "repeat", map)).toBe("all-solid");
+    expect(rowSetting(r("и"), "repeat", map)).toBe("all");
+    expect(mixedRowSettings([r("и"), r("и", { copies: "solid" })], map)).toEqual({ repeat: true });
+    expect(mixedRowSettings([r("и"), newRow({ kind: "blank", text: "" })], map)).toEqual({});
+  });
+  it("a row made by a tap below the last one takes the options of the last row with something on it", () => {
+    const page = newPage("x", { rows: [r("и", { repeat: "fade", dots: "one" })] });
+    const { page: next, rowId } = selectRowAt(page, map, 5);
+    const made = next.rows.find((x) => x.id === rowId);
+    expect([made.repeat, made.dots]).toEqual(["fade", "one"]);
   });
 });

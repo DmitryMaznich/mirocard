@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useCanvasZoom } from "./useCanvasZoom";
 import { BackArrowIcon } from "@/shared/components/ArrowIcons";
-import { GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt } from "@/topics/renderers/propis2/model.js";
+import { SOLID_REPEAT, followingSameRows, mixedRowSettings, rowSetting, GRIDS, GRID_KINDS, PAGE_FORMATS, deckPapers, MARGINS, multipliesByDefault, pageAspect, pageFormat, RULINGS, pageMargin, rowParams, analyzePage, clearPage, duplicateRow, isLocked, lineOwners, moveRow, newRow, pageGridKind, selectRowAt } from "@/topics/renderers/propis2/model.js";
 import { buildGlyphMap } from "@/topics/renderers/propis2/pageTask.js";
 import { buildTiles } from "./Propis2Carousel";
 import { ElementPicker } from "./Propis2Field";
@@ -61,7 +61,6 @@ const RULING_ICONS = { narrow: I.IconRowNarrow, wide: I.IconRowWide };
 const SLANT_ICONS = { regular: I.IconSlantSparse, dense: I.IconSlantDense };
 const FORMAT_ICONS = { a5: I.IconFormatA5, a4: I.IconFormatA4 };
 const MARGIN_ICONS = { off: I.IconMarginOff, left: I.IconMarginLeft, right: I.IconMarginRight };
-const SOLID_REPEAT = "all-solid";
 const repeatChoice = (o) => (o.repeat === "all" && o.copies === "solid" ? SOLID_REPEAT : o.repeat);
 const repeatPatch = (id) => (id === SOLID_REPEAT ? { repeat: "all", copies: "solid" } : { repeat: id, copies: "dash" });
 const REPEAT_OPTS = [
@@ -77,6 +76,13 @@ const DOT_OPTS = [
   { id: "one", label: "Красная точка у образца", Icon: I.IconDotsOne },
   { id: "all", label: "Красные точки у образца и копий", Icon: I.IconDotsAll },
 ];
+// What a row strip button did, for the offer to do it on the next rows too (owner, 2026-10-24)
+const ROW_SAYS = {
+  repeat: (v) => `Образец: ${optionName(REPEAT_OPTS, v)}`,
+  dots: (v) => `Точки: ${optionName(DOT_OPTS, v)}`,
+};
+const ROW_PATCH = { repeat: (v) => repeatPatch(v), dots: (v) => ({ dots: v }) };
+const onRows = (n) => `${n} ${n % 10 === 1 && n % 100 !== 11 ? "строке" : "строках"}`;
 
 
 // A round/square icon button: 44px target, pressed state, the name only as aria-label.
@@ -200,6 +206,15 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
 
   const setRows = (rows) => onChange({ ...page, rows: rows.length ? rows : [newRow()] });
   const patchSelected = (patch) => setRows(page.rows.map((r) => (r.id === selectedId ? { ...r, ...patch } : r)));
+  // A row setting (Образец, Точки) changed on the selected row; the rows below that were set as it was are offered the change too:
+  // «… на строке 3 · На следующие строки» (as the paper's «На всю тетрадь»). Only down to the first row set otherwise, on this page.
+  const setRowSetting = (key, value) => {
+    const old = rowSetting(selected, key, glyphMap);
+    patchSelected(ROW_PATCH[key](value));
+    const ids = old === value ? [] : followingSameRows(page.rows, selectedIndex, key, old, glyphMap);
+    showOffer(ids.length ? { scope: "rows", key, value, ids, row: selectedIndex + 1 } : null, OFFER_MS);
+  };
+  const rowMixed = useMemo(() => mixedRowSettings(page.rows, glyphMap), [page.rows, glyphMap]);
 
   // A click on the sheet (PrintPage onSheetPoint: the sheet row under it, the x in the row): the caret goes to the nearest letter
   // boundary of that row — an empty place on the sheet gets a new, empty row first (any ruled row can be clicked and typed into);
@@ -391,8 +406,8 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           )}
   </>;
   const rowEls = <>
-          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} onChange={(id) => patchSelected(repeatPatch(id))} options={REPEAT_OPTS} />
-          <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} onChange={(id) => patchSelected({ dots: id })} options={DOT_OPTS} />
+          <Propis2Picker label="Повтор" caption="Образец" value={rowOpts ? repeatChoice(rowOpts) : "all"} disabled={!rowEditable} mixed={rowMixed.repeat} onChange={(id) => setRowSetting("repeat", id)} options={REPEAT_OPTS} />
+          <Propis2Picker label="Красные точки" caption="Точки" value={rowOpts?.dots ?? "all"} disabled={!rowEditable} mixed={rowMixed.dots} onChange={(id) => setRowSetting("dots", id)} options={DOT_OPTS} />
           <ElementPicker elements={elementTiles} disabled={locked && !selected} onInsert={(text) => { insertElement(text); }} />
           <IconBtn label="Строка как текст (с переносом)" caption="Текст" on={selected ? selected.kind === "passage" : undefined} disabled={locked || !selected || selected.kind === "blank"} onClick={() => setRowAsText(selected.kind !== "passage")}><I.IconTabText /></IconBtn>
           <span className="p2-sep" aria-hidden="true" />
@@ -428,12 +443,23 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           </div>
         </div>
   );
-  const offerEl = offer && notebook && (
+  const rowOffer = offer?.scope === "rows";
+  const applyRowOffer = () => {
+    const ids = new Set(offer.ids);
+    const patch = ROW_PATCH[offer.key](offer.value);
+    setRows(page.rows.map((r) => (ids.has(r.id) ? { ...r, ...patch } : r)));
+    showOffer({ ...offer, done: true }, OFFER_MS - 1000);
+  };
+  const offerEl = offer && (rowOffer || notebook) && (
           <div className="p2-offer" role="status" data-testid="propis2-offer">
-            <span className="p2-offer-msg">{SETTING_SAYS[offer.key](offer.value)} — {offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}</span>
+            <span className="p2-offer-msg">{rowOffer
+              ? `${ROW_SAYS[offer.key](offer.value)} — ${offer.done ? `ещё на ${onRows(offer.ids.length)} ниже` : `на строке ${offer.row}`}`
+              : `${SETTING_SAYS[offer.key](offer.value)} — ${offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}`}</span>
             {offer.done
               ? <button type="button" className="p2-offer-btn p2-offer-btn--ghost" onClick={() => { showOffer(null); onUndo?.(); }}>Отменить</button>
-              : <button type="button" className="p2-offer-btn" onClick={() => { notebook.applyAll(offer.key, offer.value); showOffer({ ...offer, done: true }, OFFER_MS - 1000); }}><I.IconSpread />На всю тетрадь</button>}
+              : rowOffer
+                ? <button type="button" className="p2-offer-btn" onClick={applyRowOffer}><I.IconSpread />На следующие строки</button>
+                : <button type="button" className="p2-offer-btn" onClick={() => { notebook.applyAll(offer.key, offer.value); showOffer({ ...offer, done: true }, OFFER_MS - 1000); }}><I.IconSpread />На всю тетрадь</button>}
             <span className="p2-offer-timer" aria-hidden="true" key={offer.done ? "done" : "offer"}><i style={{ animationDuration: `${offer.done ? OFFER_MS - 1000 : OFFER_MS}ms` }} /></span>
           </div>
   );
