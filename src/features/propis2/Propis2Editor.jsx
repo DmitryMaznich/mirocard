@@ -406,13 +406,6 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
           </div>
         </div>
 
-        {onUndo && (
-          // undo / redo float over the canvas, at its right side (not in the scrolling page: they stay put while it scrolls)
-          <div className="p2-history" role="group" aria-label="История изменений">
-            <button type="button" className="p2-hist" onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить"><I.IconUndo /></button>
-            <button type="button" className="p2-hist" onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть"><I.IconRedo /></button>
-          </div>
-        )}
         {offer && notebook && (
           <div className="p2-offer" role="status" data-testid="propis2-offer">
             <span className="p2-offer-msg">{SETTING_SAYS[offer.key](offer.value)} — {offer.done ? `на всех ${notebook.total} страницах` : `на стр. ${(nav?.index ?? 0) + 1}`}</span>
@@ -422,8 +415,16 @@ export default function Propis2Editor({ page, nav, topicRecord, onChange, onBack
             <span className="p2-offer-timer" aria-hidden="true" key={offer.done ? "done" : "offer"}><i style={{ animationDuration: `${offer.done ? OFFER_MS - 1000 : OFFER_MS}ms` }} /></span>
           </div>
         )}
-        {/* the canvas zoom (useCanvasZoom.js): − / the share / + / «По ширине»; the share brings the whole page back */}
+        {/* one row over the canvas (owner, 2026-10-24: on a phone it hides nothing): undo / redo, then the canvas zoom
+            (useCanvasZoom.js): − / the share / + / «По ширине»; the share brings the whole page back */}
         <div className="p2-zoom" role="group" aria-label="Масштаб страницы">
+          {onUndo && (
+            <>
+              <button type="button" className="p2-zoom-btn" onClick={onUndo} disabled={!canUndo} aria-label="Отменить" title="Отменить"><I.IconUndo /></button>
+              <button type="button" className="p2-zoom-btn" onClick={onRedo} disabled={!canRedo} aria-label="Вернуть" title="Вернуть"><I.IconRedo /></button>
+              <span className="p2-zoom-sep" aria-hidden="true" />
+            </>
+          )}
           <button type="button" className="p2-zoom-btn" onClick={zoom.zoomOut} disabled={zoom.z <= 1.001} aria-label="Уменьшить" title="Уменьшить (Ctrl + колесо)">−</button>
           <button type="button" className="p2-zoom-btn p2-zoom-pct" onClick={zoom.fit} disabled={zoom.z <= 1.001} aria-label="Вписать страницу" title="Вписать страницу целиком">{Math.round(zoom.z * 100)}%</button>
           <button type="button" className="p2-zoom-btn" onClick={zoom.zoomIn} disabled={zoom.z >= zoom.maxZ - 0.001} aria-label="Увеличить" title="Увеличить (Ctrl + колесо)">+</button>
