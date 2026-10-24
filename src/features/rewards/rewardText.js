@@ -1,6 +1,9 @@
 import { getUiLanguage } from "@/shared/i18n/uiLanguage.js";
 const messages = {
   ru: {
+    scope: "Эти правила действуют во всех темах и режимах этого ученика.",
+    editProfile: "Изменить их можно в карточке ученика → Правила видеоприза.",
+    strict: "Строгий подсчёт", on: "Включён", off: "Выключен",
     title: "Правила видеоприза", legacy: "Прежние правила", flexible: "Новые правила",
     rollout: "Новые правила включаются отдельно для каждого ученика. Действуют со следующего запуска занятия.",
     rollback: "Для возврата выберите «Прежние правила» и сохраните ученика. Выбранные новые настройки останутся сохранены.",
@@ -16,6 +19,9 @@ const messages = {
     rewardTitle: "Молодец! Видеоприз заработан!", endLabel: "До конца ролика · максимум 3:00",
   },
   sl: {
+    scope: "Ta pravila veljajo za vse teme in načine tega učenca.",
+    editProfile: "Spremenite jih v profilu učenca → Pravila video nagrade.",
+    strict: "Strogo štetje", on: "Vključeno", off: "Izključeno",
     title: "Pravila video nagrade", legacy: "Prejšnja pravila", flexible: "Nova pravila",
     rollout: "Nova pravila vključite za vsakega učenca posebej. Veljajo od naslednjega začetka učne ure.",
     rollback: "Za vrnitev izberite »Prejšnja pravila« in shranite učenca. Izbrane nove nastavitve ostanejo shranjene.",

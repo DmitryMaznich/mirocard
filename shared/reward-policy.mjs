@@ -1,5 +1,5 @@
 export const DEFAULT_REWARD_SETTINGS = Object.freeze({
-  algorithm: "legacy", duration: "120", animation: "normal", sound: false,
+  algorithm: "legacy", duration: "120", animation: "normal", sound: false, strictStars: true, lossMode: "one",
 });
 
 // This module is shared by storage and the app. Unknown/old records keep the
@@ -11,6 +11,8 @@ export function normalizeRewardSettings(raw) {
     duration: ["60", "120", "180", "end"].includes(String(value.duration)) ? String(value.duration) : "120",
     animation: value.animation === "soft" ? "soft" : "normal",
     sound: value.sound === true,
+    strictStars: value.strictStars !== false,
+    lossMode: value.lossMode === "all" ? "all" : "one",
   };
 }
 

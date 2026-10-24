@@ -23,6 +23,11 @@ export default function RewardSettingsSection({ value, onChange }) {
           <button type="button" key={duration} aria-pressed={settings.duration === duration} onClick={() => change({ duration })}>{text(label)}</button>)}
       </div>
       <p>{text("timing")}</p>
+      <p>{text("scope")}</p>
+      <label className="reward-settings__check"><input type="checkbox" checked={settings.strictStars}
+        onChange={event => change({ strictStars: event.target.checked })} />{text("strict")}</label>
+      <p>{text("strictInfo")}</p>
+      <RewardLossControl value={settings.lossMode} onChange={lossMode => change({ lossMode })} />
       <h4>{text("animation")}</h4>
       <div className="reward-settings__choices">
         {["soft", "normal"].map(animation => <button type="button" key={animation}
@@ -43,5 +48,14 @@ export function RewardLossControl({ value, onChange, disabled }) {
         aria-pressed={value === loss} onClick={() => onChange(loss)}>{text(loss)}</button>)}
     </div>
     <p className="reward-settings__notice">{text("attempt")}</p>
+  </div>;
+}
+
+export function RewardRulesSummary({ settings }) {
+  useUiTranslation();
+  return <div className="reward-settings" aria-label={text("title")}>
+    <p className="reward-settings__notice">{text("scope")} {text("editProfile")}</p>
+    <p>{text("strict")}: <strong>{text(settings.strictStars ? "on" : "off")}</strong></p>
+    <p>{text("loss")}: <strong>{text(settings.lossMode === "all" ? "all" : "one")}</strong></p>
   </div>;
 }

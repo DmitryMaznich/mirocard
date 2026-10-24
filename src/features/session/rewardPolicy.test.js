@@ -11,8 +11,8 @@ function start({ strict = true, loss = "one", perStar = 1, instant = false, lega
 
 describe("individual reward policy", () => {
   it("requires explicit opt-in and restores the entire legacy policy without forgetting new choices", () => {
-    expect(effectiveRewardSettings()).toEqual({ algorithm: "legacy", duration: "120", animation: "normal", sound: false });
-    const chosen = { algorithm: "legacy", duration: "180", animation: "soft", sound: true };
+    expect(effectiveRewardSettings()).toEqual({ algorithm: "legacy", duration: "120", animation: "normal", sound: false, strictStars: true, lossMode: "one" });
+    const chosen = { algorithm: "legacy", duration: "180", animation: "soft", sound: true, strictStars: false, lossMode: "all" };
     expect(normalizeRewardSettings(chosen)).toEqual(chosen);
     expect(effectiveRewardSettings(chosen).duration).toBe("120");
     expect(effectiveRewardSettings({ ...chosen, algorithm: "flexible" }).duration).toBe("180");

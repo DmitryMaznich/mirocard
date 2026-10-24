@@ -11,7 +11,7 @@ test("reward settings sync independently, survive stale profile edits and can ro
     const account = createAccount(db, { email: "rewards@test.test", passwordHash: "test" });
     upsertStudent(db, account.id, { id: "s", name: "Миша" });
     assert.deepEqual(JSON.parse(getStudents(db, account.id)[0].reward_settings), {});
-    const settings = { algorithm: "flexible", duration: "end", animation: "soft", sound: true };
+    const settings = { algorithm: "flexible", duration: "end", animation: "soft", sound: true, strictStars: false, lossMode: "all" };
     processSync(db, account.id, [{ type: "student.reward_settings.upsert", data: { studentId: "s", settings, updatedAt: "2026-10-23T12:00:00.000Z" } }]);
     upsertStudent(db, account.id, { id: "s", name: "Новое имя", rewardSettings: { algorithm: "legacy" } });
     upsertStudentRewardSettings(db, account.id, { studentId: "s", settings: { algorithm: "legacy" }, updatedAt: "2026-10-22T12:00:00.000Z" });
@@ -22,6 +22,11 @@ test("reward settings sync independently, survive stale profile edits and can ro
     student = buildBootstrap(db, account.id).students[0];
     assert.equal(student.rewardSettings.algorithm, "legacy");
     assert.equal(student.rewardSettings.duration, "end");
+    // A previous application version knows only the original four fields.
+    upsertStudentRewardSettings(db, account.id, { studentId: "s", settings: { algorithm: "flexible", duration: "60", animation: "normal", sound: false }, updatedAt: "2026-10-24T13:00:00.000Z" });
+    student = buildBootstrap(db, account.id).students[0];
+    assert.equal(student.rewardSettings.strictStars, false);
+    assert.equal(student.rewardSettings.lossMode, "all");
   } finally { db.close(); }
 });
 
